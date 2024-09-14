@@ -1,0 +1,113 @@
+{
+  "id": "ultralight",
+  "name": "Ultralight",
+  "host": "locahost",
+  "port": 4000,
+  "tools": [
+    {
+      "id": "Liconic",
+      "type": "liconic",
+      "name": "Liconic",
+      "description": "Incubator",
+      "image_url":"/tool_icons/liconic.png",
+      "ip": "127.0.0.1",
+      "port": 4100,
+      "config": {
+        "simulated": true,
+        "liconic": {
+          "tool_id":"Liconic",
+          "com_port": "COM8"
+        }
+      }
+    },
+    {
+      "id": "pf400_1",
+      "type": "pf400",
+      "name": "PF 400",
+      "description": "Robot Arm",
+      "ip": "127.0.0.1",
+      "port": 4200,
+      "image_url":"/tool_icons/pf400.jpg",
+      "config": {
+        "simulated": true,
+        "pf400": {
+          "tool_id":"pf400_1",
+          "host": "192.168.0.1",
+          "port": 10100,
+          "location": "ULTRALIGHT_WORKCELL",
+          "joints":5
+        }
+      }
+    },
+    {
+      "id": "cytation_1",
+      "type": "cytation",
+      "name": "Cytation 1",
+      "description": "Cell Multi-Mode Imager",
+      "ip": "127.0.0.1",
+      "port": 4300,
+      "image_url":"/tool_icons/cytation5.png",
+      "config": {
+        "simulated": true,
+        "cytation": {
+          "tool_id":"cytation_1",
+          "protocol_dir": "C:\\Users\\Bioteam\\cytation\\protocols",
+          "experiment_dir": "C:\\cytation_experiments",
+          "reader_type": "CYTATION_READER_CYTATION5"
+        }
+      }
+    },
+    {
+      "id": "opentrons2_1",
+      "type": "opentrons2",
+      "name": "OT-2",
+      "description": "Liquid Handler",
+      "image_url":"/tool_icons/ot2.png",
+      "ip": "127.0.0.1",
+      "port": 4400,
+      "config": {
+        "simulated": true,
+        "opentrons2": {
+          "robot_ip": "169.254.186.212",
+          "robot_port": 31950,
+          "program_dir": "C:\\FRT\\Development\\foundry-runtime\\tools\\opentrons2\\protocols"
+        }
+      }
+    },
+    {
+      "id": "dataman70_1",
+      "type": "dataman70",
+      "name": "Dataman 70",
+      "description": "Barcode Scanner",
+      "image_url":"/tool_icons/barcode.png",
+      "ip": "127.0.0.1",
+      "port": 4500,
+      "config": {
+        "simulated": true,
+        "dataman70": {
+          "tool_id":"dataman70_1",
+          "com_port": "COM6"
+        }
+      }
+    },
+    {
+      "id": "helix_tool_1",
+      "type": "helix_tool",
+      "name": "Helix Tool",
+      "description": "Helix Tool",
+      "image_url":"/tool_icons/dna_helix.jpg",
+      "ip": "127.0.0.1",
+      "port": 4600,
+      "config": {
+        "simulated": true,
+        "helix_tool": {
+          "tool_id": "helix_tool_1",
+          "helix_url": "https://app.science.xyz/api",
+          "inventory_url": "http://127.0.0.1:8000",
+          "cytation_data_directory": "D:\\cytation_experiments",
+          "synology_directory": "H:/SynologyDrive/Helix/cultures"
+        }
+      }
+    }
+  ]
+}

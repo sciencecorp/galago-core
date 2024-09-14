@@ -1,0 +1,68 @@
+[  
+  {
+    "command": "unwind",
+    "params": {}
+  },
+  {
+    "command": "move",
+    "params":{
+      "waypoint": "ot2_col1_safe",
+      "motion_profile_id":1
+    }
+  },
+  {
+    "command": "pick_lid",
+    "params": {
+        "labware":"default",
+        "location": "ot2_nest1",
+        "motion_profile_id":4,
+        "pick_from_plate": false
+    }
+  },
+  {
+    "command": "approach",
+    "params":{
+      "nest": "ot2_nest1",
+      "motion_profile_id":4,
+      "ignore_safepath": "true",
+      "z_offset": 80
+    }
+  },
+  {
+    "command": "approach",
+    "params":{
+      "nest": "ot2_nest5",
+      "motion_profile_id":4,
+      "ignore_safepath":"true",
+      "z_offset": 20
+    }
+  },
+  {
+    "command": "place_lid",
+    "params": {
+        "location": "ot2_nest5",
+        "labware":"default",
+        "motion_profile_id":4,
+        "place_on_plate": true
+    }
+  },
+  {
+    "command": "leave",
+    "params":{
+      "nest": "ot2_nest5",
+      "motion_profile_id":4,
+      "z_offset":20
+    }
+  },
+  {
+    "command": "move",
+    "params":{
+      "waypoint": "ot2_col2_safe",
+      "motion_profile_id":1
+    }
+  },
+  {
+    "command": "unwind",
+    "params": {}
+  }
+]

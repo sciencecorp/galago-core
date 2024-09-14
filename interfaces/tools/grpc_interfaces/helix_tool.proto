@@ -1,0 +1,102 @@
+syntax = 'proto3';
+
+package com.science.foundry.tools.grpc_interfaces.helix_tool;
+
+import "google/protobuf/struct.proto";
+
+message Command {
+  oneof command {
+    CompleteTodo complete_todo = 1;
+    PostMeasurement post_measurement = 2;
+    PostDataObject post_data_object = 3;
+    UploadDataToSynology upload_data_to_synology = 4;
+    UpdateConsumables update_consumables = 5;
+    UploadCytationImagesToSynology upload_cytation_images_to_synology = 6;
+    PostDataObjectFromLocalDirectory post_data_object_from_local_directory = 7;
+    SlackMessage slack_message = 8;
+    HandleTodoCompletion handle_todo_completion = 9;
+    SlackConfluencyMessage send_confluency_slack = 10;
+    PassageCulture passage_culture = 11;
+    PostNote post_note_to_helix = 12;
+  }
+
+  message CompleteTodo {
+    string todo_id = 1;
+  }
+
+  message PassageCulture {
+    int32 culture_id = 1;
+    int32 well_plate_id = 2;
+    bool mark_dead = 3; 
+    int32 plate_type = 4;
+  }
+
+  message SlackMessage {
+    string message = 1;
+  }
+
+  message UploadDataToSynology {
+    string local_directory = 1;
+    string synology_directory = 2;
+  }
+
+  message PostMeasurement {
+    string measurement_data = 1;
+  }
+
+  message File {
+    bytes data = 1;
+    string filename = 2;
+  }
+
+  message PostDataObject {
+    string data_type = 1;
+    repeated File files = 2;
+    bool val_only = 3;
+    google.protobuf.Struct object_data = 4;
+  }
+
+  message PostDataObjectFromLocalDirectory {
+    string data_type = 1;
+    string dirpath = 2;
+    bool val_only = 3;
+    google.protobuf.Struct object_data = 4;
+  }
+
+  message UpdateConsumables {
+    repeated int32 reagent_ids = 1;
+  }
+
+  message UploadCytationImagesToSynology {
+    int32 culture_id = 1;
+  }
+
+  message HandleTodoCompletion {
+    int32 todo_id = 1;
+    int32 workflow_run_id = 2;
+    optional string todo_state = 3;
+  }
+
+  message SlackConfluencyMessage {
+    int32 culture_id =1;
+    string data_file =2;
+    int32 threshold =3;
+  }
+
+  message PostNote {
+    int32 culture_id = 1;
+    int32 well = 2;
+    string note = 3;
+  }
+
+}
+
+  
+
+message Config {
+  string helix_url = 1;
+  string inventory_url = 2;
+  string cytation_data_directory = 3;
+  string synology_directory = 4;
+  string tool_id = 5;
+}

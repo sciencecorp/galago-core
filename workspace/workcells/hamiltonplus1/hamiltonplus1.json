@@ -1,0 +1,24 @@
+{
+    "id": "hamiltonplus1",
+    "name": "Hamilton",
+    "host": "0.0.0.0",
+    "port": 4000,
+    "tools": [
+      {
+        "id": "hamilton_1",
+        "type": "hamilton",
+        "name": "Hamilton STAR PLUS",
+        "description": "Liquid Handler",
+        "image_url":"/tool_icons/hamilton_star.png",
+        "ip": "localhost",
+        "port":4100,
+        "config": {
+          "simulated": true,
+          "hamilton": {
+            "tool_id":"bayhamiltonplus1max_cytation_1"
+          }
+        }
+      }
+    ]
+  }
+  

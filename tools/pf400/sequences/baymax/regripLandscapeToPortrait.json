@@ -1,0 +1,37 @@
+[  
+  {
+    "command": "unwind",
+    "params": {}
+  },
+  {
+    "command": "dropoff_plate",
+    "params":{
+      "location": "regrip_landscape",
+      "motion_profile_id":4,
+      "labware":"default"
+    }
+  },
+  {
+    "command": "unwind",
+    "params": {}
+  },
+  {
+    "command": "move",
+    "params":{
+      "waypoint": "r2_safe",
+      "motion_profile_id":1
+    }
+  },
+  {
+    "command": "retrieve_plate",
+    "params":{
+      "location": "regrip_portrait",
+      "motion_profile_id":4,
+      "labware":"default"
+    }
+  },
+  {
+    "command": "unwind",
+    "params": {}
+  }
+]

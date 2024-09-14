@@ -1,0 +1,18 @@
+[  
+  {
+    "command": "unwind",
+    "params": {}
+  },
+  {
+    "command": "dropoff_plate",
+    "params":{
+      "location": "ot2_nest3",
+      "motion_profile_id":4,
+      "labware":"default"
+    }
+  },
+  {
+    "command": "unwind",
+    "params": {}
+  }
+]
