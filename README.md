@@ -66,7 +66,7 @@ conda env create -f environment.yml # only specifies python version and a nodejs
 #Activate the environment
 conda activate galago
 #or
-source C:/Users/Bioteam/miniconda3/Scripts/activate galago #Windows example if conda is not in path
+source C:/Users/Bioteam/miniconda3/Scripts/activate galago-core #Windows example if conda is not in path
 #Install deps
 bin/make deps #installs tools' and controller's dependencies.
 bin/make proto #build protobuf scripts.

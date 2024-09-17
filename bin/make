@@ -6,22 +6,15 @@ WORKING_BRANCH=$(git symbolic-ref --short HEAD)
 
 # Install dependencies for tool servers, controller, and protobuf generator
 deps() {
-  activate_env
   python_deps
   npm_deps
-  # unfortunately we need global installs for ts-proto and grpc-tools on windows
-  #npm install -g grpc-tools@1.12.4 ts-proto@1.151.1
+  npm install -g grpc-tools@1.12.4 ts-proto@1.151.1
 }
 
 build_env() {
     echo "Creating conda environment '$ENV_NAME'..."
     conda create --name $ENV_NAME python=3.9.12 nodejs=16.13.1 -y
     echo "Conda environment '$ENV_NAME' created."
-}
-
-activate_env() {
-    echo "Activating environment '$ENV_NAME'..."
-    conda activate $ENV_NAME
 }
 
 python_deps() {
@@ -149,15 +142,15 @@ proto() {
   proto_ts
 }
 
-# for cmd in "$@"; do
-#   set -ex
-#   $cmd
-#   set +ex
-# done
+for cmd in "$@"; do
+  set -ex
+  $cmd
+  set +ex
+done
 
-# if [ $# -eq 0 ]; then
-#   echo "No command specified, available commands:"
-#   for cmd in $(compgen -A function | grep -E '^'); do
-#     echo "  ${cmd#}"
-#   done
-# fi
+if [ $# -eq 0 ]; then
+  echo "No command specified, available commands:"
+  for cmd in $(compgen -A function | grep -E '^'); do
+    echo "  ${cmd#}"
+  done
+fi

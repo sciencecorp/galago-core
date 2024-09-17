@@ -1,3 +1,5 @@
+Start-Process powershell -Verb runAs
+
 $install_path = "$env:USERPROFILE\Miniconda3"
 $conda_executable = "$install_path\Scripts\conda.exe"
 
@@ -59,3 +61,4 @@ Write-Host "Activating the 'galago-core32' environment..."
 Start-Process -Wait -FilePath "cmd.exe" -ArgumentList "/c conda activate galago-core32 && conda env list"
 
 Write-Host "Miniconda installation and environment setup complete."
+PAUSE

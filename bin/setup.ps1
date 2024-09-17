@@ -1,6 +1,9 @@
+Start-Process powershell -Verb runAs
+
 $PROTOC_GEN_TS_PATH = ".\controller\node_modules\.bin\protoc-gen-ts_proto"
 $PROTO_SRC = "./interfaces"
 $WORKING_BRANCH = git symbolic-ref --short HEAD
+$ENV_NAME = "galago-core"
 
 function deps {
   activate_env
@@ -22,8 +25,8 @@ function activate_env {
 }
 
 function python_deps {
-  python -m pip install -r tools/requirements.txt
-  foreach ($req in Get-ChildItem tools/*/requirements.txt) {
+  python -m pip install -r ../tools/requirements.txt
+  foreach ($req in Get-ChildItem ../tools/*/requirements.txt) {
     try {
       python -m pip install -r $req --no-cache-dir
     } catch {
@@ -33,9 +36,10 @@ function python_deps {
 }
 
 function npm_deps {
-  Set-Location controller
+  cd ../controller
+  activate_env
   npm install
-  Set-Location ..
+  cd ..
 }
 
 function db {
@@ -121,12 +125,7 @@ function proto {
   proto_ts
 }
 
-# Default action when no command is provided
-if (-not $args) {
-  Write-Host "No command specified, available commands:"
-  Get-Command -Name "*" -CommandType Function | ForEach-Object { Write-Host "  $($_.Name)" }
-} else {
-  foreach ($cmd in $args) {
-    & $cmd
-  }
-}
+
+deps
+
+PAUSE

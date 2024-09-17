@@ -89,25 +89,6 @@
           "com_port": "COM6"
         }
       }
-    },
-    {
-      "id": "helix_tool_1",
-      "type": "helix_tool",
-      "name": "Helix Tool",
-      "description": "Helix Tool",
-      "image_url":"/tool_icons/dna_helix.jpg",
-      "ip": "127.0.0.1",
-      "port": 4600,
-      "config": {
-        "simulated": true,
-        "helix_tool": {
-          "tool_id": "helix_tool_1",
-          "helix_url": "https://app.science.xyz/api",
-          "inventory_url": "http://127.0.0.1:8000",
-          "cytation_data_directory": "D:\\cytation_experiments",
-          "synology_directory": "H:/SynologyDrive/Helix/cultures"
-        }
-      }
     }
   ]
 }

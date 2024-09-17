@@ -212,9 +212,9 @@ class ToolsManager():
         python_cmd : str = f"python -m tools.{tool_type}.server --port={port}"
         if os.name == 'nt':
             if tool_type in TOOLS_32BITS:
-                env = "galago"
+                env = "galago-core32"
             else:
-                env = "foundry-runtime"
+                env = "galago-core"
             conda_is_path = check_conda_is_path()
             if conda_is_path:
                 envs = get_conda_environments()
@@ -354,7 +354,7 @@ class ToolsManager():
         if os.name == 'nt':
             self.log_text("Starting Redis Server")
             redis_cmd = "C:\Windows\Sysnative\wsl.exe -u root -e sudo service redis-server start"
-            conda_cmd = f"conda activate foundry-runtime && {redis_cmd}"
+            conda_cmd = f"conda activate galago-core && {redis_cmd}"
             cmd = ["cmd.exe", "/C", conda_cmd]
             subprocess.Popen(cmd)
 
@@ -362,7 +362,7 @@ class ToolsManager():
         if os.name == 'nt':
             self.log_text("Stopping Redis Server")
             redis_cmd = "wsl -u root -e sudo service redis-server stop"
-            conda_cmd = f"conda activate foundry-runtime && {redis_cmd}"
+            conda_cmd = f"conda activate galago-core && {redis_cmd}"
             cmd = ["cmd.exe", "/C", conda_cmd]
             subprocess.Popen(cmd)
 
@@ -370,7 +370,7 @@ class ToolsManager():
         self.log_text("Launching inventory")
         inventory_cmd = "python -m tools.db.run"
         if os.name == 'nt':
-            conda_cmd = f"conda activate foundry-runtime && {inventory_cmd}"
+            conda_cmd = f"conda activate galago-core && {inventory_cmd}"
             cmd = ["cmd.exe", "/C", conda_cmd]
         else:
             cmd = inventory_cmd.split()
