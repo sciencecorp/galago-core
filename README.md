@@ -36,7 +36,6 @@ Note:
 - Make sure to add conda to path when installing conda for the fiest time (eventhough warn agaisnt.)  
 - On the workcell computer, we are moving towards using a 32 bits python environment all together. This reduces complexity around using multiple environments based on the physical tool.  
 - On your local computer (dev) this is not a requirement. Unless you are on Windows and connecting to physical hardware. 
-*Warning*= We also expect biology-tools to fail installation on win32. That's fine, we will eventualy move away from it. 
 
 
 32 Bits Set up
