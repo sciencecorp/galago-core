@@ -9,7 +9,7 @@ function AddCondaToPath {
     $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", [System.EnvironmentVariableTarget]::Machine)
 }
 
-# Check if Miniconda is already installed by looking for conda executable
+Write-Host "Installing Miniconda..."
 if (Test-Path $conda_executable) {
     Write-Host "Miniconda is already installed."
 

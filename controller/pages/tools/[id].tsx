@@ -291,36 +291,6 @@ xpeel: {
     seal_plate: []
 
   },
-  helix_tool: {
-    complete_todo: [{ name: "todo_id", type: "text" }],
-    post_measurement: [{ name: "measurement_id", type: "text" }],
-    slack_message: [{ name: "message", type: "text" }],
-    get_data_object: [{ name: "data_object_id", type: "text" }],
-    passage_culture: [
-      { name: "culture_id", type: "number" },
-      { name: "well_plate_id", type: "number" },
-      { name: "mark_dead", type: "text", defaultValue: "false"},
-      { name: "plate_type", type: "number" },
-
-    ],
-    // post_data_object: [{ name: "test_info", type: "text" }],
-    post_data_object_from_local_directory: [
-      {name: "dirpath", type: "text", defaultValue: "C:\\cytation_output\\test_copy_raw_03"},
-      {name: "data_type", type: "text", defaultValue: "Cytation"},
-      {name: "val_only", type: "text", defaultValue: "false"},
-      {name: "object_data", type: "text", defaultValue: "{}"}
-    ],
-    upload_data_to_synology: [
-      { name: "local_directory", type: "text" },
-      { name: "synology_directory", type: "text" },
-    ],
-    upload_cytation_images_to_synology: [{ name: "culture_id", type: "number" }],
-    send_confluency_slack:[
-      {name: "data_file", type: "text", defaultValue: "C:\\cytation_output\\test_copy_raw_03"},
-      {name: "culture_id", type: "number", defaultValue: 1040},
-      {name: "threshold", type: "number", defaultValue: 40},
-    ],
-  },
   liconic: {
     fetch_plate: [
       { name: "cassette", type: "number" },

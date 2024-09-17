@@ -57,7 +57,7 @@ export default function Page() {
   link:"/daily_actions",
   icon: <Icon as ={LuCalendarRange} boxSize={12}/>,
   color:"blue",
-  description:"Page that allows users to easily queue helix workflows to be execute by the workcell. Users can filter by run type and bulk queue workflows."
+  description:"Page that allows users to easily queue workflows to be execute by the workcell. Users can filter by run type and bulk queue workflows."
  },    
  {title:"Data",
   subtitle:"data",

@@ -1,50 +1,57 @@
 #!/usr/bin/env bash
 
-# In principle, we'd like to use Makefile, but it's not available on Windows.
-
 PROTOC_GEN_TS_PATH=".\\controller\\node_modules\\.bin\\protoc-gen-ts_proto"
 PROTO_SRC="./interfaces"
-HELIX_REDIS="redis://127.0.0.1:6379" #use this for local dev
 WORKING_BRANCH=$(git symbolic-ref --short HEAD)
 
-# Clean up all generated files
-make_clean() {
-  rm -rf controller/gen-interfaces tools/*_pb2*.py*
-  mkdir -p controller/gen-interfaces/tools
+# Install dependencies for tool servers, controller, and protobuf generator
+deps() {
+  activate_env
+  python_deps
+  npm_deps
+  # unfortunately we need global installs for ts-proto and grpc-tools on windows
+  #npm install -g grpc-tools@1.12.4 ts-proto@1.151.1
 }
 
-# Install dependencies for tool servers, controller, and protobuf generator
-make_deps() {
-  which python
-  python -m pip install -r tools/requirements.txt
+build_env() {
+    echo "Creating conda environment '$ENV_NAME'..."
+    conda create --name $ENV_NAME python=3.9.12 nodejs=16.13.1 -y
+    echo "Conda environment '$ENV_NAME' created."
+}
 
-  # The tool servers each have their own python requirements
+activate_env() {
+    echo "Activating environment '$ENV_NAME'..."
+    conda activate $ENV_NAME
+}
+
+python_deps() {
+  python -m pip install -r tools/requirements.txt
   for req in tools/*/requirements.txt; do
     python -m pip install -r $req --no-cache-dir || echo "Failed to install $req" >&2 || true
   done
-  # Opentrons pins pydantic 1.8.2, but we need 1.10.7. Opentrons works fine with 1.10.7
-  #python -m pip install opentrons==6.2.1
-  python -m pip install anyio==3.7.1
-  python -m pip install referencing==0.30.2
+} 
 
+npm_deps() {
   (cd controller && npm install)
-
-  # unfortunately we need global installs for ts-proto and grpc-tools on windows
-  npm install -g grpc-tools@1.12.4 ts-proto@1.151.1
 }
 
-make_log_db(){
+db(){
+  logs_db
+  inventory_db
+}
+
+logs_db(){
   python -m tools.db.models.log_models
   python -m tools.db.log_types_add
 }
 
-make_inventory_db(){
+inventory_db(){
   python -m tools.db.models.inventory_models
   python -m tools.db.instantiate_db
 }
 
 #create local redis database for local dev (mac only)
-make_redis_local() {
+redis() {
   echo "Installing Brew"
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -56,30 +63,32 @@ make_redis_local() {
   echo "Redis service is running"
 }
 
-make_test() {
-  make_test_ts
-  make_test_py
+test() {
+  test_ts
+  test_py
 }
 
-make_test_ts() {
+test_ts() {
+  echo "Runnning Node Tests"
   (cd controller && npm run test)
 }
 
-make_test_py() {
+test_py() {
+  echo "Running Python Tests"
   ruff check .
   mypy . --install-types --non-interactive
 }
 
-make_pytest() {
+pytest() {
   pytest tools/tests/ -vv
 }
 
-make_unittest_py() {
+unittest_py() {
   python -m unittest discover -s tools/tests/ -p "*_test.py"
 }
 
 # Generate protobuf definitions for Python
-make_proto_py() {
+proto_py() {
   python -m grpc_tools.protoc \
     -I${PROTO_SRC}/ \
     --python_out=. \
@@ -94,8 +103,14 @@ make_proto_py() {
     ${PROTO_SRC}/*.proto
 }
 
+# Clean up all generated files
+clean_proto() {
+  rm -rf controller/gen-interfaces tools/*_pb2*.py*
+  mkdir -p controller/gen-interfaces/tools
+}
+
 # Generate protobuf definitions for TypeScript
-make_proto_ts() {
+proto_ts() {
   mkdir -p ./controller/gen-interfaces
   python -m grpc_tools.protoc \
     -I=${PROTO_SRC}/ \
@@ -109,7 +124,7 @@ make_proto_ts() {
 }
 
 
-make_proto_ts_v2() {
+proto_ts_v2() {
   mkdir -p ./controller/gen-interfaces
   python -m grpc_tools.protoc \
     -I=${PROTO_SRC}/ \
@@ -122,52 +137,27 @@ make_proto_ts_v2() {
     ${PROTO_SRC}/*.proto ${PROTO_SRC}/tools/grpc_interfaces/*.proto
 }
 
-# Run all the tools servers using foreman, which uses the Procfile
-# Just a convenience so all tools can be started easily
-make_run_tools() {
-  npx foreman start --port 4100 --procfile Procfile.tools
-}
-
-make_run_tools_v2(){
+run(){
   echo "Launching Tools" 
   python -m tools.launch_tools
 }
 
 # Generate all protobuf definitions
-make_proto() {
-  make_proto_py
-  make_proto_ts
+proto() {
+  clean_proto
+  proto_py
+  proto_ts
 }
 
-make_run_controller(){
-  cd controller
-  if [[ "$WORKING_BRANCH" = "main" && "$FRMODE" == "PROD" ]]; then
-    app_mode="PROD"
-  else
-    app_mode="DEV"
-  fi 
-  (env REDIS_URL="$HELIX_REDIS" APP_MODE="$app_mode" CONTROLLER_CONFIG="../workspace/$WORKCELL_FILE/$WORKCELL_FILE.json" npm run dev -- --port 3000)
-}
+# for cmd in "$@"; do
+#   set -ex
+#   $cmd
+#   set +ex
+# done
 
-make_run_controller_prod(){
-  cd controller
-  if [[ "$WORKING_BRANCH" = "main" && "$FRMODE" == "PROD" ]]; then
-    app_mode="PROD"
-  else
-    app_mode="DEV"
-  fi 
-  (env REDIS_URL="$HELIX_REDIS" APP_MODE="$app_mode" CONTROLLER_CONFIG="../workspace/$WORKCELL_FILE/$WORKCELL_FILE.json" npm run start -- --port 3000)
-}
-
-for cmd in "$@"; do
-  set -ex
-  make_$cmd
-  set +ex
-done
-
-if [ $# -eq 0 ]; then
-  echo "No command specified, available commands:"
-  for cmd in $(compgen -A function | grep -E '^make_'); do
-    echo "  ${cmd#make_}"
-  done
-fi
+# if [ $# -eq 0 ]; then
+#   echo "No command specified, available commands:"
+#   for cmd in $(compgen -A function | grep -E '^'); do
+#     echo "  ${cmd#}"
+#   done
+# fi
