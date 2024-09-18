@@ -9,7 +9,6 @@ import "tools/grpc_interfaces/pf400.proto";
 import "tools/grpc_interfaces/cytation.proto";
 import "tools/grpc_interfaces/dataman70.proto";
 import "tools/grpc_interfaces/spectramax.proto";
-import "tools/grpc_interfaces/helix_tool.proto";
 import "tools/grpc_interfaces/bioshake.proto";
 import "tools/grpc_interfaces/hig_centrifuge.proto";
 import "tools/grpc_interfaces/bravo.proto";
@@ -29,17 +28,16 @@ message Command {
     tools.grpc_interfaces.liconic.Command liconic = 4;
     tools.grpc_interfaces.dataman70.Command dataman70 = 5;
     tools.grpc_interfaces.spectramax.Command spectramax = 6;
-    tools.grpc_interfaces.helix_tool.Command helix_tool = 7;
-    tools.grpc_interfaces.bioshake.Command bioshake = 8;
-    tools.grpc_interfaces.hig_centrifuge.Command hig_centrifuge = 9;
-    tools.grpc_interfaces.bravo.Command bravo = 10;
-    tools.grpc_interfaces.multidrop.Command multidrop = 11;
-    tools.grpc_interfaces.vcode.Command vcode = 12;
-    tools.grpc_interfaces.plateloc.Command plateloc=13;
-    tools.grpc_interfaces.xpeel.Command xpeel = 14;
-    tools.grpc_interfaces.alps3000.Command alps3000 = 15;
-    tools.grpc_interfaces.toolbox.Command toolbox = 16;
-    tools.grpc_interfaces.hamilton.Command hamilton = 17;
+    tools.grpc_interfaces.bioshake.Command bioshake = 7;
+    tools.grpc_interfaces.hig_centrifuge.Command hig_centrifuge = 8;
+    tools.grpc_interfaces.bravo.Command bravo = 9;
+    tools.grpc_interfaces.multidrop.Command multidrop = 10;
+    tools.grpc_interfaces.vcode.Command vcode = 11;
+    tools.grpc_interfaces.plateloc.Command plateloc=12;
+    tools.grpc_interfaces.xpeel.Command xpeel = 13;
+    tools.grpc_interfaces.alps3000.Command alps3000 = 14;
+    tools.grpc_interfaces.toolbox.Command toolbox = 15;
+    tools.grpc_interfaces.hamilton.Command hamilton = 16;
   }
 } 
 
@@ -53,17 +51,16 @@ message Config {
     tools.grpc_interfaces.liconic.Config liconic = 23;
     tools.grpc_interfaces.dataman70.Config dataman70 = 24;
     tools.grpc_interfaces.spectramax.Config spectramax = 25;
-    tools.grpc_interfaces.helix_tool.Config helix_tool = 26;
-    tools.grpc_interfaces.bioshake.Config bioshake = 27;
-    tools.grpc_interfaces.hig_centrifuge.Config hig_centrifuge = 28;
-    tools.grpc_interfaces.bravo.Config bravo = 29;
-    tools.grpc_interfaces.multidrop.Config multidrop = 30;
-    tools.grpc_interfaces.vcode.Config vcode = 31;
-    tools.grpc_interfaces.plateloc.Config plateloc = 32;
-    tools.grpc_interfaces.xpeel.Config xpeel = 33;
-    tools.grpc_interfaces.alps3000.Config alps3000 = 34;
-    tools.grpc_interfaces.toolbox.Config toolbox = 35;
-    tools.grpc_interfaces.toolbox.Config hamilton = 36;
+    tools.grpc_interfaces.bioshake.Config bioshake = 26;
+    tools.grpc_interfaces.hig_centrifuge.Config hig_centrifuge = 27;
+    tools.grpc_interfaces.bravo.Config bravo = 28;
+    tools.grpc_interfaces.multidrop.Config multidrop = 29;
+    tools.grpc_interfaces.vcode.Config vcode = 30;
+    tools.grpc_interfaces.plateloc.Config plateloc = 31;
+    tools.grpc_interfaces.xpeel.Config xpeel = 32;
+    tools.grpc_interfaces.alps3000.Config alps3000 = 33;
+    tools.grpc_interfaces.toolbox.Config toolbox = 34;
+    tools.grpc_interfaces.hamilton.Config hamilton = 35;
   }
 }
 

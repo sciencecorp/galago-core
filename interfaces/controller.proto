@@ -13,7 +13,6 @@ enum ToolType {
   dataman70 = 5;
   spectramax = 6;
   bioshake = 7;
-  helix_tool = 8;
   hig_centrifuge = 9;
   bravo = 10;
   vcode = 11;

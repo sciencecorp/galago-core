@@ -136,32 +136,7 @@ export default class ImageCulturePlateUltralight extends Protocol<typeof ImageCu
         },
     });
 
-    protocol_cmds.push({
-      label: "Post Local Data To Helix for Culture " + wellPlateID,
-      toolId: "helix_tool_1",
-      toolType: ToolType.helix_tool,
-      command: "post_data_object_from_local_directory",
-      params: {
-        data_type: "Cytation",
-        dirpath: "C:\\cytation_experiments\\" + experiment_name,
-        val_only: false,
-        object_data: object_data,
-      },
-    });
-    
-    for (let i = 0; i < params.cultureIDs.length; i++) {
-      protocol_cmds.push({
-        label: "Send Confluency Slack",
-        toolId: "helix_tool_1",
-        toolType: ToolType.helix_tool,
-        command: "send_confluency_slack",
-        params: {
-          data_file:"C:\\cytation_experiments\\"+`${experiment_name}\\${experiment_name}_DATA.csv`,
-          culture_id: params.cultureIDs[i],
-          threshold: 40,
-        },
-      });
-    }
+
     protocol_cmds = protocol_cmds.concat( [
       {
         label: "Open Cytation",
@@ -224,18 +199,6 @@ export default class ImageCulturePlateUltralight extends Protocol<typeof ImageCu
         },
       }
     ] as ToolCommandInfo[]);
-
-    for (const workflow_step_id of params.workflow_step_ids) {
-      protocol_cmds.push({
-        label: "Check Off Todo for Workflow Step " + workflow_step_id,
-        toolId: "helix_tool_1",
-        toolType: ToolType.helix_tool,
-        command: "complete_todo",
-        params: {
-          todo_id: workflow_step_id.toString(),
-        },
-      });
-    }
     return protocol_cmds;
   }
 }

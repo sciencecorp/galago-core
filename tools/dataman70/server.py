@@ -35,7 +35,7 @@ class Dataman70Server(ToolServer):
     self.driver.live = True
     barcode = self.driver.read_barcode()
     # Dataman70Driver adds a leading 0 to the barcode because it outputs EAN-13 barcodes
-    # Helix barcodes are UPC-A, which are 12 digits long
+    # barcodes are UPC-A, which are 12 digits long
     # We add a leading 0 to the UPC-A barcode to correctly match the barcode scanned
     logging.debug(f"Barcode scanned: {barcode}")
     if barcode != '0'+params.barcode:

@@ -169,14 +169,6 @@ export default class Tool {
   static workcellName(): string {
     return ControllerConfig.name;
   }
-
-  static helixToolId(): string {
-    const helix_tool = ControllerConfig.tools.find((tool) => tool.type === ToolType.helix_tool);
-    if (!helix_tool) {
-      throw new Error("No helix tool found in config");
-    }
-    return helix_tool.id;
-  }
   
   static toolBoxConfig(): controller_protos.ToolConfig {
     return {
