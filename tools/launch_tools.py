@@ -14,6 +14,7 @@ import time
 from os.path import join, dirname
 from typing import Optional 
 from tools.conda_utils import get_conda_environments,check_conda_is_path
+import argparse 
 
 ROOT_DIR = dirname(dirname(os.path.realpath(__file__)))
 CONTROLLER_DIR = join(ROOT_DIR, "controller")
@@ -29,8 +30,6 @@ logging.basicConfig(
 class ToolsManager():
 
     def __init__(self, app_root:tk.Tk, config:Config) -> None:
-        # signal.signal(signal.SIGINT, self.handle_signal)
-        # signal.signal(signal.SIGTERM, self.handle_signal)
         self.root = app_root
         self.root.title("Galago Web Client and Tools Server Manager")
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -113,6 +112,14 @@ class ToolsManager():
         self.output_text.pack(fill=tk.BOTH, expand=True)
         self.output_text.tag_config('error', foreground='red') 
 
+        #Port to run on 
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--port')
+        args = parser.parse_args()
+        if args.port:
+            self.app_port = args.port
+        else:
+            self.app_port = "3010"
         self.populate_tool_buttons()
         self.update_buttons()
         self.start_database()
@@ -212,9 +219,9 @@ class ToolsManager():
         python_cmd : str = f"python -m tools.{tool_type}.server --port={port}"
         if os.name == 'nt':
             if tool_type in TOOLS_32BITS:
-                env = "galago"
+                env = "galago-core32"
             else:
-                env = "foundry-runtime"
+                env = "galago-core"
             conda_is_path = check_conda_is_path()
             if conda_is_path:
                 envs = get_conda_environments()
@@ -345,16 +352,12 @@ class ToolsManager():
             logging.info("There was an error launching the controller.")
         logging.info("controller launched")
     
-    def get_controller_command(self) -> list:
-        npm_command = ["npm", "run", "dev", "--", "--port", "3000"]
-        return npm_command
-    
     def start_redis_server(self) -> None:
         
         if os.name == 'nt':
             self.log_text("Starting Redis Server")
             redis_cmd = "C:\Windows\Sysnative\wsl.exe -u root -e sudo service redis-server start"
-            conda_cmd = f"conda activate foundry-runtime && {redis_cmd}"
+            conda_cmd = f"conda activate galago-core && {redis_cmd}"
             cmd = ["cmd.exe", "/C", conda_cmd]
             subprocess.Popen(cmd)
 
@@ -362,15 +365,24 @@ class ToolsManager():
         if os.name == 'nt':
             self.log_text("Stopping Redis Server")
             redis_cmd = "wsl -u root -e sudo service redis-server stop"
-            conda_cmd = f"conda activate foundry-runtime && {redis_cmd}"
+            conda_cmd = f"conda activate galago-core && {redis_cmd}"
             cmd = ["cmd.exe", "/C", conda_cmd]
             subprocess.Popen(cmd)
 
+    def get_controller_command(self) -> list:
+        npm_command = ["npm", "run", "dev", "--", "--port", self.app_port]
+        npm_command = " ".join(npm_command)
+        if os.name == 'nt':
+            conda_cmd = f"conda activate galago-core && {npm_command}"
+            cmd = ["cmd.exe", "/C", conda_cmd]
+            return cmd
+        return npm_command
+    
     def start_database(self) -> None:
         self.log_text("Launching inventory")
         inventory_cmd = "python -m tools.db.run"
         if os.name == 'nt':
-            conda_cmd = f"conda activate foundry-runtime && {inventory_cmd}"
+            conda_cmd = f"conda activate galago-core && {inventory_cmd}"
             cmd = ["cmd.exe", "/C", conda_cmd]
         else:
             cmd = inventory_cmd.split()
@@ -449,6 +461,7 @@ if __name__ == "__main__":
         manager = ToolsManager(root, config)
         manager.show_gui()
     except Exception as e:
+        manager.kill_all_processes()
         logging.error(f"An unexpected error occurred: {e}")
     finally:
         manager.kill_all_processes()
