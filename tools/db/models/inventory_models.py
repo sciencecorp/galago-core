@@ -85,5 +85,5 @@ if __name__ == "__main__":
 
     config = Config()
     config.load_app_config()
-    engine = create_engine(f"sqlite:///{config.app_config.data_folder}/db/inventory.db")
+    engine = create_engine(config.inventory_db, connect_args={"check_same_thread": False})
     Base.metadata.create_all(engine)

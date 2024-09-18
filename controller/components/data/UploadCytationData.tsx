@@ -312,7 +312,7 @@ const UploadCytationData: React.FC = ({}) => {
                             </Box>
                         ))}
                     </Stack>
-                <FormHelperText>Helix well plate id. Eg. 7280</FormHelperText>
+                <FormHelperText>Well Plate Id</FormHelperText>
               </FormControl>
               <FormControl>
                 <FormLabel>Image Folder to Upload.</FormLabel>

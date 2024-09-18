@@ -5,7 +5,6 @@ import logging
 from tools.toolbox.utils import get_slack_id_from_scientist_name
 import requests
 from typing import Any
-from tools.helix_tool.helper_functions import get_culture, get_scientist_from_culture, get_plate_type_from_culture, get_data_from_cytation_file
 from tools.app_config import Config
 from typing import Optional 
 import time 
@@ -76,24 +75,6 @@ class Slack():
 
         return json.loads(template_string)
     
-    def send_confluency_slack(self, data_file:str, culture_id:int, threshold:int) -> None:
-        culture = get_culture(self, culture_id)
-        scientist = get_scientist_from_culture(culture)
-        scientist_slack_id = get_slack_id_from_scientist_name(scientist)
-  
-        if(scientist_slack_id == "unknown"):
-            scientist_slack_id = get_slack_id_from_scientist_name("active_culture_status")
-        plate_type = get_plate_type_from_culture(culture)
-        if(plate_type != "6 well"):
-            return
-        if("confluence" not in data_file):
-            return
-        data_dictonary  = get_data_from_cytation_file(data_file)
-        message = Slack.create_confluency_slack_message(culture_id,scientist,data_dictonary,threshold)
-        self.client.chat_postMessage(
-            channel=scientist_slack_id,
-            blocks=message
-        )
 
     def create_alert_message(self,title:str, workcell:str, tool:str, protocol:str, error:str) -> Any:
         template_path = os.path.join(os.path.dirname(__file__),"slack_templates","error_template.json")

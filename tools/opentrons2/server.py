@@ -52,7 +52,7 @@ class Opentrons2Server(ToolServer):
     def RunProgram(self, params: Command.RunProgram) -> None:
         today : str = datetime.today().strftime('%Y-%m-%d')
         pre_run_name = f"ot2_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_pre_run.jpg"
-        self.driver.take_picture(pre_run_name, os.path.join(self.app_config.app_config.data_folder,"images","ot2",today),self.process_images,self.app_config.app_config.landing_ai_key)
+        self.driver.take_picture(pre_run_name, os.path.join(self.app_config.app_config.data_folder,"images","ot2",today),self.process_images,None)
         if params.program_name == "universal_opentrons_json_executor":
             program_dir = os.path.dirname(os.path.abspath(__file__))
         else:
@@ -64,7 +64,7 @@ class Opentrons2Server(ToolServer):
         program = self._createProgramFromTemplate(templatePath=program_path, params=params_dict)
         self.driver.start_protocol(protocol_file=program)
         post_run_name = f"ot2_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_pre_run.jpg"
-        self.driver.take_picture(post_run_name, os.path.join(self.app_config.app_config.data_folder,"images","ot2",today),self.process_images,self.app_config.app_config.landing_ai_key)
+        self.driver.take_picture(post_run_name, os.path.join(self.app_config.app_config.data_folder,"images","ot2",today),self.process_images)
     
     def Sleep(self, params: Command.Sleep) -> None:
         logging.info(f"Sleeping for {params.seconds} seconds")

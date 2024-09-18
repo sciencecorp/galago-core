@@ -19,6 +19,11 @@ class LogType(Enum):
     PLATE_READ = "PLATE_READ",
 
 
+def db_exists() -> bool:
+    if os.path.exists("logs.db"):
+        return True
+    return False
+
 def write_to_db(log_type:LogType,tool:str,value:str) -> None:
     engine = LogsSessionLocal()
     try:
