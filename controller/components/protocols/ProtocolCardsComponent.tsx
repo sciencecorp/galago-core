@@ -25,7 +25,6 @@ const onStartProtocolButtonClick = (id:string) => {
   router.push(`/protocols/${id}`);
 }
 
-
 if (allProtocols.isLoading) {
   return <Spinner size="lg" />;
 }
@@ -33,6 +32,7 @@ if (allProtocols.isLoading) {
 if (allProtocols.isLoading) {
   return <Spinner size="lg" />;
 }
+console.log();
 
 if (allProtocols.isError) {
   return (
@@ -58,6 +58,12 @@ return (
       gap={2} 
       width="max-content"
       >
+        {allProtocols.data?.length === 0&& (
+          <Alert status="info">
+            <AlertIcon />
+            <AlertTitle>No protocols found</AlertTitle>
+          </Alert>
+        )}
         {allProtocols.data.map((protocol, index) => (
               <Card key={index}>
               <CardHeader>

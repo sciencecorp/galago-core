@@ -35,8 +35,7 @@ if __name__ == "__main__":
     from sqlalchemy import create_engine
     config = Config()
     config.load_app_config()
-    if config.app_config.data_folder is not None:
-        engine = create_engine(f"sqlite:///{config.app_config.data_folder}/db/logs.db")
-        LogBase.metadata.create_all(engine)
+    engine = create_engine(config.logs_db, connect_args={"check_same_thread": False})
+    LogBase.metadata.create_all(engine)
 
 

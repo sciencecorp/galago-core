@@ -3,36 +3,39 @@
 PROTOC_GEN_TS_PATH=".\\controller\\node_modules\\.bin\\protoc-gen-ts_proto"
 PROTO_SRC="./interfaces"
 WORKING_BRANCH=$(git symbolic-ref --short HEAD)
+ENV_NAME="galago-core" 
 
 # Install dependencies for tool servers, controller, and protobuf generator
 deps() {
-  activate_env
   python_deps
   npm_deps
-  # unfortunately we need global installs for ts-proto and grpc-tools on windows
-  #npm install -g grpc-tools@1.12.4 ts-proto@1.151.1
+  npm install -g grpc-tools@1.12.4 ts-proto@1.151.1
 }
 
 build_env() {
     echo "Creating conda environment '$ENV_NAME'..."
-    conda create --name $ENV_NAME python=3.9.12 nodejs=16.13.1 -y
+    mamba create --name $ENV_NAME python=3.9.12 nodejs=18.20.3 -y
     echo "Conda environment '$ENV_NAME' created."
 }
 
-activate_env() {
-    echo "Activating environment '$ENV_NAME'..."
-    conda activate $ENV_NAME
+run() {
+  echo "Launching Tools" 
+  python -m tools.launch_tools
 }
 
 python_deps() {
+  echo "Installing Python Dependencies"
   python -m pip install -r tools/requirements.txt
   for req in tools/*/requirements.txt; do
     python -m pip install -r $req --no-cache-dir || echo "Failed to install $req" >&2 || true
   done
+  echo "Python Dependencies Installed"
 } 
 
 npm_deps() {
+  echo "Installing Node Dependencies"
   (cd controller && npm install)
+  echo "Node Dependencies Installed"
 }
 
 db(){
@@ -41,26 +44,39 @@ db(){
 }
 
 logs_db(){
+  echo "Creating Log Database"
   python -m tools.db.models.log_models
+  echo "Creating Log Types"
   python -m tools.db.log_types_add
 }
 
 inventory_db(){
+  echo "Creating Inventory Database"
   python -m tools.db.models.inventory_models
+  echo "Creating Inventory Types"
   python -m tools.db.instantiate_db
 }
 
 #create local redis database for local dev (mac only)
 redis() {
-  echo "Installing Brew"
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   eval "$(/opt/homebrew/bin/brew shellenv)"
-  echo "Installing Redis..."
-  brew install redis
-  brew install redis-cli
-  brew services start redis
-  redis-server &
-  echo "Redis service is running"
+  # Check if Homebrew is installed
+  if ! command -v brew &> /dev/null; then
+    echo "Homebrew not found. Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  else
+    echo "Homebrew is already installed."
+  fi
+
+  # Install Redis
+  if ! command -v redis-server &> /dev/null; then
+    echo "Installing Redis..."
+    brew install redis
+    brew services start redis
+    echo "Redis service is running."
+  else
+    echo "Redis is already installed and running."
+  fi
 }
 
 test() {
@@ -105,8 +121,10 @@ proto_py() {
 
 # Clean up all generated files
 clean_proto() {
+  echo "Cleaning up generated proto files"
   rm -rf controller/gen-interfaces tools/*_pb2*.py*
   mkdir -p controller/gen-interfaces/tools
+  echo "Cleaned up generated proto files"
 }
 
 # Generate protobuf definitions for TypeScript
@@ -149,15 +167,15 @@ proto() {
   proto_ts
 }
 
-# for cmd in "$@"; do
-#   set -ex
-#   $cmd
-#   set +ex
-# done
+for cmd in "$@"; do
+  set -ex
+  $cmd
+  set +ex
+done
 
-# if [ $# -eq 0 ]; then
-#   echo "No command specified, available commands:"
-#   for cmd in $(compgen -A function | grep -E '^'); do
-#     echo "  ${cmd#}"
-#   done
-# fi
+if [ $# -eq 0 ]; then
+  echo "No command specified, available commands:"
+  for cmd in $(compgen -A function | grep -E '^'); do
+    echo "  ${cmd#}"
+  done
+fi

@@ -273,7 +273,7 @@ class LiconicStxDriver(ABCToolDriver):
         # text =  f"Liconic CO2 level is low: {value}"
         # if int(value) > 4.5:
         #     text = f"Liconic CO2 level is back to normal: {value}"
-        workcell = self.config.app_config.workcell_config_file
+        workcell = self.config.app_config.workcell
         if workcell is None:
             workcell = "Unknown"
         if self.config.app_config.slack_error_channel:

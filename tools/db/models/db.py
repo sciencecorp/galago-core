@@ -9,8 +9,8 @@ LogBase = declarative_base()
 config = Config()
 config.load_app_config()
 
-inventory_engine = create_engine(f"sqlite:///{config.app_config.data_folder}/db/inventory.db", connect_args={"check_same_thread": False})
-logs_engine = create_engine(f"sqlite:///{config.app_config.data_folder}/db/logs.db", connect_args={"check_same_thread": False})
+inventory_engine = create_engine(config.inventory_db, connect_args={"check_same_thread": False})
+logs_engine = create_engine(config.logs_db, connect_args={"check_same_thread": False})
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=inventory_engine)
 LogsSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=logs_engine)

@@ -59,9 +59,9 @@ class ToolServer(tool_driver_pb2_grpc.ToolDriverServicer):
         
     def __init__(self) -> None:
         self.driver: t.Optional[ABCToolDriver] = ABCToolDriver()
-        if not config.app_config.data_folder: 
-            return
-        self.log_path: Optional[str] = os.path.join(config.app_config.data_folder,"data","tool_logs")
+        self.log_path= "logs/tool_logs"
+        if config.app_config.data_folder:
+            self.log_path: Optional[str] = os.path.join(config.app_config.data_folder,"tool_logs")
         self.start_time: float = time.time()
         self.status: tool_base_pb2.ToolStatus = tool_base_pb2.NOT_CONFIGURED
         self.last_error : Optional[str] = ""
@@ -329,5 +329,6 @@ def serve(tool_server: ToolServer, port: str, num_workers: int = 10) -> None:
     server.add_insecure_port(f"[::]:{port}")
     server.start()
     logging.info(f"{tool_server.toolType} server started, listening on {port}")
+    logging.info(f"Logging to {tool_server.log_path}") 
     write_trace_log(tool_server.log_path, LogType.INFO, f"{tool_server.toolType}", f"GRPC server for tool started, listening on port:{port}")
     server.wait_for_termination()
