@@ -16,10 +16,8 @@ const DataSideBar: React.FC<SidebarProps> = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const navbarHeight = '45px';
   const menuItems: MenuItem[] = [
-    { title: 'Measurement', subItems: ['Confluence'] },
-    { title: 'Images', subItems: ['Cell Imaging', 'Opentrons', 'Uploader'] },
     { title: 'Sensors', subItems: ['Liconic'] },
-    { title: 'Logs', subItems: ['Media Exchange', 'Tool Logs', 'Variables'] },
+    { title: 'Logs', subItems: ['Tool Logs', 'Variables'] },
   ];
 
   useEffect(()=>{

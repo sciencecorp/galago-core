@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
-import HelixClient,{ helixClient,wellPlateType, PlateLocation} from "@/server/utils/HelixClient";
 import axios from "axios";
-import { Progress } from "@chakra-ui/react";
-import { Spinner} from "@chakra-ui/react";
+import { Progress, Spinner } from "@chakra-ui/react";
 import {
   inventoryApiClient,
   Inventory,
@@ -11,8 +9,6 @@ import {
   PlateUpdate,
   Well,
   Reagent,
-  PlateCreate,
-  ReagentCreate,
 } from "@/server/utils/InventoryClient";
 import { trpc } from "@/utils/trpc";
 import { ToolCommandInfo } from "@/types";
@@ -54,8 +50,6 @@ import { ExecuteCommandReply, ResponseCode } from "gen-interfaces/tools/grpc_int
 import Fuse from "fuse.js";
 import { CloseIcon, SearchIcon } from "@chakra-ui/icons";
 import InteractivePlateVisualizer from "@/components/inventory/PlateVisualizer";
-import { delay } from "framer-motion";
-import { time } from "console";
 
 export default function Page() {
   const { colorMode } = useColorMode();
@@ -69,14 +63,14 @@ export default function Page() {
   const [alertDescription, setAlertDescription] = useState<string>("");
 
   const [inventory, setInventory] = useState<Inventory | null>(null);
-  const [mode, setMode] = useState<"checkin" | "checkout" | "create" | "move" | "delete">(
+  const [mode, setMode] = useState<"checkin" | "checkout" | "" | "move" | "delete">(
     "checkin"
   );
 
   const [selectedPlate, setSelectedPlate] = useState<Plate | null>(null);
   const [selectedNest, setSelectedNest] = useState<Nest | null>(null);
   const [destinationNest, setDestinationNest] = useState<Nest| null>(null);
-  const [createdPlate, setCreatedPlate] = useState<Plate|null>(null);
+  const [dPlate, setdPlate] = useState<Plate|null>(null);
 
   const [selectedWells, setSelectedWells] = useState<Well[]>([]);
   const [selectedReagents, setSelectedReagents] = useState<Reagent[]>([]);
@@ -90,18 +84,13 @@ export default function Page() {
   const [platesFuseInstance, setPlatesFuseInstance] = useState<Fuse<Plate> | null>(null);
   const [reagentsFuseInstance, setReagentsFuseInstance] = useState<Fuse<Reagent> | null>(null);
   const { isLoading } = trpc.tool.runCommand.useMutation();
-  const [helixToggle, setHelixToggle] = useState<boolean>(true);
-  const helixToggleLabel = helixToggle ? "Helix Well Plate ID" : "Inventory Plate ID";
-  const helixTogglePlaceholder = helixToggle
-    ? "Type well plate ID from Helix"
-    : "Type plate ID from inventory";
-  const [geltrexToggle, setGeltrexToggle] = useState<boolean>(false);
   const availableIDsQuery = trpc.tool.availableIDs.useQuery();
   const availableIDs = availableIDsQuery.data;
   const vcodeId = availableIDs?.filter((id) => id.includes("vcode"))[0];
 
   const commandMutation = trpc.tool.runCommand.useMutation();
   const pf400ID = availableIDs?.filter((id) => id.includes("pf400"))[0];
+  
   const liconicID = availableIDs?.filter((id) => id.includes("Liconic"))[0];
 
   const workcellData = trpc.tool.getWorkcellName.useQuery();
@@ -109,10 +98,10 @@ export default function Page() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const {isOpen:isLoadLiconicModalOpen, onOpen:onLiconicModalOpen, onClose:onLiconicModalClose} = useDisclosure();
+  const {isOpen: isLoadLiconicModalOpen, onOpen: onLiconicModalOpen, onClose: onLiconicModalClose} = useDisclosure();
 
   useEffect(() => {
-    const fetchInventoryData = async() =>{
+    const fetchInventoryData = async() => {
       try {
         if (workcellName === undefined) {
           return;
@@ -135,7 +124,7 @@ export default function Page() {
           const well_ids: number[] = plate_wells.map((well) => well.id) || [];
           setSelectedReagents(inventoryData?.reagents.filter((reagent) => well_ids.includes(reagent.well_id)) || []);
           setInputPlateName(selectedPlate.name);
-      }
+        }
       } catch (error) {
         console.warn("Error fetching data:", error);
       }
@@ -147,7 +136,7 @@ export default function Page() {
     if (selectedNest && selectedNest.name) {
       setInputNestName(selectedNest.name);
     }
-  }, [selectedNest,refreshFlag]);
+  }, [selectedNest, refreshFlag]);
 
   const launchAlert = (
     status: "error" | "info" | "warning" | "success" | "loading",
@@ -175,27 +164,18 @@ export default function Page() {
       launchAlert("error", "No instrument with this name in inventory");
       return;
     }
-    console.log("instrument id is "+ instrument.id);
-    console.log("nests are "+JSON.stringify(inventory.nests));
-    //All nests on this instrument. 
     const nests = inventory.nests.filter((nest) => nest.instrument_id === instrument.id);
-    console.log("Filtered nests length " + nests.length);
     if (nests.length === 0) {
       launchAlert("error", "No nests available");
       return;
     }
-    console.log("zones length is " + zones.length)
-    //Check for plates on each zone in the order they are speficied.
-    for(var i=0; i < zones.length; i++){
-      console.log("Zone is "+zones[i])
+    for(var i=0; i < zones.length; i++) {
       const zone : number = zones[i];
       const filtered_nests = nests.filter((nest)=> nest.column === zone)
-      if(filtered_nests){
+      if(filtered_nests) {
         for (const nest of filtered_nests) {
           let nest_plates = inventory.plates.filter((plate) => plate.nest_id === nest.id);
-          //Check if the plate doest not exists
           if (nest_plates.length === 0) {
-            console.log("Returning nest" + JSON.stringify(nest));
             return nest;
           }
         }
@@ -216,13 +196,13 @@ export default function Page() {
     }
     var today = new Date();
     var dd = String(today.getDate()).padStart(2, '0');
-    var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
     var yyyy = today.getFullYear();
 
     let todayString = mm + '/' + dd + '/' + yyyy;
-    const barcode = createdPlate?.barcode;
-    const labwareType = createdPlate?.plate_type
-    const plateName  = createdPlate?.name;
+    const barcode = dPlate?.barcode;
+    const labwareType = dPlate?.plate_type
+    const plateName  = dPlate?.name;
 
     const toolCommand: ToolCommandInfo = {
       toolId: vcodeId,
@@ -235,7 +215,7 @@ export default function Page() {
         field_0: `WP-${plateName}`,
         field_1: barcode,
         field_2: labwareType,
-        field_3:todayString, 
+        field_3: todayString, 
         field_4: "", 
         field_5: "", 
       },
@@ -256,49 +236,49 @@ export default function Page() {
     onLiconicModalOpen();
   }
 
-  const handleLiconicLoadCloseModal   = () => {
+  const handleLiconicLoadCloseModal = () => {
     onLiconicModalClose();
     setLoading(false);
   }
+
   const loadLiconicModal = () => {
     return(
-      <Modal isOpen={isLoadLiconicModalOpen} onClose={handleLiconicLoadCloseModal} isCentered ={true}>
-      <ModalContent >
-        <ModalHeader>Liconic Load Plate?</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <Text>Please place plate on liconic transfer station and click Accept.</Text>
-        </ModalBody>
-        <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={()=>{loadPlateToLiconic(createdPlate, destinationNest)}}>
-            Accept
-          </Button>
-          <Button variant="ghost" onClick={handleLiconicLoadCloseModal}>Cancel</Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+      <Modal isOpen={isLoadLiconicModalOpen} onClose={handleLiconicLoadCloseModal} isCentered={true}>
+        <ModalContent>
+          <ModalHeader>Liconic Load Plate?</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text>Please place plate on liconic transfer station and click Accept.</Text>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={()=>{loadPlateToLiconic(dPlate, destinationNest)}}>
+              Accept
+            </Button>
+            <Button variant="ghost" onClick={handleLiconicLoadCloseModal}>Cancel</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     )
   }
 
-
   const printAndLabelPlateModal = () => {
     return(
-      <Modal isOpen={isOpen} onClose={handlePrintLabelCloseModal} isCentered ={true}>
-      <ModalContent >
-        <ModalHeader>Label Plate?</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <Text>Would you like to print and apply label to this plate?</Text>
-          <Text>Click Print to label plate. Click Cancel to skip labeling.</Text>
-        </ModalBody>
-        <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={handlePrintAndApply}>
-            Print
-          </Button>
-          <Button variant="ghost" onClick={handlePrintLabelCloseModal}>Cancel</Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+      <Modal isOpen={isOpen} onClose={handlePrintLabelCloseModal} isCentered={true}>
+        <ModalContent>
+          <ModalHeader>Label Plate?</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text>Would you like to print and apply label to this plate?</Text>
+            <Text>Click Print to label plate. Click Cancel to skip labeling.</Text>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={handlePrintAndApply}>
+              Print
+            </Button>
+            <Button variant="ghost" onClick={handlePrintLabelCloseModal}>Cancel</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     )
   }
 
@@ -307,20 +287,17 @@ export default function Page() {
       launchAlert("error", "No inventory available");
       return;
     }
-    //A provided destination nest (will return null if not exists)
     let destination_nest = inventory.nests.filter((nest) => nest.name === inputNestName)[0];
     setDestinationNest(destination_nest);
     let plate = inventory.plates.filter((plate) => plate.name === inputPlateName)[0];    
     
-    const helixPlate = await helixClient.getWellPlate(parseInt(inputPlateName));
-    if(JSON.stringify(helixPlate) === "{}"){
-      launchAlert("error", "Failed to get plate info from helix.");
-      return;
-    }
-    const plateType = helixPlate.well_plate_type as wellPlateType;
-    if (!helixToggle && !plate) {
-      launchAlert("warning", "No plate with this name in inventory");
-      return;
+    if (!plate) {
+      plate = await inventoryApiClient.createPlate({
+        name: inputPlateName,
+        plate_type: inputPlateType,
+        nest_id: null,
+        barcode: generateBarcode(),
+      } as Plate);
     }
 
     if (plate && plate.nest_id) {
@@ -329,31 +306,11 @@ export default function Page() {
     }
 
     if (!destination_nest) {
-      console.log("Liconic id is "+ liconicID);
       if (!liconicID) {
         launchAlert("error", "No liconic ID available");
         return;
       }
-      let available_nest;
-      let plateZones : number[] = [];
-      console.log("Workcell name is "+workcellName)
-      if(workcellName === "Baymax"){
-        if(plateType.name == "384 well" || plateType.name == "96 well"){
-          plateZones = [5,4];
-        }
-        else{
-          plateZones = [1,2,3,4];
-        }
-      }
-      if(workcellName == "Ultralight"){
-        if(plateType.name == "384 well"){
-          plateZones = [5,4];
-        }
-        else{
-          plateZones = [1,2,3,4,5,6,7,8];
-        }
-      }
-      available_nest = getNextAvailableNest("Liconic", plateZones);
+      let available_nest = getNextAvailableNest("Liconic", [1, 2, 3, 4, 5]);
       if (!available_nest) {
         launchAlert("error", "No available nest in liconic found");
         return;
@@ -362,120 +319,39 @@ export default function Page() {
       destination_nest = available_nest;
     }
     setLoading(true);
-
-    if (geltrexToggle) {
-      try {
-        // if geltrexToggle, don't worry about culture_id
-        const helixPlate_wells = helixPlate.wells
-          .map((well) => {
-            return {
-              row: "ABCDEFGHIJKLMNOP"[well.row_index],
-              column: well.column_index + 1,
-              creation_date: convertTimestampToDate(helixPlate.created_at),
-              volume: 1,
-            };
-        });
-        if (plate) {
-          console.log("plate exists",helixPlate_wells);
-        }
-        else {
-          plate = await inventoryApiClient.createPlate({
-                      name: inputPlateName,
-                      plate_type: helixPlate.well_plate_type.name,
-                      nest_id: null,
-                      barcode: helixPlate.barcode.code,
-        } as PlateCreate);
-        }
-        //console.log("Setting created plate 1",plate);
-        setCreatedPlate(plate);
-
-        const inventory_plate = await inventoryApiClient.getPlateInfo(plate.id);
-        for (const well of helixPlate_wells) {
-          const well_id = inventory_plate.wells.find(
-            (inventory_well) =>
-              inventory_well.row === well.row && inventory_well.column === well.column
-          )?.id;
-          if (!well_id) {
-            launchAlert("warning", "Could not add cultures to plate");
-            continue;
-          }
-         
-          await inventoryApiClient.createReagent({
-            name: "Geltrex",
-            volume: well.volume,
-            expiration_date: well.creation_date,
-            well_id: well_id,
-          } as ReagentCreate);
-        }
-      }
-      catch (error) {
-        launchAlert("error", "Error syncing plate from helix");
+    
+    try {
+      if (!liconicID) {
+        launchAlert("error", "No liconic ID available");
         return;
       }
-      if (!plate) {
-        launchAlert("error", "Error syncing plate from helix");
-        return;
-      }
+      const toolCommand: ToolCommandInfo = {
+        toolId: liconicID,
+        toolType: "liconic" as ToolType,
+        command: "store_plate",
+        params: {
+          cassette: destination_nest.name.split("_")[2],
+          level: destination_nest.name.split("_")[1],
+        },
+      };
+
+      await commandMutation.mutateAsync(toolCommand);
+
+      await inventoryApiClient.updatePlate(plate.id, {
+        nest_id: destination_nest.id,
+      } as PlateUpdate);
+
+      setRefreshFlag(!refreshFlag);
+      launchAlert(
+        "success",
+        `Plate ${inputPlateName} checked in successfully into nest ${destination_nest.name}`
+      );
+    } catch (error) {
+      launchAlert("error", "Error checking in plate");
+    } finally {
+      setLoading(false);
     }
-
-
-    else if (helixToggle && !plate) {
-      try {
-        const helixPlate = await helixClient.getWellPlate(parseInt(inputPlateName));
-        const helixPlate_wells = helixPlate.wells
-          .filter((well) => well.culture_id !== null)
-          .map((well) => {
-            return {
-              row: "ABCDEFGHIJKLMNOP"[well.row_index],
-              column: well.column_index + 1,
-              culture_id: well.culture_id,
-              creation_date: convertTimestampToDate(helixPlate.created_at),
-              volume: 1,
-            };
-        });
-        plate = await inventoryApiClient.createPlate({
-          name: inputPlateName,
-          plate_type: helixPlate.well_plate_type.name,
-          nest_id: null,
-          barcode: helixPlate.barcode.code,
-        } as PlateCreate);
-        console.log("Setting created plate",plate);
-        setCreatedPlate(plate);
-        const inventory_plate = await inventoryApiClient.getPlateInfo(plate.id);
-        for (const well of helixPlate_wells) {
-          const well_id = inventory_plate.wells.find(
-            (inventory_well) =>
-              inventory_well.row === well.row && inventory_well.column === well.column
-          )?.id;
-          if (!well_id) {
-            launchAlert("warning", "Could not add cultures to plate");
-            continue;
-          }
-          await inventoryApiClient.createReagent({
-            name: well.culture_id.toString(),
-            volume: well.volume,
-            expiration_date: well.creation_date,
-            well_id: well_id,
-          } as ReagentCreate);
-      
-      }
-      } catch (error) {
-        launchAlert("error", "Error syncing plate from helix");
-        return;
-      }
-      if (!plate) {
-        launchAlert("error", "Error syncing plate from helix");
-        return;
-      }
-    }
-    //console.log("Setting created plate 3",plate);
-    setCreatedPlate(plate);
-    onLiconicModalOpen();
-    //setIsModalOpen(true);
-    //onOpen();
   };
-
-
 
   const loadPlateToLiconic = async (plate:Plate | null, destinationNest:Nest|null) => {
     if(!plate){
@@ -519,8 +395,6 @@ export default function Page() {
             level: destination_level,
           },
         };
-       // const wellPlateID = (await helixClient.getWellPlate(parseInt(inputPlateName))).id
-        const location_id = PlateLocation[workcellName as keyof typeof PlateLocation]
         try{
           await commandMutation.mutateAsync(
             toolCommand
@@ -535,16 +409,6 @@ export default function Page() {
         await inventoryApiClient.updatePlate(plate.id, {
           nest_id: destinationNest.id,
         } as PlateUpdate);
-        const wellPlateID = (await helixClient.getWellPlate(parseInt(inputPlateName))).id
-        console.log("Updating well plate",wellPlateID,location_id)
-        const checkIn = axios.put("/api/updateWellPlate", { location_id, wellPlateID })
-        // console.log("Check in",checkIn);
-        try {
-          checkIn
-        }
-        catch (error) {
-          console.log("Error checking in plate:", error)
-        }
         setRefreshFlag(!refreshFlag);
         launchAlert(
           "success",
@@ -605,16 +469,6 @@ export default function Page() {
         await inventoryApiClient.updatePlate(plate.id, {
           nest_id: null,
         } as PlateUpdate);
-        const wellPlateID = (await helixClient.getWellPlate(parseInt(inputPlateName))).id
-        setRefreshFlag(!refreshFlag);
-        const location_id = 58
-        const checkOut = axios.put("/api/updateWellPlate", { location_id, wellPlateID })
-        try {
-          checkOut
-        }
-        catch (error) {
-          console.log("Error checking in plate:", error)
-        }
         launchAlert("success", `Plate ${inputPlateName} checked out successfully`);
         setLoading(false);
     }
@@ -631,7 +485,7 @@ export default function Page() {
     return randomInt.toString();
   }
 
-  const handleCreatePlate = async () => {
+  const handlePlate = async () => {
     if (!inventory) {
       launchAlert("error", "No inventory available");
       return;
@@ -645,15 +499,15 @@ export default function Page() {
 
     const destination_nest = inventory.nests.filter((nest) => nest.name === inputNestName)[0];
     if (inputPlateName && inputPlateType && destination_nest) {
-      const createdPlate = await inventoryApiClient.createPlate({
+      const dPlate = await inventoryApiClient.createPlate({
         name: inputPlateName,
         nest_id: destination_nest.id,
         plate_type: inputPlateType,
         barcode: generateBarcode(),
-      } as PlateCreate);
-      setSelectedPlate(createdPlate);
+      } as Plate);
+      setSelectedPlate(dPlate);
       setRefreshFlag(!refreshFlag);
-      launchAlert("success", `Plate ${inputPlateName} created successfully`);
+      launchAlert("success", `Plate ${inputPlateName} d successfully`);
     } else {
       launchAlert("error", "Error creating plate");
     }
@@ -859,35 +713,6 @@ export default function Page() {
           </Box>
         </VStack>
       </Box>
-      {/* <Input placeholder="Search Inventory" value={search} onChange={handleSearch} />
-      <Box maxH="200px" overflowY="auto">
-        <VStack spacing={2} align="start">
-          {searchResults.map(
-            (result) =>
-              (isPlate(result) && (
-                <Box key={result.id}>
-                  <Tooltip label="Click to find corresponding plate">
-                    <Text onClick={() => setSelectedPlate(result)} style={{ cursor: "pointer" }}>
-                      Plate: {result.name} | {result.plate_type} | {result.barcode} |{" "}
-                      {result.nest_id ? "Checked in" : "Not checked in"}
-                    </Text>
-                  </Tooltip>
-                </Box>
-              )) ||
-              (isReagent(result) && (
-                <Box key={result.id}>
-                  <Tooltip label="Click to find corresponding plate">
-                    <Text
-                      onClick={() => handleReagentResultClick(result)}
-                      style={{ cursor: "pointer" }}>
-                      Reagent: {result.name} | {result.volume} | {result.expiration_date}
-                    </Text>
-                  </Tooltip>
-                </Box>
-              ))
-          )}
-        </VStack>
-      </Box> */}
       <HStack spacing="8" py="16">
         <VStack align="center" spacing="4">
           <Text fontSize="xl">Plates</Text>
@@ -915,10 +740,10 @@ export default function Page() {
           {isLoading && <Spinner ml={2} />} {/* Spinner appears next to the button when loading */}
           <Button
             colorScheme="gray"
-            variant={mode === "create" ? "solid" : "outline"}
+            variant={mode === "" ? "solid" : "outline"}
             width="100%"
-            onClick={() => setMode("create")}>
-            Create Plate
+            onClick={() => setMode("")}>
+             Plate
           </Button>
           <Button
             colorScheme="gray"
@@ -931,43 +756,9 @@ export default function Page() {
         {mode === "checkin" && (
           <VStack align="center" spacing="4">
           <Text fontSize="xl">Check In Plate</Text>
-          <InputGroup>
-            <VStack align="start" spacing="2">
-              <FormLabel htmlFor="helix-toggle" mb="0">
-                Helix Plate
-              </FormLabel>
-              <Switch
-                id="helix-toggle"
-                isChecked={helixToggle}
-                onChange={(e) => setHelixToggle(e.target.checked)}
-              />
-            </VStack>
-            
-            <VStack align="start" spacing="2">
-              <FormLabel htmlFor="geltrex-toggle" mb="0">
-                Geltrex Plate
-              </FormLabel>
-              <Switch
-                colorScheme="pink"
-                id="geltrex-toggle"
-                isChecked={geltrexToggle}
-                onChange={(e) => setGeltrexToggle(e.target.checked)}
-              />
-            </VStack>
-          </InputGroup>
             <InputGroup>
-              <InputLeftAddon >
-              {helixToggleLabel}
-              </InputLeftAddon>
-              {helixToggle && (
-                <Input
-                  placeholder={helixTogglePlaceholder}
-                  value={inputPlateName}
-                  onChange={(e) => setInputPlateName(e.target.value)}
-                />
-              )}
-              {!helixToggle && (
-                <Select
+  
+              {<Select
                   placeholder="Select plate"
                   value={inputPlateName}
                   onChange={(e) => setInputPlateName(e.target.value)}
@@ -980,7 +771,7 @@ export default function Page() {
                     </option>
                   ))}
                 </Select>
-              )}
+              }
 
             </InputGroup>
             <InputGroup>
@@ -1020,9 +811,9 @@ export default function Page() {
             </Button>
           </VStack>
         )}
-        {mode == "create" && (
+        {mode == "" && (
           <VStack align="center" spacing="4">
-            <Text fontSize="xl">Create Reagent Plate</Text>
+            <Text fontSize="xl"> Reagent Plate</Text>
             <InputGroup>
               <InputLeftAddon>
               Plate Name
@@ -1056,8 +847,8 @@ export default function Page() {
                 onChange={(e) => setInputNestName(e.target.value)}
               />
             </InputGroup>
-            <Button colorScheme="green" variant="outline" width="100%" onClick={handleCreatePlate}>
-              Create Plate
+            <Button colorScheme="green" variant="outline" width="100%" onClick={handlePlate}>
+               Plate
             </Button>
           </VStack>
         )}
