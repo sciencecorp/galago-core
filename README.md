@@ -15,13 +15,6 @@ The controller app boots with a config file that specifies a specific set of too
 
 Every tool runs a gRPC server that exposes a standard interface; Commands are sent to tools for execution, and correspond to the lowest level idea in the "workflow-protocol-instruction-command" family of concepts. Tool servers are typically written in Python but this is just a convention; there is no reason a given tool server couldn't be written if any other gRPC-supported language.
 
-## Usage
-
-Right now this repo doesn't really do anything. For a minimal demo, run a tool server with `python -m tools.liconic.server` in one shell and then run the controller app (see the README in `controller/`) in another.
-
-User Guide
-https://sciencecorp.atlassian.net/wiki/spaces/BIO/pages/239206417/Foundry+Runtime+FRT+User+Guide
-
 
 ## Getting started 
 
@@ -54,6 +47,12 @@ Note: On windows you will need to make sure mamba is added to path and will need
 (Alternatively run the powershell script in admin mode, this installs mamba and creates the environments)
 ```
 mamba create --name galago-core python=3.9.12 nodejs=18.20.3 -y
+```
+
+Activate galago-core environment
+```
+mamba activate galago-core #mac bash
+source C:/Users/<User>/mamba/Scripts/activate galago-core #windows bash
 ```
 
 Build dependencies 
@@ -91,16 +90,10 @@ redis-cli ping
 ### On Windows. 
 Launch Galago.exe in the root folder of the repo. You can pin a shortcut to your taskbar or desktop. 
 
-Alternatively you can run it via python on command prompt. 
-```
-mamba activate galago-core
-python -m tools.launch_tools
-```
-
-### Mac 
 ```bash
-mamba activate galago-core 
-python -m tools.launch_tools 
+mamba activate galago-core #mac 
+source C:/Users/<User>/mamba/Scripts/activate galago-core #windows bash
+bin/make run
 ```
 
 ### Basic redis commands**
@@ -193,9 +186,9 @@ python changelog_to_pdf.py
 **Force Kill**
 ```
 pkill -9 python
-lsof -t -i tcp:3000 | xargs kill
+lsof -t -i tcp:3010 | xargs kill
 ```
 
 **Debugging windows exe** 
-If the exe isn't working and crashing without any error messages. Try this: 
-  & Start-Process -FilePath "C:\FRT\Development\foundry-runtime\Galago.exe" -NoNewWindow -RedirectStandardError "error_log.txt"
+If the exe isn't working and crashing without any error messages. For example: 
+  & Start-Process -FilePath "C:\projects\galago-core\Galago.exe" -NoNewWindow -RedirectStandardError "error_log.txt"
