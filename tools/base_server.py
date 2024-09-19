@@ -3,7 +3,6 @@ import os
 from concurrent import futures
 import logging
 import time
-import ctypes
 import grpc
 from google.protobuf import message
 from google.protobuf.json_format import MessageToDict
@@ -14,6 +13,11 @@ from tools.app_config import Config
 import sys 
 import logging.handlers
 
+if sys.platform == 'win32':
+    import ctypes
+    windll = ctypes.windll
+else:
+    windll = None
 
 # Configure logging to use the socket handler
 logging.basicConfig(
@@ -41,7 +45,10 @@ class ABCToolDriver:
             if ask_user:
                 # ask user with pop whether or not to kill processes
                 style_flag = 0x00001124 # 1 -> sys modal,no; 1 -> default to NO button; 2 -> add ? icon, 4 -> yes/no button style
-                return_val = ctypes.windll.user32.MessageBoxW(0, f"Kill running {process_name} processes?", f"Kill {self.__class__} Processes", style_flag)
+                if windll:
+                    windll.user32.MessageBoxW(0, f"Kill running {process_name} processes?", f"Kill {self.__class__} Processes", style_flag)
+                else:
+                    print(f"Kill running {process_name} processes?")
                 
             # if "OK" then kill 'em
             if return_val == 1:
