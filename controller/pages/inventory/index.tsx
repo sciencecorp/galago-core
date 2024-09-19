@@ -646,6 +646,7 @@ export default function Page() {
     return !Number.isNaN(Number(str));
   };
 
+
   return (
     <Box maxWidth="1800px" margin="auto">
       {printAndLabelPlateModal()}
@@ -756,6 +757,8 @@ export default function Page() {
         {mode === "checkin" && (
           <VStack align="center" spacing="4">
           <Text fontSize="xl">Check In Plate</Text>
+          <InputGroup>
+          </InputGroup>
             <InputGroup>
   
               {<Select
@@ -934,6 +937,7 @@ export default function Page() {
       )}
       {loading && <Progress hasStripe colorScheme='yellow' size="sm" isIndeterminate />}
       <Box h="2px" bg="gray.200" width="100%" my="12px" />
+      {!inventory && <Alert status="info">No inventory available. Reference documentation on how to build inventory</Alert>}
       {inventory && (
         <InventoryVisualizer
           inventory={inventory}

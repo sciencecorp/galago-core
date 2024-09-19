@@ -14,6 +14,7 @@ import time
 from os.path import join, dirname
 from typing import Optional 
 from tools.conda_utils import get_conda_environments,check_conda_is_path
+import argparse 
 
 ROOT_DIR = dirname(dirname(os.path.realpath(__file__)))
 CONTROLLER_DIR = join(ROOT_DIR, "controller")
@@ -29,12 +30,11 @@ logging.basicConfig(
 class ToolsManager():
 
     def __init__(self, app_root:tk.Tk, config:Config) -> None:
-        # signal.signal(signal.SIGINT, self.handle_signal)
-        # signal.signal(signal.SIGTERM, self.handle_signal)
         self.root = app_root
         self.root.title("Galago Web Client and Tools Server Manager")
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.root.geometry('800x600')
+        logging.info("Setting up icon")
         if os.name == "nt":
             self.root.iconbitmap(join(ROOT_DIR,"tools","favicon.ico"))
         elif os.name == "posix":
@@ -44,8 +44,9 @@ class ToolsManager():
                 self.root.iconphoto(True, str(icon_img))
         self.running_tools = 0
         self.config_file = ""
-        
+        logging.info("Starting Galago Manager")
         self.config :Config = config
+        self.log_folder = "logs/"
         if config.app_config.data_folder:
             if os.path.exists(config.app_config.data_folder):
                 self.log_folder = join(config.app_config.data_folder,"data","trace_logs", str(LOG_TIME))
@@ -54,6 +55,9 @@ class ToolsManager():
                     os.makedirs(self.log_folder)
             else:
                 self.log_text("Specified data folder is invalid.")
+
+        #Build databases if they do not exist
+        self.build_db()
         self.server_processes : dict[str,subprocess.Popen] = {}
         self.database_process : Optional[subprocess.Popen] = None
         self.controller_process : Optional[subprocess.Popen]= None
@@ -112,7 +116,16 @@ class ToolsManager():
         self.output_text = ScrolledText(self.right_frame, state='disabled', wrap='word')
         self.output_text.pack(fill=tk.BOTH, expand=True)
         self.output_text.tag_config('error', foreground='red') 
+        self.output_text.tag_config('warning', foreground='orange')
 
+        #Port to run on 
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--port')
+        args = parser.parse_args()
+        if args.port:
+            self.app_port = args.port
+        else:
+            self.app_port = "3010"
         self.populate_tool_buttons()
         self.update_buttons()
         self.start_database()
@@ -141,7 +154,35 @@ class ToolsManager():
                 self.log_text(f"failed to shut down process. Error={str(e)}")
                 pass
         self.server_processes.clear()
-
+    
+    
+    def build_db(self) -> None:
+        log_root_folder = os.path.join(self.config.app_config.data_folder,"db")
+        if not os.path.exists(log_root_folder):
+            try:
+                os.makedirs(log_root_folder)
+            except Exception as e:
+                logging.error(f"Failed to create log folder. Error={e}")
+                return None
+        if not config.logs_db_exists():
+            logging.info("Building inventory database")
+            try:
+                subprocess.Popen(["python", "-m", "tools.db.models.log_models"]).communicate()
+                subprocess.Popen(["python", "-m", "tools.db.log_types_add"]).communicate()
+            except Exception as e:
+                logging.error(f"Failed to build inventory database. Error={e}")
+                return None
+            logging.info("Inventory database built")
+        if not config.inventory_db_exists():
+            logging.info("Building logs database")
+            try:
+                subprocess.Popen(["python", "-m", "tools.db.models.inventory_models"]).communicate()
+                subprocess.Popen(["python", "-m", "tools.db.instantiate_db"]).communicate()
+            except Exception as e:
+                logging.error(f"Failed to build logs database. Error={e}")
+                return None
+            logging.info("Logs database built")
+    
     def update_buttons(self) -> None:
         for button_key, (button_name, button) in self.tool_buttons.items():
             if button_key in self.server_processes:
@@ -252,11 +293,14 @@ class ToolsManager():
             if result != 0:
                 cmd = self.get_shell_command(tool_type=tool_type, port=port)
                 os.chdir(ROOT_DIR)
+                use_shell = False
+                if os.name == 'nt':
+                    use_shell = True
                 if self.log_folder:
                     output_file = join(self.log_folder, tool_id) + ".log"
                     process = subprocess.Popen(cmd, stdout=open(output_file,'w'), stderr=subprocess.STDOUT,  universal_newlines=True)
                 else:
-                     process = subprocess.Popen(cmd, universal_newlines=True)
+                     process = subprocess.Popen(cmd, shell=use_shell,universal_newlines=True)
                 self.server_processes[tool_id] = process
                 self.log_files_modified_times[output_file] = os.path.getmtime(output_file)
             else:
@@ -329,25 +373,21 @@ class ToolsManager():
             os.environ['APP_MODE'] = "PROD" if branch_name.decode().replace("\n","") == "main" else "DEV"
             os.environ['NEXT_PUBLIC_API_URL'] = f"{self.config.app_config.host_ip}:8000" if self.config.app_config.host_ip else "127.0.0.1:8000"
             os.environ['REDIS_URL'] = f"redis://{self.config.app_config.redis_ip}/1" if self.config.app_config.redis_ip else "redis://127.0.0.1:6379/1"
-            os.environ['CONTROLLER_CONFIG'] = f"../workspace/workcells/{self.config.app_config.workcell_config_file}/{self.config.app_config.workcell_config_file}.json"
+            os.environ['CONTROLLER_CONFIG'] = f"../workspace/workcells/{self.config.app_config.workcell}/{self.config.app_config.workcell}.json"
             cmd = self.get_controller_command()
             use_shell = False
             if os.name == 'nt':
                 use_shell = True
             if self.log_folder:
-                output_file = join(self.log_folder,"controller.log")
-                process = subprocess.Popen(cmd, stdout=open(output_file,'w'), stderr=subprocess.STDOUT, shell=use_shell, universal_newlines=True)
+                output_file = join("../",self.log_folder,"controller.log")
+                process = subprocess.Popen(cmd, stdout=open(output_file,'w'), stderr=subprocess.STDOUT,shell=use_shell, universal_newlines=True)
             else:
-                process = subprocess.Popen(cmd, shell=use_shell, universal_newlines=True)
+                process = subprocess.Popen(cmd, shell=use_shell,universal_newlines=True)
             self.server_processes["controller"] = process
             self.log_files_modified_times[output_file] = os.path.getmtime(output_file)
         except subprocess.CalledProcessError:
             logging.info("There was an error launching the controller.")
         logging.info("controller launched")
-    
-    def get_controller_command(self) -> list:
-        npm_command = ["npm", "run", "dev", "--", "--port", "3000"]
-        return npm_command
     
     def start_redis_server(self) -> None:
         
@@ -366,6 +406,15 @@ class ToolsManager():
             cmd = ["cmd.exe", "/C", conda_cmd]
             subprocess.Popen(cmd)
 
+    def get_controller_command(self) -> list:
+        npm_command = ["npm", "run", "dev", "--", "--port", self.app_port]
+        if os.name == 'nt':
+            conda_cmd = f"conda activate galago-core && {npm_command.join(' ')}"
+            cmd = ["cmd.exe", "/C", conda_cmd]
+            return cmd
+        
+        return npm_command
+    
     def start_database(self) -> None:
         self.log_text("Launching inventory")
         inventory_cmd = "python -m tools.db.run"
@@ -397,7 +446,7 @@ class ToolsManager():
     def run_all_tools(self, force_restart:bool=False) -> None:
         self.config.load_app_config()
         self.config.load_workcell_config()
-        self.log_text(f"Config file is {self.config.app_config.workcell_config_file}")
+        self.log_text(f"Config file is {self.config.app_config.workcell}")
         if not self.config.workcell_config and not self.config.workcell_config_is_valid:
             self.log_text("Invalid workcell config file. No tools started")
             return
@@ -441,15 +490,11 @@ class ToolsManager():
     
 
 if __name__ == "__main__":
-    try:
-        root = tk.Tk()
-        config = Config()
-        config.load_app_config()
-        config.load_workcell_config()
-        manager = ToolsManager(root, config)
-        manager.show_gui()
-    except Exception as e:
-        logging.error(f"An unexpected error occurred: {e}")
-    finally:
-        manager.kill_all_processes()
-        root.destroy()
+    root = tk.Tk()
+    config = Config()
+    logging.info("Loading app config")
+    config.load_app_config()
+    logging.info("Loading workcell config")
+    config.load_workcell_config()
+    manager = ToolsManager(root, config)
+    manager.show_gui()

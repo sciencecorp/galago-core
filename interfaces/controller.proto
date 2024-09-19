@@ -43,7 +43,7 @@ message ControllerConfig {
 }
 
 message AppConfig {
-  string workcell_config_file = 1;
+  string workcell = 1;
   string host_ip = 2;
   string redis_ip = 3;
   string slack_bot_tocken = 4;
