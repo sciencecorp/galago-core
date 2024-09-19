@@ -12,8 +12,8 @@ ROOT_DIRECTORY = dirname(dirname(os.path.realpath(__file__)))
 APP_CONFIG_FILE = join(ROOT_DIRECTORY, "app_config.json")
 
 class AppConfig(BaseModel):
-    workcell :Optional[str] 
-    data_folder:Optional[str]
+    workcell:str
+    data_folder:str
     host_ip: Optional[str] 
     redis_ip: Optional[str] 
     enable_slack_errors: bool 
@@ -25,7 +25,7 @@ class AppConfig(BaseModel):
 class Config():
     def __init__(self) -> None:
         self.workcell_config : Optional[WorkcellConfig] = None
-        self.workcell_config_file  : Optional[str] = None
+        self.workcell_config_file  : str = ""
         self.app_config : AppConfig
         self.workcell_config_is_valid = False
         self.load_app_config()
