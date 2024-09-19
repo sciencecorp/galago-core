@@ -1,0 +1,16 @@
+syntax = 'proto3';
+
+package com.science.foundry.tools.tgrpc_interfacesools.frt;
+
+message Command {
+  oneof command {
+    MovePlate move_plate = 1;
+  }
+
+  message MovePlate {}
+
+}
+
+message Config {
+
+}
