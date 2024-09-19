@@ -26,6 +26,7 @@ class AppConfig(BaseModel):
 class Config():
     def __init__(self) -> None:
         self.workcell_config : Optional[WorkcellConfig] = None
+        self.workcell_config_file  : Optional[str] = None
         self.app_config : AppConfig
         self.workcell_config_is_valid = False
         self.load_app_config()
@@ -44,8 +45,8 @@ class Config():
     def load_app_config(self) -> None:
         if not os.path.exists(APP_CONFIG_FILE):
             self.app_config = AppConfig(
-                workcell=None,
-                data_folder="logs/",
+                workcell="workcell_1",
+                data_folder="logs",
                 host_ip="localhost",
                 redis_ip="127.0.0.1:6379",
                 enable_slack_errors=False,
@@ -61,7 +62,13 @@ class Config():
             with open(APP_CONFIG_FILE) as f:
                 try:
                     config = json.load(f)
-                    self.app_config = AppConfig.parse_obj(config)
+                    app_config = AppConfig.parse_obj(config)
+                    if app_config.data_folder is None:
+                        app_config.data_folder = "logs"
+                    if app_config.workcell is None:
+                        app_config.workcell = "workcell_1"
+                        logging.warning("Workcell not specified.. Using default workcell_1")
+                    self.app_config = app_config
                 except json.JSONDecodeError as e:
                     logging.error(f"Encountered errored while loading config file {e}")
 
@@ -79,11 +86,11 @@ class Config():
     
     def load_workcell_config(self)-> None:
         if self.app_config.data_folder is None:
-            self.app_config.data_folder = "logs/"
+            self.app_config.data_folder = "logs"
         if self.app_config.workcell is None:
             logging.warning("Workcell not specified")
             return None
-        workcell_path = join(ROOT_DIRECTORY,self.app_config.data_folder,"workcells", self.app_config.workcell, f"{self.app_config.workcell}.json")
+        workcell_path = join(self.app_config.data_folder,"workcells",f"{self.app_config.workcell}.json")
         if not os.path.exists(workcell_path):
             self.workcell_config_is_valid = False
             logging.warning("Specified workcell config file does not exist")
@@ -96,7 +103,7 @@ class Config():
                 self.workcell_config_is_valid = True
             except Exception as e:
                 raise RuntimeError(f"Failed to load workcell config file {e}")
-            
+        self.workcell_config_file = os.path.abspath(workcell_path)
         return None
     def __str__(self) -> str:
         #Use for debugging

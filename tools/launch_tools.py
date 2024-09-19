@@ -46,15 +46,12 @@ class ToolsManager():
         self.config_file = ""
         logging.info("Starting Galago Manager")
         self.config :Config = config
-        self.log_folder = "logs/"
-        if config.app_config.data_folder:
-            if os.path.exists(config.app_config.data_folder):
-                self.log_folder = join(config.app_config.data_folder,"data","trace_logs", str(LOG_TIME))
-                if not os.path.exists(self.log_folder):
-                    logging.debug("folder does not exist. creating folder")
-                    os.makedirs(self.log_folder)
-            else:
-                self.log_text("Specified data folder is invalid.")
+        self.log_folder = os.path.join(config.app_config.data_folder,"data","trace_logs", str(LOG_TIME))
+        self.workcell = config.app_config.workcell
+
+        if not os.path.exists(self.log_folder):
+            logging.debug("folder does not exist. creating folder")
+            os.makedirs(self.log_folder)
 
         #Build databases if they do not exist
         self.build_db()
@@ -376,7 +373,8 @@ class ToolsManager():
             os.environ['APP_MODE'] = "PROD" if branch_name.decode().replace("\n","") == "main" else "DEV"
             os.environ['NEXT_PUBLIC_API_URL'] = f"{self.config.app_config.host_ip}:8000" if self.config.app_config.host_ip else "127.0.0.1:8000"
             os.environ['REDIS_URL'] = f"redis://{self.config.app_config.redis_ip}/1" if self.config.app_config.redis_ip else "redis://127.0.0.1:6379/1"
-            os.environ['CONTROLLER_CONFIG'] = f"../workspace/workcells/{self.config.app_config.workcell}/{self.config.app_config.workcell}.json"
+            os.environ['CONTROLLER_CONFIG'] = self.config.workcell_config_file
+
             cmd = self.get_controller_command()
             use_shell = False
             if os.name == 'nt':
@@ -393,6 +391,7 @@ class ToolsManager():
         logging.info("controller launched")
     
     def start_redis_server(self) -> None:
+        
         if os.name == 'nt':
             self.log_text("Starting Redis Server")
             redis_cmd = "C:\Windows\Sysnative\wsl.exe -u root -e sudo service redis-server start"
