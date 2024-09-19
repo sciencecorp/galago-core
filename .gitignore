@@ -23,6 +23,7 @@ trace_log.log
 workcells/*.log
 package-lock.json
 package.json
+dump.rdb
 
 # debug
 npm-debug.log*

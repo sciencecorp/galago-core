@@ -154,6 +154,9 @@ class ToolsManager():
                 self.log_text(f"failed to shut down process. Error={str(e)}")
                 pass
         self.server_processes.clear()
+        self.force_kill_tool()
+        self.force_kill_db()
+        self.force_kill_web_app()
     
     
     def build_db(self) -> None:
@@ -390,7 +393,6 @@ class ToolsManager():
         logging.info("controller launched")
     
     def start_redis_server(self) -> None:
-        
         if os.name == 'nt':
             self.log_text("Starting Redis Server")
             redis_cmd = "C:\Windows\Sysnative\wsl.exe -u root -e sudo service redis-server start"
@@ -415,6 +417,27 @@ class ToolsManager():
         
         return npm_command
     
+    def force_kill_web_app(self) -> None:
+        try:
+            if os.name != 'nt':
+                subprocess.Popen(f"lsof -t -i tcp:{self.app_port} | xargs kill", shell=True)
+        except Exception as e:
+            self.log_text(f"Failed to kill web app. Error={e}")
+
+    def force_kill_tool(self) -> None:
+        try:
+            if os.name != 'nt':
+                subprocess.Popen("lsof -t -i tcp:1010 | xargs kill", shell=True)
+        except Exception as e:
+            self.log_text(f"Failed to kill web app. Error={e}")
+    
+    def force_kill_db(self) -> None:
+        try:
+            if os.name != 'nt':
+                subprocess.Popen("lsof -t -i tcp:8000 | xargs kill", shell=True)
+        except Exception as e:
+            self.log_text(f"Failed to kill web app. Error={e}")
+
     def start_database(self) -> None:
         self.log_text("Launching inventory")
         inventory_cmd = "python -m tools.db.run"
