@@ -2,7 +2,6 @@ from slack_sdk import WebClient
 import json
 import os 
 import logging
-from tools.toolbox.utils import get_slack_id_from_scientist_name
 import requests
 from typing import Any
 from tools.app_config import Config

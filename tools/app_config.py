@@ -1,4 +1,3 @@
-
 import os
 from os.path import join, dirname
 from pydantic import BaseModel
@@ -36,10 +35,11 @@ class Config():
     def inventory_db_exists(self) -> bool:
         if os.path.exists(self.inventory_db.replace("sqlite:///","")):
             return True
-        
+        return False
     def logs_db_exists(self) -> bool:
         if os.path.exists(self.logs_db.replace("sqlite:///","")):
-            return
+            return True
+        return False
         
     def load_app_config(self) -> None:
         if not os.path.exists(APP_CONFIG_FILE):

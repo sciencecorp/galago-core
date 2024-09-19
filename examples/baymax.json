@@ -75,25 +75,6 @@
         }
       },
       {
-        "id": "helix_tool_1",
-        "type": "helix_tool",
-        "name": "Helix Tool",
-        "description": "Helix Tool",
-        "image_url":"/tool_icons/dna_helix.jpg",
-        "ip": "localhost",
-        "port":4500,
-        "config": {
-          "simulated": true,
-          "helix_tool": {
-            "tool_id": "helix_tool_1",
-            "helix_url": "https://app.science.xyz/api",
-            "inventory_url": "http://galago:8000",
-            "cytation_data_directory": "C:\\cytation_experiments",
-            "synology_directory": "H:/SynologyDrive/Helix/cultures"
-          }
-        }
-      },
-      {
         "id": "vcode_1",
         "type": "vcode",
         "name": "VCode Labeler",

@@ -49,7 +49,7 @@ class ToolsManager():
         self.log_folder = "logs/"
         if config.app_config.data_folder:
             if os.path.exists(config.app_config.data_folder):
-                self.log_folder = join(config.app_config.data_folder,"data","trace_logs", str(LOG_TIME))
+                self.log_folder = os.path.join(config.app_config.data_folder, "data", "trace_logs", str(LOG_TIME))
                 if not os.path.exists(self.log_folder):
                     logging.debug("folder does not exist. creating folder")
                     os.makedirs(self.log_folder)
@@ -160,7 +160,10 @@ class ToolsManager():
     
     
     def build_db(self) -> None:
-        log_root_folder = os.path.join(self.config.app_config.data_folder,"db")
+        if self.config.app_config.data_folder:
+            log_root_folder = os.path.join(self.config.app_config.data_folder, "db")
+        else:
+            log_root_folder = os.path.join(ROOT_DIR, "db")
         if not os.path.exists(log_root_folder):
             try:
                 os.makedirs(log_root_folder)
@@ -411,7 +414,7 @@ class ToolsManager():
     def get_controller_command(self) -> list:
         npm_command = ["npm", "run", "dev", "--", "--port", self.app_port]
         if os.name == 'nt':
-            conda_cmd = f"conda activate galago-core && {npm_command.join(' ')}"
+            conda_cmd = f"conda activate galago-core && {(' ').join(npm_command)}"
             cmd = ["cmd.exe", "/C", conda_cmd]
             return cmd
         

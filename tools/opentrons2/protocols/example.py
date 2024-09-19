@@ -1,6 +1,5 @@
 from opentrons import protocol_api
 from typing import List
-from opentrons import types
 import ast
 metadata = {"apiLevel": "2.12"}
 
@@ -82,11 +81,11 @@ def run(
     reagent_plate = protocol.load_labware("nest_96_wellplate_2ml_deep", 2)
     reagent_plate.set_offset(x=0.00, y=-1.0, z=1)
 
-    tipbox = protocol.load_labware("opentrons_96_tiprack_300ul", 8)
+    tipbox = protocol.load_labware("opentrons_96_tiprack_300ul", tipbox_slot)
 
     pipette = protocol.load_instrument("p300_single", "left")
 
-    pipette.pick_up_tip()
+    pipette.pick_up_tip(tipbox.wells()[0])
     pipette.drop_tip()
 
     protocol.comment("Protocol complete!")

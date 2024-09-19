@@ -59,9 +59,10 @@ class ToolServer(tool_driver_pb2_grpc.ToolDriverServicer):
         
     def __init__(self) -> None:
         self.driver: t.Optional[ABCToolDriver] = ABCToolDriver()
-        self.log_path= "logs/tool_logs"
         if config.app_config.data_folder:
             self.log_path: Optional[str] = os.path.join(config.app_config.data_folder,"tool_logs")
+        else:
+            self.log_path = "logs/tool_logs"    
         self.start_time: float = time.time()
         self.status: tool_base_pb2.ToolStatus = tool_base_pb2.NOT_CONFIGURED
         self.last_error : Optional[str] = ""
