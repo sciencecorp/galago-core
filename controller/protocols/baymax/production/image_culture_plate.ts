@@ -28,10 +28,10 @@ export const ImageCulturePlateParams = z
   })
   .strict();
 
-export default class ImageCulturePlateUltralight extends Protocol<typeof ImageCulturePlateParams> {
+export default class ImageCulturePlateBaymax extends Protocol<typeof ImageCulturePlateParams> {
   protocolId = "image_culture_plate";
   category = "production";
-  workcell = "Ultralight";
+  workcell = "Baymax";
   name = "Plate Imaging"
   paramSchema = ImageCulturePlateParams;
 
