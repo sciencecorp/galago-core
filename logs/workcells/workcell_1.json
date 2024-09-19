@@ -1,6 +1,6 @@
 {
-    "id": "baymax",
-    "name": "Baymax",
+    "id": "workcell_1",
+    "name": "Workcell 1",
     "host": "0.0.0.0",
     "port": 4000,
     "tools": [
@@ -16,7 +16,7 @@
           "simulated": true,
           "cytation": {
             "tool_id":"baymax_cytation_1",
-            "protocol_dir": "C:\\Users\\Bioteam\\protocols",
+            "protocol_dir": "C:\\cytation_protocols",
             "experiment_dir": "C:\\cytation_experiments",
             "reader_type": "CYTATION_READER_CYTATION5"
           }
@@ -70,7 +70,7 @@
             "tool_id": "opentrons2_1",
             "robot_ip": "10.40.60.167",
             "robot_port": 31950,
-            "program_dir": "C:\\FRT\\Production\\foundry-runtime\\tools\\opentrons2\\protocols"
+            "program_dir": "C:\\opentrons_programs"
           }
         }
       },
@@ -117,6 +117,21 @@
           "simulated": true,
           "plateloc": {
             "profile":"plateloc"
+          }
+        }
+      },
+      {
+        "id": "hamilton_1",
+        "type": "hamilton",
+        "name": "Hamilton STAR",
+        "description": "Liquid Handler",
+        "image_url":"/tool_icons/hamilton_star.png",
+        "ip": "localhost",
+        "port":4800,
+        "config": {
+          "simulated": true,
+          "hamilton": {
+            "tool_id":"hamilton_1"
           }
         }
       }
