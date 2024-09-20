@@ -12,7 +12,7 @@ from tkinter.scrolledtext import ScrolledText
 from tkinter import ttk  # working on windows
 import time
 from os.path import join, dirname
-from typing import Optional 
+from typing import Optional, Any, Callable
 from tools.conda_utils import get_conda_environments,check_conda_is_path
 import argparse 
 
@@ -33,15 +33,8 @@ class ToolsManager():
         self.root = app_root
         self.root.title("Galago Web Client and Tools Server Manager")
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
-        self.root.geometry('800x600')
-        logging.info("Setting up icon")
-        if os.name == "nt":
-            self.root.iconbitmap(join(ROOT_DIR,"tools","favicon.ico"))
-        elif os.name == "posix":
-            icon_file = join(ROOT_DIR,"tools","site_logo.png")
-            icon_img = tk.Image("photo", file=icon_file)
-            if icon_img:
-                self.root.iconphoto(True, str(icon_img))
+        self.root.geometry('1000x700')  # Increased window size
+        
         self.running_tools = 0
         self.config_file = ""
         logging.info("Starting Galago Manager")
@@ -66,14 +59,10 @@ class ToolsManager():
         self.paned_window.pack(fill=tk.BOTH, expand=True)
         self.paned_window.propagate(False)
 
-        left_width = 190 
-        self.left_frame = tk.Frame(self.paned_window,width=left_width)
-
+        left_width = 250  # Increased left frame width
+        self.left_frame = tk.Frame(self.paned_window, width=left_width)
         self.left_frame.pack(fill=tk.BOTH, expand=True)
-        self.left_frame.propagate(False)
-
-        self.red_style = ttk.Style()
-        self.default_style = ttk.Style()
+        self.left_frame.pack_propagate(False)
 
         self.left_scrollbar = ttk.Scrollbar(self.left_frame, orient=tk.VERTICAL)
         self.left_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -82,7 +71,7 @@ class ToolsManager():
         self.left_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
         self.left_scrollbar.config(command=self.left_canvas.yview)
-        self.tool_buttons : dict[str, tuple[str,ttk.Button]] = {}
+        self.tool_buttons : dict[str, tuple[str,tk.Button,tk.Frame]] = {}
         self.tool_buttons_previous_states : dict[str, bool] = {}
 
         # Create a frame inside the canvas to hold the widgets
@@ -132,6 +121,19 @@ class ToolsManager():
 
         self.update_interval = 100
         self.update_log_text()
+
+        # Add search and filter features
+        self.search_frame = ttk.Frame(self.right_frame)
+        self.search_frame.pack(fill=tk.X, padx=5, pady=5)
+
+        self.search_entry = ttk.Entry(self.search_frame)
+        self.search_entry.pack(side=tk.LEFT, expand=True, fill=tk.X)
+        self.search_button = ttk.Button(self.search_frame, text="Search", command=self.search_logs)
+        self.search_button.pack(side=tk.LEFT)
+
+        self.filter_var = tk.StringVar(value="ALL")
+        self.filter_menu = ttk.OptionMenu(self.search_frame, self.filter_var, "ALL", "ALL", "INFO", "DEBUG", "WARNING", "ERROR", command=self.filter_logs)
+        self.filter_menu.pack(side=tk.LEFT)
 
     def kill_all_processes(self) ->None:
         logging.info("Killing redis")
@@ -187,7 +189,7 @@ class ToolsManager():
             logging.info("Logs database built")
     
     def update_buttons(self) -> None:
-        for button_key, (button_name, button) in self.tool_buttons.items():
+        for button_key, (button_name, button, frame) in self.tool_buttons.items():
             if button_key in self.server_processes:
                 process = self.server_processes[button_key]
                 is_alive = process is not None and process.poll() is None
@@ -195,10 +197,11 @@ class ToolsManager():
                 is_alive = False
             if is_alive != self.tool_buttons_previous_states[button_key]:
                 if is_alive:
-                    button["text"] = button_name
+                    button["text"] = "Disconnect"
+                    frame.configure(bg="light green")
                 else:
-                    button["text"]=f"{button_name}-dead"
-                button.pack() 
+                    button["text"] = "Connect"
+                    frame.configure(bg="light coral")
                 self.tool_buttons_previous_states[button_key] = is_alive
 
         self.root.after(500, self.update_buttons)
@@ -230,27 +233,53 @@ class ToolsManager():
                 last_updated = os.path.getmtime(file_name)
                 if update_time is None or last_updated != update_time:
                     last_lines = self.read_last_lines(file_name, 100)
-                    #with open(file_name, 'r') as file:
                     self.log_files_modified_times[file_name] = last_updated
-                    #new_line = file.read()
-                    #self.output_text.delete(1.0, tk.END)
+                    filter_type = self.filter_var.get()
                     for line in last_lines:
-                        if "| ERROR |" in line:
-                            self.log_text(line.strip(), "error")
-                        else:
-                            self.log_text(line.strip())
-                    self.output_text.config(state='normal')
-                    self.output_text.config(state='disabled')
-                    self.output_text.see(tk.END)
+                        if filter_type == "ALL" or f"| {filter_type} |" in line:
+                            if "| ERROR |" in line:
+                                self.log_text(line.strip(), "error")
+                            elif "| WARNING |" in line:
+                                self.log_text(line.strip(), "warning")
+                            else:
+                                self.log_text(line.strip())
+            self.output_text.config(state='disabled')
+            self.output_text.see(tk.END)
         except FileNotFoundError:
-            self.output_text.config(state='normal')
             self.output_text.config(state='disabled')
         except Exception:
-            self.output_text.config(state='normal')
-            self.output_text.config(state='disabled')
-        finally:
             self.output_text.config(state='disabled')
         self.root.after(self.update_interval, self.update_log_text)
+
+    def search_logs(self) -> None:
+        search_term = self.search_entry.get().lower()
+        self.output_text.tag_remove("search", "1.0", tk.END)
+        if search_term:
+            start_pos = "1.0"
+            while True:
+                start_pos = self.output_text.search(search_term, start_pos, stopindex=tk.END, nocase=True)
+                if not start_pos:
+                    break
+                end_pos = f"{start_pos}+{len(search_term)}c"
+                self.output_text.tag_add("search", start_pos, end_pos)
+                start_pos = end_pos
+            self.output_text.tag_config("search", background="yellow")
+
+    def filter_logs(self, *args: Any) -> None:
+        filter_type = self.filter_var.get()
+        self.output_text.config(state='normal')
+        self.output_text.delete(1.0, tk.END)
+        for file_name in self.log_files_modified_times.keys():
+            with open(file_name, 'r') as file:
+                for line in file:
+                    if filter_type == "ALL" or f"| {filter_type} |" in line:
+                        if "| ERROR |" in line:
+                            self.log_text(line.strip(), "error")
+                        elif "| WARNING |" in line:
+                            self.log_text(line.strip(), "warning")
+                        else:
+                            self.log_text(line.strip())
+        self.output_text.config(state='disabled')
 
     def get_shell_command(self, tool_type:str, port:int) -> list:
         python_cmd : str = f"python -m tools.{tool_type}.server --port={port}"
@@ -328,43 +357,64 @@ class ToolsManager():
         if log_type == "error":
             self.output_text.insert(tk.END, f"{text}\n",'error')
             self.output_text.tag_config('error', foreground='red')
+        elif log_type == "warning":
+            self.output_text.insert(tk.END, f"{text}\n", 'warning')
+            self.output_text.tag_config('warning', foreground='orange')
         else:
             self.output_text.insert(tk.END, f"{text}\n")
         self.output_text.config(state='disabled')
         self.output_text.see(tk.END)
 
     def populate_tool_buttons(self) -> None:
-        web_button_name = "Web App"
-        web_button = ttk.Button(self.widgets_frame, text=web_button_name, command=self.start_controller)
-        web_button.bind()
-        web_button.pack(fill=tk.X, padx=3,pady=4)
-        self.tool_buttons["controller"] = (web_button_name, web_button)
-        self.tool_buttons_previous_states["controller"] = True
-        toolbox_btn_name = "Tool Box"
-        toolbox_btn = ttk.Button(self.widgets_frame, text=toolbox_btn_name, command = self.start_toolbox)
-        toolbox_btn.pack(fill=tk.X, padx=5, pady=5)
-        self.tool_buttons["toolbox"] = (toolbox_btn_name, toolbox_btn)
-        self.tool_buttons_previous_states["toolbox"] = True
+        left_width = 300  # Initial width of the left frame
+        def create_tool_frame(parent: tk.Widget, tool_name: str, command: Callable, tool_id: str) -> None:
+            frame = tk.Frame(parent)
+            frame.pack(fill=tk.X, padx=3, pady=2)
+            
+            label = ttk.Label(frame, text=tool_name, anchor='w')
+            label.pack(side=tk.LEFT, padx=(5, 10), pady=5, expand=True, fill=tk.X)
+            
+            button = tk.Button(frame, text="Connect", command=command, width=10, 
+                               relief=tk.FLAT, bg=frame.cget('bg'), activebackground=frame.cget('bg'))
+            button.pack(side=tk.RIGHT, padx=(5, 5), pady=5)
+            
+            self.tool_buttons[tool_id] = (tool_name, button, frame)
+            self.tool_buttons_previous_states[tool_id] = False
 
-        inventory_btn_name = "Database"
-        inventory_button = ttk.Button(self.widgets_frame, text=inventory_btn_name, command = self.start_database)
-        inventory_button.pack(fill=tk.X, padx=5, pady=5 )
-        self.tool_buttons["database"] = (inventory_btn_name, inventory_button)
-        self.tool_buttons_previous_states["database"] = True
+        # Web App
+        create_tool_frame(self.widgets_frame, "Web App", self.start_controller, "controller")
 
+        # Tool Box
+        create_tool_frame(self.widgets_frame, "Tool Box", self.start_toolbox, "toolbox")
+
+        # Database
+        create_tool_frame(self.widgets_frame, "Database", self.start_database, "database")
+
+        # Workcell tools
         if self.config.workcell_config and self.config.workcell_config_is_valid:
             for t in self.config.workcell_config.tools:
                 try:
-                    button = ttk.Button(self.widgets_frame, text=t.name, command=lambda t=t: self.run_subprocess(t.id, t.type, t.name, t.port,True))
-                    button.pack(fill=tk.X, padx=5, pady=5)
-                    self.tool_buttons[t.id] = (t.name, button)
-                    self.tool_buttons_previous_states[t.id] = True
-                #Add tool specific button
+                    create_tool_frame(
+                        self.widgets_frame,
+                        t.name,
+                        lambda t=t: self.run_subprocess(t.id, t.type, t.name, t.port, True),
+                        t.id
+                    )
                 except Exception as e:
                     logging.error(f"Failed to add button {t.id}. Error is {e}")
 
-        restart_all_button = ttk.Button(self.widgets_frame, text="Restart All", command=lambda force_restart=True : self.run_all_tools(force_restart))
-        restart_all_button.pack(fill=tk.X, padx=3, pady=4 )
+        # Restart All button
+        restart_frame = ttk.Frame(self.widgets_frame)
+        restart_frame.pack(fill=tk.X, padx=3, pady=4)
+        restart_all_button = ttk.Button(restart_frame, text="Restart All", command=lambda force_restart=True: self.run_all_tools(force_restart))
+        restart_all_button.pack(fill=tk.X)
+
+        # Add this line to ensure the widgets_frame fits its contents
+        self.widgets_frame.update_idletasks()
+        self.left_canvas.config(width=self.widgets_frame.winfo_reqwidth())
+
+        # Set the initial position of the paned window sash
+        self.paned_window.sashpos(0, left_width)
 
     def start_controller(self) -> None:
         try:  
