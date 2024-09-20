@@ -12,10 +12,9 @@ from tkinter.scrolledtext import ScrolledText
 from tkinter import ttk  # working on windows
 import time
 from os.path import join, dirname
-from typing import Optional 
+from typing import Optional, Any, Callable
 from tools.conda_utils import get_conda_environments,check_conda_is_path
 import argparse 
-from tkinter import simpledialog
 
 ROOT_DIR = dirname(dirname(os.path.realpath(__file__)))
 CONTROLLER_DIR = join(ROOT_DIR, "controller")
@@ -34,7 +33,7 @@ class ToolsManager():
         self.root = app_root
         self.root.title("Galago Web Client and Tools Server Manager")
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
-        self.root.geometry('800x600')  # Set an initial size for the window
+        self.root.geometry('1000x700')  # Increased window size
         
         self.running_tools = 0
         self.config_file = ""
@@ -60,10 +59,10 @@ class ToolsManager():
         self.paned_window.pack(fill=tk.BOTH, expand=True)
         self.paned_window.propagate(False)
 
-        left_width = 300  # Increase this value if buttons are still getting cut off
+        left_width = 250  # Increased left frame width
         self.left_frame = tk.Frame(self.paned_window, width=left_width)
         self.left_frame.pack(fill=tk.BOTH, expand=True)
-        self.left_frame.propagate(False)
+        self.left_frame.pack_propagate(False)
 
         self.left_scrollbar = ttk.Scrollbar(self.left_frame, orient=tk.VERTICAL)
         self.left_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -72,7 +71,7 @@ class ToolsManager():
         self.left_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
         self.left_scrollbar.config(command=self.left_canvas.yview)
-        self.tool_buttons : dict[str, tuple[str,ttk.Button,tk.Frame]] = {}
+        self.tool_buttons : dict[str, tuple[str,tk.Button,tk.Frame]] = {}
         self.tool_buttons_previous_states : dict[str, bool] = {}
 
         # Create a frame inside the canvas to hold the widgets
@@ -252,13 +251,13 @@ class ToolsManager():
             self.output_text.config(state='disabled')
         self.root.after(self.update_interval, self.update_log_text)
 
-    def search_logs(self):
+    def search_logs(self) -> None:
         search_term = self.search_entry.get().lower()
         self.output_text.tag_remove("search", "1.0", tk.END)
         if search_term:
             start_pos = "1.0"
             while True:
-                start_pos = self.output_text.search(search_term, start_pos, stopindex=tk.END, nocase=1)
+                start_pos = self.output_text.search(search_term, start_pos, stopindex=tk.END, nocase=True)
                 if not start_pos:
                     break
                 end_pos = f"{start_pos}+{len(search_term)}c"
@@ -266,7 +265,7 @@ class ToolsManager():
                 start_pos = end_pos
             self.output_text.tag_config("search", background="yellow")
 
-    def filter_logs(self, *args):
+    def filter_logs(self, *args: Any) -> None:
         filter_type = self.filter_var.get()
         self.output_text.config(state='normal')
         self.output_text.delete(1.0, tk.END)
@@ -367,8 +366,8 @@ class ToolsManager():
         self.output_text.see(tk.END)
 
     def populate_tool_buttons(self) -> None:
-        # Create a frame for each tool
-        def create_tool_frame(parent, tool_name, command, tool_id):
+        left_width = 300  # Initial width of the left frame
+        def create_tool_frame(parent: tk.Widget, tool_name: str, command: Callable, tool_id: str) -> None:
             frame = tk.Frame(parent)
             frame.pack(fill=tk.X, padx=3, pady=2)
             
@@ -376,7 +375,7 @@ class ToolsManager():
             label.pack(side=tk.LEFT, padx=(5, 10), pady=5, expand=True, fill=tk.X)
             
             button = tk.Button(frame, text="Connect", command=command, width=10, 
-                            relief=tk.FLAT, bg=frame.cget('bg'), activebackground=frame.cget('bg'), highlightthickness=0)
+                               relief=tk.FLAT, bg=frame.cget('bg'), activebackground=frame.cget('bg'))
             button.pack(side=tk.RIGHT, padx=(5, 5), pady=5)
             
             self.tool_buttons[tool_id] = (tool_name, button, frame)
@@ -413,6 +412,9 @@ class ToolsManager():
         # Add this line to ensure the widgets_frame fits its contents
         self.widgets_frame.update_idletasks()
         self.left_canvas.config(width=self.widgets_frame.winfo_reqwidth())
+
+        # Set the initial position of the paned window sash
+        self.paned_window.sashpos(0, left_width)
 
     def start_controller(self) -> None:
         try:  
