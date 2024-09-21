@@ -13,7 +13,7 @@ APP_CONFIG_FILE = join(ROOT_DIRECTORY, "app_config.json")
 
 class AppConfig(BaseModel):
     workcell:str
-    data_folder:str
+    data_folder:Optional[str]
     host_ip: Optional[str] 
     redis_ip: Optional[str] 
     enable_slack_errors: bool 
@@ -46,7 +46,7 @@ class Config():
         if not os.path.exists(APP_CONFIG_FILE):
             self.app_config = AppConfig(
                 workcell="workcell_1",
-                data_folder="logs",
+                data_folder=os.path.join(ROOT_DIRECTORY,"logs"),
                 host_ip="localhost",
                 redis_ip="127.0.0.1:6379",
                 enable_slack_errors=False,
@@ -64,7 +64,7 @@ class Config():
                     config = json.load(f)
                     app_config = AppConfig.parse_obj(config)
                     if app_config.data_folder is None:
-                        app_config.data_folder = "logs"
+                        app_config.data_folder = os.path.join(ROOT_DIRECTORY,"logs")
                     if app_config.workcell is None:
                         app_config.workcell = "workcell_1"
                         logging.warning("Workcell not specified.. Using default workcell_1")

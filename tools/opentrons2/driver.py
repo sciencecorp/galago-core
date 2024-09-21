@@ -7,8 +7,6 @@ from typing import Optional
 from PIL import Image
 import io
 import os 
-from tools.toolbox.ot2_image_processing import OT2ImageProcessor
-import threading 
 
 class Ot2Driver(ABCToolDriver):
     def __init__(self, robot_ip: str, robot_port: int = 31950) -> None:
@@ -162,7 +160,7 @@ class Ot2Driver(ABCToolDriver):
         self.wait_for_command(run_id)
         time.sleep(2)
     
-    def take_picture(self, name:str, directory:str, object_detection:Optional[bool]=False, landing_ai_key:Optional[str]=None) -> None:
+    def take_picture(self, name:str, directory:str) -> None:
         # Take a picture
         response = requests.post(
             url=f"{self.base_url}/camera/picture",
@@ -176,13 +174,7 @@ class Ot2Driver(ABCToolDriver):
         if not os.path.exists(directory):
             os.makedirs(directory)
         file_path : str = os.path.join(directory,name)
-        #file_path : str = os.path.join(dirname(os.path.realpath(__file__)),"images", f"ot2_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{name}.jpg")
         rotated_image.save(file_path, format="JPEG")
-        if object_detection:
-            img_processor = OT2ImageProcessor("bc09839d-a49c-457e-ab64-a8f1a9a6bbbc",landing_ai_key)
-            img_processor_thread = threading.Thread(target=img_processor.process_image, args =(file_path,))
-            img_processor_thread.daemon = False
-            img_processor_thread.start()
 
 # if __name__ == "__main__":
 #     logging.info(dirname(os.path.realpath(__file__)))

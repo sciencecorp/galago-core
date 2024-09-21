@@ -39,7 +39,8 @@ class ToolsManager():
         self.config_file = ""
         logging.info("Starting Galago Manager")
         self.config :Config = config
-        self.log_folder = os.path.join(config.app_config.data_folder,"data","trace_logs", str(LOG_TIME))
+        working_dir = "" if not config.app_config.data_folder else config.app_config.data_folder
+        self.log_folder = os.path.join(working_dir,"data","trace_logs", str(LOG_TIME))
         self.workcell = config.app_config.workcell
 
         if not os.path.exists(self.log_folder):
@@ -229,6 +230,7 @@ class ToolsManager():
     def update_log_text(self) -> None:
         try:
             self.output_text.config(state='normal')
+            current_scroll = self.output_text.yview()
             for file_name, update_time in self.log_files_modified_times.items():
                 last_updated = os.path.getmtime(file_name)
                 if update_time is None or last_updated != update_time:
@@ -243,8 +245,11 @@ class ToolsManager():
                                 self.log_text(line.strip(), "warning")
                             else:
                                 self.log_text(line.strip())
+            
+            if current_scroll == (0.0, 1.0):  # Only scroll to the bottom if at the bottom
+                self.output_text.see(tk.END)
+
             self.output_text.config(state='disabled')
-            self.output_text.see(tk.END)
         except FileNotFoundError:
             self.output_text.config(state='disabled')
         except Exception:
@@ -328,6 +333,7 @@ class ToolsManager():
                 use_shell = False
                 if os.name == 'nt':
                     use_shell = True
+                logging.info(f"log folder is {self.log_folder}")
                 if self.log_folder:
                     output_file = join(self.log_folder, tool_id) + ".log"
                     process = subprocess.Popen(cmd, stdout=open(output_file,'w'), stderr=subprocess.STDOUT,  universal_newlines=True)
