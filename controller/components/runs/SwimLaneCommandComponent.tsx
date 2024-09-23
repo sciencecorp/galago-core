@@ -26,7 +26,9 @@ import {
   MenuList,
   MenuItem,
   IconButton,
-  Image
+  Image,
+  useColorMode,
+  useColorModeValue
 } from "@chakra-ui/react";
 
 import { Run, RunCommand } from "@/types";
@@ -48,8 +50,11 @@ const SwimLaneCommandComponent : React.FC<LaneCommandComponentProps> = ({command
       const execMutation = trpc.tool.runCommand.useMutation();
       const { queueId, commandInfo, estimatedDuration, status } = command;
       let toolName = infoQuery.data?.name || "undefined";
-      //const MemoizedSwimLaneComponentItem = React.memo(SwimLaneCommandComponent);
       const [commandColor, setCommandColor] = useState<string>("White");
+
+
+      const bgColor = useColorModeValue("#F9F9F9", "gray.700");
+      
       
       function renderToolImage(config:any){
         if (!config || !config.image_url) {
@@ -66,7 +71,7 @@ const SwimLaneCommandComponent : React.FC<LaneCommandComponentProps> = ({command
           case "FAILED":
             return "#F4CDCD"
           default:
-            return "white"
+            return {bgColor}
         }
       }
 
@@ -88,7 +93,6 @@ const SwimLaneCommandComponent : React.FC<LaneCommandComponentProps> = ({command
                   height='150px'
                   overflowY='auto'
                   mr="4"
-                  bg="white"
                   fontSize="18px"
                   borderLeftRadius='15'
                   borderRightRadius='15'

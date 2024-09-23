@@ -43,7 +43,7 @@ if (allProtocols.isError) {
   );
 }
 return (
-  <Center>
+  <Center p={10}>
     <VStack>
       <Heading>Protocols</Heading>
     <Input
@@ -65,7 +65,7 @@ return (
           </Alert>
         )}
         {allProtocols.data.map((protocol, index) => (
-              <Card key={index}>
+              <Card key={index} size='lg'>
               <CardHeader>
                 <Heading size='md'>{protocol.name}</Heading>
                 <Text fontSize='sm'>{protocol.id}</Text>

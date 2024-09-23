@@ -76,8 +76,8 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
     },[offset,limit,selectedFilter]);
 
   return (
-    <VStack align="center" spacing={5} width="100%">
-      <VStack>
+    <VStack align="center" spacing={5} width="80%">
+      <VStack width="100%">
         <Box>
           <Heading>Logs</Heading>
         </Box>
@@ -114,6 +114,7 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
           }}
           colorScheme={selectedFilter === "error" ? "red" : "gray"}>ERROR</Button>
       </HStack>
+      
       <Table mt={8} fontSize='small'>
         <Thead>
           <Tr>

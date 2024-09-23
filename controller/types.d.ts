@@ -83,7 +83,9 @@ export interface RunStatusList {
   data: Run[];
 }
 
-export interface ProcessEnv {
-  WORKCELL_BOT_TOKEN: string;
-  ACTIVE_CULTURE_CHANNEL: string;
+export interface Variable {
+  id?: number;
+  name: string;
+  value: string;
+  type: 'string' | 'number' | 'boolean' | 'array' | 'object';
 }

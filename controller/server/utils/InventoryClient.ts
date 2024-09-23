@@ -155,11 +155,9 @@ export interface SlackAlert {
 export class InventoryApiClient {
   private apiClient: AxiosInstance;
   constructor() {
-  console.log("Client initianting with url "+`http://${process.env.NEXT_PUBLIC_API_URL}`);
-
-    this.apiClient = axios.create({
-      baseURL: `http://${process.env.NEXT_PUBLIC_API_URL}`,
-    });
+  this.apiClient = axios.create({
+    baseURL: `http://${process.env.NEXT_PUBLIC_API_URL}`
+  });
   }
 
   // Get Inventory

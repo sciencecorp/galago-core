@@ -187,8 +187,6 @@ class VariableBase(BaseModel):
 
     @classmethod
     def validate_value_type(cls, data: t.Any) -> t.Any:
-        logging.info(f"Checking data: {data}")
-        logging.info(f"Checking data type: {type(data)}")
         model_dictionary = {}
 
         if isinstance(data, dict):

@@ -22,7 +22,9 @@ import {
   ModalHeader,
   ModalCloseButton,
   Text,
-  Progress
+  Progress,
+  useColorMode,
+  useColorModeValue
 } from "@chakra-ui/react";
 
 import {PlusSquareIcon, ChevronUpIcon, DeleteIcon} from "@chakra-ui/icons";
@@ -55,6 +57,8 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
     { limit: 1000, offset: 0 },
     { refetchInterval: 1000 }
   );
+
+  const bgColor = useColorModeValue("#F9F9F9", "gray.700");
 
   const runsAll = trpc.commandQueue.getAllRuns.useQuery(undefined, {refetchInterval:1000});
   let groupedCommands: GroupedCommand[] =  [];
@@ -163,7 +167,13 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
                     height={expandedRunId != run.Id ? 'auto' : '250px'}
                     position='relative'
                     maxWidth='100%'>
-                  <Box position='relative' bg='#F9F9F9' w='100%' p={1} color='black' border='1px'>
+                  <Box 
+                    position='relative' 
+                    // bg='#F9F9F9'
+                    w='100%' 
+                    p={1} color='black' border='1px'
+                    bg={bgColor}
+                    >
                     <VStack spacing='0'>
                       <Progress width='100%' hasStripe isAnimated value={(getRunAttributes(run.Id).commandsCount-run.Commands.length)/getRunAttributes(run.Id).commandsCount*100} colorScheme='blue' size='md'/>
                       <HStack width='100%'>

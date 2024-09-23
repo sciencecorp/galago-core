@@ -31,7 +31,7 @@ const TabPages = [
   { href: "/runs", title: "Runs" },
   { href: "/protocols", title: "Protocols" },
   { href: "/daily_actions", title: "Daily Actions" },
-  { href: "/data", title: "Data" },
+  { href: "/advanced", title: "Advanced" },
 ] as const;
 
 const styles = {

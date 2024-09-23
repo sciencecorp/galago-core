@@ -27,8 +27,10 @@ import {
   useToast,
   VStack,
   Box,
+  Divider,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
+import { run } from "node:test";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -128,22 +130,10 @@ export default function NewProtocolRunModal({
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [userDefinedParams, setUserDefinedParams] = useState<Record<string, any>>({});
   const [formErrors, setFormErrors] = useState<z.inferFormattedError<z.AnyZodObject>>();
-
-  console.log("protocol id is"+ id);
-
-  //if (protocol.isLoading) return <div>Loading...</div>;
-  //if (protocol.isError) return <div>Error: {protocol.error.message}</div>;
+  const [runsCount, setRunsCount] = useState<number>(1);
 
   const createRunMutation = trpc.run.create.useMutation({
-
-    onSuccess: (data) => {
-    console.log("User defined params is "+ JSON.stringify(userDefinedParams));
-
-      router.push(`/runs`);
-    },
     onError: (error) => {
-      console.log("User defined params is "+ JSON.stringify(userDefinedParams));
-
       if (error.data?.zodError) {
         setFormErrors(error.data.zodError as any);
       } else {
@@ -158,7 +148,23 @@ export default function NewProtocolRunModal({
       }
     },
   });
-  
+
+  const queueRuns = async (workcell:string, id:string, userDefinedParams:Record<string, any>, runsCount:number) =>{
+    for (let i = 0; i < runsCount; i++) {
+      await createRunMutation.mutateAsync(
+        {
+          protocolId: id,
+          workcellName:workcell,
+          params: userDefinedParams,
+        }
+      );
+    }
+
+    setUserDefinedParams({});
+    onClose();
+    router.push(`/runs`);
+  }
+
   return (
     <>
       {workcellName && uiParams && protocol && (
@@ -194,6 +200,18 @@ export default function NewProtocolRunModal({
                   <FormErrorMessage key={key}>{error}</FormErrorMessage>
                 ))}
               </>
+              <Divider/>
+              <FormLabel>Number of Runs:</FormLabel>
+              <NumberInput
+                width={100}
+                value={runsCount}
+                onChange={(_stringValue, numberValue) => setRunsCount(numberValue)}>
+                <NumberInputField />
+                <NumberInputStepper>
+                  <NumberIncrementStepper />
+                  <NumberDecrementStepper />
+                </NumberInputStepper>
+              </NumberInput>
             </VStack>
           </ModalBody>
           <ModalFooter>
@@ -201,22 +219,10 @@ export default function NewProtocolRunModal({
               <Button onClick={()=>{router.push(`/protocols`)}}>Cancel</Button>
               <Button
                 colorScheme="blue"
-                onClick={() => {
-                  createRunMutation.mutate(
-                    {
-                      protocolId: id,
-                      workcellName:workcellName,
-                      params: userDefinedParams,
-                    },
-                    {
-                      onSuccess: () => {
-                        setUserDefinedParams({});
-                        onClose();
-                      },
-                    },
-                  );
+                onClick={async () => {
+                  await queueRuns(workcellName, id, userDefinedParams, runsCount);
                 }}>
-                Start Run
+                Start Run(s)
               </Button>
             </ButtonGroup>
           </ModalFooter>

@@ -21,7 +21,7 @@ export default function ToolLogs() {
       <Box width="500px">
         <DataSideBar />
       </Box>
-      <Box width="100%" mr="10%">
+      <Box mr="10%">
         <LogView />
       </Box>
     </Flex>
