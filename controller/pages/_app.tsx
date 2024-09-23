@@ -1,5 +1,5 @@
 import "@/styles/globals.css";
-import { Box, ChakraProvider, VStack, extendTheme , useColorMode, Button, IconButton, Text, HStack} from "@chakra-ui/react";
+import { Box, ChakraProvider, VStack, extendTheme , useColorMode,useColorModeValue, Button, IconButton, Text, HStack} from "@chakra-ui/react";
 import { MoonIcon, SunIcon } from "@chakra-ui/icons";
 import { trpc } from "../utils/trpc";
 import Nav from "@/components/Nav";
@@ -30,16 +30,18 @@ function DarkModeToggle() {
 }
 
 function Footer() {
+  const bgColor = useColorModeValue("#F9F9F9", "gray.700");
   return (
     <Box 
       as="footer"
-      position="fixed" // Fixes the footer at the bottom
-      bottom={0}       // Aligns it to the bottom
-      width="100%"     // Full width of the screen
+      position="fixed" 
+      bottom={0}      
+      width="100%"  
       textAlign="center"
-      py={4}           // Padding for the footer
-      borderTop="1px solid" // Top border
-      zIndex={1}       // Ensures it stays above other content
+      py={4}      
+      borderTop="1px solid" 
+      zIndex={1}
+      bg={bgColor}
     >
       <HStack>
         <Box width="98%">
@@ -57,9 +59,15 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <ChakraProvider theme={customTheme}>
       <SidebarProvider>
-        <VStack spacing={0} align="center">
+        <VStack spacing={0} align="center" minHeight="100vh">
           <Nav/>
-          <Box maxWidth="1800px" margin="auto" flex="1">
+          <Box 
+            as="main"
+            maxWidth="1800px"
+            width="100%"
+            margin="auto" 
+            paddingBottom="80px" 
+            flex="1">
             <Component {...pageProps} />
           </Box>
         </VStack>
