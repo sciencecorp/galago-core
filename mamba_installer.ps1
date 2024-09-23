@@ -1,10 +1,6 @@
-<<<<<<<< HEAD:conda_installer.ps1
 Start-Process powershell -Verb runAs
 
 $install_path = "$env:USERPROFILE\Miniconda3"
-========
-$install_path = "$env:USERPROFILE\Miniforge3"
->>>>>>>> fix-start-up:mamba_installer.ps1
 $conda_executable = "$install_path\Scripts\conda.exe"
 
 function AddCondaToPath {
