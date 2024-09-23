@@ -64,7 +64,6 @@ const MyApp: AppType = ({ Component, pageProps }) => {
           <Box 
             as="main"
             maxWidth="1800px"
-            width="100%"
             margin="auto" 
             paddingBottom="80px" 
             flex="1">
