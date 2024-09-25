@@ -3,8 +3,6 @@ import subprocess
 import sys
 import platform
 import shutil
-import time
-from tqdm import tqdm
 
 def run_command(command):
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
