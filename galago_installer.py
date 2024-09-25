@@ -3,32 +3,33 @@ import subprocess
 import sys
 import platform
 import shutil
+from typing import Callable
 
-def run_command(command):
+def run_command(command: str) -> tuple[str, str]:
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     output, error = process.communicate()
     return output.decode('utf-8'), error.decode('utf-8')
 
-def check_command_exists(command):
+def check_command_exists(command: str) -> bool:
     return shutil.which(command) is not None
 
-def check_homebrew():
+def check_homebrew() -> bool:
     return check_command_exists('brew')
 
-def check_python():
+def check_python() -> bool  :
     return check_command_exists('python3')
 
-def check_node():
+def check_node() -> bool:
     return check_command_exists('node')
 
-def check_mamba():
+def check_mamba() -> bool:
     return check_command_exists('mamba')
 
-def check_conda_env(env_name):
+def check_conda_env(env_name: str) -> bool:
     output, _ = run_command(f"conda env list | grep {env_name}")
     return env_name in output
 
-def install_homebrew():
+def install_homebrew() -> bool:
     if not check_homebrew():
         print("Installing Homebrew...")
         homebrew_install_cmd = '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
@@ -38,7 +39,7 @@ def install_homebrew():
         print("Homebrew is already installed.")
         return False
 
-def install_python_mac():
+def install_python_mac() -> bool:
     if not check_python():
         print("Installing Python...")
         run_command("brew install python@3.9")
@@ -47,7 +48,7 @@ def install_python_mac():
         print("Python is already installed.")
         return False
 
-def install_node_mac():
+def install_node_mac() -> bool:
     if not check_node():
         print("Installing Node.js...")
         run_command("brew install node@18")
@@ -56,7 +57,7 @@ def install_node_mac():
         print("Node.js is already installed.")
         return False
 
-def install_mamba_mac():
+def install_mamba_mac() -> bool:
     if not check_mamba():
         print("Installing Mamba...")
         run_command("brew install miniforge")
@@ -66,7 +67,7 @@ def install_mamba_mac():
         print("Mamba is already installed.")
         return False
 
-def install_mamba_windows():
+def install_mamba_windows() -> bool:
     if not check_mamba():
         print("Installing Mamba...")
         mamba_url = "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Windows-x86_64.exe"
@@ -79,7 +80,7 @@ def install_mamba_windows():
         print("Mamba is already installed.")
         return False
 
-def setup_environment():
+def setup_environment() -> bool:
     print("Setting up Galago environment...")
     if not check_conda_env("galago-core"):
         run_command("mamba create --name galago-core python=3.9.12 nodejs=18.20.3 -y")
@@ -98,14 +99,14 @@ def setup_environment():
         print("Warning: 'controller' directory not found. Skipping npm install.")
     return True
 
-def run_with_progress(description, function):
+def run_with_progress(description: str, function: Callable[[], bool]) -> bool:
     print(f"{description}...")
     result = function()
     if result:
         print(f"{description} completed.")
     return result
 
-def main():
+def main() -> None:
     system = platform.system()
 
     if system == "Darwin":
