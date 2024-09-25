@@ -450,13 +450,15 @@ class ToolsManager():
         logging.info("controller launched")
     
     def start_redis_server(self) -> None:
-        
         if os.name == 'nt':
             self.log_text("Starting Redis Server")
             redis_cmd = "C:\Windows\Sysnative\wsl.exe -u root -e sudo service redis-server start"
             conda_cmd = f"conda activate galago-core && {redis_cmd}"
             cmd = ["cmd.exe", "/C", conda_cmd]
             subprocess.Popen(cmd)
+        else:
+            self.log_text("Starting Redis Server")
+            subprocess.Popen(["brew", "services", "start", "redis"])
 
     def stop_redis_server(self) -> None:
         if os.name == 'nt':
@@ -465,6 +467,9 @@ class ToolsManager():
             conda_cmd = f"conda activate galago-core && {redis_cmd}"
             cmd = ["cmd.exe", "/C", conda_cmd]
             subprocess.Popen(cmd)
+        else:
+            self.log_text("Stopping Redis Server")
+            subprocess.Popen(["brew", "services", "stop", "redis"])
 
     def get_controller_command(self) -> list:
         npm_command = ["npm", "run", "dev", "--", "--port", self.app_port]
