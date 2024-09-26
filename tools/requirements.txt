@@ -30,3 +30,4 @@ pywin32==304; platform_system == "Windows"
 pillow==10.3.0
 typing-inspect==0.8.0
 typing_extensions==4.8.0
+pyinstaller==6.10.0

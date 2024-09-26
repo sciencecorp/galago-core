@@ -16,7 +16,7 @@ def check_command_exists(command: str) -> bool:
 def check_homebrew() -> bool:
     return check_command_exists('brew')
 
-def check_python() -> bool  :
+def check_python() -> bool:
     return check_command_exists('python3')
 
 def check_node() -> bool:
@@ -90,13 +90,77 @@ def setup_environment() -> bool:
     
     run_command("mamba activate galago-core && pip install -r tools/requirements.txt")
     
-    controller_dir = os.path.join(os.getcwd(), "controller")
+    script_dir = os.path.abspath(os.path.dirname(__file__))
+    controller_dir = os.path.join(script_dir, "controller")
     if os.path.exists(controller_dir):
         os.chdir(controller_dir)
         run_command("npm install")
         os.chdir("..")
+        print("Galago controller installed successfully.")
     else:
         print("Warning: 'controller' directory not found. Skipping npm install.")
+    return True
+
+def install_redis() -> bool:
+    if platform.system() == "Darwin":
+        eval_command = 'eval "$(/opt/homebrew/bin/brew shellenv)"'
+        run_command(eval_command)
+        if not check_command_exists('brew'):
+            print("Homebrew not found. Installing Homebrew...")
+            homebrew_install_cmd = '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+            run_command(homebrew_install_cmd)
+        else:
+            print("Homebrew is already installed.")
+        
+        if not check_command_exists('redis-server'):
+            print("Installing Redis...")
+            run_command("brew install redis")
+            run_command("brew services start redis")
+            print("Redis service is running.")
+        else:
+            print("Redis is already installed and running.")
+        return True
+    else:
+        print("Redis installation is only supported on macOS.")
+        return False
+
+def setup_databases() -> bool:
+    print("Setting up databases...")
+    run_command("python -m tools.db.models.log_models")
+    run_command("python -m tools.db.log_types_add")
+    run_command("python -m tools.db.models.inventory_models")
+    run_command("python -m tools.db.instantiate_db")
+    print("Databases setup completed.")
+    return True
+
+def clean_proto() -> bool:
+    print("Cleaning up generated proto files")
+    run_command("rm -rf controller/gen-interfaces tools/*_pb2*.py*")
+    run_command("mkdir -p controller/gen-interfaces/tools")
+    print("Cleaned up generated proto files")
+    return True
+
+def proto_py() -> bool:
+    print("Generating protobuf definitions for Python")
+    proto_src = "./interfaces"
+    run_command(f"python -m grpc_tools.protoc -I{proto_src}/ --python_out=. --pyi_out=. --grpc_python_out=. {proto_src}/tools/grpc_interfaces/*.proto")
+    run_command(f"python -m grpc_tools.protoc -I{proto_src}/ --python_out=tools/grpc_interfaces/ --pyi_out=tools/grpc_interfaces --grpc_python_out=tools/grpc_interfaces/ {proto_src}/*.proto")
+    print("Generated protobuf definitions for Python")
+    return True
+
+def proto_ts() -> bool:
+    print("Generating protobuf definitions for TypeScript")
+    proto_src = "./interfaces"
+    controller_dir = "./controller"
+    run_command(f"mkdir -p {controller_dir}/gen-interfaces")
+    run_command(f"python -m grpc_tools.protoc -I={proto_src}/ --ts_proto_out={controller_dir}/gen-interfaces/ --ts_proto_opt=stringEnums=true --ts_proto_opt=esModuleInterop=true --ts_proto_opt=snakeToCamel=false --ts_proto_opt=outputServices=grpc-js {proto_src}/*.proto {proto_src}/tools/grpc_interfaces/*.proto")
+    print("Generated protobuf definitions for TypeScript")
+    return True
+
+def proto() -> bool:
+    clean_proto()
+    proto_py()
+    proto_ts()
     return True
 
 def run_with_progress(description: str, function: Callable[[], bool]) -> bool:
@@ -121,6 +185,9 @@ def main() -> None:
         sys.exit(1)
 
     run_with_progress("Setting up Galago environment", setup_environment)
+    run_with_progress("Installing Redis", install_redis)
+    run_with_progress("Setting up databases", setup_databases)
+    run_with_progress("Generating protobuf definitions", proto)
     print("Galago installation complete!")
 
 if __name__ == "__main__":
