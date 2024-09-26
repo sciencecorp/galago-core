@@ -3,7 +3,6 @@ import subprocess
 import sys
 import platform
 import shutil
-from typing import Callable
 
 def run_command(command: str) -> tuple[str, str]:
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -92,7 +91,7 @@ def setup_environment() -> bool:
     
     script_dir = os.path.abspath(os.path.dirname(__file__))
     controller_dir = os.path.join(script_dir, "controller")
-    if os.path.exists(controller_dir):
+    if (os.path.exists(controller_dir)):
         os.chdir(controller_dir)
         run_command("npm install")
         os.chdir("..")
@@ -163,31 +162,24 @@ def proto() -> bool:
     proto_ts()
     return True
 
-def run_with_progress(description: str, function: Callable[[], bool]) -> bool:
-    print(f"{description}...")
-    result = function()
-    if result:
-        print(f"{description} completed.")
-    return result
-
 def main() -> None:
     system = platform.system()
 
     if system == "Darwin":
-        run_with_progress("Installing Homebrew", install_homebrew)
-        run_with_progress("Installing Python", install_python_mac)
-        run_with_progress("Installing Node.js", install_node_mac)
-        run_with_progress("Installing Mamba", install_mamba_mac)
+        install_homebrew()
+        install_python_mac()
+        install_node_mac()
+        install_mamba_mac()
     elif system == "Windows":
-        run_with_progress("Installing Mamba", install_mamba_windows)
+        install_mamba_windows()
     else:
         print("Unsupported operating system")
         sys.exit(1)
 
-    run_with_progress("Setting up Galago environment", setup_environment)
-    run_with_progress("Installing Redis", install_redis)
-    run_with_progress("Setting up databases", setup_databases)
-    run_with_progress("Generating protobuf definitions", proto)
+    setup_environment()
+    install_redis()
+    setup_databases()
+    proto()
     print("Galago installation complete!")
 
 if __name__ == "__main__":

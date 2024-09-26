@@ -1,0 +1,148 @@
+import CommandComponent from "@/components/protocols/CommandComponent";
+import { useState } from "react";
+import StatusTag from "@/components/tools/StatusTag";
+import { ToolStatusCardsComponent } from "@/components/tools/ToolStatusCardsComponent";
+import { trpc } from "@/utils/trpc";
+import React, { useEffect } from "react";
+import {
+  Alert,
+  Box,
+  Button,
+  Heading,
+  HStack,
+  Spinner,
+  Table,
+  Tbody,
+  Text,
+  Th,
+  Thead,
+  Tr,
+  Tag,
+  VStack,
+  TagLabel,
+  Flex,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  IconButton,
+  Image
+} from "@chakra-ui/react";
+
+import { Run, RunCommand } from "@/types";
+import { HamburgerIcon } from "@chakra-ui/icons";
+import { JsxElement } from "typescript";
+import { Tooltip } from '@chakra-ui/react'
+import { ToolConfig } from "gen-interfaces/controller";
+
+interface LaneCommandComponentProps {
+  command : RunCommand,
+}
+
+const SwimLaneCommandComponent : React.FC<LaneCommandComponentProps> = ({command}) => {
+            
+      const infoQuery = trpc.tool.info.useQuery({ toolId: command.commandInfo.toolId });
+      const toolStatusQuery = trpc.tool.status.useQuery({ toolId: command.commandInfo.toolId });
+      const skipMutation = trpc.commandQueue.skipCommand.useMutation();
+      const skipUntilMutation = trpc.commandQueue.skipCommandsUntil.useMutation();
+      const execMutation = trpc.tool.runCommand.useMutation();
+      const { queueId, commandInfo, estimatedDuration, status } = command;
+      let toolName = infoQuery.data?.name || "undefined";
+      //const MemoizedSwimLaneComponentItem = React.memo(SwimLaneCommandComponent);
+      const [commandColor, setCommandColor] = useState<string>("White");
+      
+      function renderToolImage(config:any){
+        if (!config || !config.image_url) {
+          return <Box></Box>;
+        } else {
+          return <Image src={config.image_url} alt={config.name} sizes="100vw" style={{ width: '15%', height: '30px' }} />;
+        }
+      }
+
+      function setBackgroundColor(status:any){
+        switch(status){
+          case "STARTED":
+            return "#ABD3F9"
+          case "FAILED":
+            return "#F4CDCD"
+          default:
+            return "white"
+        }
+      }
+
+      infoQuery.data?.image_url
+      useEffect(() => {
+        if (infoQuery.isLoading) {
+          setCommandColor("Blue");
+          toolName = "loading..";
+        }
+      }, [infoQuery.isLoading]);
+      
+      const queued = queueId && (command.status === "CREATED" || command.status  === "FAILED" || command.status === "STARTED");
+
+    //  console.log("Tool status 1 is "+ command.status);
+      return (<Box
+                  left='0px'
+                  right='0px'
+                  minW='250px' 
+                  height='150px'
+                  overflowY='auto'
+                  mr="4"
+                  bg="white"
+                  fontSize="18px"
+                  borderLeftRadius='15'
+                  borderRightRadius='15'
+                  padding='6px'
+                  boxSizing="border-box"
+                  background={setBackgroundColor(command.status)}
+                  border={command.status === 'STARTED' ? '2px':'1px'}
+                  borderColor={command.status === 'STARTED' ? 'blue':'black'}
+                  >
+                  
+            <VStack alignItems="stretch">
+              <Box>
+              <HStack>
+                <Box width='90%'>
+                  <Text as='b'>{toolName}</Text>
+                </Box>
+                <Box>
+                  <Menu offset={[40,-40]}>
+                    <MenuButton
+                      as={IconButton}
+                      aria-label='Options'
+                      icon={<HamburgerIcon />}
+                      variant='outline'
+                    />
+                    <MenuList>
+                      {queued ? (
+                          <MenuItem onClick={() => skipMutation.mutate(queueId)}>⏩ Skip</MenuItem>
+                        ) : null}
+                      {queued ? (
+                        <MenuItem onClick={() => skipUntilMutation.mutate(queueId)}>⏩⏩ Skip to this command</MenuItem>
+                      ) : null}
+                    <MenuItem onClick={() => execMutation.mutate(command.commandInfo)}>🔨 Send to Tool</MenuItem>
+                    </MenuList>
+                </Menu>
+                </Box>
+              </HStack>
+              </Box>
+              <HStack>
+                <Text as = 'b'>Command:</Text>
+                <Text>{command.commandInfo.command}</Text>
+              </HStack>
+              <Tooltip placement='right' label={JSON.stringify(command.commandInfo.params, null,2).split("\n")}>
+                <Box p='1'>
+                  <HStack>
+                    <Tag width='90%'>
+                      <Text>Parameters</Text>
+                    </Tag>
+                    {renderToolImage(infoQuery.data)}
+                  </HStack>
+                </Box>
+              </Tooltip>
+            </VStack>
+          </Box>
+          );
+};
+
+export default React.memo(SwimLaneCommandComponent)
