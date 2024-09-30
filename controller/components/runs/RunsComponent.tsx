@@ -22,7 +22,8 @@ import {
   ModalHeader,
   ModalCloseButton,
   Text,
-  Progress
+  Progress,
+  useColorModeValue
 } from "@chakra-ui/react";
 
 import {PlusSquareIcon, ChevronUpIcon, DeleteIcon} from "@chakra-ui/icons";
@@ -163,7 +164,7 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
                     height={expandedRunId != run.Id ? 'auto' : '250px'}
                     position='relative'
                     maxWidth='100%'>
-                  <Box position='relative' bg='#F9F9F9' w='100%' p={1} color='black' border='1px'>
+                  <Box position='relative' bg={useColorModeValue("gray.100", "gray.700")} w='100%' p={1} color='black' border='1px'>
                     <VStack spacing='0'>
                       <Progress width='100%' hasStripe isAnimated value={(getRunAttributes(run.Id).commandsCount-run.Commands.length)/getRunAttributes(run.Id).commandsCount*100} colorScheme='blue' size='md'/>
                       <HStack width='100%'>

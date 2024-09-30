@@ -27,19 +27,14 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import DataSideBar from "@/components/data/DataSideBar";
-
-interface Variable {
-  id: string;
-  name: string;
-  value: string;
-  type: 'string' | 'number' | 'boolean' | 'array' | 'object';
-}
+import { trpc } from "@/utils/trpc";
+import { Variable } from "@/types";
 
 interface VariableModalProps {
   isOpen: boolean;
   onClose: () => void;
   variable: Variable | null;
-  onSave: (variable: Omit<Variable, 'id'>) => Promise<boolean>;
+  onSave: (variable: Variable) => Promise<boolean>;
 }
 
 const VariableModal: React.FC<VariableModalProps> = ({ isOpen, onClose, variable, onSave }) => {
@@ -47,36 +42,28 @@ const VariableModal: React.FC<VariableModalProps> = ({ isOpen, onClose, variable
   const [value, setValue] = useState(variable?.value || '');
   const [type, setType] = useState(variable?.type || 'string');
   const [isLoading, setIsLoading] = useState(false);
-  const toast = useToast();
-
+  
   useEffect(() => {
-    if (variable) {
+    if(variable){
       setName(variable.name);
       setValue(variable.value);
       setType(variable.type);
-    } else {
-      setName('');
-      setValue('');
-      setType('string');
     }
-  }, [variable]);
+   else {
+    setName('');
+    setValue('');
+    setType('string');
+  }
+  },[variable]);
 
   const handleSave = async () => {
     setIsLoading(true);
-    const success = await onSave({ name, value, type: type as Variable['type'] });
+    const success = await onSave({ id: variable?.id, name, value, type }); // Passing updated values
     setIsLoading(false);
     if (success) {
       onClose();
-    } else {
-      toast({
-        title: "Error saving variable",
-        description: "Please try again.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  }; 
+    } 
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -125,52 +112,33 @@ const Variables: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
 
+  const { data: fetchedVariables, refetch } = trpc.variable.getAll.useQuery();
+  const addVariable = trpc.variable.add.useMutation();
+  const editVariable = trpc.variable.edit.useMutation();
+  const deleteVariable = trpc.variable.delete.useMutation();
+  const getVariable = trpc.variable.get.useMutation();
+
   useEffect(() => {
-    fetchVariables();
-  }, []);
-
-  const fetchVariables = async () => {
-    try {
-      const response = await fetch('/api/variables');
-      if (!response.ok) {
-        throw new Error('Failed to fetch variables');
-      }
-      const data: Variable[] = await response.json();
-      setVariables(data);
-    } catch (error) {
-      console.error('Error fetching variables:', error);
-      toast({
-        title: "Error fetching variables",
-        description: "Please try again later.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+    if (fetchedVariables) {
+      setVariables(fetchedVariables);
     }
-  };
+  }, [fetchedVariables]);
 
-  const handleCreateOrUpdate = async (variable: Omit<Variable, 'id'>): Promise<boolean> => {
+
+  const handleCreateOrUpdate = async (variable: Variable): Promise<boolean> => {
     try {
-      const baseUrl = 'http://localhost:3000'; // Set your new base URL here
-      const url = selectedVariable ? `/api/variables/${selectedVariable.id}` : `/api/variables`;
-      const method = selectedVariable ? 'PUT' : 'POST';
-      
-      // For creation, ensure all values are strings
-      const payload = selectedVariable ? variable : {
-          "name": String(variable.name),
-          "value": String(variable.value),
-          "type": String(variable.type)
-      };
-      console.log("Url is ",url);
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json','Accept': 'application/json'},
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to save variable');
+      const editedVariable = {
+        id: selectedVariable?.id,
+        name: variable.name,
+        value: variable.value,
+        type: variable.type
+      } as Variable;
+      if (selectedVariable) {
+        await editVariable.mutateAsync(editedVariable);  
+      } else {
+        await addVariable.mutateAsync(variable);
       }
-      await fetchVariables();
+      await refetch();
       toast({
         title: `Variable ${selectedVariable ? 'updated' : 'created'} successfully`,
         status: "success",
@@ -182,7 +150,7 @@ const Variables: React.FC = () => {
       console.error('Error saving variable:', error);
       toast({
         title: "Error saving variable",
-        description: "Please try again.",
+        description: `Please try again. ${error}`,
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -191,13 +159,13 @@ const Variables: React.FC = () => {
     }
   };
 
-  const handleDelete = async (name: string) => {
+  const handleDelete = async (variable:Variable) => {
     try {
-      const response = await fetch(`/api/variables/${name}`, { method: 'DELETE' });
-      if (!response.ok) {
-        throw new Error('Failed to delete variable');
+      if(variable.id === undefined){  
+        return;
       }
-      await fetchVariables();
+      await deleteVariable.mutateAsync(variable.id);
+      refetch();
       toast({
         title: "Variable deleted successfully",
         status: "success",
@@ -205,10 +173,9 @@ const Variables: React.FC = () => {
         isClosable: true,
       });
     } catch (error) {
-      console.error('Error deleting variable:', error);
       toast({
         title: "Error deleting variable",
-        description: "Please try again.",
+        description: `Please try again. ${error}`,
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -216,7 +183,7 @@ const Variables: React.FC = () => {
     }
   };
 
-  const filteredVariables = variables.filter(variable => 
+  const filteredVariables = variables?.filter(variable => 
     variable.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
     (typeFilter === '' || variable.type === typeFilter)
   );
@@ -270,7 +237,7 @@ const Variables: React.FC = () => {
                       <Button size="sm" leftIcon={<EditIcon />} onClick={() => { setSelectedVariable(variable); onOpen(); }}>
                         Edit
                       </Button>
-                      <Button size="sm" leftIcon={<DeleteIcon />} colorScheme="red" onClick={() => handleDelete(variable.name)}>
+                      <Button size="sm" leftIcon={<DeleteIcon />} colorScheme="red" onClick={() => handleDelete(variable)}>
                         Delete
                       </Button>
                     </HStack>

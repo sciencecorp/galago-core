@@ -30,8 +30,7 @@ const TabPages = [
   { href: "/inventory", title: "Inventory" },
   { href: "/runs", title: "Runs" },
   { href: "/protocols", title: "Protocols" },
-  { href: "/daily_actions", title: "Daily Actions" },
-  { href: "/data", title: "Data" },
+  { href: "/advanced", title: "Advanced" },
 ] as const;
 
 const styles = {
@@ -85,7 +84,9 @@ export default function Nav() {
         {showSettingsModal && 
           <SettingsModalComponent IsVisible={showSettingsModal}/>
         }
-        <Image width='50px' paddingLeft="5" src="/site_logo.png"></Image>
+        <Link href="/" passHref>
+          <Image width='50px' paddingLeft="5" src="/site_logo.png"></Image>
+        </Link>
         <Breadcrumb alignContent="left" p={1} separator={"›"} width="15%">
           {breadcrumbs.map((breadcrumb) => {
             const isCurrentPage = breadcrumb.href === "#";

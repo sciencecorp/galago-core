@@ -2,7 +2,7 @@
 
 Galago consists of several distinct modules:
 
-- Controller, a NEXT.js app which governs a defined set of devices (execution management and scheduling)
+- Controller, a NEXT.js/Electron app which governs a defined set of devices (execution management and scheduling)
 - Tool drivers which implement a gRPC interface and handle tool-specific control logic
 
 To build the protobuf interfaces, simply run `bin/make proto`.
@@ -131,38 +131,6 @@ zrange <key> 0 -1 withscores
 
 #clear all in selected db
 flushdb
-```
-
-
-## Known errors and issues
-If you run into ```The authenticity of host 'github.com ()' can't be established.``` error on windows
-run the following command:
-
-```bash
-ssh-keyscan github.com >> ~/.ssh/known_hosts
-```
-
-Note that the `cytation` tool requires a `pywin32` install, which will fail on non-Windows machines.
-
-You may be able to fix it by running in your conda environment:
-
-```
-pip uninstall -y grpcio && conda install -y grpcio
-```
-
-or try
-
-```
-conda remove absl-py
-conda install -c conda-forge absl-py
-```
-
-or try
-
-```
-pip uninstall grpcio
-export GRPC_PYTHON_LDFLAGS=" -framework CoreFoundation"
-pip install grpcio --no-binary :all:
 ```
 
 **Change Log Generation** 

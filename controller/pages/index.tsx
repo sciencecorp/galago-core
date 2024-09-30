@@ -43,29 +43,13 @@ export default function Page() {
    color:"blue",
    description:"All protocols for this workcell. A protocol can be executed manually by entering inputs your self."
   },
-  {
-    title: "Images",
-    subtitle: "tools",
-    link: "/data/images/cell_imaging",
-    icon: <Icon as={MdBiotech} boxSize={12} />,
-    color: "blue",
-    description:
-      "Image Data Visualizer. Shows images of the culture plate and the well locations of the culture plate."
-  },
-  {title:"Daily Actions",
-  subtitle:"tools",
-  link:"/daily_actions",
-  icon: <Icon as ={LuCalendarRange} boxSize={12}/>,
-  color:"blue",
-  description:"Page that allows users to easily queue workflows to be execute by the workcell. Users can filter by run type and bulk queue workflows."
- },    
- {title:"Data",
-  subtitle:"data",
-  link:"/data",
-  icon: <Icon as ={AiFillDatabase} boxSize={12}/>,
-  color:"blue",
-  description:"Data management and visualization tools. Includes cell images, camera images, logs, sensor data, etc."
- }
+  {title:"Advanced",
+    subtitle:"advanced",
+    link:"/advanced",
+    icon: <Icon as ={AiFillDatabase} boxSize={12}/>,
+    color:"blue",
+    description:"Other tools and features."
+  }
   ]
 
   return (

@@ -29,11 +29,10 @@ conf = Config()
 conf.load_app_config()
     
 app = FastAPI(title="Inventory API")
-origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
+origins = ["http://localhost:3010", "http://127.0.0.1:3010"]
 
 if conf.app_config.host_ip:
     origins.append(f"http://{conf.app_config.host_ip}")
-    origins.append(f"http://{conf.app_config.host_ip}:3000")
 
 app.add_middleware(
     CORSMiddleware,
