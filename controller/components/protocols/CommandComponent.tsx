@@ -54,7 +54,6 @@ export default function CommandComponent({
   //     ? [...paramLines.slice(0, 10), "...[Text truncated for brevity]"]
   //     : paramLines;
   const paramString = paramLines.join("\n");
-  // console.log("paramString", paramString);
   return (
     <Tr>
       <Td>

@@ -94,7 +94,6 @@ useEffect(()=>{
 },[date])
 
 useEffect(()=>{
-    console.log("Refreshing image bytes");
     const fetchImageBytes = async () =>{
       const response = await GetImageBytes();
       if(response?.meta_data){

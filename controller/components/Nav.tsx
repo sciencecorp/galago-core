@@ -57,9 +57,7 @@ export default function Nav() {
   const {lastClickedSubtab, setLastClickedSubtab } = useSidebar();
 
   const handleShowModal =() =>{
-    console.log("showing modals");
     setShowSettingsModal(!showSettingsModal);
-    console.log("Show modal is now" + showSettingsModal);
   }
 
   if (selectedTab) {

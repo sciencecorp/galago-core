@@ -144,12 +144,6 @@ ssh-keyscan github.com >> ~/.ssh/known_hosts
 
 Note that the `cytation` tool requires a `pywin32` install, which will fail on non-Windows machines.
 
-Also, note that if you get this error when trying to start the tool servers:
-
-```
-ImportError: dlopen(/Users/albertonava/miniconda3/envs/foundry-runtime2/lib/python3.10/site-packages/grpc/_cython/cygrpc.cpython-310-darwin.so, 0x0002): symbol not found in flat namespace '_CFRelease'
-```
-
 You may be able to fix it by running in your conda environment:
 
 ```

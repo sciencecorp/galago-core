@@ -21,9 +21,7 @@ const DataSideBar: React.FC<SidebarProps> = () => {
   ];
 
   useEffect(()=>{
-    console.log("This should reset the tabs!")
     if(router.pathname === '/data'){
-      console.log("Setting to null");
       setLastClickedSubtab(null);
     }
   },[]);
@@ -46,9 +44,6 @@ const DataSideBar: React.FC<SidebarProps> = () => {
     setLastClickedSubtab(path);
     router.replace(path);
   };
-
-  console.log(`Current route is ${router.pathname}`);
-  console.log(``);
 
   return (
     <Box

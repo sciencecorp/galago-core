@@ -29,7 +29,6 @@ import DatePicker from "react-datepicker";
 import styled from 'styled-components';
 import "react-datepicker/dist/react-datepicker.css";
 
-
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -127,7 +126,6 @@ export default function liconic() {
     useEffect(() => {
         const fetchLiconicData = async () => {
             const response = await GetLiconicData();
-            console.log("Response metadata is "+ JSON.stringify(response?.meta_data));
             if(response?.meta_data && response.meta_data["times"].length == 0){
                 toast.closeAll()
                 toast({

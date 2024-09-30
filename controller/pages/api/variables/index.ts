@@ -12,9 +12,6 @@ const domain = 'http://localhost:8000';
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse<Variable[] | string>) {
     try {
-        console.log("GET request"); 
-        console.log("Query is" + JSON.stringify(req.query));
-        
         const response = await axios.get(`${domain}/variables`, {
             timeout: 1000,
             headers: {

@@ -783,7 +783,6 @@ class OpentronsProgram(BaseModel):
 metadata = {
     "apiLevel": "2.12",
     "protocolName": "Universal Opentrons Protocol",
-    "author": "alberton@science.xyz",
     "description": "Opentron program for executing a protocol defined in JSON",
 }
 
@@ -794,10 +793,6 @@ params: t.Dict[str, t.Any] = {}
 
 
 def run(protocol_context: protocol_api.ProtocolContext) -> None:
-    # import json
-    # protocol_json = ("/Users/albertonava/Documents/Projects/230323_magbead_purification_opentrons/opentrons_refactor/protocol.json")
-    # with open(protocol_json, "r") as f:
-    #     params = json.load(f)
     opentrons_program = OpentronsProgram(**params)
     opentrons_program.load(protocol_context)
     opentrons_program.run()

@@ -56,7 +56,7 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent>= ({totalRuns})
         );
       }
       catch{
-        console.log("failed to clear slack messages.")
+        console.error("failed to clear slack messages.")
       }
     }
 

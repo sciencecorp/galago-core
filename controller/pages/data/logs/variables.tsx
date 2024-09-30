@@ -154,8 +154,6 @@ const Variables: React.FC = () => {
       const baseUrl = 'http://localhost:3000'; // Set your new base URL here
       const url = selectedVariable ? `/api/variables/${selectedVariable.id}` : `/api/variables`;
       const method = selectedVariable ? 'PUT' : 'POST';
-      console.log("Method is ",method);
-      console.log("Url is ",url);
       
       // For creation, ensure all values are strings
       const payload = selectedVariable ? variable : {
