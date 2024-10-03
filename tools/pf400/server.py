@@ -856,20 +856,40 @@ class Pf400Server(ToolServer):
 
             # Update the waypoints
             if teachpoint['type'] == 'nest':
-                waypoints['nests'][teachpoint['name']] = {
-                    "approach_path": teachpoint['approachPath'],
-                    "loc": {
-                        "loc": teachpoint['coordinate'],
-                        "loc_type": teachpoint['locType']
-                    },
-                    "orientation": "landscape",  # You might want to make this dynamic
-                    "safe_loc": "bravo_safe"  # You might want to make this dynamic
-                }
+                if teachpoint['name'] not in waypoints['nests']:
+                    waypoints['nests'][teachpoint['name']] = {}
+                
+                nest = waypoints['nests'][teachpoint['name']]
+                
+                # Update only the changed fields
+                if 'approachPath' in teachpoint:
+                    nest['approach_path'] = teachpoint['approachPath']
+                
+                if 'coordinate' in teachpoint or 'locType' in teachpoint:
+                    if 'loc' not in nest:
+                        nest['loc'] = {}
+                    if 'coordinate' in teachpoint:
+                        nest['loc']['loc'] = teachpoint['coordinate']
+                    if 'locType' in teachpoint:
+                        nest['loc']['loc_type'] = teachpoint['locType']
+                
+                # Only set these if they're not already present
+                if 'orientation' not in nest:
+                    nest['orientation'] = "landscape"
+                if 'safe_loc' not in nest:
+                    nest['safe_loc'] = "bravo_safe"
+
             else:  # location
-                waypoints['locations'][teachpoint['name']] = {
-                    "loc": teachpoint['coordinate'],
-                    "loc_type": teachpoint['locType']
-                }
+                if teachpoint['name'] not in waypoints['locations']:
+                    waypoints['locations'][teachpoint['name']] = {}
+                
+                location = waypoints['locations'][teachpoint['name']]
+                
+                # Update only the changed fields
+                if 'coordinate' in teachpoint:
+                    location['loc'] = teachpoint['coordinate']
+                if 'locType' in teachpoint:
+                    location['loc_type'] = teachpoint['locType']
 
             # Write the updated waypoints back to the file
             with open(waypoints_file, 'w') as f:
