@@ -830,6 +830,11 @@ class Pf400Server(ToolServer):
                 nearest_safe_point_distance = distance
         return nearest_safe_point
 
+    def SaveTeachpoints(self, params: Command.SaveTeachpoints) -> None:
+        print("Saving teachpoints")
+        print(params)
+        # self.driver.save_teachpoints(params)
+        print("Teachpoints saved")
     def Wait(self, params: Command.Wait) -> None:
         self.driver.wait(duration=params.duration)
 
@@ -875,7 +880,8 @@ class Pf400Server(ToolServer):
         return 1
     def EstimateGetTeachpoints(self, params: Command.GetTeachpoints) -> int:
         return 1
-    
+    def EstimateSaveTeachpoints(self, params: Command.SaveTeachpoints) -> int:
+        return 1
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

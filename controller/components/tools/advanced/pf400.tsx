@@ -1,4 +1,3 @@
-
 import { ChangeEvent, FormEvent, JSXElementConstructor, ReactElement, ReactFragment, ReactPortal, useEffect, useState } from "react";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import {
@@ -34,6 +33,7 @@ import { ToolCommandInfo } from "@/types";
 import { ToolConfig } from 'gen-interfaces/controller';
 import { ToolType } from "gen-interfaces/controller";
 import { ExecuteCommandReply, ResponseCode } from "gen-interfaces/tools/grpc_interfaces/tool_base";
+import { delay } from "framer-motion";
 
 
 interface PF400Props  {
@@ -42,8 +42,12 @@ interface PF400Props  {
 }
 
 interface TeachPoint {
-    name:string,
-    coordinate:string
+    name: string;
+    coordinate: string;
+    type: 'nest' | 'location';
+    locType: string;
+    approachPath?: string[];
+    isEdited?: boolean;
 }
 
 export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
@@ -51,17 +55,79 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
     const [locations, setLocations] = useState<TeachPoint[]>([]);
     const [currentTeachpoint, setCurrentTeachpoint] = useState("");
     const [currentCoordinate, setCurrentCoordinate] = useState("");
+    const [currentApproachPath, setCurrentApproachPath] = useState<string[]>([]);
+    const [currentType, setCurrentType] = useState<'nest' | 'location'>('nest');
     const [configString, setConfigString] = useState(JSON.stringify(config, null, 2));
     //const toolType = config.type;
-    const [gripperWidth, setGripperWidth] = useState(0);
+    const [gripperWidth, setGripperWidth] = useState(120); // Set initial value to 120
     const [jogAxis, setJogAxis] = useState("");
     const [jogDistance, setJogDistance] = useState(0);
-
+    const [currentLocType, setCurrentLocType] = useState(""); // Add this line
+    const [isEditing, setIsEditing] = useState(false);
+    const [editedCoordinate, setEditedCoordinate] = useState("");
+    const [editedApproachPath, setEditedApproachPath] = useState<string[]>([]);
     const configureMutation = trpc.tool.configure.useMutation();
     
+    const [isCommandInProgress, setIsCommandInProgress] = useState(false);
 
-    const Jog = async () =>{
-        const jogCommand : ToolCommandInfo = {
+    const executeCommand = async (command: () => Promise<void>) => {
+        if (isCommandInProgress) return;
+        setIsCommandInProgress(true);
+        try {
+            await command();
+        } catch (error) {
+            console.error('Command execution failed:', error);
+        } finally {
+            setIsCommandInProgress(false);
+        }
+    };
+
+    // Update existing command functions to use executeCommand
+    const Initialize = () => executeCommand(async () => {
+        const initializeCommand : ToolCommandInfo = {
+            toolId: config.id,
+            toolType: config.type,
+            command: "initialize",
+            params: {},
+        } 
+        await commandMutation.mutateAsync(initializeCommand);
+    });
+
+    const OpenGripper = () => executeCommand(async () => {
+        console.log("Opening gripper with width: " + gripperWidth);
+        console.log("Tool State", ResponseCode)
+        console.log("Tool ID", config.id)
+        console.log("Tool Type", config.type)
+        const openGripperCommand : ToolCommandInfo = {
+            toolId: config.id,
+            toolType: config.type,
+            command: "release",
+            params: {
+                width: gripperWidth
+            },
+        } 
+        await commandMutation.mutateAsync(openGripperCommand);
+    });
+
+    const CloseGripper = async () => {
+        console.log("Closing gripper with width: " + gripperWidth);
+        const closeGripperCommand : ToolCommandInfo = {
+            toolId: config.id,
+            toolType: config.type,
+            command: "grasp",
+            params: {
+                width: gripperWidth
+            },
+        } 
+        await commandMutation.mutateAsync(closeGripperCommand);
+    }
+
+    const Jog = async () => {
+        if (!jogAxis || jogDistance === 0) {
+            console.log("Please select an axis and enter a distance");
+            return;
+        }
+        const jogCommand: ToolCommandInfo = {
             toolId: config.id,
             toolType: config.type,
             command: "jog",
@@ -95,18 +161,42 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         await commandMutation.mutateAsync(unfreeCommand);
     }
 
-    const OnTeachPointChange = (e:any)=>{
-       // console.log("tv is "+JSON.stringify(e.target.value));
-        setCurrentTeachpoint(e.target.value);
-       // console.log("Target value is"+ e.target.value);
-        let coordinate = locations.find(loc=>loc.name === e.target.value);
-        if(coordinate){
-         //  console.log("Current teachpoint is"+JSON.stringify(coordinate.coordinate.loc))
-            setCurrentCoordinate(coordinate.coordinate)
+    const homeCommand = () => executeCommand(async () => {
+        const homeCommand: ToolCommandInfo = {
+            toolId: config.id,
+            toolType: config.type,
+            command: "home",
+            params: {
+            },
+        }
+        await commandMutation.mutateAsync(homeCommand);
+    });
+
+    const getLocTypeDisplay = (locType: string): string => {
+        switch (locType.toLowerCase()) {
+            case 'j':
+                return 'Joint';
+            case 'c':
+                return 'Cartesian';
+            default:
+                return locType; // Return the original value if it's neither 'j' nor 'c'
+        }
+    };
+
+    const OnTeachPointChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const selectedName = e.target.value;
+        setCurrentTeachpoint(selectedName);
+        const selectedPoint = locations.find(loc => loc.name === selectedName);
+        if(selectedPoint){
+            setCurrentCoordinate(selectedPoint.coordinate);
+            setCurrentType(selectedPoint.type);
+            setCurrentLocType(getLocTypeDisplay(selectedPoint.locType)); // Use the new function here
+            setCurrentApproachPath(selectedPoint.approachPath || []);
         }
     }
 
-    const GetTeachPoints = async () =>{
+    
+    const GetTeachPoints = () => executeCommand(async () => {
         const toolCommand: ToolCommandInfo = {
             toolId: config.id,
             toolType: config.type,
@@ -117,33 +207,98 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         const response = await commandMutation.mutateAsync(toolCommand);
         const metadata = response?.meta_data;
         if(metadata === undefined) return;
+
+        const newLocations: TeachPoint[] = [];
+
         for(const resp in metadata){
-            if(resp == "nests"){
+            if(resp === "nests"){
                 const nests = metadata[resp];
                 for(const nest in nests){
-                    let location : TeachPoint = {
-                        name:nest,
-                        coordinate:nests[nest].loc.loc
+                    let location: TeachPoint = {
+                        name: nest,
+                        coordinate: nests[nest].loc.loc,
+                        type: 'nest',
+                        locType: nests[nest].loc.loc_type, // Keep the original value here
+                        approachPath: nests[nest].approach_path
                     }
-
-                    setLocations((locations)=> [location, ...locations]);
+                    newLocations.push(location);
+                }
+            } else if(resp === "locations"){
+                const locs = metadata[resp];
+                for(const loc in locs){
+                    let location: TeachPoint = {
+                        name: loc,
+                        coordinate: locs[loc].loc,
+                        type: 'location',
+                        locType: locs[loc].loc_type // Keep the original value here
+                    }
+                    newLocations.push(location);
                 }
             }
         }
-    }
+
+        setLocations(newLocations);
+    });
 
     useEffect(()=>{
         if (!config) return;
         GetTeachPoints();
     },[config])
 
-    const homeCommand : ToolCommandInfo = {
-        toolId: config.id,
-        toolType: config.type,
-        command: "home",
-        params: {
-        },
-    }
+    
+
+    const handleCoordinateEdit = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setEditedCoordinate(e.target.value);
+    };
+
+    const handleApproachPathEdit = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setEditedApproachPath(e.target.value.split('\n'));
+    };
+
+    const startEditing = () => {
+        setIsEditing(true);
+        setEditedCoordinate(currentCoordinate);
+        setEditedApproachPath(currentApproachPath);
+    };
+
+    const cancelEditing = () => {
+        setIsEditing(false); 
+    };
+
+    const saveChanges = async () => {
+        const updatedTeachPoint: TeachPoint = {
+            name: currentTeachpoint,
+            coordinate: editedCoordinate,
+            type: currentType,
+            locType: currentLocType,
+            approachPath: editedApproachPath,
+            isEdited: true
+        };
+
+        const saveCommand: ToolCommandInfo = {
+            toolId: config.id,
+            toolType: config.type,
+            command: "save_teachpoint",
+            params: {
+                teachpoint: updatedTeachPoint
+            },
+        };
+
+        try {
+            await commandMutation.mutateAsync(saveCommand);
+            setIsEditing(false);
+            // Update the locations state with the new teach point
+            setLocations(prevLocations => 
+                prevLocations.map(loc => 
+                    loc.name === updatedTeachPoint.name ? updatedTeachPoint : loc
+                )
+            );
+        } catch (error) {
+            console.error("Failed to save teach point:", error);
+        }
+    };
+
+    
 
     return (
       <VStack align="center" spacing={5} width="100%">
@@ -151,9 +306,11 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         <Box>
             <HStack>
                 <ButtonGroup>
-                    <Button>Home</Button>
-                    <Button onClick={()=>{SetFree()}}>Free</Button>
-                    <Button onClick = {()=>{UnFree()}}>Unfree</Button>
+                    {/* <Button onClick={()=>{Initialize()}}>Initialize</Button> */}
+                    <Button disabled={isCommandInProgress} onClick={() => executeCommand(Initialize)}>Initialize</Button>
+                    <Button disabled={isCommandInProgress} onClick={GetTeachPoints}>Get Teach Points</Button>
+                    <Button disabled={isCommandInProgress} onClick={SetFree}>Free</Button>
+                    <Button disabled={isCommandInProgress} onClick={UnFree}>Unfree</Button>
                 </ButtonGroup>
             </HStack>
         </Box>
@@ -163,7 +320,13 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                     <Heading size='md'>Gripper Control</Heading>
                 </CardHeader>
             <CardBody >
-                <NumberInput defaultValue={120} min={10} max={130} clampValueOnBlur={false}>
+                <NumberInput 
+                    value={gripperWidth} 
+                    min={10} 
+                    max={130} 
+                    clampValueOnBlur={false}
+                    onChange={(value) => setGripperWidth(Number(value))}
+                >
                 <NumberInputField />
                 <NumberInputStepper>
                     <NumberIncrementStepper />
@@ -173,8 +336,8 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
             </CardBody>
             <CardFooter >
             <ButtonGroup spacing='2'>
-                <Button>Open</Button>
-                <Button>Close</Button>
+                <Button disabled={isCommandInProgress} onClick={OpenGripper}>Open</Button>
+                <Button disabled={isCommandInProgress} onClick={CloseGripper}>Close</Button>
             </ButtonGroup>
             </CardFooter>
             </Card>
@@ -184,58 +347,79 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                 </CardHeader>
             <CardBody>
                 <HStack>
-                <Select placeholder='Axis'>
-                    <option value='option1'>X</option>
-                    <option value='option2'>Y</option>
-                    <option value='option3'>Z</option>
-                    <option value='option4'>Yaw</option>
-                    <option value='option5'>Pitch</option>
-                    <option value='option5'>Roll</option>
+                <Select placeholder='Axis' onChange={(e) => setJogAxis(e.target.value)}>
+                    <option value='x'>X</option>
+                    <option value='y'>Y</option>
+                    <option value='z'>Z</option>
+                    <option value='yaw'>Yaw</option>
+                    <option value='pitch'>Pitch</option>
+                    <option value='roll'>Roll</option>
                 </Select>
-            <NumberInput defaultValue={2} min={0} max={50} clampValueOnBlur={false}>
-                <NumberInputField />
-                <NumberInputStepper>
-                    <NumberIncrementStepper />
-                    <NumberDecrementStepper />
-                </NumberInputStepper>
+                <NumberInput 
+                    clampValueOnBlur={false}
+                    onChange={(valueString) => setJogDistance(parseFloat(valueString))}
+                >
+                    <NumberInputField />
+                    <NumberInputStepper>
+                        <NumberIncrementStepper />
+                        <NumberDecrementStepper />
+                    </NumberInputStepper>
                 </NumberInput>
                 </HStack>
             </CardBody>
             <CardFooter>
-                <Button>Jog</Button>
+                <Button disabled={isCommandInProgress} onClick={Jog}>Jog</Button>
             </CardFooter>
             </Card>
         </HStack>
         <Card align='left' display='flex' width='100%'>
             <CardHeader>
-                <Heading size='md'>Locations</Heading>
+                <Heading size='md'>Locations and Nests</Heading>
             </CardHeader>
             <CardBody width='100%'>
                 <Box width='100%'>
                     <VStack align='left'>
-                        <Text as ='b'>Name:</Text>
-                        <Select  onChange={OnTeachPointChange}>
-                            {locations.map((teachpoint, i)=> {
-                                return <option key = {i.toString()}>{teachpoint.name}</option>
-                            })}
+                        <Text as='b'>Name:</Text>
+                        <Select onChange={OnTeachPointChange} value={currentTeachpoint}>
+                            {locations.map((teachpoint, i) => (
+                                <option key={i.toString()}>{teachpoint.name}</option>
+                            ))}
                         </Select>
-                        <Text as ='b'>Type:</Text>
-                        <Select>
-                            <option value='option1'>Nest</option>
-                            <option value='option2'>Location</option>
+                        <Text as='b'>Type:</Text>
+                        <Select value={currentType} onChange={(e) => setCurrentType(e.target.value as 'nest' | 'location')} isDisabled={isEditing}>
+                            <option value='nest'>Nest</option>
+                            <option value='location'>Location</option>
                         </Select>
                         <Box width='100%'>
-                            <Text as ='b'>Coordinate:</Text>
-                            <Input width='100%' value = {currentCoordinate}/>
+                            <Text as='b'>Coordinate:</Text>
+                            <Input 
+                                width='100%' 
+                                value={isEditing ? editedCoordinate : currentCoordinate} 
+                                onChange={handleCoordinateEdit}
+                                readOnly={!isEditing}
+                            />
                         </Box>
-                        <Text as ='b'>Approach Path:</Text>
-                            <Textarea height='100px' placeholder=''/>
+                        <Text as='b'>Location Type:</Text>
+                        <Input width='100%' value={currentLocType} readOnly />
+                        <Text as='b'>Approach Path:</Text>
+                        <Textarea 
+                            height='100px' 
+                            value={isEditing ? editedApproachPath.join('\n') : currentApproachPath.join('\n')} 
+                            onChange={handleApproachPathEdit}
+                            readOnly={!isEditing}
+                        />
                         <ButtonGroup spacing='2'>
-                            <Button colorScheme='green' variant='outline'>Add Approach</Button>
-                        </ButtonGroup>
-                        <ButtonGroup>
-                            <Button variant='outline'>Go To</Button>
-                            <Button colorScheme='blue' variant='outline'>Teach Here</Button>
+                            {isEditing ? (
+                                <>
+                                    <Button onClick={saveChanges} colorScheme='green'>Save</Button>
+                                    <Button onClick={cancelEditing}>Cancel</Button>
+                                </>
+                            ) : (
+                                <>
+                                    <Button onClick={startEditing} colorScheme='blue'>Edit</Button>
+                                    <Button onClick={() => {/* Implement current position logic */}}>Use Current Position</Button>
+                                </>
+                            )}
                         </ButtonGroup>
                     </VStack>
                 </Box>
@@ -251,4 +435,3 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
       </VStack>
     );
   }
-  

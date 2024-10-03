@@ -10,6 +10,8 @@
 
 import logging
 import time
+import json
+import os
 
 # Might need to fix the imports.
 from .pf_400_communicator import Pf400Communicator
@@ -233,3 +235,33 @@ class Pf400Driver(ABCToolDriver):
 
     def wait(self, duration: int) -> None:
         time.sleep(duration)
+
+    def save_teachpoint(self, teachpoint: dict) -> None:
+        waypoints_file = 'tools/pf400/config/baymax_waypoints.json'
+
+        # Read the current waypoints
+        with open(waypoints_file, 'r') as f:
+            waypoints = json.load(f)
+
+        # Update the waypoints
+        if teachpoint['type'] == 'nest':
+            waypoints['nests'][teachpoint['name']] = {
+                "approach_path": teachpoint['approachPath'],
+                "loc": {
+                    "loc": teachpoint['coordinate'],
+                    "loc_type": teachpoint['locType']
+                },
+                "orientation": "landscape",  # You might want to make this dynamic
+                "safe_loc": "bravo_safe"  # You might want to make this dynamic
+            }
+        else:  # location
+            waypoints['locations'][teachpoint['name']] = {
+                "loc": teachpoint['coordinate'],
+                "loc_type": teachpoint['locType']
+            }
+
+        # Write the updated waypoints back to the file
+        with open(waypoints_file, 'w') as f:
+            json.dump(waypoints, f, indent=2)
+
+        logging.info(f"Saved teachpoint: {teachpoint['name']}")
