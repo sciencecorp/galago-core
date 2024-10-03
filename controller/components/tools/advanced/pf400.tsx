@@ -172,6 +172,17 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         await commandMutation.mutateAsync(homeCommand);
     });
 
+    const getOriginalLocType = (displayLocType: string): string => {
+        switch (displayLocType.toLowerCase()) {
+            case 'joint':
+                return 'j';
+            case 'cartesian':
+                return 'c';
+            default:
+                return displayLocType; // Return the original value if it's neither 'Joint' nor 'Cartesian'
+        }
+    };
+
     const getLocTypeDisplay = (locType: string): string => {
         switch (locType.toLowerCase()) {
             case 'j':
@@ -266,31 +277,60 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
     };
 
     const saveChanges = async () => {
-        const updatedTeachPoint: TeachPoint = {
+        if (!currentTeachpoint || !editedCoordinate || !currentType || !currentLocType) {
+            console.error("One or more required fields are undefined:", {
+                currentTeachpoint,
+                editedCoordinate,
+                currentType,
+                currentLocType
+            });
+            return;
+        }
+        const originalLocType = getOriginalLocType(currentLocType);
+        console.log("Saving changes");
+        console.log("Updated TeachPoint:", JSON.stringify({
             name: currentTeachpoint,
             coordinate: editedCoordinate,
             type: currentType,
-            locType: currentLocType,
+            locType: originalLocType,
             approachPath: editedApproachPath,
             isEdited: true
-        };
+        }, null, 2));
 
         const saveCommand: ToolCommandInfo = {
             toolId: config.id,
             toolType: config.type,
-            command: "save_teachpoint",
+            command: "saveTeachpoints",
             params: {
-                teachpoint: updatedTeachPoint
+                teachpoints: [{
+                    name: currentTeachpoint,
+                    coordinate: editedCoordinate,
+                    type: currentType,
+                    loc_type: originalLocType,
+                    approach_path: editedApproachPath,
+                    is_edited: true
+                }]
             },
         };
 
+        console.log("Save Command:", JSON.stringify(saveCommand, null, 2));
+
         try {
             await commandMutation.mutateAsync(saveCommand);
+
+            console.log("Teach point saving");
             setIsEditing(false);
             // Update the locations state with the new teach point
             setLocations(prevLocations => 
                 prevLocations.map(loc => 
-                    loc.name === updatedTeachPoint.name ? updatedTeachPoint : loc
+                    loc.name === currentTeachpoint ? {
+                        name: currentTeachpoint,
+                        coordinate: editedCoordinate,
+                        type: currentType,
+                        locType: originalLocType,
+                        approachPath: editedApproachPath,
+                        isEdited: true
+                    } : loc
                 )
             );
         } catch (error) {

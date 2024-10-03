@@ -32,8 +32,9 @@ class ToolsManager():
     def __init__(self, app_root:tk.Tk, config:Config) -> None:
         self.root = app_root
         self.root.title("Galago Web Client and Tools Server Manager")
+        self.set_icon()
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
-        self.root.geometry('1000x700')  # Increased window size
+        self.root.geometry('1000x700')  
         
         self.running_tools = 0
         self.config_file = ""
@@ -158,6 +159,14 @@ class ToolsManager():
         self.force_kill_db()
         self.force_kill_web_app()
     
+    def set_icon(self) -> None:
+        if os.name == "nt":
+            self.root.iconbitmap(join(ROOT_DIR,"tools","favicon.ico"))
+        elif os.name == "posix":
+            icon_file = join(ROOT_DIR,"tools","site_logo.png")
+            icon_img = tk.Image("photo", file=icon_file)
+            if icon_img:
+                self.root.iconphoto(True, str(icon_img))      
     
     def build_db(self) -> None:
         if self.config.app_config.data_folder:

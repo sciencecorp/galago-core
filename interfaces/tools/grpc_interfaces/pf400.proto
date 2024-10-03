@@ -42,7 +42,15 @@ message Command {
   }
 
   message SaveTeachpoints {
-    
+    message TeachPoint {
+      string name = 1;
+      string coordinate = 2;
+      string type = 3;
+      string loc_type = 4;
+      bool is_edited = 5;
+      repeated string approach_path = 6;
+    }
+    repeated TeachPoint teachpoints = 1;
   }
 
   message GetTeachpoints {

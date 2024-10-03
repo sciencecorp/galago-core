@@ -831,10 +831,55 @@ class Pf400Server(ToolServer):
         return nearest_safe_point
 
     def SaveTeachpoints(self, params: Command.SaveTeachpoints) -> None:
-        print("Saving teachpoints")
-        print(params)
-        # self.driver.save_teachpoints(params)
-        print("Teachpoints saved")
+        logging.info("Saving teachpoints")
+        try:
+            for teachpoint in params.teachpoints:
+                self.save_teachpoint({
+                    "name": teachpoint.name,
+                    "coordinate": teachpoint.coordinate,
+                    "type": teachpoint.type,
+                    "locType": teachpoint.loc_type,
+                    "approachPath": list(teachpoint.approach_path),  # Convert to list
+                    "isEdited": teachpoint.is_edited
+                })
+            logging.info("Teachpoints saved successfully")
+        except Exception as e:
+            logging.error(f"Error saving teachpoints: {str(e)}")
+            raise  # Re-raise the exception to be caught by the error handler
+
+    def save_teachpoint(self, teachpoint: dict) -> None:
+        waypoints_file = 'tools/pf400/config/baymax_waypoints.json'
+        try:
+            # Read the current waypoints
+            with open(waypoints_file, 'r') as f:
+                waypoints = json.load(f)
+
+            # Update the waypoints
+            if teachpoint['type'] == 'nest':
+                waypoints['nests'][teachpoint['name']] = {
+                    "approach_path": teachpoint['approachPath'],
+                    "loc": {
+                        "loc": teachpoint['coordinate'],
+                        "loc_type": teachpoint['locType']
+                    },
+                    "orientation": "landscape",  # You might want to make this dynamic
+                    "safe_loc": "bravo_safe"  # You might want to make this dynamic
+                }
+            else:  # location
+                waypoints['locations'][teachpoint['name']] = {
+                    "loc": teachpoint['coordinate'],
+                    "loc_type": teachpoint['locType']
+                }
+
+            # Write the updated waypoints back to the file
+            with open(waypoints_file, 'w') as f:
+                json.dump(waypoints, f, indent=2)
+
+            logging.info(f"Saved teachpoint: {teachpoint['name']}")
+        except Exception as e:
+            logging.error(f"Error saving teachpoint {teachpoint['name']}: {str(e)}")
+            raise  # Re-raise the exception to be caught by the error handler
+
     def Wait(self, params: Command.Wait) -> None:
         self.driver.wait(duration=params.duration)
 
