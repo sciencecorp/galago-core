@@ -30,6 +30,7 @@ class Pf400Server(ToolServer):
         super().__init__()
         self.driver: Pf400Driver
         self.waypoints: Waypoints
+        self.waypoints_json_file: str
         self.graph: nx.Graph
         self.sequence_location : str
         self.teachpoints : t.Any
@@ -38,20 +39,20 @@ class Pf400Server(ToolServer):
     def _configure(self, request: Config) -> None:
         self.config = request
         if self.config.location == Config.ULTRALIGHT_WORKCELL:
-            waypoints_json_file = "ultralight_waypoints.json"
+            self.waypoints_json_file = "ultralight_waypoints.json"
             self.sequence_location = os.path.join(os.path.dirname(__file__), "sequences", "ultralight")
         elif self.config.location == Config.BIOLAB_WORKCELL:
-            waypoints_json_file = "biolab_waypoints.json"
+            self.waypoints_json_file = "biolab_waypoints.json"
             self.sequence_location = os.path.join(os.path.dirname(__file__), "sequences", "biolab")
         elif self.config.location == Config.BAYMAX_WORKCELL:
-            waypoints_json_file = "baymax_waypoints.json"
+            self.waypoints_json_file = "baymax_waypoints.json"
             self.sequence_location = os.path.join(os.path.dirname(__file__), "sequences", "baymax")
         else:
             raise ValueError(f"Invalid location: {self.config.location}")
-        logging.debug(f"Loading pf400 waypoints from {waypoints_json_file}")
+        logging.debug(f"Loading pf400 waypoints from {self.waypoints_json_file}")
 
 
-        with open(os.path.join(os.path.dirname(__file__), "config", waypoints_json_file)) as f:
+        with open(os.path.join(os.path.dirname(__file__), "config", self.waypoints_json_file)) as f:
             config = json.load(f)
             self.teachpoints = config
             self.waypoints = Waypoints.parse_obj(config)
@@ -244,6 +245,67 @@ class Pf400Server(ToolServer):
         offset = (0,0,labware.zoffset)
         self.dropoff_plate(destination_nest=params.location, motion_profile_id=params.motion_profile_id, nest_offset=offset)
 
+
+    def CreateNest(self, params: Command.CreateNest) -> None:
+        current_position = self.driver.wherej()
+        logging.info("current_position %s", current_position)
+        logging.info("params %s", params)
+        
+        # Read the entire JSON file
+        waypoints_json_file = os.path.join(os.path.dirname(__file__), "config", self.waypoints_json_file)
+        with open(waypoints_json_file, 'r') as f:
+            waypoints_data = json.load(f)
+        
+        # Update or create the specific nest
+        if params.nest_name not in waypoints_data['nests']:
+            waypoints_data['nests'][params.nest_name] = {
+                'approach_path': [],
+                'loc': {
+                    'loc': current_position,
+                    'loc_type': params.loc_type
+                },
+                'orientation': params.orientation,
+                'safe_loc': params.safe_loc
+            }
+        
+        # Write the updated data back to the file
+        with open(waypoints_json_file, 'w') as f:
+            json.dump(waypoints_data, f, indent=2)
+        
+        # Update the in-memory waypoints object
+        if params.nest_name not in self.waypoints.nests:
+            self.waypoints.nests[params.nest_name] = Nest(
+                approach_path=[],
+                loc=Location(loc=current_position, loc_type=params.loc_type),
+                orientation=params.orientation,
+                safe_loc=params.safe_loc
+            )
+        
+        logging.info("Nest created: %s", params.nest_name)
+
+    def AddToPath(self, params: Command.AddToPath) -> None:
+        current_position = self.driver.wherej()
+        logging.info("current_position %s", current_position)
+        logging.info("params %s", params)
+        if params.nest_name not in self.waypoints.nests:
+            raise KeyError("Nest not found: " + params.nest_name)
+        # Read the entire JSON file
+        waypoints_json_file = os.path.join(os.path.dirname(__file__), "config", self.waypoints_json_file)
+        with open(waypoints_json_file, 'r') as f:
+            waypoints_data = json.load(f)
+        # Update only the specific nest
+        if params.nest_name in waypoints_data['nests']:
+            if 'approach_path' not in waypoints_data['nests'][params.nest_name]:
+                waypoints_data['nests'][params.nest_name]['approach_path'] = []
+            waypoints_data['nests'][params.nest_name]['approach_path'].append(current_position)
+        # Write the updated data back to the file
+        with open(waypoints_json_file, 'w') as f:
+            json.dump(waypoints_data, f, indent=2)
+        # Update the in-memory waypoints object
+        self.waypoints.nests[params.nest_name].approach_path.append(current_position)
+        logging.info("Approach path updated for nest: %s", params.nest_name)
+
+
     def GetTeachpoints(self, params: Command.GetTeachpoints) -> ExecuteCommandReply:
         s = Struct()
         response = ExecuteCommandReply()
@@ -259,23 +321,32 @@ class Pf400Server(ToolServer):
         return response
 
     def GetCurrentLocation(self, params: Command.GetCurrentLocation) -> ExecuteCommandReply:
-        #s : Struct= Struct()
         response = ExecuteCommandReply()
         response.return_reply = True
         response.response = SUCCESS
         try:
-            location:str= self.driver.wherej()
+            location: str = self.driver.wherej()
+            logging.info("Location is " + str(location))
             if location.split(" ")[0] != "0":
                 raise RuntimeError("Failed to get location coordinates")
             else:
-                #coordinate : Coordinate = Location.parse_obj(location)
-                #logging.info(f"Current coordinate is {coordinate}")
+                # Extract the actual coordinates (assuming they start from the second element)
+                coordinates = " ".join(location.split(" ")[1:])
+                
+                # Create a Struct to hold the location data
+                s = Struct()
+                s.update({"location": coordinates})
+                
+                # Set the meta_data field of the response
+                response.meta_data.CopyFrom(s)
+                
+                logging.info(f"Returning coordinates: {coordinates}")
                 return response
         except Exception as exc:
             logging.exception(exc)
             response.response = ERROR_FROM_TOOL
-        return response 
-    
+        return response
+
     def RunSequence(self, params: Command.RunSequence) -> None:
         
         sequence_file : str = os.path.join(self.sequence_location, f"{params.sequence_name}.json")        
@@ -904,6 +975,9 @@ class Pf400Server(ToolServer):
         self.driver.wait(duration=params.duration)
 
     def EstimateGraspPlate(self, params: Command.GraspPlate) -> int:
+        return 1
+    
+    def EstimateCreateNest(self, params: Command.CreateNest) -> int:
         return 1
 
     def EstimateReleasePlate(self, params: Command.ReleasePlate) -> int:

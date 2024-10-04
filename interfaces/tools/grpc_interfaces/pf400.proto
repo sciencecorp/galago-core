@@ -26,6 +26,19 @@ message Command {
     Jog jog = 20;
     SaveTeachpoints saveTeachpoints = 21;
     RawCommand raw_command = 22;
+    CreateNest create_nest = 23;
+    AddToPath add_to_path = 24;
+  }
+
+  message CreateNest {
+    string nest_name = 1;
+    string loc_type = 2;
+    string orientation = 3;
+    string safe_loc = 4;
+  }
+
+  message AddToPath {
+    string nest_name = 1;
   }
 
   message RawCommand {
@@ -33,7 +46,6 @@ message Command {
   } 
 
   message GetCurrentLocation {
-
   }
 
   message Jog {

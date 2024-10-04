@@ -25,9 +25,23 @@ import {
   Text,
   Textarea,
   Divider,
-  Stack
+  Tooltip,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  useToast,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
+import { AddIcon } from "@chakra-ui/icons";
 import { trpc } from "@/utils/trpc";
 import { ToolCommandInfo } from "@/types";
 import { ToolConfig } from 'gen-interfaces/controller';
@@ -52,6 +66,7 @@ interface TeachPoint {
 
 export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
     const commandMutation = trpc.tool.runCommand.useMutation();
+    const toast = useToast(); // Initialize toast
     const [locations, setLocations] = useState<TeachPoint[]>([]);
     const [currentTeachpoint, setCurrentTeachpoint] = useState("");
     const [currentCoordinate, setCurrentCoordinate] = useState("");
@@ -69,6 +84,18 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
     const configureMutation = trpc.tool.configure.useMutation();
     
     const [isCommandInProgress, setIsCommandInProgress] = useState(false);
+    const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
+    const [alertMessage, setAlertMessage] = useState<string | null>(null);
+    const [alertStatus, setAlertStatus] = useState<"success" | "error">("success");
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [nestName, setNestName] = useState("");
+    const [locType, setLocType] = useState("");
+
+    const [safeLoc, setSafeLoc] = useState("");
+    const [orientation, setOrientation] = useState("");
+
+    const { isOpen, onOpen, onClose } = useDisclosure();
 
     const executeCommand = async (command: () => Promise<void>) => {
         if (isCommandInProgress) return;
@@ -77,6 +104,13 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
             await command();
         } catch (error) {
             console.error('Command execution failed:', error);
+            toast({
+                title: "Command Failed",
+                description: "There was an error executing the command.",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
         } finally {
             setIsCommandInProgress(false);
         }
@@ -119,12 +153,37 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                 width: gripperWidth
             },
         } 
-        await commandMutation.mutateAsync(closeGripperCommand);
+        try {
+            await commandMutation.mutateAsync(closeGripperCommand);
+            toast({
+                title: "Gripper Closed",
+                description: `Gripper closed with width: ${gripperWidth}`,
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error("Error closing gripper:", error);
+            toast({
+                title: "Error",
+                description: "Failed to close gripper",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+        }
     }
 
     const Jog = async () => {
         if (!jogAxis || jogDistance === 0) {
             console.log("Please select an axis and enter a distance");
+            toast({
+                title: "Jog Error",
+                description: "Please select an axis and enter a distance",
+                status: "warning",
+                duration: 3000,
+                isClosable: true,
+            });
             return;
         }
         const jogCommand: ToolCommandInfo = {
@@ -136,7 +195,25 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                 distance: jogDistance
             },
         } 
-        await commandMutation.mutateAsync(jogCommand);
+        try {
+            await commandMutation.mutateAsync(jogCommand);
+            toast({
+                title: "Jog Successful",
+                description: `Jogged ${jogAxis} axis by ${jogDistance}`,
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error("Error jogging:", error);
+            toast({
+                title: "Jog Error",
+                description: "Failed to jog",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+        }
     }
 
     const SetFree = async () =>{
@@ -147,7 +224,25 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
             params: {
             },
         } 
-        await commandMutation.mutateAsync(freeCommand);
+        try {
+            await commandMutation.mutateAsync(freeCommand);
+            toast({
+                title: "Set Free",
+                description: "Robot set to free mode",
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error("Error setting free:", error);
+            toast({
+                title: "Error",
+                description: "Failed to set free mode",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+        }
     }
 
     const UnFree = async () =>{
@@ -158,7 +253,25 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
             params: {
             },
         }
-        await commandMutation.mutateAsync(unfreeCommand);
+        try {
+            await commandMutation.mutateAsync(unfreeCommand);
+            toast({
+                title: "Unfree",
+                description: "Robot unfree mode set",
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error("Error setting unfree:", error);
+            toast({
+                title: "Error",
+                description: "Failed to set unfree mode",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+        }
     }
 
     const homeCommand = () => executeCommand(async () => {
@@ -249,6 +362,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         }
 
         setLocations(newLocations);
+        console.log("Locations:", locations);
     });
 
     useEffect(()=>{
@@ -256,6 +370,81 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         GetTeachPoints();
     },[config])
 
+    const getCurrentPositionToPath = async () => {
+        const toolCommand: ToolCommandInfo = {
+            toolId: config.id,
+            toolType: config.type,
+            command: "get_current_location",
+            params: {},
+        };
+        try {
+            const response = await commandMutation.mutateAsync(toolCommand);
+            console.log("Current position:", response);
+            if (response && response.meta_data && response.meta_data) {
+                console.log("meta data", response.meta_data)
+                const currentPosition = "1234567890" //response.meta_data;
+                setEditedApproachPath(prevPath => [...prevPath, currentPosition]);
+                toast({
+                    title: "Position Added",
+                    description: "Current position added to approach path",
+                    status: "success",
+                    duration: 3000,
+                    isClosable: true,
+                });
+            } else {
+                console.error("Unexpected response format:", response);
+                toast({
+                    title: "Error",
+                    description: "Failed to get current position",
+                    status: "error",
+                    duration: 3000,
+                    isClosable: true,
+                });
+            }
+        } catch (error) {
+            console.error("Error getting current position:", error);
+            toast({
+                title: "Error",
+                description: "Failed to get current position",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
+
+    const addToPath = async () => {
+        const addToPathCommand: ToolCommandInfo = {
+            toolId: config.id,
+            toolType: config.type,
+            command: "add_to_path",
+            params: {
+                nest_name: currentTeachpoint
+            },
+        };
+
+        try {
+            await commandMutation.mutateAsync(addToPathCommand);
+            toast({
+                title: "Position Added",
+                description: `Current position added to ${currentTeachpoint} path.`,
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+            
+        } catch (error) {
+            console.error("Error adding to path:", error);
+            toast({
+                title: "Error",
+                description: "Failed to add to path.",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
+    
     
 
     const handleCoordinateEdit = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -284,6 +473,13 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                 currentType,
                 currentLocType
             });
+            toast({
+                title: "Error",
+                description: "One or more required fields are missing.",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
             return;
         }
         const originalLocType = getOriginalLocType(currentLocType);
@@ -296,7 +492,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
             approachPath: editedApproachPath,
             isEdited: true
         }, null, 2));
-
+    
         const saveCommand: ToolCommandInfo = {
             toolId: config.id,
             toolType: config.type,
@@ -312,12 +508,12 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                 }]
             },
         };
-
+    
         console.log("Save Command:", JSON.stringify(saveCommand, null, 2));
-
+    
         try {
             await commandMutation.mutateAsync(saveCommand);
-
+    
             console.log("Teach point saving");
             setIsEditing(false);
             // Update the locations state with the new teach point
@@ -333,145 +529,392 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                     } : loc
                 )
             );
+            toast({
+                title: "Teach Point Saved",
+                description: "Teach point saved successfully.",
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
         } catch (error) {
             console.error("Failed to save teach point:", error);
+            toast({
+                title: "Error",
+                description: "Failed to save teach point.",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
         }
     };
 
-    
+    const CreateNestModal = ({ isOpen, onOpen, onClose }: { isOpen: boolean, onOpen: () => void, onClose: () => void }) => {
+        const handleCreateNest = async () => {
+            // Validation: Check if any required fields are empty
+            if (!nestName || !locType || !orientation || !safeLoc) {
+                toast({
+                    title: "Error",
+                    description: "All fields are required to create a nest.",
+                    status: "error",
+                    duration: 3000,
+                    isClosable: true,
+                });
+                return; // Prevent further execution if validation fails
+            }
+
+            const createNestCommand: ToolCommandInfo = {
+                toolId: config.id,
+                toolType: config.type,
+                command: "create_nest",
+                params: {
+                    nest_name: nestName,
+                    loc_type: locType,
+                    orientation: orientation,
+                    safe_loc: safeLoc
+                },
+            };
+
+            try {
+                await commandMutation.mutateAsync(createNestCommand);
+                toast({
+                    title: "Nest Created",
+                    description: `Nest ${nestName} created successfully.`,
+                    status: "success",
+                    duration: 3000,
+                    isClosable: true,
+                });
+                // Only close the modal if the nest creation is successful
+                onClose(); 
+            } catch (error) {
+                console.error("Error creating nest:", error);
+                toast({
+                    title: "Error",
+                    description: "Failed to create nest.",
+                    status: "error",
+                    duration: 3000,
+                    isClosable: true,
+                });
+            }
+        };
+
+        return (
+            <>
+                <Modal isOpen={isOpen} onClose={onClose}>
+                    <ModalOverlay />
+                    <ModalContent>
+                        <ModalHeader>Create a New Nest</ModalHeader>
+                        <ModalCloseButton />
+                        <ModalBody>
+                            <FormControl>
+                                <FormLabel>Nest Name</FormLabel>
+                                <Input
+                                    value={nestName}
+                                    onChange={(e) => setNestName(e.target.value)} // Ensure this is correctly updating state
+                                    placeholder="Enter nest name"
+                                />
+                            </FormControl>
+                            <FormControl mt={4}>
+                                <FormLabel>Location Type</FormLabel>
+                                <Select
+                                    value={locType}
+                                    onChange={(e) => setLocType(e.target.value)}
+                                    placeholder="Select location type"
+                                    isRequired
+                                >
+                                    <option value="j">Joint</option>
+                                    <option value="c">Cartesian</option>
+                                </Select>
+                            </FormControl>
+                            <FormControl mt={4}>
+                                <FormLabel>Orientation</FormLabel>
+                                <Select
+                                    value={orientation}
+                                    onChange={(e) => setOrientation(e.target.value)}
+                                    placeholder="Select orientation"
+                                    isRequired
+                                >
+                                    <option value="landscape">Landscape</option>
+                                    <option value="portrait">Portrait</option>
+                                </Select>
+                            </FormControl>
+                            <FormControl mt={4}>
+                                <FormLabel>Safe Location</FormLabel>
+                                <Select
+                                    value={safeLoc}
+                                    onChange={(e) => setSafeLoc(e.target.value)}
+                                    placeholder="Select safe location"
+                                    isRequired
+                                >
+                                    {locations
+                                        .filter(location => location.type === 'location')
+                                        .map((location) => (
+                                            <option key={location.name} value={location.name}>
+                                                {location.name}
+                                            </option>
+                                        ))}
+                                </Select>
+                            </FormControl>
+                        </ModalBody>
+                        <ModalFooter>
+                            <Button colorScheme="blue" onClick={handleCreateNest}>
+                                Create Nest
+                            </Button>
+                            <Button variant="ghost" onClick={onClose}>Cancel</Button>
+                        </ModalFooter>
+                    </ModalContent>
+                </Modal>
+            </>
+        );
+    };
+
+    // Update the onClick handlers for locations and nests to set the approach path
+    const handleLocationClick = (location: TeachPoint) => {
+        setCurrentTeachpoint(location.name);
+        setCurrentCoordinate(location.coordinate);
+        setCurrentLocType(getLocTypeDisplay(location.locType));
+        setCurrentType(location.type);
+        setCurrentApproachPath([]); // Clear approach path for locations
+    };
+
+    const handleNestClick = (nest: TeachPoint) => {
+        setCurrentTeachpoint(nest.name);
+        setCurrentCoordinate(nest.coordinate);
+        setCurrentLocType(getLocTypeDisplay(nest.locType));
+        setCurrentType(nest.type);
+        setCurrentApproachPath(nest.approachPath || []); // Set approach path for nests
+    };
 
     return (
-      <VStack align="center" spacing={5} width="100%">
+      <VStack align="center" spacing={5} width="100%" pb='50px'>
         <Heading size='lg'>PF400 Teach Pendant</Heading>
         <Box>
-            <HStack>
+            <HStack spacing={4} justify="space-between" width="100%">
                 <ButtonGroup>
-                    {/* <Button onClick={()=>{Initialize()}}>Initialize</Button> */}
-                    <Button disabled={isCommandInProgress} onClick={() => executeCommand(Initialize)}>Initialize</Button>
-                    <Button disabled={isCommandInProgress} onClick={GetTeachPoints}>Get Teach Points</Button>
-                    <Button disabled={isCommandInProgress} onClick={SetFree}>Free</Button>
-                    <Button disabled={isCommandInProgress} onClick={UnFree}>Unfree</Button>
+                    <Button 
+                        disabled={isCommandInProgress} 
+                        onClick={() => executeCommand(Initialize)} 
+                        colorScheme="teal" 
+                        variant="solid" 
+                        borderRadius="md" 
+                        _hover={{ bg: "teal.600" }}
+                    >
+                        Initialize
+                    </Button>
+                    <Button 
+                        disabled={isCommandInProgress} 
+                        onClick={GetTeachPoints} 
+                        colorScheme="teal" 
+                        variant="solid" 
+                        borderRadius="md" 
+                        _hover={{ bg: "teal.600" }}
+                    >
+                        Get Teach Points
+                    </Button>
+                    <Button 
+                        disabled={isCommandInProgress} 
+                        onClick={SetFree} 
+                        colorScheme="teal" 
+                        variant="solid" 
+                        borderRadius="md" 
+                        _hover={{ bg: "teal.600" }}
+                    >
+                        Free
+                    </Button>
+                    <Button 
+                        disabled={isCommandInProgress} 
+                        onClick={UnFree} 
+                        colorScheme="teal" 
+                        variant="solid" 
+                        borderRadius="md" 
+                        _hover={{ bg: "teal.600" }}
+                    >
+                        Unfree
+                    </Button>
                 </ButtonGroup>
             </HStack>
         </Box>
-        <HStack>
+        <HStack spacing={4}>
             <Card width='50%' height='230px'>
                 <CardHeader mb='-8px'>
                     <Heading size='md'>Gripper Control</Heading>
                 </CardHeader>
-            <CardBody >
-                <NumberInput 
-                    value={gripperWidth} 
-                    min={10} 
-                    max={130} 
-                    clampValueOnBlur={false}
-                    onChange={(value) => setGripperWidth(Number(value))}
-                >
-                <NumberInputField />
-                <NumberInputStepper>
-                    <NumberIncrementStepper />
-                    <NumberDecrementStepper />
-                </NumberInputStepper>
-                </NumberInput>
-            </CardBody>
-            <CardFooter >
-            <ButtonGroup spacing='2'>
-                <Button disabled={isCommandInProgress} onClick={OpenGripper}>Open</Button>
-                <Button disabled={isCommandInProgress} onClick={CloseGripper}>Close</Button>
-            </ButtonGroup>
-            </CardFooter>
+                <CardBody>
+                    <NumberInput 
+                        value={gripperWidth} 
+                        min={10} 
+                        max={130} 
+                        clampValueOnBlur={false}
+                        onChange={(value) => setGripperWidth(Number(value))}
+                    >
+                        <NumberInputField />
+                        <NumberInputStepper>
+                            <NumberIncrementStepper />
+                            <NumberDecrementStepper />
+                        </NumberInputStepper>
+                    </NumberInput>
+                </CardBody>
+                <CardFooter>
+                    <ButtonGroup spacing='2'>
+                        <Tooltip label="Open the gripper" aria-label="Open Gripper">
+                            <Button 
+                                disabled={isCommandInProgress} 
+                                onClick={OpenGripper} 
+                                colorScheme="teal"
+                            >
+                                Open
+                            </Button>
+                        </Tooltip>
+                        <Tooltip label="Close the gripper" aria-label="Close Gripper">
+                            <Button 
+                                disabled={isCommandInProgress} 
+                                onClick={CloseGripper} 
+                                colorScheme="teal"
+                            >
+                                Close
+                            </Button>
+                        </Tooltip>
+                    </ButtonGroup>
+                </CardFooter>
             </Card>
             <Card width='50%' height='230px'>
                 <CardHeader mb='-8px'>
                     <Heading size='md'>Jog Control</Heading>
                 </CardHeader>
-            <CardBody>
-                <HStack>
-                <Select placeholder='Axis' onChange={(e) => setJogAxis(e.target.value)}>
-                    <option value='x'>X</option>
-                    <option value='y'>Y</option>
-                    <option value='z'>Z</option>
-                    <option value='yaw'>Yaw</option>
-                    <option value='pitch'>Pitch</option>
-                    <option value='roll'>Roll</option>
-                </Select>
-                <NumberInput 
-                    clampValueOnBlur={false}
-                    onChange={(valueString) => setJogDistance(parseFloat(valueString))}
-                >
-                    <NumberInputField />
-                    <NumberInputStepper>
-                        <NumberIncrementStepper />
-                        <NumberDecrementStepper />
-                    </NumberInputStepper>
-                </NumberInput>
-                </HStack>
-            </CardBody>
-            <CardFooter>
-                <Button disabled={isCommandInProgress} onClick={Jog}>Jog</Button>
-            </CardFooter>
+                <CardBody>
+                    <HStack>
+                        <Select placeholder='Axis' onChange={(e) => setJogAxis(e.target.value)}>
+                            <option value='x'>X</option>
+                            <option value='y'>Y</option>
+                            <option value='z'>Z</option>
+                            <option value='yaw'>Yaw</option>
+                            <option value='pitch'>Pitch</option>
+                            <option value='roll'>Roll</option>
+                        </Select>
+                        <NumberInput 
+                            clampValueOnBlur={false}
+                            onChange={(valueString) => setJogDistance(parseFloat(valueString))}
+                        >
+                            <NumberInputField />
+                            <NumberInputStepper>
+                                <NumberIncrementStepper />
+                                <NumberDecrementStepper />
+                            </NumberInputStepper>
+                        </NumberInput>
+                    </HStack>
+                </CardBody>
+                <CardFooter>
+                    <Button disabled={isCommandInProgress} onClick={Jog} colorScheme="teal">Jog</Button>
+                </CardFooter>
             </Card>
         </HStack>
-        <Card align='left' display='flex' width='100%'>
+
+        {/* HStack for Locations/Nests and Details */}
+        <HStack spacing={4} width="100%">
+          {/* VStack for Locations and Nests */}
+          <VStack spacing={4} width="50%">
+            {/* New Card for Locations */}
+            <Card align='left' display='flex' width='50%' maxHeight='200px'>
+              <CardHeader>
+                <Heading size='md'>Locations</Heading>
+              </CardHeader>
+              <CardBody width='100%' overflowY='auto'>
+                <VStack spacing={2} align='stretch'>
+                  {locations.filter(loc => loc.type === 'location').map((location, i) => (
+                    <Box 
+                      key={i.toString()} 
+                      p={2} 
+                      borderWidth={1} 
+                      borderRadius='md' 
+                      _hover={{ bg: "gray.100", cursor: "pointer" }} 
+                      onClick={() => handleLocationClick(location)} // Updated click handler
+                    >
+                      {location.name}
+                    </Box>
+                  ))}
+                </VStack>
+              </CardBody>
+            </Card>
+
+            {/* New Card for Nests */}
+            <Card align='left' display='flex' width='50%' maxHeight='200px'>
+              <CardHeader>
+                <HStack justify="space-between" width="100%">
+                  <Heading size='md'>Nests</Heading>
+                  <Tooltip label="Add new Nest">
+                    <Button onClick={onOpen} colorScheme="blue" size="sm"><AddIcon /></Button>
+                  </Tooltip>
+                </HStack>
+              </CardHeader>
+              <CardBody width='100%' overflowY='auto'>
+                <VStack spacing={2} align='stretch'>
+                  {locations.filter(loc => loc.type === 'nest').map((nest, i) => (
+                    <Box 
+                      key={i.toString()} 
+                      p={2} 
+                      borderWidth={1} 
+                      borderRadius='md' 
+                      _hover={{ bg: "gray.100", cursor: "pointer" }} 
+                      onClick={() => handleNestClick(nest)} // Updated click handler
+                    >
+                      {nest.name}
+                    </Box>
+                  ))}
+                </VStack>
+              </CardBody>
+            </Card>
+          </VStack>
+
+          {/* Details Section for Selected Location or Nest */}
+          <Card align='left' display='flex' width='30%' ml='-12.5%' >
             <CardHeader>
-                <Heading size='md'>Locations and Nests</Heading>
+              <Heading size='md'>Details</Heading>
             </CardHeader>
             <CardBody width='100%'>
-                <Box width='100%'>
-                    <VStack align='left'>
-                        <Text as='b'>Name:</Text>
-                        <Select onChange={OnTeachPointChange} value={currentTeachpoint}>
-                            {locations.map((teachpoint, i) => (
-                                <option key={i.toString()}>{teachpoint.name}</option>
-                            ))}
-                        </Select>
-                        <Text as='b'>Type:</Text>
-                        <Select value={currentType} onChange={(e) => setCurrentType(e.target.value as 'nest' | 'location')} isDisabled={isEditing}>
-                            <option value='nest'>Nest</option>
-                            <option value='location'>Location</option>
-                        </Select>
-                        <Box width='100%'>
-                            <Text as='b'>Coordinate:</Text>
-                            <Input 
-                                width='100%' 
-                                value={isEditing ? editedCoordinate : currentCoordinate} 
-                                onChange={handleCoordinateEdit}
-                                readOnly={!isEditing}
-                            />
-                        </Box>
-                        <Text as='b'>Location Type:</Text>
-                        <Input width='100%' value={currentLocType} readOnly />
-                        <Text as='b'>Approach Path:</Text>
-                        <Textarea 
-                            height='100px' 
-                            value={isEditing ? editedApproachPath.join('\n') : currentApproachPath.join('\n')} 
-                            onChange={handleApproachPathEdit}
-                            readOnly={!isEditing}
-                        />
-                        <ButtonGroup spacing='2'>
-                            {isEditing ? (
-                                <>
-                                    <Button onClick={saveChanges} colorScheme='green'>Save</Button>
-                                    <Button onClick={cancelEditing}>Cancel</Button>
-                                </>
-                            ) : (
-                                <>
-                                    <Button onClick={startEditing} colorScheme='blue'>Edit</Button>
-                                    <Button onClick={() => {/* Implement current position logic */}}>Use Current Position</Button>
-                                </>
-                            )}
-                        </ButtonGroup>
-                    </VStack>
-                </Box>
+              <Text as='b'>Name:</Text>
+              <Input value={currentTeachpoint} readOnly />
+              <Text as='b'>Coordinate:</Text>
+              <Input 
+                value={isEditing ? editedCoordinate : currentCoordinate} 
+                onChange={handleCoordinateEdit}
+                readOnly={!isEditing} // Editable when isEditing is true
+                bg={isEditing ? "yellow.100" : "white"} // Highlight when editing
+              />
+              <Text as='b'>Location Type:</Text>
+              <Input value={currentLocType} readOnly />
+              {currentType === 'nest' && ( // Show approach path only for nests
+                <>
+                  <Text as='b'>Approach Path:</Text>
+                  <Textarea // Change to Textarea for multi-line input
+                    value={isEditing ? editedApproachPath.join('\n') : currentApproachPath.join('\n')} 
+                    onChange={handleApproachPathEdit}
+                    readOnly={!isEditing} // Editable when isEditing is true
+                    bg={isEditing ? "yellow.100" : "white"} // Highlight when editing
+                  />
+                </>
+              )}
+              <ButtonGroup spacing='2'>
+                {isEditing ? (
+                  <>
+                    <Button onClick={saveChanges} colorScheme='green'>Save</Button>
+                    <Button onClick={cancelEditing}>Cancel</Button>
+                    
+                  </>
+                ) : (
+                  <>
+                    
+                  <Box mt={2}>
+                    <Button onClick={startEditing} colorScheme='blue' mr={2}>Edit</Button>
+                    
+                    <Button onClick={addToPath} colorScheme='blue'>Add Current Position to Path</Button>
+                  </Box>
+                  </>
+                )}
+              </ButtonGroup>
             </CardBody>
-            <Divider color='gray'/>
-            <CardFooter>
-                <ButtonGroup spacing='2'>
-                    <Button variant='outline'>New</Button>
-                    <Button colorScheme='blue' variant='outline'>Save</Button>
-                </ButtonGroup>
-            </CardFooter>
-        </Card>
+          </Card>
+        </HStack>
+
+        <CreateNestModal isOpen={isOpen} onOpen={onOpen} onClose={onClose} />
       </VStack>
     );
   }
