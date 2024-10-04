@@ -132,12 +132,14 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         console.log("Tool State", ResponseCode)
         console.log("Tool ID", config.id)
         console.log("Tool Type", config.type)
+
         const openGripperCommand : ToolCommandInfo = {
             toolId: config.id,
             toolType: config.type,
-            command: "release",
+            command: "release_plate",
             params: {
-                width: gripperWidth
+                width: gripperWidth,
+                speed: 10
             },
         } 
         await commandMutation.mutateAsync(openGripperCommand);
@@ -148,9 +150,11 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         const closeGripperCommand : ToolCommandInfo = {
             toolId: config.id,
             toolType: config.type,
-            command: "grasp",
+            command: "grasp_plate",
             params: {
-                width: gripperWidth
+                width: gripperWidth,
+                speed: 10,
+                force: 20
             },
         } 
         try {
