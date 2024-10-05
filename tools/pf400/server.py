@@ -276,8 +276,11 @@ class Pf400Server(ToolServer):
         if params.nest_name not in self.waypoints.nests:
             self.waypoints.nests[params.nest_name] = Nest(
                 approach_path=[],
-                loc=Location(loc=current_position, loc_type=params.loc_type),
-                orientation=params.orientation,
+                loc=Location(
+                    loc=Coordinate(current_position),
+                    loc_type='j' if params.loc_type.lower() == 'j' else 'c'
+                ),
+                orientation='portrait' if params.orientation.lower() == 'portrait' else 'landscape',
                 safe_loc=params.safe_loc
             )
         
@@ -289,6 +292,7 @@ class Pf400Server(ToolServer):
         logging.info("params %s", params)
         if params.nest_name not in self.waypoints.nests:
             raise KeyError("Nest not found: " + params.nest_name)
+        
         # Read the entire JSON file
         waypoints_json_file = os.path.join(os.path.dirname(__file__), "config", self.waypoints_json_file)
         with open(waypoints_json_file, 'r') as f:
@@ -297,14 +301,17 @@ class Pf400Server(ToolServer):
         if params.nest_name in waypoints_data['nests']:
             if 'approach_path' not in waypoints_data['nests'][params.nest_name]:
                 waypoints_data['nests'][params.nest_name]['approach_path'] = []
-            waypoints_data['nests'][params.nest_name]['approach_path'].append(current_position)
+            
+            # Convert current_position to Coordinate
+            coord = Coordinate(current_position)
+            waypoints_data['nests'][params.nest_name]['approach_path'].append(str(coord))
+        
         # Write the updated data back to the file
         with open(waypoints_json_file, 'w') as f:
             json.dump(waypoints_data, f, indent=2)
         # Update the in-memory waypoints object
-        self.waypoints.nests[params.nest_name].approach_path.append(current_position)
+        self.waypoints.nests[params.nest_name].approach_path.append(coord)
         logging.info("Approach path updated for nest: %s", params.nest_name)
-
 
     def GetTeachpoints(self, params: Command.GetTeachpoints) -> ExecuteCommandReply:
         s = Struct()
