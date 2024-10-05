@@ -97,6 +97,8 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
 
     const { isOpen, onOpen, onClose } = useDisclosure();
 
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+
     const executeCommand = async (command: () => Promise<void>) => {
         if (isCommandInProgress) return;
         setIsCommandInProgress(true);
@@ -104,13 +106,6 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
             await command();
         } catch (error) {
             console.error('Command execution failed:', error);
-            toast({
-                title: "Command Failed",
-                description: "There was an error executing the command.",
-                status: "error",
-                duration: 3000,
-                isClosable: true,
-            });
         } finally {
             setIsCommandInProgress(false);
         }
@@ -324,7 +319,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
     }
 
     
-    const GetTeachPoints = () => executeCommand(async () => {
+    const GetTeachPoints = async () => {
         const toolCommand: ToolCommandInfo = {
             toolId: config.id,
             toolType: config.type,
@@ -334,7 +329,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         
         const response = await commandMutation.mutateAsync(toolCommand);
         const metadata = response?.meta_data;
-        if(metadata === undefined) return;
+        if(metadata === undefined) return [];
 
         const newLocations: TeachPoint[] = [];
 
@@ -346,7 +341,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                         name: nest,
                         coordinate: nests[nest].loc.loc,
                         type: 'nest',
-                        locType: nests[nest].loc.loc_type, // Keep the original value here
+                        locType: getLocTypeDisplay(nests[nest].loc.loc_type),
                         approachPath: nests[nest].approach_path
                     }
                     newLocations.push(location);
@@ -358,21 +353,24 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                         name: loc,
                         coordinate: locs[loc].loc,
                         type: 'location',
-                        locType: locs[loc].loc_type // Keep the original value here
+                        locType: getLocTypeDisplay(locs[loc].loc_type)
                     }
                     newLocations.push(location);
                 }
             }
         }
 
-        setLocations(newLocations);
-        console.log("Locations:", locations);
-    });
+        return newLocations;
+    };
 
-    useEffect(()=>{
+    useEffect(() => {
         if (!config) return;
-        GetTeachPoints();
-    },[config])
+        const fetchTeachPoints = async () => {
+            const newLocations = await GetTeachPoints();
+            setLocations(newLocations);
+        };
+        fetchTeachPoints();
+    }, [config, refreshTrigger]);
 
     const getCurrentPositionToPath = async () => {
         const toolCommand: ToolCommandInfo = {
@@ -429,6 +427,8 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
 
         try {
             await commandMutation.mutateAsync(addToPathCommand);
+            const updatedLocations = await GetTeachPoints();
+            setLocations(updatedLocations);
             toast({
                 title: "Position Added",
                 description: `Current position added to ${currentTeachpoint} path.`,
@@ -436,6 +436,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                 duration: 3000,
                 isClosable: true,
             });
+            setRefreshTrigger(prev => prev + 1);
             
         } catch (error) {
             console.error("Error adding to path:", error);
@@ -533,6 +534,8 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                     } : loc
                 )
             );
+            const updatedLocations = await GetTeachPoints();
+            setLocations(updatedLocations);
             toast({
                 title: "Teach Point Saved",
                 description: "Teach point saved successfully.",
@@ -588,6 +591,8 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                     isClosable: true,
                 });
                 // Only close the modal if the nest creation is successful
+                const updatedLocations = await GetTeachPoints();
+                setLocations(updatedLocations);
                 onClose(); 
             } catch (error) {
                 console.error("Error creating nest:", error);
@@ -816,8 +821,8 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         <HStack spacing={4} width="100%">
           {/* VStack for Locations and Nests */}
           <VStack spacing={4} width="50%">
-            {/* New Card for Locations */}
-            <Card align='left' display='flex' width='50%' maxHeight='200px'>
+            {/* Card for Locations */}
+            <Card align='left' display='flex' width='50%' maxHeight='200px' ml='50%'>
               <CardHeader>
                 <Heading size='md'>Locations</Heading>
               </CardHeader>
@@ -830,7 +835,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                       borderWidth={1} 
                       borderRadius='md' 
                       _hover={{ bg: "gray.100", cursor: "pointer" }} 
-                      onClick={() => handleLocationClick(location)} // Updated click handler
+                      onClick={() => handleLocationClick(location)}
                     >
                       {location.name}
                     </Box>
@@ -839,8 +844,8 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
               </CardBody>
             </Card>
 
-            {/* New Card for Nests */}
-            <Card align='left' display='flex' width='50%' maxHeight='200px'>
+            {/* Card for Nests */}
+            <Card align='left' display='flex' width='50%' maxHeight='200px' ml='50%'>
               <CardHeader>
                 <HStack justify="space-between" width="100%">
                   <Heading size='md'>Nests</Heading>
@@ -858,7 +863,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                       borderWidth={1} 
                       borderRadius='md' 
                       _hover={{ bg: "gray.100", cursor: "pointer" }} 
-                      onClick={() => handleNestClick(nest)} // Updated click handler
+                      onClick={() => handleNestClick(nest)}
                     >
                       {nest.name}
                     </Box>
@@ -869,7 +874,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
           </VStack>
 
           {/* Details Section for Selected Location or Nest */}
-          <Card align='left' display='flex' width='30%' ml='-12.5%' >
+          <Card align='left' display='flex' width='30%' ml='-0.5%' >
             <CardHeader>
               <Heading size='md'>Details</Heading>
             </CardHeader>
