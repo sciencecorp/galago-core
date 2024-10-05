@@ -10,8 +10,6 @@
 
 import logging
 import time
-import json
-import os
 
 # Might need to fix the imports.
 from .pf_400_communicator import Pf400Communicator
