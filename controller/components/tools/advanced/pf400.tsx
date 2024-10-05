@@ -96,7 +96,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
     const [orientation, setOrientation] = useState("");
 
     const { isOpen, onOpen, onClose } = useDisclosure();
-
+    const [isSaving, setIsSaving] = useState(false);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const executeCommand = async (command: () => Promise<void>) => {
@@ -487,17 +487,10 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
             });
             return;
         }
+
+        setIsSaving(true);
         const originalLocType = getOriginalLocType(currentLocType);
-        console.log("Saving changes");
-        console.log("Updated TeachPoint:", JSON.stringify({
-            name: currentTeachpoint,
-            coordinate: editedCoordinate,
-            type: currentType,
-            locType: originalLocType,
-            approachPath: editedApproachPath,
-            isEdited: true
-        }, null, 2));
-    
+
         const saveCommand: ToolCommandInfo = {
             toolId: config.id,
             toolType: config.type,
@@ -513,29 +506,33 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                 }]
             },
         };
-    
-        console.log("Save Command:", JSON.stringify(saveCommand, null, 2));
-    
+
         try {
             await commandMutation.mutateAsync(saveCommand);
-    
-            console.log("Teach point saving");
-            setIsEditing(false);
-            // Update the locations state with the new teach point
+            
+            // Immediate state update
             setLocations(prevLocations => 
                 prevLocations.map(loc => 
                     loc.name === currentTeachpoint ? {
-                        name: currentTeachpoint,
+                        ...loc,
                         coordinate: editedCoordinate,
-                        type: currentType,
                         locType: originalLocType,
                         approachPath: editedApproachPath,
                         isEdited: true
                     } : loc
                 )
             );
+
+            // Fetch updated locations from the server
             const updatedLocations = await GetTeachPoints();
             setLocations(updatedLocations);
+
+            // Update current values
+            setCurrentCoordinate(editedCoordinate);
+            setCurrentLocType(getLocTypeDisplay(originalLocType));
+            setCurrentApproachPath(editedApproachPath);
+
+            setIsEditing(false);
             toast({
                 title: "Teach Point Saved",
                 description: "Teach point saved successfully.",
@@ -552,6 +549,8 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                 duration: 3000,
                 isClosable: true,
             });
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -904,18 +903,23 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
               <ButtonGroup spacing='2'>
                 {isEditing ? (
                   <>
-                    <Button onClick={saveChanges} colorScheme='green'>Save</Button>
-                    <Button onClick={cancelEditing}>Cancel</Button>
-                    
+                    <Button 
+                        onClick={saveChanges} 
+                        colorScheme='green' 
+                        isLoading={isSaving}
+                        loadingText="Saving"
+                    >
+                        Save
+                    </Button>
+                    <Button onClick={cancelEditing} isDisabled={isSaving}>Cancel</Button>
                   </>
                 ) : (
                   <>
-                    
-                  <Box mt={2}>
-                    <Button onClick={startEditing} colorScheme='blue' mr={2}>Edit</Button>
-                    
-                    <Button onClick={addToPath} colorScheme='blue'>Add Current Position to Path</Button>
-                  </Box>
+                    <Box mt={2}>
+                      <Button onClick={startEditing} colorScheme='blue' mr={2}>Edit</Button>
+                      
+                      <Button onClick={addToPath} colorScheme='blue'>Add Current Position to Path</Button>
+                    </Box>
                   </>
                 )}
               </ButtonGroup>
