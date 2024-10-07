@@ -34,6 +34,11 @@ class Coordinate(str):
         distance: float = sum([(a - b) ** 2 for a, b in zip(self.vec, other.vec)]) ** 0.5
         return distance
 
+    def __sub__(self, other: "str | Coordinate") -> "Coordinate":
+        if not isinstance(other, Coordinate):
+            other = Coordinate(other)
+        return Coordinate(" ".join([str(a - b) for a, b in zip(self.vec, other.vec)]))
+
 
 class Location(BaseModel):
     loc: Coordinate
