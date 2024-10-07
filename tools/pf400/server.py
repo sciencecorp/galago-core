@@ -297,20 +297,28 @@ class Pf400Server(ToolServer):
         waypoints_json_file = os.path.join(os.path.dirname(__file__), "config", self.waypoints_json_file)
         with open(waypoints_json_file, 'r') as f:
             waypoints_data = json.load(f)
+        
+        # Get the nest location
+        nest_location = Coordinate(waypoints_data['nests'][params.nest_name]['loc']['loc'])
+        
+        # Calculate the difference
+        current_coord = Coordinate(current_position)
+        diff_coord = current_coord - nest_location
+        
         # Update only the specific nest
         if params.nest_name in waypoints_data['nests']:
             if 'approach_path' not in waypoints_data['nests'][params.nest_name]:
                 waypoints_data['nests'][params.nest_name]['approach_path'] = []
             
-            # Convert current_position to Coordinate
-            coord = Coordinate(current_position)
-            waypoints_data['nests'][params.nest_name]['approach_path'].append(str(coord))
+            # Append the difference to the approach path
+            waypoints_data['nests'][params.nest_name]['approach_path'].append(str(diff_coord))
         
         # Write the updated data back to the file
         with open(waypoints_json_file, 'w') as f:
             json.dump(waypoints_data, f, indent=2)
+        
         # Update the in-memory waypoints object
-        self.waypoints.nests[params.nest_name].approach_path.append(coord)
+        self.waypoints.nests[params.nest_name].approach_path.append(diff_coord)
         logging.info("Approach path updated for nest: %s", params.nest_name)
 
     def GetTeachpoints(self, params: Command.GetTeachpoints) -> ExecuteCommandReply:
