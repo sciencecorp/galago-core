@@ -278,13 +278,61 @@ class Pf400Server(ToolServer):
                 approach_path=[],
                 loc=Location(
                     loc=Coordinate(current_position),
-                    loc_type='j' if params.loc_type.lower() == 'j' else 'c'
+                    loc_type='j'
                 ),
                 orientation='portrait' if params.orientation.lower() == 'portrait' else 'landscape',
                 safe_loc=params.safe_loc
             )
         
         logging.info("Nest created: %s", params.nest_name)
+
+    def CreateLocation(self, params: Command.CreateLocation) -> None:
+        try:
+            current_position = self.driver.wherej()
+            logging.info("current_position %s", current_position)
+            logging.info("params %s", params)
+
+            waypoints_json_file = os.path.join(os.path.dirname(__file__), "config", self.waypoints_json_file)
+            with open(waypoints_json_file, 'r') as f:
+                waypoints_data = json.load(f)
+
+            waypoints_data['locations'][params.location_name] = {
+                'loc': current_position,
+                'loc_type': 'j'
+            }
+
+            with open(waypoints_json_file, 'w') as f:
+                json.dump(waypoints_data, f, indent=2)
+
+            if params.location_name not in self.waypoints.locations:
+                self.waypoints.locations[params.location_name] = Location(
+                    loc=Coordinate(current_position),
+                    loc_type='j' if params.loc_type.lower() == 'j' else 'c'
+                )
+            logging.info("Location created: %s", params.location_name)
+        except Exception as e:
+            logging.error("Error creating location: %s", str(e))
+    
+    def DeleteNest(self, params: Command.DeleteNest) -> None:
+        waypoints_json_file = os.path.join(os.path.dirname(__file__), "config", self.waypoints_json_file)
+        with open(waypoints_json_file, 'r') as f:
+            waypoints_data = json.load(f)
+        if params.nest_name in waypoints_data['nests']:
+            del waypoints_data['nests'][params.nest_name]
+            with open(waypoints_json_file, 'w') as f:
+                json.dump(waypoints_data, f, indent=2)
+            logging.info("Nest deleted: %s", params.nest_name)
+
+    def DeleteLocation(self, params: Command.DeleteLocation) -> None:
+        waypoints_json_file = os.path.join(os.path.dirname(__file__), "config", self.waypoints_json_file)
+        with open(waypoints_json_file, 'r') as f:
+            waypoints_data = json.load(f)
+        if params.location_name in waypoints_data['locations']:
+            del waypoints_data['locations'][params.location_name]
+            with open(waypoints_json_file, 'w') as f:
+                json.dump(waypoints_data, f, indent=2)
+            logging.info("Location deleted: %s", params.location_name)
+    
 
     def AddToPath(self, params: Command.AddToPath) -> None:
         current_position = self.driver.wherej()
@@ -322,19 +370,22 @@ class Pf400Server(ToolServer):
         logging.info("Approach path updated for nest: %s", params.nest_name)
 
     def GetTeachpoints(self, params: Command.GetTeachpoints) -> ExecuteCommandReply:
-        s = Struct()
         response = ExecuteCommandReply()
         response.return_reply = True
         response.response = SUCCESS
         try:
-            s.update(self.teachpoints)
+            waypoints_json_file = os.path.join(os.path.dirname(__file__), "config", self.waypoints_json_file)
+            with open(waypoints_json_file, 'r') as f:
+                waypoints_data = json.load(f)
+            s = Struct()
+            s.update(waypoints_data)
             response.meta_data.CopyFrom(s)
-        except Exception as exc:
-            logging.exception(exc)
+            return response
+        except Exception as e:
+            logging.error("Error getting teachpoints: %s", str(e))
             response.response = ERROR_FROM_TOOL
-
-        return response
-
+            return response
+    
     def GetCurrentLocation(self, params: Command.GetCurrentLocation) -> ExecuteCommandReply:
         response = ExecuteCommandReply()
         response.return_reply = True
@@ -993,6 +1044,15 @@ class Pf400Server(ToolServer):
         return 1
     
     def EstimateCreateNest(self, params: Command.CreateNest) -> int:
+        return 1
+
+    def EstimateDeleteNest(self, params: Command.DeleteNest) -> int:
+        return 1
+    
+    def EstimateDeleteLocation(self, params: Command.DeleteLocation) -> int:
+        return 1
+    
+    def EstimateCreateLocation(self, params: Command.CreateLocation) -> int:
         return 1
 
     def EstimateReleasePlate(self, params: Command.ReleasePlate) -> int:

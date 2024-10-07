@@ -27,14 +27,29 @@ message Command {
     SaveTeachpoints saveTeachpoints = 21;
     RawCommand raw_command = 22;
     CreateNest create_nest = 23;
-    AddToPath add_to_path = 24;
+    CreateLocation create_location = 24;
+    DeleteNest delete_nest = 25;
+    DeleteLocation delete_location = 26;
+    AddToPath add_to_path = 27;
+  }
+
+  message DeleteNest {
+    string nest_name = 1;
+  }
+
+  message DeleteLocation {
+    string location_name = 1;
   }
 
   message CreateNest {
     string nest_name = 1;
-    string loc_type = 2;
     string orientation = 3;
     string safe_loc = 4;
+    string loc_type = 5;
+  }
+
+  message CreateLocation {
+    string location_name = 1;
   }
 
   message AddToPath {

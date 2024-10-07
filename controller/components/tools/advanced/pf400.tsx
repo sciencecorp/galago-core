@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, JSXElementConstructor, ReactElement, ReactFragment, ReactPortal, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, JSXElementConstructor, ReactElement, ReactFragment, ReactPortal, useEffect, useState, useRef } from "react";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import {
   Select,
@@ -39,9 +39,17 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
+  InputGroup,
+  InputLeftElement,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
-import { AddIcon } from "@chakra-ui/icons";
+import { AddIcon, Search2Icon, DeleteIcon } from "@chakra-ui/icons";
 import { trpc } from "@/utils/trpc";
 import { ToolCommandInfo } from "@/types";
 import { ToolConfig } from 'gen-interfaces/controller';
@@ -98,6 +106,17 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [isSaving, setIsSaving] = useState(false);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    const [locationSearch, setLocationSearch] = useState("");
+    const [nestSearch, setNestSearch] = useState("");
+
+    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+
+    const onLocationModalOpen = () => setIsLocationModalOpen(true);
+    const onLocationModalClose = () => setIsLocationModalOpen(false);
+
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const cancelRef = useRef<HTMLButtonElement>(null);
 
     const executeCommand = async (command: () => Promise<void>) => {
         if (isCommandInProgress) return;
@@ -328,6 +347,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         };
         
         const response = await commandMutation.mutateAsync(toolCommand);
+        console.log("response", response)   
         const metadata = response?.meta_data;
         if(metadata === undefined) return [];
 
@@ -555,9 +575,24 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
     };
 
     const CreateNestModal = ({ isOpen, onOpen, onClose }: { isOpen: boolean, onOpen: () => void, onClose: () => void }) => {
+        const [localNestName, setLocalNestName] = useState("");
+        const [localOrientation, setLocalOrientation] = useState("");
+        const [localSafeLoc, setLocalSafeLoc] = useState("");
+
+        useEffect(() => {
+            if (isOpen) {
+                // Reset local state when modal opens
+                setLocalNestName("");
+                setLocalOrientation("");
+                setLocalSafeLoc("");
+            }
+        }, [isOpen]);
+
+        const [isCreating, setIsCreating] = useState(false);
+
         const handleCreateNest = async () => {
-            // Validation: Check if any required fields are empty
-            if (!nestName || !locType || !orientation || !safeLoc) {
+            // Validation check
+            if (!localNestName || !localOrientation || !localSafeLoc) {
                 toast({
                     title: "Error",
                     description: "All fields are required to create a nest.",
@@ -565,34 +600,41 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                     duration: 3000,
                     isClosable: true,
                 });
-                return; // Prevent further execution if validation fails
+                return;
             }
+
+            setIsCreating(true);
 
             const createNestCommand: ToolCommandInfo = {
                 toolId: config.id,
                 toolType: config.type,
                 command: "create_nest",
                 params: {
-                    nest_name: nestName,
-                    loc_type: locType,
-                    orientation: orientation,
-                    safe_loc: safeLoc
+                    nest_name: localNestName,
+                    loc_type: "j",
+                    orientation: localOrientation,
+                    safe_loc: localSafeLoc
                 },
             };
 
             try {
                 await commandMutation.mutateAsync(createNestCommand);
+                
                 toast({
                     title: "Nest Created",
-                    description: `Nest ${nestName} created successfully.`,
+                    description: `Nest ${localNestName} created successfully.`,
                     status: "success",
                     duration: 3000,
                     isClosable: true,
                 });
-                // Only close the modal if the nest creation is successful
-                const updatedLocations = await GetTeachPoints();
-                setLocations(updatedLocations);
-                onClose(); 
+                setRefreshTrigger(prev => prev + 1);
+
+                // Update locations
+                // const updatedLocations = await GetTeachPoints();
+                // setLocations(updatedLocations);
+                // setRefreshTrigger(prev => prev + 1);
+                // Close the modal only after everything is done
+                onClose();
             } catch (error) {
                 console.error("Error creating nest:", error);
                 toast({
@@ -602,76 +644,160 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                     duration: 3000,
                     isClosable: true,
                 });
+            } finally {
+                setIsCreating(false);
             }
         };
 
         return (
-            <>
-                <Modal isOpen={isOpen} onClose={onClose}>
-                    <ModalOverlay />
-                    <ModalContent>
-                        <ModalHeader>Create a New Nest</ModalHeader>
-                        <ModalCloseButton />
-                        <ModalBody>
-                            <FormControl>
-                                <FormLabel>Nest Name</FormLabel>
-                                <Input
-                                    value={nestName}
-                                    onChange={(e) => setNestName(e.target.value)} // Ensure this is correctly updating state
-                                    placeholder="Enter nest name"
-                                />
-                            </FormControl>
-                            <FormControl mt={4}>
-                                <FormLabel>Location Type</FormLabel>
-                                <Select
-                                    value={locType}
-                                    onChange={(e) => setLocType(e.target.value)}
-                                    placeholder="Select location type"
-                                    isRequired
-                                >
-                                    <option value="j">Joint</option>
-                                    <option value="c">Cartesian</option>
-                                </Select>
-                            </FormControl>
-                            <FormControl mt={4}>
-                                <FormLabel>Orientation</FormLabel>
-                                <Select
-                                    value={orientation}
-                                    onChange={(e) => setOrientation(e.target.value)}
-                                    placeholder="Select orientation"
-                                    isRequired
-                                >
-                                    <option value="landscape">Landscape</option>
-                                    <option value="portrait">Portrait</option>
-                                </Select>
-                            </FormControl>
-                            <FormControl mt={4}>
-                                <FormLabel>Safe Location</FormLabel>
-                                <Select
-                                    value={safeLoc}
-                                    onChange={(e) => setSafeLoc(e.target.value)}
-                                    placeholder="Select safe location"
-                                    isRequired
-                                >
-                                    {locations
-                                        .filter(location => location.type === 'location')
-                                        .map((location) => (
-                                            <option key={location.name} value={location.name}>
-                                                {location.name}
-                                            </option>
-                                        ))}
-                                </Select>
-                            </FormControl>
-                        </ModalBody>
-                        <ModalFooter>
-                            <Button colorScheme="blue" onClick={handleCreateNest}>
-                                Create Nest
-                            </Button>
-                            <Button variant="ghost" onClick={onClose}>Cancel</Button>
-                        </ModalFooter>
-                    </ModalContent>
-                </Modal>
-            </>
+            <Modal isOpen={isOpen} onClose={onClose}>
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Create a New Nest</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <FormControl>
+                            <FormLabel>Nest Name</FormLabel>
+                            <Input
+                                value={localNestName}
+                                onChange={(e) => setLocalNestName(e.target.value)}
+                                placeholder="Enter nest name"
+                            />
+                        </FormControl>
+                        <FormControl mt={4}>
+                            <FormLabel>Orientation</FormLabel>
+                            <Select
+                                value={localOrientation}
+                                onChange={(e) => setLocalOrientation(e.target.value)}
+                                placeholder="Select orientation"
+                            >
+                                <option value="landscape">Landscape</option>
+                                <option value="portrait">Portrait</option>
+                            </Select>
+                        </FormControl>
+                        <FormControl mt={4}>
+                            <FormLabel>Safe Location</FormLabel>
+                            <Select
+                                value={localSafeLoc}
+                                onChange={(e) => setLocalSafeLoc(e.target.value)}
+                                placeholder="Select safe location"
+                            >
+                                {locations
+                                    .filter(location => location.type === 'location')
+                                    .map((location) => (
+                                        <option key={location.name} value={location.name}>
+                                            {location.name}
+                                        </option>
+                                    ))}
+                            </Select>
+                        </FormControl>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button 
+                            colorScheme="blue" 
+                            onClick={handleCreateNest} 
+                            isLoading={isCreating}                        >
+                            Create Nest
+                        </Button>
+                        <Button variant="ghost" onClick={onClose} isDisabled={isCreating}>Cancel</Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+        );
+    };
+
+    const CreateLocationModal = ({ isOpen, onOpen, onClose }: { isOpen: boolean, onOpen: () => void, onClose: () => void }) => {
+        const [localLocationName, setLocalLocationName] = useState("");
+        const [isCreating, setIsCreating] = useState(false);
+
+        useEffect(() => {
+            if (isOpen) {
+                setLocalLocationName("");
+            }
+        }, [isOpen]);
+
+        const handleCreateLocation = async () => {
+            if (!localLocationName) {
+                toast({
+                    title: "Error",
+                    description: "All fields are required to create a location.",
+                    status: "error",
+                    duration: 3000,
+                    isClosable: true,
+                });
+                return;
+            }
+
+            setIsCreating(true);
+
+            const createLocationCommand: ToolCommandInfo = {
+                toolId: config.id,
+                toolType: config.type,
+                command: "create_location",
+                params: {
+                    location_name: localLocationName,
+                    loc_type: "j"
+                },
+            };
+
+            try {
+                await commandMutation.mutateAsync(createLocationCommand);
+                
+                toast({
+                    title: "Location Created",
+                    description: `Location ${localLocationName} created successfully.`,
+                    status: "success",
+                    duration: 3000,
+                    isClosable: true,
+                });
+
+                // Update locations
+                const updatedLocations = await GetTeachPoints();
+                setLocations(updatedLocations);
+
+                onClose();
+            } catch (error) {
+                console.error("Error creating location:", error);
+                toast({
+                    title: "Error",
+                    description: "Failed to create location.",
+                    status: "error",
+                    duration: 3000,
+                    isClosable: true,
+                });
+            } finally {
+                setIsCreating(false);
+            }
+        };
+
+        return (
+            <Modal isOpen={isOpen} onClose={onClose}>
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Create a New Location</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <FormControl>
+                            <FormLabel>Location Name</FormLabel>
+                            <Input
+                                value={localLocationName}
+                                onChange={(e) => setLocalLocationName(e.target.value)}
+                                placeholder="Enter location name"
+                            />
+                        </FormControl>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button 
+                            colorScheme="blue" 
+                            onClick={handleCreateLocation} 
+                            isLoading={isCreating}
+                        >
+                            Create Location
+                        </Button>
+                        <Button variant="ghost" onClick={onClose} isDisabled={isCreating}>Cancel</Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         );
     };
 
@@ -690,6 +816,56 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         setCurrentLocType(getLocTypeDisplay(nest.locType));
         setCurrentType(nest.type);
         setCurrentApproachPath(nest.approachPath || []); // Set approach path for nests
+    };
+
+    const filteredLocations = locations.filter(loc => 
+        loc.type === 'location' && loc.name.toLowerCase().includes(locationSearch.toLowerCase())
+    );
+
+    const filteredNests = locations.filter(loc => 
+        loc.type === 'nest' && loc.name.toLowerCase().includes(nestSearch.toLowerCase())
+    );
+
+    const handleDelete = async () => {
+        const deleteCommand: ToolCommandInfo = {
+            toolId: config.id,
+            toolType: config.type,
+            command: currentType === 'nest' ? "delete_nest" : "delete_location",
+            params: {
+                [currentType === 'nest' ? 'nest_name' : 'location_name']: currentTeachpoint
+            },
+        };
+
+        try {
+            await commandMutation.mutateAsync(deleteCommand);
+            toast({
+                title: `${currentType.charAt(0).toUpperCase() + currentType.slice(1)} Deleted`,
+                description: `${currentTeachpoint} has been deleted successfully.`,
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+            // Refresh the teach points
+            const updatedLocations = await GetTeachPoints();
+            setLocations(updatedLocations);
+            // Clear the current selection
+            setCurrentTeachpoint("");
+            setCurrentCoordinate("");
+            setCurrentType('nest');
+            setCurrentLocType("");
+            setCurrentApproachPath([]);
+        } catch (error) {
+            console.error(`Error deleting ${currentType}:`, error);
+            toast({
+                title: "Error",
+                description: `Failed to delete ${currentType}`,
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+        } finally {
+            setIsDeleteDialogOpen(false);
+        }
     };
 
     return (
@@ -742,7 +918,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
             </HStack>
         </Box>
         <HStack spacing={4}>
-            <Card width='50%' height='230px'>
+            <Card width='30%' height='230px' ml='15%'>
                 <CardHeader mb='-8px'>
                     <Heading size='md'>Gripper Control</Heading>
                 </CardHeader>
@@ -784,7 +960,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                     </ButtonGroup>
                 </CardFooter>
             </Card>
-            <Card width='50%' height='230px'>
+            <Card width='35%' height='230px'>
                 <CardHeader mb='-8px'>
                     <Heading size='md'>Jog Control</Heading>
                 </CardHeader>
@@ -821,13 +997,29 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
           {/* VStack for Locations and Nests */}
           <VStack spacing={4} width="50%">
             {/* Card for Locations */}
-            <Card align='left' display='flex' width='50%' maxHeight='200px' ml='50%'>
+            <Card align='left' display='flex' width='50%' height='300px' ml='50%'>
               <CardHeader>
-                <Heading size='md'>Locations</Heading>
+                <HStack justify="space-between" width="100%">
+                  <Heading size='md'>Locations</Heading>
+                  <Tooltip label="Add new Location">
+                    <Button onClick={onLocationModalOpen} colorScheme="blue" size="sm"><AddIcon /></Button>
+                  </Tooltip>
+                </HStack>
+                <InputGroup size="md" mt={2}>
+                  <InputLeftElement pointerEvents="none">
+                    <Search2Icon color="gray.300" />
+                  </InputLeftElement>
+                  <Input
+                    type="text"
+                    placeholder="Search locations"
+                    value={locationSearch}
+                    onChange={(e) => setLocationSearch(e.target.value)}
+                  />
+                </InputGroup>
               </CardHeader>
-              <CardBody width='100%' overflowY='auto'>
+              <CardBody width='100%' overflowY='auto' maxHeight='calc(300px - 110px)'>
                 <VStack spacing={2} align='stretch'>
-                  {locations.filter(loc => loc.type === 'location').map((location, i) => (
+                  {filteredLocations.map((location, i) => (
                     <Box 
                       key={i.toString()} 
                       p={2} 
@@ -844,7 +1036,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
             </Card>
 
             {/* Card for Nests */}
-            <Card align='left' display='flex' width='50%' maxHeight='200px' ml='50%'>
+            <Card align='left' display='flex' width='50%' height='300px' ml='50%'>
               <CardHeader>
                 <HStack justify="space-between" width="100%">
                   <Heading size='md'>Nests</Heading>
@@ -852,10 +1044,21 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                     <Button onClick={onOpen} colorScheme="blue" size="sm"><AddIcon /></Button>
                   </Tooltip>
                 </HStack>
+                <InputGroup size="md" mt={2}>
+                  <InputLeftElement pointerEvents="none">
+                    <Search2Icon color="gray.300" />
+                  </InputLeftElement>
+                  <Input
+                    type="text"
+                    placeholder="Search nests"
+                    value={nestSearch}
+                    onChange={(e) => setNestSearch(e.target.value)}
+                  />
+                </InputGroup>
               </CardHeader>
-              <CardBody width='100%' overflowY='auto'>
+              <CardBody width='100%' overflowY='auto' maxHeight='calc(300px - 110px)'>
                 <VStack spacing={2} align='stretch'>
-                  {locations.filter(loc => loc.type === 'nest').map((nest, i) => (
+                  {filteredNests.map((nest, i) => (
                     <Box 
                       key={i.toString()} 
                       p={2} 
@@ -873,7 +1076,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
           </VStack>
 
           {/* Details Section for Selected Location or Nest */}
-          <Card align='left' display='flex' width='30%' ml='-0.5%' >
+          <Card align='left' display='flex' width='30%' ml='-0.5%' height='600px'>
             <CardHeader>
               <Heading size='md'>Details</Heading>
             </CardHeader>
@@ -887,8 +1090,6 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                 readOnly={!isEditing} // Editable when isEditing is true
                 bg={isEditing ? "yellow.100" : "white"} // Highlight when editing
               />
-              <Text as='b'>Location Type:</Text>
-              <Input value={currentLocType} readOnly />
               {currentType === 'nest' && ( // Show approach path only for nests
                 <>
                   <Text as='b'>Approach Path:</Text>
@@ -897,10 +1098,12 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                     onChange={handleApproachPathEdit}
                     readOnly={!isEditing} // Editable when isEditing is true
                     bg={isEditing ? "yellow.100" : "white"} // Highlight when editing
+                    minHeight="300px" // Increase the minimum height
+                    resize="vertical" // Allow vertical resizing
                   />
                 </>
               )}
-              <ButtonGroup spacing='2'>
+              <ButtonGroup spacing='2' mt={4}>
                 {isEditing ? (
                   <>
                     <Button 
@@ -915,11 +1118,9 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                   </>
                 ) : (
                   <>
-                    <Box mt={2}>
-                      <Button onClick={startEditing} colorScheme='blue' mr={2}>Edit</Button>
-                      
-                      <Button onClick={addToPath} colorScheme='blue'>Add Current Position to Path</Button>
-                    </Box>
+                    <Button onClick={startEditing} colorScheme='blue' mr={2}>Edit</Button>
+                    <Button onClick={addToPath} colorScheme='blue'>Add Current Pos to Path</Button>
+                    <Button onClick={() => setIsDeleteDialogOpen(true)} colorScheme='red'> <DeleteIcon /> </Button>
                   </>
                 )}
               </ButtonGroup>
@@ -928,6 +1129,34 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         </HStack>
 
         <CreateNestModal isOpen={isOpen} onOpen={onOpen} onClose={onClose} />
+        <CreateLocationModal isOpen={isLocationModalOpen} onOpen={onLocationModalOpen} onClose={onLocationModalClose} />
+
+        <AlertDialog
+            isOpen={isDeleteDialogOpen}
+            leastDestructiveRef={cancelRef}
+            onClose={() => setIsDeleteDialogOpen(false)}
+        >
+            <AlertDialogOverlay>
+                <AlertDialogContent>
+                    <AlertDialogHeader fontSize="lg" fontWeight="bold">
+                        Delete {currentType}
+                    </AlertDialogHeader>
+
+                    <AlertDialogBody>
+                        Are you sure you want to delete {currentTeachpoint}? This action cannot be undone.
+                    </AlertDialogBody>
+
+                    <AlertDialogFooter>
+                        <Button ref={cancelRef} onClick={() => setIsDeleteDialogOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button colorScheme="red" onClick={handleDelete} ml={3}>
+                            <DeleteIcon />
+                        </Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialogOverlay>
+        </AlertDialog>
       </VStack>
     );
   }
