@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, JSXElementConstructor, ReactElement, ReactFragment, ReactPortal, useEffect, useState, useRef } from "react";
+import { ChangeEvent, FormEvent, JSXElementConstructor, ReactElement, ReactFragment, ReactPortal, useEffect, useState, useRef, useCallback } from "react";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import {
   Select,
@@ -91,7 +91,6 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
     const [currentCoordinate, setCurrentCoordinate] = useState("");
     const [currentApproachPath, setCurrentApproachPath] = useState<string[]>([]);
     const [currentType, setCurrentType] = useState<'nest' | 'location'>('nest');
-    const [configString, setConfigString] = useState(JSON.stringify(config, null, 2));
     //const toolType = config.type;
     const [gripperWidth, setGripperWidth] = useState(120); // Set initial value to 120
     const [jogAxis, setJogAxis] = useState("");
@@ -100,38 +99,23 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editedCoordinate, setEditedCoordinate] = useState("");
     const [editedApproachPath, setEditedApproachPath] = useState<string[]>([]);
-    const configureMutation = trpc.tool.configure.useMutation();
     
     const [isCommandInProgress, setIsCommandInProgress] = useState(false);
-    const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
-    const [alertMessage, setAlertMessage] = useState<string | null>(null);
-    const [alertStatus, setAlertStatus] = useState<"success" | "error">("success");
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [nestName, setNestName] = useState("");
-    const [locType, setLocType] = useState("");
-
-    const [safeLoc, setSafeLoc] = useState("");
-    const [orientation, setOrientation] = useState("");
-
-    const { isOpen, onOpen, onClose } = useDisclosure();
     const [isSaving, setIsSaving] = useState(false);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const [locationSearch, setLocationSearch] = useState("");
     const [nestSearch, setNestSearch] = useState("");
 
-    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
-
-    const onLocationModalOpen = () => setIsLocationModalOpen(true);
-    const onLocationModalClose = () => setIsLocationModalOpen(false);
-
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const cancelRef = useRef<HTMLButtonElement>(null);
 
-    const [isNewItemModalOpen, setIsNewItemModalOpen] = useState(false);
-    const onNewItemModalOpen = () => setIsNewItemModalOpen(true);
-    const onNewItemModalClose = () => setIsNewItemModalOpen(false);
+    const { isOpen, onOpen, onClose } = useDisclosure();
+
+    const handleCreateSuccess = useCallback(() => {
+        onClose();
+        setRefreshTrigger(prev => prev + 1);
+    }, [onClose]);
 
     const executeCommand = async (command: () => Promise<void>) => {
         if (isCommandInProgress) return;
@@ -570,24 +554,30 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         }
     };
 
-    const CreateNewItemModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+    const CreateNewItemModal = ({ 
+        isOpen, 
+        onClose, 
+        onCreateSuccess, 
+        config, 
+        locations 
+    }: { 
+        isOpen: boolean, 
+        onClose: () => void, 
+        onCreateSuccess: () => void, 
+        config: ToolConfig,
+        locations: TeachPoint[]
+    }) => {
         const [localLocationName, setLocalLocationName] = useState("");
         const [localNestName, setLocalNestName] = useState("");
         const [localOrientation, setLocalOrientation] = useState("");
         const [localSafeLoc, setLocalSafeLoc] = useState("");
         const [isCreating, setIsCreating] = useState(false);
+        const [activeTab, setActiveTab] = useState(0);
 
-        useEffect(() => {
-            if (isOpen) {
-                setLocalLocationName("");
-                setLocalNestName("");
-                setLocalOrientation("");
-                setLocalSafeLoc("");
-            }
-        }, [isOpen]);
+        const commandMutation = trpc.tool.runCommand.useMutation();
 
-        const handleCreateLocation = async () => {
-            if (!localLocationName) {
+        const handleCreate = useCallback(async () => {
+            if (activeTab === 0 && !localLocationName) {
                 toast({
                     title: "Error",
                     description: "Location name is required.",
@@ -598,46 +588,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                 return;
             }
 
-            setIsCreating(true);
-
-            const createLocationCommand: ToolCommandInfo = {
-                toolId: config.id,
-                toolType: config.type,
-                command: "create_location",
-                params: {
-                    location_name: localLocationName,
-                    loc_type: "j"
-                },
-            };
-
-            try {
-                await commandMutation.mutateAsync(createLocationCommand);
-                toast({
-                    title: "Location Created",
-                    description: `Location ${localLocationName} created successfully.`,
-                    status: "success",
-                    duration: 3000,
-                    isClosable: true,
-                });
-                const updatedLocations = await GetTeachPoints();
-                setLocations(updatedLocations);
-                onClose();
-            } catch (error) {
-                console.error("Error creating location:", error);
-                toast({
-                    title: "Error",
-                    description: "Failed to create location.",
-                    status: "error",
-                    duration: 3000,
-                    isClosable: true,
-                });
-            } finally {
-                setIsCreating(false);
-            }
-        };
-
-        const handleCreateNest = async () => {
-            if (!localNestName || !localOrientation || !localSafeLoc) {
+            if (activeTab === 1 && (!localNestName || !localOrientation || !localSafeLoc)) {
                 toast({
                     title: "Error",
                     description: "All fields are required to create a nest.",
@@ -650,34 +601,38 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
 
             setIsCreating(true);
 
-            const createNestCommand: ToolCommandInfo = {
+            const createCommand: ToolCommandInfo = {
                 toolId: config.id,
                 toolType: config.type,
-                command: "create_nest",
-                params: {
-                    nest_name: localNestName,
-                    loc_type: "j",
-                    orientation: localOrientation,
-                    safe_loc: localSafeLoc
-                },
+                command: activeTab === 0 ? "create_location" : "create_nest",
+                params: activeTab === 0 
+                    ? {
+                        location_name: localLocationName,
+                        loc_type: "j"
+                    }
+                    : {
+                        nest_name: localNestName,
+                        loc_type: "j",
+                        orientation: localOrientation,
+                        safe_loc: localSafeLoc
+                    },
             };
 
             try {
-                await commandMutation.mutateAsync(createNestCommand);
+                await commandMutation.mutateAsync(createCommand);
                 toast({
-                    title: "Nest Created",
-                    description: `Nest ${localNestName} created successfully.`,
+                    title: `${activeTab === 0 ? "Location" : "Nest"} Created`,
+                    description: `${activeTab === 0 ? localLocationName : localNestName} created successfully.`,
                     status: "success",
                     duration: 3000,
                     isClosable: true,
                 });
-                setRefreshTrigger(prev => prev + 1);
-                onClose();
+                onCreateSuccess();
             } catch (error) {
-                console.error("Error creating nest:", error);
+                console.error(`Error creating ${activeTab === 0 ? "location" : "nest"}:`, error);
                 toast({
                     title: "Error",
-                    description: "Failed to create nest.",
+                    description: `Failed to create ${activeTab === 0 ? "location" : "nest"}.`,
                     status: "error",
                     duration: 3000,
                     isClosable: true,
@@ -685,16 +640,16 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
             } finally {
                 setIsCreating(false);
             }
-        };
+        }, [activeTab, localLocationName, localNestName, localOrientation, localSafeLoc, config, commandMutation, onCreateSuccess]);
 
         return (
-            <Modal isOpen={isOpen} onClose={onClose}>
+            <Modal isOpen={isOpen} onClose={onClose} motionPreset="none">
                 <ModalOverlay />
                 <ModalContent>
                     <ModalHeader>Create New Item</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
-                        <Tabs>
+                        <Tabs onChange={(index) => setActiveTab(index)}>
                             <TabList>
                                 <Tab>Location</Tab>
                                 <Tab>Nest</Tab>
@@ -753,10 +708,10 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                     <ModalFooter>
                         <Button 
                             colorScheme="blue" 
-                            onClick={localLocationName ? handleCreateLocation : handleCreateNest} 
+                            onClick={handleCreate}
                             isLoading={isCreating}
                         >
-                            Create {localLocationName ? "Location" : "Nest"}
+                            Create {activeTab === 0 ? "Location" : "Nest"}
                         </Button>
                         <Button variant="ghost" onClick={onClose} isDisabled={isCreating}>Cancel</Button>
                     </ModalFooter>
@@ -979,7 +934,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                     <HStack justify="space-between" width="100%">
                         <Heading size='md'>Details</Heading>
                         <Tooltip label="Add new Item">
-                            <Button onClick={onNewItemModalOpen} colorScheme="blue" size="sm"><AddIcon /></Button>
+                            <Button onClick={onOpen} colorScheme="blue" size="sm"><AddIcon /></Button>
                         </Tooltip>
                     </HStack>
                 </CardHeader>
@@ -1293,7 +1248,13 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
           />
         </HStack>
 
-        <CreateNewItemModal isOpen={isNewItemModalOpen} onClose={onNewItemModalClose} />
+        <CreateNewItemModal 
+            isOpen={isOpen} 
+            onClose={onClose} 
+            onCreateSuccess={handleCreateSuccess}
+            config={config}
+            locations={locations}
+        />
 
         <AlertDialog
             isOpen={isDeleteDialogOpen}
