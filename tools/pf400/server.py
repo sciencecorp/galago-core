@@ -39,20 +39,12 @@ class Pf400Server(ToolServer):
 
     def _configure(self, request: Config) -> None:
         self.config = request
-        if self.config.location == Config.ULTRALIGHT_WORKCELL:
-            self.waypoints_json_file = "ultralight_waypoints.json"
-            self.sequence_location = os.path.join(os.path.dirname(__file__), "sequences", "ultralight")
-        elif self.config.location == Config.BIOLAB_WORKCELL:
-            self.waypoints_json_file = "biolab_waypoints.json"
-            self.sequence_location = os.path.join(os.path.dirname(__file__), "sequences", "biolab")
-        elif self.config.location == Config.BAYMAX_WORKCELL:
-            self.waypoints_json_file = "baymax_waypoints.json"
-            self.sequence_location = os.path.join(os.path.dirname(__file__), "sequences", "baymax")
-        else:
-            raise ValueError(f"Invalid location: {self.config.location}")
-        logging.debug(f"Loading pf400 waypoints from {self.waypoints_json_file}")
+        self.waypoints_json_file = self.config.waypoints_json_file
+        logging.info(f"Waypoints json file ||||| {self.waypoints_json_file}")
+        self.sequence_location = os.path.join(os.path.dirname(__file__), "sequences", self.waypoints_json_file.split(".")[0])
 
-
+        # example path tools\pf400\config\workcell_1_waypoints.json
+        # waypoints_json_file = workcell_1_waypoints.json
         with open(os.path.join(os.path.dirname(__file__), "config", self.waypoints_json_file)) as f:
             config = json.load(f)
             self.teachpoints = config
@@ -969,7 +961,7 @@ class Pf400Server(ToolServer):
             raise  # Re-raise the exception to be caught by the error handler
 
     def save_teachpoint(self, teachpoint: dict) -> None:
-        waypoints_file = 'tools/pf400/config/baymax_waypoints.json'
+        waypoints_file = os.path.join(os.path.dirname(__file__), "config", self.waypoints_json_file)
         try:
             # Read the current waypoints
             with open(waypoints_file, 'r') as f:

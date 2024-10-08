@@ -14,7 +14,7 @@
   "graph_edges": [],
   "locations": {
     "bravo_safe": {
-      "loc": "86.739 64.141 227.234 -380.716 119.076 -474.903",
+      "loc": "166.739 64.141 227.234 -380.716 119.076 -474.903",
       "loc_type": "j"
     },
     "cytation_safe": {
@@ -313,18 +313,6 @@
       "orientation": "portrait",
       "safe_loc": "r2_safe"
     },
-    "r1:l8": {
-      "approach_path": [
-        "10.016 -0.001 0.002 0.0 0.0 0.0",
-        "10.02 34.308 -14.305 -20.044 0.006 0.025"
-      ],
-      "loc": {
-        "loc": "493.678 10.545 280.018 -381.3 90 43.186",
-        "loc_type": "j"
-      },
-      "orientation": "portrait",
-      "safe_loc": "r2_safe"
-    },
     "r1:l9": {
       "approach_path": [
         "10.016 -0.001 0.002 0.0 0.0 0.0",
@@ -433,18 +421,6 @@
       "orientation": "portrait",
       "safe_loc": "r2_safe"
     },
-    "r2:l9": {
-      "approach_path": [
-        "10.252 -0.012 0.011 -0.03 0.006 -0.005",
-        "10.252 45.996 -11.313 -34.727 0.006 -0.005"
-      ],
-      "loc": {
-        "loc": "566.138 11.176 278.243 -379.14 90 -115.352",
-        "loc_type": "j"
-      },
-      "orientation": "portrait",
-      "safe_loc": "r2_safe"
-    },
     "ddd": {
       "approach_path": [],
       "loc": {
@@ -452,6 +428,26 @@
         "loc_type": "j"
       },
       "orientation": "landscape",
+      "safe_loc": "bravo_safe"
+    },
+    "yrdyrd": {
+      "approach_path": [],
+      "loc": {
+        "loc": "328.658 47.235 113.569 -160.115 72.972 -599.724",
+        "loc_type": "j"
+      },
+      "orientation": "portrait",
+      "safe_loc": "unwind"
+    },
+    "test123": {
+      "approach_path": [
+        "-0.0009999999999763531, 0.0, 0.0, 0.0, 0.0, 0.0"
+      ],
+      "loc": {
+        "loc": "328.659 47.235 113.568 -160.115 72.972 -599.724",
+        "loc_type": "j"
+      },
+      "orientation": "portrait",
       "safe_loc": "bravo_safe"
     }
   },

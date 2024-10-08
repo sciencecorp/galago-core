@@ -51,7 +51,7 @@ async function postHandler(req:NextApiRequest, res:NextApiResponse) {
       let destNest:string = openHotelPlates[i];
       if(destNest){
         params = {source_nest:sourceNest, destination_nest:destNest}
-        const run = await RunStore.global.createFromProtocol("baymax", "unload_fridge_plates", params);
+        const run = await RunStore.global.createFromProtocol("workcell_1", "unload_fridge_plates", params);
         queuedRuns.push(run.id)
       }
     }

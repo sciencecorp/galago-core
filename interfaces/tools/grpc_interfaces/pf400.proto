@@ -194,14 +194,8 @@ message Command {
 message Config {
   string host = 1;
   int32 port = 2;
-  Location location = 3;
-  string tool_id = 4;
+  string tool_id = 3;
+  string waypoints_json_file = 4;
   int32 joints = 5;
   
-  enum Location {
-    UNKNOWN_WORKCELL = 0;
-    ULTRALIGHT_WORKCELL = 1;
-    BIOLAB_WORKCELL = 2;
-    BAYMAX_WORKCELL = 3;
-  }
 }
