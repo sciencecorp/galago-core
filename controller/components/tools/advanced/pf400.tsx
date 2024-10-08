@@ -130,22 +130,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         }
     };
 
-    // Update existing command functions to use executeCommand
-    const Initialize = () => executeCommand(async () => {
-        const initializeCommand : ToolCommandInfo = {
-            toolId: config.id,
-            toolType: config.type,
-            command: "initialize",
-            params: {},
-        } 
-        await commandMutation.mutateAsync(initializeCommand);
-    });
-
     const OpenGripper = () => executeCommand(async () => {
-        console.log("Opening gripper with width: " + gripperWidth);
-        console.log("Tool State", ResponseCode)
-        console.log("Tool ID", config.id)
-        console.log("Tool Type", config.type)
 
         const openGripperCommand : ToolCommandInfo = {
             toolId: config.id,
@@ -160,7 +145,6 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
     });
 
     const CloseGripper = async () => {
-        console.log("Closing gripper with width: " + gripperWidth);
         const closeGripperCommand : ToolCommandInfo = {
             toolId: config.id,
             toolType: config.type,
@@ -194,7 +178,6 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
 
     const Jog = async () => {
         if (!jogAxis || jogDistance === 0) {
-            console.log("Please select an axis and enter a distance");
             toast({
                 title: "Jog Error",
                 description: "Please select an axis and enter a distance",
@@ -347,7 +330,6 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         };
         
         const response = await commandMutation.mutateAsync(toolCommand);
-        console.log("response", response)   
         const metadata = response?.meta_data;
         if(metadata === undefined) return [];
 
@@ -401,9 +383,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         };
         try {
             const response = await commandMutation.mutateAsync(toolCommand);
-            console.log("Current position:", response);
             if (response && response.meta_data && response.meta_data) {
-                console.log("meta data", response.meta_data)
                 const currentPosition = "1234567890" //response.meta_data;
                 setEditedApproachPath(prevPath => [...prevPath, currentPosition]);
                 toast({
@@ -959,26 +939,6 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         <Box>
             <HStack spacing={4} justify="space-between" width="100%">
                 <ButtonGroup>
-                    <Button 
-                        disabled={isCommandInProgress} 
-                        onClick={() => executeCommand(Initialize)} 
-                        colorScheme="teal" 
-                        variant="solid" 
-                        borderRadius="md" 
-                        _hover={{ bg: "teal.600" }}
-                    >
-                        Initialize
-                    </Button>
-                    <Button 
-                        disabled={isCommandInProgress} 
-                        onClick={GetTeachPoints} 
-                        colorScheme="teal" 
-                        variant="solid" 
-                        borderRadius="md" 
-                        _hover={{ bg: "teal.600" }}
-                    >
-                        Get Teach Points
-                    </Button>
                     <Button 
                         disabled={isCommandInProgress} 
                         onClick={SetFree} 

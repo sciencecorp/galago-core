@@ -119,12 +119,8 @@ class Pf400Server(ToolServer):
         if(nest.loc.loc_type == "j"):
             offset_coordinate = f"{offset[2]} 0 0 0 0 0"
         nest_loc = re.sub(r'^\S+\s', '', nest.loc.loc)
-        logging.info("Nest location is "+ str(nest_loc))
-        logging.info("Offset is "+ str(offset_coordinate))
         if self.config.joints == 5:
             offset_coordinate = " ".join(offset_coordinate.split(" ")[:-1])
-        logging.info("Joint is "+ str(self.config.joints))
-        logging.info("Offset is "+ str(offset_coordinate))   
         return [
             Location(
                 loc=Coordinate(nest_loc) + Coordinate(checkpoint) + Coordinate(offset_coordinate),
@@ -210,7 +206,6 @@ class Pf400Server(ToolServer):
         else:
             raise Exception("Invalid release params")
         
-        logging.info("Place lid params are "+ str(params.place_on_plate))
         if params.place_on_plate:
             lid_height = labware.height - 4 + labware.plate_lid_offset
         else:
@@ -248,8 +243,6 @@ class Pf400Server(ToolServer):
 
     def CreateNest(self, params: Command.CreateNest) -> None:
         current_position = re.sub(r'^\S+\s', '', self.driver.wherej())
-        logging.info("current_position %s", current_position)
-        logging.info("params %s", params)
         
         # Read the entire JSON file
         waypoints_json_file = os.path.join(os.path.dirname(__file__), "config", self.waypoints_json_file)
@@ -284,13 +277,10 @@ class Pf400Server(ToolServer):
                 safe_loc=params.safe_loc
             )
         
-        logging.info("Nest created: %s", params.nest_name)
 
     def CreateLocation(self, params: Command.CreateLocation) -> None:
         try:
             current_position = re.sub(r'^\S+\s', '', self.driver.wherej())
-            logging.info("current_position %s", current_position)
-            logging.info("params %s", params)
 
             waypoints_json_file = os.path.join(os.path.dirname(__file__), "config", self.waypoints_json_file)
             with open(waypoints_json_file, 'r') as f:
@@ -309,7 +299,6 @@ class Pf400Server(ToolServer):
                     loc=Coordinate(current_position),
                     loc_type='j' if params.loc_type.lower() == 'j' else 'c'
                 )
-            logging.info("Location created: %s", params.location_name)
         except Exception as e:
             logging.error("Error creating location: %s", str(e))
     
@@ -321,7 +310,6 @@ class Pf400Server(ToolServer):
             del waypoints_data['nests'][params.nest_name]
             with open(waypoints_json_file, 'w') as f:
                 json.dump(waypoints_data, f, indent=2)
-            logging.info("Nest deleted: %s", params.nest_name)
 
     def DeleteLocation(self, params: Command.DeleteLocation) -> None:
         waypoints_json_file = os.path.join(os.path.dirname(__file__), "config", self.waypoints_json_file)
@@ -331,13 +319,10 @@ class Pf400Server(ToolServer):
             del waypoints_data['locations'][params.location_name]
             with open(waypoints_json_file, 'w') as f:
                 json.dump(waypoints_data, f, indent=2)
-            logging.info("Location deleted: %s", params.location_name)
     
 
     def AddToPath(self, params: Command.AddToPath) -> None:
         current_position = re.sub(r'^\S+\s', '', self.driver.wherej())
-        logging.info("current_position %s", current_position)
-        logging.info("params %s", params)
         if params.nest_name not in self.waypoints.nests:
             raise KeyError("Nest not found: " + params.nest_name)
         
@@ -359,10 +344,7 @@ class Pf400Server(ToolServer):
             diff_coord_str = f"{', '.join(map(str, diff_coord))}"  # Convert diff_coord to a string representation of a list
         else:
             logging.error(f"Invalid coordinates: current_coord={current_coord}, nest_location={nest_location}")
-            raise ValueError("Invalid coordinates: Unable to calculate difference")
-        
-        logging.info("diff_coord_str %s", diff_coord_str)
-        
+            raise ValueError("Invalid coordinates: Unable to calculate difference")        
         # Update only the specific nest
         if params.nest_name in waypoints_data['nests']:
             if 'approach_path' not in waypoints_data['nests'][params.nest_name]:
@@ -377,7 +359,6 @@ class Pf400Server(ToolServer):
         
         # Update the in-memory waypoints object
         self.waypoints.nests[params.nest_name].approach_path.append(Coordinate(diff_coord_str))
-        logging.info("Approach path updated for nest: %s", params.nest_name)
 
     def GetTeachpoints(self, params: Command.GetTeachpoints) -> ExecuteCommandReply:
         response = ExecuteCommandReply()
@@ -402,7 +383,6 @@ class Pf400Server(ToolServer):
         response.response = SUCCESS
         try:
             location: str = self.driver.wherej()[1:]
-            logging.info("Location is " + str(location))
             if location.split(" ")[0] != "0":
                 raise RuntimeError("Failed to get location coordinates")
             else:
@@ -416,7 +396,6 @@ class Pf400Server(ToolServer):
                 # Set the meta_data field of the response
                 response.meta_data.CopyFrom(s)
                 
-                logging.info(f"Returning coordinates: {coordinates}")
                 return response
         except Exception as exc:
             logging.exception(exc)
@@ -482,7 +461,6 @@ class Pf400Server(ToolServer):
         if waypoint_name not in self.waypoints.locations:
             raise KeyError("Waypoint not found: " + waypoint_name)
         waypoint_loc = self.waypoints.locations[waypoint_name]
-        logging.info("Moving to waypoint %s at %s", waypoint_name, waypoint_loc)
         self.moveTo(waypoint_loc, motion_profile_id=params.motion_profile_id)
 
     def Approach(self, params: Command.Approach) -> None:
@@ -497,7 +475,6 @@ class Pf400Server(ToolServer):
         if params.ignore_safepath == "true" or params.ignore_safepath == "True":
             ignore_path = True
         if ignore_path is not True:
-            logging.info("Going through safe path")
             self.movePath(
                 self.nestPath(
                     nest_def,
@@ -527,7 +504,6 @@ class Pf400Server(ToolServer):
         if not params.motion_profile_id:
             params.motion_profile_id = 1
         nest_def = self.waypoints.nests[nest_name]
-        logging.info("Leaving nest %s at %s", nest_name, nest_def.loc)
         self.movePath(
             self.nestPath(
                 nest_def,
@@ -978,7 +954,6 @@ class Pf400Server(ToolServer):
         return nearest_safe_point
 
     def SaveTeachpoints(self, params: Command.SaveTeachpoints) -> None:
-        logging.info("Saving teachpoints")
         try:
             for teachpoint in params.teachpoints:
                 self.save_teachpoint({
@@ -989,7 +964,6 @@ class Pf400Server(ToolServer):
                     "approachPath": list(teachpoint.approach_path),  # Convert to list
                     "isEdited": teachpoint.is_edited
                 })
-            logging.info("Teachpoints saved successfully")
         except Exception as e:
             logging.error(f"Error saving teachpoints: {str(e)}")
             raise  # Re-raise the exception to be caught by the error handler
@@ -1041,8 +1015,6 @@ class Pf400Server(ToolServer):
             # Write the updated waypoints back to the file
             with open(waypoints_file, 'w') as f:
                 json.dump(waypoints, f, indent=2)
-
-            logging.info(f"Saved teachpoint: {teachpoint['name']}")
         except Exception as e:
             logging.error(f"Error saving teachpoint {teachpoint['name']}: {str(e)}")
             raise  # Re-raise the exception to be caught by the error handler
