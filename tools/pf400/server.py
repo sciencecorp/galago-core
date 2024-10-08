@@ -315,6 +315,7 @@ class Pf400Server(ToolServer):
 
     def AddToPath(self, params: Command.AddToPath) -> None:
         current_position = re.sub(r'^\S+\s', '', self.driver.wherej())
+        logging.info("Current position: " + current_position)
         if params.nest_name not in self.waypoints.nests:
             raise KeyError("Nest not found: " + params.nest_name)
         
@@ -328,16 +329,20 @@ class Pf400Server(ToolServer):
         
         # Calculate the difference
         current_coord = [float(x) for x in current_position.split()]
+        logging.info("Current position X: " + str(current_coord))
         nest_coord = [float(x) for x in nest_location.split()]
+        logging.info("Nest position: " + str(nest_coord))
         
         # Ensure both coordinates are valid before subtraction
         if len(current_coord) == len(nest_coord) and all(isinstance(x, float) for x in current_coord + nest_coord):
-            diff_coord = [a - b for a, b in zip(current_coord, nest_coord)]
-            diff_coord_str = f"{', '.join(map(str, diff_coord))}"  # Convert diff_coord to a string representation of a list
+            diff_coord = [round(a - b, 3) for a, b in zip(current_coord, nest_coord)]
+            diff_coord_str = f"{' '.join(f'{x:.3f}' for x in diff_coord)}"  # Convert diff_coord to a string representation of a list with 3 decimal places
         else:
             logging.error(f"Invalid coordinates: current_coord={current_coord}, nest_location={nest_location}")
             raise ValueError("Invalid coordinates: Unable to calculate difference")        
         # Update only the specific nest
+
+        logging.info("Diff coordinate: " + diff_coord_str)
         if params.nest_name in waypoints_data['nests']:
             if 'approach_path' not in waypoints_data['nests'][params.nest_name]:
                 waypoints_data['nests'][params.nest_name]['approach_path'] = []
