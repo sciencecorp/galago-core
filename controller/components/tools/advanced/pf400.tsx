@@ -868,6 +868,91 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         }
     };
 
+    const moveTo = async () => {
+        if (!currentTeachpoint) {
+            toast({
+                title: "Error",
+                description: "No location selected",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+            return;
+        }
+
+        const moveCommand: ToolCommandInfo = {
+            toolId: config.id,
+            toolType: config.type,
+            command: "move",
+            params: {
+                waypoint: currentTeachpoint,
+                motion_profile_id: 2
+            },
+        };
+
+        try {
+            await commandMutation.mutateAsync(moveCommand);
+            toast({
+                title: "Move Successful",
+                description: `Moved to ${currentTeachpoint}`,
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error("Error moving to location:", error);
+            toast({
+                title: "Move Error",
+                description: "Failed to move to location",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
+
+    const approach = async () => {
+        if (!currentTeachpoint) {
+            toast({
+                title: "Error",
+                description: "No nest selected",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+            return;
+        }
+
+        const approachCommand: ToolCommandInfo = {
+            toolId: config.id,
+            toolType: config.type,
+            command: "approach",
+            params: {
+                nest: currentTeachpoint
+            },
+        };
+
+        try {
+            await commandMutation.mutateAsync(approachCommand);
+            toast({
+                title: "Approach Successful",
+                description: `Approached ${currentTeachpoint}`,
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error("Error approaching nest:", error);
+            toast({
+                title: "Approach Error",
+                description: "Failed to approach nest",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
+
     return (
       <VStack align="center" spacing={5} width="100%" pb='50px'>
         <Heading size='lg'>PF400 Teach Pendant</Heading>
@@ -1076,7 +1161,7 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
           </VStack>
 
           {/* Details Section for Selected Location or Nest */}
-          <Card align='left' display='flex' width='30%' ml='-0.5%' height='600px'>
+          <Card align='left' display='flex' width='40%' ml='-0.5%' height='600px'>
             <CardHeader>
               <Heading size='md'>Details</Heading>
             </CardHeader>
@@ -1119,7 +1204,12 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                 ) : (
                   <>
                     <Button onClick={startEditing} colorScheme='blue' mr={2}>Edit</Button>
-                    <Button onClick={addToPath} colorScheme='blue'>Add Current Pos to Path</Button>
+                    {currentType === 'nest' ? <Button onClick={addToPath} colorScheme='blue'>Add Current Pos to Path</Button> : null}
+                    {currentType === 'location' ? (
+                        <Button onClick={moveTo} colorScheme='green'>Move</Button>
+                    ) : (
+                        <Button onClick={approach} colorScheme='green'>Approach</Button>
+                    )}
                     <Button onClick={() => setIsDeleteDialogOpen(true)} colorScheme='red'> <DeleteIcon /> </Button>
                   </>
                 )}

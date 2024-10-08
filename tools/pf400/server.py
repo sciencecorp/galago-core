@@ -22,6 +22,7 @@ from .driver.pf_400_driver import Pf400Driver
 from google.protobuf.struct_pb2 import Struct
 import argparse 
 from typing import Union, Optional
+import re
 
 class Pf400Server(ToolServer):
     toolType = "pf400"
@@ -113,12 +114,11 @@ class Pf400Server(ToolServer):
     def nestPath(
         self, nest: Nest, offset: tuple[float, float, float] = (0, 0, 0)
     ) -> list[Location]:
-        # Given a nest, return a path to the nest in cartesian space
         if(nest.loc.loc_type == "c"):
             offset_coordinate = f"{offset[0]} {offset[1]} {offset[2]} 0 0 0"
         if(nest.loc.loc_type == "j"):
             offset_coordinate = f"{offset[2]} 0 0 0 0 0"
-        nest_loc = nest.loc.loc
+        nest_loc = re.sub(r'^\S+\s', '', nest.loc.loc)
         logging.info("Nest location is "+ str(nest_loc))
         logging.info("Offset is "+ str(offset_coordinate))
         if self.config.joints == 5:
@@ -127,7 +127,7 @@ class Pf400Server(ToolServer):
         logging.info("Offset is "+ str(offset_coordinate))   
         return [
             Location(
-                loc=nest_loc + checkpoint + offset_coordinate,
+                loc=Coordinate(nest_loc) + Coordinate(checkpoint) + Coordinate(offset_coordinate),
                 loc_type=nest.loc.loc_type,
             )
             for checkpoint in nest.approach_path
@@ -247,7 +247,7 @@ class Pf400Server(ToolServer):
 
 
     def CreateNest(self, params: Command.CreateNest) -> None:
-        current_position = self.driver.wherej()
+        current_position = re.sub(r'^\S+\s', '', self.driver.wherej())
         logging.info("current_position %s", current_position)
         logging.info("params %s", params)
         
@@ -288,7 +288,7 @@ class Pf400Server(ToolServer):
 
     def CreateLocation(self, params: Command.CreateLocation) -> None:
         try:
-            current_position = self.driver.wherej()
+            current_position = re.sub(r'^\S+\s', '', self.driver.wherej())
             logging.info("current_position %s", current_position)
             logging.info("params %s", params)
 
@@ -335,7 +335,7 @@ class Pf400Server(ToolServer):
     
 
     def AddToPath(self, params: Command.AddToPath) -> None:
-        current_position = self.driver.wherej()
+        current_position = re.sub(r'^\S+\s', '', self.driver.wherej())
         logging.info("current_position %s", current_position)
         logging.info("params %s", params)
         if params.nest_name not in self.waypoints.nests:
@@ -350,8 +350,18 @@ class Pf400Server(ToolServer):
         nest_location = Coordinate(waypoints_data['nests'][params.nest_name]['loc']['loc'])
         
         # Calculate the difference
-        current_coord = Coordinate(current_position)
-        diff_coord = current_coord - nest_location
+        current_coord = [float(x) for x in current_position.split()]
+        nest_coord = [float(x) for x in nest_location.split()]
+        
+        # Ensure both coordinates are valid before subtraction
+        if len(current_coord) == len(nest_coord) and all(isinstance(x, float) for x in current_coord + nest_coord):
+            diff_coord = [a - b for a, b in zip(current_coord, nest_coord)]
+            diff_coord_str = f"{', '.join(map(str, diff_coord))}"  # Convert diff_coord to a string representation of a list
+        else:
+            logging.error(f"Invalid coordinates: current_coord={current_coord}, nest_location={nest_location}")
+            raise ValueError("Invalid coordinates: Unable to calculate difference")
+        
+        logging.info("diff_coord_str %s", diff_coord_str)
         
         # Update only the specific nest
         if params.nest_name in waypoints_data['nests']:
@@ -359,14 +369,14 @@ class Pf400Server(ToolServer):
                 waypoints_data['nests'][params.nest_name]['approach_path'] = []
             
             # Append the difference to the approach path
-            waypoints_data['nests'][params.nest_name]['approach_path'].append(str(diff_coord))
+            waypoints_data['nests'][params.nest_name]['approach_path'].append(diff_coord_str)
         
         # Write the updated data back to the file
         with open(waypoints_json_file, 'w') as f:
             json.dump(waypoints_data, f, indent=2)
         
         # Update the in-memory waypoints object
-        self.waypoints.nests[params.nest_name].approach_path.append(diff_coord)
+        self.waypoints.nests[params.nest_name].approach_path.append(Coordinate(diff_coord_str))
         logging.info("Approach path updated for nest: %s", params.nest_name)
 
     def GetTeachpoints(self, params: Command.GetTeachpoints) -> ExecuteCommandReply:
@@ -391,7 +401,7 @@ class Pf400Server(ToolServer):
         response.return_reply = True
         response.response = SUCCESS
         try:
-            location: str = self.driver.wherej()
+            location: str = self.driver.wherej()[1:]
             logging.info("Location is " + str(location))
             if location.split(" ")[0] != "0":
                 raise RuntimeError("Failed to get location coordinates")
@@ -458,7 +468,7 @@ class Pf400Server(ToolServer):
         if waypoint_name not in self.waypoints.locations:
             raise KeyError("Unwind location not found")
         waypoint_loc = self.waypoints.locations[waypoint_name].loc
-        current_loc_array = self.driver.wherej().split(" ")
+        current_loc_array = self.driver.wherej()[1:].split(" ")
         #Unwind the arm while keeping the z height, gripper width and rail constant
         #current_loc_array[1] is the z height, current_loc_array[6] is the gripper (regardless of the number of joints)
         if self.config.joints == 5:
