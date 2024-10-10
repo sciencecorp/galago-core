@@ -24,7 +24,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import SettingsModalComponent from '@/components/settings/SettingsModalComponent';
 import { useState } from "react";
-import { useSidebar } from "@/pages/SidebarContext"
+import { useSidebar } from "./SidebarContext"
 
 const TabPages = [
   { href: "/inventory", title: "Inventory" },

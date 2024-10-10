@@ -6,7 +6,7 @@ import Nav from "@/components/Nav";
 import type { AppType } from "next/app";
 import WarningBanner from '@/components/WarningBanner'; 
 import DataSideBar from "@/components/data/DataSideBar";
-import { SidebarProvider } from "./SidebarContext";
+import { SidebarProvider } from "@/components/SidebarContext";
 import customTheme from "@/themes/customTheme";
 
 require('log-timestamp')

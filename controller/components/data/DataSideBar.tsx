@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, VStack, Button, IconButton, Collapse, Divider } from '@chakra-ui/react';
 import { HamburgerIcon } from '@chakra-ui/icons';
 import { useRouter } from 'next/router';
-import { useSidebar } from "@/pages/SidebarContext"
+import { useSidebar } from "../SidebarContext"
 type SidebarProps = {};
 
 type MenuItem = {
