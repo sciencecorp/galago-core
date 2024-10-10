@@ -606,6 +606,17 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                 return;
             }
 
+            if (activeTab === 1 && !localSafeLoc) {
+                toast({
+                    title: "Error",
+                    description: "Safe location is required to create a nest.",
+                    status: "error",
+                    duration: 3000,
+                    isClosable: true,
+                });
+                return;
+            }
+
             setIsCreating(true);
 
             const createCommand: ToolCommandInfo = {
