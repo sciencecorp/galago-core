@@ -40,12 +40,12 @@ class Pf400Server(ToolServer):
     def _configure(self, request: Config) -> None:
         self.config = request
         self.waypoints_json_file = self.config.waypoints_json_file
-        logging.info(f"Waypoints json file ||||| {self.waypoints_json_file}")
         self.sequence_location = os.path.join(os.path.dirname(__file__), "sequences", self.waypoints_json_file.split(".")[0])
-
-        # example path tools\pf400\config\workcell_1_waypoints.json
-        # waypoints_json_file = workcell_1_waypoints.json
-        with open(os.path.join(os.path.dirname(__file__), "config", self.waypoints_json_file)) as f:
+        waypoints_file_path = os.path.join(os.path.dirname(__file__), "config", self.waypoints_json_file)
+        if not os.path.exists(waypoints_file_path):
+            logging.warning(f"Waypoints file not found. Creating default file: {waypoints_file_path}")
+            self.create_default_waypoints_file(waypoints_file_path)
+        with open(waypoints_file_path) as f:
             config = json.load(f)
             self.teachpoints = config
             self.waypoints = Waypoints.parse_obj(config)
@@ -58,22 +58,58 @@ class Pf400Server(ToolServer):
         self.driver.initialize()
         for motion_profile in self.waypoints.motion_profiles:
             self.driver.register_motion_profile(str(motion_profile))
-
         self.all_labware : LabwareDb = LabwareDb()
-
         if "landscape" not in self.waypoints.grip_params or "portrait" not in self.waypoints.grip_params:
             raise KeyError("missing lanndscape or portrait grip settings")
-        
         for grip in self.waypoints.grip_params:
             plate_width : int = self.waypoints.grip_params[grip].width
             grip_force : int = self.waypoints.grip_params[grip].force
             grip_speed : int = self.waypoints.grip_params[grip].speed
-
             self.plate_handling_params[grip] = {
                 "grasp": Command.GraspPlate(width=plate_width, force=grip_force, speed=grip_speed),
                 "release": Command.ReleasePlate(width=plate_width+10, speed=10),
             }
 
+    def create_default_waypoints_file(self, file_path: str) -> None:
+        default_waypoints = {
+            "grip_params": {
+                "landscape": {"width": 122, "speed": 10, "force": 15},
+                "portrait": {"width": 86, "speed": 10, "force": 15}
+            },
+            "graph_edges": [],
+            "locations": {},
+            "nests": {},
+            "motion_profiles": [
+                {
+                    "id": 2,
+                    "speed": 60,
+                    "speed2": 0,
+                    "acceleration": 60,
+                    "deceleration": 60,
+                    "accelramp": 0.1,
+                    "decelramp": 0.1,
+                    "inrange": 0,
+                    "straight": 0
+                },
+                {
+                    "id": 3,
+                    "speed": 80,
+                    "speed2": 0,
+                    "acceleration": 80,
+                    "deceleration": 80,
+                    "accelramp": 0.1,
+                    "decelramp": 0.1,
+                    "inrange": 0,
+                    "straight": 0
+                }
+            ]
+        }
+
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w') as f:
+            json.dump(default_waypoints, f, indent=2)
+
+        logging.info(f"Created default waypoints file: {file_path}")
 
     def moveTo(
         self,

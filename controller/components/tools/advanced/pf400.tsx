@@ -57,7 +57,8 @@ import {
   TabList,
   TabPanels,
   Tab,
-  TabPanel
+  TabPanel,
+  Badge
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { AddIcon, Search2Icon, DeleteIcon } from "@chakra-ui/icons";
@@ -65,7 +66,7 @@ import { trpc } from "@/utils/trpc";
 import { ToolCommandInfo } from "@/types";
 import { ToolConfig } from 'gen-interfaces/controller';
 import { ToolType } from "gen-interfaces/controller";
-import { ExecuteCommandReply, ResponseCode } from "gen-interfaces/tools/grpc_interfaces/tool_base";
+import { ExecuteCommandReply, ResponseCode, ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { delay } from "framer-motion";
 
 
@@ -80,7 +81,9 @@ interface TeachPoint {
     type: 'nest' | 'location';
     locType: string;
     approachPath?: string[];
+    safe_loc?: string;
     isEdited?: boolean;
+    
 }
 
 export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
@@ -104,13 +107,16 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
     const [isSaving, setIsSaving] = useState(false);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-    const [locationSearch, setLocationSearch] = useState("");
-    const [nestSearch, setNestSearch] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterType, setFilterType] = useState<'all' | 'location' | 'nest'>('all');
 
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const cancelRef = useRef<HTMLButtonElement>(null);
 
     const { isOpen, onOpen, onClose } = useDisclosure();
+
+    const [currentSafeLoc, setCurrentSafeLoc] = useState("");
+    const [editedSafeLoc, setEditedSafeLoc] = useState("");
 
     const handleCreateSuccess = useCallback(() => {
         onClose();
@@ -343,7 +349,8 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                         coordinate: nests[nest].loc.loc,
                         type: 'nest',
                         locType: getLocTypeDisplay(nests[nest].loc.loc_type),
-                        approachPath: nests[nest].approach_path
+                        approachPath: nests[nest].approach_path,
+                        safe_loc: nests[nest].safe_loc
                     }
                     newLocations.push(location);
                 }
@@ -368,9 +375,9 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         if (!config) return;
         const fetchTeachPoints = async () => {
             const newLocations = await GetTeachPoints();
-            setLocations(newLocations);
-        };
-        fetchTeachPoints();
+                setLocations(newLocations);
+            };
+            fetchTeachPoints();
     }, [config, refreshTrigger]);
 
     const getCurrentPositionToPath = async () => {
@@ -735,14 +742,16 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         setCurrentLocType(getLocTypeDisplay(nest.locType));
         setCurrentType(nest.type);
         setCurrentApproachPath(nest.approachPath || []); // Set approach path for nests
+        setCurrentSafeLoc(nest.safe_loc || "");
     };
 
-    const filteredLocations = locations.filter(loc => 
-        loc.type === 'location' && loc.name.toLowerCase().includes(locationSearch.toLowerCase())
-    );
+    const handleSafeLocEdit = (newValue: string) => {
+        setEditedSafeLoc(newValue);
+    };
 
-    const filteredNests = locations.filter(loc => 
-        loc.type === 'nest' && loc.name.toLowerCase().includes(nestSearch.toLowerCase())
+    const filteredTeachPoints = locations.filter(loc => 
+        (filterType === 'all' || loc.type === filterType) &&
+        loc.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const handleDelete = async () => {
@@ -890,20 +899,23 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
         moveTo: () => void;
         approach: () => void;
         setIsDeleteDialogOpen: (isOpen: boolean) => void;
+        currentSafeLoc: string;
+        handleSafeLocEdit: (newValue: string) => void;
     }
 
     const DetailsCard: React.FC<DetailsCardProps> = 
     ({ currentTeachpoint, currentCoordinate, currentType, currentApproachPath, isEditing, 
         editedCoordinate, editedApproachPath, handleCoordinateEdit, handleApproachPathEdit, 
-        startEditing, cancelEditing, saveChanges, isSaving, addToPath, moveTo, approach, setIsDeleteDialogOpen }) => {
-        const coordinateLabels = ['Z-Col', 'Shoulder', 'Elbow', 'Wrist', 'Gripper', 'Rail'];
+        startEditing, cancelEditing, saveChanges, isSaving, addToPath, moveTo, approach, setIsDeleteDialogOpen,
+        currentSafeLoc, handleSafeLocEdit }) => {
+        const coordinateLabels = ['Z', 'Shoulder', 'Elbow', 'Wrist', 'Gripper', 'Rail'];
         
         const parseCoordinate = (coord: string): number[] => {
-            console.log("Parsing coordinate:", coord);
             const values = coord.split(' ').map(Number);
             return values.length === 6 ? values : [0, 0, 0, 0, 0, 0];
         };
-
+        console.log("editedCoordinate", editedCoordinate);
+        console.log("currentCoordinate", currentCoordinate);
         const coordinateValues = isEditing ? parseCoordinate(editedCoordinate) : parseCoordinate(currentCoordinate);
 
         const handleCoordinateChange = (index: number, value: string) => {
@@ -928,13 +940,55 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
             }
         };
 
+        const leaveNest = async () => {
+            if (!currentTeachpoint) {
+                toast({
+                    title: "Error",
+                    description: "No nest selected",
+                    status: "error",
+                    duration: 3000,
+                    isClosable: true,
+                });
+                return;
+            }
+
+            const leaveCommand: ToolCommandInfo = {
+                toolId: config.id,
+                toolType: config.type,
+                command: "leave",
+                params: {
+                    nest: currentTeachpoint
+                },
+            };
+
+            try {
+                await commandMutation.mutateAsync(leaveCommand);
+                toast({
+                    title: "Leave Successful",
+                    description: `Left ${currentTeachpoint}`,
+                    status: "success",
+                    duration: 3000,
+                    isClosable: true,
+                });
+            } catch (error) {
+                console.error("Error leaving nest:", error);
+                toast({
+                    title: "Leave Error",
+                    description: "Failed to leave nest",
+                    status: "error",
+                    duration: 3000,
+                    isClosable: true,
+                });
+            }
+        };
+
         return (
             <Card align='left' width='50%' height='600px'>
                 <CardHeader>
                     <HStack justify="space-between" width="100%">
                         <Heading size='md'>Details</Heading>
                         <Tooltip label="Add new Item">
-                            <Button onClick={onOpen} colorScheme="blue" size="sm"><AddIcon /></Button>
+                            <Button leftIcon={<AddIcon />} onClick={onOpen} colorScheme="blue" size="sm">New</Button>
                         </Tooltip>
                     </HStack>
                 </CardHeader>
@@ -969,6 +1023,19 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                     </Table>
                     {currentType === 'nest' && (
                         <>
+                            <Text as='b' mt={4}>Safe Location:</Text>
+                            <Input 
+                                value={isEditing ? editedCoordinate : currentSafeLoc}
+                                onChange={(e) => handleSafeLocEdit(e.target.value)}
+                                readOnly={!isEditing}
+                                bg={isEditing ? "yellow.100" : "white"}
+                                mb={4}
+                            />
+                            {!isEditing && currentSafeLoc && (
+                                <Text fontSize="sm" color="gray.500" mb={4}>
+                                    Safe Location: {currentSafeLoc}
+                                </Text>
+                            )}
                             <Text as='b'>Approach Path:</Text>
                             <Table variant="simple" size="sm" mb={4}>
                                 <Thead>
@@ -1034,7 +1101,10 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
                                 {currentType === 'location' ? (
                                     <Button onClick={moveTo} colorScheme='green'>Move</Button>
                                 ) : (
-                                    <Button onClick={approach} colorScheme='green'>Approach</Button>
+                                    <>
+                                        <Button onClick={approach} colorScheme='green'>Approach</Button>
+                                        <Button onClick={leaveNest} colorScheme='orange'>Leave Nest</Button>
+                                    </>
                                 )}
                                 <Button onClick={() => setIsDeleteDialogOpen(true)} colorScheme='red'><DeleteIcon /></Button>
                             </>
@@ -1151,80 +1221,51 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
 
         {/* HStack for Locations/Nests and Details */}
         <HStack spacing={4} width="100%">
-          {/* VStack for Locations and Nests */}
-          <VStack spacing={4} width="50%">
-            {/* Card for Locations */}
-            <Card align='left' display='flex' width='50%' height='300px' ml='50%'>
-              <CardHeader>
-                <HStack justify="space-between" width="100%">
-                  <Heading size='md'>Locations</Heading>
-                </HStack>
-                <InputGroup size="md" mt={2}>
-                  <InputLeftElement pointerEvents="none">
-                    <Search2Icon color="gray.300" />
-                  </InputLeftElement>
-                  <Input
-                    type="text"
-                    placeholder="Search locations"
-                    value={locationSearch}
-                    onChange={(e) => setLocationSearch(e.target.value)}
-                  />
-                </InputGroup>
-              </CardHeader>
-              <CardBody width='100%' overflowY='auto' maxHeight='calc(300px - 110px)'>
-                <VStack spacing={2} align='stretch'>
-                  {filteredLocations.map((location, i) => (
-                    <Box 
-                      key={i.toString()} 
-                      p={2} 
-                      borderWidth={1} 
-                      borderRadius='md' 
-                      _hover={{ bg: "gray.100", cursor: "pointer" }} 
-                      onClick={() => handleLocationClick(location)}
-                    >
-                      {location.name}
-                    </Box>
-                  ))}
-                </VStack>
-              </CardBody>
-            </Card>
-
-            {/* Card for Nests */}
-            <Card align='left' display='flex' width='50%' height='300px' ml='50%'>
-              <CardHeader>
-                <HStack justify="space-between" width="100%">
-                  <Heading size='md'>Nests</Heading>
-                </HStack>
-                <InputGroup size="md" mt={2}>
-                  <InputLeftElement pointerEvents="none">
-                    <Search2Icon color="gray.300" />
-                  </InputLeftElement>
-                  <Input
-                    type="text"
-                    placeholder="Search nests"
-                    value={nestSearch}
-                    onChange={(e) => setNestSearch(e.target.value)}
-                  />
-                </InputGroup>
-              </CardHeader>
-              <CardBody width='100%' overflowY='auto' maxHeight='calc(300px - 110px)'>
-                <VStack spacing={2} align='stretch'>
-                  {filteredNests.map((nest, i) => (
-                    <Box 
-                      key={i.toString()} 
-                      p={2} 
-                      borderWidth={1} 
-                      borderRadius='md' 
-                      _hover={{ bg: "gray.100", cursor: "pointer" }} 
-                      onClick={() => handleNestClick(nest)}
-                    >
-                      {nest.name}
-                    </Box>
-                  ))}
-                </VStack>
-              </CardBody>
-            </Card>
-          </VStack>
+          {/* Combined Card for Locations and Nests */}
+          <Card align='left' display='flex' width='50%' height='600px' ml='15%'>
+            <CardHeader>
+              <HStack justify="space-between" width="100%">
+                <Heading size='md'>Teach Points</Heading>
+              </HStack>
+              <InputGroup size="md" mt={2}>
+                <InputLeftElement pointerEvents="none">
+                  <Search2Icon color="gray.300" />
+                </InputLeftElement>
+                <Input
+                  type="text"
+                  placeholder="Search teach points"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </InputGroup>
+              <Select mt={2} value={filterType} onChange={(e) => setFilterType(e.target.value as 'all' | 'location' | 'nest')}>
+                <option value="all">All</option>
+                <option value="location">Locations</option>
+                <option value="nest">Nests</option>
+              </Select>
+            </CardHeader>
+            <CardBody width='100%' overflowY='auto' maxHeight='calc(600px - 170px)'>
+              <VStack spacing={2} align='stretch'>
+                {filteredTeachPoints.map((teachPoint, i) => (
+                  <Box 
+                    key={i.toString()} 
+                    p={2} 
+                    borderWidth={1} 
+                    borderRadius='md' 
+                    _hover={{ bg: "gray.100", cursor: "pointer" }} 
+                    onClick={() => teachPoint.type === 'location' ? handleLocationClick(teachPoint) : handleNestClick(teachPoint) }
+                  >
+                    <HStack justify="space-between">
+                      <Text>{teachPoint.name}</Text>
+                      <Badge colorScheme={teachPoint.type === 'location' ? 'blue' : 'green'}>
+                        {teachPoint.type}
+                      </Badge>
+                    </HStack>
+                  </Box>
+                ))}
+              </VStack>
+            </CardBody>
+          </Card>
 
           {/* Details Section for Selected Location or Nest */}
           <DetailsCard
@@ -1245,6 +1286,8 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
             moveTo={moveTo}
             approach={approach}
             setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+            currentSafeLoc={currentSafeLoc}
+            handleSafeLocEdit={handleSafeLocEdit}
           />
         </HStack>
 
