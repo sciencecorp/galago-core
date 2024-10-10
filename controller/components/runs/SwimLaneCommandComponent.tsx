@@ -51,7 +51,7 @@ const SwimLaneCommandComponent : React.FC<LaneCommandComponentProps> = ({command
       let toolName = infoQuery.data?.name || "undefined";
       //const MemoizedSwimLaneComponentItem = React.memo(SwimLaneCommandComponent);
       const [commandColor, setCommandColor] = useState<string>("White");
-      
+      const bgColor = useColorModeValue("gray.100", "gray.700");
       function renderToolImage(config:any){
         if (!config || !config.image_url) {
           return <Box></Box>;
@@ -67,7 +67,7 @@ const SwimLaneCommandComponent : React.FC<LaneCommandComponentProps> = ({command
           case "FAILED":
             return "red.400"
           default:
-            return useColorModeValue("gray.100", "gray.700")
+            return bgColor;
         }
       }
 

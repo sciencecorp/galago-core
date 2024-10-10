@@ -41,7 +41,7 @@ function formatDatetime(datetime:any, return_type:string) : string {
 // Define the delay function
 const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 
-export default function opentrons() {
+export default function Opentrons() {
     const commandMutation = trpc.tool.runCommand.useMutation({});
     const [selectedImage, setSelectedImage] = useState("");
     const [selectedDate, setStartDate] = useState<Date|null>(new Date());

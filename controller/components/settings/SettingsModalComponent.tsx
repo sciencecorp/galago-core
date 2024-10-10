@@ -2,7 +2,7 @@ import React , {useEffect} from 'react';
 import {useRef} from 'react';
 import { VStack,Select, Text,Icon, Checkbox,IconButton, Divider,Input,FormHelperText, Box, useDisclosure, Modal,ModalFooter, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, FormControl, FormLabel, Button, ButtonGroup, HStack, } from "@chakra-ui/react";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { ToolType } from "gen-interfaces/controller";
 import { ExecuteCommandReply, ResponseCode } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { trpc } from "@/utils/trpc";
@@ -41,28 +41,23 @@ useEffect(() => {
             workcellArray.push(workcell);
           }
         setWorkcells(workcellArray);
-        console.log("Workcell Array is now"+workcellArray)
       }
-      //setWorkcells(workcells?.meta_data);
     };
 
     fetchWorkcellNames();
   }, []);
 
-const GetWorkcellNames = async () : Promise<ExecuteCommandReply | undefined>  => {
+  const GetWorkcellNames = useCallback(async (): Promise<ExecuteCommandReply | undefined> => {
     const toolCommand: ToolCommandInfo = {
         toolId: "toolbox",
         toolType: "toolbox" as ToolType,
         command: "get_workcells",
-        params: {
-        },
-      };
+        params: {},
+    };
 
-      const response: ExecuteCommandReply | undefined = await commandMutation.mutateAsync(
-        toolCommand
-      );
-      return response;
-}
+    const response: ExecuteCommandReply | undefined = await commandMutation.mutateAsync(toolCommand);
+    return response;
+}, [])
 
 const saveSettingsConfirmModal = () => {
   return(

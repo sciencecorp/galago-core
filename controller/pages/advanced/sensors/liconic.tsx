@@ -86,7 +86,7 @@ const options = {
 
 
 
-export default function liconic() {
+export default function Liconic() {
     const commandMutation = trpc.tool.runCommand.useMutation({
         onError: (error) => {
             toast({
@@ -99,7 +99,6 @@ export default function liconic() {
             });
         },
     });
-    const [imageEncoded, SetImageEnconded] = useState("");
     const [selectedDate, setStartDate] = useState<Date|null>(new Date());
     const [sensorData, setSensorData] = useState<any>();
     const toast = useToast();
