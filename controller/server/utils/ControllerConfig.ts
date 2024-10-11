@@ -13,7 +13,7 @@ const config_path = argv.config || env_config;
 
 if (!config_path) {
   console.error("Please provide a config file");
-  process.exit(1);
+  //process.exit(1);
 }
 
 let ControllerConfig = {} as controller_protos.ControllerConfig

@@ -1,7 +1,7 @@
 import os
 from os.path import join, dirname
 from pydantic import BaseModel
-from tools.workcell_config import WorkcellConfig 
+from .workcell_config import WorkcellConfig 
 import json 
 from typing import Optional
 from datetime import date , time 
@@ -48,7 +48,7 @@ class Config():
                 workcell="workcell_1",
                 data_folder=os.path.join(ROOT_DIRECTORY,"logs"),
                 host_ip="localhost",
-                redis_ip="127.0.0.1:6379",
+                redis_ip="127.0.0.1:1203",
                 enable_slack_errors=False,
                 slack_admins_ids=None,
                 slack_workcell_channel=None,

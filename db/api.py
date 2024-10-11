@@ -2,19 +2,16 @@ import typing as t
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-import tools.db.crud as crud
-import tools.db.models.inventory_models as models
-from tools.db.models.log_models import LogType, Log
-import tools.db.schemas as schemas
-from tools.db.models.db import SessionLocal,LogsSessionLocal
+import crud as crud
+import models.inventory_models as models
+from models.log_models import LogType, Log
+import schemas as schemas
+from models.db_session import SessionLocal,LogsSessionLocal
 import logging 
 from typing import Optional
 import uvicorn
-from tools.app_config import Config
 
-# Configure logging
-# Configure logging to use the socket handler
-# # Configure logging to use the socket handler
+
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s | %(levelname)s | %(message)s',
@@ -25,14 +22,10 @@ log_config = uvicorn.config.LOGGING_CONFIG
 log_config["formatters"]["access"]["fmt"] = "%(asctime)s | %(levelname)s | %(message)s"
 log_config["formatters"]["default"]["fmt"] = "%(asctime)s | %(levelname)s | %(message)s"
 
-conf = Config()
-conf.load_app_config()
-    
+
 app = FastAPI(title="Inventory API")
 origins = ["http://localhost:3010", "http://127.0.0.1:3010"]
 
-if conf.app_config.host_ip:
-    origins.append(f"http://{conf.app_config.host_ip}")
 
 app.add_middleware(
     CORSMiddleware,
@@ -519,6 +512,3 @@ def delete_variable(variable_id: int, db: Session = Depends(get_db)) -> t.Any:
     if not db_variable:
         raise HTTPException(status_code=404, detail="Variable not found")
     return db_variable
-
-# if __name__ == "__main__":
-#     run("tools.db.api:app", host="0.0.0.0", port=8000, reload=False, log_config=log_config)

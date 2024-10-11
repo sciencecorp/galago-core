@@ -1,6 +1,6 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Date, Float, func, DateTime
 from sqlalchemy.orm import relationship
-from tools.db.models.db import Base
+from .db_session import Base
 
 
 class TimestampMixin:
@@ -81,7 +81,7 @@ class Variable(Base):
 
 if __name__ == "__main__":
     from sqlalchemy import create_engine
-    from tools.app_config import Config
+    from config.app_config import Config
 
     config = Config()
     config.load_app_config()

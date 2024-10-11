@@ -1,6 +1,6 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, func, DateTime
-from tools.db.models.db import LogBase
-from tools.app_config import Config
+from .db_session import LogBase
+from config.app_config import Config
 import datetime 
 
 class TimestampMixin:

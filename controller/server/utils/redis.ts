@@ -2,8 +2,7 @@ import Redis from "ioredis";
 import { logger } from "@/logger"; // our logger import
 import { Console } from "console";
 
-const redis_url = process.env.REDIS_URL;
-console.log("Redis Url is" + redis_url)
+const redis_url = 'redis://queue:6379';
 const redis = redis_url ? new Redis(redis_url, {retryStrategy: () => {
     redis.quit();
 }}) : new Redis();

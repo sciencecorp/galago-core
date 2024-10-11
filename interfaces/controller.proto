@@ -37,7 +37,7 @@ message ToolConfig {
 message ControllerConfig {
   string id = 1;
   string name = 2;
-  string ip = 3;
+  string host = 3;
   int32 port = 4;
   repeated ToolConfig tools = 5;
 }

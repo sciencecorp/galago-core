@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from tools.app_config import Config
+from config.app_config import Config
 
 Base = declarative_base()
 LogBase = declarative_base()

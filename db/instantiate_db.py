@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-import tools.db.crud as crud
-import tools.db.schemas as schemas
-from tools.db.models.db import SessionLocal
+import db.crud as crud
+import db.schemas as schemas
+from db.models.db import SessionLocal
 
 
 def create_matching_wells(db: Session, plate_id: int, plate_type: str) -> None:
