@@ -19,7 +19,8 @@
       "react": ["node_modules/@types/react/index.d.ts"],
       "gen-interfaces/*": ["./gen-interfaces/*"],
       "@/*": ["./*"]
-    }
+    },
+    "jsxImportSource": "@emotion/react"  // Add this line
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx","**/*.png","**/*.jpg","**/*.svg","**/*.jpeg"],
   "exclude": ["node_modules","./gen-interfaces/*"]

@@ -6,9 +6,26 @@ import Link from "next/link";
 import { ToolConfigEditor } from "./ToolConfigEditor";
 import { ToolStatusTag } from "./ToolStatusTag";
 import { DragHandleIcon, HamburgerIcon} from "@chakra-ui/icons";
+import styled from '@emotion/styled';
 
+const StyledCard = styled(Card)`
+  display: flex;
+  flex-direction: column;
+  height: 280px;
+  width: 200px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: 0.3s ease-out;
+  margin: 0 10px;
+  margin-bottom: 20px; // Added spacing below the card
 
-export default function ToolStatusCard({ toolId }: { toolId: string }): JSX.Element {
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+`;
+
+export default function ToolStatusCard({ toolId, style }: { toolId: string, style?: React.CSSProperties }): JSX.Element {
   const infoQuery = trpc.tool.info.useQuery({ toolId: toolId });
  // console.log("Query info is"+ infoQuery)
   const config = infoQuery.data;
@@ -34,7 +51,7 @@ export default function ToolStatusCard({ toolId }: { toolId: string }): JSX.Elem
 
 
   return (
-    <Card>
+    <StyledCard style={style}>
       <CardHeader pb = '0px'>
           <Flex>
             <Flex flex='2' gap='1' alignItems='left' flexWrap='wrap'>
@@ -74,6 +91,6 @@ export default function ToolStatusCard({ toolId }: { toolId: string }): JSX.Elem
           </Flex>
         </VStack>
       </CardBody>
-    </Card>
+    </StyledCard>
   );
 }

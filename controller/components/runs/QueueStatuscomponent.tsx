@@ -104,7 +104,7 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent>= ({totalRuns})
     if (stateQuery.isLoading) return <Spinner />;
     return (
       <>
-        <VStack padding='2em'>
+        <VStack >
           {confirmRunStartModal()}
           <Heading
             css={{
