@@ -1,10 +1,15 @@
+const withTM = require('next-transpile-modules')(['@emotion/react']);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
   env:{
     appMode: process.env.APP_MODE,
     dbApiUrl: process.env.API_URL,
-  }
+  },
+  compiler: {
+    emotion: true,
+  },
 }
 
-module.exports = nextConfig
+module.exports = withTM(nextConfig);
