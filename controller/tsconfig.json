@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "lib": ["dom", "dom.iterable", "esnext","es2016"],
+    "target": "es2021",
+    "lib": ["dom", "dom.iterable", "esnext","ES2021"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -15,6 +15,7 @@
     "jsx": "preserve",
     "incremental": true,
     "baseUrl": ".",
+    "types": ["node"],
     "paths": {
       "react": ["node_modules/@types/react/index.d.ts"],
       "gen-interfaces/*": ["./gen-interfaces/*"],

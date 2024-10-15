@@ -20,9 +20,10 @@ export default class Tool {
   config?: tool_base.Config;
 
   grpc: ToolDriverClient;
-  heartbeat?: NodeJS.Timer;
   status: ToolStatus = ToolStatus.UNKNOWN_STATUS;
   uptime?: number;
+  
+  private heartbeat : ReturnType<typeof setInterval> | undefined;
 
   constructor(info: controller_protos.ToolConfig) {
     this.info = info;
