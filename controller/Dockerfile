@@ -7,7 +7,7 @@ WORKDIR /app
 RUN apk add --no-cache curl unzip bash protobuf protobuf-dev
 
 # Install protoc plugins globally
-RUN npm install -g ts-proto protoc-gen-ts protoc-gen-grpc-web
+RUN npm install -g ts-proto protoc-gen-ts protoc-gen-grpc-web @bufbuild/protobuf
 
 # Build Stage
 FROM base AS builder
@@ -34,7 +34,7 @@ RUN mkdir -p /app/controller/gen-interfaces && \
 WORKDIR /app/controller
 RUN npm update && npm install
 RUN npm run build
-RUN npm install @bufbuild/protobuf --save
+#RUN npm install @bufbuild/protobuf --save
 
 # Runner Stage
 FROM base AS runner
