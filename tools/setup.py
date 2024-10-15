@@ -7,7 +7,7 @@ def readme() -> str:
 
 setup(
     name='galago_tools',
-    packages = ['galago_tools'],
+
     version='0.9.0',
     packages=find_packages(exclude=['']),
     license='MIT',

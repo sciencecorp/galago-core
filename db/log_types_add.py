@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 import db.crud as crud
 import db.schemas as schemas
 import logging
-from db.models.db import LogsSessionLocal
+from db.models.db_session import LogsSessionLocal
 from db.models.log_models import LogType
 
 def add_log_types(db_session: Session, log_types: list[str]) -> None:

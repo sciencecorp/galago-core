@@ -18,6 +18,9 @@ services:
       - PORT=3010
     ports:
       - "3010:3010"
+    volumes:
+      - ../config:/app/config
+      - ../interfaces:/app/interfaces
     depends_on:
       - queue  
   db:

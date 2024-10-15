@@ -3,7 +3,7 @@ import axios from "axios";
 import { procedure, router } from "@/server/trpc";
 import { Variable } from "@/types";
 
-const domain = 'http://localhost:8000';
+const domain = 'http://db:8000';
 
 export const zVariable = z.object({
     id: z.number().optional(),
