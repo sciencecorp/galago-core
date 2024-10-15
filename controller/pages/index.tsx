@@ -52,13 +52,6 @@ export default function Page() {
     description:
       "Image Data Visualizer. Shows images of the culture plate and the well locations of the culture plate."
   },
-  {title:"Daily Actions",
-  subtitle:"tools",
-  link:"/daily_actions",
-  icon: <Icon as ={LuCalendarRange} boxSize={12}/>,
-  color:"blue",
-  description:"Page that allows users to easily queue workflows to be execute by the workcell. Users can filter by run type and bulk queue workflows."
- },    
  {title:"Data",
   subtitle:"data",
   link:"/data",

@@ -30,7 +30,6 @@ const TabPages = [
   { href: "/inventory", title: "Inventory" },
   { href: "/runs", title: "Runs" },
   { href: "/protocols", title: "Protocols" },
-  { href: "/daily_actions", title: "Daily Actions" },
   { href: "/data", title: "Data" },
 ] as const;
 
