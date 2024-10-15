@@ -11,6 +11,7 @@ __pycache__/
 controller/.next/
 controller/out/
 controller/build
+controller/gen-interfaces/
 controller/app.log
 
 # misc

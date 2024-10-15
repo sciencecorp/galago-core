@@ -9,8 +9,8 @@ services:
 
   web:
     build:
-      context: ./controller
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: controller/Dockerfile
     container_name: galago-web
     restart: always
     environment:
@@ -20,7 +20,7 @@ services:
       - "3010:3010"
     volumes:
       - ../config:/app/config
-      - ../interfaces:/app/interfaces
+      - ../interfaces:/app/interfaces:ro
     depends_on:
       - queue  
   db:
