@@ -6,11 +6,11 @@ import crud as crud
 import models.inventory_models as models
 from models.log_models import LogType, Log
 import schemas as schemas
-from models.db_session import SessionLocal,LogsSessionLocal
+from models.db_session import SessionLocal,LogsSessionLocal, Base, LogBase
 import logging 
 from typing import Optional
 import uvicorn
-
+from contextlib import asynccontextmanager
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -22,8 +22,20 @@ log_config = uvicorn.config.LOGGING_CONFIG
 log_config["formatters"]["access"]["fmt"] = "%(asctime)s | %(levelname)s | %(message)s"
 log_config["formatters"]["default"]["fmt"] = "%(asctime)s | %(levelname)s | %(message)s"
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
 
-app = FastAPI(title="Inventory API")
+    logging.info("Starting up db session")
+    try:
+        Base.metadata.create_all(bind=SessionLocal().get_bind())
+        LogBase.metadata.create_all(bind=LogsSessionLocal().get_bind())
+    except Exception as e:
+        logging.error(e)
+        raise e
+    yield
+
+
+app = FastAPI(title="Inventory API", lifespan=lifespan)
 origins = ["http://localhost:3010", "http://127.0.0.1:3010"]
 
 
@@ -49,6 +61,11 @@ def log_db() -> t.Generator[Session, None, None]:
         yield db_session
     finally:
         db_session.close()
+
+
+
+    # Shutdown tasks here
+    print("Shutting down...")
 
 @app.get("/inventory", response_model=schemas.Inventory)
 def get_inventory(workcell_name: str, db: Session = Depends(get_db)) -> t.Any:

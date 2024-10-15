@@ -28,8 +28,6 @@ services:
       context: ./db
       dockerfile: Dockerfile
     container_name: galago-db
-    volumes:
-      - ./config:/app/config
     ports:
       - "8000:8000"
     restart: always

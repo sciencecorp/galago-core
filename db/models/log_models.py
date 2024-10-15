@@ -1,7 +1,7 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, func, DateTime
 from .db_session import LogBase
-from config.app_config import Config
 import datetime 
+from config import LOGS_DB_URL
 
 class TimestampMixin:
     created_at = Column(DateTime, default=func.now())
@@ -33,9 +33,7 @@ class SlackError(LogBase):
 
 if __name__ == "__main__":
     from sqlalchemy import create_engine
-    config = Config()
-    config.load_app_config()
-    engine = create_engine(config.logs_db, connect_args={"check_same_thread": False})
+    engine = create_engine(LOGS_DB_URL, connect_args={"check_same_thread": False})
     LogBase.metadata.create_all(engine)
 
 

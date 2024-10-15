@@ -1,7 +1,7 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Date, Float, func, DateTime
 from sqlalchemy.orm import relationship
 from .db_session import Base
-
+from config import INVENTORY_DB_URL
 
 class TimestampMixin:
     created_at = Column(DateTime, default=func.now())
@@ -81,9 +81,6 @@ class Variable(Base):
 
 if __name__ == "__main__":
     from sqlalchemy import create_engine
-    from config.app_config import Config
 
-    config = Config()
-    config.load_app_config()
-    engine = create_engine(config.inventory_db, connect_args={"check_same_thread": False})
+    engine = create_engine(INVENTORY_DB_URL, connect_args={"check_same_thread": False})
     Base.metadata.create_all(engine)
