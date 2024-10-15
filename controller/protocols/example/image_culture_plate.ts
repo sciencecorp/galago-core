@@ -21,10 +21,10 @@ export const ImageCulturePlateParams = z
   })
   .strict();
 
-export default class ImageCulturePlateWorkcell1 extends Protocol<typeof ImageCulturePlateParams> {
+export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlateParams> {
   protocolId = "image_culture_plate";
   category = "production";
-  workcell = "workcell_1";
+  workcell = "Workcell 1";
   name = "Plate Imaging"
   paramSchema = ImageCulturePlateParams;
 
