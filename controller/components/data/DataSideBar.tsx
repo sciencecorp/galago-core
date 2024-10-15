@@ -10,7 +10,7 @@ type MenuItem = {
   subItems?: string[];
 };
 
-const DataSideBar: React.FC<SidebarProps> = () => {
+const AdvancedSideBar: React.FC<SidebarProps> = () => {
   const router = useRouter()
   const { lastClickedSubtab, setLastClickedSubtab } = useSidebar();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -21,9 +21,7 @@ const DataSideBar: React.FC<SidebarProps> = () => {
   ];
 
   useEffect(()=>{
-    console.log("This should reset the tabs!")
-    if(router.pathname === '/data'){
-      console.log("Setting to null");
+    if(router.pathname === '/advanced'){
       setLastClickedSubtab(null);
     }
   },[]);
@@ -46,9 +44,6 @@ const DataSideBar: React.FC<SidebarProps> = () => {
     setLastClickedSubtab(path);
     router.replace(path);
   };
-
-  console.log(`Current route is ${router.pathname}`);
-  console.log(``);
 
   return (
     <Box
@@ -92,7 +87,7 @@ const DataSideBar: React.FC<SidebarProps> = () => {
                   <VStack align="start" spacing={0}>
                     {!isCollapsed &&
                       item.subItems.map((subItem, subIndex) => {
-                        const path = `/data/${item.title.toLowerCase()}/${subItem.toLowerCase().replace(' ', '_')}`;
+                        const path = `/advanced/${item.title.toLowerCase()}/${subItem.toLowerCase().replace(' ', '_')}`;
                         return (
                           <Button
                             left={3}
@@ -119,4 +114,4 @@ const DataSideBar: React.FC<SidebarProps> = () => {
   );
 };
 
-export default DataSideBar;
+export default AdvancedSideBar;

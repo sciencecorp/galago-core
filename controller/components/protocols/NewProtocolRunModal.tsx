@@ -129,21 +129,13 @@ export default function NewProtocolRunModal({
   const [userDefinedParams, setUserDefinedParams] = useState<Record<string, any>>({});
   const [formErrors, setFormErrors] = useState<z.inferFormattedError<z.AnyZodObject>>();
 
-  console.log("protocol id is"+ id);
-
-  //if (protocol.isLoading) return <div>Loading...</div>;
-  //if (protocol.isError) return <div>Error: {protocol.error.message}</div>;
 
   const createRunMutation = trpc.run.create.useMutation({
 
     onSuccess: (data) => {
-    console.log("User defined params is "+ JSON.stringify(userDefinedParams));
-
       router.push(`/runs`);
     },
     onError: (error) => {
-      console.log("User defined params is "+ JSON.stringify(userDefinedParams));
-
       if (error.data?.zodError) {
         setFormErrors(error.data.zodError as any);
       } else {

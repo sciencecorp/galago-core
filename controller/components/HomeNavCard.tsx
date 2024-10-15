@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import React, { useState } from 'react';
 import { SystemStyleObject } from "@chakra-ui/react"; // Import this for the type
 import { useColorModeValue } from "@chakra-ui/react";
+
 interface HomeNavCardProps {
   pageProps: PageProps;
   titleSx?: SystemStyleObject; // Change to SystemStyleObject
@@ -37,7 +38,6 @@ export default function HomeNavCard({ pageProps, titleSx }: HomeNavCardProps): J
       
         <Box width='12%' height='auto' padding='2%' paddingTop='6%'>
           {pageProps.icon}
-          
         </Box>
         <Box>
           <VStack>
