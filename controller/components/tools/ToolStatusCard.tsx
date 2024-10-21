@@ -1,6 +1,6 @@
 import { trpc } from "@/utils/trpc";
 import { Alert, Box, Card, CardBody, CardHeader, Heading, Text, HStack, Spinner, VStack, Flex, Image, Menu, MenuButton, MenuItem, MenuList, IconButton } from "@chakra-ui/react";
-import { ToolConfig } from "gen-interfaces/controller";
+import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import Link from "next/link";
 import { ToolConfigEditor } from "./ToolConfigEditor";
 import { ToolStatusTag } from "./ToolStatusTag";
@@ -59,6 +59,8 @@ export default function ToolStatusCard({ toolId, style }: { toolId: string; styl
     }
   }
 
+  const isPF400 = config.type === ToolType.pf400;
+
   return (
     <StyledCard 
       style={style}
@@ -82,7 +84,9 @@ export default function ToolStatusCard({ toolId, style }: { toolId: string; styl
             />
             <MenuList>
               <MenuItem>Edit</MenuItem>
-              <MenuItem as='a' href={`/tools/advanced/${toolId}`}>Advanced</MenuItem>
+              {isPF400 && (
+                <MenuItem as='a' href={`/tools/advanced/${toolId}`}>Teach Pendant</MenuItem>
+              )}
             </MenuList>
           </Menu>
         </Flex>

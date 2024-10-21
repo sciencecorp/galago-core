@@ -32,9 +32,11 @@ export default function Page() {
   if(configDefault != undefined){
     return (
       <>
-        <VStack spacing={20} >
-          <Box width='50%'>
-              <ToolStatusCard toolId={String(id)} />
+        <VStack spacing={2} >
+          <Box padding={4} width='50%'>
+              <Box display="flex" justifyContent="center" width="100%">
+                <ToolStatusCard toolId={String(id)} />
+              </Box>
             </Box>
             <PF400 toolId = {id} config= {configDefault as ToolConfig}/>
         </VStack>
