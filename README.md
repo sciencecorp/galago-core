@@ -62,6 +62,18 @@ bin/make deps
 bin/make proto
 ```
 
+### 32 bits python environment.
+This is required by some of the tools. Eg. Agilent ActiveX or VWorks. If you are not running such tools skip this. 
+
+```
+# Set CONDA_FORCE_32BIT environment variable
+set CONDA_FORCE_32BIT=1
+set CONDA_SUBDIR="win-32"
+mamba create -n galago-core32
+mamba activate galago-core32
+python -m pip install -r tools/requirements32.txt
+```
+
 ## Redis
 Redis is used for queueing commands and runs by the controller. We recommend having a local instance running but a remote connection would also work. 
 
