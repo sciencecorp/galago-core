@@ -1,24 +1,25 @@
 import { trpc } from "@/utils/trpc";
-import { Alert, Box, Card, CardBody, CardHeader, Heading, Text, HStack, Spinner,VStack,Flex,Avatar, Image,Menu, MenuButton, MenuItem, MenuList, IconButton} from "@chakra-ui/react";
-//import Image from "next/image";
+import { Alert, Box, Card, CardBody, CardHeader, Heading, Text, HStack, Spinner, VStack, Flex, Image, Menu, MenuButton, MenuItem, MenuList, IconButton } from "@chakra-ui/react";
 import { ToolConfig } from "gen-interfaces/controller";
 import Link from "next/link";
 import { ToolConfigEditor } from "./ToolConfigEditor";
 import { ToolStatusTag } from "./ToolStatusTag";
-import { DragHandleIcon, HamburgerIcon} from "@chakra-ui/icons";
+import { HamburgerIcon } from "@chakra-ui/icons";
 import styled from '@emotion/styled';
+import { useState } from 'react';
 
 const StyledCard = styled(Card)`
   display: flex;
   flex-direction: column;
   height: 280px;
-  width: 200px;
+  width: 280px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: 0.3s ease-out;
-  margin: 0 10px;
+  margin: 0 15px;
   margin-top: 10px;
-  margin-bottom: 20px; 
+  margin-bottom: 20px;
+  overflow: hidden;
 
   &:hover {
     transform: translateY(-5px);
@@ -26,7 +27,9 @@ const StyledCard = styled(Card)`
   }
 `;
 
-export default function ToolStatusCard({ toolId, style }: { toolId: string, style?: React.CSSProperties }): JSX.Element {
+export default function ToolStatusCard({ toolId, style }: { toolId: string; style?: React.CSSProperties }) {
+  const [isHovered, setIsHovered] = useState(false);
+
   const infoQuery = trpc.tool.info.useQuery({ toolId: toolId });
   const config = infoQuery.data;
   const { description, name } = infoQuery.data || {};
@@ -43,12 +46,25 @@ export default function ToolStatusCard({ toolId, style }: { toolId: string, styl
     if (!config.image_url) {
       return <Box></Box>;
     } else {
-      return <Image src={config.image_url} alt={config.name} objectFit="contain" height="60px" width="100%" />;
+      return (
+        <Image 
+          src={config.image_url} 
+          alt={config.name} 
+          objectFit="contain" 
+          height={isHovered ? "120px" : "120px"} 
+          width={isHovered ? "120px" : "120px"} 
+          transition="all 0.3s ease-in-out"
+        />
+      );
     }
   }
 
   return (
-    <StyledCard style={style}>
+    <StyledCard 
+      style={style}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <CardHeader pb='0px'>
         <Flex justifyContent="space-between" alignItems="center">
           <Box>
@@ -74,13 +90,26 @@ export default function ToolStatusCard({ toolId, style }: { toolId: string, styl
       <CardBody mt='0px'>
         <VStack align="stretch" spacing={4} mb={2}>
           <ToolStatusTag toolId={toolId} />
-          <Flex justifyContent="space-between" alignItems="center">
-            <Box flex="1">
-              <ToolConfigEditor toolId={toolId} defaultConfig={config as ToolConfig} />
-            </Box>
-            <Box width="60px" height="60px">
-              {renderToolImage(config)}
-            </Box>
+          <Flex 
+            justifyContent="center" 
+            alignItems="center" 
+            height={isHovered ? "auto" : "100%"}
+            transition="all 0.3s ease-in-out"
+          >
+            {isHovered ? (
+              <Flex justifyContent="space-between" alignItems="center" width="100%">
+                <Box flex="1" opacity={isHovered ? 1 : 0} transition="opacity 0.3s">
+                  <ToolConfigEditor toolId={toolId} defaultConfig={config as ToolConfig} />
+                </Box>
+                <Box width="60px" height="60px">
+                  {renderToolImage(config)}
+                </Box>
+              </Flex>
+            ) : (
+              <Box>
+                {renderToolImage(config)}
+              </Box>
+            )}
           </Flex>
         </VStack>
       </CardBody>

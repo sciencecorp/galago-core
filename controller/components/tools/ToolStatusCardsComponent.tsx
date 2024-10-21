@@ -31,8 +31,8 @@ export function ToolStatusCardsComponent() {
 
   useEffect(() => {
     const handleResize = () => {
-      const newVisibleCards = Math.floor(window.innerWidth / 220);
-      setVisibleCards(Math.max(1, Math.min(newVisibleCards, 5)));
+      const newVisibleCards = Math.floor(window.innerWidth / 280);
+      setVisibleCards(Math.max(1, Math.min(newVisibleCards, 4)));
     };
 
     handleResize();
@@ -80,8 +80,8 @@ export function ToolStatusCardsComponent() {
         </Heading>
         <CarouselContainer>
           <CardsContainer style={{ 
-            transform: `translateX(${-currentIndex * 220}px)`,
-            width: `${availableToolIDs.length * 220}px`,
+            transform: `translateX(${-currentIndex * 280}px)`,  
+            width: `${availableToolIDs.length * 280}px`,  
           }}>
             {availableToolIDs.map((toolId, index) => (
               <ToolStatusCard 

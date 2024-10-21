@@ -117,7 +117,7 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent>= ({totalRuns})
             }}
             marginTop='2' marginLeft='2' size="lg" status={stateQuery.data} />
           </Heading>
-          <Heading size='md'>Total: {totalRuns}</Heading>
+          <Heading padding={4} size='md'>Total: {totalRuns}</Heading>
         </VStack>
         <Center>
           <HStack mb={2}>
