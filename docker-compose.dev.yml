@@ -1,0 +1,13 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: controller/Dockerfile.dev  # Dev-specific Dockerfile
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "3010:3010"
+    volumes:
+      - ../interfaces:/app/interfaces:ro
+      - ./controller:/app/controller  # Mount for hot reload
+    command: ["npm", "run", "dev"]

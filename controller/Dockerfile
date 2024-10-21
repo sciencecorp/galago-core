@@ -12,7 +12,7 @@ RUN npm install -g ts-proto protoc-gen-ts protoc-gen-grpc-web @bufbuild/protobuf
 # Build Stage
 FROM base AS builder
 
-WORKDIR /app
+#WORKDIR /app
 
 # Copy the interfaces and controller folders into the container
 COPY interfaces /app/interfaces

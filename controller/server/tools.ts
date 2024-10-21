@@ -22,14 +22,14 @@ export default class Tool {
   grpc: ToolDriverClient;
   status: ToolStatus = ToolStatus.UNKNOWN_STATUS;
   uptime?: number;
-  
+
   private heartbeat : ReturnType<typeof setInterval> | undefined;
 
   constructor(info: controller_protos.ToolConfig) {
     this.info = info;
     this.config = info.config;
-
-    var target = `${info.ip}:${info.port}`;
+    const grpcServerIp = info.ip || process.env.GRPC_SERVER_IP;
+    const target = `${grpcServerIp}:${info.port}`;
     this.grpc = promisifyGrpcClient(
       new tool_driver.ToolDriverClient(target, grpc.credentials.createInsecure())
     );
@@ -48,7 +48,6 @@ export default class Tool {
       this.heartbeat = undefined;
     }
   }
-
 
   async fetchStatus() {
     try {
@@ -178,7 +177,7 @@ export default class Tool {
       type:"toolbox" as ToolType, 
       description:"General Tools",
       image_url:"/tool_icons/toolbox.png",
-      ip:"localhost",
+      ip:"host.docker.internal",
       port:1010,
       config:{
         "simulated":false, 

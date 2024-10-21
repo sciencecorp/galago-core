@@ -2,9 +2,6 @@ from datetime import datetime
 import os
 import logging
 from enum import Enum 
-import tools.db.crud as crud
-import tools.db.schemas as schemas
-from tools.db.models.db import LogsSessionLocal
 from typing import Optional
 import json 
 
@@ -24,22 +21,11 @@ def db_exists() -> bool:
         return True
     return False
 
-def write_to_db(log_type:LogType,tool:str,value:str) -> None:
-    engine = LogsSessionLocal()
-    try:
-        log_type_id = crud.log_type.get_by(engine, obj_in={"name":str(log_type.name)})
-        if not log_type_id:
-            raise NameError(log_type.name + "has not beed added to log_type table.")
-        crud.logs.create(engine, obj_in = schemas.LogCreate(log_type_id=log_type_id.id, tool= str(tool), value=json.dumps(value), created_at=datetime.now()))
-    finally:
-        engine.close()
 
 def write_trace_log(log_path:Optional[str], log_type:LogType, tool:str,value:str) -> None:
 
     if not log_path:
         logging.warning("Log folder not configured")
-    #Write to sqlite db
-    write_to_db(log_type=log_type, tool=tool, value=value)
     #Write to local files
     if log_path is None:
         return

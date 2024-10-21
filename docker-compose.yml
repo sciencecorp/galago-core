@@ -16,6 +16,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3010
+      - GRPC_SERVER_IP=host.docker.internal
     ports:
       - "3010:3010"
     volumes:
