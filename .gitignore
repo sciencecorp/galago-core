@@ -64,3 +64,6 @@ next-env.d.ts
 /Galago.runtimeconfig.json
 
 app_config.json
+
+# Ignore all waypoints.json files
+**/waypoints.json

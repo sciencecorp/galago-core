@@ -26,6 +26,35 @@ message Command {
     Jog jog = 20;
     SaveTeachpoints saveTeachpoints = 21;
     RawCommand raw_command = 22;
+    CreateNest create_nest = 23;
+    CreateLocation create_location = 24;
+    DeleteNest delete_nest = 25;
+    DeleteLocation delete_location = 26;
+    AddToPath add_to_path = 27;
+  }
+
+  message DeleteNest {
+    string nest_name = 1;
+  }
+
+  message DeleteLocation {
+    string location_name = 1;
+  }
+
+  message CreateNest {
+    string nest_name = 1;
+    string orientation = 3;
+    string safe_loc = 4;
+    string loc_type = 5;
+  }
+
+  message CreateLocation {
+    string location_name = 1;
+    string loc_type = 2;
+  }
+
+  message AddToPath {
+    string nest_name = 1;
   }
 
   message RawCommand {
@@ -33,7 +62,6 @@ message Command {
   } 
 
   message GetCurrentLocation {
-
   }
 
   message Jog {
@@ -42,7 +70,15 @@ message Command {
   }
 
   message SaveTeachpoints {
-    
+    message TeachPoint {
+      string name = 1;
+      string coordinate = 2;
+      string type = 3;
+      string loc_type = 4;
+      bool is_edited = 5;
+      repeated string approach_path = 6;
+    }
+    repeated TeachPoint teachpoints = 1;
   }
 
   message GetTeachpoints {
@@ -158,14 +194,8 @@ message Command {
 message Config {
   string host = 1;
   int32 port = 2;
-  Location location = 3;
-  string tool_id = 4;
+  string tool_id = 3;
+  string waypoints_json_file = 4;
   int32 joints = 5;
   
-  enum Location {
-    UNKNOWN_WORKCELL = 0;
-    ULTRALIGHT_WORKCELL = 1;
-    BIOLAB_WORKCELL = 2;
-    BAYMAX_WORKCELL = 3;
-  }
 }

@@ -1,8 +1,9 @@
 import Protocol from "@/protocols/protocol";
 //Utralight Workcell
 // Example
-import ImageCulturePlateBaymax from "@/protocols/example/image_culture_plate";
-
+import ImageCulturePlate from "@/protocols/example/image_culture_plate";
+import PassagingHamilton from "@/protocols/example/passaging";
 export const Protocols: Protocol[] = [
-  new ImageCulturePlateBaymax(),
+  new ImageCulturePlate(),
+  new PassagingHamilton()
 ];

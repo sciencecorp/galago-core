@@ -15,7 +15,7 @@
         "config": {
           "simulated": true,
           "cytation": {
-            "tool_id":"baymax_cytation_1",
+            "tool_id":"workcell_1_cytation_1",
             "protocol_dir": "C:\\cytation_protocols",
             "experiment_dir": "C:\\cytation_experiments",
             "reader_type": "CYTATION_READER_CYTATION5"
@@ -34,9 +34,10 @@
           "simulated": true,
           "pf400": {
             "tool_id": "pf400_1",
-            "host": "192.168.0.1",
+            "host": "192.168.0.4",
             "port": 10100,
-            "location": "BAYMAX_WORKCELL"
+            "waypoints_json_file": "workcell_1_waypoints.json",
+            "joints": 6
           }
         }
       },

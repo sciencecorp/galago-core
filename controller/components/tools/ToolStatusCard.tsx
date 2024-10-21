@@ -1,16 +1,36 @@
 import { trpc } from "@/utils/trpc";
-import { Alert, Box, Card, CardBody, CardHeader, Heading, Text, HStack, Spinner,VStack,Flex,Avatar, Image,Menu, MenuButton, MenuItem, MenuList, IconButton} from "@chakra-ui/react";
-//import Image from "next/image";
-import { ToolConfig } from "gen-interfaces/controller";
+import { Alert, Box, Card, CardBody, CardHeader, Heading, Text, HStack, Spinner, VStack, Flex, Image, Menu, MenuButton, MenuItem, MenuList, IconButton } from "@chakra-ui/react";
+import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import Link from "next/link";
 import { ToolConfigEditor } from "./ToolConfigEditor";
 import { ToolStatusTag } from "./ToolStatusTag";
-import { DragHandleIcon, HamburgerIcon} from "@chakra-ui/icons";
+import { HamburgerIcon } from "@chakra-ui/icons";
+import styled from '@emotion/styled';
+import { useState } from 'react';
 
+const StyledCard = styled(Card)`
+  display: flex;
+  flex-direction: column;
+  height: 280px;
+  width: 280px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: 0.3s ease-out;
+  margin: 0 15px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  overflow: hidden;
 
-export default function ToolStatusCard({ toolId }: { toolId: string }): JSX.Element {
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+`;
+
+export default function ToolStatusCard({ toolId, style }: { toolId: string; style?: React.CSSProperties }) {
+  const [isHovered, setIsHovered] = useState(false);
+
   const infoQuery = trpc.tool.info.useQuery({ toolId: toolId });
- // console.log("Query info is"+ infoQuery)
   const config = infoQuery.data;
   const { description, name } = infoQuery.data || {};
 
@@ -22,58 +42,81 @@ export default function ToolStatusCard({ toolId }: { toolId: string }): JSX.Elem
     return <Alert status="error">Could not load tool info</Alert>;
   }
   
-  function renderToolImage(config:any){
-    //console.log("Config here is "+JSON.stringify(config))
-    if(!config.image_url){
-      return <Box></Box>
-    }
-    else{
-      return  <Image src={config.image_url} alt={config.name} sizes="50vw" style={{ width: '100%', height: '60px' }}/>
+  function renderToolImage(config: any) {
+    if (!config.image_url) {
+      return <Box></Box>;
+    } else {
+      return (
+        <Image 
+          src={config.image_url} 
+          alt={config.name} 
+          objectFit="contain" 
+          height={isHovered ? "120px" : "120px"} 
+          width={isHovered ? "120px" : "120px"} 
+          transition="all 0.3s ease-in-out"
+        />
+      );
     }
   }
 
+  const isPF400 = config.type === ToolType.pf400;
 
   return (
-    <Card>
-      <CardHeader pb = '0px'>
-          <Flex>
-            <Flex flex='2' gap='1' alignItems='left' flexWrap='wrap'>
-              <Box>
-                <Link href={`/tools/${toolId}`} passHref>
-                  <Heading size="md">{name}</Heading>
-                </Link>
-                <Text fontSize='sm'>{description}</Text>
-              </Box>
-            </Flex>
-            <Menu>
-              <MenuButton
-                  as={IconButton}
-                  aria-label='Options'
-                  icon={<HamburgerIcon />}
-                  variant='ghost'
-                />
-                <MenuList>
-                    <MenuItem >Edit</MenuItem>
-                    <MenuItem as='a' href={`/tools/advanced/${toolId}`}>Advanced</MenuItem>
-                </MenuList>
-              </Menu>
+    <StyledCard 
+      style={style}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <CardHeader pb='0px'>
+        <Flex justifyContent="space-between" alignItems="center">
+          <Box>
+            <Link href={`/tools/${toolId}`} passHref>
+              <Heading size="md">{name}</Heading>
+            </Link>
+            <Text fontSize='sm'>{description}</Text>
+          </Box>
+          <Menu>
+            <MenuButton
+              as={IconButton}
+              aria-label='Options'
+              icon={<HamburgerIcon />}
+              variant='ghost'
+            />
+            <MenuList>
+              <MenuItem>Edit</MenuItem>
+              {isPF400 && (
+                <MenuItem as='a' href={`/tools/advanced/${toolId}`}>Teach Pendant</MenuItem>
+              )}
+            </MenuList>
+          </Menu>
         </Flex>
       </CardHeader>
-      <CardBody mt = '0px'>
-        <VStack align="left" spacing={4} mb={2}>
+      <CardBody mt='0px'>
+        <VStack align="stretch" spacing={4} mb={2}>
           <ToolStatusTag toolId={toolId} />
-          <Flex>
-            <Flex flex='2' gap='1' alignItems='left' flexWrap='wrap'>
+          <Flex 
+            justifyContent="center" 
+            alignItems="center" 
+            height={isHovered ? "auto" : "100%"}
+            transition="all 0.3s ease-in-out"
+          >
+            {isHovered ? (
+              <Flex justifyContent="space-between" alignItems="center" width="100%">
+                <Box flex="1" opacity={isHovered ? 1 : 0} transition="opacity 0.3s">
+                  <ToolConfigEditor toolId={toolId} defaultConfig={config as ToolConfig} />
+                </Box>
+                <Box width="60px" height="60px">
+                  {renderToolImage(config)}
+                </Box>
+              </Flex>
+            ) : (
               <Box>
-                <ToolConfigEditor toolId={toolId} defaultConfig={config as ToolConfig} />
+                {renderToolImage(config)}
               </Box>
-            </Flex>
-            <Box>
-              {renderToolImage(config)}
-            </Box>
+            )}
           </Flex>
         </VStack>
       </CardBody>
-    </Card>
+    </StyledCard>
   );
 }
