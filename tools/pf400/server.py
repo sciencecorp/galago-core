@@ -146,7 +146,8 @@ class Pf400Server(ToolServer):
             offset_coordinate = f"{offset[0]} {offset[1]} {offset[2]} 0 0 0"
         if(nest.loc.loc_type == "j"):
             offset_coordinate = f"{offset[2]} 0 0 0 0 0"
-        nest_loc = re.sub(r'^\S+\s', '', nest.loc.loc)
+        # nest_loc = re.sub(r'^\S+\s', '', nest.loc.loc)
+        nest_loc = nest.loc.loc
         if self.config.joints == 5:
             offset_coordinate = " ".join(offset_coordinate.split(" ")[:-1])
         return [
@@ -415,12 +416,12 @@ class Pf400Server(ToolServer):
         response.return_reply = True
         response.response = SUCCESS
         try:
-            location: str = self.driver.wherej()[1:]
+            location: str = self.driver.wherej()
             if location.split(" ")[0] != "0":
                 raise RuntimeError("Failed to get location coordinates")
             else:
                 # Extract the actual coordinates (assuming they start from the second element)
-                coordinates = " ".join(location.split(" ")[1:])
+                coordinates = " ".join(location.split(" "))
                 
                 # Create a Struct to hold the location data
                 s = Struct()
@@ -480,7 +481,7 @@ class Pf400Server(ToolServer):
         if waypoint_name not in self.waypoints.locations:
             raise KeyError("Unwind location not found")
         waypoint_loc = self.waypoints.locations[waypoint_name].loc
-        current_loc_array = self.driver.wherej()[1:].split(" ")
+        current_loc_array = self.driver.wherej().split(" ")
         #Unwind the arm while keeping the z height, gripper width and rail constant
         #current_loc_array[1] is the z height, current_loc_array[6] is the gripper (regardless of the number of joints)
         if self.config.joints == 5:

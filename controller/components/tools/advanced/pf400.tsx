@@ -861,7 +861,6 @@ export const PF400: React.FC<PF400Props> = ({toolId, config}) => {
             });
             return;
         }
-
         const approachCommand: ToolCommandInfo = {
             toolId: config.id,
             toolType: config.type,
