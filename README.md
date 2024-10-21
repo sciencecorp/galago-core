@@ -133,24 +133,8 @@ zrange <key> 0 -1 withscores
 flushdb
 ```
 
-**Change Log Generation** 
-We are using a markdown change log to keep track of changes we make to the software. To create a pdf copy from the markdown file run change_log_to_pdf.py
-
-### Mac
-```zsh
-pip install markdown
-pip install pdfkit
-brew install wkhtmltopdf 
-
-python changelog_to_pdf.py
-```
-
 **Force Kill**
 ```
 pkill -9 python
 lsof -t -i tcp:3010 | xargs kill
 ```
-
-**Debugging windows exe** 
-If the exe isn't working and crashing without any error messages. For example: 
-  & Start-Process -FilePath "C:\projects\galago-core\Galago.exe" -NoNewWindow -RedirectStandardError "error_log.txt"
