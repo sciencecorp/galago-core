@@ -56,7 +56,7 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent>= ({totalRuns})
         );
       }
       catch{
-        console.log("failed to clear slack messages.")
+        console.error("failed to clear slack messages.")
       }
     }
 
@@ -120,11 +120,11 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent>= ({totalRuns})
           <Heading size='md'>Total: {totalRuns}</Heading>
         </VStack>
         <Center>
-        <HStack>
-          <Button colorScheme='green' variant='outline' onClick={() => onOpen()}>Start</Button>
-          <Button colorScheme='red' variant='outline'  onClick={() => pause()}>Stop</Button>
-          <Button variant = 'outline' borderColor='black' onClick={() => clear()}>Clear All</Button>
-        </HStack>
+          <HStack mb={2}>
+            <Button colorScheme='green' variant='outline' onClick={() => onOpen()}>Start</Button>
+            <Button colorScheme='red' variant='outline'  onClick={() => pause()}>Stop</Button>
+            <Button variant = 'outline' borderColor='black' onClick={() => clear()}>Clear All</Button>
+          </HStack>
         </Center>
       </>
     );

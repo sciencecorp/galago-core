@@ -29,7 +29,6 @@ import DatePicker from "react-datepicker";
 import styled from 'styled-components';
 import "react-datepicker/dist/react-datepicker.css";
 
-
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -87,7 +86,7 @@ const options = {
 
 
 
-export default function liconic() {
+export default function Liconic() {
     const commandMutation = trpc.tool.runCommand.useMutation({
         onError: (error) => {
             toast({
@@ -100,7 +99,6 @@ export default function liconic() {
             });
         },
     });
-    const [imageEncoded, SetImageEnconded] = useState("");
     const [selectedDate, setStartDate] = useState<Date|null>(new Date());
     const [sensorData, setSensorData] = useState<any>();
     const toast = useToast();
@@ -127,7 +125,6 @@ export default function liconic() {
     useEffect(() => {
         const fetchLiconicData = async () => {
             const response = await GetLiconicData();
-            console.log("Response metadata is "+ JSON.stringify(response?.meta_data));
             if(response?.meta_data && response.meta_data["times"].length == 0){
                 toast.closeAll()
                 toast({

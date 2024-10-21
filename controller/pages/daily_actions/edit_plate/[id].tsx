@@ -7,7 +7,7 @@ import {
   Well,
   Reagent,
 } from "@/server/utils/InventoryClient";
-import PlateVisualizer from "@/components/inventory/PlateVisualizer";
+//import PlateVisualizer from "@/components/inventory/PlateVisualizer";
 import { trpc } from "@/utils/trpc";
 import { useRouter } from "next/router";
 
@@ -47,7 +47,7 @@ export default function Page() {
           inventoryData.reagents.filter((reagent) => well_ids.includes(reagent.well_id)) || []
         );
       } catch (error) {
-        console.log("Error fetching data:", error);
+        console.error("Error fetching data:", error);
       }
     };
 
@@ -71,13 +71,13 @@ export default function Page() {
           </Text>
         </Box>
         <Box>Edit Plate</Box>
-        {selectedPlate && (
-          <PlateVisualizer
-            plate={selectedPlate}
-            wells={selectedWells}
-            reagents={selectedReagents}
-            refreshOnChange={() => setRefreshFlag(!refreshFlag)}></PlateVisualizer>
-        )}
+        {/* {selectedPlate && (
+          // <PlateVisualizer
+          //   plate={selectedPlate}
+          //   wells={selectedWells}
+          //   reagents={selectedReagents}
+          //   refreshOnChange={() => setRefreshFlag(!refreshFlag)}></PlateVisualizer>
+        )} */}
       </VStack>
     </Box>
   );

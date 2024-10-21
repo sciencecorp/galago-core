@@ -1,37 +1,30 @@
 import { ToolCommandInfo } from "@/types";
 import { ToolType } from "gen-interfaces/controller";
-import { buildGoogleStructValue } from "utils/struct";
-import { DateTime } from "luxon";
 import Protocol from "@/protocols/protocol";
 import { z } from "zod";
-import Tool from "@/server/tools";
-import { trpc } from "@/utils/trpc";
 
 const zWellSelection = z.array(
   z.string().regex(/^[A-Z]\d{1,2}$/, "Well name must be a letter followed by a number")
 );
-const zNumberArray = z.array(z.number());
+
+
 export const ImageCulturePlateParams = z
   .object({
-    workflow_step_ids:zNumberArray.default([1,2,3,4]),
     cytationProgram: z.string().describe("The name of the Cytation protocol to run"),
     liconic_cassette: z.number().positive().int(),
     liconic_level: z.number().positive().int(),
     wellPlateID: z.string().describe("ID of the well plate"),
-    cultureIDs: zNumberArray.describe("The IDs of the cultures to process").default([1,2,3]),
-    culturePlateBarcode: z.string().regex(/^\d{12}$/, "Barcode must be 12 digits"),
     culturePlateType: z.string().default("6 well").describe("The type of plate (6,12,24,96)"),
     wellAddresses: zWellSelection
       .default(["A1", "B2", "A3"])
       .describe("The addresses of the wells to image (eg, A1,C3,C4,D2 )."),
-    nestName:z.string()
   })
   .strict();
 
-export default class ImageCulturePlateBaymax extends Protocol<typeof ImageCulturePlateParams> {
+export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlateParams> {
   protocolId = "image_culture_plate";
   category = "production";
-  workcell = "Baymax";
+  workcell = "Workcell 1";
   name = "Plate Imaging"
   paramSchema = ImageCulturePlateParams;
 
@@ -40,7 +33,6 @@ export default class ImageCulturePlateBaymax extends Protocol<typeof ImageCultur
     const cassette = params.liconic_cassette;
     const level = params.liconic_level;
     const wellPlateID: string = params.wellPlateID;
-    const cytProgName: string = params.cytationProgram.split(".")[0];
     const experiment_name: string = `${params.cytationProgram.split(".")[0]}_${wellPlateID}_`;
     let cultureLabware = "default";
     if(params.culturePlateType.includes("6 well")){
@@ -51,15 +43,6 @@ export default class ImageCulturePlateBaymax extends Protocol<typeof ImageCultur
     }  
  
     let protocol_cmds: ToolCommandInfo[] = [
-      {
-        label: "Slack Start Message",
-        toolId: "toolbox",
-        toolType: ToolType.toolbox,
-        command: "slack_message",
-        params: {
-          message: `:microscope: Imaging has started for WellPlate: ${params.wellPlateID}`,
-        },
-      },
       {
         label: "Unload plate from Liconic",
         toolId: "Liconic",
@@ -106,23 +89,6 @@ export default class ImageCulturePlateBaymax extends Protocol<typeof ImageCultur
       }
     ];
 
-    let now: string | null = DateTime.now()
-                          .setZone("US/Pacific")
-                          .toISO({ format: "basic", suppressMilliseconds: true });
-   
-    const object_data_record: Record<string, any> = {
-        well_plate_id: wellPlateID,
-        well_plate_barcode: params.culturePlateBarcode,
-        well_addresses: String(params.wellAddresses),
-        liconic_cassette: Number(params.liconic_cassette),
-        liconic_level: Number(params.liconic_level),
-        cytation_protocol: cytProgName,
-        todo_id: params.workflow_step_ids[0].toString(),
-        acquired_at: now,
-      };
-    const object_data: any = buildGoogleStructValue(object_data_record);
-
- 
     protocol_cmds.push(
       {
         label: "Image Plate/Run Cytation Program",
@@ -188,15 +154,7 @@ export default class ImageCulturePlateBaymax extends Protocol<typeof ImageCultur
           cassette: cassette,
           level: level,
         },
-      },
-      {
-        label: "Slack Start Message",
-        toolId: "toolbox",
-        toolType: ToolType.toolbox,
-        command: "slack_message",
-        params: {
-          message: `:white_check_mark: Imaging Run has finished for Well Plate: ${params.wellPlateID} \n... data upload confirmed in separate message.`,
-        },
+      
       }
     ] as ToolCommandInfo[]);
     return protocol_cmds;

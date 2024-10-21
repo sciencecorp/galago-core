@@ -1,5 +1,5 @@
 import CommandComponent from "@/components/protocols/CommandComponent";
-import { useState } from "react";
+import { use, useState } from "react";
 import StatusTag from "@/components/tools/StatusTag";
 import { ToolStatusCardsComponent } from "@/components/tools/ToolStatusCardsComponent";
 import { trpc } from "@/utils/trpc";
@@ -26,7 +26,8 @@ import {
   MenuList,
   MenuItem,
   IconButton,
-  Image
+  Image,
+  useColorModeValue
 } from "@chakra-ui/react";
 
 import { Run, RunCommand } from "@/types";
@@ -50,7 +51,7 @@ const SwimLaneCommandComponent : React.FC<LaneCommandComponentProps> = ({command
       let toolName = infoQuery.data?.name || "undefined";
       //const MemoizedSwimLaneComponentItem = React.memo(SwimLaneCommandComponent);
       const [commandColor, setCommandColor] = useState<string>("White");
-      
+      const bgColor = useColorModeValue("gray.100", "gray.700");
       function renderToolImage(config:any){
         if (!config || !config.image_url) {
           return <Box></Box>;
@@ -64,9 +65,9 @@ const SwimLaneCommandComponent : React.FC<LaneCommandComponentProps> = ({command
           case "STARTED":
             return "#ABD3F9"
           case "FAILED":
-            return "#F4CDCD"
+            return "red.400"
           default:
-            return "white"
+            return bgColor;
         }
       }
 
@@ -80,7 +81,6 @@ const SwimLaneCommandComponent : React.FC<LaneCommandComponentProps> = ({command
       
       const queued = queueId && (command.status === "CREATED" || command.status  === "FAILED" || command.status === "STARTED");
 
-    //  console.log("Tool status 1 is "+ command.status);
       return (<Box
                   left='0px'
                   right='0px'
@@ -88,7 +88,6 @@ const SwimLaneCommandComponent : React.FC<LaneCommandComponentProps> = ({command
                   height='150px'
                   overflowY='auto'
                   mr="4"
-                  bg="white"
                   fontSize="18px"
                   borderLeftRadius='15'
                   borderRightRadius='15'

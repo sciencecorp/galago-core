@@ -11,17 +11,15 @@
 import logging
 import time
 
-# Might need to fix the imports.
-from .pf_400_communicator import Pf400Communicator
+from tools.pf400.tcp_ip import Pf400TcpIp
 from tools.base_server import ABCToolDriver
 from typing import Optional 
 
 GRASP_PLATE_BUFFER_MM = 10
 
-
 class Pf400Driver(ABCToolDriver):
     def __init__(self, tcp_host: str, tcp_port: int) -> None:
-        self.communicator = Pf400Communicator(tcp_host, tcp_port)
+        self.communicator = Pf400TcpIp(tcp_host, tcp_port)
 
         # Whether to override the gripper axis.
         # Used to make sure the gripper stays closed no matter what.

@@ -62,6 +62,18 @@ bin/make deps
 bin/make proto
 ```
 
+### 32 bits python environment.
+This is required by some of the tools. Eg. Agilent ActiveX or VWorks. If you are not running such tools skip this. 
+
+```
+# Set CONDA_FORCE_32BIT environment variable
+set CONDA_FORCE_32BIT=1
+set CONDA_SUBDIR="win-32"
+mamba create -n galago-core32
+mamba activate galago-core32
+python -m pip install -r tools/requirements32.txt
+```
+
 ## Redis
 Redis is used for queueing commands and runs by the controller. We recommend having a local instance running but a remote connection would also work. 
 
@@ -133,62 +145,8 @@ zrange <key> 0 -1 withscores
 flushdb
 ```
 
-
-## Known errors and issues
-If you run into ```The authenticity of host 'github.com ()' can't be established.``` error on windows
-run the following command:
-
-```bash
-ssh-keyscan github.com >> ~/.ssh/known_hosts
-```
-
-Note that the `cytation` tool requires a `pywin32` install, which will fail on non-Windows machines.
-
-Also, note that if you get this error when trying to start the tool servers:
-
-```
-ImportError: dlopen(/Users/albertonava/miniconda3/envs/foundry-runtime2/lib/python3.10/site-packages/grpc/_cython/cygrpc.cpython-310-darwin.so, 0x0002): symbol not found in flat namespace '_CFRelease'
-```
-
-You may be able to fix it by running in your conda environment:
-
-```
-pip uninstall -y grpcio && conda install -y grpcio
-```
-
-or try
-
-```
-conda remove absl-py
-conda install -c conda-forge absl-py
-```
-
-or try
-
-```
-pip uninstall grpcio
-export GRPC_PYTHON_LDFLAGS=" -framework CoreFoundation"
-pip install grpcio --no-binary :all:
-```
-
-**Change Log Generation** 
-We are using a markdown change log to keep track of changes we make to the software. To create a pdf copy from the markdown file run change_log_to_pdf.py
-
-### Mac
-```zsh
-pip install markdown
-pip install pdfkit
-brew install wkhtmltopdf 
-
-python changelog_to_pdf.py
-```
-
 **Force Kill**
 ```
 pkill -9 python
 lsof -t -i tcp:3010 | xargs kill
 ```
-
-**Debugging windows exe** 
-If the exe isn't working and crashing without any error messages. For example: 
-  & Start-Process -FilePath "C:\projects\galago-core\Galago.exe" -NoNewWindow -RedirectStandardError "error_log.txt"

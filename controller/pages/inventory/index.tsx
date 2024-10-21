@@ -49,7 +49,6 @@ import { ToolType } from "gen-interfaces/controller";
 import { ExecuteCommandReply, ResponseCode } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import Fuse from "fuse.js";
 import { CloseIcon, SearchIcon } from "@chakra-ui/icons";
-import InteractivePlateVisualizer from "@/components/inventory/PlateVisualizer";
 
 export default function Page() {
   const { colorMode } = useColorMode();
@@ -907,14 +906,13 @@ export default function Page() {
         {selectedPlate && (
           <VStack align="stretch" spacing="4">
 
-
-
+{/* 
         <InteractivePlateVisualizer
           plate={selectedPlate}
           wells={selectedWells}
           reagents={selectedReagents}
           refreshOnChange={() => setRefreshFlag(!refreshFlag)}
-        />
+        /> */}
         </VStack>
         
       )}

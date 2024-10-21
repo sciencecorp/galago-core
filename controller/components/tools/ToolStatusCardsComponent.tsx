@@ -13,9 +13,6 @@ export function ToolStatusCardsComponent() {
   const [toolsHeight, setToolsHeight] = useState("auto");
 
   const configureMutation = trpc.tool.configure.useMutation({
-    onSuccess: () => {
-      console.log("connected!!");
-    },
     onError: (data) => {
       toast({
         title: "Failed to connect to instrument",
