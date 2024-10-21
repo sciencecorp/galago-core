@@ -24,7 +24,7 @@ def telnet_read(conn: Telnet, timeout: int=1) -> str:
 
     return reply[0:-2]
 
-class Pf400Communicator:
+class Pf400TcpIp:
     def __init__(self, tcp_host: str, tcp_port: int) -> None:
         self.conn = Telnet(tcp_host, tcp_port, timeout=2)
 

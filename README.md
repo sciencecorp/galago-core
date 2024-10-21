@@ -2,7 +2,7 @@
 
 Galago consists of several distinct modules:
 
-- Controller, a NEXT.js/Electron app which governs a defined set of devices (execution management and scheduling)
+- Controller, a NEXT.js app which governs a defined set of devices (execution management and scheduling)
 - Tool drivers which implement a gRPC interface and handle tool-specific control logic
 
 To build the protobuf interfaces, simply run `bin/make proto`.
