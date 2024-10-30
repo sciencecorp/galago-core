@@ -14,6 +14,8 @@ controller/build
 controller/gen-interfaces/
 controller/app.log
 
+#tools 
+tools/pf400/config/*.json
 # misc
 .DS_Store
 *.pem
