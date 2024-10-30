@@ -49,7 +49,6 @@ export default function HomeNavCard({ pageProps, titleSx }: HomeNavCardProps): J
                 {pageProps.title}
               </Heading>
               <Text py='2'>
-                
                 {pageProps.description}
               </Text>
             </CardBody>

@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { trpc } from "@/utils/trpc";
-import ToolStatusCard from "@/components/tools/ToolStatusCard";
-import { Box, Spinner, Alert, Button, HStack, Heading, VStack, Center, useToast, IconButton, Flex } from "@chakra-ui/react";
+import ToolStatusCard from "@/components/Tools/ToolStatusCard";
+import { 
+  Box, Spinner, Alert, Heading, VStack, useToast, 
+  IconButton, Flex, SimpleGrid, Switch, FormControl, FormLabel, useColorModeValue, 
+} from "@chakra-ui/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import styled from '@emotion/styled';
@@ -21,14 +24,19 @@ const CardsContainer = styled.div`
   transition: transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
 `;
 
-export function ToolStatusCardsComponent() {
+
+interface ToolStatusCardsProps {
+  showAsGrid?: boolean;
+}
+export const ToolStatusCardsComponent:React.FC<ToolStatusCardsProps> = (props) => {
+  const { showAsGrid } = props;
   const utils = trpc.useContext();
   const toast = useToast();
   const availableToolsQuery = trpc.tool.availableIDs.useQuery();
   const availableToolIDs = availableToolsQuery.data || [];
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visibleCards, setVisibleCards] = useState(3);
-
+  const headerColor = useColorModeValue("teal.800", "white.500");
   useEffect(() => {
     const handleResize = () => {
       const newVisibleCards = Math.floor(window.innerWidth / 280);
@@ -74,39 +82,47 @@ export function ToolStatusCardsComponent() {
 
   return (
     <Box p={2} maxWidth="1200px" margin="auto">
-      <VStack spacing={4} >
-        <Heading mb={2} css={{ fontFamily: `'Bungee Shade', cursive` }}>
+      <VStack spacing={4}>
+        <Heading mb={2} color= {headerColor} css={{ fontFamily: `'Bungee Shade', cursive` }}>
           Tools
         </Heading>
-        <CarouselContainer>
-          <CardsContainer style={{ 
-            transform: `translateX(${-currentIndex * 280}px)`,  
-            width: `${availableToolIDs.length * 280}px`,  
-          }}>
+
+        {showAsGrid ? (
+          <SimpleGrid columns={[1, 2, 3, 4]} spacing={4} width="100%">
             {availableToolIDs.map((toolId, index) => (
-              <ToolStatusCard 
-                key={`${toolId}-${index}`} 
-                toolId={toolId} 
-              />
+              <ToolStatusCard key={`${toolId}-${index}`} toolId={toolId} />
             ))}
-          </CardsContainer>
-          <Flex justify="center" mt={4} width="100%">
-            <IconButton
-              aria-label="Previous tool"
-              icon={<ChevronLeftIcon />}
-              onClick={prevSlide}
-              mr={2}
-              isDisabled={currentIndex === 0}
-            />
-            <IconButton
-              aria-label="Next tool"
-              icon={<ChevronRightIcon />}
-              onClick={nextSlide}
-              ml={2}
-              isDisabled={currentIndex >= availableToolIDs.length - visibleCards}
-            />
-          </Flex>
-        </CarouselContainer>
+          </SimpleGrid>
+        ) : (
+          <CarouselContainer>
+            <CardsContainer style={{ 
+              transform: `translateX(${-currentIndex * 280}px)`,  
+              width: `${availableToolIDs.length * 280}px`,  
+            }}>
+              {availableToolIDs.map((toolId, index) => (
+                <ToolStatusCard key={`${toolId}-${index}`} toolId={toolId} />
+              ))}
+            </CardsContainer>
+            <Flex justify="center" mt={4} width="100%">
+              <IconButton
+                bg='teal'
+                aria-label="Previous tool"
+                icon={<ChevronLeftIcon />}
+                onClick={prevSlide}
+                mr={2}
+                isDisabled={currentIndex === 0}
+              />
+              <IconButton
+                bg='teal'
+                aria-label="Next tool"
+                icon={<ChevronRightIcon />}
+                onClick={nextSlide}
+                ml={2}
+                isDisabled={currentIndex >= availableToolIDs.length - visibleCards}
+              />
+            </Flex>
+          </CarouselContainer>
+        )}
       </VStack>
     </Box>
   );

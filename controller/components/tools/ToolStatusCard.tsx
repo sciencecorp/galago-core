@@ -1,5 +1,5 @@
 import { trpc } from "@/utils/trpc";
-import { Alert, Box, Card, CardBody, CardHeader, Heading, Text, HStack, Spinner, VStack, Flex, Image, Menu, MenuButton, MenuItem, MenuList, IconButton } from "@chakra-ui/react";
+import { Alert, Box, Card, CardBody, CardHeader, Heading, Text, HStack, Spinner, VStack, Flex, Image, Menu, MenuButton, MenuItem, MenuList, IconButton, Icon } from "@chakra-ui/react";
 import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import Link from "next/link";
 import { ToolConfigEditor } from "./ToolConfigEditor";
@@ -7,6 +7,7 @@ import { ToolStatusTag } from "./ToolStatusTag";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import styled from '@emotion/styled';
 import { useState } from 'react';
+import { PiToolbox } from "react-icons/pi";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -45,7 +46,23 @@ export default function ToolStatusCard({ toolId, style }: { toolId: string; styl
   function renderToolImage(config: any) {
     if (!config.image_url) {
       return <Box></Box>;
-    } else {
+    }
+    else if(config.id === "toolbox"){
+      return (
+        <Box display="flex" justifyContent="center" alignItems="center">
+        <IconButton
+          aria-label="Tool Box"
+          icon={<PiToolbox style={{ width: "100%", height: "100%" }} />} // Ensure the icon fills the button
+          variant="ghost"
+          colorScheme="teal"
+          isRound
+          boxSize="100px" 
+        />
+      </Box>
+
+      )
+    }
+    else {
       return (
         <Image 
           src={config.image_url} 

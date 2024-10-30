@@ -6,13 +6,6 @@ declare module '*.svg'
 
 export type RunStatus = "CREATED" | "STARTED" | "FAILED" | "COMPLETED" | "SKIPPED";
 
-export interface Variable {
-  id?: number;
-  name: string;
-  value: string;
-  type: 'string' | 'number' | 'boolean' | 'array' | 'object';
-}
-
 export interface ToolCommandInfo {
   label?: string;
   toolId: string;

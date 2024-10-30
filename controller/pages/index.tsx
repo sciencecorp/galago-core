@@ -1,5 +1,5 @@
 import { ToolStatusCardsComponent } from "@/components/tools/ToolStatusCardsComponent";
-import HomeNavCard from "@/components/HomeNavCard"
+import HomeNavCard from "@/components/UI/HomeNavCard";
 
 import {Card, Grid, Icon, Box,GridItem, Heading,Flex}  from "@chakra-ui/react"
 import { PageProps } from "@/types";
@@ -11,6 +11,7 @@ import { MdOutlineIntegrationInstructions } from "react-icons/md";
 import { AiFillDatabase } from "react-icons/ai";
 import { TbLogs } from "react-icons/tb";
 import { MdBiotech } from "react-icons/md";
+import {Calendar} from "@/components/UI/Calendar"
 
 export default function Page() {
 
@@ -73,16 +74,11 @@ export default function Page() {
             md: "repeat(3, 1fr)",
           }}
         gap={2}>
-        {pages.map((page, index) => (
-            <HomeNavCard
-              key={index}
-              pageProps={page}
-              titleSx={page.title === "Tools" ? { fontFamily: `'system-ui', sans-serif` } : {}}
-            />
-        ))}
+          <Box>
+            <Calendar/>
+          </Box>
       </Grid>
       </Flex>
-
     </Box>
   );
 }
