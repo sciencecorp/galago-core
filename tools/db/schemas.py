@@ -3,6 +3,10 @@ from pydantic import BaseModel, model_validator
 import datetime
 import logging
 
+class TimestampMixin(BaseModel):
+    created_at: t.Optional[datetime.datetime] = None
+    updated_at: t.Optional[datetime.datetime] = None
+
 # Workcell schemas
 class WorkcellCreate(BaseModel):
     name: str
@@ -168,7 +172,6 @@ class LogPaginated(BaseModel):
     value: t.Optional[str] = None
     created_at: t.Optional[datetime.datetime] = None
 
-
 class LogTypeUpdate(BaseModel):
     id: t.Optional[int] = None
     name: t.Optional[str] = None
@@ -225,7 +228,7 @@ class VariableCreate(VariableBase):
     def check_value_type(cls, data: t.Any) -> t.Any:
         return cls.validate_value_type(data)
 
-class Variable(VariableCreate):
+class Variable(TimestampMixin, VariableCreate):
     id: int
     
     class Config:

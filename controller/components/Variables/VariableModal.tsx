@@ -25,9 +25,8 @@ import {
   FormLabel,
   Select
 } from "@chakra-ui/react";
-import { AddIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import { trpc } from "@/utils/trpc";
-import { Variable } from "@/types";
+import { Variable } from "./types";
 import { RiAddFill } from "react-icons/ri";
 
   
@@ -41,7 +40,13 @@ export const VariableModal: React.FC = () => {
     const toast = useToast();
 
     const { data: fetchedVariables, refetch } = trpc.variable.getAll.useQuery();
-    
+
+    const clearForm = () => {
+        setName('');
+        setValue('');
+        setType('string');
+    }
+
     const handleSave = async () => {
         const variable = { name, value, type } as Variable;
         setIsLoading(true);
@@ -66,6 +71,7 @@ export const VariableModal: React.FC = () => {
               });
         }
         setIsLoading(false);
+        clearForm();
     };
 
 return (

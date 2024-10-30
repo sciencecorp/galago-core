@@ -1,11 +1,16 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Date, Float, func, DateTime
 from sqlalchemy.orm import relationship
 from tools.db.models.db import Base
+from sqlalchemy.ext.declarative import declared_attr
 
 
 class TimestampMixin:
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    @declared_attr
+    def created_at(cls):
+        return Column(DateTime, default=func.now())
+    @declared_attr
+    def updated_at(cls):
+        return Column(DateTime, default=func.now(), onupdate=func.now())
 
 
 class Workcell(Base, TimestampMixin):
@@ -71,7 +76,7 @@ class VariableType(Base, TimestampMixin):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
 
-class Variable(Base):
+class Variable(Base,TimestampMixin):
     __tablename__ = "variables"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)

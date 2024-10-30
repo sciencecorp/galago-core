@@ -1,7 +1,7 @@
 import { z } from "zod";
 import axios from "axios";
 import { procedure, router } from "@/server/trpc";
-import { Variable } from "@/types";
+import { Variable } from "@/components/Variables/types";
 
 const domain = 'http://localhost:8000';
 

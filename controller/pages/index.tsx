@@ -1,7 +1,7 @@
 import { ToolStatusCardsComponent } from "@/components/tools/ToolStatusCardsComponent";
 import HomeNavCard from "@/components/UI/HomeNavCard";
 
-import {Card, Grid, Icon, Box,GridItem, Heading,Flex}  from "@chakra-ui/react"
+import {Card, Grid, Icon, Box,GridItem, Heading,Flex, VStack}  from "@chakra-ui/react"
 import { PageProps } from "@/types";
 import { FaTools } from "react-icons/fa";
 import { LuCalendarRange } from "react-icons/lu";
@@ -11,7 +11,7 @@ import { MdOutlineIntegrationInstructions } from "react-icons/md";
 import { AiFillDatabase } from "react-icons/ai";
 import { TbLogs } from "react-icons/tb";
 import { MdBiotech } from "react-icons/md";
-import {Calendar} from "@/components/UI/Calendar"
+import {Calendar} from "@/components/Calendar/Calendar"
 
 export default function Page() {
 
@@ -54,7 +54,7 @@ export default function Page() {
   ]
 
   return (
-    <Box paddingTop="2%">
+    <Box padding={6} alignContent='center' alignItems='center'>
       <Heading
         as="h1"
         fontSize="6xl"
@@ -68,15 +68,14 @@ export default function Page() {
       </Heading>
       <Flex>
       <Grid 
+          width="100%"
           templateColumns={{
             base: "repeat(1, 1fr)",
             sm: "repeat(2, 1fr)",
             md: "repeat(3, 1fr)",
           }}
-        gap={2}>
-          <Box>
+        gap={14}>
             <Calendar/>
-          </Box>
       </Grid>
       </Flex>
     </Box>

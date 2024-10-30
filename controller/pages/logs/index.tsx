@@ -19,8 +19,6 @@ export default function Page() {
 
   return (
     <Box>
-      <Box width='500px'>
-      </Box>
       <LogView/>
     </Box>
   );

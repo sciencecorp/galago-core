@@ -81,14 +81,14 @@ export const ToolStatusCardsComponent:React.FC<ToolStatusCardsProps> = (props) =
   };
 
   return (
-    <Box p={2} maxWidth="1200px" margin="auto">
+    <Box p={2} margin="auto">
       <VStack spacing={4}>
         <Heading mb={2} color= {headerColor} css={{ fontFamily: `'Bungee Shade', cursive` }}>
           Tools
         </Heading>
 
         {showAsGrid ? (
-          <SimpleGrid columns={[1, 2, 3, 4]} spacing={4} width="100%">
+          <SimpleGrid columns={[1, 2, 3, 4]} spacing={2} width="100%">
             {availableToolIDs.map((toolId, index) => (
               <ToolStatusCard key={`${toolId}-${index}`} toolId={toolId} />
             ))}
@@ -105,7 +105,7 @@ export const ToolStatusCardsComponent:React.FC<ToolStatusCardsProps> = (props) =
             </CardsContainer>
             <Flex justify="center" mt={4} width="100%">
               <IconButton
-                bg='teal'
+                colorScheme='teal'
                 aria-label="Previous tool"
                 icon={<ChevronLeftIcon />}
                 onClick={prevSlide}
@@ -113,7 +113,6 @@ export const ToolStatusCardsComponent:React.FC<ToolStatusCardsProps> = (props) =
                 isDisabled={currentIndex === 0}
               />
               <IconButton
-                bg='teal'
                 aria-label="Next tool"
                 icon={<ChevronRightIcon />}
                 onClick={nextSlide}

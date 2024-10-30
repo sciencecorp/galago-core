@@ -6,11 +6,12 @@ import tools.db.crud as crud
 import tools.db.models.inventory_models as models
 from tools.db.models.log_models import LogType, Log
 import tools.db.schemas as schemas
-from tools.db.models.db import SessionLocal,LogsSessionLocal
+from tools.db.models.db import SessionLocal,LogsSessionLocal, Base, LogBase
 import logging 
 from typing import Optional
 import uvicorn
 from tools.app_config import Config
+from contextlib import asynccontextmanager
 
 # Configure logging
 # Configure logging to use the socket handler
@@ -25,10 +26,22 @@ log_config = uvicorn.config.LOGGING_CONFIG
 log_config["formatters"]["access"]["fmt"] = "%(asctime)s | %(levelname)s | %(message)s"
 log_config["formatters"]["default"]["fmt"] = "%(asctime)s | %(levelname)s | %(message)s"
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+
+    logging.info("Starting up db session")
+    try:
+        Base.metadata.create_all(bind=SessionLocal().get_bind())
+        LogBase.metadata.create_all(bind=LogsSessionLocal().get_bind())
+    except Exception as e:
+        logging.error(e)
+        raise e
+    yield
+
 conf = Config()
 conf.load_app_config()
     
-app = FastAPI(title="Inventory API")
+app = FastAPI(title="Inventory API", lifespan=lifespan)
 origins = ["http://localhost:3010", "http://127.0.0.1:3010"]
 
 if conf.app_config.host_ip:
@@ -491,8 +504,6 @@ def get_variable(variable_name:str, db: Session = Depends(get_db)) -> t.Any:
 
 @app.post("/variables", response_model=schemas.VariableCreate)
 def create_variable(variable: schemas.VariableCreate, db: Session = Depends(get_db)) -> t.Any:
-    logging.info(f"Creating variable {variable.name}")
-    logging.info(f"Pay load is {variable}")
     existing_variable = db.query(models.Variable).filter(models.Variable.name == variable.name).first()
     if existing_variable:
         raise HTTPException(status_code=400, detail="Variable with that name already exists")
