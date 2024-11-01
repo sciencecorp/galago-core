@@ -3,20 +3,18 @@ import { log } from "console";
 import { DateTime } from "luxon";
 import ControllerConfig from "server/utils/ControllerConfig";
 
-
-export enum LogTypesEnum { 
-  'ALL' = 0,
-  'ERROR' = 1,
-  'WARNING' = 2,
-  'DEBUG' = 3,
-  'INFO' = 4,
-  'PLATE_MOVE' = 5,
-  'RUN_START' = 6,
-  'RUN_END' = 7,
-  'PLATE_READ'= 8,
-  'RUN_DURATION' = 9,
+export enum LogTypesEnum {
+  "ALL" = 0,
+  "ERROR" = 1,
+  "WARNING" = 2,
+  "DEBUG" = 3,
+  "INFO" = 4,
+  "PLATE_MOVE" = 5,
+  "RUN_START" = 6,
+  "RUN_END" = 7,
+  "PLATE_READ" = 8,
+  "RUN_DURATION" = 9,
 }
-
 
 export interface WorkcellCreate {
   name: string;
@@ -145,17 +143,17 @@ export interface Log {
 export interface SlackAlert {
   messageId: string;
   messageChannel: string;
-  workcell:string, 
-  tool:string,
-  protocol:string,
-  error:string,
-  update:string
+  workcell: string;
+  tool: string;
+  protocol: string;
+  error: string;
+  update: string;
 }
 
 export class InventoryApiClient {
   private apiClient: AxiosInstance;
   constructor() {
-  console.log("Client initianting with url "+`http://${process.env.NEXT_PUBLIC_API_URL}`);
+    console.log("Client initianting with url " + `http://${process.env.NEXT_PUBLIC_API_URL}`);
 
     this.apiClient = axios.create({
       baseURL: `http://${process.env.NEXT_PUBLIC_API_URL}`,
@@ -164,9 +162,9 @@ export class InventoryApiClient {
 
   // Get Inventory
   async getInventory(workcellName: string): Promise<Inventory> {
-    // console.log("Calling getInventory with workcellName "+workcellName);  
+    // console.log("Calling getInventory with workcellName "+workcellName);
     const inventory = await this.apiClient.get<Inventory>(
-      "/inventory?workcell_name=" + workcellName
+      "/inventory?workcell_name=" + workcellName,
     );
     return inventory.data;
   }
@@ -195,7 +193,7 @@ export class InventoryApiClient {
   async updateWorkcell(workcell_id: number, workcellUpdate: WorkcellUpdate): Promise<Workcell> {
     const response = await this.apiClient.put<Workcell>(
       `/workcells/${workcell_id}`,
-      workcellUpdate
+      workcellUpdate,
     );
     return response.data;
   }
@@ -223,7 +221,7 @@ export class InventoryApiClient {
 
   async updateInstrument(
     instrumentId: number,
-    instrumentUpdate: InstrumentUpdate
+    instrumentUpdate: InstrumentUpdate,
   ): Promise<Instrument> {
     const response = await this.apiClient.put(`/instruments/${instrumentId}`, instrumentUpdate);
     return response.data;
@@ -353,25 +351,23 @@ export class InventoryApiClient {
     return response.data;
   }
 
-  async getLogsAll(logType:LogTypesEnum): Promise<Log[]> {
-    let url:string;
-    if(logType == LogTypesEnum.ALL){
-      url = `/logs/`
-    }
-    else{
-      url = `/logs/${logType}`
+  async getLogsAll(logType: LogTypesEnum): Promise<Log[]> {
+    let url: string;
+    if (logType == LogTypesEnum.ALL) {
+      url = `/logs/`;
+    } else {
+      url = `/logs/${logType}`;
     }
     const response = await this.apiClient.get(url);
     return response.data;
   }
 
-  async getLogsPaginated(logType:string, offset:number, limit:number): Promise<Log[]> {
-    let url:string;
-    if(logType === "ALL"){
-      url = `logs_paginated?offset=${offset}&limit=${limit}`
-    }
-    else{
-      url = `logs_paginated?offset=${offset}&limit=${limit}&log_type=${logType}`
+  async getLogsPaginated(logType: string, offset: number, limit: number): Promise<Log[]> {
+    let url: string;
+    if (logType === "ALL") {
+      url = `logs_paginated?offset=${offset}&limit=${limit}`;
+    } else {
+      url = `logs_paginated?offset=${offset}&limit=${limit}&log_type=${logType}`;
     }
     // console.log("Calling url "+url);
 
@@ -384,43 +380,39 @@ export class InventoryApiClient {
     return response.data;
   }
 
-  async getImageBytes(): Promise<string>{
+  async getImageBytes(): Promise<string> {
     try {
-      const response = await this.apiClient.get('/image_test', {
-        responseType: 'arraybuffer',
+      const response = await this.apiClient.get("/image_test", {
+        responseType: "arraybuffer",
       });
       const result = btoa(
-        new Uint8Array(response.data).reduce(
-          (data, byte) => data + String.fromCharCode(byte),
-          '',
-        ),
+        new Uint8Array(response.data).reduce((data, byte) => data + String.fromCharCode(byte), ""),
       );
       return result;
     } catch (error) {
-      console.error('Error fetching the image:', error);
-      throw error;  // Re-throw the error if needed
+      console.error("Error fetching the image:", error);
+      throw error; // Re-throw the error if needed
     }
   }
 
-  async getSlackError(alertStatus:string): Promise<SlackAlert[]>{
+  async getSlackError(alertStatus: string): Promise<SlackAlert[]> {
     let url = "/slack_errors";
-    if(alertStatus){
+    if (alertStatus) {
       url = `${url}?=${alertStatus}`;
     }
     const response = await this.apiClient.get(url);
     return response.data;
   }
 
-  async createSlackError(slackAlert:SlackAlert): Promise<SlackAlert[]>{
+  async createSlackError(slackAlert: SlackAlert): Promise<SlackAlert[]> {
     const response = await this.apiClient.post(`/slack_errors`, slackAlert);
     return response.data;
   }
 
-  async clearSlackError() : Promise<SlackAlert>{
-    const response = await this.apiClient.put('/slack_errors')
+  async clearSlackError(): Promise<SlackAlert> {
+    const response = await this.apiClient.put("/slack_errors");
     return response.data;
   }
-
 }
 
 export const inventoryApiClient = new InventoryApiClient();

@@ -11,7 +11,6 @@ import dotenv from "dotenv";
 import { ToolType } from "gen-interfaces/controller";
 import { unknown } from "zod";
 
-
 // Using protobufs for any enums that might be serialized, and using numeric
 // serialization, is one way to ensure that the enum values are stable across
 // versions.
@@ -57,27 +56,27 @@ export class CommandQueue {
 
   // Used to start or restart the command queue from the main event loop.
   // Idempotent if already running.
-  async allCommands() :Promise<StoredRunCommand[]> {
+  async allCommands(): Promise<StoredRunCommand[]> {
     return this.commands.all();
   }
 
   async getPaginated(offset: number = 0, limit: number = 20): Promise<StoredRunCommand[]> {
     return this.commands.getPaginated(offset, limit);
   }
-  async getAllRuns(): Promise<RunQueue[]>{
+  async getAllRuns(): Promise<RunQueue[]> {
     return this.commands.getAllRuns();
   }
-  async getRun(runId:string){
+  async getRun(runId: string) {
     return this.commands.getRun(runId);
   }
   async clearAll() {
     await this.commands.clearAll();
   }
-  async clearByRunId(runId:string){
+  async clearByRunId(runId: string) {
     await this.commands.clearByRunId(runId);
   }
 
-  async getRunsTotal():Promise<number>{
+  async getRunsTotal(): Promise<number> {
     return this.commands.getTotalRuns();
   }
 
@@ -96,7 +95,7 @@ export class CommandQueue {
       await this._runningPromise;
       logger.info("Command Queue is running!" + this._runningPromise);
     } catch (e) {
-     // logger.error("Command Queue failed to start", e);
+      // logger.error("Command Queue failed to start", e);
       this.fail(e);
     } finally {
       this._runningPromise = undefined;
@@ -141,48 +140,43 @@ export class CommandQueue {
 
       const formattedDateTime = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
         2,
-        "0"
+        "0",
       )} ${formattedHours.padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
-        seconds
+        seconds,
       ).padStart(2, "0")} ${amOrPm}`;
 
       try {
         logger.info("Executing command", nextCommand.commandInfo);
         await this.executeCommand(nextCommand);
         logger.info("Command executed successfully");
-      
-      } 
-      catch (e) {
-        let errorMessage  = null;
+      } catch (e) {
+        let errorMessage = null;
         if (e instanceof Error) {
           errorMessage = e.message;
           console.log("Error message is" + errorMessage);
-        }
-        else{
-          errorMessage  = new Error("Unknown error while trying to execute tool command");
+        } else {
+          errorMessage = new Error("Unknown error while trying to execute tool command");
         }
         logger.error("Failed to execute command", e);
 
-        console.log("At this point the error value is "+ errorMessage);
-        const slackAlertCommand : ToolCommandInfo = {
-            toolId: "toolbox",
-            toolType:  "toolbox" as ToolType,
-            command: "send_slack_alert",
-            params: {
-              workcell:Tool.workcellName(),
-              tool:`${nextCommand.commandInfo.toolId}`,
-              protocol:"",
-              error_message: errorMessage
-            },
-        }
+        console.log("At this point the error value is " + errorMessage);
+        const slackAlertCommand: ToolCommandInfo = {
+          toolId: "toolbox",
+          toolType: "toolbox" as ToolType,
+          command: "send_slack_alert",
+          params: {
+            workcell: Tool.workcellName(),
+            tool: `${nextCommand.commandInfo.toolId}`,
+            protocol: "",
+            error_message: errorMessage,
+          },
+        };
         console.log("Sending slack command " + JSON.stringify(slackAlertCommand));
         // // logger.error(`Slack command is` + JSON.stringify(slackAlertCommand));
-        await Tool.executeCommand(
-          slackAlertCommand
-        )
+        await Tool.executeCommand(slackAlertCommand);
         await this.commands.fail(
           nextCommand.queueId,
-          e instanceof Error ? e : new Error("Unknown error")
+          e instanceof Error ? e : new Error("Unknown error"),
         );
         throw e;
       }
@@ -205,20 +199,19 @@ export class CommandQueue {
 
   //Queues all commands passed in run object
   async enqueueRun(run: Run) {
-    try{
-      const runQueue : RunQueue  = {
-        id: run.id, 
-        params : run.params,
+    try {
+      const runQueue: RunQueue = {
+        id: run.id,
+        params: run.params,
         run_type: run.protocolId,
-        commands_count : run.commands.length,
-        status: "CREATED"
-      }
+        commands_count: run.commands.length,
+        status: "CREATED",
+      };
       await this.commands.runPush(run.id, runQueue);
+    } catch (e) {
+      console.warn("Error to push run" + e);
     }
-    catch(e){
-      console.warn("Error to push run"+ e);
-    }
-    //Queue all commands in the run. 
+    //Queue all commands in the run.
     for (const c of run.commands) {
       await this.commands.push(c);
     }

@@ -7,17 +7,21 @@ import { any, z } from "zod";
 import Tool from "@/server/tools";
 import { trpc } from "@/utils/trpc";
 
-const sourcePlateType = z.enum(["","6-well","96-well", "384-well"]).default("96-well");
+const sourcePlateType = z.enum(["", "6-well", "96-well", "384-well"]).default("96-well");
 const sourceWells = z.string().default("1,2,3,4");
-const count_yesOrNo = z.enum(["","YES", "NO"]).default("YES")
+const count_yesOrNo = z.enum(["", "YES", "NO"]).default("YES");
 // const geltrex_yesOrNo = z.enum(["","YES", "NO"]).default("YES")
-const labware = z.enum(["","Tubes", "96 Deep wells"]).default("Tubes")
-const dissociation_reagent = z.enum(["","Accutase", "ReleSR", "Gentle Dissociation Cell Reagent (GDCR)"]).default("ReleSR")
-const destination_vessel = z.enum(["","Tubes", "Culture Plates"]).default("Culture Plates")
-const destinationPlateType = z.enum(["","6-well","96-well", "384-well"]).default("96-well");
-const number_of_source_plates = z.number().default(1) 
-const number_of_destination_plates = z.number().default(1)
-const protocol_type = z.enum(["","Custom","1:6", "1:3","Up/Down","Stamp", "ConsoliPick"]).default("1:6")
+const labware = z.enum(["", "Tubes", "96 Deep wells"]).default("Tubes");
+const dissociation_reagent = z
+  .enum(["", "Accutase", "ReleSR", "Gentle Dissociation Cell Reagent (GDCR)"])
+  .default("ReleSR");
+const destination_vessel = z.enum(["", "Tubes", "Culture Plates"]).default("Culture Plates");
+const destinationPlateType = z.enum(["", "6-well", "96-well", "384-well"]).default("96-well");
+const number_of_source_plates = z.number().default(1);
+const number_of_destination_plates = z.number().default(1);
+const protocol_type = z
+  .enum(["", "Custom", "1:6", "1:3", "Up/Down", "Stamp", "ConsoliPick"])
+  .default("1:6");
 export const PassagingHamiltonParams = z
   .object({
     Protocol_Type: protocol_type,
@@ -29,7 +33,7 @@ export const PassagingHamiltonParams = z
     Dissociation_Reagent: dissociation_reagent,
     DestinationPlateType: destinationPlateType,
     Counting: count_yesOrNo,
-    Destination_Vessel: destination_vessel, 
+    Destination_Vessel: destination_vessel,
   })
   .strict();
 
@@ -38,7 +42,7 @@ export default class PassagingHamilton extends Protocol<typeof PassagingHamilton
   category = "production";
   workcell = "Workcell 1";
   name = "Cell Passaging";
-  description = "Walk up Passaging Protocol"
+  description = "Walk up Passaging Protocol";
   paramSchema = PassagingHamiltonParams;
 
   _generateCommands(params: z.infer<typeof PassagingHamiltonParams>) {
@@ -50,7 +54,7 @@ export default class PassagingHamilton extends Protocol<typeof PassagingHamilton
     let source_labware = "plate";
     let source_plate_type = params.sourcePlateType;
     let destination_plate_type = params.DestinationPlateType;
-    let source_wells = params.Source_Wells.split(',').map(Number);
+    let source_wells = params.Source_Wells.split(",").map(Number);
     let counting = "NO";
     let destination_vessel = "PLATE";
     let source_plate_count = params.Number_of_Source_Plates;
@@ -58,26 +62,23 @@ export default class PassagingHamilton extends Protocol<typeof PassagingHamilton
     let geltrex_removal = "NO";
     let protocol_type = "";
     // let well_array = params.Source_Wells.split(',').map(Number);
-    if(params.Dissociation_Reagent === "Accutase"){
+    if (params.Dissociation_Reagent === "Accutase") {
       dissociation_reagent = "accutase";
-    }
-    else if (params.Dissociation_Reagent === "ReleSR"){
+    } else if (params.Dissociation_Reagent === "ReleSR") {
       dissociation_reagent = "ReleSR";
-    }
-    else if (params.Dissociation_Reagent === "Gentle Dissociation Cell Reagent (GDCR)"){
+    } else if (params.Dissociation_Reagent === "Gentle Dissociation Cell Reagent (GDCR)") {
       dissociation_reagent = "Gentle Dissociation Cell Reagent (GDCR)";
     }
-    if(params.Source_Labware === "Tubes"){
-      source_labware = "TUBE"
+    if (params.Source_Labware === "Tubes") {
+      source_labware = "TUBE";
     }
-    if (params.Destination_Vessel === "Tubes"){
-      destination_vessel = "TUBE"
+    if (params.Destination_Vessel === "Tubes") {
+      destination_vessel = "TUBE";
+    } else if (params.Destination_Vessel === "Culture Plates") {
+      destination_vessel = "PLATE";
     }
-    else if (params.Destination_Vessel === "Culture Plates"){
-      destination_vessel = "PLATE"
-    }
-    if (params.Counting === "YES"){
-      counting = "YES"
+    if (params.Counting === "YES") {
+      counting = "YES";
     }
     // if (params.Remove_Geltrex === "YES"){
     //   geltrex_removal = "YES"
@@ -103,58 +104,54 @@ export default class PassagingHamilton extends Protocol<typeof PassagingHamilton
 
     ///////////////////// Protocol //////////////////////////
 
-    if (params.Protocol_Type === "1:6"){
-      protocol_type = "C:\\Program Files (x86)\\HAMILTON\\Methods\\6well_passage_v2_silvio.med"
-    }
-    else if (params.Protocol_Type === "1:3"){
-      protocol_type = "C:\\Program Files (x86)\\HAMILTON\\Methods\\6well_passage_v2_silvio.med"
-    }
-    else if (params.Protocol_Type === "Stamp"){
-      protocol_type = "INSERT STAMP DIRECTORY HERE"
-    }
-    else if (params.Protocol_Type === "Custom"){
-      protocol_type = "C:\\Program Files (x86)\\HAMILTON\\Methods\\6well_passage_v4_mo.med"
-    }
-    else if (params.Protocol_Type === "ConsoliPick"){
-      protocol_type = "C:\\Program Files (x86)\\HAMILTON\\Methods\\6well_passage_v3_ConsoliPick.med"
+    if (params.Protocol_Type === "1:6") {
+      protocol_type = "C:\\Program Files (x86)\\HAMILTON\\Methods\\6well_passage_v2_silvio.med";
+    } else if (params.Protocol_Type === "1:3") {
+      protocol_type = "C:\\Program Files (x86)\\HAMILTON\\Methods\\6well_passage_v2_silvio.med";
+    } else if (params.Protocol_Type === "Stamp") {
+      protocol_type = "INSERT STAMP DIRECTORY HERE";
+    } else if (params.Protocol_Type === "Custom") {
+      protocol_type = "C:\\Program Files (x86)\\HAMILTON\\Methods\\6well_passage_v4_mo.med";
+    } else if (params.Protocol_Type === "ConsoliPick") {
+      protocol_type =
+        "C:\\Program Files (x86)\\HAMILTON\\Methods\\6well_passage_v3_ConsoliPick.med";
     }
 
     const object_data_record: Record<string, any> = {
-      "protocol_type": params.Protocol_Type,
-      "source_wells": source_wells,
-      "source_plate_type": source_plate_type,
-      "remove_geltrex":geltrex_removal,
-      "tubes_or_dws": source_labware,
-      "dissociation_reagent": dissociation_reagent,
-      "destination_container": destination_vessel,
-      "source_plate_count": source_plate_count,
-      "destination_plate_count": destination_plate_count,
-      "destination_plate_type": destination_plate_type,
-      "counting": counting,
+      protocol_type: params.Protocol_Type,
+      source_wells: source_wells,
+      source_plate_type: source_plate_type,
+      remove_geltrex: geltrex_removal,
+      tubes_or_dws: source_labware,
+      dissociation_reagent: dissociation_reagent,
+      destination_container: destination_vessel,
+      source_plate_count: source_plate_count,
+      destination_plate_count: destination_plate_count,
+      destination_plate_type: destination_plate_type,
+      counting: counting,
     };
     //const inputs: any = buildGoogleStructValue(object_data_record);
 
     let protocol_cmds: ToolCommandInfo[] = [
-       {
-            toolId: "toolbox",
-            toolType: ToolType.toolbox,
-            command: "write_to_json",
-            params: {
-              struct_object:object_data_record,
-              file_path:"C:/galago-data/hamilton/inputs.json"
-            },
+      {
+        toolId: "toolbox",
+        toolType: ToolType.toolbox,
+        command: "write_to_json",
+        params: {
+          struct_object: object_data_record,
+          file_path: "C:/galago-data/hamilton/inputs.json",
         },
-        {
-            label: "Run Passaging Protocol",
-            toolId: "hamilton_1",
-            toolType:  ToolType.hamilton,
-            command: "run_protocol",
-            params: {
-                protocol: protocol_type
-            },
-          },
-
-    ] as ToolCommandInfo[];    
+      },
+      {
+        label: "Run Passaging Protocol",
+        toolId: "hamilton_1",
+        toolType: ToolType.hamilton,
+        command: "run_protocol",
+        params: {
+          protocol: protocol_type,
+        },
+      },
+    ] as ToolCommandInfo[];
 
     return protocol_cmds;
   }

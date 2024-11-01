@@ -25,7 +25,7 @@ export default function CommandComponent({
   command: RunCommand;
 }) {
   const { queueId, commandInfo, estimatedDuration, status } = runCommand;
-  const { toolId, toolType, params, command, label='' } = commandInfo;
+  const { toolId, toolType, params, command, label = "" } = commandInfo;
 
   const skipMutation = trpc.commandQueue.skipCommand.useMutation();
   const skipUntilMutation = trpc.commandQueue.skipCommandsUntil.useMutation();
@@ -35,14 +35,14 @@ export default function CommandComponent({
     status === "CREATED"
       ? runCommand.createdAt
       : status === "STARTED"
-      ? runCommand.startedAt
-      : status === "COMPLETED"
-      ? runCommand.completedAt
-      : status === "FAILED"
-      ? runCommand.failedAt
-      : status === "SKIPPED"
-      ? runCommand.skippedAt
-      : undefined;
+        ? runCommand.startedAt
+        : status === "COMPLETED"
+          ? runCommand.completedAt
+          : status === "FAILED"
+            ? runCommand.failedAt
+            : status === "SKIPPED"
+              ? runCommand.skippedAt
+              : undefined;
 
   const queued = queueId && (status === "CREATED" || status === "FAILED" || status === "STARTED");
   const timeDescription = relevantTimestamp && relevantTimestamp.toLocaleTimeString();
@@ -66,19 +66,18 @@ export default function CommandComponent({
         <Tag>{label}</Tag>
       </Td>
       <Td>
-        <Box 
-          as="pre" 
-          style={{ 
-            maxHeight: '200px', // or whatever maximum height you prefer
-            overflowY: 'auto',  // this provides the vertical scrollbar when needed
-            maxWidth: '400px',
-            overflowX: 'auto',
-            fontSize: "0.8em", 
-            whiteSpace: "pre-wrap", 
-            wordWrap: "break-word", 
-            padding: '4px' 
-          }}
-        >
+        <Box
+          as="pre"
+          style={{
+            maxHeight: "200px", // or whatever maximum height you prefer
+            overflowY: "auto", // this provides the vertical scrollbar when needed
+            maxWidth: "400px",
+            overflowX: "auto",
+            fontSize: "0.8em",
+            whiteSpace: "pre-wrap",
+            wordWrap: "break-word",
+            padding: "4px",
+          }}>
           {paramString}
         </Box>
       </Td>
@@ -122,7 +121,9 @@ export default function CommandComponent({
               <MenuItem onClick={() => skipMutation.mutate(queueId)}>⏩ Skip</MenuItem>
             ) : null}
             {queued ? (
-              <MenuItem onClick={() => skipUntilMutation.mutate(queueId)}>⏩⏩ Skip to this command</MenuItem>
+              <MenuItem onClick={() => skipUntilMutation.mutate(queueId)}>
+                ⏩⏩ Skip to this command
+              </MenuItem>
             ) : null}
             <MenuItem onClick={() => execMutation.mutate(commandInfo)}>🔨 Send to Tool</MenuItem>
           </MenuList>

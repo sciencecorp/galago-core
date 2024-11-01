@@ -1,141 +1,140 @@
 {
-    "id": "workcell_1",
-    "name": "Workcell 1",
-    "host": "0.0.0.0",
-    "port": 4000,
-    "tools": [
-      {
-        "id": "cytation_1",
-        "type": "cytation",
-        "name": "Cytation 5",
-        "description": "Cell Multi-Mode Imager",
-        "image_url":"/tool_icons/cytation5.png",
-        "ip": "localhost",
-        "port":4300,
-        "config": {
-          "simulated": true,
-          "cytation": {
-            "tool_id":"workcell_1_cytation_1",
-            "protocol_dir": "C:\\cytation_protocols",
-            "experiment_dir": "C:\\cytation_experiments",
-            "reader_type": "CYTATION_READER_CYTATION5"
-          }
-        }
-      },
-      {
-        "id": "pf400_1",
-        "type": "pf400",
-        "name": "PF 400",
-        "description": "Robot Arm",
-        "image_url":"/tool_icons/pf400.jpg",
-        "ip": "localhost",
-        "port":4200,
-        "config": {
-          "simulated": true,
-          "pf400": {
-            "tool_id": "pf400_1",
-            "host": "192.168.0.4",
-            "port": 10100,
-            "waypoints_json_file": "workcell_1_waypoints.json",
-            "joints": 6
-          }
-        }
-      },
-      {
-        "id": "Liconic",
-        "type": "liconic",
-        "name": "Liconic",
-        "image_url":"/tool_icons/liconic.png",
-        "description": "Incubator",
-        "ip": "localhost",
-        "port":4100,
-        "config": {
-          "simulated": true,
-          "liconic": {
-            "tool_id": "Liconic",
-            "com_port": "COM15"
-          }
-        }
-      },
-      {
-        "id": "opentrons2_1",
-        "type": "opentrons2",
-        "name": "OT-2",
-        "description": "Liquid Handler",
-        "image_url":"/tool_icons/ot2.png",
-        "ip": "localhost",
-        "port":4400,
-        "config": {
-          "simulated": true,
-          "opentrons2": {
-            "tool_id": "opentrons2_1",
-            "robot_ip": "10.40.60.167",
-            "robot_port": 31950,
-            "program_dir": "C:\\opentrons_programs"
-          }
-        }
-      },
-      {
-        "id": "vcode_1",
-        "type": "vcode",
-        "name": "VCode Labeler",
-        "description": "Microplate Labeler",
-        "image_url":"/tool_icons/vcode_labeler.png",
-        "ip": "localhost",
-        "port":4600,
-        "config": {
-          "simulated": true,
-          "vcode": {
-            "tool_id": "vcode_1",
-            "profile": "VCode"
-          }
-        }
-      },
-      {
-        "id": "bravo_1",
-        "type": "bravo",
-        "name": "Bravo",
-        "description": "Liquid Handler Agilent",
-        "image_url":"/tool_icons/bravo_agilent.svg",
-        "ip": "localhost",
-        "port": 4700,
-        "config": {
-          "simulated": true,
-          "bravo": {
-            "device_file":"Bravo_Walkup"
-          }
-        }
-      },
-      {
-        "id": "plateloc_1",
-        "type": "plateloc",
-        "name": "PlateLoc Sealer",
-        "description": "Agilent Plate Sealer",
-        "image_url":"/tool_icons/plateloc.png",
-        "ip": "localhost",
-        "port": 4750,
-        "config": {
-          "simulated": true,
-          "plateloc": {
-            "profile":"plateloc"
-          }
-        }
-      },
-      {
-        "id": "hamilton_1",
-        "type": "hamilton",
-        "name": "Hamilton STAR",
-        "description": "Liquid Handler",
-        "image_url":"/tool_icons/hamilton_star.png",
-        "ip": "localhost",
-        "port":4800,
-        "config": {
-          "simulated": true,
-          "hamilton": {
-            "tool_id":"hamilton_1"
-          }
+  "id": "workcell_1",
+  "name": "Workcell 1",
+  "host": "0.0.0.0",
+  "port": 4000,
+  "tools": [
+    {
+      "id": "cytation_1",
+      "type": "cytation",
+      "name": "Cytation 5",
+      "description": "Cell Multi-Mode Imager",
+      "image_url": "/tool_icons/cytation5.png",
+      "ip": "localhost",
+      "port": 4300,
+      "config": {
+        "simulated": true,
+        "cytation": {
+          "tool_id": "workcell_1_cytation_1",
+          "protocol_dir": "C:\\cytation_protocols",
+          "experiment_dir": "C:\\cytation_experiments",
+          "reader_type": "CYTATION_READER_CYTATION5"
         }
       }
-    ]
-  }
-  
+    },
+    {
+      "id": "pf400_1",
+      "type": "pf400",
+      "name": "PF 400",
+      "description": "Robot Arm",
+      "image_url": "/tool_icons/pf400.jpg",
+      "ip": "localhost",
+      "port": 4200,
+      "config": {
+        "simulated": true,
+        "pf400": {
+          "tool_id": "pf400_1",
+          "host": "192.168.0.4",
+          "port": 10100,
+          "waypoints_json_file": "workcell_1_waypoints.json",
+          "joints": 6
+        }
+      }
+    },
+    {
+      "id": "Liconic",
+      "type": "liconic",
+      "name": "Liconic",
+      "image_url": "/tool_icons/liconic.png",
+      "description": "Incubator",
+      "ip": "localhost",
+      "port": 4100,
+      "config": {
+        "simulated": true,
+        "liconic": {
+          "tool_id": "Liconic",
+          "com_port": "COM15"
+        }
+      }
+    },
+    {
+      "id": "opentrons2_1",
+      "type": "opentrons2",
+      "name": "OT-2",
+      "description": "Liquid Handler",
+      "image_url": "/tool_icons/ot2.png",
+      "ip": "localhost",
+      "port": 4400,
+      "config": {
+        "simulated": true,
+        "opentrons2": {
+          "tool_id": "opentrons2_1",
+          "robot_ip": "10.40.60.167",
+          "robot_port": 31950,
+          "program_dir": "C:\\opentrons_programs"
+        }
+      }
+    },
+    {
+      "id": "vcode_1",
+      "type": "vcode",
+      "name": "VCode Labeler",
+      "description": "Microplate Labeler",
+      "image_url": "/tool_icons/vcode_labeler.png",
+      "ip": "localhost",
+      "port": 4600,
+      "config": {
+        "simulated": true,
+        "vcode": {
+          "tool_id": "vcode_1",
+          "profile": "VCode"
+        }
+      }
+    },
+    {
+      "id": "bravo_1",
+      "type": "bravo",
+      "name": "Bravo",
+      "description": "Liquid Handler Agilent",
+      "image_url": "/tool_icons/bravo_agilent.svg",
+      "ip": "localhost",
+      "port": 4700,
+      "config": {
+        "simulated": true,
+        "bravo": {
+          "device_file": "Bravo_Walkup"
+        }
+      }
+    },
+    {
+      "id": "plateloc_1",
+      "type": "plateloc",
+      "name": "PlateLoc Sealer",
+      "description": "Agilent Plate Sealer",
+      "image_url": "/tool_icons/plateloc.png",
+      "ip": "localhost",
+      "port": 4750,
+      "config": {
+        "simulated": true,
+        "plateloc": {
+          "profile": "plateloc"
+        }
+      }
+    },
+    {
+      "id": "hamilton_1",
+      "type": "hamilton",
+      "name": "Hamilton STAR",
+      "description": "Liquid Handler",
+      "image_url": "/tool_icons/hamilton_star.png",
+      "ip": "localhost",
+      "port": 4800,
+      "config": {
+        "simulated": true,
+        "hamilton": {
+          "tool_id": "hamilton_1"
+        }
+      }
+    }
+  ]
+}

@@ -39,10 +39,10 @@ import {
   Modal,
   ModalContent,
   ModalHeader,
-  ModalBody, 
+  ModalBody,
   ModalFooter,
   ModalCloseButton,
-  useDisclosure
+  useDisclosure,
 } from "@chakra-ui/react";
 import InventoryVisualizer from "@/components/inventory/InventoryVisualizer";
 import { ToolType } from "gen-interfaces/controller";
@@ -62,14 +62,12 @@ export default function Page() {
   const [alertDescription, setAlertDescription] = useState<string>("");
 
   const [inventory, setInventory] = useState<Inventory | null>(null);
-  const [mode, setMode] = useState<"checkin" | "checkout" | "" | "move" | "delete">(
-    "checkin"
-  );
+  const [mode, setMode] = useState<"checkin" | "checkout" | "" | "move" | "delete">("checkin");
 
   const [selectedPlate, setSelectedPlate] = useState<Plate | null>(null);
   const [selectedNest, setSelectedNest] = useState<Nest | null>(null);
-  const [destinationNest, setDestinationNest] = useState<Nest| null>(null);
-  const [dPlate, setdPlate] = useState<Plate|null>(null);
+  const [destinationNest, setDestinationNest] = useState<Nest | null>(null);
+  const [dPlate, setdPlate] = useState<Plate | null>(null);
 
   const [selectedWells, setSelectedWells] = useState<Well[]>([]);
   const [selectedReagents, setSelectedReagents] = useState<Reagent[]>([]);
@@ -89,7 +87,7 @@ export default function Page() {
 
   const commandMutation = trpc.tool.runCommand.useMutation();
   const pf400ID = availableIDs?.filter((id) => id.includes("pf400"))[0];
-  
+
   const liconicID = availableIDs?.filter((id) => id.includes("Liconic"))[0];
 
   const workcellData = trpc.tool.getWorkcellName.useQuery();
@@ -97,37 +95,44 @@ export default function Page() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const {isOpen: isLoadLiconicModalOpen, onOpen: onLiconicModalOpen, onClose: onLiconicModalClose} = useDisclosure();
+  const {
+    isOpen: isLoadLiconicModalOpen,
+    onOpen: onLiconicModalOpen,
+    onClose: onLiconicModalClose,
+  } = useDisclosure();
 
   useEffect(() => {
-    const fetchInventoryData = async() => {
+    const fetchInventoryData = async () => {
       try {
         if (workcellName === undefined) {
           return;
         }
         const inventoryData = await inventoryApiClient.getInventory(workcellName);
         setInventory(inventoryData);
-  
+
         const platesFuse = new Fuse(inventoryData.plates, { keys: ["name"], threshold: 0.3 });
         setPlatesFuseInstance(platesFuse);
-  
+
         const reagentsFuse = new Fuse(inventoryData.reagents, { keys: ["name"], threshold: 0.3 });
         setReagentsFuseInstance(reagentsFuse);
-  
+
         if (selectedNest && selectedNest.name) {
           setInputNestName(selectedNest.name);
         }
         if (selectedPlate && selectedPlate.name) {
-          const plate_wells = inventoryData?.wells.filter((well) => well.plate_id === selectedPlate.id) || [];
+          const plate_wells =
+            inventoryData?.wells.filter((well) => well.plate_id === selectedPlate.id) || [];
           setSelectedWells(plate_wells);
           const well_ids: number[] = plate_wells.map((well) => well.id) || [];
-          setSelectedReagents(inventoryData?.reagents.filter((reagent) => well_ids.includes(reagent.well_id)) || []);
+          setSelectedReagents(
+            inventoryData?.reagents.filter((reagent) => well_ids.includes(reagent.well_id)) || [],
+          );
           setInputPlateName(selectedPlate.name);
         }
       } catch (error) {
         console.warn("Error fetching data:", error);
       }
-    }
+    };
     fetchInventoryData();
   }, [workcellName, selectedNest, selectedPlate, refreshFlag]);
 
@@ -139,7 +144,7 @@ export default function Page() {
 
   const launchAlert = (
     status: "error" | "info" | "warning" | "success" | "loading",
-    description: string
+    description: string,
   ) => {
     setAlertStatus(status);
     setAlertDescription(description);
@@ -156,7 +161,7 @@ export default function Page() {
     }
 
     const instrument = inventory.instruments.filter(
-      (instrument) => instrument.name === instrumentName
+      (instrument) => instrument.name === instrumentName,
     )[0];
 
     if (!instrument) {
@@ -168,10 +173,10 @@ export default function Page() {
       launchAlert("error", "No nests available");
       return;
     }
-    for(var i=0; i < zones.length; i++) {
-      const zone : number = zones[i];
-      const filtered_nests = nests.filter((nest)=> nest.column === zone)
-      if(filtered_nests) {
+    for (var i = 0; i < zones.length; i++) {
+      const zone: number = zones[i];
+      const filtered_nests = nests.filter((nest) => nest.column === zone);
+      if (filtered_nests) {
         for (const nest of filtered_nests) {
           let nest_plates = inventory.plates.filter((plate) => plate.nest_id === nest.id);
           if (nest_plates.length === 0) {
@@ -194,14 +199,14 @@ export default function Page() {
       return;
     }
     var today = new Date();
-    var dd = String(today.getDate()).padStart(2, '0');
-    var mm = String(today.getMonth() + 1).padStart(2, '0');
+    var dd = String(today.getDate()).padStart(2, "0");
+    var mm = String(today.getMonth() + 1).padStart(2, "0");
     var yyyy = today.getFullYear();
 
-    let todayString = mm + '/' + dd + '/' + yyyy;
+    let todayString = mm + "/" + dd + "/" + yyyy;
     const barcode = dPlate?.barcode;
-    const labwareType = dPlate?.plate_type
-    const plateName  = dPlate?.name;
+    const labwareType = dPlate?.plate_type;
+    const plateName = dPlate?.name;
 
     const toolCommand: ToolCommandInfo = {
       toolId: vcodeId,
@@ -214,35 +219,37 @@ export default function Page() {
         field_0: `WP-${plateName}`,
         field_1: barcode,
         field_2: labwareType,
-        field_3: todayString, 
-        field_4: "", 
-        field_5: "", 
+        field_3: todayString,
+        field_4: "",
+        field_5: "",
       },
     };
-    const response: ExecuteCommandReply | undefined = await commandMutation.mutateAsync(
-      toolCommand
-    );
-    if(response?.response != ResponseCode.SUCCESS){
+    const response: ExecuteCommandReply | undefined =
+      await commandMutation.mutateAsync(toolCommand);
+    if (response?.response != ResponseCode.SUCCESS) {
       launchAlert("error", `Error printing label ${response?.error_message}`);
     }
     setLoading(false);
     onClose();
     onLiconicModalOpen();
-  }
+  };
 
-  const handlePrintLabelCloseModal= () => {
+  const handlePrintLabelCloseModal = () => {
     onClose();
     onLiconicModalOpen();
-  }
+  };
 
   const handleLiconicLoadCloseModal = () => {
     onLiconicModalClose();
     setLoading(false);
-  }
+  };
 
   const loadLiconicModal = () => {
-    return(
-      <Modal isOpen={isLoadLiconicModalOpen} onClose={handleLiconicLoadCloseModal} isCentered={true}>
+    return (
+      <Modal
+        isOpen={isLoadLiconicModalOpen}
+        onClose={handleLiconicLoadCloseModal}
+        isCentered={true}>
         <ModalContent>
           <ModalHeader>Liconic Load Plate?</ModalHeader>
           <ModalCloseButton />
@@ -250,18 +257,25 @@ export default function Page() {
             <Text>Please place plate on liconic transfer station and click Accept.</Text>
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={()=>{loadPlateToLiconic(dPlate, destinationNest)}}>
+            <Button
+              colorScheme="blue"
+              mr={3}
+              onClick={() => {
+                loadPlateToLiconic(dPlate, destinationNest);
+              }}>
               Accept
             </Button>
-            <Button variant="ghost" onClick={handleLiconicLoadCloseModal}>Cancel</Button>
+            <Button variant="ghost" onClick={handleLiconicLoadCloseModal}>
+              Cancel
+            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
-    )
-  }
+    );
+  };
 
   const printAndLabelPlateModal = () => {
-    return(
+    return (
       <Modal isOpen={isOpen} onClose={handlePrintLabelCloseModal} isCentered={true}>
         <ModalContent>
           <ModalHeader>Label Plate?</ModalHeader>
@@ -274,12 +288,14 @@ export default function Page() {
             <Button colorScheme="blue" mr={3} onClick={handlePrintAndApply}>
               Print
             </Button>
-            <Button variant="ghost" onClick={handlePrintLabelCloseModal}>Cancel</Button>
+            <Button variant="ghost" onClick={handlePrintLabelCloseModal}>
+              Cancel
+            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
-    )
-  }
+    );
+  };
 
   const handleCheckInPlate = async () => {
     if (!inventory) {
@@ -288,8 +304,8 @@ export default function Page() {
     }
     let destination_nest = inventory.nests.filter((nest) => nest.name === inputNestName)[0];
     setDestinationNest(destination_nest);
-    let plate = inventory.plates.filter((plate) => plate.name === inputPlateName)[0];    
-    
+    let plate = inventory.plates.filter((plate) => plate.name === inputPlateName)[0];
+
     if (!plate) {
       plate = await inventoryApiClient.createPlate({
         name: inputPlateName,
@@ -318,7 +334,7 @@ export default function Page() {
       destination_nest = available_nest;
     }
     setLoading(true);
-    
+
     try {
       if (!liconicID) {
         launchAlert("error", "No liconic ID available");
@@ -343,7 +359,7 @@ export default function Page() {
       setRefreshFlag(!refreshFlag);
       launchAlert(
         "success",
-        `Plate ${inputPlateName} checked in successfully into nest ${destination_nest.name}`
+        `Plate ${inputPlateName} checked in successfully into nest ${destination_nest.name}`,
       );
     } catch (error) {
       launchAlert("error", "Error checking in plate");
@@ -352,14 +368,14 @@ export default function Page() {
     }
   };
 
-  const loadPlateToLiconic = async (plate:Plate | null, destinationNest:Nest|null) => {
-    if(!plate){
+  const loadPlateToLiconic = async (plate: Plate | null, destinationNest: Nest | null) => {
+    if (!plate) {
       launchAlert("error", "Plate can't be null");
       onLiconicModalClose();
       setLoading(false);
       return;
     }
-    if(!destinationNest){
+    if (!destinationNest) {
       launchAlert("error", "Destination Nest can't be null");
       onLiconicModalClose();
       setLoading(false);
@@ -394,12 +410,9 @@ export default function Page() {
             level: destination_level,
           },
         };
-        try{
-          await commandMutation.mutateAsync(
-            toolCommand
-          );
-        }
-        catch (error) {
+        try {
+          await commandMutation.mutateAsync(toolCommand);
+        } catch (error) {
           setLoading(false);
           launchAlert("error", "Error loading plate into liconic");
           return;
@@ -411,17 +424,15 @@ export default function Page() {
         setRefreshFlag(!refreshFlag);
         launchAlert(
           "success",
-          `Plate ${inputPlateName} checked in successfully into nest ${destinationNest.name}`
+          `Plate ${inputPlateName} checked in successfully into nest ${destinationNest.name}`,
         );
         setLoading(false);
-
       }
       setLoading(false);
       return;
     }
-  }
+  };
   const handleCheckOutPlate = async () => {
-    
     if (!inventory) {
       launchAlert("error", "No inventory available");
       return;
@@ -456,21 +467,19 @@ export default function Page() {
             level: source_level,
           },
         };
-      try{ await commandMutation.mutateAsync(
-          toolCommand
-        );
-      }
-      catch (error) {
-        launchAlert("error", `Failed to unload plate into liconic: ${error}`);
-        setLoading(false);
-        return;
-      }
+        try {
+          await commandMutation.mutateAsync(toolCommand);
+        } catch (error) {
+          launchAlert("error", `Failed to unload plate into liconic: ${error}`);
+          setLoading(false);
+          return;
+        }
         await inventoryApiClient.updatePlate(plate.id, {
           nest_id: null,
         } as PlateUpdate);
         launchAlert("success", `Plate ${inputPlateName} checked out successfully`);
         setLoading(false);
-    }
+      }
     } catch (error) {
       setLoading(false);
       launchAlert("error", "Error checking out plate");
@@ -555,9 +564,8 @@ export default function Page() {
         },
       };
 
-      const response: ExecuteCommandReply | undefined = await commandMutation.mutateAsync(
-        toolCommand
-      );
+      const response: ExecuteCommandReply | undefined =
+        await commandMutation.mutateAsync(toolCommand);
 
       if (response && response.response === ResponseCode.SUCCESS) {
         await inventoryApiClient.updatePlate(plate.id, {
@@ -566,14 +574,14 @@ export default function Page() {
         setRefreshFlag(!refreshFlag);
         launchAlert(
           "success",
-          `Plate ${inputPlateName} moved successfully to nest ${destination_nest.name}`
+          `Plate ${inputPlateName} moved successfully to nest ${destination_nest.name}`,
         );
       } else {
         launchAlert("error", "Error moving plate");
       }
     } catch (error) {
       launchAlert("error", "Error moving plate");
-    };
+    }
   };
 
   const handleDeletePlate = async () => {
@@ -645,7 +653,6 @@ export default function Page() {
     return !Number.isNaN(Number(str));
   };
 
-
   return (
     <Box maxWidth="1800px" margin="auto">
       {printAndLabelPlateModal()}
@@ -686,8 +693,8 @@ export default function Page() {
                         ? "gray.800"
                         : "gray.700"
                       : index % 2 === 0
-                      ? "white"
-                      : "gray.100"
+                        ? "white"
+                        : "gray.100"
                   }>
                   {isPlate(result) && (
                     <Tooltip label="Click to find corresponding plate">
@@ -743,7 +750,7 @@ export default function Page() {
             variant={mode === "" ? "solid" : "outline"}
             width="100%"
             onClick={() => setMode("")}>
-             Plate
+            Plate
           </Button>
           <Button
             colorScheme="gray"
@@ -755,31 +762,26 @@ export default function Page() {
         </VStack>
         {mode === "checkin" && (
           <VStack align="center" spacing="4">
-          <Text fontSize="xl">Check In Plate</Text>
-          <InputGroup>
-          </InputGroup>
+            <Text fontSize="xl">Check In Plate</Text>
+            <InputGroup></InputGroup>
             <InputGroup>
-  
-              {<Select
+              {
+                <Select
                   placeholder="Select plate"
                   value={inputPlateName}
-                  onChange={(e) => setInputPlateName(e.target.value)}
-                >
+                  onChange={(e) => setInputPlateName(e.target.value)}>
                   {inventory?.plates
-                  .filter((plate) => plate.nest_id) // only include plates that are checked-in
-                  .map((plate) => (
-                    <option key={plate.id} value={plate.name !== null ? plate.name : ""}>
-                      {plate.name} ({plate.barcode}) - {plate.plate_type} - Nest: {plate.nest_id}
-                    </option>
-                  ))}
+                    .filter((plate) => plate.nest_id) // only include plates that are checked-in
+                    .map((plate) => (
+                      <option key={plate.id} value={plate.name !== null ? plate.name : ""}>
+                        {plate.name} ({plate.barcode}) - {plate.plate_type} - Nest: {plate.nest_id}
+                      </option>
+                    ))}
                 </Select>
               }
-
             </InputGroup>
             <InputGroup>
-              <InputLeftAddon>
-              Nest ID
-              </InputLeftAddon>
+              <InputLeftAddon>Nest ID</InputLeftAddon>
               <Input
                 placeholder="(optional) Click a nest"
                 value={inputNestName}
@@ -792,16 +794,13 @@ export default function Page() {
             <Button colorScheme="gray" variant="outline" width="100%" onClick={handleCheckInPlate}>
               Check In
             </Button>
-            
           </VStack>
         )}
         {mode == "checkout" && (
           <VStack align="center" spacing="4">
             <Text fontSize="xl">Check Out Plate</Text>
             <InputGroup>
-              <InputLeftAddon >
-              Name
-              </InputLeftAddon>
+              <InputLeftAddon>Name</InputLeftAddon>
               <Input
                 placeholder="Type plate name or click plate"
                 value={inputPlateName}
@@ -817,9 +816,7 @@ export default function Page() {
           <VStack align="center" spacing="4">
             <Text fontSize="xl"> Reagent Plate</Text>
             <InputGroup>
-              <InputLeftAddon>
-              Plate Name
-              </InputLeftAddon>
+              <InputLeftAddon>Plate Name</InputLeftAddon>
               <Input
                 placeholder="Type name of plate"
                 value={inputPlateName}
@@ -827,9 +824,7 @@ export default function Page() {
               />
             </InputGroup>
             <InputGroup>
-              <InputLeftAddon>
-                Plate Type
-              </InputLeftAddon>
+              <InputLeftAddon>Plate Type</InputLeftAddon>
               <Select
                 placeholder="Select type of plate"
                 value={inputPlateType}
@@ -840,9 +835,7 @@ export default function Page() {
               </Select>
             </InputGroup>
             <InputGroup>
-              <InputLeftAddon>
-              Destination Nest
-              </InputLeftAddon>
+              <InputLeftAddon>Destination Nest</InputLeftAddon>
               <Input
                 placeholder="Type nest name or click nest"
                 value={inputNestName}
@@ -850,7 +843,7 @@ export default function Page() {
               />
             </InputGroup>
             <Button colorScheme="green" variant="outline" width="100%" onClick={handlePlate}>
-               Plate
+              Plate
             </Button>
           </VStack>
         )}
@@ -861,9 +854,7 @@ export default function Page() {
               Note, cannot move plates into liconic. Must use Checkout/Checkin to control liconic.
             </Text>
             <InputGroup>
-              <InputLeftAddon >
-                Source Plate
-              </InputLeftAddon>
+              <InputLeftAddon>Source Plate</InputLeftAddon>
               <Input
                 placeholder="Type plate name or click plate"
                 value={inputPlateName}
@@ -871,9 +862,7 @@ export default function Page() {
               />
             </InputGroup>
             <InputGroup>
-              <InputLeftAddon>
-              Destination Nest
-              </InputLeftAddon>
+              <InputLeftAddon>Destination Nest</InputLeftAddon>
               <Input
                 placeholder="Type nest name or click nest"
                 value={inputNestName}
@@ -889,9 +878,7 @@ export default function Page() {
           <VStack align="center" spacing="4">
             <Text fontSize="xl">Delete Plate</Text>
             <InputGroup>
-              <InputLeftAddon>
-              Name
-              </InputLeftAddon>
+              <InputLeftAddon>Name</InputLeftAddon>
               <Input
                 placeholder="Type plate name or click plate"
                 value={inputPlateName}
@@ -905,19 +892,17 @@ export default function Page() {
         )}
         {selectedPlate && (
           <VStack align="stretch" spacing="4">
-
-{/* 
+            {/* 
         <InteractivePlateVisualizer
           plate={selectedPlate}
           wells={selectedWells}
           reagents={selectedReagents}
           refreshOnChange={() => setRefreshFlag(!refreshFlag)}
         /> */}
-        </VStack>
-        
-      )}
+          </VStack>
+        )}
       </HStack>
-      
+
       {showAlert && (
         <Alert status={alertStatus}>
           <AlertIcon />
@@ -933,9 +918,13 @@ export default function Page() {
           />
         </Alert>
       )}
-      {loading && <Progress hasStripe colorScheme='yellow' size="sm" isIndeterminate />}
+      {loading && <Progress hasStripe colorScheme="yellow" size="sm" isIndeterminate />}
       <Box h="2px" bg="gray.200" width="100%" my="12px" />
-      {!inventory && <Alert status="info">No inventory available. Reference documentation on how to build inventory</Alert>}
+      {!inventory && (
+        <Alert status="info">
+          No inventory available. Reference documentation on how to build inventory
+        </Alert>
+      )}
       {inventory && (
         <InventoryVisualizer
           inventory={inventory}

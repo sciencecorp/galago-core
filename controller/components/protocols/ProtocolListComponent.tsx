@@ -25,9 +25,9 @@ export default function ProtocolListComponent({}: {}) {
   const [searchTerm, setSearchTerm] = useState("");
   const workcellData = trpc.tool.getWorkcellName.useQuery();
   const workcellName = workcellData.data;
- // console.log("Workcell name is"+workcellName);
+  // console.log("Workcell name is"+workcellName);
   const allProtocols = trpc.protocol.allNames.useQuery({ workcellName: workcellName || "" });
- // console.log("All protocols are"+allProtocols.data);
+  // console.log("All protocols are"+allProtocols.data);
   if (allProtocols.isLoading) {
     return <Spinner size="lg" />;
   }
@@ -43,13 +43,13 @@ export default function ProtocolListComponent({}: {}) {
 
   // Separate protocols by category and apply search term
   const qcProtocols = allProtocols.data.filter(
-    (protocol) => protocol.category === "qc" && protocol.id.includes(searchTerm)
+    (protocol) => protocol.category === "qc" && protocol.id.includes(searchTerm),
   );
   const devProtocols = allProtocols.data.filter(
-    (protocol) => protocol.category === "development" && protocol.id.includes(searchTerm)
+    (protocol) => protocol.category === "development" && protocol.id.includes(searchTerm),
   );
   const prodProtocols = allProtocols.data.filter(
-    (protocol) => protocol.category === "production" && protocol.id.includes(searchTerm)
+    (protocol) => protocol.category === "production" && protocol.id.includes(searchTerm),
   );
 
   // A helper function to render protocol table for a specific category

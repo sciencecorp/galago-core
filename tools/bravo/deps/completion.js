@@ -1,6 +1,6 @@
-var fileobjectname
-if( fileobjectname == undefined){
-    fileobjectname = new File();
+var fileobjectname;
+if (fileobjectname == undefined) {
+  fileobjectname = new File();
 }
 
-fileobjectname.Open( "filepath", 0, 0)
+fileobjectname.Open("filepath", 0, 0);

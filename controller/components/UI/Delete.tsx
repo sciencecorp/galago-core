@@ -1,4 +1,4 @@
-import { useDisclosure , IconButton} from "@chakra-ui/react";
+import { useDisclosure, IconButton } from "@chakra-ui/react";
 import React from "react";
 import { RiDeleteBinLine } from "react-icons/ri";
 
@@ -13,7 +13,6 @@ export interface DeleteButtonProps {
 export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
   const { disabled, label, onDelete } = props;
   const { isOpen, onOpen, onClose } = useDisclosure();
-
 
   return (
     <>

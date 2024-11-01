@@ -86,7 +86,7 @@ test() {
 
 test_ts() {
   echo "Runnning Node Tests"
-  (cd controller && npm run test)
+  (cd controller && npx prettier . --check && npm run test)
 }
 
 test_py() {

@@ -1,4 +1,4 @@
-import React, { useState, FC } from 'react';
+import React, { useState, FC } from "react";
 
 interface WarningBannerProps {
   message: string;
@@ -16,16 +16,15 @@ const WarningBanner: FC<WarningBannerProps> = ({ message }) => {
       {isVisible && (
         <div
           style={{
-            background: '#ffc107',
-            color: '#212529',
-            padding: '8px',
-            textAlign: 'center',
+            background: "#ffc107",
+            color: "#212529",
+            padding: "8px",
+            textAlign: "center",
             top: 0,
             left: 0,
             right: 0,
             zIndex: 1000,
-          }}
-        >
+          }}>
           <p style={{ margin: 0 }}>{message}</p>
         </div>
       )}

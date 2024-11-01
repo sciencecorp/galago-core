@@ -4,9 +4,8 @@ import Protocol from "@/protocols/protocol";
 import { z } from "zod";
 
 const zWellSelection = z.array(
-  z.string().regex(/^[A-Z]\d{1,2}$/, "Well name must be a letter followed by a number")
+  z.string().regex(/^[A-Z]\d{1,2}$/, "Well name must be a letter followed by a number"),
 );
-
 
 export const ImageCulturePlateParams = z
   .object({
@@ -25,23 +24,22 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
   protocolId = "image_culture_plate";
   category = "production";
   workcell = "Workcell 1";
-  name = "Plate Imaging"
+  name = "Plate Imaging";
   paramSchema = ImageCulturePlateParams;
 
   _generateCommands(params: z.infer<typeof ImageCulturePlateParams>) {
-    
     const cassette = params.liconic_cassette;
     const level = params.liconic_level;
     const wellPlateID: string = params.wellPlateID;
     const experiment_name: string = `${params.cytationProgram.split(".")[0]}_${wellPlateID}_`;
     let cultureLabware = "default";
-    if(params.culturePlateType.includes("6 well")){
+    if (params.culturePlateType.includes("6 well")) {
       cultureLabware = "384-well celltreat";
     }
-    if(params.culturePlateType.includes("384 well")){
+    if (params.culturePlateType.includes("384 well")) {
       cultureLabware = "6-well celltreat";
-    }  
- 
+    }
+
     let protocol_cmds: ToolCommandInfo[] = [
       {
         label: "Unload plate from Liconic",
@@ -53,24 +51,24 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
           level: level,
         },
       },
-        {
-          toolId: "pf400_1",
-          toolType:  ToolType.pf400,
-          command: "run_sequence",
-          params: {
-            sequence_name: "getPlateLiconic",
-            labware: cultureLabware
-          },
+      {
+        toolId: "pf400_1",
+        toolType: ToolType.pf400,
+        command: "run_sequence",
+        params: {
+          sequence_name: "getPlateLiconic",
+          labware: cultureLabware,
         },
-        {
-          toolId: "pf400_1",
-          toolType:  ToolType.pf400,
-          command: "run_sequence",
-          params: {
-            sequence_name: "regripLandscapeToPortrait",
-            labware: cultureLabware
-          },
+      },
+      {
+        toolId: "pf400_1",
+        toolType: ToolType.pf400,
+        command: "run_sequence",
+        params: {
+          sequence_name: "regripLandscapeToPortrait",
+          labware: cultureLabware,
         },
+      },
       {
         label: "Open Cytation",
         toolId: "cytation_1",
@@ -80,30 +78,28 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
       },
       {
         toolId: "pf400_1",
-        toolType:  ToolType.pf400,
+        toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
           sequence_name: "dropPlateCytation",
           labware: cultureLabware,
         },
-      }
+      },
     ];
 
-    protocol_cmds.push(
-      {
-        label: "Image Plate/Run Cytation Program",
-        toolId: "cytation_1",
-        toolType: ToolType.cytation,
-        command: "start_read",
-        params: {
-          protocol_file: `${params.cytationProgram}`,
-          experiment_name: experiment_name,
-          well_addresses: params.wellAddresses,
-        },
+    protocol_cmds.push({
+      label: "Image Plate/Run Cytation Program",
+      toolId: "cytation_1",
+      toolType: ToolType.cytation,
+      command: "start_read",
+      params: {
+        protocol_file: `${params.cytationProgram}`,
+        experiment_name: experiment_name,
+        well_addresses: params.wellAddresses,
+      },
     });
 
-
-    protocol_cmds = protocol_cmds.concat( [
+    protocol_cmds = protocol_cmds.concat([
       {
         label: "Open Cytation",
         toolId: "cytation_1",
@@ -113,7 +109,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
       },
       {
         toolId: "pf400_1",
-        toolType:  ToolType.pf400,
+        toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
           sequence_name: "getPlateCytation",
@@ -129,7 +125,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
       },
       {
         toolId: "pf400_1",
-        toolType:  ToolType.pf400,
+        toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
           sequence_name: "regripPortraitToLandscape",
@@ -138,7 +134,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
       },
       {
         toolId: "pf400_1",
-        toolType:  ToolType.pf400,
+        toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
           sequence_name: "dropPlateLiconic",
@@ -148,14 +144,13 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
       {
         label: "Load plate into Liconic",
         toolId: "Liconic",
-        toolType:  ToolType.liconic,
+        toolType: ToolType.liconic,
         command: "store_plate",
         params: {
           cassette: cassette,
           level: level,
         },
-      
-      }
+      },
     ] as ToolCommandInfo[]);
     return protocol_cmds;
   }

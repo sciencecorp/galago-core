@@ -6,7 +6,7 @@ import { trpc } from "@/utils/trpc";
 export default function Page() {
   return (
     <>
-      <ProtocolCardsComponent/>
+      <ProtocolCardsComponent />
     </>
   );
 }

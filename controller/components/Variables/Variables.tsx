@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   VStack,
   Box,
@@ -23,20 +23,20 @@ import {
   useDisclosure,
   FormControl,
   FormLabel,
-  Select
+  Select,
 } from "@chakra-ui/react";
-import { AddIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
+import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import { trpc } from "@/utils/trpc";
-import { Variable } from "./types"
-import {VariableModal} from './VariableModal';
-import {DeleteWithConfirmation} from '../UI/Delete';
-import {renderDatetime} from "@/components/UI/Time";
+import { Variable } from "./types";
+import { VariableModal } from "./VariableModal";
+import { DeleteWithConfirmation } from "../ui/Delete";
+import { renderDatetime } from "@/components/ui/Time";
 
 export const Variables: React.FC = () => {
   const [variables, setVariables] = useState<Variable[]>([]);
   const [selectedVariable, setSelectedVariable] = useState<Variable | null>(null);
-  const [searchQuery, setSearchQuery] = useState(''); // State for search query
-  const [typeFilter, setTypeFilter] = useState<string>(''); // State for type filter
+  const [searchQuery, setSearchQuery] = useState(""); // State for search query
+  const [typeFilter, setTypeFilter] = useState<string>(""); // State for type filter
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
 
@@ -52,9 +52,9 @@ export const Variables: React.FC = () => {
     }
   }, [fetchedVariables]);
 
-  const handleDelete = async (variable:Variable) => {
+  const handleDelete = async (variable: Variable) => {
     try {
-      if(variable.id === undefined){  
+      if (variable.id === undefined) {
         return;
       }
       await deleteVariable.mutateAsync(variable.id);
@@ -76,9 +76,10 @@ export const Variables: React.FC = () => {
     }
   };
 
-  const filteredVariables = variables?.filter(variable => 
-    variable.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-    (typeFilter === '' || variable.type === typeFilter)
+  const filteredVariables = variables?.filter(
+    (variable) =>
+      variable.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      (typeFilter === "" || variable.type === typeFilter),
   );
 
   return (
@@ -95,8 +96,7 @@ export const Variables: React.FC = () => {
             <Select
               placeholder="Filter by type"
               value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-            >
+              onChange={(e) => setTypeFilter(e.target.value)}>
               <option value="string">String</option>
               <option value="number">Number</option>
               <option value="boolean">Boolean</option>
@@ -124,7 +124,10 @@ export const Variables: React.FC = () => {
                   <Td>{renderDatetime(variable.created_at)}</Td>
                   <Td>{renderDatetime(variable.updated_at)}</Td>
                   <Td>
-                    <DeleteWithConfirmation onDelete={() => handleDelete(variable)} label='variable' />
+                    <DeleteWithConfirmation
+                      onDelete={() => handleDelete(variable)}
+                      label="variable"
+                    />
                   </Td>
                 </Tr>
               ))}
@@ -132,8 +135,7 @@ export const Variables: React.FC = () => {
           </Table>
         </VStack>
       </Box>
-      <VariableModal/>
+      <VariableModal />
     </HStack>
   );
 };
-

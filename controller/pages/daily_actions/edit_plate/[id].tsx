@@ -44,7 +44,7 @@ export default function Page() {
 
         const well_ids: number[] = plate_wells.map((well) => well.id) || [];
         setSelectedReagents(
-          inventoryData.reagents.filter((reagent) => well_ids.includes(reagent.well_id)) || []
+          inventoryData.reagents.filter((reagent) => well_ids.includes(reagent.well_id)) || [],
         );
       } catch (error) {
         console.error("Error fetching data:", error);

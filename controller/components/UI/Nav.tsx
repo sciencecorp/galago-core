@@ -8,7 +8,7 @@ import {
   TabList,
   Tabs,
   Flex,
-  Menu, 
+  Menu,
   MenuButton,
   MenuItem,
   MenuList,
@@ -16,15 +16,15 @@ import {
   MenuDivider,
   IconButton,
   Image,
-  useColorModeValue
+  useColorModeValue,
 } from "@chakra-ui/react";
 
 import { HamburgerIcon } from "@chakra-ui/icons";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import SettingsModalComponent from '@/components/settings/SettingsModalComponent';
+import SettingsModalComponent from "@/components/settings/SettingsModalComponent";
 import { useState } from "react";
-import { useSidebar } from "@/pages/SidebarContext"
+import { useSidebar } from "@/pages/SidebarContext";
 
 const TabPages = [
   { href: "/inventory", title: "Inventory" },
@@ -38,14 +38,14 @@ const styles = {
     fontSize: "18px",
     color: "#292b2c",
     backgroundColor: "#fff",
-    padding: "0 20px"
+    padding: "0 20px",
   },
   wrapper: {
     textAlign: "center",
     margin: "0 auto",
-    marginTop: "50px"
-  }
-}
+    marginTop: "50px",
+  },
+};
 
 export default function Nav() {
   const router = useRouter();
@@ -53,11 +53,11 @@ export default function Nav() {
   const tabIndex = TabPages.findIndex(({ href }) => router.route.indexOf(href) === 0);
   const selectedTab = tabIndex >= 0 ? TabPages[tabIndex] : undefined;
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
-  const {lastClickedSubtab, setLastClickedSubtab } = useSidebar();
+  const { lastClickedSubtab, setLastClickedSubtab } = useSidebar();
 
-  const handleShowModal =() =>{
+  const handleShowModal = () => {
     setShowSettingsModal(!showSettingsModal);
-  }
+  };
 
   if (selectedTab) {
     if (router.route !== selectedTab.href) {
@@ -73,19 +73,16 @@ export default function Nav() {
 
   return (
     <>
-      <HStack 
-        spacing={4} 
-        width={"100%"} 
-        height='45px' 
-        className={process.env.appMode == "PROD"?"production-nav":"development-nav"}
+      <HStack
+        spacing={4}
+        width={"100%"}
+        height="45px"
+        className={process.env.appMode == "PROD" ? "production-nav" : "development-nav"}
         bg={bgColor}
-        color={textColor}
-      > 
-        {showSettingsModal && 
-          <SettingsModalComponent IsVisible={showSettingsModal}/>
-        }
+        color={textColor}>
+        {showSettingsModal && <SettingsModalComponent IsVisible={showSettingsModal} />}
         <Link href="/" passHref>
-          <Image width='50px' paddingLeft="5" src="/site_logo.png"></Image>
+          <Image width="50px" paddingLeft="5" src="/site_logo.png"></Image>
         </Link>
         <Breadcrumb alignContent="left" p={1} separator={"›"} width="15%">
           {breadcrumbs.map((breadcrumb) => {
@@ -103,7 +100,7 @@ export default function Nav() {
             );
           })}
         </Breadcrumb>
-        <Flex justifyContent="center" width="100%" marginLeft='-15%'>
+        <Flex justifyContent="center" width="100%" marginLeft="-15%">
           <Tabs index={tabIndex} onChange={(index) => router.push(TabPages[index].href)}>
             <TabList>
               {TabPages.map(({ title, href }) => (
@@ -113,26 +110,32 @@ export default function Nav() {
           </Tabs>
         </Flex>
         <Menu>
-            <MenuButton
-              as={IconButton}
-              aria-label='Options'
-              icon={<HamburgerIcon />}
-              variant='outline'
-            />
+          <MenuButton
+            as={IconButton}
+            aria-label="Options"
+            icon={<HamburgerIcon />}
+            variant="outline"
+          />
           <MenuList>
-            <MenuGroup title='General'>
-              <MenuItem as='a' onClick={handleShowModal}>Settings</MenuItem>
-              <MenuItem as='a' href='/logs'>Logs</MenuItem>
+            <MenuGroup title="General">
+              <MenuItem as="a" onClick={handleShowModal}>
+                Settings
+              </MenuItem>
+              <MenuItem as="a" href="/logs">
+                Logs
+              </MenuItem>
             </MenuGroup>
             <MenuDivider />
-            <MenuGroup title='Help'>
+            <MenuGroup title="Help">
               <MenuItem>About</MenuItem>
-              <MenuItem as='a' href='/docs/changelog'>Change Log</MenuItem>
+              <MenuItem as="a" href="/docs/changelog">
+                Change Log
+              </MenuItem>
             </MenuGroup>
-        </MenuList>
+          </MenuList>
         </Menu>
       </HStack>
-      <Divider/>
+      <Divider />
     </>
   );
 }

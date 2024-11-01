@@ -1,6 +1,6 @@
 // components/Barcode.js
-import { useEffect, useRef } from 'react';
-import JsBarcode from 'jsbarcode';
+import { useEffect, useRef } from "react";
+import JsBarcode from "jsbarcode";
 
 const Barcode = ({ value }) => {
   const barcodeRef = useRef(null);
@@ -12,7 +12,7 @@ const Barcode = ({ value }) => {
       width: 1.5,
       height: 25,
       displayValue: true,
-      fontSize:'20px'
+      fontSize: "20px",
     });
   }, [value]);
 

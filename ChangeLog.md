@@ -2,7 +2,8 @@
 
 ## V1.1.0
 
-September 2024 
+September 2024
 
-**NEW FEATURE** 
+**NEW FEATURE**
+
 - Initial Release

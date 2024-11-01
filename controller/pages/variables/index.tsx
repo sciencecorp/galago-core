@@ -1,5 +1,5 @@
-import { Variables } from  "@/components/Variables/Variables"
+import { Variables } from "@/components/variables/Variables";
 
 export default function Page() {
-  return <Variables/>;
+  return <Variables />;
 }

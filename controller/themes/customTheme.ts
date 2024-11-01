@@ -3,7 +3,7 @@ import { extendTheme } from "@chakra-ui/react";
 // Define custom colors and styles
 const customTheme = extendTheme({
   styles: {
-    global: (props: { colorMode: string; }) => ({
+    global: (props: { colorMode: string }) => ({
       body: {
         bg: props.colorMode === "dark" ? "gray.900" : "white",
         color: props.colorMode === "dark" ? "whiteAlpha.900" : "gray.800",
@@ -16,21 +16,21 @@ const customTheme = extendTheme({
         fontWeight: "bold",
       },
       variants: {
-        solid: (props: { colorMode: string; }) => ({
+        solid: (props: { colorMode: string }) => ({
           bg: props.colorMode === "dark" ? "blue.600" : "blue.500",
           color: "white",
           _hover: {
             bg: props.colorMode === "dark" ? "blue.500" : "blue.600",
           },
         }),
-        outline: (props: { colorMode: string; }) => ({
+        outline: (props: { colorMode: string }) => ({
           borderColor: props.colorMode === "dark" ? "blue.400" : "blue.500",
           color: props.colorMode === "dark" ? "blue.400" : "blue.500",
         }),
       },
     },
     Box: {
-      baseStyle: (props: { colorMode: string; }) => ({
+      baseStyle: (props: { colorMode: string }) => ({
         bg: props.colorMode === "dark" ? "gray.800" : "gray.100",
         color: props.colorMode === "dark" ? "whiteAlpha.900" : "gray.800",
       }),
@@ -38,7 +38,7 @@ const customTheme = extendTheme({
     // Add more components here
     Input: {
       variants: {
-        outline: (props: { colorMode: string; }) => ({
+        outline: (props: { colorMode: string }) => ({
           field: {
             borderColor: props.colorMode === "dark" ? "gray.600" : "gray.300",
             _hover: {
@@ -53,12 +53,12 @@ const customTheme = extendTheme({
       },
     },
     Text: {
-      baseStyle: (props: { colorMode: string; }) => ({
+      baseStyle: (props: { colorMode: string }) => ({
         color: props.colorMode === "dark" ? "whiteAlpha.900" : "gray.800",
       }),
     },
     Heading: {
-      baseStyle: (props: { colorMode: string; }) => ({
+      baseStyle: (props: { colorMode: string }) => ({
         color: props.colorMode === "dark" ? "whiteAlpha.900" : "gray.800",
       }),
     },

@@ -1,13 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
-import ToolStatusCard from "@/components/Tools/ToolStatusCard";
-import { 
-  Box, Spinner, Alert, Heading, VStack, useToast, 
-  IconButton, Flex, SimpleGrid, Switch, FormControl, FormLabel, useColorModeValue, 
+import ToolStatusCard from "@/components/tools/ToolStatusCard";
+import {
+  Box,
+  Spinner,
+  Alert,
+  Heading,
+  VStack,
+  useToast,
+  IconButton,
+  Flex,
+  SimpleGrid,
+  Switch,
+  FormControl,
+  FormLabel,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { ToolConfig, ToolType } from "gen-interfaces/controller";
-import styled from '@emotion/styled';
+import styled from "@emotion/styled";
 
 const CarouselContainer = styled.div`
   display: flex;
@@ -24,11 +35,10 @@ const CardsContainer = styled.div`
   transition: transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
 `;
 
-
 interface ToolStatusCardsProps {
   showAsGrid?: boolean;
 }
-export const ToolStatusCardsComponent:React.FC<ToolStatusCardsProps> = (props) => {
+export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) => {
   const { showAsGrid } = props;
   const utils = trpc.useContext();
   const toast = useToast();
@@ -44,8 +54,8 @@ export const ToolStatusCardsComponent:React.FC<ToolStatusCardsProps> = (props) =
     };
 
     handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const configureMutation = trpc.tool.configure.useMutation({
@@ -56,7 +66,7 @@ export const ToolStatusCardsComponent:React.FC<ToolStatusCardsProps> = (props) =
         status: "error",
         duration: 10000,
         isClosable: true,
-        position: "top"
+        position: "top",
       });
     },
   });
@@ -83,7 +93,7 @@ export const ToolStatusCardsComponent:React.FC<ToolStatusCardsProps> = (props) =
   return (
     <Box p={2} margin="auto">
       <VStack spacing={4}>
-        <Heading mb={2} color= {headerColor} css={{ fontFamily: `'Bungee Shade', cursive` }}>
+        <Heading mb={2} color={headerColor} css={{ fontFamily: `'Bungee Shade', cursive` }}>
           Tools
         </Heading>
 
@@ -95,17 +105,18 @@ export const ToolStatusCardsComponent:React.FC<ToolStatusCardsProps> = (props) =
           </SimpleGrid>
         ) : (
           <CarouselContainer>
-            <CardsContainer style={{ 
-              transform: `translateX(${-currentIndex * 280}px)`,  
-              width: `${availableToolIDs.length * 280}px`,  
-            }}>
+            <CardsContainer
+              style={{
+                transform: `translateX(${-currentIndex * 280}px)`,
+                width: `${availableToolIDs.length * 280}px`,
+              }}>
               {availableToolIDs.map((toolId, index) => (
                 <ToolStatusCard key={`${toolId}-${index}`} toolId={toolId} />
               ))}
             </CardsContainer>
             <Flex justify="center" mt={4} width="100%">
               <IconButton
-                colorScheme='teal'
+                colorScheme="teal"
                 aria-label="Previous tool"
                 icon={<ChevronLeftIcon />}
                 onClick={prevSlide}
@@ -125,4 +136,4 @@ export const ToolStatusCardsComponent:React.FC<ToolStatusCardsProps> = (props) =
       </VStack>
     </Box>
   );
-}
+};

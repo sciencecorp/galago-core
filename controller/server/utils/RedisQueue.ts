@@ -1,4 +1,4 @@
-import { Run, RunCommand, RunQueue} from "@/types";
+import { Run, RunCommand, RunQueue } from "@/types";
 import { Redis } from "ioredis";
 import SuperJSON from "superjson";
 import { setRunStatusWithTimestamp } from "./HasRunStatus";
@@ -14,13 +14,16 @@ export type StoredRunCommand = Readonly<RunCommand & Required<Pick<RunCommand, "
 // We might want to use a sorted set or break it up into sublists later, but
 // keeping it simple for now to lock in the interface with something working.
 export default class RedisQueue {
-  constructor(private redis: Redis, public queueName: string) {}
+  constructor(
+    private redis: Redis,
+    public queueName: string,
+  ) {}
 
   async push(item: RunCommand) {
     await this.redis.rpush(this._key("queuedIds"), await this._persistedId(item));
   }
 
-  async runPush(runQueueId:string,runQueue: RunQueue) : Promise<string> {
+  async runPush(runQueueId: string, runQueue: RunQueue): Promise<string> {
     await this.redis.hset(this._key("runs"), runQueueId, SuperJSON.stringify(runQueue));
     return runQueueId;
   }
@@ -49,24 +52,23 @@ export default class RedisQueue {
     await this.redis.hdel(this._key("itemJson"), ...completedIds);
   }
 
-  async getRun(runId:string) : Promise<RunQueue | false> {
-    let run = await this.redis.hget(this._key("runs"),runId);
-    if(!run){
+  async getRun(runId: string): Promise<RunQueue | false> {
+    let run = await this.redis.hget(this._key("runs"), runId);
+    if (!run) {
       return false;
-    }
-    else{
+    } else {
       return SuperJSON.parse(run);
     }
   }
 
-  async getAllRuns():Promise<RunQueue[]>{
+  async getAllRuns(): Promise<RunQueue[]> {
     const runsJson = await this.redis.hvals(this._key("runs"));
     const runsMap = runsJson.map((item) => SuperJSON.parse(item));
-    const runs = await Promise.all(runsMap) as RunQueue[];
+    const runs = (await Promise.all(runsMap)) as RunQueue[];
     return runs;
   }
 
-  async getTotalRuns() : Promise<number> {
+  async getTotalRuns(): Promise<number> {
     const totalRuns = await this.redis.hlen(this._key("runs"));
     return totalRuns;
   }
@@ -87,7 +89,7 @@ export default class RedisQueue {
     // Get the corresponding commands from the itemJson hash map.
     const commandsJson = await this.redis.hmget(this._key("itemJson"), ...ids);
     const commands = await Promise.all(
-      commandsJson.filter((json) => json !== null).map((json) => this._deserialize(json!))
+      commandsJson.filter((json) => json !== null).map((json) => this._deserialize(json!)),
     );
     return commands;
   }
@@ -99,22 +101,22 @@ export default class RedisQueue {
     await this.redis.del(this._key("nextId"));
   }
 
-  async clearByRunId(runId:string){
-    if(!runId) return;
+  async clearByRunId(runId: string) {
+    if (!runId) return;
     //Get all the commands with this run Id.
     const runningIds = await this.redis.lrange(this._key("queuedIds"), 0, -1);
     await this.redis.hdel(this._key("runs"), String(runId));
     await Promise.all(
-      runningIds.map(async(id)=>{
+      runningIds.map(async (id) => {
         //Get json command
         const item = await this.redis.hget(this._key("itemJson"), String(id));
         const itemJson = await this._deserialize(String(item));
-        if(itemJson.runId === runId){
+        if (itemJson.runId === runId) {
           await this.redis.hdel(this._key("itemJson"), String(id));
           await this.redis.lrem(this._key("queuedIds"), 0, String(id));
         }
-      })
-    )
+      }),
+    );
   }
 
   async complete(id: number) {
@@ -134,7 +136,7 @@ export default class RedisQueue {
     await Promise.all(
       idsToSkip.map(async (id) => {
         await this.skip(this._parseId(id));
-      })
+      }),
     );
   }
 

@@ -6,6 +6,7 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "test": "npx tsc --noEmit",
+    "test:fmt": "npx prettier --config .prettierrc --ignore-unknow --check '**/*",
     "start": "next start -p 3000"
   },
   "dependencies": {

@@ -1,6 +1,5 @@
-
 // Import this at the top of your Page component file
-import CommandButton from './commandButton';
+import CommandButton from "./commandButton";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import {
@@ -16,7 +15,7 @@ import {
   NumberInputField,
   Heading,
   HStack,
-  useToast
+  useToast,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
@@ -24,12 +23,10 @@ import { ToolCommandInfo } from "@/types";
 
 // Assuming you're using TypeScript, you could define a type for the status object
 type CommandStatus = {
-  [commandName: string]: 'idle' | 'success' | 'error';
+  [commandName: string]: "idle" | "success" | "error";
 };
 
 // Inside your component
-
-
 
 type AtomicFormValues = string | number | boolean | string[];
 type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormValues>>;
@@ -48,9 +45,6 @@ interface Command {
 interface CommandFields {
   [tool: string]: Command;
 }
-
-
-
 
 const move: Field[] = [
   { name: "waypoint", type: "text" },
@@ -78,190 +72,171 @@ const leave: Field[] = [
   { name: "x_offset", type: "number", defaultValue: 0 },
   { name: "y_offset", type: "number", defaultValue: 0 },
   { name: "z_offset", type: "number", defaultValue: 0 },
-  { name: "motion_profile_id", type: "number", defaultValue: 2 }
+  { name: "motion_profile_id", type: "number", defaultValue: 2 },
 ];
 
 const commandFields: CommandFields = {
-  
   toolbox: {
-    send_slack_alert : [
+    send_slack_alert: [
       {
-        name:"workcell",
-        type:"text"
+        name: "workcell",
+        type: "text",
       },
       {
-        name:"tool",
-        type:"text"
+        name: "tool",
+        type: "text",
       },
       {
-        name:"protocol",
-        type:"text"
+        name: "protocol",
+        type: "text",
       },
       {
-        name:"error_message",
-        type:"text"
-      }
-
+        name: "error_message",
+        type: "text",
+      },
     ],
 
-    timer : [
+    timer: [
       {
-      name:"time_seconds",
-      type:"number"
-    },
-    {
-      name:"message",
-      type:"text"
-    }
-  ],
-    user_message : [
-      {
-        name:"title",
-        type:"text"
+        name: "time_seconds",
+        type: "number",
       },
       {
-        name:"message",
-        type:"text"
+        name: "message",
+        type: "text",
       },
-      {
-        name:"message_type",
-        type:"text"
-      }
     ],
-    show_image :[
+    user_message: [
       {
-        name:"file",
-        type:"text"
+        name: "title",
+        type: "text",
       },
       {
-        name:"title",
-        type:"text"
+        name: "message",
+        type: "text",
       },
       {
-        name:"width",
-        type:"number"
+        name: "message_type",
+        type: "text",
       },
-      {
-        name:"height",
-        type:"number"
-      },    
     ],
-    slack_message : [
+    show_image: [
       {
-        name:"message",
-        type:"text"
-      }
+        name: "file",
+        type: "text",
+      },
+      {
+        name: "title",
+        type: "text",
+      },
+      {
+        name: "width",
+        type: "number",
+      },
+      {
+        name: "height",
+        type: "number",
+      },
+    ],
+    slack_message: [
+      {
+        name: "message",
+        type: "text",
+      },
     ],
     log_media_exchange: [
       {
-        name:"source_barcode",
-        type:"text"
+        name: "source_barcode",
+        type: "text",
       },
       {
-        name:"destination_name",
-        type:"text"
+        name: "destination_name",
+        type: "text",
       },
       {
-        name:"destination_barcode",
-        type:"text"
+        name: "destination_barcode",
+        type: "text",
       },
       {
-        name:"source_wells",
-        type:"text"
+        name: "source_wells",
+        type: "text",
       },
       {
-        name:"destination_wells",
-        type:"text"
+        name: "destination_wells",
+        type: "text",
       },
       {
-        name:"percent_exchange",
-        type:"number"
+        name: "percent_exchange",
+        type: "number",
       },
       {
-        name:"new_tips",
-        type:"boolean"
-      }
-    ]
+        name: "new_tips",
+        type: "boolean",
+      },
+    ],
   },
   plateloc: {
     seal: [],
-    set_temperature: [
-      {name:"temperature", type:"text"}
-    ],
-    set_seal_time: [
-      {name:"sealTime", type:"text"}
-    ],
+    set_temperature: [{ name: "temperature", type: "text" }],
+    set_seal_time: [{ name: "sealTime", type: "text" }],
     get_actual_temperature: [],
     stage_in: [],
     stage_out: [],
     show_diagnostics: [],
   },
   bravo: {
-    run_protocol: [
-      {name:"protocol_file", type:"text"}
-    ],
-    run_runset: [
-      {name:"runset_file", type:"text"}
-    ],
+    run_protocol: [{ name: "protocol_file", type: "text" }],
+    run_runset: [{ name: "runset_file", type: "text" }],
   },
   hamilton: {
-    run_protocol: [
-      {name:"protocol", type:"text"}
-    ],
-    load_protocol: [
-      {name:"runset_file", type:"text"}
-    ],
+    run_protocol: [{ name: "protocol", type: "text" }],
+    load_protocol: [{ name: "runset_file", type: "text" }],
   },
-  vcode : {
-    home : [],
-    print_and_apply :[
-      {name:"format_name", type:"text", defaultValue:"1"},
-      {name:"side", type:"text", defaultValue:"west"},
-      {name:"drop_stage", type:"boolean", defaultValue:true},
-      {name:"field_0", type:"text",defaultValue:"Well Plate ID/Name"},
-      {name:"field_1", type:"text", defaultValue:""},
-      {name:"field_2", type:"text", defaultValue:""},
-      {name:"field_3", type:"text", defaultValue:""},
-      {name:"field_4", type:"text", defaultValue:""},
-      {name:"field_5", type:"text", defaultValue:""},
+  vcode: {
+    home: [],
+    print_and_apply: [
+      { name: "format_name", type: "text", defaultValue: "1" },
+      { name: "side", type: "text", defaultValue: "west" },
+      { name: "drop_stage", type: "boolean", defaultValue: true },
+      { name: "field_0", type: "text", defaultValue: "Well Plate ID/Name" },
+      { name: "field_1", type: "text", defaultValue: "" },
+      { name: "field_2", type: "text", defaultValue: "" },
+      { name: "field_3", type: "text", defaultValue: "" },
+      { name: "field_4", type: "text", defaultValue: "" },
+      { name: "field_5", type: "text", defaultValue: "" },
     ],
 
-    print:[
-      {name:"format_name", type:"number"},
-      {name:"field_0", type:"text"},
-      {name:"field_1", type:"text"},
-      {name:"field_2", type:"text"},
-      {name:"field_3", type:"text"},
-      {name:"field_4", type:"text"},
-      {name:"field_5", type:"text"},
+    print: [
+      { name: "format_name", type: "number" },
+      { name: "field_0", type: "text" },
+      { name: "field_1", type: "text" },
+      { name: "field_2", type: "text" },
+      { name: "field_3", type: "text" },
+      { name: "field_4", type: "text" },
+      { name: "field_5", type: "text" },
     ],
 
-  show_diagnostics : [],
-  rotate_180:[],
-  rotate_stage:[
-    {name:"angle", type:"number"}
-  ]
-},
-xpeel: {
-  DesealPlate: [],
-  CheckStatus:[],
-  ResetDevice:[],
-  RestartDevice:[],
-  CheckTapeRemaining:[],
-},
-  hig_centrifuge:{
-    home:[],
-    close_shield:[],
-    open_shield:[
-      {name:"bucket_id", type:"number"}
+    show_diagnostics: [],
+    rotate_180: [],
+    rotate_stage: [{ name: "angle", type: "number" }],
+  },
+  xpeel: {
+    DesealPlate: [],
+    CheckStatus: [],
+    ResetDevice: [],
+    RestartDevice: [],
+    CheckTapeRemaining: [],
+  },
+  hig_centrifuge: {
+    home: [],
+    close_shield: [],
+    open_shield: [{ name: "bucket_id", type: "number" }],
+    spin: [
+      { name: "speed", type: "number" },
+      { name: "acceleration", type: "number" },
+      { name: "decceleration", type: "number" },
+      { name: "duration", type: "number" },
     ],
-    spin:[
-      {name:"speed", type:"number"},
-      {name:"acceleration", type:"number"},
-      {name:"decceleration", type:"number"},
-      {name:"duration", type:"number"}
-    ],
-
   },
   bioshake: {
     grip: [],
@@ -279,17 +254,17 @@ xpeel: {
     open_carrier: [],
     close_carrier: [],
     start_read: [
-      { name: "protocol_file", type: "text" , defaultValue: "test"},
-      { name: "experiment_name", type: "text", defaultValue:"boop"},
-      { name: "well_addresses", type: "text_array", defaultValue:["A1","B2"]}]
+      { name: "protocol_file", type: "text", defaultValue: "test" },
+      { name: "experiment_name", type: "text", defaultValue: "boop" },
+      { name: "well_addresses", type: "text_array", defaultValue: ["A1", "B2"] },
+    ],
   },
   dataman70: {
     reset: [],
     assert_barcode: [{ name: "barcode", type: "text" }],
   },
   alps3000: {
-    seal_plate: []
-
+    seal_plate: [],
   },
   liconic: {
     fetch_plate: [
@@ -301,7 +276,7 @@ xpeel: {
       { name: "level", type: "number" },
     ],
     reset: [],
-    raw_command: [{name:"cmd", type: "text", }],
+    raw_command: [{ name: "cmd", type: "text" }],
   },
   opentrons2: {
     run_program: [
@@ -315,7 +290,10 @@ xpeel: {
     toggle_light: [],
   },
   pf400: {
-    run_sequence: [{ name: "sequence_name", type: "text" }, { name: "labware", type: "text" },],
+    run_sequence: [
+      { name: "sequence_name", type: "text" },
+      { name: "labware", type: "text" },
+    ],
     move: move,
     grasp_plate: grasp_plate,
     release_plate: release_plate,
@@ -323,12 +301,12 @@ xpeel: {
     leave: leave,
     retrieve_plate: [
       { name: "labware", type: "text" },
-      { name: "location", type: "text" },      
+      { name: "location", type: "text" },
       { name: "motion_profile_id", type: "number", defaultValue: 2 },
     ],
     dropoff_plate: [
       { name: "labware", type: "text" },
-      { name: "location", type: "text" },      
+      { name: "location", type: "text" },
       { name: "motion_profile_id", type: "number", defaultValue: 2 },
     ],
     transfer: [
@@ -358,10 +336,10 @@ xpeel: {
       { name: "motion_profile_id", type: "number", defaultValue: 2 },
       { name: "grip_width", type: "number" },
     ],
-    free:[],
-    unfree:[],
-    unwind:[],
-    get_teachpoints : []
+    free: [],
+    unfree: [],
+    unwind: [],
+    get_teachpoints: [],
   },
 };
 
@@ -389,7 +367,7 @@ export default function Page() {
       setFormValues((prevValues) => {
         const newValues = { ...prevValues };
         const fields = commandOptions[selectedCommand];
-        
+
         fields.forEach((field) => {
           if (Array.isArray(field.type)) {
             const nestedFieldValues: Record<string, AtomicFormValues> = {};
@@ -398,9 +376,11 @@ export default function Page() {
                 nestedField.defaultValue !== undefined ? nestedField.defaultValue : "";
             });
             newValues[field.name] = nestedFieldValues;
-          } if (field.type === "text_array") {
-              newValues[field.name] = field.defaultValue instanceof Array ? field.defaultValue.join(", ") : "";
-          }  else {
+          }
+          if (field.type === "text_array") {
+            newValues[field.name] =
+              field.defaultValue instanceof Array ? field.defaultValue.join(", ") : "";
+          } else {
             newValues[field.name] = field.defaultValue !== undefined ? field.defaultValue : "";
           }
         });
@@ -413,12 +393,11 @@ export default function Page() {
     setFormValues({});
   };
 
-
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
     if (!selectedCommand) return;
     if (!config) return;
-    console.log(formValues)
+    console.log(formValues);
     toast({
       title: `Executing ${selectedCommand}..`,
       description: `Please wait.`,
@@ -442,22 +421,25 @@ export default function Page() {
           status: "success",
           duration: 2000,
           isClosable: true,
-          position:"top"
-        })
-        setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [selectedCommand]: 'success' }));
+          position: "top",
+        });
+        setCommandExecutionStatus((prevStatus) => ({
+          ...prevStatus,
+          [selectedCommand]: "success",
+        }));
       },
       onError: (data) => {
         // Set the command status to 'error' on failure
         toast.closeAll(),
-        toast({
-          title: "Failed to execute command",
-          description: `Error= ${data.message}`,
-          status: "error",
-          duration: 10000,
-          isClosable: true,
-          position: "top"
-        });
-        setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [selectedCommand]: 'error' }));
+          toast({
+            title: "Failed to execute command",
+            description: `Error= ${data.message}`,
+            status: "error",
+            duration: 10000,
+            isClosable: true,
+            position: "top",
+          });
+        setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [selectedCommand]: "error" }));
       },
     });
   };
@@ -466,17 +448,17 @@ export default function Page() {
     fieldName: string,
     fieldType: FieldType,
     value: string | number | boolean,
-    parentField?: string
+    parentField?: string,
   ) => {
     setFormValues((prevValues) => {
       const newValues = { ...prevValues };
       let updatedValue: AtomicFormValues = value;
-  
+
       // If the field is of type 'text_array', split the string into an array.
-      if (fieldType === 'text_array' && typeof value === 'string') {
-        updatedValue = value.split(",").map(item => item.trim());
+      if (fieldType === "text_array" && typeof value === "string") {
+        updatedValue = value.split(",").map((item) => item.trim());
       }
-  
+
       if (parentField) {
         // If it's a nested field
         newValues[parentField] = {
@@ -487,7 +469,7 @@ export default function Page() {
         // For top-level fields
         newValues[fieldName] = updatedValue;
       }
-      console.log(newValues)
+      console.log(newValues);
       return newValues;
     });
   };
@@ -506,8 +488,8 @@ export default function Page() {
       position: "top", // or "bottom"
     });
 
-    setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: 'idle' }));
-    
+    setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "idle" }));
+
     const toolCommand: ToolCommandInfo = {
       toolId: config.id,
       toolType: config.type,
@@ -523,25 +505,25 @@ export default function Page() {
           status: "success",
           duration: 2000,
           isClosable: true,
-          position:"top"
-        })
-        setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: 'success' }));
+          position: "top",
+        });
+        setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "success" }));
       },
       onError: (data) => {
         // Set the command status to 'error' on failure
         toast.closeAll(),
-        toast({
-          title: "Failed to execute command",
-          description: `Error= ${data.message}`,
-          status: "error",
-          duration: 10000,
-          isClosable: true,
-          position: "top"
-        });
-        setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: 'error' }));
+          toast({
+            title: "Failed to execute command",
+            description: `Error= ${data.message}`,
+            status: "error",
+            duration: 10000,
+            isClosable: true,
+            position: "top",
+          });
+        setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "error" }));
       },
     });
-  }
+  };
 
   const handleSelectCommand = (commandName: string) => {
     // Check if the command has parameters
@@ -554,14 +536,8 @@ export default function Page() {
     }
   };
 
-  
-  
-
-  
-
   const renderFields = (fields: Field[], parentField?: string) => {
     return fields.map((field) => {
-
       if (Array.isArray(field.type)) {
         return (
           <Box key={field.name} border="1px" borderColor="gray.200" borderRadius="md" p={4} my={2}>
@@ -571,7 +547,7 @@ export default function Page() {
             {renderFields(field.type, field.name)}
           </Box>
         );
-      } else if (field.type === 'text_array') {
+      } else if (field.type === "text_array") {
         return (
           <FormControl key={field.name} my={2}>
             <FormLabel>{field.name}</FormLabel>
@@ -579,42 +555,45 @@ export default function Page() {
               type="text"
               value={String(
                 (parentField
-                  ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] || ""
-                  : formValues[field.name]) || ""
+                  ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
+                    ""
+                  : formValues[field.name]) || "",
               )}
-              onChange={(e) => handleInputChange(field.name, field.type, e.target.value, parentField)}
+              onChange={(e) =>
+                handleInputChange(field.name, field.type, e.target.value, parentField)
+              }
             />
           </FormControl>
         );
-      
-      
       } else {
         return (
           <FormControl key={field.name} my={2}>
             <FormLabel>{field.name}</FormLabel>
-            {
-            field.type == "boolean" ?  (
+            {field.type == "boolean" ? (
               <Input
-                type = "boolean"
+                type="boolean"
                 value={String(
                   (parentField
-                    ? (formValues[parentField] as Record<string,AtomicFormValues>)?.[field.name] ||
+                    ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
                       "false"
-                    : formValues[field.name]) || "false"
+                    : formValues[field.name]) || "false",
                 )}
-                onChange={(e) => handleInputChange(field.name, field.type, e.target.value, parentField)}
+                onChange={(e) =>
+                  handleInputChange(field.name, field.type, e.target.value, parentField)
+                }
               />
-            ) :
-            field.type === "text" ? (
+            ) : field.type === "text" ? (
               <Input
-                type = "string"
+                type="string"
                 value={String(
                   (parentField
-                    ? (formValues[parentField] as Record<string,AtomicFormValues>)?.[field.name] ||
+                    ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
                       ""
-                    : formValues[field.name]) || ""
+                    : formValues[field.name]) || "",
                 )}
-                onChange={(e) => handleInputChange(field.name, field.type, e.target.value, parentField)}
+                onChange={(e) =>
+                  handleInputChange(field.name, field.type, e.target.value, parentField)
+                }
               />
             ) : (
               <NumberInput
@@ -622,7 +601,7 @@ export default function Page() {
                   (parentField
                     ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
                       0
-                    : formValues[field.name]) || 0
+                    : formValues[field.name]) || 0,
                 )}
                 onChange={(valueString, valueNumber) =>
                   handleInputChange(field.name, field.type, valueNumber, parentField)
@@ -639,7 +618,7 @@ export default function Page() {
   return (
     <>
       <Box p={12} maxWidth="1800px" margin="auto">
-        <VStack width='100%' spacing={8}>
+        <VStack width="100%" spacing={8}>
           <ToolStatusCard toolId={String(id)} />
           <FormControl>
             <FormLabel>Command</FormLabel>
@@ -658,21 +637,19 @@ export default function Page() {
             </form>
           )}
         </VStack>
-          <Grid pt = '10px' templateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap={2}>
-              {Object.keys(commandOptions)
-              .filter((command) => !doesCommandHaveParameters(command)) // Only commands without parameters
-              .map((command) => (
-                <CommandButton
-                  key={command}
-                  commandName={command}
-                  onSelectCommand={handleSelectCommand}
-                  status={commandExecutionStatus[command] || 'idle'}
-                />
-              ))
-            }
-          </Grid>
+        <Grid pt="10px" templateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap={2}>
+          {Object.keys(commandOptions)
+            .filter((command) => !doesCommandHaveParameters(command)) // Only commands without parameters
+            .map((command) => (
+              <CommandButton
+                key={command}
+                commandName={command}
+                onSelectCommand={handleSelectCommand}
+                status={commandExecutionStatus[command] || "idle"}
+              />
+            ))}
+        </Grid>
       </Box>
     </>
   );
 }
-

@@ -17,7 +17,7 @@ import {
   Icon,
   HStack,
   useColorMode,
-    DrawerOverlay,
+  DrawerOverlay,
 } from "@chakra-ui/react";
 import { FiMenu, FiHome, FiCompass, FiSettings, FiLogOut } from "react-icons/fi";
 import { IconType } from "react-icons";
@@ -54,30 +54,29 @@ const sidebarItems: SidebarItem[] = [
   { name: "Runs", icon: MdStart, path: "/runs" },
   { name: "Workflows", icon: PiPathBold, path: "/settings" },
   { name: "Inventory", icon: BsFillGrid3X2GapFill, path: "/inventory" },
-  { name:"Schedule",icon:RiCalendarCheckLine,path:"/schedule"},
+  { name: "Schedule", icon: RiCalendarCheckLine, path: "/schedule" },
   { name: "Logs", icon: RiInformationLine, path: "/logs" },
   { name: "Variables", icon: TbVariable, path: "/variables" },
   { name: "Settings", icon: FiSettings, path: "/settings" },
   { name: "Logout", icon: FiLogOut, path: "/logout" },
 ];
 
-
 function DarkModeToggle() {
-    const { colorMode, toggleColorMode } = useColorMode();
-    return (
-      <IconButton
-        onClick={toggleColorMode}
-        icon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
-        aria-label="Toggle dark mode"
-        position="fixed"
-        bottom="20px"
-        left="28px"
-        bg='transparent'
-        // colorScheme={colorMode === "light" ? "red" : "yellow"} 
-        variant="outline"
-      />
-    );
-  }
+  const { colorMode, toggleColorMode } = useColorMode();
+  return (
+    <IconButton
+      onClick={toggleColorMode}
+      icon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
+      aria-label="Toggle dark mode"
+      position="fixed"
+      bottom="20px"
+      left="28px"
+      bg="transparent"
+      // colorScheme={colorMode === "light" ? "red" : "yellow"}
+      variant="outline"
+    />
+  );
+}
 
 const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(true);
@@ -85,15 +84,14 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   const isMobile = useBreakpointValue({ base: true, md: false });
   const router = useRouter(); // Use Next.js router for navigation and active route detection
 
-  const toggleSidebar = () =>{
-    console.log("IsMobile",isMobile);
-    if(isMobile){
+  const toggleSidebar = () => {
+    console.log("IsMobile", isMobile);
+    if (isMobile) {
       onClose();
+    } else {
+      setIsSidebarExpanded((prev) => !prev);
     }
-    else{
-        setIsSidebarExpanded((prev) => !prev);
-    }
-  } 
+  };
 
   const SidebarContent = (
     <Box
@@ -102,44 +100,48 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       minW={isSidebarExpanded ? "240px" : "80px"}
       h="100vh"
       p={4}
-      transition="width 0.3s"
-    >
+      transition="width 0.3s">
       <VStack spacing={6} align="stretch">
         <HStack>
-            <Image onClick= {toggleSidebar} width='58px' paddingLeft="2" src="/site_logo.png"></Image>
-            {isSidebarExpanded && (
-                <Text as='b' pt={2} pl={2} fontSize='large' color='white'>Galago</Text>
-            )}
-         <Spacer/>
-         {isSidebarExpanded && (
-         <IconButton 
-            variant="ghost"
-            aria-label="Open Menu"
-            bg="transparent"
-            color="white"
-            _hover={{ background: "teal.600" }}
-            icon={<MdOutlineTransitEnterexit />}
-            onClick={toggleSidebar}/>
-         )}
-         </HStack>
+          <Image onClick={toggleSidebar} width="58px" paddingLeft="2" src="/site_logo.png"></Image>
+          {isSidebarExpanded && (
+            <Text as="b" pt={2} pl={2} fontSize="large" color="white">
+              Galago
+            </Text>
+          )}
+          <Spacer />
+          {isSidebarExpanded && (
+            <IconButton
+              variant="ghost"
+              aria-label="Open Menu"
+              bg="transparent"
+              color="white"
+              _hover={{ background: "teal.600" }}
+              icon={<MdOutlineTransitEnterexit />}
+              onClick={toggleSidebar}
+            />
+          )}
+        </HStack>
         {sidebarItems.map((item) => (
           <Link
             key={item.name}
-            onClick={() => {router.push(item.path);document.title = item.path == '/' ? "Home" : capitalizeFirst(`${item.path.replaceAll("/","").replaceAll("_", " ")}`)}}
+            onClick={() => {
+              router.push(item.path);
+              document.title =
+                item.path == "/"
+                  ? "Home"
+                  : capitalizeFirst(`${item.path.replaceAll("/", "").replaceAll("_", " ")}`);
+            }}
             _hover={{ background: "teal.600" }}
             borderRadius="md"
             p={2}
             display="flex"
             alignItems="center"
             justifyContent={isSidebarExpanded ? "start" : "center"}
-            bg={router.pathname === item.path ? "teal.600" : "transparent"}
-          >
+            bg={router.pathname === item.path ? "teal.600" : "transparent"}>
             <item.icon size="26" />
             {isSidebarExpanded && (
-              <Text 
-                color="white"
-                ml={4} 
-                fontSize="md">
+              <Text color="white" ml={4} fontSize="md">
                 {item.name}
               </Text>
             )}
@@ -154,7 +156,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       {isMobile ? (
         <>
           <IconButton
-             bg="teal.500"
+            bg="teal.500"
             aria-label="Open Menu"
             icon={<FiMenu />}
             onClick={onOpen}
@@ -163,7 +165,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             top="1rem"
             left="1rem"
           />
-           <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
+          <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
             <DrawerOverlay />
             <DrawerContent>{SidebarContent}</DrawerContent>
           </Drawer>

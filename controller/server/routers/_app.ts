@@ -10,7 +10,7 @@ export const appRouter = router({
   protocol: protocolRouter,
   run: runRouter,
   commandQueue: commandQueueRouter,
-  variable: variableRouter
+  variable: variableRouter,
 });
 
 export type AppRouter = typeof appRouter;

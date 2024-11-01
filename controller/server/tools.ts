@@ -7,7 +7,7 @@ import * as tool_driver from "gen-interfaces/tools/grpc_interfaces/tool_driver";
 import { ToolType } from "gen-interfaces/controller";
 import ControllerConfig from "./utils/ControllerConfig";
 import { PromisifiedGrpcClient, promisifyGrpcClient } from "./utils/promisifyGrpcCall";
-import { setInterval,clearInterval } from 'timers';
+import { setInterval, clearInterval } from "timers";
 import { trpc } from "@/utils/trpc";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
@@ -30,7 +30,7 @@ export default class Tool {
 
     var target = `${info.ip}:${info.port}`;
     this.grpc = promisifyGrpcClient(
-      new tool_driver.ToolDriverClient(target, grpc.credentials.createInsecure())
+      new tool_driver.ToolDriverClient(target, grpc.credentials.createInsecure()),
     );
   }
 
@@ -48,7 +48,6 @@ export default class Tool {
     }
   }
 
-
   async fetchStatus() {
     try {
       const statusReply = await this.grpc.getStatus({});
@@ -56,7 +55,7 @@ export default class Tool {
       this.uptime = statusReply.uptime;
       return statusReply;
     } catch (e) {
-      let failedReply = {uptime:0, status:ToolStatus.UNKNOWN_STATUS} as tool_base.StatusReply
+      let failedReply = { uptime: 0, status: ToolStatus.UNKNOWN_STATUS } as tool_base.StatusReply;
       return failedReply;
     }
   }
@@ -72,17 +71,17 @@ export default class Tool {
   async configure(config: tool_base.Config) {
     this.config = config;
     const reply = await this.grpc.configure(config);
-    if(reply.response !== tool_base.ResponseCode.SUCCESS){
+    if (reply.response !== tool_base.ResponseCode.SUCCESS) {
       throw new ToolCommandExecutionError(
         reply.error_message ?? "Connect Command failed",
-        reply.response
+        reply.response,
       );
     }
   }
 
-  async configureAllTools(){
-    for(const tool in ControllerConfig.tools){
-      const toolConfig = tool
+  async configureAllTools() {
+    for (const tool in ControllerConfig.tools) {
+      const toolConfig = tool;
     }
   }
 
@@ -106,7 +105,7 @@ export default class Tool {
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
       throw new ToolCommandExecutionError(
         reply.error_message ?? "Tool command failed",
-        reply.response
+        reply.response,
       );
     }
   }
@@ -116,7 +115,7 @@ export default class Tool {
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
       throw new ToolCommandExecutionError(
         reply.error_message ?? "Estimating duration failed",
-        reply.response
+        reply.response,
       );
     }
     return reply.estimated_duration_seconds;
@@ -133,18 +132,17 @@ export default class Tool {
     const store: Map<string, Tool> = me[global_key];
     let tool = store.get(id);
     if (!tool) {
-      let toolInfo = {} as controller_protos.ToolConfig ;
-      if(id == "toolbox"){
-        const result = this.toolBoxConfig()
+      let toolInfo = {} as controller_protos.ToolConfig;
+      if (id == "toolbox") {
+        const result = this.toolBoxConfig();
         toolInfo = result;
-      }
-      else{
+      } else {
         const result = ControllerConfig.tools.find((tool) => tool.id === id);
         if (!result) {
           throw new Error(
             `Tool with id ${id} not found in local config file. Found ${ControllerConfig.tools
               .map((tool) => tool.id)
-              .join(", ")}`
+              .join(", ")}`,
           );
         }
         toolInfo = result;
@@ -158,44 +156,46 @@ export default class Tool {
   }
 
   static availableIDs(): string[] {
-    let toolIds : string[] = []
-    if(ControllerConfig.tools){
+    let toolIds: string[] = [];
+    if (ControllerConfig.tools) {
       toolIds = ControllerConfig.tools.map((tool) => tool.id);
     }
-    toolIds.push(this.toolboxId())
+    toolIds.push(this.toolboxId());
     return toolIds;
   }
 
   static workcellName(): string {
     return ControllerConfig.name;
   }
-  
+
   static toolBoxConfig(): controller_protos.ToolConfig {
     return {
-      name:"Tool Box",
-      id:"toolbox",
-      type:"toolbox" as ToolType, 
-      description:"General Tools",
-      image_url:"/tool_icons/toolbox.png",
-      ip:"localhost",
-      port:1010,
-      config:{
-        "simulated":false, 
-        "toolbox": {
-          "tool_id":"toolbox"
-        }
-      }
-    }
+      name: "Tool Box",
+      id: "toolbox",
+      type: "toolbox" as ToolType,
+      description: "General Tools",
+      image_url: "/tool_icons/toolbox.png",
+      ip: "localhost",
+      port: 1010,
+      config: {
+        simulated: false,
+        toolbox: {
+          tool_id: "toolbox",
+        },
+      },
+    };
   }
 
   static toolboxId(): string {
-    return "toolbox" 
+    return "toolbox";
   }
-
 }
 
 export class ToolCommandExecutionError extends Error {
-  constructor(message: string, public code: tool_base.ResponseCode) {
+  constructor(
+    message: string,
+    public code: tool_base.ResponseCode,
+  ) {
     super(message);
     this.name = "ToolCommandExecutionError";
   }

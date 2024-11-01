@@ -26,7 +26,7 @@ export function innerZodType<I extends z.ZodTypeAny>(type: MaybeWrappedZodType<I
 }
 
 export function innerZodObjectShape<T extends MaybeWrappedZodType<z.AnyZodObject>>(
-  paramSchema: T
+  paramSchema: T,
 ): InnerZodType<T> {
   return innerZodType(paramSchema).shape;
 }

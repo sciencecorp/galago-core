@@ -16,7 +16,7 @@ export const toolRouter = router({
     .input(
       z.object({
         toolId: z.string(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const tool = Tool.forId(input.toolId);
@@ -27,7 +27,7 @@ export const toolRouter = router({
     .input(
       z.object({
         toolId: z.string(),
-      })
+      }),
     )
     .query(({ input }) => {
       const tool = Tool.forId(input.toolId);
@@ -39,7 +39,7 @@ export const toolRouter = router({
       z.object({
         toolId: z.string(),
         config: z.custom<Config>().transform(Config.fromPartial),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const { toolId, config } = input;
@@ -55,7 +55,7 @@ export const toolRouter = router({
         toolType: zToolType,
         command: z.string(),
         params: z.record(z.any()),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       return await Tool.executeCommand(input);

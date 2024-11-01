@@ -1,6 +1,5 @@
 import { Tag, Wrap } from "@chakra-ui/react";
 import moment from "moment-timezone";
-import pluralize from "pluralize";
 import React from "react";
 
 export const renderDate = (date: string) => moment.tz(date, "America/Los_Angeles").format("ll");
@@ -12,13 +11,6 @@ export const renderDaysSince = (start: string | Date, end?: string | Date) =>
   moment
     .tz(end || moment(), "America/Los_Angeles")
     .diff(moment.tz(start, "America/Los_Angeles"), "days");
-
-export const renderDaysSinceHumanized = (start: string | Date, end?: string | Date) => {
-  const days = moment
-    .tz(end || moment(), "America/Los_Angeles")
-    .diff(moment.tz(start, "America/Los_Angeles"), "days");
-  return `${days} ${pluralize("day", days)}`;
-};
 
 export const renderDays = (duration: moment.Duration) => {
   return Math.floor(duration.asDays());
@@ -51,17 +43,4 @@ export const renderDurationAsInputString = (duration: number) => {
 export const renderDurationAsHelperText = (duration: string) => {
   const parsed = moment.duration(duration, "days");
   return `Day ${renderDays(parsed)}, ${renderHoursAndMinutes(parsed)}`;
-};
-
-export const renderDurationHumanized = (duration: number) => {
-  const parsed = moment.duration(duration, "seconds");
-  const days = renderDays(parsed);
-  const hours = parsed.hours();
-  const minutes = parsed.minutes();
-
-  const parts = [];
-  if (days > 0) parts.push(`${days} ${pluralize("day", days)}`);
-  if (hours > 0) parts.push(`${hours} ${pluralize("hour", hours)}`);
-  if (minutes > 0) parts.push(`${minutes} ${pluralize("minute", minutes)}`);
-  return parts.length > 0 ? parts.join(", ") : "0 days";
 };

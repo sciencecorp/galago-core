@@ -1,0 +1,6 @@
+.next/
+out/
+dist/
+build/
+gen-interfaces/
+node_modules/

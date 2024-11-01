@@ -1,12 +1,31 @@
 import { trpc } from "@/utils/trpc";
-import { Alert, Box, Card, CardBody, CardHeader, Heading, Text, HStack, Spinner, VStack, Flex, Image, Menu, MenuButton, MenuItem, MenuList, IconButton, Icon } from "@chakra-ui/react";
+import {
+  Alert,
+  Box,
+  Card,
+  CardBody,
+  CardHeader,
+  Heading,
+  Text,
+  HStack,
+  Spinner,
+  VStack,
+  Flex,
+  Image,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  IconButton,
+  Icon,
+} from "@chakra-ui/react";
 import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import Link from "next/link";
 import { ToolConfigEditor } from "./ToolConfigEditor";
 import { ToolStatusTag } from "./ToolStatusTag";
 import { HamburgerIcon } from "@chakra-ui/icons";
-import styled from '@emotion/styled';
-import { useState } from 'react';
+import styled from "@emotion/styled";
+import { useState } from "react";
 import { PiToolbox } from "react-icons/pi";
 
 const StyledCard = styled(Card)`
@@ -28,7 +47,13 @@ const StyledCard = styled(Card)`
   }
 `;
 
-export default function ToolStatusCard({ toolId, style }: { toolId: string; style?: React.CSSProperties }) {
+export default function ToolStatusCard({
+  toolId,
+  style,
+}: {
+  toolId: string;
+  style?: React.CSSProperties;
+}) {
   const [isHovered, setIsHovered] = useState(false);
 
   const infoQuery = trpc.tool.info.useQuery({ toolId: toolId });
@@ -42,34 +67,31 @@ export default function ToolStatusCard({ toolId, style }: { toolId: string; styl
   if (infoQuery.isError || !config) {
     return <Alert status="error">Could not load tool info</Alert>;
   }
-  
+
   function renderToolImage(config: any) {
     if (!config.image_url) {
       return <Box></Box>;
-    }
-    else if(config.id === "toolbox"){
+    } else if (config.id === "toolbox") {
       return (
         <Box display="flex" justifyContent="center" alignItems="center">
-        <IconButton
-          aria-label="Tool Box"
-          icon={<PiToolbox style={{ width: "100%", height: "100%" }} />} // Ensure the icon fills the button
-          variant="ghost"
-          colorScheme="teal"
-          isRound
-          boxSize="100px" 
-        />
-      </Box>
-
-      )
-    }
-    else {
+          <IconButton
+            aria-label="Tool Box"
+            icon={<PiToolbox style={{ width: "100%", height: "100%" }} />} // Ensure the icon fills the button
+            variant="ghost"
+            colorScheme="teal"
+            isRound
+            boxSize="100px"
+          />
+        </Box>
+      );
+    } else {
       return (
-        <Image 
-          src={config.image_url} 
-          alt={config.name} 
-          objectFit="contain" 
-          height={isHovered ? "120px" : "120px"} 
-          width={isHovered ? "120px" : "120px"} 
+        <Image
+          src={config.image_url}
+          alt={config.name}
+          objectFit="contain"
+          height={isHovered ? "120px" : "120px"}
+          width={isHovered ? "120px" : "120px"}
           transition="all 0.3s ease-in-out"
         />
       );
@@ -79,44 +101,44 @@ export default function ToolStatusCard({ toolId, style }: { toolId: string; styl
   const isPF400 = config.type === ToolType.pf400;
 
   return (
-    <StyledCard 
+    <StyledCard
       style={style}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <CardHeader pb='0px'>
+      onMouseLeave={() => setIsHovered(false)}>
+      <CardHeader pb="0px">
         <Flex justifyContent="space-between" alignItems="center">
           <Box>
             <Link href={`/tools/${toolId}`} passHref>
               <Heading size="md">{name}</Heading>
             </Link>
-            <Text fontSize='sm'>{description}</Text>
+            <Text fontSize="sm">{description}</Text>
           </Box>
           <Menu>
             <MenuButton
               as={IconButton}
-              aria-label='Options'
+              aria-label="Options"
               icon={<HamburgerIcon />}
-              variant='ghost'
+              variant="ghost"
             />
             <MenuList>
               <MenuItem>Edit</MenuItem>
               {isPF400 && (
-                <MenuItem as='a' href={`/tools/advanced/${toolId}`}>Teach Pendant</MenuItem>
+                <MenuItem as="a" href={`/tools/advanced/${toolId}`}>
+                  Teach Pendant
+                </MenuItem>
               )}
             </MenuList>
           </Menu>
         </Flex>
       </CardHeader>
-      <CardBody mt='0px'>
+      <CardBody mt="0px">
         <VStack align="stretch" spacing={4} mb={2}>
           <ToolStatusTag toolId={toolId} />
-          <Flex 
-            justifyContent="center" 
-            alignItems="center" 
+          <Flex
+            justifyContent="center"
+            alignItems="center"
             height={isHovered ? "auto" : "100%"}
-            transition="all 0.3s ease-in-out"
-          >
+            transition="all 0.3s ease-in-out">
             {isHovered ? (
               <Flex justifyContent="space-between" alignItems="center" width="100%">
                 <Box flex="1" opacity={isHovered ? 1 : 0} transition="opacity 0.3s">
@@ -127,9 +149,7 @@ export default function ToolStatusCard({ toolId, style }: { toolId: string; styl
                 </Box>
               </Flex>
             ) : (
-              <Box>
-                {renderToolImage(config)}
-              </Box>
+              <Box>{renderToolImage(config)}</Box>
             )}
           </Flex>
         </VStack>

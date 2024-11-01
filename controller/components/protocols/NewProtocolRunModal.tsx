@@ -32,8 +32,6 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { z } from "zod";
 
-
-
 function ParamInput({
   paramInfo,
   value,
@@ -75,7 +73,7 @@ function ParamInput({
             value={value || paramInfo.default}
             onChange={(e) => setValue(e.currentTarget.value.split(",").map((s) => s.trim()))}
           />
-        );  
+        );
       } else {
         return (
           <Input
@@ -113,25 +111,19 @@ function ParamInput({
   }
 }
 
-export default function NewProtocolRunModal({
-  id
-}: {
-  id: string;
-}) {
+export default function NewProtocolRunModal({ id }: { id: string }) {
   const router = useRouter();
   const toast = useToast();
   const workcellData = trpc.tool.getWorkcellName.useQuery();
   const workcellName = workcellData.data;
- // const [uiParams, setuiParams] = useState()
-  const protocol = trpc.protocol.get.useQuery({id });
+  // const [uiParams, setuiParams] = useState()
+  const protocol = trpc.protocol.get.useQuery({ id });
   const uiParams = protocol.data?.uiParams || {};
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [userDefinedParams, setUserDefinedParams] = useState<Record<string, any>>({});
   const [formErrors, setFormErrors] = useState<z.inferFormattedError<z.AnyZodObject>>();
 
-
   const createRunMutation = trpc.run.create.useMutation({
-
     onSuccess: (data) => {
       router.push(`/runs`);
     },
@@ -150,73 +142,81 @@ export default function NewProtocolRunModal({
       }
     },
   });
-  
+
   return (
     <>
       {workcellName && uiParams && protocol && (
-    <Box> 
-      <Modal isOpen={true} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>New Protocol Run</ModalHeader>
-          <ModalCloseButton onClick={()=>{router.push(`/protocols`)}}/>
-          <ModalBody>
-            <VStack align="start" spacing={4}>
-              <>
-                {Object.entries(uiParams).map(([param, paramInfo]) => {
-                  return (
-                    <FormControl key={param} isInvalid={!!(formErrors && formErrors[param])}>
-                      <FormLabel>{param}</FormLabel>
-                      <ParamInput
-                        paramInfo={paramInfo}
-                        value={userDefinedParams[param]}
-                        setValue={(value) =>
-                          setUserDefinedParams({ ...userDefinedParams, [param]: value })
-                        }
-                      />
-                      <FormHelperText>{paramInfo.description}</FormHelperText>
-                      {formErrors &&
-                        formErrors[param]?._errors.map((key,error) => (
-                          <FormErrorMessage key={key}>{error}</FormErrorMessage>
-                        ))}
-                    </FormControl>
-                  );
-                })}
-                {formErrors?._errors.map((key, error) => (
-                  <FormErrorMessage key={key}>{error}</FormErrorMessage>
-                ))}
-              </>
-            </VStack>
-          </ModalBody>
-          <ModalFooter>
-            <ButtonGroup>
-              <Button onClick={()=>{router.push(`/protocols`)}}>Cancel</Button>
-              <Button
-                colorScheme="blue"
+        <Box>
+          <Modal isOpen={true} onClose={onClose}>
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>New Protocol Run</ModalHeader>
+              <ModalCloseButton
                 onClick={() => {
-                  createRunMutation.mutate(
-                    {
-                      protocolId: id,
-                      workcellName:workcellName,
-                      params: userDefinedParams,
-                    },
-                    {
-                      onSuccess: () => {
-                        setUserDefinedParams({});
-                        onClose();
-                      },
-                    },
-                  );
-                }}>
-                Start Run
-              </Button>
-            </ButtonGroup>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </Box>
-)}
+                  router.push(`/protocols`);
+                }}
+              />
+              <ModalBody>
+                <VStack align="start" spacing={4}>
+                  <>
+                    {Object.entries(uiParams).map(([param, paramInfo]) => {
+                      return (
+                        <FormControl key={param} isInvalid={!!(formErrors && formErrors[param])}>
+                          <FormLabel>{param}</FormLabel>
+                          <ParamInput
+                            paramInfo={paramInfo}
+                            value={userDefinedParams[param]}
+                            setValue={(value) =>
+                              setUserDefinedParams({ ...userDefinedParams, [param]: value })
+                            }
+                          />
+                          <FormHelperText>{paramInfo.description}</FormHelperText>
+                          {formErrors &&
+                            formErrors[param]?._errors.map((key, error) => (
+                              <FormErrorMessage key={key}>{error}</FormErrorMessage>
+                            ))}
+                        </FormControl>
+                      );
+                    })}
+                    {formErrors?._errors.map((key, error) => (
+                      <FormErrorMessage key={key}>{error}</FormErrorMessage>
+                    ))}
+                  </>
+                </VStack>
+              </ModalBody>
+              <ModalFooter>
+                <ButtonGroup>
+                  <Button
+                    onClick={() => {
+                      router.push(`/protocols`);
+                    }}>
+                    Cancel
+                  </Button>
+                  <Button
+                    colorScheme="blue"
+                    onClick={() => {
+                      createRunMutation.mutate(
+                        {
+                          protocolId: id,
+                          workcellName: workcellName,
+                          params: userDefinedParams,
+                        },
+                        {
+                          onSuccess: () => {
+                            setUserDefinedParams({});
+                            onClose();
+                          },
+                        },
+                      );
+                    }}>
+                    Start Run
+                  </Button>
+                </ButtonGroup>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+        </Box>
+      )}
     </>
-
   );
 }

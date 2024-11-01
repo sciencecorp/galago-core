@@ -6,13 +6,13 @@ import { procedure, router } from "@/server/trpc";
 import { inferProcedureOutput } from "@trpc/server";
 
 export type AllNamesOutput = {
-  name:string
+  name: string;
   id: string;
   category: string;
   workcell: string;
   number_of_commands: number;
-  description?:string;
-  icon?:any
+  description?: string;
+  icon?: any;
 }[];
 
 export const protocolRouter = router({
@@ -20,12 +20,12 @@ export const protocolRouter = router({
     .input(
       z.object({
         // pagination will go here. later
-      })
+      }),
     )
     .query(async () => {
       return Protocols.map((protocol: Protocol) => {
         return {
-          name:protocol.name,
+          name: protocol.name,
           id: protocol.protocolId,
           category: protocol.category,
           workcell: protocol.workcell,
@@ -40,33 +40,33 @@ export const protocolRouter = router({
       const { workcellName } = input;
       return Protocols.filter((protocol: Protocol) => protocol.workcell === workcellName).map(
         (
-          protocol: Protocol
+          protocol: Protocol,
         ): {
-          name:string;
+          name: string;
           id: string;
           category: string;
           workcell: string;
           number_of_commands: number;
-          description?:string;
-          icon?:any
+          description?: string;
+          icon?: any;
         } => {
           return {
-            name:protocol.name,
+            name: protocol.name,
             id: protocol.protocolId,
             category: protocol.category,
             workcell: protocol.workcell,
             number_of_commands: protocol.preview().length,
-            description:protocol.description, 
-            icon:protocol.icon
+            description: protocol.description,
+            icon: protocol.icon,
           };
-        }
+        },
       );
     }),
   get: procedure
     .input(
       z.object({
         id: z.string(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { id } = input;
@@ -75,14 +75,14 @@ export const protocolRouter = router({
       if (!protocol) return null;
 
       return {
-        name:protocol.name, 
+        name: protocol.name,
         id: protocol.protocolId,
         category: protocol.category,
         workcell: protocol.workcell,
         commands: protocol.preview(),
         uiParams: protocol.uiParams(),
-        icon: protocol.icon, 
-        description: protocol.description
+        icon: protocol.icon,
+        description: protocol.description,
       };
     }),
 });

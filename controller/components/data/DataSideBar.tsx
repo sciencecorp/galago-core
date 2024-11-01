@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Box, VStack, Button, IconButton, Collapse, Divider } from '@chakra-ui/react';
-import { HamburgerIcon } from '@chakra-ui/icons';
-import { useRouter } from 'next/router';
-import { useSidebar } from "@/pages/SidebarContext"
+import React, { useEffect, useState } from "react";
+import { Box, VStack, Button, IconButton, Collapse, Divider } from "@chakra-ui/react";
+import { HamburgerIcon } from "@chakra-ui/icons";
+import { useRouter } from "next/router";
+import { useSidebar } from "@/pages/SidebarContext";
 type SidebarProps = {};
 
 type MenuItem = {
@@ -11,30 +11,33 @@ type MenuItem = {
 };
 
 const AdvancedSideBar: React.FC<SidebarProps> = () => {
-  const router = useRouter()
+  const router = useRouter();
   const { lastClickedSubtab, setLastClickedSubtab } = useSidebar();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const navbarHeight = '45px';
+  const navbarHeight = "45px";
   const menuItems: MenuItem[] = [
-    { title: 'Sensors', subItems: ['Liconic'] },
-    { title: 'Logs', subItems: ['Tool Logs', 'Variables'] },
+    { title: "Sensors", subItems: ["Liconic"] },
+    { title: "Logs", subItems: ["Tool Logs", "Variables"] },
   ];
 
-  useEffect(()=>{
-    if(router.pathname === '/advanced'){
+  useEffect(() => {
+    if (router.pathname === "/advanced") {
       setLastClickedSubtab(null);
     }
-  },[]);
+  }, []);
 
-  const initialExpandedItems = menuItems.reduce((acc, _, index) => {
-    acc[index] = true;
-    return acc;
-  }, {} as Record<number, boolean>);
+  const initialExpandedItems = menuItems.reduce(
+    (acc, _, index) => {
+      acc[index] = true;
+      return acc;
+    },
+    {} as Record<number, boolean>,
+  );
 
   const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>(initialExpandedItems);
 
   const toggleSubItems = (index: number) => {
-    setExpandedItems(prevState => ({
+    setExpandedItems((prevState) => ({
       ...prevState,
       [index]: !prevState[index],
     }));
@@ -47,7 +50,7 @@ const AdvancedSideBar: React.FC<SidebarProps> = () => {
 
   return (
     <Box
-      width={{ base: isCollapsed ? '60px' : '100%', md: isCollapsed ? '60px' : '150px' }}
+      width={{ base: isCollapsed ? "60px" : "100%", md: isCollapsed ? "60px" : "150px" }}
       bg="white"
       p={0}
       height="auto"
@@ -56,8 +59,7 @@ const AdvancedSideBar: React.FC<SidebarProps> = () => {
       top={navbarHeight}
       zIndex={1}
       borderRadius={5}
-      border="1px solid lightgray"
-    >
+      border="1px solid lightgray">
       <IconButton
         aria-label="Toggle sidebar"
         icon={<HamburgerIcon />}
@@ -70,16 +72,19 @@ const AdvancedSideBar: React.FC<SidebarProps> = () => {
         right="4px"
       />
       {!isCollapsed && (
-        <VStack position="absolute" top="45px" spacing={0} align={isCollapsed ? 'center' : 'stretch'}>
+        <VStack
+          position="absolute"
+          top="45px"
+          spacing={0}
+          align={isCollapsed ? "center" : "stretch"}>
           {menuItems.map((item, index) => (
             <Box key={index} width="100%">
               <Button
                 key={index}
                 width="180px"
-                justifyContent={isCollapsed ? 'center' : 'flex-start'}
+                justifyContent={isCollapsed ? "center" : "flex-start"}
                 variant="ghost"
-                onClick={() => toggleSubItems(index)}
-              >
+                onClick={() => toggleSubItems(index)}>
                 {item.title}
               </Button>
               {item.subItems && (
@@ -87,7 +92,7 @@ const AdvancedSideBar: React.FC<SidebarProps> = () => {
                   <VStack align="start" spacing={0}>
                     {!isCollapsed &&
                       item.subItems.map((subItem, subIndex) => {
-                        const path = `/advanced/${item.title.toLowerCase()}/${subItem.toLowerCase().replace(' ', '_')}`;
+                        const path = `/advanced/${item.title.toLowerCase()}/${subItem.toLowerCase().replace(" ", "_")}`;
                         return (
                           <Button
                             left={3}
@@ -95,9 +100,8 @@ const AdvancedSideBar: React.FC<SidebarProps> = () => {
                             width="150px"
                             variant="ghost"
                             justifyContent="flex-start"
-                            color={lastClickedSubtab === path ? 'blue.500' : 'gray.500'}
-                            onClick={() => handleSubtabClick(path)}
-                          >
+                            color={lastClickedSubtab === path ? "blue.500" : "gray.500"}
+                            onClick={() => handleSubtabClick(path)}>
                             {subItem}
                           </Button>
                         );
