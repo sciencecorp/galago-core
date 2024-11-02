@@ -72,7 +72,6 @@ function DarkModeToggle() {
       bottom="20px"
       left="28px"
       bg="transparent"
-      // colorScheme={colorMode === "light" ? "red" : "yellow"}
       variant="outline"
     />
   );
@@ -100,7 +99,8 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       minW={isSidebarExpanded ? "240px" : "80px"}
       h="100vh"
       p={4}
-      transition="width 0.3s">
+      transition="width 0.3s"
+      >
       <VStack spacing={6} align="stretch">
         <HStack>
           <Image onClick={toggleSidebar} width="58px" paddingLeft="2" src="/site_logo.png"></Image>

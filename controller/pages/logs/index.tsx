@@ -9,8 +9,6 @@ import { off } from "process";
 
 export default function Page() {
   return (
-    <Box>
       <LogView />
-    </Box>
   );
 }

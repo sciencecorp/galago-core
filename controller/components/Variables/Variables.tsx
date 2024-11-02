@@ -31,6 +31,7 @@ import { Variable } from "./types";
 import { VariableModal } from "./VariableModal";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { renderDatetime } from "@/components/ui/Time";
+import { ToolType } from "gen-interfaces/controller";
 
 export const Variables: React.FC = () => {
   const [variables, setVariables] = useState<Variable[]>([]);

@@ -74,30 +74,14 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
   }, [offset, limit, selectedFilter]);
 
   return (
-    <VStack align="center" spacing={5} width="100%">
-      <VStack>
+    <VStack align="center" spacing={1}  p={4} maxHeight="calc(100vh - 80px)" overflowY="auto">
         <Box>
           <Heading>Logs</Heading>
         </Box>
         <HStack margin="10px">
-          <Box>Per Page:</Box>
-          <Select
-            value={limit}
-            width="75px"
-            onChange={(e) => handleLimitChange(Number(e.target.value))}>
-            <option value="25">25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </Select>
-          <Button disabled={!hasPrevious} onClick={handlePrevious}>
-            Previous
-          </Button>
-          <Button disabled={!hasNext} onClick={handleNext}>
-            Next
-          </Button>
         </HStack>
         <HStack>
-          <Button
+          {/* <Button
             onClick={() => {
               selectedFilter === "info" ? setSelectedFilter(null) : setSelectedFilter("info");
             }}
@@ -117,7 +101,7 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
             }}
             colorScheme={selectedFilter === "error" ? "red" : "gray"}>
             ERROR
-          </Button>
+          </Button> */}
         </HStack>
         <Table mt={8} fontSize="small">
           <Thead>
@@ -150,19 +134,18 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
         </Table>
         <HStack>
           <Box>Per Page:</Box>
-          <Select value={limit} width="75px">
+          <Select value={limit} width="75px" size='sm'>
             <option value="25">25</option>
             <option value="50">50</option>
             <option value="100">100</option>
           </Select>
-          <Button disabled={!hasPrevious} onClick={handlePrevious}>
+          <Button size="sm" disabled={!hasPrevious} onClick={handlePrevious} >
             Previous
           </Button>
-          <Button disabled={!hasNext} onClick={handleNext}>
+          <Button size ="sm" disabled={!hasNext} onClick={handleNext}>
             Next
           </Button>
         </HStack>
-      </VStack>
     </VStack>
   );
 };
