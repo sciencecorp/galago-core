@@ -20,7 +20,8 @@ import {
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
 import { ToolCommandInfo } from "@/types";
-
+import {ToolType} from "gen-interfaces/controller"; 
+import { capitalizeFirst} from "@/utils/parser";
 // Assuming you're using TypeScript, you could define a type for the status object
 type CommandStatus = {
   [commandName: string]: "idle" | "success" | "error";
@@ -32,6 +33,7 @@ type AtomicFormValues = string | number | boolean | string[];
 type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormValues>>;
 
 type FieldType = "text" | "number" | "text_array" | "boolean" | Field[];
+
 interface Field {
   name: string;
   type: FieldType;
@@ -42,9 +44,9 @@ interface Command {
   [command: string]: Field[];
 }
 
-interface CommandFields {
-  [tool: string]: Command;
-}
+type CommandFields = {
+  [tool:string]: Command;
+};
 
 const move: Field[] = [
   { name: "waypoint", type: "text" },
@@ -343,6 +345,20 @@ const commandFields: CommandFields = {
   },
 };
 
+
+const ToolCommands = (commands:CommandFields) => {
+  return (
+    <VStack align="stretch" spacing={4}>
+      <Heading size="md">Commands</Heading>
+      <HStack spacing={4}>
+        {Object.keys(commands).map((command) => (
+          <Button key={command}>{command}</Button>
+        ))}
+      </HStack>
+    </VStack>
+  );
+}
+
 export default function Page() {
   const router = useRouter();
   const id = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
@@ -361,6 +377,11 @@ export default function Page() {
   const commandOptions = config ? commandFields[config.type] : {};
 
   const toast = useToast();
+
+
+  useEffect(()=>{
+    document.title = ` ${config?.name}`;
+  },[])
 
   useEffect(() => {
     if (selectedCommand) {
@@ -393,11 +414,11 @@ export default function Page() {
     setFormValues({});
   };
 
-  const handleSubmit = (event: FormEvent) => {
-    event.preventDefault();
+  const handleSubmit = () => {
     if (!selectedCommand) return;
     if (!config) return;
     console.log(formValues);
+    console.log("Running command");
     toast({
       title: `Executing ${selectedCommand}..`,
       description: `Please wait.`,
@@ -618,26 +639,26 @@ export default function Page() {
   return (
     <>
       <Box p={12} maxWidth="1800px" margin="auto">
-        <VStack width="100%" spacing={8}>
-          <ToolStatusCard toolId={String(id)} />
+          <ToolStatusCard toolId={String(id)}/>
           <FormControl>
-            <FormLabel>Command</FormLabel>
+          <VStack width="100%" spacing={1}>
+            <FormLabel>Select Command</FormLabel>
             <Select placeholder="Select command" onChange={handleChange}>
-              {Object.keys(commandOptions).map((command) => (
-                <option key={command} value={command}>
-                  {command}
-                </option>
-              ))}
-            </Select>
+                {Object.keys(commandOptions).map((command) => (
+                  <option key={command} value={command}>
+                    {capitalizeFirst(command.replaceAll("_", " "))}
+                  </option>
+                ))}
+              </Select>
+              {selectedCommand && (
+              <>
+                {renderFields(commandOptions[selectedCommand])}
+                <Button width="100%" onClick={handleSubmit} colorScheme="teal">Send Command</Button>
+              </>
+            )}
+          </VStack>
           </FormControl>
-          {selectedCommand && (
-            <form onSubmit={handleSubmit}>
-              <HStack>{renderFields(commandOptions[selectedCommand])}</HStack>
-              <Button type="submit">Send Command</Button>
-            </form>
-          )}
-        </VStack>
-        <Grid pt="10px" templateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap={2}>
+        {/* <Grid pt="10px" templateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap={2}>
           {Object.keys(commandOptions)
             .filter((command) => !doesCommandHaveParameters(command)) // Only commands without parameters
             .map((command) => (
@@ -648,7 +669,7 @@ export default function Page() {
                 status={commandExecutionStatus[command] || "idle"}
               />
             ))}
-        </Grid>
+        </Grid> */}
       </Box>
     </>
   );

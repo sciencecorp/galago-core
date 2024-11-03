@@ -35,6 +35,9 @@ import { PiPathBold } from "react-icons/pi";
 import { MoonIcon, SunIcon } from "@chakra-ui/icons";
 import { MdStart } from "react-icons/md";
 import { capitalizeFirst } from "@/utils/parser";
+import { PiCodeSimpleBold } from "react-icons/pi";
+import { LuTableProperties } from "react-icons/lu";
+
 
 // Define the structure for sidebar items
 interface SidebarItem {
@@ -55,8 +58,10 @@ const sidebarItems: SidebarItem[] = [
   { name: "Workflows", icon: PiPathBold, path: "/settings" },
   { name: "Inventory", icon: BsFillGrid3X2GapFill, path: "/inventory" },
   { name: "Schedule", icon: RiCalendarCheckLine, path: "/schedule" },
+  // { name: "Tables", icon: LuTableProperties, path: "/tables" }, //Will keep thinking about this one, not sure we want to give users so much complexity/abstraction
   { name: "Logs", icon: RiInformationLine, path: "/logs" },
   { name: "Variables", icon: TbVariable, path: "/variables" },
+  { name: "Scripts", icon: PiCodeSimpleBold, path: "/scripts" },
   { name: "Settings", icon: FiSettings, path: "/settings" },
   { name: "Logout", icon: FiLogOut, path: "/logout" },
 ];
@@ -98,12 +103,15 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       color="white"
       minW={isSidebarExpanded ? "240px" : "80px"}
       h="100vh"
-      p={4}
-      transition="width 0.3s"
+      p={2}
+      sx={{
+        transition: "min-width 0.3s ease, width 0.3s ease",
+        width: isSidebarExpanded ? "240px" : "80px",
+      }}
       >
       <VStack spacing={6} align="stretch">
-        <HStack>
-          <Image onClick={toggleSidebar} width="58px" paddingLeft="2" src="/site_logo.png"></Image>
+        <HStack pb={10}>
+          <Image onClick={toggleSidebar} width="58px" paddingLeft="0" src="/site_logo.png"></Image>
           {isSidebarExpanded && (
             <Text as="b" pt={2} pl={2} fontSize="large" color="white">
               Galago

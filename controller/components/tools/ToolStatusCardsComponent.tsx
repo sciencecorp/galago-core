@@ -97,10 +97,6 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
   return (
     <Box p={2} margin="auto">
       <VStack spacing={4}>
-        {/* <Heading mb={2} color={headerColor} css={{ fontFamily: `'Bungee Shade'` }}>
-          Tools
-        </Heading> */}
-
         {showAsGrid ? (
           <>
           <HStack mt={2} mb={2} justify="space-between" width="100%">

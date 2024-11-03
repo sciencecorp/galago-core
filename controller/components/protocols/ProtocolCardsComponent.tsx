@@ -8,7 +8,6 @@ import {
   CardBody,
   CardHeader,
   CardFooter,
-  ButtonGroup,
   Button,
   Input,
   Text,
@@ -19,40 +18,48 @@ import {
   AlertIcon,
   AlertTitle,
   Divider,
-  useSafeLayoutEffect,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
-import { Protocol } from "@/types";
-import { AllNamesOutput } from "@/server/routers/protocol";
-import Head from "next/head";
-import NewProtocolRunModal from "./NewProtocolRunModal";
-interface ProtocolCardsComponentProp {}
+import { AllNamesOutput } from "@/server/routers/protocol"; // Ensure this type is imported
 
-export const ProtocolCardsComponent: React.FC<ProtocolCardsComponentProp> = ({}) => {
-  const [isHovered, setIsHovered] = useState(false);
+export const ProtocolCardsComponent: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const workcellData = trpc.tool.getWorkcellName.useQuery();
-  const workcellName = workcellData.data;
-  const allProtocols = trpc.protocol.allNames.useQuery({ workcellName: workcellName || "" });
+  const [filteredProtocols, setFilteredProtocols] = useState<AllNamesOutput>([]); // Set type here
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedProtocol, setSelectedProtocol] = useState("");
 
   const router = useRouter();
 
+  const workcellData = trpc.tool.getWorkcellName.useQuery();
+  const workcellName = workcellData.data;
+  const allProtocols = trpc.protocol.allNames.useQuery({ workcellName: workcellName || "" });
+
+  // Set initial protocols from query result
+  useEffect(() => {
+    if (allProtocols.data) {
+      setFilteredProtocols(allProtocols.data);
+    }
+  }, [allProtocols.data]);
+
+  useEffect(() => {
+    if (!allProtocols.data) return;
+    const results = allProtocols.data.filter((protocol) =>
+      protocol.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredProtocols(results);
+  }, [searchTerm, allProtocols.data]);
+
   const onStartProtocolButtonClick = (id: string) => {
     router.push(`/protocols/${id}`);
   };
 
+  // Handle loading state
   if (allProtocols.isLoading) {
     return <Spinner size="lg" />;
   }
 
-  if (allProtocols.isLoading) {
-    return <Spinner size="lg" />;
-  }
-  console.log();
-
+  // Handle error state
   if (allProtocols.isError) {
     return (
       <Alert status="error">
@@ -61,6 +68,7 @@ export const ProtocolCardsComponent: React.FC<ProtocolCardsComponentProp> = ({})
       </Alert>
     );
   }
+
   return (
     <Center>
       <VStack>
@@ -74,19 +82,20 @@ export const ProtocolCardsComponent: React.FC<ProtocolCardsComponentProp> = ({})
         />
         <Grid
           templateColumns={
-            allProtocols.data.length >= 3
+            filteredProtocols.length >= 3
               ? "repeat(3, 1fr)"
-              : `repeat(${allProtocols.data.length}, 1fr)`
+              : `repeat(${filteredProtocols.length}, 1fr)`
           }
           gap={2}
-          width="max-content">
-          {allProtocols.data?.length === 0 && (
+          width="max-content"
+        >
+          {filteredProtocols.length === 0 && (
             <Alert status="info">
               <AlertIcon />
               <AlertTitle>No protocols found</AlertTitle>
             </Alert>
           )}
-          {allProtocols.data.map((protocol, index) => (
+          {filteredProtocols.map((protocol, index) => (
             <Card key={index}>
               <CardHeader>
                 <Heading size="md">{protocol.name}</Heading>
@@ -97,10 +106,7 @@ export const ProtocolCardsComponent: React.FC<ProtocolCardsComponentProp> = ({})
               </CardBody>
               <Divider />
               <CardFooter>
-                <Button
-                  onClick={() => {
-                    onStartProtocolButtonClick(protocol.id);
-                  }}>
+                <Button onClick={() => onStartProtocolButtonClick(protocol.id)} colorScheme="teal">
                   Start
                 </Button>
               </CardFooter>

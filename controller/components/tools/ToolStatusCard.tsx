@@ -47,6 +47,7 @@ const StyledCard = styled(Card)`
   }
 `;
 
+
 export default function ToolStatusCard({
   toolId,
   style,
@@ -102,7 +103,7 @@ export default function ToolStatusCard({
 
   return (
     <StyledCard
-      style={style}
+      style={{width: "280px", ...style}}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}>
       <CardHeader pb="0px">
@@ -122,6 +123,7 @@ export default function ToolStatusCard({
             />
             <MenuList>
               <MenuItem>Edit</MenuItem>
+              <MenuItem>Delete</MenuItem>
               {isPF400 && (
                 <MenuItem as="a" href={`/tools/advanced/${toolId}`}>
                   Teach Pendant
@@ -145,11 +147,12 @@ export default function ToolStatusCard({
                   <ToolConfigEditor toolId={toolId} defaultConfig={config as ToolConfig} />
                 </Box>
                 <Box width="60px" height="60px">
-                  {renderToolImage(config)}
+                  
+                  {<Link href={`/tools/${toolId}`}>{renderToolImage(config)}</Link>}
                 </Box>
               </Flex>
             ) : (
-              <Box>{renderToolImage(config)}</Box>
+              <Box>{<Link href={`/tools/${toolId}`}>{renderToolImage(config)}</Link>}</Box>
             )}
           </Flex>
         </VStack>
