@@ -4,7 +4,6 @@ import { Variable } from "@/components/variables/types";
 import { get, post, put, del } from "../utils/api";
 import { getHTTPStatusCodeFromError } from '@trpc/server/http';
 
-const domain = "http://localhost:8000";
 
 export const zVariable = z.object({
   id: z.number().optional(),
@@ -16,7 +15,7 @@ export const zVariable = z.object({
 export const variableRouter = router({
   // Get all variables
   getAll: procedure.query(async () => {
-    const response = await get<Variable[]>(`${domain}/variables`);
+    const response = await get<Variable[]>(`/variables`);
     return response;
   }),
   
@@ -24,7 +23,7 @@ export const variableRouter = router({
   get: procedure
     .input(z.string())
     .query(async ({ input }) => {
-      const response = await get<Variable>(`${domain}/variables/${input}`);
+      const response = await get<Variable>(`/variables/${input}`);
       return response;
     }),
   
@@ -32,7 +31,7 @@ export const variableRouter = router({
   add: procedure
     .input(zVariable.omit({ id: true })) // Input does not require `id`
     .mutation(async ({ input }) => {
-      const response = await post<Variable>(`${domain}/variables`, input);
+      const response = await post<Variable>(`/variables`, input);
       return response;
     }),
   
@@ -41,13 +40,13 @@ export const variableRouter = router({
     .input(zVariable) // Editing by name, only `value` and `type` are editable
     .mutation(async ({ input }) => {
       const { id } = input;
-      const response = await put<Variable>(`${domain}/variables/${id}`, input);
+      const response = await put<Variable>(`/variables/${id}`, input);
       return response;
     }),
 
   // Delete a variable
   delete: procedure.input(z.number()).mutation(async ({ input }) => {
-    await del(`${domain}/variables/${input}`);
+    await del(`/variables/${input}`);
     return { message: "Variable deleted successfully" };
   }),
 });

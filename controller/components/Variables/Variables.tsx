@@ -106,11 +106,13 @@ export const Variables: React.FC = () => {
   };
 
   return (
-    <HStack align="start" spacing={8}>
       <Box flex={1}>
-        <VStack align="stretch" spacing={6}>
-          <Heading size="lg">Variables</Heading>
-          <HStack spacing={4}>
+        <VStack align="stretch" spacing={6} width="100%">
+            <HStack mt={2} mb={2} justify="space-between" width="100%">
+                    <Heading size="lg">Variables</Heading>
+                    <VariableModal />
+          </HStack>
+          <HStack spacing={4} width="100%">
             <Input
               placeholder="Search variables"
               value={searchQuery}
@@ -127,7 +129,7 @@ export const Variables: React.FC = () => {
               <option value="object">Object</option>
             </Select>
           </HStack>
-          <Table variant="simple">
+          <Table variant="simple" width="100%">
             <Thead>
               <Tr>
                 <Th>Name</Th>
@@ -168,7 +170,5 @@ export const Variables: React.FC = () => {
           </Table>
         </VStack>
       </Box>
-      <VariableModal />
-    </HStack>
   );
 };

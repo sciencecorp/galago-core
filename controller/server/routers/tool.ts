@@ -5,10 +5,21 @@ import { Config } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { procedure, router } from "@/server/trpc";
 import { ToolType } from "gen-interfaces/controller";
 import axios from "axios";
-
+import { add } from "winston";
+import {get,post,put,del} from "@/server/utils/api";
+import { idText } from "typescript";
 const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
 
 const domain = "http://localhost:8000";
+
+export const zTool = z.object({
+  id: z.number().optional(),
+  name: z.string(),
+  type: z.string(),
+  workcell_id: z.number(),
+  ip: z.string(),
+  port: z.number(),
+});
 
 export const toolRouter = router({
   //Get all tools 
@@ -23,7 +34,26 @@ export const toolRouter = router({
     return response.data;
   }),
 
+  //Add a new tool
+  add: procedure
+    .input(zTool.omit({ id: true }))
+    .mutation(async ({ input }) => {
+      const response = post<Tool>(`${domain}/tools`, input);
+      return response;
+    }),
   
+
+  //Edit an existing tool
+  edit : procedure  
+    .input(z.object({
+      toolType: zToolType,
+      toolId: z.string(),
+    }))
+    .mutation(async ({ input }) => {
+      const response = put<Tool>(`${domain}/tools/${input.toolId}`, input);
+      return response;
+    }),
+
   availableIDs: procedure.query(async () => {
     return await Tool.availableIDs();
   }),

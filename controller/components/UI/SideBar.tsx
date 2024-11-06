@@ -101,15 +101,15 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
     <Box
       bg="teal.800"
       color="white"
-      minW={isSidebarExpanded ? "240px" : "80px"}
+      minW={isSidebarExpanded ? "320px" : "80px"}
       h="100vh"
       p={2}
       sx={{
         transition: "min-width 0.3s ease, width 0.3s ease",
-        width: isSidebarExpanded ? "240px" : "80px",
+        width: isSidebarExpanded ? "290px" : "80px",
       }}
       >
-      <VStack spacing={6} align="stretch">
+      <VStack spacing={4} align="stretch">
         <HStack pb={10}>
           <Image onClick={toggleSidebar} width="58px" paddingLeft="0" src="/site_logo.png"></Image>
           {isSidebarExpanded && (
