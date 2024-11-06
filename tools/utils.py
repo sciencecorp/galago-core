@@ -39,7 +39,7 @@ def write_trace_log(log_path:Optional[str], log_type:LogType, tool:str,value:str
     if not log_path:
         logging.warning("Log folder not configured")
     #Write to sqlite db
-    write_to_db(log_type=log_type, tool=tool, value=value)
+    #write_to_db(log_type=log_type, tool=tool, value=value)
     #Write to local files
     if log_path is None:
         return

@@ -2,6 +2,7 @@ import typing as t
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 import tools.db.crud as crud
 import tools.db.models.inventory_models as models
 from tools.db.models.log_models import LogType, Log
@@ -12,6 +13,7 @@ from typing import Optional
 import uvicorn
 from tools.app_config import Config
 from contextlib import asynccontextmanager
+from starlette.responses import JSONResponse
 
 # Configure logging
 # Configure logging to use the socket handler
@@ -69,6 +71,13 @@ def log_db() -> t.Generator[Session, None, None]:
         yield db_session
     finally:
         db_session.close()
+
+@app.exception_handler(IntegrityError)
+async def integrity_error_handler(request, exc):
+    return JSONResponse(
+        status_code=400,
+        content={"message": "Integrity error", "detail": str(exc.orig)}
+    )
 
 @app.get("/inventory", response_model=schemas.Inventory)
 def get_inventory(workcell_name: str, db: Session = Depends(get_db)) -> t.Any:
@@ -136,55 +145,34 @@ def delete_workcell(workcell_id: int, db: Session = Depends(get_db)) -> t.Any:
         raise HTTPException(status_code=404, detail="Workcell not found")
     return crud.workcell.remove(db, id=workcell_id)
 
+@app.get("/tools", response_model=list[schemas.Tool])
+def get_tools(db: Session = Depends(get_db)) -> t.Any:
+    return crud.tool.get_all(db)
 
-# CRUD API endpoints for Instruments
-@app.get("/instruments", response_model=list[schemas.Instrument])
-def get_instruments(
-    db: Session = Depends(get_db), workcell_name: Optional[str] = None
-) -> t.Any:
-    if workcell_name:
-        workcell = crud.workcell.get_by(db=db, obj_in={"name": workcell_name})
-        if not workcell:
-            raise HTTPException(status_code=404, detail="Workcell not found")
-        return crud.instrument.get_all_by(db=db, obj_in={"workcell_id": workcell.id})
-    else:
-        return crud.instrument.get_all(db)
+@app.get("/tools/{tool_id}", response_model=schemas.Tool)
+def get_tool(tool_id: str, db: Session = Depends(get_db)) -> t.Any:
+    tool = crud.tool.get(db, id=tool_id)
+    if tool is None:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    return tool
 
+@app.post("/tools", response_model=schemas.Tool)
+def create_tool(tool: schemas.ToolCreate, db: Session = Depends(get_db)) -> t.Any:
+    return crud.tool.create(db, obj_in=tool)
 
-@app.get("/instruments/{instrument_id}", response_model=schemas.Instrument)
-def get_instrument(instrument_id: int, db: Session = Depends(get_db)) -> t.Any:
-    instrument = crud.instrument.get(db=db, id=instrument_id)
-    if instrument is None:
-        raise HTTPException(status_code=404, detail="Instrument not found")
-    return instrument
+@app.put("/tools/{tool_id}", response_model=schemas.Tool)
+def update_tool(tool_id: str, tool_update: schemas.ToolUpdate, db: Session = Depends(get_db)) -> t.Any:
+    tool = crud.tool.get(db, id=tool_id)
+    if tool is None:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    return crud.tool.update(db, db_obj=tool, obj_in=tool_update)
 
-
-@app.post("/instruments", response_model=schemas.Instrument)
-def create_instrument(
-    instrument: schemas.InstrumentCreate, db: Session = Depends(get_db)
-) -> t.Any:
-    return crud.instrument.create(db, obj_in=instrument)
-
-
-@app.put("/instruments/{instrument_id}", response_model=schemas.Instrument)
-def update_instrument(
-    instrument_id: int,
-    instrument_update: schemas.InstrumentUpdate,
-    db: Session = Depends(get_db),
-) -> t.Any:
-    instrument = crud.instrument.get(db, id=instrument_id)
-    if instrument is None:
-        raise HTTPException(status_code=404, detail="Instrument not found")
-    return crud.instrument.update(db, db_obj=instrument, obj_in=instrument_update)
-
-
-@app.delete("/instruments/{instrument_id}", response_model=schemas.Instrument)
-def delete_instrument(instrument_id: int, db: Session = Depends(get_db)) -> t.Any:
-    instrument = crud.instrument.get(db, id=instrument_id)
-    if instrument is None:
-        raise HTTPException(status_code=404, detail="Instrument not found")
-    return crud.instrument.remove(db, id=instrument_id)
-
+@app.delete("/tools/{tool_id}", response_model=schemas.Tool)
+def delete_tool(tool_id: str, db: Session = Depends(get_db)) -> t.Any:
+    tool = crud.tool.get(db, id=tool_id)
+    if tool is None:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    return crud.tool.remove(db, id=tool_id)
 
 # CRUD API endpoints for Nests
 @app.get("/nests", response_model=list[schemas.Nest])

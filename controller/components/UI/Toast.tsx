@@ -1,46 +1,44 @@
-import { Tag, Wrap } from "@chakra-ui/react";
-import moment from "moment-timezone";
+import { createStandaloneToast } from "@chakra-ui/react";
 import React from "react";
 
-export const renderDate = (date: string) => moment.tz(date, "America/Los_Angeles").format("ll");
+const { ToastContainer, toast } = createStandaloneToast({ });
 
-export const renderDatetime = (date: string) =>
-  moment.tz(date, "America/Los_Angeles").format("lll");
+export const CustomToaster = () => <ToastContainer />;
 
-export const renderDaysSince = (start: string | Date, end?: string | Date) =>
-  moment
-    .tz(end || moment(), "America/Los_Angeles")
-    .diff(moment.tz(start, "America/Los_Angeles"), "days");
+export const toastIsActive = (id: string) => toast.isActive(id);
 
-export const renderDays = (duration: moment.Duration) => {
-  return Math.floor(duration.asDays());
+export const successToast = (title: string, description: string) => {
+  toast({
+    title,
+    description,
+    status: "success",
+    duration: 3000,
+    variant: "left-accent",
+    position: "bottom-left",
+    isClosable: true,
+  });
 };
 
-export const renderHoursAndMinutes = (duration: moment.Duration) => {
-  return `${duration.hours().toString().padStart(2, "0")}:${duration
-    .minutes()
-    .toString()
-    .padStart(2, "0")}`;
+export const warningToast = (title: string, description: string) => {
+  toast({
+    title,
+    description,
+    status: "warning",
+    duration: 3000,
+    variant: "left-accent",
+    position: "bottom-left",
+    isClosable: true,
+  });
 };
 
-export const renderDurationAsTags = (duration: string) => {
-  const parsed = moment.duration(duration, "days");
-  return (
-    <Wrap>
-      <Tag py={1} flexShrink={0}>{`Day ${renderDays(parsed)}`}</Tag>
-      {parsed.hours() > 0 || parsed.minutes() > 0 ? (
-        <Tag py={1}>{renderHoursAndMinutes(parsed)}</Tag>
-      ) : null}
-    </Wrap>
-  );
-};
-
-export const renderDurationAsInputString = (duration: number) => {
-  const parsed = moment.duration(duration, "seconds");
-  return `${renderDays(parsed)} ${renderHoursAndMinutes(parsed)}`;
-};
-
-export const renderDurationAsHelperText = (duration: string) => {
-  const parsed = moment.duration(duration, "days");
-  return `Day ${renderDays(parsed)}, ${renderHoursAndMinutes(parsed)}`;
+export const errorToast = (title: string, description: string) => {
+  toast({
+    title,
+    description,
+    status: "error",
+    duration: 10000,
+    variant: "left-accent",
+    position: "bottom-left",
+    isClosable: true,
+  });
 };

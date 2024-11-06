@@ -4,10 +4,26 @@ import Tool from "@/server/tools";
 import { Config } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { procedure, router } from "@/server/trpc";
 import { ToolType } from "gen-interfaces/controller";
+import axios from "axios";
 
 const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
 
+const domain = "http://localhost:8000";
+
 export const toolRouter = router({
+  //Get all tools 
+  getAll : procedure.query(async () => {
+    const response = await axios.get<Tool[]>(`${domain}/tools`, {
+      timeout: 1000,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
+    return response.data;
+  }),
+
+  
   availableIDs: procedure.query(async () => {
     return await Tool.availableIDs();
   }),

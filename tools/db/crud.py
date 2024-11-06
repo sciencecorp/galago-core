@@ -177,16 +177,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 workcell = CRUDBase[models.Workcell, schemas.WorkcellCreate, schemas.WorkcellUpdate](
     models.Workcell
 )
-instrument = CRUDBase[
-    models.Instrument, schemas.InstrumentCreate, schemas.InstrumentUpdate
-](models.Instrument)
+
 nest = CRUDBase[models.Nest, schemas.NestCreate, schemas.NestUpdate](models.Nest)
 plate = CRUDBase[models.Plate, schemas.PlateCreate, schemas.PlateUpdate](models.Plate)
 well = CRUDBase[models.Well, schemas.WellCreate, schemas.WellUpdate](models.Well)
 reagent = CRUDBase[models.Reagent, schemas.ReagentCreate, schemas.ReagentUpdate](
     models.Reagent
 )
-
+tool = CRUDBase[models.Tool, schemas.ToolCreate, schemas.ToolUpdate](models.Tool)
 logs = CRUDBase[log_model.Log, schemas.LogCreate, schemas.LogUpdate](log_model.Log)
 log_type = CRUDBase[log_model.LogType, schemas.LogTypeCreate, schemas.LogTypeUpdate](log_model.LogType)
 variables = CRUDBase[schemas.Variable,schemas.VariableCreate, schemas.VariableUpdate](models.Variable)

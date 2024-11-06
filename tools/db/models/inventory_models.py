@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Date, Float, func, DateTime
+from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Date,Boolean,Float, func, DateTime, CheckConstraint
 from sqlalchemy.orm import relationship
 from tools.db.models.db import Base
 from sqlalchemy.ext.declarative import declared_attr
@@ -16,18 +16,25 @@ class TimestampMixin:
 class Workcell(Base, TimestampMixin):
     __tablename__ = "workcells"
     id = Column(Integer, primary_key=True)
-    name = Column(String)
-    instruments = relationship("Instrument", back_populates="workcell")
+    name = Column(String, nullable=False)
+    host = Column(String, nullable=False)
+    port = Column(Integer, nullable=False)
+    tools = relationship("Tool", back_populates="workcell")
 
-
-class Instrument(Base, TimestampMixin):
-    __tablename__ = "instruments"
+class Tool(Base, TimestampMixin):
+    __tablename__ = "tools"
     id = Column(Integer, primary_key=True)
-    name = Column(String)
-    workcell_id = Column(Integer, ForeignKey("workcells.id"))
-    workcell = relationship("Workcell", back_populates="instruments")
-    nests = relationship("Nest", back_populates="instrument")
-
+    type = Column(String, nullable=False)
+    name = Column(String, nullable=False, unique=True)
+    description = Column(String, nullable=True)
+    image_url = Column(String, nullable=True)
+    ip = Column(String, nullable=False)
+    port = Column(Integer, nullable=False)
+    config = Column(JSON, nullable=True) 
+    simulated = Column(Boolean, default=False)
+    workcell_id = Column(String, ForeignKey("workcells.id"))
+    workcell = relationship("Workcell", back_populates="tools")
+    nests = relationship("Nest", back_populates="tool")
 
 class Nest(Base, TimestampMixin):
     __tablename__ = "nests"
@@ -35,8 +42,8 @@ class Nest(Base, TimestampMixin):
     name = Column(String)
     row = Column(Integer)
     column = Column(Integer)
-    instrument_id = Column(Integer, ForeignKey("instruments.id"))
-    instrument = relationship("Instrument", back_populates="nests")
+    tool_id = Column(Integer, ForeignKey("tools.id"))
+    tool = relationship("Tool", back_populates="nests")
     plate = relationship("Plate", back_populates="nest", uselist=False)
 
 
@@ -79,10 +86,13 @@ class VariableType(Base, TimestampMixin):
 class Variable(Base,TimestampMixin):
     __tablename__ = "variables"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True)
+    name = Column(String, unique=True, index=True, nullable=False)
     value = Column(JSON)
     type = Column(String)
 
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+    )
 
 if __name__ == "__main__":
     from sqlalchemy import create_engine

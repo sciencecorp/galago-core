@@ -7,23 +7,51 @@ class TimestampMixin(BaseModel):
     created_at: t.Optional[datetime.datetime] = None
     updated_at: t.Optional[datetime.datetime] = None
 
-# Workcell schemas
+
+class ToolCreate(BaseModel):
+    type: str
+    name: str
+    description: t.Optional[str] = None
+    image_url: t.Optional[str] = None
+    ip: str
+    port: int
+    config: t.Optional[dict] = None
+    simulated: t.Optional[bool] = None
+    workcell_id: int
+
+class ToolUpdate(BaseModel):
+    name: t.Optional[str] = None
+    description: t.Optional[str] = None
+    image_url: t.Optional[str] = None
+    ip: t.Optional[str] = None
+    port: t.Optional[int] = None
+    config: t.Optional[dict] = None
+    simulated: t.Optional[bool] = None
+
+
+class Tool(ToolCreate, TimestampMixin):
+    class Config:
+        from_attributes = True
+
+
+# Workcell Schemas
 class WorkcellCreate(BaseModel):
     name: str
-
+    host: str
+    port: int
 
 class WorkcellUpdate(BaseModel):
     name: t.Optional[str] = None
+    host: t.Optional[str] = None
+    port: t.Optional[int] = None
 
 
-class Workcell(WorkcellCreate):
-    id: int
+class Workcell(WorkcellCreate, TimestampMixin):
+    tools: t.List[Tool] = []
 
     class Config:
-        from_attributes=True
-        #orm_mode = True 
-
-
+        from_attributes = True
+        
 # Instrument Schemas
 class InstrumentCreate(BaseModel):
     name: str
@@ -235,6 +263,7 @@ class Variable(TimestampMixin, VariableCreate):
         from_attributes=True
 
 class VariableUpdate(BaseModel):
+    name: str
     value: str
     type: str 
 

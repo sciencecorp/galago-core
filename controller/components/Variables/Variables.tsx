@@ -31,7 +31,8 @@ import { Variable } from "./types";
 import { VariableModal } from "./VariableModal";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { renderDatetime } from "@/components/ui/Time";
-import { ToolType } from "gen-interfaces/controller";
+import { EditableText } from "../ui/Form";
+
 
 export const Variables: React.FC = () => {
   const [variables, setVariables] = useState<Variable[]>([]);
@@ -83,6 +84,27 @@ export const Variables: React.FC = () => {
       (typeFilter === "" || variable.type === typeFilter),
   );
 
+  const handleVariableUpdate = async (editedVariable: Variable) => {
+    try {
+      await editVariable.mutateAsync(editedVariable);
+      refetch();
+      toast({
+        title: "Variable updated successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Error updating variable",
+        description: `Please try again. ${error}`,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
   return (
     <HStack align="start" spacing={8}>
       <Box flex={1}>
@@ -109,8 +131,8 @@ export const Variables: React.FC = () => {
             <Thead>
               <Tr>
                 <Th>Name</Th>
-                <Th>Value</Th>
                 <Th>Type</Th>
+                <Th>Value</Th>
                 <Th>Created On</Th>
                 <Th>Updated On</Th>
                 <Th></Th>
@@ -119,9 +141,19 @@ export const Variables: React.FC = () => {
             <Tbody>
               {filteredVariables.map((variable) => (
                 <Tr key={variable.id}>
-                  <Td>{variable.name}</Td>
-                  <Td>{variable.value}</Td>
+                  <Td>
+                  <EditableText
+                     onSubmit={async (value) => {value && await handleVariableUpdate({...variable, name: value})}}
+                     defaultValue={variable.name}
+                     />
+                  </Td>
                   <Td>{variable.type}</Td>
+                  <Td>
+                    <EditableText
+                     onSubmit={async (value) => {value && await handleVariableUpdate({...variable, value: value})}}
+                     defaultValue={variable.value}
+                     />
+                  </Td>
                   <Td>{renderDatetime(variable.created_at)}</Td>
                   <Td>{renderDatetime(variable.updated_at)}</Td>
                   <Td>
