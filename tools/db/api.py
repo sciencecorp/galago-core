@@ -5,11 +5,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 import tools.db.crud as crud
 import tools.db.models.inventory_models as models
-from tools.db.models.log_models import LogType, Log
+from tools.db.models.log_models import Log
 import tools.db.schemas as schemas
 from tools.db.models.db import SessionLocal,LogsSessionLocal, Base, LogBase
 import logging 
-from typing import Optional
+from typing import Optional, Dict, Any
 import uvicorn
 from tools.app_config import Config
 from contextlib import asynccontextmanager
@@ -462,22 +462,28 @@ def get_next_available_nest(instrument_id: int, db: Session = Depends(get_db)) -
             return nest
     raise HTTPException(status_code=204, detail="No available nests")
 
-@app.get("/log_types", response_model=list[schemas.LogType])
-def get_log_types(db: Session = Depends(log_db)) -> t.Any:
-    return crud.log_type.get_all(db)
 
+@app.get("/logs", response_model=list[schemas.Log])
+async def get_logs(
+    db: Session = Depends(log_db),
+    skip: int = 0,
+    limit: int = 100,
+    order_by: Optional[str] = None,
+    descending: bool = False,
+    filters: Optional[Dict[str, Any]] = None,
+) -> t.Any:
+    return crud.logs.paginate(
+        db,
+        skip=skip,
+        limit=limit,
+        order_by=order_by,
+        descending=descending,
+        filters=filters,
+    )
 
-@app.get("/logs",response_model=list[schemas.Log])
-async def get_logs(db: Session = Depends(log_db)) -> t.Any:
-    return crud.logs.get_all(db)
-
-@app.get("/logs_paginated",response_model=list[schemas.LogPaginated])
-async def get_logs_paginated(offset:int, limit:int, log_type:Optional[str] = None, db: Session = Depends(log_db)) -> t.Any:
-    base_query = db.query(Log.id, Log.tool, Log.value, LogType.name.label("log_type"), Log.created_at).join(LogType, Log.log_type_id == LogType.id)
-    if log_type:
-        base_query = base_query.filter(LogType.name == log_type.upper())
-    logs = base_query.order_by(Log.id.desc()).offset(offset).limit(limit).all()
-    return logs
+@app.post("/logs", response_model=schemas.Log)
+async def create_log(log: schemas.LogCreate, db: Session = Depends(log_db)) -> t.Any:
+    return crud.logs.create(db, obj_in=log)
 
 @app.get("/variables", response_model=list[schemas.Variable])
 def get_variables(db: Session = Depends(get_db)) -> t.Any:

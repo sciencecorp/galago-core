@@ -1,3 +1,5 @@
+import { DateTime } from "luxon";
+
 export interface Workcell {
     id: number;
     name: string;
@@ -28,4 +30,21 @@ export interface Tool {
     last_updated: Date;
     created_at: Date;
 }
+
+export interface LogType {
+    id: number;
+    name: string;
+    created_at: DateTime;
+    updated_at: DateTime;
+  }
+  
+  export interface Log {
+    id: number;
+    level: string;
+    action: string;
+    details: string;
+    created_at: Date;
+    updated_at: Date;
+  }
+  
 

@@ -13,16 +13,7 @@ import {
   Th,
   Td,
   useToast,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-  useDisclosure,
-  FormControl,
-  FormLabel,
+  Text,
   Select,
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
@@ -32,21 +23,19 @@ import { VariableModal } from "./VariableModal";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { renderDatetime } from "@/components/ui/Time";
 import { EditableText } from "../ui/Form";
-
+import { VscSymbolString } from "react-icons/vsc";
+import { MdOutlineNumbers } from "react-icons/md";
+import { VscSymbolBoolean } from "react-icons/vsc";
 
 export const Variables: React.FC = () => {
   const [variables, setVariables] = useState<Variable[]>([]);
-  const [selectedVariable, setSelectedVariable] = useState<Variable | null>(null);
-  const [searchQuery, setSearchQuery] = useState(""); // State for search query
-  const [typeFilter, setTypeFilter] = useState<string>(""); // State for type filter
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [searchQuery, setSearchQuery] = useState(""); 
+  const [typeFilter, setTypeFilter] = useState<string>(""); 
   const toast = useToast();
 
   const { data: fetchedVariables, refetch } = trpc.variable.getAll.useQuery();
-  const addVariable = trpc.variable.add.useMutation();
   const editVariable = trpc.variable.edit.useMutation();
   const deleteVariable = trpc.variable.delete.useMutation();
-  const getVariable = trpc.variable.get.useMutation();
 
   useEffect(() => {
     if (fetchedVariables) {
@@ -84,6 +73,19 @@ export const Variables: React.FC = () => {
       (typeFilter === "" || variable.type === typeFilter),
   );
 
+  const renderTypeIcon = (type: string) => {
+    switch (type) {
+      case "string":
+        return <VscSymbolString />;
+      case "number":
+        return <MdOutlineNumbers />;
+      case "boolean":
+        return (<Box><VscSymbolBoolean/><Text>{type}</Text></Box>);
+      default:
+        return type;
+    }
+  }
+
   const handleVariableUpdate = async (editedVariable: Variable) => {
     try {
       await editVariable.mutateAsync(editedVariable);
@@ -109,8 +111,8 @@ export const Variables: React.FC = () => {
       <Box flex={1}>
         <VStack align="stretch" spacing={6} width="100%">
             <HStack mt={2} mb={2} justify="space-between" width="100%">
-                    <Heading size="lg">Variables</Heading>
-                    <VariableModal />
+              <Heading size="lg">Variables</Heading>
+              <VariableModal />
           </HStack>
           <HStack spacing={4} width="100%">
             <Input

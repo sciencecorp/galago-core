@@ -2,15 +2,15 @@ from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Date,Boolean,F
 from sqlalchemy.orm import relationship
 from tools.db.models.db import Base
 from sqlalchemy.ext.declarative import declared_attr
-
+import datetime 
 
 class TimestampMixin:
     @declared_attr
     def created_at(cls):
-        return Column(DateTime, default=func.now())
+        return Column(DateTime, default=datetime.datetime.now())
     @declared_attr
     def updated_at(cls):
-        return Column(DateTime, default=func.now(), onupdate=func.now())
+        return Column(DateTime, default=datetime.datetime.now(), onupdate=datetime.datetime.now())
 
 
 class Workcell(Base, TimestampMixin):
@@ -87,7 +87,7 @@ class Variable(Base,TimestampMixin):
     __tablename__ = "variables"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True, nullable=False)
-    value = Column(JSON)
+    value = Column(String , nullable=False)
     type = Column(String)
 
     __table_args__ = (

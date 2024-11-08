@@ -174,42 +174,19 @@ class PlateInfo(Plate):
 
 #Log schemas
 class LogCreate(BaseModel):
-    log_type_id: int 
-    tool: str
-    value: str
-    created_at: t.Optional[datetime.datetime]
+    level: str 
+    action: str
+    details: str
 
 class LogUpdate(BaseModel):
     id: t.Optional[int] = None
     name: t.Optional[str] = None
 
-
-class Log(LogCreate):
+class Log(TimestampMixin, LogCreate):
     id: int
     
     class Config:
         from_attributes=True
-        #orm_mode = True 
-
-class LogTypeCreate(BaseModel):
-    name: str
-
-class LogPaginated(BaseModel):
-    log_type: t.Optional[str] = None
-    tool: t.Optional[str] = None
-    value: t.Optional[str] = None
-    created_at: t.Optional[datetime.datetime] = None
-
-class LogTypeUpdate(BaseModel):
-    id: t.Optional[int] = None
-    name: t.Optional[str] = None
-
-class LogType(LogTypeCreate):
-    id: int
-
-    class Config:
-        from_attributes=True
-
 
 class VariableBase(BaseModel):
     name: str
@@ -218,21 +195,15 @@ class VariableBase(BaseModel):
 
     @classmethod
     def validate_value_type(cls, data: t.Any) -> t.Any:
-        logging.info(f"Checking data: {data}")
-        logging.info(f"Checking data type: {type(data)}")
         model_dictionary = {}
 
         if isinstance(data, dict):
             for key, value in data.items():
                 model_dictionary[key] = value
-                logging.info(f"Checking key: {key}")
-                logging.info(f"Checking value: {value}")
                 if key == 'type' and value not in ['string', 'number', 'boolean', 'array', 'json']:
                     raise ValueError('Type must be one of string, number, boolean, array, json')
 
             if 'type' in model_dictionary and 'value' in model_dictionary:
-                logging.info(f"Checking value type: {model_dictionary['type']}")
-                logging.info(f"Checking value: {model_dictionary['value']}")
                 if model_dictionary['type'] == "string" and not isinstance(model_dictionary['value'], str):
                     raise ValueError('Value must be a string')
 

@@ -8,6 +8,11 @@ import { useRouter } from "next/router";
 import { off } from "process";
 
 export default function Page() {
+
+  useEffect(() => {
+    document.title = "Logs";
+  }, [])
+
   return (
       <LogView />
   );

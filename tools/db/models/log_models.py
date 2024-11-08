@@ -1,25 +1,23 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, func, DateTime
+from sqlalchemy import Column, ForeignKey,JSON, Integer, String, func, DateTime
 from tools.db.models.db import LogBase
 from tools.app_config import Config
 import datetime 
+from sqlalchemy.ext.declarative import declared_attr
 
 class TimestampMixin:
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    @declared_attr
+    def created_at(cls):
+        return Column(DateTime, default=datetime.datetime.now())
+    @declared_attr
+    def updated_at(cls):
+        return Column(DateTime, default=datetime.datetime.now(), onupdate=datetime.datetime.now())
 
-class Log(LogBase):
-    __tablename__ = "trace_logs"
+class Log(LogBase, TimestampMixin):
+    __tablename__ = "logs"
     id = Column(Integer, primary_key=True)
-    log_type_id = Column(Integer, ForeignKey("log_type.id"), nullable=False)
-    tool = Column(String, nullable=False)
-    value = Column(String, nullable=False)
-    created_at = Column(Integer, nullable=False,default=datetime.datetime.now)
-
-
-class LogType(LogBase, TimestampMixin):
-    __tablename__ = "log_type"
-    id = Column(Integer, primary_key=True)
-    name = Column(String(50), unique=True)
+    level = Column(String, nullable=False)
+    action = Column(String, nullable=False)
+    details = Column(String, nullable=False)
 
 class SlackError(LogBase):
     __tablename__ = "slack_errors"
@@ -28,7 +26,7 @@ class SlackError(LogBase):
     message = Column(String, nullable=False)
     channel_id = Column(String, nullable=False)
     status = Column(String,nullable=False)
-    created_at = Column(Integer, nullable=False,default=datetime.datetime.now)
+    created_at = Column(Integer, nullable=False,default=datetime.datetime.utcnow())
 
 
 if __name__ == "__main__":

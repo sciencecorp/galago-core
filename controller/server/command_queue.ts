@@ -10,6 +10,8 @@ import { logger } from "@/logger"; // our logger import
 import dotenv from "dotenv";
 import { ToolType } from "gen-interfaces/controller";
 import { unknown } from "zod";
+import { logAction } from "./logger";
+
 
 // Using protobufs for any enums that might be serialized, and using numeric
 // serialization, is one way to ensure that the enum values are stable across
@@ -88,14 +90,15 @@ export class CommandQueue {
 
   // Initialize the run state and start the command queue
   async _start() {
+    logAction({level: "info", action:"Command Queue started", details:"Command Queue started by user."});
     this._setState(ToolStatus.READY);
     this.error = undefined;
+    logAction({level: "info", action:"Queue Ready", details:"Command Queue is Ready."});
     try {
       this._runningPromise = this._runBusyLoopWhileQueueNotEmpty(120);
       await this._runningPromise;
-      logger.info("Command Queue is running!" + this._runningPromise);
     } catch (e) {
-      // logger.error("Command Queue failed to start", e);
+      logAction({level: "error", action:"Queue failed to start", details:"Error while starting the queue.: " + e});
       this.fail(e);
     } finally {
       this._runningPromise = undefined;
@@ -108,6 +111,7 @@ export class CommandQueue {
   async stop() {
     this._setState(ToolStatus.OFFLINE);
     logger.info("Command Queue is stopped!");
+    logAction({level: "info", action:"Queue was stopped", details:"Queue stopped."});
     if (this._runningPromise) {
       await this._runningPromise;
     }
@@ -147,19 +151,22 @@ export class CommandQueue {
 
       try {
         logger.info("Executing command", nextCommand.commandInfo);
+        logAction({level: "info", action:"Executing Command", details:"Executing command: " + JSON.stringify(nextCommand.commandInfo.command)});
         await this.executeCommand(nextCommand);
+        logAction({level: "info", action:"Command Executed", details:"Command executed successfully."});
         logger.info("Command executed successfully");
       } catch (e) {
         let errorMessage = null;
         if (e instanceof Error) {
           errorMessage = e.message;
+          logAction({level: "error", action:"Command Error", details:"Error while running command: " + errorMessage});
           console.log("Error message is" + errorMessage);
         } else {
+          logAction({level: "error", action:"Command Error", details:"Unknown error while trying to execute tool command"+nextCommand.commandInfo.command});
           errorMessage = new Error("Unknown error while trying to execute tool command");
         }
         logger.error("Failed to execute command", e);
 
-        console.log("At this point the error value is " + errorMessage);
         const slackAlertCommand: ToolCommandInfo = {
           toolId: "toolbox",
           toolType: "toolbox" as ToolType,

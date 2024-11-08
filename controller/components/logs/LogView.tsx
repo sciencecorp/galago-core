@@ -17,21 +17,24 @@ import {
   Button,
   Select,
 } from "@chakra-ui/react";
-import { Log, inventoryApiClient } from "@/server/utils/InventoryClient";
 import { InfoOutlineIcon, CloseIcon, WarningIcon, QuestionOutlineIcon } from "@chakra-ui/icons";
 import { useEffect, useState } from "react";
+import {Log} from "@/types/api";
+import { renderDatetime} from "../ui/Time";
+
+import { VscRefresh } from "react-icons/vsc";
 
 interface LogViewProps {}
 
 function getIconFromLogType(logType: string) {
   switch (logType) {
-    case "ERROR":
-      return <CloseIcon color="red" />;
-    case "WARNING":
+    case "error":
+      return <CloseIcon color="red"/>;
+    case "warning":
       return <WarningIcon color="red" />;
-    case "DEBUG":
+    case "debug":
       return <QuestionOutlineIcon color="red" />;
-    case "INFO":
+    case "info":
       return <InfoOutlineIcon color="blue" />;
   }
 }
@@ -43,6 +46,16 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const hasPrevious = offset > 0;
   const hasNext = logs.length === limit || false;
+
+  const { data: fetchedLogs, refetch } = trpc.logging.getPaginated.useQuery({limit: limit, skip: offset, descending: true});
+
+
+  useEffect(() => {
+    if (fetchedLogs) {
+      setLogs(fetchedLogs);
+    }
+  }, [fetchedLogs, offset, limit]);
+
 
   const handleNext = () => {
     if (hasNext) {
@@ -60,28 +73,16 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
     setLimit(e);
   };
 
-  useEffect(() => {
-    let filter = "ALL";
-    const fetchData = async (filter: string) => {
-      const logs = await inventoryApiClient.getLogsPaginated(filter, offset, limit);
-      setLogs(logs);
-    };
-    if (selectedFilter) {
-      filter = selectedFilter.toUpperCase();
-    }
-
-    fetchData(filter);
-  }, [offset, limit, selectedFilter]);
-
   return (
-    <VStack align="center" spacing={1}  p={4} maxHeight="calc(100vh - 80px)" overflowY="auto">
-        <Box>
+    <VStack spacing={1}  p={4} maxHeight="calc(100vh - 80px)" overflowY="auto" mt={10}>
+        <HStack justify="space-between" width="100%">
           <Heading>Logs</Heading>
-        </Box>
+          <Button onClick={()=>refetch()} colorScheme="teal" leftIcon={<VscRefresh/>}>Refresh</Button>
+        </HStack>
         <HStack margin="10px">
         </HStack>
-        <HStack>
-          {/* <Button
+        {/* <HStack>
+          <Button
             onClick={() => {
               selectedFilter === "info" ? setSelectedFilter(null) : setSelectedFilter("info");
             }}
@@ -101,15 +102,15 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
             }}
             colorScheme={selectedFilter === "error" ? "red" : "gray"}>
             ERROR
-          </Button> */}
-        </HStack>
-        <Table mt={8} fontSize="small">
+          </Button>
+        </HStack> */}
+        <Table mt={8}>
           <Thead>
             <Tr>
               <Th p={1}></Th>
-              <Th p={1}>Log Type</Th>
-              <Th p={1}>Tool</Th>
-              <Th p={1}>Value</Th>
+              <Th p={1}>Level</Th>
+              <Th p={1}>Actions</Th>
+              <Th p={1}>Details</Th>
               <Th p={1}>Created On</Th>
             </Tr>
           </Thead>
@@ -117,15 +118,12 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
             {logs.map((log, index) => {
               return (
                 <Tr key={index} h="50px">
-                  <Td p={1}>{getIconFromLogType(log.log_type)}</Td>
-                  <Td p={1}>{log.log_type}</Td>
-                  <Td p={1}>{log.tool}</Td>
-                  <Td p={1}>{log.value}</Td>
+                  <Td p={1}>{getIconFromLogType(log.level)}</Td>
+                  <Td p={1}>{log.level}</Td>
+                  <Td p={1}>{log.action}</Td>
+                  <Td p={1}>{log.details}</Td>
                   <Td p={1}>
-                    {log.created_at
-                      .toString()
-                      .replace("T", " ")
-                      .replace(/\.\d{6}$/, "")}
+                    {renderDatetime(String(log.created_at))}
                   </Td>
                 </Tr>
               );
@@ -134,7 +132,7 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
         </Table>
         <HStack>
           <Box>Per Page:</Box>
-          <Select value={limit} width="75px" size='sm'>
+          <Select value={limit} width="75px" size='sm' onChange={(e)=>setLimit(Number(e.target.value))}>
             <option value="25">25</option>
             <option value="50">50</option>
             <option value="100">100</option>

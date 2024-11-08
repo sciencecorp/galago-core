@@ -55,7 +55,7 @@ const sidebarItems: SidebarItem[] = [
   { name: "Home", icon: FiHome, path: "/" },
   { name: "Tools", icon: RiRobot2Line, path: "/tools" },
   { name: "Runs", icon: MdStart, path: "/runs" },
-  { name: "Workflows", icon: PiPathBold, path: "/settings" },
+  { name: "Protocols", icon: PiPathBold, path: "/protocols" },
   { name: "Inventory", icon: BsFillGrid3X2GapFill, path: "/inventory" },
   { name: "Schedule", icon: RiCalendarCheckLine, path: "/schedule" },
   // { name: "Tables", icon: LuTableProperties, path: "/tables" }, //Will keep thinking about this one, not sure we want to give users so much complexity/abstraction
@@ -75,7 +75,7 @@ function DarkModeToggle() {
       aria-label="Toggle dark mode"
       position="fixed"
       bottom="20px"
-      left="28px"
+      left="20px"
       bg="transparent"
       variant="outline"
     />

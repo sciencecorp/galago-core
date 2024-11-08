@@ -26,6 +26,25 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         self.model = model
 
+    def paginate(
+            self, 
+            db:Session, 
+            *, 
+            skip:int = 0,
+            limit:int = 50,
+            order_by:Optional[str] = None,
+            descending:bool = False, 
+            filters: Optional[Dict[str, Any]] = None
+    ) -> List[ModelType]:
+        query = db.query(self.model)
+        if filters:
+            query = query.filter_by(**filters)
+        if descending:
+            query = query.order_by(self.model.id.desc())
+        else:
+            query = query.order_by(self.model.id)
+        return query.offset(skip).limit(limit).all()
+    
     def get(self, db: Session, id: Any) -> Optional[ModelType]:
         return db.query(self.model).filter(self.model.id == id).one_or_none()
 
@@ -186,5 +205,4 @@ reagent = CRUDBase[models.Reagent, schemas.ReagentCreate, schemas.ReagentUpdate]
 )
 tool = CRUDBase[models.Tool, schemas.ToolCreate, schemas.ToolUpdate](models.Tool)
 logs = CRUDBase[log_model.Log, schemas.LogCreate, schemas.LogUpdate](log_model.Log)
-log_type = CRUDBase[log_model.LogType, schemas.LogTypeCreate, schemas.LogTypeUpdate](log_model.LogType)
 variables = CRUDBase[schemas.Variable,schemas.VariableCreate, schemas.VariableUpdate](models.Variable)

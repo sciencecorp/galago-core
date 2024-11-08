@@ -125,21 +125,6 @@ export interface Inventory {
   reagents: Reagent[];
 }
 
-export interface LogType {
-  id: number;
-  name: string;
-  created_at: DateTime;
-  updated_at: DateTime;
-}
-
-export interface Log {
-  id: number;
-  log_type: string;
-  tool: string;
-  value: string;
-  created_at: Date;
-}
-
 export interface SlackAlert {
   messageId: string;
   messageChannel: string;
