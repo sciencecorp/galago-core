@@ -179,25 +179,7 @@ class ToolsManager():
             except Exception as e:
                 logging.error(f"Failed to create log folder. Error={e}")
                 return None
-        # if not config.logs_db_exists():
-        #     logging.info("Building inventory database")
-        #     try:
-        #         subprocess.Popen(["python", "-m", "tools.db.models.log_models"]).communicate()
-        #         subprocess.Popen(["python", "-m", "tools.db.log_types_add"]).communicate()
-        #     except Exception as e:
-        #         logging.error(f"Failed to build inventory database. Error={e}")
-        #         return None
-        #     logging.info("Inventory database built")
-        # if not config.inventory_db_exists():
-        #     logging.info("Building logs database")
-        #     try:
-        #         #subprocess.Popen(["python", "-m", "tools.db.models.inventory_models"]).communicate()
-        #         #subprocess.Popen(["python", "-m", "tools.db.instantiate_db"]).communicate()
-        #     except Exception as e:
-        #         logging.error(f"Failed to build logs database. Error={e}")
-        #         return None
-        #     logging.info("Logs database built")
-    
+
     def update_buttons(self) -> None:
         for button_key, (button_name, button, frame) in self.tool_buttons.items():
             if button_key in self.server_processes:

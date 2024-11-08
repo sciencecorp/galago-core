@@ -6,7 +6,7 @@ import { procedure, router } from "@/server/trpc";
 import { ToolType } from "gen-interfaces/controller";
 import axios from "axios";
 import { add } from "winston";
-import {get,post,put,del} from "@/server/utils/api";
+import { get, post, put, del } from "@/server/utils/api";
 import { idText } from "typescript";
 const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
 
@@ -22,8 +22,8 @@ export const zTool = z.object({
 });
 
 export const toolRouter = router({
-  //Get all tools 
-  getAll : procedure.query(async () => {
+  //Get all tools
+  getAll: procedure.query(async () => {
     const response = await axios.get<Tool[]>(`${domain}/tools`, {
       timeout: 1000,
       headers: {
@@ -35,20 +35,19 @@ export const toolRouter = router({
   }),
 
   //Add a new tool
-  add: procedure
-    .input(zTool.omit({ id: true }))
-    .mutation(async ({ input }) => {
-      const response = post<Tool>(`${domain}/tools`, input);
-      return response;
-    }),
-  
+  add: procedure.input(zTool.omit({ id: true })).mutation(async ({ input }) => {
+    const response = post<Tool>(`${domain}/tools`, input);
+    return response;
+  }),
 
   //Edit an existing tool
-  edit : procedure  
-    .input(z.object({
-      toolType: zToolType,
-      toolId: z.string(),
-    }))
+  edit: procedure
+    .input(
+      z.object({
+        toolType: zToolType,
+        toolId: z.string(),
+      }),
+    )
     .mutation(async ({ input }) => {
       const response = put<Tool>(`${domain}/tools/${input.toolId}`, input);
       return response;

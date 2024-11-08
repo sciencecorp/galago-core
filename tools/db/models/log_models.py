@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey,JSON, Integer, String, func, DateTime
+from sqlalchemy import Column, Integer, String, DateTime
 from tools.db.models.db import LogBase
 from tools.app_config import Config
 import datetime 
@@ -6,10 +6,10 @@ from sqlalchemy.ext.declarative import declared_attr
 
 class TimestampMixin:
     @declared_attr
-    def created_at(cls):
+    def created_at(cls) -> Column:
         return Column(DateTime, default=datetime.datetime.now())
     @declared_attr
-    def updated_at(cls):
+    def updated_at(cls) -> Column:
         return Column(DateTime, default=datetime.datetime.now(), onupdate=datetime.datetime.now())
 
 class Log(LogBase, TimestampMixin):
@@ -18,16 +18,6 @@ class Log(LogBase, TimestampMixin):
     level = Column(String, nullable=False)
     action = Column(String, nullable=False)
     details = Column(String, nullable=False)
-
-class SlackError(LogBase):
-    __tablename__ = "slack_errors"
-    id = Column(Integer, primary_key=True)
-    message_id = Column(String,nullable=False)
-    message = Column(String, nullable=False)
-    channel_id = Column(String, nullable=False)
-    status = Column(String,nullable=False)
-    created_at = Column(Integer, nullable=False,default=datetime.datetime.utcnow())
-
 
 if __name__ == "__main__":
     from sqlalchemy import create_engine

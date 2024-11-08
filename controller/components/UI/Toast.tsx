@@ -1,7 +1,7 @@
 import { createStandaloneToast } from "@chakra-ui/react";
 import React from "react";
 
-const { ToastContainer, toast } = createStandaloneToast({ });
+const { ToastContainer, toast } = createStandaloneToast({});
 
 export const CustomToaster = () => <ToastContainer />;
 

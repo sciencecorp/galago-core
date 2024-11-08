@@ -29,7 +29,7 @@ import { trpc } from "@/utils/trpc";
 import { RiAddFill } from "react-icons/ri";
 import { ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
-import {Tool} from "@/types/api";
+import { Tool } from "@/types/api";
 
 export const NewToolModal: React.FC = () => {
   const [name, setName] = useState("");
@@ -40,14 +40,13 @@ export const NewToolModal: React.FC = () => {
   const [type, setType] = useState<string>("");
   const addTool = trpc.tool.add.useMutation();
   const { data: fetchedVariables, refetch } = trpc.variable.getAll.useQuery();
- 
 
   const availableTools = Object.values(ToolType);
 
   const handleSave = async () => {
     let workcell_id = 1;
-    let ip = "12"
-    let port = 12
+    let ip = "12";
+    let port = 12;
     const tool = { name, type, workcell_id, ip, port };
     setIsLoading(true);
     try {
@@ -94,10 +93,18 @@ export const NewToolModal: React.FC = () => {
               <FormControl>
                 <FormLabel>Select Tool Type</FormLabel>
                 <Select value={type} onChange={(e) => setType(e.target.value)}>
-                    {availableTools.filter(x => x !==ToolType.UNRECOGNIZED && x !==ToolType.unknown && x !==ToolType.toolbox).sort().map((tool) => (
-                        <option key={tool} value={tool}>
-                          {capitalizeFirst(tool.replaceAll("_", " "))} 
-                        </option>
+                  {availableTools
+                    .filter(
+                      (x) =>
+                        x !== ToolType.UNRECOGNIZED &&
+                        x !== ToolType.unknown &&
+                        x !== ToolType.toolbox,
+                    )
+                    .sort()
+                    .map((tool) => (
+                      <option key={tool} value={tool}>
+                        {capitalizeFirst(tool.replaceAll("_", " "))}
+                      </option>
                     ))}
                 </Select>
               </FormControl>

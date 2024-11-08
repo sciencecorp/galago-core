@@ -38,25 +38,6 @@ npm_deps() {
   echo "Node Dependencies Installed"
 }
 
-db(){
-  logs_db
-  inventory_db
-}
-
-logs_db(){
-  echo "Creating Log Database"
-  python -m tools.db.models.log_models
-  echo "Creating Log Types"
-  python -m tools.db.log_types_add
-}
-
-inventory_db(){
-  echo "Creating Inventory Database"
-  python -m tools.db.models.inventory_models
-  echo "Creating Inventory Types"
-  python -m tools.db.instantiate_db
-}
-
 #create local redis database for local dev (mac only)
 redis() {
   eval "$(/opt/homebrew/bin/brew shellenv)"

@@ -1,11 +1,10 @@
 import typing as t
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 import tools.db.crud as crud
 import tools.db.models.inventory_models as models
-from tools.db.models.log_models import Log
 import tools.db.schemas as schemas
 from tools.db.models.db import SessionLocal,LogsSessionLocal, Base, LogBase
 import logging 
@@ -15,9 +14,7 @@ from tools.app_config import Config
 from contextlib import asynccontextmanager
 from starlette.responses import JSONResponse
 
-# Configure logging
-# Configure logging to use the socket handler
-# # Configure logging to use the socket handler
+
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s | %(levelname)s | %(message)s',
@@ -29,9 +26,7 @@ log_config["formatters"]["access"]["fmt"] = "%(asctime)s | %(levelname)s | %(mes
 log_config["formatters"]["default"]["fmt"] = "%(asctime)s | %(levelname)s | %(message)s"
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-
-    logging.info("Starting up db session")
+async def lifespan(app: FastAPI)-> t.AsyncGenerator[None, None]:
     try:
         Base.metadata.create_all(bind=SessionLocal().get_bind())
         LogBase.metadata.create_all(bind=LogsSessionLocal().get_bind())
@@ -73,7 +68,7 @@ def log_db() -> t.Generator[Session, None, None]:
         db_session.close()
 
 @app.exception_handler(IntegrityError)
-async def integrity_error_handler(request, exc):
+async def integrity_error_handler(request:Request, exc:IntegrityError) -> JSONResponse:
     return JSONResponse(
         status_code=400,
         content={"message": "Integrity error", "detail": str(exc.orig)}
@@ -84,20 +79,20 @@ def get_inventory(workcell_name: str, db: Session = Depends(get_db)) -> t.Any:
     workcell = crud.workcell.get_by(db=db, obj_in={"name": workcell_name})
     if not workcell:
         raise HTTPException(status_code=404, detail="Workcell not found")
-    instruments = crud.instrument.get_all_by(db=db, obj_in={"workcell_id": workcell.id})
+    tools = crud.tool.get_all_by(db=db, obj_in={"workcell_id": workcell.id})
     nests = crud.nest.get_all_by_workcell_id(db=db, workcell_id=workcell.id)
 
     all_plates = crud.plate.get_all(db)
     plates = [
         plate
         for plate in all_plates
-        if (plate.nest_id is None) or (plate.nest.instrument.workcell_id == workcell.id)
+        if (plate.nest_id is None) or (plate.nest.tool.workcell_id == workcell.id)
     ]
     wells = crud.well.get_all_by_workcell_id(db, workcell_id=workcell.id)
     reagents = crud.reagent.get_all_by_workcell_id(db, workcell_id=workcell.id)
     return {
         "workcell": workcell,
-        "instruments": instruments,
+        "tools": tools,
         "nests": nests,
         "plates": plates,
         "wells": wells,
@@ -168,7 +163,7 @@ def update_tool(tool_id: str, tool_update: schemas.ToolUpdate, db: Session = Dep
     return crud.tool.update(db, db_obj=tool, obj_in=tool_update)
 
 @app.delete("/tools/{tool_id}", response_model=schemas.Tool)
-def delete_tool(tool_id: str, db: Session = Depends(get_db)) -> t.Any:
+def delete_tool(tool_id: int, db: Session = Depends(get_db)) -> t.Any:
     tool = crud.tool.get(db, id=tool_id)
     if tool is None:
         raise HTTPException(status_code=404, detail="Tool not found")
@@ -231,7 +226,7 @@ def get_plates(
             plate
             for plate in all_plates
             if (plate.nest_id is None)
-            or (plate.nest.instrument.workcell_id == workcell.id)
+            or (plate.nest.tool.workcell_id == workcell.id)
         ]
     return all_plates
 
@@ -446,13 +441,13 @@ def delete_reagent(reagent_id: int, db: Session = Depends(get_db)) -> t.Any:
     return crud.reagent.remove(db, id=reagent_id)
 
 
-@app.get("/nests/next_available/{instrument_id}", response_model=schemas.Nest)
-def get_next_available_nest(instrument_id: int, db: Session = Depends(get_db)) -> t.Any:
-    instrument = crud.instrument.get(db=db, id=instrument_id)
-    if not instrument:
-        raise HTTPException(status_code=404, detail="Instrument not found")
+@app.get("/nests/next_available/{tool_id}", response_model=schemas.Nest)
+def get_next_available_nest(tool_id: int, db: Session = Depends(get_db)) -> t.Any:
+    tool = crud.tool.get(db=db, id=tool_id)
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool not found")
     nests = sorted(
-        instrument.nests,
+        tool.nests,
         key=lambda nest: (nest.row, nest.column),
     )
     for nest in nests:

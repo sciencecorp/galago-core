@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Date,Boolean,Float, func, DateTime, CheckConstraint
+from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Date,Boolean,Float, DateTime, CheckConstraint
 from sqlalchemy.orm import relationship
 from tools.db.models.db import Base
 from sqlalchemy.ext.declarative import declared_attr
@@ -6,10 +6,10 @@ import datetime
 
 class TimestampMixin:
     @declared_attr
-    def created_at(cls):
+    def created_at(cls) -> Column:
         return Column(DateTime, default=datetime.datetime.now())
     @declared_attr
-    def updated_at(cls):
+    def updated_at(cls) -> Column:
         return Column(DateTime, default=datetime.datetime.now(), onupdate=datetime.datetime.now())
 
 

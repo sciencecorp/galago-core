@@ -1,12 +1,5 @@
 import React, { useState } from "react";
-import {
-  ButtonGroup,
-  Flex,
-  HStack,
-  IconButton,
-  Input,
-  Text,
-} from "@chakra-ui/react";
+import { ButtonGroup, Flex, HStack, IconButton, Input, Text } from "@chakra-ui/react";
 import { RiCheckFill, RiCloseFill, RiEdit2Line } from "react-icons/ri";
 
 export const inputStyles = {
@@ -26,7 +19,7 @@ export const Editable = (props: {
   renderInput: (
     value: string | number,
     setValue: (newValue: string) => void,
-    submit: (newValue?: string) => void
+    submit: (newValue?: string) => void,
   ) => JSX.Element;
   preview: JSX.Element;
   defaultValue?: string;
@@ -76,8 +69,7 @@ export const Editable = (props: {
     <HStack
       className={props.persistentEdit ? "" : "editable"}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+      onMouseLeave={() => setIsHovered(false)}>
       {preview}
       <Flex justifyContent="center" ml={0}>
         {isHovered && ( // Show the edit icon only when hovered

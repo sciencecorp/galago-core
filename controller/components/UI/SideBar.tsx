@@ -38,7 +38,6 @@ import { capitalizeFirst } from "@/utils/parser";
 import { PiCodeSimpleBold } from "react-icons/pi";
 import { LuTableProperties } from "react-icons/lu";
 
-
 // Define the structure for sidebar items
 interface SidebarItem {
   name: string;
@@ -107,8 +106,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       sx={{
         transition: "min-width 0.3s ease, width 0.3s ease",
         width: isSidebarExpanded ? "290px" : "80px",
-      }}
-      >
+      }}>
       <VStack spacing={4} align="stretch">
         <HStack pb={10}>
           <Image onClick={toggleSidebar} width="58px" paddingLeft="0" src="/site_logo.png"></Image>

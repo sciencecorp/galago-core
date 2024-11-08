@@ -336,35 +336,6 @@ export class InventoryApiClient {
     return response.data;
   }
 
-  async getLogsAll(logType: LogTypesEnum): Promise<Log[]> {
-    let url: string;
-    if (logType == LogTypesEnum.ALL) {
-      url = `/logs/`;
-    } else {
-      url = `/logs/${logType}`;
-    }
-    const response = await this.apiClient.get(url);
-    return response.data;
-  }
-
-  async getLogsPaginated(logType: string, offset: number, limit: number): Promise<Log[]> {
-    let url: string;
-    if (logType === "ALL") {
-      url = `logs_paginated?offset=${offset}&limit=${limit}`;
-    } else {
-      url = `logs_paginated?offset=${offset}&limit=${limit}&log_type=${logType}`;
-    }
-    // console.log("Calling url "+url);
-
-    const response = await this.apiClient.get(url);
-    return response.data;
-  }
-
-  async getLogTypes(): Promise<LogType> {
-    const response = await this.apiClient.get(`/log_type`);
-    return response.data;
-  }
-
   async getImageBytes(): Promise<string> {
     try {
       const response = await this.apiClient.get("/image_test", {

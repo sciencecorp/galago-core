@@ -154,20 +154,20 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
                 .filter_by(**obj_in_data)
                 .all()
             )
-        elif isinstance(self.model(), models.Instrument):
+        elif isinstance(self.model(), models.Tool):
             query = query.join(models.Workcell).filter(
                 models.Workcell.id == workcell_id
             )
         elif isinstance(self.model(), models.Nest):
             query = (
-                query.join(models.Instrument)
+                query.join(models.Tool)
                 .join(models.Workcell)
                 .filter(models.Workcell.id == workcell_id)
             )
         elif isinstance(self.model(), models.Plate):
             query = (
                 query.join(models.Nest)
-                .join(models.Instrument)
+                .join(models.Tool)
                 .join(models.Workcell)
                 .filter(models.Workcell.id == workcell_id)
             )
@@ -175,7 +175,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             query = (
                 query.join(models.Plate)
                 .join(models.Nest)
-                .join(models.Instrument)
+                .join(models.Tool)
                 .join(models.Workcell)
                 .filter(models.Workcell.id == workcell_id)
             )
@@ -184,7 +184,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
                 query.join(models.Well)
                 .join(models.Plate)
                 .join(models.Nest)
-                .join(models.Instrument)
+                .join(models.Tool)
                 .join(models.Workcell)
                 .filter(models.Workcell.id == workcell_id)
             )

@@ -17,7 +17,7 @@ import {
   useColorModeValue,
   HStack,
   Text,
-  ButtonGroup
+  ButtonGroup,
 } from "@chakra-ui/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { ToolConfig, ToolType } from "gen-interfaces/controller";
@@ -99,19 +99,19 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
       <VStack spacing={4}>
         {showAsGrid ? (
           <>
-          <HStack mt={2} mb={2} justify="space-between" width="100%">
-          <Heading mb={2} color={headerColor} css={{ fontFamily: `'Bungee Shade'` }}>
-          Tools
-        </Heading>
-            <ButtonGroup>
-              <NewToolModal />
-            </ButtonGroup>
-          </HStack>
-          <SimpleGrid columns={[1, 2, 3, 4]} spacing={2} width="100%">
-            {availableToolIDs.map((toolId, index) => (
-              <ToolStatusCard key={`${toolId}-${index}`} toolId={toolId} />
-            ))}
-          </SimpleGrid>
+            <HStack mt={2} mb={2} justify="space-between" width="100%">
+              <Heading mb={2} color={headerColor} css={{ fontFamily: `'Bungee Shade'` }}>
+                Tools
+              </Heading>
+              <ButtonGroup>
+                <NewToolModal />
+              </ButtonGroup>
+            </HStack>
+            <SimpleGrid columns={[1, 2, 3, 4]} spacing={2} width="100%">
+              {availableToolIDs.map((toolId, index) => (
+                <ToolStatusCard key={`${toolId}-${index}`} toolId={toolId} />
+              ))}
+            </SimpleGrid>
           </>
         ) : (
           <CarouselContainer>

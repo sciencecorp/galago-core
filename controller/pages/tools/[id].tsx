@@ -20,8 +20,8 @@ import {
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
 import { ToolCommandInfo } from "@/types";
-import {ToolType} from "gen-interfaces/controller"; 
-import { capitalizeFirst} from "@/utils/parser";
+import { ToolType } from "gen-interfaces/controller";
+import { capitalizeFirst } from "@/utils/parser";
 // Assuming you're using TypeScript, you could define a type for the status object
 type CommandStatus = {
   [commandName: string]: "idle" | "success" | "error";
@@ -45,7 +45,7 @@ interface Command {
 }
 
 type CommandFields = {
-  [tool:string]: Command;
+  [tool: string]: Command;
 };
 
 const move: Field[] = [
@@ -345,8 +345,7 @@ const commandFields: CommandFields = {
   },
 };
 
-
-const ToolCommands = (commands:CommandFields) => {
+const ToolCommands = (commands: CommandFields) => {
   return (
     <VStack align="stretch" spacing={4}>
       <Heading size="md">Commands</Heading>
@@ -357,7 +356,7 @@ const ToolCommands = (commands:CommandFields) => {
       </HStack>
     </VStack>
   );
-}
+};
 
 export default function Page() {
   const router = useRouter();
@@ -378,10 +377,9 @@ export default function Page() {
 
   const toast = useToast();
 
-
-  useEffect(()=>{
+  useEffect(() => {
     document.title = ` ${config?.name}`;
-  },[])
+  }, []);
 
   useEffect(() => {
     if (selectedCommand) {
@@ -639,25 +637,27 @@ export default function Page() {
   return (
     <>
       <Box p={12} maxWidth="1800px" margin="auto">
-          <ToolStatusCard toolId={String(id)}/>
-          <FormControl>
+        <ToolStatusCard toolId={String(id)} />
+        <FormControl>
           <VStack width="100%" spacing={1}>
             <FormLabel>Select Command</FormLabel>
             <Select placeholder="Select command" onChange={handleChange}>
-                {Object.keys(commandOptions).map((command) => (
-                  <option key={command} value={command}>
-                    {capitalizeFirst(command.replaceAll("_", " "))}
-                  </option>
-                ))}
-              </Select>
-              {selectedCommand && (
+              {Object.keys(commandOptions).map((command) => (
+                <option key={command} value={command}>
+                  {capitalizeFirst(command.replaceAll("_", " "))}
+                </option>
+              ))}
+            </Select>
+            {selectedCommand && (
               <>
                 {renderFields(commandOptions[selectedCommand])}
-                <Button width="100%" onClick={handleSubmit} colorScheme="teal">Send Command</Button>
+                <Button width="100%" onClick={handleSubmit} colorScheme="teal">
+                  Send Command
+                </Button>
               </>
             )}
           </VStack>
-          </FormControl>
+        </FormControl>
         {/* <Grid pt="10px" templateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap={2}>
           {Object.keys(commandOptions)
             .filter((command) => !doesCommandHaveParameters(command)) // Only commands without parameters

@@ -45,7 +45,7 @@ export const ProtocolCardsComponent: React.FC = () => {
   useEffect(() => {
     if (!allProtocols.data) return;
     const results = allProtocols.data.filter((protocol) =>
-      protocol.name.toLowerCase().includes(searchTerm.toLowerCase())
+      protocol.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
     setFilteredProtocols(results);
   }, [searchTerm, allProtocols.data]);
@@ -87,8 +87,7 @@ export const ProtocolCardsComponent: React.FC = () => {
               : `repeat(${filteredProtocols.length}, 1fr)`
           }
           gap={2}
-          width="max-content"
-        >
+          width="max-content">
           {filteredProtocols.length === 0 && (
             <Alert status="info">
               <AlertIcon />

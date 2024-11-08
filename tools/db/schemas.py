@@ -1,7 +1,6 @@
 import typing as t
 from pydantic import BaseModel, model_validator
 import datetime
-import logging
 
 class TimestampMixin(BaseModel):
     created_at: t.Optional[datetime.datetime] = None
