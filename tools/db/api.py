@@ -1,5 +1,5 @@
 import typing as t
-from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi import FastAPI, HTTPException, Depends, Request, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -25,6 +25,7 @@ log_config = uvicorn.config.LOGGING_CONFIG
 log_config["formatters"]["access"]["fmt"] = "%(asctime)s | %(levelname)s | %(message)s"
 log_config["formatters"]["default"]["fmt"] = "%(asctime)s | %(levelname)s | %(message)s"
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI)-> t.AsyncGenerator[None, None]:
     try:
@@ -38,7 +39,7 @@ async def lifespan(app: FastAPI)-> t.AsyncGenerator[None, None]:
 conf = Config()
 conf.load_app_config()
     
-app = FastAPI(title="Inventory API", lifespan=lifespan)
+app = FastAPI(title="Inventory API", lifespan=lifespan, root_path="/api")
 origins = ["http://localhost:3010", "http://127.0.0.1:3010"]
 
 if conf.app_config.host_ip:
@@ -496,15 +497,7 @@ def create_variable(variable: schemas.VariableCreate, db: Session = Depends(get_
     existing_variable = db.query(models.Variable).filter(models.Variable.name == variable.name).first()
     if existing_variable:
         raise HTTPException(status_code=400, detail="Variable with that name already exists")
-    db_variable = models.Variable(
-        name=variable.name,
-        value=variable.value,
-        type=variable.type
-    )
-    db.add(db_variable)
-    db.commit()
-    db.refresh(db_variable)
-    return db_variable
+    return crud.variables.create(db, obj_in=variable)
 
 @app.put("/variables/{variable_id}", response_model=schemas.VariableUpdate)
 def update_variable(variable_id: int, variable_update: schemas.VariableUpdate, db: Session = Depends(get_db)) -> t.Any:

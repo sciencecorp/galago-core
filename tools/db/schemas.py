@@ -233,9 +233,9 @@ class Variable(TimestampMixin, VariableCreate):
         from_attributes=True
 
 class VariableUpdate(BaseModel):
-    name: str
-    value: str
-    type: str 
+    name: t.Optional[str] = None
+    value: t.Optional[t.Union[str,int,bool]] = None
+    type: t.Optional[str] = None 
 
     @model_validator(mode='before')
     @classmethod
