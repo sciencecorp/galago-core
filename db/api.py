@@ -6,13 +6,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 import crud as crud
 import models.inventory_models as models
-from models.log_models import LogType, Log
 import schemas as schemas
 from models.db_session import SessionLocal,LogsSessionLocal, Base, LogBase
 import logging 
 from typing import Optional, Dict, Any
 import uvicorn
-from contextlib import asynccontextmanager,
+from contextlib import asynccontextmanager
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -95,7 +94,10 @@ def get_inventory(workcell_name: str, db: Session = Depends(get_db)) -> t.Any:
         "reagents": reagents,
     }
 
-
+@app.get("/test")
+def test():
+    return {"test": "test hello"}
+    
 # CRUD API endpoints for Workcells
 @app.get("/workcells", response_model=list[schemas.Workcell])
 def get_workcells(db: Session = Depends(get_db)) -> t.Any:

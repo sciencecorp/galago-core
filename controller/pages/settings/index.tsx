@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { Settings } from "@/components/settings/Settings";
 

@@ -163,3 +163,16 @@ flushdb
 pkill -9 python
 lsof -t -i tcp:3010 | xargs kill
 ```
+
+## Docker commands 
+
+```
+#Stop containters 
+docker-compose -f docker-compose.dev.yml down
+
+#remove existing images 
+docker-compose -f docker-compose.dev.yml down --rmi all
+
+#rebuild and restart 
+docker-compose -f docker-compose.dev.yml up --build
+```

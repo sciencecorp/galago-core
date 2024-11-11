@@ -23,7 +23,7 @@ export default class Tool {
   status: ToolStatus = ToolStatus.UNKNOWN_STATUS;
   uptime?: number;
 
-  private heartbeat : ReturnType<typeof setInterval> | undefined;
+  private heartbeat: ReturnType<typeof setInterval> | undefined;
 
   constructor(info: controller_protos.ToolConfig) {
     this.info = info;
@@ -171,20 +171,20 @@ export default class Tool {
 
   static toolBoxConfig(): controller_protos.ToolConfig {
     return {
-      name:"Tool Box",
-      id:"toolbox",
-      type:"toolbox" as ToolType, 
-      description:"General Tools",
-      image_url:"/tool_icons/toolbox.png",
-      ip:"host.docker.internal",
-      port:1010,
-      config:{
-        "simulated":false, 
-        "toolbox": {
-          "tool_id":"toolbox"
-        }
-      }
-    }
+      name: "Tool Box",
+      id: "toolbox",
+      type: "toolbox" as ToolType,
+      description: "General Tools",
+      image_url: "/tool_icons/toolbox.png",
+      ip: "host.docker.internal",
+      port: 1010,
+      config: {
+        simulated: false,
+        toolbox: {
+          tool_id: "toolbox",
+        },
+      },
+    };
   }
 
   static toolboxId(): string {

@@ -2,10 +2,14 @@ import Redis from "ioredis";
 import { logger } from "@/logger"; // our logger import
 import { Console } from "console";
 
-const redis_url = 'redis://queue:6379';
-const redis = redis_url ? new Redis(redis_url, {retryStrategy: () => {
-    redis.quit();
-}}) : new Redis();
+const redis_url = "redis://queue:6379";
+const redis = redis_url
+  ? new Redis(redis_url, {
+      retryStrategy: () => {
+        redis.quit();
+      },
+    })
+  : new Redis();
 
 //Add connection error handling and debugging
 redis.on("error", function (error) {

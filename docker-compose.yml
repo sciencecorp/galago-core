@@ -23,7 +23,7 @@ services:
       - ../config:/app/config
       - ../interfaces:/app/interfaces:ro
     depends_on:
-      - queue  
+      - queue
   db:
     build:
       context: ./db
