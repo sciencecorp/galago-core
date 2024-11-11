@@ -1,8 +1,9 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Date,Boolean,Float, DateTime, CheckConstraint
 from sqlalchemy.orm import relationship
-from tools.db.models.db import Base
+from .db_session import Base
+from config import INVENTORY_DB_URL
 from sqlalchemy.ext.declarative import declared_attr
-import datetime 
+import datetime
 
 class TimestampMixin:
     @declared_attr
@@ -96,9 +97,6 @@ class Variable(Base,TimestampMixin):
 
 if __name__ == "__main__":
     from sqlalchemy import create_engine
-    from tools.app_config import Config
 
-    config = Config()
-    config.load_app_config()
-    engine = create_engine(config.inventory_db, connect_args={"check_same_thread": False})
+    engine = create_engine(INVENTORY_DB_URL, connect_args={"check_same_thread": False})
     Base.metadata.create_all(engine)

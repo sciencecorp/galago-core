@@ -20,15 +20,16 @@ export default class Tool {
   config?: tool_base.Config;
 
   grpc: ToolDriverClient;
-  heartbeat?: NodeJS.Timer;
   status: ToolStatus = ToolStatus.UNKNOWN_STATUS;
   uptime?: number;
+
+  private heartbeat : ReturnType<typeof setInterval> | undefined;
 
   constructor(info: controller_protos.ToolConfig) {
     this.info = info;
     this.config = info.config;
-
-    var target = `${info.ip}:${info.port}`;
+    const grpcServerIp = info.ip || process.env.GRPC_SERVER_IP;
+    const target = `${grpcServerIp}:${info.port}`;
     this.grpc = promisifyGrpcClient(
       new tool_driver.ToolDriverClient(target, grpc.credentials.createInsecure()),
     );
@@ -170,20 +171,20 @@ export default class Tool {
 
   static toolBoxConfig(): controller_protos.ToolConfig {
     return {
-      name: "Tool Box",
-      id: "toolbox",
-      type: "toolbox" as ToolType,
-      description: "General Tools",
-      image_url: "/tool_icons/toolbox.png",
-      ip: "localhost",
-      port: 1010,
-      config: {
-        simulated: false,
-        toolbox: {
-          tool_id: "toolbox",
-        },
-      },
-    };
+      name:"Tool Box",
+      id:"toolbox",
+      type:"toolbox" as ToolType, 
+      description:"General Tools",
+      image_url:"/tool_icons/toolbox.png",
+      ip:"host.docker.internal",
+      port:1010,
+      config:{
+        "simulated":false, 
+        "toolbox": {
+          "tool_id":"toolbox"
+        }
+      }
+    }
   }
 
   static toolboxId(): string {

@@ -1,19 +1,18 @@
 import typing as t
 from fastapi import FastAPI, HTTPException, Depends, Request, APIRouter
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-import tools.db.crud as crud
-import tools.db.models.inventory_models as models
-import tools.db.schemas as schemas
-from tools.db.models.db import SessionLocal,LogsSessionLocal, Base, LogBase
+import crud as crud
+import models.inventory_models as models
+from models.log_models import LogType, Log
+import schemas as schemas
+from models.db_session import SessionLocal,LogsSessionLocal, Base, LogBase
 import logging 
 from typing import Optional, Dict, Any
 import uvicorn
-from tools.app_config import Config
-from contextlib import asynccontextmanager
-from starlette.responses import JSONResponse
-
+from contextlib import asynccontextmanager,
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -36,14 +35,10 @@ async def lifespan(app: FastAPI)-> t.AsyncGenerator[None, None]:
         raise e
     yield
 
-conf = Config()
-conf.load_app_config()
-    
+
 app = FastAPI(title="Inventory API", lifespan=lifespan, root_path="/api")
 origins = ["http://localhost:3010", "http://127.0.0.1:3010"]
 
-if conf.app_config.host_ip:
-    origins.append(f"http://{conf.app_config.host_ip}")
 
 app.add_middleware(
     CORSMiddleware,
@@ -512,6 +507,3 @@ def delete_variable(variable_id: int, db: Session = Depends(get_db)) -> t.Any:
     if not db_variable:
         raise HTTPException(status_code=404, detail="Variable not found")
     return db_variable
-
-# if __name__ == "__main__":
-#     run("tools.db.api:app", host="0.0.0.0", port=8000, reload=False, log_config=log_config)

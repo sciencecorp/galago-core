@@ -15,6 +15,7 @@
     "jsx": "preserve",
     "incremental": true,
     "baseUrl": ".",
+    "types": ["node"],
     "paths": {
       "react": ["node_modules/@types/react/index.d.ts"],
       "gen-interfaces/*": ["./gen-interfaces/*"],

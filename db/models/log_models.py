@@ -1,6 +1,8 @@
+from sqlalchemy import Column, ForeignKey, Integer, String, func, DateTime
+from .db_session import LogBase
+import datetime 
+from config import LOGS_DB_URL
 from sqlalchemy import Column, Integer, String, DateTime
-from tools.db.models.db import LogBase
-from tools.app_config import Config
 import datetime 
 from sqlalchemy.ext.declarative import declared_attr
 
@@ -21,9 +23,7 @@ class Log(LogBase, TimestampMixin):
 
 if __name__ == "__main__":
     from sqlalchemy import create_engine
-    config = Config()
-    config.load_app_config()
-    engine = create_engine(config.logs_db, connect_args={"check_same_thread": False})
+    engine = create_engine(LOGS_DB_URL, connect_args={"check_same_thread": False})
     LogBase.metadata.create_all(engine)
 
 

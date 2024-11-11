@@ -1,7 +1,7 @@
 import os
 from os.path import join, dirname
 from pydantic import BaseModel
-from config.workcell_config import WorkcellConfig 
+from .workcell_config import WorkcellConfig 
 import json 
 from typing import Optional
 from datetime import date , time 

@@ -1,0 +1,38 @@
+services:
+  queue:
+    image: redis:6.2-alpine
+    restart: always
+    container_name: redis
+    command: redis-server --save 20 1 --loglevel warning
+    ports:
+      - "1203:6379"
+
+  web:
+    build:
+      context: .
+      dockerfile: controller/Dockerfile
+    container_name: galago-web
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3010
+      - GRPC_SERVER_IP=host.docker.internal
+    ports:
+      - "3010:3010"
+    volumes:
+      - ../config:/app/config
+      - ../interfaces:/app/interfaces:ro
+    depends_on:
+      - queue  
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    container_name: galago-db
+    ports:
+      - "8000:8000"
+    restart: always
+
+networks:
+  default:
+    driver: bridge

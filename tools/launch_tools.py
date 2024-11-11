@@ -422,7 +422,7 @@ class ToolsManager():
 
             os.environ['APP_MODE'] = "PROD" if branch_name.decode().replace("\n","") == "main" else "DEV"
             os.environ['NEXT_PUBLIC_API_URL'] = f"{self.config.app_config.host_ip}:8000" if self.config.app_config.host_ip else "127.0.0.1:8000"
-            os.environ['REDIS_URL'] = f"redis://{self.config.app_config.redis_ip}/1" if self.config.app_config.redis_ip else "redis://127.0.0.1:6379/1"
+            os.environ['REDIS_URL'] = f"redis://{self.config.app_config.redis_ip}/1" if self.config.app_config.redis_ip else "redis://127.0.0.1:1203/1"
             os.environ['CONTROLLER_CONFIG'] = self.config.workcell_config_file
 
             cmd = self.get_controller_command()
