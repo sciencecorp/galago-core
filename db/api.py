@@ -509,3 +509,19 @@ def delete_variable(variable_id: int, db: Session = Depends(get_db)) -> t.Any:
     if not db_variable:
         raise HTTPException(status_code=404, detail="Variable not found")
     return db_variable
+
+@app.get("/labware", response_model=list[schemas.Labware])
+def get_labwares(db: Session = Depends(get_db)) -> t.Any:
+    return crud.labware.get_all(db)
+
+
+@app.get("/labware/{labware_id}", response_model=schemas.Labware)
+def get_labware(labware_id: int, db: Session = Depends(get_db)) -> t.Any:
+    labware = crud.labware.get(db, id=labware_id)
+    if labware is None:
+        raise HTTPException(status_code=404, detail="Labware not found")
+    return labware
+
+@app.post("/labware", response_model=schemas.Labware)
+def create_labware(labware: schemas.LabwareCreate, db: Session = Depends(get_db)) -> t.Any:
+    return crud.labware.create(db, obj_in=labware)

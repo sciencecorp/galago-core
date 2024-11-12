@@ -8,9 +8,8 @@ import axios from "axios";
 import { add } from "winston";
 import { get, post, put, del } from "@/server/utils/api";
 import { idText } from "typescript";
-const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
 
-const domain = "http://localhost:8000";
+const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
 
 export const zTool = z.object({
   id: z.number().optional(),
@@ -22,21 +21,20 @@ export const zTool = z.object({
 });
 
 export const toolRouter = router({
-  //Get all tools
   getAll: procedure.query(async () => {
-    const response = await axios.get<Tool[]>(`${domain}/tools`, {
+    const response = await get<Tool[]>(`/tools`, {
       timeout: 1000,
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
       },
     });
-    return response.data;
+    return response;
   }),
 
   //Add a new tool
   add: procedure.input(zTool.omit({ id: true })).mutation(async ({ input }) => {
-    const response = post<Tool>(`${domain}/tools`, input);
+    const response = post<Tool>(`/tools`, input);
     return response;
   }),
 
@@ -49,7 +47,7 @@ export const toolRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
-      const response = put<Tool>(`${domain}/tools/${input.toolId}`, input);
+      const response = put<Tool>(`/tools/${input.toolId}`, input);
       return response;
     }),
 

@@ -175,4 +175,7 @@ docker-compose -f docker-compose.dev.yml down --rmi all
 
 #rebuild and restart 
 docker-compose -f docker-compose.dev.yml up --build
+
+#add npm deps to dev environment 
+docker-compose run --rm app npm install <package name>
 ```

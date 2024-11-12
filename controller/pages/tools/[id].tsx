@@ -22,6 +22,7 @@ import { trpc } from "@/utils/trpc";
 import { ToolCommandInfo } from "@/types";
 import { ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
+
 // Assuming you're using TypeScript, you could define a type for the status object
 type CommandStatus = {
   [commandName: string]: "idle" | "success" | "error";

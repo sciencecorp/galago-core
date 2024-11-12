@@ -37,6 +37,8 @@ import { MdStart } from "react-icons/md";
 import { capitalizeFirst } from "@/utils/parser";
 import { PiCodeSimpleBold } from "react-icons/pi";
 import { LuTableProperties } from "react-icons/lu";
+import { GoContainer } from "react-icons/go";
+import { CgMenuGridR } from "react-icons/cg";
 
 // Define the structure for sidebar items
 interface SidebarItem {
@@ -55,12 +57,13 @@ const sidebarItems: SidebarItem[] = [
   { name: "Tools", icon: RiRobot2Line, path: "/tools" },
   { name: "Runs", icon: MdStart, path: "/runs" },
   { name: "Protocols", icon: PiPathBold, path: "/protocols" },
-  { name: "Inventory", icon: BsFillGrid3X2GapFill, path: "/inventory" },
+  { name: "Inventory", icon: GoContainer, path: "/inventory" },
   { name: "Schedule", icon: RiCalendarCheckLine, path: "/schedule" },
+  { name: "Labware", icon: CgMenuGridR, path: "/labware" },
   // { name: "Tables", icon: LuTableProperties, path: "/tables" }, //Will keep thinking about this one, not sure we want to give users so much complexity/abstraction
   { name: "Logs", icon: RiInformationLine, path: "/logs" },
   { name: "Variables", icon: TbVariable, path: "/variables" },
-  { name: "Scripts", icon: PiCodeSimpleBold, path: "/scripts" },
+  { name: "Scripts", icon: MdOutlineIntegrationInstructions, path: "/scripts" },
   { name: "Settings", icon: FiSettings, path: "/settings" },
   { name: "Logout", icon: FiLogOut, path: "/logout" },
 ];

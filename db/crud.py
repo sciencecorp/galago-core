@@ -205,4 +205,5 @@ reagent = CRUDBase[models.Reagent, schemas.ReagentCreate, schemas.ReagentUpdate]
 )
 tool = CRUDBase[models.Tool, schemas.ToolCreate, schemas.ToolUpdate](models.Tool)
 logs = CRUDBase[log_model.Log, schemas.LogCreate, schemas.LogUpdate](log_model.Log)
-variables = CRUDBase[schemas.Variable,schemas.VariableCreate, schemas.VariableUpdate](models.Variable)
+variables = CRUDBase[models.Variable,schemas.VariableCreate, schemas.VariableUpdate](models.Variable)
+labware = CRUDBase[models.Labware,schemas.LabwareCreate, schemas.LabwareUpdate](models.Labware)

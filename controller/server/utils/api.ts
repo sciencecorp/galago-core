@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig, AxiosError } from "axios";
 import { errorToast, successToast, warningToast } from "@/components/ui/Toast";
 
 export const api = axios.create({
-  baseURL: "http://localhost:8000/",
+  baseURL: `${process.env.API_BASE_URL}` || "http://localhost:8000/api",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

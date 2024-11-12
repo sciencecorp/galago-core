@@ -1,0 +1,12 @@
+
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY ./controller /app/
+COPY ./controller/package*.json /app
+RUN npm install
+
+EXPOSE 3010 9229
+
+CMD ["npm", "run", "dev"]

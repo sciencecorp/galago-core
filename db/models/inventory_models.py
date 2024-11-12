@@ -1,9 +1,11 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Date,Boolean,Float, DateTime, CheckConstraint
+from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Date,Boolean,Float, DateTime, CheckConstraint, LargeBinary
 from sqlalchemy.orm import relationship
 from .db_session import Base
 from config import INVENTORY_DB_URL
 from sqlalchemy.ext.declarative import declared_attr
 import datetime
+import zlib 
+import base64 
 
 class TimestampMixin:
     @declared_attr
@@ -94,6 +96,31 @@ class Variable(Base,TimestampMixin):
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
     )
+
+class Labware(Base, TimestampMixin):
+    __tablename__ = "labware"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=False)
+    number_of_wells = Column(Integer, nullable=False)
+    z_offset = Column(Float, nullable=False)
+    width = Column(Float, nullable=False)
+    height = Column(Float, nullable=False)
+    plate_lid_offset = Column(Float, nullable=True)
+    lid_offset = Column(Float, nullable=True)
+    stack_height = Column(Float, nullable=True)
+    has_lid = Column(Boolean, nullable=True) 
+
+class Script(Base, TimestampMixin):
+    __tablename__ = "scripts"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=False)
+    content = Column(String, nullable=False)
+    language = Column(String, nullable=False)
+    version = Column(String, nullable=False)
+    is_blocking = Column(Boolean, nullable=False) 
+    
 
 if __name__ == "__main__":
     from sqlalchemy import create_engine

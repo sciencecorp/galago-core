@@ -164,10 +164,11 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
       <HStack
         spacing={2}
         padding={4}
-        borderTop="1px solid"
         boxShadow="md"
+        borderBottom="1px solid"
+        borderRight='1px solid'
+        borderLeft='1px solid'
         justifyContent="flex-end"
-        bg="white"
         position="relative">
         <Button colorScheme="gray" size="sm">
           Save

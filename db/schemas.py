@@ -241,3 +241,32 @@ class VariableUpdate(BaseModel):
     @classmethod
     def check_value_type(cls, data: t.Any) -> t.Any:
         return VariableBase.validate_value_type(data)
+
+class LabwareCreate(BaseModel):
+    name: str
+    description: str
+    number_of_wells: int
+    z_offset: float = 0 
+    width: float
+    height: float
+    plate_lid_offset: t.Optional[float] = None
+    lid_offset: t.Optional[float] = None
+    stack_height: t.Optional[float] = None
+    has_lid: t.Optional[bool] = False
+
+class Labware(TimestampMixin, LabwareCreate):
+    id: int
+    class Config:
+        from_attributes=True
+
+class LabwareUpdate(LabwareCreate):
+    name: t.Optional[str] = None
+    description : t.Optional[str] = None
+    number_of_wells: t.Optional[int] = None
+    z_offset: t.Optional[float] = None
+    width: t.Optional[float] = None
+    height: t.Optional[float] = None
+    plate_lid_offset: t.Optional[float] = None
+    lid_offset: t.Optional[float] = None
+    stack_height: t.Optional[float] = None
+    has_lid: t.Optional[bool] = None

@@ -27,6 +27,7 @@ import { HamburgerIcon } from "@chakra-ui/icons";
 import styled from "@emotion/styled";
 import { useState } from "react";
 import { PiToolbox } from "react-icons/pi";
+import { DeleteWithConfirmation } from "../ui/Delete";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -99,9 +100,11 @@ export default function ToolStatusCard({
   }
 
   const isPF400 = config.type === ToolType.pf400;
+  const isToolBox = config.id === ToolType.toolbox;
 
   return (
     <StyledCard
+      p={2}
       style={{ width: "280px", ...style }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}>
@@ -121,8 +124,16 @@ export default function ToolStatusCard({
               variant="ghost"
             />
             <MenuList>
-              <MenuItem>Edit</MenuItem>
-              <MenuItem>Delete</MenuItem>
+                <>
+                <MenuItem>Edit</MenuItem>
+                <MenuItem>
+                  <DeleteWithConfirmation
+                      onDelete={() => console.log("Test")}
+                      label="tool"
+                      showText={true}
+                    />
+                </MenuItem>
+                </>
               {isPF400 && (
                 <MenuItem as="a" href={`/tools/advanced/${toolId}`}>
                   Teach Pendant
