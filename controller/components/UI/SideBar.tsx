@@ -33,7 +33,8 @@ import { MdOutlineIntegrationInstructions } from "react-icons/md";
 import { RiCalendarCheckLine } from "react-icons/ri";
 import { PiPathBold } from "react-icons/pi";
 import { MoonIcon, SunIcon } from "@chakra-ui/icons";
-import { MdStart } from "react-icons/md";
+import { FiBook } from "react-icons/fi";
+import { FaChartGantt } from "react-icons/fa6";
 import { capitalizeFirst } from "@/utils/parser";
 import { PiCodeSimpleBold } from "react-icons/pi";
 import { LuTableProperties } from "react-icons/lu";
@@ -55,7 +56,7 @@ interface SidebarProps {
 // Sidebar menu items
 const sidebarItems: SidebarItem[] = [
   { name: "Home", icon: FiHome, path: "/" },
-  { name: "Runs", icon: MdStart, path: "/runs" },
+  { name: "Runs", icon: FaChartGantt, path: "/runs" },
   { name: "Workcells", icon: GiChaingun, path: "/workcells" },
   { name: "Tools", icon: RiRobot2Line, path: "/tools" },
   { name: "Protocols", icon: PiPathBold, path: "/protocols" },
@@ -63,7 +64,7 @@ const sidebarItems: SidebarItem[] = [
   { name: "Schedule", icon: RiCalendarCheckLine, path: "/schedule" },
   { name: "Labware", icon: CgMenuGridR, path: "/labware" },
   // { name: "Tables", icon: LuTableProperties, path: "/tables" }, //Will keep thinking about this one, not sure we want to give users so much complexity/abstraction
-  { name: "Logs", icon: RiInformationLine, path: "/logs" },
+  { name: "Logs", icon: FiBook, path: "/logs" },
   { name: "Variables", icon: TbVariable, path: "/variables" },
   { name: "Scripts", icon: MdOutlineIntegrationInstructions, path: "/scripts" },
   { name: "Settings", icon: FiSettings, path: "/settings" },
@@ -116,7 +117,9 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
         <HStack pb={10}>
           <Image onClick={toggleSidebar} width="58px" paddingLeft="0" src="/site_logo.png"></Image>
           {isSidebarExpanded && (
-            <Text as="b" pt={2} pl={2} fontSize="large" color="white">
+            <Text as="b" pt={2} pl={2} fontSize="4xl" color="white" sx={{
+                fontFamily: `'Bungee Shade', cursive`,
+              }}>
               Galago
             </Text>
           )}

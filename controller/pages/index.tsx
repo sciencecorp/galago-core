@@ -63,16 +63,6 @@ export default function Page() {
 
   return (
     <Box padding={6} alignContent="center" alignItems="center">
-      <Heading
-        as="h1"
-        fontSize="6xl"
-        mb={6}
-        sx={{
-          fontFamily: `'Bungee Shade', cursive`,
-        }}
-        textAlign={"center"}>
-        Galago
-      </Heading>
       <Flex>
         <Grid
           width="100%"

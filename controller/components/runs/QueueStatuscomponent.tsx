@@ -106,9 +106,7 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
       <VStack>
         {confirmRunStartModal()}
         <Heading
-          css={{
-            fontFamily: `'Bungee Shade', cursive`,
-          }}>
+          >
           Run Queue
           <StatusTag
             css={{

@@ -7,8 +7,16 @@ import { VStack, Box } from "@chakra-ui/react";
 export default function Page() {
   return (
     <VStack>
-      <ToolStatusCardsComponent />
-      <RunsComponent />
+      <Box 
+        borderWidth="1px"
+        borderRadius="lg" 
+        boxShadow="lg"
+        p={4}
+        width="100%"
+        mb={6}
+      >
+        <RunsComponent/>
+      </Box>
     </VStack>
   );
 }
