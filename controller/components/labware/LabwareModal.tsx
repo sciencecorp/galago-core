@@ -29,7 +29,8 @@ export const LabwareModal: React.FC = () => {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [numberOfWells, setNumberOfWells] = useState(0);
+  const [numberOfRows, setNumberOfRows] = useState(0);
+  const [numberOfColumns, setNumberOfColumns] = useState(0);
   const [zOffset, setZOffset] = useState(0);
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
@@ -45,7 +46,8 @@ export const LabwareModal: React.FC = () => {
   const clearForm = () => {
     setName("");
     setDescription("");
-    setNumberOfWells(0);
+    setNumberOfRows(0);
+    setNumberOfColumns(0);
     setZOffset(0);
     setWidth(0);
     setHeight(0);
@@ -60,7 +62,8 @@ export const LabwareModal: React.FC = () => {
     const labware = {
       name,
       description,
-      number_of_wells: numberOfWells,
+      number_of_rows: numberOfRows,
+      number_of_columns: numberOfColumns,
       z_offset: zOffset,
       width,
       height,
@@ -116,8 +119,14 @@ export const LabwareModal: React.FC = () => {
                 <Input value={description} onChange={(e) => setDescription(e.target.value)} />
               </FormControl>
               <FormControl>
-                <FormLabel>Number of Wells</FormLabel>
-                <NumberInput value={numberOfWells} onChange={(_, val) => setNumberOfWells(val)}>
+                <FormLabel>Number of Rows</FormLabel>
+                <NumberInput value={numberOfRows} onChange={(_, val) => setNumberOfRows(val)}>
+                  <NumberInputField />
+                </NumberInput>
+              </FormControl>
+              <FormControl>
+                <FormLabel>Number of Columns</FormLabel>
+                <NumberInput value={numberOfColumns} onChange={(_, val) => setNumberOfColumns(val)}>
                   <NumberInputField />
                 </NumberInput>
               </FormControl>

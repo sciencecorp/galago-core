@@ -115,8 +115,8 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       }}>
       <VStack spacing={4} align="stretch">
         <HStack pb={10}>
-          <Image onClick={toggleSidebar} width="58px" paddingLeft="0" src="/site_logo.png"></Image>
-          {isSidebarExpanded && (
+        <Image onClick={toggleSidebar} width="58px" paddingLeft="0" src="/site_logo.png" filter="brightness(1)"></Image>
+        {isSidebarExpanded && (
             <Text as="b" pt={2} pl={2} fontSize="4xl" color="white" sx={{
                 fontFamily: `'Bungee Shade', cursive`,
               }}>

@@ -243,7 +243,8 @@ class VariableUpdate(BaseModel):
 class LabwareCreate(BaseModel):
     name: str
     description: str
-    number_of_wells: int
+    number_of_rows: int
+    number_of_columns: int
     z_offset: float = 0 
     width: float
     height: float
@@ -261,7 +262,8 @@ class Labware(TimestampMixin, LabwareCreate):
 class LabwareUpdate(LabwareCreate):
     name: t.Optional[str] = None
     description : t.Optional[str] = None
-    number_of_wells: t.Optional[int] = None
+    number_of_rows: t.Optional[int] = None
+    number_of_columns: t.Optional[int] = None
     z_offset: t.Optional[float] = None
     width: t.Optional[float] = None
     height: t.Optional[float] = None

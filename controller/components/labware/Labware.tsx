@@ -20,6 +20,7 @@ import { LabwareModal } from "./LabwareModal";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { renderDatetime } from "@/components/ui/Time";
 import { EditableText } from "../ui/Form";
+import { WellPlateIcon } from "../UI/Icons";
 
 export const Labware: React.FC = () => {
   const [labware, setLabware] = useState<Labware[]>([]);
@@ -100,9 +101,11 @@ export const Labware: React.FC = () => {
         <Table variant="simple" width="100%">
           <Thead>
             <Tr>
+              <Th></Th>
               <Th>Name</Th>
               <Th>Description</Th>
-              <Th>Wells</Th>
+              <Th>Rows</Th>
+              <Th>Columns</Th>
               <Th>Z Offset</Th>
               <Th>Width</Th>
               <Th>Height</Th>
@@ -110,7 +113,6 @@ export const Labware: React.FC = () => {
               <Th>Lid Offset</Th>
               <Th>Stack Height</Th>
               <Th>Has Lid</Th>
-              <Th>Created On</Th>
               <Th>Updated On</Th>
               <Th></Th>
             </Tr>
@@ -118,6 +120,12 @@ export const Labware: React.FC = () => {
           <Tbody>
             {filteredLabware.map((item) => (
               <Tr key={item.id}>
+                <Td width="50px">
+                  <WellPlateIcon 
+                    rows={item.number_of_rows} 
+                    columns={item.number_of_columns} 
+                  />
+                </Td>
                 <Td>
                   <EditableText
                     onSubmit={async (value) => {
@@ -139,9 +147,19 @@ export const Labware: React.FC = () => {
                     onSubmit={async (value) => {
                       const numValue = Number(value);
                       !isNaN(numValue) && 
-                        (await handleLabwareUpdate({ ...item, number_of_wells: numValue }));
+                        (await handleLabwareUpdate({ ...item, number_of_rows: numValue }));
                     }}
-                    defaultValue={item.number_of_wells.toString()}
+                    defaultValue={item.number_of_rows.toString()}
+                  />
+                </Td>
+                <Td>
+                  <EditableText
+                    onSubmit={async (value) => {
+                      const numValue = Number(value);
+                      !isNaN(numValue) && 
+                        (await handleLabwareUpdate({ ...item, number_of_columns: numValue }));
+                    }}
+                    defaultValue={item.number_of_columns.toString()}
                   />
                 </Td>
                 <Td>
@@ -212,8 +230,7 @@ export const Labware: React.FC = () => {
                     }}
                   />
                 </Td>
-                <Td>{renderDatetime(item.created_at)}</Td>
-                <Td>{renderDatetime(item.updated_at)}</Td>
+                <Td>{renderDatetime(item.updated_at ?? "")}</Td>
                 <Td>
                   <DeleteWithConfirmation
                     onDelete={() => handleDelete(item)}

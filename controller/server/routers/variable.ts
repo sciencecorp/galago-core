@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
-import { Variable } from "@/components/variables/types";
+import { Variable } from "@/components/Variables/types";
 import { get, post, put, del } from "../utils/api";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 

@@ -2,7 +2,8 @@ export interface Labware {
     id?: number;
     name: string;
     description: string;
-    number_of_wells: number;
+    number_of_rows: number;
+    number_of_columns: number;
     z_offset: number;
     width: number;
     height: number;
