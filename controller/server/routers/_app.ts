@@ -7,7 +7,7 @@ import { variableRouter } from "./variable";
 import { loggingRouter } from "./logging";
 import { log } from "console";
 import { workcellRouter } from "./workcell";
-
+import { labwareRouter } from "./labware";
 export const appRouter = router({
   tool: toolRouter,
   workcell: workcellRouter,
@@ -16,6 +16,7 @@ export const appRouter = router({
   commandQueue: commandQueueRouter,
   variable: variableRouter,
   logging: loggingRouter,
+  labware: labwareRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -525,3 +525,15 @@ def get_labware(labware_id: int, db: Session = Depends(get_db)) -> t.Any:
 @app.post("/labware", response_model=schemas.Labware)
 def create_labware(labware: schemas.LabwareCreate, db: Session = Depends(get_db)) -> t.Any:
     return crud.labware.create(db, obj_in=labware)
+
+@app.put("/labware/{labware_id}", response_model=schemas.LabwareUpdate)
+def update_labware(labware_id: int, labware_update: schemas.LabwareUpdate, db: Session = Depends(get_db)) -> t.Any:
+    labware = db.query(models.Labware).filter(models.Labware.id == labware_id).first()
+    if not labware:
+        raise HTTPException(status_code=404, detail="Labware not found")
+    return crud.labware.update(db, db_obj=labware, obj_in=labware_update)
+
+@app.delete("/labware/{labware_id}", response_model=schemas.LabwareCreate)
+def delete_labware(labware_id: int, db: Session = Depends(get_db)) -> t.Any:
+    return crud.labware.remove(db, id=labware_id)   
+
