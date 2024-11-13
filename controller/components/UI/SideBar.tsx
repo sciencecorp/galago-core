@@ -39,6 +39,7 @@ import { PiCodeSimpleBold } from "react-icons/pi";
 import { LuTableProperties } from "react-icons/lu";
 import { GoContainer } from "react-icons/go";
 import { CgMenuGridR } from "react-icons/cg";
+import { GiChaingun } from "react-icons/gi";
 
 // Define the structure for sidebar items
 interface SidebarItem {
@@ -54,8 +55,9 @@ interface SidebarProps {
 // Sidebar menu items
 const sidebarItems: SidebarItem[] = [
   { name: "Home", icon: FiHome, path: "/" },
-  { name: "Tools", icon: RiRobot2Line, path: "/tools" },
   { name: "Runs", icon: MdStart, path: "/runs" },
+  { name: "Workcells", icon: GiChaingun, path: "/workcells" },
+  { name: "Tools", icon: RiRobot2Line, path: "/tools" },
   { name: "Protocols", icon: PiPathBold, path: "/protocols" },
   { name: "Inventory", icon: GoContainer, path: "/inventory" },
   { name: "Schedule", icon: RiCalendarCheckLine, path: "/schedule" },
@@ -169,10 +171,10 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             aria-label="Open Menu"
             icon={<FiMenu />}
             onClick={onOpen}
-            m={4}
+            m={2}
             position="fixed"
-            top="1rem"
-            left="1rem"
+            top="0rem"
+            left="0rem"
           />
           <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
             <DrawerOverlay />

@@ -12,11 +12,11 @@ class ToolCreate(BaseModel):
     name: str
     description: t.Optional[str] = None
     image_url: t.Optional[str] = None
-    ip: str
+    ip: str = "localhost"
     port: int
     config: t.Optional[dict] = None
     simulated: t.Optional[bool] = None
-    workcell_id: int
+    workcell_id: t.Optional[int] = None
 
 class ToolUpdate(BaseModel):
     name: t.Optional[str] = None
@@ -36,16 +36,16 @@ class Tool(ToolCreate, TimestampMixin):
 # Workcell Schemas
 class WorkcellCreate(BaseModel):
     name: str
-    host: str
-    port: int
+    description: t.Optional[str] = None
+    location: t.Optional[str] = None
 
 class WorkcellUpdate(BaseModel):
     name: t.Optional[str] = None
-    host: t.Optional[str] = None
-    port: t.Optional[int] = None
-
+    description: t.Optional[str] = None
+    location: t.Optional[str] = None
 
 class Workcell(WorkcellCreate, TimestampMixin):
+    id: int
     tools: t.List[Tool] = []
 
     class Config:
@@ -82,14 +82,12 @@ class NestUpdate(BaseModel):
     column: t.Optional[int] = None
     instrument_id: t.Optional[int] = None
 
-
 class Nest(NestCreate):
     id: int
 
     class Config:
         from_attributes=True
         #orm_mode = True 
-
 
 # Plate Schemas
 class PlateCreate(BaseModel):
@@ -253,6 +251,7 @@ class LabwareCreate(BaseModel):
     lid_offset: t.Optional[float] = None
     stack_height: t.Optional[float] = None
     has_lid: t.Optional[bool] = False
+    image_url: t.Optional[str] = None
 
 class Labware(TimestampMixin, LabwareCreate):
     id: int
@@ -270,3 +269,4 @@ class LabwareUpdate(LabwareCreate):
     lid_offset: t.Optional[float] = None
     stack_height: t.Optional[float] = None
     has_lid: t.Optional[bool] = None
+    image_url: t.Optional[str] = None

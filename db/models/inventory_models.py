@@ -1,7 +1,6 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Date,Boolean,Float, DateTime, CheckConstraint, LargeBinary
 from sqlalchemy.orm import relationship
 from .db_session import Base
-from config import INVENTORY_DB_URL
 from sqlalchemy.ext.declarative import declared_attr
 import datetime
 import zlib 
@@ -19,10 +18,14 @@ class TimestampMixin:
 class Workcell(Base, TimestampMixin):
     __tablename__ = "workcells"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    host = Column(String, nullable=False)
-    port = Column(Integer, nullable=False)
-    tools = relationship("Tool", back_populates="workcell")
+    name = Column(String, nullable=False, unique=True)
+    location = Column(String, nullable=True)
+    description = Column(String, nullable=True) 
+    tools = relationship("Tool", back_populates="workcell", cascade="all, delete-orphan")
+    
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+    )
 
 class Tool(Base, TimestampMixin):
     __tablename__ = "tools"
@@ -38,6 +41,10 @@ class Tool(Base, TimestampMixin):
     workcell_id = Column(String, ForeignKey("workcells.id"))
     workcell = relationship("Workcell", back_populates="tools")
     nests = relationship("Nest", back_populates="tool")
+
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+    )
 
 class Nest(Base, TimestampMixin):
     __tablename__ = "nests"
@@ -101,6 +108,7 @@ class Labware(Base, TimestampMixin):
     __tablename__ = "labware"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
+    image_url = Column(String, nullable=True)
     description = Column(String, nullable=False)
     number_of_wells = Column(Integer, nullable=False)
     z_offset = Column(Float, nullable=False)
@@ -121,9 +129,3 @@ class Script(Base, TimestampMixin):
     version = Column(String, nullable=False)
     is_blocking = Column(Boolean, nullable=False) 
     
-
-if __name__ == "__main__":
-    from sqlalchemy import create_engine
-
-    engine = create_engine(INVENTORY_DB_URL, connect_args={"check_same_thread": False})
-    Base.metadata.create_all(engine)

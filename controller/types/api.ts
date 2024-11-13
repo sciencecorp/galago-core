@@ -3,8 +3,9 @@ import { DateTime } from "luxon";
 export interface Workcell {
   id: number;
   name: string;
+  location:string;
   description: string;
-  status: string;
+  tools: Tool[];
   last_updated: Date;
   created_at: Date;
 }

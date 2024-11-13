@@ -6,9 +6,11 @@ import { toolRouter } from "./tool";
 import { variableRouter } from "./variable";
 import { loggingRouter } from "./logging";
 import { log } from "console";
+import { workcellRouter } from "./workcell";
 
 export const appRouter = router({
   tool: toolRouter,
+  workcell: workcellRouter,
   protocol: protocolRouter,
   run: runRouter,
   commandQueue: commandQueueRouter,

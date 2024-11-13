@@ -116,6 +116,7 @@ export default function ToolStatusCard({
             </Link>
             <Text fontSize="sm">{description}</Text>
           </Box>
+          <Box top={-5} right={-5} position="relative">
           <Menu>
             <MenuButton
               as={IconButton}
@@ -141,6 +142,7 @@ export default function ToolStatusCard({
               )}
             </MenuList>
           </Menu>
+          </Box>
         </Flex>
       </CardHeader>
       <CardBody mt="0px">
