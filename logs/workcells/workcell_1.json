@@ -1,6 +1,6 @@
 {
   "id": "workcell_1",
-  "name": "Workcell 1",
+  "name": "Cell Culture Workcell",
   "host": "0.0.0.0",
   "port": 4000,
   "tools": [
@@ -11,7 +11,7 @@
       "description": "Cell Multi-Mode Imager",
       "image_url": "/tool_icons/cytation5.png",
       "ip": "localhost",
-      "port": 4000,
+      "port": 4001,
       "config": {
         "simulated": true,
         "cytation": {
@@ -29,7 +29,7 @@
       "description": "Robot Arm",
       "image_url": "/tool_icons/pf400.jpg",
       "ip": "localhost",
-      "port": 4200,
+      "port": 4002,
       "config": {
         "simulated": true,
         "pf400": {
@@ -48,7 +48,7 @@
       "image_url": "/tool_icons/liconic.png",
       "description": "Incubator",
       "ip": "localhost",
-      "port": 4100,
+      "port": 4000,
       "config": {
         "simulated": true,
         "liconic": {
@@ -64,7 +64,7 @@
       "description": "Liquid Handler",
       "image_url": "/tool_icons/ot2.png",
       "ip": "localhost",
-      "port": 4400,
+      "port": 4022,
       "config": {
         "simulated": true,
         "opentrons2": {
@@ -82,7 +82,7 @@
       "description": "Microplate Labeler",
       "image_url": "/tool_icons/vcode_labeler.png",
       "ip": "localhost",
-      "port": 4600,
+      "port":4010,
       "config": {
         "simulated": true,
         "vcode": {
@@ -98,7 +98,7 @@
       "description": "Liquid Handler Agilent",
       "image_url": "/tool_icons/bravo_agilent.svg",
       "ip": "localhost",
-      "port": 4700,
+      "port": 4004,
       "config": {
         "simulated": true,
         "bravo": {
@@ -113,7 +113,7 @@
       "description": "Agilent Plate Sealer",
       "image_url": "/tool_icons/plateloc.png",
       "ip": "localhost",
-      "port": 4750,
+      "port": 4003,
       "config": {
         "simulated": true,
         "plateloc": {
@@ -128,13 +128,148 @@
       "description": "Liquid Handler",
       "image_url": "/tool_icons/hamilton_star.png",
       "ip": "localhost",
-      "port": 4800,
+      "port": 4006,
       "config": {
         "simulated": true,
         "hamilton": {
           "tool_id": "hamilton_1"
         }
       }
-    }
+    },
+    {
+      "id": "hamilton_2",
+      "type": "hamilton",
+      "name": "Hamilton STAR",
+      "description": "Liquid Handler",
+      "image_url": "/tool_icons/hamilton_star.png",
+      "ip": "localhost",
+      "port": 4007,
+      "config": {
+        "simulated": true,
+        "hamilton": {
+          "tool_id": "hamilton_1"
+        }
+      }
+    },
+    {
+      "id": "hamilton_3",
+      "type": "hamilton",
+      "name": "Hamilton STAR",
+      "description": "Liquid Handler",
+      "image_url": "/tool_icons/hamilton_star.png",
+      "ip": "localhost",
+      "port": 4008,
+      "config": {
+        "simulated": true,
+        "hamilton": {
+          "tool_id": "hamilton_1"
+        }
+      }
+    },
+    {
+      "id": "hamilton_4",
+      "type": "hamilton",
+      "name": "Hamilton STAR",
+      "description": "Liquid Handler",
+      "image_url": "/tool_icons/hamilton_star.png",
+      "ip": "localhost",
+      "port": 4009,
+      "config": {
+        "simulated": true,
+        "hamilton": {
+          "tool_id": "hamilton_1"
+        }
+      }
+    },
+    {
+      "id": "hamilton_5",
+      "type": "hamilton",
+      "name": "Hamilton STAR",
+      "description": "Liquid Handler",
+      "image_url": "/tool_icons/hamilton_star.png",
+      "ip": "localhost",
+      "port": 4010,
+      "config": {
+        "simulated": true,
+        "hamilton": {
+          "tool_id": "hamilton_1"
+        }
+      }
+    },
+    {
+      "id": "hamilton_6",
+      "type": "hamilton",
+      "name": "Hamilton STAR",
+      "description": "Liquid Handler",
+      "image_url": "/tool_icons/hamilton_star.png",
+      "ip": "localhost",
+      "port": 4011,
+      "config": {
+        "simulated": true,
+        "hamilton": {
+          "tool_id": "hamilton_1"
+        }
+      }
+    },
+    {
+      "id": "hamilton_7",
+      "type": "hamilton",
+      "name": "Hamilton STAR",
+      "description": "Liquid Handler",
+      "image_url": "/tool_icons/hamilton_star.png",
+      "ip": "localhost",
+      "port": 4012,
+      "config": {
+        "simulated": true,
+        "hamilton": {
+          "tool_id": "hamilton_1"
+        }
+      }
+    },
+    {
+      "id": "hamilton_12",
+      "type": "hamilton",
+      "name": "Hamilton STAR",
+      "description": "Liquid Handler",
+      "image_url": "/tool_icons/hamilton_star.png",
+      "ip": "localhost",
+      "port": 4013,
+      "config": {
+        "simulated": true,
+        "hamilton": {
+          "tool_id": "hamilton_1"
+        }
+      }
+    },
+    {
+      "id": "hamilton_3",
+      "type": "hamilton",
+      "name": "Hamilton STAR",
+      "description": "Liquid Handler",
+      "image_url": "/tool_icons/hamilton_star.png",
+      "ip": "localhost",
+      "port": 4014,
+      "config": {
+        "simulated": true,
+        "hamilton": {
+          "tool_id": "hamilton_1"
+        }
+      }
+    },
+    {
+      "id": "hamilton_5",
+      "type": "hamilton",
+      "name": "Hamilton STAR",
+      "description": "Liquid Handler",
+      "image_url": "/tool_icons/hamilton_star.png",
+      "ip": "localhost",
+      "port": 4015,
+      "config": {
+        "simulated": true,
+        "hamilton": {
+          "tool_id": "hamilton_1"
+        }
+      }
+    }   
   ]
 }

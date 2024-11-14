@@ -116,7 +116,9 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
           >
             <Box position='relative' bg={commandBgColor} w='100%' p={1} color='black' border='1px'>
               <VStack spacing='0'>
-                <Progress width='100%' hasStripe isAnimated value={(runAttributes.commandsCount-run.Commands.length)/runAttributes.commandsCount*100} colorScheme='blue' size='md'/>
+                {runAttributes.commandsCount-run.Commands.length > 0 && (
+                  <Progress width='100%' hasStripe isAnimated value={(runAttributes.commandsCount-run.Commands.length)/runAttributes.commandsCount*100} colorScheme='blue' size='md'/>
+                )}
                 <HStack width='100%'>
                   <Box width='90%'>
                     <Button padding='2px' variant='ghost' onClick={() => handleRunButtonClick(run.Id)}>

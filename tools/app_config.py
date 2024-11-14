@@ -6,20 +6,30 @@ from typing import Optional
 from datetime import date , time 
 import logging 
 import typing as t
+from tools.toolbox.workcell import get_all_workcells, get_workcell
+from tools.toolbox.db import Db 
 
 ROOT_DIRECTORY = dirname(dirname(os.path.realpath(__file__)))
 APP_CONFIG_FILE = join(ROOT_DIRECTORY, "app_config.json")
 
+
+db = Db()
+
+
+
 class Tool(BaseModel):
-    id: str
+    id: int
     name :str 
     type: str 
     port: int
 
 class WorkcellConfig(BaseModel):
-    id:str
+    id:int
     name: str
-    host:str
+    created_at: Optional[str]
+    updated_at: Optional[str]
+    description: Optional[str]
+    location: Optional[str]
     tools: list[Tool]
 
 class AppConfig(BaseModel):
@@ -32,7 +42,20 @@ class AppConfig(BaseModel):
     slack_workcell_channel: Optional[str]
     slack_error_channel: Optional[str]
     slack_admins_ids: Optional[list[str]]
+
+
+def get_workcell(id:int) -> WorkcellConfig:
+    response = db.get_by_id_or_name(id, "workcells")
+    return response
     
+def get_all_workcells() -> list[WorkcellConfig]:
+    response = db.get_data("workcells")
+    return response
+
+def get_selected_workcell() -> str:
+    workcell = db.get_data("settings/workcell").get("value")
+    return workcell
+
 class Config():
     def __init__(self) -> None:
         self.workcell_config : Optional[WorkcellConfig] = None
@@ -101,21 +124,20 @@ class Config():
         if self.app_config.workcell is None:
             logging.warning("Workcell not specified")
             return None
-        workcell_path = join(self.app_config.data_folder,"workcells",f"{self.app_config.workcell}.json")
-        if not os.path.exists(workcell_path):
-            self.workcell_config_is_valid = False
-            logging.warning("Specified workcell config file does not exist")
+        selected_workcell = get_selected_workcell()
+        workcells = get_all_workcells()
+        if workcells is None:
+            logging.error("Failed to load workcells")
             return None
-
-        with open(workcell_path) as f:
-            try:
-                config = json.load(f)
-                self.workcell_config = WorkcellConfig.parse_obj(config)
-                self.workcell_config_is_valid = True
-            except Exception as e:
-                raise RuntimeError(f"Failed to load workcell config file {e}")
-        self.workcell_config_file = os.path.abspath(workcell_path)
+        selected_workcell_config  = [workcell for workcell in workcells if workcell.get("name") == selected_workcell][0]
+        print("Adding workcell config")
+        print(selected_workcell_config)
+        if selected_workcell:
+            self.workcell_config = WorkcellConfig.parse_obj(selected_workcell_config)
+            self.workcell_config_is_valid = True
         return None
+    
+
     def __str__(self) -> str:
         #Use for debugging
         return f"Config(data_folder_dir={self.app_config.data_folder}, workcell={self.app_config.workcell})"

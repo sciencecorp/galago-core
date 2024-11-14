@@ -18,7 +18,7 @@ const toolStore: Map<number, Tool> = new Map();
 export default class Tool {
   // Controller config is "what does the controller need to know about the tool?"
   info: controller_protos.ToolConfig;
-  static allTools : controller_protos.ToolConfig[] = [];
+  static allTools : controller_protos.ToolConfig[] = [Tool.toolBoxConfig()];
 
   // Tool config is "what configuration is the tool currently using?"
   config?: tool_base.Config;
@@ -67,7 +67,7 @@ export default class Tool {
     }
   }
 
-  get id(): number {
+  get id(): string {
     return this.info.id;
   }
 
@@ -128,6 +128,16 @@ export default class Tool {
     return reply.estimated_duration_seconds;
   }
 
+  static clearToolStore() {
+    let counter = 0;
+    for(const tool of toolStore.values()) {
+      counter++;
+      tool.stopHeartbeat();
+      tool.grpc.close();
+      //Remove the tool from the store
+      toolStore.delete(counter);
+    }
+  }
 
   static reloadWorkcellConfig(tools:controller_protos.ToolConfig[]) {
     this.allTools = tools;
@@ -151,22 +161,21 @@ export default class Tool {
     }
   }
   
-  static forId(id: number): Tool {
+  static forId(id: string): Tool {
     const global_key = "__global_tool_store";
     const me = global as any;
     if (!me[global_key]) {
       me[global_key] = new Map();
     }
-    const store: Map<number, Tool> = me[global_key];
+    const store: Map<string, Tool> = me[global_key];
     let tool = store.get(id);
     if (!tool) {
       let toolInfo = {} as controller_protos.ToolConfig;
-      if (id == 1203) {
+      if (id == "Tool Box") {
         const result = this.toolBoxConfig();
         toolInfo = result;
       } else {
-        const result = this.allTools.find((tool) => tool.id === id);
-        console.log("Tool info is" + result);
+        const result = this.allTools.find((tool) => tool.name === id);
         if (!result) {
           throw new Error(
             `Tool with id ${id} not found in in database'`,
@@ -188,7 +197,7 @@ export default class Tool {
   static toolBoxConfig(): controller_protos.ToolConfig {
     return {
       name: "Tool Box",
-      id: 1203,
+      id: "toolbox",
       type: "toolbox" as ToolType,
       description: "General Tools",
       image_url: "/tool_icons/toolbox.png",

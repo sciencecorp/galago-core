@@ -40,7 +40,7 @@ export const PassagingHamiltonParams = z
 export default class PassagingHamilton extends Protocol<typeof PassagingHamiltonParams> {
   protocolId = "passaging_hamilton";
   category = "production";
-  workcell = "Workcell 1";
+  workcell = "Cell Culture Workcell";
   name = "Cell Passaging";
   description = "Walk up Passaging Protocol";
   paramSchema = PassagingHamiltonParams;

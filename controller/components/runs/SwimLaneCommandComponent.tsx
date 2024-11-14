@@ -51,6 +51,8 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
   //const MemoizedSwimLaneComponentItem = React.memo(SwimLaneCommandComponent);
   const [commandColor, setCommandColor] = useState<string>("White");
   const bgColor = useColorModeValue("gray.100", "gray.700");
+  const errorColor = useColorModeValue("red.200", "red.800");
+
   function renderToolImage(config: any) {
     if (!config || !config.image_url) {
       return <Box></Box>;
@@ -66,12 +68,14 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
     }
   }
 
+  const runningBg = useColorModeValue("teal.200", "gray.800");
+
   function setBackgroundColor(status: any) {
     switch (status) {
       case "STARTED":
-        return "#ABD3F9";
+        return runningBg;
       case "FAILED":
-        return "red.400";
+        return errorColor;
       default:
         return bgColor;
     }
@@ -104,7 +108,7 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
       boxSizing="border-box"
       background={setBackgroundColor(command.status)}
       border={command.status === "STARTED" ? "2px" : "1px"}
-      borderColor={command.status === "STARTED" ? "blue" : "black"}>
+      borderColor={command.status === "STARTED" ? "teal" : "black"}>
       <VStack alignItems="stretch">
         <Box>
           <HStack>

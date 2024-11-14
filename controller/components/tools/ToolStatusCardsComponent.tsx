@@ -50,7 +50,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
   const utils = trpc.useContext();
   const toast = useToast();
   const {data: fetchedIds, refetch} = trpc.tool.availableIDs.useQuery();
-  const [toolIds, setToolIds] = useState<number[]>([]);
+  const [toolIds, setToolIds] = useState<string[]>([]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visibleCards, setVisibleCards] = useState(3);

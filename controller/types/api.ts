@@ -1,4 +1,5 @@
 import { DateTime } from "luxon";
+import { Config } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 
 export interface Workcell {
   id: number;
@@ -20,7 +21,7 @@ export interface Variable {
 }
 
 export interface Tool {
-  id: number;
+  id: string;
   name: string;
   ip: string;
   port: number;
@@ -31,7 +32,7 @@ export interface Tool {
   status: string;
   last_updated: Date;
   created_at: Date;
-  config: Record<string, any>;
+  config:Config;
 }
 
 export interface LogType {

@@ -57,7 +57,7 @@ export default function ToolStatusCard({
   toolId,
   style
 }: {
-  toolId: number;
+  toolId: string;
   style?: React.CSSProperties;
 }) {
   const [isHovered, setIsHovered] = useState(false);

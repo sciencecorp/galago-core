@@ -45,6 +45,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
     const bg = useColorModeValue("teal.100", "teal.700");
     const toolBg = useColorModeValue("gray.100", "gray.700");
     const deleteWorkcell = trpc.workcell.delete.useMutation();
+    const clearToolStore = trpc.tool.clearToolStore.useMutation();
     const editWorkcell = trpc.workcell.edit.useMutation();
     const setWorkcell = trpc.workcell.setSelectedWorkcell.useMutation({
         onSuccess: () => {
@@ -65,6 +66,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
         try {
             await setWorkcell.mutate("")
             await deleteWorkcell.mutateAsync(workcell.id);
+            await clearToolStore.mutate();
             props.onChange && props.onChange();
         } catch (error) {
             toast({
@@ -150,7 +152,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
             <CardFooter pt={0} justifyContent="flex-start" width="100%">
               <ButtonGroup>
                 <Button 
-                    onClick={async () => {await setWorkcell.mutate(workcell.name)}}
+                    onClick={async () => {await setWorkcell.mutate(workcell.name);await clearToolStore.mutate();}}
                     colorScheme="teal" 
                     variant="solid">
                   Select

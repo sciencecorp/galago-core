@@ -16,7 +16,6 @@ from typing import Optional, Any, Callable
 from tools.conda_utils import get_conda_environments,check_conda_is_path
 import argparse 
 
-
 ROOT_DIR = dirname(dirname(os.path.realpath(__file__)))
 CONTROLLER_DIR = join(ROOT_DIR, "controller")
 LOG_TIME = int(time.time())
@@ -49,8 +48,13 @@ class ToolsManager():
             logging.debug("folder does not exist. creating folder")
             os.makedirs(self.log_folder)
 
+        #Build databases if they do not exist
+        self.build_db()
         self.server_processes : dict[str,subprocess.Popen] = {}
+        self.database_process : Optional[subprocess.Popen] = None
+        self.controller_process : Optional[subprocess.Popen]= None
         self.tool_box_process: Optional[subprocess.Popen] = None
+        self.redis_process : Optional[subprocess.Popen] = None
         self.main_frame = ttk.Frame(root)
         self.main_frame.pack(fill=tk.BOTH, expand=True)
         self.paned_window = ttk.PanedWindow(self.main_frame, orient=tk.HORIZONTAL)
@@ -80,6 +84,7 @@ class ToolsManager():
                 scrollregion=self.left_canvas.bbox("all")
             )
         )
+
         # Create a window inside the canvas
         self.left_canvas.create_window((0, 0), window=self.widgets_frame, anchor="nw")
         # Populate the left frame with widgets from a list
@@ -89,7 +94,7 @@ class ToolsManager():
         # Create the right frame for the scrolled text
         self.right_frame = tk.Frame(self.paned_window, width=(self.root.winfo_width()/5)*4)
         self.right_frame.pack(fill=tk.BOTH, expand=True)
-
+        #self.right_frame.propagate(0)
         # Add the right frame to the paned window
         self.paned_window.add(self.left_frame, weight=1)
         self.paned_window.add(self.right_frame,weight=10)
@@ -148,6 +153,8 @@ class ToolsManager():
                 pass
         self.server_processes.clear()
         self.force_kill_tool()
+        self.force_kill_db()
+        self.force_kill_web_app()
     
     def set_icon(self) -> None:
         if os.name == "nt":
@@ -157,7 +164,37 @@ class ToolsManager():
             icon_img = tk.Image("photo", file=icon_file)
             if icon_img:
                 self.root.iconphoto(True, str(icon_img))      
-
+    
+    def build_db(self) -> None:
+        if self.config.app_config.data_folder:
+            log_root_folder = os.path.join(self.config.app_config.data_folder, "db")
+        else:
+            log_root_folder = os.path.join(ROOT_DIR, "db")
+        if not os.path.exists(log_root_folder):
+            try:
+                os.makedirs(log_root_folder)
+            except Exception as e:
+                logging.error(f"Failed to create log folder. Error={e}")
+                return None
+        if not config.logs_db_exists():
+            logging.info("Building inventory database")
+            try:
+                subprocess.Popen(["python", "-m", "tools.db.models.log_models"]).communicate()
+                subprocess.Popen(["python", "-m", "tools.db.log_types_add"]).communicate()
+            except Exception as e:
+                logging.error(f"Failed to build inventory database. Error={e}")
+                return None
+            logging.info("Inventory database built")
+        if not config.inventory_db_exists():
+            logging.info("Building logs database")
+            try:
+                subprocess.Popen(["python", "-m", "tools.db.models.inventory_models"]).communicate()
+                subprocess.Popen(["python", "-m", "tools.db.instantiate_db"]).communicate()
+            except Exception as e:
+                logging.error(f"Failed to build logs database. Error={e}")
+                return None
+            logging.info("Logs database built")
+    
     def update_buttons(self) -> None:
         for button_key, (button_name, button, frame) in self.tool_buttons.items():
             if button_key in self.server_processes:
@@ -293,7 +330,7 @@ class ToolsManager():
             if box_result == 'no':
                 return None
         try:
-            self.kill_process_by_name(tool_id)
+            self.kill_process_by_name(str(tool_name))
             tool_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             result = tool_socket.connect_ex(('127.0.0.1',int(port)))
             if result != 0:
@@ -304,14 +341,14 @@ class ToolsManager():
                     use_shell = True
                 logging.info(f"log folder is {self.log_folder}")
                 if self.log_folder:
-                    output_file = join(self.log_folder, tool_id) + ".log"
+                    output_file = join(self.log_folder, str(tool_name)) + ".log"
                     process = subprocess.Popen(cmd, stdout=open(output_file,'w'), stderr=subprocess.STDOUT,  universal_newlines=True)
                 else:
                      process = subprocess.Popen(cmd, shell=use_shell,universal_newlines=True)
-                self.server_processes[tool_id] = process
+                self.server_processes[tool_name] = process
                 self.log_files_modified_times[output_file] = os.path.getmtime(output_file)
             else:
-                logging.warning(f"Port {port} for {tool_id} is already occupied")
+                logging.warning(f"Port {port} for {tool_name} is already occupied")
         except subprocess.CalledProcessError:
             logging.info("There was an error launching toolbox server.")
         return None
@@ -353,8 +390,8 @@ class ToolsManager():
                                relief=tk.FLAT, bg=frame.cget('bg'), activebackground=frame.cget('bg'))
             button.pack(side=tk.RIGHT, padx=(5, 5), pady=5)
             
-            self.tool_buttons[tool_id] = (tool_name, button, frame)
-            self.tool_buttons_previous_states[tool_id] = False
+            self.tool_buttons[tool_name] = (tool_name, button, frame)
+            self.tool_buttons_previous_states[tool_name] = False
 
         # Tool Box
         create_tool_frame(self.widgets_frame, "Tool Box", self.start_toolbox, "toolbox")
@@ -366,7 +403,7 @@ class ToolsManager():
                     create_tool_frame(
                         self.widgets_frame,
                         t.name,
-                        lambda t=t: self.run_subprocess(t.id, t.type, t.name, t.port, True),
+                        lambda t=t: self.run_subprocess(str(t.id), t.type, t.name, t.port, True),
                         t.id
                     )
                 except Exception as e:
@@ -385,12 +422,100 @@ class ToolsManager():
         # Set the initial position of the paned window sash
         self.paned_window.sashpos(0, left_width)
 
+    def start_controller(self) -> None:
+        try:  
+            os.chdir(CONTROLLER_DIR)
+            logging.info(f"Setting api url to  {self.config.app_config.host_ip}:8000")
+            git_branch_get = subprocess.Popen(["git", "branch", "--show-current"], stdout=subprocess.PIPE)
+            branch_name, branch_error = git_branch_get.communicate()
+
+            os.environ['APP_MODE'] = "PROD" if branch_name.decode().replace("\n","") == "main" else "DEV"
+            os.environ['NEXT_PUBLIC_API_URL'] = f"{self.config.app_config.host_ip}:8000" if self.config.app_config.host_ip else "127.0.0.1:8000"
+            os.environ['REDIS_URL'] = f"redis://{self.config.app_config.redis_ip}/1" if self.config.app_config.redis_ip else "redis://127.0.0.1:6379/1"
+            os.environ['CONTROLLER_CONFIG'] = self.config.workcell_config_file
+
+            cmd = self.get_controller_command()
+            use_shell = False
+            if os.name == 'nt':
+                use_shell = True
+            if self.log_folder:
+                output_file = join("../",self.log_folder,"controller.log")
+                process = subprocess.Popen(cmd, stdout=open(output_file,'w'), stderr=subprocess.STDOUT,shell=use_shell, universal_newlines=True)
+            else:
+                process = subprocess.Popen(cmd, shell=use_shell,universal_newlines=True)
+            self.server_processes["controller"] = process
+            self.log_files_modified_times[output_file] = os.path.getmtime(output_file)
+        except subprocess.CalledProcessError:
+            logging.info("There was an error launching the controller.")
+        logging.info("controller launched")
+    
+    def start_redis_server(self) -> None:
+        
+        if os.name == 'nt':
+            self.log_text("Starting Redis Server")
+            redis_cmd = "C:\Windows\Sysnative\wsl.exe -u root -e sudo service redis-server start"
+            conda_cmd = f"conda activate galago-core && {redis_cmd}"
+            cmd = ["cmd.exe", "/C", conda_cmd]
+            subprocess.Popen(cmd)
+
+    def stop_redis_server(self) -> None:
+        if os.name == 'nt':
+            self.log_text("Stopping Redis Server")
+            redis_cmd = "wsl -u root -e sudo service redis-server stop"
+            conda_cmd = f"conda activate galago-core && {redis_cmd}"
+            cmd = ["cmd.exe", "/C", conda_cmd]
+            subprocess.Popen(cmd)
+
+    def get_controller_command(self) -> list:
+        npm_command = ["npm", "run", "dev", "--", "--port", self.app_port]
+        if os.name == 'nt':
+            conda_cmd = f"conda activate galago-core && {(' ').join(npm_command)}"
+            cmd = ["cmd.exe", "/C", conda_cmd]
+            return cmd
+        
+        return npm_command
+    
+    def force_kill_web_app(self) -> None:
+        try:
+            if os.name != 'nt':
+                subprocess.Popen(f"lsof -t -i tcp:{self.app_port} | xargs kill", shell=True)
+        except Exception as e:
+            self.log_text(f"Failed to kill web app. Error={e}")
+
     def force_kill_tool(self) -> None:
         try:
             if os.name != 'nt':
                 subprocess.Popen("lsof -t -i tcp:1010 | xargs kill", shell=True)
         except Exception as e:
             self.log_text(f"Failed to kill web app. Error={e}")
+    
+    def force_kill_db(self) -> None:
+        try:
+            if os.name != 'nt':
+                subprocess.Popen("lsof -t -i tcp:8000 | xargs kill", shell=True)
+        except Exception as e:
+            self.log_text(f"Failed to kill web app. Error={e}")
+
+    def start_database(self) -> None:
+        self.log_text("Launching inventory")
+        inventory_cmd = "python -m tools.db.run"
+        if os.name == 'nt':
+            conda_cmd = f"conda activate galago-core && {inventory_cmd}"
+            cmd = ["cmd.exe", "/C", conda_cmd]
+        else:
+            cmd = inventory_cmd.split()
+        try:
+            if self.log_folder:
+                output_file = join(self.log_folder,"database.log")
+                process = subprocess.Popen(cmd, stdout=open(output_file,'w'), stderr=subprocess.STDOUT, universal_newlines=True)
+            else:
+                process = subprocess.Popen(cmd, universal_newlines=True)
+            self.server_processes["database"] = process
+            self.log_files_modified_times[output_file] = os.path.getmtime(output_file)
+        except subprocess.CalledProcessError:
+            logging.info("There was an error launching the inventory service.")
+            return None
+        self.log_text("Inventory launched on port 8000")
 
     def start_toolbox(self) -> None:
         logging.info("Launching Toolbox")

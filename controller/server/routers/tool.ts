@@ -76,15 +76,16 @@ export const toolRouter = router({
 
   availableIDs: procedure.query(async () => {
     const allTools = await get<ToolResponse[]>(`/tools`);
-    Tool.reloadWorkcellConfig(allTools);
-    const toolIds = allTools.map((tool) => tool.id);
+    Tool.reloadWorkcellConfig(allTools as controller_protos.ToolConfig[]);
+    const toolIds = allTools.map((tool) => tool.name);
+    toolIds.push("Tool Box");
     return toolIds;
   }),
 
   status: procedure
     .input(
       z.object({
-        toolId: z.number(),
+        toolId: z.string(),
       }),
     )
     .query(async ({ input }) => {
@@ -95,18 +96,23 @@ export const toolRouter = router({
   info: procedure
     .input(
       z.object({
-        toolId: z.number(),
+        toolId: z.string(),
       }),
     )
     .query(({ input }) => {
       const tool = Tool.forId(input.toolId);
       return tool.info;
     }),
+  
+  clearToolStore :procedure.mutation(async () => {
+    Tool.clearToolStore();
+    return {message: "Tool store cleared successfully"};
+  }),
 
   configure: procedure
     .input(
       z.object({
-        toolId: z.number(),
+        toolId: z.string(),
         config: z.custom<Config>().transform(Config.fromPartial),
       }),
     )
@@ -120,7 +126,7 @@ export const toolRouter = router({
   runCommand: procedure
     .input(
       z.object({
-        toolId: z.number(),
+        toolId: z.string(),
         toolType: zToolType,
         command: z.string(),
         params: z.record(z.any()),
