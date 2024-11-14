@@ -265,9 +265,8 @@ class Pf400Server(ToolServer):
 
     def DropOffPlate(self, params: Command.DropOffPlate) -> None:
         labware: Labware = params.labware
-        offset = (0,0,labware.z_offset)
+        offset = (0,0,labware.z_offset) #we only care about the z offset based on the labware
         self.dropoff_plate(destination_nest=params.location, motion_profile_id=params.motion_profile_id, nest_offset=offset)
-
 
     def CreateNest(self, params: Command.CreateNest) -> None:
         current_position = re.sub(r'^\S+\s', '', self.driver.wherej())
@@ -733,146 +732,6 @@ class Pf400Server(ToolServer):
         )
         self.driver.register_motion_profile(str(motion_profile))
 
-    def SmartTransfer(self, params: Command.SmartTransfer) -> ExecuteCommandReply:
-        response = ExecuteCommandReply()
-        response.return_reply = True
-        response.response = SUCCESS
-        try:    
-            if params.source_nest.nest not in self.waypoints.nests:
-                raise KeyError("Nest not found: " + params.source_nest.nest)
-            if params.destination_nest.nest not in self.waypoints.nests:
-                raise KeyError("Nest not found: " + params.destination_nest.nest)
-            if not params.motion_profile_id:
-                params.motion_profile_id = 1
-            source_nest: Nest = self.waypoints.nests[params.source_nest.nest]
-            destination_nest: Nest = self.waypoints.nests[params.destination_nest.nest]
-            nearest_safe_loc_name: str
-            current_to_source_path: list[str]
-            current_to_source_commands: list[message.Message]
-            source_to_destination_path: list[str]
-            source_to_destination_commands: list[message.Message]
-            if "fridge_hotel" in params.source_nest.nest:
-                nearest_safe_loc_name = self.find_nearest_safe_point()
-                current_to_source_path = self.calculate_path(
-                    source_waypoint_name=nearest_safe_loc_name,
-                    destination_waypoint_name="rp_hotel_safe_nest",
-                )
-                current_to_source_commands = self.convert_path_to_commands(
-                    path=current_to_source_path, params=params, skip_nests=True
-                )
-                self.runSequence(current_to_source_commands)
-            nearest_safe_loc_name = self.find_nearest_safe_point()
-            current_to_source_path = self.calculate_path(
-                source_waypoint_name=nearest_safe_loc_name,
-                destination_waypoint_name=source_nest.safe_loc,
-            )
-            current_to_source_commands = self.convert_path_to_commands(
-                path=current_to_source_path, params=params, skip_nests=True
-            )
-
-            self.runSequence(current_to_source_commands)
-            nearest_safe_loc_name = self.find_nearest_safe_point()
-            current_to_source_path = self.calculate_path(
-                source_waypoint_name=nearest_safe_loc_name,
-                destination_waypoint_name=source_nest.safe_loc,
-            )
-            current_to_source_commands = self.convert_path_to_commands(
-                path=current_to_source_path, params=params, skip_nests=True
-            )
-            source_to_destination_path = self.calculate_path(
-                source_waypoint_name=source_nest.safe_loc,
-                destination_waypoint_name=destination_nest.safe_loc,
-            )
-            source_to_destination_commands = self.convert_path_to_commands(
-                path=source_to_destination_path, params=params
-            )
-
-            self.runSequence(current_to_source_commands)
-            self.retrieve_plate(
-                source_nest=params.source_nest.nest,
-                grasp_params=params.grasp_params,
-                nest_offset=(
-                    params.source_nest.x_offset,
-                    params.source_nest.y_offset,
-                    params.source_nest.z_offset,
-                ),
-                motion_profile_id=params.motion_profile_id,
-                grip_width=params.grip_width,
-            )
-            self.runSequence(source_to_destination_commands)
-            self.dropoff_plate(
-                destination_nest=params.destination_nest.nest,
-                release_params=params.release_params,
-                nest_offset=(
-                    params.destination_nest.x_offset,
-                    params.destination_nest.y_offset,
-                    params.destination_nest.z_offset,
-                ),
-                motion_profile_id=params.motion_profile_id,
-                grip_width=params.grip_width,
-            )
-            if "fridge_hotel" in params.destination_nest.nest:
-                print("fridge_hotel")
-                #button movement
-                self.runSequence(
-                    [
-                        Command.Move(waypoint="fridge_nest_safe", motion_profile_id=params.motion_profile_id),
-                        Command.Move(waypoint="fridge_button_3", motion_profile_id=params.motion_profile_id),
-                        Command.Move(waypoint="fridge_button_2", motion_profile_id=params.motion_profile_id),
-                        Command.Move(waypoint="fridge_button_1", motion_profile_id=params.motion_profile_id),
-                        Command.Move(waypoint="fridge_nest_safe", motion_profile_id=params.motion_profile_id),
-                        Command.Move(waypoint="pf400_portrait_nest_approach", motion_profile_id=params.motion_profile_id),
-                        Command.Move(waypoint="rp_hotel_safe_nest", motion_profile_id=params.motion_profile_id),
-                      
-                        
-                    ]
-                )
-                # current_to_source_path = self.calculate_path(
-                #     source_waypoint_name="fridge_nest_safe",
-                #     destination_waypoint_name="rp_hotel_safe_nest",
-                # )
-                # source_to_destination_commands = self.convert_path_to_commands(
-                #     path=source_to_destination_path, params=params
-                # )
-
-                # self.runSequence(current_to_source_commands)
-                # self.retrieve_plate(
-                #     source_nest=params.source_nest.nest,
-                #     grasp_params=params.grasp_params,
-                #     nest_offset=(
-                #         params.source_nest.x_offset,
-                #         params.source_nest.y_offset,
-                #         params.source_nest.z_offset,
-                #     ),
-                #     motion_profile_id=params.motion_profile_id,
-                #     grip_width=params.grip_width,
-                # )
-                # self.runSequence(source_to_destination_commands)
-                # self.dropoff_plate(
-                #     destination_nest=params.destination_nest.nest,
-                #     release_params=params.release_params,
-                #     nest_offset=(
-                #         params.destination_nest.x_offset,
-                #         params.destination_nest.y_offset,
-                #         params.destination_nest.z_offset,
-                #     ),
-                #     motion_profile_id=params.motion_profile_id,
-                #     grip_width=params.grip_width,
-                # )
-                # if "fridge_hotel" in params.destination_nest.nest:
-                #     current_to_source_path = self.calculate_path(
-                #         source_waypoint_name="fridge_button_3",
-                #         destination_waypoint_name="rp_hotel_safe_nest",
-                #     )
-                #     current_to_source_commands = self.convert_path_to_commands(
-                #         path=current_to_source_path, params=params, skip_nests=True
-                #     )
-                #     self.runSequence(current_to_source_commands)
-        except Exception as exc:
-            logging.exception(exc)
-            response.response = INVALID_ARGUMENTS
-        return response
-
     def calculate_path(
         self, source_waypoint_name: str, destination_waypoint_name: str
     ) -> list[str]:
@@ -880,105 +739,11 @@ class Pf400Server(ToolServer):
             G=self.graph, source=source_waypoint_name, target=destination_waypoint_name
         )
 
-    def convert_path_to_commands(
-        self, path: list[str], params: Command.SmartTransfer, skip_nests: bool = False
-    ) -> list[message.Message]:
-        """Converts a path to a list of commands.
-        Makes a few important assumptions:
-        - The only nests in the path are regrip nests
-        - The first nest in the path will do ungrip
-        - The second nest in the path will do grip
-        """
-        commands: list[message.Message] = []
-        for i, waypoint_name in enumerate(path):
-            waypoint_type: t.Literal["safe_point", "nest", "wait"] = self.type_of(
-                waypoint_name=waypoint_name
-            )
-            if waypoint_type == "safe_point":
-                commands.append(
-                    Command.Move(
-                        waypoint=waypoint_name,
-                        motion_profile_id=params.motion_profile_id,
-                    )
-                )
-            elif waypoint_type == "nest":
-                if skip_nests:
-                    continue
-                nest: Nest = self.waypoints.nests[waypoint_name]
-                if i == 0:
-                    grip_status = "release"
-                elif self.type_of(path[i - 1]) == "nest":
-                    grip_status = "grasp"
-                else:
-                    grip_status = "release"
-                if grip_status == "release":
-                    release: Command.ReleasePlate
-                    if not params.release_params or (params.release_params.width == 0):
-                        tmp_release: Union[Command.GraspPlate, Command.ReleasePlate] = (
-                            self.plate_handling_params[nest.orientation]["release"]
-                        )
-                        if isinstance(tmp_release, Command.ReleasePlate):
-                            release = tmp_release
-                        else:
-                            raise Exception("Invalid release params")
-                    else:
-                        release = params.release_params
-                else:
-                    grasp: Command.GraspPlate
-                    if not params.grasp_params or (params.grasp_params.width == 0):
-                        tmp_grasp: Union[Command.GraspPlate,Command.ReleasePlate] = (
-                            self.plate_handling_params[nest.orientation]["grasp"]
-                        )
-                        if isinstance(tmp_grasp, Command.GraspPlate):
-                            grasp = tmp_grasp
-                        else:
-                            raise Exception("Invalid grasp params")
-                    else:
-                        grasp = params.grasp_params
-                if grip_status == "grasp":
-                    # Pre-release gripper before grasp to avoid collision
-                    commands.append(self.plate_handling_params["landscape"]["release"])
-                commands.append(
-                    Command.Approach(
-                        nest=waypoint_name,
-                        x_offset=params.source_nest.x_offset,
-                        y_offset=params.source_nest.y_offset,
-                        z_offset=params.source_nest.z_offset,
-                        motion_profile_id=params.motion_profile_id,
-                    )
-                )
-                commands.append(release if grip_status == "release" else grasp)
-                commands.append(
-                    Command.Leave(
-                        nest=waypoint_name,
-                        x_offset=params.source_nest.x_offset,
-                        y_offset=params.source_nest.y_offset,
-                        z_offset=params.source_nest.z_offset,
-                        motion_profile_id=params.motion_profile_id,
-                    )
-                )
-            elif waypoint_type == "wait":
-                commands.append(Command.Wait(duration=int(waypoint_name.split("_")[1])))
-        return commands
-
-    def type_of(self, waypoint_name: str) -> t.Literal["safe_point", "nest", "wait"]:
-        if waypoint_name in self.waypoints.nests:
-            return "nest"
-        elif waypoint_name in self.waypoints.locations:
-            return "safe_point"
-        elif waypoint_name.startswith("wait"):
-            return "wait"
-        else:
-            raise KeyError("Waypoint not found: " + waypoint_name)
-
     def find_nearest_safe_point(self) -> str:
         current_position = Coordinate(self.driver.get_cur_joint_loc_string())
-        logging.debug("Current position: %s", current_position)
-
         nearest_safe_point: str = ""
         nearest_safe_point_distance: float = float("inf")
         for safe_point_name, safe_point in self.waypoints.locations.items():
-            logging.debug("Checking safe point %s", safe_point_name)
             safe_point_position = safe_point.loc
             distance = current_position.distance_to(safe_point_position)
             if distance < nearest_safe_point_distance:

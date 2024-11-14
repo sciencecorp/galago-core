@@ -113,7 +113,7 @@ class Variable(Base,TimestampMixin):
 class Labware(Base, TimestampMixin):
     __tablename__ = "labware"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=False, unique=True)
     image_url = Column(String, nullable=True)
     description = Column(String, nullable=False)
     number_of_rows = Column(Integer, nullable=False)
@@ -126,6 +126,10 @@ class Labware(Base, TimestampMixin):
     stack_height = Column(Float, nullable=True)
     has_lid = Column(Boolean, nullable=True) 
 
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+    )
+    
 class Script(Base, TimestampMixin):
     __tablename__ = "scripts"
     id = Column(Integer, primary_key=True, index=True)
