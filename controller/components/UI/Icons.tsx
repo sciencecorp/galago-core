@@ -7,7 +7,7 @@ interface WellPlateIconProps {
   size?: string;
 }
 
-export const WellPlateIcon: React.FC<WellPlateIconProps> = ({ rows, columns, size = "40px" }) => {
+export const WellPlateIcon: React.FC<WellPlateIconProps> = ({ rows, columns, size = "48px" }) => {
   // Determine if this matches a standard plate format
   const getStandardFormat = (r: number, c: number): string => {
     if (r === 1 && c === 1) return "1-well";

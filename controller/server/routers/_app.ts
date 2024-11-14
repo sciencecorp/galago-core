@@ -8,6 +8,8 @@ import { loggingRouter } from "./logging";
 import { log } from "console";
 import { workcellRouter } from "./workcell";
 import { labwareRouter } from "./labware";
+import { inventoryRouter } from "./inventory";
+
 export const appRouter = router({
   tool: toolRouter,
   workcell: workcellRouter,
@@ -17,6 +19,7 @@ export const appRouter = router({
   variable: variableRouter,
   logging: loggingRouter,
   labware: labwareRouter,
+  inventory: inventoryRouter,
 });
 
 export type AppRouter = typeof appRouter;

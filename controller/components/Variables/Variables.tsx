@@ -13,10 +13,14 @@ import {
   Th,
   Td,
   useToast,
+  InputGroup,
+  InputLeftElement,
+  InputRightElement,
   Text,
   Select,
+
 } from "@chakra-ui/react";
-import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
+import { SearchIcon } from "@chakra-ui/icons";
 import { trpc } from "@/utils/trpc";
 import { Variable } from "./types";
 import { VariableModal } from "./VariableModal";
@@ -120,11 +124,16 @@ export const Variables: React.FC = () => {
           <VariableModal />
         </HStack>
         <HStack spacing={4} width="100%">
-          <Input
-            placeholder="Search variables"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <InputGroup>
+            <InputLeftElement pointerEvents="none">
+              <SearchIcon color="gray.300" />
+            </InputLeftElement>
+            <Input
+              placeholder="Search variables"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </InputGroup>
           <Select
             placeholder="Filter by type"
             value={typeFilter}

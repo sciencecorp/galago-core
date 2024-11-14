@@ -108,6 +108,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
           transform={isHovered ? "translateY(-5px)" : "none"}
           transition="all 0.2s ease-in-out"
           cursor="pointer"
+          shadow="md"
         >
           <VStack width="100%" alignItems="stretch">
             <CardBody width="100%">

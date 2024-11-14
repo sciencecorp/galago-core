@@ -13,6 +13,9 @@ import {
   Td,
   useToast,
   Switch,
+  InputRightElement,
+  InputGroup,
+  InputLeftElement,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { Labware } from "./types";
@@ -21,7 +24,7 @@ import { DeleteWithConfirmation } from "../ui/Delete";
 import { renderDatetime } from "@/components/ui/Time";
 import { EditableText } from "../ui/Form";
 import { WellPlateIcon } from "../UI/Icons";
-
+import { SearchIcon } from "@chakra-ui/icons";
 export const Labware: React.FC = () => {
   const [labware, setLabware] = useState<Labware[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -93,11 +96,16 @@ export const Labware: React.FC = () => {
           <Heading size="lg">Labware</Heading>
           <LabwareModal />
         </HStack>
-        <Input
-          placeholder="Search labware"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+        <InputGroup>
+          <InputLeftElement pointerEvents="none">
+            <SearchIcon color="gray.300" />
+          </InputLeftElement>
+          <Input
+            placeholder="Search labware"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </InputGroup>
         <Table variant="simple" width="100%">
           <Thead>
             <Tr>

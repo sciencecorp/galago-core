@@ -100,7 +100,9 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
       <VStack spacing={4}>
         {showAsGrid ? (
           <>
-           <PageHeader title="Tools" mainButton={<NewToolModal />}/>
+           <Flex justifyContent="center" width="100%">
+             <PageHeader title="Tools" mainButton={<NewToolModal />} />
+           </Flex>
             <SimpleGrid columns={[1, 2, 3, 4]} spacing={2} width="100%">
               {availableToolIDs.map((toolId, index) => (
                 <ToolStatusCard key={`${toolId}-${index}`} toolId={toolId} />
