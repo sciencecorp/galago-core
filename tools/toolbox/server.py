@@ -117,10 +117,7 @@ class ToolBoxServer(ToolServer):
           return response
      
      def RunPythonScript(self, params:Command.RunPythonScript) -> None:
-          env_variables_dict = {}
-          if params.env_variables:
-               env_variables_dict = struct_to_dict(params.env_variables)
-          run_python_script(params.python_file, params.as_module, params.blocking,env_variables_dict, params.conda_environment, params.use_shell)
+          run_python_script(params.python_file,blocking=True)
 
      def SendSlackAlert(self, params:Command.SendSlackAlert) -> None:
           if self.app_config.app_config.slack_error_channel:

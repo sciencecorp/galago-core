@@ -105,7 +105,7 @@ export default function ToolStatusCard({
     
     if (!config.image_url) {
       return <Box></Box>;
-    } else if (config.id === "toolbox") {
+    } else if (config.id === "Tool Box") {
       return (
         <Box display="flex" justifyContent="center" alignItems="center">
           <IconButton

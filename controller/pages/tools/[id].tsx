@@ -81,6 +81,16 @@ const leave: Field[] = [
 
 const commandFields: CommandFields = {
   toolbox: {
+    run_python_script: [
+      {
+        name:"python_file",
+        type:"text"
+      },
+      {
+        name:"blocking",
+        type:"boolean"
+      }
+    ],
     send_slack_alert: [
       {
         name: "workcell",

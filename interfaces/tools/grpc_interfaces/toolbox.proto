@@ -96,11 +96,7 @@ message Command {
 
   message RunPythonScript {
     string python_file = 1;
-    bool as_module =2;
-    bool blocking = 3;
-    optional google.protobuf.Struct env_variables =4;
-    optional string conda_environment =5;
-    optional bool use_shell = 6;
+    bool blocking = 2;
   }
 
   message SendSlackAlert {

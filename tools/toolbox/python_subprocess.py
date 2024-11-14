@@ -8,7 +8,8 @@ def run_python_script(python_file: str, blocking: bool = True) -> t.Optional[str
     if not os.path.exists(python_file):
         raise RuntimeError("Invalid file path")
     logging.info(f"Running {python_file}")
-    cmd = ["python", python_file]
+    cmd = ["python", "-m", python_file.replace(".py", "").lstrip("/").replace("/", ".")]
+    logging.info("Command: " + str(cmd))
     try:
         process = subprocess.Popen(cmd)
         if blocking:

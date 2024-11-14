@@ -197,7 +197,7 @@ export default class Tool {
   static toolBoxConfig(): controller_protos.ToolConfig {
     return {
       name: "Tool Box",
-      id: "toolbox",
+      id: "Tool Box",
       type: "toolbox" as ToolType,
       description: "General Tools",
       image_url: "/tool_icons/toolbox.png",
@@ -206,7 +206,7 @@ export default class Tool {
       config: {
         simulated: false,
         toolbox: {
-          tool_id: "toolbox",
+          tool_id: "Tool Box",
         },
       },
     };
