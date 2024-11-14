@@ -22,6 +22,12 @@ message Command {
     ClearLastSlackAlert clear_last_slack_alert = 15;
     GetLogMediaExchangeByDate get_log_media_exchange_by_date = 16;
     ValidateFolder validate_folder = 17;
+    WriteToJson write_to_json = 18;
+  }
+
+  message WriteToJson {
+    google.protobuf.Struct struct_object = 1;
+    string file_path = 2;
   }
 
   message Timer {
