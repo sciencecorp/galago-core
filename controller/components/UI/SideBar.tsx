@@ -67,8 +67,8 @@ const sidebarItems: SidebarItem[] = [
   { name: "Logs", icon: FiBook, path: "/logs" },
   { name: "Variables", icon: TbVariable, path: "/variables" },
   { name: "Scripts", icon: MdOutlineIntegrationInstructions, path: "/scripts" },
-  { name: "Settings", icon: FiSettings, path: "/settings" },
-  { name: "Logout", icon: FiLogOut, path: "/logout" },
+ // { name: "Settings", icon: FiSettings, path: "/settings" },
+ // { name: "Logout", icon: FiLogOut, path: "/logout" },
 ];
 
 function DarkModeToggle() {

@@ -4,7 +4,7 @@ import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import moment from "moment-timezone";
 import StatusTag from "./StatusTag";
 
-export function ToolStatusTag({ toolId }: { toolId: string }): JSX.Element {
+export function ToolStatusTag({ toolId }: { toolId: number }): JSX.Element {
   const statusQuery = trpc.tool.status.useQuery({ toolId: toolId });
   if (statusQuery.isError || statusQuery.isLoadingError) {
     return <Tag colorScheme="red">Could not load tool status</Tag>;

@@ -1,7 +1,6 @@
 import os
 from os.path import join, dirname
 from pydantic import BaseModel
-from config.workcell_config import WorkcellConfig 
 import json 
 from typing import Optional
 from datetime import date , time 
@@ -10,6 +9,18 @@ import typing as t
 
 ROOT_DIRECTORY = dirname(dirname(os.path.realpath(__file__)))
 APP_CONFIG_FILE = join(ROOT_DIRECTORY, "app_config.json")
+
+class Tool(BaseModel):
+    id: str
+    name :str 
+    type: str 
+    port: int
+
+class WorkcellConfig(BaseModel):
+    id:str
+    name: str
+    host:str
+    tools: list[Tool]
 
 class AppConfig(BaseModel):
     workcell:str

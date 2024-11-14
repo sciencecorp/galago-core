@@ -42,14 +42,28 @@ interface WorkcellCardProps {
 export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
     const { workcell } = props;
     const [isHovered, setIsHovered] = useState(false);
-    const bg = useColorModeValue("gray.100", "teal.700");
+    const bg = useColorModeValue("teal.100", "teal.700");
+    const toolBg = useColorModeValue("gray.100", "gray.700");
     const deleteWorkcell = trpc.workcell.delete.useMutation();
     const editWorkcell = trpc.workcell.edit.useMutation();
+    const setWorkcell = trpc.workcell.setSelectedWorkcell.useMutation({
+        onSuccess: () => {
+            refetch();
+        },
+    });
+    const [selectedWorkcell, setSelectedWorkcell] = useState<string | null>(null);
+    const {data:selectedWorkcellData, refetch} = trpc.workcell.getSelectedWorkcell.useQuery();
     const toast = useToast();
 
+    useEffect(() => {
+        if(selectedWorkcellData){
+            setSelectedWorkcell(selectedWorkcellData);
+        }
+    }, [selectedWorkcellData]);
 
     const handleDelete = async () => {
         try {
+            await setWorkcell.mutate("")
             await deleteWorkcell.mutateAsync(workcell.id);
             props.onChange && props.onChange();
         } catch (error) {
@@ -87,7 +101,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
             <Box 
             p={2} 
             borderRadius='md'
-            bg={bg}
+            bg={toolBg}
             >
             {workcell.tools.length} Tools
             </Box>
@@ -97,11 +111,11 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
     return (
         <Card
           p={2}
-          width="360px"
+          width="380px"
           height="280px"
           direction={{ base: "column", sm: "row" }}
           overflow="hidden"
-          variant="elevated"
+          bg={selectedWorkcell === workcell.name ? bg :"transparent"}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           boxShadow={isHovered ? "xl" : "sm"}
@@ -135,7 +149,10 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
             </CardBody>
             <CardFooter pt={0} justifyContent="flex-start" width="100%">
               <ButtonGroup>
-                <Button colorScheme="teal" variant="solid">
+                <Button 
+                    onClick={async () => {await setWorkcell.mutate(workcell.name)}}
+                    colorScheme="teal" 
+                    variant="solid">
                   Select
                 </Button>
                 <DeleteWithConfirmation

@@ -31,7 +31,7 @@ export const ProtocolCardsComponent: React.FC = () => {
 
   const router = useRouter();
 
-  const workcellData = trpc.tool.getWorkcellName.useQuery();
+  const workcellData = trpc.workcell.getSelectedWorkcell.useQuery();
   const workcellName = workcellData.data;
   const allProtocols = trpc.protocol.allNames.useQuery({ workcellName: workcellName || "" });
 

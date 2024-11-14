@@ -37,20 +37,36 @@ export const NewToolModal: React.FC = () => {
   const [value, setValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
-  const [type, setType] = useState<string>("");
+  const [type, setType] = useState<ToolType>(ToolType.UNRECOGNIZED);
   const addTool = trpc.tool.add.useMutation();
-  const { data: fetchedVariables, refetch } = trpc.variable.getAll.useQuery();
-
+  const [description, setDescription] = useState("");
+  const {data: fetchedIds, refetch} = trpc.tool.availableIDs.useQuery();
   const availableTools = Object.values(ToolType);
+  const [defaultConfig, setDefaultConfig] = useState<any>(null);
+  
+  const { data: configData, isFetching: isConfigLoading } = trpc.tool.getToolconfigDefinitions.useQuery(
+    type as ToolType,
+    {
+      enabled: !!type, // Only fetch when type is set
+    }
+  );
+  
+  useEffect(() => {
+    if (configData) {
+      console.log("Config definition is: ", configData);
+      setDefaultConfig(configData);
+    }
+  }, [configData]);
 
   const handleSave = async () => {
     let workcell_id = 1;
-    let ip = "12";
-    let port = 12;
-    const tool = { name, type, workcell_id, ip, port };
+    let ip = "localhost";
+    let image_url = `/tool_icons/${type}.png`;
+    const tool = { name, type, workcell_id, ip, image_url, description, config: { [type] : defaultConfig || { }}};
     setIsLoading(true);
     try {
       await addTool.mutateAsync(tool);
+      await refetch();
       toast({
         title: `Tool created successfully`,
         status: "success",
@@ -58,7 +74,6 @@ export const NewToolModal: React.FC = () => {
         isClosable: true,
       });
       onClose();
-      await refetch();
     } catch (error) {
       toast({
         title: "Error creating tool",
@@ -75,7 +90,8 @@ export const NewToolModal: React.FC = () => {
   const clearForm = () => {
     setName("");
     setValue("");
-    setType("string");
+    setType(ToolType.UNRECOGNIZED);
+    setDescription("");
   };
 
   return (
@@ -92,7 +108,14 @@ export const NewToolModal: React.FC = () => {
             <VStack spacing={4}>
               <FormControl>
                 <FormLabel>Select Tool Type</FormLabel>
-                <Select value={type} onChange={(e) => setType(e.target.value)}>
+                <Select value={type} 
+                  onChange={(e) => {
+                    const enumValue = e.target.value as ToolType;
+                    console.log("Selected tool type: ", enumValue);
+                    setType(enumValue); // This sets the actual enum value, not the string
+                  }}
+                
+                placeholder="Select Tool">
                   {availableTools
                     .filter(
                       (x) =>
@@ -111,6 +134,10 @@ export const NewToolModal: React.FC = () => {
               <FormControl>
                 <FormLabel>Name</FormLabel>
                 <Input value={name} onChange={(e) => setName(e.target.value)} />
+              </FormControl>
+              <FormControl>
+                <FormLabel>Description</FormLabel>
+                <Input value={description} onChange={(e) => setDescription(e.target.value)} />
               </FormControl>
             </VStack>
           </ModalBody>

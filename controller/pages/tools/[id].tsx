@@ -22,6 +22,7 @@ import { trpc } from "@/utils/trpc";
 import { ToolCommandInfo } from "@/types";
 import { ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
+import { useParams } from "react-router";
 
 // Assuming you're using TypeScript, you could define a type for the status object
 type CommandStatus = {
@@ -361,9 +362,11 @@ const ToolCommands = (commands: CommandFields) => {
 
 export default function Page() {
   const router = useRouter();
+  const params = useParams();
+  //const { id } = params;
   const id = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
 
-  const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
+  const infoQuery = trpc.tool.info.useQuery({ toolId: Number(id) });
   const config = infoQuery.data;
   const [commandExecutionStatus, setCommandExecutionStatus] = useState<CommandStatus>({});
   const [selectedCommand, setSelectedCommand] = useState<string | undefined>();
@@ -638,7 +641,7 @@ export default function Page() {
   return (
     <>
       <Box p={12} maxWidth="1800px" margin="auto">
-        <ToolStatusCard toolId={String(id)} />
+        <ToolStatusCard toolId={Number(id)} />
         <FormControl>
           <VStack width="100%" spacing={1}>
             <FormLabel>Select Command</FormLabel>

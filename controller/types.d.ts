@@ -8,7 +8,7 @@ export type RunStatus = "CREATED" | "STARTED" | "FAILED" | "COMPLETED" | "SKIPPE
 
 export interface ToolCommandInfo {
   label?: string;
-  toolId: string;
+  toolId: number;
   toolType: ToolType;
   command: string;
   params: Record<string, any>;

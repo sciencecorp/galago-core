@@ -18,6 +18,7 @@ import {
   MenuList,
   IconButton,
   Icon,
+  useToast
 } from "@chakra-ui/react";
 import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import Link from "next/link";
@@ -28,6 +29,10 @@ import styled from "@emotion/styled";
 import { useState } from "react";
 import { PiToolbox } from "react-icons/pi";
 import { DeleteWithConfirmation } from "../ui/Delete";
+import { EditMenu } from "../ui/EditMenu";
+import { Tool} from "@/types/api";
+
+
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -50,17 +55,20 @@ const StyledCard = styled(Card)`
 
 export default function ToolStatusCard({
   toolId,
-  style,
+  style
 }: {
-  toolId: string;
+  toolId: number;
   style?: React.CSSProperties;
 }) {
   const [isHovered, setIsHovered] = useState(false);
 
   const infoQuery = trpc.tool.info.useQuery({ toolId: toolId });
   const config = infoQuery.data;
-  const { description, name } = infoQuery.data || {};
-
+  const { description, name  } = infoQuery.data || {};
+  const deleteTool = trpc.tool.delete.useMutation();
+  const {data: fetchedIds, refetch} = trpc.tool.availableIDs.useQuery();
+  
+  const toast = useToast();
   if (infoQuery.isLoading) {
     return <Spinner size="lg" />;
   }
@@ -69,7 +77,32 @@ export default function ToolStatusCard({
     return <Alert status="error">Could not load tool info</Alert>;
   }
 
+  const handleDelete = async (toolId: number) => {
+    try {
+      await deleteTool.mutateAsync(toolId);
+      refetch();
+      toast({
+        title: "Tool deleted successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Error deleting tool",
+        description: `Please try again. ${error}`,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
   function renderToolImage(config: any) {
+    console.log("description",description);
+    console.log("name",name);
+    console.log("Config full",JSON.stringify(config));
+    
     if (!config.image_url) {
       return <Box></Box>;
     } else if (config.id === "toolbox") {
@@ -88,7 +121,7 @@ export default function ToolStatusCard({
     } else {
       return (
         <Image
-          src={config.image_url}
+          src={`/tool_icons/${config.type}.png`}
           alt={config.name}
           objectFit="contain"
           height={isHovered ? "120px" : "120px"}
@@ -98,9 +131,6 @@ export default function ToolStatusCard({
       );
     }
   }
-
-  const isPF400 = config.type === ToolType.pf400;
-  const isToolBox = config.id === ToolType.toolbox;
 
   return (
     <StyledCard
@@ -117,31 +147,7 @@ export default function ToolStatusCard({
             <Text fontSize="sm">{description}</Text>
           </Box>
           <Box top={-5} right={-5} position="relative">
-          <Menu>
-            <MenuButton
-              as={IconButton}
-              aria-label="Options"
-              icon={<HamburgerIcon />}
-              variant="ghost"
-            />
-            <MenuList>
-                <>
-                <MenuItem>Edit</MenuItem>
-                <MenuItem>
-                  <DeleteWithConfirmation
-                      onDelete={() => console.log("Test")}
-                      label="tool"
-                      showText={true}
-                    />
-                </MenuItem>
-                </>
-              {isPF400 && (
-                <MenuItem as="a" href={`/tools/advanced/${toolId}`}>
-                  Teach Pendant
-                </MenuItem>
-              )}
-            </MenuList>
-          </Menu>
+          <EditMenu onEdit= {() => console.log("Edit")} onDelete= {()=>handleDelete(toolId)}/>
           </Box>
         </Flex>
       </CardHeader>

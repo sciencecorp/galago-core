@@ -1,6 +1,6 @@
 import { procedure, router } from "@/server/trpc";
 import { get, post, put, del } from "@/server/utils/api";
-import { Workcell } from "@/types/api";
+import { Workcell , AppSettings} from "@/types/api";
 import { z } from "zod";
 
 export const zWorkcell = z.object({
@@ -8,6 +8,12 @@ export const zWorkcell = z.object({
   name: z.string(),
   location: z.string().optional(),
   description:z.string().optional()
+});
+
+export const zAppSettings = z.object({
+  id: z.number().optional(),
+  name: z.string(),
+  value: z.string(),
 });
 
 export const workcellRouter = router({
@@ -45,4 +51,12 @@ export const workcellRouter = router({
     return { message: "Workcell deleted successfully" };
   }),
 
+  setSelectedWorkcell: procedure.input(z.string()).mutation(async ({ input }) => {
+    return await put<AppSettings>(`/settings/workcell`, {value:input});
+  }),
+
+  getSelectedWorkcell: procedure.query(async () => {
+    const response = await get<AppSettings>(`/settings/workcell`);
+    return response.value;
+  }),
 });

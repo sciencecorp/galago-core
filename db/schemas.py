@@ -13,7 +13,7 @@ class ToolCreate(BaseModel):
     description: t.Optional[str] = None
     image_url: t.Optional[str] = None
     ip: str = "localhost"
-    port: int
+    port: t.Optional[int] = None
     config: t.Optional[dict] = None
     simulated: t.Optional[bool] = None
     workcell_id: t.Optional[int] = None
@@ -29,6 +29,7 @@ class ToolUpdate(BaseModel):
 
 
 class Tool(ToolCreate, TimestampMixin):
+    id: int
     class Config:
         from_attributes = True
 
@@ -272,3 +273,18 @@ class LabwareUpdate(LabwareCreate):
     stack_height: t.Optional[float] = None
     has_lid: t.Optional[bool] = None
     image_url: t.Optional[str] = None
+
+class AppSettingsCreate(BaseModel):
+    name : str
+    value : str
+    is_active : bool = True
+
+class AppSettingsUpdate(BaseModel):
+    name : t.Optional[str] = None
+    value : t.Optional[str] = None
+    is_active : t.Optional[bool] = None
+
+class AppSettings(TimestampMixin, AppSettingsCreate):
+    id: int
+    class Config:
+        from_attributes=True

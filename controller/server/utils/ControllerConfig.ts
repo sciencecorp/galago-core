@@ -16,11 +16,11 @@ if (!config_path) {
   //process.exit(1);
 }
 
-let ControllerConfig = {} as controller_protos.ControllerConfig;
+let ControllerConfig = {} as controller_protos.WorkcellConfig;
 
 if (fs.existsSync(config_path)) {
   let config_text = fs.readFileSync(config_path, "utf8");
-  ControllerConfig = controller_protos.ControllerConfig.fromJSON(JSON.parse(config_text));
+  ControllerConfig = controller_protos.WorkcellConfig.fromJSON(JSON.parse(config_text));
 }
 
 export default ControllerConfig;

@@ -192,20 +192,20 @@ export class CommandQueue {
         }
         logger.error("Failed to execute command", e);
 
-        const slackAlertCommand: ToolCommandInfo = {
-          toolId: "toolbox",
-          toolType: "toolbox" as ToolType,
-          command: "send_slack_alert",
-          params: {
-            workcell: Tool.workcellName(),
-            tool: `${nextCommand.commandInfo.toolId}`,
-            protocol: "",
-            error_message: errorMessage,
-          },
-        };
-        console.log("Sending slack command " + JSON.stringify(slackAlertCommand));
-        // // logger.error(`Slack command is` + JSON.stringify(slackAlertCommand));
-        await Tool.executeCommand(slackAlertCommand);
+        // const slackAlertCommand: ToolCommandInfo = {
+        //   toolId: 1203,
+        //   toolType: "toolbox" as ToolType,
+        //   command: "send_slack_alert",
+        //   params: {
+        //     workcell: Tool.workcellName(),
+        //     tool: `${nextCommand.commandInfo.toolId}`,
+        //     protocol: "",
+        //     error_message: errorMessage,
+        //   },
+        // };
+        // console.log("Sending slack command " + JSON.stringify(slackAlertCommand));
+        // // // logger.error(`Slack command is` + JSON.stringify(slackAlertCommand));
+        // await Tool.executeCommand(slackAlertCommand);
         await this.commands.fail(
           nextCommand.queueId,
           e instanceof Error ? e : new Error("Unknown error"),
