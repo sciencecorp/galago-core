@@ -42,7 +42,9 @@ const InventoryVisualizer: React.FC<InventoryProps> = ({
   const [instrumentNestCountMap, setInstrumentNestCountMap] = useState<Record<number, number>>({});
   const [selectedInstrument, setSelectedInstrument] = useState<any | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
-
+  if (!inventory || !inventory.plates) {
+    return null;
+  }
   const plateMap = inventory.plates.reduce(
     (acc, plate) => {
       if (plate.nest_id) {
