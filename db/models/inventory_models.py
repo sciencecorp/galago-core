@@ -6,6 +6,12 @@ import datetime
 import zlib 
 import base64 
 
+from sqlalchemy.orm import Session
+from sqlalchemy import select
+
+
+
+
 class TimestampMixin:
     @declared_attr
     def created_at(cls) -> Column:
@@ -128,4 +134,11 @@ class Script(Base, TimestampMixin):
     language = Column(String, nullable=False)
     version = Column(String, nullable=False)
     is_blocking = Column(Boolean, nullable=False) 
+
     
+class AppSettings(Base, TimestampMixin):
+    __tablename__ = "app_settings"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    value = Column(String, nullable=False)
+    is_active = Column(Boolean, nullable=False)

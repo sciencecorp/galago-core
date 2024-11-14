@@ -9,12 +9,16 @@ import ControllerConfig from "./utils/ControllerConfig";
 import { PromisifiedGrpcClient, promisifyGrpcClient } from "./utils/promisifyGrpcCall";
 import { setInterval, clearInterval } from "timers";
 import { trpc } from "@/utils/trpc";
+import { get } from "@/server/utils/api";
+import { Tool as ToolResponse } from "@/types/api";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
+const toolStore: Map<number, Tool> = new Map();
 
 export default class Tool {
   // Controller config is "what does the controller need to know about the tool?"
   info: controller_protos.ToolConfig;
+  static allTools : controller_protos.ToolConfig[] = [];
 
   // Tool config is "what configuration is the tool currently using?"
   config?: tool_base.Config;
@@ -28,8 +32,10 @@ export default class Tool {
   constructor(info: controller_protos.ToolConfig) {
     this.info = info;
     this.config = info.config;
-    const grpcServerIp = info.ip || process.env.GRPC_SERVER_IP;
+    const grpcServerIp =  "host.docker.internal";
+    console.log("grpcServerIp is" + grpcServerIp);
     const target = `${grpcServerIp}:${info.port}`;
+    console.log("target is" + target);
     this.grpc = promisifyGrpcClient(
       new tool_driver.ToolDriverClient(target, grpc.credentials.createInsecure()),
     );
@@ -61,7 +67,7 @@ export default class Tool {
     }
   }
 
-  get id(): string {
+  get id(): number {
     return this.info.id;
   }
 
@@ -122,47 +128,57 @@ export default class Tool {
     return reply.estimated_duration_seconds;
   }
 
-  // Static lookup
-  static forId(id: string): Tool {
-    //console.log("Tool id is " + id);
+
+  static reloadWorkcellConfig(tools:controller_protos.ToolConfig[]) {
+    this.allTools = tools;
+  }
+
+  static  async getToolConfigDefinition(toolType:ToolType){
+    const toolTypeName = ToolType[toolType];
+    if (!toolTypeName) {
+      throw new Error(`Unsupported ToolType: ${toolType}`);
+    }
+    const modulePath = `gen-interfaces/tools/grpc_interfaces/${toolType.toLowerCase()}`;
+    try {
+      // Dynamically import the module
+      const toolModule = await import(/* webpackInclude: /\.ts$/ */ `gen-interfaces/tools/grpc_interfaces/${toolType}`);
+      if (!toolModule || !toolModule.Config) {
+        throw new Error(`Config type not found in module: ${modulePath}`);
+      }
+      return toolModule.Config.create({});
+    } catch (error) {
+      throw new Error(`Failed to load config for ToolType: ${toolTypeName}. Error: ${error}`);
+    }
+  }
+  
+  static forId(id: number): Tool {
     const global_key = "__global_tool_store";
     const me = global as any;
     if (!me[global_key]) {
       me[global_key] = new Map();
     }
-    const store: Map<string, Tool> = me[global_key];
+    const store: Map<number, Tool> = me[global_key];
     let tool = store.get(id);
     if (!tool) {
       let toolInfo = {} as controller_protos.ToolConfig;
-      if (id == "toolbox") {
+      if (id == 1203) {
         const result = this.toolBoxConfig();
         toolInfo = result;
       } else {
-        const result = ControllerConfig.tools.find((tool) => tool.id === id);
+        const result = this.allTools.find((tool) => tool.id === id);
+        console.log("Tool info is" + result);
         if (!result) {
           throw new Error(
-            `Tool with id ${id} not found in local config file. Found ${ControllerConfig.tools
-              .map((tool) => tool.id)
-              .join(", ")}`,
+            `Tool with id ${id} not found in in database'`,
           );
         }
         toolInfo = result;
       }
-
       tool = new Tool(toolInfo);
       tool.startHeartbeat(5000);
       store.set(id, tool);
     }
     return tool;
-  }
-
-  static availableIDs(): string[] {
-    let toolIds: string[] = [];
-    if (ControllerConfig.tools) {
-      toolIds = ControllerConfig.tools.map((tool) => tool.id);
-    }
-    toolIds.push(this.toolboxId());
-    return toolIds;
   }
 
   static workcellName(): string {
@@ -172,7 +188,7 @@ export default class Tool {
   static toolBoxConfig(): controller_protos.ToolConfig {
     return {
       name: "Tool Box",
-      id: "toolbox",
+      id: 1203,
       type: "toolbox" as ToolType,
       description: "General Tools",
       image_url: "/tool_icons/toolbox.png",

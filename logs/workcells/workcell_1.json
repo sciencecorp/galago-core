@@ -11,7 +11,7 @@
       "description": "Cell Multi-Mode Imager",
       "image_url": "/tool_icons/cytation5.png",
       "ip": "localhost",
-      "port": 4300,
+      "port": 4000,
       "config": {
         "simulated": true,
         "cytation": {

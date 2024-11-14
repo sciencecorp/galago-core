@@ -27,9 +27,11 @@ export interface Tool {
   type: string;
   workcell_id: number;
   description: string;
+  image_url: string;
   status: string;
   last_updated: Date;
   created_at: Date;
+  config: Record<string, any>;
 }
 
 export interface LogType {
@@ -44,6 +46,14 @@ export interface Log {
   level: string;
   action: string;
   details: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface AppSettings {
+  id: number;
+  name: string;
+  value: string;
   created_at: Date;
   updated_at: Date;
 }

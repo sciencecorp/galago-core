@@ -114,7 +114,7 @@ function ParamInput({
 export default function NewProtocolRunModal({ id }: { id: string }) {
   const router = useRouter();
   const toast = useToast();
-  const workcellData = trpc.tool.getWorkcellName.useQuery();
+  const workcellData = trpc.workcell.getSelectedWorkcell.useQuery();
   const workcellName = workcellData.data;
   // const [uiParams, setuiParams] = useState()
   const protocol = trpc.protocol.get.useQuery({ id });

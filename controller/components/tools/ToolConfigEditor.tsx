@@ -18,7 +18,6 @@ import { useCallback, useEffect, useState } from "react";
 
 function toolSpecificConfig(toolConfig: ToolConfig): Record<string, any> | undefined {
   const toolType = toolConfig.type;
-  // console.log("Tool type is" + toolType)
   const config = toolConfig.config;
   if (!config) return;
   if (!(toolType in config)) return;
@@ -29,7 +28,7 @@ export function ToolConfigEditor({
   toolId,
   defaultConfig,
 }: {
-  toolId: string;
+  toolId: number;
   defaultConfig: ToolConfig;
 }): JSX.Element {
   const statusQuery = trpc.tool.status.useQuery(

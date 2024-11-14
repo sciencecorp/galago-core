@@ -1,7 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 import { log } from "console";
 import { DateTime } from "luxon";
-import ControllerConfig from "server/utils/ControllerConfig";
 
 export enum LogTypesEnum {
   "ALL" = 0,

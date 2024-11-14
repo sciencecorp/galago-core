@@ -24,6 +24,8 @@ import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import styled from "@emotion/styled";
 import { NewToolModal } from "./NewToolModal";
 import {PageHeader} from "@/components/ui/PageHeader";
+import { load } from "@grpc/grpc-js";
+import {Tool} from "@/types/api";
 
 const CarouselContainer = styled.div`
   display: flex;
@@ -47,11 +49,18 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
   const { showAsGrid } = props;
   const utils = trpc.useContext();
   const toast = useToast();
-  const availableToolsQuery = trpc.tool.availableIDs.useQuery();
-  const availableToolIDs = availableToolsQuery.data || [];
+  const {data: fetchedIds, refetch} = trpc.tool.availableIDs.useQuery();
+  const [toolIds, setToolIds] = useState<number[]>([]);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visibleCards, setVisibleCards] = useState(3);
-  const headerColor = useColorModeValue("teal.800", "white.500");
+  
+  useEffect(() => {
+    if(fetchedIds){
+      console.log("Tool IDs fetched", fetchedIds);
+      setToolIds(fetchedIds);
+    }}, [fetchedIds]);
+
   useEffect(() => {
     const handleResize = () => {
       const newVisibleCards = Math.floor(window.innerWidth / 280);
@@ -62,6 +71,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
 
   const configureMutation = trpc.tool.configure.useMutation({
     onError: (data) => {
@@ -76,15 +86,15 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
     },
   });
 
-  if (availableToolsQuery.isLoading) {
-    return <Spinner size="lg" />;
-  }
-  if (availableToolsQuery.isError) {
-    return <Alert status="error">Could not load tool info</Alert>;
-  }
+  // if (availableToolsQuery.isLoading) {
+  //   return <Spinner size="lg" />;
+  // }
+  // if (toolIds.isError) {
+  //   return <Alert status="error">Could not load tool info</Alert>;
+  // }
 
   const nextSlide = () => {
-    if (currentIndex < availableToolIDs.length - visibleCards) {
+    if (currentIndex < toolIds.length - visibleCards) {
       setCurrentIndex(currentIndex + 1);
     }
   };
@@ -96,13 +106,13 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
   };
 
   return (
-    <Box margin="auto">
+    <Box>
       <VStack spacing={4}>
         {showAsGrid ? (
           <>
            <PageHeader title="Tools" mainButton={<NewToolModal />}/>
-            <SimpleGrid columns={[1, 2, 3, 4]} spacing={2} width="100%">
-              {availableToolIDs.map((toolId, index) => (
+            <SimpleGrid columns={[1, 2, 3, 4]} spacing={2}>
+              {toolIds.map((toolId, index) => (
                 <ToolStatusCard key={`${toolId}-${index}`} toolId={toolId} />
               ))}
             </SimpleGrid>
@@ -112,9 +122,9 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
             <CardsContainer
               style={{
                 transform: `translateX(${-currentIndex * 280}px)`,
-                width: `${availableToolIDs.length * 280}px`,
+                width: `${toolIds.length * 280}px`,
               }}>
-              {availableToolIDs.map((toolId, index) => (
+              {toolIds.map((toolId, index) => (
                 <ToolStatusCard key={`${toolId}-${index}`} toolId={toolId} />
               ))}
             </CardsContainer>
@@ -132,7 +142,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
                 icon={<ChevronRightIcon />}
                 onClick={nextSlide}
                 ml={2}
-                isDisabled={currentIndex >= availableToolIDs.length - visibleCards}
+                isDisabled={currentIndex >= toolIds.length - visibleCards}
               />
             </Flex>
           </CarouselContainer>

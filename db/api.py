@@ -151,6 +151,16 @@ def get_tool(tool_id: str, db: Session = Depends(get_db)) -> t.Any:
 
 @app.post("/tools", response_model=schemas.Tool)
 def create_tool(tool: schemas.ToolCreate, db: Session = Depends(get_db)) -> t.Any:
+    all_tools = crud.tool.get_all(db)
+    existing_ports = [tool.port for tool in all_tools]
+    port_range = range(4000, 4050) #let's cap the number of tools at 50 for now, i've never seen a workcell this big anyways.
+    
+    def get_next_available_port(session: Session) -> int:
+        for port in port_range:
+            if port not in existing_ports:
+                return port
+        raise ValueError("No available ports in the range 4000-4050")
+    tool.port = get_next_available_port(db)
     return crud.tool.create(db, obj_in=tool)
 
 @app.put("/tools/{tool_id}", response_model=schemas.Tool)
@@ -525,3 +535,21 @@ def get_labware(labware_id: int, db: Session = Depends(get_db)) -> t.Any:
 @app.post("/labware", response_model=schemas.Labware)
 def create_labware(labware: schemas.LabwareCreate, db: Session = Depends(get_db)) -> t.Any:
     return crud.labware.create(db, obj_in=labware)
+
+@app.get("/settings/{name}", response_model=schemas.AppSettings)
+def get_settings(name:str, db: Session = Depends(get_db)) -> t.Any:
+    setting = crud.settings.get_by(db, obj_in={"name": name})
+    if setting is None:
+        raise HTTPException(status_code=404, detail="Setting not found")
+    return setting
+
+@app.post("/settings", response_model=schemas.AppSettings)
+def create_setting(setting: schemas.AppSettingsCreate, db: Session = Depends(get_db)) -> t.Any:
+    return crud.settings.create(db, obj_in=setting)
+
+@app.put("/settings/{name}", response_model=schemas.AppSettings)
+def update_setting(name: str, setting_update: schemas.AppSettingsUpdate, db: Session = Depends(get_db)) -> t.Any:
+    settings = db.query(models.AppSettings).filter(models.AppSettings.name == name).first()
+    if not settings:
+        settings = crud.settings.create(db, obj_in=schemas.AppSettingsCreate(name=name, value=setting_update.value,is_active=True))
+    return crud.variables.update(db, db_obj=settings, obj_in=setting_update)
