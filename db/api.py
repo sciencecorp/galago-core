@@ -547,6 +547,10 @@ def update_labware(labware_id: int, labware_update: schemas.LabwareUpdate, db: S
 def delete_labware(labware_id: int, db: Session = Depends(get_db)) -> t.Any:
     return crud.labware.remove(db, id=labware_id)   
 
+@app.get("/settings", response_model=list[schemas.AppSettings])
+def get_settings(db: Session = Depends(get_db)) -> t.Any:
+    return crud.settings.get_all(db)
+
 @app.get("/settings/{name}", response_model=schemas.AppSettings)
 def get_settings(name:str, db: Session = Depends(get_db)) -> t.Any:
     setting = crud.settings.get_by(db, obj_in={"name": name})

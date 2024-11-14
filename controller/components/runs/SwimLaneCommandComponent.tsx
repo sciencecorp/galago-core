@@ -68,7 +68,7 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
     }
   }
 
-  const runningBg = useColorModeValue("teal.200", "gray.800");
+  const runningBg = useColorModeValue("teal.200", "teal.800");
 
   function setBackgroundColor(status: any) {
     switch (status) {
