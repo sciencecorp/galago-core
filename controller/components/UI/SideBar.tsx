@@ -108,7 +108,9 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       bg="teal.800"
       color="white"
       minW={isSidebarExpanded ? "320px" : "80px"}
-      h="100vh"
+      minH="100%"
+      position="sticky"
+      top="0"
       p={2}
       sx={{
         transition: "min-width 0.3s ease, width 0.3s ease",
