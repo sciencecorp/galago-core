@@ -12,7 +12,7 @@ import {
   Button,
   VStack,
 } from "@chakra-ui/react";
-import { Plate } from "@/server/utils/InventoryClient";
+import { Plate } from "@/types/api";
 
 type CheckOutModalProps = {
   isOpen: boolean;

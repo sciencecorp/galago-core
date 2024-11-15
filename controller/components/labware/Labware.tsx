@@ -18,14 +18,14 @@ import {
   InputLeftElement,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
-import { Labware } from "./types";
+import { Labware } from "@/types/api";
 import { LabwareModal } from "./LabwareModal";
-import { DeleteWithConfirmation } from "../ui/Delete";
-import { renderDatetime } from "@/components/ui/Time";
-import { EditableText } from "../ui/Form";
+import { DeleteWithConfirmation } from "../UI/Delete";
+import { renderDatetime } from "@/components/UI/Time";
+import { EditableText } from "../UI/Form";
 import { WellPlateIcon } from "../UI/Icons";
 import { SearchIcon } from "@chakra-ui/icons";
-export const Labware: React.FC = () => {
+export const LabwareManager: React.FC = () => {
   const [labware, setLabware] = useState<Labware[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const toast = useToast();
@@ -36,7 +36,7 @@ export const Labware: React.FC = () => {
 
   useEffect(() => {
     if (fetchedLabware) {
-      setLabware(fetchedLabware);
+      setLabware(fetchedLabware as unknown as Labware[]);
     }
   }, [fetchedLabware]);
 
@@ -236,7 +236,7 @@ export const Labware: React.FC = () => {
                       }}
                     />
                   </Td>
-                  <Td>{renderDatetime(item.updated_at ?? "")}</Td>
+                  <Td>{renderDatetime(item.updated_at ? new Date(item.updated_at).toISOString() : "")}</Td>
                   <Td>
                     <DeleteWithConfirmation onDelete={() => handleDelete(item)} label="labware" />
                   </Td>

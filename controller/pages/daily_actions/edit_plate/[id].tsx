@@ -6,7 +6,7 @@ import {
   Inventory,
   Well,
   Reagent,
-} from "@/server/utils/InventoryClient";
+} from "@/types/api";
 //import PlateVisualizer from "@/components/inventory/PlateVisualizer";
 import { trpc } from "@/utils/trpc";
 import { useRouter } from "next/router";

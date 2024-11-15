@@ -1,4 +1,4 @@
-import { Instrument, Inventory, Nest, Plate, Well, Reagent } from "@/server/utils/InventoryClient";
+import { Instrument, Inventory, Nest, Plate, Well, Reagent } from "@/types/api";
 import { Any } from "@grpc/grpc-js/build/src/generated/google/protobuf/Any";
 
 enum TipTypes {

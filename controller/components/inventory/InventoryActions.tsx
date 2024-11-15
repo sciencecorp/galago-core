@@ -2,8 +2,8 @@ import React from "react";
 import { VStack, Text, Button, Spinner } from "@chakra-ui/react";
 
 type InventoryActionsProps = {
-  mode: "checkin" | "checkout" | "create" | "move" | "delete";
-  setMode: (mode: "checkin" | "checkout" | "create" | "move" | "delete") => void;
+  mode: "checkin" | "checkout" | "create" | "move" | "delete" | "";
+  setMode: (mode: "checkin" | "checkout" | "create" | "move" | "delete" | "") => void;
   isLoading: boolean;
 };
 

@@ -14,7 +14,7 @@ import {
   HStack,
 } from "@chakra-ui/react";
 import { SearchIcon, CloseIcon } from "@chakra-ui/icons";
-import { Plate, Reagent } from "@/server/utils/InventoryClient";
+import { Plate, Reagent } from "@/types/api";
 
 type InventorySearchProps = {
   search: string;

@@ -1,6 +1,6 @@
 import React from "react";
 import { Table, Thead, Tbody, Tr, Th, Td, Box, VStack, Input } from "@chakra-ui/react";
-import { Plate } from "@/server/utils/InventoryClient";
+import { Plate } from "@/types/api";
 import { EditableText } from "../ui/Form";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { renderDatetime } from "@/components/ui/Time";

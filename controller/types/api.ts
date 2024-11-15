@@ -11,6 +11,125 @@ export interface Workcell {
   created_at: Date;
 }
 
+export interface WorkcellCreate {
+  name: string;
+}
+
+export interface WorkcellUpdate {
+  name?: string;
+}
+
+export interface Workcell extends WorkcellCreate {
+  id: number;
+}
+
+export interface InstrumentCreate {
+  name: string;
+  workcell_id: number;
+}
+
+export interface InstrumentUpdate {
+  name?: string;
+  workcell_id?: number;
+}
+
+export interface Instrument extends InstrumentCreate {
+  id: number;
+}
+
+export interface NestCreate {
+  name: string;
+  row: number;
+  column: number;
+  instrument_id: number;
+}
+
+export interface NestUpdate {
+  name?: string;
+  row?: number;
+  column?: number;
+  instrument_id?: number;
+}
+
+export interface Nest extends NestCreate {
+  id: number;
+}
+
+export interface PlateCreate {
+  name: string | null;
+  barcode: string;
+  plate_type: string;
+  nest_id: number | null;
+}
+
+export interface PlateUpdate {
+  name?: string | null;
+  barcode?: string;
+  plate_type?: string;
+  nest_id?: number | null;
+}
+
+export interface Plate extends PlateCreate {
+  id: number;
+}
+
+export interface WellCreate {
+  row: string;
+  column: number;
+  plate_id: number;
+}
+
+export interface WellUpdate {
+  row?: string;
+  column?: number;
+  plate_id?: number;
+}
+
+export interface Well extends WellCreate {
+  id: number;
+}
+
+export interface ReagentCreate {
+  name: string;
+  expiration_date: string;
+  volume: number;
+  well_id: number;
+}
+
+export interface ReagentUpdate {
+  name?: string;
+  expiration_date?: string;
+  volume?: number;
+  well_id?: number;
+}
+
+export interface Reagent extends ReagentCreate {
+  id: number;
+}
+
+export interface PlateInfo extends Plate {
+  nest: Nest | null;
+  wells: Well[];
+}
+export interface Inventory {
+  workcell: Workcell;
+  instruments: Instrument[];
+  nests: Nest[];
+  plates: Plate[];
+  wells: Well[];
+  reagents: Reagent[];
+}
+
+export interface SlackAlert {
+  messageId: string;
+  messageChannel: string;
+  workcell: string;
+  tool: string;
+  protocol: string;
+  error: string;
+  update: string;
+}
+
 export interface Variable {
   id: number;
   name: string;
@@ -18,6 +137,24 @@ export interface Variable {
   type: string;
   created_at: Date;
   updated_at: Date;
+}
+
+export interface Labware {
+  id: number;
+  name: string;
+  description: string;
+  number_of_rows: number;
+  number_of_columns: number;
+  height: number;
+  width: number;
+  z_offset: number;
+  plate_lid_offset: number;
+  lid_offset: number;
+  stack_height: number;
+  has_lid: boolean;
+  created_at: Date;
+  updated_at: Date;
+  image_url: string;
 }
 
 export interface Tool {
@@ -59,3 +196,4 @@ export interface AppSettings {
   created_at: Date;
   updated_at: Date;
 }
+

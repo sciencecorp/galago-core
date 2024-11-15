@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Box, useDisclosure, HStack, VStack } from "@chakra-ui/react";
 import { useColorMode } from "@chakra-ui/react";
-import { Inventory, Plate, Nest, Reagent } from "@/server/utils/InventoryClient";
+import { Inventory, Plate, Nest, Reagent } from"@/types/api";
 import { trpc } from "@/utils/trpc";
-import { PageHeader } from "@/components/ui/PageHeader";
+import { PageHeader } from "@/components/UI/PageHeader";
 import InventoryVisualizer from "@/components/inventory/InventoryVisualizer";
 import InventorySearch from "@/components/inventory/InventorySearch";
-import InventoryActions from "@/components/inventory/inventoryActions";
+import InventoryActions from "@/components/inventory/InventoryActions";
 import AlertComponent from "@/components/UI/AlertComponent";
 import LoadingProgress from "@/components/UI/LoadingProgress";
 import CheckInModal from "@/components/inventory/CheckInModal";
@@ -20,7 +20,7 @@ export default function Page() {
   const isDarkMode = colorMode === "dark";
   const [loading, setLoading] = useState(false);
   const [inventory, setInventory] = useState<Inventory | null>(null);
-  const [mode, setMode] = useState<"checkin" | "checkout" | "move" | "delete" | "">("");
+  const [mode, setMode] = useState<"checkin" | "checkout" | "move" | "delete" | "create" | "">("");
   const [selectedPlate, setSelectedPlate] = useState<Plate | null>(null);
   const [selectedNest, setSelectedNest] = useState<string | null>(null);
 
@@ -235,7 +235,11 @@ export default function Page() {
         <HStack align="start" spacing={8}>
           {/* Left Side - Actions */}
           <Box width="200px">
-            <InventoryActions mode={mode} setMode={setMode} isLoading={loading} />
+            <InventoryActions 
+              mode={mode} 
+              setMode={setMode} 
+              isLoading={loading} 
+            />
           </Box>
 
           {/* Right Side - Main Content */}

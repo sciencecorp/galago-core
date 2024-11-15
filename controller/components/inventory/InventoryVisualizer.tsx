@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Inventory, Plate, Nest } from "@/server/utils/InventoryClient";
+import { Inventory, Plate, Nest } from "@/types/api";
 import {
   Box,
   Checkbox,

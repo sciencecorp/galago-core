@@ -13,7 +13,7 @@ import {
   VStack,
   Select,
 } from "@chakra-ui/react";
-import { Nest, Plate } from "@/server/utils/InventoryClient";
+import { Nest, Plate } from "@/types/api";
 
 type CheckInModalProps = {
   isOpen: boolean;
