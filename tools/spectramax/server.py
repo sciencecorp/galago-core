@@ -5,7 +5,7 @@ from tools.base_server import ToolServer, serve
 from tools.grpc_interfaces.spectramax_pb2 import Command, Config
 
 from .driver import SpectramaxDriver
-
+import argparse
 
 class SpectramaxServer(ToolServer):
     toolType = "spectramax"
@@ -47,4 +47,9 @@ class SpectramaxServer(ToolServer):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    serve(SpectramaxServer(), os.environ.get("PORT", "4600"))
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--port')
+    args = parser.parse_args()
+    if not args.port:
+        raise RuntimeWarning("Port must be provided...")
+    serve(SpectramaxServer(),str(args.port))

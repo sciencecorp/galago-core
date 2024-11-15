@@ -13,6 +13,3 @@ def get_all_workcells():
     response = db.get_data("workcells")
     return response
 
-
-print(get_all_workcells())
-print(get_workcell(1))

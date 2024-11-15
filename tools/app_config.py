@@ -15,8 +15,6 @@ APP_CONFIG_FILE = join(ROOT_DIRECTORY, "app_config.json")
 
 db = Db()
 
-
-
 class Tool(BaseModel):
     id: int
     name :str 
@@ -121,17 +119,13 @@ class Config():
     def load_workcell_config(self)-> None:
         if self.app_config.data_folder is None:
             self.app_config.data_folder = "logs"
-        if self.app_config.workcell is None:
-            logging.warning("Workcell not specified")
-            return None
+
         selected_workcell = get_selected_workcell()
         workcells = get_all_workcells()
         if workcells is None:
             logging.error("Failed to load workcells")
             return None
         selected_workcell_config  = [workcell for workcell in workcells if workcell.get("name") == selected_workcell][0]
-        print("Adding workcell config")
-        print(selected_workcell_config)
         if selected_workcell:
             self.workcell_config = WorkcellConfig.parse_obj(selected_workcell_config)
             self.workcell_config_is_valid = True

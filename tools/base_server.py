@@ -337,6 +337,5 @@ def serve(tool_server: ToolServer, port: str, num_workers: int = 10) -> None:
     server.add_insecure_port(f"[::]:{port}")
     server.start()
     logging.info(f"{tool_server.toolType} server started, listening on {port}")
-    logging.info(f"Logging to {tool_server.log_path}") 
     write_trace_log(tool_server.log_path, LogType.INFO, f"{tool_server.toolType}", f"GRPC server for tool started, listening on port:{port}")
     server.wait_for_termination()

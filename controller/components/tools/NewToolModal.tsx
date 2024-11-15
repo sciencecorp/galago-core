@@ -22,7 +22,11 @@ import { ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
 import { Tool } from "@/types/api";
 
-export const NewToolModal: React.FC = () => {
+interface NewToolModalProps {
+  isDisabled?: boolean;
+}
+export const NewToolModal: React.FC<NewToolModalProps> = (props) => {
+  const { isDisabled} = props;
   const [name, setName] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [value, setValue] = useState("");
@@ -43,6 +47,7 @@ export const NewToolModal: React.FC = () => {
   );
   
   useEffect(() => {
+    console.log("Butotn is disabled: ", isDisabled);
     if (configData) {
       console.log("Config definition is: ", configData);
       setDefaultConfig(configData);
@@ -87,7 +92,7 @@ export const NewToolModal: React.FC = () => {
 
   return (
     <>
-      <Button onClick={onOpen} colorScheme="teal" leftIcon={<RiAddFill />}>
+      <Button onClick={onOpen} colorScheme="teal" leftIcon={<RiAddFill />} isDisabled={isDisabled}>
         New Tool
       </Button>
       <Modal isOpen={isOpen} onClose={onClose}>
