@@ -24,13 +24,14 @@ import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import Link from "next/link";
 import { ToolConfigEditor } from "./ToolConfigEditor";
 import { ToolStatusTag } from "./ToolStatusTag";
-import { HamburgerIcon } from "@chakra-ui/icons";
 import styled from "@emotion/styled";
 import { useState } from "react";
 import { PiToolbox } from "react-icons/pi";
-import { DeleteWithConfirmation } from "../ui/Delete";
-import { EditMenu } from "../ui/EditMenu";
+import { DeleteWithConfirmation } from "../UI/Delete";
+import { EditMenu } from "../UI/EditMenu";
 import { Tool } from "@/types/api";
+import { useRouter } from "next/router";
+import { FaHandSparkles } from "react-icons/fa";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -51,13 +52,14 @@ const StyledCard = styled(Card)`
   }
 `;
 
-export default function ToolStatusCard({
-  toolId,
-  style,
-}: {
-  toolId: string;
+interface ToolStatusCardProps {
+  toolId: number;
+  minimal?: boolean;
   style?: React.CSSProperties;
-}) {
+}
+
+export default function ToolStatusCard({ toolId, minimal = false, style = {} }: ToolStatusCardProps) {
+  const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
 
   const infoQuery = trpc.tool.info.useQuery({ toolId: toolId });
@@ -130,6 +132,10 @@ export default function ToolStatusCard({
     }
   }
 
+  const handleTeachPendantClick = () => {
+    router.push(`/tools/advanced/${toolId}`);
+  };
+
   return (
     <StyledCard
       p={2}
@@ -145,7 +151,26 @@ export default function ToolStatusCard({
             <Text fontSize="sm">{description}</Text>
           </Box>
           <Box top={-5} right={-5} position="relative">
-            <EditMenu onEdit={() => console.log("Edit")} onDelete={() => handleDelete(toolId)} />
+            <EditMenu
+              onEdit={() => router.push(`/tools/${toolId}`)}
+              onDelete={() => handleDelete(toolId)}
+              label="tool"
+              buttonProps={{
+                size: "sm",
+                position: "absolute",
+                right: 2,
+                top: 2
+              }}
+              customMenuItems={
+                config.type === ToolType.pf400 && (
+                  <MenuItem onClick={handleTeachPendantClick} 
+                            icon={<FaHandSparkles />}
+                  >
+                    Teach Pendant
+                  </MenuItem>
+                )
+              }
+            />
           </Box>
         </Flex>
       </CardHeader>
