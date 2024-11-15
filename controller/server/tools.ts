@@ -32,13 +32,15 @@ export default class Tool {
   constructor(info: controller_protos.ToolConfig) {
     this.info = info;
     this.config = info.config;
-    const grpcServerIp = "host.docker.internal";
-    console.log("grpcServerIp is" + grpcServerIp);
+    const grpcServerIp =  "host.docker.internal";
     const target = `${grpcServerIp}:${info.port}`;
-    console.log("target is" + target);
+
+
     this.grpc = promisifyGrpcClient(
       new tool_driver.ToolDriverClient(target, grpc.credentials.createInsecure()),
     );
+
+    
   }
 
   startHeartbeat(heartbeatInterval: number) {
@@ -54,6 +56,7 @@ export default class Tool {
       this.heartbeat = undefined;
     }
   }
+ 
 
   async fetchStatus() {
     try {
@@ -62,8 +65,10 @@ export default class Tool {
       this.uptime = statusReply.uptime;
       return statusReply;
     } catch (e) {
-      let failedReply = { uptime: 0, status: ToolStatus.UNKNOWN_STATUS } as tool_base.StatusReply;
-      return failedReply;
+      console.error(`Failed to fetch status for tool ${this.info.name}: ${e.message}`);
+      this.status = ToolStatus.UNKNOWN_STATUS;
+      this.stopHeartbeat();
+      return { uptime: 0, status: ToolStatus.UNKNOWN_STATUS } as tool_base.StatusReply;
     }
   }
 
@@ -128,15 +133,41 @@ export default class Tool {
     return reply.estimated_duration_seconds;
   }
 
-  static clearToolStore() {
-    let counter = 0;
-    for (const tool of toolStore.values()) {
-      counter++;
-      tool.stopHeartbeat();
-      tool.grpc.close();
-      //Remove the tool from the store
-      toolStore.delete(counter);
+  static async clearToolStore() {
+    const global_key = "__global_tool_store";
+    const me = global as any;
+    
+    if (!me[global_key]) {
+      return;
     }
+    
+    const store: Map<string, Tool> = me[global_key];
+    let counter = 0;
+
+    for (const [toolId, tool] of store.entries()) {
+      try {
+        counter++;
+        console.log(`Clearing tool: ${toolId}`);
+        
+        // Stop heartbeat
+        tool.stopHeartbeat();
+  
+        // Close the gRPC client connection
+        if (tool.grpc) {
+          console.log(`Closing gRPC client for tool: ${toolId}`);
+          tool.grpc.close();
+        }
+  
+        // Remove the tool from the store
+        store.delete(toolId);
+      } catch (error) {
+        console.error(`Error while clearing tool ${toolId}: ${error}`);
+      }
+    }
+      // Clear the global tool store reference
+  me[global_key] = new Map();
+  console.log(`Cleared ${counter} tool instances from the store.`);
+
   }
 
   static reloadWorkcellConfig(tools: controller_protos.ToolConfig[]) {
@@ -162,8 +193,8 @@ export default class Tool {
       throw new Error(`Failed to load config for ToolType: ${toolTypeName}. Error: ${error}`);
     }
   }
-
-  static forId(id: string): Tool {
+  
+  static forId(id: string, forceRestart?:boolean): Tool {
     const global_key = "__global_tool_store";
     const me = global as any;
     if (!me[global_key]) {
