@@ -9,5 +9,4 @@ export default function Page() {
       </Flex>
     </Box>
   );
-};
-
+}

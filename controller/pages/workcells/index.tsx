@@ -1,4 +1,4 @@
-import {WorkcellComponent} from "@/components/workcell/WorkcellComponent";
+import { WorkcellComponent } from "@/components/workcell/WorkcellComponent";
 
 import { Box } from "@chakra-ui/react";
 import { useEffect } from "react";

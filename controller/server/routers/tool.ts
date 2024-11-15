@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import Tool from "@/server/tools";
-import {Tool as ToolResponse} from "@/types/api";
+import { Tool as ToolResponse } from "@/types/api";
 import { Config } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { procedure, router } from "@/server/trpc";
 import { ToolType } from "gen-interfaces/controller";
@@ -10,7 +10,7 @@ import { add } from "winston";
 import { get, post, put, del } from "@/server/utils/api";
 import { idText } from "typescript";
 import * as controller_protos from "gen-interfaces/controller";
-import { Workcell, AppSettings} from "@/types/api";
+import { Workcell, AppSettings } from "@/types/api";
 
 const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
 
@@ -18,7 +18,7 @@ export const zTool = z.object({
   id: z.number().optional(),
   name: z.string(),
   type: zToolType,
-  description: z.string().optional(), 
+  description: z.string().optional(),
   workcell_id: z.number(),
   ip: z.string().optional(),
   port: z.number().optional(),
@@ -40,8 +40,8 @@ export const toolRouter = router({
   }),
 
   //Add a new tool to the db
-  add: procedure.input(zTool.omit({ id: true, port:true })).mutation(async ({ input }) => {
-    const {type} = input;
+  add: procedure.input(zTool.omit({ id: true, port: true })).mutation(async ({ input }) => {
+    const { type } = input;
     console.log("adding tool with type: ", type);
     const defaultConfig = await Tool.getToolConfigDefinition(type as ToolType);
     console.log("Default config is: ", defaultConfig);
@@ -61,15 +61,14 @@ export const toolRouter = router({
       const response = put<ToolResponse>(`/tools/${input.toolId}`, input);
       return response;
     }),
-  
-  
-  delete : procedure.input(z.number()).mutation(async ({ input }) => {
+
+  delete: procedure.input(z.number()).mutation(async ({ input }) => {
     await del(`/tools/${input}`);
-    return { message: "Tool deleted successfully"};
+    return { message: "Tool deleted successfully" };
   }),
 
-  getToolconfigDefinitions : procedure.input(zToolType).query(async ({input}) => {
-    const configDefinition =  await Tool.getToolConfigDefinition(input);
+  getToolconfigDefinitions: procedure.input(zToolType).query(async ({ input }) => {
+    const configDefinition = await Tool.getToolConfigDefinition(input);
     console.log("Config definition is: ", configDefinition);
     return configDefinition;
   }),
@@ -103,10 +102,10 @@ export const toolRouter = router({
       const tool = Tool.forId(input.toolId);
       return tool.info;
     }),
-  
-  clearToolStore :procedure.mutation(async () => {
+
+  clearToolStore: procedure.mutation(async () => {
     Tool.clearToolStore();
-    return {message: "Tool store cleared successfully"};
+    return { message: "Tool store cleared successfully" };
   }),
 
   configure: procedure
@@ -136,8 +135,7 @@ export const toolRouter = router({
       return await Tool.executeCommand(input);
     }),
 
-    getWorkcellName: procedure.query(async () => {
-      return await Tool.workcellName();
-    }),
-
+  getWorkcellName: procedure.query(async () => {
+    return await Tool.workcellName();
+  }),
 });

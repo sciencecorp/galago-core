@@ -1,17 +1,17 @@
 import React from "react";
-import { 
-  FormControl, 
-  InputGroup, 
-  Input, 
-  InputLeftElement, 
-  InputRightElement, 
-  Box, 
-  List, 
-  ListItem, 
-  Text, 
-  Tooltip, 
+import {
+  FormControl,
+  InputGroup,
+  Input,
+  InputLeftElement,
+  InputRightElement,
+  Box,
+  List,
+  ListItem,
+  Text,
+  Tooltip,
   VStack,
-  HStack
+  HStack,
 } from "@chakra-ui/react";
 import { SearchIcon, CloseIcon } from "@chakra-ui/icons";
 import { Plate, Reagent } from "@/server/utils/InventoryClient";
@@ -33,7 +33,7 @@ const InventorySearch: React.FC<InventorySearchProps> = ({
   onSearchChange,
   onClearSearch,
   onPlateSelect,
-  onReagentSelect
+  onReagentSelect,
 }) => {
   const isPlate = (element: Plate | Reagent): element is Plate => {
     return (element as Plate).plate_type !== undefined;
@@ -61,11 +61,7 @@ const InventorySearch: React.FC<InventorySearchProps> = ({
             onChange={onSearchChange}
           />
           <InputRightElement>
-            <CloseIcon
-              cursor="pointer"
-              color="gray.300"
-              onClick={onClearSearch}
-            />
+            <CloseIcon cursor="pointer" color="gray.300" onClick={onClearSearch} />
           </InputRightElement>
         </InputGroup>
       </HStack>
@@ -76,9 +72,14 @@ const InventorySearch: React.FC<InventorySearchProps> = ({
             {searchResults.map((result, index) => (
               <ListItem
                 key={`${result.id}-${result.name}`}
-                bg={isDarkMode
-                  ? index % 2 === 0 ? "gray.800" : "gray.700"
-                  : index % 2 === 0 ? "white" : "gray.100"
+                bg={
+                  isDarkMode
+                    ? index % 2 === 0
+                      ? "gray.800"
+                      : "gray.700"
+                    : index % 2 === 0
+                      ? "white"
+                      : "gray.100"
                 }>
                 {isPlate(result) && (
                   <Tooltip label="Click to find corresponding plate">

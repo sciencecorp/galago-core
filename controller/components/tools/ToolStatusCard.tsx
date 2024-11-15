@@ -18,7 +18,7 @@ import {
   MenuList,
   IconButton,
   Icon,
-  useToast
+  useToast,
 } from "@chakra-ui/react";
 import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import Link from "next/link";
@@ -30,9 +30,7 @@ import { useState } from "react";
 import { PiToolbox } from "react-icons/pi";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { EditMenu } from "../ui/EditMenu";
-import { Tool} from "@/types/api";
-
-
+import { Tool } from "@/types/api";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -55,7 +53,7 @@ const StyledCard = styled(Card)`
 
 export default function ToolStatusCard({
   toolId,
-  style
+  style,
 }: {
   toolId: string;
   style?: React.CSSProperties;
@@ -64,10 +62,10 @@ export default function ToolStatusCard({
 
   const infoQuery = trpc.tool.info.useQuery({ toolId: toolId });
   const config = infoQuery.data;
-  const { description, name  } = infoQuery.data || {};
+  const { description, name } = infoQuery.data || {};
   const deleteTool = trpc.tool.delete.useMutation();
-  const {data: fetchedIds, refetch} = trpc.tool.availableIDs.useQuery();
-  
+  const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery();
+
   const toast = useToast();
   if (infoQuery.isLoading) {
     return <Spinner size="lg" />;
@@ -99,10 +97,10 @@ export default function ToolStatusCard({
   };
 
   function renderToolImage(config: any) {
-    console.log("description",description);
-    console.log("name",name);
-    console.log("Config full",JSON.stringify(config));
-    
+    console.log("description", description);
+    console.log("name", name);
+    console.log("Config full", JSON.stringify(config));
+
     if (!config.image_url) {
       return <Box></Box>;
     } else if (config.id === "Tool Box") {
@@ -147,7 +145,7 @@ export default function ToolStatusCard({
             <Text fontSize="sm">{description}</Text>
           </Box>
           <Box top={-5} right={-5} position="relative">
-          <EditMenu onEdit= {() => console.log("Edit")} onDelete= {()=>handleDelete(toolId)}/>
+            <EditMenu onEdit={() => console.log("Edit")} onDelete={() => handleDelete(toolId)} />
           </Box>
         </Flex>
       </CardHeader>

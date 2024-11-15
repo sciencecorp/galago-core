@@ -3,7 +3,7 @@ import { Box, useDisclosure, HStack, VStack } from "@chakra-ui/react";
 import { useColorMode } from "@chakra-ui/react";
 import { Inventory, Plate, Nest, Reagent } from "@/server/utils/InventoryClient";
 import { trpc } from "@/utils/trpc";
-import { PageHeader } from "@/components/ui/PageHeader";  
+import { PageHeader } from "@/components/ui/PageHeader";
 import InventoryVisualizer from "@/components/inventory/InventoryVisualizer";
 import InventorySearch from "@/components/inventory/InventorySearch";
 import InventoryActions from "@/components/inventory/inventoryActions";
@@ -23,7 +23,7 @@ export default function Page() {
   const [mode, setMode] = useState<"checkin" | "checkout" | "move" | "delete" | "">("");
   const [selectedPlate, setSelectedPlate] = useState<Plate | null>(null);
   const [selectedNest, setSelectedNest] = useState<string | null>(null);
-  
+
   // Modal controls
   const checkInModal = useDisclosure();
   const checkOutModal = useDisclosure();
@@ -31,13 +31,15 @@ export default function Page() {
 
   // Alert state
   const [showAlert, setShowAlert] = useState(false);
-  const [alertStatus, setAlertStatus] = useState<"error" | "success" | "info" | "warning">("success");
+  const [alertStatus, setAlertStatus] = useState<"error" | "success" | "info" | "warning">(
+    "success",
+  );
   const [alertDescription, setAlertDescription] = useState("");
 
   // Search state
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<(Plate | Reagent)[]>([]);
-  
+
   // TRPC queries
   const workcellData = trpc.workcell.getAll.useQuery().data?.[0];
   const workcellName = workcellData?.name;
@@ -50,8 +52,8 @@ export default function Page() {
       enabled: !!workcellName,
       onSuccess: (data: Inventory) => {
         setInventory(data);
-      }
-    }
+      },
+    },
   );
 
   // TRPC mutations
@@ -92,12 +94,14 @@ export default function Page() {
         barcode: selectedPlate.barcode,
         nest_id: nestId,
       });
-      
+
       showSuccessAlert(`Successfully checked in plate ${selectedPlate.name}`);
       checkInModal.onClose();
       handleModalClose();
     } catch (error) {
-      showErrorAlert(`Failed to check in plate: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      showErrorAlert(
+        `Failed to check in plate: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     } finally {
       setLoading(false);
     }
@@ -115,12 +119,14 @@ export default function Page() {
         plate_type: selectedPlate.plate_type,
         nest_id: null,
       });
-      
+
       showSuccessAlert(`Successfully checked out plate ${selectedPlate.name}`);
       checkOutModal.onClose();
       handleModalClose();
     } catch (error) {
-      showErrorAlert(`Failed to check out plate: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      showErrorAlert(
+        `Failed to check out plate: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     } finally {
       setLoading(false);
     }
@@ -135,12 +141,14 @@ export default function Page() {
         ...selectedPlate,
         nest_id: newNestId,
       });
-      
+
       showSuccessAlert(`Successfully moved plate ${selectedPlate.name}`);
       movePlateModal.onClose();
       handleModalClose();
     } catch (error) {
-      showErrorAlert(`Failed to move plate: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      showErrorAlert(
+        `Failed to move plate: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     } finally {
       setLoading(false);
     }
@@ -159,18 +167,18 @@ export default function Page() {
     if (!inventory) return;
 
     const fuseOptions = {
-      keys: ['name', 'barcode', 'plate_type'],
+      keys: ["name", "barcode", "plate_type"],
       threshold: 0.3,
     };
     console.log("Inventory plates:", inventory.plates);
     const platesFuse = new Fuse(inventory.plates, fuseOptions);
     const reagentsFuse = new Fuse(inventory.reagents, {
-      keys: ['name', 'expiration_date'],
+      keys: ["name", "expiration_date"],
       threshold: 0.3,
     });
 
-    const plateResults = platesFuse.search(searchTerm).map(result => result.item);
-    const reagentResults = reagentsFuse.search(searchTerm).map(result => result.item);
+    const plateResults = platesFuse.search(searchTerm).map((result) => result.item);
+    const reagentResults = reagentsFuse.search(searchTerm).map((result) => result.item);
 
     setSearchResults([...plateResults, ...reagentResults]);
   };
@@ -204,15 +212,12 @@ export default function Page() {
 
   return (
     <Box flex={1}>
-      <PageHeader 
-        title="Inventory"
-        mainButton={null}
-      />
-      
+      <PageHeader title="Inventory" mainButton={null} />
+
       <VStack align="stretch" spacing={6} width="100%">
         {/* Search Bar */}
         <Box>
-          <InventorySearch 
+          <InventorySearch
             search={search}
             searchResults={searchResults}
             isDarkMode={isDarkMode}
@@ -230,11 +235,7 @@ export default function Page() {
         <HStack align="start" spacing={8}>
           {/* Left Side - Actions */}
           <Box width="200px">
-            <InventoryActions 
-              mode={mode} 
-              setMode={setMode} 
-              isLoading={loading} 
-            />
+            <InventoryActions mode={mode} setMode={setMode} isLoading={loading} />
           </Box>
 
           {/* Right Side - Main Content */}
@@ -248,7 +249,9 @@ export default function Page() {
                     await updatePlateMutation.mutateAsync(plate);
                     showSuccessAlert(`Successfully updated plate ${plate.name}`);
                   } catch (error) {
-                    showErrorAlert(`Failed to update plate: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    showErrorAlert(
+                      `Failed to update plate: ${error instanceof Error ? error.message : "Unknown error"}`,
+                    );
                   }
                 }}
                 onDelete={async (plate) => {
@@ -262,7 +265,9 @@ export default function Page() {
               <Box borderWidth="0px" borderRadius="lg" p={4}>
                 <InventoryVisualizer
                   inventory={inventory}
-                  onSelectedNestChange={(nest: Nest | null) => setSelectedNest(nest?.id?.toString() || null)}
+                  onSelectedNestChange={(nest: Nest | null) =>
+                    setSelectedNest(nest?.id?.toString() || null)
+                  }
                   onSelectedPlateChange={setSelectedPlate}
                 />
               </Box>
@@ -272,7 +277,7 @@ export default function Page() {
       </VStack>
 
       {/* Modals */}
-      <CheckInModal 
+      <CheckInModal
         isOpen={checkInModal.isOpen}
         onClose={() => {
           checkInModal.onClose();
@@ -283,7 +288,7 @@ export default function Page() {
         onSubmit={handleCheckIn}
       />
 
-      <CheckOutModal 
+      <CheckOutModal
         isOpen={checkOutModal.isOpen}
         onClose={() => {
           checkOutModal.onClose();
@@ -293,7 +298,7 @@ export default function Page() {
         onSubmit={handleCheckOut}
       />
 
-      <MovePlateModal 
+      <MovePlateModal
         isOpen={movePlateModal.isOpen}
         onClose={() => {
           movePlateModal.onClose();
@@ -305,7 +310,7 @@ export default function Page() {
       />
 
       {/* Alerts and Loading */}
-      <AlertComponent 
+      <AlertComponent
         showAlert={showAlert}
         status={alertStatus}
         title={alertStatus.charAt(0).toUpperCase() + alertStatus.slice(1)}

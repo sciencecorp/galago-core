@@ -1,15 +1,5 @@
 import React from "react";
-import {
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  Box,
-  VStack,
-  Input,
-} from "@chakra-ui/react";
+import { Table, Thead, Tbody, Tr, Th, Td, Box, VStack, Input } from "@chakra-ui/react";
 import { Plate } from "@/server/utils/InventoryClient";
 import { EditableText } from "../ui/Form";
 import { DeleteWithConfirmation } from "../ui/Delete";
@@ -21,26 +11,17 @@ interface PlatesTableProps {
   onDelete: (plate: Plate) => Promise<void>;
 }
 
-export const PlatesTable: React.FC<PlatesTableProps> = ({
-  plates,
-  onUpdate,
-  onDelete,
-}) => {
+export const PlatesTable: React.FC<PlatesTableProps> = ({ plates, onUpdate, onDelete }) => {
   const [searchQuery, setSearchQuery] = React.useState("");
   if (!plates) {
     return null;
   }
   const filteredPlates = plates.filter((plate) =>
-    plate.name?.toLowerCase().includes(searchQuery.toLowerCase())
+    plate.name?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
-    <Box 
-      borderWidth="1px"
-      borderRadius="lg"
-      p={4}
-      boxShadow="sm"
-    >
+    <Box borderWidth="1px" borderRadius="lg" p={4} boxShadow="sm">
       <VStack align="stretch" spacing={4}>
         <Input
           placeholder="Search plates"
@@ -79,10 +60,7 @@ export const PlatesTable: React.FC<PlatesTableProps> = ({
                 <Td>{plate.barcode}</Td>
                 <Td>{renderDatetime("")}</Td>
                 <Td>
-                  <DeleteWithConfirmation
-                    onDelete={() => onDelete(plate)}
-                    label="plate"
-                  />
+                  <DeleteWithConfirmation onDelete={() => onDelete(plate)} label="plate" />
                 </Td>
               </Tr>
             ))}

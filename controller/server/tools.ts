@@ -18,7 +18,7 @@ const toolStore: Map<number, Tool> = new Map();
 export default class Tool {
   // Controller config is "what does the controller need to know about the tool?"
   info: controller_protos.ToolConfig;
-  static allTools : controller_protos.ToolConfig[] = [Tool.toolBoxConfig()];
+  static allTools: controller_protos.ToolConfig[] = [Tool.toolBoxConfig()];
 
   // Tool config is "what configuration is the tool currently using?"
   config?: tool_base.Config;
@@ -32,7 +32,7 @@ export default class Tool {
   constructor(info: controller_protos.ToolConfig) {
     this.info = info;
     this.config = info.config;
-    const grpcServerIp =  "host.docker.internal";
+    const grpcServerIp = "host.docker.internal";
     console.log("grpcServerIp is" + grpcServerIp);
     const target = `${grpcServerIp}:${info.port}`;
     console.log("target is" + target);
@@ -130,7 +130,7 @@ export default class Tool {
 
   static clearToolStore() {
     let counter = 0;
-    for(const tool of toolStore.values()) {
+    for (const tool of toolStore.values()) {
       counter++;
       tool.stopHeartbeat();
       tool.grpc.close();
@@ -139,11 +139,11 @@ export default class Tool {
     }
   }
 
-  static reloadWorkcellConfig(tools:controller_protos.ToolConfig[]) {
+  static reloadWorkcellConfig(tools: controller_protos.ToolConfig[]) {
     this.allTools = tools;
   }
 
-  static  async getToolConfigDefinition(toolType:ToolType){
+  static async getToolConfigDefinition(toolType: ToolType) {
     const toolTypeName = ToolType[toolType];
     if (!toolTypeName) {
       throw new Error(`Unsupported ToolType: ${toolType}`);
@@ -151,7 +151,9 @@ export default class Tool {
     const modulePath = `gen-interfaces/tools/grpc_interfaces/${toolType.toLowerCase()}`;
     try {
       // Dynamically import the module
-      const toolModule = await import(/* webpackInclude: /\.ts$/ */ `gen-interfaces/tools/grpc_interfaces/${toolType}`);
+      const toolModule = await import(
+        /* webpackInclude: /\.ts$/ */ `gen-interfaces/tools/grpc_interfaces/${toolType}`
+      );
       if (!toolModule || !toolModule.Config) {
         throw new Error(`Config type not found in module: ${modulePath}`);
       }
@@ -160,7 +162,7 @@ export default class Tool {
       throw new Error(`Failed to load config for ToolType: ${toolTypeName}. Error: ${error}`);
     }
   }
-  
+
   static forId(id: string): Tool {
     const global_key = "__global_tool_store";
     const me = global as any;
@@ -177,9 +179,7 @@ export default class Tool {
       } else {
         const result = this.allTools.find((tool) => tool.name === id);
         if (!result) {
-          throw new Error(
-            `Tool with id ${id} not found in in database'`,
-          );
+          throw new Error(`Tool with id ${id} not found in in database'`);
         }
         toolInfo = result;
       }

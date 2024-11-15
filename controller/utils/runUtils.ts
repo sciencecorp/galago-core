@@ -1,7 +1,10 @@
-import moment from 'moment';
-import { RunQueue, RunCommand, GroupedCommand } from '@/types';
+import moment from "moment";
+import { RunQueue, RunCommand, GroupedCommand } from "@/types";
 
-export function getRunAttributes(runInfo: any, commandInfo: any): {
+export function getRunAttributes(
+  runInfo: any,
+  commandInfo: any,
+): {
   runId: string;
   runName: string;
   commandsCount: number;
@@ -13,14 +16,14 @@ export function getRunAttributes(runInfo: any, commandInfo: any): {
 } {
   if (!runInfo) {
     return {
-      runId: '',
-      runName: '',
+      runId: "",
+      runName: "",
       commandsCount: 0,
       params: {},
-      status: 'UNKNOWN',
-      createdAt: '',
-      completedAt: '',
-      startedAt: ''
+      status: "UNKNOWN",
+      createdAt: "",
+      completedAt: "",
+      startedAt: "",
     };
   }
 
@@ -32,24 +35,25 @@ export function getRunAttributes(runInfo: any, commandInfo: any): {
     runName += ` | ${runInfo.params.culturePlateType}`;
   }
 
-  let status = 'CREATED';
-  let startedAt = '';
-  let completedAt = '';
-  let createdAt = '';
+  let status = "CREATED";
+  let startedAt = "";
+  let completedAt = "";
+  let createdAt = "";
 
   if (commandInfo) {
     const commandStatuses = Object.values(commandInfo).map((cmd: any) => cmd.status);
     createdAt = commandInfo[Object.keys(commandInfo)[0]]?.createdAt;
-    if (commandStatuses.every(status => status === 'COMPLETED')) {
-      status = 'COMPLETED';
-      completedAt = commandInfo[Object.keys(commandInfo)[commandStatuses.length - 1]]?.completedAt || '';
-    } else if (commandStatuses.some(status => status === 'FAILED')) {
-      status = 'FAILED';
+    if (commandStatuses.every((status) => status === "COMPLETED")) {
+      status = "COMPLETED";
+      completedAt =
+        commandInfo[Object.keys(commandInfo)[commandStatuses.length - 1]]?.completedAt || "";
+    } else if (commandStatuses.some((status) => status === "FAILED")) {
+      status = "FAILED";
     } else if (commandInfo[Object.keys(commandInfo)[0]]?.startedAt) {
-      status = 'STARTED';
+      status = "STARTED";
       startedAt = commandInfo[Object.keys(commandInfo)[0]]?.startedAt;
-    } else if (commandStatuses.every(status => status === 'CREATED')) {
-      status = 'QUEUED';
+    } else if (commandStatuses.every((status) => status === "CREATED")) {
+      status = "QUEUED";
     }
   }
   return {
@@ -59,13 +63,13 @@ export function getRunAttributes(runInfo: any, commandInfo: any): {
     params: runInfo.params,
     status,
     createdAt,
-    completedAt,  
-    startedAt
+    completedAt,
+    startedAt,
   };
 }
 
 export function calculateRunTimes(runAttributes: any, currentTime: moment.Moment) {
-  let runStart = moment(runAttributes.createdAt); 
+  let runStart = moment(runAttributes.createdAt);
   let runEnd: moment.Moment;
   let isActive = false;
 
@@ -74,19 +78,19 @@ export function calculateRunTimes(runAttributes: any, currentTime: moment.Moment
   } else if (runAttributes.status === "STARTED") {
     isActive = true;
     runStart = moment(runAttributes.startedAt);
-    runEnd = currentTime.clone().add(10, 'minutes');
+    runEnd = currentTime.clone().add(10, "minutes");
   } else if (runAttributes.status === "CREATED") {
-    runEnd = runStart.clone().add(10, 'minutes');
+    runEnd = runStart.clone().add(10, "minutes");
   } else if (runAttributes.status === "FAILED") {
-    runEnd = runStart.clone().add(1, 'minutes');
+    runEnd = runStart.clone().add(1, "minutes");
   } else if (runAttributes.status === "QUEUED") {
     runStart = currentTime;
-    runEnd = runStart.clone().add(10, 'minutes');
+    runEnd = runStart.clone().add(10, "minutes");
   } else {
-    runEnd = runStart.clone().add(1, 'minutes');
+    runEnd = runStart.clone().add(1, "minutes");
   }
 
-  const expectedDuration = runEnd.diff(runStart, 'seconds');
+  const expectedDuration = runEnd.diff(runStart, "seconds");
   return { runStart, runEnd, expectedDuration, isActive };
 }
 
@@ -94,12 +98,12 @@ export function groupCommandsByRun(commands: RunCommand[]): GroupedCommand[] {
   const groupedCommands: GroupedCommand[] = [];
   const runIds: string[] = [];
 
-  commands.forEach(command => {
+  commands.forEach((command) => {
     if (!runIds.includes(command.runId)) {
       runIds.push(command.runId);
       groupedCommands.push({
         Id: command.runId,
-        Commands: []
+        Commands: [],
       });
     }
     groupedCommands[runIds.indexOf(command.runId)].Commands.push(command);
@@ -110,10 +114,10 @@ export function groupCommandsByRun(commands: RunCommand[]): GroupedCommand[] {
 
 export function calculateRunCompletion(commands: RunCommand[]): number {
   if (!commands.length) return 0;
-  
+
   const completedCommands = commands.filter(
-    cmd => cmd.status === "COMPLETED" || cmd.status === "FAILED"
+    (cmd) => cmd.status === "COMPLETED" || cmd.status === "FAILED",
   ).length;
-  
+
   return (completedCommands / commands.length) * 100;
 }

@@ -49,8 +49,7 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
               <Select
                 placeholder="Select nest"
                 value={selectedNestId}
-                onChange={(e) => setSelectedNestId(Number(e.target.value))}
-              >
+                onChange={(e) => setSelectedNestId(Number(e.target.value))}>
                 {availableNests.map((nest) => (
                   <option key={nest.id} value={nest.id}>
                     {nest.name}
@@ -62,8 +61,7 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
               colorScheme="blue"
               width="100%"
               onClick={() => selectedNestId && onSubmit(selectedNestId)}
-              isDisabled={!selectedNestId}
-            >
+              isDisabled={!selectedNestId}>
               Check In
             </Button>
           </VStack>

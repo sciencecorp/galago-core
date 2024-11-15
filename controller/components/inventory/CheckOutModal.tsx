@@ -47,8 +47,7 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
               colorScheme="blue"
               width="100%"
               onClick={onSubmit}
-              isDisabled={!selectedPlate?.nest_id}
-            >
+              isDisabled={!selectedPlate?.nest_id}>
               Check Out
             </Button>
           </VStack>

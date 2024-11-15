@@ -4,7 +4,7 @@ import { Config } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 export interface Workcell {
   id: number;
   name: string;
-  location:string;
+  location: string;
   description: string;
   tools: Tool[];
   last_updated: Date;
@@ -32,7 +32,7 @@ export interface Tool {
   status: string;
   last_updated: Date;
   created_at: Date;
-  config:Config;
+  config: Config;
 }
 
 export interface LogType {

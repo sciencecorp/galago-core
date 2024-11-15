@@ -40,17 +40,15 @@ export const NewToolModal: React.FC = () => {
   const [type, setType] = useState<ToolType>(ToolType.UNRECOGNIZED);
   const addTool = trpc.tool.add.useMutation();
   const [description, setDescription] = useState("");
-  const {data: fetchedIds, refetch} = trpc.tool.availableIDs.useQuery();
+  const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery();
   const availableTools = Object.values(ToolType);
   const [defaultConfig, setDefaultConfig] = useState<any>(null);
-  
-  const { data: configData, isFetching: isConfigLoading } = trpc.tool.getToolconfigDefinitions.useQuery(
-    type as ToolType,
-    {
+
+  const { data: configData, isFetching: isConfigLoading } =
+    trpc.tool.getToolconfigDefinitions.useQuery(type as ToolType, {
       enabled: !!type, // Only fetch when type is set
-    }
-  );
-  
+    });
+
   useEffect(() => {
     if (configData) {
       console.log("Config definition is: ", configData);
@@ -62,7 +60,15 @@ export const NewToolModal: React.FC = () => {
     let workcell_id = 1;
     let ip = "localhost";
     let image_url = `/tool_icons/${type}.png`;
-    const tool = { name, type, workcell_id, ip, image_url, description, config: { [type] : defaultConfig || { }}};
+    const tool = {
+      name,
+      type,
+      workcell_id,
+      ip,
+      image_url,
+      description,
+      config: { [type]: defaultConfig || {} },
+    };
     setIsLoading(true);
     try {
       await addTool.mutateAsync(tool);
@@ -108,14 +114,14 @@ export const NewToolModal: React.FC = () => {
             <VStack spacing={4}>
               <FormControl>
                 <FormLabel>Select Tool Type</FormLabel>
-                <Select value={type} 
+                <Select
+                  value={type}
                   onChange={(e) => {
                     const enumValue = e.target.value as ToolType;
                     console.log("Selected tool type: ", enumValue);
                     setType(enumValue); // This sets the actual enum value, not the string
                   }}
-                
-                placeholder="Select Tool">
+                  placeholder="Select Tool">
                   {availableTools
                     .filter(
                       (x) =>

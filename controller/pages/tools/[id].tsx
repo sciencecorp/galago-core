@@ -83,13 +83,13 @@ const commandFields: CommandFields = {
   toolbox: {
     run_python_script: [
       {
-        name:"python_file",
-        type:"text"
+        name: "python_file",
+        type: "text",
       },
       {
-        name:"blocking",
-        type:"boolean"
-      }
+        name: "blocking",
+        type: "boolean",
+      },
     ],
     send_slack_alert: [
       {
@@ -376,7 +376,7 @@ export default function Page() {
   //const { id } = params;
   const id = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
 
-  const infoQuery = trpc.tool.info.useQuery({ toolId: id || ""});
+  const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
   const config = infoQuery.data;
   const [commandExecutionStatus, setCommandExecutionStatus] = useState<CommandStatus>({});
   const [selectedCommand, setSelectedCommand] = useState<string | undefined>();

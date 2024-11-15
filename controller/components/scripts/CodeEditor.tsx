@@ -166,8 +166,8 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
         padding={4}
         boxShadow="md"
         borderBottom="1px solid"
-        borderRight='1px solid'
-        borderLeft='1px solid'
+        borderRight="1px solid"
+        borderLeft="1px solid"
         justifyContent="flex-end"
         position="relative">
         <Button colorScheme="gray" size="sm">

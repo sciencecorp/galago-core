@@ -23,12 +23,7 @@ const AlertComponent: React.FC<AlertComponentProps> = ({
       <AlertIcon />
       <AlertTitle mr={2}>{title}</AlertTitle>
       <AlertDescription>{description}</AlertDescription>
-      <CloseButton
-        position="absolute"
-        right="8px"
-        top="8px"
-        onClick={onClose}
-      />
+      <CloseButton position="absolute" right="8px" top="8px" onClick={onClose} />
     </Alert>
   );
 };

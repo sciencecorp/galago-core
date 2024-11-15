@@ -20,12 +20,12 @@ import { trpc } from "@/utils/trpc";
 import { RiAddFill } from "react-icons/ri";
 import { ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
-import { Tool , Workcell} from "@/types/api";
+import { Tool, Workcell } from "@/types/api";
 
 export const NewWorkcellModal: React.FC = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [location ,setLocation] = useState("");
+  const [location, setLocation] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [value, setValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -35,7 +35,7 @@ export const NewWorkcellModal: React.FC = () => {
   const { data: fetchedWorkcells, refetch } = trpc.workcell.getAll.useQuery();
 
   const handleSave = async () => {
-    const workcell = { name , description, location} as Workcell;
+    const workcell = { name, description, location } as Workcell;
     setIsLoading(true);
     try {
       await createWorkcell.mutateAsync(workcell);
@@ -85,11 +85,11 @@ export const NewWorkcellModal: React.FC = () => {
               <FormControl>
                 <FormLabel>Description</FormLabel>
                 <Input value={description} onChange={(e) => setDescription(e.target.value)} />
-               </FormControl>
-               <FormControl>
+              </FormControl>
+              <FormControl>
                 <FormLabel>Location</FormLabel>
                 <Input value={location} onChange={(e) => setLocation(e.target.value)} />
-               </FormControl>
+              </FormControl>
             </VStack>
           </ModalBody>
           <ModalFooter>

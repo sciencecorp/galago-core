@@ -65,7 +65,7 @@ export const Labware: React.FC = () => {
   };
 
   const filteredLabware = labware?.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const handleLabwareUpdate = async (editedLabware: Labware) => {
@@ -130,10 +130,7 @@ export const Labware: React.FC = () => {
               {filteredLabware.map((item) => (
                 <Tr key={item.id}>
                   <Td width="50px">
-                    <WellPlateIcon 
-                      rows={item.number_of_rows} 
-                      columns={item.number_of_columns} 
-                    />
+                    <WellPlateIcon rows={item.number_of_rows} columns={item.number_of_columns} />
                   </Td>
                   <Td>
                     <EditableText
@@ -155,7 +152,7 @@ export const Labware: React.FC = () => {
                     <EditableText
                       onSubmit={async (value) => {
                         const numValue = Number(value);
-                        !isNaN(numValue) && 
+                        !isNaN(numValue) &&
                           (await handleLabwareUpdate({ ...item, number_of_rows: numValue }));
                       }}
                       defaultValue={item.number_of_rows.toString()}
@@ -165,7 +162,7 @@ export const Labware: React.FC = () => {
                     <EditableText
                       onSubmit={async (value) => {
                         const numValue = Number(value);
-                        !isNaN(numValue) && 
+                        !isNaN(numValue) &&
                           (await handleLabwareUpdate({ ...item, number_of_columns: numValue }));
                       }}
                       defaultValue={item.number_of_columns.toString()}
@@ -175,7 +172,7 @@ export const Labware: React.FC = () => {
                     <EditableText
                       onSubmit={async (value) => {
                         const numValue = Number(value);
-                        !isNaN(numValue) && 
+                        !isNaN(numValue) &&
                           (await handleLabwareUpdate({ ...item, z_offset: numValue }));
                       }}
                       defaultValue={item.z_offset.toString()}
@@ -185,7 +182,7 @@ export const Labware: React.FC = () => {
                     <EditableText
                       onSubmit={async (value) => {
                         const numValue = Number(value);
-                        !isNaN(numValue) && 
+                        !isNaN(numValue) &&
                           (await handleLabwareUpdate({ ...item, width: numValue }));
                       }}
                       defaultValue={item.width.toString()}
@@ -195,7 +192,7 @@ export const Labware: React.FC = () => {
                     <EditableText
                       onSubmit={async (value) => {
                         const numValue = Number(value);
-                        !isNaN(numValue) && 
+                        !isNaN(numValue) &&
                           (await handleLabwareUpdate({ ...item, height: numValue }));
                       }}
                       defaultValue={item.height.toString()}
@@ -205,7 +202,7 @@ export const Labware: React.FC = () => {
                     <EditableText
                       onSubmit={async (value) => {
                         const numValue = Number(value);
-                        !isNaN(numValue) && 
+                        !isNaN(numValue) &&
                           (await handleLabwareUpdate({ ...item, plate_lid_offset: numValue }));
                       }}
                       defaultValue={item.plate_lid_offset.toString()}
@@ -215,7 +212,7 @@ export const Labware: React.FC = () => {
                     <EditableText
                       onSubmit={async (value) => {
                         const numValue = Number(value);
-                        !isNaN(numValue) && 
+                        !isNaN(numValue) &&
                           (await handleLabwareUpdate({ ...item, lid_offset: numValue }));
                       }}
                       defaultValue={item.lid_offset.toString()}
@@ -225,7 +222,7 @@ export const Labware: React.FC = () => {
                     <EditableText
                       onSubmit={async (value) => {
                         const numValue = Number(value);
-                        !isNaN(numValue) && 
+                        !isNaN(numValue) &&
                           (await handleLabwareUpdate({ ...item, stack_height: numValue }));
                       }}
                       defaultValue={item.stack_height.toString()}
@@ -241,10 +238,7 @@ export const Labware: React.FC = () => {
                   </Td>
                   <Td>{renderDatetime(item.updated_at ?? "")}</Td>
                   <Td>
-                    <DeleteWithConfirmation
-                      onDelete={() => handleDelete(item)}
-                      label="labware"
-                    />
+                    <DeleteWithConfirmation onDelete={() => handleDelete(item)} label="labware" />
                   </Td>
                 </Tr>
               ))}

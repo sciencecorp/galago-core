@@ -68,8 +68,8 @@ const sidebarItems: SidebarItem[] = [
   { name: "Logs", icon: FiBook, path: "/logs" },
   { name: "Variables", icon: TbVariable, path: "/variables" },
   { name: "Scripts", icon: MdOutlineIntegrationInstructions, path: "/scripts" },
- // { name: "Settings", icon: FiSettings, path: "/settings" },
- // { name: "Logout", icon: FiLogOut, path: "/logout" },
+  // { name: "Settings", icon: FiSettings, path: "/settings" },
+  // { name: "Logout", icon: FiLogOut, path: "/logout" },
 ];
 
 function DarkModeToggle() {
@@ -116,9 +116,20 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       }}>
       <VStack spacing={4} align="stretch">
         <HStack pb={10}>
-        <Image onClick={toggleSidebar} width="58px" paddingLeft="0" src="/site_logo.png" filter="brightness(1)"></Image>
-        {isSidebarExpanded && (
-            <Text as="b" pt={2} pl={2} fontSize="4xl" color="white" sx={{
+          <Image
+            onClick={toggleSidebar}
+            width="58px"
+            paddingLeft="0"
+            src="/site_logo.png"
+            filter="brightness(1)"></Image>
+          {isSidebarExpanded && (
+            <Text
+              as="b"
+              pt={2}
+              pl={2}
+              fontSize="4xl"
+              color="white"
+              sx={{
                 fontFamily: `'Bungee Shade', cursive`,
               }}>
               Galago

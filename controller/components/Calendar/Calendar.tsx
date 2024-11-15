@@ -26,8 +26,8 @@ export const Calendar: React.FC<CalendarProps> = (props) => {
   const { onDateSelect, size = "md" } = props;
   const [currentDate, setCurrentDate] = useState(new Date());
   const [daysInMonth, setDaysInMonth] = useState<Date[]>([]);
-  const bgColor = useColorModeValue("gray.500", "gray.200")
-  const hoverColor = useColorModeValue("teal.300", "teal.100") 
+  const bgColor = useColorModeValue("gray.500", "gray.200");
+  const hoverColor = useColorModeValue("teal.300", "teal.100");
   const paddingSize = useBreakpointValue({
     base: paddingMap.sm,
     md: paddingMap[size],
@@ -79,17 +79,10 @@ export const Calendar: React.FC<CalendarProps> = (props) => {
         {currentDate.toLocaleString("default", { month: "long" })} {currentDate.getFullYear()}
       </Heading>
       <Box display="flex" justifyContent="space-between" width="100%">
-        <Button
-          color={bgColor}
-          onClick={handlePrevMonth}
-          variant="ghost">
+        <Button color={bgColor} onClick={handlePrevMonth} variant="ghost">
           <FiChevronLeft /> Previous
         </Button>
-        <Button
-          onClick={handleNextMonth}
-          colorScheme="teal"
-          color={bgColor}
-          variant="ghost">
+        <Button onClick={handleNextMonth} colorScheme="teal" color={bgColor} variant="ghost">
           <FiChevronRight /> Next
         </Button>
       </Box>
@@ -112,7 +105,7 @@ export const Calendar: React.FC<CalendarProps> = (props) => {
             p={paddingSize}
             borderRadius="md"
             bg={isCurrentDay(day) ? "teal.300" : "gray.100"}
-            _hover={{ bg: hoverColor}}
+            _hover={{ bg: hoverColor }}
             onClick={() => onDateSelect && onDateSelect(day)}
             cursor="pointer">
             <Flex

@@ -164,18 +164,18 @@ pkill -9 python
 lsof -t -i tcp:3010 | xargs kill
 ```
 
-## Docker commands 
+## Docker commands
 
 ```
-#Stop containters 
+#Stop containters
 docker-compose -f docker-compose.dev.yml down
 
-#remove existing images 
+#remove existing images
 docker-compose -f docker-compose.dev.yml down --rmi all
 
-#rebuild and restart 
+#rebuild and restart
 docker-compose -f docker-compose.dev.yml up --build
 
-#add npm deps to dev environment 
+#add npm deps to dev environment
 docker-compose run --rm app npm install <package name>
 ```

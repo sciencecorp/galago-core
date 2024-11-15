@@ -25,7 +25,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
   category = "production";
   workcell = "Cell Culture Workcell";
   name = "Plate Imaging";
-  description = "Cell Imaging Protocol"
+  description = "Cell Imaging Protocol";
   paramSchema = ImageCulturePlateParams;
 
   _generateCommands(params: z.infer<typeof ImageCulturePlateParams>) {
@@ -90,7 +90,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
 
     protocol_cmds.push({
       label: "Image Plate/Run Cytation Program",
-      toolId: 'Cytation',
+      toolId: "Cytation",
       toolType: ToolType.cytation,
       command: "start_read",
       params: {

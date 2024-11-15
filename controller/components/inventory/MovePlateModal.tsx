@@ -53,8 +53,7 @@ const MovePlateModal: React.FC<MovePlateModalProps> = ({
               <Select
                 placeholder="Select new nest"
                 value={newNestId}
-                onChange={(e) => setNewNestId(Number(e.target.value))}
-              >
+                onChange={(e) => setNewNestId(Number(e.target.value))}>
                 {availableNests.map((nest) => (
                   <option key={nest.id} value={nest.id}>
                     {nest.name}
@@ -66,8 +65,7 @@ const MovePlateModal: React.FC<MovePlateModalProps> = ({
               colorScheme="blue"
               width="100%"
               onClick={() => newNestId && onSubmit(newNestId)}
-              isDisabled={!newNestId || newNestId === selectedPlate?.nest_id}
-            >
+              isDisabled={!newNestId || newNestId === selectedPlate?.nest_id}>
               Move Plate
             </Button>
           </VStack>

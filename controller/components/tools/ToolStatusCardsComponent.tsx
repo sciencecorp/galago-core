@@ -23,9 +23,9 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import styled from "@emotion/styled";
 import { NewToolModal } from "./NewToolModal";
-import {PageHeader} from "@/components/ui/PageHeader";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { load } from "@grpc/grpc-js";
-import {Tool} from "@/types/api";
+import { Tool } from "@/types/api";
 
 const CarouselContainer = styled.div`
   display: flex;
@@ -49,17 +49,18 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
   const { showAsGrid } = props;
   const utils = trpc.useContext();
   const toast = useToast();
-  const {data: fetchedIds, refetch} = trpc.tool.availableIDs.useQuery();
+  const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery();
   const [toolIds, setToolIds] = useState<string[]>([]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visibleCards, setVisibleCards] = useState(3);
-  
+
   useEffect(() => {
-    if(fetchedIds){
+    if (fetchedIds) {
       console.log("Tool IDs fetched", fetchedIds);
       setToolIds(fetchedIds);
-    }}, [fetchedIds]);
+    }
+  }, [fetchedIds]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -71,7 +72,6 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
 
   const configureMutation = trpc.tool.configure.useMutation({
     onError: (data) => {
@@ -110,7 +110,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
       <VStack spacing={4}>
         {showAsGrid ? (
           <>
-           <PageHeader title="Tools" mainButton={<NewToolModal />}/>
+            <PageHeader title="Tools" mainButton={<NewToolModal />} />
             <SimpleGrid columns={[1, 2, 3, 4]} spacing={2}>
               {toolIds.map((toolId, index) => (
                 <ToolStatusCard key={`${toolId}-${index}`} toolId={toolId} />
