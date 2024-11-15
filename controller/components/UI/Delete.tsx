@@ -1,6 +1,6 @@
 import { useDisclosure, IconButton, Text, Button } from "@chakra-ui/react";
 import React from "react";
-import { RiDeleteBinLine } from "react-icons/ri";
+import { RiDeleteBin5Line } from "react-icons/ri";
 
 import { ConfirmationModal } from "./ConfirmationModal";
 
@@ -22,15 +22,16 @@ export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
       {variant === "icon" && (
         <>
           <IconButton
-            mr={2}
             aria-label={`Delete ${label}`}
             disabled={!!disabled}
-            icon={<RiDeleteBinLine />}
+            icon={<RiDeleteBin5Line />}
             size="xs"
             onClick={onOpen}
+            variant="ghost"
+            marginLeft={2}
           />
           {showText && (
-            <Text fontSize="md" onClick={onOpen} width="100%">
+            <Text marginLeft={1} fontSize="md" onClick={onOpen} width="100%">
               Delete
             </Text>
           )}
