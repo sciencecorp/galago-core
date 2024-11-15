@@ -55,6 +55,7 @@ export interface AppSettings {
   id: number;
   name: string;
   value: string;
+  is_active: boolean;
   created_at: Date;
   updated_at: Date;
 }

@@ -6,8 +6,8 @@ import networkx as nx
 from google.protobuf import message
 from google.protobuf.json_format import Parse
 from tools.base_server import ToolServer, serve
-from tools.labware import LabwareDb, Labware
 from tools.grpc_interfaces.pf400_pb2 import Command, Config
+from tools.grpc_interfaces.labware_pb2 import Labware
 from tools.pf400.waypoints_models import (
     Waypoints,
     Location,
@@ -58,7 +58,6 @@ class Pf400Server(ToolServer):
         self.driver.initialize()
         for motion_profile in self.waypoints.motion_profiles:
             self.driver.register_motion_profile(str(motion_profile))
-        self.all_labware : LabwareDb = LabwareDb()
         if "landscape" not in self.waypoints.grip_params or "portrait" not in self.waypoints.grip_params:
             raise KeyError("missing lanndscape or portrait grip settings")
         for grip in self.waypoints.grip_params:
@@ -260,13 +259,13 @@ class Pf400Server(ToolServer):
 
 
     def RetrievePlate(self, params: Command.RetrievePlate) -> None:
-        labware:Labware = self.all_labware.get_labware(params.labware)
-        offset = (0,0,labware.zoffset)
+        labware:Labware = params.labware
+        offset = (0,0,labware.z_offset)
         self.retrieve_plate(source_nest=params.location, motion_profile_id=params.motion_profile_id, nest_offset=offset)
 
     def DropOffPlate(self, params: Command.DropOffPlate) -> None:
-        labware:Labware = self.all_labware.get_labware(params.labware)
-        offset = (0,0,labware.zoffset)
+        labware: Labware = params.labware
+        offset = (0,0,labware.z_offset)
         self.dropoff_plate(destination_nest=params.location, motion_profile_id=params.motion_profile_id, nest_offset=offset)
 
 
@@ -995,12 +994,12 @@ class Pf400Server(ToolServer):
                     "coordinate": teachpoint.coordinate,
                     "type": teachpoint.type,
                     "locType": teachpoint.loc_type,
-                    "approachPath": list(teachpoint.approach_path),  # Convert to list
+                    "approachPath": list(teachpoint.approach_path), 
                     "isEdited": teachpoint.is_edited
                 })
         except Exception as e:
             logging.error(f"Error saving teachpoints: {str(e)}")
-            raise  # Re-raise the exception to be caught by the error handler
+            raise  
 
     def save_teachpoint(self, teachpoint: dict) -> None:
         waypoints_file = os.path.join(os.path.dirname(__file__), "config", self.waypoints_json_file)

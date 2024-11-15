@@ -1,6 +1,7 @@
 syntax = 'proto3';
 
 package com.science.foundry.tools.grpc_interfaces.pf400;
+import "tools/grpc_interfaces/labware.proto";
 
 message Command {
   oneof command {
@@ -100,13 +101,13 @@ message Command {
   }
 
   message RetrievePlate {
-    string labware = 1;
+    tools.grpc_interfaces.labware.Labware labware = 1;
     string location = 2;
     optional int32 motion_profile_id = 3;
   }
 
   message DropOffPlate {
-    string labware = 1;
+    tools.grpc_interfaces.labware.Labware labware = 1;
     string location = 2;
     optional int32 motion_profile_id = 3;
   }

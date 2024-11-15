@@ -10,12 +10,6 @@ export const zWorkcell = z.object({
   description: z.string().optional(),
 });
 
-export const zAppSettings = z.object({
-  id: z.number().optional(),
-  name: z.string(),
-  value: z.string(),
-});
-
 export const workcellRouter = router({
   getAll: procedure.query(async () => {
     const response = await get<Workcell[]>(`/workcells`);
