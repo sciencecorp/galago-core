@@ -132,12 +132,11 @@ class Labware(Base, TimestampMixin):
     
 class Script(Base, TimestampMixin):
     __tablename__ = "scripts"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
     description = Column(String, nullable=False)
     content = Column(String, nullable=False)
     language = Column(String, nullable=False)
-    version = Column(String, nullable=False)
     is_blocking = Column(Boolean, nullable=False) 
 
     

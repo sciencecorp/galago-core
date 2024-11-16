@@ -2,22 +2,28 @@ import React, { useState, useEffect, use } from "react";
 import {
   Box,
   Button,
-  Center,
-  FormLabel,
   HStack,
   Text,
-  Heading,
   Input,
   VStack,
   Spacer,
-  useColorMode,
   useColorModeValue,
+  Flex,
+  useToast,
+  Tooltip,
 } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import { CloseIcon } from "@chakra-ui/icons";
 import { SiPython } from "react-icons/si";
 import { set } from "zod";
 import { RiAddFill } from "react-icons/ri";
+import {trpc} from "@/utils/trpc";
+import {Script} from "@/types/api";
+import { RiDeleteBinLine } from "react-icons/ri";
+import { NewScript } from "./NewScript";
+import { PageHeader } from "../ui/PageHeader";
+import { DeleteWithConfirmation } from "../ui/Delete";
+
 
 interface ScriptsEditorProps {
   code: string;
@@ -25,30 +31,71 @@ interface ScriptsEditorProps {
 
 export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
   const { code } = props;
-  const [allScripts, setAllScripts] = useState<string[]>([
-    "Test.py",
-    "Test2.py",
-    "Test3.py",
-    "Test4.py",
-    "Test5.py",
-    "Test6.py",
-    "Test7.py",
-    "Test8.py",
-    "Test9.py",
-    "Test10.py",
-  ]);
-  const [openTabs, setOpenTabs] = useState<string[]>([
-    "Test.py",
-    "Test2.py",
-    "Test3.py",
-    "Test4.py",
-    "Test5.py",
-  ]);
+  const [openTabs, setOpenTabs] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [filteredScripts, setFilteredScripts] = useState<string[]>([]);
-
+  const consoleBg = useColorModeValue("white", "#222324");
+  const [scripts, setScripts] = useState<Script[]>([]);
+  const {data: fetchedScript, refetch} = trpc.script.getAll.useQuery();
+  const editScript = trpc.script.edit.useMutation();
+  const deleteScript = trpc.script.delete.useMutation();
   const codeTheme = useColorModeValue("vs-light", "vs-dark");
+  const toast = useToast();
+  const [scriptsEdited, setScriptsEdited] = useState<Script[]>([]);
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentContent, setCurrentContent] = useState<string>("");
+
+  const handleSave = async () => {
+    try {
+      for (let script of scriptsEdited) {
+        if(script.id){
+          await editScript.mutateAsync(script);
+        }
+      }
+        refetch();
+        toast({
+          title: "Scripts updated successfully",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      } catch (error) {
+        toast({
+          title: "Error updating script",
+          description: `Please try again. ${error}`,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+  };
+
+  const handleDelete = async (script: Script) => {
+    try {
+      await deleteScript.mutateAsync(script.id);
+      if(openTabs.includes(script.name)){
+        setOpenTabs(openTabs.filter((t) => t !== script.name));
+      }
+
+      refetch();
+      toast({
+        title: "Script deleted successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Error deleting script",
+        description: `Please try again. ${error}`,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+  
   useEffect(() => {
     if (openTabs.length > 0) {
       setActiveTab(openTabs[openTabs.length - 1]);
@@ -56,20 +103,17 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
   }, [openTabs]);
 
   useEffect(() => {
-    if (searchQuery) {
-      setFilteredScripts(
-        allScripts.filter((script) => script.toLowerCase().includes(searchQuery.toLowerCase())),
-      );
-    } else {
-      setFilteredScripts(allScripts);
+    if (fetchedScript) {
+      setScripts(fetchedScript.filter((script) => script.name.toLowerCase().includes(searchQuery.toLowerCase())));
     }
-  }, [searchQuery]);
+  }, [fetchedScript,searchQuery]);
 
   const Tabs = () => {
     return (
       <HStack spacing={0} justifyContent="flex-start">
         {openTabs.map((tab, index) => (
           <Button
+            leftIcon={<SiPython fontSize="12px" />}
             key={index}
             onClick={() => setActiveTab(tab)}
             borderRadius={0}
@@ -77,13 +121,16 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
             display="flex"
             justifyContent="space-between"
             alignItems="center"
-            width="150px" // Adjust width as needed
+            minW="180px"
+            maxW="480px" 
+            w={tab.length > 15 ? "auto" : "180px"} 
             paddingX={2}
-            bg={activeTab === tab ? "teal.600" : "transparent"}>
-            <Box flex="1" textAlign="left">
+            bg={activeTab === tab ? "teal.600" : "transparent"}
+          >
+            <Box flex="1" textAlign="left" pl={1} isTruncated width="100%" pr={2}>
               {tab}
             </Box>
-            <CloseIcon fontSize={10} onClick={() => removeTab(tab)} />
+            <CloseIcon fontSize={8} onClick={() => removeTab(tab)} />
           </Button>
         ))}
       </HStack>
@@ -94,22 +141,36 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
     return (
       <Box height="100%" display="flex" flexDirection="column">
         {/* Script List with Scrollable Area */}
-        <VStack spacing={1} align="stretch" width="100%" flex="1" overflowY="auto">
-          {filteredScripts.map((script, index) => (
-            <Button
-              justifyContent="flex-start"
-              leftIcon={<SiPython />}
-              borderRadius={0}
-              key={index}
-              onClick={() => handleScriptClicked(script)}
-              width="100%">
-              {script}
-            </Button>
+        <VStack spacing={0.5} align="stretch" width="100%" flex="1" overflowY="auto">
+          {scripts.map((script, index) => (
+            <Tooltip label={script.description} key={index}>
+              <Button
+                justifyContent="flex-start"
+                leftIcon={<SiPython />}
+                borderRadius={0}
+                key={index}
+                onClick={() => handleScriptClicked(script.name)}
+                width="100%">
+                  <HStack justify="space-between" width="100%">
+                    <Text fontSize='14px'>{script.name}</Text>
+                    <Spacer/>
+                    <DeleteWithConfirmation label="Script" onDelete={() => handleDelete(script)} />
+                  </HStack>
+              </Button>
+            </Tooltip>
           ))}
         </VStack>
       </Box>
     );
   };
+
+  const OutputConsole = () => {
+    return(
+      <Flex width="100%" bg={consoleBg}>
+        <Text>Output Console</Text>
+      </Flex>
+    )
+  }
 
   const removeTab = (tab: string) => {
     setOpenTabs(openTabs.filter((t) => t !== tab));
@@ -129,29 +190,25 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
 
   return (
     <Box p={1} height="100%">
-      <HStack justify="space-between" width="100%">
-        <Heading size="lg">Scripts</Heading>
-        <Button colorScheme="teal" leftIcon={<RiAddFill />}>
-          New Script
-        </Button>
-      </HStack>
-      <HStack width="100%" border="1px solid" boxShadow="md" mt={4} alignItems="flex-start">
+      <PageHeader title="Scripts" mainButton={<NewScript />}/>
+      <HStack width="100%" border={`1px solid gray`} boxShadow="md" mt={4} alignItems="flex-start">
         <VStack width="15%" alignItems="flex-start" spacing={4} p={0} height="100%">
           <Text ml={3} as="b">
             SEARCH
           </Text>
-          <Input placeholder="Search" onChange={(e) => setSearchQuery(e.target.value)} />
+          <Input width="98%" ml ={2} placeholder="Search" onChange={(e) => setSearchQuery(e.target.value)}/>
           <Box width="100%">
             <Scripts />
           </Box>
         </VStack>
-        <VStack width="85%" borderLeft="1px solid" boxShadow="md">
+        <VStack width="85%" borderLeft={`1px solid gray`} boxShadow="md" spacing={0}>
           <Box width="100%">
             <Tabs />
           </Box>
           <Editor
-            height="60vh"
+            height="55vh"
             defaultLanguage="python"
+            value = {currentContent}
             defaultValue={code.trim()}
             theme={codeTheme}
             options={{
@@ -159,18 +216,21 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
             }}
             onChange={(value) => handleCodeChange(value)}
           />
+          <Box width="100%" height="25vh" bg={consoleBg} overflowY="auto" borderTop={`1px solid gray`}>
+            <OutputConsole />
+          </Box>
         </VStack>
       </HStack>
       <HStack
         spacing={2}
         padding={4}
         boxShadow="md"
-        borderBottom="1px solid"
-        borderRight='1px solid'
-        borderLeft='1px solid'
+        borderBottom={`1px solid gray`}
+        borderRight={`1px solid gray`}
+        borderLeft={`1px solid gray`}
         justifyContent="flex-end"
         position="relative">
-        <Button colorScheme="gray" size="sm">
+        <Button colorScheme="gray" size="sm" onClick={handleSave}>
           Save
         </Button>
         <Button colorScheme="teal" size="sm">

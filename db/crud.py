@@ -208,3 +208,4 @@ logs = CRUDBase[log_model.Log, schemas.LogCreate, schemas.LogUpdate](log_model.L
 variables = CRUDBase[models.Variable,schemas.VariableCreate, schemas.VariableUpdate](models.Variable)
 labware = CRUDBase[models.Labware,schemas.LabwareCreate, schemas.LabwareUpdate](models.Labware)
 settings = CRUDBase[models.AppSettings,schemas.AppSettingsCreate, schemas.AppSettingsUpdate](models.AppSettings)
+scripts = CRUDBase[models.Script,schemas.ScriptCreate, schemas.ScriptUpdate](models.Script)

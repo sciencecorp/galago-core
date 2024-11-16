@@ -558,13 +558,39 @@ def get_settings(name:str, db: Session = Depends(get_db)) -> t.Any:
         raise HTTPException(status_code=404, detail="Setting not found")
     return setting
 
-@app.post("/settings", response_model=schemas.AppSettings)
+@app.post("/settings", response_model=schemas.AppSettingsCreate)
 def create_setting(setting: schemas.AppSettingsCreate, db: Session = Depends(get_db)) -> t.Any:
     return crud.settings.create(db, obj_in=setting)
 
-@app.put("/settings/{name}", response_model=schemas.AppSettings)
+@app.put("/settings/{name}", response_model=schemas.AppSettingsUpdate)
 def update_setting(name: str, setting_update: schemas.AppSettingsUpdate, db: Session = Depends(get_db)) -> t.Any:
     settings = db.query(models.AppSettings).filter(models.AppSettings.name == name).first()
     if not settings:
         settings = crud.settings.create(db, obj_in=schemas.AppSettingsCreate(name=name, value=setting_update.value,is_active=True))
     return crud.variables.update(db, db_obj=settings, obj_in=setting_update)
+
+@app.get("/scripts", response_model=list[schemas.Script])
+def get_scripts(db: Session = Depends(get_db)) -> t.Any:
+    return crud.scripts.get_all(db)
+
+@app.get("/scripts/{script_id}", response_model=schemas.Script)
+def get_script(script_id: int, db: Session = Depends(get_db)) -> t.Any:
+    script = crud.scripts.get(db, id=script_id)
+    if script is None:
+        raise HTTPException(status_code=404, detail="Script not found")
+    return script
+
+@app.post("/scripts", response_model=schemas.ScriptCreate)
+def create_script(script: schemas.ScriptCreate, db: Session = Depends(get_db)) -> t.Any:
+    return crud.scripts.create(db, obj_in=script)
+
+@app.put("/scripts/{script_id}", response_model=schemas.ScriptCreate)
+def update_script(script_id: int, script_update: schemas.ScriptUpdate, db: Session = Depends(get_db)) -> t.Any:
+    script = db.query(models.Script).filter(models.Script.id == script_id).first()
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+    return crud.scripts.update(db, db_obj=script, obj_in=script_update)
+
+@app.delete("/scripts/{script_id}", response_model=schemas.Script)
+def delete_script(script_id:int, db: Session = Depends(get_db)) -> t.Any:
+    return crud.scripts.remove(db, id=script_id)
