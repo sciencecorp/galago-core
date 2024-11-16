@@ -214,3 +214,13 @@ export interface AppSettings {
   updated_at: Date;
 }
 
+export interface Script {
+  id: number;
+  name: string;
+  content: string;
+  description: string;
+  is_blocking: boolean;
+  language: string;
+  created_at: Date;
+  updated_at: Date;
+}

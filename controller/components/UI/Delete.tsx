@@ -11,10 +11,11 @@ export interface DeleteButtonProps {
   variant?: "icon" | "button";
   disabled?: boolean;
   showText?: boolean;
+  size? : "sm" | "md" | "lg";
 }
 
 export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
-  const { disabled, label, onDelete, showText, variant = "icon", customText } = props;
+  const { disabled, label, onDelete, showText, variant="icon",customText,size="sm"} = props;
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (

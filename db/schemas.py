@@ -156,7 +156,6 @@ class Reagent(ReagentCreate):
         from_attributes=True
         #orm_mode = True 
 
-
 class Inventory(BaseModel):
     workcell: Workcell
     instruments: t.List[Instrument]
@@ -311,6 +310,24 @@ class AppSettingsUpdate(BaseModel):
     is_active : t.Optional[bool] = None
 
 class AppSettings(TimestampMixin, AppSettingsCreate):
+    id: int
+    class Config:
+        from_attributes=True
+
+class ScriptCreate(BaseModel):
+    name: str
+    description: str
+    content: t.Optional[str] = None
+    language: t.Optional[str] = None
+    is_blocking: bool = True
+
+class ScriptUpdate(BaseModel):
+    name: t.Optional[str] = None
+    description: t.Optional[str] = None
+    content: t.Optional[str] = None
+    is_blocking: t.Optional[bool] = None
+
+class Script(ScriptCreate, TimestampMixin):
     id: int
     class Config:
         from_attributes=True
