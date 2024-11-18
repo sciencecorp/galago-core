@@ -37,19 +37,35 @@ export const EditToolModal : React.FC<EditToolModalProps> = (props) => {
   const toast = useToast();
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
+  const [newConfig, setNewConfig] = useState<Record<string, Record<string, any>>>({});
   const editTool = trpc.tool.edit.useMutation();
   const {name, description, config, type} = toolInfo;
   const context = trpc.useContext();
 
+  useEffect(() => {
+    if (isOpen && config && type !== ToolType.unknown && type !== ToolType.UNRECOGNIZED) {
+      setNewConfig({ [type]: { ...config[type] } });
+    }
+  }, [isOpen, config, type]);
+  
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const {name, value} = e.target;
-  }
-
+  const handleConfigChange = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
+    const { value } = e.target;
+    if (type !== ToolType.unknown && type !== ToolType.UNRECOGNIZED) {
+      setNewConfig(prev => ({
+        ...prev,
+        [type]: {
+          ...(prev[type] || {}),
+          [key]: value
+        }
+      }));
+    }
+  };
+  
   const handleSave = async () => {
     try {
       let id = toolId;
-      const editedTool = { name: newName || name, description: newDescription || description, config };
+      const editedTool = { name: newName || name, description: newDescription || description, config: newConfig || config };
       await editTool.mutateAsync({ id:id, config:editedTool });
       toast({
         title: "Tool updated successfully",
@@ -102,8 +118,9 @@ export const EditToolModal : React.FC<EditToolModalProps> = (props) => {
                 <FormControl key={key}>
                   <FormLabel>{capitalizeFirst(key).replaceAll("_", " ")}</FormLabel>
                   <Input
-                    value={value}
+                    value={newConfig[type]?.[key] || value}
                     onChange={(e) => {
+                      handleConfigChange(e, key);
                       const newValue = e.target.value;
                       console.log("New value: ", newValue);
                     }}
