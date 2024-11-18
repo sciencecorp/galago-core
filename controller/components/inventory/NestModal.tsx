@@ -77,7 +77,7 @@ const NestModal: React.FC<NestModalProps> = ({
 }) => {
   const [addingNests, setAddingNests] = useState(false);
   const [deletingNests, setDeletingNests] = useState(false);
-  const [dimensions, setDimensions] = useState({ rows: 1, cols: 1 });
+  const [dimensions, setDimensions] = useState({ rows: 0, cols: 0 });
   const toast = useToast();
   const [selectedNestId, setSelectedNestId] = useState<number | null>(null);
   const [plateFormData, setPlateFormData] = useState<PlateFormData>({
@@ -153,7 +153,7 @@ const NestModal: React.FC<NestModalProps> = ({
 
   // In the render method, use getPotentialNests to determine potential nests
   const potentialNests = getPotentialNests();
-  
+  console.log("potentialNests", potentialNests);
   // Function to handle dimension changes
   const handleDimensionChange = async (type: 'rows' | 'cols', value: number) => {
     const newValue = Math.max(1, Math.floor(value)); // Ensure value is at least 1 and an integer
@@ -174,7 +174,11 @@ const NestModal: React.FC<NestModalProps> = ({
           // Add new nests in the new rows
           for (let row = maxRows + 1; row <= newValue; row++) {
             for (let col = 1; col <= maxColumns; col++) {
-              await onCreateNest(row, col);
+              // Check if nest already exists at this position
+              const existingNest = nests.find(n => n.row === row && n.column === col);
+              if (!existingNest) {
+                await onCreateNest(row, col);
+              }
             }
           }
         }
@@ -189,10 +193,19 @@ const NestModal: React.FC<NestModalProps> = ({
           // Add new nests in the new columns
           for (let row = 1; row <= maxRows; row++) {
             for (let col = maxColumns + 1; col <= newValue; col++) {
-              await onCreateNest(row, col);
+              // Check if nest already exists at this position
+              const existingNest = nests.find(n => n.row === row && n.column === col);
+              if (!existingNest) {
+                await onCreateNest(row, col);
+              }
             }
           }
         }
+      }
+
+      // Create initial nest at (1,1) if no nests exist
+      if (nests.length === 0) {
+        await onCreateNest(1, 1);
       }
     } catch (error) {
       console.error('Error updating dimensions:', error);
@@ -409,7 +422,6 @@ const NestModal: React.FC<NestModalProps> = ({
                   const hasPlate = plates.some(plate => plate.nest_id === (nest ? nest.id : null));
                   const nestColor = hasPlate ? "green.300" : "gray.400";
                   const isGhostNest = !nest;
-
                   // Check if this position is a potential nest
                   const isPotentialNest = potentialNests.some(
                     p => p.row === rowIndex + 1 && p.col === colIndex + 1
@@ -437,9 +449,9 @@ const NestModal: React.FC<NestModalProps> = ({
                           nest && handleNestClick(nest);
                         }
                       }}
-                      bg={deletingNests && nest ? "red.500" : isGhostNest ? (isPotentialNest ? "transparent" : nestColor) : nestColor}
-                      borderColor={deletingNests && nest ? "red.500" : isGhostNest ? (isPotentialNest ? "blue.300" : nestColor) : nestColor}
-                      borderStyle={isGhostNest ? (isPotentialNest ? "dashed" : "solid") : "solid"}
+                      bg={deletingNests && nest ? "red.500" : isGhostNest ? "transparent" : nestColor}
+                      borderColor={deletingNests && nest ? "red.500" : isGhostNest ? "blue.300" : nestColor}
+                      borderStyle={isGhostNest ?  "dashed" : "solid"}
                       height="80px"
                       maxHeight="80px"
                       minHeight="80px"
@@ -460,15 +472,15 @@ const NestModal: React.FC<NestModalProps> = ({
                   );
                 })
               )}
-              {/* Render potential nests around existing nests */}
-              {addingNests && potentialNests.map(({ row, col }) => (
+              {/* Render potential nests around existing nests or initial nest if none exist */}
+              {addingNests && (nests.length === 0 ? (
                 <Box
-                  key={`potential-nest-${row}-${col}`}
+                  key="initial-nest"
                   p={2}
                   borderWidth="1px"
                   borderRadius="md"
                   cursor="pointer"
-                  onClick={() => onCreateNest(row, col)} // Click to create a new nest
+                  onClick={() => onCreateNest(1, 1)} // Create first nest at position 1,1
                   bg="transparent"
                   borderColor="blue.300"
                   borderStyle="dashed"
@@ -481,14 +493,41 @@ const NestModal: React.FC<NestModalProps> = ({
                   alignItems="center"
                   justifyContent="center"
                   style={{
-                    gridColumnStart: col, // Set the correct column
-                    gridRowStart: row, // Set the correct row
+                    gridColumnStart: 1,
+                    gridRowStart: 1,
+                  }}
+                  boxSizing="border-box"
+                >
+                  <Text color="blue.500">Add First Nest</Text>
+                </Box>
+              ) : potentialNests.map(({ row, col }) => (
+                <Box
+                  key={`potential-nest-${row}-${col}`}
+                  p={2}
+                  borderWidth="1px"
+                  borderRadius="md"
+                  cursor="pointer"
+                  onClick={() => onCreateNest(row, col)}
+                  bg="transparent"
+                  borderColor="blue.300"
+                  borderStyle="dashed"
+                  height="80px"
+                  maxHeight="80px"
+                  minHeight="80px"
+                  maxWidth="80px"
+                  minWidth="80px"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  style={{
+                    gridColumnStart: col,
+                    gridRowStart: row,
                   }}
                   boxSizing="border-box"
                 >
                   <Text color="blue.500">Add Nest</Text>
                 </Box>
-              ))}
+              )))}
             </Grid>
           </ModalBody>
         </ModalContent>

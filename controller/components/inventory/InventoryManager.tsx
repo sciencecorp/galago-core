@@ -33,7 +33,6 @@ export const InventoryManager: React.FC = () => {
   const { data: nests, isLoading: nestsLoading, refetch: refetchNests } = trpc.inventory.getNests.useQuery(
     SelectedWorkcellName.data ?? ""
   );
-  console.log("Nests", nests)
   const { data: plates, isLoading: platesLoading, refetch: refetchPlates } = trpc.inventory.getPlates.useQuery(
     selectedWorkcell?.name || "",
     {
