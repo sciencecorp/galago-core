@@ -14,6 +14,7 @@ import {
 import { Tool, Nest, Plate, Reagent, Well } from "@/types/api";
 import NestModal from "./NestModal";
 import styled from "@emotion/styled";
+import { trpc } from "@/utils/trpc";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -59,6 +60,8 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   const toolPlates = plates.filter((plate) => 
     toolNests.some((nest) => nest.id === plate.nest_id)
   );
+  const infoQuery = trpc.tool.info.useQuery({ toolId: tool.id });
+  const config = infoQuery.data;
   return (
     <>
       <StyledCard onClick={onOpen}>
@@ -76,7 +79,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
         <CardBody>
           <Flex justifyContent="center" alignItems="center" height="100%">
             <Image
-              src={`/tool_icons/${tool.name}.png`}
+              src={`/tool_icons/${config?.type}.png`}
               alt={tool.name}
               boxSize="120px"
               objectFit="contain"
