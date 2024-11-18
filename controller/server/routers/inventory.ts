@@ -9,7 +9,7 @@ const zNest = z.object({
   name: z.string(),
   row: z.number(),
   column: z.number(),
-  instrument_id: z.number(),
+  tool_id: z.number(),
 });
 
 const zPlate = z.object({
@@ -34,7 +34,6 @@ export const inventoryRouter = router({
     const response = await get(`/nests?workcell_name=${workcellName}`);
     return response;
   }),
-
   getNest: procedure.input(z.number()).query(async ({ input: nestId }) => {
     const response = await get(`/nests/${nestId}`);
     return response;
@@ -58,7 +57,8 @@ export const inventoryRouter = router({
 
   // Plate endpoints
   getPlates: procedure.input(z.string()).query(async ({ input: workcellName }) => {
-    const response = await get(`/plates?workcell_name=${workcellName}`);
+    const encodedName = encodeURIComponent(workcellName);
+    const response = await get(`/plates?workcell=${encodedName}`);
     return response;
   }),
 
@@ -86,6 +86,12 @@ export const inventoryRouter = router({
   deletePlate: procedure.input(z.number()).mutation(async ({ input }) => {
     await del(`/plates/${input}`);
     return { message: "Plate deleted successfully" };
+  }),
+
+  // Well endpoints
+  getWells: procedure.input(z.number()).query(async ({ input: plateId }) => {
+    const response = await get(`/wells?plate_id=${plateId}`);
+    return response;
   }),
 
   // Reagent endpoints

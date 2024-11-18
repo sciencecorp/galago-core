@@ -66,7 +66,7 @@ const InventoryVisualizer: React.FC<InventoryProps> = ({
     const newMap = inventory.instruments.reduce(
       (acc, instrument) => {
         const nestCount = inventory.nests.filter(
-          (nest) => nest.instrument_id === instrument.id,
+          (nest) => nest.tool_id === instrument.id,
         ).length;
         acc[instrument.id] = nestCount;
         return acc;
@@ -93,7 +93,7 @@ const InventoryVisualizer: React.FC<InventoryProps> = ({
   };
 
   const renderNestGrid = (instrument: any) => {
-    const instrumentNests = inventory.nests.filter((nest) => nest.instrument_id === instrument.id);
+    const instrumentNests = inventory.nests.filter((nest) => nest.tool_id === instrument.id);
     const maxRows = Math.max(...instrumentNests.map((nest) => nest.row));
     const maxColumns = Math.max(...instrumentNests.map((nest) => nest.column));
 
