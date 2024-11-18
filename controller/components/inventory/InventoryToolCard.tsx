@@ -56,7 +56,9 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   const [isCreateNestModalOpen, setIsCreateNestModalOpen] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toolNests = nests.filter((nest) => nest.name?.toString() === tool.id.toString());
-
+  const toolPlates = plates.filter((plate) => 
+    toolNests.some((nest) => nest.id === plate.nest_id)
+  );
   return (
     <>
       <StyledCard onClick={onOpen}>
@@ -65,7 +67,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
             <Box>
               <Heading size="md">{tool.name}</Heading>
               <Text fontSize="sm" color="gray.500">
-                {toolNests.length} Nests | {plates.length} Plates
+                {toolNests.length} Nests | {toolPlates.length} Plates
               </Text>
             </Box>
           </Flex>
@@ -96,14 +98,6 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
         onNestClick={onNestClick}
         onCreateNest={(row, column) => onCreateNest(tool.id, `${tool.name}`, row, column)} // Adjusted to match the signature
         />
-{/* 
-      <CreateNestModal
-        isOpen={isCreateNestModalOpen}
-        onClose={() => setIsCreateNestModalOpen(false)}
-        toolId={tool.id}
-        toolName={tool.name}
-        onCreateNest={onCreateNest}
-      /> */}
     </>
   );
 };

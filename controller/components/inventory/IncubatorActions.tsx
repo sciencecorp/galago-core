@@ -1,36 +1,29 @@
 import React from "react";
 import { VStack, Text, Button, Spinner } from "@chakra-ui/react";
 
-type InventoryActionsProps = {
+type IncubatorActionsProps = {
   mode: "checkin" | "checkout" | "create" | "move" | "delete" | "";
   setMode: (mode: "checkin" | "checkout" | "create" | "move" | "delete" | "") => void;
   isLoading: boolean;
 };
 
-const InventoryActions: React.FC<InventoryActionsProps> = ({ mode, setMode, isLoading }) => {
+const IncubatorActions: React.FC<IncubatorActionsProps> = ({ mode, setMode, isLoading }) => {
   return (
     <VStack align="center" spacing="4">
-      <Text fontSize="xl">Plates</Text>
+      <Text fontSize="xl">Incubator</Text>
       <Button
         colorScheme="gray"
         variant={mode === "checkin" ? "solid" : "outline"}
         width="100%"
         onClick={() => setMode("checkin")}>
-        Check In Plate
+        Load Plate
       </Button>
       <Button
         colorScheme="gray"
         variant={mode === "checkout" ? "solid" : "outline"}
         width="100%"
         onClick={() => setMode("checkout")}>
-        Check Out Plate
-      </Button>
-      <Button
-        colorScheme="gray"
-        variant={mode === "move" ? "solid" : "outline"}
-        width="100%"
-        onClick={() => setMode("move")}>
-        Move Plate
+        Unload Plate
       </Button>
       {isLoading && <Spinner ml={2} />}
       <Button
@@ -38,17 +31,17 @@ const InventoryActions: React.FC<InventoryActionsProps> = ({ mode, setMode, isLo
         variant={mode === "create" ? "solid" : "outline"}
         width="100%"
         onClick={() => setMode("create")}>
-        Create Plate
+        Add Plate
       </Button>
       <Button
         colorScheme="gray"
         variant={mode === "delete" ? "solid" : "outline"}
         width="100%"
         onClick={() => setMode("delete")}>
-        Delete Plate
+        Remove Plate
       </Button>
     </VStack>
   );
 };
 
-export default InventoryActions;
+export default IncubatorActions;

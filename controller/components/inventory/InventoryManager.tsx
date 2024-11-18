@@ -40,9 +40,6 @@ export const InventoryManager: React.FC = () => {
       enabled: !!selectedWorkcell?.id,
     }
   );
-  console.log("Selected Workcell ID:", selectedWorkcell?.id);
-  console.log("Query Parameter:", selectedWorkcell?.id || 0);
-  console.log("Plates", plates)
   const { data: reagents, isLoading: reagentsLoading, refetch: refetchReagents } = trpc.inventory.getReagents.useQuery(
     selectedWorkcell?.id ?? 0
   );
