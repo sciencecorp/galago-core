@@ -5,6 +5,8 @@ import {
   CardBody,
   CardHeader,
   Heading,
+  Spinner,
+  Alert,
   Text,
   Flex,
   Image,
@@ -62,6 +64,14 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   );
   const infoQuery = trpc.tool.info.useQuery({ toolId: tool.id });
   const config = infoQuery.data;
+
+  if (infoQuery.isLoading) {
+    return <Spinner size="lg" />;
+  }
+
+  if (infoQuery.isError || !config) {
+    return <Alert status="error">Could not load tool info</Alert>;
+  }
   return (
     <>
       <StyledCard onClick={onOpen}>
@@ -79,7 +89,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
         <CardBody>
           <Flex justifyContent="center" alignItems="center" height="100%">
             <Image
-              src={`/tool_icons/${config?.type}.png`}
+              src={`/tool_icons/${config.type}.png`}
               alt={tool.name}
               boxSize="120px"
               objectFit="contain"
