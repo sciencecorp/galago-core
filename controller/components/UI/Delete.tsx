@@ -15,7 +15,7 @@ export interface DeleteButtonProps {
 }
 
 export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
-  const { disabled, label, onDelete, showText, variant="icon",customText,size="sm"} = props;
+  const { disabled, label, onDelete, showText, variant="icon",customText,size="md"} = props;
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (

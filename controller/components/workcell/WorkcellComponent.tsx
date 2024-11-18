@@ -10,7 +10,6 @@ export const WorkcellComponent = () => {
   const toast = useToast();
   const { data: fetchedWorkcells, refetch } = trpc.workcell.getAll.useQuery();
   const [workcells, setWorkcells] = useState<Workcell[]>([]);
-
   useEffect(() => {
     if (fetchedWorkcells) {
       setWorkcells(fetchedWorkcells);

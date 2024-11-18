@@ -24,7 +24,6 @@ message Config {
   string protocol_dir = 1;
   string experiment_dir = 2;
   CytationReaderType reader_type = 3;
-  string tool_id = 4;
   
   enum CytationReaderType {
     CYTATION_UNKNOWN = 0;

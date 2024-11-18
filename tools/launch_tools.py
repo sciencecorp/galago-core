@@ -271,7 +271,7 @@ class ToolsManager():
         finally:
             return None
 
-    def run_subprocess(self,tool_id:str, tool_type:str, tool_name:str, port:int,confirm_modal:bool=False) -> None:
+    def run_subprocess(self, tool_type:str, tool_name:str, port:int,confirm_modal:bool=False) -> None:
         if confirm_modal:
             box_result = messagebox.askquestion(title="Confirm Tool Restart", message=f"Are you sure you want to restart {tool_name}-{tool_type}")
             if box_result == 'no':
@@ -335,7 +335,7 @@ class ToolsManager():
         self.tool_buttons.clear()
         self.tool_buttons_previous_states.clear()
 
-        def create_tool_frame(parent: tk.Widget, tool_name: str, command: Callable, tool_id: str) -> None:
+        def create_tool_frame(parent: tk.Widget, tool_name: str, command: Callable) -> None:
             frame = tk.Frame(parent)
             frame.pack(fill=tk.X, padx=3, pady=2)
             
@@ -350,7 +350,7 @@ class ToolsManager():
             self.tool_buttons_previous_states[tool_name] = False
 
         # Tool Box
-        create_tool_frame(self.widgets_frame, "Tool Box", self.start_toolbox, "toolbox")
+        create_tool_frame(self.widgets_frame, "Tool Box", self.start_toolbox)
 
         # Workcell tools
         if self.config.workcell_config and self.config.workcell_config_is_valid:
@@ -359,8 +359,7 @@ class ToolsManager():
                     create_tool_frame(
                         self.widgets_frame,
                         t.name,
-                        lambda t=t: self.run_subprocess(str(t.id), t.type, t.name, t.port, True),
-                        t.id
+                        lambda t=t: self.run_subprocess(t.type, t.name, t.port, True, )
                     )
                 except Exception as e:
                     logging.error(f"Failed to add button {t.id}. Error is {e}")
@@ -390,7 +389,7 @@ class ToolsManager():
     def start_toolbox(self) -> None:
         logging.info("Launching Toolbox")
         try:
-            self.run_subprocess("toolbox", "toolbox", "Tool Box",1010,False, )
+            self.run_subprocess("toolbox", "Tool Box",1010,False)
         except subprocess.CalledProcessError:
             logging.info("There was an error launching toolbox server.")
 
@@ -403,9 +402,6 @@ class ToolsManager():
         self.start_toolbox()
 
         counter = 0
-        if self.config.workcell_config is None:
-            return None
-
         self.populate_tool_buttons()
 
         for t in self.config.workcell_config.tools:
@@ -416,7 +412,7 @@ class ToolsManager():
             result = tool_socket.connect_ex(('127.0.0.1',t.port))
             if result != 0:
                 try:
-                    self.run_subprocess(t.id, t.type,t.name,t.port,False, )
+                    self.run_subprocess(t.type,t.name,t.port,False )
                 except Exception as e:
                     logging.error(f"Failed to launch tool {t.name}. Error is {e}")
             else:

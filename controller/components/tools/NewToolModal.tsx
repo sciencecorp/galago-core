@@ -38,9 +38,10 @@ export const NewToolModal: React.FC<NewToolModalProps> = (props) => {
   const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery();
   const availableTools = Object.values(ToolType);
   const [defaultConfig, setDefaultConfig] = useState<any>(null);
-
-  const { data: configData, isFetching: isConfigLoading } =
-    trpc.tool.getToolconfigDefinitions.useQuery(type as ToolType, {
+  
+  const { data: configData, isFetching: isConfigLoading } = trpc.tool.getProtoConfigDefinitions.useQuery(
+    type as ToolType,
+    {
       enabled: !!type, // Only fetch when type is set
     });
 
@@ -114,7 +115,6 @@ export const NewToolModal: React.FC<NewToolModalProps> = (props) => {
                   value={type}
                   onChange={(e) => {
                     const enumValue = e.target.value as ToolType;
-                    console.log("Selected tool type: ", enumValue);
                     setType(enumValue); // This sets the actual enum value, not the string
                   }}
                   placeholder="Select Tool">

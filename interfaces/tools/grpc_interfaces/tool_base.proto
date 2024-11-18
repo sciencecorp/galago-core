@@ -43,7 +43,6 @@ message Command {
 
 message Config {
   bool simulated = 1;
-
   oneof config {
     tools.grpc_interfaces.cytation.Config cytation = 20;
     tools.grpc_interfaces.opentrons2.Config opentrons2 = 21;

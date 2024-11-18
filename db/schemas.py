@@ -15,7 +15,6 @@ class ToolCreate(BaseModel):
     ip: str = "localhost"
     port: t.Optional[int] = None
     config: t.Optional[dict] = None
-    simulated: t.Optional[bool] = None
     workcell_id: t.Optional[int] = None
 
 class ToolUpdate(BaseModel):
@@ -25,7 +24,6 @@ class ToolUpdate(BaseModel):
     ip: t.Optional[str] = None
     port: t.Optional[int] = None
     config: t.Optional[dict] = None
-    simulated: t.Optional[bool] = None
 
 
 class Tool(ToolCreate, TimestampMixin):

@@ -19,16 +19,19 @@ import {
   IconButton,
   Icon,
   useToast,
+  useDisclosure,
+  Modal
 } from "@chakra-ui/react";
 import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import Link from "next/link";
 import { ToolConfigEditor } from "./ToolConfigEditor";
 import { ToolStatusTag } from "./ToolStatusTag";
 import styled from "@emotion/styled";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PiToolbox } from "react-icons/pi";
 import { DeleteWithConfirmation } from "../UI/Delete";
 import { EditMenu } from "../UI/EditMenu";
+import { EditToolModal } from "./EditToolConfig";
 import { Tool } from "@/types/api";
 import { useRouter } from "next/router";
 import { FaHandSparkles } from "react-icons/fa";
@@ -62,20 +65,23 @@ export default function ToolStatusCard({ toolId, minimal = false, style = {} }: 
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
 
-  const infoQuery = trpc.tool.info.useQuery({ toolId: toolId });
-  const config = infoQuery.data;
+  const infoQuery = trpc.tool.info.useQuery({toolId: toolId});
+  const toolData = infoQuery.data;
   const { description, name } = infoQuery.data || {};
   const deleteTool = trpc.tool.delete.useMutation();
-  const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery();
+  const {data: fetchedIds, refetch} = trpc.tool.availableIDs.useQuery();
+  const editTool = trpc.tool.edit.useMutation();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const toast = useToast();
   if (infoQuery.isLoading) {
     return <Spinner size="lg" />;
   }
 
-  if (infoQuery.isError || !config) {
+  if (infoQuery.isError || !toolData) {
     return <Alert status="error">Could not load tool info</Alert>;
   }
+
 
   const handleDelete = async (toolId: number) => {
     try {
@@ -101,7 +107,7 @@ export default function ToolStatusCard({ toolId, minimal = false, style = {} }: 
   function renderToolImage(config: any) {
     if (!config.image_url) {
       return <Box></Box>;
-    } else if (config.id === "Tool Box") {
+    } else if (config.id === 1206) {
       return (
         <Box display="flex" justifyContent="center" alignItems="center">
           <IconButton
@@ -133,6 +139,7 @@ export default function ToolStatusCard({ toolId, minimal = false, style = {} }: 
   };
 
   return (
+    <>
     <StyledCard
       p={2}
       style={{ width: "280px", ...style }}
@@ -158,7 +165,7 @@ export default function ToolStatusCard({ toolId, minimal = false, style = {} }: 
                 top: 2
               }}
               customMenuItems={
-                config.type === ToolType.pf400 && (
+                toolData.type === ToolType.pf400 && (
                   <MenuItem onClick={handleTeachPendantClick} 
                             icon={<FaHandSparkles />}
                   >
@@ -181,18 +188,21 @@ export default function ToolStatusCard({ toolId, minimal = false, style = {} }: 
             {isHovered ? (
               <Flex justifyContent="space-between" alignItems="center" width="100%">
                 <Box flex="1" opacity={isHovered ? 1 : 0} transition="opacity 0.3s">
-                  <ToolConfigEditor toolId={toolId} defaultConfig={config as ToolConfig} />
+                  <ToolConfigEditor toolId={toolId} defaultConfig={toolData as ToolConfig} />
                 </Box>
                 <Box width="60px" height="60px">
-                  {<Link href={`/tools/${toolId}`}>{renderToolImage(config)}</Link>}
+                  {<Link href={`/tools/${toolId}`}>{renderToolImage(toolData)}</Link>}
                 </Box>
               </Flex>
             ) : (
-              <Box>{<Link href={`/tools/${toolId}`}>{renderToolImage(config)}</Link>}</Box>
+              <Box>{<Link href={`/tools/${toolId}`}>{renderToolImage(toolData)}</Link>}</Box>
             )}
           </Flex>
         </VStack>
       </CardBody>
     </StyledCard>
+     <EditToolModal toolId={toolId} toolInfo = {toolData as ToolConfig} isOpen={isOpen} onClose={onClose} refetch={refetch}/>
+    </>
+
   );
 }

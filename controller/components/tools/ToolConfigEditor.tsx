@@ -75,7 +75,7 @@ export function ToolConfigEditor({
     statusQuery.isSuccess &&
     statusQuery.data &&
     statusQuery.data.status !== ToolStatus.OFFLINE &&
-    toolId != "toolbox";
+    toolId != 1206;
   const toolType = defaultConfig.type;
   const config = toolSpecificConfig(defaultConfig);
   const [configString, setConfigString] = useState(JSON.stringify(config, null, 2));

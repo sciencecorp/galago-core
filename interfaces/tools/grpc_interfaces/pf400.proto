@@ -195,8 +195,7 @@ message Command {
 message Config {
   string host = 1;
   int32 port = 2;
-  string tool_id = 3;
-  string waypoints_json_file = 4;
-  int32 joints = 5;
+  string waypoints_json_file = 3;
+  int32 joints = 4;
   
 }
