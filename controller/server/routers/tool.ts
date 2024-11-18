@@ -67,7 +67,6 @@ export const toolRouter = router({
      // await Tool.removeTool(id); //Remove the tool from the store
       const tool = await Tool.forId(id); //Recreate the tool with the new config
 
-            // Step 4: Update the Tool instance with the new data
       tool.info = {
         ...tool.info,
         name: config.name ?? tool.info.name,

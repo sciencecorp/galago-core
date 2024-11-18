@@ -39,6 +39,7 @@ export const EditToolModal : React.FC<EditToolModalProps> = (props) => {
   const [newDescription, setNewDescription] = useState("");
   const [newConfig, setNewConfig] = useState<Record<string, Record<string, any>>>({});
   const editTool = trpc.tool.edit.useMutation();
+  const getTool = trpc.tool.info.useQuery({toolId: toolId});
   const {name, description, config, type} = toolInfo;
   const context = trpc.useContext();
 
@@ -61,7 +62,7 @@ export const EditToolModal : React.FC<EditToolModalProps> = (props) => {
       }));
     }
   };
-  
+
   const handleSave = async () => {
     try {
       let id = toolId;
