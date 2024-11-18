@@ -11,6 +11,7 @@ import { get, post, put, del } from "@/server/utils/api";
 import { idText } from "typescript";
 import * as controller_protos from "gen-interfaces/controller";
 import { Workcell, AppSettings} from "@/types/api";
+import { config } from "dotenv";
 
 const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
 
@@ -71,7 +72,7 @@ export const toolRouter = router({
         ...tool.info,
         name: config.name ?? tool.info.name,
         description: config.description ?? tool.info.description,
-       // config: config.config ?? tool.info.config,
+        config: config.config ?? tool.info.config,
       };
 
       return response;
