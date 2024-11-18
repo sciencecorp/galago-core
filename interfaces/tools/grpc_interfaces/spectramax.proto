@@ -22,6 +22,5 @@ message Command {
 message Config {
   string protocol_dir = 1;
   string experiment_dir = 2;
-  string tool_id = 3;
 }
 

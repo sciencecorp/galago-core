@@ -55,4 +55,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if not args.port:
         raise RuntimeWarning("Port must be provided...")
-    serve(Dataman70Server(), os.environ.get('PORT', '4500'))
+    serve(Dataman70Server(), str(args.port))

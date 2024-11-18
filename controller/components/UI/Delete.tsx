@@ -15,7 +15,7 @@ export interface DeleteButtonProps {
 }
 
 export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
-  const { disabled, label, onDelete, showText, variant="icon",customText,size="sm"} = props;
+  const { disabled, label, onDelete, showText, variant="icon",customText,size="md"} = props;
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
@@ -23,16 +23,20 @@ export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
    {variant === "icon" && (
     <>
       <IconButton
-        mr={-2}
+        padding="0"
+        margin="0"
+        minWidth="0"
+        borderRadius="0"
         aria-label={`Delete ${label}`}
         disabled={!!disabled}
         icon={<RiDeleteBinLine />}
-        size={size} 
+        size={size}
         bg="transparent"
         onClick={onOpen}
       />
+
       {showText && ( 
-        <Text fontSize="md" onClick={onOpen} width="100%">
+        <Text px={2} fontSize="md" onClick={onOpen} width="100%">
           Delete
         </Text>
       )}

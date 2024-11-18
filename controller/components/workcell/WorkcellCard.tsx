@@ -42,8 +42,8 @@ interface WorkcellCardProps {
 export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
     const { workcell } = props;
     const [isHovered, setIsHovered] = useState(false);
-    const bg = useColorModeValue("teal.100", "teal.700");
-    const toolBg = useColorModeValue("gray.100", "gray.700");
+    const bg = useColorModeValue("teal.700", "teal.200");
+    const toolBg = useColorModeValue("gray.200", "gray.800");
     const deleteWorkcell = trpc.workcell.delete.useMutation();
     const clearToolStore = trpc.tool.clearToolStore.useMutation();
     const editWorkcell = trpc.workcell.edit.useMutation();
@@ -56,9 +56,18 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
     const {data:selectedWorkcellData, refetch} = trpc.workcell.getSelectedWorkcell.useQuery();
     const toast = useToast();
 
+    const  handleSelect = async () => {
+      await setWorkcell.mutate(workcell.name);
+      await clearToolStore.mutate();
+      document.title = `Workcell - ${workcell.name}`;
+    }
+
     useEffect(() => {
         if(selectedWorkcellData){
             setSelectedWorkcell(selectedWorkcellData);
+            if(selectedWorkcellData === workcell.name){
+              document.title = `Workcell - ${workcell.name}`;
+            }
         }
     }, [selectedWorkcellData]);
 
@@ -101,11 +110,25 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
         if (!workcell.tools) return;
         return (
             <Box 
-            p={2} 
-            borderRadius='md'
-            bg={toolBg}
+              p={2} 
+              borderRadius='md'
+              bg={toolBg}
             >
-            {workcell.tools.length} Tools
+            {selectedWorkcell === workcell.name ? <Text as="b" color={bg}>{workcell.tools.length} Tools</Text> : <Text color="gray.400">{workcell.tools.length} Tools</Text>}
+            </Box>
+        )
+    }
+
+    const Location = () => {
+        if (!workcell) return;
+        if (!workcell.location) return;
+        return (
+            <Box 
+              p={2} 
+              borderRadius='md'
+              bg={toolBg}
+            >
+            {selectedWorkcell === workcell.name ? <Text as="b" color={bg}>{workcell.name}</Text> : <Text color="gray.400">{workcell.location}</Text>}
             </Box>
         )
     }
@@ -117,7 +140,8 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
           height="280px"
           direction={{ base: "column", sm: "row" }}
           overflow="hidden"
-          bg={selectedWorkcell === workcell.name ? bg :"transparent"}
+          border={selectedWorkcell === workcell.name ? "2px solid" : "1px solid"}
+          borderColor={selectedWorkcell === workcell.name ? bg :"gray.200"}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           boxShadow={isHovered ? "xl" : "sm"}
@@ -130,6 +154,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
               <Flex justifyContent="space-between" width="100%">
                 <Heading size="lg">
                   <EditableText
+                    preview={selectedWorkcell === workcell.name ? <Text as="b" color={bg}>{workcell.name}</Text> : <Text color="gray.400">{workcell.name}</Text>}
                     defaultValue={workcell.name}
                     onSubmit={(value) => {
                         value && handleEdit({ ...workcell, name: value });
@@ -139,20 +164,24 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
               </Flex>
               <Text fontSize="16px" mt={8}>
                 <EditableText
+                    preview={selectedWorkcell === workcell.name ? <Text as="b" color={bg}>{workcell.description}</Text> : <Text color="gray.400">{workcell.description}</Text>}
                     defaultValue={workcell.description}
                     onSubmit={(value) => {
                         value && handleEdit({ ...workcell, description: value });
                     }}
                   />
               </Text>
-              <Box mt={2} width="100%">
-                {Tools()}
+              <Box mt={2} width="100%" >
+                <HStack width="100%" spacing={1}>
+                  {Tools()}
+                  {Location()}
+                </HStack>
               </Box>
             </CardBody>
             <CardFooter pt={0} justifyContent="flex-start" width="100%">
               <ButtonGroup>
                 <Button 
-                    onClick={async () => {await setWorkcell.mutate(workcell.name);await clearToolStore.mutate();}}
+                    onClick={async () => {handleSelect();}}
                     colorScheme="teal" 
                     variant="solid">
                   Select

@@ -11,6 +11,7 @@ export const WorkcellComponent = () => {
   const { data: fetchedWorkcells, refetch } = trpc.workcell.getAll.useQuery();
   const [workcells, setWorkcells] = useState<Workcell[]>([]);
   
+  
   useEffect(() => {
     if (fetchedWorkcells) {
       setWorkcells(fetchedWorkcells);

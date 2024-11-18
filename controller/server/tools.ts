@@ -5,7 +5,6 @@ import * as tool_base from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import * as tool_driver from "gen-interfaces/tools/grpc_interfaces/tool_driver";
 import { ToolType } from "gen-interfaces/controller";
-import ControllerConfig from "./utils/ControllerConfig";
 import { PromisifiedGrpcClient, promisifyGrpcClient } from "./utils/promisifyGrpcCall";
 import { setInterval, clearInterval } from "timers";
 import { trpc } from "@/utils/trpc";
@@ -35,7 +34,6 @@ export default class Tool {
     const grpcServerIp =  "host.docker.internal";
     const target = `${grpcServerIp}:${info.port}`;
 
-
     this.grpc = promisifyGrpcClient(
       new tool_driver.ToolDriverClient(target, grpc.credentials.createInsecure()),
     );
@@ -56,7 +54,6 @@ export default class Tool {
       this.heartbeat = undefined;
     }
   }
- 
 
   async fetchStatus() {
     try {
@@ -65,14 +62,14 @@ export default class Tool {
       this.uptime = statusReply.uptime;
       return statusReply;
     } catch (e) {
-      console.error(`Failed to fetch status for tool ${this.info.name}: ${e.message}`);
+      console.error(`Failed to fetch status for tool ${this.info.name}: ${e}`);
       this.status = ToolStatus.UNKNOWN_STATUS;
       this.stopHeartbeat();
       return { uptime: 0, status: ToolStatus.UNKNOWN_STATUS } as tool_base.StatusReply;
     }
   }
 
-  get id(): string {
+  get id(): number {
     return this.info.id;
   }
 
@@ -92,9 +89,7 @@ export default class Tool {
   }
 
   async configureAllTools() {
-    for (const tool in ControllerConfig.tools) {
-      const toolConfig = tool;
-    }
+
   }
 
   _payloadForCommand(command: ToolCommandInfo): tool_base.Command {
@@ -133,6 +128,33 @@ export default class Tool {
     return reply.estimated_duration_seconds;
   }
 
+
+  static async updateToolInfo(toolId: number, input: Partial<Tool>) {
+    
+  }
+
+  static async removeTool(toolId: number) {
+    const global_key = "__global_tool_store";
+    const me = global as any;
+    if (!me[global_key]) {
+      return;
+    }
+    const store: Map<number, Tool> = me[global_key];
+    const tool = store.get(toolId);
+    if (!tool) {
+      return;
+    }
+    try {
+      tool.stopHeartbeat();
+      if (tool.grpc) {
+        tool.grpc.close();
+      }
+      store.delete(toolId);
+    } catch (error) {
+      console.error(`Error while removing tool ${toolId}: ${error}`);
+    }
+  }
+
   static async clearToolStore() {
     const global_key = "__global_tool_store";
     const me = global as any;
@@ -149,16 +171,13 @@ export default class Tool {
         counter++;
         console.log(`Clearing tool: ${toolId}`);
         
-        // Stop heartbeat
         tool.stopHeartbeat();
   
-        // Close the gRPC client connection
         if (tool.grpc) {
           console.log(`Closing gRPC client for tool: ${toolId}`);
           tool.grpc.close();
         }
   
-        // Remove the tool from the store
         store.delete(toolId);
       } catch (error) {
         console.error(`Error while clearing tool ${toolId}: ${error}`);
@@ -175,7 +194,13 @@ export default class Tool {
   }
 
   static  async getToolConfigDefinition(toolType:ToolType){
+    console.log("Tool Type: ", toolType);
+    if (toolType === ToolType.UNRECOGNIZED || toolType === ToolType.unknown) {
+      console.warn(`Received unsupported or unknown ToolType: ${toolType}`);
+      return {}; // Return a default or empty config object
+    }
     const toolTypeName = ToolType[toolType];
+    console.log("Tool Type Name: ", toolTypeName);
     if (!toolTypeName) {
       throw new Error(`Unsupported ToolType: ${toolType}`);
     }
@@ -192,21 +217,21 @@ export default class Tool {
     }
   }
   
-  static forId(id: string, forceRestart?:boolean): Tool {
+  static forId(id: number): Tool {
     const global_key = "__global_tool_store";
     const me = global as any;
     if (!me[global_key]) {
       me[global_key] = new Map();
     }
-    const store: Map<string, Tool> = me[global_key];
+    const store: Map<number, Tool> = me[global_key];
     let tool = store.get(id);
     if (!tool) {
       let toolInfo = {} as controller_protos.ToolConfig;
-      if (id == "Tool Box") {
+      if (id == 1206) {
         const result = this.toolBoxConfig();
         toolInfo = result;
       } else {
-        const result = this.allTools.find((tool) => tool.name === id);
+        const result = this.allTools.find((tool) => tool.id === id);
         if (!result) {
           throw new Error(
             `Tool with id ${id} not found in in database'`,
@@ -221,23 +246,18 @@ export default class Tool {
     return tool;
   }
 
-  static workcellName(): string {
-    return ControllerConfig.name;
-  }
-
   static toolBoxConfig(): controller_protos.ToolConfig {
     return {
       name: "Tool Box",
-      id: "Tool Box",
+      id: 1206,
       type: "toolbox" as ToolType,
       description: "General Tools",
       image_url: "/tool_icons/toolbox.png",
       ip: "host.docker.internal",
       port: 1010,
       config: {
-        simulated: false,
+        simulated:false,
         toolbox: {
-          tool_id: "Tool Box",
         },
       },
     };

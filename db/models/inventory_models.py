@@ -10,8 +10,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 
 
-
-
 class TimestampMixin:
     @declared_attr
     def created_at(cls) -> Column:
@@ -19,7 +17,6 @@ class TimestampMixin:
     @declared_attr
     def updated_at(cls) -> Column:
         return Column(DateTime, default=datetime.datetime.now(), onupdate=datetime.datetime.now())
-
 
 class Workcell(Base, TimestampMixin):
     __tablename__ = "workcells"
@@ -43,7 +40,6 @@ class Tool(Base, TimestampMixin):
     ip = Column(String, nullable=False)
     port = Column(Integer, nullable=False)
     config = Column(JSON, nullable=True) 
-    simulated = Column(Boolean, default=False)
     workcell_id = Column(String, ForeignKey("workcells.id"))
     workcell = relationship("Workcell", back_populates="tools")
     nests = relationship("Nest", back_populates="tool")

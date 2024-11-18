@@ -11,6 +11,7 @@ import {
   Flex,
   useToast,
   Tooltip,
+  Wrap
 } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import { CloseIcon } from "@chakra-ui/icons";
@@ -45,6 +46,9 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const [isEditing, setIsEditing] = useState(false);
   const [currentContent, setCurrentContent] = useState<string>("");
+  const consoleHeaderBg = useColorModeValue("gray.100", "gray.800");
+  const [consoleText, setConsoleText] = useState<string>("");
+  const activeTabFontColor = useColorModeValue("teal.600", "teal.200"); 
 
   const handleSave = async () => {
     try {
@@ -59,6 +63,7 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
           status: "success",
           duration: 3000,
           isClosable: true,
+          position: "top",
         });
       } catch (error) {
         toast({
@@ -67,6 +72,7 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
           status: "error",
           duration: 3000,
           isClosable: true,
+          position: "top",
         });
       }
   };
@@ -84,6 +90,7 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
         status: "success",
         duration: 3000,
         isClosable: true,
+        position: "top",
       });
     } catch (error) {
       toast({
@@ -92,6 +99,7 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "top",
       });
     }
   };
@@ -125,10 +133,9 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
             maxW="480px" 
             w={tab.length > 15 ? "auto" : "180px"} 
             paddingX={2}
-            bg={activeTab === tab ? "teal.600" : "transparent"}
           >
             <Box flex="1" textAlign="left" pl={1} isTruncated width="100%" pr={2}>
-              {tab}
+              <Text color={activeTab === tab ? activeTabFontColor : ""}>{tab}</Text>
             </Box>
             <CloseIcon fontSize={8} onClick={() => removeTab(tab)} />
           </Button>
@@ -140,7 +147,6 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
   const Scripts = () => {
     return (
       <Box height="100%" display="flex" flexDirection="column">
-        {/* Script List with Scrollable Area */}
         <VStack spacing={0.5} align="stretch" width="100%" flex="1" overflowY="auto">
           {scripts.map((script, index) => (
             <Tooltip label={script.description} key={index}>
@@ -167,7 +173,12 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
   const OutputConsole = () => {
     return(
       <Flex width="100%" bg={consoleBg}>
-        <Text>Output Console</Text>
+        <Box borderBottom='1px solid gray' width='100%' bg={consoleHeaderBg} p={1}>
+         <Text>Output Console</Text>
+        </Box>
+        <Wrap overflowY="auto">
+          <Text>{consoleText}</Text>
+        </Wrap>
       </Flex>
     )
   }
@@ -205,18 +216,26 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
           <Box width="100%">
             <Tabs />
           </Box>
-          <Editor
-            height="55vh"
-            defaultLanguage="python"
-            value = {currentContent}
-            defaultValue={code.trim()}
-            theme={codeTheme}
-            options={{
-              fontSize: 20,
-            }}
-            onChange={(value) => handleCodeChange(value)}
-          />
-          <Box width="100%" height="25vh" bg={consoleBg} overflowY="auto" borderTop={`1px solid gray`}>
+          {activeTab && openTabs.length >0 ? ( 
+            <Editor
+              height="60vh"
+              defaultLanguage="python"
+              value = {currentContent}
+              defaultValue={code.trim()}
+              theme={codeTheme}
+              options={{
+                fontSize: 20,
+              }}
+              onChange={(value) => handleCodeChange(value)}
+            />
+          ) : 
+          (
+            <Box width="100%" height="60vh" display="flex" justifyContent="center" alignItems="center">
+              <Text>Select a script to view or edit</Text>
+            </Box>
+          )
+          }
+          <Box width="100%" height="20vh" bg={consoleBg} overflowY="auto" borderTop={`1px solid gray`}>
             <OutputConsole />
           </Box>
         </VStack>

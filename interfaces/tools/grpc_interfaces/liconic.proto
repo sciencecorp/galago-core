@@ -31,5 +31,4 @@ message Command {
 
 message Config {
   string com_port = 1;
-  string tool_id = 2;
 }

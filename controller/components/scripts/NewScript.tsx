@@ -56,6 +56,7 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "top",
       });
       return;
     }
@@ -66,15 +67,16 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
       await addScript.mutateAsync(script);
       await refetch();
       toast({
-        title: `Tool created successfully`,
+        title: `Script created successfully`,
         status: "success",
         duration: 3000,
         isClosable: true,
+        position: "top",
       });
       onClose();
     } catch (error) {
       toast({
-        title: "Error creating tool",
+        title: "Error creating script",
         description: `Please try again. ${error}`,
         status: "error",
         duration: 3000,

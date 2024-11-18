@@ -376,7 +376,7 @@ export default function Page() {
   //const { id } = params;
   const id = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
 
-  const infoQuery = trpc.tool.info.useQuery({ toolId: id || ""});
+  const infoQuery = trpc.tool.info.useQuery({ toolId: Number(id)});
   const config = infoQuery.data;
   const [commandExecutionStatus, setCommandExecutionStatus] = useState<CommandStatus>({});
   const [selectedCommand, setSelectedCommand] = useState<string | undefined>();
@@ -392,7 +392,7 @@ export default function Page() {
   const toast = useToast();
 
   useEffect(() => {
-    document.title = ` ${config?.name}`;
+    document.title = ` ${config?.name} - Tool Commands`;
   }, []);
 
   useEffect(() => {
@@ -651,7 +651,7 @@ export default function Page() {
   return (
     <>
       <Box p={12} maxWidth="1800px" margin="auto">
-        <ToolStatusCard toolId={id || ""} />
+        <ToolStatusCard toolId={Number(id)} />
         <FormControl>
           <VStack width="100%" spacing={1}>
             <FormLabel>Select Command</FormLabel>

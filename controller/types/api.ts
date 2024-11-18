@@ -21,7 +21,7 @@ export interface Variable {
 }
 
 export interface Tool {
-  id: string;
+  id: number;
   name: string;
   ip: string;
   port: number;
