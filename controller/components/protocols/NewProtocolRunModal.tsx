@@ -111,15 +111,20 @@ function ParamInput({
   }
 }
 
-export default function NewProtocolRunModal({ id }: { id: string }) {
+export default function NewProtocolRunModal({ 
+  id, 
+  onClose 
+}: { 
+  id: string;
+  onClose: () => void;
+}) {
   const router = useRouter();
   const toast = useToast();
   const workcellData = trpc.workcell.getSelectedWorkcell.useQuery();
   const workcellName = workcellData.data;
-  // const [uiParams, setuiParams] = useState()
   const protocol = trpc.protocol.get.useQuery({ id });
   const uiParams = protocol.data?.uiParams || {};
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onOpen } = useDisclosure({ defaultIsOpen: true });
   const [userDefinedParams, setUserDefinedParams] = useState<Record<string, any>>({});
   const [formErrors, setFormErrors] = useState<z.inferFormattedError<z.AnyZodObject>>();
 
@@ -143,19 +148,30 @@ export default function NewProtocolRunModal({ id }: { id: string }) {
     },
   });
 
+  const handleClose = () => {
+    onClose();
+    router.push('/protocols', undefined, { shallow: true });
+  };
+
+  const handleSuccess = () => {
+    onClose();
+    router.push('/runs', undefined, { shallow: true });
+  };
+
   return (
     <>
       {workcellName && uiParams && protocol && (
         <Box>
-          <Modal isOpen={true} onClose={onClose}>
+          <Modal 
+            isOpen={isOpen} 
+            onClose={handleClose}
+            closeOnOverlayClick={true}
+            closeOnEsc={true}
+          >
             <ModalOverlay />
             <ModalContent>
               <ModalHeader>New Protocol Run</ModalHeader>
-              <ModalCloseButton
-                onClick={() => {
-                  router.push(`/protocols`);
-                }}
-              />
+              <ModalCloseButton onClick={handleClose} />
               <ModalBody>
                 <VStack align="start" spacing={4}>
                   <>
@@ -186,10 +202,7 @@ export default function NewProtocolRunModal({ id }: { id: string }) {
               </ModalBody>
               <ModalFooter>
                 <ButtonGroup>
-                  <Button
-                    onClick={() => {
-                      router.push(`/protocols`);
-                    }}>
+                  <Button onClick={handleClose}>
                     Cancel
                   </Button>
                   <Button
@@ -202,10 +215,7 @@ export default function NewProtocolRunModal({ id }: { id: string }) {
                           params: userDefinedParams,
                         },
                         {
-                          onSuccess: () => {
-                            setUserDefinedParams({});
-                            onClose();
-                          },
+                          onSuccess: handleSuccess,
                         },
                       );
                     }}>

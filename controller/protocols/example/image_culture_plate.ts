@@ -9,10 +9,10 @@ const zWellSelection = z.array(
 
 export const ImageCulturePlateParams = z
   .object({
-    cytationProgram: z.string().describe("The name of the Cytation protocol to run"),
-    liconic_cassette: z.number().positive().int(),
-    liconic_level: z.number().positive().int(),
-    wellPlateID: z.string().describe("ID of the well plate"),
+    cytationProgram: z.string().describe("The name of the Cytation protocol to run").default("Brightfield_10x"),
+    liconic_cassette: z.number().positive().int().default(1),
+    liconic_level: z.number().positive().int().default(1),
+    wellPlateID: z.string().describe("ID of the well plate").default("1"),
     culturePlateType: z.string().default("6 well").describe("The type of plate (6,12,24,96)"),
     wellAddresses: zWellSelection
       .default(["A1", "B2", "A3"])
@@ -32,12 +32,12 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
     const cassette = params.liconic_cassette;
     const level = params.liconic_level;
     const wellPlateID: string = params.wellPlateID;
-    const experiment_name: string = `${params.cytationProgram.split(".")[0]}_${wellPlateID}_`;
+    const experiment_name: string = `${params.cytationProgram?.split(".")[0]}_${wellPlateID}_`;
     let cultureLabware = "default";
-    if (params.culturePlateType.includes("6 well")) {
+    if (params.culturePlateType?.includes("6 well")) {
       cultureLabware = "384-well celltreat";
     }
-    if (params.culturePlateType.includes("384 well")) {
+    if (params.culturePlateType?.includes("384 well")) {
       cultureLabware = "6-well celltreat";
     }
 

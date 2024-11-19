@@ -1,22 +1,27 @@
 import { Protocol } from "@/types/api";
-import { useToast } from "@chakra-ui/react";
+import { Protocols } from "@/server/protocols";
 import { mockProtocols } from "@/mocks/protocolMocks";
 
 export class ProtocolManager {
-  private toast;
   private onSuccess?: () => void;
   private onError?: (error: Error | unknown) => void;
 
   constructor({ onSuccess, onError }: { onSuccess?: () => void; onError?: (error: Error) => void } = {}) {
-    this.toast = useToast();
     this.onSuccess = onSuccess;
     this.onError = (error: unknown) => onError?.(error as Error);
   }
 
   useGetProtocols(workcellName: string) {
-    // Mock implementation
     return {
-      data: mockProtocols.filter(p => !workcellName || p.workcell === workcellName),
+      data: Protocols.filter(p => !workcellName || p.workcell === workcellName).map(protocol => ({
+        id: protocol.protocolId,
+        name: protocol.name,
+        category: protocol.category,
+        workcell: protocol.workcell,
+        description: protocol.description,
+        commands: protocol.preview(),
+        number_of_commands: protocol.preview()?.length || 0
+      })),
       isLoading: false,
       isError: false,
       refetch: () => {},
@@ -24,9 +29,20 @@ export class ProtocolManager {
   }
 
   useGetProtocol(id: string) {
-    // Mock implementation
+    const protocol = Protocols.find(p => p.protocolId === id);
+    if (!protocol) return { data: null, isLoading: false, isError: false };
+    
     return {
-      data: mockProtocols.find(p => p.id === parseInt(id)),
+      data: {
+        name: protocol.name,
+        id: protocol.protocolId,
+        category: protocol.category,
+        workcell: protocol.workcell,
+        description: protocol.description,
+        commands: protocol._generateCommands({}),
+        icon: protocol.icon,
+        number_of_commands: protocol._generateCommands({}).length
+      },
       isLoading: false,
       isError: false,
     };
@@ -35,16 +51,9 @@ export class ProtocolManager {
   useCreateProtocol() {
     return {
       mutateAsync: async (newProtocol: Partial<Protocol>) => {
-        // Simulate API call
-        const protocol = {
-          ...newProtocol,
-          id: mockProtocols.length + 1,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        mockProtocols.push(protocol as Protocol);
-        this.onSuccess?.();
-        return protocol;
+        // Creating new protocols would require additional implementation
+        // as protocols are defined as classes
+        throw new Error("Creating new protocols is not supported");
       },
     };
   }
@@ -52,11 +61,9 @@ export class ProtocolManager {
   useDeleteProtocol() {
     return {
       mutateAsync: async (id: string) => {
-        const index = mockProtocols.findIndex(p => p.id === parseInt(id));
-        if (index > -1) {
-          mockProtocols.splice(index, 1);
-        }
-        this.onSuccess?.();
+        // Deleting protocols would require additional implementation
+        // as protocols are defined in the codebase
+        throw new Error("Deleting protocols is not supported");
       },
     };
   }

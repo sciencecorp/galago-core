@@ -10,6 +10,11 @@ import {
   Thead,
   Tbody,
   Tr,
+  Spinner,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
   Th,
   Td,
   Tag,
@@ -18,39 +23,87 @@ import {
   useToast,
   Divider,
 } from "@chakra-ui/react";
-import { DeleteIcon, AddIcon, DragHandleIcon } from "@chakra-ui/icons";
+import { DeleteIcon, AddIcon, DragHandleIcon, EditIcon } from "@chakra-ui/icons";
 import { useRouter } from "next/router";
 import { ProtocolManager } from "./ProtocolManager";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { AddToolCommandModal } from "./AddToolCommandModal";
 import CommandComponent from "./CommandComponent";
+import NewProtocolRunModal from "./NewProtocolRunModal";
 
 export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const router = useRouter();
   const toast = useToast();
   const [commands, setCommands] = useState<any[]>([]);
   const [isAddCommandModalOpen, setIsAddCommandModalOpen] = useState(false);
+  const [isRunModalOpen, setIsRunModalOpen] = useState(false);
   
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
 
-  const protocolManager = new ProtocolManager({
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    },
-  });
+  const protocolManager = useMemo(() => {
+    return new ProtocolManager({
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: error.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    });
+  }, [toast]);
 
-  const { data: protocol, refetch } = protocolManager.useGetProtocol(id);
+  const { data: protocol, isLoading, isError } = useMemo(() => {
+    return protocolManager.useGetProtocol(id);
+  }, [protocolManager, id]);
 
-  if (!protocol) {
-    return null;
+  useEffect(() => {
+    if (!protocol?.commands) return;
+    
+    const newCommands = protocol.commands.map((cmd: any) => ({
+      queueId: cmd.queueId || `${Date.now()}-${Math.random()}`,
+      commandInfo: {
+        toolId: cmd.toolId || cmd.commandInfo?.toolId,
+        toolType: cmd.toolType || cmd.commandInfo?.toolType,
+        command: cmd.command || cmd.commandInfo?.command,
+        params: cmd.params || cmd.commandInfo?.params,
+        label: cmd.label || cmd.commandInfo?.label || ""
+      },
+      status: "CREATED",
+      estimatedDuration: 0,
+      createdAt: new Date(),
+      startedAt: new Date(),
+      completedAt: undefined,
+      failedAt: undefined,
+      skippedAt: undefined,
+      runId: undefined
+    }));
+
+    setCommands(newCommands);
+  }, [protocol?.commands]);
+
+  useEffect(() => {
+    return () => {
+      setCommands([]);
+      setIsAddCommandModalOpen(false);
+    };
+  }, []);
+
+  if (isLoading) {
+    return <Spinner size="xl" />;
+  }
+
+  if (isError || !protocol) {
+    return (
+      <Alert status="error">
+        <AlertIcon />
+        <AlertTitle>Error loading protocol</AlertTitle>
+        <AlertDescription>Unable to load protocol details</AlertDescription>
+      </Alert>
+    );
   }
 
   const getCategoryColor = (category: string): string => {
@@ -67,14 +120,18 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   };
 
   const handleCommandAdded = (newCommand: any) => {
-    console.log("ProtocolDetailView - received newCommand:", newCommand);
-    console.log("ProtocolDetailView - before setState:", commands);
-    
     setCommands(prevCommands => {
       const updatedCommands = [...prevCommands, newCommand];
-      console.log("ProtocolDetailView - after setState:", updatedCommands);
       return updatedCommands;
     });
+  };
+
+  const handleRunClick = () => {
+    setIsRunModalOpen(true);
+  };
+
+  const handleRunModalClose = () => {
+    setIsRunModalOpen(false);
   };
 
   return (
@@ -90,13 +147,21 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
               <Text color="gray.500">{protocol.workcell}</Text>
             </HStack>
           </VStack>
-          <Button
-            leftIcon={<AddIcon />}
-            colorScheme="teal"
-            onClick={() => setIsAddCommandModalOpen(true)}
-          >
-            Add Command
-          </Button>
+          <HStack>
+            <Button
+              leftIcon={<EditIcon />}
+              colorScheme="teal"
+              onClick={() => setIsAddCommandModalOpen(true)}
+            >
+              Edit Protocol
+            </Button>
+            <Button
+              colorScheme="green"
+              onClick={handleRunClick}
+            >
+              Run Protocol
+            </Button>
+          </HStack>
         </HStack>
 
         <Text>{protocol.description}</Text>
@@ -108,33 +173,36 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
               <Th>Tool</Th>
               <Th>Command</Th>
               <Th>Parameters</Th>
-              <Th width="100px">Actions</Th>
-              <Th>Created At</Th>
             </Tr>
           </Thead>
           <Tbody>
             {commands.map((command: any, index: number) => (
-              <CommandComponent
-                key={index}
-                command={{
-                  queueId: index,
-                  commandInfo: {
-                    toolId: command.commandInfo.toolId,
-                    toolType: command.commandInfo.toolType,
-                    command: command.commandInfo.command,
-                    params: command.commandInfo.params,
-                    label: command.commandInfo.label || ""
-                  },
-                  status: "CREATED",
-                  estimatedDuration: 0,
-                  createdAt: new Date(),
-                  startedAt: new Date(),
-                  completedAt: undefined,
-                  failedAt: undefined,
-                  skippedAt: undefined,
-                  runId: undefined
-                }}
-              />
+              <Tr key={index}>
+                <Td>
+                  <Tag>{command.commandInfo.toolType}</Tag>
+                </Td>
+                <Td>
+                  <Tag>{command.commandInfo.command}</Tag>
+                </Td>
+                <Td>
+                  <Box
+                    as="pre"
+                    style={{
+                      maxHeight: "200px",
+                      overflowY: "auto",
+                      minWidth: "200px",
+                      maxWidth: "200px",
+                      overflowX: "auto",
+                      fontSize: "0.8em",
+                      whiteSpace: "pre-wrap",
+                      wordWrap: "break-word",
+                      padding: "4px",
+                      textAlign: "left"
+                    }}>
+                    {JSON.stringify(command.commandInfo.params, null, 2)}
+                  </Box>
+                </Td>
+              </Tr>
             ))}
           </Tbody>
         </Table>
@@ -146,6 +214,13 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         protocolId={id}
         onCommandAdded={handleCommandAdded}
       />
+
+      {isRunModalOpen && (
+        <NewProtocolRunModal 
+          id={id} 
+          onClose={handleRunModalClose}
+        />
+      )}
     </Box>
   );
 };

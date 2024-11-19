@@ -30,6 +30,8 @@ import { ProtocolManager } from "./ProtocolManager";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { DeleteWithConfirmation } from "@/components/UI/Delete";
+import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
+import NewProtocolRunModal from "./NewProtocolRunModal";
 
 type SortField = "name" | "category" | "workcell" | "number_of_commands";
 type SortOrder = "asc" | "desc";
@@ -40,6 +42,7 @@ export const ProtocolPageComponent: React.FC = () => {
   const [workcellFilter, setWorkcellFilter] = useState<string>("");
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [runModalProtocolId, setRunModalProtocolId] = useState<string | null>(null);
   
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
@@ -127,6 +130,15 @@ export const ProtocolPageComponent: React.FC = () => {
         return "gray";
     }
   };
+  console.log("Protocols:", protocols);
+
+  const handleRunClick = (protocolId: string) => {
+    setRunModalProtocolId(protocolId);
+  };
+
+  const handleRunModalClose = () => {
+    setRunModalProtocolId(null);
+  };
 
   return (
     <Box bg={bgColor} borderRadius="lg" p={6} color={textColor} borderColor={borderColor} borderWidth="1px">
@@ -199,7 +211,7 @@ export const ProtocolPageComponent: React.FC = () => {
               <Th>Category</Th>
               <Th>Workcell</Th>
               <Th>Description</Th>
-              <Th cursor="pointer" onClick={() => handleSort("created_at")}>
+              {/* <Th cursor="pointer" onClick={() => handleSort("created_at")}>
                 <HStack spacing={2}>
                   <span>Created At</span>
                   {sortField === "created_at" && (
@@ -208,7 +220,7 @@ export const ProtocolPageComponent: React.FC = () => {
                     />
                   )}
                 </HStack>
-              </Th>
+              </Th> */}
               <Th cursor="pointer" onClick={() => handleSort("number_of_commands")}>
                 <HStack spacing={2}>
                   <span>Commands</span>
@@ -237,10 +249,17 @@ export const ProtocolPageComponent: React.FC = () => {
                 </Td>
                 <Td>{protocol.workcell}</Td>
                 <Td>{protocol.description}</Td>
-                <Td>{protocol.created_at}</Td>
+                {/* <Td>{protocol.created_at}</Td> */}
                 <Td>{protocol.number_of_commands}</Td>
                 <Td>
                   <HStack spacing={2}>
+                    <Button
+                      size="sm"
+                      colorScheme="green"
+                      onClick={() => handleRunClick(protocol.id)}
+                    >
+                      Run
+                    </Button>
                     <Button
                       size="sm"
                       onClick={() => router.push(`/protocols/${protocol.id}/edit`)}
@@ -261,6 +280,13 @@ export const ProtocolPageComponent: React.FC = () => {
           </Tbody>
         </Table>
       </VStack>
+
+      {runModalProtocolId && (
+        <NewProtocolRunModal 
+          id={runModalProtocolId} 
+          onClose={handleRunModalClose}
+        />
+      )}
     </Box>
   );
 };

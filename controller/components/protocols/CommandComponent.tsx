@@ -25,18 +25,8 @@ export default function CommandComponent({
   run?: Run;
   command: RunCommand;
 }) {
-  console.log("CommandComponent - received runCommand:", runCommand);
-  console.log("CommandComponent - commandInfo before destructure:", runCommand.commandInfo);
-  
-  const { queueId, commandInfo, estimatedDuration, status } = runCommand;
-  console.log("CommandComponent - commandInfo after destructure:", commandInfo);
-  
+  const { queueId, commandInfo, estimatedDuration, status } = runCommand;  
   const { toolId, toolType, params, command, label = "" } = commandInfo;
-  console.log("toolId", toolId);
-  console.log("toolType", toolType);
-  console.log("params", params);
-  console.log("command", command);
-  console.log("label", label);
   const skipMutation = trpc.commandQueue.skipCommand.useMutation();
   const skipUntilMutation = trpc.commandQueue.skipCommandsUntil.useMutation();
   const execMutation = trpc.tool.runCommand.useMutation();
@@ -64,7 +54,6 @@ export default function CommandComponent({
   //     ? [...paramLines.slice(0, 10), "...[Text truncated for brevity]"]
   //     : paramLines;
   const paramString = paramLines.join("\n");
-  console.log("toolStatusQuery.data", toolStatusQuery.data);
   return (
     <Tr>
       <Td>
@@ -79,8 +68,8 @@ export default function CommandComponent({
           style={{
             maxHeight: "200px",
             overflowY: "auto",
-            minWidth: "50px", // Increased width
-            maxWidth: "100px", // Increased max width
+            minWidth: "200px", // Increased width
+            maxWidth: "200px", // Increased max width
             overflowX: "auto",
             fontSize: "0.8em",
             whiteSpace: "pre-wrap",

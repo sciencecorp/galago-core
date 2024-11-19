@@ -61,10 +61,6 @@ import {
         skippedAt: null,
         runId: null
       };
-      
-      console.log("AddToolCommandModal - newCommand:", newCommand);
-      console.log("AddToolCommandModal - commandInfo:", newCommand.commandInfo);
-      
       onCommandAdded(newCommand);
       onClose();
       toast({
@@ -75,7 +71,6 @@ import {
     };
   
     const commandSchema = availableCommands[selectedCommand]?.schema;
-    console.log("commandSchema", commandSchema);
   
     return (
       <Modal isOpen={isOpen} onClose={onClose}>

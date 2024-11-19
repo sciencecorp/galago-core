@@ -54,7 +54,7 @@ export default class PassagingHamilton extends Protocol<typeof PassagingHamilton
     let source_labware = "plate";
     let source_plate_type = params.sourcePlateType;
     let destination_plate_type = params.DestinationPlateType;
-    let source_wells = params.Source_Wells.split(",").map(Number);
+    let source_wells = params.Source_Wells?.split(",").map(Number);
     let counting = "NO";
     let destination_vessel = "PLATE";
     let source_plate_count = params.Number_of_Source_Plates;
