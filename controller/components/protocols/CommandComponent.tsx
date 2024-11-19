@@ -15,6 +15,7 @@ import {
   Td,
   Tr,
 } from "@chakra-ui/react";
+import { ToolType } from "gen-interfaces/controller";
 import NextLink from "next/link";
 
 export default function CommandComponent({
@@ -24,13 +25,22 @@ export default function CommandComponent({
   run?: Run;
   command: RunCommand;
 }) {
+  console.log("CommandComponent - received runCommand:", runCommand);
+  console.log("CommandComponent - commandInfo before destructure:", runCommand.commandInfo);
+  
   const { queueId, commandInfo, estimatedDuration, status } = runCommand;
+  console.log("CommandComponent - commandInfo after destructure:", commandInfo);
+  
   const { toolId, toolType, params, command, label = "" } = commandInfo;
-
+  console.log("toolId", toolId);
+  console.log("toolType", toolType);
+  console.log("params", params);
+  console.log("command", command);
+  console.log("label", label);
   const skipMutation = trpc.commandQueue.skipCommand.useMutation();
   const skipUntilMutation = trpc.commandQueue.skipCommandsUntil.useMutation();
   const execMutation = trpc.tool.runCommand.useMutation();
-  const toolStatusQuery = trpc.tool.status.useQuery({ toolId });
+  const toolStatusQuery = trpc.tool.status.useQuery({ toolId: toolId.toString() });
   const relevantTimestamp =
     status === "CREATED"
       ? runCommand.createdAt
@@ -54,29 +64,29 @@ export default function CommandComponent({
   //     ? [...paramLines.slice(0, 10), "...[Text truncated for brevity]"]
   //     : paramLines;
   const paramString = paramLines.join("\n");
+  console.log("toolStatusQuery.data", toolStatusQuery.data);
   return (
     <Tr>
       <Td>
-        <StatusTag status={toolStatusQuery.data?.status} label={toolType} />
+        <Tag>{toolType}</Tag>
       </Td>
       <Td>
         <Tag>{command}</Tag>
       </Td>
       <Td>
-        <Tag>{label}</Tag>
-      </Td>
-      <Td>
         <Box
           as="pre"
           style={{
-            maxHeight: "200px", // or whatever maximum height you prefer
-            overflowY: "auto", // this provides the vertical scrollbar when needed
-            maxWidth: "400px",
+            maxHeight: "200px",
+            overflowY: "auto",
+            minWidth: "50px", // Increased width
+            maxWidth: "100px", // Increased max width
             overflowX: "auto",
             fontSize: "0.8em",
             whiteSpace: "pre-wrap",
             wordWrap: "break-word",
             padding: "4px",
+            textAlign: "left" // Explicitly set left alignment
           }}>
           {paramString}
         </Box>
@@ -84,19 +94,14 @@ export default function CommandComponent({
       <Td>
         <Tag>{estimatedDuration}s</Tag>
       </Td>
-      {run ? null : (
-        <Td>
-          <Box>
-            <NextLink href={`/runs/${runCommand.runId}`} passHref>
-              <Link>Run {runCommand.runId}</Link>
-            </NextLink>
-          </Box>
-        </Td>
-      )}
-      <Td maxWidth="300px">
-        <pre style={{ fontSize: "0.8em", whiteSpace: "pre-wrap" }}>
+      <Td minWidth="100px"> {/* Increased width */}
+        <pre style={{ 
+          fontSize: "0.8em", 
+          whiteSpace: "pre-wrap",
+          textAlign: "left" // Explicitly set left alignment
+        }}>
           {status === "CREATED" ? (
-            "🆕"
+            ""
           ) : status === "STARTED" ? (
             <Spinner size="sm" />
           ) : status === "COMPLETED" ? (

@@ -1,15 +1,21 @@
-import NewProtocolRunModal from "@/components/protocols/NewProtocolRunModal";
-import { ProtocolDetailsComponent } from "@/components/protocols/ProtocolDetailsComponent";
-import { VStack } from "@chakra-ui/react";
+import { ProtocolDetailView } from "@/components/protocols/ProtocolDetailView";
+import { ProtocolPageComponent } from "@/components/protocols/ProtocolPageComponent";
 import { useRouter } from "next/router";
+import { useEffect } from "react";
 
-export default function Page() {
+export default function ProtocolPage() {
   const router = useRouter();
   const { id } = router.query;
 
-  return (
-    <VStack p={12} margin="auto" align="start" spacing={16}>
-      <NewProtocolRunModal id={String(id)} />
-    </VStack>
-  );
+  useEffect(() => {
+    document.title = id ? `Protocol ${id}` : "Protocols";
+  }, [id]);
+
+  // If no ID is provided, show the protocol list view
+  if (!id) {
+    return <ProtocolPageComponent />;
+  }
+
+  // If ID is provided, show the protocol detail view
+  return <ProtocolDetailView id={id as string} />;
 }
