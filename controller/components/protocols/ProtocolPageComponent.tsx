@@ -133,6 +133,8 @@ export const ProtocolPageComponent: React.FC = () => {
   console.log("Protocols:", protocols);
 
   const handleRunClick = (protocolId: string) => {
+    console.log('ProtocolPageComponent - Run clicked with ID:', protocolId);
+    console.log('Protocol object:', protocols?.find(p => p.id === protocolId));
     setRunModalProtocolId(protocolId);
   };
 
@@ -256,7 +258,7 @@ export const ProtocolPageComponent: React.FC = () => {
                     <Button
                       size="sm"
                       colorScheme="green"
-                      onClick={() => handleRunClick(protocol.id)}
+                      onClick={() => handleRunClick(protocol.id.toString())}
                     >
                       Run
                     </Button>

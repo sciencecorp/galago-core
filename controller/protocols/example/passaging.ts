@@ -46,10 +46,6 @@ export default class PassagingHamilton extends Protocol<typeof PassagingHamilton
   paramSchema = PassagingHamiltonParams;
 
   _generateCommands(params: z.infer<typeof PassagingHamiltonParams>) {
-    //const parsedParams = PassagingHamiltonParams.parse(params);
-    console.log("Testing");
-    console.log("Source Well:", params.Source_Wells);
-    //console.log('Selected source well is '+params.source_well.toString());
     let dissociation_reagent = "gentle";
     let source_labware = "plate";
     let source_plate_type = params.sourcePlateType;

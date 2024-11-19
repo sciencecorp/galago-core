@@ -153,7 +153,6 @@ const NestModal: React.FC<NestModalProps> = ({
 
   // In the render method, use getPotentialNests to determine potential nests
   const potentialNests = getPotentialNests();
-  console.log("potentialNests", potentialNests);
   // Function to handle dimension changes
   const handleDimensionChange = async (type: 'rows' | 'cols', value: number) => {
     const newValue = Math.max(1, Math.floor(value)); // Ensure value is at least 1 and an integer

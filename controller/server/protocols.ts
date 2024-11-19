@@ -4,4 +4,3 @@ import Protocol from "@/protocols/protocol";
 import ImageCulturePlate from "@/protocols/example/image_culture_plate";
 import PassagingHamilton from "@/protocols/example/passaging";
 export const Protocols: Protocol[] = [new ImageCulturePlate(), new PassagingHamilton()];
-console.log("Protocols are: ", Protocols);

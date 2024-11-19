@@ -29,6 +29,7 @@ export class ProtocolManager {
   }
 
   useGetProtocol(id: string) {
+    console.log('ProtocolManager - Getting protocol with ID:', id);
     const protocol = Protocols.find(p => p.protocolId === id);
     if (!protocol) return { data: null, isLoading: false, isError: false };
     

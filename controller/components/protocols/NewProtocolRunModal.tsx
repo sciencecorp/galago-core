@@ -118,11 +118,33 @@ export default function NewProtocolRunModal({
   id: string;
   onClose: () => void;
 }) {
+  console.log('NewProtocolRunModal - Received ID:', id);
+  
   const router = useRouter();
   const toast = useToast();
   const workcellData = trpc.workcell.getSelectedWorkcell.useQuery();
   const workcellName = workcellData.data;
-  const protocol = trpc.protocol.get.useQuery({ id });
+  const protocol = trpc.protocol.get.useQuery({ 
+    id: id.toString() 
+  }, {
+    onSuccess: (data) => {
+      console.log('Protocol data received:', data);
+    },
+    onError: (error) => {
+      console.log('Protocol fetch error:', {
+        message: error.message,
+        cause: error.cause,
+        data: error.data
+      });
+      toast({
+        title: "Error loading protocol",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  });
   const uiParams = protocol.data?.uiParams || {};
   const { isOpen, onOpen } = useDisclosure({ defaultIsOpen: true });
   const [userDefinedParams, setUserDefinedParams] = useState<Record<string, any>>({});

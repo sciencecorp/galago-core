@@ -137,7 +137,6 @@ export const InventoryManager: React.FC = () => {
   };
 
   const handleDeleteNest = async (nestId: number) => {
-    console.log("Deleting nest:", nestId);
     try {
       await deleteNestMutation.mutateAsync(nestId);
       refetchNests();
@@ -147,7 +146,6 @@ export const InventoryManager: React.FC = () => {
   };
 
   const handleCreatePlate = async (nestId: number) => {
-    console.log("Creating plate for nest:", nestId);
     try {
       await createPlateMutation.mutateAsync({ name: null, barcode: "", plate_type: "", nest_id: nestId });
       refetchPlates();
@@ -157,7 +155,6 @@ export const InventoryManager: React.FC = () => {
   };
 
   const handleCreateReagent = async (nestId: number) => {
-    console.log("Creating reagent for nest:", nestId);
     try {
       await createReagentMutation.mutateAsync({ name: "", expiration_date: "", volume: 0, well_id: nestId });
       refetchReagents();

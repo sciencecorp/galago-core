@@ -1,5 +1,6 @@
 import Protocol from "@/protocols/protocol";
 import { Protocols } from "@/server/protocols";
+console.log('Loaded Protocols:', Protocols);
 import { z } from "zod";
 
 import { procedure, router } from "@/server/trpc";
@@ -70,7 +71,11 @@ export const protocolRouter = router({
     )
     .query(async ({ input }) => {
       const { id } = input;
+      console.log('Protocol Router - Searching for ID:', id);
+      console.log('Available Protocols:', Protocols.map(p => ({ id: p.protocolId, name: p.name })));
+      
       const protocol = Protocols.find((p: Protocol) => p.protocolId === id);
+      console.log('Found Protocol:', protocol ? protocol.protocolId : 'null');
 
       if (!protocol) return null;
 
