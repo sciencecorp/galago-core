@@ -41,14 +41,14 @@ export interface NestCreate {
   name: string;
   row: number;
   column: number;
-  instrument_id: number;
+  tool_id: number;
 }
 
 export interface NestUpdate {
   name?: string;
   row?: number;
   column?: number;
-  instrument_id?: number;
+  tool_id?: number;
 }
 
 export interface Nest extends NestCreate {
@@ -130,6 +130,16 @@ export interface SlackAlert {
   update: string;
 }
 
+export interface Protocol {
+  id: number;
+  name: string;
+  category: string;
+  workcell: string;
+  number_of_commands: number;
+  description: string;
+  icon: string;
+}
+
 export interface Variable {
   id: number;
   name: string;
@@ -137,6 +147,13 @@ export interface Variable {
   type: string;
   created_at: Date;
   updated_at: Date;
+}
+
+export interface ToolCommand {
+  id: number;
+  name: string;
+  params: object;
+  tool_id: string;
 }
 
 export interface Labware {

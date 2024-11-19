@@ -99,10 +99,6 @@ export default function ToolStatusCard({ toolId, minimal = false, style = {} }: 
   };
 
   function renderToolImage(config: any) {
-    console.log("description", description);
-    console.log("name", name);
-    console.log("Config full", JSON.stringify(config));
-
     if (!config.image_url) {
       return <Box></Box>;
     } else if (config.id === "Tool Box") {

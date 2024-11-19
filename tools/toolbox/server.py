@@ -69,7 +69,7 @@ class ToolBoxServer(ToolServer):
           response.return_reply = True
           response.response = SUCCESS
           try:
-               data = Data.get_liconic_sensor_data(params.instrument_id, params.date)
+               data = Data.get_liconic_sensor_data(params.tool_id, params.date)
                if data:
                     s.update(data)
                else:

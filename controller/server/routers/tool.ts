@@ -42,9 +42,7 @@ export const toolRouter = router({
   //Add a new tool to the db
   add: procedure.input(zTool.omit({ id: true, port: true })).mutation(async ({ input }) => {
     const { type } = input;
-    console.log("adding tool with type: ", type);
     const defaultConfig = await Tool.getToolConfigDefinition(type as ToolType);
-    console.log("Default config is: ", defaultConfig);
     const response = post<ToolResponse>(`/tools`, input);
     return response;
   }),
@@ -69,7 +67,6 @@ export const toolRouter = router({
 
   getToolconfigDefinitions: procedure.input(zToolType).query(async ({ input }) => {
     const configDefinition = await Tool.getToolConfigDefinition(input);
-    console.log("Config definition is: ", configDefinition);
     return configDefinition;
   }),
 
