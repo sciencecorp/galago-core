@@ -12,7 +12,6 @@ import logging
 from typing import Optional, Dict, Any
 import uvicorn
 from contextlib import asynccontextmanager
-from models.inventory_models import protocol_commands, Protocol
 
 logging.basicConfig(
     level=logging.DEBUG,

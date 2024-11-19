@@ -207,6 +207,5 @@ tool = CRUDBase[models.Tool, schemas.ToolCreate, schemas.ToolUpdate](models.Tool
 logs = CRUDBase[log_model.Log, schemas.LogCreate, schemas.LogUpdate](log_model.Log)
 variables = CRUDBase[models.Variable,schemas.VariableCreate, schemas.VariableUpdate](models.Variable)
 labware = CRUDBase[models.Labware,schemas.LabwareCreate, schemas.LabwareUpdate](models.Labware)
-protocol = CRUDBase[models.Protocol,schemas.ProtocolCreate, schemas.ProtocolUpdate](models.Protocol)
 settings = CRUDBase[models.AppSettings,schemas.AppSettingsCreate, schemas.AppSettingsUpdate](models.AppSettings)
 scripts = CRUDBase[models.Script,schemas.ScriptCreate, schemas.ScriptUpdate](models.Script)
