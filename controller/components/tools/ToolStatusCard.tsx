@@ -33,6 +33,7 @@ import { DeleteWithConfirmation } from "../ui/Delete";
 import { EditMenu } from "../ui/EditMenu";
 import { Tool } from "@/types/api";
 import { EditToolModal } from "./EditToolConfig";
+import { useRouter } from "next/router";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -53,13 +54,13 @@ const StyledCard = styled(Card)`
   }
 `;
 
-export default function ToolStatusCard({
-  toolId,
-  style,
-}: {
+interface ToolStatusCardProps {
   toolId: number;
-  style?: React.CSSProperties;
+  minimal?: boolean;
+  style?: any;
 }
+
+
 
 export default function ToolStatusCard({ toolId, minimal = false, style = {} }: ToolStatusCardProps) {
   const router = useRouter();
