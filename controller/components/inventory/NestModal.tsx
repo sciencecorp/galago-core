@@ -36,6 +36,7 @@ import {
 import { Nest, Plate, Well, Reagent } from "@/types/api";
 import { HamburgerIcon, AddIcon, CloseIcon } from "@chakra-ui/icons";
 import PlateModal from "./PlateModal";
+import { WellPlateIcon } from "../UI/Icons";
 
 interface NestModalProps {
   isOpen: boolean;
@@ -329,6 +330,22 @@ const NestModal: React.FC<NestModalProps> = ({
     }
   };
 
+  const getPlateRows = (plateType: string): number => {
+    if (plateType.includes('384')) return 16;
+    if (plateType.includes('96')) return 8;
+    if (plateType.includes('24')) return 4;
+    if (plateType.includes('6')) return 2;
+    return 8; // default to 96-well plate dimensions
+  };
+
+  const getPlateColumns = (plateType: string): number => {
+    if (plateType.includes('384')) return 24;
+    if (plateType.includes('96')) return 12;
+    if (plateType.includes('24')) return 6;
+    if (plateType.includes('6')) return 3;
+    return 12; // default to 96-well plate dimensions
+  };
+
   return (
     <>
       <Modal 
@@ -410,7 +427,7 @@ const NestModal: React.FC<NestModalProps> = ({
             )}
             
             <Grid 
-              templateColumns={`repeat(${maxColumns}, 80px)`}
+              templateColumns={`repeat(${maxColumns}, 60px)`}
               templateRows={`repeat(${maxRows}, 50px)`}
               gap={1}
               justifyContent="center"
@@ -419,7 +436,7 @@ const NestModal: React.FC<NestModalProps> = ({
                 Array.from({ length: maxColumns }, (_, colIndex) => {
                   const nest = nests.find(n => n.row === rowIndex + 1 && n.column === colIndex + 1);
                   const hasPlate = plates.some(plate => plate.nest_id === (nest ? nest.id : null));
-                  const nestColor = hasPlate ? "green.300" : "gray.400";
+                  const nestColor = hasPlate ? "blue.700" : "gray.400";
                   const isGhostNest = !nest;
                   // Check if this position is a potential nest
                   const isPotentialNest = potentialNests.some(
@@ -454,8 +471,8 @@ const NestModal: React.FC<NestModalProps> = ({
                       height="50px"
                       maxHeight="50px"
                       minHeight="50px"
-                      maxWidth="80px"
-                      minWidth="80px"
+                      maxWidth="60px"
+                      minWidth="60px"
                       display="flex"
                       alignItems="center"
                       justifyContent="center"
@@ -464,6 +481,14 @@ const NestModal: React.FC<NestModalProps> = ({
                         nest ? <Text color="white" fontSize="xl">X</Text> : null
                       ) : isGhostNest ? (
                         <Text color="blue.500"> </Text>
+                      ) : hasPlate ? (
+                        <Box>
+                          <WellPlateIcon 
+                            rows={getPlateRows(plates.find(p => p.nest_id === nest?.id)?.plate_type || "")}
+                            columns={getPlateColumns(plates.find(p => p.nest_id === nest?.id)?.plate_type || "")}
+                            size="40px"
+                          />
+                        </Box>
                       ) : (
                         renderPlateButton(nest)
                       )}
@@ -486,8 +511,8 @@ const NestModal: React.FC<NestModalProps> = ({
                   height="50px"
                   maxHeight="50px"
                   minHeight="50px"
-                  maxWidth="80px"
-                  minWidth="80px"
+                  maxWidth="60px"
+                  minWidth="60px"
                   display="flex"
                   alignItems="center"
                   justifyContent="center"
@@ -513,8 +538,8 @@ const NestModal: React.FC<NestModalProps> = ({
                   height="50px"
                   maxHeight="50px"
                   minHeight="50px"
-                  maxWidth="80px"
-                  minWidth="80px"
+                  maxWidth="60px"
+                  minWidth="60px"
                   display="flex"
                   alignItems="center"
                   justifyContent="center"

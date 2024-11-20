@@ -8,8 +8,8 @@ import { SimpleGrid } from "@chakra-ui/react";
 import AlertComponent from "@/components/UI/AlertComponent";
 import { useColorMode } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
-import { Tool } from "@/types/api";
-export const InventoryManager: React.FC = () => {
+
+export const InventoryManager = () => {
   const [inventory, setInventory] = useState<Inventory | null>(null);
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<(Plate | Reagent)[]>([]);
@@ -180,6 +180,12 @@ export const InventoryManager: React.FC = () => {
     }
   };
 
+  const { data: toolIds } = trpc.tool.availableIDs.useQuery();
+
+  // Filter out pf400 and toolbox from the tool IDs
+  console.log("Tool IDs:", toolIds);
+  const filteredToolIds = toolIds?.filter(id => id !== 'pf400' && id !== 'tool_box');
+
   return (
     <Box flex={1}>
       <PageHeader title="Inventory" mainButton={null} />
@@ -198,19 +204,19 @@ export const InventoryManager: React.FC = () => {
         />
 
         <SimpleGrid columns={[1, 2, 3]} spacing={6}>
-        {workcellTools?.map((tool) => (
+          {filteredToolIds?.map((toolId) => (
             <InventoryToolCard
-                key={tool.name}
-                tool={tool}
-                nests={Array.isArray(nests) ? nests : []}
-                plates={Array.isArray(plates) ? plates : []}
-                onCreateNest={handleCreateNest}
-                onCreatePlate={handleCreatePlate}
-                onCreateReagent={handleCreateReagent}
-                onNestClick={handleNestSelect}
-                onDeleteNest={handleDeleteNest}
+              key={toolId}
+              toolId={toolId}
+              nests={Array.isArray(nests) ? nests : []}
+              plates={Array.isArray(plates) ? plates : []}
+              onCreateNest={handleCreateNest}
+              onCreatePlate={handleCreatePlate}
+              onCreateReagent={handleCreateReagent}
+              onNestClick={handleNestSelect}
+              onDeleteNest={handleDeleteNest}
             />
-            ))}
+          ))}
         </SimpleGrid>
       </VStack>
 

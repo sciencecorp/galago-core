@@ -135,11 +135,8 @@ const PlateModal: React.FC<PlateModalProps> = ({
   };
 
   const getModalSize = () => {
-    if (plate.plate_type.includes('384')) {
+    if (plate.plate_type.includes('384') || plate.plate_type.includes('96')) {
       return '4xl';  // Much larger size for 384-well plates
-    }
-    else if (plate.plate_type.includes('96')) {
-      return 'xl';  // Larger size for 96-well plates
     }
     else if (plate.plate_type.includes('48')) {
       return 'lg';  // Larger size for 48-well plates
