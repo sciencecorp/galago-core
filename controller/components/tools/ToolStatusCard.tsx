@@ -102,10 +102,10 @@ export default function ToolStatusCard({
   };
 
   function renderToolImage(config: any) {
-    console.log("Config:", config);
+    console.log("Config das:", config);
     if (!config.image_url) {
       return <Box></Box>;
-    } else if (config.id === "tool_box") {
+    } else if (config.name === "Tool Box") {
       return (
         <Box display="flex" justifyContent="center" alignItems="center">
           <IconButton

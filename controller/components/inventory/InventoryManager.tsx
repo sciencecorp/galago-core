@@ -182,14 +182,15 @@ export const InventoryManager = () => {
 
   const { data: toolIds } = trpc.tool.availableIDs.useQuery();
 
-  // Filter out pf400 and toolbox from the tool IDs
+  // Filter out PF400 and Tool Box based on names
   console.log("Tool IDs:", toolIds);
-  const filteredToolIds = toolIds?.filter(id => id !== 'pf400' && id !== 'tool_box');
+  const filteredToolIds = toolIds?.filter((id) => id !== 1206);
+  console.log("Filtered Tool IDs:", filteredToolIds);
 
   return (
     <Box flex={1}>
       <PageHeader title="Inventory" mainButton={null} />
-      <VStack spacing={6} align="stretch" p={4}>
+      <VStack spacing={4} p={2}>
         <InventorySearch
           search={search}
           searchResults={searchResults}
@@ -203,7 +204,11 @@ export const InventoryManager = () => {
           onReagentSelect={handleReagentSelect}
         />
 
-        <SimpleGrid columns={[1, 2, 3]} spacing={6}>
+        <SimpleGrid 
+          columns={[1, 2, 3,4]} 
+          spacing={8} 
+          justifyItems="center"
+        >
           {filteredToolIds?.map((toolId) => (
             <InventoryToolCard
               key={toolId}

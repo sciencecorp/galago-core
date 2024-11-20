@@ -29,9 +29,13 @@ const StyledCard = styled(Card)`
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: 0.3s ease-out;
-  margin: 0 15px;
-  margin-top: 10px;
-  margin-bottom: 20px;
+  margin: 0;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
 `;
 
 interface InventoryToolCardProps {
@@ -73,7 +77,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
     if (!config?.image_url) {
       console.log("No image URL");
       return <Box></Box>;
-    } else if (config.id === "tool_box") {
+    } else if (config.name === "Tool Box") {
       return (
         <Box display="flex" justifyContent="center" alignItems="center">
           <IconButton
