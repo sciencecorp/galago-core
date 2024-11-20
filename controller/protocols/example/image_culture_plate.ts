@@ -45,6 +45,16 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
 
     let protocol_cmds: ToolCommandInfo[] = [
       {
+        label:"Test script",
+        toolId: "tool_box",
+        command: "run_python_script",
+        toolType: ToolType.toolbox,
+        params: {
+          script_content: "test.py",
+          blocking: false,
+        },
+      },
+      {
         label: "Unload plate from Liconic",
         toolId: "liconic",
         toolType: ToolType.liconic,
