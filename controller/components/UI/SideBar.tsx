@@ -120,6 +120,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             width="58px"
             paddingLeft="0"
             src="/site_logo.png"
+            alt="logo"
             filter="brightness(1)"></Image>
           {isSidebarExpanded && (
             <Text

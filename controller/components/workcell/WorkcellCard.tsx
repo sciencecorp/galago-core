@@ -134,6 +134,8 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
     );
   };
 
+  
+
   return (
     <Card
       p={2}

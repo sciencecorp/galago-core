@@ -23,6 +23,7 @@ import { ToolCommandInfo } from "@/types";
 import { ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
 import { useParams } from "react-router";
+import Head from "next/head";
 
 // Assuming you're using TypeScript, you could define a type for the status object
 type CommandStatus = {
@@ -392,8 +393,16 @@ export default function Page() {
   const toast = useToast();
 
   useEffect(() => {
-    document.title = ` ${config?.name} - Tool Commands`;
-  }, []);
+    if (config?.name) {
+      document.title = `Tool: ${config.name}`;
+    }
+  }, [config?.name]);
+
+  useEffect(() => {
+    if (commandOptions) {
+      setSelectedCommand(Object.keys(commandOptions)[0]);
+    }
+  }, [commandOptions]);
 
   useEffect(() => {
     if (selectedCommand) {
@@ -650,6 +659,9 @@ export default function Page() {
 
   return (
     <>
+      <Head>
+        <title>{config?.name ? `Tool: ${config.name}` : 'Tool'}</title>
+      </Head>
       <Box p={12} maxWidth="1800px" margin="auto">
         <ToolStatusCard toolId={Number(id)} />
         <FormControl>

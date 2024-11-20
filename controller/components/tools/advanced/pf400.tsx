@@ -335,7 +335,7 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
     }
   };
 
-  const GetTeachPoints = async () => {
+  const GetTeachPoints = useCallback(async () => {
     const toolCommand: ToolCommandInfo = {
       toolId: config.id,
       toolType: config.type,
@@ -378,7 +378,13 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
     }
 
     return newLocations;
-  };
+  }, [commandMutation]);
+
+  useEffect(() => {
+    GetTeachPoints().then(points => {
+      setLocations(points);
+    });
+  }, [GetTeachPoints]);
 
   useEffect(() => {
     if (!config) return;

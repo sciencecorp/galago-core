@@ -29,7 +29,7 @@ export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
             borderRadius="0"
             aria-label={`Delete ${label}`}
             disabled={!!disabled}
-            icon={<RiDeleteBinLine />}
+            icon={<RiDeleteBin5Line />}
             size={size}
             bg="transparent"
             onClick={onOpen}

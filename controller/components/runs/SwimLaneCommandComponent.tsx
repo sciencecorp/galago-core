@@ -38,7 +38,7 @@ import { VscRunBelow } from "react-icons/vsc";
 import { JsxElement } from "typescript";
 import { Tooltip } from "@chakra-ui/react";
 import { ToolConfig } from "gen-interfaces/controller";
-
+import { useRef } from "react";
 interface LaneCommandComponentProps {
   command: RunCommand;
 }
@@ -55,6 +55,11 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
   const [commandColor, setCommandColor] = useState<string>("White");
   const bgColor = useColorModeValue("gray.100", "gray.700");
   const errorColor = useColorModeValue("red.200", "red.800");
+  const toolNameRef = useRef(toolName);
+
+  useEffect(() => {
+    toolNameRef.current = toolName;
+  }, [toolName]);
 
   function renderToolImage(config: any) {
     if (!config || !config.image_url) {

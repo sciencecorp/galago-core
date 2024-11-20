@@ -3,6 +3,7 @@ import { Box, Menu, MenuButton, MenuList, MenuItem, IconButton } from "@chakra-u
 import { DeleteWithConfirmation } from "./Delete";
 import { MdOutlineModeEditOutline } from "react-icons/md";
 import { HamburgerIcon } from "@chakra-ui/icons";
+import { RiEdit2Line } from "react-icons/ri";
 
 interface EditMenuProps {
   onEdit: () => void;

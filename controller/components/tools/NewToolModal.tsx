@@ -45,9 +45,7 @@ export const NewToolModal: React.FC<NewToolModalProps> = (props) => {
     });
 
   useEffect(() => {
-    console.log("Butotn is disabled: ", isDisabled);
     if (configData) {
-      console.log("Config definition is: ", configData);
       setDefaultConfig(configData);
     }
   }, [configData]);

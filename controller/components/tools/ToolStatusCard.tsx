@@ -29,39 +29,19 @@ import { ToolStatusTag } from "./ToolStatusTag";
 import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
 import { PiToolbox } from "react-icons/pi";
-import { DeleteWithConfirmation } from "../ui/Delete";
-import { EditMenu } from "../ui/EditMenu";
+import { DeleteWithConfirmation } from "../UI/Delete";
+import { EditMenu } from "../UI/EditMenu";
 import { Tool } from "@/types/api";
 import { EditToolModal } from "./EditToolConfig";
-
-const StyledCard = styled(Card)`
-  display: flex;
-  flex-direction: column;
-  height: 280px;
-  width: 280px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: 0.3s ease-out;
-  margin: 0 15px;
-  margin-top: 10px;
-  margin-bottom: 20px;
-  overflow: hidden;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  }
-`;
-
-export default function ToolStatusCard({
-  toolId,
-  style,
-}: {
+import { CSSProperties } from 'react';
+import { useRouter } from "next/router";
+interface ToolStatusCardProps {
   toolId: number;
-  style?: React.CSSProperties;
+  minimal?: boolean;
+  style?: CSSProperties;
 }
 
-export default function ToolStatusCard({ toolId, minimal = false, style = {} }: ToolStatusCardProps) {
+const ToolStatusCard: React.FC<ToolStatusCardProps> = ({ toolId, minimal = false, style = {} }) => {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
 
@@ -140,7 +120,7 @@ export default function ToolStatusCard({ toolId, minimal = false, style = {} }: 
 
   return (
     <>
-      <StyledCard
+      <Card
         p={2}
         style={{ width: "280px", ...style }}
         onMouseEnter={() => setIsHovered(true)}
@@ -183,7 +163,7 @@ export default function ToolStatusCard({ toolId, minimal = false, style = {} }: 
             </Flex>
           </VStack>
         </CardBody>
-      </StyledCard>
+      </Card>
       <EditToolModal
         toolId={toolId}
         toolInfo={toolData as ToolConfig}
@@ -193,4 +173,6 @@ export default function ToolStatusCard({ toolId, minimal = false, style = {} }: 
       />
     </>
   );
-}
+};
+
+export default ToolStatusCard;
