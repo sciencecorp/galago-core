@@ -48,6 +48,7 @@ interface NestModalProps {
     plateType: string;
     barcode: string;
   }) => void;
+  onCreateReagent: (nestId: number, reagentData: Omit<Reagent, 'id' | 'well_id'>) => void;
   onNestClick: (nest: Nest) => void;
   onCreateNest: (row: number, column: number) => Promise<void>;
   onDeleteNest: (nestId: number) => Promise<void>;
@@ -66,6 +67,7 @@ const NestModal: React.FC<NestModalProps> = ({
   nests,
   plates,
   onCreatePlate,
+  onCreateReagent,
   onDeleteNest,
   onNestClick,
   onCreateNest,
@@ -251,7 +253,6 @@ const NestModal: React.FC<NestModalProps> = ({
       });
     }
   };
-
   const renderPlateButton = (nest: Nest) => {
     // Check if the nest has a plate
     const hasPlate = plates.some(plate => plate.nest_id === nest.id);
@@ -410,7 +411,7 @@ const NestModal: React.FC<NestModalProps> = ({
             
             <Grid 
               templateColumns={`repeat(${maxColumns}, 80px)`}
-              templateRows={`repeat(${maxRows}, 80px)`}
+              templateRows={`repeat(${maxRows}, 50px)`}
               gap={1}
               justifyContent="center"
             >
@@ -450,9 +451,9 @@ const NestModal: React.FC<NestModalProps> = ({
                       bg={deletingNests && nest ? "red.500" : isGhostNest ? "transparent" : nestColor}
                       borderColor={deletingNests && nest ? "red.500" : isGhostNest ? "blue.300" : nestColor}
                       borderStyle={isGhostNest ?  "dashed" : "solid"}
-                      height="80px"
-                      maxHeight="80px"
-                      minHeight="80px"
+                      height="50px"
+                      maxHeight="50px"
+                      minHeight="50px"
                       maxWidth="80px"
                       minWidth="80px"
                       display="flex"
@@ -482,9 +483,9 @@ const NestModal: React.FC<NestModalProps> = ({
                   bg="transparent"
                   borderColor="blue.300"
                   borderStyle="dashed"
-                  height="80px"
-                  maxHeight="80px"
-                  minHeight="80px"
+                  height="50px"
+                  maxHeight="50px"
+                  minHeight="50px"
                   maxWidth="80px"
                   minWidth="80px"
                   display="flex"
@@ -509,9 +510,9 @@ const NestModal: React.FC<NestModalProps> = ({
                   bg="transparent"
                   borderColor="blue.300"
                   borderStyle="dashed"
-                  height="80px"
-                  maxHeight="80px"
-                  minHeight="80px"
+                  height="50px"
+                  maxHeight="50px"
+                  minHeight="50px"
                   maxWidth="80px"
                   minWidth="80px"
                   display="flex"
@@ -531,14 +532,12 @@ const NestModal: React.FC<NestModalProps> = ({
         </ModalContent>
       </Modal>
 
-      {selectedPlate && (
+      {isPlateModalOpen && selectedPlate && (
         <PlateModal
           isOpen={isPlateModalOpen}
-          onClose={() => {
-            setIsPlateModalOpen(false);
-            setSelectedPlate(null);
-          }}
+          onClose={() => setIsPlateModalOpen(false)}
           plate={selectedPlate}
+          onCreateReagent={onCreateReagent}
         />
       )}
     </>

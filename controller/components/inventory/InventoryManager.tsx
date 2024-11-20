@@ -166,12 +166,16 @@ export const InventoryManager: React.FC = () => {
     }
   };
 
-  const handleCreateReagent = async (nestId: number) => {
+  const handleCreateReagent = async (wellId: number, reagentData: Omit<Reagent, 'id' | 'well_id'>) => {
     try {
-      await createReagentMutation.mutateAsync({ name: "", expiration_date: "", volume: 0, well_id: nestId });
+      await createReagentMutation.mutateAsync({
+        ...reagentData,
+        well_id: wellId
+      });
       refetchReagents();
     } catch (error) {
       console.error("Error creating reagent:", error);
+      throw error; // Propagate error to be handled by the PlateModal
     }
   };
 

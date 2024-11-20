@@ -37,7 +37,7 @@ interface InventoryToolCardProps {
   plates: Plate[];
   onCreateNest: (toolId: string, nestName: string, nestRow: number, nestColumn: number) => Promise<void>;
   onCreatePlate: (nestId: number, plateData: { name: string, barcode: string, plate_type: string }) => void;
-  onCreateReagent: (nestId: number) => void;
+  onCreateReagent: (nestId: number, reagentData: Omit<Reagent, 'id' | 'well_id'>) => void;
   onNestClick: (nest: Nest) => void;
   onDeleteNest: (nestId: number) => Promise<void>;
 }
@@ -105,6 +105,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
           plate_type: plateData.plateType
         })}
         onDeleteNest={onDeleteNest}
+        onCreateReagent={onCreateReagent}
         onNestClick={onNestClick}
         onCreateNest={(row, column) => onCreateNest(tool.id, `${tool.name}`, row, column)}
       />
