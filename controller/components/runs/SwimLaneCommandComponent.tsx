@@ -54,6 +54,7 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
   const errorColor = useColorModeValue("red.200", "red.800");
 
   function renderToolImage(config: any) {
+    console.log("Config", config);
     if (!config || !config.image_url) {
       return <Box></Box>;
     } else {
@@ -89,9 +90,7 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
     }
   }, [infoQuery.isLoading]);
 
-  const queued =
-    queueId &&
-    (command.status === "CREATED" || command.status === "FAILED" || command.status === "STARTED");
+  const queued = queueId &&(command.status === "CREATED" || command.status === "FAILED" || command.status === "STARTED");
 
   return (
     <Box

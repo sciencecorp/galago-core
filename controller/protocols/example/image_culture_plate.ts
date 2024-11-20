@@ -46,7 +46,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
     let protocol_cmds: ToolCommandInfo[] = [
       {
         label: "Unload plate from Liconic",
-        toolId: "Liconic",
+        toolId: "liconic",
         toolType: ToolType.liconic,
         command: "fetch_plate",
         params: {
@@ -55,7 +55,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         },
       },
       {
-        toolId: "PF400",
+        toolId: "pf400",
         toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
@@ -64,7 +64,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         },
       },
       {
-        toolId: "PF400",
+        toolId: "pf400",
         toolType: ToolType.pf400,
         command: "run_sequence",
         params: {

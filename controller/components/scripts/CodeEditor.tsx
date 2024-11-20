@@ -72,22 +72,46 @@ export const ScriptsEditor: React.FC = (props) => {
   }
 
   const handleSave = async () => {
-    if(!activeTab) return;
+    if (!activeTab) {
+      toast({
+        title: "No active tab",
+        description: "Please select a script to save.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+        position: "top",
+      });
+      return;
+    }
+  
+    const script = scriptsEdited.find((script) => script.name === activeTab);
+    if (!script) {
+      toast({
+        title: "No changes detected",
+        description: "No edits were made to the active script.",
+        status: "info",
+        duration: 3000,
+        isClosable: true,
+        position: "top",
+      });
+      return;
+    }
+  
     try {
-      //update the active script 
-
+      await editScript.mutateAsync(script);
       refetch();
       toast({
-        title: "Scripts updated successfully",
+        title: "Script updated successfully",
         status: "success",
         duration: 3000,
         isClosable: true,
         position: "top",
       });
     } catch (error) {
+      console.error("Error updating script:", error);
       toast({
         title: "Error updating script",
-        description: `Please try again. ${error}`,
+        description: "An error occurred while saving the script. Please try again.",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -95,7 +119,7 @@ export const ScriptsEditor: React.FC = (props) => {
       });
     }
   };
-
+  
   const handleDelete = async (script: Script) => {
     try {
       await deleteScript.mutateAsync(script.id);
