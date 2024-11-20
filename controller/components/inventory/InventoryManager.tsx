@@ -26,29 +26,25 @@ export const InventoryManager: React.FC = () => {
   const toast = useToast();
   const workcells = trpc.workcell.getAll.useQuery();
   const SelectedWorkcellName = trpc.workcell.getSelectedWorkcell.useQuery();
-  console.log("SelectedWorkcellName", SelectedWorkcellName.data);
   const selectedWorkcell = workcells.data?.find(
     (workcell) => workcell.name === SelectedWorkcellName.data
   );
-  console.log("selectedWorkcell", selectedWorkcell);
   const workcellTools = selectedWorkcell?.tools;
-  console.log("workcellTools", workcellTools);
-  console.log("SelectedWorkcellName.data", SelectedWorkcellName.data);
   const { data: nests, isLoading: nestsLoading, refetch: refetchNests } = trpc.inventory.getNests.useQuery(
     SelectedWorkcellName.data ?? ""
   );
-  console.log("nests", nests);
   const { data: plates, isLoading: platesLoading, refetch: refetchPlates } = trpc.inventory.getPlates.useQuery(
     selectedWorkcell?.name || "",
     {
       enabled: !!selectedWorkcell?.id,
     }
   );
-  console.log("plates", plates);
   const { data: reagents, isLoading: reagentsLoading, refetch: refetchReagents } = trpc.inventory.getReagents.useQuery(
-    selectedWorkcell?.id ?? 0
+    selectedWorkcell?.id ?? 0,
+    {
+      enabled: !!plates && Array.isArray(plates) && plates.length > 0
+    }
   );
-  console.log("reagents", reagents);
   const createNestMutation = trpc.inventory.createNest.useMutation({
     onSuccess: () => {
       toast({
@@ -97,7 +93,17 @@ export const InventoryManager: React.FC = () => {
         duration: 3000,
         isClosable: true,
       });
+      refetchPlates(); // Make sure to refresh the plates list
     },
+    onError: (error) => {
+      toast({
+        title: "Error creating plate",
+        description: error.message,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   });
 
   const createReagentMutation = trpc.inventory.createReagent.useMutation({
@@ -151,9 +157,9 @@ export const InventoryManager: React.FC = () => {
     }
   };
 
-  const handleCreatePlate = async (nestId: number) => {
+  const handleCreatePlate = async (nestId: number, plateData: { name: string, barcode: string, plate_type: string }) => {
     try {
-      await createPlateMutation.mutateAsync({ name: null, barcode: "", plate_type: "", nest_id: nestId });
+      await createPlateMutation.mutateAsync({ name: plateData.name, barcode: plateData.barcode, plate_type: plateData.plate_type, nest_id: nestId });
       refetchPlates();
     } catch (error) {
       console.error("Error creating plate:", error);
@@ -168,10 +174,6 @@ export const InventoryManager: React.FC = () => {
       console.error("Error creating reagent:", error);
     }
   };
-
-  const { data: wells } = trpc.inventory.getWells.useQuery(
-    (plates && Array.isArray(plates) && plates[0]?.id) ?? 0
-  );
 
   return (
     <Box flex={1}>
@@ -197,8 +199,6 @@ export const InventoryManager: React.FC = () => {
                 tool={tool}
                 nests={Array.isArray(nests) ? nests : []}
                 plates={Array.isArray(plates) ? plates : []}
-                wells={Array.isArray(wells) ? wells : []}
-                reagents={Array.isArray(reagents) ? reagents : []}
                 onCreateNest={handleCreateNest}
                 onCreatePlate={handleCreatePlate}
                 onCreateReagent={handleCreateReagent}

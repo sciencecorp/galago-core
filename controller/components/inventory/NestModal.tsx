@@ -43,14 +43,11 @@ interface NestModalProps {
   toolName: string;
   nests: Nest[];
   plates: Plate[];
-  wells: Well[];
-  reagents: Reagent[];
   onCreatePlate: (nestId: number, plateData: {
     name: string;
     plateType: string;
     barcode: string;
   }) => void;
-  onAddReagents?: (wellIds: number[]) => void;
   onNestClick: (nest: Nest) => void;
   onCreateNest: (row: number, column: number) => Promise<void>;
   onDeleteNest: (nestId: number) => Promise<void>;
@@ -59,6 +56,7 @@ interface NestModalProps {
 interface PlateFormData {
   name: string;
   plateType: string;
+  barcode: string;
 }
 
 const NestModal: React.FC<NestModalProps> = ({
@@ -67,13 +65,10 @@ const NestModal: React.FC<NestModalProps> = ({
   toolName,
   nests,
   plates,
-  wells,
-  reagents,
   onCreatePlate,
   onDeleteNest,
   onNestClick,
   onCreateNest,
-  onAddReagents,
 }) => {
   const [addingNests, setAddingNests] = useState(false);
   const [deletingNests, setDeletingNests] = useState(false);
@@ -82,7 +77,8 @@ const NestModal: React.FC<NestModalProps> = ({
   const [selectedNestId, setSelectedNestId] = useState<number | null>(null);
   const [plateFormData, setPlateFormData] = useState<PlateFormData>({
     name: '',
-    plateType: ''
+    plateType: '',
+    barcode: ''
   });
   const [selectedPlate, setSelectedPlate] = useState<Plate | null>(null);
   const [isPlateModalOpen, setIsPlateModalOpen] = useState(false);
@@ -153,6 +149,7 @@ const NestModal: React.FC<NestModalProps> = ({
 
   // In the render method, use getPotentialNests to determine potential nests
   const potentialNests = getPotentialNests();
+
   // Function to handle dimension changes
   const handleDimensionChange = async (type: 'rows' | 'cols', value: number) => {
     const newValue = Math.max(1, Math.floor(value)); // Ensure value is at least 1 and an integer
@@ -226,7 +223,6 @@ const NestModal: React.FC<NestModalProps> = ({
       });
     }
   }, [maxRows, maxColumns, nests.length]);
-
   const handleCreatePlate = async (nestId: number) => {
     if (!plateFormData.name || !plateFormData.plateType) {
       toast({
@@ -238,19 +234,22 @@ const NestModal: React.FC<NestModalProps> = ({
       });
       return;
     }
-
-    // Generate random 12 digit barcode
-    const barcode = Math.floor(Math.random() * 1000000000000).toString().padStart(12, '0');
-    console.log("barcode", barcode);
-    console.log("plateFormData", plateFormData);
-    await onCreatePlate(nestId, {
-      name: plateFormData.name,
-      plateType: plateFormData.plateType,
-      barcode
-    });
-    // Reset form
-    setPlateFormData({ name: '', plateType: '' });
-    setSelectedNestId(null);
+  
+    try {
+      await onCreatePlate(nestId, plateFormData);
+      
+      // Reset form
+      setPlateFormData({ name: '', plateType: '', barcode: '' });
+      setSelectedNestId(null);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create plate",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   const renderPlateButton = (nest: Nest) => {
@@ -299,10 +298,10 @@ const NestModal: React.FC<NestModalProps> = ({
                   plateType: e.target.value
                 }))}
               >
-                <option value="6_well">6 Well</option>
-                <option value="24_well">24 Well</option>
-                <option value="96_well">96 Well</option>
-                <option value="384_well">384 Well</option>
+                <option value="6 well">6 Well</option>
+                <option value="24 well">24 Well</option>
+                <option value="96 well">96 Well</option>
+                <option value="384 well">384 Well</option>
               </Select>
               <Button 
                 colorScheme="blue" 
@@ -540,14 +539,6 @@ const NestModal: React.FC<NestModalProps> = ({
             setSelectedPlate(null);
           }}
           plate={selectedPlate}
-          wells={wells.filter(w => w.plate_id === selectedPlate.id)}
-          reagents={reagents.filter(r => {
-            const wellIds = wells
-              .filter(w => w.plate_id === selectedPlate.id)
-              .map(w => w.id);
-            return wellIds.includes(r.well_id);
-          })}
-          onAddReagents={onAddReagents}
         />
       )}
     </>

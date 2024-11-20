@@ -35,10 +35,8 @@ interface InventoryToolCardProps {
   tool: Tool;
   nests: Nest[];
   plates: Plate[];
-  wells: Well[];
-  reagents: Reagent[];
   onCreateNest: (toolId: string, nestName: string, nestRow: number, nestColumn: number) => Promise<void>;
-  onCreatePlate: (nestId: number) => void;
+  onCreatePlate: (nestId: number, plateData: { name: string, barcode: string, plate_type: string }) => void;
   onCreateReagent: (nestId: number) => void;
   onNestClick: (nest: Nest) => void;
   onDeleteNest: (nestId: number) => Promise<void>;
@@ -48,8 +46,6 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   tool,
   nests,
   plates,
-  wells,
-  reagents,
   onCreateNest,
   onCreatePlate,
   onCreateReagent,
@@ -58,21 +54,15 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
 }) => {
   const [isCreateNestModalOpen, setIsCreateNestModalOpen] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  console.log("tool", tool);
-  console.log("nest names", nests.map((nest) => nest.name));
-  console.log("tool id", tool.id);
   const toolNests = nests.filter((nest) => nest.name?.toString() === tool.name.toString());
-  console.log("toolNests", toolNests);
   const toolPlates = plates.filter((plate) => 
     toolNests.some((nest) => nest.id === plate.nest_id)
   );
-  console.log("toolPlates", toolPlates);
   const infoQuery = trpc.tool.info.useQuery({ toolId: tool.id }, {
     retry: false,
     useErrorBoundary: false
   });
   const config = infoQuery.data;
-  console.log("config", config);
 
   return (
     <>
@@ -107,12 +97,13 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
       <NestModal
         isOpen={isOpen}
         onClose={onClose}
-        toolName={tool.name}
+        toolName={tool.name}    
         nests={toolNests}
         plates={plates}
-        wells={wells}
-        reagents={reagents}
-        onCreatePlate={onCreatePlate}
+        onCreatePlate={(nestId, plateData) => onCreatePlate(nestId, {
+          ...plateData,
+          plate_type: plateData.plateType
+        })}
         onDeleteNest={onDeleteNest}
         onNestClick={onNestClick}
         onCreateNest={(row, column) => onCreateNest(tool.id, `${tool.name}`, row, column)}

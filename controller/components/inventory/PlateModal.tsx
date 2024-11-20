@@ -6,52 +6,47 @@ import {
   ModalHeader,
   ModalBody,
   ModalCloseButton,
-  Grid,
-  Box,
-  Button,
-  Tooltip,
-  VStack,
   HStack,
   Text,
   useToast,
+  VStack,
+  Button,
+  Flex,
+  Box,
 } from '@chakra-ui/react';
 import { Plate, Well, Reagent } from '@/types/api';
-
+import { PlateGrid } from '../UI/PlateGrid';
+import { trpc } from '@/utils/trpc';
 interface PlateModalProps {
   isOpen: boolean;
   onClose: () => void;
   plate: Plate;
-  wells: Well[];
-  reagents: Reagent[];
   onAddReagents?: (wellIds: number[]) => void;
 }
-
-const getPlateLayout = (plateType: string): { rows: number; cols: number } => {
-  switch (plateType) {
-    case '6_well':
-      return { rows: 2, cols: 3 };
-    case '24_well':
-      return { rows: 4, cols: 6 };
-    case '96_well':
-      return { rows: 8, cols: 12 };
-    case '384_well':
-      return { rows: 16, cols: 24 };
-    default:
-      return { rows: 8, cols: 12 }; // Default to 96 well
-  }
-};
 
 const PlateModal: React.FC<PlateModalProps> = ({
   isOpen,
   onClose,
   plate,
-  wells,
-  reagents,
   onAddReagents,
 }) => {
   const [selectedWells, setSelectedWells] = useState<number[]>([]);
+  const [selectedReagents, setSelectedReagents] = useState<number[]>([]);
   const toast = useToast();
-  const { rows, cols } = getPlateLayout(plate.plate_type);
+
+  const { data: wells = [] } = trpc.inventory.getWells.useQuery(
+    plate.id,
+    {
+      enabled: !!plate.id
+    }
+  );
+
+  const { data: reagents = [] } = trpc.inventory.getReagents.useQuery(
+    plate.id,
+    {
+      enabled: !!plate.id
+    }
+  );
 
   const handleWellClick = (wellId: number) => {
     setSelectedWells(prev => 
@@ -61,20 +56,41 @@ const PlateModal: React.FC<PlateModalProps> = ({
     );
   };
 
-  const handleSelectAll = () => {
-    setSelectedWells(wells.map(well => well.id));
+  const getWellTooltip = (wellId: number): string => {
+    const wellReagents = (reagents as Reagent[]).filter((r: Reagent) => r.well_id === wellId);
+    return wellReagents.length > 0
+      ? wellReagents.map((r: Reagent) => r.name).join(', ')
+      : 'Empty';
   };
 
-  const handleClearSelection = () => {
-    setSelectedWells([]);
+  const getWellContent = (wellId: number): React.ReactNode => {
+    const well = (wells as Well[]).find((w: Well) => w.id === wellId);
+    return well ? `${String.fromCharCode(65 + well.row)}${well.column + 1}` : '';
   };
 
-  const getWellReagents = (wellId: number): Reagent[] => {
-    return reagents.filter(reagent => reagent.well_id === wellId);
+  const getModalSize = () => {
+    if (plate.plate_type.includes('384')) {
+      return '4xl';  // Much larger size for 384-well plates
+    }
+    else if (plate.plate_type.includes('96')) {
+      return 'xl';  // Larger size for 96-well plates
+    }
+    else if (plate.plate_type.includes('48')) {
+      return 'lg';  // Larger size for 48-well plates
+    }
+    else if (plate.plate_type.includes('24')) {
+      return 'lg';    // Larger size for other plates
+    }
+    else if (plate.plate_type.includes('6')) {
+      return 'sm';    // Larger size for other plates
+    }
+    else {
+      return 'md';    // Larger size for other plates
+    }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl">
+    <Modal isOpen={isOpen} onClose={onClose} size={getModalSize()}>
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>
@@ -83,52 +99,41 @@ const PlateModal: React.FC<PlateModalProps> = ({
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <VStack spacing={4}>
-            <HStack spacing={2}>
-              <Button onClick={handleSelectAll}>Select All Wells</Button>
-              <Button onClick={handleClearSelection}>Clear Selection</Button>
+          <Flex>
+            <VStack spacing={4} mr={4} minW="150px">
+              <Button 
+                onClick={() => setSelectedWells((wells as Well[]).map((w: Well) => w.id))}
+                width="100%"
+              >
+                Select All Wells
+              </Button>
+              <Button 
+                onClick={() => setSelectedWells([])}
+                width="100%"
+              >
+                Clear Selection
+              </Button>
               <Button 
                 colorScheme="blue"
                 isDisabled={selectedWells.length === 0}
                 onClick={() => onAddReagents?.(selectedWells)}
+                width="100%"
               >
                 Add Reagents
               </Button>
-            </HStack>
+            </VStack>
             
-            <Grid
-              templateColumns={`repeat(${cols}, 1fr)`}
-              templateRows={`repeat(${rows}, 1fr)`}
-              gap={1}
-              w="100%"
-              aspectRatio={cols/rows}
-            >
-              {wells.map((well) => {
-                const wellReagents = getWellReagents(well.id);
-                return (
-                  <Tooltip
-                    key={well.id}
-                    label={
-                      wellReagents.length > 0
-                        ? wellReagents.map(r => r.name).join(', ')
-                        : 'Empty well'
-                    }
-                  >
-                    <Box
-                      bg={selectedWells.includes(well.id) ? 'blue.200' : 'gray.100'}
-                      border="1px solid"
-                      borderColor={wellReagents.length > 0 ? 'green.400' : 'gray.300'}
-                      borderRadius="md"
-                      cursor="pointer"
-                      onClick={() => handleWellClick(well.id)}
-                      aspectRatio={1}
-                      _hover={{ bg: 'blue.100' }}
-                    />
-                  </Tooltip>
-                );
-              })}
-            </Grid>
-          </VStack>
+            <Box flex="1">
+              <PlateGrid
+                plateType={plate.plate_type}
+                wells={wells as Well[]}
+                selectedWells={selectedWells}
+                onWellClick={handleWellClick}
+                getWellTooltip={getWellTooltip}
+                getWellContent={getWellContent}
+              />
+            </Box>
+          </Flex>
         </ModalBody>
       </ModalContent>
     </Modal>
