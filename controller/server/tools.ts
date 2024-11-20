@@ -10,6 +10,8 @@ import { setInterval, clearInterval } from "timers";
 import { trpc } from "@/utils/trpc";
 import { get } from "@/server/utils/api";
 import { Tool as ToolResponse } from "@/types/api";
+import { ToolConfig } from "gen-interfaces/controller";
+import {Script} from "@/types/api";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<number, Tool> = new Map();
@@ -69,8 +71,8 @@ export default class Tool {
     }
   }
 
-  get id(): number {
-    return this.info.id;
+  get id(): string {
+    return this.info.name.toLocaleLowerCase().replaceAll(" ","_");
   }
 
   get type(): controller_protos.ToolType {
@@ -103,6 +105,9 @@ export default class Tool {
   }
 
   async executeCommand(command: ToolCommandInfo) {
+    if(command.command === "run_python_script" && command.toolId === "tool_box") {
+      command.params.script_content = (await get<Script>(`/scripts/${command.params.script_content}`)).content;
+    }
     const reply = await this.grpc.executeCommand(this._payloadForCommand(command));
     if (reply.return_reply) {
       return reply;
