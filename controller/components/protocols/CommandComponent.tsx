@@ -17,6 +17,9 @@ import {
 } from "@chakra-ui/react";
 import { ToolType } from "gen-interfaces/controller";
 import NextLink from "next/link";
+import { IoPlaySkipForward } from "react-icons/io5";
+import { BsSkipForwardFill } from "react-icons/bs";
+import { VscRunBelow } from "react-icons/vsc";
 
 export default function CommandComponent({
   run,
@@ -96,7 +99,7 @@ export default function CommandComponent({
           ) : status === "COMPLETED" ? (
             "✅"
           ) : status === "SKIPPED" ? (
-            "⏩"
+            <IoPlaySkipForward />
           ) : status === "FAILED" ? (
             "❌"
           ) : (
@@ -112,14 +115,18 @@ export default function CommandComponent({
           </MenuButton>
           <MenuList>
             {queued ? (
-              <MenuItem onClick={() => skipMutation.mutate(queueId)}>⏩ Skip</MenuItem>
+              <MenuItem onClick={() => skipMutation.mutate(queueId)}>
+                <IoPlaySkipForward /> <Box as="span" ml={2}>Skip</Box>
+              </MenuItem>
             ) : null}
             {queued ? (
               <MenuItem onClick={() => skipUntilMutation.mutate(queueId)}>
-                ⏩⏩ Skip to this command
+                <BsSkipForwardFill /> <Box as="span" ml={2}>Skip to this command</Box>
               </MenuItem>
             ) : null}
-            <MenuItem onClick={() => execMutation.mutate(commandInfo)}>🔨 Send to Tool</MenuItem>
+            <MenuItem onClick={() => execMutation.mutate(commandInfo)}>
+              <VscRunBelow /> <Box as="span" ml={2}>Send to Tool</Box>
+            </MenuItem>
           </MenuList>
         </Menu>
       </Td>
