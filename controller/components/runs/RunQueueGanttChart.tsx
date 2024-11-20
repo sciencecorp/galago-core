@@ -34,6 +34,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
 
   const commandsAll = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
   const runsQuery = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
+  const borderColor = useColorModeValue("gray.200", "gray.600");
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -134,7 +135,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
           width="1px"
           borderStyle="dashed"
           borderWidth="0 2px 0 0"
-          borderColor={useColorModeValue("gray.200", "gray.600")}
+          borderColor={borderColor}
         />,
       );
     }
@@ -271,9 +272,9 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
         <Box
           position="relative"
           height="400px"
-          bg={useColorModeValue("gray.100", "gray.700")}
+          bg={borderColor}
           border="1px solid"
-          borderColor={useColorModeValue("gray.300", "gray.600")}
+          borderColor={borderColor}
           pt={0}>
           <Box position="relative" height="100%" overflowY="auto" overflowX="hidden">
             <Box

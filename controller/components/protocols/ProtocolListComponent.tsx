@@ -25,19 +25,17 @@ export default function ProtocolListComponent({}: {}) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedWorkcell, setSelectedWorkcell] = useState<string | null>(null);
   const { data: workcellData, refetch } = trpc.workcell.getSelectedWorkcell.useQuery();
-  // console.log("Workcell name is"+workcellName);
   const allProtocols = trpc.protocol.allNames.useQuery({ workcellName: selectedWorkcell || "" });
-  // console.log("All protocols are"+allProtocols.data);
-  if (allProtocols.isLoading) {
-    return <Spinner size="lg" />;
-  }
-
+  
   useEffect(() => {
     if (workcellData) {
       setSelectedWorkcell(workcellData);
     }
   }, [workcellData]);
-
+  
+  if (allProtocols.isLoading) {
+    return <Spinner size="lg" />;
+  }
   if (allProtocols.isError) {
     return (
       <Alert status="error">
