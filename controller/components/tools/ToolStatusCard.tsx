@@ -58,12 +58,12 @@ export default function ToolStatusCard({
   toolId,
   style,
 }: {
-  toolId: number;
+  toolId: string;
   style?: React.CSSProperties;
 }) {
   const [isHovered, setIsHovered] = useState(false);
 
-  const infoQuery = trpc.tool.info.useQuery({ toolId: toolId });
+  const infoQuery = trpc.tool.info.useQuery({ toolId: toolId || ""});
   const toolData = infoQuery.data;
   const { description, name } = infoQuery.data || {};
   const deleteTool = trpc.tool.delete.useMutation();
@@ -104,7 +104,7 @@ export default function ToolStatusCard({
   function renderToolImage(config: any) {
     if (!config.image_url) {
       return <Box></Box>;
-    } else if (config.id === 1206) {
+    } else if (config.id === "tool_box") {
       return (
         <Box display="flex" justifyContent="center" alignItems="center">
           <IconButton

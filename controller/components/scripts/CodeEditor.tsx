@@ -25,12 +25,7 @@ import { NewScript } from "./NewScript";
 import { PageHeader } from "../ui/PageHeader";
 import { DeleteWithConfirmation } from "../ui/Delete";
 
-interface ScriptsEditorProps {
-  code: string;
-}
-
-export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
-  const { code } = props;
+export const ScriptsEditor: React.FC = (props) => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -48,14 +43,39 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
   const consoleHeaderBg = useColorModeValue("gray.100", "gray.800");
   const [consoleText, setConsoleText] = useState<string>("");
   const activeTabFontColor = useColorModeValue("teal.600", "teal.200");
+  const runScript = trpc.script.run.useMutation();
+  const [runError, setRunError] = useState<boolean>(false);
+
+
+  useEffect(()=>{
+    setCurrentContent(scripts.find((script) => script.name === activeTab)?.content || "");
+  },[activeTab]);
+
+
+  const handleRunScript = async () => {
+    setRunError(false);
+    if(!activeTab) return;
+    try {
+      const response = await runScript.mutateAsync(activeTab);
+      if(response?.error_message){
+        setRunError(true);
+        setConsoleText(response.error_message)
+        return;
+      }
+      console.log("Script run response");
+      console.log(response);
+      setConsoleText(response?.meta_data?.response || "");
+    } catch (error) {
+      console.log("Error running script");
+      //setConsoleText(error);
+    }
+  }
 
   const handleSave = async () => {
+    if(!activeTab) return;
     try {
-      for (let script of scriptsEdited) {
-        if (script.id) {
-          await editScript.mutateAsync(script);
-        }
-      }
+      //update the active script 
+
       refetch();
       toast({
         title: "Scripts updated successfully",
@@ -178,9 +198,6 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
         <Box borderBottom="1px solid gray" width="100%" bg={consoleHeaderBg} p={1}>
           <Text>Output Console</Text>
         </Box>
-        <Wrap overflowY="auto">
-          <Text>{consoleText}</Text>
-        </Wrap>
       </Flex>
     );
   };
@@ -190,11 +207,24 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
   };
 
   const handleCodeChange = (value?: string) => {
-    console.log(value);
+    if(!activeTab) return;
+    setScriptsEdited((prev) => {
+      const existingScript = prev.find((script) => script.name === activeTab);
+      if (existingScript) {
+        return prev.map((script) =>
+          script.name === activeTab ? { ...script, content: value || "" } : script,
+        );
+      } else {
+        const script = scripts.find((script) => script.name === activeTab);
+        if (script) {
+          return [...prev, { ...script, content: value || "" }];
+        }
+      }
+      return prev;
+    });
   };
 
   const handleScriptClicked = (script: string) => {
-    console.log(script);
     if (!openTabs.includes(script)) {
       setOpenTabs([...openTabs, script]);
     }
@@ -228,7 +258,6 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
               height="60vh"
               defaultLanguage="python"
               value={currentContent}
-              defaultValue={code.trim()}
               theme={codeTheme}
               options={{
                 fontSize: 20,
@@ -249,9 +278,14 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
             width="100%"
             height="20vh"
             bg={consoleBg}
-            overflowY="auto"
             borderTop={`1px solid gray`}>
             <OutputConsole />
+            <Box width="100%" height="80%" p={2} overflowY="auto">
+              {/* Display console text with preserved formatting */}
+              <Text whiteSpace="pre-wrap" fontFamily="monospace" textColor={runError ? "red": ""}>
+                {consoleText}
+              </Text>
+            </Box>
           </Box>
         </VStack>
       </HStack>
@@ -267,7 +301,7 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
         <Button colorScheme="gray" size="sm" onClick={handleSave}>
           Save
         </Button>
-        <Button colorScheme="teal" size="sm">
+        <Button colorScheme="teal" size="sm" onClick={handleRunScript}>
           Run
         </Button>
       </HStack>

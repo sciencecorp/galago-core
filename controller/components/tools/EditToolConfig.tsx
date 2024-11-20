@@ -24,7 +24,7 @@ import { capitalizeFirst } from "@/utils/parser";
 import { Tool } from "@/types/api";
 
 interface EditToolModalProps {
-  toolId: number;
+  toolId: string;
   toolInfo: ToolConfig;
   isOpen: boolean;
   onClose: () => void;

@@ -212,31 +212,21 @@ export default class Tool {
     }
   }
 
-  static GetIdFromName(name: string): number {
-    console.log("Tool Name: ", name);
-    console.log("All Tools: ", this.allTools);
-    const tool = this.allTools.find((tool) => tool.name === name);
-    if (!tool) {
-      throw new Error(`Tool with name ${name} not found in database`);
-    }
-    return tool.id;
-  }
-
-  static forId(id: number): Tool {
+  static forId(id: string): Tool {
     const global_key = "__global_tool_store";
     const me = global as any;
     if (!me[global_key]) {
       me[global_key] = new Map();
     }
-    const store: Map<number, Tool> = me[global_key];
+    const store: Map<string, Tool> = me[global_key];
     let tool = store.get(id);
     if (!tool) {
       let toolInfo = {} as controller_protos.ToolConfig;
-      if (id == 1206) {
+      if (id == "tool_box") {
         const result = this.toolBoxConfig();
         toolInfo = result;
       } else {
-        const result = this.allTools.find((tool) => tool.id === id);
+        const result = this.allTools.find((tool) => tool.name.toLocaleLowerCase().replaceAll(" ","_") === id);
         if (!result) {
           throw new Error(`Tool with id ${id} not found in in database'`);
         }
@@ -251,8 +241,8 @@ export default class Tool {
 
   static toolBoxConfig(): controller_protos.ToolConfig {
     return {
+      id: "tool_box",
       name: "Tool Box",
-      id: 1206,
       type: "toolbox" as ToolType,
       description: "General Tools",
       image_url: "/tool_icons/toolbox.png",
@@ -266,7 +256,7 @@ export default class Tool {
   }
 
   static toolboxId(): string {
-    return "toolbox";
+    return "tool_box";
   }
 }
 

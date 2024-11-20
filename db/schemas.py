@@ -300,6 +300,6 @@ class ScriptUpdate(BaseModel):
     is_blocking: t.Optional[bool] = None
 
 class Script(ScriptCreate, TimestampMixin):
-    id: int
+    id: t.Union[int,str]
     class Config:
         from_attributes=True

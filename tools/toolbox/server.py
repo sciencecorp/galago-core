@@ -11,8 +11,10 @@ from tools.toolbox.slack import Slack
 from google.protobuf.struct_pb2 import Struct
 from tools.grpc_interfaces.tool_base_pb2 import  SUCCESS, ERROR_FROM_TOOL
 from tools.grpc_interfaces import tool_base_pb2
-from tools.toolbox.python_subprocess import run_python_script 
+from tools.toolbox.python_subprocess import run_python_script, write_to_file
 from tools.toolbox.utils import struct_to_dict
+import time 
+import os 
 
 class ToolBoxServer(ToolServer):
      toolType = "toolbox"
@@ -76,8 +78,10 @@ class ToolBoxServer(ToolServer):
                     s.update({'times':[],'co2_values':[]})
                response.meta_data.CopyFrom(s)
           except Exception as exc:
+               logging.info("Error is "+str(exc))
                logging.exception(exc)
                response.response = ERROR_FROM_TOOL
+               response.meta_data.CopyFrom(str(exc))
 
           return response
      
@@ -95,8 +99,10 @@ class ToolBoxServer(ToolServer):
                     s.update({'images':[]})
                response.meta_data.CopyFrom(s)
           except Exception as exc:
+               logging.info("Error is "+str(exc))
                logging.exception(exc)
                response.response = ERROR_FROM_TOOL
+               response.meta_data.CopyFrom(str(exc))
           return response
      
      def GetOT2ImageBytes(self, params:Command.GetOT2ImageBytes) -> ExecuteCommandReply:
@@ -116,9 +122,25 @@ class ToolBoxServer(ToolServer):
                response.response = ERROR_FROM_TOOL
           return response
      
-     def RunPythonScript(self, params:Command.RunPythonScript) -> None:
-          run_python_script(params.python_file,blocking=True)
-
+     def RunPythonScript(self, params:Command.RunPythonScript) -> ExecuteCommandReply:
+          s  = Struct()
+          response = ExecuteCommandReply()
+          response.return_reply = True
+          response.response = SUCCESS
+          try:
+               result = run_python_script(params.script_content,blocking=True)
+               logging.info(f"Script result is {result}")
+               if response:
+                    s.update({'response':result})
+               else:
+                    s.update({'response':''})
+               response.meta_data.CopyFrom(s)
+          except Exception as exc:
+               logging.exception(exc)
+               response.response = ERROR_FROM_TOOL
+               response.error_message = str(exc)
+          return response
+     
      def SendSlackAlert(self, params:Command.SendSlackAlert) -> None:
           if self.app_config.app_config.slack_error_channel:
                self.slack.send_alert_slack(params.workcell, params.tool, params.protocol, params.error_message, self.app_config.app_config.slack_error_channel)
