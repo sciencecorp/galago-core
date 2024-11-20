@@ -32,7 +32,7 @@ import { useRouter } from "next/router";
 import { DeleteWithConfirmation } from "@/components/UI/Delete";
 import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
 import NewProtocolRunModal from "./NewProtocolRunModal";
-
+import { trpc } from "@/utils/trpc";
 type SortField = "name" | "category" | "workcell" | "number_of_commands";
 type SortOrder = "asc" | "desc";
 
@@ -52,20 +52,9 @@ export const ProtocolPageComponent: React.FC = () => {
 
   const router = useRouter();
   const toast = useToast();
-  
-  const protocolManager = new ProtocolManager({
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    },
-  });
-
-  const { data: protocols, refetch } = protocolManager.useGetProtocols("");
+  const workcellName = "Cell Culture Workcell";
+  console.log("Workcell name:", workcellName);
+  const { data: protocols, isLoading, isError } = trpc.protocol.allNames.useQuery({ workcellName });
 
   // Get unique workcells and categories for filters
   const uniqueWorkcells = useMemo(() => {
@@ -270,8 +259,7 @@ export const ProtocolPageComponent: React.FC = () => {
                     </Button>
                     <DeleteWithConfirmation
                       onDelete={async () => {
-                        await protocolManager.useDeleteProtocol().mutateAsync(protocol.id.toString());
-                        refetch();
+                        await trpc.protocol.delete.useMutation().mutateAsync({ id: protocol.id });
                       }}
                       label="protocol"
                     />

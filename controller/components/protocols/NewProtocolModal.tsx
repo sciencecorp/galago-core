@@ -17,7 +17,7 @@ import {
   import { useState } from "react";
   import { ProtocolManager } from "./ProtocolManager";
   import { useRouter } from "next/router";
-  
+  import { trpc } from "@/utils/trpc";
   interface NewProtocolModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -28,24 +28,22 @@ import {
     onClose,
   }) => {
     const [name, setName] = useState("");
-    const [category, setCategory] = useState("");
+    const [category, setCategory] = useState<"development" | "qc" | "production">("development");
     const [workcell, setWorkcell] = useState("");
     const [description, setDescription] = useState("");
     const router = useRouter();
   
-    const protocolManager = new ProtocolManager({
+    const createProtocol = trpc.protocol.create.useMutation({
       onSuccess: () => {
         onClose();
         router.push("/protocols");
-      },
+      }
     });
-  
-    const createProtocol = protocolManager.useCreateProtocol();
   
     const handleSubmit = async () => {
       await createProtocol.mutateAsync({
         name,
-        category: category as "development" | "qc" | "production",
+        category,
         workcell,
         description,
       });
@@ -72,7 +70,7 @@ import {
                 <FormLabel>Category</FormLabel>
                 <Select
                   value={category}
-                  onChange={(e) => setCategory(e.target.value)}
+                  onChange={(e) => setCategory(e.target.value as "development" | "qc" | "production")}
                   placeholder="Select category"
                 >
                   <option value="development">Development</option>

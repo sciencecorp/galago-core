@@ -30,7 +30,7 @@ import { useState, useEffect, useMemo } from "react";
 import { AddToolCommandModal } from "./AddToolCommandModal";
 import CommandComponent from "./CommandComponent";
 import NewProtocolRunModal from "./NewProtocolRunModal";
-
+import { trpc } from "@/utils/trpc";
 export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const router = useRouter();
   const toast = useToast();
@@ -42,23 +42,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
 
-  const protocolManager = useMemo(() => {
-    return new ProtocolManager({
-      onError: (error) => {
-        toast({
-          title: "Error",
-          description: error.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      }
-    });
-  }, [toast]);
-
-  const { data: protocol, isLoading, isError } = useMemo(() => {
-    return protocolManager.useGetProtocol(id);
-  }, [protocolManager, id]);
+  const { data: protocol, isLoading, isError } = trpc.protocol.get.useQuery({ id });
 
   useEffect(() => {
     if (!protocol?.commands) return;

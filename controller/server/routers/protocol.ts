@@ -1,82 +1,42 @@
 import Protocol from "@/protocols/protocol";
 import { Protocols } from "@/server/protocols";
-console.log('Loaded Protocols:', Protocols);
 import { z } from "zod";
-
 import { procedure, router } from "@/server/trpc";
-import { inferProcedureOutput } from "@trpc/server";
-
-export type AllNamesOutput = {
-  name: string;
-  id: string;
-  category: string;
-  workcell: string;
-  number_of_commands: number;
-  description?: string;
-  icon?: any;
-}[];
 
 export const protocolRouter = router({
   all: procedure
-    .input(
-      z.object({
-        // pagination will go here. later
-      }),
-    )
+    .input(z.object({}))
     .query(async () => {
-      return Protocols.map((protocol: Protocol) => {
-        return {
+      return Protocols.map((protocol: Protocol) => ({
+        name: protocol.name,
+        id: protocol.protocolId,
+        category: protocol.category,
+        workcell: protocol.workcell,
+        commands: protocol.preview(),
+        uiParams: protocol.uiParams(),
+      }));
+    }),
+
+  allNames: procedure
+    .input(z.object({ workcellName: z.string() }))
+    .query(async ({ input }) => {
+      const { workcellName } = input;
+      return Protocols.filter((protocol: Protocol) => !workcellName || protocol.workcell === workcellName)
+        .map((protocol) => ({
           name: protocol.name,
           id: protocol.protocolId,
           category: protocol.category,
           workcell: protocol.workcell,
-          commands: protocol.preview(),
-          uiParams: protocol.uiParams(),
-        };
-      });
+          number_of_commands: protocol.preview().length,
+          description: protocol.description,
+          icon: protocol.icon,
+        }));
     }),
-  allNames: procedure
-    .input(z.object({ workcellName: z.string() }))
-    .query<AllNamesOutput>(async ({ input }): Promise<AllNamesOutput> => {
-      const { workcellName } = input;
-      return Protocols.filter((protocol: Protocol) => protocol.workcell === workcellName).map(
-        (
-          protocol: Protocol,
-        ): {
-          name: string;
-          id: string;
-          category: string;
-          workcell: string;
-          number_of_commands: number;
-          description?: string;
-          icon?: any;
-        } => {
-          return {
-            name: protocol.name,
-            id: protocol.protocolId,
-            category: protocol.category,
-            workcell: protocol.workcell,
-            number_of_commands: protocol.preview().length,
-            description: protocol.description,
-            icon: protocol.icon,
-          };
-        },
-      );
-    }),
-  get: procedure
-    .input(
-      z.object({
-        id: z.string(),
-      }),
-    )
-    .query(async ({ input }) => {
-      const { id } = input;
-      console.log('Protocol Router - Searching for ID:', id);
-      console.log('Available Protocols:', Protocols.map(p => ({ id: p.protocolId, name: p.name })));
-      
-      const protocol = Protocols.find((p: Protocol) => p.protocolId === id);
-      console.log('Found Protocol:', protocol ? protocol.protocolId : 'null');
 
+  get: procedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      const protocol = Protocols.find((p: Protocol) => p.protocolId === input.id);
       if (!protocol) return null;
 
       return {
@@ -84,10 +44,28 @@ export const protocolRouter = router({
         id: protocol.protocolId,
         category: protocol.category,
         workcell: protocol.workcell,
-        commands: protocol.preview(),
+        commands: protocol._generateCommands({}),
         uiParams: protocol.uiParams(),
         icon: protocol.icon,
         description: protocol.description,
+        number_of_commands: protocol._generateCommands({}).length
       };
     }),
+
+  create: procedure
+    .input(z.object({
+      name: z.string(),
+      category: z.enum(["development", "qc", "production"]),
+      workcell: z.string(),
+      description: z.string().optional()
+    }))
+    .mutation(async () => {
+      throw new Error("Creating new protocols is not supported");
+    }),
+
+  delete: procedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async () => {
+      throw new Error("Deleting protocols is not supported");
+    })
 });

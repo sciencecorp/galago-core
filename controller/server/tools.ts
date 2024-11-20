@@ -10,7 +10,6 @@ import { setInterval, clearInterval } from "timers";
 import { trpc } from "@/utils/trpc";
 import { get } from "@/server/utils/api";
 import { Tool as ToolResponse } from "@/types/api";
-import { ToolConfig } from "gen-interfaces/controller";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<number, Tool> = new Map();
@@ -18,7 +17,7 @@ const toolStore: Map<number, Tool> = new Map();
 export default class Tool {
   // Controller config is "what does the controller need to know about the tool?"
   info: controller_protos.ToolConfig;
-  static allTools: ToolConfig[] = [Tool.toolBoxConfig()];
+  static allTools: controller_protos.ToolConfig[] = [Tool.toolBoxConfig()];
 
   // Tool config is "what configuration is the tool currently using?"
   config?: tool_base.Config;
@@ -173,22 +172,21 @@ export default class Tool {
           console.log(`Closing gRPC client for tool: ${toolId}`);
           tool.grpc.close();
         }
-
         store.delete(toolId);
       } catch (error) {
         console.error(`Error while clearing tool ${toolId}: ${error}`);
       }
     }
-    // Clear the global tool store reference
-    me[global_key] = new Map();
-    console.log(`Cleared ${counter} tool instances from the store.`);
+      // Clear the global tool store reference
+  me[global_key] = new Map();
+  console.log(`Cleared ${counter} tool instances from the store.`);
   }
 
   static reloadWorkcellConfig(tools: controller_protos.ToolConfig[]) {
     this.allTools = tools;
   }
 
-  static async getToolConfigDefinition(toolType: ToolType) {
+  static async getToolConfigDefinition(toolType:ToolType){
     console.log("Tool Type: ", toolType);
     if (toolType === ToolType.UNRECOGNIZED || toolType === ToolType.unknown) {
       console.warn(`Received unsupported or unknown ToolType: ${toolType}`);
@@ -213,7 +211,6 @@ export default class Tool {
       throw new Error(`Failed to load config for ToolType: ${toolTypeName}. Error: ${error}`);
     }
   }
-
   static GetIdFromName(name: string): number {
     console.log("Tool Name: ", name);
     console.log("All Tools: ", this.allTools);
@@ -223,7 +220,6 @@ export default class Tool {
     }
     return tool.id;
   }
-
   static forId(id: number): Tool {
     const global_key = "__global_tool_store";
     const me = global as any;
