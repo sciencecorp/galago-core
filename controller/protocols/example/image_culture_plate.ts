@@ -159,7 +159,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         toolType: ToolType.toolbox,
         command: "run_python_script",
         params: {
-          script_name: "plate_counter.py",
+          script_content: "plate_counter.py",
           blocking: false,
         },
       },
