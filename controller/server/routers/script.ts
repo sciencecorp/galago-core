@@ -3,6 +3,11 @@ import { procedure, router } from "@/server/trpc";
 import { get, post, put, del } from "../utils/api";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 import { Script } from "@/types/api";
+import { run } from "node:test";
+import Tool from "@/server/tools";
+import { ToolType } from "gen-interfaces/controller";
+
+const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
 
 export const zScript = z.object({
   id: z.number().optional(),
@@ -29,6 +34,21 @@ export const scriptRouter = router({
       const response = await post<Script>(`/scripts`, input);
       return response;
     }),
+  
+  run: procedure.input(z.string()).mutation(async ({ input }) => {
+    const response = await get<Script>(`/scripts/${input}`);
+    const commandInfo = {
+      toolId: "tool_box",
+      toolType: ToolType.toolbox,
+      command: "run_python_script",
+      params: {
+        script_content: response.content,
+        blocking:false
+      }
+    }
+    return await Tool.executeCommand(commandInfo);
+  }
+),
 
   edit: procedure.input(zScript).mutation(async ({ input }) => {
     const { id } = input;

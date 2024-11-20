@@ -84,7 +84,7 @@ const commandFields: CommandFields = {
   toolbox: {
     run_python_script: [
       {
-        name: "python_file",
+        name: "script_content",
         type: "text",
       },
       {
@@ -374,10 +374,10 @@ const ToolCommands = (commands: CommandFields) => {
 export default function Page() {
   const router = useRouter();
   const params = useParams();
-  //const { id } = params;
-  const id = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
+  
+  const [id, setId] = useState<string | null>(null);
 
-  const infoQuery = trpc.tool.info.useQuery({ toolId: Number(id) });
+  const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
   const config = infoQuery.data;
   const [commandExecutionStatus, setCommandExecutionStatus] = useState<CommandStatus>({});
   const [selectedCommand, setSelectedCommand] = useState<string | undefined>();
@@ -391,6 +391,14 @@ export default function Page() {
   const commandOptions = config ? commandFields[config.type] : {};
 
   const toast = useToast();
+  useEffect(() => {
+    // Wait for the router to be ready and then extract the query parameter
+    if (router.isReady) {
+      const queryId = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
+      setId(queryId || null); // Ensure a null fallback if the ID is not available
+    }
+    console.log("ID", id);
+  }, [router.isReady, router.query.id]);
 
   useEffect(() => {
     if (config?.name) {
@@ -450,7 +458,7 @@ export default function Page() {
     });
 
     const toolCommand: ToolCommandInfo = {
-      toolId: config.id,
+      toolId: config.name.toLowerCase().replaceAll(" ", "_"),
       toolType: config.type,
       command: selectedCommand,
       params: formValues,
@@ -533,7 +541,7 @@ export default function Page() {
     setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "idle" }));
 
     const toolCommand: ToolCommandInfo = {
-      toolId: config.id,
+      toolId: config.name.toLocaleLowerCase().replaceAll(" ", "_"),
       toolType: config.type,
       command: commandName,
       params: params,
@@ -663,7 +671,7 @@ export default function Page() {
         <title>{config?.name ? `Tool: ${config.name}` : 'Tool'}</title>
       </Head>
       <Box p={12} maxWidth="1800px" margin="auto">
-        <ToolStatusCard toolId={Number(id)} />
+        <ToolStatusCard toolId={id || ""} />
         <FormControl>
           <VStack width="100%" spacing={1}>
             <FormLabel>Select Command</FormLabel>

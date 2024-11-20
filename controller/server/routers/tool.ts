@@ -55,8 +55,8 @@ export const toolRouter = router({
     .mutation(async ({ input }) => {
       console.log("Editing tool with input: ", input);
       const { id, config } = input;
-      const response = put<ToolResponse>(`/tools/${id}`, config);
-      const tool = await Tool.forId(id); //Recreate the tool with the new config
+      const response = await put<ToolResponse>(`/tools/${id}`, config);
+      const tool = await Tool.forId(response.name); //Recreate the tool with the new config
 
       tool.info = {
         ...tool.info,
@@ -82,15 +82,15 @@ export const toolRouter = router({
   availableIDs: procedure.query(async () => {
     const allTools = await get<ToolResponse[]>(`/tools`);
     Tool.reloadWorkcellConfig(allTools as controller_protos.ToolConfig[]);
-    const toolIds = allTools.map((tool) => tool.id);
-    toolIds.push(1206);
+    const toolIds = allTools.map((tool) => tool.name.toLocaleLowerCase().replaceAll(" ", "_"));
+    toolIds.push("tool_box");
     return toolIds;
   }),
 
   status: procedure
     .input(
       z.object({
-        toolId: z.number(),
+        toolId: z.string(),
       }),
     )
     .query(async ({ input }) => {
@@ -101,7 +101,7 @@ export const toolRouter = router({
   info: procedure
     .input(
       z.object({
-        toolId: z.number(),
+        toolId: z.string(),
       }),
     )
     .query(({ input }) => {
@@ -117,8 +117,8 @@ export const toolRouter = router({
   configure: procedure
     .input(
       z.object({
-        toolId: z.number(),
-        config: z.custom<Config>().transform(Config.fromPartial),
+        toolId: z.string(),
+        config: z.custom<Config>(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -131,7 +131,7 @@ export const toolRouter = router({
   runCommand: procedure
     .input(
       z.object({
-        toolId: z.number(),
+        toolId: z.string(),
         toolType: zToolType,
         command: z.string(),
         params: z.record(z.any()),

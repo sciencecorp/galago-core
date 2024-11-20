@@ -26,6 +26,7 @@ import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import Link from "next/link";
 import { ToolConfigEditor } from "./ToolConfigEditor";
 import { ToolStatusTag } from "./ToolStatusTag";
+import { HamburgerIcon } from "@chakra-ui/icons";
 import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
 import { PiToolbox } from "react-icons/pi";
@@ -33,19 +34,36 @@ import { DeleteWithConfirmation } from "../UI/Delete";
 import { EditMenu } from "../UI/EditMenu";
 import { Tool } from "@/types/api";
 import { EditToolModal } from "./EditToolConfig";
-import { CSSProperties } from 'react';
-import { useRouter } from "next/router";
-interface ToolStatusCardProps {
-  toolId: number;
-  minimal?: boolean;
-  style?: CSSProperties;
-}
 
-const ToolStatusCard: React.FC<ToolStatusCardProps> = ({ toolId, minimal = false, style = {} }) => {
-  const router = useRouter();
+const StyledCard = styled(Card)`
+  display: flex;
+  flex-direction: column;
+  height: 280px;
+  width: 280px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: 0.3s ease-out;
+  margin: 0 15px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+`;
+
+export default function ToolStatusCard({
+  toolId,
+  style,
+}: {
+  toolId: string;
+  style?: React.CSSProperties;
+}) {
   const [isHovered, setIsHovered] = useState(false);
 
-  const infoQuery = trpc.tool.info.useQuery({ toolId: toolId });
+  const infoQuery = trpc.tool.info.useQuery({ toolId: toolId || ""});
   const toolData = infoQuery.data;
   const { description, name } = infoQuery.data || {};
   const deleteTool = trpc.tool.delete.useMutation();
@@ -62,8 +80,7 @@ const ToolStatusCard: React.FC<ToolStatusCardProps> = ({ toolId, minimal = false
     return <Alert status="error">Could not load tool info</Alert>;
   }
 
-
-  const handleDelete = async (toolId: number) => {
+  const handleDelete = async (toolId: string) => {
     try {
       await deleteTool.mutateAsync(toolId);
       refetch();
@@ -87,7 +104,7 @@ const ToolStatusCard: React.FC<ToolStatusCardProps> = ({ toolId, minimal = false
   function renderToolImage(config: any) {
     if (!config.image_url) {
       return <Box></Box>;
-    } else if (config.id === 1206) {
+    } else if (config.id === "tool_box") {
       return (
         <Box display="flex" justifyContent="center" alignItems="center">
           <IconButton
@@ -114,13 +131,9 @@ const ToolStatusCard: React.FC<ToolStatusCardProps> = ({ toolId, minimal = false
     }
   }
 
-  const handleTeachPendantClick = () => {
-    router.push(`/tools/advanced/${toolId}`);
-  };
-
   return (
     <>
-      <Card
+      <StyledCard
         p={2}
         style={{ width: "280px", ...style }}
         onMouseEnter={() => setIsHovered(true)}
@@ -134,7 +147,7 @@ const ToolStatusCard: React.FC<ToolStatusCardProps> = ({ toolId, minimal = false
               <Text fontSize="sm">{description}</Text>
             </Box>
             <Box top={-5} right={-5} position="relative">
-              {toolId !== 1206 && (
+              {toolId !== "tool_box" && (
                 <EditMenu onEdit={onOpen} onDelete={() => handleDelete(toolId)} />
               )}
             </Box>
@@ -163,7 +176,7 @@ const ToolStatusCard: React.FC<ToolStatusCardProps> = ({ toolId, minimal = false
             </Flex>
           </VStack>
         </CardBody>
-      </Card>
+      </StyledCard>
       <EditToolModal
         toolId={toolId}
         toolInfo={toolData as ToolConfig}
@@ -173,6 +186,4 @@ const ToolStatusCard: React.FC<ToolStatusCardProps> = ({ toolId, minimal = false
       />
     </>
   );
-};
-
-export default ToolStatusCard;
+}

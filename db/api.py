@@ -609,8 +609,11 @@ def get_scripts(db: Session = Depends(get_db)) -> t.Any:
     return crud.scripts.get_all(db)
 
 @app.get("/scripts/{script_id}", response_model=schemas.Script)
-def get_script(script_id: int, db: Session = Depends(get_db)) -> t.Any:
-    script = crud.scripts.get(db, id=script_id)
+def get_script(script_id: t.Union[int,str], db: Session = Depends(get_db)) -> t.Any:
+    if isinstance(script_id, int):
+        script = db.query(models.Script).filter(models.Script.id == script_id).first()
+    elif isinstance(script_id, str):
+        script = db.query(models.Script).filter(models.Script.name == script_id).first()
     if script is None:
         raise HTTPException(status_code=404, detail="Script not found")
     return script
