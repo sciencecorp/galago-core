@@ -18,7 +18,7 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import { trpc } from "@/utils/trpc";
-import { Variable } from "./types";
+import { Variable } from "@/types/api";
 import { VariableModal } from "./VariableModal";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { renderDatetime } from "@/components/ui/Time";
@@ -167,8 +167,8 @@ export const Variables: React.FC = () => {
                     defaultValue={variable.value}
                   />
                 </Td>
-                <Td>{renderDatetime(variable.created_at)}</Td>
-                <Td>{renderDatetime(variable.updated_at)}</Td>
+                <Td>{renderDatetime(String(variable.created_at))}</Td>
+                <Td>{renderDatetime(String(variable.updated_at))}</Td>
                 <Td>
                   <DeleteWithConfirmation
                     onDelete={() => handleDelete(variable)}

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
-import { Labware } from "@/components/labware/types";
+import { Labware } from "@/types/api";
 import { get, post, put, del } from "../utils/api";
 
 export const zLabware = z.object({
@@ -33,21 +33,17 @@ export const labwareRouter = router({
   }),
 
   // Add new labware
-  add: procedure
-    .input(zLabware.omit({ id: true }))
-    .mutation(async ({ input }) => {
-      const response = await post<Labware>(`/labware`, input);
-      return response;
-    }),
+  add: procedure.input(zLabware.omit({ id: true })).mutation(async ({ input }) => {
+    const response = await post<Labware>(`/labware`, input);
+    return response;
+  }),
 
   // Edit existing labware
-  edit: procedure
-    .input(zLabware)
-    .mutation(async ({ input }) => {
-      const { id } = input;
-      const response = await put<Labware>(`/labware/${id}`, input);
-      return response;
-    }),
+  edit: procedure.input(zLabware).mutation(async ({ input }) => {
+    const { id } = input;
+    const response = await put<Labware>(`/labware/${id}`, input);
+    return response;
+  }),
 
   // Delete labware
   delete: procedure.input(z.number()).mutation(async ({ input }) => {

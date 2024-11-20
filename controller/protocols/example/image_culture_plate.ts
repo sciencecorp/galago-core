@@ -2,6 +2,7 @@ import { ToolCommandInfo } from "@/types";
 import { ToolType } from "gen-interfaces/controller";
 import Protocol from "@/protocols/protocol";
 import { z } from "zod";
+import Tool from "@/server/tools";
 
 const zWellSelection = z.array(
   z.string().regex(/^[A-Z]\d{1,2}$/, "Well name must be a letter followed by a number"),
@@ -25,7 +26,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
   category = "production";
   workcell = "Cell Culture Workcell";
   name = "Plate Imaging";
-  description = "Cell Imaging Protocol"
+  description = "Cell Imaging Protocol";
   paramSchema = ImageCulturePlateParams;
 
   _generateCommands(params: z.infer<typeof ImageCulturePlateParams>) {
@@ -33,6 +34,10 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
     const level = params.liconic_level;
     const wellPlateID: string = params.wellPlateID;
     const experiment_name: string = `${params.cytationProgram.split(".")[0]}_${wellPlateID}_`;
+    const liconicId = Tool.GetIdFromName("Liconic");
+    const pf400Id = Tool.GetIdFromName("PF400");
+    const cytionId = Tool.GetIdFromName("Cytation");
+
     let cultureLabware = "default";
     if (params.culturePlateType.includes("6 well")) {
       cultureLabware = "384-well celltreat";
@@ -44,7 +49,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
     let protocol_cmds: ToolCommandInfo[] = [
       {
         label: "Unload plate from Liconic",
-        toolId: "Liconic",
+        toolId: Tool.GetIdFromName("Liconic"),
         toolType: ToolType.liconic,
         command: "fetch_plate",
         params: {
@@ -53,7 +58,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         },
       },
       {
-        toolId: "PF400",
+        toolId: Tool.GetIdFromName("PF400"),
         toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
@@ -62,7 +67,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         },
       },
       {
-        toolId: "PF400",
+        toolId: Tool.GetIdFromName("PF400"),
         toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
@@ -72,13 +77,13 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
       },
       {
         label: "Open Cytation",
-        toolId: "Cytation",
+        toolId: Tool.GetIdFromName("Cytation"),
         toolType: ToolType.cytation,
         command: "open_carrier",
         params: {},
       },
       {
-        toolId: "PF400",
+        toolId: Tool.GetIdFromName("PF400"),
         toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
@@ -90,7 +95,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
 
     protocol_cmds.push({
       label: "Image Plate/Run Cytation Program",
-      toolId: 'Cytation',
+      toolId: Tool.GetIdFromName("Cytation"),
       toolType: ToolType.cytation,
       command: "start_read",
       params: {
@@ -103,13 +108,13 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
     protocol_cmds = protocol_cmds.concat([
       {
         label: "Open Cytation",
-        toolId: "Cytation",
+        toolId: Tool.GetIdFromName("Cytation"),
         toolType: "cytation",
         command: "open_carrier",
         params: {},
       },
       {
-        toolId: "PF400",
+        toolId: Tool.GetIdFromName("PF400"),
         toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
@@ -119,13 +124,13 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
       },
       {
         label: "Close Cytation",
-        toolId: "Cytation",
+        toolId: Tool.GetIdFromName("Cytation"),
         toolType: "cytation",
         command: "close_carrier",
         params: {},
       },
       {
-        toolId: "PF400",
+        toolId: Tool.GetIdFromName("PF400"),
         toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
@@ -134,7 +139,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         },
       },
       {
-        toolId: "PF400",
+        toolId: Tool.GetIdFromName("PF400"),
         toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
@@ -144,7 +149,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
       },
       {
         label: "Load plate into Liconic",
-        toolId: "Liconic",
+        toolId: Tool.GetIdFromName("Liconic"),
         toolType: ToolType.liconic,
         command: "store_plate",
         params: {

@@ -10,6 +10,7 @@ import { setInterval, clearInterval } from "timers";
 import { trpc } from "@/utils/trpc";
 import { get } from "@/server/utils/api";
 import { Tool as ToolResponse } from "@/types/api";
+import { ToolConfig } from "gen-interfaces/controller";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<number, Tool> = new Map();
@@ -17,7 +18,7 @@ const toolStore: Map<number, Tool> = new Map();
 export default class Tool {
   // Controller config is "what does the controller need to know about the tool?"
   info: controller_protos.ToolConfig;
-  static allTools : controller_protos.ToolConfig[] = [Tool.toolBoxConfig()];
+  static allTools: ToolConfig[] = [Tool.toolBoxConfig()];
 
   // Tool config is "what configuration is the tool currently using?"
   config?: tool_base.Config;
@@ -31,14 +32,12 @@ export default class Tool {
   constructor(info: controller_protos.ToolConfig) {
     this.info = info;
     this.config = info.config;
-    const grpcServerIp =  "host.docker.internal";
+    const grpcServerIp = "host.docker.internal";
     const target = `${grpcServerIp}:${info.port}`;
 
     this.grpc = promisifyGrpcClient(
       new tool_driver.ToolDriverClient(target, grpc.credentials.createInsecure()),
     );
-
-    
   }
 
   startHeartbeat(heartbeatInterval: number) {
@@ -88,9 +87,7 @@ export default class Tool {
     }
   }
 
-  async configureAllTools() {
-
-  }
+  async configureAllTools() {}
 
   _payloadForCommand(command: ToolCommandInfo): tool_base.Command {
     return {
@@ -128,10 +125,7 @@ export default class Tool {
     return reply.estimated_duration_seconds;
   }
 
-
-  static async updateToolInfo(toolId: number, input: Partial<Tool>) {
-    
-  }
+  static async updateToolInfo(toolId: number, input: Partial<Tool>) {}
 
   static async removeTool(toolId: number) {
     const global_key = "__global_tool_store";
@@ -158,11 +152,11 @@ export default class Tool {
   static async clearToolStore() {
     const global_key = "__global_tool_store";
     const me = global as any;
-    
+
     if (!me[global_key]) {
       return;
     }
-    
+
     const store: Map<string, Tool> = me[global_key];
     let counter = 0;
 
@@ -170,30 +164,29 @@ export default class Tool {
       try {
         counter++;
         console.log(`Clearing tool: ${toolId}`);
-        
+
         tool.stopHeartbeat();
-  
+
         if (tool.grpc) {
           console.log(`Closing gRPC client for tool: ${toolId}`);
           tool.grpc.close();
         }
-  
+
         store.delete(toolId);
       } catch (error) {
         console.error(`Error while clearing tool ${toolId}: ${error}`);
       }
     }
-      // Clear the global tool store reference
-  me[global_key] = new Map();
-  console.log(`Cleared ${counter} tool instances from the store.`);
-
+    // Clear the global tool store reference
+    me[global_key] = new Map();
+    console.log(`Cleared ${counter} tool instances from the store.`);
   }
 
-  static reloadWorkcellConfig(tools:controller_protos.ToolConfig[]) {
+  static reloadWorkcellConfig(tools: controller_protos.ToolConfig[]) {
     this.allTools = tools;
   }
 
-  static  async getToolConfigDefinition(toolType:ToolType){
+  static async getToolConfigDefinition(toolType: ToolType) {
     console.log("Tool Type: ", toolType);
     if (toolType === ToolType.UNRECOGNIZED || toolType === ToolType.unknown) {
       console.warn(`Received unsupported or unknown ToolType: ${toolType}`);
@@ -207,7 +200,9 @@ export default class Tool {
     const modulePath = `gen-interfaces/tools/grpc_interfaces/${toolType.toLowerCase()}`;
     try {
       // Dynamically import the module
-      const toolModule = await import(/* webpackInclude: /\.ts$/ */ `gen-interfaces/tools/grpc_interfaces/${toolType}`);
+      const toolModule = await import(
+        /* webpackInclude: /\.ts$/ */ `gen-interfaces/tools/grpc_interfaces/${toolType}`
+      );
       if (!toolModule || !toolModule.Config) {
         throw new Error(`Config type not found in module: ${modulePath}`);
       }
@@ -216,7 +211,17 @@ export default class Tool {
       throw new Error(`Failed to load config for ToolType: ${toolTypeName}. Error: ${error}`);
     }
   }
-  
+
+  static GetIdFromName(name: string): number {
+    console.log("Tool Name: ", name);
+    console.log("All Tools: ", this.allTools);
+    const tool = this.allTools.find((tool) => tool.name === name);
+    if (!tool) {
+      throw new Error(`Tool with name ${name} not found in database`);
+    }
+    return tool.id;
+  }
+
   static forId(id: number): Tool {
     const global_key = "__global_tool_store";
     const me = global as any;
@@ -233,9 +238,7 @@ export default class Tool {
       } else {
         const result = this.allTools.find((tool) => tool.id === id);
         if (!result) {
-          throw new Error(
-            `Tool with id ${id} not found in in database'`,
-          );
+          throw new Error(`Tool with id ${id} not found in in database'`);
         }
         toolInfo = result;
       }
@@ -256,9 +259,8 @@ export default class Tool {
       ip: "host.docker.internal",
       port: 1010,
       config: {
-        simulated:false,
-        toolbox: {
-        },
+        simulated: false,
+        toolbox: {},
       },
     };
   }

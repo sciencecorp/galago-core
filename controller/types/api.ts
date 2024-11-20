@@ -4,7 +4,7 @@ import { Config } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 export interface Workcell {
   id: number;
   name: string;
-  location:string;
+  location: string;
   description: string;
   tools: Tool[];
   last_updated: Date;
@@ -15,10 +15,12 @@ export interface Variable {
   id: number;
   name: string;
   value: string;
-  type: string;
+  type: VariableType;
   created_at: Date;
   updated_at: Date;
 }
+
+type VariableType = "string" | "number" | "boolean";
 
 export interface Tool {
   id: number;
@@ -32,7 +34,7 @@ export interface Tool {
   status: string;
   last_updated: Date;
   created_at: Date;
-  config:Config;
+  config: Config;
 }
 
 export interface LogType {
@@ -69,4 +71,22 @@ export interface Script {
   language: string;
   created_at: Date;
   updated_at: Date;
+}
+
+export interface Labware {
+  id?: number;
+  name: string;
+  description: string;
+  number_of_rows: number;
+  number_of_columns: number;
+  z_offset: number;
+  width: number;
+  height: number;
+  plate_lid_offset: number;
+  lid_offset: number;
+  stack_height: number;
+  has_lid: boolean;
+  image_url: string;
+  created_at?: string;
+  updated_at?: string;
 }

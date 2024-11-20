@@ -82,7 +82,7 @@
       "description": "Microplate Labeler",
       "image_url": "/tool_icons/vcode_labeler.png",
       "ip": "localhost",
-      "port":4010,
+      "port": 4010,
       "config": {
         "simulated": true,
         "vcode": {
@@ -270,6 +270,6 @@
           "tool_id": "hamilton_1"
         }
       }
-    }   
+    }
   ]
 }

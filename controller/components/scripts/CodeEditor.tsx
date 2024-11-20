@@ -11,20 +11,19 @@ import {
   Flex,
   useToast,
   Tooltip,
-  Wrap
+  Wrap,
 } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import { CloseIcon } from "@chakra-ui/icons";
 import { SiPython } from "react-icons/si";
 import { set } from "zod";
 import { RiAddFill } from "react-icons/ri";
-import {trpc} from "@/utils/trpc";
-import {Script} from "@/types/api";
+import { trpc } from "@/utils/trpc";
+import { Script } from "@/types/api";
 import { RiDeleteBinLine } from "react-icons/ri";
 import { NewScript } from "./NewScript";
 import { PageHeader } from "../ui/PageHeader";
 import { DeleteWithConfirmation } from "../ui/Delete";
-
 
 interface ScriptsEditorProps {
   code: string;
@@ -37,7 +36,7 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const consoleBg = useColorModeValue("white", "#222324");
   const [scripts, setScripts] = useState<Script[]>([]);
-  const {data: fetchedScript, refetch} = trpc.script.getAll.useQuery();
+  const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
   const editScript = trpc.script.edit.useMutation();
   const deleteScript = trpc.script.delete.useMutation();
   const codeTheme = useColorModeValue("vs-light", "vs-dark");
@@ -48,39 +47,39 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
   const [currentContent, setCurrentContent] = useState<string>("");
   const consoleHeaderBg = useColorModeValue("gray.100", "gray.800");
   const [consoleText, setConsoleText] = useState<string>("");
-  const activeTabFontColor = useColorModeValue("teal.600", "teal.200"); 
+  const activeTabFontColor = useColorModeValue("teal.600", "teal.200");
 
   const handleSave = async () => {
     try {
       for (let script of scriptsEdited) {
-        if(script.id){
+        if (script.id) {
           await editScript.mutateAsync(script);
         }
       }
-        refetch();
-        toast({
-          title: "Scripts updated successfully",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-          position: "top",
-        });
-      } catch (error) {
-        toast({
-          title: "Error updating script",
-          description: `Please try again. ${error}`,
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-          position: "top",
-        });
-      }
+      refetch();
+      toast({
+        title: "Scripts updated successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+        position: "top",
+      });
+    } catch (error) {
+      toast({
+        title: "Error updating script",
+        description: `Please try again. ${error}`,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "top",
+      });
+    }
   };
 
   const handleDelete = async (script: Script) => {
     try {
       await deleteScript.mutateAsync(script.id);
-      if(openTabs.includes(script.name)){
+      if (openTabs.includes(script.name)) {
         setOpenTabs(openTabs.filter((t) => t !== script.name));
       }
 
@@ -103,7 +102,7 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
       });
     }
   };
-  
+
   useEffect(() => {
     if (openTabs.length > 0) {
       setActiveTab(openTabs[openTabs.length - 1]);
@@ -112,9 +111,13 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
 
   useEffect(() => {
     if (fetchedScript) {
-      setScripts(fetchedScript.filter((script) => script.name.toLowerCase().includes(searchQuery.toLowerCase())));
+      setScripts(
+        fetchedScript.filter((script) =>
+          script.name.toLowerCase().includes(searchQuery.toLowerCase()),
+        ),
+      );
     }
-  }, [fetchedScript,searchQuery]);
+  }, [fetchedScript, searchQuery]);
 
   const Tabs = () => {
     return (
@@ -130,10 +133,9 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
             justifyContent="space-between"
             alignItems="center"
             minW="180px"
-            maxW="480px" 
-            w={tab.length > 15 ? "auto" : "180px"} 
-            paddingX={2}
-          >
+            maxW="480px"
+            w={tab.length > 15 ? "auto" : "180px"}
+            paddingX={2}>
             <Box flex="1" textAlign="left" pl={1} isTruncated width="100%" pr={2}>
               <Text color={activeTab === tab ? activeTabFontColor : ""}>{tab}</Text>
             </Box>
@@ -157,11 +159,11 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
                 key={index}
                 onClick={() => handleScriptClicked(script.name)}
                 width="100%">
-                  <HStack justify="space-between" width="100%">
-                    <Text fontSize='14px'>{script.name}</Text>
-                    <Spacer/>
-                    <DeleteWithConfirmation label="Script" onDelete={() => handleDelete(script)} />
-                  </HStack>
+                <HStack justify="space-between" width="100%">
+                  <Text fontSize="14px">{script.name}</Text>
+                  <Spacer />
+                  <DeleteWithConfirmation label="Script" onDelete={() => handleDelete(script)} />
+                </HStack>
               </Button>
             </Tooltip>
           ))}
@@ -171,17 +173,17 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
   };
 
   const OutputConsole = () => {
-    return(
+    return (
       <Flex width="100%" bg={consoleBg}>
-        <Box borderBottom='1px solid gray' width='100%' bg={consoleHeaderBg} p={1}>
-         <Text>Output Console</Text>
+        <Box borderBottom="1px solid gray" width="100%" bg={consoleHeaderBg} p={1}>
+          <Text>Output Console</Text>
         </Box>
         <Wrap overflowY="auto">
           <Text>{consoleText}</Text>
         </Wrap>
       </Flex>
-    )
-  }
+    );
+  };
 
   const removeTab = (tab: string) => {
     setOpenTabs(openTabs.filter((t) => t !== tab));
@@ -201,13 +203,18 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
 
   return (
     <Box p={1} height="100%">
-      <PageHeader title="Scripts" mainButton={<NewScript />}/>
+      <PageHeader title="Scripts" mainButton={<NewScript />} />
       <HStack width="100%" border={`1px solid gray`} boxShadow="md" mt={4} alignItems="flex-start">
         <VStack width="15%" alignItems="flex-start" spacing={4} p={0} height="100%">
           <Text ml={3} as="b">
             SEARCH
           </Text>
-          <Input width="98%" ml ={2} placeholder="Search" onChange={(e) => setSearchQuery(e.target.value)}/>
+          <Input
+            width="98%"
+            ml={2}
+            placeholder="Search"
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
           <Box width="100%">
             <Scripts />
           </Box>
@@ -216,11 +223,11 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
           <Box width="100%">
             <Tabs />
           </Box>
-          {activeTab && openTabs.length >0 ? ( 
+          {activeTab && openTabs.length > 0 ? (
             <Editor
               height="60vh"
               defaultLanguage="python"
-              value = {currentContent}
+              value={currentContent}
               defaultValue={code.trim()}
               theme={codeTheme}
               options={{
@@ -228,14 +235,22 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) => {
               }}
               onChange={(value) => handleCodeChange(value)}
             />
-          ) : 
-          (
-            <Box width="100%" height="60vh" display="flex" justifyContent="center" alignItems="center">
+          ) : (
+            <Box
+              width="100%"
+              height="60vh"
+              display="flex"
+              justifyContent="center"
+              alignItems="center">
               <Text>Select a script to view or edit</Text>
             </Box>
-          )
-          }
-          <Box width="100%" height="20vh" bg={consoleBg} overflowY="auto" borderTop={`1px solid gray`}>
+          )}
+          <Box
+            width="100%"
+            height="20vh"
+            bg={consoleBg}
+            overflowY="auto"
+            borderTop={`1px solid gray`}>
             <OutputConsole />
           </Box>
         </VStack>

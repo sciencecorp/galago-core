@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, SimpleGrid, Tooltip } from '@chakra-ui/react';
+import React from "react";
+import { Box, SimpleGrid, Tooltip } from "@chakra-ui/react";
 
 interface WellPlateIconProps {
   rows: number;
@@ -24,17 +24,13 @@ export const WellPlateIcon: React.FC<WellPlateIconProps> = ({ rows, columns, siz
 
   // Add special case for 384-well plate
   const is384Well = rows === 16 && columns === 24;
-  const displayRows = is384Well ? 10 : rows;  // Show only 10 rows for 384-well
+  const displayRows = is384Well ? 10 : rows; // Show only 10 rows for 384-well
   const wellSize = "0.5px";
   const gridSpacing = is384Well ? "0.5px" : "1px";
   const boxPadding = is384Well ? "2px" : "3px";
 
   return (
-    <Tooltip 
-      label={`${format} plate (${rows}×${columns})`}
-      hasArrow
-      placement="top"
-    >
+    <Tooltip label={`${format} plate (${rows}×${columns})`} hasArrow placement="top">
       <Box
         width={size}
         height={size}
@@ -42,15 +38,13 @@ export const WellPlateIcon: React.FC<WellPlateIconProps> = ({ rows, columns, siz
         borderColor="gray.400"
         _dark={{ borderColor: "gray.300" }}
         borderRadius="md"
-        p={boxPadding}
-      >
+        p={boxPadding}>
         <SimpleGrid
           columns={columns}
           row={displayRows}
           spacing={gridSpacing}
           height="95%"
-          width="100%"
-        >
+          width="100%">
           {Array.from({ length: displayRows * columns }).map((_, i) => (
             <Box
               key={i}

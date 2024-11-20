@@ -19,7 +19,7 @@ import {
   NumberInputField,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
-import { Labware } from "./types";
+import { Labware as LabwareResponse } from "@/types/api";
 import { RiAddFill } from "react-icons/ri";
 
 export const LabwareModal: React.FC = () => {
@@ -72,7 +72,7 @@ export const LabwareModal: React.FC = () => {
       stack_height: stackHeight,
       has_lid: hasLid,
       image_url: imageUrl,
-    } as Labware;
+    } as LabwareResponse;
 
     setIsLoading(true);
     try {

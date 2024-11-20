@@ -26,16 +26,15 @@ interface NewScriptProps {
   isDisabled?: boolean;
 }
 
-
 export const NewScript: React.FC<NewScriptProps> = (props) => {
-  const { isDisabled} = props;
+  const { isDisabled } = props;
   const [scriptName, setScriptName] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
   const addScript = trpc.script.add.useMutation();
   const [description, setDescription] = useState("");
-  const {data: fetchedScript, refetch} = trpc.script.getAll.useQuery();
+  const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
 
   const validateScriptName = (name: string): string => {
     if (!name) return "Name cannot be empty";
@@ -60,8 +59,8 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
       });
       return;
     }
-    let name =`${scriptName}.py`;
-    const script = {name, description, content, language, is_blocking};
+    let name = `${scriptName}.py`;
+    const script = { name, description, content, language, is_blocking };
     setIsLoading(true);
     try {
       await addScript.mutateAsync(script);

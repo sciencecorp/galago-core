@@ -28,11 +28,6 @@ interface QueueStatusComponent {
 }
 
 export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns }) => {
-  const [slackNotificationsEnabled, setSlackNotificationsEnabled] = useState(false);
-
-  const toggleSlackNotifications = () => {
-    setSlackNotificationsEnabled(!slackNotificationsEnabled);
-  };
   const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 100 });
   const stateMutationOpts = {
     onSettled: () => stateQuery.refetch(),
@@ -41,25 +36,9 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
   const restartMutation = queue.restart.useMutation(stateMutationOpts);
   const stopMutation = queue.stop.useMutation(stateMutationOpts);
   const clearAllMutation = queue.clearAll.useMutation(stateMutationOpts);
-  const commandMutation = trpc.tool.runCommand.useMutation();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const ClearSlackErrors = async () => {
-    const toolCommand: ToolCommandInfo = {
-      toolId: "toolbox",
-      toolType: "toolbox" as ToolType,
-      command: "clear_last_slack_alert",
-      params: {},
-    };
-    try {
-      await commandMutation.mutateAsync(toolCommand);
-    } catch {
-      console.error("failed to clear slack messages.");
-    }
-  };
-
   const run = async () => {
-    await ClearSlackErrors();
     restartMutation.mutate();
   };
 
@@ -68,7 +47,6 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
   };
 
   const clear = async () => {
-    ClearSlackErrors();
     clearAllMutation.mutate();
   };
 
@@ -105,8 +83,7 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
     <>
       <VStack>
         {confirmRunStartModal()}
-        <Heading
-          >
+        <Heading>
           Run Queue
           <StatusTag
             css={{

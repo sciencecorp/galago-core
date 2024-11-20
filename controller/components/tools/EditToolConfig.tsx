@@ -24,23 +24,22 @@ import { capitalizeFirst } from "@/utils/parser";
 import { Tool } from "@/types/api";
 
 interface EditToolModalProps {
-  toolId : number;
-  toolInfo : ToolConfig;
-  isOpen : boolean;
-  onClose : () => void;
-  refetch : () => void; 
+  toolId: number;
+  toolInfo: ToolConfig;
+  isOpen: boolean;
+  onClose: () => void;
+  refetch: () => void;
 }
 
-
-export const EditToolModal : React.FC<EditToolModalProps> = (props) => {
-  const { toolId, toolInfo, isOpen, onClose, refetch} = props;
+export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
+  const { toolId, toolInfo, isOpen, onClose, refetch } = props;
   const toast = useToast();
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [newConfig, setNewConfig] = useState<Record<string, Record<string, any>>>({});
   const editTool = trpc.tool.edit.useMutation();
-  const getTool = trpc.tool.info.useQuery({toolId: toolId});
-  const {name, description, config, type} = toolInfo;
+  const getTool = trpc.tool.info.useQuery({ toolId: toolId });
+  const { name, description, config, type } = toolInfo;
   const context = trpc.useContext();
 
   useEffect(() => {
@@ -48,17 +47,16 @@ export const EditToolModal : React.FC<EditToolModalProps> = (props) => {
       setNewConfig({ [type]: { ...config[type] } });
     }
   }, [isOpen, config, type]);
-  
 
   const handleConfigChange = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
     const { value } = e.target;
     if (type !== ToolType.unknown && type !== ToolType.UNRECOGNIZED) {
-      setNewConfig(prev => ({
+      setNewConfig((prev) => ({
         ...prev,
         [type]: {
           ...(prev[type] || {}),
-          [key]: value
-        }
+          [key]: value,
+        },
       }));
     }
   };
@@ -66,8 +64,12 @@ export const EditToolModal : React.FC<EditToolModalProps> = (props) => {
   const handleSave = async () => {
     try {
       let id = toolId;
-      const editedTool = { name: newName || name, description: newDescription || description, config: newConfig || config };
-      await editTool.mutateAsync({ id:id, config:editedTool });
+      const editedTool = {
+        name: newName || name,
+        description: newDescription || description,
+        config: newConfig || config,
+      };
+      await editTool.mutateAsync({ id: id, config: editedTool });
       toast({
         title: "Tool updated successfully",
         status: "success",
@@ -75,9 +77,9 @@ export const EditToolModal : React.FC<EditToolModalProps> = (props) => {
         isClosable: true,
       });
       onClose();
-    
+
       //Invalidate the query cache to ensure fresh data is fetched
-    context.tool.info.invalidate({ toolId });
+      context.tool.info.invalidate({ toolId });
     } catch (error) {
       toast({
         title: "Error updating tool",
@@ -115,19 +117,22 @@ export const EditToolModal : React.FC<EditToolModalProps> = (props) => {
                 />
               </FormControl>
               <Divider />
-              {config && type != ToolType.unknown && type != ToolType.UNRECOGNIZED && Object.entries(config[type] || {}).map(([key, value]) => (
-                <FormControl key={key}>
-                  <FormLabel>{capitalizeFirst(key).replaceAll("_", " ")}</FormLabel>
-                  <Input
-                    value={newConfig[type]?.[key] || value}
-                    onChange={(e) => {
-                      handleConfigChange(e, key);
-                      const newValue = e.target.value;
-                      console.log("New value: ", newValue);
-                    }}
-                  />
-                </FormControl>
-              ))}
+              {config &&
+                type != ToolType.unknown &&
+                type != ToolType.UNRECOGNIZED &&
+                Object.entries(config[type] || {}).map(([key, value]) => (
+                  <FormControl key={key}>
+                    <FormLabel>{capitalizeFirst(key).replaceAll("_", " ")}</FormLabel>
+                    <Input
+                      value={newConfig[type]?.[key] || value}
+                      onChange={(e) => {
+                        handleConfigChange(e, key);
+                        const newValue = e.target.value;
+                        console.log("New value: ", newValue);
+                      }}
+                    />
+                  </FormControl>
+                ))}
             </VStack>
           </ModalBody>
           <ModalFooter>

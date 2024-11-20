@@ -67,8 +67,8 @@ const sidebarItems: SidebarItem[] = [
   { name: "Logs", icon: FiBook, path: "/logs" },
   { name: "Variables", icon: TbVariable, path: "/variables" },
   { name: "Scripts", icon: MdOutlineIntegrationInstructions, path: "/scripts" },
- // { name: "Settings", icon: FiSettings, path: "/settings" },
- // { name: "Logout", icon: FiLogOut, path: "/logout" },
+  // { name: "Settings", icon: FiSettings, path: "/settings" },
+  // { name: "Logout", icon: FiLogOut, path: "/logout" },
 ];
 
 function DarkModeToggle() {
@@ -114,9 +114,20 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       }}>
       <VStack spacing={4} align="stretch">
         <HStack pb={10}>
-        <Image onClick={toggleSidebar} width="58px" paddingLeft="0" src="/site_logo.png" filter="brightness(1)"></Image>
-        {isSidebarExpanded && (
-            <Text as="b" pt={2} pl={2} fontSize="4xl" color="white" sx={{
+          <Image
+            onClick={toggleSidebar}
+            width="58px"
+            paddingLeft="0"
+            src="/site_logo.png"
+            filter="brightness(1)"></Image>
+          {isSidebarExpanded && (
+            <Text
+              as="b"
+              pt={2}
+              pl={2}
+              fontSize="4xl"
+              color="white"
+              sx={{
                 fontFamily: `'Bungee Shade', cursive`,
               }}>
               Galago
@@ -165,45 +176,45 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
     </Box>
   );
   return (
-<Flex>
-  {!isMobile ? (
-    <Box
-      position="fixed"
-      top="0"
-      left="0"
-      bottom="0"
-      bg="teal.800"
-      color="white"
-      minW={isSidebarExpanded ? "320px" : "90px"}
-      p={2}
-      sx={{
-        transition: "min-width 0.3s ease, width 0.3s ease",
-        width: isSidebarExpanded ? "330px" : "90px",
-      }}>
-      {SidebarContent}
-    </Box>
-  ) : (
-    <>
-      <IconButton
-        bg="teal.500"
-        aria-label="Open Menu"
-        icon={<FiMenu />}
-        onClick={onOpen}
-        m={2}
-        position="fixed"
-        top="0rem"
-        left="0rem"
-      />
-      <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
-        <DrawerOverlay />
-        <DrawerContent>{SidebarContent}</DrawerContent>
-      </Drawer>
-    </>
-  )}
-  <Box flex="1" p={4} ml={isSidebarExpanded ? "320px" : "80px"}>
-    {children}
-  </Box>
-</Flex>
+    <Flex>
+      {!isMobile ? (
+        <Box
+          position="fixed"
+          top="0"
+          left="0"
+          bottom="0"
+          bg="teal.800"
+          color="white"
+          minW={isSidebarExpanded ? "320px" : "90px"}
+          p={2}
+          sx={{
+            transition: "min-width 0.3s ease, width 0.3s ease",
+            width: isSidebarExpanded ? "330px" : "90px",
+          }}>
+          {SidebarContent}
+        </Box>
+      ) : (
+        <>
+          <IconButton
+            bg="teal.500"
+            aria-label="Open Menu"
+            icon={<FiMenu />}
+            onClick={onOpen}
+            m={2}
+            position="fixed"
+            top="0rem"
+            left="0rem"
+          />
+          <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
+            <DrawerOverlay />
+            <DrawerContent>{SidebarContent}</DrawerContent>
+          </Drawer>
+        </>
+      )}
+      <Box flex="1" p={4} ml={isSidebarExpanded ? "320px" : "80px"}>
+        {children}
+      </Box>
+    </Flex>
   );
 };
 

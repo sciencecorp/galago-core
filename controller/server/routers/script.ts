@@ -2,7 +2,7 @@ import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { get, post, put, del } from "../utils/api";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
-import {Script} from "@/types/api";
+import { Script } from "@/types/api";
 
 export const zScript = z.object({
   id: z.number().optional(),
@@ -13,7 +13,6 @@ export const zScript = z.object({
 });
 
 export const scriptRouter = router({
-    
   getAll: procedure.query(async () => {
     const response = await get<Script[]>(`/scripts`);
     return response;
@@ -31,13 +30,11 @@ export const scriptRouter = router({
       return response;
     }),
 
-  edit: procedure
-    .input(zScript) 
-    .mutation(async ({ input }) => {
-      const { id } = input;
-      const response = await put<Script>(`/scripts/${id}`, input);
-      return response;
-    }),
+  edit: procedure.input(zScript).mutation(async ({ input }) => {
+    const { id } = input;
+    const response = await put<Script>(`/scripts/${id}`, input);
+    return response;
+  }),
 
   delete: procedure.input(z.number()).mutation(async ({ input }) => {
     await del(`/scripts/${input}`);

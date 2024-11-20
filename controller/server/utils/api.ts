@@ -1,5 +1,4 @@
-import axios, { AxiosRequestConfig, AxiosError } from "axios";
-import { errorToast, successToast, warningToast } from "@/components/ui/Toast";
+import axios from "axios";
 
 export const api = axios.create({
   baseURL: `${process.env.API_BASE_URL}` || "http://localhost:8000/api",
@@ -51,13 +50,11 @@ export const post = async <T>(url: string, data: any): Promise<T | null> => {
     if (axios.isAxiosError(error)) {
       const errorMsg = unpackError(error);
       console.error("Request error:", errorMsg);
-      errorToast("Unexpected error", "An unexpected error occurred");
       throw new Error(
         `Error: ${error.response?.status} - ${errorMsg} - ${JSON.stringify(error.response?.data?.detail)}`,
       );
     } else {
       console.error("Unexpected error:", error);
-      errorToast("Unexpected error", "An unexpected error occurred");
       throw new Error("An unexpected error occurred");
     }
   }

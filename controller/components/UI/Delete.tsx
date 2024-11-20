@@ -1,4 +1,4 @@
-import { useDisclosure, IconButton,Text,Button } from "@chakra-ui/react";
+import { useDisclosure, IconButton, Text, Button } from "@chakra-ui/react";
 import React from "react";
 import { RiDeleteBinLine } from "react-icons/ri";
 
@@ -11,43 +11,42 @@ export interface DeleteButtonProps {
   variant?: "icon" | "button";
   disabled?: boolean;
   showText?: boolean;
-  size? : "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg";
 }
 
 export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
-  const { disabled, label, onDelete, showText, variant="icon",customText,size="md"} = props;
+  const { disabled, label, onDelete, showText, variant = "icon", customText, size = "md" } = props;
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
     <>
-   {variant === "icon" && (
-    <>
-      <IconButton
-        padding="0"
-        margin="0"
-        minWidth="0"
-        borderRadius="0"
-        aria-label={`Delete ${label}`}
-        disabled={!!disabled}
-        icon={<RiDeleteBinLine />}
-        size={size}
-        bg="transparent"
-        onClick={onOpen}
-      />
+      {variant === "icon" && (
+        <>
+          <IconButton
+            padding="0"
+            margin="0"
+            minWidth="0"
+            borderRadius="0"
+            aria-label={`Delete ${label}`}
+            disabled={!!disabled}
+            icon={<RiDeleteBinLine />}
+            size={size}
+            bg="transparent"
+            onClick={onOpen}
+          />
 
-      {showText && ( 
-        <Text px={2} fontSize="md" onClick={onOpen} width="100%">
-          Delete
-        </Text>
+          {showText && (
+            <Text px={2} fontSize="md" onClick={onOpen} width="100%">
+              Delete
+            </Text>
+          )}
+        </>
       )}
-      </>
-    )}
-    {variant === "button" && (
-        <Button 
-          onClick={onOpen}
-          colorScheme="red" 
-          variant="solid">Delete</Button>
-    )}
+      {variant === "button" && (
+        <Button onClick={onOpen} colorScheme="red" variant="solid">
+          Delete
+        </Button>
+      )}
       <ConfirmationModal
         colorScheme="red"
         confirmText={"Delete"}
@@ -58,7 +57,7 @@ export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
           onClose();
         }}
         onClose={onClose}>
-          {customText || `Are you sure you want to delete this ${label}?`}
+        {customText || `Are you sure you want to delete this ${label}?`}
       </ConfirmationModal>
     </>
   );

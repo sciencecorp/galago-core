@@ -69,7 +69,6 @@ export default class RunStore {
     if (validationErrors) {
       throw validationErrors;
     }
-
     const commands = protocol.generate({
       protocolId,
       params,
