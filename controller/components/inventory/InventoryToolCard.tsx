@@ -58,20 +58,22 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
 }) => {
   const [isCreateNestModalOpen, setIsCreateNestModalOpen] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const toolNests = nests.filter((nest) => nest.name?.toString() === tool.id.toString());
+  console.log("tool", tool);
+  console.log("nest names", nests.map((nest) => nest.name));
+  console.log("tool id", tool.id);
+  const toolNests = nests.filter((nest) => nest.name?.toString() === tool.name.toString());
+  console.log("toolNests", toolNests);
   const toolPlates = plates.filter((plate) => 
     toolNests.some((nest) => nest.id === plate.nest_id)
   );
-  const infoQuery = trpc.tool.info.useQuery({ toolId: tool.id });
+  console.log("toolPlates", toolPlates);
+  const infoQuery = trpc.tool.info.useQuery({ toolId: tool.id }, {
+    retry: false,
+    useErrorBoundary: false
+  });
   const config = infoQuery.data;
+  console.log("config", config);
 
-  if (infoQuery.isLoading) {
-    return <Spinner size="lg" />;
-  }
-
-  if (infoQuery.isError || !config) {
-    return <Alert status="error">Could not load tool info</Alert>;
-  }
   return (
     <>
       <StyledCard onClick={onOpen}>
@@ -88,12 +90,16 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
 
         <CardBody>
           <Flex justifyContent="center" alignItems="center" height="100%">
-            <Image
-              src={`/tool_icons/${config.type}.png`}
-              alt={tool.name}
-              boxSize="120px"
-              objectFit="contain"
-            />
+            {infoQuery.isLoading ? (
+              <Spinner size="lg" />
+            ) : (
+              <Image
+                src={`${config?.image_url || 'default.png'}`}
+                alt={tool.name}
+                boxSize="120px"
+                objectFit="contain"
+              />
+            )}
           </Flex>
         </CardBody>
       </StyledCard>
@@ -109,8 +115,8 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
         onCreatePlate={onCreatePlate}
         onDeleteNest={onDeleteNest}
         onNestClick={onNestClick}
-        onCreateNest={(row, column) => onCreateNest(tool.id, `${tool.name}`, row, column)} // Adjusted to match the signature
-        />
+        onCreateNest={(row, column) => onCreateNest(tool.id, `${tool.name}`, row, column)}
+      />
     </>
   );
 };

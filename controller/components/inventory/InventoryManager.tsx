@@ -26,23 +26,29 @@ export const InventoryManager: React.FC = () => {
   const toast = useToast();
   const workcells = trpc.workcell.getAll.useQuery();
   const SelectedWorkcellName = trpc.workcell.getSelectedWorkcell.useQuery();
+  console.log("SelectedWorkcellName", SelectedWorkcellName.data);
   const selectedWorkcell = workcells.data?.find(
     (workcell) => workcell.name === SelectedWorkcellName.data
   );
+  console.log("selectedWorkcell", selectedWorkcell);
   const workcellTools = selectedWorkcell?.tools;
+  console.log("workcellTools", workcellTools);
+  console.log("SelectedWorkcellName.data", SelectedWorkcellName.data);
   const { data: nests, isLoading: nestsLoading, refetch: refetchNests } = trpc.inventory.getNests.useQuery(
     SelectedWorkcellName.data ?? ""
   );
+  console.log("nests", nests);
   const { data: plates, isLoading: platesLoading, refetch: refetchPlates } = trpc.inventory.getPlates.useQuery(
     selectedWorkcell?.name || "",
     {
       enabled: !!selectedWorkcell?.id,
     }
   );
+  console.log("plates", plates);
   const { data: reagents, isLoading: reagentsLoading, refetch: refetchReagents } = trpc.inventory.getReagents.useQuery(
     selectedWorkcell?.id ?? 0
   );
-  
+  console.log("reagents", reagents);
   const createNestMutation = trpc.inventory.createNest.useMutation({
     onSuccess: () => {
       toast({
@@ -122,13 +128,13 @@ export const InventoryManager: React.FC = () => {
     setSelectedNest(nest);
   };
 
-  const handleCreateNest = async (instrumentId: string, nestName: string, nestRow: number, nestColumn: number) => {
+  const handleCreateNest = async (toolId: string, nestName: string, nestRow: number, nestColumn: number) => {
     try {
       await createNestMutation.mutateAsync({
         name: nestName,
         row: nestRow,
         column: nestColumn,
-        tool_id: 1,
+        tool_id: toolId,
       });
       refetchNests();
     } catch (error) {
@@ -185,13 +191,10 @@ export const InventoryManager: React.FC = () => {
         />
 
         <SimpleGrid columns={[1, 2, 3]} spacing={6}>
-        {workcellTools?.map((instrument) => (
+        {workcellTools?.map((tool) => (
             <InventoryToolCard
-                key={instrument.name}
-                tool={{
-                ...instrument,
-                id: instrument.name
-                } as Tool}
+                key={tool.name}
+                tool={tool}
                 nests={Array.isArray(nests) ? nests : []}
                 plates={Array.isArray(plates) ? plates : []}
                 wells={Array.isArray(wells) ? wells : []}

@@ -22,8 +22,8 @@ import {trpc} from "@/utils/trpc";
 import {Script} from "@/types/api";
 import { RiDeleteBinLine } from "react-icons/ri";
 import { NewScript } from "./NewScript";
-import { PageHeader } from "../ui/PageHeader";
-import { DeleteWithConfirmation } from "../ui/Delete";
+import { PageHeader } from "../UI/PageHeader";
+import { DeleteWithConfirmation } from "../UI/Delete";
 
 
 interface ScriptsEditorProps {
