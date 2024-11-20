@@ -1,16 +1,11 @@
 import { z } from "zod";
-
 import Tool from "@/server/tools";
 import { Tool as ToolResponse } from "@/types/api";
 import { Config } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { procedure, router } from "@/server/trpc";
 import { ToolType } from "gen-interfaces/controller";
-import axios from "axios";
-import { add } from "winston";
 import { get, post, put, del } from "@/server/utils/api";
-import { idText } from "typescript";
 import * as controller_protos from "gen-interfaces/controller";
-import { Workcell, AppSettings } from "@/types/api";
 
 const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
 
@@ -18,7 +13,7 @@ export const zTool = z.object({
   id: z.number().optional(),
   name: z.string().optional(),
   type: zToolType.optional(),
-  description: z.string().optional(), 
+  description: z.string().optional(),
   workcell_id: z.number().optional(),
   ip: z.string().optional(),
   port: z.number().optional(),
@@ -27,14 +22,11 @@ export const zTool = z.object({
 });
 
 export const toolRouter = router({
-
-  
-  get : procedure.input(z.number()).query(async ({input}) => {
+  get: procedure.input(z.number()).query(async ({ input }) => {
     //if(input === 1206) return Tool.forId(input);
     const response = await get<ToolResponse>(`/tools/${input}`);
     return response;
-  }
-  ),
+  }),
 
   getAll: procedure.query(async () => {
     const response = await get<ToolResponse[]>(`/tools`, {
@@ -47,7 +39,7 @@ export const toolRouter = router({
     return response;
   }),
 
-  add: procedure.input(zTool.omit({ id: true, port:true })).mutation(async ({ input }) => {
+  add: procedure.input(zTool.omit({ id: true, port: true })).mutation(async ({ input }) => {
     const response = post<ToolResponse>(`/tools`, input);
     return response;
   }),
@@ -62,29 +54,28 @@ export const toolRouter = router({
     )
     .mutation(async ({ input }) => {
       console.log("Editing tool with input: ", input);
-      const {id, config} = input;
+      const { id, config } = input;
       const response = put<ToolResponse>(`/tools/${id}`, config);
-     // await Tool.removeTool(id); //Remove the tool from the store
       const tool = await Tool.forId(id); //Recreate the tool with the new config
 
       tool.info = {
         ...tool.info,
         name: config.name ?? tool.info.name,
         description: config.description ?? tool.info.description,
-       // config: config.config ?? tool.info.config,
+        config: (config.config as Config) ?? tool.info.config,
       };
 
       return response;
-  }),
-  
-  delete : procedure.input(z.number()).mutation(async ({ input }) => {
+    }),
+
+  delete: procedure.input(z.number()).mutation(async ({ input }) => {
     await del(`/tools/${input}`);
     Tool.removeTool(input);
-    return { message: "Tool deleted successfully"};
+    return { message: "Tool deleted successfully" };
   }),
 
-  getProtoConfigDefinitions : procedure.input(zToolType).query(async ({input}) => {
-    const configDefinition =  await Tool.getToolConfigDefinition(input);
+  getProtoConfigDefinitions: procedure.input(zToolType).query(async ({ input }) => {
+    const configDefinition = await Tool.getToolConfigDefinition(input);
     return configDefinition;
   }),
 
@@ -99,7 +90,7 @@ export const toolRouter = router({
   status: procedure
     .input(
       z.object({
-        toolId: z.number(), 
+        toolId: z.number(),
       }),
     )
     .query(async ({ input }) => {
@@ -149,5 +140,4 @@ export const toolRouter = router({
     .mutation(async ({ input }) => {
       return await Tool.executeCommand(input);
     }),
-
 });

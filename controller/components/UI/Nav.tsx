@@ -22,7 +22,6 @@ import {
 import { HamburgerIcon } from "@chakra-ui/icons";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import SettingsModalComponent from "@/components/settings/SettingsModalComponent";
 import { useState } from "react";
 import { useSidebar } from "@/components/SidebarContext";
 
@@ -80,7 +79,6 @@ export default function Nav() {
         className={process.env.appMode == "PROD" ? "production-nav" : "development-nav"}
         bg={bgColor}
         color={textColor}>
-        {showSettingsModal && <SettingsModalComponent IsVisible={showSettingsModal} />}
         <Link href="/" passHref>
           <Image width="50px" paddingLeft="5" src="/site_logo.png"></Image>
         </Link>

@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Box, HStack, Select, Text } from "@chakra-ui/react";
 
-
 interface CustomTimePickerProps {
   onTimeSelect?: (time: string) => void;
 }
 
-
-export const TimePicker : React.FC<CustomTimePickerProps> = ({ onTimeSelect }) => {
+export const TimePicker: React.FC<CustomTimePickerProps> = ({ onTimeSelect }) => {
   const [hour, setHour] = useState<string>("12");
   const [minute, setMinute] = useState<string>("00");
   const [period, setPeriod] = useState<string>("AM");
@@ -36,7 +34,6 @@ export const TimePicker : React.FC<CustomTimePickerProps> = ({ onTimeSelect }) =
     handleTimeChange();
   };
 
-
   return (
     <HStack spacing={2}>
       <Select
@@ -46,8 +43,7 @@ export const TimePicker : React.FC<CustomTimePickerProps> = ({ onTimeSelect }) =
         height="60px"
         width="100px"
         borderRadius="10px"
-        boxShadow="md"
-      >
+        boxShadow="md">
         {hours.map((h) => (
           <option key={h} value={h}>
             {h}
@@ -62,8 +58,7 @@ export const TimePicker : React.FC<CustomTimePickerProps> = ({ onTimeSelect }) =
         height="60px"
         width="100px"
         borderRadius="10px"
-        boxShadow="md"
-      >
+        boxShadow="md">
         {minutes.map((m) => (
           <option key={m} value={m}>
             {m}
@@ -77,8 +72,7 @@ export const TimePicker : React.FC<CustomTimePickerProps> = ({ onTimeSelect }) =
         height="60px"
         width="100px"
         borderRadius="10px"
-        boxShadow="md"
-      >
+        boxShadow="md">
         {periods.map((p) => (
           <option key={p} value={p}>
             {p}

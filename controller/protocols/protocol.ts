@@ -9,6 +9,7 @@ import {
   zodSchemaToDefault,
   zodSchemaToEnumValues,
 } from "./zodHelpers";
+import { ToolConfig } from "gen-interfaces/controller";
 
 export default abstract class Protocol<
   ParamSchema extends MaybeWrappedZodType<AnyZodObject> = MaybeWrappedZodType<AnyZodObject>,

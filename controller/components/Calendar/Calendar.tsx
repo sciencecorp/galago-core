@@ -134,15 +134,14 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
               isCurrentDay(day)
                 ? "teal.300"
                 : selectedDate?.toDateString() === day.toDateString()
-                ? "teal.400"
-                : "gray.100"
+                  ? "teal.400"
+                  : "gray.100"
             }
             _hover={{ bg: hoverColor }}
             onClick={() => handleDateClick(day)}
-            cursor="pointer"
-          >
+            cursor="pointer">
             <Flex direction="column" justifyContent="center" alignItems="center">
-              <Text fontSize='larger'>{day.getDate()}</Text>
+              <Text fontSize="larger">{day.getDate()}</Text>
             </Flex>
           </Grid>
         ))}

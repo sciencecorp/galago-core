@@ -20,7 +20,7 @@ import {
   Icon,
   useToast,
   useDisclosure,
-  Modal
+  Modal,
 } from "@chakra-ui/react";
 import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import Link from "next/link";
@@ -29,12 +29,10 @@ import { ToolStatusTag } from "./ToolStatusTag";
 import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
 import { PiToolbox } from "react-icons/pi";
-import { DeleteWithConfirmation } from "../UI/Delete";
-import { EditMenu } from "../UI/EditMenu";
-import { EditToolModal } from "./EditToolConfig";
+import { DeleteWithConfirmation } from "../ui/Delete";
+import { EditMenu } from "../ui/EditMenu";
 import { Tool } from "@/types/api";
-import { useRouter } from "next/router";
-import { FaHandSparkles } from "react-icons/fa";
+import { EditToolModal } from "./EditToolConfig";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -55,9 +53,11 @@ const StyledCard = styled(Card)`
   }
 `;
 
-interface ToolStatusCardProps {
+export default function ToolStatusCard({
+  toolId,
+  style,
+}: {
   toolId: number;
-  minimal?: boolean;
   style?: React.CSSProperties;
 }
 
@@ -65,11 +65,11 @@ export default function ToolStatusCard({ toolId, minimal = false, style = {} }: 
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
 
-  const infoQuery = trpc.tool.info.useQuery({toolId: toolId});
+  const infoQuery = trpc.tool.info.useQuery({ toolId: toolId });
   const toolData = infoQuery.data;
   const { description, name } = infoQuery.data || {};
   const deleteTool = trpc.tool.delete.useMutation();
-  const {data: fetchedIds, refetch} = trpc.tool.availableIDs.useQuery();
+  const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery();
   const editTool = trpc.tool.edit.useMutation();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -140,69 +140,57 @@ export default function ToolStatusCard({ toolId, minimal = false, style = {} }: 
 
   return (
     <>
-    <StyledCard
-      p={2}
-      style={{ width: "280px", ...style }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}>
-      <CardHeader pb="0px">
-        <Flex justifyContent="space-between" alignItems="center">
-          <Box>
-            <Link href={`/tools/${toolId}`} passHref>
-              <Heading size="md">{name}</Heading>
-            </Link>
-            <Text fontSize="sm">{description}</Text>
-          </Box>
-          <Box top={-5} right={-5} position="relative">
-            <EditMenu
-              onEdit={() => router.push(`/tools/${toolId}`)}
-              onDelete={() => handleDelete(toolId)}
-              label="tool"
-              buttonProps={{
-                size: "sm",
-                position: "absolute",
-                right: 2,
-                top: 2
-              }}
-              customMenuItems={
-                toolData.type === ToolType.pf400 && (
-                  <MenuItem onClick={handleTeachPendantClick} 
-                            icon={<FaHandSparkles />}
-                  >
-                    Teach Pendant
-                  </MenuItem>
-                )
-              }
-            />
-          </Box>
-        </Flex>
-      </CardHeader>
-      <CardBody mt="0px">
-        <VStack align="stretch" spacing={4} mb={2}>
-          <ToolStatusTag toolId={toolId} />
-          <Flex
-            justifyContent="center"
-            alignItems="center"
-            height={isHovered ? "auto" : "100%"}
-            transition="all 0.3s ease-in-out">
-            {isHovered ? (
-              <Flex justifyContent="space-between" alignItems="center" width="100%">
-                <Box flex="1" opacity={isHovered ? 1 : 0} transition="opacity 0.3s">
-                  <ToolConfigEditor toolId={toolId} defaultConfig={toolData as ToolConfig} />
-                </Box>
-                <Box width="60px" height="60px">
-                  {<Link href={`/tools/${toolId}`}>{renderToolImage(toolData)}</Link>}
-                </Box>
-              </Flex>
-            ) : (
-              <Box>{<Link href={`/tools/${toolId}`}>{renderToolImage(toolData)}</Link>}</Box>
-            )}
+      <StyledCard
+        p={2}
+        style={{ width: "280px", ...style }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}>
+        <CardHeader pb="0px">
+          <Flex justifyContent="space-between" alignItems="center">
+            <Box>
+              <Link href={`/tools/${toolId}`} passHref>
+                <Heading size="md">{name}</Heading>
+              </Link>
+              <Text fontSize="sm">{description}</Text>
+            </Box>
+            <Box top={-5} right={-5} position="relative">
+              {toolId !== 1206 && (
+                <EditMenu onEdit={onOpen} onDelete={() => handleDelete(toolId)} />
+              )}
+            </Box>
           </Flex>
-        </VStack>
-      </CardBody>
-    </StyledCard>
-     <EditToolModal toolId={toolId} toolInfo = {toolData as ToolConfig} isOpen={isOpen} onClose={onClose} refetch={refetch}/>
+        </CardHeader>
+        <CardBody mt="0px">
+          <VStack align="stretch" spacing={4} mb={2}>
+            <ToolStatusTag toolId={toolId} />
+            <Flex
+              justifyContent="center"
+              alignItems="center"
+              height={isHovered ? "auto" : "100%"}
+              transition="all 0.3s ease-in-out">
+              {isHovered ? (
+                <Flex justifyContent="space-between" alignItems="center" width="100%">
+                  <Box flex="1" opacity={isHovered ? 1 : 0} transition="opacity 0.3s">
+                    <ToolConfigEditor toolId={toolId} defaultConfig={toolData as ToolConfig} />
+                  </Box>
+                  <Box width="60px" height="60px">
+                    {<Link href={`/tools/${toolId}`}>{renderToolImage(toolData)}</Link>}
+                  </Box>
+                </Flex>
+              ) : (
+                <Box>{<Link href={`/tools/${toolId}`}>{renderToolImage(toolData)}</Link>}</Box>
+              )}
+            </Flex>
+          </VStack>
+        </CardBody>
+      </StyledCard>
+      <EditToolModal
+        toolId={toolId}
+        toolInfo={toolData as ToolConfig}
+        isOpen={isOpen}
+        onClose={onClose}
+        refetch={refetch}
+      />
     </>
-
   );
 }

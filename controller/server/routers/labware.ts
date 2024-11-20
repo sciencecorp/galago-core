@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
-import { Labware } from "@/components/labware/types";
+import { Labware } from "@/types/api";
 import { get, post, put, del } from "../utils/api";
 
 export const zLabware = z.object({

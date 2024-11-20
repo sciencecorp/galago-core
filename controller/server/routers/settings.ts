@@ -1,11 +1,10 @@
 import { procedure, router } from "@/server/trpc";
 import { get, post, put, del } from "@/server/utils/api";
-import { AppSettings} from "@/types/api";
+import { AppSettings } from "@/types/api";
 import { zAppSettings } from "./types";
 import { z } from "zod";
 
 export const workcellRouter = router({
-  
   getAll: procedure.query(async () => {
     const response = await get<AppSettings[]>(`/settings`);
     return response;
@@ -16,20 +15,16 @@ export const workcellRouter = router({
     return response;
   }),
 
-  add: procedure
-  .input(zAppSettings.omit({ id: true })) 
-  .mutation(async ({ input }) => {
+  add: procedure.input(zAppSettings.omit({ id: true })).mutation(async ({ input }) => {
     const response = await post<AppSettings>(`/settings`, input);
     return response;
   }),
 
-  edit: procedure
-    .input(zAppSettings) 
-    .mutation(async ({ input }) => {
-      const { id } = input;
-      const response = await put<AppSettings>(`/settings/${id}`, input);
-      return response;
-    }),
+  edit: procedure.input(zAppSettings).mutation(async ({ input }) => {
+    const { id } = input;
+    const response = await put<AppSettings>(`/settings/${id}`, input);
+    return response;
+  }),
 
   delete: procedure.input(z.number()).mutation(async ({ input }) => {
     await del(`/settings/${input}`);

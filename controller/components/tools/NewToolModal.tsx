@@ -26,7 +26,7 @@ interface NewToolModalProps {
   isDisabled?: boolean;
 }
 export const NewToolModal: React.FC<NewToolModalProps> = (props) => {
-  const { isDisabled} = props;
+  const { isDisabled } = props;
   const [name, setName] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [value, setValue] = useState("");
@@ -38,10 +38,9 @@ export const NewToolModal: React.FC<NewToolModalProps> = (props) => {
   const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery();
   const availableTools = Object.values(ToolType);
   const [defaultConfig, setDefaultConfig] = useState<any>(null);
-  
-  const { data: configData, isFetching: isConfigLoading } = trpc.tool.getProtoConfigDefinitions.useQuery(
-    type as ToolType,
-    {
+
+  const { data: configData, isFetching: isConfigLoading } =
+    trpc.tool.getProtoConfigDefinitions.useQuery(type as ToolType, {
       enabled: !!type, // Only fetch when type is set
     });
 

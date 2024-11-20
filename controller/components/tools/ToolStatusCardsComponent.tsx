@@ -23,7 +23,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import styled from "@emotion/styled";
 import { NewToolModal } from "./NewToolModal";
-import { PageHeader } from "@/components/UI/PageHeader";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { load } from "@grpc/grpc-js";
 import { Tool } from "@/types/api";
 
@@ -51,19 +51,21 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
   const toast = useToast();
   const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery();
   const [toolIds, setToolIds] = useState<number[]>([]);
-  const {data:selectedWorkcellData, refetch:refetchWorkcell} = trpc.workcell.getSelectedWorkcell.useQuery();
+  const { data: selectedWorkcellData, refetch: refetchWorkcell } =
+    trpc.workcell.getSelectedWorkcell.useQuery();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visibleCards, setVisibleCards] = useState(3);
   const [selectedWorkcell, setSelectedWorkcell] = useState<string | null>(null);
-  
+
   useEffect(() => {
     if (fetchedIds) {
       console.log("Tool IDs fetched", fetchedIds);
       setToolIds(fetchedIds);
-    }}, [fetchedIds]);
-  
+    }
+  }, [fetchedIds]);
+
   useEffect(() => {
-    if(selectedWorkcellData){
+    if (selectedWorkcellData) {
       setSelectedWorkcell(selectedWorkcellData);
     }
   }, [selectedWorkcellData]);
@@ -95,7 +97,12 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
       <VStack spacing={4}>
         {showAsGrid ? (
           <>
-           <PageHeader title="Tools" mainButton={<NewToolModal isDisabled={selectedWorkcell === "" || selectedWorkcell === null} />}/>
+            <PageHeader
+              title="Tools"
+              mainButton={
+                <NewToolModal isDisabled={selectedWorkcell === "" || selectedWorkcell === null} />
+              }
+            />
             <SimpleGrid columns={[1, 2, 3, 4]} spacing={2}>
               {toolIds.map((toolId, index) => (
                 <ToolStatusCard key={`${toolId}-${index}`} toolId={toolId} />

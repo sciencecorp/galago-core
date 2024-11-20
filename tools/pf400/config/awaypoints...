@@ -1,0 +1,41 @@
+{
+  "grip_params": {
+    "landscape": {
+      "width": 122,
+      "speed": 10,
+      "force": 15
+    },
+    "portrait": {
+      "width": 86,
+      "speed": 10,
+      "force": 15
+    }
+  },
+  "graph_edges": [],
+  "locations": {},
+  "nests": {},
+  "motion_profiles": [
+    {
+      "id": 2,
+      "speed": 60,
+      "speed2": 0,
+      "acceleration": 60,
+      "deceleration": 60,
+      "accelramp": 0.1,
+      "decelramp": 0.1,
+      "inrange": 0,
+      "straight": 0
+    },
+    {
+      "id": 3,
+      "speed": 80,
+      "speed2": 0,
+      "acceleration": 80,
+      "deceleration": 80,
+      "accelramp": 0.1,
+      "decelramp": 0.1,
+      "inrange": 0,
+      "straight": 0
+    }
+  ]
+}

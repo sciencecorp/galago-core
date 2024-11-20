@@ -144,35 +144,12 @@ export interface Variable {
   id: number;
   name: string;
   value: string;
-  type: string;
+  type: VariableType;
   created_at: Date;
   updated_at: Date;
 }
 
-export interface ToolCommand {
-  id: number;
-  name: string;
-  params: object;
-  tool_id: string;
-}
-
-export interface Labware {
-  id: number;
-  name: string;
-  description: string;
-  number_of_rows: number;
-  number_of_columns: number;
-  height: number;
-  width: number;
-  z_offset: number;
-  plate_lid_offset: number;
-  lid_offset: number;
-  stack_height: number;
-  has_lid: boolean;
-  created_at: Date;
-  updated_at: Date;
-  image_url: string;
-}
+type VariableType = "string" | "number" | "boolean";
 
 export interface Tool {
   id: number;
@@ -223,4 +200,22 @@ export interface Script {
   language: string;
   created_at: Date;
   updated_at: Date;
+}
+
+export interface Labware {
+  id?: number;
+  name: string;
+  description: string;
+  number_of_rows: number;
+  number_of_columns: number;
+  z_offset: number;
+  width: number;
+  height: number;
+  plate_lid_offset: number;
+  lid_offset: number;
+  stack_height: number;
+  has_lid: boolean;
+  image_url: string;
+  created_at?: string;
+  updated_at?: string;
 }

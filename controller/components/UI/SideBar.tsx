@@ -185,45 +185,45 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
     </Box>
   );
   return (
-<Flex>
-  {!isMobile ? (
-    <Box
-      position="fixed"
-      top="0"
-      left="0"
-      bottom="0"
-      bg="teal.800"
-      color="white"
-      minW={isSidebarExpanded ? "320px" : "90px"}
-      p={2}
-      sx={{
-        transition: "min-width 0.3s ease, width 0.3s ease",
-        width: isSidebarExpanded ? "330px" : "90px",
-      }}>
-      {SidebarContent}
-    </Box>
-  ) : (
-    <>
-      <IconButton
-        bg="teal.500"
-        aria-label="Open Menu"
-        icon={<FiMenu />}
-        onClick={onOpen}
-        m={2}
-        position="fixed"
-        top="0rem"
-        left="0rem"
-      />
-      <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
-        <DrawerOverlay />
-        <DrawerContent>{SidebarContent}</DrawerContent>
-      </Drawer>
-    </>
-  )}
-  <Box flex="1" p={4} ml={isSidebarExpanded ? "320px" : "80px"}>
-    {children}
-  </Box>
-</Flex>
+    <Flex>
+      {!isMobile ? (
+        <Box
+          position="fixed"
+          top="0"
+          left="0"
+          bottom="0"
+          bg="teal.800"
+          color="white"
+          minW={isSidebarExpanded ? "320px" : "90px"}
+          p={2}
+          sx={{
+            transition: "min-width 0.3s ease, width 0.3s ease",
+            width: isSidebarExpanded ? "330px" : "90px",
+          }}>
+          {SidebarContent}
+        </Box>
+      ) : (
+        <>
+          <IconButton
+            bg="teal.500"
+            aria-label="Open Menu"
+            icon={<FiMenu />}
+            onClick={onOpen}
+            m={2}
+            position="fixed"
+            top="0rem"
+            left="0rem"
+          />
+          <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
+            <DrawerOverlay />
+            <DrawerContent>{SidebarContent}</DrawerContent>
+          </Drawer>
+        </>
+      )}
+      <Box flex="1" p={4} ml={isSidebarExpanded ? "320px" : "80px"}>
+        {children}
+      </Box>
+    </Flex>
   );
 };
 

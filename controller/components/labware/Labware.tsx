@@ -18,15 +18,15 @@ import {
   InputLeftElement,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
-import { Labware } from "@/types/api";
+import { Labware as LabwareResponse } from "@/types/api";
 import { LabwareModal } from "./LabwareModal";
-import { DeleteWithConfirmation } from "../UI/Delete";
-import { renderDatetime } from "@/components/UI/Time";
-import { EditableText } from "../UI/Form";
-import { WellPlateIcon } from "../UI/Icons";
-import { SearchIcon } from "@chakra-ui/icons";
-export const LabwareManager: React.FC = () => {
-  const [labware, setLabware] = useState<Labware[]>([]);
+import { DeleteWithConfirmation } from "../ui/Delete";
+import { renderDatetime } from "../ui/Time";
+import { EditableText } from "../ui/Form";
+import { WellPlateIcon } from "../ui/Icons";
+
+export const Labware: React.FC = () => {
+  const [labware, setLabware] = useState<LabwareResponse[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const toast = useToast();
 
@@ -40,7 +40,7 @@ export const LabwareManager: React.FC = () => {
     }
   }, [fetchedLabware]);
 
-  const handleDelete = async (labware: Labware) => {
+  const handleDelete = async (labware: LabwareResponse) => {
     try {
       if (labware.id === undefined) {
         return;
@@ -68,7 +68,7 @@ export const LabwareManager: React.FC = () => {
     item.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const handleLabwareUpdate = async (editedLabware: Labware) => {
+  const handleLabwareUpdate = async (editedLabware: LabwareResponse) => {
     try {
       await editLabware.mutateAsync(editedLabware);
       refetch();
@@ -96,155 +96,147 @@ export const LabwareManager: React.FC = () => {
           <Heading size="lg">Labware</Heading>
           <LabwareModal />
         </HStack>
-        <InputGroup maxW="400px">
-          <InputLeftElement pointerEvents="none">
-            <SearchIcon color="gray.300" />
-          </InputLeftElement>
-          <Input
-            placeholder="Search labware"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </InputGroup>
-        <Box overflowX="auto" width="100%">
-          <Table variant="simple" width="100%" size="sm">
-            <Thead>
-              <Tr>
-                <Th></Th>
-                <Th>Name</Th>
-                <Th>Description</Th>
-                <Th>Rows</Th>
-                <Th>Columns</Th>
-                <Th>Z Offset</Th>
-                <Th>Width</Th>
-                <Th>Height</Th>
-                <Th>Plate Lid Offset</Th>
-                <Th>Lid Offset</Th>
-                <Th>Stack Height</Th>
-                <Th>Has Lid</Th>
-                <Th>Updated On</Th>
-                <Th></Th>
+        <Input
+          placeholder="Search labware"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <Table variant="simple" width="100%">
+          <Thead>
+            <Tr>
+              <Th></Th>
+              <Th>Name</Th>
+              <Th>Description</Th>
+              <Th>Rows</Th>
+              <Th>Columns</Th>
+              <Th>Z Offset</Th>
+              <Th>Width</Th>
+              <Th>Height</Th>
+              <Th>Plate Lid Offset</Th>
+              <Th>Lid Offset</Th>
+              <Th>Stack Height</Th>
+              <Th>Has Lid</Th>
+              <Th>Updated On</Th>
+              <Th></Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {filteredLabware.map((item) => (
+              <Tr key={item.id}>
+                <Td width="50px">
+                  <WellPlateIcon rows={item.number_of_rows} columns={item.number_of_columns} />
+                </Td>
+                <Td>
+                  <EditableText
+                    onSubmit={async (value) => {
+                      value && (await handleLabwareUpdate({ ...item, name: value }));
+                    }}
+                    defaultValue={item.name}
+                  />
+                </Td>
+                <Td>
+                  <EditableText
+                    onSubmit={async (value) => {
+                      value && (await handleLabwareUpdate({ ...item, description: value }));
+                    }}
+                    defaultValue={item.description}
+                  />
+                </Td>
+                <Td>
+                  <EditableText
+                    onSubmit={async (value) => {
+                      const numValue = Number(value);
+                      !isNaN(numValue) &&
+                        (await handleLabwareUpdate({ ...item, number_of_rows: numValue }));
+                    }}
+                    defaultValue={item.number_of_rows.toString()}
+                  />
+                </Td>
+                <Td>
+                  <EditableText
+                    onSubmit={async (value) => {
+                      const numValue = Number(value);
+                      !isNaN(numValue) &&
+                        (await handleLabwareUpdate({ ...item, number_of_columns: numValue }));
+                    }}
+                    defaultValue={item.number_of_columns.toString()}
+                  />
+                </Td>
+                <Td>
+                  <EditableText
+                    onSubmit={async (value) => {
+                      const numValue = Number(value);
+                      !isNaN(numValue) &&
+                        (await handleLabwareUpdate({ ...item, z_offset: numValue }));
+                    }}
+                    defaultValue={item.z_offset.toString()}
+                  />
+                </Td>
+                <Td>
+                  <EditableText
+                    onSubmit={async (value) => {
+                      const numValue = Number(value);
+                      !isNaN(numValue) && (await handleLabwareUpdate({ ...item, width: numValue }));
+                    }}
+                    defaultValue={item.width.toString()}
+                  />
+                </Td>
+                <Td>
+                  <EditableText
+                    onSubmit={async (value) => {
+                      const numValue = Number(value);
+                      !isNaN(numValue) &&
+                        (await handleLabwareUpdate({ ...item, height: numValue }));
+                    }}
+                    defaultValue={item.height.toString()}
+                  />
+                </Td>
+                <Td>
+                  <EditableText
+                    onSubmit={async (value) => {
+                      const numValue = Number(value);
+                      !isNaN(numValue) &&
+                        (await handleLabwareUpdate({ ...item, plate_lid_offset: numValue }));
+                    }}
+                    defaultValue={item.plate_lid_offset.toString()}
+                  />
+                </Td>
+                <Td>
+                  <EditableText
+                    onSubmit={async (value) => {
+                      const numValue = Number(value);
+                      !isNaN(numValue) &&
+                        (await handleLabwareUpdate({ ...item, lid_offset: numValue }));
+                    }}
+                    defaultValue={item.lid_offset.toString()}
+                  />
+                </Td>
+                <Td>
+                  <EditableText
+                    onSubmit={async (value) => {
+                      const numValue = Number(value);
+                      !isNaN(numValue) &&
+                        (await handleLabwareUpdate({ ...item, stack_height: numValue }));
+                    }}
+                    defaultValue={item.stack_height.toString()}
+                  />
+                </Td>
+                <Td>
+                  <Switch
+                    isChecked={item.has_lid}
+                    onChange={async (e) => {
+                      await handleLabwareUpdate({ ...item, has_lid: e.target.checked });
+                    }}
+                  />
+                </Td>
+                <Td>{renderDatetime(item.updated_at ?? "")}</Td>
+                <Td>
+                  <DeleteWithConfirmation onDelete={() => handleDelete(item)} label="labware" />
+                </Td>
               </Tr>
-            </Thead>
-            <Tbody>
-              {filteredLabware.map((item) => (
-                <Tr key={item.id}>
-                  <Td width="50px">
-                    <WellPlateIcon rows={item.number_of_rows} columns={item.number_of_columns} />
-                  </Td>
-                  <Td>
-                    <EditableText
-                      onSubmit={async (value) => {
-                        value && (await handleLabwareUpdate({ ...item, name: value }));
-                      }}
-                      defaultValue={item.name}
-                    />
-                  </Td>
-                  <Td>
-                    <EditableText
-                      onSubmit={async (value) => {
-                        value && (await handleLabwareUpdate({ ...item, description: value }));
-                      }}
-                      defaultValue={item.description}
-                    />
-                  </Td>
-                  <Td>
-                    <EditableText
-                      onSubmit={async (value) => {
-                        const numValue = Number(value);
-                        !isNaN(numValue) &&
-                          (await handleLabwareUpdate({ ...item, number_of_rows: numValue }));
-                      }}
-                      defaultValue={item.number_of_rows.toString()}
-                    />
-                  </Td>
-                  <Td>
-                    <EditableText
-                      onSubmit={async (value) => {
-                        const numValue = Number(value);
-                        !isNaN(numValue) &&
-                          (await handleLabwareUpdate({ ...item, number_of_columns: numValue }));
-                      }}
-                      defaultValue={item.number_of_columns.toString()}
-                    />
-                  </Td>
-                  <Td>
-                    <EditableText
-                      onSubmit={async (value) => {
-                        const numValue = Number(value);
-                        !isNaN(numValue) &&
-                          (await handleLabwareUpdate({ ...item, z_offset: numValue }));
-                      }}
-                      defaultValue={item.z_offset.toString()}
-                    />
-                  </Td>
-                  <Td>
-                    <EditableText
-                      onSubmit={async (value) => {
-                        const numValue = Number(value);
-                        !isNaN(numValue) &&
-                          (await handleLabwareUpdate({ ...item, width: numValue }));
-                      }}
-                      defaultValue={item.width.toString()}
-                    />
-                  </Td>
-                  <Td>
-                    <EditableText
-                      onSubmit={async (value) => {
-                        const numValue = Number(value);
-                        !isNaN(numValue) &&
-                          (await handleLabwareUpdate({ ...item, height: numValue }));
-                      }}
-                      defaultValue={item.height.toString()}
-                    />
-                  </Td>
-                  <Td>
-                    <EditableText
-                      onSubmit={async (value) => {
-                        const numValue = Number(value);
-                        !isNaN(numValue) &&
-                          (await handleLabwareUpdate({ ...item, plate_lid_offset: numValue }));
-                      }}
-                      defaultValue={item.plate_lid_offset.toString()}
-                    />
-                  </Td>
-                  <Td>
-                    <EditableText
-                      onSubmit={async (value) => {
-                        const numValue = Number(value);
-                        !isNaN(numValue) &&
-                          (await handleLabwareUpdate({ ...item, lid_offset: numValue }));
-                      }}
-                      defaultValue={item.lid_offset.toString()}
-                    />
-                  </Td>
-                  <Td>
-                    <EditableText
-                      onSubmit={async (value) => {
-                        const numValue = Number(value);
-                        !isNaN(numValue) &&
-                          (await handleLabwareUpdate({ ...item, stack_height: numValue }));
-                      }}
-                      defaultValue={item.stack_height.toString()}
-                    />
-                  </Td>
-                  <Td>
-                    <Switch
-                      isChecked={item.has_lid}
-                      onChange={async (e) => {
-                        await handleLabwareUpdate({ ...item, has_lid: e.target.checked });
-                      }}
-                    />
-                  </Td>
-                  <Td>{renderDatetime(item.updated_at ? new Date(item.updated_at).toISOString() : "")}</Td>
-                  <Td>
-                    <DeleteWithConfirmation onDelete={() => handleDelete(item)} label="labware" />
-                  </Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </Box>
+            ))}
+          </Tbody>
+        </Table>
       </VStack>
     </Box>
   );

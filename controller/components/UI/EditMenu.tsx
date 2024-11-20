@@ -5,52 +5,25 @@ import { MdOutlineModeEditOutline } from "react-icons/md";
 import { HamburgerIcon } from "@chakra-ui/icons";
 
 interface EditMenuProps {
-  onEdit?: () => void;
+  onEdit: () => void;
   onDelete?: () => void;
-  label?: string;
-  customMenuItems?: React.ReactNode;
-  buttonProps?: {
-    size?: string;
-    position?: 'absolute' | 'relative';
-    right?: number;
-    top?: number;
-  };
 }
 
-export const EditMenu: React.FC<EditMenuProps> = ({
-  onEdit,
-  onDelete,
-  label = "item",
-  customMenuItems,
-  buttonProps
-}) => {
+export const EditMenu: React.FC<EditMenuProps> = (props) => {
   return (
     <Menu>
-      <MenuButton
-        as={IconButton}
-        aria-label="Options"
-        icon={<HamburgerIcon />}
-        variant="ghost"
-        size={buttonProps?.size || "md"}
-        position={buttonProps?.position}
-        right={buttonProps?.right}
-        top={buttonProps?.top}
-      />
+      <MenuButton as={IconButton} aria-label="Options" icon={<HamburgerIcon />} variant="ghost" />
       <MenuList>
-        {onEdit && (
-          <MenuItem icon={<MdOutlineModeEditOutline />} onClick={onEdit}>
-            Edit
-          </MenuItem>
-        )}
-        {customMenuItems}
-        {onDelete && (
-          <MenuItem padding="0px">
-            <DeleteWithConfirmation
-              onDelete={onDelete}
-              label={label}
-              showText={true}
-            /></MenuItem>
-        )}
+        <MenuItem icon={<RiEdit2Line />} onClick={props.onEdit}>
+          Edit
+        </MenuItem>
+        <MenuItem>
+          <DeleteWithConfirmation
+            onDelete={() => props.onDelete && props.onDelete()}
+            label="tool"
+            showText={true}
+          />
+        </MenuItem>
       </MenuList>
     </Menu>
   );

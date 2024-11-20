@@ -21,7 +21,7 @@ export default function Page() {
   const [selectedReagents, setSelectedReagents] = useState<Reagent[]>([]);
   const [refreshFlag, setRefreshFlag] = useState<boolean>(false);
 
-  const workcellStuff = trpc.tool.getWorkcellName.useQuery();
+  const workcellStuff = trpc.workcell.getSelectedWorkcell.useQuery();
   const workcellName = workcellStuff.data;
 
   useEffect(() => {

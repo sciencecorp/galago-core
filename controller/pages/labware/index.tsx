@@ -1,5 +1,5 @@
-import { LabwareManager } from "@/components/labware/Labware";
+import { Labware } from "@/components/labware/Labware";
 
 export default function Page() {
-  return <LabwareManager />;
+  return <Labware />;
 }
