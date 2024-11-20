@@ -24,7 +24,7 @@ export const ImageCulturePlateParams = z
 export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlateParams> {
   protocolId = "image_culture_plate";
   category = "production";
-  workcell = "Baymax";
+  workcell = "Cell Culture Workcell";
   name = "Plate Imaging";
   description = "Cell Imaging Protocol";
   paramSchema = ImageCulturePlateParams;
@@ -33,7 +33,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
     const cassette = params.liconic_cassette;
     const level = params.liconic_level;
     const wellPlateID: string = params.wellPlateID;
-    const experiment_name: string = `${params.cytationProgram.split(".")[0]}_${wellPlateID}_`;
+    const experiment_name: string = `${params.cytationProgram?.split(".")[0]}_${wellPlateID}_`;
 
     let cultureLabware = "default";
     if (params.culturePlateType?.includes("6 well")) {
@@ -46,7 +46,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
     let protocol_cmds: ToolCommandInfo[] = [
       {
         label: "Unload plate from Liconic",
-        toolId: "Liconic",
+        toolId: "liconic",
         toolType: ToolType.liconic,
         command: "fetch_plate",
         params: {
@@ -55,7 +55,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         },
       },
       {
-        toolId: "PF400",
+        toolId: "pf400",
         toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
@@ -64,7 +64,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         },
       },
       {
-        toolId: "PF400",
+        toolId: "pf400",
         toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
@@ -74,13 +74,13 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
       },
       {
         label: "Open Cytation",
-        toolId: "Cytation",
+        toolId: "cytation",
         toolType: ToolType.cytation,
         command: "open_carrier",
         params: {},
       },
       {
-        toolId: "PF400",
+        toolId: "pf400",
         toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
@@ -92,7 +92,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
 
     protocol_cmds.push({
       label: "Image Plate/Run Cytation Program",
-      toolId: "Cytation",
+      toolId: "cytation",
       toolType: ToolType.cytation,
       command: "start_read",
       params: {
@@ -105,13 +105,13 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
     protocol_cmds = protocol_cmds.concat([
       {
         label: "Open Cytation",
-        toolId: "Cytation",
+        toolId: "cytation",
         toolType: "cytation",
         command: "open_carrier",
         params: {},
       },
       {
-        toolId: "PF400",
+        toolId: "pf400",
         toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
@@ -121,13 +121,13 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
       },
       {
         label: "Close Cytation",
-        toolId: "Cytation",
+        toolId: "cytation",
         toolType: "cytation",
         command: "close_carrier",
         params: {},
       },
       {
-        toolId: "PF400",
+        toolId: "pf400",
         toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
@@ -136,7 +136,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         },
       },
       {
-        toolId: "PF400",
+        toolId: "pf400",
         toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
@@ -145,8 +145,17 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         },
       },
       {
+        toolId: "tool_box",
+        toolType: ToolType.toolbox,
+        command: "run_python_script",
+        params: {
+          script_name: "plate_counter.py",
+          blocking: false,
+        },
+      },
+      {
         label: "Load plate into Liconic",
-        toolId: "Liconic",
+        toolId: "liconic",
         toolType: ToolType.liconic,
         command: "store_plate",
         params: {

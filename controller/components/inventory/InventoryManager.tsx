@@ -30,6 +30,7 @@ export const InventoryManager: React.FC = () => {
     (workcell) => workcell.name === SelectedWorkcellName.data
   );
   const workcellTools = selectedWorkcell?.tools;
+  console.log("Workcell Tools:", workcellTools);
   const { data: nests, isLoading: nestsLoading, refetch: refetchNests } = trpc.inventory.getNests.useQuery(
     SelectedWorkcellName.data ?? ""
   );

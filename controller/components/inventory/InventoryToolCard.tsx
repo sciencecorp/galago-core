@@ -17,6 +17,9 @@ import { Tool, Nest, Plate, Reagent, Well } from "@/types/api";
 import NestModal from "./NestModal";
 import styled from "@emotion/styled";
 import { trpc } from "@/utils/trpc";
+import { PiToolbox } from "react-icons/pi";
+import { IconButton } from "@chakra-ui/react";
+import { ToolConfigEditor } from "../tools/ToolConfigEditor";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -58,11 +61,44 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   const toolPlates = plates.filter((plate) => 
     toolNests.some((nest) => nest.id === plate.nest_id)
   );
-  const infoQuery = trpc.tool.info.useQuery({ toolId: tool.id }, {
+  console.log("Tool ID:", tool.id);
+  const infoQuery = trpc.tool.info.useQuery({ toolId: tool.name || ""}, {
     retry: false,
     useErrorBoundary: false
   });
   const config = infoQuery.data;
+  console.log("Config:", config);
+  const [isHovered, setIsHovered] = useState(false);
+
+  function renderToolImage(config: any) {
+    if (!config?.image_url) {
+      console.log("No image URL");
+      return <Box></Box>;
+    } else if (config.id === "tool_box") {
+      return (
+        <Box display="flex" justifyContent="center" alignItems="center">
+          <IconButton
+            aria-label="Tool Box"
+            icon={<PiToolbox style={{ width: "100%", height: "100%" }} />}
+            variant="ghost"
+            colorScheme="teal"
+            isRound
+            boxSize="100px"
+          />
+        </Box>
+      );
+    } else {
+      return (
+        <Image
+          src={`/tool_icons/${config.type}.png`}
+          alt={tool.name}
+          objectFit="contain"
+          height="120px"
+          width="120px"
+        />
+      );
+    }
+  }
 
   return (
     <>
@@ -83,12 +119,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
             {infoQuery.isLoading ? (
               <Spinner size="lg" />
             ) : (
-              <Image
-                src={`${config?.image_url || 'default.png'}`}
-                alt={tool.name}
-                boxSize="120px"
-                objectFit="contain"
-              />
+              renderToolImage(config)
             )}
           </Flex>
         </CardBody>
