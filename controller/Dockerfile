@@ -1,3 +1,4 @@
+
 # Base Node.js image
 FROM node:18.20.3-alpine AS base
 
