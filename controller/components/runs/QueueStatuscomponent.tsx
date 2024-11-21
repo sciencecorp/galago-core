@@ -82,9 +82,6 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
           <AlertDescription>{getError.data.message}</AlertDescription>
         </Box>
         <HStack>
-          <Button onClick={()=>console.log("Rety")} colorScheme="orange" size="sm">
-            Retry
-          </Button>
           <CloseButton
             alignSelf="flex-start"
             position="relative"
@@ -126,7 +123,8 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
       <ErrorBanner show={isErrorVisible}/>
       {confirmRunStartModal()}
       <PageHeader 
-        title="Runs" 
+        title="Runs"
+        subTitle={`Total Runs: ${totalRuns}`}
         titleIcon = {getError ? <RunTag status={ToolStatus.FAILED} handleClick={()=>setErrorVisible(!isErrorVisible)} /> : null}
         mainButton={<Button colorScheme="green" variant="outline" onClick={() => onOpen()}>Start</Button>}
         secondaryButton={<Button colorScheme="red" variant="outline" onClick={() => pause()}>Stop</Button>}
