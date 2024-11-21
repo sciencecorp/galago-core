@@ -35,10 +35,10 @@ import { HamburgerIcon } from "@chakra-ui/icons";
 import { IoPlaySkipForward } from "react-icons/io5";
 import { BsSkipForwardFill } from "react-icons/bs";
 import { VscRunBelow } from "react-icons/vsc";
-import { JsxElement } from "typescript";
 import { Tooltip } from "@chakra-ui/react";
-import { ToolConfig } from "gen-interfaces/controller";
+import { PiToolbox } from "react-icons/pi";
 import { useRef } from "react";
+
 interface LaneCommandComponentProps {
   command: RunCommand;
 }
@@ -62,10 +62,25 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
   }, [toolName]);
 
   function renderToolImage(config: any) {
-    console.log("Config", config);
-    if (!config || !config.image_url) {
+    if(!config) return;
+    if (!config.image_url) {
       return <Box></Box>;
-    } else {
+    } 
+    else if(config.name == "Tool Box"){
+      return(
+      <Box display="flex" justifyContent="center" alignItems="center">
+        <IconButton
+          aria-label="Tool Box"
+          icon={<PiToolbox style={{ width: "100%", height: "100%" }} />} // Ensure the icon fills the button
+          variant="ghost"
+          colorScheme="teal"
+          isRound
+         // boxSize="100px"
+      />
+    </Box>
+      );
+    }
+    else {
       return (
         <Image
           src={config.image_url}

@@ -117,14 +117,8 @@ export const ProtocolPageComponent: React.FC = () => {
         return "gray";
     }
   };
-  console.log("Protocols:", protocols);
 
   const handleRunClick = (protocolId: string) => {
-    console.log("ProtocolPageComponent - Run clicked with ID:", protocolId);
-    console.log(
-      "Protocol object:",
-      protocols?.find((p) => p.id === protocolId),
-    );
     setRunModalProtocolId(protocolId);
   };
 
@@ -251,12 +245,6 @@ export const ProtocolPageComponent: React.FC = () => {
                     <Button size="sm" onClick={() => router.push(`/protocols/${protocol.id}/edit`)}>
                       Edit
                     </Button>
-                    <DeleteWithConfirmation
-                      onDelete={async () => {
-                        await trpc.protocol.delete.useMutation().mutateAsync({ id: protocol.id });
-                      }}
-                      label="protocol"
-                    />
                   </HStack>
                 </Td>
               </Tr>

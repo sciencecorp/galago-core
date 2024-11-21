@@ -31,7 +31,9 @@ import {
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { z } from "zod";
+import Router from "next/router";
 
+const router = useRouter();
 function ParamInput({
   paramInfo,
   value,
@@ -111,36 +113,39 @@ function ParamInput({
   }
 }
 
-export default function NewProtocolRunModal({ id, onClose }: { id: string; onClose: () => void }) {
-  console.log("NewProtocolRunModal - Received ID:", id);
-
+export default function NewProtocolRunModal({ 
+  id, 
+  onClose 
+}: { 
+  id: string;
+  onClose: () => void;
+}) {
+  
   const router = useRouter();
   const toast = useToast();
   const workcellData = trpc.workcell.getSelectedWorkcell.useQuery();
   const workcellName = workcellData.data;
-  const protocol = trpc.protocol.get.useQuery(
-    {
-      id: id.toString(),
+  const protocol = trpc.protocol.get.useQuery({ 
+    id: id.toString() 
+  }, {
+    onSuccess: (data) => {
     },
-    {
-      onSuccess: (data) => {
-        console.log("Protocol data received:", data);
-      },
-      onError: (error) => {
-        console.log("Protocol fetch error:", {
-          message: error.message,
-          data: error.data,
-        });
-        toast({
-          title: "Error loading protocol",
-          description: error.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      },
+    onError: (error) => {
+      console.error({
+        message: error.message,
+        data: error.data
+      });
+      toast({
+        title: "Error loading protocol",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
     },
-  );
+  });
+
+
   const uiParams = protocol.data?.uiParams || {};
   const { isOpen, onOpen } = useDisclosure({ defaultIsOpen: true });
   const [userDefinedParams, setUserDefinedParams] = useState<Record<string, any>>({});
@@ -241,3 +246,4 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
     </>
   );
 }
+

@@ -24,53 +24,54 @@ export const protocolRouter = router({
       uiParams: protocol.uiParams(),
     }));
   }),
-
-  allNames: procedure.input(z.object({ workcellName: z.string() })).query(async ({ input }) => {
-    const { workcellName } = input;
-    return Protocols.filter(
-      (protocol: Protocol) => !workcellName || protocol.workcell === workcellName,
-    ).map((protocol) => ({
-      name: protocol.name,
-      id: protocol.protocolId,
-      category: protocol.category,
-      workcell: protocol.workcell,
-      number_of_commands: protocol.preview().length,
-      description: protocol.description,
-      icon: protocol.icon,
-    }));
-  }),
-
-  get: procedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-    const protocol = Protocols.find((p: Protocol) => p.protocolId === input.id);
-    if (!protocol) return null;
-
-    return {
-      name: protocol.name,
-      id: protocol.protocolId,
-      category: protocol.category,
-      workcell: protocol.workcell,
-      commands: protocol._generateCommands({}),
-      uiParams: protocol.uiParams(),
-      icon: protocol.icon,
-      description: protocol.description,
-      number_of_commands: protocol._generateCommands({}).length,
-    };
-  }),
-
-  create: procedure
+  allNames: procedure
+    .input(z.object({ workcellName: z.string() }))
+    .query<AllNamesOutput>(async ({ input }): Promise<AllNamesOutput> => {
+      const { workcellName } = input;
+      return Protocols.filter((protocol: Protocol) => protocol.workcell === workcellName).map(
+        (
+          protocol: Protocol,
+        ): {
+          name: string;
+          id: string;
+          category: string;
+          workcell: string;
+          number_of_commands: number;
+          description?: string;
+          icon?: any;
+        } => {
+          return {
+            name: protocol.name,
+            id: protocol.protocolId,
+            category: protocol.category,
+            workcell: protocol.workcell,
+            number_of_commands: protocol.preview().length,
+            description: protocol.description,
+            icon: protocol.icon,
+          };
+        },
+      );
+    }),
+  get: procedure
     .input(
       z.object({
-        name: z.string(),
-        category: z.enum(["development", "qc", "production"]),
-        workcell: z.string(),
-        description: z.string().optional(),
+        id: z.string(),
       }),
     )
-    .mutation(async () => {
-      throw new Error("Creating new protocols is not supported");
-    }),
+    .query(async ({ input }) => {
+      const { id } = input;
+      const protocol = Protocols.find((p: Protocol) => p.protocolId === id);
+      if (!protocol) return null;
 
-  delete: procedure.input(z.object({ id: z.string() })).mutation(async () => {
-    throw new Error("Deleting protocols is not supported");
-  }),
+      return {
+        name: protocol.name,
+        id: protocol.protocolId,
+        category: protocol.category,
+        workcell: protocol.workcell,
+        commands: protocol.preview(),
+        uiParams: protocol.uiParams(),
+        icon: protocol.icon,
+        description: protocol.description,
+      };
+    }),
 });

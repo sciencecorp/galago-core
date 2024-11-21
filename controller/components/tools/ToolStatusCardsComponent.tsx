@@ -59,7 +59,6 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
 
   useEffect(() => {
     if (fetchedIds) {
-      console.log("Tool IDs fetched", fetchedIds);
       setToolIds(fetchedIds);
     }
   }, [fetchedIds]);

@@ -14,7 +14,6 @@ import { Log } from "@/types/api";
 export const loggingRouter = router({
   getAll: procedure.query(async () => {
     const response = await get<Log[]>(`/logs`);
-    console.log("Response from getAll logs: ", response);
     return response;
   }),
 

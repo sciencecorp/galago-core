@@ -55,6 +55,10 @@ export class CommandQueue {
     this._state = newState;
   }
 
+  getError() {
+    return this.error;
+  }
+
   // Used to start or restart the command queue from the main event loop.
   // Idempotent if already running.
   async allCommands(): Promise<StoredRunCommand[]> {
@@ -106,6 +110,7 @@ export class CommandQueue {
         action: "Queue failed to start",
         details: "Error while starting the queue.: " + e,
       });
+      this.error = e instanceof Error ? e : new Error("Execution failed");
       this.fail(e);
     } finally {
       this._runningPromise = undefined;
@@ -179,7 +184,6 @@ export class CommandQueue {
             action: "Command Error",
             details: "Error while running command: " + errorMessage,
           });
-          console.log("Error message is" + errorMessage);
         } else {
           logAction({
             level: "error",
@@ -191,25 +195,11 @@ export class CommandQueue {
           errorMessage = new Error("Unknown error while trying to execute tool command");
         }
         logger.error("Failed to execute command", e);
-
-        // const slackAlertCommand: ToolCommandInfo = {
-        //   toolId: 1203,
-        //   toolType: "toolbox" as ToolType,
-        //   command: "send_slack_alert",
-        //   params: {
-        //     workcell: Tool.workcellName(),
-        //     tool: `${nextCommand.commandInfo.toolId}`,
-        //     protocol: "",
-        //     error_message: errorMessage,
-        //   },
-        // };
-        // console.log("Sending slack command " + JSON.stringify(slackAlertCommand));
-        // // // logger.error(`Slack command is` + JSON.stringify(slackAlertCommand));
-        // await Tool.executeCommand(slackAlertCommand);
         await this.commands.fail(
           nextCommand.queueId,
           e instanceof Error ? e : new Error("Unknown error"),
         );
+        this.error = e instanceof Error ? e : new Error("Execution failed");
         throw e;
       }
     }

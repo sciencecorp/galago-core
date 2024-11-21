@@ -30,10 +30,11 @@ import { HamburgerIcon } from "@chakra-ui/icons";
 import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
 import { PiToolbox } from "react-icons/pi";
-import { DeleteWithConfirmation } from "../UI/Delete";
-import { EditMenu } from "../UI/EditMenu";
+import { DeleteWithConfirmation } from "@/components/UI/Delete";
+import { EditMenu } from "@/components/UI/EditMenu";
 import { Tool } from "@/types/api";
 import { EditToolModal } from "./EditToolConfig";
+import { useRouter } from "next/router";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -54,13 +55,15 @@ const StyledCard = styled(Card)`
   }
 `;
 
-export default function ToolStatusCard({
-  toolId,
-  style,
-}: {
+interface ToolStatusCardProps {
   toolId: string;
-  style?: React.CSSProperties;
-}) {
+  style?: any;
+}
+
+
+
+export default function ToolStatusCard({ toolId,  style = {} }: ToolStatusCardProps) {
+  const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
 
   const infoQuery = trpc.tool.info.useQuery({ toolId: toolId || "" });

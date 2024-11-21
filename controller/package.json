@@ -2,6 +2,9 @@
   "name": "galago-controller",
   "version": "0.1.0",
   "private": true,
+  "browser":{
+    "child_process": false
+  }  ,
   "scripts": {
     "dev": "next dev -p 3010",
     "build": "next build",
