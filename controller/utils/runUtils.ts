@@ -40,22 +40,23 @@ export function getRunAttributes(
   let completedAt = "";
   let createdAt = "";
 
-  if (commandInfo) {
-    const commandStatuses = Object.values(commandInfo).map((cmd: any) => cmd.status);
-    createdAt = commandInfo[Object.keys(commandInfo)[0]]?.createdAt;
-    if (commandStatuses.every((status) => status === "COMPLETED")) {
+  if (commandInfo && Array.isArray(commandInfo)) {
+    createdAt = commandInfo[0]?.createdAt || "";
+    const lastCommand = commandInfo[commandInfo.length - 1];
+    
+    if (commandInfo.length > 0 && lastCommand?.status === "COMPLETED") {
       status = "COMPLETED";
-      completedAt =
-        commandInfo[Object.keys(commandInfo)[commandStatuses.length - 1]]?.completedAt || "";
-    } else if (commandStatuses.some((status) => status === "FAILED")) {
+      completedAt = lastCommand.completedAt || "";
+    } else if (commandInfo.some(cmd => cmd.status === "FAILED")) {
       status = "FAILED";
-    } else if (commandInfo[Object.keys(commandInfo)[0]]?.startedAt) {
+    } else if (commandInfo.some(cmd => cmd.status === "STARTED")) {
       status = "STARTED";
-      startedAt = commandInfo[Object.keys(commandInfo)[0]]?.startedAt;
-    } else if (commandStatuses.every((status) => status === "CREATED")) {
+      startedAt = commandInfo.find(cmd => cmd.status === "STARTED")?.startedAt || "";
+    } else if (commandInfo.every(cmd => cmd.status === "CREATED")) {
       status = "QUEUED";
     }
   }
+
   return {
     runId: runInfo.id,
     runName,
@@ -68,13 +69,17 @@ export function getRunAttributes(
   };
 }
 
-export function calculateRunTimes(runAttributes: any, currentTime: moment.Moment) {
+export function calculateRunTimes(runAttributes: any, currentTime: moment.Moment, runCommands: RunCommand[] = []) {
   let runStart = moment(runAttributes.createdAt);
   let runEnd: moment.Moment;
   let isActive = false;
 
-  if (runAttributes.status === "COMPLETED") {
-    runEnd = moment(runAttributes.completedAt);
+  // Check if all commands are completed
+  const isCompleted = runCommands.length > 0 && 
+    runCommands[runCommands.length - 1].status === "COMPLETED";
+
+  if (isCompleted) {
+    runEnd = moment(runCommands[runCommands.length - 1].completedAt);
   } else if (runAttributes.status === "STARTED") {
     isActive = true;
     runStart = moment(runAttributes.startedAt);
@@ -91,7 +96,7 @@ export function calculateRunTimes(runAttributes: any, currentTime: moment.Moment
   }
 
   const expectedDuration = runEnd.diff(runStart, "seconds");
-  return { runStart, runEnd, expectedDuration, isActive };
+  return { runStart, runEnd, expectedDuration, isActive, isCompleted };
 }
 
 export function groupCommandsByRun(commands: RunCommand[]): GroupedCommand[] {

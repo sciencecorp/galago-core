@@ -4,6 +4,7 @@ import { RunQueue, RunCommand } from "@/types";
 import { getColorForInstrument } from "@/utils/colorUtils";
 import { calculateTimelinePosition, calculateBlockWidth } from "@/components/utils/timelineUtils";
 import moment from "moment";
+
 interface RunBlockProps {
   run: RunQueue;
   index: number;
@@ -15,6 +16,7 @@ interface RunBlockProps {
   runAttributes: {
     runName: string;
     commandsCount: number;
+    status: string;
   };
   visibleStart: moment.Moment;
   visibleEnd: moment.Moment;
@@ -38,13 +40,14 @@ const RunBlock: React.FC<RunBlockProps> = ({
   completion,
   onRunClick,
 }) => {
+  const isCompleted = runAttributes.status === "COMPLETED" || runAttributes.status === "FAILED";
+  
   const calculateOffset = () => {
-    if (run.status === "COMPLETED" || run.status === "FAILED") {
+    if (isCompleted) {
       return 0;
     }
 
-    const progress =
-      ((runAttributes.commandsCount - runCommands.length) / runAttributes.commandsCount) * 100;
+    const progress = ((runAttributes.commandsCount - runCommands.length) / runAttributes.commandsCount) * 100;
     const baseOffsetMultiplier = -1.6;
 
     if (isActive || moment(run.createdAt).isAfter(visibleStart)) {
@@ -58,7 +61,6 @@ const RunBlock: React.FC<RunBlockProps> = ({
   const width = calculateBlockWidth(visibleStart, visibleEnd, totalDuration);
   const offset = calculateOffset();
 
-  // Group commands by instrument
   const instrumentGroups = runCommands.reduce(
     (acc, command) => {
       const instrumentId = command.commandInfo.toolType;
@@ -72,6 +74,11 @@ const RunBlock: React.FC<RunBlockProps> = ({
   );
 
   const totalCommands = runCommands.length;
+  const backgroundColor = isCompleted 
+    ? "gray.400"  // Darker gray for completed runs
+    : isActive 
+      ? "blue.100" 
+      : "gray.300";
 
   return (
     <Tooltip label={`${runAttributes.runName} | Commands: ${runAttributes.commandsCount}`}>
@@ -83,31 +90,34 @@ const RunBlock: React.FC<RunBlockProps> = ({
         width={width}
         onClick={() => onRunClick(run.id)}
         cursor="pointer"
-        border={isSelected ? "2px solid blue" : "1px solid gray.300"}
+        border={isSelected ? "2px solid green" : "1px solid gray.300"}
         borderRadius="2px"
         overflow="hidden"
         className="run-block-transition"
-        bg={isActive ? "blue.100" : "gray.300"}
+        bg={backgroundColor}
         sx={{
-          transition: `
-            width 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-            left 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-            transform 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-            opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-            background-color 0.3s ease
-          `,
+          transition: isCompleted 
+            ? "background-color 0.3s ease"
+            : `
+                width 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+                left 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.3s ease
+              `,
         }}
-        zIndex={run.status === "COMPLETED" || run.status === "FAILED" ? 1 : 3}
-        opacity={run.status === "COMPLETED" || run.status === "FAILED" ? 0.7 : 1}
+        zIndex={isCompleted ? 1 : 3}
+        opacity={isCompleted ? 0.7 : 1}
         style={{
-          transform: `translateX(${offset}px)`,
+          transform: isCompleted ? "none" : `translateX(${offset}px)`,
         }}>
         {/* Instrument colors */}
         <Flex
           height="100%"
           transition="all 0.8s cubic-bezier(0.4, 0, 0.2, 1)"
           position="relative"
-          zIndex={1}>
+          zIndex={1}
+          opacity={isCompleted ? 0.5 : 1}>
           {Object.entries(instrumentGroups).map(([instrumentId, commands]) => {
             const instrumentWidth = `${(commands.length / totalCommands) * 100}%`;
             return (

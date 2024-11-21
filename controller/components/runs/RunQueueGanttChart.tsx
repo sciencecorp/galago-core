@@ -146,7 +146,6 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
     if (!runsQuery.data) return null;
 
     const groupedCommands = commandsAll.data ? groupCommandsByRun(commandsAll.data) : [];
-
     // Match the order from RunsComponent
     const allRuns = groupedCommands
       .map((group) => runsQuery.data.find((run) => run.id === group.Id))
@@ -160,14 +159,16 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
       );
       const runCommands = groupedCommands.find((group) => group.Id === run.id)?.Commands || [];
 
-      const { runStart, runEnd, expectedDuration, isActive } = calculateRunTimes(
+      const { runStart, runEnd, expectedDuration, isActive, isCompleted } = calculateRunTimes(
         runMetadata,
         currentTime,
+        runCommands
       );
       const completionPercentage = calculateRunCompletion(runCommands);
 
-      const blockEndTime =
-        isActive || runMetadata.status === "CREATED"
+      const blockEndTime = isCompleted 
+        ? runEnd 
+        : isActive || runMetadata.status === "CREATED"
           ? currentTime
               .clone()
               .add(expectedDuration * ((100 - completionPercentage) / 100), "seconds")
@@ -182,6 +183,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
         blockEndTime,
         completionPercentage,
         isActive,
+        isCompleted
       };
     });
 
