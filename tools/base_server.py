@@ -8,7 +8,6 @@ from google.protobuf import message
 from google.protobuf.json_format import MessageToDict
 from tools.grpc_interfaces import tool_base_pb2, tool_driver_pb2_grpc
 from typing import Optional
-from tools.app_config import Config
 import sys 
 import logging.handlers
 
