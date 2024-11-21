@@ -89,24 +89,70 @@ class ToolsManager():
         # Create the right frame for the scrolled text
         self.right_frame = tk.Frame(self.paned_window, width=(self.root.winfo_width()/5)*4)
         self.right_frame.pack(fill=tk.BOTH, expand=True)
-        #self.right_frame.propagate(0)
+        
         # Add the right frame to the paned window
         self.paned_window.add(self.left_frame, weight=1)
-        self.paned_window.add(self.right_frame,weight=10)
+        self.paned_window.add(self.right_frame, weight=10)
         self.log_files_modified_times = {}
         self.log_files_last_read_positions = {}
 
-        self.output_text = ScrolledText(self.right_frame, state='disabled', wrap='word')
-        self.output_text.pack(fill=tk.BOTH, expand=True)
-        self.output_text.tag_config('error', foreground='red') 
-        self.output_text.tag_config('warning', foreground='orange')
+        # Create a frame to hold the Treeview and scrollbars
+        tree_frame = ttk.Frame(self.right_frame)
+        tree_frame.pack(fill=tk.BOTH, expand=True, padx=0, pady=0)
 
-        self.update_interval = 100
-        self.update_log_text()
+        # Create vertical scrollbar only
+        v_scrollbar = ttk.Scrollbar(tree_frame, orient="vertical")
+        h_scrollbar = ttk.Scrollbar(tree_frame, orient="horizontal")
+        
+        # Create Treeview with vertical scrollbar
+        self.output_text = ttk.Treeview(tree_frame, 
+                                       columns=("Time", "Level", "Message"), 
+                                       show="headings",
+                                       yscrollcommand=v_scrollbar.set,
+                                       xscrollcommand=h_scrollbar.set)
+        
+        # Configure scrollbars
+        v_scrollbar.config(command=self.output_text.yview)
+        h_scrollbar.config(command=self.output_text.xview)
+        
+        # Configure columns with adjusted widths
+        self.output_text.heading("Time", text="Time")
+        self.output_text.heading("Level", text="Level")
+        self.output_text.heading("Message", text="Message")
+        
+        # Set column widths and make Message column not fixed width
+        self.output_text.column("Time", width=150, minwidth=150, stretch=False)
+        self.output_text.column("Level", width=70, minwidth=70, stretch=False)
+        self.output_text.column("Message", width=500, minwidth=200, stretch=True)
+
+        # Configure row height to accommodate wrapped text
+        style = ttk.Style()
+        style.configure('Treeview', rowheight=60)  # Adjust this value as needed
+
+        # Pack the Treeview and scrollbars
+        self.output_text.pack(side="left", fill="both", expand=True)
+        v_scrollbar.pack(side="right", fill="y")
+        
+        # Create a frame for the horizontal scrollbar to give it more space
+        h_scroll_frame = ttk.Frame(tree_frame)
+        h_scroll_frame.pack(side="bottom", fill="x", pady=(5,0))
+        h_scrollbar.pack(in_=h_scroll_frame, fill="x")
+
+        # Configure tag colors
+        self.output_text.tag_configure("error", foreground="red")
+        self.output_text.tag_configure("warning", foreground="orange")
+        self.output_text.tag_configure("debug", foreground="gray")
+
+        # Bind Shift + MouseWheel for horizontal scrolling
+        # Bind drag events for horizontal scrolling
+        self._drag_start = None
+        self.output_text.bind("<Button-1>", self._start_drag)
+        self.output_text.bind("<B1-Motion>", self._do_drag)
+        self.output_text.bind("<ButtonRelease-1>", self._stop_drag)
 
         # Add search and filter features
         self.search_frame = ttk.Frame(self.right_frame)
-        self.search_frame.pack(fill=tk.X, padx=5, pady=5)
+        self.search_frame.pack(fill=tk.X, padx=0, pady=(5,0))
 
         self.search_entry = ttk.Entry(self.search_frame)
         self.search_entry.pack(side=tk.LEFT, expand=True, fill=tk.X)
@@ -116,6 +162,9 @@ class ToolsManager():
         self.filter_var = tk.StringVar(value="ALL")
         self.filter_menu = ttk.OptionMenu(self.search_frame, self.filter_var, "ALL", "ALL", "INFO", "DEBUG", "WARNING", "ERROR", command=self.filter_logs)
         self.filter_menu.pack(side=tk.LEFT)
+
+        self.update_interval = 100
+        self.update_log_text()
 
     def kill_all_processes(self) ->None:
         logging.info("Killing all processes")
@@ -143,7 +192,7 @@ class ToolsManager():
                 self.root.iconphoto(True, str(icon_img))      
     
     def update_buttons(self) -> None:
-        for button_key, (button_name, button, frame) in self.tool_buttons.items():
+        for button_key, (button_name, button, status_indicator) in self.tool_buttons.items():
             if button_key in self.server_processes:
                 process = self.server_processes[button_key]
                 is_alive = process is not None and process.poll() is None
@@ -152,10 +201,10 @@ class ToolsManager():
             if is_alive != self.tool_buttons_previous_states[button_key]:
                 if is_alive:
                     button["text"] = "Disconnect"
-                    frame.configure(bg="light green")
+                    status_indicator.itemconfig('status', fill='green')
                 else:
                     button["text"] = "Connect"
-                    frame.configure(bg="light coral")
+                    status_indicator.itemconfig('status', fill='red')
                 self.tool_buttons_previous_states[button_key] = is_alive
 
         self.root.after(500, self.update_buttons)
@@ -182,7 +231,6 @@ class ToolsManager():
             
     def update_log_text(self) -> None:
         try:
-            self.output_text.config(state='normal')
             current_scroll = self.output_text.yview()
             for file_name, update_time in self.log_files_modified_times.items():
                 last_updated = os.path.getmtime(file_name)
@@ -202,11 +250,10 @@ class ToolsManager():
             if current_scroll == (0.0, 1.0):  # Only scroll to the bottom if at the bottom
                 self.output_text.see(tk.END)
 
-            self.output_text.config(state='disabled')
         except FileNotFoundError:
-            self.output_text.config(state='disabled')
+            pass
         except Exception:
-            self.output_text.config(state='disabled')
+            pass
         self.root.after(self.update_interval, self.update_log_text)
 
     def search_logs(self) -> None:
@@ -225,19 +272,26 @@ class ToolsManager():
 
     def filter_logs(self, *args: Any) -> None:
         filter_type = self.filter_var.get()
-        self.output_text.config(state='normal')
-        self.output_text.delete(1.0, tk.END)
+        
+        # Clear existing items in Treeview
+        for item in self.output_text.get_children():
+            self.output_text.delete(item)
+        
         for file_name in self.log_files_modified_times.keys():
-            with open(file_name, 'r') as file:
-                for line in file:
-                    if filter_type == "ALL" or f"| {filter_type} |" in line:
-                        if "| ERROR |" in line:
-                            self.log_text(line.strip(), "error")
-                        elif "| WARNING |" in line:
-                            self.log_text(line.strip(), "warning")
-                        else:
-                            self.log_text(line.strip())
-        self.output_text.config(state='disabled')
+            try:
+                with open(file_name, 'r') as file:
+                    for line in file:
+                        if filter_type == "ALL" or f"| {filter_type} |" in line:
+                            if "| ERROR |" in line:
+                                self.log_text(line.strip(), "error")
+                            elif "| WARNING |" in line:
+                                self.log_text(line.strip(), "warning")
+                            else:
+                                self.log_text(line.strip())
+            except Exception as e:
+                # Insert error as a new row in the Treeview
+                current_time = time.strftime('%Y-%m-%d %H:%M:%S')
+                self.output_text.insert("", 0, values=(current_time, "ERROR", f"Failed to read log file: {str(e)}"), tags=("error",))
 
     def get_shell_command(self, tool_type:str, port:int) -> list:
         python_cmd : str = f"python -m tools.{tool_type}.server --port={port}"
@@ -311,18 +365,40 @@ class ToolsManager():
                 logging.warning(f"Failed to kill process {process_name}. Reason is={str(e)}.")
         return None 
     
-    def log_text(self, text:str, log_type:Optional[str]=None) -> None:
-        self.output_text.config(state='normal')
-        if log_type == "error":
-            self.output_text.insert(tk.END, f"{text}\n",'error')
-            self.output_text.tag_config('error', foreground='red')
-        elif log_type == "warning":
-            self.output_text.insert(tk.END, f"{text}\n", 'warning')
-            self.output_text.tag_config('warning', foreground='orange')
-        else:
-            self.output_text.insert(tk.END, f"{text}\n")
-        self.output_text.config(state='disabled')
-        self.output_text.see(tk.END)
+    def log_text(self, text: str, log_type: Optional[str] = None) -> None:
+        try:
+            # Parse the log line
+            parts = text.split(" | ", 2)
+            
+            if len(parts) == 3:
+                time_str, level, message = parts
+            else:
+                # Handle non-standard format messages (like Python errors)
+                time_str = time.strftime('%Y-%m-%d %H:%M:%S')
+                level = "ERROR"
+                message = text.strip()
+            
+            # Wrap the message text (about 100 chars per line)
+            wrapped_message = '\n'.join(message[i:i+50] for i in range(0, len(message), 50))
+            
+            # Insert new row at the top of the Treeview
+            item = self.output_text.insert("", 0, values=(time_str, level, wrapped_message))
+            
+            # Apply color based on log level
+            if "ERROR" in level or log_type == "error":
+                self.output_text.tag_configure("error", foreground="red")
+                self.output_text.item(item, tags=("error",))
+            elif "WARNING" in level or log_type == "warning":
+                self.output_text.tag_configure("warning", foreground="orange")
+                self.output_text.item(item, tags=("warning",))
+            elif "DEBUG" in level:
+                self.output_text.tag_configure("debug", foreground="gray")
+                self.output_text.item(item, tags=("debug",))
+        except Exception as e:
+            current_time = time.strftime('%Y-%m-%d %H:%M:%S')
+            item = self.output_text.insert("", 0, values=(current_time, "ERROR", f"Error logging text: {str(e)}"))
+            self.output_text.tag_configure("error", foreground="red")
+            self.output_text.item(item, tags=("error",))
 
     def populate_tool_buttons(self) -> None:
         left_width = 300  # Initial width of the left frame
@@ -342,11 +418,16 @@ class ToolsManager():
             label = ttk.Label(frame, text=tool_name, anchor='w')
             label.pack(side=tk.LEFT, padx=(5, 10), pady=5, expand=True, fill=tk.X)
             
+            # Add status indicator
+            status_indicator = tk.Canvas(frame, width=12, height=12, highlightthickness=0)
+            status_indicator.pack(side=tk.LEFT, padx=(0, 10), pady=5)
+            status_indicator.create_oval(2, 2, 10, 10, fill='red', tags='status')
+            
             button = tk.Button(frame, text="Connect", command=command, width=10, 
                                relief=tk.FLAT, bg=frame.cget('bg'), activebackground=frame.cget('bg'))
             button.pack(side=tk.RIGHT, padx=(5, 5), pady=5)
             
-            self.tool_buttons[tool_name] = (tool_name, button, frame)
+            self.tool_buttons[tool_name] = (tool_name, button, status_indicator)
             self.tool_buttons_previous_states[tool_name] = False
 
         # Tool Box
@@ -437,6 +518,32 @@ class ToolsManager():
         process_thread.start()
         self.root.mainloop()
     
+    def _start_drag(self, event):
+        """Start the drag operation."""
+        # Only start drag if we click on a row (not headers)
+        if self.output_text.identify_region(event.x, event.y) == "cell":
+            self._drag_start = event.x
+            # Change cursor to indicate dragging is possible
+            self.output_text.configure(cursor="fleur")
+
+    def _do_drag(self, event):
+        """Perform the drag operation."""
+        if self._drag_start is not None:
+            # Calculate the distance moved
+            diff = (self._drag_start - event.x) / self.output_text.winfo_width()
+            # Get current scroll position
+            first, last = self.output_text.xview()
+            # Move the view (adjust sensitivity)
+            new_position = first + (diff * 2)  # Multiply by 2 to increase scroll sensitivity
+            self.output_text.xview_moveto(new_position)
+            # Update drag start position
+            self._drag_start = event.x
+
+    def _stop_drag(self, event):
+        """End the drag operation."""
+        self._drag_start = None
+        # Reset cursor
+        self.output_text.configure(cursor="")
 
 if __name__ == "__main__":
     root = tk.Tk()
