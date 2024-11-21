@@ -6,20 +6,17 @@ import {
   CardHeader,
   Heading,
   Spinner,
-  Alert,
   Text,
   Flex,
   Image,
   useDisclosure,
-  Button,
 } from "@chakra-ui/react";
-import { Tool, Nest, Plate, Reagent, Well } from "@/types/api";
+import { Nest, Plate, Reagent } from "@/types/api";
 import NestModal from "./NestModal";
 import styled from "@emotion/styled";
 import { trpc } from "@/utils/trpc";
 import { PiToolbox } from "react-icons/pi";
 import { IconButton } from "@chakra-ui/react";
-import { ToolConfigEditor } from "../tools/ToolConfigEditor";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -39,11 +36,11 @@ const StyledCard = styled(Card)`
 `;
 
 interface InventoryToolCardProps {
-  toolId: string;
+  toolId: number;
   nests: Nest[];
   plates: Plate[];
   onCreateNest: (
-    toolId: string,
+    toolId: number,
     nestName: string,
     nestRow: number,
     nestColumn: number,
@@ -69,16 +66,17 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
 }) => {
   const [isCreateNestModalOpen, setIsCreateNestModalOpen] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
-
-  const infoQuery = trpc.tool.info.useQuery({ toolId });
-  const toolData = infoQuery.data;
+  const workcells = trpc.workcell.getAll.useQuery();
+  const SelectedWorkcellName = trpc.workcell.getSelectedWorkcell.useQuery();
+  const selectedWorkcell = workcells.data?.find(
+    (workcell) => workcell.name === SelectedWorkcellName.data,
+  );
+  const workcellTools = selectedWorkcell?.tools;
+  const toolData = workcellTools?.find((tool) => tool.id === toolId);
   const { name } = toolData || {};
 
   const toolNests = nests.filter((nest) => nest.name?.toString() === name?.toString());
   const toolPlates = plates.filter((plate) => toolNests.some((nest) => nest.id === plate.nest_id));
-
-  const [isHovered, setIsHovered] = useState(false);
-
   function renderToolImage(config: any) {
     if (!config?.image_url) {
       console.log("No image URL");
@@ -125,7 +123,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
 
         <CardBody>
           <Flex justifyContent="center" alignItems="center" height="100%">
-            {infoQuery.isLoading ? <Spinner size="lg" /> : renderToolImage(toolData)}
+            {toolData ? renderToolImage(toolData) : <Spinner size="lg" />}
           </Flex>
         </CardBody>
       </StyledCard>

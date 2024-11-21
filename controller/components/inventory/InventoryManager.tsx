@@ -30,7 +30,6 @@ export const InventoryManager = () => {
     (workcell) => workcell.name === SelectedWorkcellName.data,
   );
   const workcellTools = selectedWorkcell?.tools;
-  console.log("Workcell Tools:", workcellTools);
   const {
     data: nests,
     isLoading: nestsLoading,
@@ -140,7 +139,7 @@ export const InventoryManager = () => {
   };
 
   const handleCreateNest = async (
-    toolId: string,
+    toolId: number,
     nestName: string,
     nestRow: number,
     nestColumn: number,
@@ -200,13 +199,6 @@ export const InventoryManager = () => {
     }
   };
 
-  const { data: toolIds } = trpc.tool.availableIDs.useQuery();
-
-  // Filter out PF400 and Tool Box based on names
-  console.log("Tool IDs:", toolIds);
-  const filteredToolIds = toolIds?.filter((id) => id !== "1206");
-  console.log("Filtered Tool IDs:", filteredToolIds);
-
   return (
     <Box flex={1}>
       <PageHeader title="Inventory" mainButton={null} />
@@ -225,10 +217,10 @@ export const InventoryManager = () => {
         />
 
         <SimpleGrid columns={[1, 2, 3, 4]} spacing={8} justifyItems="center">
-          {filteredToolIds?.map((toolId) => (
+          {workcellTools?.map((tool) => (
             <InventoryToolCard
-              key={toolId}
-              toolId={toolId}
+              key={tool.id}
+              toolId={tool.id}
               nests={Array.isArray(nests) ? nests : []}
               plates={Array.isArray(plates) ? plates : []}
               onCreateNest={handleCreateNest}

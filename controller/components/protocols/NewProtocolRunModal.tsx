@@ -31,9 +31,7 @@ import {
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { z } from "zod";
-import Router from "next/router";
 
-const router = useRouter();
 function ParamInput({
   paramInfo,
   value,
