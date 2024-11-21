@@ -55,7 +55,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
     }, firstRunStartTime);
 
     const allCompleted = allRuns.every(
-      (run) => run.status === "COMPLETED" || run.status === "FAILED",
+      (run) => run.status === "COMPLETED",
     );
 
     if (allCompleted) {

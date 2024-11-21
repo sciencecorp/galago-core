@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Text, Flex, Tooltip } from "@chakra-ui/react";
+import { Box, Text, Flex, Tooltip, useColorModeValue } from "@chakra-ui/react";
 import { RunQueue, RunCommand } from "@/types";
 import { getColorForInstrument } from "@/utils/colorUtils";
 import { calculateTimelinePosition, calculateBlockWidth } from "@/components/utils/timelineUtils";
@@ -40,8 +40,7 @@ const RunBlock: React.FC<RunBlockProps> = ({
   completion,
   onRunClick,
 }) => {
-  const isCompleted = runAttributes.status === "COMPLETED" || runAttributes.status === "FAILED";
-  
+  const isCompleted = runAttributes.status === "COMPLETED";
   const calculateOffset = () => {
     if (isCompleted) {
       return 0;
@@ -80,6 +79,10 @@ const RunBlock: React.FC<RunBlockProps> = ({
       ? "blue.100" 
       : "gray.300";
 
+  const animationDelay = `${index * 0.2}s`;
+
+  const bgColor = useColorModeValue("white", "gray.800");
+
   return (
     <Tooltip label={`${runAttributes.runName} | Commands: ${runAttributes.commandsCount}`}>
       <Box
@@ -99,17 +102,29 @@ const RunBlock: React.FC<RunBlockProps> = ({
           transition: isCompleted 
             ? "background-color 0.3s ease"
             : `
-                width 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-                left 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+                width 0.8s cubic-bezier(0.4, 0, 0.2, 1) ${animationDelay},
+                left 0.8s cubic-bezier(0.4, 0, 0.2, 1) ${animationDelay},
+                transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) ${animationDelay},
+                opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1) ${animationDelay},
                 background-color 0.3s ease
               `,
+          _before: {
+            content: '""',
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: bgColor,
+            zIndex: 0
+          }
         }}
         zIndex={isCompleted ? 1 : 3}
         opacity={isCompleted ? 0.7 : 1}
         style={{
           transform: isCompleted ? "none" : `translateX(${offset}px)`,
+          opacity: 0,
+          animation: `fadeIn 0.3s ${animationDelay} forwards`,
         }}>
         {/* Instrument colors */}
         <Flex
