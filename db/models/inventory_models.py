@@ -1,14 +1,8 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Date,Boolean,Float, DateTime, CheckConstraint, LargeBinary
+from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Date,Boolean,Float, DateTime, CheckConstraint
 from sqlalchemy.orm import relationship
 from .db_session import Base
 from sqlalchemy.ext.declarative import declared_attr
 import datetime
-import zlib 
-import base64 
-
-from sqlalchemy.orm import Session
-from sqlalchemy import select
-
 
 class TimestampMixin:
     @declared_attr
