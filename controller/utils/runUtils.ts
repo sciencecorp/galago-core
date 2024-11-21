@@ -43,17 +43,22 @@ export function getRunAttributes(
   if (commandInfo && Array.isArray(commandInfo)) {
     createdAt = commandInfo[0]?.createdAt || "";
     const lastCommand = commandInfo[commandInfo.length - 1];
-    
+    console.log("Last Command: ", lastCommand);
     if (commandInfo.length > 0 && lastCommand?.status === "COMPLETED") {
       status = "COMPLETED";
       completedAt = lastCommand.completedAt || "";
     } else if (commandInfo.some(cmd => cmd.status === "FAILED")) {
-      status = "FAILED";
+      status = "FAILED"; 
     } else if (commandInfo.some(cmd => cmd.status === "STARTED")) {
       status = "STARTED";
       startedAt = commandInfo.find(cmd => cmd.status === "STARTED")?.startedAt || "";
     } else if (commandInfo.every(cmd => cmd.status === "CREATED")) {
       status = "QUEUED";
+    } else if (lastCommand?.status === "SKIPPED" && 
+               !commandInfo.some(cmd => cmd.status === "CREATED") &&
+               !commandInfo.some(cmd => cmd.status === "STARTED")) {
+      status = "COMPLETED";
+      completedAt = lastCommand.completedAt || "";
     }
   }
 

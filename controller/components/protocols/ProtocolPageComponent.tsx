@@ -53,7 +53,6 @@ export const ProtocolPageComponent: React.FC = () => {
   const router = useRouter();
   const toast = useToast();
   const workcellName = "Cell Culture Workcell";
-  console.log("Workcell name:", workcellName);
   const { data: protocols, isLoading, isError } = trpc.protocol.allNames.useQuery({ workcellName });
 
   // Get unique workcells and categories for filters

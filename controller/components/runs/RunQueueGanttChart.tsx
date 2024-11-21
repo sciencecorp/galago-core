@@ -55,7 +55,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
     }, firstRunStartTime);
 
     const allCompleted = allRuns.every(
-      (run) => run.status === "COMPLETED" || run.status === "FAILED",
+      (run) => run.status === "COMPLETED",
     );
 
     if (allCompleted) {
@@ -133,9 +133,9 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
           top={0}
           bottom={0}
           width="1px"
-          borderStyle="dashed"
-          borderWidth="0 2px 0 0"
-          borderColor={borderColor}
+          borderLeft="1px dashed"
+          borderColor={useColorModeValue("gray.300", "gray.700")}
+          zIndex={1}
         />,
       );
     }
