@@ -18,13 +18,13 @@ import {
   Grid,
 } from "@chakra-ui/react";
 import Link from "next/link";
-import { useState ,  useEffect} from "react";
+import { useState, useEffect } from "react";
 import { AllNamesOutput } from "@/server/routers/protocol";
 
 export default function ProtocolListComponent({}: {}) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedWorkcell, setSelectedWorkcell] = useState<string | null>(null);
-  const {data:workcellData, refetch} = trpc.workcell.getSelectedWorkcell.useQuery();
+  const { data: workcellData, refetch } = trpc.workcell.getSelectedWorkcell.useQuery();
   // console.log("Workcell name is"+workcellName);
   const allProtocols = trpc.protocol.allNames.useQuery({ workcellName: selectedWorkcell || "" });
   // console.log("All protocols are"+allProtocols.data);

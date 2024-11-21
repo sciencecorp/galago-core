@@ -381,7 +381,7 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
   }, [commandMutation]);
 
   useEffect(() => {
-    GetTeachPoints().then(points => {
+    GetTeachPoints().then((points) => {
       setLocations(points);
     });
   }, [GetTeachPoints]);

@@ -42,9 +42,17 @@ interface InventoryToolCardProps {
   toolId: string;
   nests: Nest[];
   plates: Plate[];
-  onCreateNest: (toolId: string, nestName: string, nestRow: number, nestColumn: number) => Promise<void>;
-  onCreatePlate: (nestId: number, plateData: { name: string, barcode: string, plate_type: string }) => void;
-  onCreateReagent: (nestId: number, reagentData: Omit<Reagent, 'id' | 'well_id'>) => void;
+  onCreateNest: (
+    toolId: string,
+    nestName: string,
+    nestRow: number,
+    nestColumn: number,
+  ) => Promise<void>;
+  onCreatePlate: (
+    nestId: number,
+    plateData: { name: string; barcode: string; plate_type: string },
+  ) => void;
+  onCreateReagent: (nestId: number, reagentData: Omit<Reagent, "id" | "well_id">) => void;
   onNestClick: (nest: Nest) => void;
   onDeleteNest: (nestId: number) => Promise<void>;
 }
@@ -61,16 +69,14 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
 }) => {
   const [isCreateNestModalOpen, setIsCreateNestModalOpen] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  
+
   const infoQuery = trpc.tool.info.useQuery({ toolId });
   const toolData = infoQuery.data;
   const { name } = toolData || {};
-  
+
   const toolNests = nests.filter((nest) => nest.name?.toString() === name?.toString());
-  const toolPlates = plates.filter((plate) => 
-    toolNests.some((nest) => nest.id === plate.nest_id)
-  );
-  
+  const toolPlates = plates.filter((plate) => toolNests.some((nest) => nest.id === plate.nest_id));
+
   const [isHovered, setIsHovered] = useState(false);
 
   function renderToolImage(config: any) {
@@ -119,11 +125,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
 
         <CardBody>
           <Flex justifyContent="center" alignItems="center" height="100%">
-            {infoQuery.isLoading ? (
-              <Spinner size="lg" />
-            ) : (
-              renderToolImage(toolData)
-            )}
+            {infoQuery.isLoading ? <Spinner size="lg" /> : renderToolImage(toolData)}
           </Flex>
         </CardBody>
       </StyledCard>
@@ -131,13 +133,15 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
       <NestModal
         isOpen={isOpen}
         onClose={onClose}
-        toolName={name || ""}    
+        toolName={name || ""}
         nests={toolNests}
         plates={plates}
-        onCreatePlate={(nestId, plateData) => onCreatePlate(nestId, {
-          ...plateData,
-          plate_type: plateData.plateType
-        })}
+        onCreatePlate={(nestId, plateData) =>
+          onCreatePlate(nestId, {
+            ...plateData,
+            plate_type: plateData.plateType,
+          })
+        }
         onDeleteNest={onDeleteNest}
         onCreateReagent={onCreateReagent}
         onNestClick={onNestClick}

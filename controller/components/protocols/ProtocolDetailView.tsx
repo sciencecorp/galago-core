@@ -37,7 +37,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const [commands, setCommands] = useState<any[]>([]);
   const [isAddCommandModalOpen, setIsAddCommandModalOpen] = useState(false);
   const [isRunModalOpen, setIsRunModalOpen] = useState(false);
-  
+
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
@@ -46,7 +46,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
 
   useEffect(() => {
     if (!protocol?.commands) return;
-    
+
     const newCommands = protocol.commands.map((cmd: any) => ({
       queueId: cmd.queueId || `${Date.now()}-${Math.random()}`,
       commandInfo: {
@@ -54,7 +54,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         toolType: cmd.toolType || cmd.commandInfo?.toolType,
         command: cmd.command || cmd.commandInfo?.command,
         params: cmd.params || cmd.commandInfo?.params,
-        label: cmd.label || cmd.commandInfo?.label || ""
+        label: cmd.label || cmd.commandInfo?.label || "",
       },
       status: "CREATED",
       estimatedDuration: 0,
@@ -63,7 +63,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       completedAt: undefined,
       failedAt: undefined,
       skippedAt: undefined,
-      runId: undefined
+      runId: undefined,
     }));
 
     setCommands(newCommands);
@@ -104,7 +104,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   };
 
   const handleCommandAdded = (newCommand: any) => {
-    setCommands(prevCommands => {
+    setCommands((prevCommands) => {
       const updatedCommands = [...prevCommands, newCommand];
       return updatedCommands;
     });
@@ -119,15 +119,19 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   };
 
   return (
-    <Box bg={bgColor} borderRadius="lg" p={6} color={textColor} borderColor={borderColor} borderWidth="1px">
+    <Box
+      bg={bgColor}
+      borderRadius="lg"
+      p={6}
+      color={textColor}
+      borderColor={borderColor}
+      borderWidth="1px">
       <VStack align="stretch" spacing={6}>
         <HStack justify="space-between">
           <VStack align="start" spacing={2}>
             <Heading size="lg">{protocol.name}</Heading>
             <HStack>
-              <Tag colorScheme={getCategoryColor(protocol.category)}>
-                {protocol.category}
-              </Tag>
+              <Tag colorScheme={getCategoryColor(protocol.category)}>{protocol.category}</Tag>
               <Text color="gray.500">{protocol.workcell}</Text>
             </HStack>
           </VStack>
@@ -135,14 +139,10 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
             <Button
               leftIcon={<EditIcon />}
               colorScheme="teal"
-              onClick={() => setIsAddCommandModalOpen(true)}
-            >
+              onClick={() => setIsAddCommandModalOpen(true)}>
               Edit Protocol
             </Button>
-            <Button
-              colorScheme="green"
-              onClick={handleRunClick}
-            >
+            <Button colorScheme="green" onClick={handleRunClick}>
               Run Protocol
             </Button>
           </HStack>
@@ -181,7 +181,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                       whiteSpace: "pre-wrap",
                       wordWrap: "break-word",
                       padding: "4px",
-                      textAlign: "left"
+                      textAlign: "left",
                     }}>
                     {JSON.stringify(command.commandInfo.params, null, 2)}
                   </Box>
@@ -199,13 +199,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         onCommandAdded={handleCommandAdded}
       />
 
-      {isRunModalOpen && (
-        <NewProtocolRunModal 
-          id={id} 
-          onClose={handleRunModalClose}
-        />
-      )}
+      {isRunModalOpen && <NewProtocolRunModal id={id} onClose={handleRunModalClose} />}
     </Box>
   );
 };
-

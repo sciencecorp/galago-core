@@ -111,39 +111,36 @@ function ParamInput({
   }
 }
 
-export default function NewProtocolRunModal({ 
-  id, 
-  onClose 
-}: { 
-  id: string;
-  onClose: () => void;
-}) {
-  console.log('NewProtocolRunModal - Received ID:', id);
-  
+export default function NewProtocolRunModal({ id, onClose }: { id: string; onClose: () => void }) {
+  console.log("NewProtocolRunModal - Received ID:", id);
+
   const router = useRouter();
   const toast = useToast();
   const workcellData = trpc.workcell.getSelectedWorkcell.useQuery();
   const workcellName = workcellData.data;
-  const protocol = trpc.protocol.get.useQuery({ 
-    id: id.toString() 
-  }, {
-    onSuccess: (data) => {
-      console.log('Protocol data received:', data);
+  const protocol = trpc.protocol.get.useQuery(
+    {
+      id: id.toString(),
     },
-    onError: (error) => {
-      console.log('Protocol fetch error:', {
-        message: error.message,
-        data: error.data
-      });
-      toast({
-        title: "Error loading protocol",
-        description: error.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-  });
+    {
+      onSuccess: (data) => {
+        console.log("Protocol data received:", data);
+      },
+      onError: (error) => {
+        console.log("Protocol fetch error:", {
+          message: error.message,
+          data: error.data,
+        });
+        toast({
+          title: "Error loading protocol",
+          description: error.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      },
+    },
+  );
   const uiParams = protocol.data?.uiParams || {};
   const { isOpen, onOpen } = useDisclosure({ defaultIsOpen: true });
   const [userDefinedParams, setUserDefinedParams] = useState<Record<string, any>>({});
@@ -171,24 +168,19 @@ export default function NewProtocolRunModal({
 
   const handleClose = () => {
     onClose();
-    router.push('/protocols', undefined, { shallow: true });
+    router.push("/protocols", undefined, { shallow: true });
   };
 
   const handleSuccess = () => {
     onClose();
-    router.push('/runs', undefined, { shallow: true });
+    router.push("/runs", undefined, { shallow: true });
   };
 
   return (
     <>
       {workcellName && uiParams && protocol && (
         <Box>
-          <Modal 
-            isOpen={isOpen} 
-            onClose={handleClose}
-            closeOnOverlayClick={true}
-            closeOnEsc={true}
-          >
+          <Modal isOpen={isOpen} onClose={handleClose} closeOnOverlayClick={true} closeOnEsc={true}>
             <ModalOverlay />
             <ModalContent>
               <ModalHeader>New Protocol Run</ModalHeader>
@@ -223,9 +215,7 @@ export default function NewProtocolRunModal({
               </ModalBody>
               <ModalFooter>
                 <ButtonGroup>
-                  <Button onClick={handleClose}>
-                    Cancel
-                  </Button>
+                  <Button onClick={handleClose}>Cancel</Button>
                   <Button
                     colorScheme="blue"
                     onClick={() => {

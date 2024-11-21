@@ -27,25 +27,29 @@ export const InventoryManager = () => {
   const workcells = trpc.workcell.getAll.useQuery();
   const SelectedWorkcellName = trpc.workcell.getSelectedWorkcell.useQuery();
   const selectedWorkcell = workcells.data?.find(
-    (workcell) => workcell.name === SelectedWorkcellName.data
+    (workcell) => workcell.name === SelectedWorkcellName.data,
   );
   const workcellTools = selectedWorkcell?.tools;
   console.log("Workcell Tools:", workcellTools);
-  const { data: nests, isLoading: nestsLoading, refetch: refetchNests } = trpc.inventory.getNests.useQuery(
-    SelectedWorkcellName.data ?? ""
-  );
-  const { data: plates, isLoading: platesLoading, refetch: refetchPlates } = trpc.inventory.getPlates.useQuery(
-    selectedWorkcell?.name || "",
-    {
-      enabled: !!selectedWorkcell?.id,
-    }
-  );
-  const { data: reagents, isLoading: reagentsLoading, refetch: refetchReagents } = trpc.inventory.getReagents.useQuery(
-    selectedWorkcell?.id ?? 0,
-    {
-      enabled: !!plates && Array.isArray(plates) && plates.length > 0
-    }
-  );
+  const {
+    data: nests,
+    isLoading: nestsLoading,
+    refetch: refetchNests,
+  } = trpc.inventory.getNests.useQuery(SelectedWorkcellName.data ?? "");
+  const {
+    data: plates,
+    isLoading: platesLoading,
+    refetch: refetchPlates,
+  } = trpc.inventory.getPlates.useQuery(selectedWorkcell?.name || "", {
+    enabled: !!selectedWorkcell?.id,
+  });
+  const {
+    data: reagents,
+    isLoading: reagentsLoading,
+    refetch: refetchReagents,
+  } = trpc.inventory.getReagents.useQuery(selectedWorkcell?.id ?? 0, {
+    enabled: !!plates && Array.isArray(plates) && plates.length > 0,
+  });
   const createNestMutation = trpc.inventory.createNest.useMutation({
     onSuccess: () => {
       toast({
@@ -104,7 +108,7 @@ export const InventoryManager = () => {
         duration: 3000,
         isClosable: true,
       });
-    }
+    },
   });
 
   const createReagentMutation = trpc.inventory.createReagent.useMutation({
@@ -135,7 +139,12 @@ export const InventoryManager = () => {
     setSelectedNest(nest);
   };
 
-  const handleCreateNest = async (toolId: string, nestName: string, nestRow: number, nestColumn: number) => {
+  const handleCreateNest = async (
+    toolId: string,
+    nestName: string,
+    nestRow: number,
+    nestColumn: number,
+  ) => {
     try {
       await createNestMutation.mutateAsync({
         name: nestName,
@@ -158,20 +167,31 @@ export const InventoryManager = () => {
     }
   };
 
-  const handleCreatePlate = async (nestId: number, plateData: { name: string, barcode: string, plate_type: string }) => {
+  const handleCreatePlate = async (
+    nestId: number,
+    plateData: { name: string; barcode: string; plate_type: string },
+  ) => {
     try {
-      await createPlateMutation.mutateAsync({ name: plateData.name, barcode: plateData.barcode, plate_type: plateData.plate_type, nest_id: nestId });
+      await createPlateMutation.mutateAsync({
+        name: plateData.name,
+        barcode: plateData.barcode,
+        plate_type: plateData.plate_type,
+        nest_id: nestId,
+      });
       refetchPlates();
     } catch (error) {
       console.error("Error creating plate:", error);
     }
   };
 
-  const handleCreateReagent = async (wellId: number, reagentData: Omit<Reagent, 'id' | 'well_id'>) => {
+  const handleCreateReagent = async (
+    wellId: number,
+    reagentData: Omit<Reagent, "id" | "well_id">,
+  ) => {
     try {
       await createReagentMutation.mutateAsync({
         ...reagentData,
-        well_id: wellId
+        well_id: wellId,
       });
       refetchReagents();
     } catch (error) {
@@ -204,11 +224,7 @@ export const InventoryManager = () => {
           onReagentSelect={handleReagentSelect}
         />
 
-        <SimpleGrid 
-          columns={[1, 2, 3,4]} 
-          spacing={8} 
-          justifyItems="center"
-        >
+        <SimpleGrid columns={[1, 2, 3, 4]} spacing={8} justifyItems="center">
           {filteredToolIds?.map((toolId) => (
             <InventoryToolCard
               key={toolId}

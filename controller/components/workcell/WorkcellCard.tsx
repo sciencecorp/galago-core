@@ -134,8 +134,6 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
     );
   };
 
-  
-
   return (
     <Card
       p={2}
@@ -204,7 +202,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
               }}
               colorScheme="teal"
               variant="solid">
-              {selectedWorkcell === workcell.name ? 'Selected' : 'Select'}
+              {selectedWorkcell === workcell.name ? "Selected" : "Select"}
             </Button>
             <DeleteWithConfirmation
               onDelete={handleDelete}

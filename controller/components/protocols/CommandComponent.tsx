@@ -28,7 +28,7 @@ export default function CommandComponent({
   run?: Run;
   command: RunCommand;
 }) {
-  const { queueId, commandInfo, estimatedDuration, status } = runCommand;  
+  const { queueId, commandInfo, estimatedDuration, status } = runCommand;
   const { toolId, toolType, params, command, label = "" } = commandInfo;
   const skipMutation = trpc.commandQueue.skipCommand.useMutation();
   const skipUntilMutation = trpc.commandQueue.skipCommandsUntil.useMutation();
@@ -78,7 +78,7 @@ export default function CommandComponent({
             whiteSpace: "pre-wrap",
             wordWrap: "break-word",
             padding: "4px",
-            textAlign: "left" // Explicitly set left alignment
+            textAlign: "left", // Explicitly set left alignment
           }}>
           {paramString}
         </Box>
@@ -86,12 +86,15 @@ export default function CommandComponent({
       <Td>
         <Tag>{estimatedDuration}s</Tag>
       </Td>
-      <Td minWidth="100px"> {/* Increased width */}
-        <pre style={{ 
-          fontSize: "0.8em", 
-          whiteSpace: "pre-wrap",
-          textAlign: "left" // Explicitly set left alignment
-        }}>
+      <Td minWidth="100px">
+        {" "}
+        {/* Increased width */}
+        <pre
+          style={{
+            fontSize: "0.8em",
+            whiteSpace: "pre-wrap",
+            textAlign: "left", // Explicitly set left alignment
+          }}>
           {status === "CREATED" ? (
             ""
           ) : status === "STARTED" ? (
@@ -116,16 +119,25 @@ export default function CommandComponent({
           <MenuList>
             {queued ? (
               <MenuItem onClick={() => skipMutation.mutate(queueId)}>
-                <IoPlaySkipForward /> <Box as="span" ml={2}>Skip</Box>
+                <IoPlaySkipForward />{" "}
+                <Box as="span" ml={2}>
+                  Skip
+                </Box>
               </MenuItem>
             ) : null}
             {queued ? (
               <MenuItem onClick={() => skipUntilMutation.mutate(queueId)}>
-                <BsSkipForwardFill /> <Box as="span" ml={2}>Skip to this command</Box>
+                <BsSkipForwardFill />{" "}
+                <Box as="span" ml={2}>
+                  Skip to this command
+                </Box>
               </MenuItem>
             ) : null}
             <MenuItem onClick={() => execMutation.mutate(commandInfo)}>
-              <VscRunBelow /> <Box as="span" ml={2}>Send to Tool</Box>
+              <VscRunBelow />{" "}
+              <Box as="span" ml={2}>
+                Send to Tool
+              </Box>
             </MenuItem>
           </MenuList>
         </Menu>

@@ -44,12 +44,15 @@ interface NestModalProps {
   toolName: string;
   nests: Nest[];
   plates: Plate[];
-  onCreatePlate: (nestId: number, plateData: {
-    name: string;
-    plateType: string;
-    barcode: string;
-  }) => void;
-  onCreateReagent: (nestId: number, reagentData: Omit<Reagent, 'id' | 'well_id'>) => void;
+  onCreatePlate: (
+    nestId: number,
+    plateData: {
+      name: string;
+      plateType: string;
+      barcode: string;
+    },
+  ) => void;
+  onCreateReagent: (nestId: number, reagentData: Omit<Reagent, "id" | "well_id">) => void;
   onNestClick: (nest: Nest) => void;
   onCreateNest: (row: number, column: number) => Promise<void>;
   onDeleteNest: (nestId: number) => Promise<void>;
@@ -79,16 +82,16 @@ const NestModal: React.FC<NestModalProps> = ({
   const toast = useToast();
   const [selectedNestId, setSelectedNestId] = useState<number | null>(null);
   const [plateFormData, setPlateFormData] = useState<PlateFormData>({
-    name: '',
-    plateType: '',
-    barcode: ''
+    name: "",
+    plateType: "",
+    barcode: "",
   });
   const [selectedPlate, setSelectedPlate] = useState<Plate | null>(null);
   const [isPlateModalOpen, setIsPlateModalOpen] = useState(false);
 
-  const maxRows = Math.max(...nests.map(nest => nest.row), 1);
-  const maxColumns = Math.max(...nests.map(nest => nest.column), 1);
-  
+  const maxRows = Math.max(...nests.map((nest) => nest.row), 1);
+  const maxColumns = Math.max(...nests.map((nest) => nest.column), 1);
+
   // Updated modal size calculation
   const getModalSize = () => {
     // Calculate grid width (80px per nest + gaps)
@@ -103,29 +106,29 @@ const NestModal: React.FC<NestModalProps> = ({
       md: 550,
       lg: 650,
       xl: 750,
-      '2xl': 850,
-      '3xl': 950,
-      '4xl': 1050,
-      'full': '100%'
+      "2xl": 850,
+      "3xl": 950,
+      "4xl": 1050,
+      full: "100%",
     };
     // Find the smallest size that can fit the grid
-    if (totalWidth <= sizes.xs) return 'sm';
-    if (totalWidth <= sizes.sm) return 'md';
-    if (totalWidth <= sizes.md) return 'lg';
-    if (totalWidth <= sizes.lg) return 'xl';
-    if (totalWidth <= sizes.xl) return '2xl';
-    if (totalWidth <= sizes['2xl']) return '3xl';
-    if (totalWidth <= sizes['3xl']) return '4xl';
-    if (totalWidth <= sizes['4xl']) return 'full';
-    return 'full';
+    if (totalWidth <= sizes.xs) return "sm";
+    if (totalWidth <= sizes.sm) return "md";
+    if (totalWidth <= sizes.md) return "lg";
+    if (totalWidth <= sizes.lg) return "xl";
+    if (totalWidth <= sizes.xl) return "2xl";
+    if (totalWidth <= sizes["2xl"]) return "3xl";
+    if (totalWidth <= sizes["3xl"]) return "4xl";
+    if (totalWidth <= sizes["4xl"]) return "full";
+    return "full";
   };
 
   const modalSize = getModalSize();
 
   // Function to determine potential nest locations based on existing nests
   const getPotentialNests = () => {
-    const potentialNests = new Set<string>(); 
-    nests.forEach(n => {
+    const potentialNests = new Set<string>();
+    nests.forEach((n) => {
       const directions = [
         { row: n.row - 1, col: n.column }, // Above
         { row: n.row, col: n.column - 1 }, // Left
@@ -136,16 +139,21 @@ const NestModal: React.FC<NestModalProps> = ({
         { row: n.row + 1, col: n.column - 1 }, // Bottom-left
         { row: n.row + 1, col: n.column + 1 }, // Bottom-right
       ];
-      directions.forEach(dir => {
+      directions.forEach((dir) => {
         // Check if the position is valid (not zero or negative)
-        if (dir.row > 0 && dir.col > 0 && 
-            !nests.some(existingNest => existingNest.row === dir.row && existingNest.column === dir.col)) {
+        if (
+          dir.row > 0 &&
+          dir.col > 0 &&
+          !nests.some(
+            (existingNest) => existingNest.row === dir.row && existingNest.column === dir.col,
+          )
+        ) {
           potentialNests.add(`${dir.row},${dir.col}`); // Add potential nest location
         }
       });
     });
-    return Array.from(potentialNests).map(pos => {
-      const [row, col] = pos.split(',').map(Number);
+    return Array.from(potentialNests).map((pos) => {
+      const [row, col] = pos.split(",").map(Number);
       return { row, col };
     });
   };
@@ -154,18 +162,18 @@ const NestModal: React.FC<NestModalProps> = ({
   const potentialNests = getPotentialNests();
 
   // Function to handle dimension changes
-  const handleDimensionChange = async (type: 'rows' | 'cols', value: number) => {
+  const handleDimensionChange = async (type: "rows" | "cols", value: number) => {
     const newValue = Math.max(1, Math.floor(value)); // Ensure value is at least 1 and an integer
-    
+
     if (isNaN(newValue)) return; // Guard against invalid input
-    
-    setDimensions(prev => ({ ...prev, [type]: newValue }));
+
+    setDimensions((prev) => ({ ...prev, [type]: newValue }));
 
     try {
-      if (type === 'rows') {
+      if (type === "rows") {
         if (newValue < maxRows) {
           // Delete nests in rows that are being removed
-          const nestsToDelete = nests.filter(nest => nest.row > newValue);
+          const nestsToDelete = nests.filter((nest) => nest.row > newValue);
           for (const nest of nestsToDelete) {
             await onDeleteNest(nest.id);
           }
@@ -174,7 +182,7 @@ const NestModal: React.FC<NestModalProps> = ({
           for (let row = maxRows + 1; row <= newValue; row++) {
             for (let col = 1; col <= maxColumns; col++) {
               // Check if nest already exists at this position
-              const existingNest = nests.find(n => n.row === row && n.column === col);
+              const existingNest = nests.find((n) => n.row === row && n.column === col);
               if (!existingNest) {
                 await onCreateNest(row, col);
               }
@@ -184,7 +192,7 @@ const NestModal: React.FC<NestModalProps> = ({
       } else {
         if (newValue < maxColumns) {
           // Delete nests in columns that are being removed
-          const nestsToDelete = nests.filter(nest => nest.column > newValue);
+          const nestsToDelete = nests.filter((nest) => nest.column > newValue);
           for (const nest of nestsToDelete) {
             await onDeleteNest(nest.id);
           }
@@ -193,7 +201,7 @@ const NestModal: React.FC<NestModalProps> = ({
           for (let row = 1; row <= maxRows; row++) {
             for (let col = maxColumns + 1; col <= newValue; col++) {
               // Check if nest already exists at this position
-              const existingNest = nests.find(n => n.row === row && n.column === col);
+              const existingNest = nests.find((n) => n.row === row && n.column === col);
               if (!existingNest) {
                 await onCreateNest(row, col);
               }
@@ -207,10 +215,10 @@ const NestModal: React.FC<NestModalProps> = ({
         await onCreateNest(1, 1);
       }
     } catch (error) {
-      console.error('Error updating dimensions:', error);
+      console.error("Error updating dimensions:", error);
       toast({
-        title: 'Error updating dimensions',
-        status: 'error',
+        title: "Error updating dimensions",
+        status: "error",
         duration: 3000,
         isClosable: true,
       });
@@ -222,7 +230,7 @@ const NestModal: React.FC<NestModalProps> = ({
     if (nests.length > 0) {
       setDimensions({
         rows: maxRows,
-        cols: maxColumns
+        cols: maxColumns,
       });
     }
   }, [maxRows, maxColumns, nests.length]);
@@ -237,12 +245,12 @@ const NestModal: React.FC<NestModalProps> = ({
       });
       return;
     }
-  
+
     try {
       await onCreatePlate(nestId, plateFormData);
-      
+
       // Reset form
-      setPlateFormData({ name: '', plateType: '', barcode: '' });
+      setPlateFormData({ name: "", plateType: "", barcode: "" });
       setSelectedNestId(null);
     } catch (error) {
       toast({
@@ -256,26 +264,22 @@ const NestModal: React.FC<NestModalProps> = ({
   };
   const renderPlateButton = (nest: Nest) => {
     // Check if the nest has a plate
-    const hasPlate = plates.some(plate => plate.nest_id === nest.id);
-    
+    const hasPlate = plates.some((plate) => plate.nest_id === nest.id);
+
     // If the nest already has a plate, don't render the Add Plate button
     if (hasPlate) {
       return null;
     }
 
     return (
-      <Popover
-        isOpen={selectedNestId === nest.id}
-        onClose={() => setSelectedNestId(null)}
-      >
+      <Popover isOpen={selectedNestId === nest.id} onClose={() => setSelectedNestId(null)}>
         <PopoverTrigger>
-          <Button 
+          <Button
             onClick={(e) => {
               e.stopPropagation();
               setSelectedNestId(nest.id);
-            }} 
-            size="sm"
-          >
+            }}
+            size="sm">
             <AddIcon mr={2} /> Plate
           </Button>
         </PopoverTrigger>
@@ -287,29 +291,28 @@ const NestModal: React.FC<NestModalProps> = ({
               <Input
                 placeholder="Plate Name"
                 value={plateFormData.name}
-                onChange={(e) => setPlateFormData(prev => ({
-                  ...prev,
-                  name: e.target.value
-                }))}
+                onChange={(e) =>
+                  setPlateFormData((prev) => ({
+                    ...prev,
+                    name: e.target.value,
+                  }))
+                }
               />
               <Select
                 placeholder="Select Plate Type"
                 value={plateFormData.plateType}
-                onChange={(e) => setPlateFormData(prev => ({
-                  ...prev,
-                  plateType: e.target.value
-                }))}
-              >
+                onChange={(e) =>
+                  setPlateFormData((prev) => ({
+                    ...prev,
+                    plateType: e.target.value,
+                  }))
+                }>
                 <option value="6 well">6 Well</option>
                 <option value="24 well">24 Well</option>
                 <option value="96 well">96 Well</option>
                 <option value="384 well">384 Well</option>
               </Select>
-              <Button 
-                colorScheme="blue" 
-                width="100%"
-                onClick={() => handleCreatePlate(nest.id)}
-              >
+              <Button colorScheme="blue" width="100%" onClick={() => handleCreatePlate(nest.id)}>
                 Create Plate
               </Button>
             </VStack>
@@ -321,7 +324,7 @@ const NestModal: React.FC<NestModalProps> = ({
 
   // Modify the existing nest click handler
   const handleNestClick = (nest: Nest) => {
-    const plate = plates.find(p => p.nest_id === nest.id);
+    const plate = plates.find((p) => p.nest_id === nest.id);
     if (plate) {
       setSelectedPlate(plate);
       setIsPlateModalOpen(true);
@@ -331,51 +334,44 @@ const NestModal: React.FC<NestModalProps> = ({
   };
 
   const getPlateRows = (plateType: string): number => {
-    if (plateType.includes('384')) return 16;
-    if (plateType.includes('96')) return 8;
-    if (plateType.includes('24')) return 4;
-    if (plateType.includes('6')) return 2;
+    if (plateType.includes("384")) return 16;
+    if (plateType.includes("96")) return 8;
+    if (plateType.includes("24")) return 4;
+    if (plateType.includes("6")) return 2;
     return 8; // default to 96-well plate dimensions
   };
 
   const getPlateColumns = (plateType: string): number => {
-    if (plateType.includes('384')) return 24;
-    if (plateType.includes('96')) return 12;
-    if (plateType.includes('24')) return 6;
-    if (plateType.includes('6')) return 3;
+    if (plateType.includes("384")) return 24;
+    if (plateType.includes("96")) return 12;
+    if (plateType.includes("24")) return 6;
+    if (plateType.includes("6")) return 3;
     return 12; // default to 96-well plate dimensions
   };
 
   return (
     <>
-      <Modal 
-        isOpen={isOpen} 
-        onClose={onClose} 
-        size={modalSize}
-        scrollBehavior="inside"
-      >
+      <Modal isOpen={isOpen} onClose={onClose} size={modalSize} scrollBehavior="inside">
         <ModalOverlay />
-        <ModalContent maxW={modalSize === 'full' ? '95vw' : undefined}>
+        <ModalContent maxW={modalSize === "full" ? "95vw" : undefined}>
           <ModalHeader>
             <Flex justifyContent="space-between" alignItems="center">
               <Text>{toolName}</Text>
               <Menu>
-                <MenuButton
-                  as={IconButton}
-                  icon={<HamburgerIcon />}
-                  aria-label="Edit Inventory"
-                />
+                <MenuButton as={IconButton} icon={<HamburgerIcon />} aria-label="Edit Inventory" />
                 <MenuList>
-                  <MenuItem onClick={() => {
-                    setAddingNests(prev => !prev);
-                    setDeletingNests(false); // Ensure deleting is off when toggling adding
-                  }}>
+                  <MenuItem
+                    onClick={() => {
+                      setAddingNests((prev) => !prev);
+                      setDeletingNests(false); // Ensure deleting is off when toggling adding
+                    }}>
                     {addingNests ? "Stop Adding Nests" : "Add Nests"}
                   </MenuItem>
-                  <MenuItem onClick={() => {
-                    setDeletingNests(prev => !prev);
-                    setAddingNests(false); // Ensure adding is off when toggling deleting
-                  }}>
+                  <MenuItem
+                    onClick={() => {
+                      setDeletingNests((prev) => !prev);
+                      setAddingNests(false); // Ensure adding is off when toggling deleting
+                    }}>
                     {deletingNests ? "Stop Deleting Nests" : "Delete Nests"}
                   </MenuItem>
                 </MenuList>
@@ -393,11 +389,10 @@ const NestModal: React.FC<NestModalProps> = ({
                     id="rows"
                     min={1}
                     value={dimensions.rows}
-                    onChange={(valueString) => handleDimensionChange('rows', parseInt(valueString))}
+                    onChange={(valueString) => handleDimensionChange("rows", parseInt(valueString))}
                     size="sm"
                     width="70px"
-                    flexShrink={0}
-                  >
+                    flexShrink={0}>
                     <NumberInputField />
                     <NumberInputStepper>
                       <NumberIncrementStepper />
@@ -411,11 +406,10 @@ const NestModal: React.FC<NestModalProps> = ({
                     id="cols"
                     min={1}
                     value={dimensions.cols}
-                    onChange={(valueString) => handleDimensionChange('cols', parseInt(valueString))}
+                    onChange={(valueString) => handleDimensionChange("cols", parseInt(valueString))}
                     size="sm"
                     width="70px"
-                    flexShrink={0}
-                  >
+                    flexShrink={0}>
                     <NumberInputField />
                     <NumberInputStepper>
                       <NumberIncrementStepper />
@@ -425,22 +419,25 @@ const NestModal: React.FC<NestModalProps> = ({
                 </HStack>
               </VStack>
             )}
-            
-            <Grid 
+
+            <Grid
               templateColumns={`repeat(${maxColumns}, 60px)`}
               templateRows={`repeat(${maxRows}, 50px)`}
               gap={1}
-              justifyContent="center"
-            >
+              justifyContent="center">
               {Array.from({ length: maxRows }, (_, rowIndex) =>
                 Array.from({ length: maxColumns }, (_, colIndex) => {
-                  const nest = nests.find(n => n.row === rowIndex + 1 && n.column === colIndex + 1);
-                  const hasPlate = plates.some(plate => plate.nest_id === (nest ? nest.id : null));
+                  const nest = nests.find(
+                    (n) => n.row === rowIndex + 1 && n.column === colIndex + 1,
+                  );
+                  const hasPlate = plates.some(
+                    (plate) => plate.nest_id === (nest ? nest.id : null),
+                  );
                   const nestColor = hasPlate ? "blue.700" : "gray.400";
                   const isGhostNest = !nest;
                   // Check if this position is a potential nest
                   const isPotentialNest = potentialNests.some(
-                    p => p.row === rowIndex + 1 && p.col === colIndex + 1
+                    (p) => p.row === rowIndex + 1 && p.col === colIndex + 1,
                   );
 
                   if (addingNests && isGhostNest && !isPotentialNest) {
@@ -465,9 +462,13 @@ const NestModal: React.FC<NestModalProps> = ({
                           nest && handleNestClick(nest);
                         }
                       }}
-                      bg={deletingNests && nest ? "red.500" : isGhostNest ? "transparent" : nestColor}
-                      borderColor={deletingNests && nest ? "red.500" : isGhostNest ? "blue.300" : nestColor}
-                      borderStyle={isGhostNest ?  "dashed" : "solid"}
+                      bg={
+                        deletingNests && nest ? "red.500" : isGhostNest ? "transparent" : nestColor
+                      }
+                      borderColor={
+                        deletingNests && nest ? "red.500" : isGhostNest ? "blue.300" : nestColor
+                      }
+                      borderStyle={isGhostNest ? "dashed" : "solid"}
                       height="50px"
                       maxHeight="50px"
                       minHeight="50px"
@@ -475,17 +476,24 @@ const NestModal: React.FC<NestModalProps> = ({
                       minWidth="60px"
                       display="flex"
                       alignItems="center"
-                      justifyContent="center"
-                    >
+                      justifyContent="center">
                       {deletingNests ? (
-                        nest ? <Text color="white" fontSize="xl">X</Text> : null
+                        nest ? (
+                          <Text color="white" fontSize="xl">
+                            X
+                          </Text>
+                        ) : null
                       ) : isGhostNest ? (
                         <Text color="blue.500"> </Text>
                       ) : hasPlate ? (
                         <Box>
-                          <WellPlateIcon 
-                            rows={getPlateRows(plates.find(p => p.nest_id === nest?.id)?.plate_type || "")}
-                            columns={getPlateColumns(plates.find(p => p.nest_id === nest?.id)?.plate_type || "")}
+                          <WellPlateIcon
+                            rows={getPlateRows(
+                              plates.find((p) => p.nest_id === nest?.id)?.plate_type || "",
+                            )}
+                            columns={getPlateColumns(
+                              plates.find((p) => p.nest_id === nest?.id)?.plate_type || "",
+                            )}
                             size="40px"
                           />
                         </Box>
@@ -494,64 +502,65 @@ const NestModal: React.FC<NestModalProps> = ({
                       )}
                     </Box>
                   );
-                })
+                }),
               )}
               {/* Render potential nests around existing nests or initial nest if none exist */}
-              {addingNests && (nests.length === 0 ? (
-                <Box
-                  key="initial-nest"
-                  p={2}
-                  borderWidth="1px"
-                  borderRadius="md"
-                  cursor="pointer"
-                  onClick={() => onCreateNest(1, 1)} // Create first nest at position 1,1
-                  bg="transparent"
-                  borderColor="blue.300"
-                  borderStyle="dashed"
-                  height="50px"
-                  maxHeight="50px"
-                  minHeight="50px"
-                  maxWidth="60px"
-                  minWidth="60px"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  style={{
-                    gridColumnStart: 1,
-                    gridRowStart: 1,
-                  }}
-                  boxSizing="border-box"
-                >
-                  <Text color="blue.500">Add First Nest</Text>
-                </Box>
-              ) : potentialNests.map(({ row, col }) => (
-                <Box
-                  key={`potential-nest-${row}-${col}`}
-                  p={2}
-                  borderWidth="1px"
-                  borderRadius="md"
-                  cursor="pointer"
-                  onClick={() => onCreateNest(row, col)}
-                  bg="transparent"
-                  borderColor="blue.300"
-                  borderStyle="dashed"
-                  height="50px"
-                  maxHeight="50px"
-                  minHeight="50px"
-                  maxWidth="60px"
-                  minWidth="60px"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  style={{
-                    gridColumnStart: col,
-                    gridRowStart: row,
-                  }}
-                  boxSizing="border-box"
-                >
-                  <Text color="blue.500">Add Nest</Text>
-                </Box>
-              )))}
+              {addingNests &&
+                (nests.length === 0 ? (
+                  <Box
+                    key="initial-nest"
+                    p={2}
+                    borderWidth="1px"
+                    borderRadius="md"
+                    cursor="pointer"
+                    onClick={() => onCreateNest(1, 1)} // Create first nest at position 1,1
+                    bg="transparent"
+                    borderColor="blue.300"
+                    borderStyle="dashed"
+                    height="50px"
+                    maxHeight="50px"
+                    minHeight="50px"
+                    maxWidth="60px"
+                    minWidth="60px"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    style={{
+                      gridColumnStart: 1,
+                      gridRowStart: 1,
+                    }}
+                    boxSizing="border-box">
+                    <Text color="blue.500">Add First Nest</Text>
+                  </Box>
+                ) : (
+                  potentialNests.map(({ row, col }) => (
+                    <Box
+                      key={`potential-nest-${row}-${col}`}
+                      p={2}
+                      borderWidth="1px"
+                      borderRadius="md"
+                      cursor="pointer"
+                      onClick={() => onCreateNest(row, col)}
+                      bg="transparent"
+                      borderColor="blue.300"
+                      borderStyle="dashed"
+                      height="50px"
+                      maxHeight="50px"
+                      minHeight="50px"
+                      maxWidth="60px"
+                      minWidth="60px"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      style={{
+                        gridColumnStart: col,
+                        gridRowStart: row,
+                      }}
+                      boxSizing="border-box">
+                      <Text color="blue.500">Add Nest</Text>
+                    </Box>
+                  ))
+                ))}
             </Grid>
           </ModalBody>
         </ModalContent>

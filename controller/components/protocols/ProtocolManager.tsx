@@ -5,22 +5,27 @@ export class ProtocolManager {
   private onSuccess?: () => void;
   private onError?: (error: Error | unknown) => void;
 
-  constructor({ onSuccess, onError }: { onSuccess?: () => void; onError?: (error: Error) => void } = {}) {
+  constructor({
+    onSuccess,
+    onError,
+  }: { onSuccess?: () => void; onError?: (error: Error) => void } = {}) {
     this.onSuccess = onSuccess;
     this.onError = (error: unknown) => onError?.(error as Error);
   }
 
   useGetProtocols(workcellName: string) {
     return {
-      data: Protocols.filter(p => !workcellName || p.workcell === workcellName).map(protocol => ({
-        id: protocol.protocolId,
-        name: protocol.name,
-        category: protocol.category,
-        workcell: protocol.workcell,
-        description: protocol.description,
-        commands: protocol.preview(),
-        number_of_commands: protocol.preview()?.length || 0
-      })),
+      data: Protocols.filter((p) => !workcellName || p.workcell === workcellName).map(
+        (protocol) => ({
+          id: protocol.protocolId,
+          name: protocol.name,
+          category: protocol.category,
+          workcell: protocol.workcell,
+          description: protocol.description,
+          commands: protocol.preview(),
+          number_of_commands: protocol.preview()?.length || 0,
+        }),
+      ),
       isLoading: false,
       isError: false,
       refetch: () => {},
@@ -28,9 +33,9 @@ export class ProtocolManager {
   }
 
   useGetProtocol(id: string) {
-    const protocol = Protocols.find(p => p.protocolId === id);
+    const protocol = Protocols.find((p) => p.protocolId === id);
     if (!protocol) return { data: null, isLoading: false, isError: false };
-    
+
     return {
       data: {
         name: protocol.name,
@@ -40,7 +45,7 @@ export class ProtocolManager {
         description: protocol.description,
         commands: protocol._generateCommands({}),
         icon: protocol.icon,
-        number_of_commands: protocol._generateCommands({}).length
+        number_of_commands: protocol._generateCommands({}).length,
       },
       isLoading: false,
       isError: false,

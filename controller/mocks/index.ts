@@ -1,1 +1,1 @@
-export * from './protocolMocks';
+export * from "./protocolMocks";

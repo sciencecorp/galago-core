@@ -98,7 +98,9 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
     }
   }, [infoQuery.isLoading]);
 
-  const queued = queueId &&(command.status === "CREATED" || command.status === "FAILED" || command.status === "STARTED");
+  const queued =
+    queueId &&
+    (command.status === "CREATED" || command.status === "FAILED" || command.status === "STARTED");
 
   return (
     <Box
@@ -133,16 +135,25 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
                 <MenuList>
                   {queued ? (
                     <MenuItem onClick={() => skipMutation.mutate(queueId)}>
-                      <IoPlaySkipForward /> <Box as="span" ml={2}>Skip</Box>
+                      <IoPlaySkipForward />{" "}
+                      <Box as="span" ml={2}>
+                        Skip
+                      </Box>
                     </MenuItem>
                   ) : null}
                   {queued ? (
                     <MenuItem onClick={() => skipUntilMutation.mutate(queueId)}>
-                      <BsSkipForwardFill /> <Box as="span" ml={2}>Skip to this command</Box>
+                      <BsSkipForwardFill />{" "}
+                      <Box as="span" ml={2}>
+                        Skip to this command
+                      </Box>
                     </MenuItem>
                   ) : null}
                   <MenuItem onClick={() => execMutation.mutate(command.commandInfo)}>
-                    <VscRunBelow /> <Box as="span" ml={2}>Send to Tool</Box>
+                    <VscRunBelow />{" "}
+                    <Box as="span" ml={2}>
+                      Send to Tool
+                    </Box>
                   </MenuItem>
                 </MenuList>
               </Menu>

@@ -46,20 +46,18 @@ export const ScriptsEditor: React.FC = (props) => {
   const runScript = trpc.script.run.useMutation();
   const [runError, setRunError] = useState<boolean>(false);
 
-
-  useEffect(()=>{
+  useEffect(() => {
     setCurrentContent(scripts.find((script) => script.name === activeTab)?.content || "");
-  },[activeTab]);
-
+  }, [activeTab]);
 
   const handleRunScript = async () => {
     setRunError(false);
-    if(!activeTab) return;
+    if (!activeTab) return;
     try {
       const response = await runScript.mutateAsync(activeTab);
-      if(response?.error_message){
+      if (response?.error_message) {
         setRunError(true);
-        setConsoleText(response.error_message)
+        setConsoleText(response.error_message);
         return;
       }
       console.log("Script run response");
@@ -69,7 +67,7 @@ export const ScriptsEditor: React.FC = (props) => {
       console.log("Error running script");
       //setConsoleText(error);
     }
-  }
+  };
 
   const handleSave = async () => {
     if (!activeTab) {
@@ -83,7 +81,7 @@ export const ScriptsEditor: React.FC = (props) => {
       });
       return;
     }
-  
+
     const script = scriptsEdited.find((script) => script.name === activeTab);
     if (!script) {
       toast({
@@ -96,7 +94,7 @@ export const ScriptsEditor: React.FC = (props) => {
       });
       return;
     }
-  
+
     try {
       await editScript.mutateAsync(script);
       refetch();
@@ -119,7 +117,7 @@ export const ScriptsEditor: React.FC = (props) => {
       });
     }
   };
-  
+
   const handleDelete = async (script: Script) => {
     try {
       await deleteScript.mutateAsync(script.id);
@@ -231,7 +229,7 @@ export const ScriptsEditor: React.FC = (props) => {
   };
 
   const handleCodeChange = (value?: string) => {
-    if(!activeTab) return;
+    if (!activeTab) return;
     setScriptsEdited((prev) => {
       const existingScript = prev.find((script) => script.name === activeTab);
       if (existingScript) {
@@ -298,15 +296,11 @@ export const ScriptsEditor: React.FC = (props) => {
               <Text>Select a script to view or edit</Text>
             </Box>
           )}
-          <Box
-            width="100%"
-            height="20vh"
-            bg={consoleBg}
-            borderTop={`1px solid gray`}>
+          <Box width="100%" height="20vh" bg={consoleBg} borderTop={`1px solid gray`}>
             <OutputConsole />
             <Box width="100%" height="80%" p={2} overflowY="auto">
               {/* Display console text with preserved formatting */}
-              <Text whiteSpace="pre-wrap" fontFamily="monospace" textColor={runError ? "red": ""}>
+              <Text whiteSpace="pre-wrap" fontFamily="monospace" textColor={runError ? "red" : ""}>
                 {consoleText}
               </Text>
             </Box>

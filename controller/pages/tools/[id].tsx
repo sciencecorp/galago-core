@@ -374,7 +374,7 @@ const ToolCommands = (commands: CommandFields) => {
 export default function Page() {
   const router = useRouter();
   const params = useParams();
-  
+
   const [id, setId] = useState<string | null>(null);
 
   const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
@@ -668,7 +668,7 @@ export default function Page() {
   return (
     <>
       <Head>
-        <title>{config?.name ? `Tool: ${config.name}` : 'Tool'}</title>
+        <title>{config?.name ? `Tool: ${config.name}` : "Tool"}</title>
       </Head>
       <Box p={12} maxWidth="1800px" margin="auto">
         <ToolStatusCard toolId={id || ""} />

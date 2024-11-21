@@ -10,7 +10,10 @@ const zWellSelection = z.array(
 
 export const ImageCulturePlateParams = z
   .object({
-    cytationProgram: z.string().describe("The name of the Cytation protocol to run").default("Brightfield_10x"),
+    cytationProgram: z
+      .string()
+      .describe("The name of the Cytation protocol to run")
+      .default("Brightfield_10x"),
     liconic_cassette: z.number().positive().int().default(1),
     liconic_level: z.number().positive().int().default(1),
     wellPlateID: z.string().describe("ID of the well plate").default("1"),
@@ -45,7 +48,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
 
     let protocol_cmds: ToolCommandInfo[] = [
       {
-        label:"Test script",
+        label: "Test script",
         toolId: "tool_box",
         command: "run_python_script",
         toolType: ToolType.toolbox,

@@ -63,7 +63,7 @@ export default function ToolStatusCard({
 }) {
   const [isHovered, setIsHovered] = useState(false);
 
-  const infoQuery = trpc.tool.info.useQuery({ toolId: toolId || ""});
+  const infoQuery = trpc.tool.info.useQuery({ toolId: toolId || "" });
   const toolData = infoQuery.data;
   const { description, name } = infoQuery.data || {};
   const deleteTool = trpc.tool.delete.useMutation();

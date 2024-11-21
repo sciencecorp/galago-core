@@ -34,7 +34,7 @@ export const scriptRouter = router({
       const response = await post<Script>(`/scripts`, input);
       return response;
     }),
-  
+
   run: procedure.input(z.string()).mutation(async ({ input }) => {
     const response = await get<Script>(`/scripts/${input}`);
     const commandInfo = {
@@ -43,12 +43,11 @@ export const scriptRouter = router({
       command: "run_python_script",
       params: {
         script_content: response.content,
-        blocking:false
-      }
-    }
+        blocking: false,
+      },
+    };
     return await Tool.executeCommand(commandInfo);
-  }
-),
+  }),
 
   edit: procedure.input(zScript).mutation(async ({ input }) => {
     const { id } = input;

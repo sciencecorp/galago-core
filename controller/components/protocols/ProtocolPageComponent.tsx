@@ -43,7 +43,7 @@ export const ProtocolPageComponent: React.FC = () => {
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [runModalProtocolId, setRunModalProtocolId] = useState<string | null>(null);
-  
+
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
@@ -58,7 +58,7 @@ export const ProtocolPageComponent: React.FC = () => {
 
   // Get unique workcells and categories for filters
   const uniqueWorkcells = useMemo(() => {
-    const workcells = new Set(protocols?.map(p => p.workcell));
+    const workcells = new Set(protocols?.map((p) => p.workcell));
     return Array.from(workcells);
   }, [protocols]);
 
@@ -67,10 +67,10 @@ export const ProtocolPageComponent: React.FC = () => {
   // Enhanced filtering
   const filteredProtocols = useMemo(() => {
     return protocols?.filter((protocol) => {
-      const matchesSearch = 
+      const matchesSearch =
         protocol.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         protocol.description?.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
       const matchesCategory = !categoryFilter || protocol.category === categoryFilter;
       const matchesWorkcell = !workcellFilter || protocol.workcell === workcellFilter;
 
@@ -81,18 +81,16 @@ export const ProtocolPageComponent: React.FC = () => {
   // Sorting
   const sortedProtocols = useMemo(() => {
     if (!filteredProtocols) return [];
-    
+
     return [...filteredProtocols].sort((a, b) => {
       const aValue = a[sortField];
       const bValue = b[sortField];
-      
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortOrder === 'asc' 
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
+
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        return sortOrder === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
       }
-      
-      return sortOrder === 'asc'
+
+      return sortOrder === "asc"
         ? (aValue as number) - (bValue as number)
         : (bValue as number) - (aValue as number);
     });
@@ -100,10 +98,10 @@ export const ProtocolPageComponent: React.FC = () => {
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortOrder('asc');
+      setSortOrder("asc");
     }
   };
 
@@ -122,8 +120,11 @@ export const ProtocolPageComponent: React.FC = () => {
   console.log("Protocols:", protocols);
 
   const handleRunClick = (protocolId: string) => {
-    console.log('ProtocolPageComponent - Run clicked with ID:', protocolId);
-    console.log('Protocol object:', protocols?.find(p => p.id === protocolId));
+    console.log("ProtocolPageComponent - Run clicked with ID:", protocolId);
+    console.log(
+      "Protocol object:",
+      protocols?.find((p) => p.id === protocolId),
+    );
     setRunModalProtocolId(protocolId);
   };
 
@@ -132,14 +133,17 @@ export const ProtocolPageComponent: React.FC = () => {
   };
 
   return (
-    <Box bg={bgColor} borderRadius="lg" p={6} color={textColor} borderColor={borderColor} borderWidth="1px">
+    <Box
+      bg={bgColor}
+      borderRadius="lg"
+      p={6}
+      color={textColor}
+      borderColor={borderColor}
+      borderWidth="1px">
       <VStack align="stretch" spacing={6}>
         <HStack justify="space-between">
           <Heading size="lg">Protocols</Heading>
-          <Button
-            colorScheme="teal"
-            onClick={() => router.push("/protocols/new")}
-          >
+          <Button colorScheme="teal" onClick={() => router.push("/protocols/new")}>
             New Protocol
           </Button>
         </HStack>
@@ -162,8 +166,7 @@ export const ProtocolPageComponent: React.FC = () => {
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
             maxW="200px"
-            bg={tableBgColor}
-          >
+            bg={tableBgColor}>
             {categories.map((category) => (
               <option key={category} value={category}>
                 {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -176,8 +179,7 @@ export const ProtocolPageComponent: React.FC = () => {
             value={workcellFilter}
             onChange={(e) => setWorkcellFilter(e.target.value)}
             maxW="200px"
-            bg={tableBgColor}
-          >
+            bg={tableBgColor}>
             {uniqueWorkcells.map((workcell) => (
               <option key={workcell} value={workcell}>
                 {workcell}
@@ -193,7 +195,7 @@ export const ProtocolPageComponent: React.FC = () => {
                 <HStack spacing={2}>
                   <span>Name</span>
                   {sortField === "name" && (
-                    <ArrowUpDownIcon 
+                    <ArrowUpDownIcon
                       transform={sortOrder === "desc" ? "rotate(180deg)" : undefined}
                     />
                   )}
@@ -216,7 +218,7 @@ export const ProtocolPageComponent: React.FC = () => {
                 <HStack spacing={2}>
                   <span>Commands</span>
                   {sortField === "number_of_commands" && (
-                    <ArrowUpDownIcon 
+                    <ArrowUpDownIcon
                       transform={sortOrder === "desc" ? "rotate(180deg)" : undefined}
                     />
                   )}
@@ -229,14 +231,10 @@ export const ProtocolPageComponent: React.FC = () => {
             {sortedProtocols.map((protocol) => (
               <Tr key={protocol.id} _hover={{ bg: hoverBgColor }}>
                 <Td>
-                  <Link href={`/protocols/${protocol.id}`}>
-                    {protocol.name}
-                  </Link>
+                  <Link href={`/protocols/${protocol.id}`}>{protocol.name}</Link>
                 </Td>
                 <Td>
-                  <Tag colorScheme={getCategoryColor(protocol.category)}>
-                    {protocol.category}
-                  </Tag>
+                  <Tag colorScheme={getCategoryColor(protocol.category)}>{protocol.category}</Tag>
                 </Td>
                 <Td>{protocol.workcell}</Td>
                 <Td>{protocol.description}</Td>
@@ -247,14 +245,10 @@ export const ProtocolPageComponent: React.FC = () => {
                     <Button
                       size="sm"
                       colorScheme="green"
-                      onClick={() => handleRunClick(protocol.id.toString())}
-                    >
+                      onClick={() => handleRunClick(protocol.id.toString())}>
                       Run
                     </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => router.push(`/protocols/${protocol.id}/edit`)}
-                    >
+                    <Button size="sm" onClick={() => router.push(`/protocols/${protocol.id}/edit`)}>
                       Edit
                     </Button>
                     <DeleteWithConfirmation
@@ -272,10 +266,7 @@ export const ProtocolPageComponent: React.FC = () => {
       </VStack>
 
       {runModalProtocolId && (
-        <NewProtocolRunModal 
-          id={runModalProtocolId} 
-          onClose={handleRunModalClose}
-        />
+        <NewProtocolRunModal id={runModalProtocolId} onClose={handleRunModalClose} />
       )}
     </Box>
   );

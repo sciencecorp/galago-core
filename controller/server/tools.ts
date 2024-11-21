@@ -11,7 +11,7 @@ import { trpc } from "@/utils/trpc";
 import { get } from "@/server/utils/api";
 import { Tool as ToolResponse } from "@/types/api";
 import { ToolConfig } from "gen-interfaces/controller";
-import {Script} from "@/types/api";
+import { Script } from "@/types/api";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<string, Tool> = new Map();
@@ -39,8 +39,6 @@ export default class Tool {
     this.grpc = promisifyGrpcClient(
       new tool_driver.ToolDriverClient(target, grpc.credentials.createInsecure()),
     );
-
-    
   }
 
   startHeartbeat(heartbeatInterval: number) {
@@ -72,7 +70,7 @@ export default class Tool {
   }
 
   get id(): string {
-    return this.info.name.toLocaleLowerCase().replaceAll(" ","_");
+    return this.info.name.toLocaleLowerCase().replaceAll(" ", "_");
   }
 
   get type(): controller_protos.ToolType {
@@ -105,8 +103,10 @@ export default class Tool {
   }
 
   async executeCommand(command: ToolCommandInfo) {
-    if(command.command === "run_python_script" && command.toolId === "tool_box") {
-      command.params.script_content = (await get<Script>(`/scripts/${command.params.script_content}`)).content;
+    if (command.command === "run_python_script" && command.toolId === "tool_box") {
+      command.params.script_content = (
+        await get<Script>(`/scripts/${command.params.script_content}`)
+      ).content;
     }
     const reply = await this.grpc.executeCommand(this._payloadForCommand(command));
     if (reply.return_reply) {
@@ -182,16 +182,16 @@ export default class Tool {
         console.error(`Error while clearing tool ${toolId}: ${error}`);
       }
     }
-      // Clear the global tool store reference
-  me[global_key] = new Map();
-  console.log(`Cleared ${counter} tool instances from the store.`);
+    // Clear the global tool store reference
+    me[global_key] = new Map();
+    console.log(`Cleared ${counter} tool instances from the store.`);
   }
 
   static reloadWorkcellConfig(tools: controller_protos.ToolConfig[]) {
     this.allTools = tools;
   }
 
-  static async getToolConfigDefinition(toolType:ToolType){
+  static async getToolConfigDefinition(toolType: ToolType) {
     console.log("Tool Type: ", toolType);
     if (toolType === ToolType.UNRECOGNIZED || toolType === ToolType.unknown) {
       console.warn(`Received unsupported or unknown ToolType: ${toolType}`);
@@ -231,7 +231,9 @@ export default class Tool {
         const result = this.toolBoxConfig();
         toolInfo = result;
       } else {
-        const result = this.allTools.find((tool) => tool.name.toLocaleLowerCase().replaceAll(" ","_") === id);
+        const result = this.allTools.find(
+          (tool) => tool.name.toLocaleLowerCase().replaceAll(" ", "_") === id,
+        );
         if (!result) {
           throw new Error(`Tool with id ${id} not found in in database'`);
         }
