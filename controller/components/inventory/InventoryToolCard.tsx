@@ -10,13 +10,15 @@ import {
   Flex,
   Image,
   useDisclosure,
+  IconButton,
+  SimpleGrid,
+  VStack,
 } from "@chakra-ui/react";
 import { Nest, Plate, Reagent } from "@/types/api";
 import NestModal from "./NestModal";
 import styled from "@emotion/styled";
 import { trpc } from "@/utils/trpc";
 import { PiToolbox } from "react-icons/pi";
-import { IconButton } from "@chakra-ui/react";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -26,7 +28,9 @@ const StyledCard = styled(Card)`
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: 0.3s ease-out;
-  margin: 0;
+  margin: 0 15px;
+  margin-top: 10px;
+  margin-bottom: 20px;
   overflow: hidden;
 
   &:hover {
@@ -64,7 +68,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   onNestClick,
   onDeleteNest,
 }) => {
-  const [isCreateNestModalOpen, setIsCreateNestModalOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const workcells = trpc.workcell.getAll.useQuery();
   const SelectedWorkcellName = trpc.workcell.getSelectedWorkcell.useQuery();
@@ -77,9 +81,9 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
 
   const toolNests = nests.filter((nest) => nest.name?.toString() === name?.toString());
   const toolPlates = plates.filter((plate) => toolNests.some((nest) => nest.id === plate.nest_id));
+
   function renderToolImage(config: any) {
     if (!config?.image_url) {
-      console.log("No image URL");
       return <Box></Box>;
     } else if (config.name === "Tool Box") {
       return (
@@ -100,8 +104,9 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
           src={`/tool_icons/${config.type}.png`}
           alt={name}
           objectFit="contain"
-          height="120px"
-          width="120px"
+          height={isHovered ? "120px" : "120px"}
+          width={isHovered ? "120px" : "120px"}
+          transition="all 0.3s ease-in-out"
         />
       );
     }
@@ -109,7 +114,10 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
 
   return (
     <>
-      <StyledCard onClick={onOpen}>
+      <StyledCard
+        onClick={onOpen}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}>
         <CardHeader pb="0px">
           <Flex justifyContent="space-between" alignItems="center">
             <Box>
@@ -122,9 +130,15 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
         </CardHeader>
 
         <CardBody>
-          <Flex justifyContent="center" alignItems="center" height="100%">
-            {toolData ? renderToolImage(toolData) : <Spinner size="lg" />}
-          </Flex>
+          <VStack align="stretch" spacing={4} mb={2}>
+            <Flex
+              justifyContent="center"
+              alignItems="center"
+              height={isHovered ? "auto" : "100%"}
+              transition="all 0.3s ease-in-out">
+              {toolData ? renderToolImage(toolData) : <Spinner size="lg" />}
+            </Flex>
+          </VStack>
         </CardBody>
       </StyledCard>
 
