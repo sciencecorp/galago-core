@@ -100,39 +100,50 @@ import {
           borderColor={boxBorder}
           shadow="sm"
           position="relative">
-          {showActions && (
-            <Box position="absolute" top="2" right="2">
-              <Menu>
-                <MenuButton
-                  as={IconButton}
-                  aria-label="Options"
-                  icon={<HamburgerIcon />}
+          <Box position="absolute" top="2" right="2" zIndex="2">
+            {isEditing ? (
+              onDelete && (
+                <DeleteWithConfirmation
+                  label="command"
+                  onDelete={onDelete}
+                  variant="icon"
                   size="sm"
-                  variant="ghost"
                 />
-                <MenuList>
-                  {onSkip && (
-                    <MenuItem onClick={onSkip}>
-                      <IoPlaySkipForward />
-                      <Box as="span" ml={2}>Skip</Box>
-                    </MenuItem>
-                  )}
-                  {onSkipUntil && (
-                    <MenuItem onClick={onSkipUntil}>
-                      <BsSkipForwardFill />
-                      <Box as="span" ml={2}>Skip to this command</Box>
-                    </MenuItem>
-                  )}
-                  {onSendToTool && (
-                    <MenuItem onClick={onSendToTool}>
-                      <VscRunBelow />
-                      <Box as="span" ml={2}>Send to Tool</Box>
-                    </MenuItem>
-                  )}
-                </MenuList>
-              </Menu>
-            </Box>
-          )}
+              )
+            ) : (
+              showActions && (
+                <Menu>
+                  <MenuButton
+                    as={IconButton}
+                    aria-label="Options"
+                    icon={<HamburgerIcon />}
+                    size="sm"
+                    variant="ghost"
+                  />
+                  <MenuList>
+                    {onSkip && (
+                      <MenuItem onClick={onSkip}>
+                        <IoPlaySkipForward />
+                        <Box as="span" ml={2}>Skip</Box>
+                      </MenuItem>
+                    )}
+                    {onSkipUntil && (
+                      <MenuItem onClick={onSkipUntil}>
+                        <BsSkipForwardFill />
+                        <Box as="span" ml={2}>Skip to this command</Box>
+                      </MenuItem>
+                    )}
+                    {onSendToTool && (
+                      <MenuItem onClick={onSendToTool}>
+                        <VscRunBelow />
+                        <Box as="span" ml={2}>Send to Tool</Box>
+                      </MenuItem>
+                    )}
+                  </MenuList>
+                </Menu>
+              )
+            )}
+          </Box>
           <VStack align="stretch" spacing={4}>
             <HStack justify="space-between">
               <Text fontWeight="bold" fontSize="md">
@@ -145,22 +156,13 @@ import {
               isEditing={isEditing}
               onParamChange={onParamChange}
             />
-            {isEditing && onDelete && (
-              <Box alignSelf="flex-end">
-                <DeleteWithConfirmation
-                  label="command"
-                  onDelete={onDelete}
-                  variant="icon"
-                  size="sm"
-                />
-              </Box>
-            )}
           </VStack>
           <Box 
             position="absolute" 
             bottom="4"
             right="4"
             opacity="0.9"
+            zIndex="1"
           >
             {renderToolImage(infoQuery.data)}
           </Box>

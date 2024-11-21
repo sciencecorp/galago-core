@@ -114,7 +114,12 @@ const CommandBox: React.FC<{
             onParamChange={onParamChange}
           />
           {isEditing && (
-            <Box alignSelf="flex-end">
+            <Box 
+              position="absolute"
+              top="1"
+              right="3"
+              zIndex="2"
+            >
               <DeleteWithConfirmation
                 label="command"
                 onDelete={onDelete}
@@ -129,6 +134,7 @@ const CommandBox: React.FC<{
           bottom="4"
           right="4"
           opacity="0.9"
+          zIndex="1"
         >
           {renderToolImage(infoQuery.data)}
         </Box>
