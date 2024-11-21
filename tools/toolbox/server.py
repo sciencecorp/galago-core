@@ -1,5 +1,4 @@
 import logging
-
 from tools.base_server import ToolServer, serve
 from tools.grpc_interfaces.toolbox_pb2 import Command, Config
 from tools.app_config import Config as GlobalConfig
@@ -11,10 +10,7 @@ from tools.toolbox.slack import Slack
 from google.protobuf.struct_pb2 import Struct
 from tools.grpc_interfaces.tool_base_pb2 import  SUCCESS, ERROR_FROM_TOOL
 from tools.grpc_interfaces import tool_base_pb2
-from tools.toolbox.python_subprocess import run_python_script, write_to_file
-from tools.toolbox.utils import struct_to_dict
-import time 
-import os 
+from tools.toolbox.python_subprocess import run_python_script
 
 class ToolBoxServer(ToolServer):
      toolType = "toolbox"

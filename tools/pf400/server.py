@@ -17,7 +17,7 @@ from tools.pf400.waypoints_models import (
 )       
 
 from tools.grpc_interfaces.tool_base_pb2 import ExecuteCommandReply
-from tools.grpc_interfaces.tool_base_pb2 import INVALID_ARGUMENTS, SUCCESS, ERROR_FROM_TOOL
+from tools.grpc_interfaces.tool_base_pb2 import SUCCESS, ERROR_FROM_TOOL
 from tools.pf400.driver import Pf400Driver
 from google.protobuf.struct_pb2 import Struct
 import argparse 

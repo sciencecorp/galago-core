@@ -6,7 +6,7 @@ from typing import Optional
 from datetime import date , time 
 import logging 
 import typing as t
-from tools.toolbox.workcell import get_all_workcells, get_workcell
+from tools.toolbox.workcell import get_all_workcells
 from tools.toolbox.db import Db 
 
 ROOT_DIRECTORY = dirname(dirname(os.path.realpath(__file__)))
@@ -44,10 +44,6 @@ class AppConfig(BaseModel):
 
 def get_workcell(id:int) -> WorkcellConfig:
     response = db.get_by_id_or_name(id, "workcells")
-    return response
-    
-def get_all_workcells() -> list[WorkcellConfig]:
-    response = db.get_data("workcells")
     return response
 
 def get_selected_workcell() -> str:

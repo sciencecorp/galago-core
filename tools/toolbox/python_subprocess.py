@@ -1,5 +1,4 @@
 import subprocess 
-from typing import Optional 
 import os 
 import logging 
 import typing as t
@@ -42,7 +41,6 @@ def run_python_script(script_content: str, blocking: bool = True) -> t.Optional[
         raise
     # finally:
     #     os.remove(temp_file)
-
 
 
 if __name__ == "__main__":

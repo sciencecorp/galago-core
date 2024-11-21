@@ -1,5 +1,4 @@
 import logging
-import os
 
 from tools.base_server import ToolServer, serve
 from tools.grpc_interfaces.spectramax_pb2 import Command, Config
