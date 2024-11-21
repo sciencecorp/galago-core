@@ -3,10 +3,11 @@ import { useState } from "react";
 import StatusTag from "@/components/tools/StatusTag";
 import { ToolStatusCardsComponent } from "@/components/tools/ToolStatusCardsComponent";
 import { trpc } from "@/utils/trpc";
-import { Flex, Box } from "@chakra-ui/react";
+import { Flex, Box, HStack } from "@chakra-ui/react";
 import SwimLaneCommandComponent from "@/components/runs/SwimLaneCommandComponent";
 import { RunCommand } from "@/types";
 import React, { useEffect } from "react";
+import { ChevronRightIcon } from "@chakra-ui/icons";
 
 interface SwimLaneProps {
   runCommands: RunCommand[];

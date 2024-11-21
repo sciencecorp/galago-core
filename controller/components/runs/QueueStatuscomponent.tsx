@@ -28,9 +28,12 @@ import { ExecuteCommandReply, ResponseCode } from "gen-interfaces/tools/grpc_int
 import { ToolCommandInfo } from "@/types";
 import { ToolType } from "gen-interfaces/controller";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
-import { PiWarningBold } from "react-icons/pi";
+
 import { getegid } from "process";
 import { get } from "http";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { RunTag } from "./RunTag";
+
 interface QueueStatusComponent {
   totalRuns: number;
 }
@@ -68,13 +71,15 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
 
   const ErrorBanner = ({ show }: { show: boolean }) => {
     if (!show) return null;
+    if (!getError.data) return null;
+    console.log("Error: ", JSON.stringify(getError));
     return (
       <Alert status="error" variant="left-accent">
         <AlertIcon />
         <Box flex="1">
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>An error occurred while executing the command.</AlertDescription>
-          <AlertDescription>{getError.data?.message}</AlertDescription>
+          <AlertDescription>{getError.data.message}</AlertDescription>
         </Box>
         <HStack>
           <Button onClick={()=>console.log("Rety")} colorScheme="orange" size="sm">
@@ -91,8 +96,6 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
       </Alert>
     );
   };
-
-
 
   const confirmRunStartModal = () => {
     return (
@@ -121,38 +124,14 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
   return (
     <>
       <ErrorBanner show={isErrorVisible}/>
-      <VStack>
-        {confirmRunStartModal()}
-          <HStack >
-            <Text fontSize='xx-large'>
-                Run Queue
-            </Text>
-            {stateQuery.data === ToolStatus.FAILED && (
-            <PiWarningBold
-              color="red"
-              fontSize="28px"
-              onClick={() => setErrorVisible(true)}
-              cursor="pointer"
-            />
-          )}
-          </HStack>
-        <Heading padding={4} size="md">
-          Total: {totalRuns}
-        </Heading>
-      </VStack>
-      <Center>
-        <HStack mb={2}>
-          <Button colorScheme="green" variant="outline" onClick={() => onOpen()}>
-            Start
-          </Button>
-          <Button colorScheme="red" variant="outline" onClick={() => pause()}>
-            Stop
-          </Button>
-          <Button variant="outline" borderColor="black" onClick={() => clear()}>
-            Clear All
-          </Button>
-        </HStack>
-      </Center>
+      {confirmRunStartModal()}
+      <PageHeader 
+        title="Runs" 
+        titleIcon = {getError ? <RunTag status={ToolStatus.FAILED} handleClick={()=>setErrorVisible(!isErrorVisible)} /> : null}
+        mainButton={<Button colorScheme="green" variant="outline" onClick={() => onOpen()}>Start</Button>}
+        secondaryButton={<Button colorScheme="red" variant="outline" onClick={() => pause()}>Stop</Button>}
+        tertiaryButton={<Button colorScheme="white" variant="outline" onClick={() => clear()}>Clear</Button>}
+        />
     </>
   );
 };

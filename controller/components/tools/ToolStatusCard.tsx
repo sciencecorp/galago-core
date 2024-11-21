@@ -124,7 +124,7 @@ export default function ToolStatusCard({ toolId,  style = {} }: ToolStatusCardPr
     } else {
       return (
         <Image
-          src={`/tool_icons/${config.type}.png`}
+          src={config.image_url}
           alt={config.name}
           objectFit="contain"
           height={isHovered ? "120px" : "120px"}
