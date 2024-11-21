@@ -1,6 +1,6 @@
 import { useDisclosure, IconButton, Text, Button } from "@chakra-ui/react";
 import React from "react";
-import { RiDeleteBinLine } from "react-icons/ri";
+import { RiDeleteBin5Line } from "react-icons/ri";
 
 import { ConfirmationModal } from "./ConfirmationModal";
 
