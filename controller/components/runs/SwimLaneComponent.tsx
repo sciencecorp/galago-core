@@ -1,37 +1,52 @@
-import CommandComponent from "@/components/protocols/CommandComponent";
-import { useState } from "react";
-import StatusTag from "@/components/tools/StatusTag";
-import { ToolStatusCardsComponent } from "@/components/tools/ToolStatusCardsComponent";
-import { trpc } from "@/utils/trpc";
-import { Flex, Box } from "@chakra-ui/react";
-import SwimLaneCommandComponent from "@/components/runs/SwimLaneCommandComponent";
+import { Box, HStack } from "@chakra-ui/react";
+import { SwimLaneCommandBox } from "@/components/UI/SwimLaneCommandBox";
 import { RunCommand } from "@/types";
 import React, { useEffect } from "react";
+import { trpc } from "@/utils/trpc";
 
 interface SwimLaneProps {
   runCommands: RunCommand[];
 }
 
 export const SwimLaneComponent: React.FC<SwimLaneProps> = ({ runCommands }) => {
-  // Your component logic goes here
+  const skipMutation = trpc.commandQueue.skipCommand.useMutation();
+  const skipUntilMutation = trpc.commandQueue.skipCommandsUntil.useMutation();
+  const execMutation = trpc.tool.runCommand.useMutation();
+
   return (
     <Box
       width="auto"
       id="container"
       flex={1}
       display="flex"
-      left="0px"
-      right="0px"
-      position="absolute"
-      border="1px solid #ccc"
-      borderRadius="md"
+      position="relative"
       maxWidth="100%"
-      p="2"
-      borderTopLeftRadius="2"
-      overflowX="auto">
-      {runCommands.map((command, i) => (
-        <SwimLaneCommandComponent key={i} command={command} />
-      ))}
+      overflowX="auto"
+      overflowY="visible"
+      pb={1}
+      minHeight="500px"
+      zIndex={1}
+    >
+      <HStack spacing={4} align="flex-start" position="absolute" top="10px">
+        {runCommands.map((command, i) => {
+          const queued = command.queueId && 
+            (command.status === "CREATED" || 
+             command.status === "FAILED" || 
+             command.status === "STARTED");
+
+          return (
+            <SwimLaneCommandBox
+              key={i}
+              command={command}
+              isLast={i === runCommands.length - 1}
+              showActions={true}
+              onSkip={queued ? () => skipMutation.mutate(command.queueId) : undefined}
+              onSkipUntil={queued ? () => skipUntilMutation.mutate(command.queueId) : undefined}
+              onSendToTool={() => execMutation.mutate(command.commandInfo)}
+            />
+          );
+        })}
+      </HStack>
     </Box>
   );
 };

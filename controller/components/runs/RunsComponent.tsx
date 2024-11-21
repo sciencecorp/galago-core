@@ -52,6 +52,7 @@ interface RunQueueAttributes {
 export const RunsComponent: React.FC<RunsComponentProps> = () => {
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [expandedRunId, setExpandedRunId] = useState<string | null>(null);
+  const [expandedParams, setExpandedParams] = useState<boolean>(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const skipRunMutation = trpc.commandQueue.clearByRunId.useMutation();
   const [selectedDeleteRun, setSelectedDeleteRun] = useState<string>("");
@@ -85,6 +86,10 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
   const handleRunClick = (runId: string) => {
     setSelectedRunId((prevId) => (prevId === runId ? null : runId));
     setExpandedRunId((prevId) => (prevId === runId ? null : runId));
+  };
+
+  const handleParamExpand = (expanded: boolean) => {
+    setExpandedParams(expanded);
   };
 
   const renderRunsList = () => {
@@ -142,9 +147,10 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
                     <Button
                       padding="2px"
                       variant="ghost"
-                      onClick={() => handleRunButtonClick(run.Id)}>
+                      onClick={() => handleRunButtonClick(run.Id)}
+                      color={useColorModeValue("gray.800", "white")}>
                       {expandButtonIcon(run.Id)}
-                      <Heading size="md" padding="4px">
+                      <Heading size="md" padding="4px" color={useColorModeValue("gray.800", "white")}>
                         {runAttributes.runName}
                       </Heading>
                     </Button>
@@ -156,14 +162,27 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
                       aria-label="Delete Run"
                       size="lg"
                       icon={<DeleteIcon />}
+                      color={useColorModeValue("gray.800", "white")}
                     />
                   </Box>
                 </HStack>
               </VStack>
             </Box>
-            <Box>
-              {expandedRunId === run.Id && <SwimLaneComponent runCommands={run.Commands} />}
-            </Box>
+            {expandedRunId === run.Id && (
+              <Box 
+                ml={2} 
+                position="relative" 
+                minHeight={expandedParams ? "800px" : "500px"}
+                overflow="visible"
+                zIndex={2}
+                mb={expandedParams ? 32 : 16}
+              >
+                <SwimLaneComponent 
+                  runCommands={run.Commands}
+                  onParamExpand={handleParamExpand}
+                />
+              </Box>
+            )}
           </Box>
         </VStack>
       );
