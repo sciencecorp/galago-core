@@ -40,6 +40,8 @@ import { Tooltip } from "@chakra-ui/react";
 import { PiToolbox } from "react-icons/pi";
 import { useRef } from "react";
 import { capitalizeFirst } from "@/utils/parser";
+import { FaRegFileCode } from "react-icons/fa6";
+import { string } from "zod";
 
 interface LaneCommandComponentProps {
   command: RunCommand;
@@ -63,6 +65,14 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
     toolNameRef.current = toolName;
   }, [toolName]);
 
+  const ToolBoxCommandIconMap = (commandName: string) => {
+    const commandIconMap = {
+      "run_python_script": <FaRegFileCode style={{ width: "100%", height: "50px" }} />,
+    } as Record<string, JSX.Element>;
+  
+    return commandIconMap[commandName] || <PiToolbox style={{ width: "100%", height: "65px" }} />;
+  };
+
   function renderToolImage(config: any) {
     if(!config) return;
     if (!config.image_url) {
@@ -73,7 +83,7 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
       <Box display="flex" justifyContent="center" alignItems="center" py={3}>
         <IconButton
           aria-label="Tool Box"
-          icon={<PiToolbox style={{ width: "100%", height: "65px" }} />} // Ensure the icon fills the button
+          icon={ToolBoxCommandIconMap(command.commandInfo.command)} // Ensure the icon fills the button
           variant="ghost"
           colorScheme="teal"
           isRound

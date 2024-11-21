@@ -118,9 +118,8 @@ class Config():
 
         selected_workcell = get_selected_workcell()
         workcells = get_all_workcells()
-        if workcells is None:
-            logging.error("Failed to load workcells")
-            return None
+        if workcells is None or selected_workcell is None:
+            return WorkcellConfig()
         selected_workcell_config  = [workcell for workcell in workcells if workcell.get("name") == selected_workcell][0]
         if selected_workcell:
             self.workcell_config = WorkcellConfig.parse_obj(selected_workcell_config)
