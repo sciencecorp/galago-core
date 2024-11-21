@@ -28,4 +28,4 @@ EXPOSE 8000 5678
 COPY ./docker-entrypoint-dev.sh /
 RUN chmod +x /docker-entrypoint-dev.sh
 
-ENTRYPOINT ["/docker-entrypoint-dev.sh"]
+ENTRYPOINT ["/docker-entrypoint-dev.sh"]  

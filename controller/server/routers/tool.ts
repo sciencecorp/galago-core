@@ -22,8 +22,8 @@ export const zTool = z.object({
 });
 
 export const toolRouter = router({
-  get: procedure.input(z.number()).query(async ({ input }) => {
-    //if(input === 1206) return Tool.forId(input);
+
+  get: procedure.input(z.string()).query(async ({ input }) => {
     const response = await get<ToolResponse>(`/tools/${input}`);
     return response;
   }),
@@ -53,7 +53,6 @@ export const toolRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
-      console.log("Editing tool with input: ", input);
       const { id, config } = input;
       const response = await put<ToolResponse>(`/tools/${id}`, config);
       const tool = await Tool.forId(response.name); //Recreate the tool with the new config
@@ -68,7 +67,7 @@ export const toolRouter = router({
       return response;
     }),
 
-  delete: procedure.input(z.number()).mutation(async ({ input }) => {
+  delete: procedure.input(z.string()).mutation(async ({ input }) => {
     await del(`/tools/${input}`);
     Tool.removeTool(input);
     return { message: "Tool deleted successfully" };

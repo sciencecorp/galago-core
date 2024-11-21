@@ -49,7 +49,6 @@ export function ToolConfigEditor({
   var error_description = "";
   const configureMutation = trpc.tool.configure.useMutation({
     onSuccess: () => {
-      console.log("connected!!");
       statusQuery.refetch();
     },
     onError: (data) => {

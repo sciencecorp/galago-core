@@ -72,14 +72,14 @@ class NestCreate(BaseModel):
     name: str
     row: int
     column: int
-    instrument_id: int
+    tool_id: int
 
 
 class NestUpdate(BaseModel):
     name: t.Optional[str] = None
     row: t.Optional[int] = None
     column: t.Optional[int] = None
-    instrument_id: t.Optional[int] = None
+    tool_id: t.Optional[int] = None
 
 class Nest(NestCreate):
     id: int
@@ -270,6 +270,32 @@ class LabwareUpdate(LabwareCreate):
     stack_height: t.Optional[float] = None
     has_lid: t.Optional[bool] = None
     image_url: t.Optional[str] = None
+
+class ProtocolBase(BaseModel):
+    name: str
+    category: str
+    workcell: str
+    description: t.Optional[str] = None
+    commands: t.Optional[t.List[t.Any]] = None
+    ui_params: t.Optional[t.Dict[str, t.Any]] = None
+
+class ProtocolCreate(ProtocolBase):
+    name: str
+    category: str
+    workcell: str
+    description: t.Optional[str] = None
+
+class ProtocolUpdate(ProtocolBase):
+    name: t.Optional[str] = None
+    category: t.Optional[str] = None
+    workcell: t.Optional[str] = None
+    description: t.Optional[str] = None
+    commands: t.Optional[t.List[t.Any]] = None
+
+class Protocol(ProtocolBase):
+    id: int
+    class Config:
+        from_attributes = True
 
 class AppSettingsCreate(BaseModel):
     name : str

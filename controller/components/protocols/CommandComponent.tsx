@@ -15,7 +15,11 @@ import {
   Td,
   Tr,
 } from "@chakra-ui/react";
+import { ToolType } from "gen-interfaces/controller";
 import NextLink from "next/link";
+import { IoPlaySkipForward } from "react-icons/io5";
+import { BsSkipForwardFill } from "react-icons/bs";
+import { VscRunBelow } from "react-icons/vsc";
 
 export default function CommandComponent({
   run,
@@ -24,13 +28,12 @@ export default function CommandComponent({
   run?: Run;
   command: RunCommand;
 }) {
-  const { queueId, commandInfo, estimatedDuration, status } = runCommand;
+  const { queueId, commandInfo, estimatedDuration, status } = runCommand;  
   const { toolId, toolType, params, command, label = "" } = commandInfo;
-
   const skipMutation = trpc.commandQueue.skipCommand.useMutation();
   const skipUntilMutation = trpc.commandQueue.skipCommandsUntil.useMutation();
   const execMutation = trpc.tool.runCommand.useMutation();
-  const toolStatusQuery = trpc.tool.status.useQuery({ toolId });
+  const toolStatusQuery = trpc.tool.status.useQuery({ toolId: toolId.toString() });
   const relevantTimestamp =
     status === "CREATED"
       ? runCommand.createdAt
@@ -57,26 +60,25 @@ export default function CommandComponent({
   return (
     <Tr>
       <Td>
-        <StatusTag status={toolStatusQuery.data?.status} label={toolType} />
+        <Tag>{toolType}</Tag>
       </Td>
       <Td>
         <Tag>{command}</Tag>
       </Td>
       <Td>
-        <Tag>{label}</Tag>
-      </Td>
-      <Td>
         <Box
           as="pre"
           style={{
-            maxHeight: "200px", // or whatever maximum height you prefer
-            overflowY: "auto", // this provides the vertical scrollbar when needed
-            maxWidth: "400px",
+            maxHeight: "200px",
+            overflowY: "auto",
+            minWidth: "200px", // Increased width
+            maxWidth: "200px", // Increased max width
             overflowX: "auto",
             fontSize: "0.8em",
             whiteSpace: "pre-wrap",
             wordWrap: "break-word",
             padding: "4px",
+            textAlign: "left" // Explicitly set left alignment
           }}>
           {paramString}
         </Box>
@@ -84,25 +86,20 @@ export default function CommandComponent({
       <Td>
         <Tag>{estimatedDuration}s</Tag>
       </Td>
-      {run ? null : (
-        <Td>
-          <Box>
-            <NextLink href={`/runs/${runCommand.runId}`} passHref>
-              <Link>Run {runCommand.runId}</Link>
-            </NextLink>
-          </Box>
-        </Td>
-      )}
-      <Td maxWidth="300px">
-        <pre style={{ fontSize: "0.8em", whiteSpace: "pre-wrap" }}>
+      <Td minWidth="100px"> {/* Increased width */}
+        <pre style={{ 
+          fontSize: "0.8em", 
+          whiteSpace: "pre-wrap",
+          textAlign: "left" // Explicitly set left alignment
+        }}>
           {status === "CREATED" ? (
-            "🆕"
+            ""
           ) : status === "STARTED" ? (
             <Spinner size="sm" />
           ) : status === "COMPLETED" ? (
             "✅"
           ) : status === "SKIPPED" ? (
-            "⏩"
+            <IoPlaySkipForward />
           ) : status === "FAILED" ? (
             "❌"
           ) : (
@@ -118,14 +115,18 @@ export default function CommandComponent({
           </MenuButton>
           <MenuList>
             {queued ? (
-              <MenuItem onClick={() => skipMutation.mutate(queueId)}>⏩ Skip</MenuItem>
+              <MenuItem onClick={() => skipMutation.mutate(queueId)}>
+                <IoPlaySkipForward /> <Box as="span" ml={2}>Skip</Box>
+              </MenuItem>
             ) : null}
             {queued ? (
               <MenuItem onClick={() => skipUntilMutation.mutate(queueId)}>
-                ⏩⏩ Skip to this command
+                <BsSkipForwardFill /> <Box as="span" ml={2}>Skip to this command</Box>
               </MenuItem>
             ) : null}
-            <MenuItem onClick={() => execMutation.mutate(commandInfo)}>🔨 Send to Tool</MenuItem>
+            <MenuItem onClick={() => execMutation.mutate(commandInfo)}>
+              <VscRunBelow /> <Box as="span" ml={2}>Send to Tool</Box>
+            </MenuItem>
           </MenuList>
         </Menu>
       </Td>

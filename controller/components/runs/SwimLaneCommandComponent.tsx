@@ -32,9 +32,13 @@ import {
 
 import { Run, RunCommand } from "@/types";
 import { HamburgerIcon } from "@chakra-ui/icons";
+import { IoPlaySkipForward } from "react-icons/io5";
+import { BsSkipForwardFill } from "react-icons/bs";
+import { VscRunBelow } from "react-icons/vsc";
 import { JsxElement } from "typescript";
 import { Tooltip } from "@chakra-ui/react";
 import { ToolConfig } from "gen-interfaces/controller";
+import { PiToolbox } from "react-icons/pi";
 
 interface LaneCommandComponentProps {
   command: RunCommand;
@@ -54,10 +58,25 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
   const errorColor = useColorModeValue("red.200", "red.800");
 
   function renderToolImage(config: any) {
-    console.log("Config", config);
-    if (!config || !config.image_url) {
+    if(!config) return;
+    if (!config.image_url) {
       return <Box></Box>;
-    } else {
+    } 
+    else if(config.name == "Tool Box"){
+      return(
+      <Box display="flex" justifyContent="center" alignItems="center">
+        <IconButton
+          aria-label="Tool Box"
+          icon={<PiToolbox style={{ width: "100%", height: "100%" }} />} // Ensure the icon fills the button
+          variant="ghost"
+          colorScheme="teal"
+          isRound
+         // boxSize="100px"
+      />
+    </Box>
+      );
+    }
+    else {
       return (
         <Image
           src={config.image_url}
@@ -124,15 +143,17 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
                 />
                 <MenuList>
                   {queued ? (
-                    <MenuItem onClick={() => skipMutation.mutate(queueId)}>⏩ Skip</MenuItem>
+                    <MenuItem onClick={() => skipMutation.mutate(queueId)}>
+                      <IoPlaySkipForward /> <Box as="span" ml={2}>Skip</Box>
+                    </MenuItem>
                   ) : null}
                   {queued ? (
                     <MenuItem onClick={() => skipUntilMutation.mutate(queueId)}>
-                      ⏩⏩ Skip to this command
+                      <BsSkipForwardFill /> <Box as="span" ml={2}>Skip to this command</Box>
                     </MenuItem>
                   ) : null}
                   <MenuItem onClick={() => execMutation.mutate(command.commandInfo)}>
-                    🔨 Send to Tool
+                    <VscRunBelow /> <Box as="span" ml={2}>Send to Tool</Box>
                   </MenuItem>
                 </MenuList>
               </Menu>

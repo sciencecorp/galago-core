@@ -78,7 +78,7 @@ message Command {
   }
 
   message GetLiconicSensorData {
-    string instrument_id =1; 
+    string tool_id =1; 
     string date =2;
   }
 

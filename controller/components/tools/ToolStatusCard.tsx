@@ -26,14 +26,14 @@ import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import Link from "next/link";
 import { ToolConfigEditor } from "./ToolConfigEditor";
 import { ToolStatusTag } from "./ToolStatusTag";
-import { HamburgerIcon } from "@chakra-ui/icons";
 import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
 import { PiToolbox } from "react-icons/pi";
-import { DeleteWithConfirmation } from "../ui/Delete";
-import { EditMenu } from "../ui/EditMenu";
+import { DeleteWithConfirmation } from "@/components/ui/Delete";
+import { EditMenu } from "@/components/ui/EditMenu";
 import { Tool } from "@/types/api";
 import { EditToolModal } from "./EditToolConfig";
+import { useRouter } from "next/router";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -54,13 +54,15 @@ const StyledCard = styled(Card)`
   }
 `;
 
-export default function ToolStatusCard({
-  toolId,
-  style,
-}: {
+interface ToolStatusCardProps {
   toolId: string;
-  style?: React.CSSProperties;
-}) {
+  style?: any;
+}
+
+
+
+export default function ToolStatusCard({ toolId,  style = {} }: ToolStatusCardProps) {
+  const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
 
   const infoQuery = trpc.tool.info.useQuery({ toolId: toolId || ""});
@@ -80,7 +82,8 @@ export default function ToolStatusCard({
     return <Alert status="error">Could not load tool info</Alert>;
   }
 
-  const handleDelete = async (toolId: number) => {
+
+  const handleDelete = async (toolId: string) => {
     try {
       await deleteTool.mutateAsync(toolId);
       refetch();
@@ -104,7 +107,7 @@ export default function ToolStatusCard({
   function renderToolImage(config: any) {
     if (!config.image_url) {
       return <Box></Box>;
-    } else if (config.id === "tool_box") {
+    } else if (config.name === "Tool Box") {
       return (
         <Box display="flex" justifyContent="center" alignItems="center">
           <IconButton
@@ -131,6 +134,10 @@ export default function ToolStatusCard({
     }
   }
 
+  const handleTeachPendantClick = () => {
+    router.push(`/tools/advanced/${toolId}`);
+  };
+
   return (
     <>
       <StyledCard
@@ -147,7 +154,7 @@ export default function ToolStatusCard({
               <Text fontSize="sm">{description}</Text>
             </Box>
             <Box top={-5} right={-5} position="relative">
-              {toolId !== 1206 && (
+              {toolId !== "tool_box" && (
                 <EditMenu onEdit={onOpen} onDelete={() => handleDelete(toolId)} />
               )}
             </Box>

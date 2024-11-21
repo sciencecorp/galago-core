@@ -62,11 +62,8 @@ export const ScriptsEditor: React.FC = (props) => {
         setConsoleText(response.error_message)
         return;
       }
-      console.log("Script run response");
-      console.log(response);
       setConsoleText(response?.meta_data?.response || "");
     } catch (error) {
-      console.log("Error running script");
       //setConsoleText(error);
     }
   }

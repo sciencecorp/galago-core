@@ -18,7 +18,6 @@ export const unpackError = (error: any): string => {
     errorMessage =
       title && message ? `${title}: ${message}` : JSON.stringify(error.response.data.error);
   } else if (error.response?.data?.message) {
-    console.log("error.response.data.message", error.response.data.message);
     errorMessage = error.response.data.message;
   } else if (error.message) {
     errorMessage = error.message;
@@ -65,7 +64,6 @@ export const put = async <T>(url: string, data: any): Promise<T> => {
     const response = await api.put<T>(url, data);
     return response.data;
   } catch (error) {
-    console.log("Error format is", error);
     if (axios.isAxiosError(error)) {
       const errorMsg = unpackError(error);
       console.error("Request error:", errorMsg);

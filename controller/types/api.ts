@@ -11,6 +11,135 @@ export interface Workcell {
   created_at: Date;
 }
 
+export interface WorkcellCreate {
+  name: string;
+}
+
+export interface WorkcellUpdate {
+  name?: string;
+}
+
+export interface Workcell extends WorkcellCreate {
+  id: number;
+}
+
+export interface InstrumentCreate {
+  name: string;
+  workcell_id: number;
+}
+
+export interface InstrumentUpdate {
+  name?: string;
+  workcell_id?: number;
+}
+
+export interface Instrument extends InstrumentCreate {
+  id: number;
+}
+
+export interface NestCreate {
+  name: string;
+  row: number;
+  column: number;
+  tool_id: number;
+}
+
+export interface NestUpdate {
+  name?: string;
+  row?: number;
+  column?: number;
+  tool_id?: number;
+}
+
+export interface Nest extends NestCreate {
+  id: number;
+}
+
+export interface PlateCreate {
+  name: string | null;
+  barcode: string;
+  plate_type: string;
+  nest_id: number | null;
+}
+
+export interface PlateUpdate {
+  name?: string | null;
+  barcode?: string;
+  plate_type?: string;
+  nest_id?: number | null;
+}
+
+export interface Plate extends PlateCreate {
+  id: number;
+}
+
+export interface WellCreate {
+  row: string;
+  column: number;
+  plate_id: number;
+}
+
+export interface WellUpdate {
+  row?: string;
+  column?: number;
+  plate_id?: number;
+}
+
+export interface Well extends WellCreate {
+  id: number;
+}
+
+export interface ReagentCreate {
+  name: string;
+  expiration_date: string;
+  volume: number;
+  well_id: number;
+}
+
+export interface ReagentUpdate {
+  name?: string;
+  expiration_date?: string;
+  volume?: number;
+  well_id?: number;
+}
+
+export interface Reagent extends ReagentCreate {
+  id: number;
+}
+
+export interface PlateInfo extends Plate {
+  nest: Nest | null;
+  wells: Well[];
+}
+export interface Inventory {
+  workcell: Workcell;
+  instruments: Instrument[];
+  nests: Nest[];
+  plates: Plate[];
+  wells: Well[];
+  reagents: Reagent[];
+}
+
+export interface SlackAlert {
+  messageId: string;
+  messageChannel: string;
+  workcell: string;
+  tool: string;
+  protocol: string;
+  error: string;
+  update: string;
+}
+
+export interface Protocol {
+  id: number;
+  name: string;
+  category: string;
+  workcell: string;
+  number_of_commands: number;
+  description: string;
+  icon: string;
+}
+
 export interface Variable {
   id: number;
   name: string;

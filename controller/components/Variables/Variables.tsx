@@ -13,16 +13,19 @@ import {
   Th,
   Td,
   useToast,
+  InputGroup,
+  InputLeftElement,
+  InputRightElement,
   Text,
   Select,
 } from "@chakra-ui/react";
-import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
+import { SearchIcon } from "@chakra-ui/icons";
 import { trpc } from "@/utils/trpc";
 import { Variable } from "@/types/api";
 import { VariableModal } from "./VariableModal";
-import { DeleteWithConfirmation } from "../ui/Delete";
-import { renderDatetime } from "@/components/ui/Time";
-import { EditableText } from "../ui/Form";
+import { DeleteWithConfirmation } from "../UI/Delete";
+import { renderDatetime } from "@/components/UI/Time";
+import { EditableText } from "../UI/Form";
 import { VscSymbolString } from "react-icons/vsc";
 import { MdOutlineNumbers } from "react-icons/md";
 import { VscSymbolBoolean } from "react-icons/vsc";
@@ -120,11 +123,16 @@ export const Variables: React.FC = () => {
           <VariableModal />
         </HStack>
         <HStack spacing={4} width="100%">
-          <Input
-            placeholder="Search variables"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <InputGroup>
+            <InputLeftElement pointerEvents="none">
+              <SearchIcon color="gray.300" />
+            </InputLeftElement>
+            <Input
+              placeholder="Search variables"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </InputGroup>
           <Select
             placeholder="Filter by type"
             value={typeFilter}

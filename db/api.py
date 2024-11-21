@@ -164,14 +164,14 @@ def create_tool(tool: schemas.ToolCreate, db: Session = Depends(get_db)) -> t.An
     return crud.tool.create(db, obj_in=tool)
 
 @app.put("/tools/{tool_id}", response_model=schemas.Tool)
-def update_tool(tool_id: str, tool_update: schemas.ToolUpdate, db: Session = Depends(get_db)) -> t.Any:
+def update_tool(tool_id: t.Union[str,int], tool_update: schemas.ToolUpdate, db: Session = Depends(get_db)) -> t.Any:
     tool = crud.tool.get(db, id=tool_id)
     if tool is None:
         raise HTTPException(status_code=404, detail="Tool not found")
     return crud.tool.update(db, db_obj=tool, obj_in=tool_update)
 
 @app.delete("/tools/{tool_id}", response_model=schemas.Tool)
-def delete_tool(tool_id: int, db: Session = Depends(get_db)) -> t.Any:
+def delete_tool(tool_id: t.Union[int,str], db: Session = Depends(get_db)) -> t.Any:
     tool = crud.tool.get(db, id=tool_id)
     if tool is None:
         raise HTTPException(status_code=404, detail="Tool not found")
@@ -493,8 +493,8 @@ def get_variables(db: Session = Depends(get_db)) -> t.Any:
    return crud.variables.get_all(db)    
 
 @app.get("/variables/{variable_name}", response_model=schemas.Variable)
-def get_variable(variable_name:str, db: Session = Depends(get_db)) -> t.Any:
-    existing_variable = db.query(models.Variable).filter(models.Variable.name == variable_name).first()
+def get_variable(variable_name:t.Union[int,str], db: Session = Depends(get_db)) -> t.Any:
+    existing_variable = crud.variables.get(db, id=variable_name)
     if not existing_variable:
         raise HTTPException(status_code=404, detail="Variable not found")
     return existing_variable
@@ -547,6 +547,41 @@ def update_labware(labware_id: int, labware_update: schemas.LabwareUpdate, db: S
 def delete_labware(labware_id: int, db: Session = Depends(get_db)) -> t.Any:
     return crud.labware.remove(db, id=labware_id)   
 
+@app.get("/protocols", response_model=list[schemas.Protocol])
+def get_protocols(workcell: str = None, db: Session = Depends(get_db)) -> t.Any:
+    if workcell:
+        return crud.protocol.get_all_by(db=db, obj_in={"workcell": workcell})
+    return crud.protocol.get_all(db)
+
+@app.get("/protocols/{protocol_id}", response_model=schemas.Protocol)
+def get_protocol(protocol_id: str, db: Session = Depends(get_db)) -> t.Any:
+    protocol = crud.protocol.get(db, id=protocol_id)
+    if protocol is None:
+        raise HTTPException(status_code=404, detail="Protocol not found")
+    return protocol
+
+@app.post("/protocols", response_model=schemas.Protocol)
+def create_protocol(protocol: schemas.ProtocolCreate, db: Session = Depends(get_db)) -> t.Any:
+    return crud.protocol.create(db, obj_in=protocol)
+
+@app.put("/protocols/{protocol_id}", response_model=schemas.Protocol)
+def update_protocol(
+    protocol_id: str,
+    protocol_update: schemas.ProtocolUpdate,
+    db: Session = Depends(get_db),
+) -> t.Any:
+    protocol = crud.protocol.get(db, id=protocol_id)
+    if protocol is None:
+        raise HTTPException(status_code=404, detail="Protocol not found")
+    return crud.protocol.update(db, db_obj=protocol, obj_in=protocol_update)
+
+@app.delete("/protocols/{protocol_id}", response_model=schemas.Protocol)
+def delete_protocol(protocol_id: str, db: Session = Depends(get_db)) -> t.Any:
+    protocol = crud.protocol.get(db, id=protocol_id)
+    if protocol is None:
+        raise HTTPException(status_code=404, detail="Protocol not found")
+    return crud.protocol.remove(db, id=protocol_id)
+
 @app.get("/settings", response_model=list[schemas.AppSettings])
 def get_settings(db: Session = Depends(get_db)) -> t.Any:
     return crud.settings.get_all(db)
@@ -575,10 +610,7 @@ def get_scripts(db: Session = Depends(get_db)) -> t.Any:
 
 @app.get("/scripts/{script_id}", response_model=schemas.Script)
 def get_script(script_id: t.Union[int,str], db: Session = Depends(get_db)) -> t.Any:
-    if isinstance(script_id, int):
-        script = db.query(models.Script).filter(models.Script.id == script_id).first()
-    elif isinstance(script_id, str):
-        script = db.query(models.Script).filter(models.Script.name == script_id).first()
+    script = crud.scripts.get(db, id=script_id)
     if script is None:
         raise HTTPException(status_code=404, detail="Script not found")
     return script

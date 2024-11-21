@@ -71,7 +71,6 @@ export const protocolRouter = router({
     .query(async ({ input }) => {
       const { id } = input;
       const protocol = Protocols.find((p: Protocol) => p.protocolId === id);
-
       if (!protocol) return null;
 
       return {

@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 import schemas as schemas
 import models.inventory_models as models
 import models.log_models as log_model
+import typing as t  
+import logging
 
 ModelType = TypeVar("ModelType", bound=models.Base)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
@@ -45,9 +47,16 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             query = query.order_by(self.model.id)
         return query.offset(skip).limit(limit).all()
     
-    def get(self, db: Session, id: Any) -> Optional[ModelType]:
-        return db.query(self.model).filter(self.model.id == id).one_or_none()
-
+    def get(self, db: Session, id: t.Union[int,str]) -> Optional[ModelType]:
+        if isinstance(id, int): 
+            return db.query(self.model).filter(self.model.id == id).one_or_none()
+        elif isinstance(id, str) and id.isdigit(): 
+            return db.query(self.model).filter(self.model.id == int(id)).one_or_none()
+        elif isinstance(id, str): 
+            return db.query(self.model).filter(self.model.name == id).one_or_none()
+        else:
+            return db.query(self.model).filter(self.model.name == id).one_or_none()
+        
     def get_multi(
         self, db: Session, *, skip: int = 0, limit: int = 100
     ) -> List[ModelType]:

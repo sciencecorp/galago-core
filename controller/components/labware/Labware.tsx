@@ -13,6 +13,9 @@ import {
   Td,
   useToast,
   Switch,
+  InputRightElement,
+  InputGroup,
+  InputLeftElement,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { Labware as LabwareResponse } from "@/types/api";
@@ -33,7 +36,7 @@ export const Labware: React.FC = () => {
 
   useEffect(() => {
     if (fetchedLabware) {
-      setLabware(fetchedLabware);
+      setLabware(fetchedLabware as unknown as Labware[]);
     }
   }, [fetchedLabware]);
 
@@ -87,8 +90,8 @@ export const Labware: React.FC = () => {
   };
 
   return (
-    <Box flex={1}>
-      <VStack align="stretch" spacing={6} width="100%">
+    <Box flex={1} maxW="100%" overflowX="auto">
+      <VStack align="stretch" spacing={6} width="100%" p={4}>
         <HStack mt={2} mb={2} justify="space-between" width="100%">
           <Heading size="lg">Labware</Heading>
           <LabwareModal />

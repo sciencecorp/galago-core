@@ -63,7 +63,6 @@ class Ot2Driver(ABCToolDriver):
             protocol_id = upload_protocol_response.json()['data']['id']
         except KeyError:
             raise Exception(f"protocol upload failed: {upload_protocol_response.text}")
-        logging.info(f'Uploaded protocol with id: {protocol_id}')
 
         # Create a run for the protocol
         create_run_response = requests.post(

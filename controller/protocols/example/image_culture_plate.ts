@@ -10,10 +10,10 @@ const zWellSelection = z.array(
 
 export const ImageCulturePlateParams = z
   .object({
-    cytationProgram: z.string().describe("The name of the Cytation protocol to run"),
-    liconic_cassette: z.number().positive().int(),
-    liconic_level: z.number().positive().int(),
-    wellPlateID: z.string().describe("ID of the well plate"),
+    cytationProgram: z.string().describe("The name of the Cytation protocol to run").default("Brightfield_10x"),
+    liconic_cassette: z.number().positive().int().default(1),
+    liconic_level: z.number().positive().int().default(1),
+    wellPlateID: z.string().describe("ID of the well plate").default("1"),
     culturePlateType: z.string().default("6 well").describe("The type of plate (6,12,24,96)"),
     wellAddresses: zWellSelection
       .default(["A1", "B2", "A3"])
@@ -36,10 +36,10 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
     const experiment_name: string = `${params.cytationProgram.split(".")[0]}_${wellPlateID}_`;
 
     let cultureLabware = "default";
-    if (params.culturePlateType.includes("6 well")) {
+    if (params.culturePlateType?.includes("6 well")) {
       cultureLabware = "384-well celltreat";
     }
-    if (params.culturePlateType.includes("384 well")) {
+    if (params.culturePlateType?.includes("384 well")) {
       cultureLabware = "6-well celltreat";
     }
 
@@ -84,13 +84,13 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
       },
       {
         label: "Open Cytation",
-        toolId: "Cytation",
+        toolId: "cytation",
         toolType: ToolType.cytation,
         command: "open_carrier",
         params: {},
       },
       {
-        toolId: "PF400",
+        toolId: "pf400",
         toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
@@ -102,7 +102,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
 
     protocol_cmds.push({
       label: "Image Plate/Run Cytation Program",
-      toolId: "Cytation",
+      toolId: "cytation",
       toolType: ToolType.cytation,
       command: "start_read",
       params: {
@@ -115,13 +115,13 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
     protocol_cmds = protocol_cmds.concat([
       {
         label: "Open Cytation",
-        toolId: "Cytation",
+        toolId: "cytation",
         toolType: "cytation",
         command: "open_carrier",
         params: {},
       },
       {
-        toolId: "PF400",
+        toolId: "pf400",
         toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
@@ -137,7 +137,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         params: {},
       },
       {
-        toolId: "PF400",
+        toolId: "pf400",
         toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
@@ -146,7 +146,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         },
       },
       {
-        toolId: "PF400",
+        toolId: "pf400",
         toolType: ToolType.pf400,
         command: "run_sequence",
         params: {
@@ -156,7 +156,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
       },
       {
         label: "Load plate into Liconic",
-        toolId: "Liconic",
+        toolId: "liconic",
         toolType: ToolType.liconic,
         command: "store_plate",
         params: {

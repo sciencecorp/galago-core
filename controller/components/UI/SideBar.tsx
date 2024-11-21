@@ -18,6 +18,7 @@ import {
   HStack,
   useColorMode,
   DrawerOverlay,
+  Tooltip,
 } from "@chakra-ui/react";
 import { FiMenu, FiHome, FiCompass, FiSettings, FiLogOut } from "react-icons/fi";
 import { IconType } from "react-icons";
@@ -163,7 +164,15 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             alignItems="center"
             justifyContent={isSidebarExpanded ? "start" : "center"}
             bg={router.pathname === item.path ? "teal.600" : "transparent"}>
-            <item.icon size="26" />
+            {!isSidebarExpanded ? (
+              <Tooltip label={item.name} placement="right">
+                <Box>
+                  <item.icon size="26" />
+                </Box>
+              </Tooltip>
+            ) : (
+              <item.icon size="26" />
+            )}
             {isSidebarExpanded && (
               <Text color="white" ml={4} fontSize="md">
                 {item.name}

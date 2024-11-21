@@ -39,6 +39,7 @@ export default class Tool {
     this.grpc = promisifyGrpcClient(
       new tool_driver.ToolDriverClient(target, grpc.credentials.createInsecure()),
     );
+
   }
 
   startHeartbeat(heartbeatInterval: number) {
@@ -129,15 +130,14 @@ export default class Tool {
     return reply.estimated_duration_seconds;
   }
 
-  static async updateToolInfo(toolId: number, input: Partial<Tool>) {}
 
-  static async removeTool(toolId: number) {
+  static async removeTool(toolId: string) {
     const global_key = "__global_tool_store";
     const me = global as any;
     if (!me[global_key]) {
       return;
     }
-    const store: Map<number, Tool> = me[global_key];
+    const store: Map<string, Tool> = me[global_key];
     const tool = store.get(toolId);
     if (!tool) {
       return;
@@ -167,12 +167,8 @@ export default class Tool {
     for (const [toolId, tool] of store.entries()) {
       try {
         counter++;
-        console.log(`Clearing tool: ${toolId}`);
-
         tool.stopHeartbeat();
-
         if (tool.grpc) {
-          console.log(`Closing gRPC client for tool: ${toolId}`);
           tool.grpc.close();
         }
 
@@ -183,7 +179,6 @@ export default class Tool {
     }
     // Clear the global tool store reference
     me[global_key] = new Map();
-    console.log(`Cleared ${counter} tool instances from the store.`);
   }
 
   static reloadWorkcellConfig(tools: controller_protos.ToolConfig[]) {
@@ -191,13 +186,11 @@ export default class Tool {
   }
 
   static async getToolConfigDefinition(toolType: ToolType) {
-    console.log("Tool Type: ", toolType);
     if (toolType === ToolType.UNRECOGNIZED || toolType === ToolType.unknown) {
       console.warn(`Received unsupported or unknown ToolType: ${toolType}`);
       return {}; // Return a default or empty config object
     }
     const toolTypeName = ToolType[toolType];
-    console.log("Tool Type Name: ", toolTypeName);
     if (!toolTypeName) {
       throw new Error(`Unsupported ToolType: ${toolType}`);
     }
@@ -245,7 +238,6 @@ export default class Tool {
 
   static toolBoxConfig(): controller_protos.ToolConfig {
     return {
-      id: "tool_box",
       name: "Tool Box",
       type: "toolbox" as ToolType,
       description: "General Tools",

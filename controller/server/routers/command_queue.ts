@@ -19,6 +19,10 @@ export const commandQueueRouter = router({
     CommandQueue.global.stop();
   }),
 
+  getError : procedure.query(async () => {
+    return CommandQueue.global.getError();
+  }),
+
   skipCommand: procedure.input(z.number()).mutation(async ({ input }) => {
     CommandQueue.global.skipCommand(input);
   }),

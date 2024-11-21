@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { use, useState,useEffect} from "react";
 import {
   Heading,
   HStack,
@@ -15,6 +15,12 @@ import {
   ModalCloseButton,
   Text,
   useDisclosure,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Box,
+  CloseButton
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import StatusTag from "@/components/tools/StatusTag";
@@ -22,7 +28,9 @@ import { ExecuteCommandReply, ResponseCode } from "gen-interfaces/tools/grpc_int
 import { ToolCommandInfo } from "@/types";
 import { ToolType } from "gen-interfaces/controller";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
-
+import { PiWarningBold } from "react-icons/pi";
+import { getegid } from "process";
+import { get } from "http";
 interface QueueStatusComponent {
   totalRuns: number;
 }
@@ -37,6 +45,9 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
   const stopMutation = queue.stop.useMutation(stateMutationOpts);
   const clearAllMutation = queue.clearAll.useMutation(stateMutationOpts);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const getError = queue.getError.useQuery();
+  const {isOpen: errorOpen, onOpen: onErrorOpen, onClose: onErrorClose} = useDisclosure();
+  const [isErrorVisible, setErrorVisible] = useState(false);
 
   const run = async () => {
     restartMutation.mutate();
@@ -54,6 +65,34 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
     run();
     onClose();
   };
+
+  const ErrorBanner = ({ show }: { show: boolean }) => {
+    if (!show) return null;
+    return (
+      <Alert status="error" variant="left-accent">
+        <AlertIcon />
+        <Box flex="1">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>An error occurred while executing the command.</AlertDescription>
+          <AlertDescription>{getError.data?.message}</AlertDescription>
+        </Box>
+        <HStack>
+          <Button onClick={()=>console.log("Rety")} colorScheme="orange" size="sm">
+            Retry
+          </Button>
+          <CloseButton
+            alignSelf="flex-start"
+            position="relative"
+            right={-1}
+            top={-1}
+            onClick={() => setErrorVisible(false)}
+          />
+        </HStack>
+      </Alert>
+    );
+  };
+
+
 
   const confirmRunStartModal = () => {
     return (
@@ -81,20 +120,22 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
   if (stateQuery.isLoading) return <Spinner />;
   return (
     <>
+      <ErrorBanner show={isErrorVisible}/>
       <VStack>
         {confirmRunStartModal()}
-        <Heading>
-          Run Queue
-          <StatusTag
-            css={{
-              fontFamily: `'system-ui', sans-serif`,
-            }}
-            marginTop="2"
-            marginLeft="2"
-            size="lg"
-            status={stateQuery.data}
-          />
-        </Heading>
+          <HStack >
+            <Text fontSize='xx-large'>
+                Run Queue
+            </Text>
+            {stateQuery.data === ToolStatus.FAILED && (
+            <PiWarningBold
+              color="red"
+              fontSize="28px"
+              onClick={() => setErrorVisible(true)}
+              cursor="pointer"
+            />
+          )}
+          </HStack>
         <Heading padding={4} size="md">
           Total: {totalRuns}
         </Heading>
