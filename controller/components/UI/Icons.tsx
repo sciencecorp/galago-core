@@ -24,16 +24,17 @@ export const WellPlateIcon: React.FC<WellPlateIconProps> = ({ rows, columns, siz
 
   // Add special case for 384-well plate
   const is384Well = rows === 16 && columns === 24;
-  const displayRows = is384Well ? 14 : rows; // Show only 10 rows for 384-well
-  const wellSize = "0.3px";
-  const gridSpacing = is384Well ? "1px" : "0.3px";
-  const boxPadding = is384Well ? "3px" : "2px";
+  const is96Well = rows === 8 && columns === 12;
+  const displayRows = is384Well ? 10 : is96Well ? 6 : rows; // Show only 10 rows for 384-well, 6 rows for 96-well
+  const wellSize = "0.4px";
+  const gridSpacing = is384Well ? "1px" : "0.5px";
+  const boxPadding = is384Well ? "3px" : "2.8px";
 
   return (
     <Tooltip label={`${format} plate (${rows}×${columns})`} hasArrow placement="top">
       <Box
         width={size}
-        height={`calc(${size} * 0.78)`}
+        height={`calc(${size} * 0.8)`}
         border="2px solid"
         borderColor="gray.400"
         _dark={{ borderColor: "gray.300" }}
