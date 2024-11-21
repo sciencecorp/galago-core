@@ -10,7 +10,7 @@ import * as controller_protos from "gen-interfaces/controller";
 const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
 
 export const zTool = z.object({
-  id: z.number().optional(),
+  id: z.string().optional(),
   name: z.string().optional(),
   type: zToolType.optional(),
   description: z.string().optional(),
@@ -22,7 +22,7 @@ export const zTool = z.object({
 });
 
 export const toolRouter = router({
-  get: procedure.input(z.number()).query(async ({ input }) => {
+  get: procedure.input(z.string()).query(async ({ input }) => {
     //if(input === 1206) return Tool.forId(input);
     const response = await get<ToolResponse>(`/tools/${input}`);
     return response;
@@ -48,7 +48,7 @@ export const toolRouter = router({
   edit: procedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.string(),
         config: zTool,
       }),
     )
@@ -68,7 +68,7 @@ export const toolRouter = router({
       return response;
     }),
 
-  delete: procedure.input(z.number()).mutation(async ({ input }) => {
+  delete: procedure.input(z.string()).mutation(async ({ input }) => {
     await del(`/tools/${input}`);
     Tool.removeTool(input);
     return { message: "Tool deleted successfully" };

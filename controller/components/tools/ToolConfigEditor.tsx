@@ -28,7 +28,7 @@ export function ToolConfigEditor({
   toolId,
   defaultConfig,
 }: {
-  toolId: number;
+  toolId: string;
   defaultConfig: ToolConfig;
 }): JSX.Element {
   const statusQuery = trpc.tool.status.useQuery(
@@ -75,7 +75,7 @@ export function ToolConfigEditor({
     statusQuery.isSuccess &&
     statusQuery.data &&
     statusQuery.data.status !== ToolStatus.OFFLINE &&
-    toolId != 1206;
+    toolId != "1206";
   const toolType = defaultConfig.type;
   const config = toolSpecificConfig(defaultConfig);
   const [configString, setConfigString] = useState(JSON.stringify(config, null, 2));

@@ -32,12 +32,6 @@ export default function ProtocolListComponent({}: {}) {
     return <Spinner size="lg" />;
   }
 
-  useEffect(() => {
-    if(workcellData){
-      setSelectedWorkcell(workcellData);
-    }
-  }, [workcellData]);
-
   if (allProtocols.isError) {
     return (
       <Alert status="error">

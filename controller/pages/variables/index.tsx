@@ -1,4 +1,4 @@
-import { Variables } from "@/components/variables/Variables";
+import { Variables } from "@/components/Variables/Variables";
 import { Box } from "@chakra-ui/react";
 import { useEffect } from "react";
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Box, Button, useToast, Flex } from "@chakra-ui/react";
-import { PageHeader } from "../ui/PageHeader";
+import { PageHeader } from "../UI/PageHeader";
 import { NewWorkcellModal } from "./NewWorkcellModal";
 import { trpc } from "@/utils/trpc";
 import { Workcell } from "@/types/api";

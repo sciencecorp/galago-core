@@ -112,7 +112,7 @@ const PlateModal: React.FC<PlateModalProps> = ({
         status: 'success',
         duration: 3000,
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Error adding reagents',
         description: error.message,
@@ -131,7 +131,7 @@ const PlateModal: React.FC<PlateModalProps> = ({
 
   const getWellContent = (wellId: number): React.ReactNode => {
     const well = (wells as Well[]).find((w: Well) => w.id === wellId);
-    return well ? `${String.fromCharCode(65 + well.row)}${well.column + 1}` : '';
+    return well ? `${String.fromCharCode(65 + Number(well.row))}${Number(well.column) + 1}` : '';
   };
 
   const getModalSize = () => {

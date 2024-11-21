@@ -7,5 +7,5 @@ export default function Page() {
     document.title = "Scripts";
   }, []);
 
-  return <ScriptsEditor code="" />;
+  return <ScriptsEditor />;
 }

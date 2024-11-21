@@ -184,7 +184,7 @@ export const InventoryManager = () => {
 
   // Filter out PF400 and Tool Box based on names
   console.log("Tool IDs:", toolIds);
-  const filteredToolIds = toolIds?.filter((id) => id !== 1206);
+  const filteredToolIds = toolIds?.filter((id) => id !== "1206");
   console.log("Filtered Tool IDs:", filteredToolIds);
 
   return (

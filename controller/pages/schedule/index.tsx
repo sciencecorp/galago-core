@@ -1,6 +1,6 @@
 import React from "react";
 import { Center } from "@chakra-ui/react";
-import { Calendar } from "@/components/calendar/Calendar";
+import { Calendar } from "@/components/Calendar/Calendar";
 export default function Page() {
   return (
     <Center>

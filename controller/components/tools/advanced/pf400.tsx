@@ -150,7 +150,7 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
   const OpenGripper = () =>
     executeCommand(async () => {
       const openGripperCommand: ToolCommandInfo = {
-        toolId: config.id,
+        toolId: config.name,
         toolType: config.type,
         command: "release_plate",
         params: {
@@ -163,7 +163,7 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
 
   const CloseGripper = async () => {
     const closeGripperCommand: ToolCommandInfo = {
-      toolId: config.id,
+      toolId: config.name,
       toolType: config.type,
       command: "grasp_plate",
       params: {
@@ -205,7 +205,7 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
       return;
     }
     const jogCommand: ToolCommandInfo = {
-      toolId: config.id,
+      toolId: config.name,
       toolType: config.type,
       command: "jog",
       params: {
@@ -236,7 +236,7 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
 
   const SetFree = async () => {
     const freeCommand: ToolCommandInfo = {
-      toolId: config.id,
+      toolId: config.name,
       toolType: config.type,
       command: "free",
       params: {},
@@ -264,7 +264,7 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
 
   const UnFree = async () => {
     const unfreeCommand: ToolCommandInfo = {
-      toolId: config.id,
+      toolId: config.name,
       toolType: config.type,
       command: "unfree",
       params: {},
@@ -293,7 +293,7 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
   const homeCommand = () =>
     executeCommand(async () => {
       const homeCommand: ToolCommandInfo = {
-        toolId: config.id,
+        toolId: config.name,
         toolType: config.type,
         command: "home",
         params: {},
@@ -337,7 +337,7 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
 
   const GetTeachPoints = useCallback(async () => {
     const toolCommand: ToolCommandInfo = {
-      toolId: config.id,
+      toolId: config.name,
       toolType: config.type,
       command: "get_teachpoints",
       params: {},
@@ -397,7 +397,7 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
 
   const getCurrentPositionToPath = async () => {
     const toolCommand: ToolCommandInfo = {
-      toolId: config.id,
+      toolId: config.name,
       toolType: config.type,
       command: "get_current_location",
       params: {},
@@ -438,7 +438,7 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
 
   const addToPath = async () => {
     const addToPathCommand: ToolCommandInfo = {
-      toolId: config.id,
+      toolId: config.name,
       toolType: config.type,
       command: "add_to_path",
       params: {
@@ -513,7 +513,7 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
     const originalLocType = getOriginalLocType(currentLocType);
 
     const saveCommand: ToolCommandInfo = {
-      toolId: config.id,
+      toolId: config.name,
       toolType: config.type,
       command: "saveTeachpoints",
       params: {
@@ -638,7 +638,7 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
       setIsCreating(true);
 
       const createCommand: ToolCommandInfo = {
-        toolId: config.id,
+        toolId: config.name,
         toolType: config.type,
         command: activeTab === 0 ? "create_location" : "create_nest",
         params:
@@ -792,7 +792,7 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
 
   const handleDelete = async () => {
     const deleteCommand: ToolCommandInfo = {
-      toolId: config.id,
+      toolId: config.name,
       toolType: config.type,
       command: currentType === "nest" ? "delete_nest" : "delete_location",
       params: {
@@ -845,7 +845,7 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
     }
 
     const moveCommand: ToolCommandInfo = {
-      toolId: config.id,
+      toolId: config.name,
       toolType: config.type,
       command: "move",
       params: {
@@ -887,7 +887,7 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
       return;
     }
     const approachCommand: ToolCommandInfo = {
-      toolId: config.id,
+      toolId: config.name,
       toolType: config.type,
       command: "approach",
       params: {
@@ -1006,7 +1006,7 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
       }
 
       const leaveCommand: ToolCommandInfo = {
-        toolId: config.id,
+        toolId: config.name,
         toolType: config.type,
         command: "leave",
         params: {

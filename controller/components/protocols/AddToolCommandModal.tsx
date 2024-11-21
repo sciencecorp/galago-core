@@ -26,6 +26,11 @@ import {
     onCommandAdded: (newCommand: any) => void;
   }
   
+  interface ToolCommand {
+    schema: z.ZodSchema;
+    // Add other properties if needed
+  }
+  
   export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     isOpen,
     onClose,
@@ -38,7 +43,9 @@ import {
     const [commandParams, setCommandParams] = useState<Record<string, any>>({});
   
     const toolsQuery = trpc.tool.getAll.useQuery();
-    const availableCommands = selectedTool ? mockToolCommands[selectedTool as keyof typeof mockToolCommands] || {} : {};
+    const availableCommands = selectedTool ? 
+      (mockToolCommands[selectedTool as keyof typeof mockToolCommands] as Record<string, ToolCommand>) || {} 
+      : {};
   
     const handleSubmit = () => {
       const toolId = toolsQuery.data?.find((tool) => tool.type === selectedTool)?.id || "0";
@@ -70,7 +77,10 @@ import {
       });
     };
   
-    const commandSchema = availableCommands[selectedCommand]?.schema;
+    let commandSchema;
+    if (availableCommands[selectedCommand as keyof typeof availableCommands]) {
+      commandSchema = availableCommands[selectedCommand as keyof typeof availableCommands]?.schema;
+    }
   
     return (
       <Modal isOpen={isOpen} onClose={onClose}>
@@ -121,7 +131,7 @@ import {
   
               {commandSchema && (
                 <VStack spacing={4} align="stretch" width="100%">
-                  {Object.entries(commandSchema.properties || {}).map(([param, schema]) => (
+                  {Object.entries(commandSchema || {}).map(([param, schema]) => (
                     <FormControl key={param}>
                       <FormLabel>{param}</FormLabel>
                       <Input

@@ -9,7 +9,7 @@ const zNest = z.object({
   name: z.string(),
   row: z.number(),
   column: z.number(),
-  tool_id: z.number(),
+  tool_id: z.string(),
 });
 
 const zPlate = z.object({

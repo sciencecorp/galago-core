@@ -20,7 +20,7 @@ import {
 import { InfoOutlineIcon, CloseIcon, WarningIcon, QuestionOutlineIcon } from "@chakra-ui/icons";
 import { useEffect, useState } from "react";
 import { Log } from "@/types/api";
-import { renderDatetime } from "../ui/Time";
+import { renderDatetime } from "../UI/Time";
 
 import { VscRefresh } from "react-icons/vsc";
 

@@ -3,6 +3,16 @@ import { Protocols } from "@/server/protocols";
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 
+export type AllNamesOutput = {
+  name: string;
+  id: string;
+  category: string;
+  workcell: string;
+  number_of_commands: number;
+  description?: string;
+  icon?: any;
+}[];
+
 export const protocolRouter = router({
   all: procedure
     .input(z.object({}))

@@ -14,7 +14,7 @@ import { ToolConfig } from "gen-interfaces/controller";
 import {Script} from "@/types/api";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
-const toolStore: Map<number, Tool> = new Map();
+const toolStore: Map<string, Tool> = new Map();
 
 export default class Tool {
   // Controller config is "what does the controller need to know about the tool?"
@@ -131,15 +131,15 @@ export default class Tool {
     return reply.estimated_duration_seconds;
   }
 
-  static async updateToolInfo(toolId: number, input: Partial<Tool>) {}
+  static async updateToolInfo(toolId: string, input: Partial<Tool>) {}
 
-  static async removeTool(toolId: number) {
+  static async removeTool(toolId: string) {
     const global_key = "__global_tool_store";
     const me = global as any;
     if (!me[global_key]) {
       return;
     }
-    const store: Map<number, Tool> = me[global_key];
+    const store: Map<string, Tool> = me[global_key];
     const tool = store.get(toolId);
     if (!tool) {
       return;
@@ -246,7 +246,6 @@ export default class Tool {
 
   static toolBoxConfig(): controller_protos.ToolConfig {
     return {
-      id: "tool_box",
       name: "Tool Box",
       type: "toolbox" as ToolType,
       description: "General Tools",

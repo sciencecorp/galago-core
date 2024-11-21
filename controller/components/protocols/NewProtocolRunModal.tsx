@@ -133,7 +133,6 @@ export default function NewProtocolRunModal({
     onError: (error) => {
       console.log('Protocol fetch error:', {
         message: error.message,
-        cause: error.cause,
         data: error.data
       });
       toast({
