@@ -13,10 +13,22 @@ def read_requirements(filename):
         return [line.strip() for line in f
                 if line.strip() and not line.startswith('#')]
 
+def find_tool_packages():
+    """Find all packages and subpackages in the current directory"""
+    packages = ['tools']
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    for root, dirs, files in os.walk('.'):
+        if '__init__.py' in files and root != '.':
+            # Convert path to package name
+            package_path = root.lstrip('./').replace('/', '.')
+            if package_path:
+                packages.append(f'tools.{package_path}')
+    return packages
+
 setup(
     name='galago_tools',
     version='0.1.0',
-   packages=['tools'],  # Explicitly specify the package
+    packages=find_tool_packages(),  # Explicitly specify the package
     package_dir={'tools': '.'},  # Tell setuptools where to find the package
     license='Apache',
     description='Open Source Lab Orchestration Software',
