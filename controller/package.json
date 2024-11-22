@@ -2,9 +2,9 @@
   "name": "galago-controller",
   "version": "0.1.0",
   "private": true,
-  "browser":{
+  "browser": {
     "child_process": false
-  }  ,
+  },
   "scripts": {
     "dev": "next dev -p 3010",
     "build": "next build",
@@ -67,6 +67,7 @@
     "pluralize": "^8.0.0",
     "prettier": "^3.3.3",
     "react": "^18.2.0",
+    "react-card-flip": "^1.2.3",
     "react-chartjs-2": "^5.2.0",
     "react-datepicker": "^7.3.0",
     "react-dom": "^18.2.0",

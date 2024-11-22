@@ -1,26 +1,10 @@
-import CommandComponent from "@/components/protocols/CommandComponent";
-import { use, useState } from "react";
-import StatusTag from "@/components/tools/StatusTag";
-import { ToolStatusCardsComponent } from "@/components/tools/ToolStatusCardsComponent";
 import { trpc } from "@/utils/trpc";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Alert,
   Box,
-  Button,
-  Heading,
   HStack,
-  Spinner,
-  Table,
-  Tbody,
   Text,
-  Th,
-  Thead,
-  Tr,
-  Tag,
   VStack,
-  TagLabel,
-  Flex,
   Menu,
   MenuButton,
   MenuList,
@@ -30,8 +14,6 @@ import {
   useColorModeValue,
   Center
 } from "@chakra-ui/react";
-import { ChevronRightIcon } from "@chakra-ui/icons";
-import { Run, RunCommand } from "@/types";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import { IoPlaySkipForward } from "react-icons/io5";
 import { BsSkipForwardFill } from "react-icons/bs";
@@ -41,7 +23,8 @@ import { PiToolbox } from "react-icons/pi";
 import { useRef } from "react";
 import { capitalizeFirst } from "@/utils/parser";
 import { FaRegFileCode } from "react-icons/fa6";
-import { string } from "zod";
+import { RunCommand } from "@/types";
+import ReactCardFlip from 'react-card-flip';
 
 interface LaneCommandComponentProps {
   command: RunCommand;
@@ -60,6 +43,7 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
   const bgColor = useColorModeValue("gray.100", "gray.700");
   const errorColor = useColorModeValue("red.200", "red.800");
   const toolNameRef = useRef(toolName);
+  const [isFlipped, setIsFlipped] = useState(false);
 
   useEffect(() => {
     toolNameRef.current = toolName;
@@ -132,7 +116,12 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
     queueId &&
     (command.status === "CREATED" || command.status === "FAILED" || command.status === "STARTED");
 
-  return (
+  const handleFlip = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsFlipped(!isFlipped);
+  };
+
+  const CardFront = (
     <Box
       left="0px"
       right="0px"
@@ -198,21 +187,52 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
         </Box>
         <Center p={0}>
           <VStack spacing={2}>
-              <Box>
-                {renderToolImage(infoQuery.data)}
-              </Box>
-              <Box bottom={0} position="sticky">
-                <Tooltip
-                placement="right"
-                label={JSON.stringify(command.commandInfo.params, null, 2).split("\n")}>
-                  <Text>{capitalizeFirst(command.commandInfo.command.replaceAll("_"," "))}</Text>
-                </Tooltip>
-              </Box>
+            <Box onClick={handleFlip} cursor="pointer">
+              {renderToolImage(infoQuery.data)}
+            </Box>
+            <Box bottom={0} position="sticky">
+              <Text>{capitalizeFirst(command.commandInfo.command.replaceAll("_"," "))}</Text>
+            </Box>
           </VStack>
         </Center>
       </VStack>
     </Box>
+  );
 
+  const CardBack = (
+    <Box
+      left="0px"
+      right="0px"
+      minW="210px"
+      height="165px"
+      overflowY="auto"
+      mr="4"
+      fontSize="18px"
+      borderLeftRadius="15"
+      borderRightRadius="15"
+      padding="6px"
+      boxSizing="border-box"
+      background={setBackgroundColor(command.status)}
+      border={command.status === "STARTED" ? "2px" : "1px"}
+      borderColor={command.status === "STARTED" ? "teal" : "black"}
+      onClick={handleFlip}
+      cursor="pointer">
+      <VStack alignItems="stretch" h="100%" justify="center">
+        <Box overflowY="auto" maxH="145px">
+          <Text fontSize="sm" fontWeight="bold" mb={2}>Parameters:</Text>
+          <Box as="pre" fontSize="xs" whiteSpace="pre-wrap">
+            {JSON.stringify(command.commandInfo.params, null, 2)}
+          </Box>
+        </Box>
+      </VStack>
+    </Box>
+  );
+
+  return (
+    <ReactCardFlip isFlipped={isFlipped} flipDirection="horizontal">
+      {CardFront}
+      {CardBack}
+    </ReactCardFlip>
   );
 };
 

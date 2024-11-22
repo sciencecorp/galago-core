@@ -1,23 +1,13 @@
-import CommandComponent from "@/components/protocols/CommandComponent";
-import { useState } from "react";
-import StatusTag from "@/components/tools/StatusTag";
-import { ToolStatusCardsComponent } from "@/components/tools/ToolStatusCardsComponent";
-import { trpc } from "@/utils/trpc";
-import { Flex, Box, HStack } from "@chakra-ui/react";
-import { SwimLaneCommandBox } from "@/components/UI/SwimLaneCommandBox";
+import { Box, HStack } from "@chakra-ui/react";
+import SwimLaneCommandComponent from "@/components/runs/SwimLaneCommandComponent";
 import { RunCommand } from "@/types";
-import React, { useEffect } from "react";
-import { ChevronRightIcon } from "@chakra-ui/icons";
+import React from "react";
 
 interface SwimLaneProps {
   runCommands: RunCommand[];
 }
 
 export const SwimLaneComponent: React.FC<SwimLaneProps> = ({ runCommands }) => {
-  const skipMutation = trpc.commandQueue.skipCommand.useMutation();
-  const skipUntilMutation = trpc.commandQueue.skipCommandsUntil.useMutation();
-  const execMutation = trpc.tool.runCommand.useMutation();
-
   return (
     <Box
       width="auto"
@@ -40,15 +30,9 @@ export const SwimLaneComponent: React.FC<SwimLaneProps> = ({ runCommands }) => {
              command.status === "STARTED");
 
           return (
-            <SwimLaneCommandBox
-              position={i}
+            <SwimLaneCommandComponent
               key={i}
               command={command}
-              isLast={i === runCommands.length - 1}
-              showActions={true}
-              onSkip={queued ? () => skipMutation.mutate(command.queueId!) : undefined}
-              onSkipUntil={queued ? () => skipUntilMutation.mutate(command.queueId!) : undefined}
-              onSendToTool={() => execMutation.mutate(command.commandInfo)}
             />
           );
         })}
