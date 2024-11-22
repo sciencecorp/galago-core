@@ -117,7 +117,8 @@ class Config():
         selected_workcell = None
         db_is_up = db.ping(3)
         if not db_is_up:
-            logging.error("Could not establish connection to database")
+            logging.error("Can't establish connection to galago api.")
+            logging.warning("Galago api container might be down. No instrument tools will be launched.")
             self.workcell_config = WorkcellConfig()
             return None
         else:
@@ -127,11 +128,8 @@ class Config():
                 logging.error("No workcells or tools found in the database")
                 self.workcell_config = WorkcellConfig()
                 return None
-            selected_workcell_config  = [workcell for workcell in workcells if workcell.get("name") == selected_workcell][0]
+            selected_workcell_config = [workcell for workcell in workcells if workcell.get("name") == selected_workcell][0]
             if selected_workcell:
                 self.workcell_config = WorkcellConfig.parse_obj(selected_workcell_config)
         return None
     
-    def __str__(self) -> str:
-        #Use for debugging
-        return f"Config(data_folder_dir={self.app_config.data_folder}, workcell={self.app_config.workcell})"
