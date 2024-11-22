@@ -2,6 +2,7 @@ import requests
 from typing import Union, Optional
 import urllib3
 import logging 
+
 API_URL = "http://localhost:8000/api"
 
 logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -41,5 +42,18 @@ class Db:
         response = requests.put(f"{API_URL}/{model}/{id}", json=data)
         return response.json()
     
+    @staticmethod
+    def ping(times:int):
+        for i in range(times):
+            try:
+                logging.info(f"Pinging {API_URL}... Attempt {i+1}")
+                response = requests.get(API_URL)
+                if response.status_code == 200:
+                    return True
+            except requests.exceptions.ConnectionError:
+                continue
+        logging.error("Could not establish connection to database...")
+        return False
+        
 
     

@@ -6,9 +6,12 @@ from setuptools.command.build_py import build_py as _build_py
 from os.path import join, dirname, realpath
 
 class BuildProtobuf(_build_py):
-   def run(self):
+    def run():
+        ROOT = os.path.join(os.path.dirname(__file__))
+        print("Root is" + ROOT)
         proto_src = os.path.join(dirname(dirname(os.path.realpath(__file__))), "interfaces")
-        grpc_interfaces_output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "grpc_interfaces"))
+        grpc_interfaces_output_dir = os.path.abspath(os.path.join(ROOT, "grpc_interfaces"))
+        print("Output dir is" + grpc_interfaces_output_dir)
 
         # Ensure the output directory exists
         os.makedirs(grpc_interfaces_output_dir, exist_ok=True)
@@ -37,12 +40,20 @@ class BuildProtobuf(_build_py):
                     f"-I{proto_src}",
                     f"--python_out=grpc_interfaces/",
                     f"--pyi_out=grpc_interfaces/",
-                    f"--grpc_python_out=grpc_interfaces/",
+                    f"--grpc_python_out=grpc_interfaces",
                     *grpc_proto_files,
                 ],
                 check=True,
             )
 
+        for file in os.listdir(os.path.join(grpc_interfaces_output_dir,"tools","grpc_interfaces")):
+            print("Moving file" + file)
+            if file.endswith(".py") or file.endswith(".pyi"):
+                shutil.move(os.path.join(grpc_interfaces_output_dir,"tools","grpc_interfaces", file), os.path.join(grpc_interfaces_output_dir, file))
+        
+        os.rmdir(os.path.join(grpc_interfaces_output_dir,"tools","grpc_interfaces"))
+        os.rmdir(os.path.join(grpc_interfaces_output_dir,"tools"))
+        
         # Compile the root-level .proto files
         if root_proto_files:
             subprocess.run(
@@ -56,9 +67,6 @@ class BuildProtobuf(_build_py):
                 ],
                 check=True,
             )
-
-        # Call the original build command
-        super().run()
 
 
 
