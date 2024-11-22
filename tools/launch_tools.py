@@ -365,7 +365,7 @@ class ToolsManager():
         create_tool_frame(self.widgets_frame, "Tool Box", self.start_toolbox)
 
         # Workcell tools
-        if self.config.workcell_config and self.config.workcell_config_is_valid:
+        if self.config.workcell_config:
             for t in self.config.workcell_config.tools:
                 try:
                     create_tool_frame(

@@ -55,7 +55,6 @@ class Config():
         self.workcell_config : Optional[WorkcellConfig] = None
         self.workcell_config_file  : str = ""
         self.app_config : AppConfig
-        self.workcell_config_is_valid = False
         self.load_app_config()
         self.load_workcell_config()
         self.inventory_db = f"sqlite:///{self.app_config.data_folder}/db/inventory.db"
@@ -119,18 +118,18 @@ class Config():
         db_is_up = db.ping(3)
         if not db_is_up:
             logging.error("Could not establish connection to database")
-        if workcells is None or selected_workcell is None:
-            logging.error("No workcells or tools found in the database")
             self.workcell_config = WorkcellConfig()
-            self.workcell_config_is_valid = True
-        
+            return None
         else:
             selected_workcell = get_selected_workcell()
             workcells = get_all_workcells()
+            if workcells is None or selected_workcell is None:
+                logging.error("No workcells or tools found in the database")
+                self.workcell_config = WorkcellConfig()
+                return None
             selected_workcell_config  = [workcell for workcell in workcells if workcell.get("name") == selected_workcell][0]
             if selected_workcell:
                 self.workcell_config = WorkcellConfig.parse_obj(selected_workcell_config)
-                self.workcell_config_is_valid = True
         return None
     
     def __str__(self) -> str:
