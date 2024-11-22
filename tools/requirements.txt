@@ -16,7 +16,6 @@ types-setuptools==68.0.0.2
 slackclient==2.9.4
 python-dotenv==1.0.0
 pytest==7.4.3
-slack-sdk==3.21.3
 msl-loadlib==0.10.0
 pywin32==304; platform_system == "Windows"
 typing-inspect==0.8.0

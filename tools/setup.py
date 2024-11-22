@@ -1,24 +1,28 @@
-
 import os
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 
 def readme() -> str:
-    return open(os.path.join(os.path.dirname(__file__), "README.md")).read()
+    readme_path = os.path.join(os.path.dirname(__file__), "README.md")
+    if os.path.exists(readme_path):
+        return open(readme_path).read()
+    return ""
 
 def read_requirements(filename):
-    with open(filename) as f:
+    requirements_path = os.path.join(os.path.dirname(__file__), filename)
+    with open(requirements_path) as f:
         return [line.strip() for line in f
                 if line.strip() and not line.startswith('#')]
-print(read_requirements('requirements.txt'))
+
 setup(
     name='galago_tools',
     version='0.1.0',
-    packages=find_packages(include=["tools", "tools.*"]),
-    license='MIT',
+   packages=['tools'],  # Explicitly specify the package
+    package_dir={'tools': '.'},  # Tell setuptools where to find the package
+    license='Apache',
     description='Open Source Lab Orchestration Software',
     long_description=readme(),
     install_requires=read_requirements('requirements.txt'),
-    package_data={'galago_core': ['*.dll']},
+    package_data={'tools': ['*.dll']},
     url='https://github.com/sciencecorp/galago-core',
     author='Science Corporation',
     python_requires=">=3.9",
@@ -26,12 +30,12 @@ setup(
     long_description_content_type="text/markdown",
     entry_points={
         'console_scripts': [
-            'galago-run-tools=tools.cli:launch_all_servers',
+            'galago-run=tools.cli:launch_all_servers',  # Changed because we're inside the tools directory
         ],
     },
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: Apache License",
+        "License :: OSI Approved :: Apache Software License",  # Fixed license classifier
         "Operating System :: OS Independent",
     ],
 )
