@@ -1,39 +1,31 @@
 import os
-from setuptools import setup, find_namespace_packages
+from setuptools import setup
 import os
 import subprocess
 from setuptools.command.build_py import build_py as _build_py
-from os.path import join, dirname, realpath
+from os.path import  dirname 
 import shutil 
 
 class BuildProtobuf(_build_py):
     def run(self):
         ROOT = os.path.join(os.path.dirname(__file__))
-        print("Root is" + ROOT)
         proto_src = os.path.join(dirname(dirname(os.path.realpath(__file__))), "interfaces")
         grpc_interfaces_output_dir = os.path.abspath(os.path.join(ROOT, "grpc_interfaces"))
-        print("Output dir is" + grpc_interfaces_output_dir)
 
-        # Ensure the output directory exists
         os.makedirs(grpc_interfaces_output_dir, exist_ok=True)
 
-        # Collect all .proto files for the first command
         grpc_proto_files = [
             os.path.join(proto_src, "tools/grpc_interfaces", proto_file)
             for proto_file in os.listdir(os.path.join(proto_src, "tools/grpc_interfaces"))
             if proto_file.endswith(".proto")
         ]
 
-        # Collect all .proto files in the root directory for the second command
         root_proto_files = [
             os.path.join(proto_src, proto_file)
             for proto_file in os.listdir(proto_src)
             if proto_file.endswith(".proto")
         ]
 
-        print("grpc_proto_files",grpc_proto_files)
-        print("root_proto_files",root_proto_files)
-        #Compile the files in the grpc_interfaces folder
         if grpc_proto_files:
             subprocess.run(
                 [
@@ -55,7 +47,6 @@ class BuildProtobuf(_build_py):
         os.rmdir(os.path.join(grpc_interfaces_output_dir,"tools","grpc_interfaces"))
         os.rmdir(os.path.join(grpc_interfaces_output_dir,"tools"))
         
-        # Compile the root-level .proto files
         if root_proto_files:
             subprocess.run(
                 [
@@ -99,8 +90,8 @@ find_tool_packages()
 setup(
     name='galago-tools',
     version='0.1.0',
-    packages=find_tool_packages(),  # Explicitly specify the package
-    package_dir={'tools': '.'},  # Tell setuptools where to find the package
+    packages=find_tool_packages(),
+    package_dir={'tools': '.'}, 
     license='Apache',
     description='Open Source Lab Orchestration Software',
     long_description=readme(),
@@ -114,12 +105,12 @@ setup(
     long_description_content_type="text/markdown",
     entry_points={
         'console_scripts': [
-            'galago-run=tools.cli:launch_all_servers',  # Changed because we're inside the tools directory
+            'galago-run=tools.cli:launch_all_servers',  
         ],
     },
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: Apache Software License",  # Fixed license classifier
+        "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
     cmdclass={
