@@ -3,36 +3,44 @@ from setuptools import setup, find_namespace_packages
 import os
 import subprocess
 from setuptools.command.build_py import build_py as _build_py
-from os.path import join, dirname
+from os.path import join, dirname, realpath
 
-class build_py(_build_py):
+class BuildProtobuf(_build_py):
     """Custom build command to generate protobuf files."""
-
     def run(self):
-        PROTO_DIR = os.path.join(dirname(dirname(os.path.realpath(__file__))),"interfaces")
-        output_dir = os.path.join(os.path.dirname(__file__), "tools", "grpc_interfaces")
-        
+        # Paths
+
+        proto_src = os.path.join(dirname(dirname(os.path.realpath(__file__))),"interfaces")
+        #proto_src = os.path.abspath(join(dirname(realpath(__file__)), "interfaces"))
+        output_dir = os.path.abspath(join(dirname(__file__), "grpc_interfaces"))
+
         # Ensure the output directory exists
         os.makedirs(output_dir, exist_ok=True)
 
+        # List all .proto files
         proto_files = [
-            os.path.join(PROTO_DIR, proto_file)
-            for proto_file in os.listdir(PROTO_DIR)
-            if proto_file.endswith(".proto")
+            os.path.join(proto_src, file)
+            for file in os.listdir(proto_src)
+            if file.endswith(".proto")
         ]
 
+        # Compile proto files
         for proto_file in proto_files:
             subprocess.run(
                 [
                     "python", "-m", "grpc_tools.protoc",
-                    f"--proto_path={PROTO_DIR}",
+                    f"-I{proto_src}",
                     f"--python_out={output_dir}",
+                    f"--pyi_out={output_dir}",
                     f"--grpc_python_out={output_dir}",
                     proto_file,
                 ],
                 check=True,
             )
+        
+        # Call the original build command
         super().run()
+
 
 
 def readme() -> str:
@@ -89,6 +97,6 @@ setup(
         "Operating System :: OS Independent",
     ],
     cmdclass={
-        'build_py': build_py,
+        'build_py': BuildProtobuf,
     },
 )
