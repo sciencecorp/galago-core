@@ -46,8 +46,10 @@ class Db:
     def ping(times:int):
         for i in range(times):
             try:
-                logging.info(f"Pinging {API_URL}... Attempt {i+1}")
-                response = requests.get(API_URL)
+                logging.info(f"Pinging {API_URL} ... Attempt {i+1}")
+                response = requests.get(f"{API_URL}/health")
+                print(response.status_code)
+                logging.info(f"Response status code: {response.status_code}")
                 if response.status_code == 200:
                     return True
             except requests.exceptions.ConnectionError:
@@ -56,4 +58,12 @@ class Db:
         return False
         
 
-    
+if __name__ == "__main__":  
+    print(Db.check_connection())
+    print(Db.get_data("workcells"))
+    print(Db.get_by_id_or_name(1, "workcells"))
+    print(Db.post_data({"name":"workcell_3"}, "workcells"))
+    print(Db.delete_data(3, "workcells"))
+    print(Db.update_data(2, {"name":"workcell_2"}, "workcells"))
+    print(Db.ping(3))
+    print(Db.ping(5))
