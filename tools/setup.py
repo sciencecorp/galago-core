@@ -6,38 +6,55 @@ from setuptools.command.build_py import build_py as _build_py
 from os.path import join, dirname, realpath
 
 class BuildProtobuf(_build_py):
-    """Custom build command to generate protobuf files."""
-    def run(self):
-        # Paths
-
-        proto_src = os.path.join(dirname(dirname(os.path.realpath(__file__))),"interfaces")
-        #proto_src = os.path.abspath(join(dirname(realpath(__file__)), "interfaces"))
-        output_dir = os.path.abspath(join(dirname(__file__), "grpc_interfaces"))
+   def run(self):
+        proto_src = os.path.abspath(os.path.join(os.path.dirname(__file__), "../interfaces"))
+        grpc_interfaces_output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "tools", "grpc_interfaces"))
 
         # Ensure the output directory exists
-        os.makedirs(output_dir, exist_ok=True)
+        os.makedirs(grpc_interfaces_output_dir, exist_ok=True)
 
-        # List all .proto files
-        proto_files = [
-            os.path.join(proto_src, file)
-            for file in os.listdir(proto_src)
-            if file.endswith(".proto")
+        # Collect all .proto files for the first command
+        grpc_proto_files = [
+            os.path.join(proto_src, "tools/grpc_interfaces", proto_file)
+            for proto_file in os.listdir(os.path.join(proto_src, "tools/grpc_interfaces"))
+            if proto_file.endswith(".proto")
         ]
 
-        # Compile proto files
-        for proto_file in proto_files:
+        # Collect all .proto files in the root directory for the second command
+        root_proto_files = [
+            os.path.join(proto_src, proto_file)
+            for proto_file in os.listdir(proto_src)
+            if proto_file.endswith(".proto")
+        ]
+
+        # Compile the files in the grpc_interfaces folder
+        if grpc_proto_files:
             subprocess.run(
                 [
                     "python", "-m", "grpc_tools.protoc",
                     f"-I{proto_src}",
-                    f"--python_out={output_dir}",
-                    f"--pyi_out={output_dir}",
-                    f"--grpc_python_out={output_dir}",
-                    proto_file,
+                    f"--python_out=.",
+                    f"--pyi_out=.",
+                    f"--grpc_python_out=.",
+                    *grpc_proto_files,
                 ],
                 check=True,
             )
-        
+
+        # Compile the root-level .proto files
+        if root_proto_files:
+            subprocess.run(
+                [
+                    "python", "-m", "grpc_tools.protoc",
+                    f"-I{proto_src}",
+                    f"--python_out={grpc_interfaces_output_dir}",
+                    f"--pyi_out={grpc_interfaces_output_dir}",
+                    f"--grpc_python_out={grpc_interfaces_output_dir}",
+                    *root_proto_files,
+                ],
+                check=True,
+            )
+
         # Call the original build command
         super().run()
 
