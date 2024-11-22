@@ -34,7 +34,7 @@ setup(
     description='Open Source Lab Orchestration Software',
     long_description=readme(),
     install_requires=read_requirements('requirements.txt'),
-    package_data={'tools': ['*.dll']},
+    package_data={'tools': ['*.dll',"site_logo.png","favicon.ico",""]},
     url='https://github.com/sciencecorp/galago-core',
     author='Science Corporation',
     python_requires=">=3.9",
