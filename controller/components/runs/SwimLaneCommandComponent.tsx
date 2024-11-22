@@ -121,6 +121,39 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
     setIsFlipped(!isFlipped);
   };
 
+  const formatParameterValue = (value: any): string => {
+    if (Array.isArray(value)) {
+      return value.join(', ');
+    } else if (typeof value === 'object' && value !== null) {
+      return JSON.stringify(value, null, 2);
+    }
+    return String(value);
+  };
+
+  const ParameterDisplay = ({ params }: { params: Record<string, any> }) => {
+    return (
+      <VStack align="stretch" spacing={2}>
+        {Object.entries(params).map(([key, value]) => (
+          <Box key={key}>
+            <Text fontSize="xs" fontWeight="bold" color="blue.500">
+              {key.replace(/_/g, ' ')}:
+            </Text>
+            <Box 
+              ml={2} 
+              fontSize="xs" 
+              bg="gray.50" 
+              p={1} 
+              borderRadius="sm"
+              _dark={{ bg: 'gray.700' }}
+            >
+              {formatParameterValue(value)}
+            </Box>
+          </Box>
+        ))}
+      </VStack>
+    );
+  };
+
   const CardFront = (
     <Box
       left="0px"
@@ -217,12 +250,10 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
       borderColor={command.status === "STARTED" ? "teal" : "black"}
       onClick={handleFlip}
       cursor="pointer">
-      <VStack alignItems="stretch" h="100%" justify="center">
-        <Box overflowY="auto" maxH="145px">
-          <Text fontSize="sm" fontWeight="bold" mb={2}>Parameters:</Text>
-          <Box as="pre" fontSize="xs" whiteSpace="pre-wrap">
-            {JSON.stringify(command.commandInfo.params, null, 2)}
-          </Box>
+      <VStack alignItems="stretch" h="100%" justify="start" p={2}>
+        <Text fontSize="sm" fontWeight="bold" mb={2}>Parameters:</Text>
+        <Box overflowY="auto" maxH="125px">
+          <ParameterDisplay params={command.commandInfo.params} />
         </Box>
       </VStack>
     </Box>
