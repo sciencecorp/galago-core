@@ -13,7 +13,7 @@ import {
     MenuItem,
     Button,
   } from "@chakra-ui/react";
-  import { HamburgerIcon, ArrowForwardIcon } from "@chakra-ui/icons";
+  import { HamburgerIcon, ArrowForwardIcon, AddIcon } from "@chakra-ui/icons";
   import { PiToolbox } from "react-icons/pi";
   import { IoPlaySkipForward } from "react-icons/io5";
   import { BsSkipForwardFill } from "react-icons/bs";
@@ -26,26 +26,28 @@ import {
     command: any;
     isEditing?: boolean;
     onParamChange?: (newParams: Record<string, any>) => void;
-    onParamExpand?: (expanded: boolean) => void;
     onDelete?: () => void;
     isLast: boolean;
     showActions?: boolean;
     onSkip?: () => void;
     onSkipUntil?: () => void;
     onSendToTool?: () => void;
+    onAddCommand?: (position: number) => void;  // Add this new prop
+    position: number;  // Add this new prop
   }
   
   export const SwimLaneCommandBox: React.FC<SwimLaneCommandBoxProps> = ({
     command,
     isEditing = false,
     onParamChange,
-    onParamExpand,
     onDelete,
     isLast,
     showActions = false,
     onSkip,
     onSkipUntil,
     onSendToTool,
+    onAddCommand,
+    position,
   }) => {
     const boxBg = useColorModeValue("white", "gray.700");
     const boxBorder = useColorModeValue("gray.200", "gray.600");
@@ -168,10 +170,23 @@ import {
           </Box>
         </Box>
         {!isLast && (
-          <Box color={arrowColor}>
-            <ArrowForwardIcon boxSize={6} />
-          </Box>
-        )}
+            <VStack>
+                {isEditing && (
+                <IconButton
+                    aria-label="Add command"
+                    icon={<AddIcon />}
+                    size="sm"
+                    colorScheme="blue"
+                    variant="ghost"
+                    onClick={() => onAddCommand?.(position + 1)}
+                    _hover={{ bg: 'blue.100' }}
+                />
+                )}
+                <Box color={arrowColor}>
+                <ArrowForwardIcon boxSize={6} />
+                </Box>
+            </VStack>
+            )}
       </HStack>
     );
   };

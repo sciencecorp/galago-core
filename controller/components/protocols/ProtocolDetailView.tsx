@@ -49,7 +49,9 @@ const CommandBox: React.FC<{
   onParamChange: (newParams: Record<string, any>) => void;
   onDelete: () => void;
   isLast: boolean;
-}> = ({ command, isEditing, onParamChange, onDelete, isLast }) => {
+  position: number;
+  onAddCommand: (position: number) => void;
+}> = ({ command, isEditing, onParamChange, onDelete, isLast, position, onAddCommand }) => {
   const boxBg = useColorModeValue("white", "gray.700");
   const boxBorder = useColorModeValue("gray.200", "gray.600");
   const arrowColor = useColorModeValue("gray.500", "gray.400");
@@ -65,6 +67,7 @@ const CommandBox: React.FC<{
   const renderToolImage = (config: any) => {
     if (!config) return null;
     if (!config.image_url) return null;
+    console.log("config", config);
     if (config.name === "Tool Box") {
       return (
         <IconButton
@@ -93,6 +96,17 @@ const CommandBox: React.FC<{
 
   return (
     <HStack>
+      {isEditing && (
+        <IconButton
+          aria-label="Add command before"
+          icon={<AddIcon />}
+          size="sm"
+          colorScheme="blue"
+          variant="ghost"
+          onClick={() => onAddCommand?.(position)}
+          _hover={{ bg: 'blue.100' }}
+        />
+      )}
       <Box
         borderWidth="1px"
         borderRadius="lg"
@@ -124,7 +138,7 @@ const CommandBox: React.FC<{
                 label="command"
                 onDelete={onDelete}
                 variant="icon"
-                size="sm"
+                size="md"
               />
             </Box>
           )}
@@ -139,11 +153,23 @@ const CommandBox: React.FC<{
           {renderToolImage(infoQuery.data)}
         </Box>
       </Box>
-      {!isLast && (
-        <Box color={arrowColor}>
-          <ArrowForwardIcon boxSize={6} />
-        </Box>
-      )}
+      <VStack spacing={2} justify="center" height="100%">
+        {isLast && isEditing ? (
+          <IconButton
+            aria-label="Add command"
+            icon={<AddIcon />}
+            size="sm"
+            colorScheme="blue"
+            variant="ghost"
+            onClick={() => onAddCommand?.(position + 1)}
+            _hover={{ bg: 'blue.100' }}
+          />
+        ) : !isLast && !isEditing ? (
+          <Box color={arrowColor}>
+            <ArrowForwardIcon boxSize={6} />
+          </Box>
+        ) : null}
+      </VStack>
     </HStack>
   );
 };
@@ -163,12 +189,17 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const [isAddCommandModalOpen, setIsAddCommandModalOpen] = useState(false);
   const [isRunModalOpen, setIsRunModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-
+  const [addCommandPosition, setAddCommandPosition] = useState<number | null>(null);
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
 
   const { data: protocol, isLoading, isError } = trpc.protocol.get.useQuery({ id });
+
+  const handleAddCommandAtPosition = (position: number) => {
+    setAddCommandPosition(position);
+    setIsAddCommandModalOpen(true);
+  };
 
   useEffect(() => {
     if (!protocol?.commands) return;
@@ -231,9 +262,16 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
 
   const handleCommandAdded = (newCommand: any) => {
     setCommands((prevCommands) => {
-      const updatedCommands = [...prevCommands, newCommand];
+      const updatedCommands = [...prevCommands];
+      if (addCommandPosition !== null) {
+        updatedCommands.splice(addCommandPosition, 0, newCommand);
+      } else {
+        updatedCommands.push(newCommand);
+      }
       return updatedCommands;
     });
+    setAddCommandPosition(null);
+    setIsAddCommandModalOpen(false);
   };
 
   const handleRunClick = () => {
@@ -276,12 +314,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
           <HStack>
             {isEditing ? (
               <>
-                <Button
-                  leftIcon={<AddIcon />}
-                  colorScheme="blue"
-                  onClick={() => setIsAddCommandModalOpen(true)}>
-                  Add Command
-                </Button>
                 <Button colorScheme="green" onClick={handleSaveChanges}>
                   Save Changes
                 </Button>
@@ -330,32 +362,34 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
             },
           }}>
                     <HStack spacing={4} align="flex-start" minW="min-content">
-            {commands.map((command: any, index: number) => (
-              <CommandBox
-                key={command.queueId}
-                command={command}
-                isEditing={isEditing}
-                isLast={index === commands.length - 1}
-                onParamChange={(newParams) => {
-                  setCommands((prevCommands) => {
-                    const updatedCommands = prevCommands.map((cmd, i) => {
-                      if (i === index) {
-                        return {
-                          ...cmd,
-                          commandInfo: {
-                            ...cmd.commandInfo,
-                            params: newParams,
-                          },
-                        };
-                      }
-                      return cmd;
-                    });
-                    return updatedCommands;
-                  });
-                }}
-                onDelete={() => handleDeleteCommand(index)}
-              />
-            ))}
+                    {commands.map((command: any, index: number) => (
+                      <CommandBox
+                        key={command.queueId}
+                        command={command}
+                        isEditing={isEditing}
+                        isLast={index === commands.length - 1}
+                        position={index}
+                        onAddCommand={handleAddCommandAtPosition}
+                        onParamChange={(newParams) => {
+                          setCommands((prevCommands) => {
+                            const updatedCommands = prevCommands.map((cmd, i) => {
+                              if (i === index) {
+                                return {
+                                  ...cmd,
+                                  commandInfo: {
+                                    ...cmd.commandInfo,
+                                    params: newParams,
+                                  },
+                                };
+                              }
+                              return cmd;
+                            });
+                            return updatedCommands;
+                          });
+                        }}
+                        onDelete={() => handleDeleteCommand(index)}
+                      />
+                    ))}
           </HStack>
         </Box>
       </VStack>

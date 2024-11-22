@@ -41,6 +41,7 @@ export const SwimLaneComponent: React.FC<SwimLaneProps> = ({ runCommands }) => {
 
           return (
             <SwimLaneCommandBox
+              position={i}
               key={i}
               command={command}
               isLast={i === runCommands.length - 1}
