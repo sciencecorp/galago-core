@@ -27,7 +27,6 @@ class Config():
         self.workcell_config : Optional[WorkcellConfig] = None
         self.workcell_config_file  : str = ""
         self.app_config : AppConfig
-        self.workcell_config_is_valid = False
         self.load_app_config()
         self.load_workcell_config()
         self.inventory_db = f"sqlite:///{self.app_config.data_folder}/db/inventory.db"

@@ -7,7 +7,7 @@ from datetime import date , time
 import logging 
 import typing as t
 from tools.toolbox.workcell import get_all_workcells
-from tools.toolbox.db import Db 
+from tools.toolbox.db import Db
 
 ROOT_DIRECTORY = dirname(dirname(os.path.realpath(__file__)))
 APP_CONFIG_FILE = join(ROOT_DIRECTORY, "app_config.json")
@@ -22,13 +22,13 @@ class Tool(BaseModel):
     port: int
 
 class WorkcellConfig(BaseModel):
-    id:int
-    name: str
-    created_at: Optional[str]
-    updated_at: Optional[str]
-    description: Optional[str]
-    location: Optional[str]
-    tools: list[Tool]
+    id:int = 0
+    name: str = "workcell_1"
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    description: Optional[str] = None
+    location: Optional[str] = None
+    tools: list[Tool] = []
 
 class AppConfig(BaseModel):
     workcell:str
@@ -55,7 +55,6 @@ class Config():
         self.workcell_config : Optional[WorkcellConfig] = None
         self.workcell_config_file  : str = ""
         self.app_config : AppConfig
-        self.workcell_config_is_valid = False
         self.load_app_config()
         self.load_workcell_config()
         self.inventory_db = f"sqlite:///{self.app_config.data_folder}/db/inventory.db"
@@ -113,20 +112,24 @@ class Config():
         return obj.__dict__
     
     def load_workcell_config(self)-> None:
-        if self.app_config.data_folder is None:
-            self.app_config.data_folder = "logs"
-
-        selected_workcell = get_selected_workcell()
-        workcells = get_all_workcells()
-        if workcells is None or selected_workcell is None:
-            return WorkcellConfig()
-        selected_workcell_config  = [workcell for workcell in workcells if workcell.get("name") == selected_workcell][0]
-        if selected_workcell:
-            self.workcell_config = WorkcellConfig.parse_obj(selected_workcell_config)
-            self.workcell_config_is_valid = True
+        #Ping the database to check if connection is established
+        workcells = None
+        selected_workcell = None
+        db_is_up = db.ping(3)
+        if not db_is_up:
+            logging.error("Can't establish connection to galago api.")
+            logging.warning("Galago api container might be down. No instrument tools will be launched.")
+            self.workcell_config = WorkcellConfig()
+            return None
+        else:
+            selected_workcell = get_selected_workcell()
+            workcells = get_all_workcells()
+            if workcells is None or selected_workcell is None:
+                logging.error("No workcells or tools found in the database")
+                self.workcell_config = WorkcellConfig()
+                return None
+            selected_workcell_config = [workcell for workcell in workcells if workcell.get("name") == selected_workcell][0]
+            if selected_workcell:
+                self.workcell_config = WorkcellConfig.parse_obj(selected_workcell_config)
         return None
     
-
-    def __str__(self) -> str:
-        #Use for debugging
-        return f"Config(data_folder_dir={self.app_config.data_folder}, workcell={self.app_config.workcell})"

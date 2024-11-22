@@ -125,7 +125,7 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
       <PageHeader 
         title="Runs"
         subTitle={`Total Runs: ${totalRuns}`}
-        titleIcon = {getError ? <RunTag status={ToolStatus.FAILED} handleClick={()=>setErrorVisible(!isErrorVisible)} /> : null}
+        titleIcon = {getError.data ? <RunTag status={ToolStatus.FAILED} handleClick={()=>setErrorVisible(!isErrorVisible)} /> : null}
         mainButton={<Button colorScheme="green" variant="outline" onClick={() => onOpen()}>Start</Button>}
         secondaryButton={<Button colorScheme="red" variant="outline" onClick={() => pause()}>Stop</Button>}
         tertiaryButton={<Button colorScheme="white" variant="outline" onClick={() => clear()}>Clear</Button>}

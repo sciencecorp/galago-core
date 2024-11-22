@@ -49,7 +49,7 @@ class ToolsManager():
         #Build databases if they do not exist
         self.server_processes : dict[str,subprocess.Popen] = {}
         self.tool_box_process: Optional[subprocess.Popen] = None
-        self.main_frame = ttk.Frame(root)
+        self.main_frame = ttk.Frame(self.root)
         self.main_frame.pack(fill=tk.BOTH, expand=True)
         self.paned_window = ttk.PanedWindow(self.main_frame, orient=tk.HORIZONTAL)
         self.paned_window.pack(fill=tk.BOTH, expand=True)
@@ -365,7 +365,7 @@ class ToolsManager():
         create_tool_frame(self.widgets_frame, "Tool Box", self.start_toolbox)
 
         # Workcell tools
-        if self.config.workcell_config and self.config.workcell_config_is_valid:
+        if self.config.workcell_config:
             for t in self.config.workcell_config.tools:
                 try:
                     create_tool_frame(
@@ -449,8 +449,10 @@ class ToolsManager():
         process_thread.start()
         self.root.mainloop()
     
-if __name__ == "__main__":
+def main() -> None:
+    logging.info("Starting Galago Tools Manager")
     root = tk.Tk()
+    logging.info(f"Is root None? {root is None}")
     config = Config()
     logging.info("Loading app config")
     config.load_app_config()
