@@ -21,3 +21,4 @@ msl-loadlib==0.10.0
 pywin32==304; platform_system == "Windows"
 typing-inspect==0.8.0
 typing_extensions==4.8.0
+pyserial==3.5
