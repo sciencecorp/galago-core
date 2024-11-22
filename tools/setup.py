@@ -7,8 +7,8 @@ from os.path import join, dirname, realpath
 
 class BuildProtobuf(_build_py):
    def run(self):
-        proto_src = os.path.abspath(os.path.join(os.path.dirname(__file__), "../interfaces"))
-        grpc_interfaces_output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "tools", "grpc_interfaces"))
+        proto_src = os.path.join(dirname(dirname(os.path.realpath(__file__))), "interfaces")
+        grpc_interfaces_output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "grpc_interfaces"))
 
         # Ensure the output directory exists
         os.makedirs(grpc_interfaces_output_dir, exist_ok=True)
@@ -27,15 +27,17 @@ class BuildProtobuf(_build_py):
             if proto_file.endswith(".proto")
         ]
 
-        # Compile the files in the grpc_interfaces folder
+        print("grpc_proto_files",grpc_proto_files)
+        print("root_proto_files",root_proto_files)
+        #Compile the files in the grpc_interfaces folder
         if grpc_proto_files:
             subprocess.run(
                 [
                     "python", "-m", "grpc_tools.protoc",
                     f"-I{proto_src}",
-                    f"--python_out=.",
-                    f"--pyi_out=.",
-                    f"--grpc_python_out=.",
+                    f"--python_out=grpc_interfaces/",
+                    f"--pyi_out=grpc_interfaces/",
+                    f"--grpc_python_out=grpc_interfaces/",
                     *grpc_proto_files,
                 ],
                 check=True,
@@ -47,9 +49,9 @@ class BuildProtobuf(_build_py):
                 [
                     "python", "-m", "grpc_tools.protoc",
                     f"-I{proto_src}",
-                    f"--python_out={grpc_interfaces_output_dir}",
-                    f"--pyi_out={grpc_interfaces_output_dir}",
-                    f"--grpc_python_out={grpc_interfaces_output_dir}",
+                    f"--python_out=grpc_interfaces/",
+                    f"--pyi_out=grpc_interfaces/",
+                    f"--grpc_python_out=grpc_interfaces/",
                     *root_proto_files,
                 ],
                 check=True,
