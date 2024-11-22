@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "wheel", "pydantic"]
+requires = ["setuptools", "wheel", "pydantic","grpcio-tools"]
 build-backend = "setuptools.build_meta"
 
 [tool.ruff]
