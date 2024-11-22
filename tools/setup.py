@@ -4,6 +4,7 @@ import os
 import subprocess
 from setuptools.command.build_py import build_py as _build_py
 from os.path import join, dirname, realpath
+import shutil 
 
 class BuildProtobuf(_build_py):
     def run():
@@ -98,7 +99,7 @@ def find_tool_packages():
 
 find_tool_packages()
 setup(
-    name='galago_tools',
+    name='galago-tools',
     version='0.1.0',
     packages=find_tool_packages(),  # Explicitly specify the package
     package_dir={'tools': '.'},  # Tell setuptools where to find the package
