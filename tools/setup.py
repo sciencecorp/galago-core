@@ -13,7 +13,7 @@ print(read_requirements('requirements.txt'))
 setup(
     name='galago_tools',
     version='0.1.0',
-    packages=find_packages(exclude=['']),
+    packages=find_packages(include=["tools", "tools.*"]),
     license='MIT',
     description='Open Source Lab Orchestration Software',
     long_description=readme(),
