@@ -7,7 +7,7 @@ from os.path import join, dirname, realpath
 import shutil 
 
 class BuildProtobuf(_build_py):
-    def run():
+    def run(self):
         ROOT = os.path.join(os.path.dirname(__file__))
         print("Root is" + ROOT)
         proto_src = os.path.join(dirname(dirname(os.path.realpath(__file__))), "interfaces")
@@ -68,8 +68,6 @@ class BuildProtobuf(_build_py):
                 ],
                 check=True,
             )
-
-
 
 def readme() -> str:
     readme_path = os.path.join(os.path.dirname(__file__), "README.md")
