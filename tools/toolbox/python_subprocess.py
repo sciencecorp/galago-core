@@ -19,7 +19,6 @@ def run_python_script(script_content: str, blocking: bool = True) -> t.Optional[
 
     if not os.path.exists(temp_file):
         raise RuntimeError("Invalid file path")
-    logging.info(f"Running {temp_file}")
     cmd = ["python", "-m", temp_file.replace(".py", "").lstrip("/").replace("/", ".")]
     logging.info("Command: " + str(cmd))
     try:
@@ -39,8 +38,9 @@ def run_python_script(script_content: str, blocking: bool = True) -> t.Optional[
     except subprocess.CalledProcessError as e:
         logging.error(f"There was an error while running script: {e}")
         raise
-    # finally:
-    #     os.remove(temp_file)
+    finally:
+        os.remove(temp_file)
+        os.remove('stdout.txt')
 
 
 if __name__ == "__main__":
