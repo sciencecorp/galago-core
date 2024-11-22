@@ -69,6 +69,11 @@ async def integrity_error_handler(request:Request, exc:IntegrityError) -> JSONRe
         content={"message": "Integrity error", "detail": str(exc.orig)}
     )
 
+
+@app.get("/health")
+def health_check() -> t.Dict[str, str]:
+    return {"status": "ok"}
+
 @app.get("/inventory", response_model=schemas.Inventory)
 def get_inventory(workcell_name: str, db: Session = Depends(get_db)) -> t.Any:
     workcell = crud.workcell.get_by(db=db, obj_in={"name": workcell_name})
