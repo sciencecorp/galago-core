@@ -51,9 +51,9 @@ def run():
         if file.endswith(".py") or file.endswith(".pyi"):
             shutil.move(os.path.join(grpc_interfaces_output_dir,"tools","grpc_interfaces", file), os.path.join(grpc_interfaces_output_dir, file))
     
-    os.rmdir(os.path.join(grpc_interfaces_output_dir,"tools","grpc_interfaces"))
-    os.rmdir(os.path.join(grpc_interfaces_output_dir,"tools"))
-    
+    # os.rmdir(os.path.join(grpc_interfaces_output_dir,"tools","grpc_interfaces"))
+    # os.rmdir(os.path.join(grpc_interfaces_output_dir,"tools"))
+
     # Compile the root-level .proto files
     if root_proto_files:
         subprocess.run(

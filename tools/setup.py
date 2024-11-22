@@ -88,7 +88,7 @@ def find_tool_packages():
 
 find_tool_packages()
 setup(
-    name='galago_tools',
+    name='galago-tools',
     version='0.1.0',
     packages=find_tool_packages(),
     package_dir={'tools': '.'}, 
