@@ -1,8 +1,13 @@
-import { Box, HStack } from "@chakra-ui/react";
+import CommandComponent from "@/components/protocols/CommandComponent";
+import { useState } from "react";
+import StatusTag from "@/components/tools/StatusTag";
+import { ToolStatusCardsComponent } from "@/components/tools/ToolStatusCardsComponent";
+import { trpc } from "@/utils/trpc";
+import { Flex, Box, HStack } from "@chakra-ui/react";
 import { SwimLaneCommandBox } from "@/components/UI/SwimLaneCommandBox";
 import { RunCommand } from "@/types";
 import React, { useEffect } from "react";
-import { trpc } from "@/utils/trpc";
+import { ChevronRightIcon } from "@chakra-ui/icons";
 
 interface SwimLaneProps {
   runCommands: RunCommand[];
@@ -40,8 +45,8 @@ export const SwimLaneComponent: React.FC<SwimLaneProps> = ({ runCommands }) => {
               command={command}
               isLast={i === runCommands.length - 1}
               showActions={true}
-              onSkip={queued ? () => skipMutation.mutate(command.queueId) : undefined}
-              onSkipUntil={queued ? () => skipUntilMutation.mutate(command.queueId) : undefined}
+              onSkip={queued ? () => skipMutation.mutate(command.queueId!) : undefined}
+              onSkipUntil={queued ? () => skipUntilMutation.mutate(command.queueId!) : undefined}
               onSendToTool={() => execMutation.mutate(command.commandInfo)}
             />
           );

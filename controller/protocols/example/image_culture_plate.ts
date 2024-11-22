@@ -53,6 +53,16 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         command: "run_python_script",
         toolType: ToolType.toolbox,
         params: {
+          script_content: "update_variables.py",
+          blocking: false,
+        },
+      },
+      {
+        label: "Test script",
+        toolId: "tool_box",
+        command: "run_python_script",
+        toolType: ToolType.toolbox,
+        params: {
           script_content: "test.py",
           blocking: false,
         },

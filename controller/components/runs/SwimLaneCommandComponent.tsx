@@ -28,8 +28,9 @@ import {
   IconButton,
   Image,
   useColorModeValue,
+  Center
 } from "@chakra-ui/react";
-
+import { ChevronRightIcon } from "@chakra-ui/icons";
 import { Run, RunCommand } from "@/types";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import { IoPlaySkipForward } from "react-icons/io5";
@@ -38,6 +39,9 @@ import { VscRunBelow } from "react-icons/vsc";
 import { Tooltip } from "@chakra-ui/react";
 import { PiToolbox } from "react-icons/pi";
 import { useRef } from "react";
+import { capitalizeFirst } from "@/utils/parser";
+import { FaRegFileCode } from "react-icons/fa6";
+import { string } from "zod";
 
 interface LaneCommandComponentProps {
   command: RunCommand;
@@ -61,6 +65,14 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
     toolNameRef.current = toolName;
   }, [toolName]);
 
+  const ToolBoxCommandIconMap = (commandName: string) => {
+    const commandIconMap = {
+      "run_python_script": <FaRegFileCode style={{ width: "100%", height: "50px" }} />,
+    } as Record<string, JSX.Element>;
+  
+    return commandIconMap[commandName] || <PiToolbox style={{ width: "100%", height: "65px" }} />;
+  };
+
   function renderToolImage(config: any) {
     if(!config) return;
     if (!config.image_url) {
@@ -68,26 +80,29 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
     } 
     else if(config.name == "Tool Box"){
       return(
-      <Box display="flex" justifyContent="center" alignItems="center">
+      <Box display="flex" justifyContent="center" alignItems="center" py={3}>
         <IconButton
           aria-label="Tool Box"
-          icon={<PiToolbox style={{ width: "100%", height: "100%" }} />} // Ensure the icon fills the button
+          icon={ToolBoxCommandIconMap(command.commandInfo.command)} // Ensure the icon fills the button
           variant="ghost"
           colorScheme="teal"
           isRound
-         // boxSize="100px"
       />
     </Box>
       );
     }
     else {
       return (
-        <Image
-          src={config.image_url}
-          alt={config.name}
-          sizes="100vw"
-          style={{ width: "15%", height: "30px" }}
-        />
+        <Box display="flex" justifyContent="center" alignItems="center">
+          <Image
+            src={config.image_url}
+            alt={config.name}
+            objectFit="contain"
+            height={"65px"}
+            width={"65px"}
+            transition="all 0.3s ease-in-out"
+          />
+        </Box>
       );
     }
   }
@@ -121,8 +136,8 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
     <Box
       left="0px"
       right="0px"
-      minW="250px"
-      height="150px"
+      minW="210px"
+      height="165px"
       overflowY="auto"
       mr="4"
       fontSize="18px"
@@ -135,8 +150,10 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
       borderColor={command.status === "STARTED" ? "teal" : "black"}>
       <VStack alignItems="stretch">
         <Box>
-          <HStack>
+          <HStack spacing={2}>
             <Box width="90%">
+              <HStack>
+            </HStack>
               <Text as="b">{toolName}</Text>
             </Box>
             <Box>
@@ -144,7 +161,11 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
                 <MenuButton
                   as={IconButton}
                   aria-label="Options"
-                  icon={<HamburgerIcon />}
+                  padding="0"
+                  margin="0"
+                  border={0}
+                  bg="transparent"
+                  icon={<HamburgerIcon fontSize='sm' />}
                   variant="outline"
                 />
                 <MenuList>
@@ -175,24 +196,23 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
             </Box>
           </HStack>
         </Box>
-        <HStack>
-          <Text as="b">Command:</Text>
-          <Text>{command.commandInfo.command}</Text>
-        </HStack>
-        <Tooltip
-          placement="right"
-          label={JSON.stringify(command.commandInfo.params, null, 2).split("\n")}>
-          <Box p="1">
-            <HStack>
-              <Tag width="90%">
-                <Text>Parameters</Text>
-              </Tag>
-              {renderToolImage(infoQuery.data)}
-            </HStack>
-          </Box>
-        </Tooltip>
+        <Center p={0}>
+          <VStack spacing={2}>
+              <Box>
+                {renderToolImage(infoQuery.data)}
+              </Box>
+              <Box bottom={0} position="sticky">
+                <Tooltip
+                placement="right"
+                label={JSON.stringify(command.commandInfo.params, null, 2).split("\n")}>
+                  <Text>{capitalizeFirst(command.commandInfo.command.replaceAll("_"," "))}</Text>
+                </Tooltip>
+              </Box>
+          </VStack>
+        </Center>
       </VStack>
     </Box>
+
   );
 };
 

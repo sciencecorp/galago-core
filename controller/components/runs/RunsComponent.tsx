@@ -65,6 +65,15 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
   const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
   const groupedCommands = commandsAll.data ? groupCommandsByRun(commandsAll.data) : [];
 
+
+   useEffect(() => {
+    if (commandsAll.data && commandsAll.data.length > 0 && !selectedRunId) {
+      const firstRunId = commandsAll.data[0].runId; 
+      setSelectedRunId(firstRunId);
+      setExpandedRunId(firstRunId);
+    }
+  }, [commandsAll.data]);
+
   function expandButtonIcon(runId: string) {
     return expandedRunId === runId ? <ChevronUpIcon /> : <PlusSquareIcon />;
   }
@@ -150,8 +159,8 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
                       onClick={() => handleRunButtonClick(run.Id)}
                       color={useColorModeValue("gray.800", "white")}>
                       {expandButtonIcon(run.Id)}
-                      <Heading size="md" padding="4px" color={useColorModeValue("gray.800", "white")}>
-                        {runAttributes.runName}
+                      <Heading size="md" padding="4px">
+                       <HStack><Text as="b">{index+1}.</Text><Text>{runAttributes.runName}</Text></HStack>
                       </Heading>
                     </Button>
                   </Box>
@@ -179,7 +188,6 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
               >
                 <SwimLaneComponent 
                   runCommands={run.Commands}
-                  onParamExpand={handleParamExpand}
                 />
               </Box>
             )}
@@ -190,15 +198,13 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
   };
 
   return (
-    <Box width="95%">
+    <Box width="100%">
       <QueueStatusComponent totalRuns={groupedCommands.length} />
-
       <Tabs mt={4}>
         <TabList>
           <Tab>Gantt Chart</Tab>
           <Tab>Runs List</Tab>
         </TabList>
-
         <TabPanels>
           <TabPanel>
             <RunQueueGanttChart onRunClick={handleRunClick} selectedRunId={selectedRunId} />
