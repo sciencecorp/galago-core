@@ -9,7 +9,7 @@ services:
     ports:
       - "1203:6379"
 
-  web:
+  galago-web:
     build:
       context: .
       dockerfile: controller/Dockerfile
@@ -50,5 +50,5 @@ volumes:
   sqlite_data:
 
 networks:
-  default:
+  app-network:
     driver: bridge
