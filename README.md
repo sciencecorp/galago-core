@@ -177,5 +177,5 @@ docker-compose -f docker-compose.dev.yml down --rmi all
 docker-compose -f docker-compose.dev.yml up --build
 
 #add npm deps to dev environment
-docker-compose run --rm app npm install <package name>
+docker exec -it galago-web-dev npm install <package name>
 ```

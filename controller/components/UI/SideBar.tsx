@@ -115,13 +115,6 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       }}>
       <VStack spacing={4} align="stretch">
         <HStack pb={10}>
-          <Image
-            onClick={toggleSidebar}
-            width="58px"
-            paddingLeft="0"
-            src="/site_logo.png"
-            alt="logo"
-            filter="brightness(1)"></Image>
           {isSidebarExpanded && (
             <Text
               as="b"
@@ -135,6 +128,13 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
               Galago
             </Text>
           )}
+          <Image
+            onClick={toggleSidebar}
+            width="58px"
+            paddingLeft="0"
+            src="/site_logo.png"
+            alt="logo"
+            filter="brightness(0)"></Image>
           <Spacer />
           {isSidebarExpanded && (
             <IconButton
