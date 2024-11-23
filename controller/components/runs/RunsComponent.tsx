@@ -61,6 +61,7 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
     { refetchInterval: 1000 },
   );
   const commandBgColor = useColorModeValue("gray.100", "gray.700");
+  const borderColor = useColorModeValue("gray.800", "white");
   const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
   const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
   const groupedCommands = commandsAll.data ? groupCommandsByRun(commandsAll.data) : [];
@@ -157,7 +158,7 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
                       padding="2px"
                       variant="ghost"
                       onClick={() => handleRunButtonClick(run.Id)}
-                      color={useColorModeValue("gray.800", "white")}>
+                      color={borderColor}>
                       {expandButtonIcon(run.Id)}
                       <Heading size="md" padding="4px">
                        <HStack><Text as="b">{index+1}.</Text><Text>{runAttributes.runName}</Text></HStack>
@@ -171,8 +172,8 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
                       aria-label="Delete Run"
                       size="lg"
                       icon={<DeleteIcon />}
-                      color={useColorModeValue("gray.800", "white")}
-                    />
+                      color={borderColor}>
+                    </IconButton>
                   </Box>
                 </HStack>
               </VStack>

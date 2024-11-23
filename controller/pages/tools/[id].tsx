@@ -24,7 +24,8 @@ import { ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
 import { useParams } from "react-router";
 import Head from "next/head";
-
+import { TeachPendant } from "@/components/tools/advanced/TeachPendant";
+import { ToolConfig } from "gen-interfaces/controller";
 // Assuming you're using TypeScript, you could define a type for the status object
 type CommandStatus = {
   [commandName: string]: "idle" | "success" | "error";
@@ -585,7 +586,7 @@ export default function Page() {
       executeCommand(commandName, {});
     }
   };
-
+  console.log("CONFIG", config);
   const renderFields = (fields: Field[], parentField?: string) => {
     return fields.map((field) => {
       if (Array.isArray(field.type)) {
@@ -671,39 +672,39 @@ export default function Page() {
         <title>{config?.name ? `Tool: ${config.name}` : "Tool"}</title>
       </Head>
       <Box p={12} maxWidth="1800px" margin="auto">
-        <ToolStatusCard toolId={id || ""} />
-        <FormControl>
-          <VStack width="100%" spacing={1}>
-            <FormLabel>Select Command</FormLabel>
-            <Select placeholder="Select command" onChange={handleChange}>
-              {Object.keys(commandOptions).map((command) => (
-                <option key={command} value={command}>
-                  {capitalizeFirst(command.replaceAll("_", " "))}
-                </option>
-              ))}
-            </Select>
-            {selectedCommand && (
-              <>
-                {renderFields(commandOptions[selectedCommand])}
-                <Button width="100%" onClick={handleSubmit} colorScheme="teal">
-                  Send Command
-                </Button>
-              </>
-            )}
+        <HStack spacing={4} align="start" width="100%">
+          {/* Left Side */}
+          <VStack spacing={4} align="stretch" flex={1}>
+            <ToolStatusCard toolId={id || ""} />
+            <FormControl>
+              <VStack width="100%" spacing={1}>
+                <FormLabel>Select Command</FormLabel>
+                <Select placeholder="Select command" onChange={handleChange}>
+                  {Object.keys(commandOptions).map((command) => (
+                    <option key={command} value={command}>
+                      {capitalizeFirst(command.replaceAll("_", " "))}
+                    </option>
+                  ))}
+                </Select>
+                {selectedCommand && (
+                  <>
+                    {renderFields(commandOptions[selectedCommand])}
+                    <Button width="100%" onClick={handleSubmit} colorScheme="teal">
+                      Send Command
+                    </Button>
+                  </>
+                )}
+              </VStack>
+            </FormControl>
           </VStack>
-        </FormControl>
-        {/* <Grid pt="10px" templateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap={2}>
-          {Object.keys(commandOptions)
-            .filter((command) => !doesCommandHaveParameters(command)) // Only commands without parameters
-            .map((command) => (
-              <CommandButton
-                key={command}
-                commandName={command}
-                onSelectCommand={handleSelectCommand}
-                status={commandExecutionStatus[command] || "idle"}
-              />
-            ))}
-        </Grid> */}
+
+          {/* Right Side */}
+          {config?.type === ToolType.pf400 && (
+            <Box flex={1}>
+              <TeachPendant toolId={id || ""} config={config as ToolConfig} />
+            </Box>
+          )}
+        </HStack>
       </Box>
     </>
   );

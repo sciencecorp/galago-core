@@ -350,14 +350,11 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
               height: '8px',
             },
             '&::-webkit-scrollbar-track': {
-              background: useColorModeValue('gray.100', 'gray.900'),
               borderRadius: '4px',
             },
             '&::-webkit-scrollbar-thumb': {
-              background: useColorModeValue('gray.300', 'gray.600'),
               borderRadius: '4px',
               '&:hover': {
-                background: useColorModeValue('gray.400', 'gray.500'),
               },
             },
           }}>
