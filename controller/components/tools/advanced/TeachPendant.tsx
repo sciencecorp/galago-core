@@ -39,13 +39,16 @@ import {
     Th,
     Td,
     Badge,
+    InputGroup,
+    InputLeftElement,
+    Text,
   } from "@chakra-ui/react";
-  import { useState } from "react";
+  import { useState, useCallback } from "react";
   import { trpc } from "@/utils/trpc";
   import { ToolCommandInfo } from "@/types";
   import { ToolConfig } from "gen-interfaces/controller";
   import { useToast } from "@chakra-ui/react";
-  import { AddIcon } from "@chakra-ui/icons";
+  import { AddIcon, Search2Icon } from "@chakra-ui/icons";
   
 interface TeachPendantProps {
   toolId: string | undefined;
@@ -71,11 +74,22 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   const [locations, setLocations] = useState<TeachPoint[]>([]);
   const bgColor = useColorModeValue('white', 'gray.700');
   const borderColor = useColorModeValue('gray.200', 'gray.900');
+  const bgColorAlpha = useColorModeValue('gray.50', 'gray.900');
   const [activeTab, setActiveTab] = useState(0);
   const [currentTeachpoint, setCurrentTeachpoint] = useState("");
   const [currentType, setCurrentType] = useState<"nest" | "location">("location");
   const [currentCoordinate, setCurrentCoordinate] = useState("");
   const [currentApproachPath, setCurrentApproachPath] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState<"all" | "location" | "nest">("all");
+
+  const getLocTypeDisplay = (locType: string) => {
+    switch (locType) {
+      case "j": return "Joint";
+      case "c": return "Cartesian";
+      default: return locType;
+    }
+  };
 
   const executeCommand = async (command: () => Promise<void>) => {
     if (isCommandInProgress) return;
@@ -101,7 +115,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
       return;
     }
     const jogCommand: ToolCommandInfo = {
-      toolId: config.name,
+      toolId: config.type,
       toolType: config.type,
       command: "jog",
       params: {
@@ -130,6 +144,51 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     }
   };
 
+  const GetTeachPoints = useCallback(async () => {
+    const toolCommand: ToolCommandInfo = {
+      toolId: config.type,
+      toolType: config.type,
+      command: "get_teachpoints",
+      params: {
+      },
+    };
+
+    const response = await commandMutation.mutateAsync(toolCommand);
+    const metadata = response?.meta_data;
+    if (metadata === undefined) return [];
+
+    const newLocations: TeachPoint[] = [];
+
+    for (const resp in metadata) {
+      if (resp === "nests") {
+        const nests = metadata[resp];
+        for (const nest in nests) {
+          let location: TeachPoint = {
+            name: nest,
+            coordinate: nests[nest].loc.loc,
+            type: "nest",
+            locType: getLocTypeDisplay(nests[nest].loc.loc_type),
+            approachPath: nests[nest].approach_path,
+            safe_loc: nests[nest].safe_loc,
+          };
+          newLocations.push(location);
+        }
+      } else if (resp === "locations") {
+        const locs = metadata[resp];
+        for (const loc in locs) {
+          let location: TeachPoint = {
+            name: loc,
+            coordinate: locs[loc].loc,
+            type: "location",
+            locType: getLocTypeDisplay(locs[loc].loc_type),
+          };
+          newLocations.push(location);
+        }
+      }
+    }
+    return newLocations;
+  }, [config.name, config.type, commandMutation]);
+
   const CreateNewItemModal = () => {
     const [localLocationName, setLocalLocationName] = useState("");
     const [localNestName, setLocalNestName] = useState("");
@@ -152,11 +211,14 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
 
       setIsCreating(true);
       const createCommand: ToolCommandInfo = {
-        toolId: config.name,
+        toolId: config.type,
         toolType: config.type,
         command: `create_${type}`,
         params: type === "location" 
-          ? { location_name: name, loc_type: "j" }
+          ? { 
+              location_name: name, 
+              loc_type: "j",
+            }
           : { 
               nest_name: name,
               loc_type: "j",
@@ -167,6 +229,10 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
 
       try {
         await commandMutation.mutateAsync(createCommand);
+        // After successful creation, refresh the teach points
+        const updatedLocations = await GetTeachPoints();
+        setLocations(updatedLocations);
+        
         toast({
           title: "Success",
           description: `${type} created successfully`,
@@ -267,6 +333,12 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     );
   };
 
+  const filteredTeachPoints = locations.filter(
+    (loc) =>
+      (filterType === "all" || loc.type === filterType) &&
+      loc.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
   return (
     <Box 
       borderWidth="1px" 
@@ -321,9 +393,41 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
           </CardFooter>
         </Card>
 
-        <Card width="100%" flex="1" bg={bgColor} borderColor={borderColor}>
+        <Card width="100%" bg={bgColor} borderColor={borderColor}>
+          <CardBody>
+            <VStack spacing={3}>
+              <InputGroup size="md">
+                <InputLeftElement pointerEvents="none">
+                  <Search2Icon color="gray.300" />
+                </InputLeftElement>
+                <Input
+                  placeholder="Search teach points"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  bg={useColorModeValue('white', 'gray.700')}
+                />
+              </InputGroup>
+              <Select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value as "all" | "location" | "nest")}
+                bg={useColorModeValue('white', 'gray.700')}
+              >
+                <option value="all">All Points</option>
+                <option value="location">Locations Only</option>
+                <option value="nest">Nests Only</option>
+              </Select>
+            </VStack>
+          </CardBody>
+        </Card>
+
+        <Card width="100%" flex="1" bg={bgColor} borderColor={bgColorAlpha}>
           <CardHeader>
-            <Heading size="md">Teach Points</Heading>
+            <HStack justify="space-between">
+              <Heading size="md">Teach Points</Heading>
+              <Text color="gray.500">
+                {filteredTeachPoints.length} point{filteredTeachPoints.length !== 1 ? 's' : ''}
+              </Text>
+            </HStack>
           </CardHeader>
           <CardBody overflowY="auto">
             <Table variant="simple">
@@ -336,8 +440,11 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                 </Tr>
               </Thead>
               <Tbody>
-                {locations.map((point, index) => (
-                  <Tr key={index}>
+                {filteredTeachPoints.map((point, index) => (
+                  <Tr 
+                    key={index}
+                    _hover={{ bg: bgColorAlpha }}
+                  >
                     <Td>{point.name}</Td>
                     <Td>
                       <Badge colorScheme={point.type === "location" ? "blue" : "green"}>
