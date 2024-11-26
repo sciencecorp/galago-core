@@ -20,7 +20,12 @@ build_env() {
 
 run() {
   echo "Launching Tools" 
-  python -m tools.launch_tools
+  python -m tools.launch_tools "$@"
+}
+
+run_debug() {
+  echo "Launching Tools in Debug Mode" 
+  python -m tools.launch_tools --debug
 }
 
 python_deps() {

@@ -509,10 +509,69 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     }
   };
 
+  const handleEditGripParams = (params: GripParams) => {
+    setSelectedGripParams(params);
+    setIsGripParamsModalOpen(true);
+  };
+  
+  const handleUpdateGripParams = async (params: GripParams) => {
+    try {
+      await updateGripParamsMutation.mutateAsync({
+        id: params.id,
+        name: params.name,
+        width: params.width,
+        speed: params.speed,
+        force: params.force,
+        tool_id: config.id,
+      });
+      
+      gripParamsQuery.refetch();
+      toast({
+        title: "Success",
+        description: "Grip parameters updated successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update grip parameters",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+  
+  const handleDeleteGripParams = async (id: number) => {
+    try {
+      await deleteGripParamsMutation.mutateAsync({ id });
+      gripParamsQuery.refetch();
+      toast({
+        title: "Success",
+        description: "Grip parameters deleted successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete grip parameters",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
   const handleEdit = (point: TeachPoint) => {
     setEditingPoint(point);
     setIsEditModalOpen(true);
   };
+
+  
 
   const handleSendCommand = async (point: TeachPoint) => {
     const command: ToolCommandInfo = {
@@ -817,18 +876,18 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     }
   };
 
-  const handleUpdateGripParams = async (params: GripParams) => {
+  const handleEditMotionProfile = (profile: MotionProfile) => {
+    setSelectedMotionProfile(profile);
+    setIsMotionProfileModalOpen(true);
+  };
+
+  const handleDeleteMotionProfile = async (id: number) => {
     try {
-      await updateGripParamsMutation.mutateAsync({
-        ...params,
-        tool_id: config.id
-      });
-      setIsGripParamsModalOpen(false);
-      setSelectedGripParams(null);
-      gripParamsQuery.refetch();
+      await deleteMotionProfileMutation.mutateAsync({ id });
+      motionProfilesQuery.refetch();
       toast({
         title: "Success",
-        description: "Grip parameters updated",
+        description: "Motion profile deleted successfully",
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -836,13 +895,16 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update grip parameters",
+        description: "Failed to delete motion profile",
         status: "error",
         duration: 3000,
         isClosable: true,
       });
     }
   };
+  
+  
+  
 
   const MotionProfileModal: React.FC<{
     isOpen: boolean;
@@ -1168,7 +1230,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
       p={4}
       height="calc(100vh - 150px)"
       minHeight="800px"
-      minWidth="700px"
+      minWidth="600px"
       width="100%"
     >
       <VStack spacing={4} width="100%" height="100%">
@@ -1243,10 +1305,9 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
         <Tabs variant="enclosed" width="100%">
           <TabList>
             <Tab>Teach Points</Tab>
-            <Tab>Motion Profiles</Tab>
             <Tab>Grip Parameters</Tab>
+            <Tab>Motion Profiles</Tab>
           </TabList>
-
           <TabPanels>
             <TabPanel padding={0}>
               <Card width="100%" flex="1" bg={bgColor} borderColor={bgColorAlpha}>
@@ -1392,71 +1453,6 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
               <Card width="100%" flex="1" bg={bgColor} borderColor={bgColorAlpha}>
                 <CardHeader>
                   <HStack justify="space-between">
-                    <Heading size="md">Motion Profiles</Heading>
-                    <Button
-                      leftIcon={<AddIcon />}
-                      colorScheme="blue"
-                      size="sm"
-                      onClick={() => setIsMotionProfileModalOpen(true)}
-                      variant="ghost"
-                    />
-                  </HStack>
-                </CardHeader>
-                <CardBody overflowY="auto" maxHeight="calc(100vh - 700px)" minHeight="550px">
-                  <Table variant="simple">
-                    <Thead>
-                      <Tr>
-                        <Th>Name</Th>
-                        <Th>Profile ID</Th>
-                        <Th>Speed</Th>
-                        <Th>Speed2</Th>
-                        <Th>Actions</Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {motionProfilesQuery.data?.map((profile) => (
-                        <Tr key={profile.id}>
-                          <Td>{profile.name}</Td>
-                          <Td>{profile.profile_id}</Td>
-                          <Td>{profile.speed}%</Td>
-                          <Td>{profile.speed2}%</Td>
-                          <Td>
-                            <Menu>
-                              <MenuButton
-                                as={IconButton}
-                                aria-label="Actions"
-                                icon={<HamburgerIcon />}
-                                variant="ghost"
-                                size="sm"
-                              />
-                              <MenuList>
-                                <MenuItem onClick={() => {/* TODO: Edit profile */}}>
-                                  Edit
-                                </MenuItem>
-                                <MenuItem onClick={() => {/* TODO: Register profile */}}>
-                                  Register
-                                </MenuItem>
-                                <MenuItem
-                                  color="red.500"
-                                  onClick={() => {/* TODO: Delete profile */}}
-                                >
-                                  Delete
-                                </MenuItem>
-                              </MenuList>
-                            </Menu>
-                          </Td>
-                        </Tr>
-                      ))}
-                    </Tbody>
-                  </Table>
-                </CardBody>
-              </Card>
-            </TabPanel>
-
-            <TabPanel padding={0}>
-              <Card width="100%" flex="1" bg={bgColor} borderColor={bgColorAlpha}>
-                <CardHeader>
-                  <HStack justify="space-between">
                     <Heading size="md">Grip Parameters</Heading>
                     <Button
                       leftIcon={<AddIcon />}
@@ -1495,12 +1491,89 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                                 size="sm"
                               />
                               <MenuList>
-                                <MenuItem onClick={() => {/* TODO: Edit params */}}>
+                                <MenuItem onClick={() => handleEditGripParams(params)}>
                                   Edit
                                 </MenuItem>
                                 <MenuItem
                                   color="red.500"
-                                  onClick={() => {/* TODO: Delete params */}}
+                                  onClick={() => handleDeleteGripParams(params.id)}
+                                >
+                                  Delete
+                                </MenuItem>
+                              </MenuList>
+                            </Menu>
+                          </Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                </CardBody>
+              </Card>
+            </TabPanel>
+
+            <TabPanel padding={0}>
+              <Card width="100%" flex="1" bg={bgColor} borderColor={bgColorAlpha}>
+                <CardHeader>
+                  <HStack justify="space-between">
+                    <Heading size="md">Motion Profiles</Heading>
+                    <Button
+                      leftIcon={<AddIcon />}
+                      colorScheme="blue"
+                      size="sm"
+                      onClick={() => setIsMotionProfileModalOpen(true)}
+                      variant="ghost"
+                    />
+                  </HStack>
+                </CardHeader>
+                <CardBody overflowY="auto" maxHeight="calc(100vh - 700px)" minHeight="550px">
+                  <Table variant="simple">
+                    <Thead>
+                      <Tr>
+                        <Th>Name</Th>
+                        <Th>Profile ID</Th>
+                        <Th>Speed</Th>
+                        <Th>Speed2</Th>
+                        <Th>Acceleration</Th>
+                        <Th>Deceleration</Th>
+                        <Th>Accel Ramp</Th>
+                        <Th>Decel Ramp</Th>
+                        <Th>In Range</Th>
+                        <Th>Straight</Th>
+                        <Th>Actions</Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      {motionProfilesQuery.data?.map((profile) => (
+                        <Tr key={profile.id}>
+                          <Td>{profile.name}</Td>
+                          <Td>{profile.profile_id}</Td>
+                          <Td>{profile.speed}%</Td>
+                          <Td>{profile.speed2}%</Td>
+                          <Td>{profile.acceleration}%</Td>
+                          <Td>{profile.deceleration}%</Td>
+                          <Td>{profile.accel_ramp}s</Td>
+                          <Td>{profile.decel_ramp}s</Td>
+                          <Td>{profile.inrange}</Td>
+                          <Td>{profile.straight ? 'Yes' : 'No'}</Td>
+                          <Td>
+                            <Menu>
+                              <MenuButton
+                                as={IconButton}
+                                aria-label="Actions"
+                                icon={<HamburgerIcon />}
+                                variant="ghost"
+                                size="sm"
+                              />
+                              <MenuList>
+                                <MenuItem onClick={() => handleEditMotionProfile(profile)}>
+                                  Edit
+                                </MenuItem>
+                                <MenuItem onClick={() => handleRegisterMotionProfile(profile)}>
+                                  Register
+                                </MenuItem>
+                                <MenuItem
+                                  color="red.500"
+                                  onClick={() => handleDeleteMotionProfile(profile.id)}
                                 >
                                   Delete
                                 </MenuItem>

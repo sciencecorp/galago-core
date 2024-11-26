@@ -5,11 +5,13 @@ import threading
 import socket 
 import logging 
 import os
+import sys
 import signal as os_signal
 import tkinter as tk
 from tkinter import messagebox
-from tkinter import ttk  # working on windows
+from tkinter import ttk
 import time
+import argparse
 from os.path import join, dirname
 from typing import Optional, Any, Callable
 from tools.conda_utils import get_conda_environments,check_conda_is_path
@@ -450,13 +452,39 @@ class ToolsManager():
         self.root.mainloop()
     
 def main() -> None:
-    logging.info("Starting Galago Tools Manager")
-    root = tk.Tk()
-    logging.info(f"Is root None? {root is None}")
-    config = Config()
-    logging.info("Loading app config")
-    config.load_app_config()
-    logging.info("Loading workcell config")
-    config.load_workcell_config()
-    manager = ToolsManager(root, config)
-    manager.show_gui()
+    parser = argparse.ArgumentParser(description='Launch Galago Tools Manager')
+    parser.add_argument('--debug', action='store_true', help='Enable debug mode with detailed logging')
+    args = parser.parse_args()
+
+    if args.debug:
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='%(asctime)s | %(levelname)s | %(message)s',
+            handlers=[
+                logging.StreamHandler(sys.stdout)
+            ]
+        )
+    else:
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s | %(levelname)s | %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S',
+        )
+
+    try:
+        logging.info("Starting Galago Tools Manager")
+        root = tk.Tk()
+        logging.info(f"Is root None? {root is None}")
+        config = Config()
+        logging.info("Loading app config")
+        config.load_app_config()
+        logging.info("Loading workcell config")
+        config.load_workcell_config()
+        manager = ToolsManager(root, config)
+        manager.show_gui()
+    except Exception as e:
+        logging.exception("Failed to launch tools")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()

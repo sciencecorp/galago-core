@@ -24,7 +24,7 @@ import argparse
 from typing import Union, Optional, List
 import re
 import requests
-from requests.exceptions import RequestError
+from requests.exceptions import RequestException
 
 class DatabaseClient:
     def __init__(self, base_url: str = "http://localhost:8000/api"):
@@ -58,10 +58,17 @@ class DatabaseClient:
 class Pf400Server(ToolServer):
     toolType = "pf400"
 
-    def __init__(self, config_file: str):
-        super().__init__(config_file)
+    def __init__(self) -> None:
+        super().__init__()
+        self.driver: Pf400Driver
+        self.waypoints: Waypoints
+        self.waypoints_json_file: str
+        self.graph: nx.Graph
+        self.sequence_location: str
+        self.teachpoints: t.Any
+        self.plate_handling_params: dict[str, dict[str, Union[Command.GraspPlate, Command.ReleasePlate]]] = {}
         self.db_client = DatabaseClient()
-        self.tool_id = None  # Will be set during initialization
+        self.tool_id = None
         
     def initialize(self) -> None:
         super().initialize()
@@ -786,6 +793,8 @@ class Pf400Server(ToolServer):
     def EstimateGetTeachpoints(self, params: Command.GetTeachpoints) -> int:
         return 1
     def EstimateSaveTeachpoints(self, params: Command.SaveTeachpoints) -> int:
+        return 1
+    def EstimateJog(self, params: Command.Jog) -> int:
         return 1
 
 if __name__ == "__main__":
