@@ -10,6 +10,7 @@ import { workcellRouter } from "./workcell";
 import { labwareRouter } from "./labware";
 import { scriptRouter } from "./script";
 import { inventoryRouter} from "./inventory";
+import { robotArmRouter } from "./robot-arm";
 
 export const appRouter = router({
   inventory: inventoryRouter,
@@ -22,6 +23,7 @@ export const appRouter = router({
   logging: loggingRouter,
   labware: labwareRouter,
   script: scriptRouter,
+  robotArm: robotArmRouter,
 });
 
 export type AppRouter = typeof appRouter;

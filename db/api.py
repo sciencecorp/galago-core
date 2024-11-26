@@ -599,3 +599,191 @@ def update_script(script_id: int, script_update: schemas.ScriptUpdate, db: Sessi
 @app.delete("/scripts/{script_id}", response_model=schemas.Script)
 def delete_script(script_id:int, db: Session = Depends(get_db)) -> t.Any:
     return crud.scripts.remove(db, id=script_id)
+
+# RobotArm Location endpoints
+@app.get("/robot-arm-locations", response_model=list[schemas.RobotArmLocation])
+def get_robot_arm_locations(
+    db: Session = Depends(get_db),
+    tool_id: Optional[int] = None
+) -> t.Any:
+    if tool_id:
+        return crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": tool_id})
+    return crud.robot_arm_location.get_all(db)
+
+@app.post("/robot-arm-locations", response_model=schemas.RobotArmLocation)
+def create_robot_arm_location(
+    location: schemas.RobotArmLocationCreate,
+    db: Session = Depends(get_db)
+) -> t.Any:
+    return crud.robot_arm_location.create(db, obj_in=location)
+
+@app.put("/robot-arm-locations/{location_id}", response_model=schemas.RobotArmLocation)
+def update_robot_arm_location(
+    location_id: int,
+    location: schemas.RobotArmLocationUpdate,
+    db: Session = Depends(get_db)
+) -> t.Any:
+    db_location = crud.robot_arm_location.get(db, id=location_id)
+    if not db_location:
+        raise HTTPException(status_code=404, detail="Location not found")
+    return crud.robot_arm_location.update(db, db_obj=db_location, obj_in=location)
+
+@app.delete("/robot-arm-locations/{location_id}", response_model=schemas.RobotArmLocation)
+def delete_robot_arm_location(location_id: int, db: Session = Depends(get_db)) -> t.Any:
+    # First check if this location is referenced as a safe location
+    dependent_nests = db.query(models.RobotArmNest).filter_by(safe_location_id=location_id).all()
+    if dependent_nests:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete location that is used as a safe location by nests"
+        )
+    
+    location = crud.robot_arm_location.get(db, id=location_id)
+    if not location:
+        raise HTTPException(status_code=404, detail="Location not found")
+    return crud.robot_arm_location.remove(db, id=location_id)
+
+# RobotArm Nest endpoints
+@app.get("/robot-arm-nests", response_model=list[schemas.RobotArmNest])
+def get_robot_arm_nests(
+    db: Session = Depends(get_db),
+    tool_id: Optional[int] = None
+) -> t.Any:
+    if tool_id:
+        return crud.robot_arm_nest.get_all_by(db, obj_in={"tool_id": tool_id})
+    return crud.robot_arm_nest.get_all(db)
+
+@app.post("/robot-arm-nests", response_model=schemas.RobotArmNest)
+def create_robot_arm_nest(
+    nest: schemas.RobotArmNestCreate,
+    db: Session = Depends(get_db)
+) -> t.Any:
+    return crud.robot_arm_nest.create(db, obj_in=nest)
+
+@app.put("/robot-arm-nests/{nest_id}", response_model=schemas.RobotArmNest)
+def update_robot_arm_nest(
+    nest_id: int,
+    nest: schemas.RobotArmNestUpdate,
+    db: Session = Depends(get_db)
+) -> t.Any:
+    db_nest = crud.robot_arm_nest.get(db, id=nest_id)
+    if not db_nest:
+        raise HTTPException(status_code=404, detail="Nest not found")
+    return crud.robot_arm_nest.update(db, db_obj=db_nest, obj_in=nest)
+
+@app.delete("/robot-arm-nests/{nest_id}", response_model=schemas.RobotArmNest)
+def delete_robot_arm_nest(nest_id: int, db: Session = Depends(get_db)) -> t.Any:
+    nest = crud.robot_arm_nest.get(db, id=nest_id)
+    if not nest:
+        raise HTTPException(status_code=404, detail="Nest not found")
+    
+    # Clear any references to this nest before deletion
+    nest.safe_location_id = None
+    db.commit()
+    
+    return crud.robot_arm_nest.remove(db, id=nest_id)
+
+# RobotArm Sequence endpoints
+@app.get("/robot-arm-sequences", response_model=list[schemas.RobotArmSequence])
+def get_robot_arm_sequences(
+    db: Session = Depends(get_db),
+    tool_id: Optional[int] = None
+) -> t.Any:
+    if tool_id:
+        return crud.robot_arm_sequence.get_all_by(db, obj_in={"tool_id": tool_id})
+    return crud.robot_arm_sequence.get_all(db)
+
+@app.post("/robot-arm-sequences", response_model=schemas.RobotArmSequence)
+def create_robot_arm_sequence(
+    sequence: schemas.RobotArmSequenceCreate,
+    db: Session = Depends(get_db)
+) -> t.Any:
+    return crud.robot_arm_sequence.create(db, obj_in=sequence)
+
+@app.put("/robot-arm-sequences/{sequence_id}", response_model=schemas.RobotArmSequence)
+def update_robot_arm_sequence(
+    sequence_id: int,
+    sequence: schemas.RobotArmSequenceUpdate,
+    db: Session = Depends(get_db)
+) -> t.Any:
+    db_sequence = crud.robot_arm_sequence.get(db, id=sequence_id)
+    if not db_sequence:
+        raise HTTPException(status_code=404, detail="Sequence not found")
+    return crud.robot_arm_sequence.update(db, db_obj=db_sequence, obj_in=sequence)
+
+@app.delete("/robot-arm-sequences/{sequence_id}", response_model=schemas.RobotArmSequence)
+def delete_robot_arm_sequence(sequence_id: int, db: Session = Depends(get_db)) -> t.Any:
+    sequence = crud.robot_arm_sequence.get(db, id=sequence_id)
+    if not sequence:
+        raise HTTPException(status_code=404, detail="Sequence not found")
+    return crud.robot_arm_sequence.remove(db, id=sequence_id)
+
+# RobotArm Motion Profile endpoints
+@app.get("/robot-arm-motion-profiles", response_model=list[schemas.RobotArmMotionProfile])
+def get_robot_arm_motion_profiles(
+    db: Session = Depends(get_db),
+    tool_id: Optional[int] = None
+) -> t.Any:
+    if tool_id:
+        return crud.robot_arm_motion_profile.get_all_by(db, obj_in={"tool_id": tool_id})
+    return crud.robot_arm_motion_profile.get_all(db)
+
+@app.post("/robot-arm-motion-profiles", response_model=schemas.RobotArmMotionProfile)
+def create_robot_arm_motion_profile(
+    profile: schemas.RobotArmMotionProfileCreate,
+    db: Session = Depends(get_db)
+) -> t.Any:
+    return crud.robot_arm_motion_profile.create(db, obj_in=profile)
+
+@app.put("/robot-arm-motion-profiles/{profile_id}", response_model=schemas.RobotArmMotionProfile)
+def update_robot_arm_motion_profile(
+    profile_id: int,
+    profile: schemas.RobotArmMotionProfileUpdate,
+    db: Session = Depends(get_db)
+) -> t.Any:
+    db_profile = crud.robot_arm_motion_profile.get(db, id=profile_id)
+    if not db_profile:
+        raise HTTPException(status_code=404, detail="Motion profile not found")
+    return crud.robot_arm_motion_profile.update(db, db_obj=db_profile, obj_in=profile)
+
+@app.delete("/robot-arm-motion-profiles/{profile_id}", response_model=schemas.RobotArmMotionProfile)
+def delete_robot_arm_motion_profile(profile_id: int, db: Session = Depends(get_db)) -> t.Any:
+    profile = crud.robot_arm_motion_profile.get(db, id=profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Motion profile not found")
+    return crud.robot_arm_motion_profile.remove(db, id=profile_id)
+
+# RobotArm Grip Parameters endpoints
+@app.get("/robot-arm-grip-params", response_model=list[schemas.RobotArmGripParams])
+def get_robot_arm_grip_params(
+    db: Session = Depends(get_db),
+    tool_id: Optional[int] = None
+) -> t.Any:
+    if tool_id:
+        return crud.robot_arm_grip_params.get_all_by(db, obj_in={"tool_id": tool_id})
+    return crud.robot_arm_grip_params.get_all(db)
+
+@app.post("/robot-arm-grip-params", response_model=schemas.RobotArmGripParams)
+def create_robot_arm_grip_params(
+    params: schemas.RobotArmGripParamsCreate,
+    db: Session = Depends(get_db)
+) -> t.Any:
+    return crud.robot_arm_grip_params.create(db, obj_in=params)
+
+@app.put("/robot-arm-grip-params/{params_id}", response_model=schemas.RobotArmGripParams)
+def update_robot_arm_grip_params(
+    params_id: int,
+    params: schemas.RobotArmGripParamsUpdate,
+    db: Session = Depends(get_db)
+) -> t.Any:
+    db_params = crud.robot_arm_grip_params.get(db, id=params_id)
+    if not db_params:
+        raise HTTPException(status_code=404, detail="Grip parameters not found")
+    return crud.robot_arm_grip_params.update(db, db_obj=db_params, obj_in=params)
+
+@app.delete("/robot-arm-grip-params/{params_id}", response_model=schemas.RobotArmGripParams)
+def delete_robot_arm_grip_params(params_id: int, db: Session = Depends(get_db)) -> t.Any:
+    params = crud.robot_arm_grip_params.get(db, id=params_id)
+    if not params:
+        raise HTTPException(status_code=404, detail="Grip parameters not found")
+    return crud.robot_arm_grip_params.remove(db, id=params_id)

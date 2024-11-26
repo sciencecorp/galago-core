@@ -105,7 +105,6 @@ export default function ToolStatusCard({ toolId,  style = {} }: ToolStatusCardPr
   };
 
   function renderToolImage(config: any) {
-    console.log("Config das:", config);
     if (!config.image_url) {
       return <Box></Box>;
     } else if (config.name === "Tool Box") {

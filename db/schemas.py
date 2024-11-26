@@ -329,3 +329,133 @@ class Script(ScriptCreate, TimestampMixin):
     id: t.Union[int,str]
     class Config:
         from_attributes=True
+
+# RobotArm Location Schemas
+class RobotArmLocationCreate(BaseModel):
+    name: str
+    location_type: str  # 'j' for joint or 'c' for cartesian
+    j1: t.Optional[float] = None
+    j2: t.Optional[float] = None
+    j3: t.Optional[float] = None
+    j4: t.Optional[float] = None
+    j5: t.Optional[float] = None
+    j6: t.Optional[float] = None
+    tool_id: int
+
+class RobotArmLocationUpdate(BaseModel):
+    name: t.Optional[str] = None
+    location_type: t.Optional[str] = None
+    j1: t.Optional[float] = None
+    j2: t.Optional[float] = None
+    j3: t.Optional[float] = None
+    j4: t.Optional[float] = None
+    j5: t.Optional[float] = None
+    j6: t.Optional[float] = None
+    tool_id: t.Optional[int] = None
+
+class RobotArmLocation(RobotArmLocationCreate):
+    id: int
+    class Config:
+        from_attributes = True
+
+# RobotArm Nest Schemas
+class RobotArmNestCreate(BaseModel):
+    name: str
+    orientation: t.Literal["portrait", "landscape"]
+    location_type: str  # 'j' for joint or 'c' for cartesian
+    j1: t.Optional[float] = None
+    j2: t.Optional[float] = None
+    j3: t.Optional[float] = None
+    j4: t.Optional[float] = None
+    j5: t.Optional[float] = None
+    j6: t.Optional[float] = None
+    safe_location_id: int
+    tool_id: int
+
+class RobotArmNestUpdate(BaseModel):
+    name: t.Optional[str] = None
+    orientation: t.Optional[t.Literal["portrait", "landscape"]] = None
+    location_type: t.Optional[str] = None  # 'j' for joint or 'c' for cartesian
+    j1: t.Optional[float] = None
+    j2: t.Optional[float] = None
+    j3: t.Optional[float] = None
+    j4: t.Optional[float] = None
+    j5: t.Optional[float] = None
+    j6: t.Optional[float] = None
+    safe_location_id: t.Optional[int] = None
+    tool_id: t.Optional[int] = None
+
+class RobotArmNest(RobotArmNestCreate):
+    id: int
+    class Config:
+        from_attributes = True
+
+# RobotArm Sequence Schemas
+class RobotArmSequenceCreate(BaseModel):
+    name: str
+    description: t.Optional[str] = None
+    commands: list[dict]
+    tool_id: int
+
+class RobotArmSequenceUpdate(BaseModel):
+    name: t.Optional[str] = None
+    description: t.Optional[str] = None
+    commands: t.Optional[list[dict]] = None
+    tool_id: t.Optional[int] = None
+
+class RobotArmSequence(RobotArmSequenceCreate):
+    id: int
+    class Config:
+        from_attributes = True
+
+# Motion Profile Schemas
+class RobotArmMotionProfileCreate(BaseModel):
+    name: str
+    profile_id: int
+    speed: float
+    speed2: float
+    acceleration: float
+    deceleration: float
+    accel_ramp: float
+    decel_ramp: float
+    inrange: float
+    straight: int
+    tool_id: int
+
+class RobotArmMotionProfileUpdate(BaseModel):
+    name: t.Optional[str] = None
+    profile_id: t.Optional[int] = None
+    speed: t.Optional[float] = None
+    speed2: t.Optional[float] = None
+    acceleration: t.Optional[float] = None
+    deceleration: t.Optional[float] = None
+    accel_ramp: t.Optional[float] = None
+    decel_ramp: t.Optional[float] = None
+    inrange: t.Optional[float] = None
+    straight: t.Optional[int] = None
+    tool_id: t.Optional[int] = None
+
+class RobotArmMotionProfile(RobotArmMotionProfileCreate):
+    id: int
+    class Config:
+        from_attributes = True
+
+# Grip Params Schemas
+class RobotArmGripParamsCreate(BaseModel):
+    name: str
+    width: int
+    speed: int
+    force: int
+    tool_id: int
+
+class RobotArmGripParamsUpdate(BaseModel):
+    name: t.Optional[str] = None
+    width: t.Optional[int] = None
+    speed: t.Optional[int] = None
+    force: t.Optional[int] = None
+    tool_id: t.Optional[int] = None
+
+class RobotArmGripParams(RobotArmGripParamsCreate):
+    id: int
+    class Config:
+        from_attributes = True

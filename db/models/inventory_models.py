@@ -37,6 +37,11 @@ class Tool(Base, TimestampMixin):
     workcell_id = Column(String, ForeignKey("workcells.id"))
     workcell = relationship("Workcell", back_populates="tools")
     nests = relationship("Nest", back_populates="tool")
+    robot_arm_locations = relationship("RobotArmLocation", back_populates="tool")
+    robot_arm_nests = relationship("RobotArmNest", back_populates="tool")
+    robot_arm_sequences = relationship("RobotArmSequence", back_populates="tool")
+    robot_arm_motion_profiles = relationship("RobotArmMotionProfile", back_populates="tool")
+    robot_arm_grip_params = relationship("RobotArmGripParams", back_populates="tool")
 
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
@@ -136,3 +141,92 @@ class AppSettings(Base, TimestampMixin):
     name = Column(String, nullable=False)
     value = Column(String, nullable=False)
     is_active = Column(Boolean, nullable=False)
+
+class RobotArmLocation(Base, TimestampMixin):
+    __tablename__ = "robot_arm_locations"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+    location_type = Column(String, nullable=False)  # 'j' for joint or 'c' for cartesian
+    j1 = Column(Float, nullable=True)
+    j2 = Column(Float, nullable=True)
+    j3 = Column(Float, nullable=True)
+    j4 = Column(Float, nullable=True)
+    j5 = Column(Float, nullable=True)
+    j6 = Column(Float, nullable=True)
+    tool_id = Column(Integer, ForeignKey("tools.id"))
+    tool = relationship("Tool", back_populates="robot_arm_locations")
+    dependent_nests = relationship("RobotArmNest", 
+                                 back_populates="safe_location",
+                                 cascade="all, delete-orphan")
+
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+    )
+
+class RobotArmNest(Base, TimestampMixin):
+    __tablename__ = "robot_arm_nests"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+    orientation = Column(String, nullable=False)  # 'portrait' or 'landscape'
+    location_type = Column(String, nullable=False)  # 'j' for joint or 'c' for cartesian
+    j1 = Column(Float, nullable=True)
+    j2 = Column(Float, nullable=True)
+    j3 = Column(Float, nullable=True)
+    j4 = Column(Float, nullable=True)
+    j5 = Column(Float, nullable=True)
+    j6 = Column(Float, nullable=True)
+    safe_location_id = Column(Integer, ForeignKey("robot_arm_locations.id"))
+    tool_id = Column(Integer, ForeignKey("tools.id"))
+    tool = relationship("Tool", back_populates="robot_arm_nests")
+    safe_location = relationship("RobotArmLocation")
+
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+    )
+
+class RobotArmSequence(Base, TimestampMixin):
+    __tablename__ = "robot_arm_sequences"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+    description = Column(String, nullable=True)
+    commands = Column(JSON, nullable=False)  # List of commands and their parameters
+    tool_id = Column(Integer, ForeignKey("tools.id"))
+    tool = relationship("Tool", back_populates="robot_arm_sequences")
+
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+    )
+
+class RobotArmMotionProfile(Base, TimestampMixin):
+    __tablename__ = "robot_arm_motion_profiles"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+    profile_id = Column(Integer, nullable=False)  # This is the ID used by the robot
+    speed = Column(Float, nullable=False)
+    speed2 = Column(Float, nullable=False)
+    acceleration = Column(Float, nullable=False)
+    deceleration = Column(Float, nullable=False)
+    accel_ramp = Column(Float, nullable=False)
+    decel_ramp = Column(Float, nullable=False)
+    inrange = Column(Float, nullable=False)
+    straight = Column(Integer, nullable=False)
+    tool_id = Column(Integer, ForeignKey("tools.id"))
+    tool = relationship("Tool", back_populates="robot_arm_motion_profiles")
+
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+    )
+
+class RobotArmGripParams(Base, TimestampMixin):
+    __tablename__ = "robot_arm_grip_params"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+    width = Column(Integer, nullable=False)
+    speed = Column(Integer, nullable=False)
+    force = Column(Integer, nullable=False)
+    tool_id = Column(Integer, ForeignKey("tools.id"))
+    tool = relationship("Tool", back_populates="robot_arm_grip_params")
+
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+    )

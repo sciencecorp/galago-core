@@ -218,3 +218,18 @@ variables = CRUDBase[models.Variable,schemas.VariableCreate, schemas.VariableUpd
 labware = CRUDBase[models.Labware,schemas.LabwareCreate, schemas.LabwareUpdate](models.Labware)
 settings = CRUDBase[models.AppSettings,schemas.AppSettingsCreate, schemas.AppSettingsUpdate](models.AppSettings)
 scripts = CRUDBase[models.Script,schemas.ScriptCreate, schemas.ScriptUpdate](models.Script)
+robot_arm_location = CRUDBase[models.RobotArmLocation, schemas.RobotArmLocationCreate, schemas.RobotArmLocationUpdate](
+    models.RobotArmLocation
+)
+robot_arm_nest = CRUDBase[models.RobotArmNest, schemas.RobotArmNestCreate, schemas.RobotArmNestUpdate](
+    models.RobotArmNest
+)
+robot_arm_sequence = CRUDBase[models.RobotArmSequence, schemas.RobotArmSequenceCreate, schemas.RobotArmSequenceUpdate](
+    models.RobotArmSequence
+)
+robot_arm_motion_profile = CRUDBase[models.RobotArmMotionProfile, schemas.RobotArmMotionProfileCreate, schemas.RobotArmMotionProfileUpdate](
+    models.RobotArmMotionProfile
+)
+robot_arm_grip_params = CRUDBase[models.RobotArmGripParams, schemas.RobotArmGripParamsCreate, schemas.RobotArmGripParamsUpdate](
+    models.RobotArmGripParams
+)
