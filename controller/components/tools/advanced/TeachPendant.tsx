@@ -71,7 +71,7 @@ type TeachPoint = {
   safe_loc?: number;
 };
   
-type MotionProfile = {
+interface MotionProfile {
   id: number;
   name: string;
   profile_id: number;
@@ -83,15 +83,17 @@ type MotionProfile = {
   decel_ramp: number;
   inrange: number;
   straight: number;
-};
+  tool_id: number;
+}
 
-type GripParams = {
+interface GripParams {
   id: number;
   name: string;
   width: number;
   speed: number;
   force: number;
-};
+  tool_id: number;
+}
   
 export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) => {
   const commandMutation = trpc.tool.runCommand.useMutation();
@@ -923,6 +925,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
         decel_ramp: 0.1,
         inrange: 0.1,
         straight: 0,
+        tool_id: 0,
       }
     );
 
@@ -941,12 +944,17 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
           accel_ramp: formData.accel_ramp || 0,
           decel_ramp: formData.decel_ramp || 0,
           inrange: formData.inrange || 0,
-          straight: formData.straight || 0
+          straight: formData.straight || 0,
+          tool_id: formData.tool_id || 0,
         };
         await handleCreateMotionProfile(profileData);
       }
       onClose();
     };
+
+    if (!profile) {
+      console.log("Profile is null");
+    }
 
     return (
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
@@ -1126,6 +1134,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
         width: 122,
         speed: 10,
         force: 20,
+        tool_id: 0,
       }
     );
 
@@ -1138,12 +1147,17 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
           name: formData.name || '',
           width: formData.width || 0,
           speed: formData.speed || 0,
-          force: formData.force || 0
+          force: formData.force || 0,
+          tool_id: formData.tool_id || 0
         };
         await handleCreateGripParams(paramsData);
       }
       onClose();
     };
+
+    if (!params) {
+      console.log("Params is null");
+    }
 
     return (
       <Modal isOpen={isOpen} onClose={onClose}>
@@ -1491,12 +1505,16 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                                 size="sm"
                               />
                               <MenuList>
-                                <MenuItem onClick={() => handleEditGripParams(params)}>
+                                <MenuItem onClick={() => {
+                                  if (params.id !== undefined) {
+                                    handleEditGripParams({ ...params, id: params.id });
+                                  }
+                                }}>
                                   Edit
                                 </MenuItem>
                                 <MenuItem
                                   color="red.500"
-                                  onClick={() => handleDeleteGripParams(params.id)}
+                                  onClick={() => handleDeleteGripParams(params.id ?? 0)}
                                 >
                                   Delete
                                 </MenuItem>
@@ -1573,7 +1591,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                                 </MenuItem>
                                 <MenuItem
                                   color="red.500"
-                                  onClick={() => handleDeleteMotionProfile(profile.id)}
+                                  onClick={() => handleDeleteMotionProfile(profile.id ?? 0)}
                                 >
                                   Delete
                                 </MenuItem>
@@ -1598,7 +1616,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
             setIsMotionProfileModalOpen(false);
             setSelectedMotionProfile(null);
           }}
-          profile={selectedMotionProfile}
+          profile={selectedMotionProfile ?? undefined}
         />
         <GripParamsModal
           isOpen={isGripParamsModalOpen}
@@ -1606,7 +1624,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
             setIsGripParamsModalOpen(false);
             setSelectedGripParams(null);
           }}
-          params={selectedGripParams} 
+          params={selectedGripParams ?? undefined} 
         />
       </VStack>
     </Box>
