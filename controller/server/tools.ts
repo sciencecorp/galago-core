@@ -103,7 +103,7 @@ export default class Tool {
   }
 
   async executeCommand(command: ToolCommandInfo) {
-    if (command.command === "run_python_script" && command.toolId === "tool_box") {
+    if (command.command === "run_python_script" && command.toolId === "Tool Box") {
       command.params.script_content = (
         await get<Script>(`/scripts/${command.params.script_content}`)
       ).content;
@@ -218,12 +218,12 @@ export default class Tool {
     let tool = store.get(id);
     if (!tool) {
       let toolInfo = {} as controller_protos.ToolConfig;
-      if (id == "tool_box") {
+      if (id == "Tool Box") {
         const result = this.toolBoxConfig();
         toolInfo = result;
       } else {
         const result = this.allTools.find(
-          (tool) => tool.name.toLocaleLowerCase().replaceAll(" ", "_") === id,
+          (tool) => tool.name === id,
         );
         if (!result) {
           throw new Error(`Tool with id ${id} not found in in database'`);
@@ -252,9 +252,6 @@ export default class Tool {
     };
   }
 
-  static toolboxId(): string {
-    return "tool_box";
-  }
 }
 
 export class ToolCommandExecutionError extends Error {

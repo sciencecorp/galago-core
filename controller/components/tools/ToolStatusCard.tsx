@@ -150,7 +150,7 @@ export default function ToolStatusCard({ toolId,  style = {} }: ToolStatusCardPr
               <Text fontSize="sm">{description}</Text>
             </Box>
             <Box top={-5} right={-5} position="relative">
-              {toolId !== "tool_box" && (
+              {toolId !== "Tool Box" && (
                 <EditMenu onEdit={onOpen} onDelete={() => handleDelete(toolId)} />
               )}
             </Box>
