@@ -103,7 +103,7 @@ export default class Tool {
   }
 
   async executeCommand(command: ToolCommandInfo) {
-    if (command.command === "run_python_script" && command.toolId === "tool_box") {
+    if (command.command === "run_python_script" && command.toolId === "Tool Box") {
       command.params.script_content = (
         await get<Script>(`/scripts/${command.params.script_content}`)
       ).content;

@@ -49,7 +49,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
     let protocol_cmds: ToolCommandInfo[] = [
       {
         label: "Test script",
-        toolId: "tool_box",
+        toolId: "Tool Box",
         command: "run_python_script",
         toolType: ToolType.toolbox,
         params: {
@@ -59,7 +59,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
       },
       {
         label: "Test script",
-        toolId: "tool_box",
+        toolId: "Tool Box",
         command: "run_python_script",
         toolType: ToolType.toolbox,
         params: {
@@ -168,7 +168,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         },
       },
       {
-        toolId: "tool_box",
+        toolId: "Tool Box",
         toolType: ToolType.toolbox,
         command: "run_python_script",
         params: {
