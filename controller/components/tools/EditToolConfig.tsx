@@ -78,7 +78,6 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
       });
       onClose();
 
-      //Invalidate the query cache to ensure fresh data is fetched
       context.tool.info.invalidate({ toolId });
     } catch (error) {
       toast({

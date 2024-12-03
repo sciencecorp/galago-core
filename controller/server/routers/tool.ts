@@ -55,7 +55,7 @@ export const toolRouter = router({
     .mutation(async ({ input }) => {
       const { id, config } = input;
       const response = await put<ToolResponse>(`/tools/${id}`, config);
-      const tool = await Tool.forId(response.name); //Recreate the tool with the new config
+      const tool = await Tool.forId(response.name); 
 
       tool.info = {
         ...tool.info,
@@ -81,7 +81,7 @@ export const toolRouter = router({
   availableIDs: procedure.query(async () => {
     const allTools = await get<ToolResponse[]>(`/tools`);
     Tool.reloadWorkcellConfig(allTools as controller_protos.ToolConfig[]);
-    const toolIds = allTools.map((tool) => tool.name.toLocaleLowerCase().replaceAll(" ", "_"));
+    const toolIds = allTools.map((tool) => tool.name);
     toolIds.push("tool_box");
     return toolIds;
   }),
