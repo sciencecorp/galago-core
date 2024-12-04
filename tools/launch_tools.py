@@ -249,18 +249,7 @@ class ToolsManager():
     def get_shell_command(self, tool_type:str, port:int) -> list:
         python_cmd : str = f"python -m tools.{tool_type}.server --port={port}"
         if os.name == 'nt':
-            if tool_type in TOOLS_32BITS:
-                env = "galago-core32"
-            else:
-                env = "galago-core"
-            conda_is_path = check_conda_is_path()
-            if conda_is_path:
-                envs = get_conda_environments()
-                if env not in envs:
-                    raise RuntimeWarning(f"{env} not found, this might cause some issues with some tools")
-                python_cmd = f"conda activate {env}" + "&&" + python_cmd
-            conda_cmd = f"conda activate {env} && {python_cmd}"
-            return ["cmd.exe", "/C", conda_cmd]       
+            return ["cmd.exe", "/C", python_cmd]       
         else:
             return python_cmd.split()
     

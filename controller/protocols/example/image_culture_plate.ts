@@ -97,7 +97,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
       },
       {
         label: "Open Cytation",
-        toolId: "cytation",
+        toolId: "Cytation",
         toolType: ToolType.cytation,
         command: "open_carrier",
         params: {},
