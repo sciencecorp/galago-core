@@ -50,6 +50,12 @@ export const NewToolModal: React.FC<NewToolModalProps> = (props) => {
     }
   }, [configData]);
 
+  useEffect(() => {
+    if (type && type !== ToolType.UNRECOGNIZED) {
+      setName(capitalizeFirst(type.toLowerCase().replaceAll("_", " ")));
+    }
+  }, [type]);
+
   const handleSave = async () => {
     let workcell_id = 1;
     let ip = "localhost";
