@@ -3,7 +3,7 @@ import logging
 from tools.base_server import ToolServer, serve
 from tools.grpc_interfaces.cytation_pb2 import Command, Config
 
-from .driver import CytationDriver
+from .driver import CytationDriver, CytationConfig
 import argparse 
 
 class CytationServer(ToolServer):
@@ -18,9 +18,11 @@ class CytationServer(ToolServer):
         if self.driver:
             self.driver.close()
         self.driver = CytationDriver(
-            protocol_dir=config.protocol_dir,
-            experiment_dir=config.experiment_dir,
-            reader_type=config.reader_type,
+            CytationConfig(
+                protocol_dir=config.protocol_dir,
+                experiment_dir=config.experiment_dir,
+                reader_type=config.reader_type
+            )
         )
         self.driver.verify_reader_communication()
 

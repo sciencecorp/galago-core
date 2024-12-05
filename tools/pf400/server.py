@@ -797,6 +797,19 @@ class Pf400Server(ToolServer):
     def EstimateJog(self, params: Command.Jog) -> int:
         return 1
 
+    def _configure(self, config: Config) -> None:
+        """Configure the PF400 driver with the provided config"""
+        self.config = config
+        if hasattr(self, 'driver'):
+            self.driver.close()
+        self.driver = Pf400Driver(
+            tcp_host=config.host,
+            tcp_port=config.port
+        )
+        self.waypoints_json_file = config.waypoints_json_file
+        self.load_waypoints()
+        self.driver.initialize()
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     parser = argparse.ArgumentParser()

@@ -330,9 +330,10 @@ class CytationDriver(ABCToolDriver):
     def close(self) -> None:
         """Closes the driver"""
         self.live = False
-        if self.execution_thread:
+        if hasattr(self, 'execution_thread') and self.execution_thread:
             self.execution_thread.join()
 
     def __del__(self) -> None:
         """Cleanup when the driver is destroyed"""
-        self.close()
+        if hasattr(self, 'live') and self.live:
+            self.close()
