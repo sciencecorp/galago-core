@@ -70,7 +70,7 @@ export default class Tool {
   }
 
   get id(): string {
-    return this.info.name.toLocaleLowerCase().replaceAll(" ", "_");
+    return this.info.name;
   }
 
   get type(): controller_protos.ToolType {
