@@ -51,7 +51,7 @@ interface RunQueueAttributes {
 
 export const RunsComponent: React.FC<RunsComponentProps> = () => {
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
-  const [expandedRunId, setExpandedRunId] = useState<string | null>(null);
+  const [expandedRuns, setExpandedRuns] = useState<Set<string>>(new Set());
   const [expandedParams, setExpandedParams] = useState<boolean>(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const skipRunMutation = trpc.commandQueue.clearByRunId.useMutation();
@@ -71,12 +71,12 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
     if (commandsAll.data && commandsAll.data.length > 0 && !selectedRunId) {
       const firstRunId = commandsAll.data[0].runId; 
       setSelectedRunId(firstRunId);
-      setExpandedRunId(firstRunId);
+      setExpandedRuns(new Set([firstRunId]));
     }
   }, [commandsAll.data]);
 
   function expandButtonIcon(runId: string) {
-    return expandedRunId === runId ? <ChevronUpIcon /> : <PlusSquareIcon />;
+    return expandedRuns.has(runId) ? <ChevronUpIcon /> : <PlusSquareIcon />;
   }
 
   const handleConfirmDelete = (runId: string) => {
@@ -85,7 +85,16 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
   };
 
   const handleRunButtonClick = (runId: string | null) => {
-    setExpandedRunId((prevId) => (prevId === runId ? null : runId));
+    if (!runId) return;
+    setExpandedRuns(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(runId)) {
+        newSet.delete(runId);
+      } else {
+        newSet.add(runId);
+      }
+      return newSet;
+    });
   };
 
   const handleDeleteButtonClick = (runId: string) => {
@@ -95,7 +104,15 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
 
   const handleRunClick = (runId: string) => {
     setSelectedRunId((prevId) => (prevId === runId ? null : runId));
-    setExpandedRunId((prevId) => (prevId === runId ? null : runId));
+    setExpandedRuns(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(runId)) {
+        newSet.delete(runId);
+      } else {
+        newSet.add(runId);
+      }
+      return newSet;
+    });
   };
 
   const handleParamExpand = (expanded: boolean) => {
@@ -133,7 +150,6 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
           <Box
             left="0"
             right="0"
-            height={expandedRunId !== run.Id ? "auto" : "250px"}
             position="relative"
             maxWidth="100%">
             <Box position="relative" bg={commandBgColor} w="100%" p={1} color="black" border="1px">
@@ -178,18 +194,15 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
                 </HStack>
               </VStack>
             </Box>
-            {expandedRunId === run.Id && (
+            {expandedRuns.has(run.Id) && (
               <Box 
-                ml={2} 
-                position="relative" 
-                minHeight={expandedParams ? "800px" : "500px"}
-                overflow="visible"
+                position="relative"
                 zIndex={2}
-                mb={expandedParams ? 32 : 16}
-              >
-                <SwimLaneComponent 
-                  runCommands={run.Commands}
-                />
+               
+                >
+                  <SwimLaneComponent 
+                    runCommands={run.Commands}
+                  />
               </Box>
             )}
           </Box>
