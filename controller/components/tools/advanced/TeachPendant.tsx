@@ -146,8 +146,17 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     j5?: number;
     j6?: number;
   } {
-    const [j1, j2, j3, j4, j5, j6] = coordinate.split(' ').map(Number);
-    return { j1, j2, j3, j4, j5, j6 };
+    console.log("Coordinate ww:", coordinate);
+    const [j0,j1, j2, j3, j4, j5, j6] = coordinate.split(' ').map(Number);
+    console.log("Joints:", j1, j2, j3, j4, j5, j6);
+    return { 
+      j1: j1,    // 334.654
+      j2: j2,    // 0.837
+      j3: j3,    // 178.988
+      j4: j4,    // -187.834
+      j5: j5,    // 72.78
+      j6: j6     // 168.109
+    };
   }
 
   const executeCommand = async (command: () => Promise<void>) => {
@@ -174,7 +183,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
       return;
     }
     const jogCommand: ToolCommandInfo = {
-      toolId: config.type,
+      toolId: config.name,
       toolType: config.type,
       command: "jog",
       params: {
@@ -207,12 +216,12 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
 
   const robotArmLocationsQuery = trpc.robotArm.location.getAll.useQuery<RobotArmLocation[]>(
     { toolId: config.id },
-    { enabled: !!config.id }
+    { enabled: !!config.id && config.id !== ''}
   );
   
   const robotArmNestsQuery = trpc.robotArm.nest.getAll.useQuery(
     { toolId: config.id },
-    { enabled: !!config.id }
+    { enabled: !!config.id && config.id !== ''}
   );
 
   const createLocationMutation = trpc.robotArm.location.create.useMutation({
@@ -275,53 +284,31 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     setLocations([...formattedLocations, ...formattedNests]);
   }, [robotArmLocationsQuery.data, robotArmNestsQuery.data]);
 
-  const handleSaveTeachPoint = async () => {
-    if (!currentTeachpoint || !config.id) return;
+  const getCurrentPosition = async (): Promise<string | null> => {
+    const toolCommand: ToolCommandInfo = {
+      toolId: config.name,
+      toolType: config.type,
+      command: "get_current_location",
+      params: {},
+    };
 
     try {
-      if (currentType === "location") {
-        await createLocationMutation.mutateAsync({
-          name: currentTeachpoint,
-          location_type: "j",
-          j1: parseFloat(currentCoordinate.split(" ")[0]),
-          j2: parseFloat(currentCoordinate.split(" ")[1]),
-          j3: parseFloat(currentCoordinate.split(" ")[2]),
-          j4: parseFloat(currentCoordinate.split(" ")[3]),
-          j5: parseFloat(currentCoordinate.split(" ")[4]),
-          j6: parseFloat(currentCoordinate.split(" ")[5]),
-          tool_id: config.id,
-        });
-      } else {
-        await createNestMutation.mutateAsync({
-          name: currentTeachpoint,
-          orientation: "landscape", // Default value, could be made configurable
-          safe_location_id: 1, // This should be selected from available locations
-          j1: parseFloat(currentCoordinate.split(" ")[0]),
-          j2: parseFloat(currentCoordinate.split(" ")[1]),
-          j3: parseFloat(currentCoordinate.split(" ")[2]),
-          j4: parseFloat(currentCoordinate.split(" ")[3]),
-          j5: parseFloat(currentCoordinate.split(" ")[4]),
-          j6: parseFloat(currentCoordinate.split(" ")[5]),
-          location_type: "j",
-          tool_id: config.id,
-        });
+      const response = await commandMutation.mutateAsync(toolCommand);
+      if (response && response.meta_data) {
+        console.log("Current Position:", response.meta_data);
+        return response.meta_data.location;
       }
-
-      toast({
-        title: "Success",
-        description: `${currentType} saved successfully`,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      return null;
     } catch (error) {
+      console.error("Error getting current position:", error);
       toast({
         title: "Error",
-        description: `Failed to save ${currentType}`,
+        description: "Failed to get current position",
         status: "error",
         duration: 3000,
         isClosable: true,
       });
+      return null;
     }
   };
 
@@ -340,19 +327,28 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     }, [isOpen]);
   
     const handleSave = async () => {
-      if (!localTeachpoint || !config.id) return;
+      if (!localTeachpoint || !config.name) return;
   
       try {
+        const currentPosition = await getCurrentPosition();
+        if (!currentPosition) {
+          toast({
+            title: "Error",
+            description: "Failed to get current position from robot",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+          return;
+        }
+  
+        const joints = coordinateToJoints(currentPosition);
+  
         if (localType === "location") {
           await createLocationMutation.mutateAsync({
             name: localTeachpoint,
-            location_type: "j", // Default to joint coordinates
-            j1: 0,
-            j2: 0,
-            j3: 0,
-            j4: 0,
-            j5: 0,
-            j6: 0,
+            location_type: "j",
+            ...joints,
             tool_id: config.id,
           });
         } else {
@@ -360,12 +356,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
             name: localTeachpoint,
             orientation: "landscape",
             safe_location_id: localSafeLoc || 1,
-            j1: 0,
-            j2: 0,
-            j3: 0,
-            j4: 0,
-            j5: 0,
-            j6: 0,
+            ...joints,
             location_type: "j",
             tool_id: config.id,
           });
@@ -495,12 +486,38 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   const handleDelete = async (point: TeachPoint) => {
     try {
       if (point.type === "location") {
-        console.log("Deleting location", point);
-        await deleteLocationMutation.mutateAsync({ id: point.id });
+        await deleteLocationMutation.mutateAsync({ 
+          id: point.id,
+        });
       } else {
-        await deleteNestMutation.mutateAsync({ id: point.id });
+        // For nests, we need to handle the potential delay
+        try {
+          await deleteNestMutation.mutateAsync({ 
+            id: point.id,
+          });
+        } catch (error) {
+          // Check if the deletion actually succeeded despite the error
+          await new Promise(resolve => setTimeout(resolve, 500)); // Small delay
+          const updatedData = await robotArmNestsQuery.refetch();
+          const stillExists = updatedData.data?.some(nest => nest.id === point.id);
+          
+          if (stillExists) {
+            // If the nest still exists, then it was a real error
+            throw error;
+          }
+          // If we get here, the deletion succeeded despite the error
+        }
       }
+
+      toast({
+        title: "Success",
+        description: `${point.type} deleted successfully`,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (error) {
+      console.error("Delete error:", error);
       toast({
         title: "Error",
         description: `Failed to delete ${point.type}`,
@@ -524,7 +541,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
         width: params.width,
         speed: params.speed,
         force: params.force,
-        tool_id: config.id,
+        tool_id: config.name,
       });
       
       gripParamsQuery.refetch();
@@ -582,7 +599,6 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
       command: "move",
       params: {
         waypoint: point.coordinate,
-        type: point.locType,
       },
     };
 
@@ -622,7 +638,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     }, [editingPoint]);
 
     const handleSave = async () => {
-      if (!editingPoint || !config.id) return;
+      if (!editingPoint || !config.name) return;
 
       try {
         if (editingPoint.type === "location") {
@@ -631,7 +647,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
             name: localName,
             ...coordinateToJoints(localCoordinate),
             location_type: editingPoint.locType,
-            tool_id: config.id,
+            tool_id: config.name,
           });
         } else {
           await updateNestMutation.mutateAsync({
@@ -646,7 +662,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
             location_type: editingPoint.locType,
             orientation: editingPoint.orientation || "landscape",
             safe_location_id: localSafeLoc || 1,
-            tool_id: config.id,
+            tool_id: config.name,
           });
         }
 
@@ -731,15 +747,15 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   };
 
   console.log("Coordinates", filteredTeachPoints)
-
+  console.log("Config ww", config)
   const motionProfilesQuery = trpc.robotArm.motionProfile.getAll.useQuery(
     { toolId: config.id },
-    { enabled: !!config.id }
+    { enabled: !!config.name && config.name !== ''}
   );
 
   const gripParamsQuery = trpc.robotArm.gripParams.getAll.useQuery(
     { toolId: config.id },
-    { enabled: !!config.id }
+    { enabled: !!config.name && config.name !== ''}
   );
 
   const createMotionProfileMutation = trpc.robotArm.motionProfile.create.useMutation();
