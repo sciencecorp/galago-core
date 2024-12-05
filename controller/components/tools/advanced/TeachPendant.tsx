@@ -95,6 +95,13 @@ interface GripParams {
   tool_id: number;
 }
   
+interface MoveModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  point: TeachPoint;
+  onMove: (point: TeachPoint, profile: MotionProfile) => void;
+}
+
 export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) => {
   const commandMutation = trpc.tool.runCommand.useMutation();
   const toast = useToast();
@@ -118,6 +125,9 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   const [isGripParamsModalOpen, setIsGripParamsModalOpen] = useState(false);
   const [selectedMotionProfile, setSelectedMotionProfile] = useState<MotionProfile | null>(null);
   const [selectedGripParams, setSelectedGripParams] = useState<GripParams | null>(null);
+  const [selectedMotionProfileId, setSelectedMotionProfileId] = useState<number>(1);
+  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+  const [selectedPoint, setSelectedPoint] = useState<TeachPoint | null>(null);
 
   const getLocTypeDisplay = (locType: string) => {
     switch (locType) {
@@ -331,6 +341,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   
       try {
         const currentPosition = await getCurrentPosition();
+        console.log("Current Position xx:", currentPosition);
         if (!currentPosition) {
           toast({
             title: "Error",
@@ -592,29 +603,41 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
 
   
 
-  const handleSendCommand = async (point: TeachPoint) => {
+  const handleMoveCommand = async (point: TeachPoint, profile: MotionProfile) => {
     const command: ToolCommandInfo = {
       toolId: config.name,
       toolType: config.type,
       command: "move",
       params: {
         waypoint: point.coordinate,
+        motion_profile: {
+          id: profile.profile_id,
+          speed: profile.speed,
+          speed2: profile.speed2,
+          accel: profile.acceleration,
+          decel: profile.deceleration,
+          accel_ramp: profile.accel_ramp,
+          decel_ramp: profile.decel_ramp,
+          inrange: profile.inrange,
+          straight: profile.straight
+        }
       },
     };
 
     try {
       await commandMutation.mutateAsync(command);
       toast({
-        title: "Command Sent",
-        description: `Moving to ${point.name}`,
+        title: "Move Successful",
+        description: `Moved to ${point.name} with profile ${profile.name}`,
         status: "success",
         duration: 3000,
         isClosable: true,
       });
     } catch (error) {
+      console.error("Error moving to location:", error);
       toast({
-        title: "Command Error",
-        description: "Failed to send movement command",
+        title: "Move Error",
+        description: "Failed to move to location",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -1251,6 +1274,57 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     );
   };
 
+  const MoveModal: React.FC<MoveModalProps> = ({ isOpen, onClose, point, onMove }) => {
+    const [selectedProfile, setSelectedProfile] = useState<MotionProfile | null>(null);
+    const motionProfilesQuery = trpc.robotArm.motionProfile.getAll.useQuery(
+      { toolId: config.id },
+      { enabled: !!config.id }
+    );
+
+    const handleMove = () => {
+      if (!selectedProfile) return;
+      onMove(point, selectedProfile);
+      onClose();
+    };
+
+    return (
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Select Motion Profile</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <FormControl>
+              <FormLabel>Motion Profile</FormLabel>
+              <Select
+                value={selectedProfile?.id || ""}
+                onChange={(e) => {
+                  const profile = motionProfilesQuery.data?.find(p => p.id === Number(e.target.value));
+                  setSelectedProfile(profile || null);
+                }}
+              >
+                <option value="">Select a profile</option>
+                {motionProfilesQuery.data?.map((profile) => (
+                  <option key={profile.id} value={profile.id}>
+                    {profile.name} (Profile {profile.profile_id})
+                  </option>
+                ))}
+              </Select>
+            </FormControl>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={handleMove} isDisabled={!selectedProfile}>
+              Move
+            </Button>
+            <Button variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    );
+  };
+
   return (
     <Box 
       borderWidth="1px" 
@@ -1408,8 +1482,13 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                                   size="sm"
                                 />
                                 <MenuList>
-                                  <MenuItem onClick={() => handleSendCommand(point)}>
-                                    Move to
+                                  <MenuItem
+                                    onClick={() => {
+                                      setSelectedPoint(point);
+                                      setIsMoveModalOpen(true);
+                                    }}
+                                  >
+                                    Move To
                                   </MenuItem>
                                   <MenuItem onClick={() => handleEdit(point)}>
                                     Edit
@@ -1641,6 +1720,15 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
             setSelectedGripParams(null);
           }}
           params={selectedGripParams ?? undefined} 
+        />
+        <MoveModal
+          isOpen={isMoveModalOpen}
+          onClose={() => {
+            setIsMoveModalOpen(false);
+            setSelectedPoint(null);
+          }}
+          point={selectedPoint!}
+          onMove={handleMoveCommand}
         />
       </VStack>
     </Box>

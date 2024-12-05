@@ -190,7 +190,7 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
                   icon={<HamburgerIcon fontSize='sm' />}
                   variant="outline"
                 />
-                <MenuList>
+                <MenuList zIndex={1000}>
                   {queued ? (
                     <MenuItem onClick={() => skipMutation.mutate(queueId)}>
                       <IoPlaySkipForward />{" "}

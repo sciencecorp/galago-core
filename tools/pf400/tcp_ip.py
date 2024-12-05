@@ -26,7 +26,12 @@ def telnet_read(conn: Telnet, timeout: int=1) -> str:
 
 class Pf400TcpIp:
     def __init__(self, tcp_host: str, tcp_port: int) -> None:
-        self.conn = Telnet(tcp_host, tcp_port, timeout=2)
+        try:
+            self.conn = Telnet(tcp_host, tcp_port, timeout=1)
+            self.write_and_read("mode")
+        except Exception as e:
+            logging.error(f"Failed to establish connection: {e}")
+            raise
 
     # PF400 should always return a single line of output, unless you are in "pc" mode.
     def read(self, timeout: int=5) -> str:

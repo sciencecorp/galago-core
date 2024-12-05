@@ -162,12 +162,16 @@ class RobotInitializer:
     def __init__(self, communicator: RobotCommunicator):
         self.communicator = communicator
 
-    def initialize(self, current_joint_location: Location) -> None:
-        """Initialize robot"""
-        self._ensure_pc_mode()
-        self._ensure_power_on()
-        self._ensure_robot_attached()
-        self._ensure_robot_homed(current_joint_location)
+    def initialize(self) -> None:
+        """Initialize robot with optimized timeouts"""
+        try:
+            self._ensure_pc_mode()
+            self._ensure_power_on()
+            self._ensure_robot_attached()
+            # self._ensure_robot_homed()
+        except Exception as e:
+            logging.error(f"Initialization failed: {e}")
+            raise
 
     def _ensure_pc_mode(self) -> None:
         """Ensure robot is in PC mode"""
@@ -187,14 +191,16 @@ class RobotInitializer:
             logging.info("Switched to PC mode")
 
     def _ensure_power_on(self) -> None:
-        """Ensure robot power is on"""
+        """Ensure robot power is on with shorter timeout"""
         response = self.communicator.send_command("hp")
         if response != "0 1":
             logging.info("Turning on power...")
-            response = self.communicator.send_command("hp 1 30")
+            response = self.communicator.send_command("hp 1 10")  # Reduced from 30 to 10
             if response != "0":
                 raise Exception(f"Could not turn power on: {response}")
             
+            # Add small delay before checking power state
+            time.sleep(0.5)
             response = self.communicator.send_command("hp")
             if response != "0 1":
                 raise Exception(f"Could not verify power state: {response}")
@@ -216,51 +222,51 @@ class RobotInitializer:
             
             logging.info("Attached to robot")
 
-    def _ensure_robot_homed(self, current_joint_location: Location) -> None:
-        """Ensure robot is homed"""
-        response = self.communicator.send_command(
-            f"movej 1 {current_joint_location.to_string()}"
-        )
-
-        if response == str(RobotError.NOT_HOMED.value):
-            logging.info("Homing robot... This may take a moment...")
-            response = self.communicator.send_command("home", timeout=30)
+    def _ensure_robot_homed(self) -> None:
+        """Ensure robot is homed with timeout handling"""
+        try:
+            response = self.communicator.send_command("home", timeout=15)  # Reduced from 30 to 15
             if response != "0":
                 raise Exception(f"Failed to home robot: {response}")
-
-            response = self.communicator.send_command(
-                f"movej 1 {current_joint_location.to_string()}"
-            )
-            if response != "0":
-                raise Exception(f"Failed to move to initial position: {response}")
-
             logging.info("Robot homed")
+        except Exception as e:
+            logging.error(f"Homing failed: {e}")
+            raise
 
 class Pf400Driver(ABCToolDriver):
     """Main driver class for the PF400 robot"""
     def __init__(self, tcp_host: str, tcp_port: int) -> None:
+        self.state = RobotState()
         self.config = RobotConfig(tcp_host=tcp_host, tcp_port=tcp_port)
         self.tcp_ip = Pf400TcpIp(tcp_host, tcp_port)
-        self.state = RobotState()
-        
-        self.communicator = RobotCommunicator(self.tcp_ip)
-        self.movement = MovementController(self.communicator, self.state)
-        self.gripper = GripperController(self.communicator, self.state, self.config)
+        self.communicator = RobotCommunicator(tcp_ip=self.tcp_ip)
+        self.gripper = GripperController(
+            communicator=self.communicator,
+            state=self.state,
+            config=self.config
+        )
         self.initializer = RobotInitializer(self.communicator)
-
+        
     def initialize(self) -> None:
-        """Initialize the robot"""
-        if self.state.is_plate_gripped:
-            logging.info(f"Removing gripper value override {self.state.gripper_axis_override_value}")
-            self.state.gripper_axis_override_value = None
-
-        current_loc = Location.from_string(self.wherej().split(" ", 1)[1])
-        self.initializer.initialize(current_loc)
-        self.state.is_free = False
+        """Initialize connection to robot"""
+        try:
+            # Connection is already established in Pf400TcpIp constructor
+            # Initialize robot state without setting initial joint location
+            self.initializer.initialize()
+            self.movement = MovementController(self.communicator, self.state)
+            logging.info("Successfully connected to PF400")
+        except Exception as e:
+            logging.error(f"Failed to connect to PF400: {str(e)}")
+            raise
 
     def close(self) -> None:
         """Close connection to robot"""
-        self.tcp_ip.close()
+        try:
+            if hasattr(self, 'tcp_ip') and self.tcp_ip:
+                self.tcp_ip.close()
+                logging.info("Successfully closed PF400 connection")
+        except Exception as e:
+            logging.error(f"Error closing PF400 connection: {str(e)}")
 
     # Movement commands
     def movej(self, loc_string: str, motion_profile: int = 1) -> None:

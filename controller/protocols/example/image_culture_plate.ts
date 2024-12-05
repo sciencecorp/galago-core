@@ -48,26 +48,6 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
 
     let protocol_cmds: ToolCommandInfo[] = [
       {
-        label: "Test script",
-        toolId: "Tool Box",
-        command: "run_python_script",
-        toolType: ToolType.toolbox,
-        params: {
-          script_content: "update_variables.py",
-          blocking: false,
-        },
-      },
-      {
-        label: "Test script",
-        toolId: "Tool Box",
-        command: "run_python_script",
-        toolType: ToolType.toolbox,
-        params: {
-          script_content: "test.py",
-          blocking: false,
-        },
-      },
-      {
         label: "Unload plate from Liconic",
         toolId: "Liconic",
         toolType: ToolType.liconic,
@@ -75,6 +55,16 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         params: {
           cassette: cassette,
           level: level,
+        },
+      },
+      {
+        label: "Test script",
+        toolId: "Tool Box",
+        command: "run_python_script",
+        toolType: ToolType.toolbox,
+        params: {
+          script_content: "plate_status.py",
+          blocking: false,
         },
       },
       {
@@ -172,7 +162,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         toolType: ToolType.toolbox,
         command: "run_python_script",
         params: {
-          script_content: "plate_counter.py",
+          script_content: "run_counter.py",
           blocking: false,
         },
       },
@@ -186,6 +176,16 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
           level: level,
         },
       },
+      {
+        label: "Test script",
+        toolId: "Tool Box",
+        command: "run_python_script",
+        toolType: ToolType.toolbox,
+        params: {
+          script_content: "plate_status.py",
+          blocking: false,
+        },
+      }
     ] as ToolCommandInfo[]);
     return protocol_cmds;
   }
