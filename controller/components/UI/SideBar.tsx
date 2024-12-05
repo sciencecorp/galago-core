@@ -134,7 +134,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             paddingLeft="0"
             src="/site_logo.png"
             alt="logo"
-            filter="brightness(0)"></Image>
+            filter="invert(1)"></Image>
           <Spacer />
           {isSidebarExpanded && (
             <IconButton

@@ -26,26 +26,31 @@ export const WellPlateIcon: React.FC<WellPlateIconProps> = ({ rows, columns, siz
   const is384Well = rows === 16 && columns === 24;
   const is96Well = rows === 8 && columns === 12;
   const displayRows = is384Well ? 10 : is96Well ? 6 : rows; // Show only 10 rows for 384-well, 6 rows for 96-well
-  const wellSize = "0.4px";
-  const gridSpacing = is384Well ? "1px" : "0.5px";
-  const boxPadding = is384Well ? "3px" : "2.8px";
+  const wellSize = "1px";
+  const gridSpacing = is384Well ? "1px" : "2px";
+  const boxPadding = is384Well ? "3px" : "4px";
 
   return (
     <Tooltip label={`${format} plate (${rows}×${columns})`} hasArrow placement="top">
       <Box
         width={size}
-        height={`calc(${size} * 0.8)`}
+        height={`calc(${size} * 0.7)`}
         border="2px solid"
         borderColor="gray.400"
         _dark={{ borderColor: "gray.300" }}
         borderRadius="md"
-        p={boxPadding}>
+        p={boxPadding}
+        overflow="hidden"
+        position="relative">
         <SimpleGrid
           columns={columns}
-          row={displayRows}
           spacing={gridSpacing}
+          width="100%"
           height="100%"
-          width="100%">
+          position="absolute"
+          top="50%"
+          left="50%"
+          transform="translate(-50%, -50%)">
           {Array.from({ length: displayRows * columns }).map((_, i) => (
             <Box
               key={i}
@@ -53,9 +58,8 @@ export const WellPlateIcon: React.FC<WellPlateIconProps> = ({ rows, columns, siz
               borderColor="gray.400"
               _dark={{ borderColor: "gray.300" }}
               bg="transparent"
-              borderRadius={is384Well ? "2px" : "100%"}
+              borderRadius={is384Well ? "2px" : "50%"}
               width="100%"
-              height="0%"
               paddingBottom="100%"
               position="relative"
             />
