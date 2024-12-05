@@ -458,7 +458,7 @@ export default function Page() {
     });
 
     const toolCommand: ToolCommandInfo = {
-      toolId: config.name.toLowerCase().replaceAll(" ", "_"),
+      toolId: config.name,
       toolType: config.type,
       command: selectedCommand,
       params: formValues,
@@ -541,7 +541,7 @@ export default function Page() {
     setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "idle" }));
 
     const toolCommand: ToolCommandInfo = {
-      toolId: config.name.toLocaleLowerCase().replaceAll(" ", "_"),
+      toolId: config.name,
       toolType: config.type,
       command: commandName,
       params: params,
