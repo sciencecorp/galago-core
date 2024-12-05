@@ -12,28 +12,29 @@ import argparse
 class XPeelServer(ToolServer):
     toolType = "xpeel"
     driver: XPeelDriver
+    config: Config
 
     def __init__(self) -> None:
         super().__init__()
 
-    def _configure(self, request: Config) -> None:
-        self.config = request
-        if hasattr(self, 'driver') and self.driver:
+    def _configure(self, config: Config) -> None:
+        self.config = config
+        if self.driver:
             self.driver.close()
-        self.driver = XPeelDriver(com_port=request.com_port)
+        self.driver = XPeelDriver(self.config.com_port)
 
-    def Peel(self, params: Command.Peel) -> ExecuteCommandReply:
+    def Peel(self, params: Command.Peel) -> None:
         response = ExecuteCommandReply()
         response.return_reply = True
         response.response = SUCCESS
         try:
-            self.driver.remove_seal(params.threshold)
+            self.driver.remove_seal()
         except Exception as exc:
             logging.exception("Failed to deseal plate", exc)
             response.response = INVALID_ARGUMENTS
         return response
 
-    def CheckStatus(self, params: Command.CheckStatus) -> ExecuteCommandReply:
+    def CheckStatus(self) -> ExecuteCommandReply:
         response = ExecuteCommandReply()
         response.return_reply = True
         response.response = SUCCESS
@@ -44,7 +45,7 @@ class XPeelServer(ToolServer):
             response.response = INVALID_ARGUMENTS
         return response
 
-    def Reset(self, params: Command.Reset) -> ExecuteCommandReply:
+    def Reset(self) -> ExecuteCommandReply:
         response = ExecuteCommandReply()
         response.return_reply = True
         response.response = SUCCESS
@@ -55,7 +56,7 @@ class XPeelServer(ToolServer):
             response.response = INVALID_ARGUMENTS
         return response
 
-    def Restart(self, params:Command.Reset) -> ExecuteCommandReply:
+    def Restart(self) -> ExecuteCommandReply:
         response = ExecuteCommandReply()
         response.return_reply = True
         response.response = SUCCESS
@@ -66,7 +67,7 @@ class XPeelServer(ToolServer):
             response.response = INVALID_ARGUMENTS
         return response
 
-    def GetRemainingTape(self, params: Command.GetRemainingTape) -> ExecuteCommandReply:
+    def GetRemainingTape(self) -> ExecuteCommandReply:
         response = ExecuteCommandReply()
         response.return_reply = True
         response.response = SUCCESS
