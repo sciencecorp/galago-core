@@ -19,6 +19,9 @@ export const SwimLaneComponent: React.FC<SwimLaneProps> = ({ runCommands }) => {
       overflowX="auto"
       overflowY="visible"
       pb={1}
+      pt={2}
+      pl={2}
+      pr={2}
       minHeight="500px"
       zIndex={1}
     >

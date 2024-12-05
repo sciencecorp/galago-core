@@ -197,7 +197,27 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
             {expandedRuns.has(run.Id) && (
               <Box 
                 position="relative"
+                maxHeight="200px"
+                overflowX="auto"
+                overflowY="hidden"
                 zIndex={2}
+                borderWidth="1px"
+                borderRadius="md"
+                borderColor="gray.200"
+                _dark={{ borderColor: "gray.600" }}
+                mx={2}
+                css={{
+                  '&::-webkit-scrollbar': {
+                    height: '8px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    background: 'transparent',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    background: '#888',
+                    borderRadius: '4px',
+                  },
+                }}
                
                 >
                   <SwimLaneComponent 
