@@ -21,21 +21,31 @@ import { InfoOutlineIcon, CloseIcon, WarningIcon, QuestionOutlineIcon } from "@c
 import { useEffect, useState } from "react";
 import { Log } from "@/types/api";
 import { renderDatetime } from "../UI/Time";
+import { FiInfo } from "react-icons/fi";
 
 import { VscRefresh } from "react-icons/vsc";
 
 interface LogViewProps {}
 
 function getIconFromLogType(logType: string) {
+
+  const iconStyle = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "24px",
+    height: "24px",
+  };
+
   switch (logType) {
     case "error":
-      return <CloseIcon color="red" />;
+      return <CloseIcon color="red"  style={iconStyle} />;
     case "warning":
-      return <WarningIcon color="red" />;
+      return <WarningIcon color="orange"  style={iconStyle}/>;
     case "debug":
-      return <QuestionOutlineIcon color="red" />;
+      return <QuestionOutlineIcon color="yellow"  style={iconStyle}/>;
     case "info":
-      return <InfoOutlineIcon color="blue" />;
+      return <FiInfo style={iconStyle}/>;
   }
 }
 
@@ -84,29 +94,6 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
         </Button>
       </HStack>
       <HStack margin="10px"></HStack>
-      {/* <HStack>
-          <Button
-            onClick={() => {
-              selectedFilter === "info" ? setSelectedFilter(null) : setSelectedFilter("info");
-            }}
-            colorScheme={selectedFilter == "info" ? "blue" : "gray"}>
-            INFO
-          </Button>
-          <Button
-            onClick={() => {
-              selectedFilter === "debug" ? setSelectedFilter(null) : setSelectedFilter("debug");
-            }}
-            colorScheme={selectedFilter == "debug" ? "orange" : "gray"}>
-            DEBUG
-          </Button>
-          <Button
-            onClick={() => {
-              selectedFilter === "error" ? setSelectedFilter(null) : setSelectedFilter("error");
-            }}
-            colorScheme={selectedFilter === "error" ? "red" : "gray"}>
-            ERROR
-          </Button>
-        </HStack> */}
       <Table mt={8}>
         <Thead>
           <Tr>
