@@ -126,7 +126,7 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
         CommandInfo.data?.find((r) => r.runId === run.Id),
       );
       return (
-        <VStack align="left" key={index}>
+        <VStack align="left" key={index} width="100%">
           <Modal isOpen={isOpen} onClose={onClose} isCentered={true}>
             <ModalContent>
               <ModalHeader>Confirm Action</ModalHeader>
@@ -147,12 +147,8 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
               </ModalFooter>
             </ModalContent>
           </Modal>
-          <Box
-            left="0"
-            right="0"
-            position="relative"
-            maxWidth="100%">
-            <Box position="relative" bg={commandBgColor} w="100%" p={1} color="black" border="1px">
+          <Box width="100%">
+            <Box bg={commandBgColor} p={1} color="black" border="1px" width="100%">
               <VStack spacing="0">
                 {runAttributes.commandsCount - run.Commands.length > 0 && (
                   <Progress
@@ -195,9 +191,8 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
               </VStack>
             </Box>
             {expandedRuns.has(run.Id) && (
-              <Box 
-                position="relative"
-                maxHeight="200px"
+              <Box
+                maxWidth="100%"
                 overflowX="auto"
                 overflowY="hidden"
                 zIndex={2}
@@ -205,21 +200,7 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
                 borderRadius="md"
                 borderColor="gray.200"
                 _dark={{ borderColor: "gray.600" }}
-                mx={2}
-                css={{
-                  '&::-webkit-scrollbar': {
-                    height: '8px',
-                  },
-                  '&::-webkit-scrollbar-track': {
-                    background: 'transparent',
-                  },
-                  '&::-webkit-scrollbar-thumb': {
-                    background: '#888',
-                    borderRadius: '4px',
-                  },
-                }}
-               
-                >
+              >
                   <SwimLaneComponent 
                     runCommands={run.Commands}
                   />
@@ -243,7 +224,7 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
           <TabPanel>
             <RunQueueGanttChart onRunClick={handleRunClick} selectedRunId={selectedRunId} />
           </TabPanel>
-          <TabPanel>
+          <TabPanel width="100%">
             {commandsAll.data && commandsAll.data.length > 0 ? (
               renderRunsList()
             ) : (

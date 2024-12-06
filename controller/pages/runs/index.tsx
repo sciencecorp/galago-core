@@ -6,7 +6,7 @@ import { VStack, Box } from "@chakra-ui/react";
 
 export default function Page() {
   return (
-    <Box borderWidth="1px" borderRadius="lg" boxShadow="lg" p={2} width="100%" mb={6}>
+    <Box maxW="100%">
       <RunsComponent />
     </Box>
   );
