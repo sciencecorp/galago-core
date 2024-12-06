@@ -12,6 +12,7 @@ import { get } from "@/server/utils/api";
 import { Tool as ToolResponse } from "@/types/api";
 import { ToolConfig } from "gen-interfaces/controller";
 import { Script } from "@/types/api";
+import { Variable } from "@/types/api";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<string, Tool> = new Map();
@@ -102,7 +103,24 @@ export default class Tool {
     return await Tool.forId(command.toolId).executeCommand(command);
   }
 
+  static isVariable(param: any){
+
+  }
+
   async executeCommand(command: ToolCommandInfo) {
+    const params = command.params;
+    for(const key in params){
+      if(params[key].startsWith("{{") && params[key].endsWith("}}")){
+        try{
+          const varValue = await get<Variable>(`/variables/${params[key].slice(2, -2)}`);
+          params[key] = varValue.value;
+        }
+        catch(e){
+          throw new Error(`Variable ${params[key].slice(2, -2)} not found`);
+        }
+      }
+    }
+    console.log("Excuting command", command.command, "with params", command.params);
     if (command.command === "run_python_script" && command.toolId === "Tool Box") {
       command.params.script_content = (
         await get<Script>(`/scripts/${command.params.script_content}`)
