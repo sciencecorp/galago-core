@@ -1,5 +1,13 @@
 import React from "react";
-import { Box, HStack, Heading, ButtonGroup, useColorModeValue, VStack,Text} from "@chakra-ui/react";
+import {
+  Box,
+  HStack,
+  Heading,
+  ButtonGroup,
+  useColorModeValue,
+  VStack,
+  Text,
+} from "@chakra-ui/react";
 
 interface PageHeaderProps {
   title: string;
@@ -11,7 +19,7 @@ interface PageHeaderProps {
 }
 
 export const PageHeader: React.FC<PageHeaderProps> = (props) => {
-  const { title, mainButton, secondaryButton,tertiaryButton, titleIcon, subTitle} = props;
+  const { title, mainButton, secondaryButton, tertiaryButton, titleIcon, subTitle } = props;
   return (
     <Box width="100%">
       <HStack mb={2} justify="space-between" width="100%">
@@ -19,8 +27,8 @@ export const PageHeader: React.FC<PageHeaderProps> = (props) => {
           <HStack>
             <VStack align="flex-start">
               <HStack>
-                 <Heading mb={0}>{title}</Heading>
-                  {titleIcon}
+                <Heading mb={0}>{title}</Heading>
+                {titleIcon}
               </HStack>
               <Heading size="sm">{subTitle}</Heading>
             </VStack>

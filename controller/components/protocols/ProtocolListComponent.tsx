@@ -41,13 +41,13 @@ export default function ProtocolListComponent({}: {}) {
 
   // Separate protocols by category and apply search term
   const qcProtocols = allProtocols.data.filter(
-    (protocol) => protocol.category === "qc" && protocol.id.includes(searchTerm)
+    (protocol) => protocol.category === "qc" && protocol.id.includes(searchTerm),
   );
   const devProtocols = allProtocols.data.filter(
-    (protocol) => protocol.category === "development" && protocol.id.includes(searchTerm)
+    (protocol) => protocol.category === "development" && protocol.id.includes(searchTerm),
   );
   const prodProtocols = allProtocols.data.filter(
-    (protocol) => protocol.category === "production" && protocol.id.includes(searchTerm)
+    (protocol) => protocol.category === "production" && protocol.id.includes(searchTerm),
   );
 
   // A helper function to render protocol table for a specific category

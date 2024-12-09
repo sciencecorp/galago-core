@@ -185,7 +185,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
           script_content: "plate_status.py",
           blocking: false,
         },
-      }
+      },
     ] as ToolCommandInfo[]);
     return protocol_cmds;
   }

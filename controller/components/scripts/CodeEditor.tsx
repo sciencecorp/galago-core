@@ -63,7 +63,6 @@ export const ScriptsEditor: React.FC = (props) => {
       position: "top", // or "bottom"
     });
     try {
-
       const response = await runScript.mutateAsync(activeTab, {
         onSuccess: () => {
           toast.closeAll();
@@ -75,7 +74,7 @@ export const ScriptsEditor: React.FC = (props) => {
             position: "top",
           });
         },
-        onError: (error) => {        
+        onError: (error) => {
           setRunError(true);
           setConsoleText(error.message);
           toast.closeAll();
@@ -87,23 +86,22 @@ export const ScriptsEditor: React.FC = (props) => {
             isClosable: true,
             position: "top",
           });
-        }
-      },
-    );
+        },
+      });
       if (response?.error_message) {
         setRunError(true);
         setConsoleText(response.error_message);
         setRunError(true);
-          setConsoleText(response?.error_message || "");
-          toast.closeAll();
-          toast({
-            title: "Failed to run script",
-            description: `Error= ${response?.error_message || ""}`,
-            status: "error",
-            duration: 10000,
-            isClosable: true,
-            position: "top",
-          });
+        setConsoleText(response?.error_message || "");
+        toast.closeAll();
+        toast({
+          title: "Failed to run script",
+          description: `Error= ${response?.error_message || ""}`,
+          status: "error",
+          duration: 10000,
+          isClosable: true,
+          position: "top",
+        });
         return;
       }
       setConsoleText(response?.meta_data?.response || "");

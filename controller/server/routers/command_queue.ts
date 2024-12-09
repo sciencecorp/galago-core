@@ -19,7 +19,7 @@ export const commandQueueRouter = router({
     CommandQueue.global.stop();
   }),
 
-  getError : procedure.query(async () => {
+  getError: procedure.query(async () => {
     return CommandQueue.global.getError();
   }),
 

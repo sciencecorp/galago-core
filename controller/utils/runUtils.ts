@@ -46,16 +46,18 @@ export function getRunAttributes(
     if (commandInfo.length > 0 && lastCommand?.status === "COMPLETED") {
       status = "COMPLETED";
       completedAt = lastCommand.completedAt || "";
-    } else if (commandInfo.some(cmd => cmd.status === "FAILED")) {
-      status = "FAILED"; 
-    } else if (commandInfo.some(cmd => cmd.status === "STARTED")) {
+    } else if (commandInfo.some((cmd) => cmd.status === "FAILED")) {
+      status = "FAILED";
+    } else if (commandInfo.some((cmd) => cmd.status === "STARTED")) {
       status = "STARTED";
-      startedAt = commandInfo.find(cmd => cmd.status === "STARTED")?.startedAt || "";
-    } else if (commandInfo.every(cmd => cmd.status === "CREATED")) {
+      startedAt = commandInfo.find((cmd) => cmd.status === "STARTED")?.startedAt || "";
+    } else if (commandInfo.every((cmd) => cmd.status === "CREATED")) {
       status = "QUEUED";
-    } else if (lastCommand?.status === "SKIPPED" && 
-               !commandInfo.some(cmd => cmd.status === "CREATED") &&
-               !commandInfo.some(cmd => cmd.status === "STARTED")) {
+    } else if (
+      lastCommand?.status === "SKIPPED" &&
+      !commandInfo.some((cmd) => cmd.status === "CREATED") &&
+      !commandInfo.some((cmd) => cmd.status === "STARTED")
+    ) {
       status = "COMPLETED";
       completedAt = lastCommand.completedAt || "";
     }
@@ -73,14 +75,18 @@ export function getRunAttributes(
   };
 }
 
-export function calculateRunTimes(runAttributes: any, currentTime: moment.Moment, runCommands: RunCommand[] = []) {
+export function calculateRunTimes(
+  runAttributes: any,
+  currentTime: moment.Moment,
+  runCommands: RunCommand[] = [],
+) {
   let runStart = moment(runAttributes.createdAt);
   let runEnd: moment.Moment;
   let isActive = false;
 
   // Check if all commands are completed
-  const isCompleted = runCommands.length > 0 && 
-    runCommands[runCommands.length - 1].status === "COMPLETED";
+  const isCompleted =
+    runCommands.length > 0 && runCommands[runCommands.length - 1].status === "COMPLETED";
 
   if (isCompleted) {
     runEnd = moment(runCommands[runCommands.length - 1].completedAt);

@@ -36,8 +36,9 @@ export const RunTag: React.FC<RunTagProps> = ({ status, label, handleClick }) =>
       aria-label={label || displayStatus(status)}
       onClick={handleClick}
       bg="transparent"
-      icon={status === ToolStatus.FAILED ? <PiWarningBold color="red" fontSize="24px"/> : undefined}
-    >
+      icon={
+        status === ToolStatus.FAILED ? <PiWarningBold color="red" fontSize="24px" /> : undefined
+      }>
       {displayStatus(status)}
     </IconButton>
   );

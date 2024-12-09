@@ -28,7 +28,6 @@ import { VscRefresh } from "react-icons/vsc";
 interface LogViewProps {}
 
 function getIconFromLogType(logType: string) {
-
   const iconStyle = {
     display: "flex",
     alignItems: "center",
@@ -39,13 +38,13 @@ function getIconFromLogType(logType: string) {
 
   switch (logType) {
     case "error":
-      return <CloseIcon color="red"  style={iconStyle} />;
+      return <CloseIcon color="red" style={iconStyle} />;
     case "warning":
-      return <WarningIcon color="orange"  style={iconStyle}/>;
+      return <WarningIcon color="orange" style={iconStyle} />;
     case "debug":
-      return <QuestionOutlineIcon color="yellow"  style={iconStyle}/>;
+      return <QuestionOutlineIcon color="yellow" style={iconStyle} />;
     case "info":
-      return <FiInfo style={iconStyle}/>;
+      return <FiInfo style={iconStyle} />;
   }
 }
 

@@ -1,4 +1,4 @@
-import React, { use, useState,useEffect} from "react";
+import React, { use, useState, useEffect } from "react";
 import {
   Heading,
   HStack,
@@ -20,7 +20,7 @@ import {
   AlertTitle,
   AlertDescription,
   Box,
-  CloseButton
+  CloseButton,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import StatusTag from "@/components/tools/StatusTag";
@@ -49,7 +49,7 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
   const clearAllMutation = queue.clearAll.useMutation(stateMutationOpts);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const getError = queue.getError.useQuery();
-  const {isOpen: errorOpen, onOpen: onErrorOpen, onClose: onErrorClose} = useDisclosure();
+  const { isOpen: errorOpen, onOpen: onErrorOpen, onClose: onErrorClose } = useDisclosure();
   const [isErrorVisible, setErrorVisible] = useState(false);
 
   const run = async () => {
@@ -120,16 +120,35 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
   if (stateQuery.isLoading) return <Spinner />;
   return (
     <>
-      <ErrorBanner show={isErrorVisible}/>
+      <ErrorBanner show={isErrorVisible} />
       {confirmRunStartModal()}
-      <PageHeader 
+      <PageHeader
         title="Runs"
         subTitle={`Total Runs: ${totalRuns}`}
-        titleIcon = {getError.data ? <RunTag status={ToolStatus.FAILED} handleClick={()=>setErrorVisible(!isErrorVisible)} /> : null}
-        mainButton={<Button colorScheme="green" variant="outline" onClick={() => onOpen()}>Start</Button>}
-        secondaryButton={<Button colorScheme="red" variant="outline" onClick={() => pause()}>Stop</Button>}
-        tertiaryButton={<Button colorScheme="white" variant="outline" onClick={() => clear()}>Clear</Button>}
-        />
+        titleIcon={
+          getError.data ? (
+            <RunTag
+              status={ToolStatus.FAILED}
+              handleClick={() => setErrorVisible(!isErrorVisible)}
+            />
+          ) : null
+        }
+        mainButton={
+          <Button colorScheme="green" variant="outline" onClick={() => onOpen()}>
+            Start
+          </Button>
+        }
+        secondaryButton={
+          <Button colorScheme="red" variant="outline" onClick={() => pause()}>
+            Stop
+          </Button>
+        }
+        tertiaryButton={
+          <Button colorScheme="white" variant="outline" onClick={() => clear()}>
+            Clear
+          </Button>
+        }
+      />
     </>
   );
 };

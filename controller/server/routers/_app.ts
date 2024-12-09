@@ -9,7 +9,7 @@ import { log } from "console";
 import { workcellRouter } from "./workcell";
 import { labwareRouter } from "./labware";
 import { scriptRouter } from "./script";
-import { inventoryRouter} from "./inventory";
+import { inventoryRouter } from "./inventory";
 import { robotArmRouter } from "./robot-arm";
 
 export const appRouter = router({

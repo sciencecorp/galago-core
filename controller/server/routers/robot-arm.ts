@@ -12,7 +12,7 @@ const zRobotArmLocation = z.object({
   j4: z.number().optional(),
   j5: z.number().optional(),
   j6: z.number().optional(),
-  tool_id: z.number()
+  tool_id: z.number(),
 });
 
 const zRobotArmNest = z.object({
@@ -27,7 +27,7 @@ const zRobotArmNest = z.object({
   j5: z.number().optional(),
   j6: z.number().optional(),
   safe_location_id: z.number(),
-  tool_id: z.number()
+  tool_id: z.number(),
 });
 
 const zRobotArmMotionProfile = z.object({
@@ -42,16 +42,16 @@ const zRobotArmMotionProfile = z.object({
   decel_ramp: z.number(),
   inrange: z.number(),
   straight: z.number(),
-  tool_id: z.number()
+  tool_id: z.number(),
 });
-    
+
 const zRobotArmGripParams = z.object({
   id: z.number().optional(),
   name: z.string(),
   width: z.number(),
   speed: z.number(),
   force: z.number(),
-  tool_id: z.number()
+  tool_id: z.number(),
 });
 export type RobotArmLocation = z.infer<typeof zRobotArmLocation>;
 export type RobotArmNest = z.infer<typeof zRobotArmNest>;
@@ -62,58 +62,69 @@ export const robotArmRouter = router({
   location: router({
     getAll: procedure
       .input(z.object({ toolId: z.number() }))
-      .query(({ input }): Promise<RobotArmLocation[]> => get(`/robot-arm-locations?tool_id=${input.toolId}`)),
+      .query(
+        ({ input }): Promise<RobotArmLocation[]> =>
+          get(`/robot-arm-locations?tool_id=${input.toolId}`),
+      ),
     create: procedure
       .input(zRobotArmLocation.omit({ id: true }))
-      .mutation(({ input }) => post('/robot-arm-locations', input)),
+      .mutation(({ input }) => post("/robot-arm-locations", input)),
     update: procedure
       .input(zRobotArmLocation)
       .mutation(({ input }) => put(`/robot-arm-locations/${input.id}`, input)),
     delete: procedure
       .input(z.object({ id: z.number() }))
-      .mutation(({ input }) => del(`/robot-arm-locations/${input.id}`))
+      .mutation(({ input }) => del(`/robot-arm-locations/${input.id}`)),
   }),
   nest: router({
     getAll: procedure
       .input(z.object({ toolId: z.number() }))
-      .query(({ input }): Promise<RobotArmNest[]> => get(`/robot-arm-nests?tool_id=${input.toolId}`)),
+      .query(
+        ({ input }): Promise<RobotArmNest[]> => get(`/robot-arm-nests?tool_id=${input.toolId}`),
+      ),
     create: procedure
       .input(zRobotArmNest.omit({ id: true }))
-      .mutation(({ input }) => post('/robot-arm-nests', input)),
+      .mutation(({ input }) => post("/robot-arm-nests", input)),
     update: procedure
       .input(zRobotArmNest)
       .mutation(({ input }) => put(`/robot-arm-nests/${input.id}`, input)),
     delete: procedure
       .input(z.object({ id: z.number() }))
-      .mutation(({ input }) => del(`/robot-arm-nests/${input.id}`))
+      .mutation(({ input }) => del(`/robot-arm-nests/${input.id}`)),
   }),
   motionProfile: router({
     getAll: procedure
       .input(z.object({ toolId: z.number() }))
-      .query(({ input }): Promise<RobotArmMotionProfile[]> => get(`/robot-arm-motion-profiles?tool_id=${input.toolId}`)),
+      .query(
+        ({ input }): Promise<RobotArmMotionProfile[]> =>
+          get(`/robot-arm-motion-profiles?tool_id=${input.toolId}`),
+      ),
     create: procedure
       .input(zRobotArmMotionProfile.omit({ id: true }))
-      .mutation(({ input }) => post('/robot-arm-motion-profiles', input)),
+      .mutation(({ input }) => post("/robot-arm-motion-profiles", input)),
     update: procedure
       .input(zRobotArmMotionProfile)
       .mutation(({ input }) => put(`/robot-arm-motion-profiles/${input.id}`, input)),
     delete: procedure
       .input(z.object({ id: z.number() }))
-      .mutation(({ input }) => del(`/robot-arm-motion-profiles/${input.id}`))
+      .mutation(({ input }) => del(`/robot-arm-motion-profiles/${input.id}`)),
   }),
 
   gripParams: router({
     getAll: procedure
       .input(z.object({ toolId: z.number() }))
-      .query(({ input }): Promise<RobotArmGripParams[]> => get(`/robot-arm-grip-params?tool_id=${input.toolId}`)),
+      .query(
+        ({ input }): Promise<RobotArmGripParams[]> =>
+          get(`/robot-arm-grip-params?tool_id=${input.toolId}`),
+      ),
     create: procedure
       .input(zRobotArmGripParams.omit({ id: true }))
-      .mutation(({ input }) => post('/robot-arm-grip-params', input)),
+      .mutation(({ input }) => post("/robot-arm-grip-params", input)),
     update: procedure
       .input(zRobotArmGripParams)
       .mutation(({ input }) => put(`/robot-arm-grip-params/${input.id}`, input)),
     delete: procedure
       .input(z.object({ id: z.number() }))
-      .mutation(({ input }) => del(`/robot-arm-grip-params/${input.id}`))
-  })
+      .mutation(({ input }) => del(`/robot-arm-grip-params/${input.id}`)),
+  }),
 });

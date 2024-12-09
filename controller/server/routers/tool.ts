@@ -22,7 +22,6 @@ export const zTool = z.object({
 });
 
 export const toolRouter = router({
-
   get: procedure.input(z.string()).query(async ({ input }) => {
     const response = await get<ToolResponse>(`/tools/${input}`);
     return response;
@@ -55,7 +54,7 @@ export const toolRouter = router({
     .mutation(async ({ input }) => {
       const { id, config } = input;
       const response = await put<ToolResponse>(`/tools/${id}`, config);
-      const tool = await Tool.forId(response.name); 
+      const tool = await Tool.forId(response.name);
 
       tool.info = {
         ...tool.info,

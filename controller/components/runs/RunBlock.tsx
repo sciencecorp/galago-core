@@ -46,7 +46,8 @@ const RunBlock: React.FC<RunBlockProps> = ({
       return 0;
     }
 
-    const progress = ((runAttributes.commandsCount - runCommands.length) / runAttributes.commandsCount) * 100;
+    const progress =
+      ((runAttributes.commandsCount - runCommands.length) / runAttributes.commandsCount) * 100;
     const baseOffsetMultiplier = -1.6;
 
     if (isActive || moment(run.createdAt).isAfter(visibleStart)) {
@@ -73,10 +74,10 @@ const RunBlock: React.FC<RunBlockProps> = ({
   );
 
   const totalCommands = runCommands.length;
-  const backgroundColor = isCompleted 
-    ? "gray.400"  // Darker gray for completed runs
-    : isActive 
-      ? "blue.100" 
+  const backgroundColor = isCompleted
+    ? "gray.400" // Darker gray for completed runs
+    : isActive
+      ? "blue.100"
       : "gray.300";
 
   const animationDelay = `${index * 0.2}s`;
@@ -99,7 +100,7 @@ const RunBlock: React.FC<RunBlockProps> = ({
         className="run-block-transition"
         bg={backgroundColor}
         sx={{
-          transition: isCompleted 
+          transition: isCompleted
             ? "background-color 0.3s ease"
             : `
                 width 0.8s cubic-bezier(0.4, 0, 0.2, 1) ${animationDelay},
@@ -116,8 +117,8 @@ const RunBlock: React.FC<RunBlockProps> = ({
             right: 0,
             bottom: 0,
             background: bgColor,
-            zIndex: 0
-          }
+            zIndex: 0,
+          },
         }}
         zIndex={isCompleted ? 1 : 3}
         opacity={isCompleted ? 0.7 : 1}

@@ -42,9 +42,9 @@ export const scriptRouter = router({
       command: "run_python_script",
       params: {
         script_content: input,
-        blocking:false
-      }
-    }
+        blocking: false,
+      },
+    };
     return await Tool.executeCommand(commandInfo);
   }),
 

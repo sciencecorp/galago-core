@@ -8,10 +8,7 @@ const zWellSelection = z.array(
   z.string().regex(/^[A-Z]\d{1,2}$/, "Well name must be a letter followed by a number"),
 );
 
-export const Params = z
-  .object({
-  })
-  .strict();
+export const Params = z.object({}).strict();
 
 export default class VariablesDemo extends Protocol<typeof Params> {
   protocolId = "variables_runtime";
@@ -22,7 +19,6 @@ export default class VariablesDemo extends Protocol<typeof Params> {
   paramSchema = Params;
 
   _generateCommands(params: z.infer<typeof Params>) {
-
     let protocol_cmds: ToolCommandInfo[] = [
       {
         label: "Test script",
@@ -43,7 +39,7 @@ export default class VariablesDemo extends Protocol<typeof Params> {
           script_content: "test.py",
           blocking: false,
         },
-      }
+      },
     ] as ToolCommandInfo[];
     return protocol_cmds;
   }

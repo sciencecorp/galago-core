@@ -9,28 +9,18 @@ interface SwimLaneProps {
 
 export const SwimLaneComponent: React.FC<SwimLaneProps> = ({ runCommands }) => {
   return (
-    <Box 
-      width="100%" 
-      overflowX="auto" 
-      whiteSpace="nowrap" 
-      p={4}
-    >
+    <Box width="100%" overflowX="auto" whiteSpace="nowrap" p={4}>
       <HStack spacing={0} width="900px">
         {runCommands.map((command, i) => {
-          const queued = command.queueId && 
-            (command.status === "CREATED" || 
-             command.status === "FAILED" || 
-             command.status === "STARTED");
+          const queued =
+            command.queueId &&
+            (command.status === "CREATED" ||
+              command.status === "FAILED" ||
+              command.status === "STARTED");
 
-          return (
-            <SwimLaneCommandComponent
-              key={i}
-              command={command}
-            />
-          );
+          return <SwimLaneCommandComponent key={i} command={command} />;
         })}
       </HStack>
     </Box>
-
   );
 };

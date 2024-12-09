@@ -216,7 +216,7 @@ export const InventoryManager = () => {
           onReagentSelect={handleReagentSelect}
         />
 
-        <SimpleGrid columns={[1, 2, 3, 4]} spacing={2} >
+        <SimpleGrid columns={[1, 2, 3, 4]} spacing={2}>
           {workcellTools?.map((tool) => (
             <InventoryToolCard
               key={tool.id}

@@ -30,7 +30,15 @@ import {
   Switch,
   Input,
 } from "@chakra-ui/react";
-import { DeleteIcon, AddIcon, DragHandleIcon, EditIcon, ArrowForwardIcon, ChevronUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
+import {
+  DeleteIcon,
+  AddIcon,
+  DragHandleIcon,
+  EditIcon,
+  ArrowForwardIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+} from "@chakra-ui/icons";
 import { useRouter } from "next/router";
 import { ProtocolManager } from "./ProtocolManager";
 import { useState, useEffect, useMemo } from "react";
@@ -41,7 +49,6 @@ import { trpc } from "@/utils/trpc";
 import { DeleteWithConfirmation } from "@/components/UI/Delete";
 import { PiToolbox } from "react-icons/pi";
 import { ParameterEditor } from "@/components/UI/ParameterEditor";
-
 
 const CommandBox: React.FC<{
   command: any;
@@ -59,9 +66,9 @@ const CommandBox: React.FC<{
 
   const formatToolId = (toolId: string) => {
     return toolId
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
   };
 
   const renderToolImage = (config: any) => {
@@ -87,7 +94,7 @@ const CommandBox: React.FC<{
         style={{
           width: "40px",
           height: "40px",
-          objectFit: "contain"
+          objectFit: "contain",
         }}
       />
     );
@@ -103,7 +110,7 @@ const CommandBox: React.FC<{
           colorScheme="blue"
           variant="ghost"
           onClick={() => onAddCommand?.(position)}
-          _hover={{ bg: 'blue.100' }}
+          _hover={{ bg: "blue.100" }}
         />
       )}
       <Box
@@ -127,12 +134,7 @@ const CommandBox: React.FC<{
             onParamChange={onParamChange}
           />
           {isEditing && (
-            <Box 
-              position="absolute"
-              top="1"
-              right="3"
-              zIndex="2"
-            >
+            <Box position="absolute" top="1" right="3" zIndex="2">
               <DeleteWithConfirmation
                 label="command"
                 onDelete={onDelete}
@@ -142,13 +144,7 @@ const CommandBox: React.FC<{
             </Box>
           )}
         </VStack>
-        <Box 
-          position="absolute" 
-          bottom="4"
-          right="4"
-          opacity="0.9"
-          zIndex="1"
-        >
+        <Box position="absolute" bottom="4" right="4" opacity="0.9" zIndex="1">
           {renderToolImage(infoQuery.data)}
         </Box>
       </Box>
@@ -161,7 +157,7 @@ const CommandBox: React.FC<{
             colorScheme="blue"
             variant="ghost"
             onClick={() => onAddCommand?.(position + 1)}
-            _hover={{ bg: 'blue.100' }}
+            _hover={{ bg: "blue.100" }}
           />
         ) : !isLast && !isEditing ? (
           <Box color={arrowColor}>
@@ -339,53 +335,52 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         <Text>{protocol.description}</Text>
         <Divider />
 
-        <Box 
-          overflowX="auto" 
+        <Box
+          overflowX="auto"
           py={6}
           maxW="100%"
           onWheel={(e: any) => handleWheel(e)}
           css={{
-            '&::-webkit-scrollbar': {
-              height: '8px',
+            "&::-webkit-scrollbar": {
+              height: "8px",
             },
-            '&::-webkit-scrollbar-track': {
-              borderRadius: '4px',
+            "&::-webkit-scrollbar-track": {
+              borderRadius: "4px",
             },
-            '&::-webkit-scrollbar-thumb': {
-              borderRadius: '4px',
-              '&:hover': {
-              },
+            "&::-webkit-scrollbar-thumb": {
+              borderRadius: "4px",
+              "&:hover": {},
             },
           }}>
-                    <HStack spacing={4} align="flex-start" minW="min-content">
-                    {commands.map((command: any, index: number) => (
-                      <CommandBox
-                        key={command.queueId}
-                        command={command}
-                        isEditing={isEditing}
-                        isLast={index === commands.length - 1}
-                        position={index}
-                        onAddCommand={handleAddCommandAtPosition}
-                        onParamChange={(newParams) => {
-                          setCommands((prevCommands) => {
-                            const updatedCommands = prevCommands.map((cmd, i) => {
-                              if (i === index) {
-                                return {
-                                  ...cmd,
-                                  commandInfo: {
-                                    ...cmd.commandInfo,
-                                    params: newParams,
-                                  },
-                                };
-                              }
-                              return cmd;
-                            });
-                            return updatedCommands;
-                          });
-                        }}
-                        onDelete={() => handleDeleteCommand(index)}
-                      />
-                    ))}
+          <HStack spacing={4} align="flex-start" minW="min-content">
+            {commands.map((command: any, index: number) => (
+              <CommandBox
+                key={command.queueId}
+                command={command}
+                isEditing={isEditing}
+                isLast={index === commands.length - 1}
+                position={index}
+                onAddCommand={handleAddCommandAtPosition}
+                onParamChange={(newParams) => {
+                  setCommands((prevCommands) => {
+                    const updatedCommands = prevCommands.map((cmd, i) => {
+                      if (i === index) {
+                        return {
+                          ...cmd,
+                          commandInfo: {
+                            ...cmd.commandInfo,
+                            params: newParams,
+                          },
+                        };
+                      }
+                      return cmd;
+                    });
+                    return updatedCommands;
+                  });
+                }}
+                onDelete={() => handleDeleteCommand(index)}
+              />
+            ))}
           </HStack>
         </Box>
       </VStack>

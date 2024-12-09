@@ -112,38 +112,32 @@ function ParamInput({
   }
 }
 
-export default function NewProtocolRunModal({ 
-  id, 
-  onClose 
-}: { 
-  id: string;
-  onClose: () => void;
-}) {
-  
+export default function NewProtocolRunModal({ id, onClose }: { id: string; onClose: () => void }) {
   const router = useRouter();
   const toast = useToast();
   const workcellData = trpc.workcell.getSelectedWorkcell.useQuery();
   const workcellName = workcellData.data;
-  const protocol = trpc.protocol.get.useQuery({ 
-    id: id.toString() 
-  }, {
-    onSuccess: (data) => {
+  const protocol = trpc.protocol.get.useQuery(
+    {
+      id: id.toString(),
     },
-    onError: (error) => {
-      console.error({
-        message: error.message,
-        data: error.data
-      });
-      toast({
-        title: "Error loading protocol",
-        description: error.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
+    {
+      onSuccess: (data) => {},
+      onError: (error) => {
+        console.error({
+          message: error.message,
+          data: error.data,
+        });
+        toast({
+          title: "Error loading protocol",
+          description: error.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      },
     },
-  });
-
+  );
 
   const uiParams = protocol.data?.uiParams || {};
   const { isOpen, onOpen } = useDisclosure({ defaultIsOpen: true });
@@ -184,7 +178,12 @@ export default function NewProtocolRunModal({
     <>
       {workcellName && uiParams && protocol && (
         <Box>
-          <Modal isOpen={isOpen} onClose={handleClose} closeOnOverlayClick={true} closeOnEsc={true} size="2xl">
+          <Modal
+            isOpen={isOpen}
+            onClose={handleClose}
+            closeOnOverlayClick={true}
+            closeOnEsc={true}
+            size="2xl">
             <ModalOverlay />
             <ModalContent>
               <ModalHeader>New Protocol Run</ModalHeader>
@@ -195,7 +194,7 @@ export default function NewProtocolRunModal({
                     {Object.entries(uiParams).map(([param, paramInfo]) => {
                       return (
                         <FormControl key={param} isInvalid={!!(formErrors && formErrors[param])}>
-                          <FormLabel>{capitalizeFirst(param.replaceAll("_"," "))}</FormLabel>
+                          <FormLabel>{capitalizeFirst(param.replaceAll("_", " "))}</FormLabel>
                           <ParamInput
                             paramInfo={paramInfo}
                             value={userDefinedParams[param]}
@@ -245,4 +244,3 @@ export default function NewProtocolRunModal({
     </>
   );
 }
-

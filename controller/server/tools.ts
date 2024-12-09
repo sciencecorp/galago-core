@@ -103,19 +103,16 @@ export default class Tool {
     return await Tool.forId(command.toolId).executeCommand(command);
   }
 
-  static isVariable(param: any){
-
-  }
+  static isVariable(param: any) {}
 
   async executeCommand(command: ToolCommandInfo) {
     const params = command.params;
-    for(const key in params){
-      if(params[key].startsWith("{{") && params[key].endsWith("}}")){
-        try{
+    for (const key in params) {
+      if (params[key].startsWith("{{") && params[key].endsWith("}}")) {
+        try {
           const varValue = await get<Variable>(`/variables/${params[key].slice(2, -2)}`);
           params[key] = varValue.value;
-        }
-        catch(e){
+        } catch (e) {
           throw new Error(`Variable ${params[key].slice(2, -2)} not found`);
         }
       }
@@ -239,9 +236,7 @@ export default class Tool {
         const result = this.toolBoxConfig();
         toolInfo = result;
       } else {
-        const result = this.allTools.find(
-          (tool) => tool.name === id,
-        );
+        const result = this.allTools.find((tool) => tool.name === id);
         if (!result) {
           throw new Error(`Tool with id ${id} not found in in database'`);
         }
@@ -268,7 +263,6 @@ export default class Tool {
       },
     };
   }
-
 }
 
 export class ToolCommandExecutionError extends Error {

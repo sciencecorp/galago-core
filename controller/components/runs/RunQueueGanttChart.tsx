@@ -54,9 +54,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
       return runEndTime.isAfter(latest) ? runEndTime : latest;
     }, firstRunStartTime);
 
-    const allCompleted = allRuns.every(
-      (run) => run.status === "COMPLETED",
-    );
+    const allCompleted = allRuns.every((run) => run.status === "COMPLETED");
 
     if (allCompleted) {
       setStartTime(firstRunStartTime.subtract(15, "minutes"));
@@ -162,12 +160,12 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
       const { runStart, runEnd, expectedDuration, isActive, isCompleted } = calculateRunTimes(
         runMetadata,
         currentTime,
-        runCommands
+        runCommands,
       );
       const completionPercentage = calculateRunCompletion(runCommands);
 
-      const blockEndTime = isCompleted 
-        ? runEnd 
+      const blockEndTime = isCompleted
+        ? runEnd
         : isActive || runMetadata.status === "CREATED"
           ? currentTime
               .clone()
@@ -183,7 +181,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
         blockEndTime,
         completionPercentage,
         isActive,
-        isCompleted
+        isCompleted,
       };
     });
 

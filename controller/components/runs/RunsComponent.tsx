@@ -66,10 +66,9 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
   const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
   const groupedCommands = commandsAll.data ? groupCommandsByRun(commandsAll.data) : [];
 
-
-   useEffect(() => {
+  useEffect(() => {
     if (commandsAll.data && commandsAll.data.length > 0 && !selectedRunId) {
-      const firstRunId = commandsAll.data[0].runId; 
+      const firstRunId = commandsAll.data[0].runId;
       setSelectedRunId(firstRunId);
       setExpandedRuns(new Set([firstRunId]));
     }
@@ -86,7 +85,7 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
 
   const handleRunButtonClick = (runId: string | null) => {
     if (!runId) return;
-    setExpandedRuns(prev => {
+    setExpandedRuns((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(runId)) {
         newSet.delete(runId);
@@ -104,7 +103,7 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
 
   const handleRunClick = (runId: string) => {
     setSelectedRunId((prevId) => (prevId === runId ? null : runId));
-    setExpandedRuns(prev => {
+    setExpandedRuns((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(runId)) {
         newSet.delete(runId);
@@ -173,7 +172,10 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
                       color={borderColor}>
                       {expandButtonIcon(run.Id)}
                       <Heading size="md" padding="4px">
-                       <HStack><Text as="b">{index+1}.</Text><Text>{runAttributes.runName}</Text></HStack>
+                        <HStack>
+                          <Text as="b">{index + 1}.</Text>
+                          <Text>{runAttributes.runName}</Text>
+                        </HStack>
                       </Heading>
                     </Button>
                   </Box>
@@ -184,8 +186,7 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
                       aria-label="Delete Run"
                       size="lg"
                       icon={<DeleteIcon />}
-                      color={borderColor}>
-                    </IconButton>
+                      color={borderColor}></IconButton>
                   </Box>
                 </HStack>
               </VStack>
@@ -199,11 +200,8 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
                 borderWidth="1px"
                 borderRadius="md"
                 borderColor="gray.200"
-                _dark={{ borderColor: "gray.600" }}
-              >
-                  <SwimLaneComponent 
-                    runCommands={run.Commands}
-                  />
+                _dark={{ borderColor: "gray.600" }}>
+                <SwimLaneComponent runCommands={run.Commands} />
               </Box>
             )}
           </Box>

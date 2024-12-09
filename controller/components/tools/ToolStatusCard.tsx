@@ -60,9 +60,7 @@ interface ToolStatusCardProps {
   style?: any;
 }
 
-
-
-export default function ToolStatusCard({ toolId,  style = {} }: ToolStatusCardProps) {
+export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardProps) {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
 

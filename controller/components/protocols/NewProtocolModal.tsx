@@ -30,20 +30,21 @@ export const NewProtocolModal: React.FC<NewProtocolModalProps> = ({ isOpen, onCl
   const [description, setDescription] = useState("");
   const router = useRouter();
 
-  const createProtocol = trpc.protocol.create.useMutation({
-    onSuccess: () => {
-      onClose();
-      router.push("/protocols");
-    },
-  });
+  // const createProtocol = trpc.protocol.create.useMutation({
+  //   onSuccess: () => {
+  //     onClose();
+  //     router.push("/protocols");
+  //   },
+  // });
 
   const handleSubmit = async () => {
-    await createProtocol.mutateAsync({
-      name,
-      category,
-      workcell,
-      description,
-    });
+    // await createProtocol.mutateAsync({
+    //   name,
+    //   category,
+    //   workcell,
+    //   description,
+    // });
+    console.log("create protocol");
   };
 
   return (
