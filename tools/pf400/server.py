@@ -160,6 +160,13 @@ class Pf400Server(ToolServer):
             response.error_message = str(e)
             return response
 
+    def RunSequence(self, sequence: list[Command]) -> None:
+        # self.driver.run_sequence(sequence)
+        return 
+    
+    def estimateRunSequence(self, sequence: list[Command]) -> int:
+        return 1
+
     def EstimateGetCurrentLocation(self, params: Command.GetCurrentLocation) -> int:
         return 1
 
