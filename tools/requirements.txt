@@ -1,3 +1,4 @@
+grpcio-tools==1.51.1
 pydantic==2.8.2
 pythonnet==3.0.1
 requests==2.29.0 
@@ -25,4 +26,3 @@ slack-sdk==3.21.3
 slackclient==2.9.4
 cython==3.0.11
 pillow==11.0.0
-grpcio-tools==1.51.1
