@@ -43,7 +43,6 @@ export function getRunAttributes(
   if (commandInfo && Array.isArray(commandInfo)) {
     createdAt = commandInfo[0]?.createdAt || "";
     const lastCommand = commandInfo[commandInfo.length - 1];
-    console.log("Last Command: ", lastCommand);
     if (commandInfo.length > 0 && lastCommand?.status === "COMPLETED") {
       status = "COMPLETED";
       completedAt = lastCommand.completedAt || "";

@@ -12,7 +12,8 @@ import {
   IconButton,
   Image,
   useColorModeValue,
-  Center
+  Center,
+  Portal
 } from "@chakra-ui/react";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import { IoPlaySkipForward } from "react-icons/io5";
@@ -156,9 +157,11 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
 
   const CardFront = (
     <Box
+      zIndex= "-1"
       left="0px"
       right="0px"
-      minW="210px"
+      minW="250px"
+      maxW="300px"
       height="165px"
       overflowY="auto"
       mr="4"
@@ -180,17 +183,19 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
             </Box>
             <Box>
               <Menu offset={[40, -40]}>
-                <MenuButton
+                <MenuButton 
                   as={IconButton}
                   aria-label="Options"
                   padding="0"
                   margin="0"
                   border={0}
                   bg="transparent"
-                  icon={<HamburgerIcon fontSize='sm' />}
+                  icon={<HamburgerIcon fontSize='lg' />}
                   variant="outline"
                 />
-                <MenuList zIndex={1000}>
+                <Portal>
+
+                <MenuList zIndex="3">
                   {queued ? (
                     <MenuItem onClick={() => skipMutation.mutate(queueId)}>
                       <IoPlaySkipForward />{" "}
@@ -214,6 +219,7 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
                     </Box>
                   </MenuItem>
                 </MenuList>
+                </Portal>
               </Menu>
             </Box>
           </HStack>
@@ -234,9 +240,11 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
 
   const CardBack = (
     <Box
+      zIndex="-1"
       left="0px"
       right="0px"
-      minW="210px"
+      minW="250px"
+      maxW="300px"
       height="165px"
       overflowY="auto"
       mr="4"
@@ -260,7 +268,14 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
   );
 
   return (
-    <ReactCardFlip isFlipped={isFlipped} flipDirection="horizontal">
+    <ReactCardFlip 
+    containerStyle={{ overflow: "visible" }}
+      cardStyles={{
+        front: { zIndex: 4 }, // Front card
+        back: { zIndex: 4 },  // Back card
+      }}
+      isFlipped={isFlipped} 
+      flipDirection="horizontal">
       {CardFront}
       {CardBack}
     </ReactCardFlip>

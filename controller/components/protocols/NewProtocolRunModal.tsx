@@ -31,6 +31,7 @@ import {
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { z } from "zod";
+import { capitalizeFirst } from "@/utils/parser";
 
 function ParamInput({
   paramInfo,
@@ -183,7 +184,7 @@ export default function NewProtocolRunModal({
     <>
       {workcellName && uiParams && protocol && (
         <Box>
-          <Modal isOpen={isOpen} onClose={handleClose} closeOnOverlayClick={true} closeOnEsc={true}>
+          <Modal isOpen={isOpen} onClose={handleClose} closeOnOverlayClick={true} closeOnEsc={true} size="2xl">
             <ModalOverlay />
             <ModalContent>
               <ModalHeader>New Protocol Run</ModalHeader>
@@ -194,7 +195,7 @@ export default function NewProtocolRunModal({
                     {Object.entries(uiParams).map(([param, paramInfo]) => {
                       return (
                         <FormControl key={param} isInvalid={!!(formErrors && formErrors[param])}>
-                          <FormLabel>{param}</FormLabel>
+                          <FormLabel>{capitalizeFirst(param.replaceAll("_"," "))}</FormLabel>
                           <ParamInput
                             paramInfo={paramInfo}
                             value={userDefinedParams[param]}
