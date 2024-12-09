@@ -30,9 +30,7 @@ import { HamburgerIcon } from "@chakra-ui/icons";
 import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
 import { PiToolbox } from "react-icons/pi";
-import { DeleteWithConfirmation } from "@/components/UI/Delete";
 import { EditMenu } from "@/components/UI/EditMenu";
-import { Tool } from "@/types/api";
 import { EditToolModal } from "./EditToolConfig";
 import { useRouter } from "next/router";
 
@@ -149,10 +147,7 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
             </Box>
             <Box top={-5} right={-5} position="relative">
               {toolId !== "Tool Box" && (
-                <DeleteWithConfirmation
-                  onDelete={() => handleDelete(toolId)}
-                  label="Delete Tool"
-                />
+                <EditMenu onEdit={onOpen} onDelete={() => handleDelete(toolId)} />
               )}
             </Box>
           </Flex>
