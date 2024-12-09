@@ -67,7 +67,6 @@ const CommandBox: React.FC<{
   const renderToolImage = (config: any) => {
     if (!config) return null;
     if (!config.image_url) return null;
-    console.log("config", config);
     if (config.name === "Tool Box") {
       return (
         <IconButton

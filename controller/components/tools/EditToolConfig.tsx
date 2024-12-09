@@ -127,7 +127,6 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
                       onChange={(e) => {
                         handleConfigChange(e, key);
                         const newValue = e.target.value;
-                        console.log("New value: ", newValue);
                       }}
                     />
                   </FormControl>

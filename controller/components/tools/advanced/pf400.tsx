@@ -965,8 +965,6 @@ export const PF400: React.FC<PF400Props> = ({ toolId, config }) => {
       const values = coord.split(" ").map(Number);
       return values.length === 6 ? values : [0, 0, 0, 0, 0, 0];
     };
-    console.log("editedCoordinate", editedCoordinate);
-    console.log("currentCoordinate", currentCoordinate);
     const coordinateValues = isEditing
       ? parseCoordinate(editedCoordinate)
       : parseCoordinate(currentCoordinate);

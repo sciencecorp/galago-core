@@ -36,9 +36,7 @@ export default abstract class Protocol<
   }
 
   maybeParseParams(params: Record<string, any>): z.infer<ParamSchema> | undefined {
-    console.log("Raw params are: ", params);
     const parsed = this.paramSchema.safeParse(params);
-    console.log("Parsed params are: ", parsed);
     if (parsed.success) return parsed.data;
   }
 

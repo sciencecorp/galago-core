@@ -95,7 +95,6 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   const router = useRouter(); // Use Next.js router for navigation and active route detection
 
   const toggleSidebar = () => {
-    console.log("IsMobile", isMobile);
     if (isMobile) {
       onClose();
     } else {

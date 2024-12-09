@@ -120,7 +120,6 @@ export default class Tool {
         }
       }
     }
-    console.log("Excuting command", command.command, "with params", command.params);
     if (command.command === "run_python_script" && command.toolId === "Tool Box") {
       command.params.script_content = (
         await get<Script>(`/scripts/${command.params.script_content}`)

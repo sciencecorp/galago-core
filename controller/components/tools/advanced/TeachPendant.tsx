@@ -156,9 +156,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     j5?: number;
     j6?: number;
   } {
-    console.log("Coordinate ww:", coordinate);
     const [j0,j1, j2, j3, j4, j5, j6] = coordinate.split(' ').map(Number);
-    console.log("Joints:", j1, j2, j3, j4, j5, j6);
     return { 
       j1: j1,    // 334.654
       j2: j2,    // 0.837
@@ -222,16 +220,14 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     }
   };
 
-  console.log("config", config);
-
   const robotArmLocationsQuery = trpc.robotArm.location.getAll.useQuery<RobotArmLocation[]>(
     { toolId: config.id },
-    { enabled: !!config.id && config.id !== ''}
+    { enabled: !!config.id && config.id !== 0 }
   );
   
   const robotArmNestsQuery = trpc.robotArm.nest.getAll.useQuery(
     { toolId: config.id },
-    { enabled: !!config.id && config.id !== ''}
+    { enabled: !!config.id && config.id !== 0}
   );
 
   const createLocationMutation = trpc.robotArm.location.create.useMutation({
@@ -249,8 +245,6 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   });
 
   useEffect(() => {
-    console.log('Robot Locations:', robotArmLocationsQuery.data);
-    console.log('Robot Nests:', robotArmNestsQuery.data);
     
     const formattedLocations: TeachPoint[] = (robotArmLocationsQuery.data || [])
       .filter(loc => loc.id !== undefined)
@@ -288,8 +282,6 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
         safe_loc: nest.safe_location_id,
       }));
 
-    console.log('Formatted Locations:', formattedLocations);
-    console.log('Formatted Nests:', formattedNests);
     
     setLocations([...formattedLocations, ...formattedNests]);
   }, [robotArmLocationsQuery.data, robotArmNestsQuery.data]);
@@ -305,7 +297,6 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     try {
       const response = await commandMutation.mutateAsync(toolCommand);
       if (response && response.meta_data) {
-        console.log("Current Position:", response.meta_data);
         return response.meta_data.location;
       }
       return null;
@@ -341,7 +332,6 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   
       try {
         const currentPosition = await getCurrentPosition();
-        console.log("Current Position xx:", currentPosition);
         if (!currentPosition) {
           toast({
             title: "Error",
@@ -769,8 +759,6 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     setExpandedRows(newExpandedRows);
   };
 
-  console.log("Coordinates", filteredTeachPoints)
-  console.log("Config ww", config)
   const motionProfilesQuery = trpc.robotArm.motionProfile.getAll.useQuery(
     { toolId: config.id },
     { enabled: !!config.name && config.name !== ''}

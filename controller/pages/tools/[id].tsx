@@ -398,7 +398,6 @@ export default function Page() {
       const queryId = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
       setId(queryId || null); // Ensure a null fallback if the ID is not available
     }
-    console.log("ID", id);
   }, [router.isReady, router.query.id]);
 
   useEffect(() => {
@@ -447,8 +446,6 @@ export default function Page() {
   const handleSubmit = () => {
     if (!selectedCommand) return;
     if (!config) return;
-    console.log(formValues);
-    console.log("Running command");
     toast({
       title: `Executing ${selectedCommand}..`,
       description: `Please wait.`,
@@ -520,7 +517,6 @@ export default function Page() {
         // For top-level fields
         newValues[fieldName] = updatedValue;
       }
-      console.log(newValues);
       return newValues;
     });
   };
@@ -528,7 +524,6 @@ export default function Page() {
   const commandMutation = trpc.tool.runCommand.useMutation();
 
   const executeCommand = (commandName: string, params: FormValues) => {
-    console.log("executing command!!!!!");
     if (!config) return;
     toast({
       title: `Executing ${commandName}..`,
@@ -586,7 +581,6 @@ export default function Page() {
       executeCommand(commandName, {});
     }
   };
-  console.log("CONFIG", config);
   const renderFields = (fields: Field[], parentField?: string) => {
     return fields.map((field) => {
       if (Array.isArray(field.type)) {
