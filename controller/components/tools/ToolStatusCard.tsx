@@ -149,7 +149,10 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
             </Box>
             <Box top={-5} right={-5} position="relative">
               {toolId !== "Tool Box" && (
-                <EditMenu onEdit={onOpen} onDelete={() => handleDelete(toolId)} />
+                <DeleteWithConfirmation
+                  onDelete={() => handleDelete(toolId)}
+                  label="Delete Tool"
+                />
               )}
             </Box>
           </Flex>
