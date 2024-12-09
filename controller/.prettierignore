@@ -4,3 +4,4 @@ dist/
 build/
 gen-interfaces/
 node_modules/
+styles/*.css
