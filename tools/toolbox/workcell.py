@@ -1,6 +1,3 @@
-import requests 
-import json 
-import typing as t
 from tools.toolbox.db import Db 
 
 db = Db()

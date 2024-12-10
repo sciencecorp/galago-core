@@ -195,11 +195,14 @@ class VariableBase(BaseModel):
         if isinstance(data, dict):
             for key, value in data.items():
                 model_dictionary[key] = value
-                if key == 'type' and value not in ['string', 'number', 'boolean', 'array', 'json']:
-                    raise ValueError('Type must be one of string, number, boolean, array, json')
+                if key == 'type' and value not in \
+                ['string', 'number', 'boolean', 'array', 'json']:
+                    raise ValueError('Type must be one of string, '
+                                     'number, boolean, array, json')
 
             if 'type' in model_dictionary and 'value' in model_dictionary:
-                if model_dictionary['type'] == "string" and not isinstance(model_dictionary['value'], str):
+                if model_dictionary['type'] == "string" and \
+                    not isinstance(model_dictionary['value'], str):
                     raise ValueError('Value must be a string')
 
                 if model_dictionary['type'] == 'number':
@@ -208,7 +211,8 @@ class VariableBase(BaseModel):
                     except ValueError:
                         raise ValueError('Value must be a number')
 
-                if model_dictionary['type'] == 'boolean' and str(model_dictionary['value']).lower() not in ['true', 'false']:
+                if model_dictionary['type'] == 'boolean' and \
+                str(model_dictionary['value']).lower() not in ['true', 'false']:
                     raise ValueError('Value must be a boolean')
             
         return data

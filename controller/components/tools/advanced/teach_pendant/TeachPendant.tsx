@@ -119,7 +119,6 @@ interface MoveModalProps {
 }
 
 interface SequenceCommand {
-  id: number;
   command: string;
   params: Record<string, any>;
   order: number;
@@ -592,7 +591,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
         width: params.width,
         speed: params.speed,
         force: params.force,
-        tool_id: config.name,
+        tool_id: config.id,
       });
 
       gripParamsQuery.refetch();
@@ -707,7 +706,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
             name: localName,
             ...coordinateToJoints(localCoordinate),
             location_type: editingPoint.locType,
-            tool_id: config.name,
+            tool_id: config.id,
           });
         } else {
           await updateNestMutation.mutateAsync({
@@ -722,7 +721,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
             location_type: editingPoint.locType,
             orientation: editingPoint.orientation || "landscape",
             safe_location_id: localSafeLoc || 1,
-            tool_id: config.name,
+            tool_id: config.id,
           });
         }
 
@@ -1736,34 +1735,59 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                       </Tr>
                     </Thead>
                     <Tbody>
-                      {sequences?.map((sequence) => (
-                        <Tr key={sequence.id}>
-                          <Td>{sequence.name}</Td>
-                          <Td>{sequence.commands.length} commands</Td>
-                          <Td>
-                            <Menu>
-                              <MenuButton
-                                as={IconButton}
-                                aria-label="Actions"
-                                icon={<HamburgerIcon />}
-                                variant="ghost"
-                                size="sm"
-                              />
-                              <MenuList>
-                                <MenuItem onClick={() => handleEditSequence(sequence)}>
-                                  Edit
-                                </MenuItem>
-                                <MenuItem onClick={() => handleRunSequence(sequence)}>Run</MenuItem>
-                                <MenuItem
-                                  color="red.500"
-                                  onClick={() => handleDeleteSequence(sequence.id)}>
-                                  Delete
-                                </MenuItem>
-                              </MenuList>
-                            </Menu>
-                          </Td>
-                        </Tr>
-                      ))}
+                      {sequences?.map((sequence) => {
+                        const typesSequence: Sequence = {
+                          id: sequence.id,
+                          name: sequence.name,
+                          tool_id: sequence.tool_id,
+                          commands: sequence.commands.map((command) => ({
+                            command: command.command,
+                            params: command.params,
+                            order: command.order,
+                          })),
+                          description: sequence.description,
+                        };
+                        return (
+                          <Tr key={sequence.id}>
+                            <Td>{sequence.name}</Td>
+                            <Td>{sequence.commands.length} commands</Td>
+                            <Td>
+                              <Menu>
+                                <MenuButton
+                                  as={IconButton}
+                                  aria-label="Actions"
+                                  icon={<HamburgerIcon />}
+                                  variant="ghost"
+                                  size="sm"
+                                />
+                                <MenuList>
+                                  <MenuItem
+                                    onClick={() =>
+                                      handleEditSequence({
+                                        ...sequence,
+                                        commands: sequence.commands.map((cmd, index) => ({
+                                          command: cmd.command,
+                                          params: cmd.params,
+                                          order: index,
+                                        })),
+                                      })
+                                    }>
+                                    Edit
+                                  </MenuItem>
+                                  <MenuItem onClick={() => handleRunSequence(sequence)}>
+                                    Run
+                                  </MenuItem>
+                                  <MenuItem
+                                    color="red.500"
+                                    onClick={() => handleDeleteSequence(sequence.id)}>
+                                    Delete
+                                  </MenuItem>
+                                </MenuList>
+                              </Menu>
+                            </Td>
+                          </Tr>
+                        );
+                      })}
                     </Tbody>
                   </Table>
                 </CardBody>

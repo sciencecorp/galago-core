@@ -1,4 +1,5 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Date,Boolean,Float, DateTime, CheckConstraint
+from sqlalchemy import Column, ForeignKey, Integer, String, \
+JSON, Date, Boolean, Float, DateTime, CheckConstraint
 from sqlalchemy.orm import relationship
 from .db_session import Base
 from sqlalchemy.ext.declarative import declared_attr
@@ -10,7 +11,8 @@ class TimestampMixin:
         return Column(DateTime, default=datetime.datetime.now())
     @declared_attr
     def updated_at(cls) -> Column:
-        return Column(DateTime, default=datetime.datetime.now(), onupdate=datetime.datetime.now())
+        return Column(DateTime, default=datetime.datetime.now(), 
+                      onupdate=datetime.datetime.now())
 
 class Workcell(Base, TimestampMixin):
     __tablename__ = "workcells"
@@ -18,7 +20,8 @@ class Workcell(Base, TimestampMixin):
     name = Column(String, nullable=False, unique=True)
     location = Column(String, nullable=True)
     description = Column(String, nullable=True) 
-    tools = relationship("Tool", back_populates="workcell", cascade="all, delete-orphan")
+    tools = relationship("Tool", back_populates="workcell", 
+                         cascade="all, delete-orphan")
     
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
@@ -37,14 +40,20 @@ class Tool(Base, TimestampMixin):
     workcell_id = Column(String, ForeignKey("workcells.id"))
     workcell = relationship("Workcell", back_populates="tools")
     nests = relationship("Nest", back_populates="tool")
-    robot_arm_locations = relationship("RobotArmLocation", back_populates="tool")
-    robot_arm_nests = relationship("RobotArmNest", back_populates="tool")
-    robot_arm_sequences = relationship("RobotArmSequence", back_populates="tool")
-    robot_arm_motion_profiles = relationship("RobotArmMotionProfile", back_populates="tool")
-    robot_arm_grip_params = relationship("RobotArmGripParams", back_populates="tool")
+    robot_arm_locations = relationship("RobotArmLocation", 
+                                       back_populates="tool")
+    robot_arm_nests = relationship("RobotArmNest", 
+                                   back_populates="tool")
+    robot_arm_sequences = relationship("RobotArmSequence", 
+                                       back_populates="tool")
+    robot_arm_motion_profiles = relationship("RobotArmMotionProfile", 
+                                             back_populates="tool")
+    robot_arm_grip_params = relationship("RobotArmGripParams", 
+                                         back_populates="tool")
 
     __table_args__ = (
-        CheckConstraint("name <> ''", name="check_non_empty_name"),
+        CheckConstraint("name <> ''", 
+                        name="check_non_empty_name"),
     )
 
 class Nest(Base, TimestampMixin):
@@ -64,7 +73,8 @@ class Plate(Base, TimestampMixin):
     name = Column(String, nullable=True)
     barcode = Column(String)
     plate_type = Column(String)
-    nest_id = Column(Integer, ForeignKey("nests.id"), nullable=True)
+    nest_id = Column(Integer, 
+                     ForeignKey("nests.id"), nullable=True)
     nest = relationship("Nest", back_populates="plate")
     wells = relationship("Well", back_populates="plate")
 
@@ -75,9 +85,12 @@ class Well(Base, TimestampMixin):
     row = Column(String)
     column = Column(Integer)
 
-    plate_id = Column(Integer, ForeignKey("plates.id"))
-    plate = relationship("Plate", back_populates="wells")
-    reagents = relationship("Reagent", back_populates="well")
+    plate_id = Column(Integer, 
+                      ForeignKey("plates.id"))
+    plate = relationship("Plate", 
+                         back_populates="wells")
+    reagents = relationship("Reagent", 
+                            back_populates="well")
 
 class Reagent(Base, TimestampMixin):
     __tablename__ = "reagents"
@@ -146,7 +159,7 @@ class RobotArmLocation(Base, TimestampMixin):
     __tablename__ = "robot_arm_locations"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
-    location_type = Column(String, nullable=False)  # 'j' for joint or 'c' for cartesian
+    location_type = Column(String, nullable=False)  
     j1 = Column(Float, nullable=True)
     j2 = Column(Float, nullable=True)
     j3 = Column(Float, nullable=True)
@@ -167,8 +180,8 @@ class RobotArmNest(Base, TimestampMixin):
     __tablename__ = "robot_arm_nests"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
-    orientation = Column(String, nullable=False)  # 'portrait' or 'landscape'
-    location_type = Column(String, nullable=False)  # 'j' for joint or 'c' for cartesian
+    orientation = Column(String, nullable=False)  
+    location_type = Column(String, nullable=False)  
     j1 = Column(Float, nullable=True)
     j2 = Column(Float, nullable=True)
     j3 = Column(Float, nullable=True)
@@ -189,7 +202,7 @@ class RobotArmSequence(Base, TimestampMixin):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
     description = Column(String, nullable=True)
-    commands = Column(JSON, nullable=False)  # List of commands and their parameters
+    commands = Column(JSON, nullable=False)  
     tool_id = Column(Integer, ForeignKey("tools.id"))
     tool = relationship("Tool", back_populates="robot_arm_sequences")
 
@@ -201,7 +214,7 @@ class RobotArmMotionProfile(Base, TimestampMixin):
     __tablename__ = "robot_arm_motion_profiles"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
-    profile_id = Column(Integer, nullable=False)  # This is the ID used by the robot
+    profile_id = Column(Integer, nullable=False)  
     speed = Column(Float, nullable=False)
     speed2 = Column(Float, nullable=False)
     acceleration = Column(Float, nullable=False)

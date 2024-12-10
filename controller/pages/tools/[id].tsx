@@ -1,4 +1,3 @@
-// Import this at the top of your Page component file
 import CommandButton from "./commandButton";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
@@ -25,7 +24,7 @@ import { capitalizeFirst } from "@/utils/parser";
 import { useParams } from "react-router";
 import Head from "next/head";
 import { ToolConfig } from "gen-interfaces/controller";
-import { TeachPendant } from "@/components/tools/advanced/TeachPendant";
+import { TeachPendant } from "@/components/tools/advanced/teach_pendant/TeachPendant";
 // Assuming you're using TypeScript, you could define a type for the status object
 type CommandStatus = {
   [commandName: string]: "idle" | "success" | "error";

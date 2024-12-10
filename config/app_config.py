@@ -66,13 +66,16 @@ class Config():
                         app_config.data_folder = os.path.join(ROOT_DIRECTORY,"logs")
                     if app_config.workcell is None:
                         app_config.workcell = "workcell_1"
-                        logging.warning("Workcell not specified.. Using default workcell_1")
+                        logging.warning("Workcell not specified.. "
+                                        "Using default workcell_1")
                     self.app_config = app_config
-                except json.JSONDecodeError as e:
-                    logging.error(f"Encountered errored while loading config file {e}")
+                except json.JSONDecodeError:
+                    logging.error("Encountered errored while "
+                                  "loading config file")
 
     def serialize(self, obj:t.Any) -> t.Any:
-        """JSON serializer for objects not serializable by default json code"""
+        """JSON serializer for objects not serializable 
+        by default json code"""
 
         if isinstance(obj, date):
             serial = obj.isoformat()
@@ -89,7 +92,9 @@ class Config():
         if self.app_config.workcell is None:
             logging.warning("Workcell not specified")
             return None
-        workcell_path = join(self.app_config.data_folder,"workcells",f"{self.app_config.workcell}.json")
+        workcell_path = join(self.app_config.data_folder,
+                             "workcells",
+                             f"{self.app_config.workcell}.json")
         if not os.path.exists(workcell_path):
             self.workcell_config_is_valid = False
             logging.warning("Specified workcell config file does not exist")
@@ -106,4 +111,5 @@ class Config():
         return None
     def __str__(self) -> str:
         #Use for debugging
-        return f"Config(data_folder_dir={self.app_config.data_folder}, workcell={self.app_config.workcell})"
+        return f"Config(data_folder_dir={self.app_config.data_folder}, \
+         workcell={self.app_config.workcell})"

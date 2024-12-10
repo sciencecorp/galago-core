@@ -8,7 +8,6 @@ import schemas as schemas
 import models.inventory_models as models
 import models.log_models as log_model
 import typing as t  
-import logging
 
 ModelType = TypeVar("ModelType", bound=models.Base)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
@@ -214,22 +213,40 @@ reagent = CRUDBase[models.Reagent, schemas.ReagentCreate, schemas.ReagentUpdate]
 )
 tool = CRUDBase[models.Tool, schemas.ToolCreate, schemas.ToolUpdate](models.Tool)
 logs = CRUDBase[log_model.Log, schemas.LogCreate, schemas.LogUpdate](log_model.Log)
-variables = CRUDBase[models.Variable,schemas.VariableCreate, schemas.VariableUpdate](models.Variable)
-labware = CRUDBase[models.Labware,schemas.LabwareCreate, schemas.LabwareUpdate](models.Labware)
-settings = CRUDBase[models.AppSettings,schemas.AppSettingsCreate, schemas.AppSettingsUpdate](models.AppSettings)
-scripts = CRUDBase[models.Script,schemas.ScriptCreate, schemas.ScriptUpdate](models.Script)
-robot_arm_location = CRUDBase[models.RobotArmLocation, schemas.RobotArmLocationCreate, schemas.RobotArmLocationUpdate](
+variables = CRUDBase[models.Variable,
+                     schemas.VariableCreate, 
+                     schemas.VariableUpdate](models.Variable)
+labware = CRUDBase[models.Labware,
+                   schemas.LabwareCreate, 
+                   schemas.LabwareUpdate](models.Labware)
+settings = CRUDBase[models.AppSettings,
+                    schemas.AppSettingsCreate, 
+                    schemas.AppSettingsUpdate](models.AppSettings)
+scripts = CRUDBase[models.Script,
+                   schemas.ScriptCreate, 
+                   schemas.ScriptUpdate](models.Script)
+robot_arm_location = CRUDBase[models.RobotArmLocation, 
+                              schemas.RobotArmLocationCreate, 
+                              schemas.RobotArmLocationUpdate](
     models.RobotArmLocation
 )
-robot_arm_nest = CRUDBase[models.RobotArmNest, schemas.RobotArmNestCreate, schemas.RobotArmNestUpdate](
+robot_arm_nest = CRUDBase[models.RobotArmNest, 
+                          schemas.RobotArmNestCreate, 
+                          schemas.RobotArmNestUpdate](
     models.RobotArmNest
 )
-robot_arm_sequence = CRUDBase[models.RobotArmSequence, schemas.RobotArmSequenceCreate, schemas.RobotArmSequenceUpdate](
+robot_arm_sequence = CRUDBase[models.RobotArmSequence, 
+                               schemas.RobotArmSequenceCreate, 
+                               schemas.RobotArmSequenceUpdate](
     models.RobotArmSequence
 )
-robot_arm_motion_profile = CRUDBase[models.RobotArmMotionProfile, schemas.RobotArmMotionProfileCreate, schemas.RobotArmMotionProfileUpdate](
+robot_arm_motion_profile = CRUDBase[models.RobotArmMotionProfile, 
+                                    schemas.RobotArmMotionProfileCreate, 
+                                    schemas.RobotArmMotionProfileUpdate](
     models.RobotArmMotionProfile
 )
-robot_arm_grip_params = CRUDBase[models.RobotArmGripParams, schemas.RobotArmGripParamsCreate, schemas.RobotArmGripParamsUpdate](
+robot_arm_grip_params = CRUDBase[models.RobotArmGripParams, 
+                                  schemas.RobotArmGripParamsCreate, 
+                                  schemas.RobotArmGripParamsUpdate](
     models.RobotArmGripParams
 )

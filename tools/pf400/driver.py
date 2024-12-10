@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 import logging
 import time
-from enum import Enum, auto
-from typing import Optional, List, Dict, Union, Literal
-from abc import ABC
+from enum import Enum
+from typing import Optional, List
 from tools.pf400.tcp_ip import Pf400TcpIp
 from tools.base_server import ABCToolDriver
 

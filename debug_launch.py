@@ -13,6 +13,6 @@ logging.basicConfig(
 if __name__ == "__main__":
     try:
         main()
-    except Exception as e:
+    except Exception:
         logging.exception("Failed to launch tools")
         sys.exit(1)

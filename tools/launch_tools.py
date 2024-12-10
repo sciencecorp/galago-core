@@ -14,7 +14,6 @@ import time
 import argparse
 from os.path import join, dirname
 from typing import Optional, Any, Callable
-from tools.conda_utils import get_conda_environments,check_conda_is_path
 from tkinter.scrolledtext import ScrolledText
 
 ROOT_DIR = dirname(dirname(os.path.realpath(__file__)))
@@ -471,7 +470,7 @@ def main() -> None:
         config.load_workcell_config()
         manager = ToolsManager(root, config)
         manager.show_gui()
-    except Exception as e:
+    except Exception:
         logging.exception("Failed to launch tools")
         sys.exit(1)
 

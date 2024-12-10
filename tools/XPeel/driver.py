@@ -53,7 +53,7 @@ class XPeelDriver(ABCToolDriver):
 
     def remove_seal(self) -> None:
         """ Perform a deseal operation with specific parameters. """
-        self.write(f"*xpeel:41")
+        self.write("*xpeel:41")
         self.wait_for_ready()
 
     def check_status(self) -> str:

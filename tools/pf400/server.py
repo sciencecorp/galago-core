@@ -1,28 +1,18 @@
-import typing as t
-import json
-import logging
-import os
-import networkx as nx
-from google.protobuf import message
-from google.protobuf.json_format import Parse
 from tools.base_server import ToolServer, serve
-from tools.grpc_interfaces.pf400_pb2 import Command, Config
-from tools.grpc_interfaces.labware_pb2 import Labware
-from tools.grpc_interfaces.tool_base_pb2 import ExecuteCommandReply
-from tools.grpc_interfaces.tool_base_pb2 import SUCCESS, ERROR_FROM_TOOL
-from tools.pf400.driver import Pf400Driver
-import argparse 
-from typing import Union, Optional, List
-import re
-from google.protobuf.struct_pb2 import Struct
+from tools.grpc_interfaces.opentrons2_pb2 import Command, Config
+from .driver import Ot2Driver
+import argparse
+from typing import Optional, Union
+from tools.grpc_interfaces.opentrons2_pb2 import ExecuteCommandReply, Struct
+from tools.grpc_interfaces.opentrons2_pb2 import SUCCESS, ERROR_FROM_TOOL
+import logging
 
-
-class Pf400Server(ToolServer):
-    toolType = "pf400"
+class Ot2Server(ToolServer):
+    toolType = "ot2"
 
     def __init__(self) -> None:
         super().__init__()
-        self.driver: Pf400Driver
+        self.driver: Ot2Driver
         self.sequence_location: str
         self.plate_handling_params: dict[str, dict[str, Union[Command.GraspPlate, Command.ReleasePlate]]] = {}
         self.waypoints: dict[str, dict[str, Union[Command.GraspPlate, Command.ReleasePlate]]] = {}
@@ -218,7 +208,7 @@ class Pf400Server(ToolServer):
         self.config = config
         if self.driver:
             self.driver.close()
-        self.driver = Pf400Driver(
+        self.driver = Ot2Driver(
             tcp_host=self.config.host,
             tcp_port=self.config.port
         )
@@ -232,4 +222,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if not args.port:
          raise RuntimeWarning("Port must be provided...")
-    serve(Pf400Server(), str(args.port))
+    serve(Ot2Server(), str(args.port))

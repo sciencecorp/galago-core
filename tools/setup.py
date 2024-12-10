@@ -1,6 +1,5 @@
 import os
-from setuptools import setup, find_namespace_packages
-import os
+from setuptools import setup
 import subprocess
 from setuptools.command.build_py import build_py as _build_py
 from os.path import join, dirname, realpath
@@ -31,10 +30,10 @@ class BuildProtobuf(_build_py):
             subprocess.run(
                 [
                     "python", "-m", "grpc_tools.protoc",
-                    f"-I{proto_src}",
-                    f"--python_out=grpc_interfaces/",
-                    f"--pyi_out=grpc_interfaces/",
-                    f"--grpc_python_out=grpc_interfaces/",
+                    "-I" + proto_src,
+                    "--python_out=grpc_interfaces/",
+                    "--pyi_out=grpc_interfaces/",
+                    "--grpc_python_out=grpc_interfaces/",
                     *grpc_proto_files,
                 ],
                 check=True,
@@ -50,10 +49,10 @@ class BuildProtobuf(_build_py):
             subprocess.run(
                 [
                     "python", "-m", "grpc_tools.protoc",
-                    f"-I{proto_src}",
-                    f"--python_out=grpc_interfaces/",
-                    f"--pyi_out=grpc_interfaces/",
-                    f"--grpc_python_out=grpc_interfaces/",
+                    "-I" + proto_src,
+                    "--python_out=grpc_interfaces/",
+                    "--pyi_out=grpc_interfaces/", 
+                    "--grpc_python_out=grpc_interfaces/",
                     *root_proto_files,
                 ],
                 check=True,

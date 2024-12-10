@@ -18,7 +18,6 @@ import {
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
 import { ToolCommandInfo } from "@/types";
-import { PF400 } from "@/components/tools/advanced/pf400";
 import { ToolConfig } from "gen-interfaces/controller";
 
 export default function Page() {
@@ -37,7 +36,6 @@ export default function Page() {
               <ToolStatusCard toolId={id || ""} />
             </Box>
           </Box>
-          <PF400 toolId={id} config={configDefault as ToolConfig} />
         </VStack>
       </>
     );

@@ -87,9 +87,9 @@ export default class Tool {
         { toolId: toolId },
         { enabled: true },
       );
-      if (config.pf400) {
-        config.pf400.waypoints = waypoints.data;
-      }
+      // if (config.pf400) {
+      //   config.pf400.waypoints = waypoints.data;
+      // }
     }
     const reply = await this.grpc.configure(config);
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
@@ -267,6 +267,7 @@ export default class Tool {
 
   static toolBoxConfig(): controller_protos.ToolConfig {
     return {
+      id: 0,
       name: "Tool Box",
       type: "toolbox" as ToolType,
       description: "General Tools",

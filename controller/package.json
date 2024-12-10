@@ -97,6 +97,7 @@
     "@types/minimist": "^1.2.2",
     "@types/node": "^22.7.5",
     "@types/papaparse": "~5.3.14",
+    "@types/react-beautiful-dnd": "^13.1.8",
     "typescript": "^5.5.3"
   }
 }

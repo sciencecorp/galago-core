@@ -1,11 +1,8 @@
-import requests 
-from typing import Union, Optional
-import urllib3
-import logging 
+import requests
+from typing import Union
+import logging
 
 API_URL = "http://localhost:8000/api"
-
-logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 class Db:
     @staticmethod
