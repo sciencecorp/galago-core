@@ -292,6 +292,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   }, [robotArmLocationsQuery.data, robotArmNestsQuery.data]);
 
   const getCurrentPosition = async (): Promise<string | null> => {
+    console.log(`config:`, config);
     const toolCommand: ToolCommandInfo = {
       toolId: config.name,
       toolType: config.type,
@@ -301,6 +302,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
 
     try {
       const response = await commandMutation.mutateAsync(toolCommand);
+      console.log(`response:`, response);
       if (response && response.meta_data) {
         return response.meta_data.location;
       }
@@ -595,6 +597,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   };
 
   const handleMoveCommand = async (point: TeachPoint, profile: MotionProfile) => {
+    console.log(`point:`, point);
     const command: ToolCommandInfo = {
       toolId: config.name,
       toolType: config.type,

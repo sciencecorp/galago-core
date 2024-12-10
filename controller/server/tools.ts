@@ -108,20 +108,27 @@ export default class Tool {
   async executeCommand(command: ToolCommandInfo) {
     const params = command.params;
     for (const key in params) {
-      if (params[key].startsWith("{{") && params[key].endsWith("}}")) {
+      if (params[key] == null) continue;
+      
+      const paramValue = String(params[key]);
+      
+      if (paramValue.startsWith("{{") && paramValue.endsWith("}}")) {
         try {
-          const varValue = await get<Variable>(`/variables/${params[key].slice(2, -2)}`);
+          const varValue = await get<Variable>(`/variables/${paramValue.slice(2, -2)}`);
           params[key] = varValue.value;
         } catch (e) {
-          throw new Error(`Variable ${params[key].slice(2, -2)} not found`);
+          throw new Error(`Variable ${paramValue.slice(2, -2)} not found`);
         }
       }
     }
+
     if (command.command === "run_python_script" && command.toolId === "Tool Box") {
+      const scriptId = String(command.params.script_content);
       command.params.script_content = (
-        await get<Script>(`/scripts/${command.params.script_content}`)
+        await get<Script>(`/scripts/${scriptId}`)
       ).content;
     }
+
     const reply = await this.grpc.executeCommand(this._payloadForCommand(command));
     if (reply.return_reply) {
       return reply;

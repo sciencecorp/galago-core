@@ -14,6 +14,7 @@ from tools.pf400.driver import Pf400Driver
 import argparse 
 from typing import Union, Optional, List
 import re
+from google.protobuf.struct_pb2 import Struct
 
 
 class Pf400Server(ToolServer):
@@ -48,8 +49,7 @@ class Pf400Server(ToolServer):
             )
             profile_id = motion_profile['id']
         else:
-            profile_id = getattr(params, 'motion_profile_id', 1)
-
+            profile_id = 1
         self.driver.movej(coordinate, motion_profile=profile_id)
 
     def retrieve_plate(
@@ -152,7 +152,12 @@ class Pf400Server(ToolServer):
             if not self.driver:
                 raise Exception("Driver not initialized")
             position = self.driver.wherej()  # Using the direct wherej command from driver
-            response.message = position
+            
+            # Create meta_data with the location information
+            meta = Struct()
+            meta.update({"location": position})
+            response.meta_data.CopyFrom(meta)
+            
             return response
         except Exception as e:
             logging.error(f"Error getting position: {e}")
