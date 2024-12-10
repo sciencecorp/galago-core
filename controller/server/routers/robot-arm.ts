@@ -53,10 +53,20 @@ const zRobotArmGripParams = z.object({
   force: z.number(),
   tool_id: z.number(),
 });
+
+const zRobotArmSequence = z.object({
+  id: z.number(),
+  name: z.string(),
+  description: z.string().optional(),
+  commands: z.array(z.record(z.any())),
+  tool_id: z.number(),
+});
+
 export type RobotArmLocation = z.infer<typeof zRobotArmLocation>;
 export type RobotArmNest = z.infer<typeof zRobotArmNest>;
 export type RobotArmMotionProfile = z.infer<typeof zRobotArmMotionProfile>;
 export type RobotArmGripParams = z.infer<typeof zRobotArmGripParams>;
+export type RobotArmSequence = z.infer<typeof zRobotArmSequence>;
 
 export const robotArmRouter = router({
   location: router({
@@ -126,5 +136,23 @@ export const robotArmRouter = router({
     delete: procedure
       .input(z.object({ id: z.number() }))
       .mutation(({ input }) => del(`/robot-arm-grip-params/${input.id}`)),
+  }),
+
+  sequence: router({
+    getAll: procedure
+      .input(z.object({ toolId: z.number() }))
+      .query(
+        ({ input }): Promise<RobotArmSequence[]> =>
+          get(`/robot-arm-sequences?tool_id=${input.toolId}`),
+      ),
+    create: procedure
+      .input(zRobotArmSequence.omit({ id: true }))
+      .mutation(({ input }) => post("/robot-arm-sequences", input)),
+    update: procedure
+      .input(zRobotArmSequence)
+      .mutation(({ input }) => put(`/robot-arm-sequences/${input.id}`, input)),
+    delete: procedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => del(`/robot-arm-sequences/${input.id}`)),
   }),
 });

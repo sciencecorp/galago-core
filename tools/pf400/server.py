@@ -165,10 +165,36 @@ class Pf400Server(ToolServer):
             response.error_message = str(e)
             return response
 
-    def RunSequence(self, sequence: list[Command]) -> None:
-        # self.driver.run_sequence(sequence)
-        return 
-    
+    def RunSequence(self, params: Command.RunSequence) -> None:
+        """Execute a sequence of commands."""
+        if not self.driver:
+            raise Exception("Driver not initialized")
+
+        sequence = params.sequence
+        
+        for command in sequence:
+            # Extract command type and parameters
+            command_type = command["command_type"]
+            command_params = command["params"]
+            
+            # Convert command type to method name (e.g., "move" -> "Move")
+            method_name = command_type.capitalize()
+            method = getattr(self, method_name, None)
+            
+            if not method:
+                raise Exception(f"Unknown command type: {command_type}")
+            
+            # Create Command object with parameters
+            command_obj = Command()
+            command_field = getattr(command_obj, command_type)
+            
+            # Parse parameters into protobuf message
+            for key, value in command_params.items():
+                setattr(command_field, key, value)
+            
+            # Execute the command
+            method(command_field)
+
     def estimateRunSequence(self, sequence: list[Command]) -> int:
         return 1
 
