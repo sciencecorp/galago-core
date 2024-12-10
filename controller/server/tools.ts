@@ -80,6 +80,17 @@ export default class Tool {
 
   async configure(config: tool_base.Config) {
     this.config = config;
+    // if tool is pf400, then set the waypoints of the DB to the waypoints in the config
+    if (this.type === ToolType.pf400) {
+      const toolId = parseInt(this.id);
+      const waypoints = trpc.robotArm.waypoints.getAll.useQuery(
+        { toolId: toolId },
+        { enabled: true }
+      );
+      if (config.pf400) {
+        config.pf400.waypoints = waypoints.data;
+      }
+    }
     const reply = await this.grpc.configure(config);
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
       throw new ToolCommandExecutionError(

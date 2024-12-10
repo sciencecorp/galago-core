@@ -147,6 +147,7 @@ message Command {
 message Config {
   string host = 1;
   int32 port = 2;
-  int32 joints = 4;
-  
+  int32 joints = 3;
+  repeated string waypoints = 4;
 }
+

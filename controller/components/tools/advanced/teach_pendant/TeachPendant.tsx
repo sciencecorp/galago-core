@@ -64,6 +64,7 @@ import {
 } from "@chakra-ui/icons";
 import { RobotArmLocation, RobotArmNest, RobotArmSequence } from "@/server/routers/robot-arm";
 import { DragDropContext, Droppable, Draggable, DraggableProvided, DroppableProvided } from "react-beautiful-dnd";
+import { useSequenceHandler } from './SequenceHandler';
 
 interface TeachPendantProps {
   toolId: string | undefined;
@@ -155,6 +156,23 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   const [isSequenceModalOpen, setIsSequenceModalOpen] = useState(false);
   const [selectedSequence, setSelectedSequence] = useState<RobotArmSequence | null>(null);
   const [commands, setCommands] = useState<any[]>([]);
+
+  const {
+    sequences,
+    handleCreateSequence,
+    handleUpdateSequence,
+    handleDeleteSequence,
+    handleRunSequence,
+    handleEditSequence,
+    handleNewSequence,
+    SequenceModal
+  } = useSequenceHandler(config);
+
+  const waypoints = trpc.robotArm.waypoints.getAll.useQuery(
+    { toolId: config.id },
+    { enabled: !!config.id && config.id !== 0 }
+  );
+  console.log("waypoints",waypoints)
 
   const getLocTypeDisplay = (locType: string) => {
     switch (locType) {
@@ -1320,408 +1338,6 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     );
   };
 
-  const sequencesQuery = trpc.robotArm.sequence.getAll.useQuery(
-    { toolId: config.id },
-    { enabled: !!config.id }
-  );
-
-  const createSequenceMutation = trpc.robotArm.sequence.create.useMutation({
-    onSuccess: () => {
-      sequencesQuery.refetch();
-    },
-  });
-
-  const updateSequenceMutation = trpc.robotArm.sequence.update.useMutation({
-    onSuccess: () => {
-      sequencesQuery.refetch();
-    },
-  });
-
-  const deleteSequenceMutation = trpc.robotArm.sequence.delete.useMutation({
-    onSuccess: () => {
-      sequencesQuery.refetch();
-    },
-  });
-
-  const SequenceModal: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    sequence?: RobotArmSequence;
-  }> = ({ isOpen, onClose, sequence }) => {
-    const [name, setName] = useState(sequence?.name || "");
-    const [description, setDescription] = useState(sequence?.description || "");
-    const [commands, setCommands] = useState<SequenceCommand[]>(
-      (sequence?.commands as SequenceCommand[]) || []
-    );
-    const [selectedCommandType, setSelectedCommandType] = useState<string>("");
-
-    // Get available teachpoints and nests
-    const locationsQuery = trpc.robotArm.location.getAll.useQuery({ toolId: config.id });
-    const nestsQuery = trpc.robotArm.nest.getAll.useQuery({ toolId: config.id });
-
-    // Commands that use nests vs locations
-    const nestCommands = ['approach', 'leave', 'pick_lid', 'place_lid'];
-    const locationCommands = ['move'];
-    const simpleCommands = ['unwind', 'wait', 'grasp_plate', 'release_plate'];
-
-    
-    const getCommandFields = (commandType: string) => {
-      if (locationCommands.includes(commandType)) {
-        return {
-          fields: config.commands?.[commandType] || [],
-          options: locationsQuery.data || []
-        };
-      } else if (nestCommands.includes(commandType)) {
-        return {
-          fields: config.commands?.[commandType] || [],
-          options: nestsQuery.data || []
-        };
-      }
-      return {
-        fields: config.commands?.[commandType] || [],
-        options: []
-      };
-    };
-
-    const handleAddCommand = () => {
-      if (!selectedCommandType) return;
-      
-      setCommands(prev => [...prev, {
-        id: Date.now(),
-        command: selectedCommandType,
-        params: {},
-        order: prev.length
-      }]);
-      
-      setSelectedCommandType("");
-    };
-
-    const renderCommandParams = (command: SequenceCommand) => {
-      const fields = getCommandFields(command.command);
-      
-      return (
-        <VStack align="stretch" mt={2} spacing={2}>
-          {command.command === 'move' && (
-            <>
-              <FormControl>
-                <FormLabel>Waypoint</FormLabel>
-                <Select
-                  value={command.params?.waypoint || ""}
-                  onChange={(e) => updateCommandParams(command, { waypoint: e.target.value })}
-                >
-                  {locationsQuery.data?.map(loc => (
-                    <option key={loc.id} value={loc.name}>{loc.name}</option>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Motion Profile ID</FormLabel>
-                <NumberInput
-                  value={command.params?.motion_profile_id || 2}
-                  onChange={(_, value) => updateCommandParams(command, { motion_profile_id: value })}
-                >
-                  <NumberInputField />
-                </NumberInput>
-              </FormControl>
-            </>
-          )}
-
-          {(command.command === 'approach' || command.command === 'leave') && (
-            <>
-              <FormControl>
-                <FormLabel>Nest</FormLabel>
-                <Select
-                  value={command.params?.nest || ""}
-                  onChange={(e) => updateCommandParams(command, { nest: e.target.value })}
-                >
-                  {nestsQuery.data?.map(nest => (
-                    <option key={nest.id} value={nest.name}>{nest.name}</option>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Motion Profile ID</FormLabel>
-                <NumberInput
-                  value={command.params?.motion_profile_id || 2}
-                  onChange={(_, value) => updateCommandParams(command, { motion_profile_id: value })}
-                >
-                  <NumberInputField />
-                </NumberInput>
-              </FormControl>
-              {command.command === 'approach' && (
-                <FormControl>
-                  <FormLabel>Z Offset</FormLabel>
-                  <NumberInput
-                    value={command.params?.z_offset || 0}
-                    onChange={(_, value) => updateCommandParams(command, { z_offset: value })}
-                  >
-                    <NumberInputField />
-                  </NumberInput>
-                </FormControl>
-              )}
-            </>
-          )}
-
-          {(command.command === 'pick_lid' || command.command === 'place_lid') && (
-            <>
-              <FormControl>
-                <FormLabel>Location</FormLabel>
-                <Select
-                  value={command.params?.location || ""}
-                  onChange={(e) => updateCommandParams(command, { location: e.target.value })}
-                >
-                  {nestsQuery.data?.map(nest => (
-                    <option key={nest.id} value={nest.name}>{nest.name}</option>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Motion Profile ID</FormLabel>
-                <NumberInput
-                  value={command.params?.motion_profile_id || 4}
-                  onChange={(_, value) => updateCommandParams(command, { motion_profile_id: value })}
-                >
-                  <NumberInputField />
-                </NumberInput>
-              </FormControl>
-            </>
-          )}
-
-          {command.command === 'wait' && (
-            <FormControl>
-              <FormLabel>Duration (ms)</FormLabel>
-              <NumberInput
-                value={command.params?.duration || 1000}
-                onChange={(_, value) => updateCommandParams(command, { duration: value })}
-              >
-                <NumberInputField />
-              </NumberInput>
-            </FormControl>
-          )}
-        </VStack>
-      );
-    };
-
-    const updateCommandParams = (command: SequenceCommand, newParams: Record<string, any>) => {
-      setCommands(prev => prev.map(cmd => 
-        cmd.id === command.id 
-          ? { ...cmd, params: { ...cmd.params, ...newParams } }
-          : cmd
-      ));
-    };
-
-    const handleSave = async () => {
-      try {
-        if (sequence) {
-          await updateSequenceMutation.mutateAsync({
-            id: sequence.id,
-            name,
-            commands,
-            tool_id: Number(config.name),
-          });
-        } else {
-          await createSequenceMutation.mutateAsync({
-            name,
-            commands,
-            tool_id: Number(config.name),
-          });
-        }
-        setIsSequenceModalOpen(false);
-        sequencesQuery.refetch();
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to save sequence",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    };
-
-    const onDragEnd = (result: any) => {
-      if (!result.destination) return;
-      
-      const items = Array.from(commands);
-      const [reorderedItem] = items.splice(result.source.index, 1);
-      items.splice(result.destination.index, 0, reorderedItem);
-      
-      setCommands(items);
-    };
-
-    return (
-      <Modal isOpen={isOpen} onClose={onClose} size="xl">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>{sequence ? "Edit" : "Create"} Sequence</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <VStack spacing={4}>
-              <FormControl isRequired>
-                <FormLabel>Name</FormLabel>
-                <Input value={name} onChange={(e) => setName(e.target.value)} />
-              </FormControl>
-
-              <Box w="100%">
-                <Heading size="sm">Commands</Heading>
-                <HStack mt={2}>
-                  <Select
-                    value={selectedCommandType}
-                    onChange={(e) => setSelectedCommandType(e.target.value)}
-                    placeholder="Select command type"
-                  >
-                    <optgroup label="Location Commands">
-                      {locationCommands.map(cmd => (
-                        <option key={cmd} value={cmd}>{cmd}</option>
-                      ))}
-                    </optgroup>
-                    <optgroup label="Nest Commands">
-                      {nestCommands.map(cmd => (
-                        <option key={cmd} value={cmd}>{cmd}</option>
-                      ))}
-                    </optgroup>
-                    <optgroup label="Other Commands">
-                      {simpleCommands.map(cmd => (
-                        <option key={cmd} value={cmd}>{cmd}</option>
-                      ))}
-                    </optgroup>
-                  </Select>
-                  <Button onClick={handleAddCommand} isDisabled={!selectedCommandType}>
-                    Add Command
-                  </Button>
-                </HStack>
-
-                <DragDropContext onDragEnd={onDragEnd}>
-                  <Droppable droppableId="commands">
-                    {(provided: DroppableProvided) => (
-                      <VStack
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                        spacing={2}
-                        mt={4}
-                        align="stretch"
-                      >
-                        {commands.map((command, index) => (
-                          <Draggable
-                            key={index}
-                            draggableId={index.toString()}
-                            index={index}
-                          >
-                            {(provided: DraggableProvided) => (
-                              <Box
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                p={2}
-                                bg={useColorModeValue("gray.50", "gray.700")}
-                                borderRadius="md"
-                              >
-                                <HStack justify="space-between">
-                                  <Text>{command.command}</Text>
-                                  <IconButton
-                                    aria-label="Delete command"
-                                    icon={<DeleteIcon />}
-                                    size="sm"
-                                    onClick={() => {
-                                      setCommands(commands.filter((_, i) => i !== index));
-                                    }}
-                                  />
-                                </HStack>
-                                {renderCommandParams(command)}
-                              </Box>
-                            )}
-                          </Draggable>
-                        ))}
-                        {provided.placeholder}
-                      </VStack>
-                    )}
-                  </Droppable>
-                </DragDropContext>
-              </Box>
-            </VStack>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onClose}>
-              Cancel
-            </Button>
-            <Button colorScheme="blue" onClick={handleSave}>
-              Save
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    );
-  };
-
-  const handleEditSequence = (sequence: RobotArmSequence) => {
-    setSelectedSequence(sequence);
-    setIsSequenceModalOpen(true);
-  };
-
-  const handleRunSequence = async (sequence: Sequence) => {
-    const commandInfo: ToolCommandInfo = {
-      toolId: config.name,
-      toolType: config.type,
-      command: "run_sequence",
-      params: {
-        sequence: sequence.commands.map(cmd => ({
-          command: cmd.command,
-          params: cmd.params
-        }))
-      }
-    };
-
-    try {
-      await commandMutation.mutateAsync(commandInfo);
-      toast({
-        title: "Sequence Executed",
-        description: `Successfully ran sequence: ${sequence.name}`,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error) {
-      console.error("Error running sequence:", error);
-      toast({
-        title: "Sequence Error",
-        description: "Failed to run sequence",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
-
-  const handleDeleteSequence = async (sequenceId: number) => {
-    try {
-      await deleteSequenceMutation.mutateAsync({ id: sequenceId });
-      toast({
-        title: "Success",
-        description: "Sequence deleted",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete sequence",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
-
-  const handleAddCommand = (commandType: string, params: any) => {
-    setCommands(prev => [...prev, {
-      id: Date.now(), // temporary ID for UI purposes
-      command_type: commandType,
-      params: params,
-      order: prev.length
-    }]);
-  };
-
   return (
     <Box
       borderWidth="1px"
@@ -2101,10 +1717,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                     <Heading size="md">Sequences</Heading>
                     <Button
                       colorScheme="blue"
-                      onClick={() => {
-                        setSelectedSequence(null);
-                        setIsSequenceModalOpen(true);
-                      }}
+                      onClick={handleNewSequence}
                     >
                       Create Sequence
                     </Button>
@@ -2120,7 +1733,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                       </Tr>
                     </Thead>
                     <Tbody>
-                      {sequencesQuery.data?.map((sequence) => (
+                      {sequences?.map((sequence) => (
                         <Tr key={sequence.id}>
                           <Td>{sequence.name}</Td>
                           <Td>{sequence.commands.length} commands</Td>
@@ -2186,16 +1799,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
           point={selectedPoint!}
           onMove={handleMoveCommand}
         />
-        <SequenceModal
-          isOpen={isSequenceModalOpen}
-          onClose={() => {
-            setIsSequenceModalOpen(false);
-          }}
-          sequence={selectedSequence ? {
-            ...selectedSequence,
-            commands: selectedSequence.commands as SequenceCommand[]
-          } : undefined}
-        />
+        <SequenceModal />
       </VStack>
     </Box>
   );

@@ -25,7 +25,7 @@ class Pf400Server(ToolServer):
         self.driver: Pf400Driver
         self.sequence_location: str
         self.plate_handling_params: dict[str, dict[str, Union[Command.GraspPlate, Command.ReleasePlate]]] = {}
-        
+        self.waypoints: dict[str, dict[str, Union[Command.GraspPlate, Command.ReleasePlate]]] = {}
     def initialize(self) -> None:
         super().initialize()
 

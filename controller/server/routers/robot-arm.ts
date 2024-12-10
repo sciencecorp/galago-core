@@ -62,6 +62,17 @@ const zRobotArmSequence = z.object({
   tool_id: z.number(),
 });
 
+const zRobotArmWaypoints = z.object({
+  id: z.number(),
+  name: z.string(),
+  locations: z.array(z.string()),
+  nests: z.array(z.string()), 
+  motionProfiles: z.array(z.string()),
+  gripParams: z.array(z.string()),
+  sequences: z.array(z.string()),
+  tool_id: z.number(),
+});
+
 export type RobotArmLocation = z.infer<typeof zRobotArmLocation>;
 export type RobotArmNest = z.infer<typeof zRobotArmNest>;
 export type RobotArmMotionProfile = z.infer<typeof zRobotArmMotionProfile>;
@@ -69,6 +80,7 @@ export type RobotArmGripParams = z.infer<typeof zRobotArmGripParams>;
 export type RobotArmSequence = z.infer<typeof zRobotArmSequence>;
 
 export const robotArmRouter = router({
+
   location: router({
     getAll: procedure
       .input(z.object({ toolId: z.number() }))
@@ -154,5 +166,29 @@ export const robotArmRouter = router({
     delete: procedure
       .input(z.object({ id: z.number() }))
       .mutation(({ input }) => del(`/robot-arm-sequences/${input.id}`)),
+  }),
+  waypoints: router({
+    getAll: procedure
+      .input(z.object({ toolId: z.number() }))
+      .query(async ({ input }): Promise<z.infer<typeof zRobotArmWaypoints>> => {
+        const [nests, locations, sequences, motionProfiles, gripParams] = await Promise.all([
+          get(`/robot-arm-nests?tool_id=${input.toolId}`) as Promise<RobotArmNest[]>,
+          get(`/robot-arm-locations?tool_id=${input.toolId}`) as Promise<RobotArmLocation[]>,
+          get(`/robot-arm-sequences?tool_id=${input.toolId}`) as Promise<RobotArmSequence[]>,
+          get(`/robot-arm-motion-profiles?tool_id=${input.toolId}`) as Promise<RobotArmMotionProfile[]>,
+          get(`/robot-arm-grip-params?tool_id=${input.toolId}`) as Promise<RobotArmGripParams[]>
+        ]);
+
+        return {
+          id: input.toolId,
+          name: `Waypoints for Tool ${input.toolId}`,
+          locations: locations.map((loc: RobotArmLocation) => loc.name),
+          nests: nests.map((nest: RobotArmNest) => nest.name),
+          sequences: sequences.map((seq: RobotArmSequence) => seq.name),
+          motionProfiles: motionProfiles.map((prof: RobotArmMotionProfile) => prof.name),
+          gripParams: gripParams.map((param: RobotArmGripParams) => param.name),
+          tool_id: input.toolId
+        };
+      }),
   }),
 });
