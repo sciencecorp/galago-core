@@ -24,3 +24,4 @@ pyserial==3.5
 slack-sdk==3.21.3
 slackclient==2.9.4
 pillow==11.0.0
+Cython==3.0.0
