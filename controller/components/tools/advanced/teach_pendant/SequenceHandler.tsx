@@ -1,13 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
-import { useToast, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, 
-  ModalFooter, ModalCloseButton, Button, FormControl, FormLabel, Input, 
-  VStack, useDisclosure, Box, Heading, Text, IconButton, HStack } from "@chakra-ui/react";
+import {
+  useToast,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  ModalCloseButton,
+  Button,
+  FormControl,
+  FormLabel,
+  Input,
+  VStack,
+  useDisclosure,
+  Box,
+  Heading,
+  Text,
+  IconButton,
+  HStack,
+} from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
 import { RobotArmSequence } from "@/server/routers/robot-arm";
 import { ToolCommandInfo } from "@/types";
 import { ToolConfig } from "gen-interfaces/controller";
-import { CommandModal } from './CommandModal';
+import { CommandModal } from "./CommandModal";
 
 export interface SequenceCommand {
   command: string;
@@ -30,8 +48,7 @@ interface SequenceModalProps {
   sequence?: Sequence;
 }
 
-
-const SequenceModal: React.FC<SequenceModalProps> = ({ config,isOpen, onClose, sequence }) => {
+const SequenceModal: React.FC<SequenceModalProps> = ({ config, isOpen, onClose, sequence }) => {
   const [name, setName] = useState(sequence?.name ?? "");
   const [description, setDescription] = useState(sequence?.description ?? "");
   const [commands, setCommands] = useState(sequence?.commands ?? []);
@@ -65,7 +82,6 @@ const SequenceModal: React.FC<SequenceModalProps> = ({ config,isOpen, onClose, s
       return;
     }
 
-
     const sequenceData = {
       name,
       description,
@@ -95,23 +111,25 @@ const SequenceModal: React.FC<SequenceModalProps> = ({ config,isOpen, onClose, s
             <VStack spacing={4}>
               <FormControl isRequired>
                 <FormLabel>Name</FormLabel>
-                <Input 
-                  value={name} 
+                <Input
+                  value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter sequence name"
                 />
               </FormControl>
               <FormControl>
                 <FormLabel>Description</FormLabel>
-                <Input 
-                  value={description} 
+                <Input
+                  value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Enter sequence description (optional)"
                 />
               </FormControl>
-              
+
               <Box w="100%">
-                <Heading size="sm" mb={2}>Commands</Heading>
+                <Heading size="sm" mb={2}>
+                  Commands
+                </Heading>
                 <VStack align="stretch" spacing={2}>
                   {commands.map((cmd, index) => (
                     <HStack key={index} justify="space-between">
@@ -125,11 +143,7 @@ const SequenceModal: React.FC<SequenceModalProps> = ({ config,isOpen, onClose, s
                     </HStack>
                   ))}
                 </VStack>
-                <Button
-                  mt={2}
-                  size="sm"
-                  onClick={() => setIsCommandModalOpen(true)}
-                >
+                <Button mt={2} size="sm" onClick={() => setIsCommandModalOpen(true)}>
                   Add Command
                 </Button>
               </Box>
@@ -156,14 +170,14 @@ const SequenceModal: React.FC<SequenceModalProps> = ({ config,isOpen, onClose, s
 };
 
 export function useSequenceHandler(config: ToolConfig) {
-  console.log("Sequence Config: ", config)
+  console.log("Sequence Config: ", config);
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedSequence, setSelectedSequence] = useState<Sequence | null>(null);
   const commandMutation = trpc.tool.runCommand.useMutation();
   const sequencesQuery = trpc.robotArm.sequence.getAll.useQuery(
     { toolId: config.id },
-    { enabled: !!config.id && config.id !== 0 }
+    { enabled: !!config.id && config.id !== 0 },
   );
 
   const createSequenceMutation = trpc.robotArm.sequence.create.useMutation({
@@ -210,8 +224,8 @@ export function useSequenceHandler(config: ToolConfig) {
       await createSequenceMutation.mutateAsync(sequence);
       onClose();
     } catch (error) {
-      toast({ 
-        title: "Failed to create sequence", 
+      toast({
+        title: "Failed to create sequence",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -224,8 +238,8 @@ export function useSequenceHandler(config: ToolConfig) {
       await updateSequenceMutation.mutateAsync(sequence);
       onClose();
     } catch (error) {
-      toast({ 
-        title: "Failed to update sequence", 
+      toast({
+        title: "Failed to update sequence",
         status: "error",
         duration: 3000,
         isClosable: true,

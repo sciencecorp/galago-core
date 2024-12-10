@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -14,7 +14,7 @@ import {
   NumberInput,
   NumberInputField,
   VStack,
-} from '@chakra-ui/react';
+} from "@chakra-ui/react";
 
 interface CommandModalProps {
   isOpen: boolean;
@@ -67,16 +67,19 @@ const availableCommands = {
 };
 
 export const CommandModal: React.FC<CommandModalProps> = ({ isOpen, onClose, onAddCommand }) => {
-  const [selectedCommand, setSelectedCommand] = useState('');
+  const [selectedCommand, setSelectedCommand] = useState("");
   const [params, setParams] = useState<Record<string, any>>({});
 
   const handleCommandSelect = (command: string) => {
     setSelectedCommand(command);
     // Initialize params with default values
-    const defaultParams = availableCommands[command as keyof typeof availableCommands].reduce((acc, field) => {
-      acc[field.name] = field.defaultValue ?? '';
-      return acc;
-    }, {} as Record<string, any>);
+    const defaultParams = availableCommands[command as keyof typeof availableCommands].reduce(
+      (acc, field) => {
+        acc[field.name] = field.defaultValue ?? "";
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
     setParams(defaultParams);
   };
 
@@ -86,7 +89,7 @@ export const CommandModal: React.FC<CommandModalProps> = ({ isOpen, onClose, onA
       params,
     });
     onClose();
-    setSelectedCommand('');
+    setSelectedCommand("");
     setParams({});
   };
 
@@ -102,8 +105,7 @@ export const CommandModal: React.FC<CommandModalProps> = ({ isOpen, onClose, onA
               <Select
                 placeholder="Select command"
                 value={selectedCommand}
-                onChange={(e) => handleCommandSelect(e.target.value)}
-              >
+                onChange={(e) => handleCommandSelect(e.target.value)}>
                 {Object.keys(availableCommands).map((cmd) => (
                   <option key={cmd} value={cmd}>
                     {cmd}
@@ -112,24 +114,24 @@ export const CommandModal: React.FC<CommandModalProps> = ({ isOpen, onClose, onA
               </Select>
             </FormControl>
 
-            {selectedCommand && availableCommands[selectedCommand as keyof typeof availableCommands].map((field) => (
-              <FormControl key={field.name}>
-                <FormLabel>{field.name}</FormLabel>
-                {field.type === 'number' ? (
-                  <NumberInput
-                    value={params[field.name]}
-                    onChange={(_, value) => setParams({ ...params, [field.name]: value })}
-                  >
-                    <NumberInputField />
-                  </NumberInput>
-                ) : (
-                  <Input
-                    value={params[field.name]}
-                    onChange={(e) => setParams({ ...params, [field.name]: e.target.value })}
-                  />
-                )}
-              </FormControl>
-            ))}
+            {selectedCommand &&
+              availableCommands[selectedCommand as keyof typeof availableCommands].map((field) => (
+                <FormControl key={field.name}>
+                  <FormLabel>{field.name}</FormLabel>
+                  {field.type === "number" ? (
+                    <NumberInput
+                      value={params[field.name]}
+                      onChange={(_, value) => setParams({ ...params, [field.name]: value })}>
+                      <NumberInputField />
+                    </NumberInput>
+                  ) : (
+                    <Input
+                      value={params[field.name]}
+                      onChange={(e) => setParams({ ...params, [field.name]: e.target.value })}
+                    />
+                  )}
+                </FormControl>
+              ))}
           </VStack>
         </ModalBody>
         <ModalFooter>

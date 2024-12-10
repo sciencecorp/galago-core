@@ -66,7 +66,7 @@ const zRobotArmWaypoints = z.object({
   id: z.number(),
   name: z.string(),
   locations: z.array(z.string()),
-  nests: z.array(z.string()), 
+  nests: z.array(z.string()),
   motionProfiles: z.array(z.string()),
   gripParams: z.array(z.string()),
   sequences: z.array(z.string()),
@@ -80,7 +80,6 @@ export type RobotArmGripParams = z.infer<typeof zRobotArmGripParams>;
 export type RobotArmSequence = z.infer<typeof zRobotArmSequence>;
 
 export const robotArmRouter = router({
-
   location: router({
     getAll: procedure
       .input(z.object({ toolId: z.number() }))
@@ -175,8 +174,10 @@ export const robotArmRouter = router({
           get(`/robot-arm-nests?tool_id=${input.toolId}`) as Promise<RobotArmNest[]>,
           get(`/robot-arm-locations?tool_id=${input.toolId}`) as Promise<RobotArmLocation[]>,
           get(`/robot-arm-sequences?tool_id=${input.toolId}`) as Promise<RobotArmSequence[]>,
-          get(`/robot-arm-motion-profiles?tool_id=${input.toolId}`) as Promise<RobotArmMotionProfile[]>,
-          get(`/robot-arm-grip-params?tool_id=${input.toolId}`) as Promise<RobotArmGripParams[]>
+          get(`/robot-arm-motion-profiles?tool_id=${input.toolId}`) as Promise<
+            RobotArmMotionProfile[]
+          >,
+          get(`/robot-arm-grip-params?tool_id=${input.toolId}`) as Promise<RobotArmGripParams[]>,
         ]);
 
         return {
@@ -187,7 +188,7 @@ export const robotArmRouter = router({
           sequences: sequences.map((seq: RobotArmSequence) => seq.name),
           motionProfiles: motionProfiles.map((prof: RobotArmMotionProfile) => prof.name),
           gripParams: gripParams.map((param: RobotArmGripParams) => param.name),
-          tool_id: input.toolId
+          tool_id: input.toolId,
         };
       }),
   }),

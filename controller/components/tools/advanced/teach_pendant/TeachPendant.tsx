@@ -63,8 +63,14 @@ import {
   DeleteIcon,
 } from "@chakra-ui/icons";
 import { RobotArmLocation, RobotArmNest, RobotArmSequence } from "@/server/routers/robot-arm";
-import { DragDropContext, Droppable, Draggable, DraggableProvided, DroppableProvided } from "react-beautiful-dnd";
-import { useSequenceHandler } from './SequenceHandler';
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DraggableProvided,
+  DroppableProvided,
+} from "react-beautiful-dnd";
+import { useSequenceHandler } from "./SequenceHandler";
 
 interface TeachPendantProps {
   toolId: string | undefined;
@@ -165,14 +171,14 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     handleRunSequence,
     handleEditSequence,
     handleNewSequence,
-    SequenceModal
+    SequenceModal,
   } = useSequenceHandler(config);
 
   const waypoints = trpc.robotArm.waypoints.getAll.useQuery(
     { toolId: config.id },
-    { enabled: !!config.id && config.id !== 0 }
+    { enabled: !!config.id && config.id !== 0 },
   );
-  console.log("waypoints",waypoints)
+  console.log("waypoints", waypoints);
 
   const getLocTypeDisplay = (locType: string) => {
     switch (locType) {
@@ -1715,10 +1721,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                 <CardHeader>
                   <HStack justify="space-between">
                     <Heading size="md">Sequences</Heading>
-                    <Button
-                      colorScheme="blue"
-                      onClick={handleNewSequence}
-                    >
+                    <Button colorScheme="blue" onClick={handleNewSequence}>
                       Create Sequence
                     </Button>
                   </HStack>
@@ -1750,13 +1753,10 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                                 <MenuItem onClick={() => handleEditSequence(sequence)}>
                                   Edit
                                 </MenuItem>
-                                <MenuItem onClick={() => handleRunSequence(sequence)}>
-                                  Run
-                                </MenuItem>
+                                <MenuItem onClick={() => handleRunSequence(sequence)}>Run</MenuItem>
                                 <MenuItem
                                   color="red.500"
-                                  onClick={() => handleDeleteSequence(sequence.id)}
-                                >
+                                  onClick={() => handleDeleteSequence(sequence.id)}>
                                   Delete
                                 </MenuItem>
                               </MenuList>

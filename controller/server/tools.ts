@@ -85,7 +85,7 @@ export default class Tool {
       const toolId = parseInt(this.id);
       const waypoints = trpc.robotArm.waypoints.getAll.useQuery(
         { toolId: toolId },
-        { enabled: true }
+        { enabled: true },
       );
       if (config.pf400) {
         config.pf400.waypoints = waypoints.data;
@@ -120,9 +120,9 @@ export default class Tool {
     const params = command.params;
     for (const key in params) {
       if (params[key] == null) continue;
-      
+
       const paramValue = String(params[key]);
-      
+
       if (paramValue.startsWith("{{") && paramValue.endsWith("}}")) {
         try {
           const varValue = await get<Variable>(`/variables/${paramValue.slice(2, -2)}`);
@@ -135,9 +135,7 @@ export default class Tool {
 
     if (command.command === "run_python_script" && command.toolId === "Tool Box") {
       const scriptId = String(command.params.script_content);
-      command.params.script_content = (
-        await get<Script>(`/scripts/${scriptId}`)
-      ).content;
+      command.params.script_content = (await get<Script>(`/scripts/${scriptId}`)).content;
     }
 
     const reply = await this.grpc.executeCommand(this._payloadForCommand(command));
