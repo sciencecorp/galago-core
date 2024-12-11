@@ -24,21 +24,20 @@ enum ToolType {
 }
 
 message ToolConfig {
-  string id = 1;
+  string name = 1;
   ToolType type = 2;
   string ip = 3;
   int32 port = 4;
   tools.grpc_interfaces.Config config = 5;
-  string name = 6;
   string description = 7;
   string image_url = 8;
 }
 
-message ControllerConfig {
+message WorkcellConfig {
   string id = 1;
   string name = 2;
-  string ip = 3;
-  int32 port = 4;
+  string description =3;
+  string location =4;
   repeated ToolConfig tools = 5;
 }
 

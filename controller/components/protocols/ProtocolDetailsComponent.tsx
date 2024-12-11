@@ -17,7 +17,6 @@ import NewProtocolRunModal from "./NewProtocolRunModal";
 
 export function ProtocolDetailsComponent({ id }: { id: string }) {
   const protocol = trpc.protocol.get.useQuery({ id });
-  
 
   if (protocol.isLoading) return <div>Loading...</div>;
   if (protocol.isError) return <div>Error: {protocol.error.message}</div>;

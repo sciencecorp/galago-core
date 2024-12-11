@@ -15,147 +15,126 @@ import {
   VStack,
   Box,
   Button,
-  Select
+  Select,
 } from "@chakra-ui/react";
-import { Log, inventoryApiClient} from "@/server/utils/InventoryClient";
-import { InfoOutlineIcon, CloseIcon, WarningIcon, QuestionOutlineIcon} from "@chakra-ui/icons";
+import { InfoOutlineIcon, CloseIcon, WarningIcon, QuestionOutlineIcon } from "@chakra-ui/icons";
 import { useEffect, useState } from "react";
+import { Log } from "@/types/api";
+import { renderDatetime } from "../UI/Time";
+import { FiInfo } from "react-icons/fi";
 
-interface LogViewProps {
-  }
+import { VscRefresh } from "react-icons/vsc";
 
-function getIconFromLogType(logType:string){
-  switch(logType){
-    case "ERROR":
-      return <CloseIcon color="red"/>
-    case "WARNING":
-      return <WarningIcon color="red"/>
-    case "DEBUG":
-      return <QuestionOutlineIcon color="red"/>
-    case "INFO":
-      return <InfoOutlineIcon color="blue"/>
+interface LogViewProps {}
+
+function getIconFromLogType(logType: string) {
+  const iconStyle = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "24px",
+    height: "24px",
+  };
+
+  switch (logType) {
+    case "error":
+      return <CloseIcon color="red" style={iconStyle} />;
+    case "warning":
+      return <WarningIcon color="orange" style={iconStyle} />;
+    case "debug":
+      return <QuestionOutlineIcon color="yellow" style={iconStyle} />;
+    case "info":
+      return <FiInfo style={iconStyle} />;
   }
 }
 
 export const LogView: React.FC<LogViewProps> = ({}) => {
-    const [logs, setLogs] = useState<Log[]>([]);
-    const [limit, setLimit] = useState<number>(25);
-    const [offset, setOffset] = useState<number>(0);
-    const [selectedFilter, setSelectedFilter] = useState<string|null>(null);
-    const hasPrevious = offset > 0;
-    const hasNext = (logs.length === limit) || false;
+  const [logs, setLogs] = useState<Log[]>([]);
+  const [limit, setLimit] = useState<number>(25);
+  const [offset, setOffset] = useState<number>(0);
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const hasPrevious = offset > 0;
+  const hasNext = logs.length === limit || false;
 
-    const handleNext = () => {
-      if (hasNext) {
-        setOffset(offset + limit); 
-      }
-    };
+  const { data: fetchedLogs, refetch } = trpc.logging.getPaginated.useQuery({
+    limit: limit,
+    skip: offset,
+    descending: true,
+  });
 
-    const handlePrevious = () => {
-      if (hasPrevious) {
-        setOffset(Math.max(offset - limit, 0));
-      }
-    };
-
-    const handleLimitChange = (e:number) => {
-      setLimit(e)
+  useEffect(() => {
+    if (fetchedLogs) {
+      setLogs(fetchedLogs);
     }
+  }, [fetchedLogs, offset, limit]);
 
-    useEffect(() => {
-      let filter = "ALL";
-      const fetchData = async (filter:string) => {
-        const logs = await inventoryApiClient.getLogsPaginated(filter, offset, limit);
-        setLogs(logs);
-      }
-      if(selectedFilter){
-        filter = selectedFilter.toUpperCase();
-      }
+  const handleNext = () => {
+    if (hasNext) {
+      setOffset(offset + limit);
+    }
+  };
 
-      fetchData(filter)
+  const handlePrevious = () => {
+    if (hasPrevious) {
+      setOffset(Math.max(offset - limit, 0));
+    }
+  };
 
-    },[offset,limit,selectedFilter]);
+  const handleLimitChange = (e: number) => {
+    setLimit(e);
+  };
 
   return (
-    <VStack align="center" spacing={5} width="100%">
-      <VStack>
-        <Box>
-          <Heading>Logs</Heading>
-        </Box>
-        <HStack margin='10px'>
-          <Box>
-            Per Page:
-          </Box>
-          <Select value={limit} width='75px' onChange={ (e)=> handleLimitChange(Number(e.target.value))}>
-            <option value='25'>25</option>
-            <option value='50'>50</option>
-            <option value='100'>100</option>
-          </Select>
-          <Button disabled={!hasPrevious} onClick={handlePrevious}>
-            Previous
-          </Button>
-          <Button disabled={!hasNext} onClick={handleNext}>
-            Next
-          </Button>
+    <VStack spacing={1} p={4} maxHeight="calc(100vh - 80px)" overflowY="auto" mt={10}>
+      <HStack justify="space-between" width="100%">
+        <Heading>Logs</Heading>
+        <Button onClick={() => refetch()} colorScheme="teal" leftIcon={<VscRefresh />}>
+          Refresh
+        </Button>
       </HStack>
-      <HStack>
-        <Button 
-          onClick={() => {
-            selectedFilter === "info" ? setSelectedFilter(null) : setSelectedFilter("info");
-          }}
-          colorScheme={selectedFilter=="info" ? "blue":"gray"}>INFO</Button>
-        <Button 
-          onClick={() => {
-            selectedFilter === "debug" ? setSelectedFilter(null) : setSelectedFilter("debug");
-          }}
-          colorScheme={selectedFilter=="debug" ? "orange":"gray"}>DEBUG</Button>
-        <Button   
-          onClick={() => {
-                selectedFilter === "error" ? setSelectedFilter(null) : setSelectedFilter("error");
-          }}
-          colorScheme={selectedFilter === "error" ? "red" : "gray"}>ERROR</Button>
-      </HStack>
-      <Table mt={8} fontSize='small'>
+      <HStack margin="10px"></HStack>
+      <Table mt={8}>
         <Thead>
           <Tr>
-              <Th p={1}></Th>
-              <Th p={1}>Log Type</Th>
-              <Th p={1}>Tool</Th>
-              <Th p={1}>Value</Th>
-              <Th p={1}>Created On</Th>
+            <Th p={1}></Th>
+            <Th p={1}>Level</Th>
+            <Th p={1}>Actions</Th>
+            <Th p={1}>Details</Th>
+            <Th p={1}>Created On</Th>
           </Tr>
         </Thead>
         <Tbody>
-          {logs.map((log,index)=>{
-              return<Tr key={index} h="50px">
-                <Td p={1}>{getIconFromLogType(log.log_type)}</Td>
-                <Td p={1}>{log.log_type}</Td>
-                <Td p={1}>{log.tool}</Td>
-                <Td p={1}>{log.value}</Td>
-                <Td p={1}>{log.created_at.toString().replace("T", " ").replace(/\.\d{6}$/, "")}
-
-              </Td>
-            </Tr>
-              })
-          }
+          {logs.map((log, index) => {
+            return (
+              <Tr key={index} h="50px">
+                <Td p={1}>{getIconFromLogType(log.level)}</Td>
+                <Td p={1}>{log.level}</Td>
+                <Td p={1}>{log.action}</Td>
+                <Td p={1}>{log.details}</Td>
+                <Td p={1}>{renderDatetime(String(log.created_at))}</Td>
+              </Tr>
+            );
+          })}
         </Tbody>
       </Table>
       <HStack>
-        <Box>
-          Per Page:
-        </Box>
-        <Select value={limit} width='75px'>
-          <option value='25'>25</option>
-          <option value='50'>50</option>
-          <option value='100'>100</option>
+        <Box>Per Page:</Box>
+        <Select
+          value={limit}
+          width="75px"
+          size="sm"
+          onChange={(e) => setLimit(Number(e.target.value))}>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
         </Select>
-        <Button disabled={!hasPrevious} onClick={handlePrevious}>
+        <Button size="sm" disabled={!hasPrevious} onClick={handlePrevious}>
           Previous
         </Button>
-        <Button disabled={!hasNext} onClick={handleNext}>
+        <Button size="sm" disabled={!hasNext} onClick={handleNext}>
           Next
         </Button>
       </HStack>
     </VStack>
-    </VStack>
   );
-}
+};

@@ -23,6 +23,7 @@ class XPeelDriver(ABCToolDriver):
             com_port, 9600, timeout=1, parity=serial.PARITY_NONE,
             stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS
         )
+        self.write("*stat")
         self.wait_for_ready()
 
     def write(self, command: str) -> None:
@@ -45,13 +46,14 @@ class XPeelDriver(ABCToolDriver):
         """ Wait until the device sends a ready message indicating it can accept new commands. """
         while True:
             response = self.read(strict=False)
+            logging.info(f"Received response from xpeel: {response}")
             if response.startswith("*ready"):
                 return
             time.sleep(0.1)  # short delay to prevent flooding the serial port
 
-    def remove_seal(self, threshold: int) -> None:
+    def remove_seal(self) -> None:
         """ Perform a deseal operation with specific parameters. """
-        self.write(f"*xpeel:{threshold}")
+        self.write("*xpeel:41")
         self.wait_for_ready()
 
     def check_status(self) -> str:
@@ -105,3 +107,5 @@ class XPeelDriver(ABCToolDriver):
         self.write(f"*platecheck:{on_off}")
         self.wait_for_ready()
 
+    def close(self) -> None:
+        self.serial_port.close()

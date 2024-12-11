@@ -19,6 +19,10 @@ export const commandQueueRouter = router({
     CommandQueue.global.stop();
   }),
 
+  getError: procedure.query(async () => {
+    return CommandQueue.global.getError();
+  }),
+
   skipCommand: procedure.input(z.number()).mutation(async ({ input }) => {
     CommandQueue.global.skipCommand(input);
   }),
@@ -40,31 +44,28 @@ export const commandQueueRouter = router({
     CommandQueue.global.clearByRunId(input);
   }),
 
-  getRunsTotal : procedure.query(async () => {
+  getRunsTotal: procedure.query(async () => {
     return CommandQueue.global.getRunsTotal();
-  }
-  ), 
+  }),
 
-  getRun: procedure.input(z.string()).mutation(async({input})=>{
+  getRun: procedure.input(z.string()).mutation(async ({ input }) => {
     CommandQueue.global.getRun(input);
   }),
 
   getAllRuns: procedure.query(async () => {
     return CommandQueue.global.getAllRuns();
-  }), 
+  }),
 
-  getAll: procedure
-  .query
-  (async ({})=>{
+  getAll: procedure.query(async ({}) => {
     return await CommandQueue.global.allCommands();
-  }), 
-  
+  }),
+
   commands: procedure
     .input(
       z.object({
         limit: z.number().optional(),
         offset: z.number().optional(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { limit = 20000, offset = 0 } = input; // default values if not provided

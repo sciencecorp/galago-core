@@ -1,4 +1,3 @@
-
 // Import this at the top of your Page component file
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import {
@@ -19,8 +18,7 @@ import {
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
 import { ToolCommandInfo } from "@/types";
-import {PF400} from "@/components/tools/advanced/pf400";
-import { ToolConfig } from 'gen-interfaces/controller';
+import { ToolConfig } from "gen-interfaces/controller";
 
 export default function Page() {
   const router = useRouter();
@@ -28,20 +26,18 @@ export default function Page() {
 
   const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
   const configDefault = infoQuery.data;
-  
-  if(configDefault != undefined){
+
+  if (configDefault != undefined) {
     return (
       <>
-        <VStack spacing={2} >
-          <Box padding={4} width='50%'>
-              <Box display="flex" justifyContent="center" width="100%">
-                <ToolStatusCard toolId={String(id)} />
-              </Box>
+        <VStack spacing={2}>
+          <Box padding={4} width="50%">
+            <Box display="flex" justifyContent="center" width="100%">
+              <ToolStatusCard toolId={id || ""} />
             </Box>
-            <PF400 toolId = {id} config= {configDefault as ToolConfig}/>
+          </Box>
         </VStack>
       </>
     );
   }
 }
-

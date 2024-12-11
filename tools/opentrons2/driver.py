@@ -37,7 +37,6 @@ class Ot2Driver(ABCToolDriver):
         )
         if not light_status_response.ok:
             raise Exception(f"get light status failed: {light_status_response.text}")
-        logging.info(light_status_response.json())
         light_status: bool = light_status_response.json()['on']
 
         toggle_light_response = requests.post(
@@ -50,7 +49,6 @@ class Ot2Driver(ABCToolDriver):
 
 
     def schedule_run(self, protocol_file: str) -> str:
-        # Upload protocol
         with open(protocol_file, 'rb') as F:
             upload_protocol_response = requests.post(
                 url=f"{self.base_url}/protocols",
@@ -63,7 +61,6 @@ class Ot2Driver(ABCToolDriver):
             protocol_id = upload_protocol_response.json()['data']['id']
         except KeyError:
             raise Exception(f"protocol upload failed: {upload_protocol_response.text}")
-        logging.info(f'Uploaded protocol with id: {protocol_id}')
 
         # Create a run for the protocol
         create_run_response = requests.post(
@@ -161,7 +158,6 @@ class Ot2Driver(ABCToolDriver):
         time.sleep(2)
     
     def take_picture(self, name:str, directory:str) -> None:
-        # Take a picture
         response = requests.post(
             url=f"{self.base_url}/camera/picture",
             headers=self.headers,
@@ -176,8 +172,3 @@ class Ot2Driver(ABCToolDriver):
         file_path : str = os.path.join(directory,name)
         rotated_image.save(file_path, format="JPEG")
 
-# if __name__ == "__main__":
-#     logging.info(dirname(os.path.realpath(__file__)))
-#     logging.basicConfig(level=logging.INFO)
-#     ot2_driver = Ot2Driver(robot_ip="169.254.186.212")
-#     ot2_driver.take_picture()

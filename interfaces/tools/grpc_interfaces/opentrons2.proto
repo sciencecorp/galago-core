@@ -33,5 +33,4 @@ message Config {
   string robot_ip = 1;
   int32 robot_port = 2;
   string program_dir = 3;
-  string tool_id = 4;
 }

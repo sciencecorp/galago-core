@@ -268,22 +268,6 @@ class LiconicStxDriver(ABCToolDriver):
         except Exception as e:
             logging.debug(e)
             return
-        
-    def send_co2_slack_alert(self, error_message:str) -> None:
-        # text =  f"Liconic CO2 level is low: {value}"
-        # if int(value) > 4.5:
-        #     text = f"Liconic CO2 level is back to normal: {value}"
-        workcell = self.config.app_config.workcell
-        if workcell is None:
-            workcell = "Unknown"
-        if self.config.app_config.slack_error_channel:
-            self.slack_client.send_alert_slack(
-                workcell = workcell,
-                tool = "Liconic",
-                protocol = "NA",
-                error = error_message,
-                channel_id=self.config.app_config.slack_error_channel
-            )
 
     def check_last_co2_level(self, data_points:int) -> Optional[int]:
         if self.co2_log_path is None:
@@ -323,7 +307,6 @@ class LiconicStxDriver(ABCToolDriver):
                         self.co2_out_of_range = True
                         error_message = f"CO2 level is low: {co2_level}%"
                         logging.error(error_message)
-                        self.send_co2_slack_alert(error_message)
                     if co2_level > 4 and self.co2_out_of_range:
                         if self.config.app_config.slack_error_channel:
                             self.slack_client.clear_last_error(self.config.app_config.slack_error_channel)

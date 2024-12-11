@@ -1,14 +1,14 @@
-[  
+[
   {
     "command": "unwind",
     "params": {}
   },
   {
     "command": "dropoff_plate",
-    "params":{
+    "params": {
       "location": "cytation_nest",
-      "motion_profile_id":2,
-      "labware":"default"
+      "motion_profile_id": 2,
+      "labware": "default"
     }
   },
   {

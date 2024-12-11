@@ -1,17 +1,12 @@
 import React from "react";
-import { Box , Flex} from "@chakra-ui/react";
-import {ChangeLogView} from "../../components/data/ChangeLogView";
+import { Box, Flex } from "@chakra-ui/react";
 
-const ChangeLog: React.FC = () => {
+export default function Page() {
   return (
     <Box>
-        <Flex left={0} top={0}>
-            <Box flex="1" p={4}>
-            </Box>
-        </Flex>
-        <ChangeLogView/>
+      <Flex left={0} top={0}>
+        <Box flex="1" p={4}></Box>
+      </Flex>
     </Box>
   );
-};
-
-export default ChangeLog;
+}

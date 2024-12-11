@@ -1,15 +1,34 @@
 import os
 from os.path import join, dirname
 from pydantic import BaseModel
-from tools.workcell_config import WorkcellConfig 
 import json 
-from typing import Optional
+from typing import Optional, Any
 from datetime import date , time 
 import logging 
 import typing as t
+from tools.toolbox.workcell import get_all_workcells
+from tools.toolbox.db import Db
 
 ROOT_DIRECTORY = dirname(dirname(os.path.realpath(__file__)))
 APP_CONFIG_FILE = join(ROOT_DIRECTORY, "app_config.json")
+
+
+db = Db()
+
+class Tool(BaseModel):
+    id: int
+    name :str 
+    type: str 
+    port: int
+
+class WorkcellConfig(BaseModel):
+    id:int = 0
+    name: str = "workcell_1"
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    description: Optional[str] = None
+    location: Optional[str] = None
+    tools: list[Tool] = []
 
 class AppConfig(BaseModel):
     workcell:str
@@ -21,13 +40,21 @@ class AppConfig(BaseModel):
     slack_workcell_channel: Optional[str]
     slack_error_channel: Optional[str]
     slack_admins_ids: Optional[list[str]]
-    
+
+
+def get_workcell(id:int) -> Any:
+    response = db.get_by_id_or_name(id, "workcells")
+    return response
+
+def get_selected_workcell() -> Any:
+    workcell = db.get_data("settings/workcell").get("value")
+    return workcell
+
 class Config():
     def __init__(self) -> None:
         self.workcell_config : Optional[WorkcellConfig] = None
         self.workcell_config_file  : str = ""
         self.app_config : AppConfig
-        self.workcell_config_is_valid = False
         self.load_app_config()
         self.load_workcell_config()
         self.inventory_db = f"sqlite:///{self.app_config.data_folder}/db/inventory.db"
@@ -48,7 +75,7 @@ class Config():
                 workcell="workcell_1",
                 data_folder=os.path.join(ROOT_DIRECTORY,"logs"),
                 host_ip="localhost",
-                redis_ip="127.0.0.1:6379",
+                redis_ip="127.0.0.1:1203",
                 enable_slack_errors=False,
                 slack_admins_ids=None,
                 slack_workcell_channel=None,
@@ -85,26 +112,27 @@ class Config():
         return obj.__dict__
     
     def load_workcell_config(self)-> None:
-        if self.app_config.data_folder is None:
-            self.app_config.data_folder = "logs"
-        if self.app_config.workcell is None:
-            logging.warning("Workcell not specified")
+        #Ping the database to check if connection is established
+        workcells = None
+        selected_workcell = None
+        db_is_up = db.ping(3)
+        if not db_is_up:
+            logging.error("Can't establish connection to galago api.")
+            logging.warning("Galago api container might be down. "
+                            "No instrument tools will be launched.")
+            self.workcell_config = WorkcellConfig()
             return None
-        workcell_path = join(self.app_config.data_folder,"workcells",f"{self.app_config.workcell}.json")
-        if not os.path.exists(workcell_path):
-            self.workcell_config_is_valid = False
-            logging.warning("Specified workcell config file does not exist")
-            return None
-
-        with open(workcell_path) as f:
-            try:
-                config = json.load(f)
-                self.workcell_config = WorkcellConfig.parse_obj(config)
-                self.workcell_config_is_valid = True
-            except Exception as e:
-                raise RuntimeError(f"Failed to load workcell config file {e}")
-        self.workcell_config_file = os.path.abspath(workcell_path)
+        else:
+            selected_workcell = get_selected_workcell()
+            workcells = get_all_workcells()
+            if workcells is None or selected_workcell is None:
+                logging.error("No workcells or tools found in the database")
+                self.workcell_config = WorkcellConfig()
+                return None
+            selected_workcell_config = [workcell for workcell 
+                                        in workcells if 
+                                        workcell.get("name") == selected_workcell][0]
+            if selected_workcell:
+                self.workcell_config = WorkcellConfig.parse_obj(selected_workcell_config)
         return None
-    def __str__(self) -> str:
-        #Use for debugging
-        return f"Config(data_folder_dir={self.app_config.data_folder}, workcell={self.app_config.workcell})"
+    

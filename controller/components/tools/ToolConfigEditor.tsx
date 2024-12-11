@@ -1,5 +1,16 @@
 import { trpc } from "@/utils/trpc";
-import { Box, Button, HStack, Spinner, Switch, Text, Textarea, Tooltip, VStack, useToast} from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  HStack,
+  Spinner,
+  Switch,
+  Text,
+  Textarea,
+  Tooltip,
+  VStack,
+  useToast,
+} from "@chakra-ui/react";
 import { Any } from "@grpc/grpc-js/build/src/generated/google/protobuf/Any";
 import { ToolConfig } from "gen-interfaces/controller";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
@@ -7,7 +18,6 @@ import { useCallback, useEffect, useState } from "react";
 
 function toolSpecificConfig(toolConfig: ToolConfig): Record<string, any> | undefined {
   const toolType = toolConfig.type;
-  // console.log("Tool type is" + toolType)
   const config = toolConfig.config;
   if (!config) return;
   if (!(toolType in config)) return;
@@ -24,58 +34,58 @@ export function ToolConfigEditor({
   const statusQuery = trpc.tool.status.useQuery(
     { toolId: toolId },
     {
-      refetchInterval:1000,
+      refetchInterval: 1000,
       onSuccess: (data) => {
-        if(data)
-        {
+        if (data) {
           setSimulated(data.status === "SIMULATED");
         }
       },
-    }
+    },
   );
   const toast = useToast();
 
-  const cytation_error = 'There are multiple instances of Gen5 software. Please delete them in task manager and try to connect again'
-  var error_description = '';
+  const cytation_error =
+    "There are multiple instances of Gen5 software. Please delete them in task manager and try to connect again";
+  var error_description = "";
   const configureMutation = trpc.tool.configure.useMutation({
     onSuccess: () => {
-      console.log("connected!!");
       statusQuery.refetch();
     },
     onError: (data) => {
-      if (data.message === 'Expected reader state 1. Got -528') {
+      if (data.message === "Expected reader state 1. Got -528") {
         error_description = cytation_error;
-      }
-      else {
+      } else {
         error_description = data.message;
       }
       // Set the command status to 'error' on failure
       toast.closeAll(),
-      toast({
-        title: "Failed to connect to instrument",
-        description: `${error_description}`,
-        status: "error",
-        duration: 10000,
-        isClosable: true,
-        position: "top"
-      });
+        toast({
+          title: "Failed to connect to instrument",
+          description: `${error_description}`,
+          status: "error",
+          duration: 10000,
+          isClosable: true,
+          position: "top",
+        });
     },
   });
   const { isLoading } = configureMutation;
   let [isSimulated, setSimulated] = useState(false);
-  const isReachable = statusQuery.isSuccess && statusQuery.data && statusQuery.data.status !== ToolStatus.OFFLINE && toolId != "toolbox";
+  const isReachable =
+    statusQuery.isSuccess &&
+    statusQuery.data &&
+    statusQuery.data.status !== ToolStatus.OFFLINE &&
+    toolId != "1206";
   const toolType = defaultConfig.type;
   const config = toolSpecificConfig(defaultConfig);
   const [configString, setConfigString] = useState(JSON.stringify(config, null, 2));
-  
+
   const saveConfig = useCallback(() => {
-    console.log("Config string is" + configString)
     configureMutation.mutate({
       toolId: toolId,
       config: { simulated: isSimulated, [toolType]: JSON.parse(configString) },
     });
   }, [toolId, toolType, configString, isSimulated, configureMutation]);
-
 
   return (
     <VStack spacing={2} align="start">
@@ -101,8 +111,8 @@ export function ToolConfigEditor({
         fontSize={12}
       /> */}
       ()
-      <Button onClick={saveConfig} isDisabled={!isReachable} >
-       Connect
+      <Button onClick={saveConfig} isDisabled={!isReachable}>
+        Connect
       </Button>
       {isLoading && <Spinner ml={2} />} {/* Spinner appears next to the button when loading */}
     </VStack>

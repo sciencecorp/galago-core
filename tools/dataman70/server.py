@@ -1,11 +1,10 @@
 import logging
-import os
 
 from tools.base_server import ToolServer, serve
 from tools.grpc_interfaces.dataman70_pb2 import Command, Config
 
 from .driver import Dataman70Driver
-
+import argparse
 
 class Dataman70Server(ToolServer):
   toolType = "dataman70"
@@ -50,4 +49,9 @@ class Dataman70Server(ToolServer):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    serve(Dataman70Server(), os.environ.get('PORT', '4500'))
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--port')
+    args = parser.parse_args()
+    if not args.port:
+        raise RuntimeWarning("Port must be provided...")
+    serve(Dataman70Server(), str(args.port))

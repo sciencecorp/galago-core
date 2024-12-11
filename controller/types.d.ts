@@ -1,17 +1,10 @@
 import { ToolType } from "gen-interfaces/controller";
 
-declare module '*.jpg'
-declare module '*.png'
-declare module '*.svg'
+declare module "*.jpg";
+declare module "*.png";
+declare module "*.svg";
 
 export type RunStatus = "CREATED" | "STARTED" | "FAILED" | "COMPLETED" | "SKIPPED";
-
-export interface Variable {
-  id?: number;
-  name: string;
-  value: string;
-  type: 'string' | 'number' | 'boolean' | 'array' | 'object';
-}
 
 export interface ToolCommandInfo {
   label?: string;
@@ -22,12 +15,12 @@ export interface ToolCommandInfo {
 }
 
 export interface PageProps {
-  title:string, 
-  subtitle:string,
-  link:string,
-  icon:any,
-  color:any,
-  description:string
+  title: string;
+  subtitle: string;
+  link: string;
+  icon: any;
+  color: any;
+  description: string;
 }
 
 export interface HasRunStatus {
@@ -48,35 +41,32 @@ export interface RunCommand extends HasRunStatus {
   error?: unknown;
 }
 
-export interface RunRequest  {
+export interface RunRequest {
   protocolId: string;
   params: Record<string, any>;
 }
 
-
 export interface Run extends HasRunStatus {
   id: string;
-  params : Record<string,any>;
+  params: Record<string, any>;
   protocolId: string;
   commands: RunCommand[];
 }
 
 export interface RunQueue extends HasRunStatus {
   id: string;
-  params: Record<string,any>;
+  params: Record<string, any>;
   run_type: string;
   commands_count: number;
 }
 
-export interface RunError {
-
-}
+export interface RunError {}
 
 export interface Protocol {
   id: number;
   name: string;
   description?: string;
-  icon?:any;
+  icon?: any;
   params: Record<string, string>;
 }
 
@@ -90,7 +80,7 @@ export interface RunStatusList {
   data: Run[];
 }
 
-export interface ProcessEnv {
-  WORKCELL_BOT_TOKEN: string;
-  ACTIVE_CULTURE_CHANNEL: string;
+export interface GroupedCommand {
+  Id: string;
+  Commands: RunCommand[];
 }

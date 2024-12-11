@@ -5,19 +5,18 @@ import threading
 import socket 
 import logging 
 import os
+import sys
 import signal as os_signal
 import tkinter as tk
 from tkinter import messagebox
-from tkinter.scrolledtext import ScrolledText
-from tkinter import ttk  # working on windows
+from tkinter import ttk
 import time
+import argparse
 from os.path import join, dirname
 from typing import Optional, Any, Callable
-from tools.conda_utils import get_conda_environments,check_conda_is_path
-import argparse 
+from tkinter.scrolledtext import ScrolledText
 
 ROOT_DIR = dirname(dirname(os.path.realpath(__file__)))
-CONTROLLER_DIR = join(ROOT_DIR, "controller")
 LOG_TIME = int(time.time())
 TOOLS_32BITS = ["vcode","bravo","hig_centrifuge","plateloc","vspin"]
 
@@ -31,7 +30,7 @@ class ToolsManager():
 
     def __init__(self, app_root:tk.Tk, config:Config) -> None:
         self.root = app_root
-        self.root.title("Galago Web Client and Tools Server Manager")
+        self.root.title("Tools Server Manager")
         self.set_icon()
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.root.geometry('1000x700')  
@@ -49,13 +48,9 @@ class ToolsManager():
             os.makedirs(self.log_folder)
 
         #Build databases if they do not exist
-        self.build_db()
         self.server_processes : dict[str,subprocess.Popen] = {}
-        self.database_process : Optional[subprocess.Popen] = None
-        self.controller_process : Optional[subprocess.Popen]= None
         self.tool_box_process: Optional[subprocess.Popen] = None
-        self.redis_process : Optional[subprocess.Popen] = None
-        self.main_frame = ttk.Frame(root)
+        self.main_frame = ttk.Frame(self.root)
         self.main_frame.pack(fill=tk.BOTH, expand=True)
         self.paned_window = ttk.PanedWindow(self.main_frame, orient=tk.HORIZONTAL)
         self.paned_window.pack(fill=tk.BOTH, expand=True)
@@ -73,7 +68,7 @@ class ToolsManager():
         self.left_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
         self.left_scrollbar.config(command=self.left_canvas.yview)
-        self.tool_buttons : dict[str, tuple[str,tk.Button,tk.Frame]] = {}
+        self.tool_buttons : dict[str, tuple[str,tk.Button,tk.Canvas]] = {}
         self.tool_buttons_previous_states : dict[str, bool] = {}
 
         # Create a frame inside the canvas to hold the widgets
@@ -94,32 +89,18 @@ class ToolsManager():
         # Create the right frame for the scrolled text
         self.right_frame = tk.Frame(self.paned_window, width=(self.root.winfo_width()/5)*4)
         self.right_frame.pack(fill=tk.BOTH, expand=True)
-        #self.right_frame.propagate(0)
+        
         # Add the right frame to the paned window
         self.paned_window.add(self.left_frame, weight=1)
-        self.paned_window.add(self.right_frame,weight=10)
+        self.paned_window.add(self.right_frame, weight=10)
         self.log_files_modified_times = {}
         self.log_files_last_read_positions = {}
 
+        # Replace the Treeview with ScrolledText
         self.output_text = ScrolledText(self.right_frame, state='disabled', wrap='word')
         self.output_text.pack(fill=tk.BOTH, expand=True)
         self.output_text.tag_config('error', foreground='red') 
         self.output_text.tag_config('warning', foreground='orange')
-
-        #Port to run on 
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--port')
-        args = parser.parse_args()
-        if args.port:
-            self.app_port = args.port
-        else:
-            self.app_port = "3010"
-        self.populate_tool_buttons()
-        self.update_buttons()
-        self.start_database()
-        self.start_toolbox()
-        self.start_controller()
-        self.start_redis_server()
 
         self.update_interval = 100
         self.update_log_text()
@@ -138,15 +119,11 @@ class ToolsManager():
         self.filter_menu.pack(side=tk.LEFT)
 
     def kill_all_processes(self) ->None:
-        logging.info("Killing redis")
-        try:
-            self.stop_redis_server()
-        except Exception as e:
-            logging.error(f"Failed to kill redis. Error={e}")
         logging.info("Killing all processes")
         for proc_key, process in self.server_processes.items():
             try:
                 self.kill_by_process_id(process.pid)
+                time.sleep(0.5)
                 logging.info(f"Killed process {process.pid}")
                 self.log_text(f"Killed process {process.pid}")
                 del process
@@ -156,8 +133,6 @@ class ToolsManager():
                 pass
         self.server_processes.clear()
         self.force_kill_tool()
-        self.force_kill_db()
-        self.force_kill_web_app()
     
     def set_icon(self) -> None:
         if os.name == "nt":
@@ -168,51 +143,20 @@ class ToolsManager():
             if icon_img:
                 self.root.iconphoto(True, str(icon_img))      
     
-    def build_db(self) -> None:
-        if self.config.app_config.data_folder:
-            log_root_folder = os.path.join(self.config.app_config.data_folder, "db")
-        else:
-            log_root_folder = os.path.join(ROOT_DIR, "db")
-        if not os.path.exists(log_root_folder):
-            try:
-                os.makedirs(log_root_folder)
-            except Exception as e:
-                logging.error(f"Failed to create log folder. Error={e}")
-                return None
-        if not config.logs_db_exists():
-            logging.info("Building inventory database")
-            try:
-                subprocess.Popen(["python", "-m", "tools.db.models.log_models"]).communicate()
-                subprocess.Popen(["python", "-m", "tools.db.log_types_add"]).communicate()
-            except Exception as e:
-                logging.error(f"Failed to build inventory database. Error={e}")
-                return None
-            logging.info("Inventory database built")
-        if not config.inventory_db_exists():
-            logging.info("Building logs database")
-            try:
-                subprocess.Popen(["python", "-m", "tools.db.models.inventory_models"]).communicate()
-                subprocess.Popen(["python", "-m", "tools.db.instantiate_db"]).communicate()
-            except Exception as e:
-                logging.error(f"Failed to build logs database. Error={e}")
-                return None
-            logging.info("Logs database built")
-    
     def update_buttons(self) -> None:
-        for button_key, (button_name, button, frame) in self.tool_buttons.items():
+        for button_key, (button_name, button, status_indicator) in self.tool_buttons.items():
             if button_key in self.server_processes:
                 process = self.server_processes[button_key]
                 is_alive = process is not None and process.poll() is None
             else:
                 is_alive = False
-            if is_alive != self.tool_buttons_previous_states[button_key]:
-                if is_alive:
-                    button["text"] = "Disconnect"
-                    frame.configure(bg="light green")
-                else:
-                    button["text"] = "Connect"
-                    frame.configure(bg="light coral")
-                self.tool_buttons_previous_states[button_key] = is_alive
+
+            if is_alive:
+                status_indicator.itemconfig('status', fill='green')
+                button.config(text='Disconnect')
+            else:
+                status_indicator.itemconfig('status', fill='red')
+                button.config(text='Connect')
 
         self.root.after(500, self.update_buttons)
     
@@ -281,35 +225,30 @@ class ToolsManager():
 
     def filter_logs(self, *args: Any) -> None:
         filter_type = self.filter_var.get()
-        self.output_text.config(state='normal')
-        self.output_text.delete(1.0, tk.END)
+        
+        # Clear existing items in the Text widget
+        self.output_text.delete("1.0", tk.END)
+        
         for file_name in self.log_files_modified_times.keys():
-            with open(file_name, 'r') as file:
-                for line in file:
-                    if filter_type == "ALL" or f"| {filter_type} |" in line:
-                        if "| ERROR |" in line:
-                            self.log_text(line.strip(), "error")
-                        elif "| WARNING |" in line:
-                            self.log_text(line.strip(), "warning")
-                        else:
-                            self.log_text(line.strip())
-        self.output_text.config(state='disabled')
+            try:
+                with open(file_name, 'r') as file:
+                    for line in file:
+                        if filter_type == "ALL" or f"| {filter_type} |" in line:
+                            if "| ERROR |" in line:
+                                self.log_text(line.strip(), "error")
+                            elif "| WARNING |" in line:
+                                self.log_text(line.strip(), "warning")
+                            else:
+                                self.log_text(line.strip())
+            except Exception as e:
+                # Insert error as a new line in the Text widget
+                current_time = time.strftime('%Y-%m-%d %H:%M:%S')
+                self.output_text.insert(tk.END, f"{current_time} | ERROR | Failed to read log file: {str(e)}\n", ('error',))
 
     def get_shell_command(self, tool_type:str, port:int) -> list:
         python_cmd : str = f"python -m tools.{tool_type}.server --port={port}"
         if os.name == 'nt':
-            if tool_type in TOOLS_32BITS:
-                env = "galago-core32"
-            else:
-                env = "galago-core"
-            conda_is_path = check_conda_is_path()
-            if conda_is_path:
-                envs = get_conda_environments()
-                if env not in envs:
-                    raise RuntimeWarning(f"{env} not found, this might cause some issues with some tools")
-                python_cmd = f"conda activate {env}" + "&&" + python_cmd
-            conda_cmd = f"conda activate {env} && {python_cmd}"
-            return ["cmd.exe", "/C", conda_cmd]       
+            return ["cmd.exe", "/C", python_cmd]       
         else:
             return python_cmd.split()
     
@@ -327,13 +266,13 @@ class ToolsManager():
         finally:
             return None
 
-    def run_subprocess(self,tool_id:str, tool_type:str, tool_name:str, port:int,confirm_modal:bool=False) -> None:
+    def run_subprocess(self, tool_type:str, tool_name:str, port:int,confirm_modal:bool=False) -> None:
         if confirm_modal:
             box_result = messagebox.askquestion(title="Confirm Tool Restart", message=f"Are you sure you want to restart {tool_name}-{tool_type}")
             if box_result == 'no':
                 return None
         try:
-            self.kill_process_by_name(tool_id)
+            self.kill_process_by_name(str(tool_name))
             tool_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             result = tool_socket.connect_ex(('127.0.0.1',int(port)))
             if result != 0:
@@ -344,16 +283,16 @@ class ToolsManager():
                     use_shell = True
                 logging.info(f"log folder is {self.log_folder}")
                 if self.log_folder:
-                    output_file = join(self.log_folder, tool_id) + ".log"
+                    output_file = join(self.log_folder, str(tool_name)) + ".log"
                     process = subprocess.Popen(cmd, stdout=open(output_file,'w'), stderr=subprocess.STDOUT,  universal_newlines=True)
                 else:
                      process = subprocess.Popen(cmd, shell=use_shell,universal_newlines=True)
-                self.server_processes[tool_id] = process
+                self.server_processes[tool_name] = process
                 self.log_files_modified_times[output_file] = os.path.getmtime(output_file)
             else:
-                logging.warning(f"Port {port} for {tool_id} is already occupied")
+                logging.warning(f"Port {port} for {tool_name} is already occupied")
         except subprocess.CalledProcessError:
-            logging.info("There was an error launching toolbox server.")
+            logging.info("There was an error launching tool server.")
         return None
     
     def kill_process_by_name(self, process_name:str) -> None:
@@ -367,53 +306,57 @@ class ToolsManager():
                 logging.warning(f"Failed to kill process {process_name}. Reason is={str(e)}.")
         return None 
     
-    def log_text(self, text:str, log_type:Optional[str]=None) -> None:
+    def log_text(self, text: str, log_type: str = "info") -> None:
         self.output_text.config(state='normal')
         if log_type == "error":
-            self.output_text.insert(tk.END, f"{text}\n",'error')
-            self.output_text.tag_config('error', foreground='red')
+            self.output_text.insert(tk.END, text + "\n", ('error',))
         elif log_type == "warning":
-            self.output_text.insert(tk.END, f"{text}\n", 'warning')
-            self.output_text.tag_config('warning', foreground='orange')
+            self.output_text.insert(tk.END, text + "\n", ('warning',))
         else:
-            self.output_text.insert(tk.END, f"{text}\n")
+            self.output_text.insert(tk.END, text + "\n")
         self.output_text.config(state='disabled')
         self.output_text.see(tk.END)
 
     def populate_tool_buttons(self) -> None:
         left_width = 300  # Initial width of the left frame
-        def create_tool_frame(parent: tk.Widget, tool_name: str, command: Callable, tool_id: str) -> None:
+
+        # Clear existing tool buttons and widgets in the frame
+        for widget in self.widgets_frame.winfo_children():
+            widget.destroy()
+
+        # Reset tool button state
+        self.tool_buttons.clear()
+        self.tool_buttons_previous_states.clear()
+
+        def create_tool_frame(parent: tk.Widget, tool_name: str, command: Callable) -> None:
             frame = tk.Frame(parent)
             frame.pack(fill=tk.X, padx=3, pady=2)
             
             label = ttk.Label(frame, text=tool_name, anchor='w')
             label.pack(side=tk.LEFT, padx=(5, 10), pady=5, expand=True, fill=tk.X)
             
-            button = tk.Button(frame, text="Connect", command=command, width=10, 
-                               relief=tk.FLAT, bg=frame.cget('bg'), activebackground=frame.cget('bg'))
+            # Changed from Frame to Canvas
+            status_indicator = tk.Canvas(frame, width=12, height=12, highlightthickness=0)
+            status_indicator.pack(side=tk.LEFT, padx=(0, 10), pady=5)
+            status_indicator.create_oval(2, 2, 10, 10, fill='red', tags='status')
+            
+            button = tk.Button(frame, text="Connect", command=command, width=10)
             button.pack(side=tk.RIGHT, padx=(5, 5), pady=5)
             
-            self.tool_buttons[tool_id] = (tool_name, button, frame)
-            self.tool_buttons_previous_states[tool_id] = False
-
-        # Web App
-        create_tool_frame(self.widgets_frame, "Web App", self.start_controller, "controller")
+            self.tool_buttons[tool_name] = (tool_name, button, status_indicator)
+            self.tool_buttons_previous_states[tool_name] = False
 
         # Tool Box
-        create_tool_frame(self.widgets_frame, "Tool Box", self.start_toolbox, "toolbox")
-
-        # Database
-        create_tool_frame(self.widgets_frame, "Database", self.start_database, "database")
+        create_tool_frame(self.widgets_frame, "Tool Box", self.start_toolbox)
 
         # Workcell tools
-        if self.config.workcell_config and self.config.workcell_config_is_valid:
+        if self.config.workcell_config:
             for t in self.config.workcell_config.tools:
                 try:
                     create_tool_frame(
                         self.widgets_frame,
                         t.name,
-                        lambda t=t: self.run_subprocess(t.id, t.type, t.name, t.port, True),
-                        t.id
+                        lambda t=t: self.run_subprocess(t.type, t.name, t.port, True, )
                     )
                 except Exception as e:
                     logging.error(f"Failed to add button {t.id}. Error is {e}")
@@ -421,7 +364,7 @@ class ToolsManager():
         # Restart All button
         restart_frame = ttk.Frame(self.widgets_frame)
         restart_frame.pack(fill=tk.X, padx=3, pady=4)
-        restart_all_button = ttk.Button(restart_frame, text="Restart All", command=lambda force_restart=True: self.run_all_tools(force_restart))
+        restart_all_button = ttk.Button(restart_frame, text="Restart All", command=self.run_all_tools)
         restart_all_button.pack(fill=tk.X)
 
         # Add this line to ensure the widgets_frame fits its contents
@@ -431,65 +374,6 @@ class ToolsManager():
         # Set the initial position of the paned window sash
         self.paned_window.sashpos(0, left_width)
 
-    def start_controller(self) -> None:
-        try:  
-            os.chdir(CONTROLLER_DIR)
-            logging.info(f"Setting api url to  {self.config.app_config.host_ip}:8000")
-            git_branch_get = subprocess.Popen(["git", "branch", "--show-current"], stdout=subprocess.PIPE)
-            branch_name, branch_error = git_branch_get.communicate()
-
-            os.environ['APP_MODE'] = "PROD" if branch_name.decode().replace("\n","") == "main" else "DEV"
-            os.environ['NEXT_PUBLIC_API_URL'] = f"{self.config.app_config.host_ip}:8000" if self.config.app_config.host_ip else "127.0.0.1:8000"
-            os.environ['REDIS_URL'] = f"redis://{self.config.app_config.redis_ip}/1" if self.config.app_config.redis_ip else "redis://127.0.0.1:6379/1"
-            os.environ['CONTROLLER_CONFIG'] = self.config.workcell_config_file
-
-            cmd = self.get_controller_command()
-            use_shell = False
-            if os.name == 'nt':
-                use_shell = True
-            if self.log_folder:
-                output_file = join("../",self.log_folder,"controller.log")
-                process = subprocess.Popen(cmd, stdout=open(output_file,'w'), stderr=subprocess.STDOUT,shell=use_shell, universal_newlines=True)
-            else:
-                process = subprocess.Popen(cmd, shell=use_shell,universal_newlines=True)
-            self.server_processes["controller"] = process
-            self.log_files_modified_times[output_file] = os.path.getmtime(output_file)
-        except subprocess.CalledProcessError:
-            logging.info("There was an error launching the controller.")
-        logging.info("controller launched")
-    
-    def start_redis_server(self) -> None:
-        
-        if os.name == 'nt':
-            self.log_text("Starting Redis Server")
-            redis_cmd = "C:\Windows\Sysnative\wsl.exe -u root -e sudo service redis-server start"
-            conda_cmd = f"conda activate galago-core && {redis_cmd}"
-            cmd = ["cmd.exe", "/C", conda_cmd]
-            subprocess.Popen(cmd)
-
-    def stop_redis_server(self) -> None:
-        if os.name == 'nt':
-            self.log_text("Stopping Redis Server")
-            redis_cmd = "wsl -u root -e sudo service redis-server stop"
-            conda_cmd = f"conda activate galago-core && {redis_cmd}"
-            cmd = ["cmd.exe", "/C", conda_cmd]
-            subprocess.Popen(cmd)
-
-    def get_controller_command(self) -> list:
-        npm_command = ["npm", "run", "dev", "--", "--port", self.app_port]
-        if os.name == 'nt':
-            conda_cmd = f"conda activate galago-core && {(' ').join(npm_command)}"
-            cmd = ["cmd.exe", "/C", conda_cmd]
-            return cmd
-        
-        return npm_command
-    
-    def force_kill_web_app(self) -> None:
-        try:
-            if os.name != 'nt':
-                subprocess.Popen(f"lsof -t -i tcp:{self.app_port} | xargs kill", shell=True)
-        except Exception as e:
-            self.log_text(f"Failed to kill web app. Error={e}")
 
     def force_kill_tool(self) -> None:
         try:
@@ -498,69 +382,45 @@ class ToolsManager():
         except Exception as e:
             self.log_text(f"Failed to kill web app. Error={e}")
     
-    def force_kill_db(self) -> None:
-        try:
-            if os.name != 'nt':
-                subprocess.Popen("lsof -t -i tcp:8000 | xargs kill", shell=True)
-        except Exception as e:
-            self.log_text(f"Failed to kill web app. Error={e}")
-
-    def start_database(self) -> None:
-        self.log_text("Launching inventory")
-        inventory_cmd = "python -m tools.db.run"
-        if os.name == 'nt':
-            conda_cmd = f"conda activate galago-core && {inventory_cmd}"
-            cmd = ["cmd.exe", "/C", conda_cmd]
-        else:
-            cmd = inventory_cmd.split()
-        try:
-            if self.log_folder:
-                output_file = join(self.log_folder,"database.log")
-                process = subprocess.Popen(cmd, stdout=open(output_file,'w'), stderr=subprocess.STDOUT, universal_newlines=True)
-            else:
-                process = subprocess.Popen(cmd, universal_newlines=True)
-            self.server_processes["database"] = process
-            self.log_files_modified_times[output_file] = os.path.getmtime(output_file)
-        except subprocess.CalledProcessError:
-            logging.info("There was an error launching the inventory service.")
-            return None
-        self.log_text("Inventory launched on port 8000")
 
     def start_toolbox(self) -> None:
         logging.info("Launching Toolbox")
         try:
-            self.run_subprocess("toolbox", "toolbox", "Tool Box",1010,False, )
+            self.run_subprocess("toolbox", "Tool Box",1010,False)
         except subprocess.CalledProcessError:
             logging.info("There was an error launching toolbox server.")
 
-    def run_all_tools(self, force_restart:bool=False) -> None:
+    def run_all_tools(self) -> None:
+        self.kill_all_processes()
+        time.sleep(0.5)
         self.config.load_app_config()
-        self.config.load_workcell_config()
-        self.log_text(f"Config file is {self.config.app_config.workcell}")
-        if not self.config.workcell_config and not self.config.workcell_config_is_valid:
-            self.log_text("Invalid workcell config file. No tools started")
-            return
+        
         self.load_tools()
+        self.start_toolbox()
+
         counter = 0
+        self.populate_tool_buttons()
+
         if self.config.workcell_config is None:
-            return None
+            logging.error("No workcell configuration loaded")
+            return
+
         for t in self.config.workcell_config.tools:
             logging.info(f"Launching process for tool {t.name}")
             counter+=1
-            if force_restart:
-                result = 1
-            else:
-                #Check if tool is already running. 
-                tool_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                result = tool_socket.connect_ex(('127.0.0.1',t.port))
+            #Check if tool is already running. 
+            tool_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = tool_socket.connect_ex(('127.0.0.1',t.port))
             if result != 0:
                 try:
-                    self.run_subprocess(t.id, t.type,t.name,t.port,False, )
+                    self.run_subprocess(t.type,t.name,t.port,False )
                 except Exception as e:
                     logging.error(f"Failed to launch tool {t.name}. Error is {e}")
             else:
                 logging.warning(f"Port for tool {t.name} is already occupied")
-        
+        time.sleep(0.5)
+        self.update_buttons()
+
     def on_closing(self) -> None:
         logging.info("Calling on closing function")
         try:
@@ -578,13 +438,42 @@ class ToolsManager():
         process_thread.start()
         self.root.mainloop()
     
+def main() -> int:
+    parser = argparse.ArgumentParser(description='Launch Galago Tools Manager')
+    parser.add_argument('--debug', action='store_true', help='Enable debug mode with detailed logging')
+    args = parser.parse_args()
+
+    if args.debug:
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='%(asctime)s | %(levelname)s | %(message)s',
+            handlers=[
+                logging.StreamHandler(sys.stdout)
+            ]
+        )
+    else:
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s | %(levelname)s | %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S',
+        )
+
+    try:
+        logging.info("Starting Galago Tools Manager")
+        root = tk.Tk()
+        logging.info(f"Is root None? {root is None}")
+        config = Config()
+        logging.info("Loading app config")
+        config.load_app_config()
+        logging.info("Loading workcell config")
+        config.load_workcell_config()
+        manager = ToolsManager(root, config)
+        manager.show_gui()
+        return 0
+    except Exception:
+        logging.exception("Failed to launch tools")
+        sys.exit(1)
+        return 1
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    config = Config()
-    logging.info("Loading app config")
-    config.load_app_config()
-    logging.info("Loading workcell config")
-    config.load_workcell_config()
-    manager = ToolsManager(root, config)
-    manager.show_gui()
+    main()

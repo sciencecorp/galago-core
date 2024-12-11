@@ -1,0 +1,121 @@
+[
+  {
+    "protocolId": "image_culture_plate",
+    "params": {
+      "cytationProgram": "ImagingProtocol.cyt",
+      "liconic_cassette": 1,
+      "liconic_level": 2,
+      "wellPlateID": "WP12345",
+      "culturePlateType": "6 well",
+      "wellAddresses": ["A1", "B2", "A3"]
+    }
+  },
+  [
+    {
+      "label": "Unload plate from Liconic",
+      "toolId": "Liconic",
+      "toolType": "liconic",
+      "command": "fetch_plate",
+      "params": {
+        "cassette": 1,
+        "level": 2
+      }
+    },
+    {
+      "toolId": "pf400_1",
+      "toolType": "pf400",
+      "command": "run_sequence",
+      "params": {
+        "sequence_name": "getPlateLiconic",
+        "labware": "384-well celltreat"
+      }
+    },
+    {
+      "toolId": "pf400_1",
+      "toolType": "pf400",
+      "command": "run_sequence",
+      "params": {
+        "sequence_name": "regripLandscapeToPortrait",
+        "labware": "384-well celltreat"
+      }
+    },
+    {
+      "label": "Open Cytation",
+      "toolId": "cytation_1",
+      "toolType": "cytation",
+      "command": "open_carrier",
+      "params": {}
+    },
+    {
+      "toolId": "pf400_1",
+      "toolType": "pf400",
+      "command": "run_sequence",
+      "params": {
+        "sequence_name": "dropPlateCytation",
+        "labware": "384-well celltreat"
+      }
+    },
+    {
+      "label": "Image Plate/Run Cytation Program",
+      "toolId": "cytation_1",
+      "toolType": "cytation",
+      "command": "start_read",
+      "params": {
+        "protocol_file": "ImagingProtocol.cyt",
+        "experiment_name": "ImagingProtocol_WP12345_",
+        "well_addresses": ["A1", "B2", "A3"]
+      }
+    },
+    {
+      "label": "Open Cytation",
+      "toolId": "cytation_1",
+      "toolType": "cytation",
+      "command": "open_carrier",
+      "params": {}
+    },
+    {
+      "toolId": "pf400_1",
+      "toolType": "pf400",
+      "command": "run_sequence",
+      "params": {
+        "sequence_name": "getPlateCytation",
+        "labware": "384-well celltreat"
+      }
+    },
+    {
+      "label": "Close Cytation",
+      "toolId": "cytation_1",
+      "toolType": "cytation",
+      "command": "close_carrier",
+      "params": {}
+    },
+    {
+      "toolId": "pf400_1",
+      "toolType": "pf400",
+      "command": "run_sequence",
+      "params": {
+        "sequence_name": "regripPortraitToLandscape",
+        "labware": "384-well celltreat"
+      }
+    },
+    {
+      "toolId": "pf400_1",
+      "toolType": "pf400",
+      "command": "run_sequence",
+      "params": {
+        "sequence_name": "dropPlateLiconic",
+        "labware": "384-well celltreat"
+      }
+    },
+    {
+      "label": "Load plate into Liconic",
+      "toolId": "Liconic",
+      "toolType": "liconic",
+      "command": "store_plate",
+      "params": {
+        "cassette": 1,
+        "level": 2
+      }
+    }
+  ]
+]

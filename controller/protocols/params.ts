@@ -31,7 +31,7 @@ export const Barcode = Param("Barcode", z.string().regex(/^\d{12}$/, "Barcode mu
 export type Barcode = z.infer<typeof Barcode>;
 
 export const WellPlateType = z
-  .enum(["6", "12", "24", "96", "384","4_slide_holder"])
+  .enum(["6", "12", "24", "96", "384", "4_slide_holder"])
   .brand<"WellPlateType">();
 export type WellPlateType = z.infer<typeof WellPlateType>;
 function wellsInWellPlateType(type: z.infer<typeof WellPlateType>): number {
@@ -57,8 +57,8 @@ export const WellPlateWithWells = Param(
     })
     .refine(
       (data) => data.wells.length <= wellsInWellPlateType(data.type),
-      "Too many wells selected for plate type"
-    )
+      "Too many wells selected for plate type",
+    ),
 );
 export type WellPlateWithWells = z.infer<typeof WellPlateWithWells>;
 

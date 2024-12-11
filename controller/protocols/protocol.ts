@@ -9,20 +9,20 @@ import {
   zodSchemaToDefault,
   zodSchemaToEnumValues,
 } from "./zodHelpers";
+import { ToolConfig } from "gen-interfaces/controller";
 
 export default abstract class Protocol<
-  ParamSchema extends MaybeWrappedZodType<AnyZodObject> = MaybeWrappedZodType<AnyZodObject>
+  ParamSchema extends MaybeWrappedZodType<AnyZodObject> = MaybeWrappedZodType<AnyZodObject>,
 > {
-  abstract name:string;
+  abstract name: string;
   abstract protocolId: string;
   abstract paramSchema: ParamSchema;
   abstract _generateCommands(params: z.infer<ParamSchema>): ToolCommandInfo[];
   abstract category: string; //  "development" | "qc" | "production";
   abstract workcell: string; // "biolab" | "cell_foundry";
-  description?:string;
-  icon?:any;
-  
-  
+  description?: string;
+  icon?: any;
+
   generate(runRequest: RunRequest): ToolCommandInfo[] | false {
     const params = this.maybeParseParams(runRequest.params);
     if (!params) return false;
@@ -36,9 +36,7 @@ export default abstract class Protocol<
   }
 
   maybeParseParams(params: Record<string, any>): z.infer<ParamSchema> | undefined {
-    console.log("Raw params are: ", params);
     const parsed = this.paramSchema.safeParse(params);
-    console.log("Parsed params are: ", parsed);
     if (parsed.success) return parsed.data;
   }
 
@@ -61,7 +59,7 @@ export default abstract class Protocol<
     return Object.fromEntries(
       Object.entries(innerZodObjectShape(this.paramSchema)).map(([key, value]) => {
         return [key, this.paramInfo(value)];
-      })
+      }),
     );
   }
 }

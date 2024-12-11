@@ -1,40 +1,48 @@
 import subprocess 
-from typing import Optional 
 import os 
 import logging 
-from tools.conda_utils import get_conda_environments,check_conda_is_path
+import typing as t
 
+def write_to_file(file_name: str, content: str) -> None:
+    with open(file_name, "w") as f:
+        f.write(content)
 
-def run_python_script(python_file:str, as_module:bool = False, blocking:bool=True, env_variables:Optional[dict]=None, conda_environment: Optional[str]=None, use_shell:bool = False) -> None:
-    if not os.path.exists(python_file):
+def run_python_script(script_content: str, blocking: bool = True) -> t.Optional[str]:
+    #Create a temporary file to run the script
+    if os.path.exists("tmp_file.py"):
+        os.remove("tmp_file.py")
+    if os.path.exists("stdout.txt"):
+        os.remove("stdout.txt")
+    temp_file = "tmp_file.py"
+    script_content = script_content.encode("utf-8").decode("unicode_escape")
+    write_to_file(temp_file, script_content)
+
+    if not os.path.exists(temp_file):
         raise RuntimeError("Invalid file path")
-    
-    if env_variables:
-        for key,value in env_variables:
-            os.environ[key] = value 
-
-    cmd = ["python",python_file]
-    # if as_module:
-    #     cmd.append("-m")
-    
-    #only switch environment on windows os. 
-    if conda_environment and os.name == 'nt':
-        conda_is_path = check_conda_is_path()
-        if conda_is_path:
-            envs = get_conda_environments()
-            if conda_environment in envs:
-                conda_cmd = f"conda activate {conda_environment}" + "&&" + " ".join(cmd)
-                cmd =  ["cmd.exe", "/C", conda_cmd] 
-            else:
-                logging.warning(f"{conda_environment} not found, will attempt to run script with current env.")
-        else:
-            logging.warning("Conda is not in path. Running with default environment.")
+    cmd = ["python", "-m", temp_file.replace(".py", "").lstrip("/").replace("/", ".")]
+    logging.info("Command: " + str(cmd))
     try:
-        process = subprocess.Popen(cmd,shell=use_shell)
+        process = subprocess.Popen(cmd, stdout=open('stdout.txt', 'w'),stderr=subprocess.STDOUT)
         if blocking:
             process.wait()
-    except subprocess.CalledProcessError:
-        logging.info(f"There was an error while running {python_file}")
+            if process.returncode != 0:
+                with open('stdout.txt', 'r') as f:
+                    error_output = f.read()
+                raise RuntimeError(f"Script failed with return code {process.returncode}. Output:\n{error_output}")
+            else:
+                with open('stdout.txt', 'r') as f:
+                    return f.read()
+    except FileNotFoundError:
+        logging.error("Python executable not found.")
+        raise
+    except subprocess.CalledProcessError as e:
+        logging.error(f"There was an error while running script: {e}")
+        raise
     finally:
-        process.kill()
-        
+        os.remove(temp_file)
+        os.remove('stdout.txt')
+    return None
+
+
+if __name__ == "__main__":
+    print(run_python_script('print("Hello Worldaaaa")\nfor i in range(0,40):print(i)',blocking=True)) 

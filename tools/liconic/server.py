@@ -75,7 +75,6 @@ if __name__ == "__main__":
     parser.add_argument('--port')
     args = parser.parse_args()
     logging.info("Running server")
-    print("HELLO")
     if not args.port:
          raise RuntimeWarning("Port must be provided...")
     serve(LiconicServer(), os.environ.get("PORT", str(args.port)))

@@ -1,5 +1,4 @@
 import logging
-import os
 import time
 import typing as t
 
@@ -7,7 +6,7 @@ from tools.base_server import ToolServer, serve
 from tools.grpc_interfaces.bioshake_pb2 import Command, Config
 
 from .driver import BioshakeDriver
-
+import argparse 
 
 class BioShakeServer(ToolServer):
     toolType = "bioshake"
@@ -115,4 +114,9 @@ class BioShakeServer(ToolServer):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    serve(BioShakeServer(), os.environ.get("PORT", "4500"))
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--port')
+    args = parser.parse_args()
+    if not args.port:
+        raise RuntimeWarning("Port must be provided...")
+    serve(BioShakeServer(), str(args.port))

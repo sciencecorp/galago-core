@@ -47,10 +47,8 @@ class Location(BaseModel):
 
 class Nest(BaseModel):
     loc: Location
-    approach_path: list[Coordinate]
     safe_loc: str
     orientation: t.Literal["portrait", "landscape"]
-    # place_plate_wiggle: list[Coordinate] | None = None
     place_plate_wiggle: t.Optional[list[Coordinate]] = None
 
 

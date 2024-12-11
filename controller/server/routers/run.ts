@@ -14,7 +14,7 @@ export const runRouter = router({
     .input(
       z.object({
         // pagination will go here. later
-      })
+      }),
     )
     .query(async () => {
       return RunStore.global.all();
@@ -24,7 +24,7 @@ export const runRouter = router({
     .input(
       z.object({
         id: z.string(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { id } = input;
@@ -47,10 +47,10 @@ export const runRouter = router({
         workcellName: z.string(),
         protocolId: z.string(),
         params: z.record(z.any()),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
-      const {workcellName, protocolId, params } = input;
+      const { workcellName, protocolId, params } = input;
 
       try {
         const run = await RunStore.global.createFromProtocol(workcellName, protocolId, params);

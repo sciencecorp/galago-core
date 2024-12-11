@@ -1,5 +1,4 @@
 import logging
-
 from tools.base_server import ToolServer, serve
 from tools.grpc_interfaces.toolbox_pb2 import Command, Config
 from tools.app_config import Config as GlobalConfig
@@ -11,8 +10,7 @@ from tools.toolbox.slack import Slack
 from google.protobuf.struct_pb2 import Struct
 from tools.grpc_interfaces.tool_base_pb2 import  SUCCESS, ERROR_FROM_TOOL
 from tools.grpc_interfaces import tool_base_pb2
-from tools.toolbox.python_subprocess import run_python_script 
-from tools.toolbox.utils import struct_to_dict
+from tools.toolbox.python_subprocess import run_python_script
 
 class ToolBoxServer(ToolServer):
      toolType = "toolbox"
@@ -69,7 +67,7 @@ class ToolBoxServer(ToolServer):
           response.return_reply = True
           response.response = SUCCESS
           try:
-               data = Data.get_liconic_sensor_data(params.instrument_id, params.date)
+               data = Data.get_liconic_sensor_data(params.tool_id, params.date)
                if data:
                     s.update(data)
                else:
@@ -80,6 +78,7 @@ class ToolBoxServer(ToolServer):
                response.response = ERROR_FROM_TOOL
 
           return response
+
      
      def GetOT2ImagesByDate(self, params:Command.GetOT2ImagesByDate) -> ExecuteCommandReply:
           s  = Struct()
@@ -116,12 +115,25 @@ class ToolBoxServer(ToolServer):
                response.response = ERROR_FROM_TOOL
           return response
      
-     def RunPythonScript(self, params:Command.RunPythonScript) -> None:
-          env_variables_dict = {}
-          if params.env_variables:
-               env_variables_dict = struct_to_dict(params.env_variables)
-          run_python_script(params.python_file, params.as_module, params.blocking,env_variables_dict, params.conda_environment, params.use_shell)
-
+     def RunPythonScript(self, params:Command.RunPythonScript) -> ExecuteCommandReply:
+          s  = Struct()
+          response = ExecuteCommandReply()
+          response.return_reply = True
+          response.response = SUCCESS
+          try:
+               result = run_python_script(params.script_content,blocking=True)
+               logging.info(f"Script result is {result}")
+               if response:
+                    s.update({'response':result})
+               else:
+                    s.update({'response':''})
+               response.meta_data.CopyFrom(s)
+          except Exception as exc:
+               logging.exception(exc)
+               response.response = ERROR_FROM_TOOL
+               response.error_message = str(exc)
+          return response
+     
      def SendSlackAlert(self, params:Command.SendSlackAlert) -> None:
           if self.app_config.app_config.slack_error_channel:
                self.slack.send_alert_slack(params.workcell, params.tool, params.protocol, params.error_message, self.app_config.app_config.slack_error_channel)

@@ -44,11 +44,11 @@ function CommandQueueStatusComponent() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const handleStartClick = () => {
     onOpen();
-  }
+  };
   const handleConfirmStart = () => {
     restartMutation.mutate();
     onClose();
-  }
+  };
   if (stateQuery.isLoading) return <Spinner />;
 
   return (
@@ -68,21 +68,23 @@ function CommandQueueStatusComponent() {
         </Button>
       </HStack>
       <Modal isOpen={isOpen} onClose={onClose}>
-  <ModalOverlay />
-  <ModalContent>
-    <ModalHeader>Warning</ModalHeader>
-    <ModalCloseButton />
-    <ModalBody>
-      <Text>Make sure instruments are not unintentionally in simulation mode.</Text>
-    </ModalBody>
-    <ModalFooter>
-      <Button colorScheme="blue" mr={3} onClick={handleConfirmStart}>
-        Accept
-      </Button>
-      <Button variant="ghost" onClick={onClose}>Cancel</Button>
-    </ModalFooter>
-  </ModalContent>
-</Modal>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Warning</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text>Make sure instruments are not unintentionally in simulation mode.</Text>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={handleConfirmStart}>
+              Accept
+            </Button>
+            <Button variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 }
@@ -93,7 +95,7 @@ function CommandListComponent() {
 
   const commandsQuery = trpc.commandQueue.commands.useQuery(
     { limit: limit, offset: offset },
-    { refetchInterval: 100 }
+    { refetchInterval: 100 },
   );
   const hasPrevious = offset > 0;
   const hasNext = (commandsQuery.data && commandsQuery.data.length === limit) || false;

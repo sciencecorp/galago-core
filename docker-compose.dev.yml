@@ -1,0 +1,67 @@
+services:
+  queue:
+    image: redis:6.2-alpine
+    restart: unless-stopped
+    container_name: redis
+    command: redis-server --save 20 1 --loglevel warning
+    ports:
+      - "1203:6379"
+    networks:
+      - app-network
+
+  galago-web-dev:
+    build:
+      context: .
+      dockerfile: controller/Dockerfile.dev
+    container_name: galago-web-dev
+    ports:
+      - "3010:3010"
+      - "9229:9229" # Node.js debug port
+    volumes:
+      - ./controller:/app
+      - node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3010
+      - API_BASE_URL=http://db:8000/api
+      - REDIS_HOST=redis://queue:6379/1
+    stdin_open: true # for debugging
+    tty: true # for debugging
+    networks:
+      - app-network
+    depends_on:
+      - db
+      - queue
+
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile.dev
+    container_name: galago-db-dev
+    ports:
+      - "8000:8000"
+      - "5678:5678" # Python debug port
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=0
+    networks:
+      - app-network
+    volumes:
+      - ./db:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    # Use this command to see if the server starts properly
+    command: >
+      sh -c "uvicorn api:app --host 0.0.0.0 --port 8000 --reload --log-level debug"
+
+volumes:
+  node_modules:
+  npm_cache:
+
+networks:
+  app-network:
+    driver: bridge

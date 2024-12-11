@@ -1,4 +1,4 @@
-# -*- coding: mbcs -*-
+# -*- coding: utf-8 -*-
 # Created by makepy.py version 0.5.01
 # By python version 3.10.4 | packaged by conda-forge | (main, Mar 30 2022, 08:38:02) [MSC v.1916 64 bit (AMD64)]
 # From type library 'Gen5.exe'

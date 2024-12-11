@@ -1,5 +1,10 @@
+import { useEffect } from "react";
 import { ToolStatusCardsComponent } from "../../components/tools/ToolStatusCardsComponent";
 
 export default function Page() {
-  return <ToolStatusCardsComponent />;
+  useEffect(() => {
+    document.title = "Tools";
+  }, []);
+
+  return <ToolStatusCardsComponent showAsGrid />;
 }

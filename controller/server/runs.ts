@@ -44,7 +44,7 @@ export default class RunStore {
       durationEstimates.push(
         tool.estimateDuration(c.commandInfo).then((duration) => {
           c.estimatedDuration = duration;
-        })
+        }),
       );
     }
 
@@ -52,8 +52,14 @@ export default class RunStore {
     await Promise.all(durationEstimates);
   }
 
-  async createFromProtocol(workcellName:string, protocolId: string, params: Record<string, any>): Promise<Run> {
-    const protocol = Protocols.find((p) => p.protocolId === protocolId && p.workcell === workcellName);
+  async createFromProtocol(
+    workcellName: string,
+    protocolId: string,
+    params: Record<string, any>,
+  ): Promise<Run> {
+    const protocol = Protocols.find(
+      (p) => p.protocolId === protocolId && p.workcell === workcellName,
+    );
 
     if (!protocol) {
       throw new ProtocolNotFoundError(protocolId);
@@ -63,7 +69,6 @@ export default class RunStore {
     if (validationErrors) {
       throw validationErrors;
     }
-    
     const commands = protocol.generate({
       protocolId,
       params,
@@ -84,7 +89,7 @@ export default class RunStore {
 
     const run: Run = {
       id: runId,
-      params : params,
+      params: params,
       protocolId,
       commands: runCommands,
       status: "CREATED",
@@ -101,7 +106,10 @@ export default class RunStore {
 }
 
 export class ProtocolParamsInvalidError extends Error {
-  constructor(public protocolId: string, public cause: ZodError) {
+  constructor(
+    public protocolId: string,
+    public cause: ZodError,
+  ) {
     super(`Protocol params invalid: ${cause.message}`);
     this.name = "ProtocolParamsInvalidError";
   }

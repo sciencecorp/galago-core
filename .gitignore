@@ -13,6 +13,11 @@ controller/out/
 controller/build
 controller/gen-interfaces/
 controller/app.log
+stdout.txt 
+tmp_file.py 
+
+#tools 
+tools/pf400/config/*.json
 
 # misc
 .DS_Store
@@ -67,3 +72,5 @@ app_config.json
 
 # Ignore all waypoints.json files
 **/waypoints.json
+
+tools/build/*

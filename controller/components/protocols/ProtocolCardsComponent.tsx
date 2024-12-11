@@ -1,88 +1,120 @@
-
 import React, { useState, useEffect } from "react";
-import {Box, Grid, Card, VStack, Heading, CardBody,CardHeader, CardFooter, ButtonGroup,Button, Input, Text, Center, useDisclosure, Spinner, Alert, AlertIcon, AlertTitle, Divider, useSafeLayoutEffect} from "@chakra-ui/react"
+import {
+  Box,
+  Grid,
+  Card,
+  VStack,
+  Heading,
+  CardBody,
+  CardHeader,
+  CardFooter,
+  Button,
+  Input,
+  Text,
+  Center,
+  useDisclosure,
+  Spinner,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  Divider,
+} from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
-import {Protocol } from "@/types";
-import { AllNamesOutput } from "@/server/routers/protocol";
-import Head from "next/head";
-import NewProtocolRunModal from "./NewProtocolRunModal";
-interface ProtocolCardsComponentProp {
-}
+import { AllNamesOutput } from "@/server/routers/protocol"; // Ensure this type is imported
 
-export const ProtocolCardsComponent : React.FC<ProtocolCardsComponentProp> = ({}) => {
-const [isHovered, setIsHovered] = useState(false);
-const [searchTerm, setSearchTerm] = useState("");
-const workcellData = trpc.tool.getWorkcellName.useQuery();
-const workcellName = workcellData.data;
-const allProtocols = trpc.protocol.allNames.useQuery({ workcellName: workcellName || "" });
-const { isOpen, onOpen, onClose } = useDisclosure();
-const [selectedProtocol, setSelectedProtocol] = useState("")
+export const ProtocolCardsComponent: React.FC = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredProtocols, setFilteredProtocols] = useState<AllNamesOutput>([]); // Set type here
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [selectedProtocol, setSelectedProtocol] = useState("");
 
-const router = useRouter();
+  const router = useRouter();
 
-const onStartProtocolButtonClick = (id:string) => {
-  router.push(`/protocols/${id}`);
-}
+  const workcellData = trpc.workcell.getSelectedWorkcell.useQuery();
+  const workcellName = workcellData.data;
+  const allProtocols = trpc.protocol.allNames.useQuery({ workcellName: workcellName || "" });
 
-if (allProtocols.isLoading) {
-  return <Spinner size="lg" />;
-}
+  // Set initial protocols from query result
+  useEffect(() => {
+    if (allProtocols.data) {
+      setFilteredProtocols(allProtocols.data);
+    }
+  }, [allProtocols.data]);
 
-if (allProtocols.isLoading) {
-  return <Spinner size="lg" />;
-}
-console.log();
+  useEffect(() => {
+    if (!allProtocols.data) return;
+    const results = allProtocols.data.filter((protocol) =>
+      protocol.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+    setFilteredProtocols(results);
+  }, [searchTerm, allProtocols.data]);
 
-if (allProtocols.isError) {
+  const onStartProtocolButtonClick = (id: string) => {
+    router.push(`/protocols/${id}`);
+  };
+
+  // Handle loading state
+  if (allProtocols.isLoading) {
+    return <Spinner size="lg" />;
+  }
+
+  // Handle error state
+  if (allProtocols.isError) {
+    return (
+      <Alert status="error">
+        <AlertIcon />
+        <AlertTitle>Could not load protocols</AlertTitle>
+      </Alert>
+    );
+  }
+
   return (
-    <Alert status="error">
-      <AlertIcon />
-      <AlertTitle>Could not load protocols</AlertTitle>
-    </Alert>
-  );
-}
-return (
-  <Center>
-    <VStack>
-      <Heading>Protocols</Heading>
-    <Input
-        type="text"
-        placeholder="Search protocols..."
-        value={searchTerm}
-        onChange={(event) => setSearchTerm(event.target.value)}
-        mb={4}
-      />
-    <Grid 
-      templateColumns={allProtocols.data.length >= 3 ? "repeat(3, 1fr)" : `repeat(${allProtocols.data.length}, 1fr)`} 
-      gap={2} 
-      width="max-content"
-      >
-        {allProtocols.data?.length === 0&& (
-          <Alert status="info">
-            <AlertIcon />
-            <AlertTitle>No protocols found</AlertTitle>
-          </Alert>
-        )}
-        {allProtocols.data.map((protocol, index) => (
-              <Card key={index}>
+    <Center>
+      <VStack>
+        <Heading>Protocols</Heading>
+        <Input
+          type="text"
+          placeholder="Search protocols..."
+          value={searchTerm}
+          onChange={(event) => setSearchTerm(event.target.value)}
+          mb={4}
+        />
+        <Grid
+          templateColumns={
+            filteredProtocols.length >= 3
+              ? "repeat(3, 1fr)"
+              : `repeat(${filteredProtocols.length}, 1fr)`
+          }
+          gap={2}
+          width="max-content">
+          {filteredProtocols.length === 0 && (
+            <Alert status="info">
+              <AlertIcon />
+              <AlertTitle>No protocols found</AlertTitle>
+            </Alert>
+          )}
+          {filteredProtocols.map((protocol, index) => (
+            <Card key={index}>
               <CardHeader>
-                <Heading size='md'>{protocol.name}</Heading>
-                <Text fontSize='sm'>{protocol.id}</Text>
+                <Heading size="md">{protocol.name}</Heading>
+                <Text fontSize="sm">{protocol.id}</Text>
               </CardHeader>
               <CardBody>
                 <Text>{protocol.description}</Text>
               </CardBody>
               <Divider />
               <CardFooter>
-                <Button onClick={()=>{onStartProtocolButtonClick(protocol.id)}}>Start</Button>
+                <Button onClick={() => onStartProtocolButtonClick(protocol.id)} colorScheme="teal">
+                  Start
+                </Button>
               </CardFooter>
             </Card>
-        ))}
-      </Grid>
+          ))}
+        </Grid>
       </VStack>
     </Center>
-  )
-}
+  );
+};
 
 export default ProtocolCardsComponent;

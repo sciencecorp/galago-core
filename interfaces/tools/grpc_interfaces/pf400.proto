@@ -1,6 +1,7 @@
 syntax = 'proto3';
 
 package com.science.foundry.tools.grpc_interfaces.pf400;
+import "tools/grpc_interfaces/labware.proto";
 
 message Command {
   oneof command {
@@ -21,40 +22,9 @@ message Command {
     DropOffPlate dropoff_plate = 15;
     PickLid pick_lid = 16;
     PlaceLid place_lid = 17;
-    GetTeachpoints get_teachpoints = 18;
-    GetCurrentLocation get_current_location = 19;
-    Jog jog = 20;
-    SaveTeachpoints saveTeachpoints = 21;
-    RawCommand raw_command = 22;
-    CreateNest create_nest = 23;
-    CreateLocation create_location = 24;
-    DeleteNest delete_nest = 25;
-    DeleteLocation delete_location = 26;
-    AddToPath add_to_path = 27;
-  }
-
-  message DeleteNest {
-    string nest_name = 1;
-  }
-
-  message DeleteLocation {
-    string location_name = 1;
-  }
-
-  message CreateNest {
-    string nest_name = 1;
-    string orientation = 3;
-    string safe_loc = 4;
-    string loc_type = 5;
-  }
-
-  message CreateLocation {
-    string location_name = 1;
-    string loc_type = 2;
-  }
-
-  message AddToPath {
-    string nest_name = 1;
+    GetCurrentLocation get_current_location = 18;
+    Jog jog = 19;
+    RawCommand raw_command = 20;
   }
 
   message RawCommand {
@@ -68,23 +38,6 @@ message Command {
     string axis = 1;
     float distance = 2;
   }
-
-  message SaveTeachpoints {
-    message TeachPoint {
-      string name = 1;
-      string coordinate = 2;
-      string type = 3;
-      string loc_type = 4;
-      bool is_edited = 5;
-      repeated string approach_path = 6;
-    }
-    repeated TeachPoint teachpoints = 1;
-  }
-
-  message GetTeachpoints {
-    
-  }
-
   message PickLid {
     string labware = 1;
     string location = 2;
@@ -100,13 +53,13 @@ message Command {
   }
 
   message RetrievePlate {
-    string labware = 1;
+    tools.grpc_interfaces.labware.Labware labware = 1;
     string location = 2;
     optional int32 motion_profile_id = 3;
   }
 
   message DropOffPlate {
-    string labware = 1;
+    tools.grpc_interfaces.labware.Labware labware = 1;
     string location = 2;
     optional int32 motion_profile_id = 3;
   }
@@ -194,8 +147,7 @@ message Command {
 message Config {
   string host = 1;
   int32 port = 2;
-  string tool_id = 3;
-  string waypoints_json_file = 4;
-  int32 joints = 5;
-  
+  int32 joints = 3;
+  repeated string waypoints = 4;
 }
+

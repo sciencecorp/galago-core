@@ -22,6 +22,12 @@ message Command {
     ClearLastSlackAlert clear_last_slack_alert = 15;
     GetLogMediaExchangeByDate get_log_media_exchange_by_date = 16;
     ValidateFolder validate_folder = 17;
+    WriteToJson write_to_json = 18;
+  }
+
+  message WriteToJson {
+    google.protobuf.Struct struct_object = 1;
+    string file_path = 2;
   }
 
   message Timer {
@@ -72,7 +78,7 @@ message Command {
   }
 
   message GetLiconicSensorData {
-    string instrument_id =1; 
+    string tool_id =1; 
     string date =2;
   }
 
@@ -95,12 +101,8 @@ message Command {
   }
 
   message RunPythonScript {
-    string python_file = 1;
-    bool as_module =2;
-    bool blocking = 3;
-    optional google.protobuf.Struct env_variables =4;
-    optional string conda_environment =5;
-    optional bool use_shell = 6;
+    string script_content = 1;
+    bool blocking = 2;
   }
 
   message SendSlackAlert {

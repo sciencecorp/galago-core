@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "lib": ["dom", "dom.iterable", "esnext","es2016"],
+    "lib": ["dom", "dom.iterable", "esnext", "es2016"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -15,13 +15,22 @@
     "jsx": "preserve",
     "incremental": true,
     "baseUrl": ".",
+    "types": ["node"],
     "paths": {
       "react": ["node_modules/@types/react/index.d.ts"],
       "gen-interfaces/*": ["./gen-interfaces/*"],
       "@/*": ["./*"]
     },
-    "jsxImportSource": "@emotion/react"  // Add this line
+    "jsxImportSource": "@emotion/react" // Add this line
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx","**/*.png","**/*.jpg","**/*.svg","**/*.jpeg"],
-  "exclude": ["node_modules","./gen-interfaces/*"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.png",
+    "**/*.jpg",
+    "**/*.svg",
+    "**/*.jpeg"
+  ],
+  "exclude": ["node_modules", "./gen-interfaces/*"]
 }
