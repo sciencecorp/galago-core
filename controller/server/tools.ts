@@ -267,7 +267,6 @@ export default class Tool {
 
   static toolBoxConfig(): controller_protos.ToolConfig {
     return {
-      id: 0,
       name: "Tool Box",
       type: "toolbox" as ToolType,
       description: "General Tools",
