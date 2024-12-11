@@ -80,7 +80,7 @@ export default class Tool {
 
   async configure(config: tool_base.Config) {
     this.config = config;
-    
+
     // Handle PF400 specific configuration
     // if (this.type === ToolType.pf400) {
     //   try {

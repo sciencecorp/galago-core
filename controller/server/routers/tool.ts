@@ -124,12 +124,12 @@ export const toolRouter = router({
       try {
         const { toolId, config } = input;
         const tool = Tool.forId(toolId);
-        
+
         // Initialize waypoints array for PF400
         if (tool.type === ToolType.pf400) {
           if (!config.pf400) {
             config.pf400 = {
-              host: '',
+              host: "",
               port: 0,
               joints: 0,
               waypoints: [],
@@ -137,21 +137,21 @@ export const toolRouter = router({
           }
           config.pf400.waypoints = [];
         }
-        
+
         const response = await tool.grpc.configure(config);
-        
-        if (response.response !== 'SUCCESS') {
+
+        if (response.response !== "SUCCESS") {
           throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: response.error_message || 'Failed to configure tool',
+            code: "INTERNAL_SERVER_ERROR",
+            message: response.error_message || "Failed to configure tool",
           });
         }
-        
+
         return response;
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error instanceof Error ? error.message : 'Failed to configure tool',
+          code: "INTERNAL_SERVER_ERROR",
+          message: error instanceof Error ? error.message : "Failed to configure tool",
         });
       }
     }),
