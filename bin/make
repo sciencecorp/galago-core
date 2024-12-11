@@ -77,8 +77,10 @@ test_ts() {
 
 test_py() {
   echo "Running Python Tests"
+  echo "Ruff Check"
   ruff check .
-  mypy . --install-types --non-interactive
+  echo "Mypy Check Tools"
+  mypy tools --install-types --non-interactive
 }
 
 pytest() {

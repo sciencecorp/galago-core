@@ -7,7 +7,7 @@ import shutil
 
 
 class BuildProtobuf(_build_py):
-   def run(self):
+   def run(self) -> None:
         proto_src = os.path.join(dirname(dirname(realpath(__file__))), "interfaces")
         grpc_interfaces_output_dir = os.path.abspath(join(os.path.dirname(__file__), "grpc_interfaces"))
 
@@ -66,13 +66,13 @@ def readme() -> str:
         return open(readme_path).read()
     return ""
 
-def read_requirements(filename):
+def read_requirements(filename:str) -> list[str]:
     requirements_path = os.path.join(os.path.dirname(__file__), filename)
     with open(requirements_path) as f:
         return [line.strip() for line in f
                 if line.strip() and not line.startswith('#')]
 
-def find_tool_packages():
+def find_tool_packages() -> list[str]:
     """Find all packages and subpackages in the current directory"""
     packages = ['tools']
     for root, dirs, files in os.walk('.'):
@@ -82,7 +82,8 @@ def find_tool_packages():
             print(package_path)
             if package_path:
                 packages.append(f'tools.{package_path}')
-    return packages.append('tools.grpc_interfaces.*')
+    packages.append('tools.grpc_interfaces')
+    return packages
 
 find_tool_packages()
 setup(
