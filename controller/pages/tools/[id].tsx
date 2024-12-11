@@ -24,7 +24,6 @@ import { capitalizeFirst } from "@/utils/parser";
 import { useParams } from "react-router";
 import Head from "next/head";
 import { ToolConfig } from "gen-interfaces/controller";
-import { TeachPendant } from "@/components/tools/advanced/teach_pendant/TeachPendant";
 // Assuming you're using TypeScript, you could define a type for the status object
 type CommandStatus = {
   [commandName: string]: "idle" | "success" | "error";
@@ -694,7 +693,6 @@ export default function Page() {
           {/* Right Side */}
           {config?.type === ToolType.pf400 && (
             <Box flex={1}>
-              <TeachPendant toolId={id || ""} config={config} />
             </Box>
           )}
         </HStack>
