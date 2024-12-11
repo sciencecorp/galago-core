@@ -24,7 +24,7 @@ import {
 import { DeleteIcon } from "@chakra-ui/icons";
 import { RobotArmSequence } from "@/server/routers/robot-arm";
 import { ToolCommandInfo } from "@/types";
-import { ToolConfig } from "gen-interfaces/controller";
+import { Tool } from "@/types/api";
 import { CommandModal } from "./CommandModal";
 
 export interface SequenceCommand {
@@ -42,7 +42,7 @@ export interface Sequence {
 }
 
 interface SequenceModalProps {
-  config: ToolConfig;
+  config: Tool;
   isOpen: boolean;
   onClose: () => void;
   sequence?: Sequence;
@@ -169,7 +169,7 @@ const SequenceModal: React.FC<SequenceModalProps> = ({ config, isOpen, onClose, 
   );
 };
 
-export function useSequenceHandler(config: ToolConfig) {
+export function useSequenceHandler(config: Tool) {
   console.log("Sequence Config: ", config);
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();

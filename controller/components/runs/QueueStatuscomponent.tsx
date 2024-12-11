@@ -24,9 +24,6 @@ import {
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import StatusTag from "@/components/tools/StatusTag";
-import { ExecuteCommandReply, ResponseCode } from "gen-interfaces/tools/grpc_interfaces/tool_base";
-import { ToolCommandInfo } from "@/types";
-import { ToolType } from "gen-interfaces/controller";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 
 import { getegid } from "process";

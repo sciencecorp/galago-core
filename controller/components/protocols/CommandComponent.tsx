@@ -15,7 +15,6 @@ import {
   Td,
   Tr,
 } from "@chakra-ui/react";
-import { ToolType } from "gen-interfaces/controller";
 import NextLink from "next/link";
 import { IoPlaySkipForward } from "react-icons/io5";
 import { BsSkipForwardFill } from "react-icons/bs";

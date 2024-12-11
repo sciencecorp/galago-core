@@ -18,7 +18,6 @@ import {
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
 import { ToolCommandInfo } from "@/types";
-import { ToolConfig } from "gen-interfaces/controller";
 
 export default function Page() {
   const router = useRouter();

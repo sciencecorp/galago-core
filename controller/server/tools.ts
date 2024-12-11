@@ -9,8 +9,6 @@ import { PromisifiedGrpcClient, promisifyGrpcClient } from "./utils/promisifyGrp
 import { setInterval, clearInterval } from "timers";
 import { trpc } from "@/utils/trpc";
 import { get } from "@/server/utils/api";
-import { Tool as ToolResponse } from "@/types/api";
-import { ToolConfig } from "gen-interfaces/controller";
 import { Script } from "@/types/api";
 import { Variable } from "@/types/api";
 

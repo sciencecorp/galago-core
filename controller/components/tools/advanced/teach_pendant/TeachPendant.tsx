@@ -52,7 +52,7 @@ import {
 import { useState, useCallback, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
 import { ToolCommandInfo } from "@/types";
-import { ToolConfig } from "gen-interfaces/controller";
+import { Tool } from "@/types/api";
 import { useToast } from "@chakra-ui/react";
 import {
   AddIcon,
@@ -71,10 +71,11 @@ import {
   DroppableProvided,
 } from "react-beautiful-dnd";
 import { useSequenceHandler } from "./SequenceHandler";
+import { ToolType } from "gen-interfaces/controller";
 
 interface TeachPendantProps {
   toolId: string | undefined;
-  config: ToolConfig;
+  config: Tool;
 }
 
 type TeachPoint = {
@@ -243,7 +244,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     }
     const jogCommand: ToolCommandInfo = {
       toolId: config.name,
-      toolType: config.type,
+      toolType: config.type as ToolType,
       command: "jog",
       params: {
         axis: jogAxis,
@@ -339,7 +340,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     console.log(`config:`, config);
     const toolCommand: ToolCommandInfo = {
       toolId: config.name,
-      toolType: config.type,
+      toolType: config.type as ToolType,
       command: "get_current_location",
       params: {},
     };
@@ -644,7 +645,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     console.log(`point:`, point);
     const command: ToolCommandInfo = {
       toolId: config.name,
-      toolType: config.type,
+      toolType: config.type as ToolType,
       command: "move",
       params: {
         waypoint: point.coordinate,
@@ -882,7 +883,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   const handleRegisterMotionProfile = async (profile: MotionProfile) => {
     const registerCommand: ToolCommandInfo = {
       toolId: config.name,
-      toolType: config.type,
+      toolType: config.type as ToolType,
       command: "register_motion_profile",
       params: {
         id: profile.profile_id,

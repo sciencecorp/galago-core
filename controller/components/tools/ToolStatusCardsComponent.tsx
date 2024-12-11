@@ -20,7 +20,6 @@ import {
   ButtonGroup,
 } from "@chakra-ui/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import styled from "@emotion/styled";
 import { NewToolModal } from "./NewToolModal";
 import { PageHeader } from "@/components/UI/PageHeader";
