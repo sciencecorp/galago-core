@@ -15,9 +15,8 @@ warn_unused_ignores = "False"
 show_error_codes = "True"
 follow_imports = "silent"
 disable_error_code = ["misc", "var-annotated"]
-exclude = ['tools/*', '.*pb2.*', 'pyi$', 'cytation.py', "teach_pendant","opentrons"]
+exclude = ['.*pb2.*', 'pyi$', 'cytation.py', "teach_pendant","opentrons"]
 
 [[tool.mypy.overrides]]
-module = "galago_tools.*"
-follow_imports = "skip"
+module = "biology_tools.*"
 ignore_missing_imports = true
