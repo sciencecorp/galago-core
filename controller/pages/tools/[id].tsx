@@ -691,10 +691,7 @@ export default function Page() {
           </VStack>
 
           {/* Right Side */}
-          {config?.type === ToolType.pf400 && (
-            <Box flex={1}>
-            </Box>
-          )}
+          {config?.type === ToolType.pf400 && <Box flex={1}></Box>}
         </HStack>
       </Box>
     </>
