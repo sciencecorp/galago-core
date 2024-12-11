@@ -32,7 +32,6 @@ class XPeelServer(ToolServer):
         except Exception as exc:
             logging.exception("Failed to deseal plate", exc)
             response.response = INVALID_ARGUMENTS
-        return response
 
     def CheckStatus(self) -> ExecuteCommandReply:
         response = ExecuteCommandReply()

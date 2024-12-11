@@ -2,7 +2,7 @@ import os
 from os.path import join, dirname
 from pydantic import BaseModel
 import json 
-from typing import Optional
+from typing import Optional, Any
 from datetime import date , time 
 import logging 
 import typing as t
@@ -42,11 +42,11 @@ class AppConfig(BaseModel):
     slack_admins_ids: Optional[list[str]]
 
 
-def get_workcell(id:int) -> any:
+def get_workcell(id:int) -> Any:
     response = db.get_by_id_or_name(id, "workcells")
     return response
 
-def get_selected_workcell() -> any:
+def get_selected_workcell() -> Any:
     workcell = db.get_data("settings/workcell").get("value")
     return workcell
 

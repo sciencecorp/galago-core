@@ -439,7 +439,7 @@ class ToolsManager():
         process_thread.start()
         self.root.mainloop()
     
-def main() -> None:
+def main() -> int:
     parser = argparse.ArgumentParser(description='Launch Galago Tools Manager')
     parser.add_argument('--debug', action='store_true', help='Enable debug mode with detailed logging')
     args = parser.parse_args()
@@ -470,9 +470,11 @@ def main() -> None:
         config.load_workcell_config()
         manager = ToolsManager(root, config)
         manager.show_gui()
+        return 0
     except Exception:
         logging.exception("Failed to launch tools")
         sys.exit(1)
+        return 1
 
 if __name__ == "__main__":
     main()
