@@ -1,46 +1,47 @@
 import requests
-from typing import Union
+from typing import Union, Any
 import logging
 
 API_URL = "http://localhost:8000/api"
 
 class Db:
     @staticmethod
-    def check_connection():
+    def check_connection() -> bool:
         try:
             response = requests.get(API_URL)
             if response.status_code == 200:
                 return True
         except requests.exceptions.ConnectionError:
             return False
-        
+        return False
+    
     @staticmethod
-    def get_data(model:str):
+    def get_data(model:str) -> Any:
         response = requests.get(f"{API_URL}/{model}")
         return response.json()
 
     @staticmethod
-    def get_by_id_or_name(id:Union[int,str], model:str):
+    def get_by_id_or_name(id:Union[int,str], model:str) -> Any:
         response = requests.get(f"{API_URL}/{model}/{id}")
         return response.json()
     
     @staticmethod
-    def post_data(data:dict, model:str):
+    def post_data(data:dict, model:str) -> Any:
         response = requests.post(f"{API_URL}/{model}", json=data)
         return response.json()
 
     @staticmethod
-    def delete_data(id, model:str):
+    def delete_data(id:Union[int,str], model:str) -> Any:
         response = requests.delete(f"{API_URL}/{model}/{id}")
         return response.json()
     
     @staticmethod
-    def update_data(id:int, data:dict, model:str):
+    def update_data(id:Union[str,int], data:dict, model:str) -> Any:
         response = requests.put(f"{API_URL}/{model}/{id}", json=data)
         return response.json()
     
     @staticmethod
-    def ping(times:int):
+    def ping(times:int) -> bool:
         for i in range(times):
             try:
                 logging.info(f"Pinging {API_URL} ... Attempt {i+1}")

@@ -42,11 +42,11 @@ class AppConfig(BaseModel):
     slack_admins_ids: Optional[list[str]]
 
 
-def get_workcell(id:int) -> WorkcellConfig:
+def get_workcell(id:int) -> any:
     response = db.get_by_id_or_name(id, "workcells")
     return response
 
-def get_selected_workcell() -> str:
+def get_selected_workcell() -> any:
     workcell = db.get_data("settings/workcell").get("value")
     return workcell
 

@@ -340,7 +340,7 @@ class ToolsManager():
             label.pack(side=tk.LEFT, padx=(5, 10), pady=5, expand=True, fill=tk.X)
             
             # Add status indicator
-            status_indicator = tk.Canvas(frame, width=12, height=12, highlightthickness=0)
+            status_indicator : tk.Frame = tk.Canvas(frame, width=12, height=12, highlightthickness=0)
             status_indicator.pack(side=tk.LEFT, padx=(0, 10), pady=5)
             status_indicator.create_oval(2, 2, 10, 10, fill='red', tags='status')
             

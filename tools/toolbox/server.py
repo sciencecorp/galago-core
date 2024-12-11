@@ -67,19 +67,18 @@ class ToolBoxServer(ToolServer):
           response.return_reply = True
           response.response = SUCCESS
           try:
-               data = Data.get_liconic_sensor_data(params.tool_id, params.date)
+               data = Data.get_liconic_sensor_data(params.instrument_id, params.date)
                if data:
                     s.update(data)
                else:
                     s.update({'times':[],'co2_values':[]})
                response.meta_data.CopyFrom(s)
           except Exception as exc:
-               logging.info("Error is "+str(exc))
                logging.exception(exc)
                response.response = ERROR_FROM_TOOL
-               response.meta_data.CopyFrom(str(exc))
 
           return response
+
      
      def GetOT2ImagesByDate(self, params:Command.GetOT2ImagesByDate) -> ExecuteCommandReply:
           s  = Struct()
@@ -95,10 +94,8 @@ class ToolBoxServer(ToolServer):
                     s.update({'images':[]})
                response.meta_data.CopyFrom(s)
           except Exception as exc:
-               logging.info("Error is "+str(exc))
                logging.exception(exc)
                response.response = ERROR_FROM_TOOL
-               response.meta_data.CopyFrom(str(exc))
           return response
      
      def GetOT2ImageBytes(self, params:Command.GetOT2ImageBytes) -> ExecuteCommandReply:

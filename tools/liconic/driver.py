@@ -1,339 +1,320 @@
-from dataclasses import dataclass
-from datetime import datetime
-import logging
-import os
-import threading
-import time
-from typing import Optional, Union, Dict
-
 import serial
-
+import time
+import logging
 from tools.base_server import ABCToolDriver
-from tools.toolbox.slack import Slack
-from tools.app_config import Config
+import threading 
+import os
+from datetime import datetime
+from typing import Optional, Union
+from tools.toolbox.slack import Slack 
+from tools.app_config import Config 
 
-@dataclass
-class LiconicConfig:
-    """Configuration settings for Liconic STX driver"""
-    baud_rate: int = 9600
-    timeout: int = 1
-    parity: str = serial.PARITY_EVEN
-    wait_timeout: int = 90
-    max_read_attempts: int = 25
-    co2_check_interval: int = 300  # seconds
-    co2_low_threshold: float = 3.0
-    co2_normal_threshold: float = 4.0
 
-class LiconicError(Exception):
-    """Base exception for Liconic-specific errors"""
-    pass
+ERROR_CODES = {
+    "06163": "Failed to load plate. There might be a plate at specified location."
+}
 
-class LiconicTimeoutError(LiconicError):
-    """Raised when a command times out"""
-    pass
+def try_ascii_decode(data: Union[str,bytes]) -> str:
+    if isinstance(data, str):
+        return data
+    data_string = ""
+    try:
+        data_string = data.decode("ascii")
+    except Exception:
+        raise serial.SerialException(f"error decoding to ascii string: {data!r}")
+    return data_string
 
-class LiconicCommunicationError(LiconicError):
-    """Raised when communication with the device fails"""
-    pass
 
-class LiconicResponseError(LiconicError):
-    """Raised when an unexpected response is received"""
-    pass
+def serial_read(serial_port: serial.Serial) -> str:
+    reply = serial_port.read_until(expected=b"\n")
+    reply_string = try_ascii_decode(reply)
+    if reply_string == "":
+        logging.warning("Liconic STX returned empty response")
+        return ""
+    # Ignore any malformed responses for now.
+    if not (reply_string[-1] == "\n" and reply_string[-2] == "\r"):
+        logging.warning(f"Liconic STX returned malformed response {reply_string}")
+        return ""
+    return reply_string[0:-2]
 
-class SerialCommunication:
-    """Handles low-level serial communication with the Liconic device"""
-    
-    ERROR_CODES: Dict[str, str] = {
-        "06163": "Failed to load plate. There might be a plate at specified location."
-    }
 
-    def __init__(self, port: str, config: LiconicConfig):
+WAIT_TIMEOUT = 90
+
+
+class LiconicStxDriver(ABCToolDriver):
+    # Example: com_port can be "COM1"
+    def __init__(self, com_port: str) -> None:
+        self.config = Config()
+        self.config.load_app_config()
+        self.config.load_workcell_config()
+        self.slack_client = Slack(self.config)
+        if self.config.app_config.data_folder:
+            self.co2_log_path = os.path.join(self.config.app_config.data_folder,"sensors","liconic")
         self.serial_port = serial.Serial(
-            port,
-            config.baud_rate,
-            timeout=config.timeout,
-            parity=config.parity
+            com_port, 9600, timeout=1, parity=serial.PARITY_EVEN
         )
         self.lock = threading.Lock()
-        self.config = config
-
-    @staticmethod
-    def _try_ascii_decode(data: Union[str, bytes]) -> str:
-        if isinstance(data, str):
-            return data
-        try:
-            return data.decode("ascii")
-        except Exception as e:
-            raise LiconicCommunicationError(f"Error decoding to ASCII string: {data!r}") from e
+        self.monitor_thread: Optional[threading.Thread] = None
+        self.is_busy = False
+        self.monitoring = False
+        self.co2_out_of_range = False
+        self.connect()
 
     def write(self, message: str) -> None:
         with self.lock:
             try:
                 self.serial_port.write((message + "\r").encode("ascii"))
             except Exception as e:
-                raise LiconicCommunicationError(f"Failed to communicate with Liconic: {e}")
+                raise RuntimeError(f"Failed to communicate with liconic. {e}")
 
-    def read(self, strict: bool = True) -> str:
+    # Read a single message from the serial port.
+    # strict - if true, exceptions will be thrown if read fails.
+    # max-attempts - number of times to retry if an empty string or error message is received.
+    def read(self, strict: bool = True, max_attempts: int = 25) -> str:
         attempt = 0
-        while attempt < self.config.max_read_attempts:
+        # The instruments will sometimes return an empty string or "{}" even during normal operation.
+        while attempt < max_attempts:
+            # Read a message.
             with self.lock:
-                reply = self.serial_port.read_until(expected=b"\n")
-                reply_string = self._try_ascii_decode(reply)
+                reply_string = serial_read(self.serial_port)
 
-            if not reply_string:
-                logging.warning("Liconic STX returned empty response")
+            if reply_string == "":
                 attempt += 1
                 logging.info(f"Retrying...Attempt {attempt}")
                 continue
 
-            if not (reply_string.endswith("\r\n")):
-                logging.warning(f"Liconic STX returned malformed response {reply_string}")
-                attempt += 1
-                continue
+            # If we have reached here, the message is valid. Return it.
+            return reply_string
 
-            return reply_string[:-2]  # Remove \r\n
-
+        # If we have reached here, we have exceeded max attempts.
+        # The instrument may have disconnected.
         if strict:
-            raise LiconicCommunicationError(
-                f"No valid data received. {self.serial_port.name} may have disconnected."
+            raise serial.SerialException(
+                f"No valid data was received. {self.serial_port.name} may have disconnected."
             )
         return ''
 
-    def close(self) -> None:
-        self.serial_port.close()
-
-class CO2Monitor:
-    """Handles CO2 monitoring and logging functionality"""
-
-    def __init__(self, driver: 'LiconicStxDriver'):
-        self.driver = driver
-        self.config = driver.config
-        self.serial_comm = driver.serial_comm
-        self.monitoring = False
-        self.co2_out_of_range = False
-        self.monitor_thread: Optional[threading.Thread] = None
-
-    def start_monitoring(self) -> None:
-        self.monitor_thread = threading.Thread(target=self._monitor_co2_level)
-        self.monitor_thread.daemon = True
-        self.monitor_thread.start()
-
-    def _monitor_co2_level(self) -> None:
-        self.monitoring = True
-        try:
-            while True:
-                logging.info("Liconic monitor thread is running...")
-                if not self.driver.is_busy:
-                    co2_level = self._get_current_co2_level()
-                    self._write_co2_log(co2_level)
-                    self._check_co2_alerts(co2_level)
-                time.sleep(self.driver.config.co2_check_interval)
-        except Exception as e:
-            logging.error(f"CO2 monitor thread error: {e}", exc_info=True)
-            self.monitoring = False
-
-    def _get_current_co2_level(self) -> float:
-        raw_level = float(self.driver.get_co2_cur_level())
-        return raw_level / 100
-
-    def _write_co2_log(self, co2_level: float) -> None:
-        if not self.driver.co2_log_path:
-            return
-
-        today = datetime.today().strftime('%Y-%m-%d')
-        today_folder = os.path.join(self.driver.co2_log_path, today)
-        os.makedirs(today_folder, exist_ok=True)
-        
-        trace_file = os.path.join(today_folder, "liconic_co2.txt")
-        try:
-            if not os.path.exists(trace_file):
-                with open(trace_file, 'w+') as f:
-                    f.write('Time,Value\n')
-            
-            with open(trace_file, 'a') as f:
-                f.write(f"{datetime.today()},{co2_level}\n")
-        except Exception as e:
-            logging.error(f"Failed to write CO2 log: {e}")
-
-    def _check_co2_alerts(self, co2_level: float) -> None:
-        if co2_level < self.driver.config.co2_low_threshold:
-            self.co2_out_of_range = True
-            error_message = f"CO2 level is low: {co2_level}%"
-            logging.error(error_message)
-            self.driver._send_slack_alert(error_message)
-        elif co2_level > self.driver.config.co2_normal_threshold and self.co2_out_of_range:
-            if self.config.app_config.slack_error_channel:
-                self.driver.slack_client.clear_last_error(
-                    self.config.app_config.slack_error_channel
-                )
-            self.co2_out_of_range = False
-
-class LiconicStxDriver(ABCToolDriver):
-    """Main driver class for Liconic STX instrument"""
-
-    def __init__(self, com_port: str) -> None:
-        self.config = Config()
-        self.config.load_app_config()
-        self.config.load_workcell_config()
-        self.slack_client = Slack(self.config)
-        
-        self.liconic_config = LiconicConfig()
-        self.serial_comm = SerialCommunication(com_port, self.liconic_config)
-        self.co2_monitor = CO2Monitor(self)
-        
-        self.is_busy = False
-        self.co2_log_path = None
-        if self.config.app_config.data_folder:
-            self.co2_log_path = os.path.join(
-                self.config.app_config.data_folder,
-                "sensors",
-                "liconic"
-            )
-        
-        self.connect()
-
-    def connect(self) -> None:
-        logging.info("Connecting to Liconic STX...")
-        self.serial_comm.write("CR")
-        self._expect_response("CC")
-
-    def close(self) -> None:
-        logging.info("Closing Liconic STX connection...")
-        self.serial_comm.write("CQ")
-        self._expect_response("CF")
-        self.serial_comm.close()
-
-    def _expect_response(self, expected: str, strict: bool = False) -> None:
-        response = self.serial_comm.read()
-        if response != expected:
-            if strict:
-                raise LiconicResponseError(f"Expected response {expected}. Got {response}")
-            logging.warning(f"Expected response {expected}. Got {response}")
-
-    def _send_slack_alert(self, error_message: str) -> None:
-        workcell = self.config.app_config.workcell or "Unknown"
-        if self.config.app_config.slack_error_channel:
-            self.slack_client.send_alert_slack(
-                workcell=workcell,
-                tool="Liconic",
-                protocol="NA",
-                error=error_message,
-                channel_id=self.config.app_config.slack_error_channel
-            )
-
-    def wait_for_ready(self, timeout: int = None, custom_error: Optional[str] = None) -> None:
-        timeout = timeout or self.liconic_config.wait_timeout
-        elapsed_time = 0
-        
+    def wait_for_ready(self, timeout: int = WAIT_TIMEOUT, custom_error: Optional[str]=None) -> None:
+        times = 0
         while True:
-            self.serial_comm.write("RD 1915")
-            if self.serial_comm.read() == "1":
-                logging.info(f"Device ready after {elapsed_time} seconds")
+            self.write("RD 1915")
+            ready = self.read()
+            if ready == "1":
+                logging.info(f"Waited for {times} seconds")
                 return
-
             if self.has_error():
                 error_code = self.get_error_code()
-                error_message = self.serial_comm.ERROR_CODES.get(
-                    error_code,
-                    f"Unknown error code: {error_code}"
-                )
-                raise LiconicError(error_message)
-
-            logging.info("Liconic STX is busy. Waiting...")
-            elapsed_time += 1
-            
-            if elapsed_time > timeout:
-                raise LiconicTimeoutError(
-                    custom_error or "Liconic timed out waiting for command"
-                )
-            
+                if error_code in ERROR_CODES:
+                    raise Exception(f"{ERROR_CODES[error_code]}")
+                else:
+                    raise Exception(f"Liconic has errored with code {error_code}")
+            logging.info("Liconic stx is busy. Waiting...")
+            times += 1
+            if times > timeout:
+                raise Exception(custom_error or "Liconic has timed out waiting for command")
             time.sleep(1)
 
+    def has_error(self) -> bool:
+        self.write("RD 1814")
+        return self.read() == "1"
+
+    def get_error_code(self) -> str:
+        self.write("RD DM200")
+        return self.read()
+
+    def expect_response(self, expected: str, strict: bool = False) -> None:
+        response = self.read()
+        if response != expected:
+            if strict:
+                raise Exception(f"Expected response {expected}. Got {response}")
+            else:
+                logging.warning(f"Expected response {expected}. Got {response}")
+
+    def log(self, msg: str) -> None:
+        logging.info(f"liconic_stx_legacy_driver: {msg}")
+
+    def connect(self) -> None:
+        self.log("Connecting...")
+        self.write("CR")
+        self.expect_response("CC")
+
+    def close(self) -> None:
+        self.log("Closing...")
+        self.write("CQ")
+        self.expect_response("CF")
+        self.serial_port.close()
+
+    def reset(self) -> None:
+        self.log("Resetting...")
+        self.write("ST 1900")
+        self.expect_response("OK")
+        self.wait_for_ready()
+
+    def initialize(self) -> None:
+        self.log("Initializing...")
+        self.write("ST 1801")
+        self.expect_response("OK")
+        self.wait_for_ready()
+
     def load_plate(self, cassette: int, level: int) -> None:
-        logging.info(f"Loading plate (cassette={cassette}, level={level})...")
+        logging.info("Loading plate")
         self.is_busy = True
         try:
-            self._execute_plate_operation("load", cassette, level)
+            self.log(f"Loading plate (cassette={cassette}, level={level})...")
+            self.write(f"WR DM0 {cassette}")
+            self.expect_response("OK")
+            self.write(f"WR DM5 {level}")
+            self.expect_response("OK")
+            self.write("ST 1904")
+            self.expect_response("OK")
+
+            self.wait_for_ready()
+            self.check_shovel_station_sensor("0")
+            # Verify that the plate is not on the transfer station any longer.
+            self.check_transfer_station_sensor("0")
+        except Exception as e:
+            raise RuntimeError(f"{e}")
         finally:
             self.is_busy = False
             logging.info("Loading plate complete")
 
     def unload_plate(self, cassette: int, level: int) -> None:
-        logging.info(f"Unloading plate (cassette={cassette}, level={level})...")
         self.is_busy = True
         try:
-            self._execute_plate_operation("unload", cassette, level)
+            self.log(f"Unloading plate (cassette={cassette}, level={level})...")
+            self.write(f"WR DM0 {cassette}")
+            self.expect_response("OK")
+            self.write(f"WR DM5 {level}")
+            self.expect_response("OK")
+            self.write("ST 1905")
+            self.expect_response("OK")
+
+            self.wait_for_ready()
+            self.check_shovel_station_sensor("0")
+            # Verify that the plate is on the transfer station.
+            self.check_transfer_station_sensor("1")
+        except Exception as e:
+            raise RuntimeError(f"{e}")
         finally:
             self.is_busy = False
-            logging.info("Unloading plate complete")
 
-    def _execute_plate_operation(self, operation: str, cassette: int, level: int) -> None:
-        self.serial_comm.write(f"WR DM0 {cassette}")
-        self._expect_response("OK")
-        self.serial_comm.write(f"WR DM5 {level}")
-        self._expect_response("OK")
-        
-        command = "1904" if operation == "load" else "1905"
-        self.serial_comm.write(f"ST {command}")
-        self._expect_response("OK")
-
-        self.wait_for_ready()
-        self.check_shovel_station_sensor("0")
-        expected_transfer = "0" if operation == "load" else "1"
-        self.check_transfer_station_sensor(expected_transfer)
-
-    def has_error(self) -> bool:
-        self.serial_comm.write("RD 1814")
-        return self.serial_comm.read() == "1"
-
-    def get_error_code(self) -> str:
-        self.serial_comm.write("RD DM200")
-        return self.serial_comm.read()
+    def read_error_code(self) -> None:
+        self.write("RD DM200")
+        response = self.read()
+        logging.info(f"Current error code {response}")
 
     def check_transfer_station_sensor(self, expected: str = "0") -> None:
-        self.serial_comm.write("RD 1813")
-        self._expect_response(expected)
+        self.write("RD 1813")
+        self.expect_response(expected)
 
     def check_shovel_station_sensor(self, expected: str = "0") -> None:
-        self.serial_comm.write("RD 1812")
-        self._expect_response(expected)
-
-    # CO2 Control Methods
-    def get_co2_set_point(self) -> str:
-        self.serial_comm.write("RD DM894")
-        return self.serial_comm.read()
-
-    def set_co2_set_point(self, level: float) -> None:
-        self.serial_comm.write(f"WR DM894 {str(int(level * 100)).zfill(5)}")
-        self._expect_response("OK")
-
-    def get_co2_cur_level(self) -> str:
-        self.serial_comm.write("RD DM984")
-        return self.serial_comm.read()
-
-    def start_monitor(self) -> None:
-        self.co2_monitor.start_monitoring()
-
-    # Utility Methods
-    def reset(self) -> None:
-        logging.info("Resetting Liconic STX...")
-        self.serial_comm.write("ST 1900")
-        self._expect_response("OK")
-        self.wait_for_ready()
-
-    def initialize(self) -> None:
-        logging.info("Initializing Liconic STX...")
-        self.serial_comm.write("ST 1801")
-        self._expect_response("OK")
-        self.wait_for_ready()
+        self.write("RD 1812")
+        self.expect_response(expected)
 
     def show_cassette(self, cassette: int) -> None:
         rotate_to_cassette = (cassette - 3) % 10
-        self.serial_comm.write(f"WR DM0 {rotate_to_cassette}")
-        self._expect_response("OK")
+        self.write(f"WR DM0 {rotate_to_cassette}")
+        self.expect_response("OK")
         self.wait_for_ready()
 
     def raw(self, message: str) -> None:
-        self.serial_comm.write(message)
-        response = self.serial_comm.read()
-        logging.info(f"Raw command response: {response}")
+        self.write(message)
+        response = self.read()
+        logging.info(f"response: {response}")
+
+    def get_co2_set_point(self) -> str:
+        self.write("RD DM894")
+        return self.read()
+
+    def set_co2_set_point(self, level: float) -> None:
+        self.write(f"WR DM894 {str(int(level * 100)).zfill(5)}")
+        self.expect_response("OK")
+
+    def get_co2_cur_level(self) -> str:
+        self.write("RD DM984")
+        return self.read()
+
+    def start_monitor(self) -> None:
+        self.monitor_thread = threading.Thread(target=self.monitor_co2_level)
+        self.monitor_thread.daemon = True
+        self.monitor_thread.start()
+        return None
+
+    def write_co2_log(self, value:str) -> None:
+
+        #Write to local files
+        if self.co2_log_path is None:
+            return
+        if(os.path.exists(self.co2_log_path) is False):
+            logging.debug("folder does not exist. creating folder")
+            os.mkdir(self.co2_log_path )
+        today =  datetime.today().strftime('%Y-%m-%d')
+        today_folder = os.path.join(self.co2_log_path ,today)
+        if(os.path.exists(today_folder) is False):
+            logging.debug("folder does not exist. creating folder")
+            os.mkdir(today_folder)
+        trace_file = os.path.join(today_folder, "liconic_co2.txt")
+        try:
+            if os.path.exists(trace_file) is False:
+                with open(trace_file, 'w+') as f:
+                    f.write('Time,Value\n')
+        except Exception as e:
+            logging.debug(e)
+            return
+        
+        try:
+            with open(trace_file, 'a') as f:
+                f.write(f"{datetime.today()},{value}\n")
+        except Exception as e:
+            logging.debug(e)
+            return
+
+    def check_last_co2_level(self, data_points:int) -> Optional[int]:
+        if self.co2_log_path is None:
+            return
+        today =  datetime.today().strftime('%Y-%m-%d')
+        today_file = os.path.join(self.co2_log_path,today,"liconic_co2.txt")
+        logging.info(today_file)
+        if(os.path.exists(today_file) is False):
+            logging.debug("folder does not exist.")
+            return None 
+        with open(today_file, "r") as f:
+            lines = f.readlines()
+            logging.info(F"length of lines {len(lines)}")
+            # if len(lines) > data_points+1:
+            #     last_data_points = lines[-data_points:]
+            #     sum = 0
+            #     for line in last_data_points:
+            #         value = int(line.replace("\n","").split(",")[1])
+            #         sum += value
+            #     avg = sum/data_points
+            #     return avg
+            return None
+
+    def monitor_co2_level(self) -> None:
+        self.monitoring = True
+        config = Config()
+        config.load_app_config()
+        try:
+            while True:
+                logging.info("Liconic monitor thread is running...")
+                logging.info("Is busy: " + str(self.is_busy))
+                if not self.is_busy:
+                    co2_level = float(self.get_co2_cur_level())/100
+                    logging.info(f"CO2 level is {co2_level}")
+                    self.write_co2_log(str(co2_level))
+                    if co2_level < 3:
+                        self.co2_out_of_range = True
+                        error_message = f"CO2 level is low: {co2_level}%"
+                        logging.error(error_message)
+                    if co2_level > 4 and self.co2_out_of_range:
+                        if self.config.app_config.slack_error_channel:
+                            self.slack_client.clear_last_error(self.config.app_config.slack_error_channel)
+                        self.co2_out_of_range = False
+                time.sleep(300)
+                
+        except Exception as e:
+            logging.warning("Liconic monitor thread encounter an error. Restart the tool")
+            logging.exception("Error is" + str(e))
+            self.monitoring = False
+        return None

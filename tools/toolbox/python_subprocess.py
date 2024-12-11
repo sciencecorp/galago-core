@@ -41,6 +41,7 @@ def run_python_script(script_content: str, blocking: bool = True) -> t.Optional[
     finally:
         os.remove(temp_file)
         os.remove('stdout.txt')
+    return None
 
 
 if __name__ == "__main__":
