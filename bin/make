@@ -80,7 +80,7 @@ test_py() {
   echo "Ruff Check"
   ruff check .
   echo "Mypy Check Tools"
-  mypy tools --install-types --non-interactive
+  mypy --config-file=tools/pyproject.toml tools --install-types --non-interactive
 }
 
 pytest() {
