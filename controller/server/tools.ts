@@ -80,17 +80,26 @@ export default class Tool {
 
   async configure(config: tool_base.Config) {
     this.config = config;
-    // if tool is pf400, then set the waypoints of the DB to the waypoints in the config
-    if (this.type === ToolType.pf400) {
-      const toolId = parseInt(this.id);
-      const waypoints = trpc.robotArm.waypoints.getAll.useQuery(
-        { toolId: toolId },
-        { enabled: true },
-      );
-      // if (config.pf400) {
-      //   config.pf400.waypoints = waypoints.data;
-      // }
-    }
+    
+    // Handle PF400 specific configuration
+    // if (this.type === ToolType.pf400) {
+    //   try {
+    //     // Make a direct API call instead of using trpc hooks
+    //     const response = await get<any>(`/robot-arm/waypoints/${this.id}`);
+    //     if (response && Array.isArray(response)) {
+    //       if (config.pf400) {
+    //         config.pf400.waypoints = response.map(wp => wp.coordinate);
+    //       }
+    //     }
+    //   } catch (error) {
+    //     console.error('Failed to fetch waypoints:', error);
+    //     // Continue with empty waypoints rather than failing
+    //     if (config.pf400) {
+    //       config.pf400.waypoints = [];
+    //     }
+    //   }
+    // }
+
     const reply = await this.grpc.configure(config);
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
       throw new ToolCommandExecutionError(

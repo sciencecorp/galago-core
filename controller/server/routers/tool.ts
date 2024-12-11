@@ -6,6 +6,7 @@ import { procedure, router } from "@/server/trpc";
 import { ToolType } from "gen-interfaces/controller";
 import { get, post, put, del } from "@/server/utils/api";
 import * as controller_protos from "gen-interfaces/controller";
+import { TRPCError } from "@trpc/server";
 
 const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
 
@@ -120,10 +121,27 @@ export const toolRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
-      const { toolId, config } = input;
-      const tool = Tool.forId(toolId);
-      const resp = await tool.configure(config);
-      return resp;
+      try {
+        const { toolId, config } = input;
+        const tool = Tool.forId(toolId);
+        
+        // Ensure we're not accessing any React context here
+        const response = await tool.grpc.configure(config);
+        
+        if (response.response !== 'SUCCESS') {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: response.error_message || 'Failed to configure tool',
+          });
+        }
+        
+        return response;
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to configure tool',
+        });
+      }
     }),
 
   runCommand: procedure
