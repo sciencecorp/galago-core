@@ -54,7 +54,8 @@ class RobotCommunicator:
                     timeout: int = 10) -> str:
         """Send command and get response"""
         if expected:
-            return self.tcp_ip.write_and_expect(command, expected)
+            self.tcp_ip.write_and_expect(command, expected)
+            return expected
         return self.tcp_ip.write_and_read(command, timeout=timeout)
 
     def wait_for_completion(self) -> None:
@@ -63,7 +64,7 @@ class RobotCommunicator:
 
 class RobotState:
     """Manages robot state"""
-    def __init__(self):
+    def __init__(self) -> None:
         self.is_free: bool = False
         self.gripper_axis_override_value: Optional[float] = None
 

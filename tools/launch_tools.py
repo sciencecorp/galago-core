@@ -68,7 +68,7 @@ class ToolsManager():
         self.left_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
         self.left_scrollbar.config(command=self.left_canvas.yview)
-        self.tool_buttons : dict[str, tuple[str,tk.Button,tk.Frame]] = {}
+        self.tool_buttons : dict[str, tuple[str,tk.Button,tk.Canvas]] = {}
         self.tool_buttons_previous_states : dict[str, bool] = {}
 
         # Create a frame inside the canvas to hold the widgets
@@ -150,14 +150,13 @@ class ToolsManager():
                 is_alive = process is not None and process.poll() is None
             else:
                 is_alive = False
-            if is_alive != self.tool_buttons_previous_states[button_key]:
-                if is_alive:
-                    button["text"] = "Disconnect"
-                    status_indicator.itemconfig('status', fill='green')
-                else:
-                    button["text"] = "Connect"
-                    status_indicator.itemconfig('status', fill='red')
-                self.tool_buttons_previous_states[button_key] = is_alive
+
+            if is_alive:
+                status_indicator.itemconfig('status', fill='green')
+                button.config(text='Disconnect')
+            else:
+                status_indicator.itemconfig('status', fill='red')
+                button.config(text='Connect')
 
         self.root.after(500, self.update_buttons)
     
@@ -227,9 +226,8 @@ class ToolsManager():
     def filter_logs(self, *args: Any) -> None:
         filter_type = self.filter_var.get()
         
-        # Clear existing items in Treeview
-        for item in self.output_text.get_children():
-            self.output_text.delete(item)
+        # Clear existing items in the Text widget
+        self.output_text.delete("1.0", tk.END)
         
         for file_name in self.log_files_modified_times.keys():
             try:
@@ -243,9 +241,9 @@ class ToolsManager():
                             else:
                                 self.log_text(line.strip())
             except Exception as e:
-                # Insert error as a new row in the Treeview
+                # Insert error as a new line in the Text widget
                 current_time = time.strftime('%Y-%m-%d %H:%M:%S')
-                self.output_text.insert("", 0, values=(current_time, "ERROR", f"Failed to read log file: {str(e)}"), tags=("error",))
+                self.output_text.insert(tk.END, f"{current_time} | ERROR | Failed to read log file: {str(e)}\n", ('error',))
 
     def get_shell_command(self, tool_type:str, port:int) -> list:
         python_cmd : str = f"python -m tools.{tool_type}.server --port={port}"
@@ -308,16 +306,14 @@ class ToolsManager():
                 logging.warning(f"Failed to kill process {process_name}. Reason is={str(e)}.")
         return None 
     
-    def log_text(self, text:str, log_type:Optional[str]=None) -> None:
+    def log_text(self, text: str, log_type: str = "info") -> None:
         self.output_text.config(state='normal')
         if log_type == "error":
-            self.output_text.insert(tk.END, f"{text}\n",'error')
-            self.output_text.tag_config('error', foreground='red')
+            self.output_text.insert(tk.END, text + "\n", ('error',))
         elif log_type == "warning":
-            self.output_text.insert(tk.END, f"{text}\n", 'warning')
-            self.output_text.tag_config('warning', foreground='orange')
+            self.output_text.insert(tk.END, text + "\n", ('warning',))
         else:
-            self.output_text.insert(tk.END, f"{text}\n")
+            self.output_text.insert(tk.END, text + "\n")
         self.output_text.config(state='disabled')
         self.output_text.see(tk.END)
 
@@ -339,13 +335,12 @@ class ToolsManager():
             label = ttk.Label(frame, text=tool_name, anchor='w')
             label.pack(side=tk.LEFT, padx=(5, 10), pady=5, expand=True, fill=tk.X)
             
-            # Add status indicator
-            status_indicator : tk.Frame = tk.Canvas(frame, width=12, height=12, highlightthickness=0)
+            # Changed from Frame to Canvas
+            status_indicator = tk.Canvas(frame, width=12, height=12, highlightthickness=0)
             status_indicator.pack(side=tk.LEFT, padx=(0, 10), pady=5)
             status_indicator.create_oval(2, 2, 10, 10, fill='red', tags='status')
             
-            button = tk.Button(frame, text="Connect", command=command, width=10, 
-                               relief=tk.FLAT, bg=frame.cget('bg'), activebackground=frame.cget('bg'))
+            button = tk.Button(frame, text="Connect", command=command, width=10)
             button.pack(side=tk.RIGHT, padx=(5, 5), pady=5)
             
             self.tool_buttons[tool_name] = (tool_name, button, status_indicator)
@@ -405,6 +400,10 @@ class ToolsManager():
 
         counter = 0
         self.populate_tool_buttons()
+
+        if self.config.workcell_config is None:
+            logging.error("No workcell configuration loaded")
+            return
 
         for t in self.config.workcell_config.tools:
             logging.info(f"Launching process for tool {t.name}")
