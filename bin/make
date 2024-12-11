@@ -72,7 +72,7 @@ test() {
 
 test_ts() {
   echo "Runnning Node Tests"
-  (cd controller && npx prettier . --check . --log-level=debug && npm run test)
+  (cd controller && npx prettier . --check . --log-level=error && npm run test)
 }
 
 test_py() {
