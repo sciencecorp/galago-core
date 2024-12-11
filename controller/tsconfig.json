@@ -30,7 +30,9 @@
     "**/*.png",
     "**/*.jpg",
     "**/*.svg",
-    "**/*.jpeg"
+    "**/*.jpeg",
+    "components/tools/advanced/teach_pendant/SequenceHandler.disabled",
+    "components/tools/advanced/teach_pendant/TeachPendant.disabled"
   ],
   "exclude": ["node_modules", "./gen-interfaces/*"]
 }

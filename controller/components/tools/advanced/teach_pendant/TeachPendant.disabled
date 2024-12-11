@@ -70,7 +70,7 @@ import {
   DraggableProvided,
   DroppableProvided,
 } from "react-beautiful-dnd";
-import { useSequenceHandler } from "./SequenceHandler";
+import { useSequenceHandler } from "./SequenceHandler.disabled";
 import { ToolType } from "gen-interfaces/controller";
 
 interface TeachPendantProps {
