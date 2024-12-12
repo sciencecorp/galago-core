@@ -334,6 +334,103 @@ class LiconicStxDriver(ABCToolDriver):
         self.wait_for_ready()
 
     def raw(self, message: str) -> None:
-        self.serial_comm.write(message)
-        response = self.serial_comm.read()
-        logging.info(f"Raw command response: {response}")
+        self.write(message)
+        response = self.read()
+        logging.info(f"response: {response}")
+
+    def get_co2_set_point(self) -> str:
+        self.write("RD DM894")
+        return self.read()
+
+    def set_co2_set_point(self, level: float) -> None:
+        self.write(f"WR DM894 {str(int(level * 100)).zfill(5)}")
+        self.expect_response("OK")
+
+    def get_co2_cur_level(self) -> str:
+        self.write("RD DM984")
+        return self.read()
+
+    def start_monitor(self) -> None:
+        self.monitor_thread = threading.Thread(target=self.monitor_co2_level)
+        self.monitor_thread.daemon = True
+        self.monitor_thread.start()
+        return None
+
+    def write_co2_log(self, value:str) -> None:
+
+        #Write to local files
+        if self.co2_log_path is None:
+            return
+        if(os.path.exists(self.co2_log_path) is False):
+            logging.debug("folder does not exist. creating folder")
+            os.mkdir(self.co2_log_path )
+        today =  datetime.today().strftime('%Y-%m-%d')
+        today_folder = os.path.join(self.co2_log_path ,today)
+        if(os.path.exists(today_folder) is False):
+            logging.debug("folder does not exist. creating folder")
+            os.mkdir(today_folder)
+        trace_file = os.path.join(today_folder, "liconic_co2.txt")
+        try:
+            if os.path.exists(trace_file) is False:
+                with open(trace_file, 'w+') as f:
+                    f.write('Time,Value\n')
+        except Exception as e:
+            logging.debug(e)
+            return
+        
+        try:
+            with open(trace_file, 'a') as f:
+                f.write(f"{datetime.today()},{value}\n")
+        except Exception as e:
+            logging.debug(e)
+            return
+
+    def check_last_co2_level(self, data_points:int) -> Optional[int]:
+        if self.co2_log_path is None:
+            return
+        today =  datetime.today().strftime('%Y-%m-%d')
+        today_file = os.path.join(self.co2_log_path,today,"liconic_co2.txt")
+        logging.info(today_file)
+        if(os.path.exists(today_file) is False):
+            logging.debug("folder does not exist.")
+            return None 
+        with open(today_file, "r") as f:
+            lines = f.readlines()
+            logging.info(F"length of lines {len(lines)}")
+            # if len(lines) > data_points+1:
+            #     last_data_points = lines[-data_points:]
+            #     sum = 0
+            #     for line in last_data_points:
+            #         value = int(line.replace("\n","").split(",")[1])
+            #         sum += value
+            #     avg = sum/data_points
+            #     return avg
+            return None
+
+    def monitor_co2_level(self) -> None:
+        self.monitoring = True
+        config = Config()
+        config.load_app_config()
+        try:
+            while True:
+                logging.info("Liconic monitor thread is running...")
+                logging.info("Is busy: " + str(self.is_busy))
+                if not self.is_busy:
+                    co2_level = float(self.get_co2_cur_level())/100
+                    logging.info(f"CO2 level is {co2_level}")
+                    self.write_co2_log(str(co2_level))
+                    if co2_level < 3:
+                        self.co2_out_of_range = True
+                        error_message = f"CO2 level is low: {co2_level}%"
+                        logging.error(error_message)
+                    if co2_level > 4 and self.co2_out_of_range:
+                        if self.config.app_config.slack_error_channel:
+                            self.slack_client.clear_last_error(self.config.app_config.slack_error_channel)
+                        self.co2_out_of_range = False
+                time.sleep(300)
+                
+        except Exception as e:
+            logging.warning("Liconic monitor thread encounter an error. Restart the tool")
+            logging.exception("Error is" + str(e))
+            self.monitoring = False
+        return None

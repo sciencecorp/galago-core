@@ -1,18 +1,18 @@
 from tools.base_server import ToolServer, serve
-from tools.grpc_interfaces.opentrons2_pb2 import Command, Config
-from .driver import Ot2Driver
+from tools.grpc_interfaces.pf400_pb2 import Command, Config
+from .driver import Pf400Driver
 import argparse
 from typing import Optional, Union
-from tools.grpc_interfaces.opentrons2_pb2 import ExecuteCommandReply, Struct
-from tools.grpc_interfaces.opentrons2_pb2 import SUCCESS, ERROR_FROM_TOOL
+from tools.grpc_interfaces.tool_base_pb2 import ExecuteCommandReply, SUCCESS, ERROR_FROM_TOOL
+from google.protobuf.struct_pb2 import Struct
 import logging
 
-class Ot2Server(ToolServer):
-    toolType = "ot2"
+class Pf400Server(ToolServer):
+    toolType = "pf400"
 
     def __init__(self) -> None:
         super().__init__()
-        self.driver: Ot2Driver
+        self.driver: Pf400Driver
         self.sequence_location: str
         self.plate_handling_params: dict[str, dict[str, Union[Command.GraspPlate, Command.ReleasePlate]]] = {}
         self.waypoints: dict[str, dict[str, Union[Command.GraspPlate, Command.ReleasePlate]]] = {}
@@ -23,21 +23,12 @@ class Ot2Server(ToolServer):
     def Move(self, params: Command.Move) -> None:
         """Execute a move command with the given coordinate and motion profile."""
         coordinate = params.waypoint
-        motion_profile = getattr(params, 'motion_profile', None)
+        motion_profile = getattr(params, 'motion_profile_id', None)
 
         if motion_profile:
             self.driver.register_motion_profile(
-                motion_profile['id'],
-                motion_profile['speed'],
-                motion_profile['speed2'],
-                motion_profile['accel'],
-                motion_profile['decel'],
-                motion_profile['accel_ramp'],
-                motion_profile['decel_ramp'],
-                motion_profile['inrange'],
-                motion_profile['straight']
+                profile=motion_profile
             )
-            profile_id = motion_profile['id']
         else:
             profile_id = 1
         self.driver.movej(coordinate, motion_profile=profile_id)
@@ -62,7 +53,7 @@ class Ot2Server(ToolServer):
         # Add offset to coordinates
         coords = source_nest.split()
         adjusted_coords = [float(coords[i]) + nest_offset[i] for i in range(3)]
-        adjusted_coords.extend(coords[3:])
+        adjusted_coords.extend([float(x) for x in coords[3:]])
         adjusted_nest = ' '.join(map(str, adjusted_coords))
 
         self.runSequence([
@@ -89,7 +80,7 @@ class Ot2Server(ToolServer):
         # Add offset to coordinates
         coords = destination_nest.split()
         adjusted_coords = [float(coords[i]) + nest_offset[i] for i in range(3)]
-        adjusted_coords.extend(coords[3:])
+        adjusted_coords.extend([float(x) for x in coords[3:]])
         adjusted_nest = ' '.join(map(str, adjusted_coords))
 
         self.runSequence([
@@ -108,7 +99,7 @@ class Ot2Server(ToolServer):
         profile_id = getattr(params, 'motion_profile_id', 1)
         
         self.retrieve_plate(
-            source_nest=params.source_nest.coordinate,
+            source_nest=params.source_nest.nest,
             grasp_params=params.grasp_params,
             nest_offset=(
                 params.source_nest.x_offset,
@@ -120,7 +111,7 @@ class Ot2Server(ToolServer):
         )
 
         self.dropoff_plate(
-            destination_nest=params.destination_nest.coordinate,
+            destination_nest=params.destination_nest.nest,
             release_params=params.release_params,
             nest_offset=(
                 params.destination_nest.x_offset,
@@ -160,7 +151,7 @@ class Ot2Server(ToolServer):
         if not self.driver:
             raise Exception("Driver not initialized")
 
-        sequence = params.sequence
+        sequence = {} # TODO: Implement sequence loading
         
         for command in sequence:
             # Extract command type and parameters
@@ -208,7 +199,7 @@ class Ot2Server(ToolServer):
         self.config = config
         if self.driver:
             self.driver.close()
-        self.driver = Ot2Driver(
+        self.driver = Pf400Driver(
             tcp_host=self.config.host,
             tcp_port=self.config.port
         )
@@ -222,4 +213,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if not args.port:
          raise RuntimeWarning("Port must be provided...")
-    serve(Ot2Server(), str(args.port))
+    serve(Pf400Server(), str(args.port))

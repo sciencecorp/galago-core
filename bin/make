@@ -72,13 +72,15 @@ test() {
 
 test_ts() {
   echo "Runnning Node Tests"
-  (cd controller && npx prettier . --check . --log-level=debug && npm run test)
+  (cd controller && npx prettier . --check . --log-level=error && npm run test)
 }
 
 test_py() {
   echo "Running Python Tests"
+  echo "Ruff Check"
   ruff check .
-  mypy . --install-types --non-interactive
+  echo "Mypy Check Tools"
+  mypy --config-file=tools/pyproject.toml tools --install-types --non-interactive
 }
 
 pytest() {

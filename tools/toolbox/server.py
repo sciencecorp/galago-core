@@ -80,6 +80,7 @@ class ToolBoxServer(ToolServer):
                response.meta_data.CopyFrom(str(exc))
 
           return response
+
      
      def GetOT2ImagesByDate(self, params:Command.GetOT2ImagesByDate) -> ExecuteCommandReply:
           s  = Struct()
