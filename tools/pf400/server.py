@@ -19,6 +19,12 @@ class Pf400Server(ToolServer):
     def initialize(self) -> None:
         super().initialize()
 
+    def Free(self, params: Command.Free) -> None:
+        self.driver.safe_free()
+
+    def UnFree(self, params: Command.UnFree) -> None:
+        self.driver.unfree()
+
 
     def Move(self, params: Command.Move) -> None:
         """Execute a move command with the given coordinate and motion profile."""
@@ -32,6 +38,12 @@ class Pf400Server(ToolServer):
         else:
             profile_id = 1
         self.driver.movej(coordinate, motion_profile=profile_id)
+
+    def GraspPlate(self, params: Command.GraspPlate) -> None:
+        self.driver.graspplate(params.width, params.force, params.speed)
+
+    def ReleasePlate(self, params: Command.ReleasePlate) -> None:
+        self.driver.releaseplate(params.width, params.speed)
 
     def retrieve_plate(
         self,
@@ -175,6 +187,18 @@ class Pf400Server(ToolServer):
             
             # Execute the command
             method(command_field)
+    
+    def estimateFree(self, params: Command.Free) -> int:
+        return 1
+
+    def estimateUnFree(self, params: Command.UnFree) -> int:
+        return 1
+    
+    def estimateGraspPlate(self, params: Command.GraspPlate) -> int:
+        return 1
+
+    def estimateReleasePlate(self, params: Command.ReleasePlate) -> int:
+        return 1
 
     def estimateRunSequence(self, sequence: list[Command]) -> int:
         return 1
