@@ -847,3 +847,26 @@ def delete_robot_arm_grip_params(params_id: int,
     if not params:
         raise HTTPException(status_code=404, detail="Grip parameters not found")
     return crud.robot_arm_grip_params.remove(db, id=params_id)
+
+@app.get("/robot-arm-waypoints", response_model=schemas.RobotArmWaypoints)
+def get_robot_arm_waypoints(
+    tool_id: int,
+    db: Session = Depends(get_db)
+) -> t.Any:
+    # Get all related data for the tool
+    locations = crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": tool_id})
+    nests = crud.robot_arm_nest.get_all_by(db, obj_in={"tool_id": tool_id})
+    sequences = crud.robot_arm_sequence.get_all_by(db, obj_in={"tool_id": tool_id})
+    motion_profiles = crud.robot_arm_motion_profile.get_all_by(db, obj_in={"tool_id": tool_id})
+    grip_params = crud.robot_arm_grip_params.get_all_by(db, obj_in={"tool_id": tool_id})
+
+    return {
+        "id": tool_id,
+        "name": f"Waypoints for Tool {tool_id}",
+        "locations": [loc.name for loc in locations],
+        "nests": [nest.name for nest in nests],
+        "sequences": [seq.name for seq in sequences],
+        "motion_profiles": [prof.name for prof in motion_profiles],
+        "grip_params": [param.name for param in grip_params],
+        "tool_id": tool_id
+    }

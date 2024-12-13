@@ -463,3 +463,16 @@ class RobotArmGripParams(RobotArmGripParamsCreate):
     id: int
     class Config:
         from_attributes = True
+
+class RobotArmWaypoints(BaseModel):
+    id: int
+    name: str
+    locations: list[str]  # List of location names
+    nests: list[str]  # List of nest names
+    motion_profiles: list[str]  # List of motion profile names
+    grip_params: list[str]  # List of grip parameter names
+    sequences: list[str]  # List of sequence names
+    tool_id: int
+
+    class Config:
+        from_attributes = True

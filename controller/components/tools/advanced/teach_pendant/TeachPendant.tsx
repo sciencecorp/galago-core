@@ -52,7 +52,7 @@ import {
 import { useState, useCallback, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
 import { ToolCommandInfo } from "@/types";
-import { ToolConfig } from "gen-interfaces/controller";
+import { Tool } from "@/types/api";
 import { useToast } from "@chakra-ui/react";
 import {
   AddIcon,
@@ -71,10 +71,11 @@ import {
   DroppableProvided,
 } from "react-beautiful-dnd";
 import { useSequenceHandler } from "./SequenceHandler";
+import { ToolType } from "gen-interfaces/controller";
 
 interface TeachPendantProps {
   toolId: string | undefined;
-  config: ToolConfig;
+  config: Tool;
 }
 
 type TeachPoint = {
@@ -132,6 +133,9 @@ interface Sequence {
   tool_id: number;
 }
 
+type SearchableItem = TeachPoint | MotionProfile | GripParams | Sequence;
+type ItemType = "teachPoint" | "motionProfile" | "gripParams" | "sequence";
+
 export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) => {
   const commandMutation = trpc.tool.runCommand.useMutation();
   const toast = useToast();
@@ -148,8 +152,6 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   const [currentType, setCurrentType] = useState<"nest" | "location">("location");
   const [currentCoordinate, setCurrentCoordinate] = useState("");
   const [currentApproachPath, setCurrentApproachPath] = useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState<"all" | "location" | "nest">("all");
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   const [isMotionProfileModalOpen, setIsMotionProfileModalOpen] = useState(false);
   const [isGripParamsModalOpen, setIsGripParamsModalOpen] = useState(false);
@@ -161,6 +163,12 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   const [isSequenceModalOpen, setIsSequenceModalOpen] = useState(false);
   const [selectedSequence, setSelectedSequence] = useState<RobotArmSequence | null>(null);
   const [commands, setCommands] = useState<any[]>([]);
+  const [globalSearchTerm, setGlobalSearchTerm] = useState("");
+  const [globalFilterType, setGlobalFilterType] = useState<ItemType | "all">("all");
+  const [selectedGripParamsId, setSelectedGripParamsId] = useState<number | null>(null);
+  const [manualWidth, setManualWidth] = useState<number>(122);
+  const [manualSpeed, setManualSpeed] = useState<number>(10);
+  const [manualForce, setManualForce] = useState<number>(20);
 
   const {
     sequences,
@@ -1343,6 +1351,118 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     );
   };
 
+  const filterItems = <T extends SearchableItem>(
+    items: T[] | undefined,
+    type: ItemType,
+  ): T[] => {
+    if (!items) return [];
+    
+    return items.filter((item) => {
+      const matchesFilter = globalFilterType === "all" || globalFilterType === type;
+      const matchesSearch = item.name.toLowerCase().includes(globalSearchTerm.toLowerCase());
+      return matchesFilter && matchesSearch;
+    });
+  };
+
+  const handleGripperCommand = async (action: "open" | "close") => {
+    if (isCommandInProgress) return;
+
+    let params: Record<string, any>;
+    console.log("Selected Grip Params ID", selectedGripParamsId);
+    if (selectedGripParamsId) { 
+      console.log("Selected Grip Params ID EXISTS", selectedGripParamsId);
+      const selectedParams = gripParamsQuery.data?.find(p => p.id === selectedGripParamsId);
+      console.log("Selected Grip Params", selectedParams);
+      if (!selectedParams) {
+        toast({
+          title: "Error",
+          description: "Selected grip parameters not found",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+      params = {
+        width: selectedParams.width,
+        speed: selectedParams.speed,
+        force: selectedParams.force,
+      };
+    } else {
+      params = {
+        width: manualWidth,
+        speed: manualSpeed,
+        force: manualForce,
+      };
+    }
+    console.log("Params", params);
+    console.log("Config ASDADADSADSDASD", config);  
+    console.log("Action", action === "open" ? "open_gripper" : "close_gripper");
+    console.log("Tool Type", config.type);
+
+    const gripperCommand: ToolCommandInfo = {
+      toolId: config.name,
+      toolType: config.type as ToolType,
+      command: action === "open" ? "release_plate" : "grasp_plate",
+      params: {
+        width: Number(params.width),
+        speed: Number(params.speed),
+        force: Number(params.force),
+      },
+    };
+
+    try {
+      await commandMutation.mutateAsync(gripperCommand);
+      toast({
+        title: "Success",
+        description: `Gripper ${action} command executed`,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error(`Error executing gripper ${action} command:`, error);
+      toast({
+        title: "Error",
+        description: `Failed to ${action} gripper`,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleSimpleCommand = async (command: "free" | "unfree" | "unwind") => {
+    if (isCommandInProgress) return;
+
+    const simpleCommand: ToolCommandInfo = {
+      toolId: config.name,
+      toolType: config.type,
+      command,
+      params: {},
+    };
+
+    try {
+      await commandMutation.mutateAsync(simpleCommand);
+      toast({
+        title: "Success",
+        description: `${command} command executed successfully`,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error(`Error executing ${command} command:`, error);
+      toast({
+        title: "Error",
+        description: `Failed to execute ${command} command`,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
   return (
     <Box
       borderWidth="1px"
@@ -1359,41 +1479,161 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
           <Heading size="md">Teach Pendant</Heading>
         </HStack>
 
-        <Card width="100%" height="100px" bg={bgColor} borderColor={borderColor}>
-          <CardHeader pb={0}>
-            <Heading size="sm">Jog Controls</Heading>
-          </CardHeader>
-          <CardBody pt={2}>
-            <HStack spacing={4}>
-              <Select
-                placeholder="Axis"
-                onChange={(e) => setJogAxis(e.target.value)}
-                size="sm"
-                width="120px">
-                <option value="x">X</option>
-                <option value="y">Y</option>
-                <option value="z">Z</option>
-                <option value="yaw">Yaw</option>
-                <option value="pitch">Pitch</option>
-                <option value="roll">Roll</option>
-              </Select>
-              <NumberInput
-                size="sm"
-                width="120px"
-                clampValueOnBlur={false}
-                onChange={(valueString) => setJogDistance(parseFloat(valueString))}>
-                <NumberInputField />
-                <NumberInputStepper>
-                  <NumberIncrementStepper />
-                  <NumberDecrementStepper />
-                </NumberInputStepper>
-              </NumberInput>
-              <Button onClick={handleJog} colorScheme="teal" size="sm">
-                Jog
-              </Button>
-            </HStack>
-          </CardBody>
-        </Card>
+        <HStack width="100%" spacing={4}>
+          <Card width="30%" height="100px" bg={bgColor} borderColor={borderColor}>
+            <CardHeader pb={0}>
+              <Heading size="sm">Jog Controls</Heading>
+            </CardHeader>
+            <CardBody pt={2}>
+              <HStack spacing={4}>
+                <Select
+                  placeholder="Axis"
+                  onChange={(e) => setJogAxis(e.target.value)}
+                  size="sm"
+                  width="120px">
+                  <option value="x">X</option>
+                  <option value="y">Y</option>
+                  <option value="z">Z</option>
+                  <option value="yaw">Yaw</option>
+                  <option value="pitch">Pitch</option>
+                  <option value="roll">Roll</option>
+                </Select>
+                <NumberInput
+                  size="sm"
+                  width="120px"
+                  clampValueOnBlur={false}
+                  onChange={(valueString) => setJogDistance(parseFloat(valueString))}>
+                  <NumberInputField />
+                  <NumberInputStepper>
+                    <NumberIncrementStepper />
+                    <NumberDecrementStepper />
+                  </NumberInputStepper>
+                </NumberInput>
+                <Button onClick={handleJog} colorScheme="teal" size="sm">
+                  Jog
+                </Button>
+              </HStack>
+            </CardBody>
+          </Card>
+
+          <Card width="50%" height="100px" bg={bgColor} borderColor={borderColor}>
+            <CardHeader pb={0}>
+              <Heading size="sm">Gripper Controls</Heading>
+            </CardHeader>
+            <CardBody pt={2}>
+              <VStack spacing={2}>
+                <HStack width="100%" spacing={4}>
+                  <Select
+                    placeholder="Select Grip Params"
+                    size="sm"
+                    width="200px"
+                    value={selectedGripParamsId || ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "") {
+                        // Manual entry selected
+                        setSelectedGripParamsId(null);
+                      } else {
+                        const params = gripParamsQuery.data?.find(
+                          (p) => p.id === Number(value)
+                        );
+                        setSelectedGripParamsId(Number(value));
+                        if (params) {
+                          setManualWidth(params.width);
+                          setManualSpeed(params.speed);
+                          setManualForce(params.force);
+                        }
+                      }
+                    }}>
+                    <option value="">Manual Entry</option>
+                    {gripParamsQuery.data?.map((params) => (
+                      <option key={params.id} value={params.id}>
+                        {params.name}
+                      </option>
+                    ))}
+                  </Select>
+                  {selectedGripParamsId === null && (
+                    <HStack spacing={2}>
+                      <NumberInput
+                        size="sm"
+                        width="80px"
+                        value={manualWidth}
+                        onChange={(_, value) => setManualWidth(value)}
+                        min={0}
+                        max={200}
+                      >
+                        <NumberInputField placeholder="Width" />
+                        <NumberInputStepper>
+                          <NumberIncrementStepper />
+                          <NumberDecrementStepper />
+                        </NumberInputStepper>
+                      </NumberInput>
+                      <NumberInput
+                        size="sm"
+                        width="80px"
+                        value={manualSpeed}
+                        onChange={(_, value) => setManualSpeed(value)}
+                        min={0}
+                        max={100}
+                      >
+                        <NumberInputField placeholder="Speed" />
+                        <NumberInputStepper>
+                          <NumberIncrementStepper />
+                          <NumberDecrementStepper />
+                        </NumberInputStepper>
+                      </NumberInput>
+                      <NumberInput
+                        size="sm"
+                        width="80px"
+                        value={manualForce}
+                        onChange={(_, value) => setManualForce(value)}
+                        min={0}
+                        max={100}
+                      >
+                        <NumberInputField placeholder="Force" />
+                        <NumberInputStepper>
+                          <NumberIncrementStepper />
+                          <NumberDecrementStepper />
+                        </NumberInputStepper>
+                      </NumberInput>
+                    </HStack>
+                  )}
+                </HStack>
+                <HStack width="100%" spacing={2} justify="space-between">
+                  <ButtonGroup size="sm" isAttached variant="outline">
+                    <Button
+                      onClick={() => handleGripperCommand("open")}
+                      colorScheme="blue">
+                      Open
+                    </Button>
+                    <Button
+                      onClick={() => handleGripperCommand("close")}
+                      colorScheme="red">
+                      Close
+                    </Button>
+                  </ButtonGroup>
+                  <ButtonGroup size="sm" isAttached variant="outline">
+                    <Button
+                      onClick={() => handleSimpleCommand("free")}
+                      colorScheme="green">
+                      Free
+                    </Button>
+                    <Button
+                      onClick={() => handleSimpleCommand("unfree")}
+                      colorScheme="orange">
+                      Unfree
+                    </Button>
+                    <Button
+                      onClick={() => handleSimpleCommand("unwind")}
+                      colorScheme="purple">
+                      Unwind
+                    </Button>
+                  </ButtonGroup>
+                </HStack>
+              </VStack>
+            </CardBody>
+          </Card>
+        </HStack>
 
         <Card width="100%" bg={bgColor} borderColor={borderColor}>
           <CardBody>
@@ -1403,19 +1643,21 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                   <Search2Icon color="gray.300" />
                 </InputLeftElement>
                 <Input
-                  placeholder="Search teach points"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search all items..."
+                  value={globalSearchTerm}
+                  onChange={(e) => setGlobalSearchTerm(e.target.value)}
                   bg={useColorModeValue("white", "gray.700")}
                 />
               </InputGroup>
               <Select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value as "all" | "location" | "nest")}
+                value={globalFilterType}
+                onChange={(e) => setGlobalFilterType(e.target.value as ItemType | "all")}
                 bg={useColorModeValue("white", "gray.700")}>
-                <option value="all">All Points</option>
-                <option value="location">Locations Only</option>
-                <option value="nest">Nests Only</option>
+                <option value="all">All Items</option>
+                <option value="teachPoint">Teach Points</option>
+                <option value="motionProfile">Motion Profiles</option>
+                <option value="gripParams">Grip Parameters</option>
+                <option value="sequence">Sequences</option>
               </Select>
             </VStack>
           </CardBody>
@@ -1469,7 +1711,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                       </Tr>
                     </Thead>
                     <Tbody>
-                      {filteredTeachPoints.map((point, index) => (
+                      {filterItems(locations, "teachPoint").map((point, index) => (
                         <>
                           <Tr key={`${index}-main`} _hover={{ bg: bgColorAlpha }}>
                             <Td padding="0" width="40px">
@@ -1605,7 +1847,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                       </Tr>
                     </Thead>
                     <Tbody>
-                      {motionProfilesQuery.data?.map((profile) => (
+                      {filterItems(motionProfilesQuery.data, "motionProfile")?.map((profile) => (
                         <Tr key={profile.id}>
                           <Td>{profile.name}</Td>
                           <Td>{profile.profile_id}</Td>
@@ -1675,7 +1917,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                       </Tr>
                     </Thead>
                     <Tbody>
-                      {gripParamsQuery.data?.map((params) => (
+                      {filterItems(gripParamsQuery.data, "gripParams")?.map((params) => (
                         <Tr key={params.id}>
                           <Td>{params.name}</Td>
                           <Td>{params.width}</Td>
@@ -1735,7 +1977,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                       </Tr>
                     </Thead>
                     <Tbody>
-                      {sequences?.map((sequence) => {
+                      {filterItems(sequences, "sequence")?.map((sequence) => {
                         const typesSequence: Sequence = {
                           id: sequence.id,
                           name: sequence.name,
