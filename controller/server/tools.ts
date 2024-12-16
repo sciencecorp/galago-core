@@ -82,23 +82,23 @@ export default class Tool {
     this.config = config;
 
     // Handle PF400 specific configuration
-    // if (this.type === ToolType.pf400) {
-    //   try {
-    //     // Make a direct API call instead of using trpc hooks
-    //     const response = await get<any>(`/robot-arm/waypoints/${this.id}`);
-    //     if (response && Array.isArray(response)) {
-    //       if (config.pf400) {
-    //         config.pf400.waypoints = response.map(wp => wp.coordinate);
-    //       }
-    //     }
-    //   } catch (error) {
-    //     console.error('Failed to fetch waypoints:', error);
-    //     // Continue with empty waypoints rather than failing
-    //     if (config.pf400) {
-    //       config.pf400.waypoints = [];
-    //     }
-    //   }
-    // }
+    if (this.type === ToolType.pf400) {
+      try {
+        // Make a direct API call instead of using trpc hooks
+        const response = await get<any>(`/robot-arm-waypoints/${this.id}`);
+        if (response && Array.isArray(response)) {
+          if (config.pf400) {
+            config.pf400.waypoints = response;
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch waypoints:', error);
+        // Continue with empty waypoints rather than failing
+        if (config.pf400) {
+          config.pf400.waypoints = [];
+        }
+      }
+    }
 
     const reply = await this.grpc.configure(config);
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {

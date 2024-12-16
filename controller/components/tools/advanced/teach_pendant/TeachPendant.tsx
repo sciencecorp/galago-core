@@ -132,14 +132,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     { toolId: config.id },
     { enabled: !!config.id && config.id !== 0 },
   );
-  console.log("waypoints", waypoints);
-  console.log("Toool STATE", config);
-  const getLocTypeDisplay = (locType: string) => {
-    switch (locType) {
-      case "j":
-        return "Joint";
-    }
-  };
+
 
   function jointsToCoordinate(joints: {
     j1?: number;
@@ -1706,7 +1699,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
           onClose={onSequenceModalClose}
           sequence={selectedSequence ?? undefined}
           onSave={handleSequenceSave}
-          teachPoints={locations}
+          teachPoints={waypoints.data || []}
           motionProfiles={motionProfilesQuery.data || []}
           gripParams={gripParamsQuery.data || []}
         />

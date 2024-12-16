@@ -27,6 +27,7 @@ import { ToolCommandInfo } from "@/types";
 import { Tool } from "@/types/api";
 import { CommandModal } from "./modals/CommandModal";
 import { ToolType } from "gen-interfaces/controller";
+import { TeachPoint, MotionProfile, GripParams } from "./types";
 
 export interface SequenceCommand {
   command: string;
@@ -47,9 +48,13 @@ interface SequenceModalProps {
   isOpen: boolean;
   onClose: () => void;
   sequence?: Sequence;
+  onSave: (sequence: Omit<Sequence, "id">) => void;
+  teachPoints: TeachPoint[];
+  motionProfiles: MotionProfile[];
+  gripParams: GripParams[];
 }
 
-const SequenceModal: React.FC<SequenceModalProps> = ({ config, isOpen, onClose, sequence }) => {
+const SequenceModal: React.FC<SequenceModalProps> = ({ config, isOpen, onClose, sequence, onSave, teachPoints, motionProfiles, gripParams }) => {
   const [name, setName] = useState(sequence?.name ?? "");
   const [description, setDescription] = useState(sequence?.description ?? "");
   const [commands, setCommands] = useState(sequence?.commands ?? []);
@@ -165,6 +170,9 @@ const SequenceModal: React.FC<SequenceModalProps> = ({ config, isOpen, onClose, 
         isOpen={isCommandModalOpen}
         onClose={() => setIsCommandModalOpen(false)}
         onAddCommand={handleAddCommand}
+        teachPoints={teachPoints}
+        motionProfiles={motionProfiles}
+        gripParams={gripParams}
       />
     </>
   );

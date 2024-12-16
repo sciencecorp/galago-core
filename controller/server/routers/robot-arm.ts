@@ -69,11 +69,11 @@ const zRobotArmSequence = z.object({
 const zRobotArmWaypoints = z.object({
   id: z.number(),
   name: z.string(),
-  locations: z.array(z.string()),
-  nests: z.array(z.string()),
-  motionProfiles: z.array(z.string()),
-  gripParams: z.array(z.string()),
-  sequences: z.array(z.string()),
+  locations: z.array(zRobotArmLocation),
+  nests: z.array(zRobotArmNest),
+  motionProfiles: z.array(zRobotArmMotionProfile),
+  gripParams: z.array(zRobotArmGripParams),
+  sequences: z.array(zRobotArmSequence),
   tool_id: z.number(),
 });
 
@@ -187,11 +187,11 @@ export const robotArmRouter = router({
         return {
           id: input.toolId,
           name: `Waypoints for Tool ${input.toolId}`,
-          locations: locations.map((loc: RobotArmLocation) => loc.name),
-          nests: nests.map((nest: RobotArmNest) => nest.name),
-          sequences: sequences.map((seq: RobotArmSequence) => seq.name),
-          motionProfiles: motionProfiles.map((prof: RobotArmMotionProfile) => prof.name),
-          gripParams: gripParams.map((param: RobotArmGripParams) => param.name),
+          locations: locations,
+          nests: nests,
+          sequences: sequences,
+          motionProfiles: motionProfiles,
+          gripParams: gripParams,
           tool_id: input.toolId,
         };
       }),

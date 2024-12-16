@@ -863,10 +863,10 @@ def get_robot_arm_waypoints(
     return {
         "id": tool_id,
         "name": f"Waypoints for Tool {tool_id}",
-        "locations": [loc.name for loc in locations],
-        "nests": [nest.name for nest in nests],
-        "sequences": [seq.name for seq in sequences],
-        "motion_profiles": [prof.name for prof in motion_profiles],
-        "grip_params": [param.name for param in grip_params],
+        "locations": locations,
+        "nests": nests,
+        "sequences": sequences,
+        "motion_profiles": motion_profiles,
+        "grip_params": grip_params,
         "tool_id": tool_id
     }
