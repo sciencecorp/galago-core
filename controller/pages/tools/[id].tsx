@@ -666,30 +666,31 @@ export default function Page() {
       </Head>
       <Box p={12} maxWidth="1800px" margin="auto">
         <HStack spacing={4} align="start" width="100%">
-          {/* Left Side */}
-          <VStack spacing={4} align="stretch" flex={1}>
-            <ToolStatusCard toolId={id || ""} />
-            <FormControl>
-              <VStack width="100%" spacing={1}>
-                <FormLabel>Select Command</FormLabel>
-                <Select placeholder="Select command" onChange={handleChange}>
-                  {Object.keys(commandOptions).map((command) => (
-                    <option key={command} value={command}>
-                      {capitalizeFirst(command.replaceAll("_", " "))}
-                    </option>
-                  ))}
-                </Select>
-                {selectedCommand && (
-                  <>
-                    {renderFields(commandOptions[selectedCommand])}
-                    <Button width="100%" onClick={handleSubmit} colorScheme="teal">
-                      Send Command
-                    </Button>
-                  </>
-                )}
-              </VStack>
-            </FormControl>
-          </VStack>
+          {config?.type !== ToolType.pf400 && (
+            <VStack spacing={4} align="stretch" flex={1}>
+              <ToolStatusCard toolId={id || ""} />
+              <FormControl>
+                <VStack width="100%" spacing={1}>
+                  <FormLabel>Select Command</FormLabel>
+                  <Select placeholder="Select command" onChange={handleChange}>
+                    {Object.keys(commandOptions).map((command) => (
+                      <option key={command} value={command}>
+                        {capitalizeFirst(command.replaceAll("_", " "))}
+                      </option>
+                    ))}
+                  </Select>
+                  {selectedCommand && (
+                    <>
+                      {renderFields(commandOptions[selectedCommand])}
+                      <Button width="100%" onClick={handleSubmit} colorScheme="teal">
+                        Send Command
+                      </Button>
+                    </>
+                  )}
+                </VStack>
+              </FormControl>
+            </VStack>
+          )}
 
           {/* Right Side */}
           {config?.type === ToolType.pf400 && (

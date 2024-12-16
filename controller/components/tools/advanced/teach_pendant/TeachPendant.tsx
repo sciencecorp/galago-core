@@ -1,10 +1,4 @@
 import {
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  ButtonGroup,
-  Heading,
   HStack,
   Select,
   NumberInput,
@@ -32,22 +26,8 @@ import {
   Tab,
   TabPanel,
   useColorModeValue,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  Badge,
   InputGroup,
   InputLeftElement,
-  Text,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  IconButton,
-  Spacer,
 } from "@chakra-ui/react";
 import { useState, useCallback, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
@@ -55,21 +35,9 @@ import { ToolCommandInfo } from "@/types";
 import { Tool } from "@/types/api";
 import { useToast } from "@chakra-ui/react";
 import {
-  AddIcon,
   Search2Icon,
-  HamburgerIcon,
-  ChevronUpIcon,
-  ChevronDownIcon,
-  DeleteIcon,
 } from "@chakra-ui/icons";
 import { RobotArmLocation, RobotArmNest, RobotArmSequence } from "@/server/routers/robot-arm";
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DraggableProvided,
-  DroppableProvided,
-} from "react-beautiful-dnd";
 import { useSequenceHandler } from "./SequenceHandler";
 import { ToolType } from "gen-interfaces/controller";
 import { TeachPendantActions } from "./TeachPendantActions";
@@ -83,7 +51,14 @@ import {
   SearchableItem,
   ItemType
 } from "./types";
-
+import { TeachPointsPanel } from "./panels/TeachPointsPanel";
+import { MotionProfilesPanel } from "./panels/MotionProfilesPanel";
+import { GripParametersPanel } from "./panels/GripParametersPanel";
+import { SequencesPanel } from "./panels/SequencesPanel";
+import { ControlPanel } from "./panels/ControlPanel";
+import { DataPanel } from "./panels/DataPanel";
+import ToolStatusCard from "@/components/tools/ToolStatusCard";
+import { SequenceModal } from "./modals/SequenceModal";
 
 export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) => {
   const commandMutation = trpc.tool.runCommand.useMutation();
@@ -91,7 +66,26 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   const [isCommandInProgress, setIsCommandInProgress] = useState(false);
   const [jogAxis, setJogAxis] = useState("");
   const [jogDistance, setJogDistance] = useState(0);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isTeachPointModalOpen,
+    onOpen: onTeachPointModalOpen,
+    onClose: onTeachPointModalClose
+  } = useDisclosure();
+  const {
+    isOpen: isMotionProfileModalOpen,
+    onOpen: onMotionProfileModalOpen,
+    onClose: onMotionProfileModalClose
+  } = useDisclosure();
+  const {
+    isOpen: isGripParamsModalOpen,
+    onOpen: onGripParamsModalOpen,
+    onClose: onGripParamsModalClose
+  } = useDisclosure();
+  const {
+    isOpen: isMoveModalOpen,
+    onOpen: onMoveModalOpen,
+    onClose: onMoveModalClose
+  } = useDisclosure();
   const [locations, setLocations] = useState<TeachPoint[]>([]);
   const bgColor = useColorModeValue("white", "gray.700");
   const borderColor = useColorModeValue("gray.200", "gray.900");
@@ -102,15 +96,9 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   const [currentCoordinate, setCurrentCoordinate] = useState("");
   const [currentApproachPath, setCurrentApproachPath] = useState<string[]>([]);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
-  const [isMotionProfileModalOpen, setIsMotionProfileModalOpen] = useState(false);
-  const [isGripParamsModalOpen, setIsGripParamsModalOpen] = useState(false);
   const [selectedMotionProfile, setSelectedMotionProfile] = useState<MotionProfile | null>(null);
   const [selectedGripParams, setSelectedGripParams] = useState<GripParams | null>(null);
   const [selectedMotionProfileId, setSelectedMotionProfileId] = useState<number>(1);
-  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
-  const [selectedPoint, setSelectedPoint] = useState<TeachPoint | null>(null);
-  const [isSequenceModalOpen, setIsSequenceModalOpen] = useState(false);
-  const [selectedSequence, setSelectedSequence] = useState<RobotArmSequence | null>(null);
   const [commands, setCommands] = useState<any[]>([]);
   const [globalSearchTerm, setGlobalSearchTerm] = useState("");
   const [globalFilterType, setGlobalFilterType] = useState<ItemType | "all">("all");
@@ -120,6 +108,8 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   const [manualForce, setManualForce] = useState<number>(20);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<ItemType | "all">("all");
+  const [jogEnabled, setJogEnabled] = useState(false);
+  const [selectedPoint, setSelectedPoint] = useState<TeachPoint | null>(null);
   const {
     sequences,
     handleCreateSequence,
@@ -128,7 +118,9 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     handleRunSequence,
     handleEditSequence,
     handleNewSequence,
-    SequenceModal,
+    isOpen: isSequenceModalOpen,
+    onClose: onSequenceModalClose,
+    selectedSequence,
   } = useSequenceHandler(config);
 
   const waypoints = trpc.robotArm.waypoints.getAll.useQuery(
@@ -201,7 +193,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     }
     const jogCommand: ToolCommandInfo = {
       toolId: config.name,
-      toolType: config.type,
+      toolType: config.type as ToolType,
       command: "jog",
       params: {
         axis: jogAxis,
@@ -247,14 +239,14 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   const createLocationMutation = trpc.robotArm.location.create.useMutation({
     onSuccess: () => {
       robotArmLocationsQuery.refetch();
-      onClose();
+      onTeachPointModalClose();
     },
   });
 
   const createNestMutation = trpc.robotArm.nest.create.useMutation({
     onSuccess: () => {
       robotArmNestsQuery.refetch();
-      onClose();
+      onTeachPointModalClose();
     },
   });
 
@@ -327,7 +319,12 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     }
   };
 
-  const CreateNewItemModal = () => {
+  interface CreateNewItemModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+  }
+
+  const CreateNewItemModal: React.FC<CreateNewItemModalProps> = ({ isOpen, onClose }) => {
     const [localTeachpoint, setLocalTeachpoint] = useState("");
     const [localType, setLocalType] = useState<"nest" | "location">("location");
     const [localSafeLoc, setLocalSafeLoc] = useState<number>();
@@ -449,12 +446,6 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     );
   };
 
-  const filteredTeachPoints = locations.filter(
-    (loc) =>
-      (filterType === "all" || loc.type === filterType) &&
-      loc.name.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
-
   const deleteLocationMutation = trpc.robotArm.location.delete.useMutation({
     onSuccess: () => {
       robotArmLocationsQuery.refetch();
@@ -482,18 +473,23 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   const updateLocationMutation = trpc.robotArm.location.update.useMutation({
     onSuccess: () => {
       robotArmLocationsQuery.refetch();
-      setIsEditModalOpen(false);
+      onEditModalClose();
     },
   });
 
   const updateNestMutation = trpc.robotArm.nest.update.useMutation({
     onSuccess: () => {
       robotArmNestsQuery.refetch();
-      setIsEditModalOpen(false);
+      onEditModalClose();
     },
   });
 
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const {
+    isOpen: isEditModalOpen,
+    onOpen: onEditModalOpen,
+    onClose: onEditModalClose
+  } = useDisclosure();
+
   const [editingPoint, setEditingPoint] = useState<TeachPoint | null>(null);
 
   const handleDelete = async (point: TeachPoint) => {
@@ -543,7 +539,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
 
   const handleEditGripParams = (params: GripParams) => {
     setSelectedGripParams(params);
-    setIsGripParamsModalOpen(true);
+    onGripParamsModalOpen();
   };
 
   const handleUpdateGripParams = async (params: GripParams) => {
@@ -600,7 +596,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
 
   const handleEdit = (point: TeachPoint) => {
     setEditingPoint(point);
-    setIsEditModalOpen(true);
+    onEditModalOpen();
   };
 
   const handleMoveCommand = async (point: TeachPoint, profile: MotionProfile) => {
@@ -646,7 +642,12 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     }
   };
 
-  const EditModal = () => {
+  interface EditModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+  }
+
+  const EditModal: React.FC<EditModalProps> = ({ isOpen, onClose }) => {
     const [localName, setLocalName] = useState(editingPoint?.name || "");
     const [localCoordinate, setLocalCoordinate] = useState(editingPoint?.coordinate || "");
     const [localSafeLoc, setLocalSafeLoc] = useState<number | undefined>(editingPoint?.safe_loc);
@@ -707,7 +708,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     };
 
     return (
-      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
+      <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Edit {editingPoint?.type}</ModalHeader>
@@ -747,7 +748,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
             <Button colorScheme="blue" mr={3} onClick={handleSave}>
               Save
             </Button>
-            <Button onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+            <Button onClick={onClose}>Cancel</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -773,6 +774,11 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     { toolId: config.id },
     { enabled: !!config.name && config.name !== "" },
   );
+ 
+
+  const createSequenceMutation = trpc.robotArm.sequence.create.useMutation();
+  const updateSequenceMutation = trpc.robotArm.sequence.update.useMutation();
+  const deleteSequenceMutation = trpc.robotArm.sequence.delete.useMutation();
 
   const createMotionProfileMutation = trpc.robotArm.motionProfile.create.useMutation();
   const updateMotionProfileMutation = trpc.robotArm.motionProfile.update.useMutation();
@@ -797,7 +803,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
         inrange: profileData.inrange,
         straight: profileData.straight,
       });
-      setIsMotionProfileModalOpen(false);
+      onMotionProfileModalClose();
       motionProfilesQuery.refetch();
       toast({
         title: "Success",
@@ -821,7 +827,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   const handleUpdateMotionProfile = async (profile: MotionProfile) => {
     try {
       await updateMotionProfileMutation.mutateAsync(profile);
-      setIsMotionProfileModalOpen(false);
+      onMotionProfileModalClose();
       setSelectedMotionProfile(null);
       motionProfilesQuery.refetch();
       toast({
@@ -889,7 +895,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
         force: paramsData.force,
         tool_id: config.id,
       });
-      setIsGripParamsModalOpen(false);
+      onGripParamsModalClose();
       gripParamsQuery.refetch();
       toast({
         title: "Success",
@@ -912,7 +918,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
 
   const handleEditMotionProfile = (profile: MotionProfile) => {
     setSelectedMotionProfile(profile);
-    setIsMotionProfileModalOpen(true);
+    onMotionProfileModalOpen();
   };
 
   const handleDeleteMotionProfile = async (id: number) => {
@@ -1483,619 +1489,215 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     }
   };
 
+  const handleOpenTeachPointModal = () => {
+    setCurrentTeachpoint("");
+    setCurrentType("location");
+    onTeachPointModalOpen();
+  };
+
+  const handleOpenMotionProfileModal = () => {
+    setSelectedMotionProfile(null);
+    onMotionProfileModalOpen();
+  };
+
+  const handleOpenGripParamsModal = () => {
+    setSelectedGripParams(null);
+    onGripParamsModalOpen();
+  };
+
+  const handleSequenceSave = (sequenceData: Omit<Sequence, "id">) => {
+    if (selectedSequence) {
+      handleUpdateSequence({
+        ...sequenceData,
+        id: selectedSequence.id,
+      });
+    } else {
+      handleCreateSequence(sequenceData);
+    }
+  };
+
   return (
-    <Box
-      borderWidth="1px"
-      borderRadius="lg"
-      borderColor={borderColor}
-      bg={bgColor}
-      p={4}
-      height="calc(100vh - 150px)"
+    <Box 
+      p={4} 
+      height="calc(100vh - 150px)" 
       minHeight="800px"
-      minWidth="600px"
-      width="100%">
-      <VStack spacing={4} width="100%" height="100%">
-        <HStack width="100%" justify="space-between">
-          <Heading size="md">Teach Pendant</Heading>
-        </HStack>
+      border="1px"
+      borderColor={borderColor}
+      borderRadius="lg"
+      bg={bgColor}
+    >
+      <VStack spacing={4} height="100%">
+        <HStack width="100%" align="start" spacing={4}>
+          {/* Left Side - Control Panel */}
+          <VStack spacing={0} width="300px">
+            <ToolStatusCard toolId={config.name} style={{ width: '100%' }} />
+            <ControlPanel
+              onFree={() => handleSimpleCommand("free")}
+              onUnfree={() => handleSimpleCommand("unfree")}
+              onUnwind={() => handleSimpleCommand("unwind")}
+              onGripperOpen={() => handleGripperCommand("open")}
+              onGripperClose={() => handleGripperCommand("close")}
+              jogEnabled={jogEnabled}
+              jogAxis={jogAxis}
+              jogDistance={jogDistance}
+              setJogAxis={setJogAxis}
+              setJogDistance={setJogDistance}
+              onJog={handleJog}
+              setJogEnabled={setJogEnabled}
+              toolState={config.status}
+              gripParams={gripParamsQuery.data || []}
+              selectedGripParamsId={selectedGripParamsId}
+              onGripParamsChange={setSelectedGripParamsId}
+            />
+          </VStack>
 
-        <HStack width="100%" spacing={4}>
-          <Card width="30%" height="100px" bg={bgColor} borderColor={borderColor}>
-            <CardHeader pb={0}>
-              <Heading size="sm">Jog Controls</Heading>
-            </CardHeader>
-            <CardBody pt={2}>
-              <HStack spacing={4}>
-                <Select
-                  placeholder="Axis"
-                  onChange={(e) => setJogAxis(e.target.value)}
-                  size="sm"
-                  width="120px">
-                  <option value="x">X</option>
-                  <option value="y">Y</option>
-                  <option value="z">Z</option>
-                  <option value="yaw">Yaw</option>
-                  <option value="pitch">Pitch</option>
-                  <option value="roll">Roll</option>
-                </Select>
-                <NumberInput
-                  size="sm"
-                  width="120px"
-                  clampValueOnBlur={false}
-                  onChange={(valueString) => setJogDistance(parseFloat(valueString))}>
-                  <NumberInputField />
-                  <NumberInputStepper>
-                    <NumberIncrementStepper />
-                    <NumberDecrementStepper />
-                  </NumberInputStepper>
-                </NumberInput>
-                <Button onClick={handleJog} colorScheme="teal" size="sm">
-                  Jog
-                </Button>
-              </HStack>
-            </CardBody>
-          </Card>
-
-          <Card width="50%" height="100px" bg={bgColor} borderColor={borderColor}>
-            <CardHeader pb={0}>
-              <Heading size="sm">Gripper Controls</Heading>
-            </CardHeader>
-            <CardBody pt={2}>
-              <VStack spacing={2}>
+          {/* Right Side - Data Management */}
+          <VStack flex={1} spacing={4} height="100%" minHeight="700px">
+            <HStack width="100%" justify="space-between" align="center">
+              <VStack spacing={2} flex={1}>
                 <HStack width="100%" spacing={4}>
+                  <InputGroup size="md" flex={1}>
+                    <InputLeftElement pointerEvents="none">
+                      <Search2Icon color="gray.300" />
+                    </InputLeftElement>
+                    <Input
+                      placeholder="Search all items..."
+                      value={globalSearchTerm}
+                      onChange={(e) => setGlobalSearchTerm(e.target.value)}
+                    />
+                  </InputGroup>
                   <Select
-                    placeholder="Select Grip Params"
-                    size="sm"
                     width="200px"
-                    value={selectedGripParamsId || ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === "") {
-                        // Manual entry selected
-                        setSelectedGripParamsId(null);
-                      } else {
-                        const params = gripParamsQuery.data?.find(
-                          (p) => p.id === Number(value)
-                        );
-                        setSelectedGripParamsId(Number(value));
-                        if (params) {
-                          setManualWidth(params.width);
-                          setManualSpeed(params.speed);
-                          setManualForce(params.force);
-                        }
-                      }
-                    }}>
-                    <option value="">Manual Entry</option>
-                    {gripParamsQuery.data?.map((params) => (
-                      <option key={params.id} value={params.id}>
-                        {params.name}
-                      </option>
-                    ))}
+                    value={globalFilterType}
+                    onChange={(e) => setGlobalFilterType(e.target.value as ItemType | "all")}
+                    placeholder="Filter by type"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="teachPoint">Teach Points</option>
+                    <option value="motionProfile">Motion Profiles</option>
+                    <option value="gripParams">Grip Parameters</option>
+                    <option value="sequence">Sequences</option>
                   </Select>
-                  {selectedGripParamsId === null && (
-                    <HStack spacing={2}>
-                      <NumberInput
-                        size="sm"
-                        width="80px"
-                        value={manualWidth}
-                        onChange={(_, value) => setManualWidth(value)}
-                        min={0}
-                        max={200}
-                      >
-                        <NumberInputField placeholder="Width" />
-                        <NumberInputStepper>
-                          <NumberIncrementStepper />
-                          <NumberDecrementStepper />
-                        </NumberInputStepper>
-                      </NumberInput>
-                      <NumberInput
-                        size="sm"
-                        width="80px"
-                        value={manualSpeed}
-                        onChange={(_, value) => setManualSpeed(value)}
-                        min={0}
-                        max={100}
-                      >
-                        <NumberInputField placeholder="Speed" />
-                        <NumberInputStepper>
-                          <NumberIncrementStepper />
-                          <NumberDecrementStepper />
-                        </NumberInputStepper>
-                      </NumberInput>
-                      <NumberInput
-                        size="sm"
-                        width="80px"
-                        value={manualForce}
-                        onChange={(_, value) => setManualForce(value)}
-                        min={0}
-                        max={100}
-                      >
-                        <NumberInputField placeholder="Force" />
-                        <NumberInputStepper>
-                          <NumberIncrementStepper />
-                          <NumberDecrementStepper />
-                        </NumberInputStepper>
-                      </NumberInput>
-                    </HStack>
-                  )}
-                </HStack>
-                <HStack width="100%" spacing={2} justify="space-between">
-                  <ButtonGroup size="sm" isAttached variant="outline">
-                    <Button
-                      onClick={() => handleGripperCommand("open")}
-                      colorScheme="blue">
-                      Open
-                    </Button>
-                    <Button
-                      onClick={() => handleGripperCommand("close")}
-                      colorScheme="red">
-                      Close
-                    </Button>
-                  </ButtonGroup>
-                  <ButtonGroup size="sm" isAttached variant="outline">
-                    <Button
-                      onClick={() => handleSimpleCommand("free")}
-                      colorScheme="green">
-                      Free
-                    </Button>
-                    <Button
-                      onClick={() => handleSimpleCommand("unfree")}
-                      colorScheme="orange">
-                      Unfree
-                    </Button>
-                    <Button
-                      onClick={() => handleSimpleCommand("unwind")}
-                      colorScheme="purple">
-                      Unwind
-                    </Button>
-                  </ButtonGroup>
                 </HStack>
               </VStack>
-            </CardBody>
-          </Card>
+              <TeachPendantActions
+                teachPoints={locations}
+                motionProfiles={motionProfilesQuery.data || []}
+                gripParams={gripParamsQuery.data || []}
+                sequences={sequences || []}
+                onImport={handleImportTeachPendantData}
+              />
+            </HStack>
+
+            <Tabs variant="enclosed" width="100%" height="calc(100% - 40px)" display="flex" flexDirection="column">
+              <TabList>
+                <Tab>Teach Points</Tab>
+                <Tab>Motion Profiles</Tab>
+                <Tab>Grip Parameters</Tab>
+                <Tab>Sequences</Tab>
+              </TabList>
+              <TabPanels flex={1} overflow="auto">
+                <TabPanel height="100%" padding={0}>
+                  <TeachPointsPanel
+                    teachPoints={locations}
+                    motionProfiles={motionProfilesQuery.data || []}
+                    gripParams={gripParamsQuery.data || []}
+                    sequences={sequences || []}
+                    expandedRows={expandedRows}
+                    toggleRow={toggleRow}
+                    onImport={handleImportTeachPendantData}
+                    onMove={(point) => {
+                      setSelectedPoint(point);
+                      onMoveModalOpen();
+                    }}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onAdd={handleOpenTeachPointModal}
+                    bgColor={bgColor}
+                    bgColorAlpha={bgColorAlpha}
+                    searchTerm={globalSearchTerm}
+                  />
+                </TabPanel>
+
+                <TabPanel height="100%" padding={0}>
+                  <MotionProfilesPanel
+                    profiles={motionProfilesQuery.data || []}
+                    onEdit={(profile) => {
+                      setSelectedMotionProfile(profile);
+                      onMotionProfileModalOpen();
+                    }}
+                    onRegister={handleRegisterMotionProfile}
+                    onDelete={handleDeleteMotionProfile}
+                    onAdd={handleOpenMotionProfileModal}
+                    bgColor={bgColor}
+                    bgColorAlpha={bgColorAlpha}
+                  />
+                </TabPanel>
+
+                <TabPanel height="100%" padding={0}>
+                  <GripParametersPanel
+                    params={gripParamsQuery.data || []}
+                    onEdit={(params) => {
+                      setSelectedGripParams(params);
+                      onGripParamsModalOpen();
+                    }}
+                    onDelete={handleDeleteGripParams}
+                    onAdd={handleOpenGripParamsModal}
+                    bgColor={bgColor}
+                    bgColorAlpha={bgColorAlpha}
+                  />
+                </TabPanel>
+
+                <TabPanel height="100%" padding={0}>
+                  <SequencesPanel
+                    sequences={sequences || []}
+                    onEdit={handleEditSequence}
+                    onRun={handleRunSequence}
+                    onDelete={handleDeleteSequence}
+                    onCreateNew={handleNewSequence}
+                    bgColor={bgColor}
+                    bgColorAlpha={bgColorAlpha}
+                  />
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
+          </VStack>
         </HStack>
 
-        <Card width="100%" bg={bgColor} borderColor={borderColor}>
-          <CardBody>
-            <VStack spacing={3}>
-              <InputGroup size="md">
-                <InputLeftElement pointerEvents="none">
-                  <Search2Icon color="gray.300" />
-                </InputLeftElement>
-                <Input
-                  placeholder="Search all items..."
-                  value={globalSearchTerm}
-                  onChange={(e) => setGlobalSearchTerm(e.target.value)}
-                  bg={useColorModeValue("white", "gray.700")}
-                />
-              </InputGroup>
-              <Select
-                value={globalFilterType}
-                onChange={(e) => setGlobalFilterType(e.target.value as ItemType | "all")}
-                bg={useColorModeValue("white", "gray.700")}>
-                <option value="all">All Items</option>
-                <option value="teachPoint">Teach Points</option>
-                <option value="motionProfile">Motion Profiles</option>
-                <option value="gripParams">Grip Parameters</option>
-                <option value="sequence">Sequences</option>
-              </Select>
-            </VStack>
-          </CardBody>
-        </Card>
-        <Tabs variant="enclosed" width="100%">
-          <TabList>
-            <Tab>Teach Points</Tab>
-            <Tab>Motion Profiles</Tab>
-            <Tab>Grip Parameters</Tab>
-            <Tab>Sequences</Tab>
-          </TabList>
-          <TabPanels>
-            <TabPanel padding={0}>
-              <Card width="100%" flex="1" bg={bgColor} borderColor={bgColorAlpha}>
-                <CardHeader>
-                  <HStack justify="space-between">
-                    <Heading size="md">Teach Points</Heading>
-                    <HStack spacing={4}>
-                      <TeachPendantActions
-                        teachPoints={locations}
-                        motionProfiles={motionProfilesQuery.data}
-                        gripParams={gripParamsQuery.data}
-                        sequences={robotArmSequencesQuery.data}
-                        onImport={handleImportTeachPendantData}
-                      />
-                      <Button
-                        leftIcon={<AddIcon />}
-                        colorScheme="blue"
-                        size="sm"
-                        onClick={onOpen}
-                        variant="ghost"
-                      />
-                    </HStack>
-                  </HStack>
-                </CardHeader>
-                <CardBody
-                  overflowY="auto"
-                  maxHeight="calc(100vh - 700px)"
-                  minHeight="550px"
-                  css={{
-                    "&::-webkit-scrollbar": {
-                      width: "4px",
-                    },
-                    "&::-webkit-scrollbar-track": {
-                      width: "6px",
-                    },
-                    padding: 0,
-                  }}>
-                  <Table variant="simple">
-                    <Thead
-                      position="sticky"
-                      top={0}
-                      bg={bgColor}
-                      zIndex={1}
-                      css={{ transform: "translateY(0)" }}>
-                      <Tr>
-                        <Th width="40px"></Th>
-                        <Th>Name</Th>
-                        <Th>Type</Th>
-                        <Th textAlign="right">Actions</Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {filterItems(locations, "teachPoint").map((point, index) => (
-                        <>
-                          <Tr key={`${index}-main`} _hover={{ bg: bgColorAlpha }}>
-                            <Td padding="0" width="40px">
-                              <IconButton
-                                aria-label="Expand row"
-                                icon={
-                                  expandedRows.has(point.id) ? (
-                                    <ChevronUpIcon />
-                                  ) : (
-                                    <ChevronDownIcon />
-                                  )
-                                }
-                                onClick={() => toggleRow(point.id)}
-                                variant="ghost"
-                                size="sm"
-                              />
-                            </Td>
-                            <Td>{point.name}</Td>
-                            <Td>
-                              <Badge colorScheme={point.type === "location" ? "blue" : "green"}>
-                                {point.type}
-                              </Badge>
-                            </Td>
-                            <Td textAlign="right">
-                              <Menu>
-                                <MenuButton
-                                  as={IconButton}
-                                  aria-label="Actions"
-                                  icon={<HamburgerIcon />}
-                                  variant="ghost"
-                                  size="sm"
-                                />
-                                <MenuList>
-                                  <MenuItem
-                                    onClick={() => {
-                                      setSelectedPoint(point);
-                                      setIsMoveModalOpen(true);
-                                    }}>
-                                    Move To
-                                  </MenuItem>
-                                  <MenuItem onClick={() => handleEdit(point)}>Edit</MenuItem>
-                                  <MenuItem color="red.500" onClick={() => handleDelete(point)}>
-                                    Delete
-                                  </MenuItem>
-                                </MenuList>
-                              </Menu>
-                            </Td>
-                          </Tr>
-                          {expandedRows.has(point.id) && (
-                            <Tr key={`${index}-expanded`} bg={bgColorAlpha}>
-                              <Td colSpan={4}>
-                                <VStack align="start" spacing={2} p={2}>
-                                  <HStack width="100%" justify="space-between">
-                                    <Text fontWeight="bold">
-                                      Coordinates (
-                                      {point.locType ? getLocTypeDisplay(point.locType) : "Unknown"}
-                                      )
-                                    </Text>
-                                    <Badge colorScheme="gray">
-                                      {point.locType ? point.locType.toUpperCase() : "N/A"}
-                                    </Badge>
-                                  </HStack>
-                                  <Text fontFamily="mono" fontSize="sm">
-                                    {point.coordinate
-                                      ? point.coordinate.split(" ").map((coord, i) => (
-                                          <span key={i}>
-                                            {i > 0 && " | "}
-                                            {parseFloat(coord).toFixed(3)}
-                                          </span>
-                                        ))
-                                      : "No coordinates available"}
-                                  </Text>
-                                  {point.type === "nest" && (
-                                    <>
-                                      <Text fontWeight="bold" mt={2}>
-                                        Additional Properties
-                                      </Text>
-                                      <HStack spacing={4}>
-                                        {point.orientation && (
-                                          <Badge colorScheme="purple">
-                                            Orientation: {point.orientation}
-                                          </Badge>
-                                        )}
-                                        {point.safe_loc && (
-                                          <Badge colorScheme="orange">
-                                            Safe Location Name: {point.safe_loc}
-                                          </Badge>
-                                        )}
-                                      </HStack>
-                                    </>
-                                  )}
-                                </VStack>
-                              </Td>
-                            </Tr>
-                          )}
-                        </>
-                      ))}
-                    </Tbody>
-                  </Table>
-                </CardBody>
-              </Card>
-            </TabPanel>
-
-            <TabPanel padding={0}>
-              <Card width="100%" flex="1" bg={bgColor} borderColor={bgColorAlpha}>
-                <CardHeader>
-                  <HStack justify="space-between">
-                    <Heading size="md">Motion Profiles</Heading>
-                    <Button
-                      leftIcon={<AddIcon />}
-                      colorScheme="blue"
-                      size="sm"
-                      onClick={() => setIsMotionProfileModalOpen(true)}
-                      variant="ghost"
-                    />
-                  </HStack>
-                </CardHeader>
-                <CardBody overflowY="auto" maxHeight="calc(100vh - 700px)" minHeight="550px">
-                  <Table variant="simple">
-                    <Thead>
-                      <Tr>
-                        <Th>Name</Th>
-                        <Th>Profile ID</Th>
-                        <Th>Speed</Th>
-                        <Th>Speed2</Th>
-                        <Th>Acceleration</Th>
-                        <Th>Deceleration</Th>
-                        <Th>Accel Ramp</Th>
-                        <Th>Decel Ramp</Th>
-                        <Th>In Range</Th>
-                        <Th>Straight</Th>
-                        <Th>Actions</Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {filterItems(motionProfilesQuery.data, "motionProfile")?.map((profile) => (
-                        <Tr key={profile.id}>
-                          <Td>{profile.name}</Td>
-                          <Td>{profile.profile_id}</Td>
-                          <Td>{profile.speed}%</Td>
-                          <Td>{profile.speed2}%</Td>
-                          <Td>{profile.acceleration}%</Td>
-                          <Td>{profile.deceleration}%</Td>
-                          <Td>{profile.accel_ramp}s</Td>
-                          <Td>{profile.decel_ramp}s</Td>
-                          <Td>{profile.inrange}</Td>
-                          <Td>{profile.straight ? "Yes" : "No"}</Td>
-                          <Td>
-                            <Menu>
-                              <MenuButton
-                                as={IconButton}
-                                aria-label="Actions"
-                                icon={<HamburgerIcon />}
-                                variant="ghost"
-                                size="sm"
-                              />
-                              <MenuList>
-                                <MenuItem onClick={() => handleEditMotionProfile(profile)}>
-                                  Edit
-                                </MenuItem>
-                                <MenuItem onClick={() => handleRegisterMotionProfile(profile)}>
-                                  Register
-                                </MenuItem>
-                                <MenuItem
-                                  color="red.500"
-                                  onClick={() => handleDeleteMotionProfile(profile.id ?? 0)}>
-                                  Delete
-                                </MenuItem>
-                              </MenuList>
-                            </Menu>
-                          </Td>
-                        </Tr>
-                      ))}
-                    </Tbody>
-                  </Table>
-                </CardBody>
-              </Card>
-            </TabPanel>
-
-            <TabPanel padding={0}>
-              <Card width="100%" flex="1" bg={bgColor} borderColor={bgColorAlpha}>
-                <CardHeader>
-                  <HStack justify="space-between">
-                    <Heading size="md">Grip Parameters</Heading>
-                    <Button
-                      leftIcon={<AddIcon />}
-                      colorScheme="blue"
-                      size="sm"
-                      onClick={() => setIsGripParamsModalOpen(true)}
-                      variant="ghost"
-                    />
-                  </HStack>
-                </CardHeader>
-                <CardBody overflowY="auto" maxHeight="calc(100vh - 700px)" minHeight="550px">
-                  <Table variant="simple">
-                    <Thead>
-                      <Tr>
-                        <Th>Name</Th>
-                        <Th>Width</Th>
-                        <Th>Speed</Th>
-                        <Th>Force</Th>
-                        <Th>Actions</Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {filterItems(gripParamsQuery.data, "gripParams")?.map((params) => (
-                        <Tr key={params.id}>
-                          <Td>{params.name}</Td>
-                          <Td>{params.width}</Td>
-                          <Td>{params.speed}</Td>
-                          <Td>{params.force}</Td>
-                          <Td>
-                            <Menu>
-                              <MenuButton
-                                as={IconButton}
-                                aria-label="Actions"
-                                icon={<HamburgerIcon />}
-                                variant="ghost"
-                                size="sm"
-                              />
-                              <MenuList>
-                                <MenuItem
-                                  onClick={() => {
-                                    if (params.id !== undefined) {
-                                      handleEditGripParams({ ...params, id: params.id });
-                                    }
-                                  }}>
-                                  Edit
-                                </MenuItem>
-                                <MenuItem
-                                  color="red.500"
-                                  onClick={() => handleDeleteGripParams(params.id ?? 0)}>
-                                  Delete
-                                </MenuItem>
-                              </MenuList>
-                            </Menu>
-                          </Td>
-                        </Tr>
-                      ))}
-                    </Tbody>
-                  </Table>
-                </CardBody>
-              </Card>
-            </TabPanel>
-
-            <TabPanel padding={0}>
-              <Card>
-                <CardHeader>
-                  <HStack justify="space-between">
-                    <Heading size="md">Sequences</Heading>
-                    <Button colorScheme="blue" onClick={handleNewSequence}>
-                      Create Sequence
-                    </Button>
-                  </HStack>
-                </CardHeader>
-                <CardBody>
-                  <Table variant="simple">
-                    <Thead>
-                      <Tr>
-                        <Th>Name</Th>
-                        <Th>Commands</Th>
-                        <Th>Actions</Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {filterItems(sequences, "sequence")?.map((sequence) => {
-                        const typesSequence: Sequence = {
-                          id: sequence.id,
-                          name: sequence.name,
-                          tool_id: sequence.tool_id,
-                          commands: sequence.commands.map((command) => ({
-                            command: command.command,
-                            params: command.params,
-                            order: command.order,
-                          })),
-                          description: sequence.description,
-                        };
-                        return (
-                          <Tr key={sequence.id}>
-                            <Td>{sequence.name}</Td>
-                            <Td>{sequence.commands.length} commands</Td>
-                            <Td>
-                              <Menu>
-                                <MenuButton
-                                  as={IconButton}
-                                  aria-label="Actions"
-                                  icon={<HamburgerIcon />}
-                                  variant="ghost"
-                                  size="sm"
-                                />
-                                <MenuList>
-                                  <MenuItem
-                                    onClick={() =>
-                                      handleEditSequence({
-                                        ...sequence,
-                                        commands: sequence.commands.map((cmd, index) => ({
-                                          command: cmd.command,
-                                          params: cmd.params,
-                                          order: index,
-                                        })),
-                                      })
-                                    }>
-                                    Edit
-                                  </MenuItem>
-                                  <MenuItem onClick={() => handleRunSequence(sequence)}>
-                                    Run
-                                  </MenuItem>
-                                  <MenuItem
-                                    color="red.500"
-                                    onClick={() => handleDeleteSequence(sequence.id)}>
-                                    Delete
-                                  </MenuItem>
-                                </MenuList>
-                              </Menu>
-                            </Td>
-                          </Tr>
-                        );
-                      })}
-                    </Tbody>
-                  </Table>
-                </CardBody>
-              </Card>
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
-
-        <CreateNewItemModal />
-        <EditModal />
+        <CreateNewItemModal isOpen={isTeachPointModalOpen} onClose={onTeachPointModalClose} />
+        <EditModal isOpen={isEditModalOpen} onClose={onEditModalClose} />
         <MotionProfileModal
           isOpen={isMotionProfileModalOpen}
           onClose={() => {
-            setIsMotionProfileModalOpen(false);
+            onMotionProfileModalClose();
             setSelectedMotionProfile(null);
           }}
-          profile={selectedMotionProfile ?? undefined}
+          profile={selectedMotionProfile || undefined}
         />
         <GripParamsModal
           isOpen={isGripParamsModalOpen}
           onClose={() => {
-            setIsGripParamsModalOpen(false);
+            onGripParamsModalClose();
             setSelectedGripParams(null);
           }}
-          params={selectedGripParams ?? undefined}
+          params={selectedGripParams || undefined}
         />
         <MoveModal
           isOpen={isMoveModalOpen}
           onClose={() => {
-            setIsMoveModalOpen(false);
+            onMoveModalClose();
             setSelectedPoint(null);
           }}
           point={selectedPoint!}
           onMove={handleMoveCommand}
         />
-        <SequenceModal />
+        <SequenceModal
+          config={config}
+          isOpen={isSequenceModalOpen}
+          onClose={onSequenceModalClose}
+          sequence={selectedSequence ?? undefined}
+          onSave={handleSequenceSave}
+        />
       </VStack>
     </Box>
   );

@@ -32,7 +32,7 @@ export interface MotionProfile {
 }
 
 export interface GripParams {
-  id: number;
+  id?: number;
   name: string;
   width: number;
   speed: number;

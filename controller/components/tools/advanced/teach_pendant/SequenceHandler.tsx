@@ -24,8 +24,9 @@ import {
 import { DeleteIcon } from "@chakra-ui/icons";
 import { RobotArmSequence } from "@/server/routers/robot-arm";
 import { ToolCommandInfo } from "@/types";
-import { ToolConfig } from "gen-interfaces/controller";
-import { CommandModal } from "./CommandModal";
+import { Tool } from "@/types/api";
+import { CommandModal } from "./modals/CommandModal";
+import { ToolType } from "gen-interfaces/controller";
 
 export interface SequenceCommand {
   command: string;
@@ -42,7 +43,7 @@ export interface Sequence {
 }
 
 interface SequenceModalProps {
-  config: ToolConfig;
+  config: Tool;
   isOpen: boolean;
   onClose: () => void;
   sequence?: Sequence;
@@ -169,8 +170,7 @@ const SequenceModal: React.FC<SequenceModalProps> = ({ config, isOpen, onClose, 
   );
 };
 
-export function useSequenceHandler(config: ToolConfig) {
-  console.log("Sequence Config: ", config);
+export function useSequenceHandler(config: Tool) {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedSequence, setSelectedSequence] = useState<Sequence | null>(null);
@@ -190,6 +190,7 @@ export function useSequenceHandler(config: ToolConfig) {
         duration: 3000,
         isClosable: true,
       });
+      onClose();
     },
   });
 
@@ -203,6 +204,7 @@ export function useSequenceHandler(config: ToolConfig) {
         duration: 3000,
         isClosable: true,
       });
+      onClose();
     },
   });
 
@@ -222,7 +224,6 @@ export function useSequenceHandler(config: ToolConfig) {
   const handleCreateSequence = async (sequence: Omit<RobotArmSequence, "id">) => {
     try {
       await createSequenceMutation.mutateAsync(sequence);
-      onClose();
     } catch (error) {
       toast({
         title: "Failed to create sequence",
@@ -236,7 +237,6 @@ export function useSequenceHandler(config: ToolConfig) {
   const handleUpdateSequence = async (sequence: RobotArmSequence) => {
     try {
       await updateSequenceMutation.mutateAsync(sequence);
-      onClose();
     } catch (error) {
       toast({
         title: "Failed to update sequence",
@@ -264,7 +264,7 @@ export function useSequenceHandler(config: ToolConfig) {
   const handleRunSequence = async (sequence: RobotArmSequence) => {
     const command: ToolCommandInfo = {
       toolId: config.name,
-      toolType: config.type,
+      toolType: config.type as ToolType,
       command: "run_sequence",
       params: {
         sequence_name: sequence.name,
@@ -292,7 +292,7 @@ export function useSequenceHandler(config: ToolConfig) {
     }
   };
 
-  const handleEditSequence = (sequence: Sequence) => {
+  const handleEditSequence = (sequence: Sequence | null) => {
     setSelectedSequence(sequence);
     onOpen();
   };
@@ -302,15 +302,6 @@ export function useSequenceHandler(config: ToolConfig) {
     onOpen();
   };
 
-  const SequenceModalComponent = () => (
-    <SequenceModal
-      config={config}
-      isOpen={isOpen}
-      onClose={onClose}
-      sequence={selectedSequence ?? undefined}
-    />
-  );
-
   return {
     sequences: sequencesQuery.data,
     handleCreateSequence,
@@ -319,6 +310,8 @@ export function useSequenceHandler(config: ToolConfig) {
     handleRunSequence,
     handleEditSequence,
     handleNewSequence,
-    SequenceModal: SequenceModalComponent,
+    isOpen,
+    onClose,
+    selectedSequence,
   };
 }

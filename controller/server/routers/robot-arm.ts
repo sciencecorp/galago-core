@@ -58,7 +58,11 @@ const zRobotArmSequence = z.object({
   id: z.number(),
   name: z.string(),
   description: z.string().optional(),
-  commands: z.array(z.record(z.any())),
+  commands: z.array(z.object({
+    command: z.string(),
+    params: z.record(z.any()),
+    order: z.number()
+  })),
   tool_id: z.number(),
 });
 
