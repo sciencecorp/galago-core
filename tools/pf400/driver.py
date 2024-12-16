@@ -168,7 +168,7 @@ class RobotInitializer:
             self._ensure_pc_mode()
             self._ensure_power_on()
             self._ensure_robot_attached()
-            # self._ensure_robot_homed()
+            self._ensure_robot_homed()
         except Exception as e:
             logging.error(f"Initialization failed: {e}")
             raise

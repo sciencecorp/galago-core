@@ -57,6 +57,7 @@ import { GripParametersPanel } from "./panels/GripParametersPanel";
 import { SequencesPanel } from "./panels/SequencesPanel";
 import { ControlPanel } from "./panels/ControlPanel";
 import { DataPanel } from "./panels/DataPanel";
+import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import { SequenceModal } from "./modals/SequenceModal";
 
@@ -110,6 +111,10 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   const [filterType, setFilterType] = useState<ItemType | "all">("all");
   const [jogEnabled, setJogEnabled] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<TeachPoint | null>(null);
+  const toolStatusQuery = trpc.tool.status.useQuery(
+    { toolId: toolId || '' },
+    { enabled: !!toolId }
+  );
   const {
     sequences,
     handleCreateSequence,
@@ -128,7 +133,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     { enabled: !!config.id && config.id !== 0 },
   );
   console.log("waypoints", waypoints);
-
+  console.log("Toool STATE", config);
   const getLocTypeDisplay = (locType: string) => {
     switch (locType) {
       case "j":
@@ -1530,7 +1535,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
         <HStack width="100%" align="start" spacing={4}>
           {/* Left Side - Control Panel */}
           <VStack spacing={0} width="300px">
-            <ToolStatusCard toolId={config.name} style={{ width: '100%' }} />
+            <ToolStatusCard toolId={config.name || ''} style={{ width: '100%' }} />
             <ControlPanel
               onFree={() => handleSimpleCommand("free")}
               onUnfree={() => handleSimpleCommand("unfree")}
@@ -1544,7 +1549,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
               setJogDistance={setJogDistance}
               onJog={handleJog}
               setJogEnabled={setJogEnabled}
-              toolState={config.status}
+              toolState={toolStatusQuery.data?.status}
               gripParams={gripParamsQuery.data || []}
               selectedGripParamsId={selectedGripParamsId}
               onGripParamsChange={setSelectedGripParamsId}

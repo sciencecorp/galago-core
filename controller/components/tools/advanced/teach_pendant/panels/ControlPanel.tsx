@@ -1,5 +1,6 @@
 import { VStack, Card, CardHeader, CardBody, Button, HStack, Select, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper } from "@chakra-ui/react";
 import { GripParams } from "../types";
+import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 
 interface ControlPanelProps {
   onFree: () => void;
@@ -14,7 +15,7 @@ interface ControlPanelProps {
   setJogDistance: (distance: number) => void;
   onJog: () => void;
   setJogEnabled: (enabled: boolean) => void;
-  toolState: string;
+  toolState: ToolStatus | undefined;
   gripParams: GripParams[];
   selectedGripParamsId: number | null;
   onGripParamsChange: (id: number | null) => void;
@@ -38,7 +39,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   selectedGripParamsId,
   onGripParamsChange,
 }) => {
-  const isEnabled = toolState === "SIMULATED" || toolState === "CONNECTED";
+  console.log("TOOL STATE", toolState);
+  const isEnabled = toolState === ToolStatus.SIMULATED || toolState === ToolStatus.READY;
 
   return (
     <VStack spacing={4} width="100%" height="100%">
