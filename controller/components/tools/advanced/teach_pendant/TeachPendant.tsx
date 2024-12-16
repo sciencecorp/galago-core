@@ -296,7 +296,12 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   }, [robotArmLocationsQuery.data, robotArmNestsQuery.data]);
 
   const getCurrentPosition = async (): Promise<string | null> => {
-    console.log(`config:`, config);
+    if (toolStatusQuery.data?.status === "SIMULATED") {
+      console.log("Simulated mode");
+      // Default values for simulated mode
+      return "0 0 0 0 0 0";
+    }
+
     const toolCommand: ToolCommandInfo = {
       toolId: config.name,
       toolType: config.type as ToolType,
@@ -306,7 +311,6 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
 
     try {
       const response = await commandMutation.mutateAsync(toolCommand);
-      console.log(`response:`, response);
       if (response && response.meta_data) {
         return response.meta_data.location;
       }
@@ -1702,6 +1706,9 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
           onClose={onSequenceModalClose}
           sequence={selectedSequence ?? undefined}
           onSave={handleSequenceSave}
+          teachPoints={locations}
+          motionProfiles={motionProfilesQuery.data || []}
+          gripParams={gripParamsQuery.data || []}
         />
       </VStack>
     </Box>

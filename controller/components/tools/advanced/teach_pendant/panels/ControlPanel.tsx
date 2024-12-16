@@ -39,7 +39,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   selectedGripParamsId,
   onGripParamsChange,
 }) => {
-  console.log("TOOL STATE", toolState);
   const isEnabled = toolState === ToolStatus.SIMULATED || toolState === ToolStatus.READY;
 
   return (
@@ -81,7 +80,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 <NumberDecrementStepper />
               </NumberInputStepper>
             </NumberInput>
-            <Button onClick={onJog} colorScheme="teal" width="100%" isDisabled={!isEnabled || !jogEnabled}>
+            <Button onClick={onJog} colorScheme="teal" width="100%" isDisabled={!isEnabled}>
               Jog
             </Button>
           </VStack>
