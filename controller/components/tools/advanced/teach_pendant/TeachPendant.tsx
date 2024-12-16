@@ -72,69 +72,18 @@ import {
 } from "react-beautiful-dnd";
 import { useSequenceHandler } from "./SequenceHandler";
 import { ToolType } from "gen-interfaces/controller";
+import { TeachPendantActions } from "./TeachPendantActions";
+import {
+  TeachPendantProps,
+  TeachPoint,
+  MotionProfile,
+  GripParams,
+  Sequence,
+  MoveModalProps,
+  SearchableItem,
+  ItemType
+} from "./types";
 
-interface TeachPendantProps {
-  toolId: string | undefined;
-  config: Tool;
-}
-
-type TeachPoint = {
-  id: number;
-  name: string;
-  coordinate: string;
-  type: "nest" | "location";
-  locType: "j";
-  orientation?: "portrait" | "landscape";
-  safe_loc?: number;
-};
-
-interface MotionProfile {
-  id: number;
-  name: string;
-  profile_id: number;
-  speed: number;
-  speed2: number;
-  acceleration: number;
-  deceleration: number;
-  accel_ramp: number;
-  decel_ramp: number;
-  inrange: number;
-  straight: number;
-  tool_id: number;
-}
-
-interface GripParams {
-  id: number;
-  name: string;
-  width: number;
-  speed: number;
-  force: number;
-  tool_id: number;
-}
-
-interface MoveModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  point: TeachPoint;
-  onMove: (point: TeachPoint, profile: MotionProfile) => void;
-}
-
-interface SequenceCommand {
-  command: string;
-  params: Record<string, any>;
-  order: number;
-}
-
-interface Sequence {
-  id: number;
-  name: string;
-  description?: string;
-  commands: SequenceCommand[];
-  tool_id: number;
-}
-
-type SearchableItem = TeachPoint | MotionProfile | GripParams | Sequence;
-type ItemType = "teachPoint" | "motionProfile" | "gripParams" | "sequence";
 
 export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) => {
   const commandMutation = trpc.tool.runCommand.useMutation();
@@ -169,7 +118,8 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   const [manualWidth, setManualWidth] = useState<number>(122);
   const [manualSpeed, setManualSpeed] = useState<number>(10);
   const [manualForce, setManualForce] = useState<number>(20);
-
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState<ItemType | "all">("all");
   const {
     sequences,
     handleCreateSequence,
@@ -279,6 +229,11 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     }
   };
 
+  const robotArmSequencesQuery = trpc.robotArm.sequence.getAll.useQuery(
+    { toolId: config.id },
+    { enabled: !!config.id && config.id !== 0 },
+  );
+
   const robotArmLocationsQuery = trpc.robotArm.location.getAll.useQuery<RobotArmLocation[]>(
     { toolId: config.id },
     { enabled: !!config.id && config.id !== 0 },
@@ -347,7 +302,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     console.log(`config:`, config);
     const toolCommand: ToolCommandInfo = {
       toolId: config.name,
-      toolType: config.type,
+      toolType: config.type as ToolType,
       command: "get_current_location",
       params: {},
     };
@@ -652,7 +607,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     console.log(`point:`, point);
     const command: ToolCommandInfo = {
       toolId: config.name,
-      toolType: config.type,
+      toolType: config.type as ToolType,
       command: "move",
       params: {
         waypoint: point.coordinate,
@@ -890,7 +845,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   const handleRegisterMotionProfile = async (profile: MotionProfile) => {
     const registerCommand: ToolCommandInfo = {
       toolId: config.name,
-      toolType: config.type,
+      toolType: config.type as ToolType,
       command: "register_motion_profile",
       params: {
         id: profile.profile_id,
@@ -1437,7 +1392,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
 
     const simpleCommand: ToolCommandInfo = {
       toolId: config.name,
-      toolType: config.type,
+      toolType: config.type as ToolType,
       command,
       params: {},
     };
@@ -1460,6 +1415,71 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
         duration: 3000,
         isClosable: true,
       });
+    }
+  };
+
+  const handleImportTeachPendantData = async (data: {
+    teachPoints: TeachPoint[];
+    motionProfiles: MotionProfile[];
+    gripParams: GripParams[];
+    sequences: Sequence[];
+  }) => {
+    try {
+      // Import teach points
+      for (const point of data.teachPoints) {
+        if (point.type === "location") {
+          await createLocationMutation.mutateAsync({
+            name: point.name,
+            location_type: point.locType,
+            ...coordinateToJoints(point.coordinate),
+            tool_id: config.id,
+          });
+        } else {
+          await createNestMutation.mutateAsync({
+            name: point.name,
+            orientation: point.orientation || "landscape",
+            location_type: point.locType,
+            ...coordinateToJoints(point.coordinate),
+            safe_location_id: point.safe_loc || 1,
+            tool_id: config.id,
+          });
+        }
+      }
+
+      // Import motion profiles
+      for (const profile of data.motionProfiles) {
+        await createMotionProfileMutation.mutateAsync({
+          ...profile,
+          tool_id: config.id,
+        });
+      }
+
+      // Import grip parameters
+      for (const params of data.gripParams) {
+        await createGripParamsMutation.mutateAsync({
+          ...params,
+          tool_id: config.id,
+        });
+      }
+
+      // Import sequences
+      for (const sequence of data.sequences) {
+        await createSequenceMutation.mutateAsync({
+          ...sequence,
+          tool_id: config.id,
+        });
+      }
+
+      // Refresh all queries
+      await Promise.all([
+        robotArmLocationsQuery.refetch(),
+        robotArmNestsQuery.refetch(),
+        motionProfilesQuery.refetch(),
+        gripParamsQuery.refetch(),
+        robotArmSequencesQuery.refetch(),
+      ]);
+    } catch (error) {
+      throw new Error("Failed to import one or more items");
     }
   };
 
@@ -1675,12 +1695,22 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                 <CardHeader>
                   <HStack justify="space-between">
                     <Heading size="md">Teach Points</Heading>
-                    <Button
-                      leftIcon={<AddIcon />}
-                      colorScheme="blue"
-                      size="sm"
-                      onClick={onOpen}
-                      variant="ghost"></Button>
+                    <HStack spacing={4}>
+                      <TeachPendantActions
+                        teachPoints={locations}
+                        motionProfiles={motionProfilesQuery.data}
+                        gripParams={gripParamsQuery.data}
+                        sequences={robotArmSequencesQuery.data}
+                        onImport={handleImportTeachPendantData}
+                      />
+                      <Button
+                        leftIcon={<AddIcon />}
+                        colorScheme="blue"
+                        size="sm"
+                        onClick={onOpen}
+                        variant="ghost"
+                      />
+                    </HStack>
                   </HStack>
                 </CardHeader>
                 <CardBody
