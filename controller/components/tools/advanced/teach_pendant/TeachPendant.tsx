@@ -1500,7 +1500,8 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     <Box 
       p={4} 
       height="calc(100vh - 150px)" 
-      minHeight="800px"
+      maxHeight="1000px"
+      minWidth="1400px"
       border="1px"
       borderColor={borderColor}
       borderRadius="lg"

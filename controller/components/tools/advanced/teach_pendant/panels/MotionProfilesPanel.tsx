@@ -40,17 +40,17 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
         <Table variant="simple">
           <Thead position="sticky" top={0} bg={bgColor} zIndex={1}>
             <Tr>
-              <Th>Name</Th>
-              <Th>Profile ID</Th>
-              <Th>Speed</Th>
-              <Th>Speed2</Th>
-              <Th>Acceleration</Th>
-              <Th>Deceleration</Th>
-              <Th>Accel Ramp</Th>
-              <Th>Decel Ramp</Th>
-              <Th>In Range</Th>
-              <Th>Straight</Th>
-              <Th>Actions</Th>
+              <Th title="Name">Name</Th>
+              <Th title="Profile ID">ID</Th>
+              <Th title="Speed">Spd</Th>
+              <Th title="Secondary Speed">Spd2</Th>
+              <Th title="Acceleration">Accel</Th>
+              <Th title="Deceleration">Decel</Th>
+              <Th title="Acceleration Ramp">A.Ramp</Th>
+              <Th title="Deceleration Ramp">D.Ramp</Th>
+              <Th title="In Range">Range</Th>
+              <Th title="Move in Straight Line">Str</Th>
+              <Th title="Available Actions">Acts</Th>
             </Tr>
           </Thead>
           <Tbody>
