@@ -35,7 +35,7 @@ interface CommandField {
 const availableCommands: Record<string, CommandField[]> = {
   move: [
     { name: "waypoint", type: "waypoint" },
-    { name: "motion_profile", type: "motion_profile" },
+    { name: "motion_profile_id", type: "number" },
   ],
   grasp_plate: [
     { name: "grip_params", type: "grip_params" },
@@ -48,7 +48,7 @@ const availableCommands: Record<string, CommandField[]> = {
     { name: "x_offset", type: "number", defaultValue: 0 },
     { name: "y_offset", type: "number", defaultValue: 0 },
     { name: "z_offset", type: "number", defaultValue: 0 },
-    { name: "motion_profile", type: "motion_profile" },
+    { name: "motion_profile_id", type: "number" },
     { name: "ignore_safepath", type: "boolean", defaultValue: false },
   ],
   leave: [
@@ -56,17 +56,17 @@ const availableCommands: Record<string, CommandField[]> = {
     { name: "x_offset", type: "number", defaultValue: 0 },
     { name: "y_offset", type: "number", defaultValue: 0 },
     { name: "z_offset", type: "number", defaultValue: 0 },
-    { name: "motion_profile", type: "motion_profile" },
+    { name: "motion_profile_id", type: "number" },
   ],
   retrieve_plate: [
     { name: "labware", type: "text" },
     { name: "location", type: "location" },
-    { name: "motion_profile", type: "motion_profile" },
+    { name: "motion_profile_id", type: "number" },
   ],
   dropoff_plate: [
     { name: "labware", type: "text" },
     { name: "location", type: "location" },
-    { name: "motion_profile", type: "motion_profile" },
+    { name: "motion_profile_id", type: "number" },
   ],
   free: [],
   unfree: [],

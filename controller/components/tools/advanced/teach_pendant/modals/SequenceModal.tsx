@@ -22,7 +22,7 @@ import {
 import { DeleteIcon } from "@chakra-ui/icons";
 import { Tool } from "@/types/api";
 import { CommandModal } from "./CommandModal";
-import { Sequence, SequenceCommand } from "../types";
+import { Sequence, SequenceCommand, TeachPoint, MotionProfile, GripParams } from "../types";
 
 interface SequenceModalProps {
   config: Tool;
@@ -80,6 +80,7 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
     }
 
     onSave({
+      ...(sequence?.id ? { id: sequence.id } : {}),
       name,
       description,
       commands,
