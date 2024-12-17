@@ -30,6 +30,9 @@ interface SequenceModalProps {
   onClose: () => void;
   sequence?: Sequence;
   onSave: (sequence: Omit<Sequence, "id">) => void;
+  teachPoints: TeachPoint[];
+  motionProfiles: MotionProfile[];
+  gripParams: GripParams[];
 }
 
 export const SequenceModal: React.FC<SequenceModalProps> = ({ 
@@ -38,6 +41,9 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
   onClose, 
   sequence,
   onSave,
+  teachPoints,
+  motionProfiles,
+  gripParams,
 }) => {
   const [name, setName] = useState(sequence?.name ?? "");
   const [description, setDescription] = useState(sequence?.description ?? "");
@@ -145,6 +151,9 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
         isOpen={isCommandModalOpen}
         onClose={() => setIsCommandModalOpen(false)}
         onAddCommand={handleAddCommand}
+        teachPoints={teachPoints}
+        motionProfiles={motionProfiles}
+        gripParams={gripParams}
       />
     </>
   );

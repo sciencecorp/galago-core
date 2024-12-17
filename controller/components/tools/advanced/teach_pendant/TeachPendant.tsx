@@ -1697,9 +1697,9 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
           config={config}
           isOpen={isSequenceModalOpen}
           onClose={onSequenceModalClose}
-          sequence={selectedSequence ?? undefined}
-          onSave={handleSequenceSave}
-          teachPoints={waypoints.data || []}
+          sequence={selectedSequence || undefined}
+          onSave={selectedSequence ? handleUpdateSequence : handleCreateSequence}
+          teachPoints={locations}
           motionProfiles={motionProfilesQuery.data || []}
           gripParams={gripParamsQuery.data || []}
         />

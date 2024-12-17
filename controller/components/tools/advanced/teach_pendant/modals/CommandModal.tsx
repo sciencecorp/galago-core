@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -84,7 +84,16 @@ export const CommandModal: React.FC<CommandModalProps> = ({
   const [selectedCommand, setSelectedCommand] = useState("");
   const [params, setParams] = useState<Record<string, any>>({});
 
+  useEffect(() => {
+    console.log("CommandModal Props:", {
+      teachPoints,
+      motionProfiles,
+      gripParams
+    });
+  }, [teachPoints, motionProfiles, gripParams]);
+
   const handleCommandSelect = (command: string) => {
+    console.log("Selected Command:", command);
     setSelectedCommand(command);
     const defaultParams = availableCommands[command as keyof typeof availableCommands].reduce(
       (acc, field) => {
@@ -93,6 +102,7 @@ export const CommandModal: React.FC<CommandModalProps> = ({
       },
       {} as Record<string, any>,
     );
+    console.log("Default Params:", defaultParams);
     setParams(defaultParams);
   };
 
@@ -147,6 +157,13 @@ export const CommandModal: React.FC<CommandModalProps> = ({
   };
 
   const renderField = (field: { name: string; type: string; defaultValue?: any }) => {
+    console.log(`Rendering field ${field.name} of type ${field.type}`, {
+      currentValue: params[field.name],
+      availableTeachPoints: teachPoints?.length,
+      availableMotionProfiles: motionProfiles?.length,
+      availableGripParams: gripParams?.length
+    });
+    
     switch (field.type) {
       case "waypoint":
       case "location":
