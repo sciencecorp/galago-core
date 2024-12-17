@@ -166,18 +166,6 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     };
   }
 
-  const executeCommand = async (command: () => Promise<void>) => {
-    if (isCommandInProgress) return;
-    setIsCommandInProgress(true);
-    try {
-      await command();
-    } catch (error) {
-      console.error("Command execution failed:", error);
-    } finally {
-      setIsCommandInProgress(false);
-    }
-  };
-
   const handleJog = async () => {
     if (!jogAxis || jogDistance === 0) {
       toast({
@@ -609,17 +597,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
       command: "move",
       params: {
         waypoint: point.coordinate,
-        motion_profile: {
-          id: profile.profile_id,
-          speed: profile.speed,
-          speed2: profile.speed2,
-          accel: profile.acceleration,
-          decel: profile.deceleration,
-          accel_ramp: profile.accel_ramp,
-          decel_ramp: profile.decel_ramp,
-          inrange: profile.inrange,
-          straight: profile.straight,
-        },
+        motion_profile_id: profile.profile_id,
       },
     };
 
