@@ -126,6 +126,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     isOpen: isSequenceModalOpen,
     onClose: onSequenceModalClose,
     selectedSequence,
+    sequencesQuery,
   } = useSequenceHandler(config);
 
   const waypoints = trpc.robotArm.waypoints.getAll.useQuery(
@@ -1340,7 +1341,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     console.log("Config ASDADADSADSDASD", config);  
     console.log("Action", action === "open" ? "open_gripper" : "close_gripper");
     console.log("Tool Type", config.type);
-
+    console.log("FORCE", Number(params.force));
     const gripperCommand: ToolCommandInfo = {
       toolId: config.name,
       toolType: config.type as ToolType,
@@ -1533,7 +1534,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
           </VStack>
 
           {/* Right Side - Data Management */}
-          <VStack flex={1} spacing={4} height="100%" minHeight="700px">
+          <VStack flex={1} spacing={4} height="100%" minHeight="700px" overflow="hidden">
             <HStack width="100%" justify="space-between" align="center">
               <VStack spacing={2} flex={1}>
                 <HStack width="100%" spacing={4}>
@@ -1570,78 +1571,90 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
               />
             </HStack>
 
-            <Tabs variant="enclosed" width="100%" height="calc(100% - 40px)" display="flex" flexDirection="column">
-              <TabList>
-                <Tab>Teach Points</Tab>
-                <Tab>Motion Profiles</Tab>
-                <Tab>Grip Parameters</Tab>
-                <Tab>Sequences</Tab>
-              </TabList>
-              <TabPanels flex={1} overflow="auto">
-                <TabPanel height="100%" padding={0}>
-                  <TeachPointsPanel
-                    teachPoints={locations}
-                    motionProfiles={motionProfilesQuery.data || []}
-                    gripParams={gripParamsQuery.data || []}
-                    sequences={sequences || []}
-                    expandedRows={expandedRows}
-                    toggleRow={toggleRow}
-                    onImport={handleImportTeachPendantData}
-                    onMove={(point) => {
-                      setSelectedPoint(point);
-                      onMoveModalOpen();
-                    }}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onAdd={handleOpenTeachPointModal}
-                    bgColor={bgColor}
-                    bgColorAlpha={bgColorAlpha}
-                    searchTerm={globalSearchTerm}
-                  />
-                </TabPanel>
+            <Box flex={1} width="100%" overflow="hidden">
+              <Tabs variant="enclosed" width="100%" height="100%" display="flex" flexDirection="column">
+                <TabList>
+                  <Tab>Teach Points</Tab>
+                  <Tab>Motion Profiles</Tab>
+                  <Tab>Grip Parameters</Tab>
+                  <Tab>Sequences</Tab>
+                </TabList>
+                <TabPanels flex={1} overflow="hidden">
+                  <TabPanel height="100%" padding={0}>
+                    <TeachPointsPanel
+                      teachPoints={locations}
+                      motionProfiles={motionProfilesQuery.data || []}
+                      gripParams={gripParamsQuery.data || []}
+                      sequences={sequences || []}
+                      expandedRows={expandedRows}
+                      toggleRow={toggleRow}
+                      onImport={handleImportTeachPendantData}
+                      onMove={(point) => {
+                        setSelectedPoint(point);
+                        onMoveModalOpen();
+                      }}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      onAdd={handleOpenTeachPointModal}
+                      bgColor={bgColor}
+                      bgColorAlpha={bgColorAlpha}
+                      searchTerm={globalSearchTerm}
+                    />
+                  </TabPanel>
 
-                <TabPanel height="100%" padding={0}>
-                  <MotionProfilesPanel
-                    profiles={motionProfilesQuery.data || []}
-                    onEdit={(profile) => {
-                      setSelectedMotionProfile(profile);
-                      onMotionProfileModalOpen();
-                    }}
-                    onRegister={handleRegisterMotionProfile}
-                    onDelete={handleDeleteMotionProfile}
-                    onAdd={handleOpenMotionProfileModal}
-                    bgColor={bgColor}
-                    bgColorAlpha={bgColorAlpha}
-                  />
-                </TabPanel>
+                  <TabPanel height="100%" padding={0}>
+                    <MotionProfilesPanel
+                      profiles={motionProfilesQuery.data || []}
+                      onEdit={(profile) => {
+                        setSelectedMotionProfile(profile);
+                        onMotionProfileModalOpen();
+                      }}
+                      onRegister={handleRegisterMotionProfile}
+                      onDelete={handleDeleteMotionProfile}
+                      onAdd={handleOpenMotionProfileModal}
+                      bgColor={bgColor}
+                      bgColorAlpha={bgColorAlpha}
+                    />
+                  </TabPanel>
 
-                <TabPanel height="100%" padding={0}>
-                  <GripParametersPanel
-                    params={gripParamsQuery.data || []}
-                    onEdit={(params) => {
-                      setSelectedGripParams(params);
-                      onGripParamsModalOpen();
-                    }}
-                    onDelete={handleDeleteGripParams}
-                    onAdd={handleOpenGripParamsModal}
-                    bgColor={bgColor}
-                    bgColorAlpha={bgColorAlpha}
-                  />
-                </TabPanel>
+                  <TabPanel height="100%" padding={0}>
+                    <GripParametersPanel
+                      params={gripParamsQuery.data || []}
+                      onEdit={(params) => {
+                        setSelectedGripParams(params);
+                        onGripParamsModalOpen();
+                      }}
+                      onDelete={handleDeleteGripParams}
+                      onAdd={handleOpenGripParamsModal}
+                      bgColor={bgColor}
+                      bgColorAlpha={bgColorAlpha}
+                    />
+                  </TabPanel>
 
-                <TabPanel height="100%" padding={0}>
-                  <SequencesPanel
-                    sequences={sequences || []}
-                    onEdit={handleEditSequence}
-                    onRun={handleRunSequence}
-                    onDelete={handleDeleteSequence}
-                    onCreateNew={handleNewSequence}
-                    bgColor={bgColor}
-                    bgColorAlpha={bgColorAlpha}
-                  />
-                </TabPanel>
-              </TabPanels>
-            </Tabs>
+                  <TabPanel height="100%" padding={0}>
+                    <SequencesPanel
+                      sequences={robotArmSequencesQuery.data || []}
+                      teachPoints={locations}
+                      motionProfiles={motionProfilesQuery.data || []}
+                      gripParams={gripParamsQuery.data || []}
+                      onEdit={handleEditSequence}
+                      onRun={handleRunSequence}
+                      onDelete={async (id) => {
+                        await handleDeleteSequence(id);
+                        await robotArmSequencesQuery.refetch();
+                      }}
+                      onCreateNew={handleNewSequence}
+                      onUpdateSequence={async (sequence) => {
+                        await updateSequenceMutation.mutateAsync(sequence);
+                        await robotArmSequencesQuery.refetch();
+                      }}
+                      bgColor={bgColor}
+                      bgColorAlpha={bgColorAlpha}
+                    />
+                  </TabPanel>
+                </TabPanels>
+              </Tabs>
+            </Box>
           </VStack>
         </HStack>
 
@@ -1679,10 +1692,12 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
           sequence={selectedSequence || undefined}
           onSave={async (sequence) => {
             if (selectedSequence) {
-              await handleUpdateSequence({ ...sequence, id: selectedSequence.id });
+              await updateSequenceMutation.mutateAsync({ ...sequence, id: selectedSequence.id });
             } else {
-              await handleCreateSequence(sequence);
+              await createSequenceMutation.mutateAsync(sequence);
             }
+            await robotArmSequencesQuery.refetch();
+            onSequenceModalClose();
           }}
           teachPoints={locations}
           motionProfiles={motionProfilesQuery.data || []}
