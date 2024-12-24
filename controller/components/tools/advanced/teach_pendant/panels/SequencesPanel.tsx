@@ -70,7 +70,6 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
             New Sequence
           </Button>
         </HStack>
-        
         <Box width="100%" flex={1} overflow="hidden">
           <Grid templateColumns="1fr 2fr" gap={4} height="100%">
             <GridItem height="100%" overflow="hidden">

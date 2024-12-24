@@ -1,15 +1,12 @@
-import { Card, CardHeader, CardBody, HStack, Heading, Table, Thead, Tbody, Tr, Th, Td, IconButton } from "@chakra-ui/react";
+import { Card, CardHeader, CardBody, HStack, Heading, Table, Thead, Tbody, Tr, Th, Td, IconButton, Menu, MenuButton, MenuList, MenuItem, Badge } from "@chakra-ui/react";
 import { TeachPoint, MotionProfile } from "../types";
-import { TeachPointRow } from "../TeachPointRow";
-import { AddIcon } from "@chakra-ui/icons";
+import { AddIcon, HamburgerIcon } from "@chakra-ui/icons";
 
 interface TeachPointsPanelProps {
   teachPoints: TeachPoint[];
   motionProfiles: MotionProfile[];
   gripParams: any[];
   sequences: any[];
-  expandedRows: Set<number>;
-  toggleRow: (id: number) => void;
   onImport: (data: any) => Promise<void>;
   onMove: (point: TeachPoint) => void;
   onEdit: (point: TeachPoint) => void;
@@ -22,11 +19,6 @@ interface TeachPointsPanelProps {
 
 export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   teachPoints,
-  motionProfiles,
-  gripParams,
-  sequences,
-  expandedRows,
-  toggleRow,
   onImport,
   onMove,
   onEdit,
@@ -56,27 +48,44 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
         </HStack>
       </CardHeader>
       <CardBody overflowY="auto" maxHeight="calc(100vh - 700px)" minHeight="550px">
-        <Table variant="simple">
+        <Table variant="simple" size="sm">
           <Thead position="sticky" top={0} bg={bgColor} zIndex={1}>
             <Tr>
-              <Th width="40px"></Th>
               <Th>Name</Th>
               <Th>Type</Th>
+              <Th>Orientation</Th>
               <Th textAlign="right">Actions</Th>
             </Tr>
           </Thead>
           <Tbody>
             {filteredPoints.map((point) => (
-              <TeachPointRow
-                key={point.id}
-                point={point}
-                isExpanded={expandedRows.has(point.id)}
-                onToggle={() => toggleRow(point.id)}
-                onMove={onMove}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                bgColorAlpha={bgColorAlpha}
-              />
+              <Tr key={point.id} _hover={{ bg: bgColorAlpha }}>
+                <Td>{point.name}</Td>
+                <Td>
+                  <Badge colorScheme={point.type === "location" ? "blue" : "green"}>{point.type}</Badge>
+                </Td>
+                <Td>
+                  {point.type === "nest" && point.orientation && (
+                    <Badge colorScheme="purple">{point.orientation}</Badge>
+                  )}
+                </Td>
+                <Td textAlign="right">
+                  <Menu>
+                    <MenuButton
+                      as={IconButton}
+                      aria-label="Actions"
+                      icon={<HamburgerIcon />}
+                      variant="ghost"
+                      size="sm"
+                    />
+                    <MenuList>
+                      <MenuItem onClick={() => onMove(point)}>Move To</MenuItem>
+                      <MenuItem onClick={() => onEdit(point)}>Edit</MenuItem>
+                      <MenuItem color="red.500" onClick={() => onDelete(point)}>Delete</MenuItem>
+                    </MenuList>
+                  </Menu>
+                </Td>
+              </Tr>
             ))}
           </Tbody>
         </Table>

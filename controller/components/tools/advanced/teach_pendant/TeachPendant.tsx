@@ -126,7 +126,6 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     isOpen: isSequenceModalOpen,
     onClose: onSequenceModalClose,
     selectedSequence,
-    sequencesQuery,
   } = useSequenceHandler(config);
 
   const waypoints = trpc.robotArm.waypoints.getAll.useQuery(
@@ -1637,7 +1636,6 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                       teachPoints={locations}
                       motionProfiles={motionProfilesQuery.data || []}
                       gripParams={gripParamsQuery.data || []}
-                      onEdit={handleEditSequence}
                       onRun={handleRunSequence}
                       onDelete={async (id) => {
                         await handleDeleteSequence(id);
