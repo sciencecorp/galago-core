@@ -16,6 +16,8 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { TeachPoint, MotionProfile, GripParams } from "../types";
+import { trpc } from "@/utils/trpc";
+import { Labware } from "@/types/api";
 
 interface CommandModalProps {
   isOpen: boolean;
@@ -35,7 +37,7 @@ interface CommandField {
 const availableCommands: Record<string, CommandField[]> = {
   move: [
     { name: "waypoint", type: "waypoint" },
-    { name: "motion_profile_id", type: "number" },
+    { name: "motion_profile_id", type: "motion_profile" },
   ],
   grasp_plate: [
     { name: "grip_params", type: "grip_params" },
@@ -48,7 +50,7 @@ const availableCommands: Record<string, CommandField[]> = {
     { name: "x_offset", type: "number", defaultValue: 0 },
     { name: "y_offset", type: "number", defaultValue: 0 },
     { name: "z_offset", type: "number", defaultValue: 0 },
-    { name: "motion_profile_id", type: "number" },
+    { name: "motion_profile_id", type: "motion_profile" },
     { name: "ignore_safepath", type: "boolean", defaultValue: false },
   ],
   leave: [
@@ -56,17 +58,17 @@ const availableCommands: Record<string, CommandField[]> = {
     { name: "x_offset", type: "number", defaultValue: 0 },
     { name: "y_offset", type: "number", defaultValue: 0 },
     { name: "z_offset", type: "number", defaultValue: 0 },
-    { name: "motion_profile_id", type: "number" },
+    { name: "motion_profile_id", type: "motion_profile" },
   ],
   retrieve_plate: [
-    { name: "labware", type: "text" },
+    { name: "labware", type: "labware" },
     { name: "location", type: "location" },
-    { name: "motion_profile_id", type: "number" },
+    { name: "motion_profile_id", type: "motion_profile" },
   ],
   dropoff_plate: [
-    { name: "labware", type: "text" },
+    { name: "labware", type: "labware" },
     { name: "location", type: "location" },
-    { name: "motion_profile_id", type: "number" },
+    { name: "motion_profile_id", type: "motion_profile" },
   ],
   free: [],
   unfree: [],
@@ -83,17 +85,21 @@ export const CommandModal: React.FC<CommandModalProps> = ({
 }) => {
   const [selectedCommand, setSelectedCommand] = useState("");
   const [params, setParams] = useState<Record<string, any>>({});
+  const { data: labwareList } = trpc.labware.getAll.useQuery(undefined, {
+    staleTime: Infinity,
+    cacheTime: Infinity,
+    enabled: isOpen,
+  });
 
+  // Reset form when modal is opened/closed
   useEffect(() => {
-    console.log("CommandModal Props:", {
-      teachPoints,
-      motionProfiles,
-      gripParams
-    });
-  }, [teachPoints, motionProfiles, gripParams]);
+    if (!isOpen) {
+      setSelectedCommand("");
+      setParams({});
+    }
+  }, [isOpen]);
 
   const handleCommandSelect = (command: string) => {
-    console.log("Selected Command:", command);
     setSelectedCommand(command);
     const defaultParams = availableCommands[command as keyof typeof availableCommands].reduce(
       (acc, field) => {
@@ -102,7 +108,6 @@ export const CommandModal: React.FC<CommandModalProps> = ({
       },
       {} as Record<string, any>,
     );
-    console.log("Default Params:", defaultParams);
     setParams(defaultParams);
   };
 
@@ -110,20 +115,10 @@ export const CommandModal: React.FC<CommandModalProps> = ({
     const processedParams = { ...params };
     
     // Convert selected objects to their required format
-    if (processedParams.motion_profile) {
-      const profile = motionProfiles.find(p => p.id === Number(processedParams.motion_profile));
+    if (processedParams.motion_profile_id) {
+      const profile = motionProfiles.find(p => p.id === Number(processedParams.motion_profile_id));
       if (profile) {
-        processedParams.motion_profile = {
-          id: profile.profile_id,
-          speed: profile.speed,
-          speed2: profile.speed2,
-          accel: profile.acceleration,
-          decel: profile.deceleration,
-          accel_ramp: profile.accel_ramp,
-          decel_ramp: profile.decel_ramp,
-          inrange: profile.inrange,
-          straight: profile.straight,
-        };
+        processedParams.motion_profile_id = profile.profile_id;
       }
     }
 
@@ -138,7 +133,6 @@ export const CommandModal: React.FC<CommandModalProps> = ({
     }
 
     if (processedParams.waypoint || processedParams.location || processedParams.nest) {
-      console.log("teachPoints", teachPoints);
       const point = teachPoints.find(p => p.id === Number(processedParams.waypoint || processedParams.location || processedParams.nest));
       if (point) {
         if (processedParams.waypoint) processedParams.waypoint = point.coordinate;
@@ -147,23 +141,21 @@ export const CommandModal: React.FC<CommandModalProps> = ({
       }
     }
 
+    if (processedParams.labware) {
+      const labware = labwareList?.find(l => l.id === Number(processedParams.labware));
+      if (labware) {
+        processedParams.labware = labware.id;
+      }
+    }
+
     onAddCommand({
       command: selectedCommand,
       params: processedParams,
     });
     onClose();
-    setSelectedCommand("");
-    setParams({});
   };
 
   const renderField = (field: { name: string; type: string; defaultValue?: any }) => {
-    console.log(`Rendering field ${field.name} of type ${field.type}`, {
-      currentValue: params[field.name],
-      availableTeachPoints: teachPoints?.length,
-      availableMotionProfiles: motionProfiles?.length,
-      availableGripParams: gripParams?.length
-    });
-    
     switch (field.type) {
       case "waypoint":
       case "location":
@@ -208,8 +200,8 @@ export const CommandModal: React.FC<CommandModalProps> = ({
             placeholder="Select motion profile"
           >
             {(motionProfiles || []).map((profile) => (
-              <option key={profile.id} value={profile.id}>
-                {profile.name}
+              <option key={profile.id} value={profile.profile_id}>
+                {profile.name} (Profile {profile.profile_id})
               </option>
             ))}
           </Select>
@@ -225,6 +217,21 @@ export const CommandModal: React.FC<CommandModalProps> = ({
             {(gripParams || []).map((param) => (
               <option key={param.id} value={param.id}>
                 {param.name}
+              </option>
+            ))}
+          </Select>
+        );
+
+      case "labware":
+        return (
+          <Select
+            value={params[field.name]}
+            onChange={(e) => setParams({ ...params, [field.name]: e.target.value })}
+            placeholder="Select labware"
+          >
+            {(labwareList || []).map((labware) => (
+              <option key={labware.id} value={labware.id}>
+                {labware.name}
               </option>
             ))}
           </Select>
