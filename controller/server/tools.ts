@@ -84,11 +84,48 @@ export default class Tool {
     // Handle PF400 specific configuration
     if (this.type === ToolType.pf400) {
       try {
+        console.log('Fetching waypoints for PF400 configuration...');
         // Make a direct API call instead of using trpc hooks
-        const response = await get<any>(`/robot-arm-waypoints/${this.id}`);
-        if (response && Array.isArray(response)) {
+        const response = await get<any>(`/robot-arm-waypoints?tool_id=${this.id}`);
+        console.log('Received waypoints response:', response);
+
+        if (response) {
+          const waypoints: string[] = [];
+          
+          // Add motion profiles
+          if (response.motionProfiles) {
+            console.log('Processing motion profiles:', response.motionProfiles);
+            for (const profile of response.motionProfiles) {
+              // Register motion profile with the PF400 server
+              await this.grpc.executeCommand({
+                pf400: {
+                  register_motion_profile: {
+                    id: profile.profile_id,
+                    speed: profile.speed,
+                    speed2: profile.speed2,
+                    accel: profile.acceleration,
+                    decel: profile.deceleration,
+                    accel_ramp: profile.accel_ramp,
+                    decel_ramp: profile.decel_ramp,
+                    inrange: profile.inrange,
+                    straight: profile.straight ? 1 : 0
+                  }
+                }
+              });
+            }
+          }
+
+          // Add waypoints
+          if (response.waypoints) {
+            console.log('Processing waypoints:', response.waypoints);
+            for (const waypoint of response.waypoints) {
+              waypoints.push(waypoint.name);
+            }
+          }
+
           if (config.pf400) {
-            config.pf400.waypoints = response;
+            console.log('Setting PF400 waypoints:', waypoints);
+            config.pf400.waypoints = waypoints;
           }
         }
       } catch (error) {
@@ -99,6 +136,11 @@ export default class Tool {
         }
       }
     }
+
+    console.log('Sending configuration to tool:', {
+      type: this.type,
+      config: config
+    });
 
     const reply = await this.grpc.configure(config);
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
