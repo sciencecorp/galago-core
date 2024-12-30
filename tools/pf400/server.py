@@ -16,8 +16,80 @@ class Pf400Server(ToolServer):
         self.sequence_location: str
         self.plate_handling_params: dict[str, dict[str, Union[Command.GraspPlate, Command.ReleasePlate]]] = {}
         self.waypoints: dict[str, dict[str, Union[Command.GraspPlate, Command.ReleasePlate]]] = {}
+        # Store mappings for motion profiles, grip params, and labware
+        self.motion_profile_map: dict[int, int] = {}  # Map DB ID to profile ID
+        self.grip_params_map: dict[int, dict[str, int]] = {}  # Map DB ID to grip params
+        self.labware_map: dict[int, str] = {}  # Map DB ID to labware name
+
     def initialize(self) -> None:
         super().initialize()
+
+    def _configure(self, config: Config) -> None:
+        """Configure the robot driver with the given configuration."""
+        self.config = config
+        if self.driver:
+            self.driver.close()
+        self.driver = Pf400Driver(
+            tcp_host=self.config.host,
+            tcp_port=self.config.port
+        )
+        self.driver.initialize()
+
+        # Load waypoints and mappings if provided in config
+        if hasattr(config, 'waypoints') and config.waypoints:
+            logging.info("Loading waypoints and parameter mappings...")
+            try:
+                for waypoint in config.waypoints:
+                    if waypoint.get('type') == 'motion_profile':
+                        profile_id = waypoint.get('profile_id')
+                        db_id = waypoint.get('id')
+                        if profile_id is not None and db_id is not None:
+                            self.motion_profile_map[db_id] = profile_id
+                            # Register the motion profile with the driver
+                            self.driver.register_motion_profile(str(profile_id))
+                            logging.info(f"Registered motion profile {profile_id} for DB ID {db_id}")
+                    
+                    elif waypoint.get('type') == 'grip_params':
+                        db_id = waypoint.get('id')
+                        params = waypoint.get('params', {})
+                        if db_id is not None and params:
+                            self.grip_params_map[db_id] = params
+                            logging.info(f"Loaded grip params for DB ID {db_id}: {params}")
+                    
+                    elif waypoint.get('type') == 'labware':
+                        db_id = waypoint.get('id')
+                        name = waypoint.get('name')
+                        if db_id is not None and name:
+                            self.labware_map[db_id] = name
+                            logging.info(f"Mapped labware ID {db_id} to name {name}")
+            
+            except Exception as e:
+                logging.error(f"Error loading waypoints and mappings: {str(e)}")
+                # Continue with empty mappings rather than failing
+                self.motion_profile_map = {}
+                self.grip_params_map = {}
+                self.labware_map = {}
+
+    def _map_motion_profile(self, db_id: int) -> int:
+        """Map database motion profile ID to robot profile ID"""
+        if db_id in self.motion_profile_map:
+            return self.motion_profile_map[db_id]
+        logging.warning(f"Motion profile ID {db_id} not found in mapping, using default profile 1")
+        return 1
+
+    def _map_grip_params(self, db_id: int) -> dict[str, int]:
+        """Map database grip params ID to robot grip parameters"""
+        if db_id in self.grip_params_map:
+            return self.grip_params_map[db_id]
+        logging.warning(f"Grip params ID {db_id} not found in mapping, using defaults")
+        return {"width": 130, "force": 15, "speed": 10}
+
+    def _map_labware(self, db_id: int) -> str:
+        """Map database labware ID to labware name"""
+        if db_id in self.labware_map:
+            return self.labware_map[db_id]
+        logging.warning(f"Labware ID {db_id} not found in mapping, using 'default'")
+        return "default"
 
     def Free(self, params: Command.Free) -> None:
         self.driver.safe_free()
@@ -32,18 +104,28 @@ class Pf400Server(ToolServer):
         motion_profile = getattr(params, 'motion_profile_id', None)
 
         if motion_profile:
-            self.driver.register_motion_profile(
-                profile=motion_profile
-            )
+            # Map the motion profile ID if it's from the database
+            profile_id = self._map_motion_profile(motion_profile)
+            self.driver.register_motion_profile(str(profile_id))
         else:
             profile_id = 1
         self.driver.movej(coordinate, motion_profile=profile_id)
 
     def GraspPlate(self, params: Command.GraspPlate) -> None:
-        self.driver.graspplate(params.width, params.force, params.speed)
+        # If params has an ID, map it to the actual grip parameters
+        if hasattr(params, 'id'):
+            grip_params = self._map_grip_params(params.id)
+            self.driver.graspplate(grip_params["width"], grip_params["force"], grip_params["speed"])
+        else:
+            self.driver.graspplate(params.width, params.force, params.speed)
 
     def ReleasePlate(self, params: Command.ReleasePlate) -> None:
-        self.driver.releaseplate(params.width, params.speed)
+        # If params has an ID, map it to the actual grip parameters
+        if hasattr(params, 'id'):
+            grip_params = self._map_grip_params(params.id)
+            self.driver.releaseplate(grip_params["width"], grip_params["speed"])
+        else:
+            self.driver.releaseplate(params.width, params.speed)
 
     def retrieve_plate(
         self,
@@ -52,13 +134,21 @@ class Pf400Server(ToolServer):
         nest_offset: tuple[float, float, float] = (0, 0, 0),
         motion_profile_id: int = 1,
         grip_width: int = 0,
+        labware_id: Optional[int] = None,
     ) -> None:
         """Retrieve a plate from the specified coordinates."""
+        # Map the motion profile ID if it's from the database
+        profile_id = self._map_motion_profile(motion_profile_id)
+
         grasp: Command.GraspPlate
         if not grasp_params:
             grasp = Command.GraspPlate(width=130, force=15, speed=10)
         else:
-            grasp = grasp_params
+            if hasattr(grasp_params, 'id'):
+                grip_params = self._map_grip_params(grasp_params.id)
+                grasp = Command.GraspPlate(**grip_params)
+            else:
+                grasp = grasp_params
 
         adjust_gripper = Command.ReleasePlate(width=grip_width or 140, speed=10)
 
@@ -70,7 +160,7 @@ class Pf400Server(ToolServer):
 
         self.runSequence([
             adjust_gripper,
-            Command.Move(waypoint=adjusted_nest, motion_profile_id=motion_profile_id),
+            Command.Move(waypoint=adjusted_nest, motion_profile_id=profile_id),
             grasp,
         ])
 
@@ -81,13 +171,21 @@ class Pf400Server(ToolServer):
         nest_offset: tuple[float, float, float] = (0, 0, 0),
         motion_profile_id: int = 1,
         grip_width: int = 0,
+        labware_id: Optional[int] = None,
     ) -> None:
         """Drop off a plate at the specified coordinates."""
+        # Map the motion profile ID if it's from the database
+        profile_id = self._map_motion_profile(motion_profile_id)
+
         release: Command.ReleasePlate
         if not release_params:
             release = Command.ReleasePlate(width=140, speed=10)
         else:
-            release = release_params
+            if hasattr(release_params, 'id'):
+                grip_params = self._map_grip_params(release_params.id)
+                release = Command.ReleasePlate(width=grip_params["width"], speed=grip_params["speed"])
+            else:
+                release = release_params
 
         # Add offset to coordinates
         coords = destination_nest.split()
@@ -96,7 +194,7 @@ class Pf400Server(ToolServer):
         adjusted_nest = ' '.join(map(str, adjusted_coords))
 
         self.runSequence([
-            Command.Move(waypoint=adjusted_nest, motion_profile_id=motion_profile_id),
+            Command.Move(waypoint=adjusted_nest, motion_profile_id=profile_id),
             release,
         ])
     def Jog(self, params: Command.Jog) -> None:
@@ -217,17 +315,6 @@ class Pf400Server(ToolServer):
 
     def EstimateWait(self, params: Command.Wait) -> int:
         return 1
-    
-    def _configure(self, config: Config) -> None:
-        """Configure the robot driver with the given configuration."""
-        self.config = config
-        if self.driver:
-            self.driver.close()
-        self.driver = Pf400Driver(
-            tcp_host=self.config.host,
-            tcp_port=self.config.port
-        )
-        self.driver.initialize()
     
     
 if __name__ == "__main__":
