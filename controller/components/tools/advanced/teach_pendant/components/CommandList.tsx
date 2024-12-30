@@ -187,28 +187,31 @@ export const CommandList: React.FC<CommandListProps> = ({
                         
                         {localCommands.map((command, index) => (
                             <SlideFade key={index} in={true} offsetY="20px">
-                                <VStack width="100%" spacing={0} align="stretch">
+                                <VStack width="100%" spacing={0} align="stretch" mb={3}>
                                     <Box width="100%">
                                         <Box
                                             px={6}
                                             py={3}
                                             cursor="pointer"
                                             borderRadius="md"
+                                            borderWidth="1px"
+                                            borderColor={borderColor}
                                             bg={expandedCommandIndex === index ? selectedBg : "transparent"}
                                             onClick={() => onCommandClick?.(index)}
                                             width="100%"
                                             transition="all 0.2s"
-                                            opacity={expandedCommandIndex === index ? 1 : 0.6}
+                                            opacity={expandedCommandIndex === index ? 1 : 0.8}
                                             _hover={{
                                                 transform: "scale(1.01)",
-                                                opacity: 0.9,
+                                                opacity: 1,
+                                                shadow: "sm",
                                             }}
                                         >
                                             <HStack justify="space-between">
                                                 <Text fontWeight={expandedCommandIndex === index ? "bold" : "normal"}>
                                                     {command.command}
                                                 </Text>
-                                                <HStack>
+                                                <HStack spacing={1}>
                                                     {isEditing && (
                                                         <IconButton
                                                             aria-label="Delete command"
@@ -235,7 +238,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                                                 </HStack>
                                             </HStack>
                                             <Collapse in={expandedCommandIndex === index}>
-                                                <VStack align="start" mt={3} spacing={3}>
+                                                <VStack align="start" mt={3} spacing={3} pl={2}>
                                                     {Object.entries(command.params).map(([key, value]) => (
                                                         <HStack key={key} width="100%">
                                                             <Text fontSize="sm" color="gray.500" width="30%">
@@ -266,7 +269,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                                     {!isEditing && index < localCommands.length - 1 && (
                                         <Center py={2}>
                                             <ChevronDownIcon 
-                                                boxSize={6} 
+                                                boxSize={4} 
                                                 color={arrowColor}
                                                 transition="transform 0.2s"
                                                 _hover={{

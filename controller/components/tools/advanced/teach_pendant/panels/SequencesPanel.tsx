@@ -44,6 +44,18 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
     }
   }, [sequences]);
 
+  const handleSequenceClick = (sequence: Sequence) => {
+    if (selectedSequence?.id === sequence.id) {
+      // If clicking the same sequence, collapse it
+      setSelectedSequence(null);
+      setExpandedCommandIndex(null);
+    } else {
+      // If clicking a different sequence, expand it
+      setSelectedSequence(sequence);
+      setExpandedCommandIndex(null);
+    }
+  };
+
   const handleUpdateSequence = async (sequence: Sequence) => {
     await onUpdateSequence(sequence);
   };
@@ -92,7 +104,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                     {sequences.map((sequence) => (
                       <Tr
                         key={sequence.id}
-                        onClick={() => setSelectedSequence(sequence)}
+                        onClick={() => handleSequenceClick(sequence)}
                         cursor="pointer"
                         bg={selectedSequence?.id === sequence.id ? bgColorAlpha : "transparent"}
                         _hover={{ bg: bgColorAlpha }}
