@@ -63,3 +63,20 @@ export interface Sequence {
 
 export type SearchableItem = TeachPoint | MotionProfile | GripParams | Sequence;
 export type ItemType = "teachPoint" | "motionProfile" | "gripParams" | "sequence";
+
+export interface TeachPointsPanelProps {
+  teachPoints: TeachPoint[];
+  motionProfiles: MotionProfile[];
+  gripParams: GripParams[];
+  sequences: Sequence[];
+  expandedRows: Set<number>;
+  toggleRow: (id: number) => void;
+  onImport: (data: any) => Promise<void>;
+  onMove: (point: TeachPoint) => void;
+  onEdit: (point: TeachPoint) => void;
+  onDelete: (point: TeachPoint) => void;
+  onAdd: () => void;
+  bgColor: string;
+  bgColorAlpha: string;
+  searchTerm: string;
+}

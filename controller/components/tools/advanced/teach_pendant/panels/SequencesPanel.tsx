@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardBody, HStack, Heading, Table, Thead, Tbody, Tr, Th, Td, Menu, MenuButton, MenuList, MenuItem, IconButton, Button, Grid, GridItem, Box, AlertDialog, AlertDialogBody, AlertDialogFooter, AlertDialogHeader, AlertDialogContent, AlertDialogOverlay, VStack } from "@chakra-ui/react";
+import { Card, CardHeader, CardBody, HStack, Heading, Table, Thead, Tbody, Tr, Th, Td, Menu, MenuButton, MenuList, MenuItem, IconButton, Button, Grid, GridItem, Box, AlertDialog, AlertDialogBody, AlertDialogFooter, AlertDialogHeader, AlertDialogContent, AlertDialogOverlay, VStack, useColorModeValue } from "@chakra-ui/react";
 import { AddIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { Sequence, TeachPoint, MotionProfile, GripParams } from "../types";
 import { CommandList } from "../components/CommandList";
@@ -74,6 +74,8 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
     }
   };
 
+  const borderColor = useColorModeValue("gray.200", "gray.600");
+
   return (
     <Box height="100%" overflow="hidden">
       <VStack height="100%" spacing={4}>
@@ -92,7 +94,17 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
           >
             <GridItem height="100%" overflow="hidden">
               <Box height="100%" overflow="auto" borderWidth="1px" borderRadius="md" >
-                <Table variant="simple" size="sm">
+                <Table variant="simple" size="sm" css={{
+                  'tr': {
+                    borderColor: borderColor,
+                  },
+                  'th': {
+                    borderColor: borderColor,
+                  },
+                  'td': {
+                    borderColor: borderColor,
+                  }
+                }}>
                   <Thead position="sticky" top={0} bg={bgColor} zIndex={1}>
                     <Tr>
                       <Th>Name</Th>
