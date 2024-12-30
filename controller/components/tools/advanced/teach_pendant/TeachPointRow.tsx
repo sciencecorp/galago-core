@@ -1,6 +1,6 @@
 import { Tr, Td, IconButton, Badge, Menu, MenuButton, MenuList, MenuItem, HStack, VStack, Text } from "@chakra-ui/react";
 import { ChevronUpIcon, ChevronDownIcon, HamburgerIcon } from "@chakra-ui/icons";
-import { TeachPoint } from "../types";
+import { TeachPoint } from "./types";
 
 interface TeachPointRowProps {
   point: TeachPoint;
@@ -69,7 +69,7 @@ export const TeachPointRow: React.FC<TeachPointRowProps> = ({
               </HStack>
               <Text fontFamily="mono" fontSize="sm">
                 {point.coordinate
-                  ? point.coordinate.split(" ").map((coord, i) => (
+                  ? point.coordinate.split(" ").map((coord: string, i: number) => (
                       <span key={i}>
                         {i > 0 && " | "}
                         {parseFloat(coord).toFixed(3)}
