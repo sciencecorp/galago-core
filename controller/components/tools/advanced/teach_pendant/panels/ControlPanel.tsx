@@ -66,9 +66,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               <option value="x">X</option>
               <option value="y">Y</option>
               <option value="z">Z</option>
-              <option value="rx">Pitch</option>
-              <option value="ry">Yaw</option>
-              <option value="rz">Roll</option>
+              <option value="pitch">Pitch</option>
+              <option value="yaw">Yaw</option>
+              <option value="roll">Roll</option>
             </Select>
             <NumberInput
               value={jogDistance}
