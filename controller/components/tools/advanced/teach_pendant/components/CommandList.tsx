@@ -13,7 +13,7 @@ import {
     Center,
     SlideFade,
 } from "@chakra-ui/react";
-import { DeleteIcon, AddIcon, ChevronDownIcon } from "@chakra-ui/icons";
+import { DeleteIcon, AddIcon, ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
 import { useState, useEffect } from "react";
 import { SequenceCommand } from "../types";
 import { CommandModal } from "../modals/CommandModal";
@@ -28,6 +28,8 @@ interface CommandListProps {
     onDelete?: () => void;
     onCommandsChange: (commands: SequenceCommand[]) => void;
     onSequenceNameChange?: (name: string) => void;
+    expandedCommandIndex?: number | null;
+    onCommandClick?: (index: number) => void;
 }
 
 export const CommandList: React.FC<CommandListProps> = ({ 
@@ -39,8 +41,9 @@ export const CommandList: React.FC<CommandListProps> = ({
     onDelete,
     onCommandsChange,
     onSequenceNameChange,
+    expandedCommandIndex,
+    onCommandClick,
 }) => {
-    const [selectedIndex, setSelectedIndex] = useState(0);
     const [isEditing, setIsEditing] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [insertIndex, setInsertIndex] = useState<number | null>(null);
@@ -166,7 +169,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                         )}
                     </HStack>
                 </HStack>
-                
+
                 <Box width="100%" flex={1} overflowY="auto" px={2}>
                     <VStack spacing={0} width="100%" align="stretch">
                         {isEditing && (
@@ -191,63 +194,73 @@ export const CommandList: React.FC<CommandListProps> = ({
                                             py={3}
                                             cursor="pointer"
                                             borderRadius="md"
-                                            bg={index === selectedIndex ? selectedBg : "transparent"}
-                                            onClick={() => setSelectedIndex(index)}
+                                            bg={expandedCommandIndex === index ? selectedBg : "transparent"}
+                                            onClick={() => onCommandClick?.(index)}
                                             width="100%"
                                             transition="all 0.2s"
-                                            opacity={index === selectedIndex ? 1 : 0.6}
+                                            opacity={expandedCommandIndex === index ? 1 : 0.6}
                                             _hover={{
                                                 transform: "scale(1.01)",
                                                 opacity: 0.9,
                                             }}
                                         >
                                             <HStack justify="space-between">
-                                                <Text fontWeight={index === selectedIndex ? "bold" : "normal"}>
+                                                <Text fontWeight={expandedCommandIndex === index ? "bold" : "normal"}>
                                                     {command.command}
                                                 </Text>
-                                                {isEditing && (
+                                                <HStack>
+                                                    {isEditing && (
+                                                        <IconButton
+                                                            aria-label="Delete command"
+                                                            icon={<DeleteIcon />}
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            colorScheme="red"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteCommand(index);
+                                                            }}
+                                                        />
+                                                    )}
                                                     <IconButton
-                                                        aria-label="Delete command"
-                                                        icon={<DeleteIcon />}
+                                                        aria-label={expandedCommandIndex === index ? "Collapse" : "Expand"}
+                                                        icon={expandedCommandIndex === index ? <ChevronUpIcon /> : <ChevronDownIcon />}
                                                         size="sm"
                                                         variant="ghost"
-                                                        colorScheme="red"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            handleDeleteCommand(index);
+                                                            onCommandClick?.(index);
                                                         }}
                                                     />
-                                                )}
+                                                </HStack>
                                             </HStack>
-                                            {index === selectedIndex && (
-                                                <Collapse in={true}>
-                                                    <VStack align="start" mt={3} spacing={3}>
-                                                        {Object.entries(command.params).map(([key, value]) => (
-                                                            <HStack key={key} width="100%">
-                                                                <Text fontSize="sm" color="gray.500" width="30%">
-                                                                    {key}:
-                                                                </Text>
-                                                                {isEditing ? (
-                                                                    <Input
-                                                                        size="sm"
-                                                                        value={value}
-                                                                        onChange={(e) => {
-                                                                            handleEditCommand(index, {
-                                                                                params: {
-                                                                                    ...command.params,
-                                                                                    [key]: e.target.value,
-                                                                                },
-                                                                            });
-                                                                        }}
-                                                                    />
-                                                                ) : (
-                                                                    <Text fontSize="sm">{value}</Text>
-                                                                )}
-                                                            </HStack>
-                                                        ))}
-                                                    </VStack>
-                                                </Collapse>
-                                            )}
+                                            <Collapse in={expandedCommandIndex === index}>
+                                                <VStack align="start" mt={3} spacing={3}>
+                                                    {Object.entries(command.params).map(([key, value]) => (
+                                                        <HStack key={key} width="100%">
+                                                            <Text fontSize="sm" color="gray.500" width="30%">
+                                                                {key}:
+                                                            </Text>
+                                                            {isEditing ? (
+                                                                <Input
+                                                                    size="sm"
+                                                                    value={value}
+                                                                    onChange={(e) => {
+                                                                        handleEditCommand(index, {
+                                                                            params: {
+                                                                                ...command.params,
+                                                                                [key]: e.target.value,
+                                                                            },
+                                                                        });
+                                                                    }}
+                                                                />
+                                                            ) : (
+                                                                <Text fontSize="sm">{value}</Text>
+                                                            )}
+                                                        </HStack>
+                                                    ))}
+                                                </VStack>
+                                            </Collapse>
                                         </Box>
                                     </Box>
                                     {!isEditing && index < localCommands.length - 1 && (

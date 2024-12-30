@@ -31,6 +31,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
 }) => {
   const [selectedSequence, setSelectedSequence] = useState<Sequence | null>(null);
   const [sequenceToDelete, setSequenceToDelete] = useState<Sequence | null>(null);
+  const [expandedCommandIndex, setExpandedCommandIndex] = useState<number | null>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   // Update selected sequence when sequences change
@@ -71,7 +72,12 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
           </Button>
         </HStack>
         <Box width="100%" flex={1} overflow="hidden">
-          <Grid templateColumns="1fr 2fr" gap={4} height="100%">
+          <Grid 
+            templateColumns={selectedSequence ? "1fr 2fr" : "1fr"} 
+            gap={4} 
+            height="100%"
+            transition="grid-template-columns 0.2s"
+          >
             <GridItem height="100%" overflow="hidden">
               <Box height="100%" overflow="auto" borderWidth="1px" borderRadius="md" >
                 <Table variant="simple" size="sm">
@@ -101,10 +107,17 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                               icon={<HamburgerIcon />}
                               variant="ghost"
                               size="sm"
+                              onClick={(e) => e.stopPropagation()}
                             />
                             <MenuList>
-                              <MenuItem onClick={() => onRun(sequence)}>Run</MenuItem>
-                              <MenuItem onClick={() => handleDeleteClick(sequence)} color="red.500">Delete</MenuItem>
+                              <MenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                onRun(sequence);
+                              }}>Run</MenuItem>
+                              <MenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteClick(sequence);
+                              }} color="red.500">Delete</MenuItem>
                             </MenuList>
                           </Menu>
                         </Td>
@@ -114,8 +127,8 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                 </Table>
               </Box>
             </GridItem>
-            <GridItem height="100%" overflow="hidden">
-              {selectedSequence && (
+            {selectedSequence && (
+              <GridItem height="100%" overflow="hidden">
                 <CommandList
                   commands={selectedSequence.commands}
                   sequenceName={selectedSequence.name}
@@ -135,9 +148,13 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                       name: newName,
                     });
                   }}
+                  expandedCommandIndex={expandedCommandIndex}
+                  onCommandClick={(index) => {
+                    setExpandedCommandIndex(expandedCommandIndex === index ? null : index);
+                  }}
                 />
-              )}
-            </GridItem>
+              </GridItem>
+            )}
           </Grid>
         </Box>
       </VStack>
