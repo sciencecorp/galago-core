@@ -331,6 +331,9 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     const handleSave = async () => {
       if (!localTeachpoint || !config.name) return;
 
+      // Close modal immediately
+      onClose();
+
       try {
         const currentPosition = await getCurrentPosition();
         if (!currentPosition) {
@@ -371,7 +374,6 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
           duration: 3000,
           isClosable: true,
         });
-        onClose();
       } catch (error) {
         toast({
           title: "Error",
