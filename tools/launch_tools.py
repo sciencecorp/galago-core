@@ -30,7 +30,7 @@ class ToolsManager():
 
     def __init__(self, app_root:tk.Tk, config:Config) -> None:
         self.root = app_root
-        self.root.title("Tools Server Manager")
+        self.root.title("Galago Tools Manager")
         self.set_icon()
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.root.geometry('1000x700')  
