@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { get, post, put, del } from "../utils/api";
-
+import { zLabware } from "./labware";
+import { Labware } from "@/types/api";
 const zRobotArmLocation = z.object({
   id: z.number().optional(),
   name: z.string(),
@@ -74,6 +75,7 @@ const zRobotArmWaypoints = z.object({
   motionProfiles: z.array(zRobotArmMotionProfile),
   gripParams: z.array(zRobotArmGripParams),
   sequences: z.array(zRobotArmSequence),
+  labware: z.array(zLabware),
   tool_id: z.number(),
 });
 
@@ -82,6 +84,7 @@ export type RobotArmNest = z.infer<typeof zRobotArmNest>;
 export type RobotArmMotionProfile = z.infer<typeof zRobotArmMotionProfile>;
 export type RobotArmGripParams = z.infer<typeof zRobotArmGripParams>;
 export type RobotArmSequence = z.infer<typeof zRobotArmSequence>;
+
 
 export const robotArmRouter = router({
   location: router({
@@ -170,11 +173,20 @@ export const robotArmRouter = router({
       .input(z.object({ id: z.number() }))
       .mutation(({ input }) => del(`/robot-arm-sequences/${input.id}`)),
   }),
+
+  labware: router({
+    getAll: procedure
+      .input(z.object({ toolId: z.number() }))
+      .query(
+        ({ input }): Promise<Labware[]> =>
+          get(`/labware?tool_id=${input.toolId}`),
+      ),
+  }),
   waypoints: router({
     getAll: procedure
       .input(z.object({ toolId: z.number() }))
       .query(async ({ input }): Promise<z.infer<typeof zRobotArmWaypoints>> => {
-        const [nests, locations, sequences, motionProfiles, gripParams] = await Promise.all([
+        const [nests, locations, sequences, motionProfiles, gripParams, labware] = await Promise.all([
           get(`/robot-arm-nests?tool_id=${input.toolId}`) as Promise<RobotArmNest[]>,
           get(`/robot-arm-locations?tool_id=${input.toolId}`) as Promise<RobotArmLocation[]>,
           get(`/robot-arm-sequences?tool_id=${input.toolId}`) as Promise<RobotArmSequence[]>,
@@ -182,6 +194,7 @@ export const robotArmRouter = router({
             RobotArmMotionProfile[]
           >,
           get(`/robot-arm-grip-params?tool_id=${input.toolId}`) as Promise<RobotArmGripParams[]>,
+          get(`/labware?tool_id=${input.toolId}`) as Promise<Labware[]>,
         ]);
 
         return {
@@ -192,6 +205,7 @@ export const robotArmRouter = router({
           sequences: sequences,
           motionProfiles: motionProfiles,
           gripParams: gripParams,
+          labware: labware,
           tool_id: input.toolId,
         };
       }),

@@ -223,15 +223,29 @@ class RobotInitializer:
             logging.info("Attached to robot")
 
     def _ensure_robot_homed(self) -> None:
-        """Ensure robot is homed with timeout handling"""
-        try:
-            response = self.communicator.send_command("home", timeout=15)  # Reduced from 30 to 15
-            if response != "0":
-                raise Exception(f"Failed to home robot: {response}")
+        """Ensure robot is homed by first attempting a move and then homing if needed"""
+        # Get current joint location from parent class
+        current_loc = self.communicator.send_command("wherej")
+        current_joint_loc = " ".join(current_loc.split(" ")[1:])
+        
+        # Try to move to current position to check if homed
+        message = self.communicator.send_command(f"movej 1 {current_joint_loc}")
+
+        # Robot not homed message (-1021)
+        if message == "-1021":
+            logging.info("Homing robot...This may take a moment...")
+            message = self.communicator.send_command("home", timeout=30)
+
+            if message != "0":
+                raise Exception(f"Got malformed message when homing robot. {message}")
+
+            # Try move again after homing
+            message = self.communicator.send_command(f"movej 1 {current_joint_loc}")
+
+            if message != "0":
+                raise Exception(f"Could not home robot. {message}")
+
             logging.info("Robot homed")
-        except Exception as e:
-            logging.error(f"Homing failed: {e}")
-            raise
 
 class Pf400Driver(ABCToolDriver):
     """Main driver class for the PF400 robot"""

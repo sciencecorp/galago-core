@@ -859,7 +859,7 @@ def get_robot_arm_waypoints(
     sequences = crud.robot_arm_sequence.get_all_by(db, obj_in={"tool_id": tool_id})
     motion_profiles = crud.robot_arm_motion_profile.get_all_by(db, obj_in={"tool_id": tool_id})
     grip_params = crud.robot_arm_grip_params.get_all_by(db, obj_in={"tool_id": tool_id})
-
+    labware = crud.labware.get_all(db)
     return {
         "id": tool_id,
         "name": f"Waypoints for Tool {tool_id}",
@@ -868,5 +868,6 @@ def get_robot_arm_waypoints(
         "sequences": sequences,
         "motion_profiles": motion_profiles,
         "grip_params": grip_params,
-        "tool_id": tool_id
+        "tool_id": tool_id,
+        "labware": labware
     }

@@ -245,13 +245,3 @@ class RobotArmGripParams(Base, TimestampMixin):
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
     )
-
-class Waypoints(BaseModel):
-    id: int
-    name: str
-    locations: List[str]
-    nests: List[str]
-    sequences: List[str]
-    motion_profiles: List[str]
-    grip_params: List[str]
-    tool_id: int
