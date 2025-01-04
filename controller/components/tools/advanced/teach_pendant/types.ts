@@ -71,12 +71,35 @@ export interface TeachPointsPanelProps {
   sequences: Sequence[];
   expandedRows: Set<number>;
   toggleRow: (id: number) => void;
-  onImport: (data: any) => Promise<void>;
-  onMove: (point: TeachPoint) => void;
+  onImport: (data: any) => void;
+  onMove: (point: TeachPoint, action?: 'approach' | 'leave') => void;
   onEdit: (point: TeachPoint) => void;
   onDelete: (point: TeachPoint) => void;
   onAdd: () => void;
   bgColor: string;
   bgColorAlpha: string;
-  searchTerm: string;
+  searchTerm?: string;
+}
+
+export interface MotionProfilesPanelProps {
+  profiles: MotionProfile[];
+  onEdit: (profile: MotionProfile) => void;
+  onRegister: (profile: MotionProfile) => void;
+  onDelete: (id: number) => void;
+  onAdd: () => void;
+  bgColor: string;
+  bgColorAlpha: string;
+  defaultProfileId: number | null;
+  onSetDefault: (id: number | null) => void;
+}
+
+export interface GripParametersPanelProps {
+  params: GripParams[];
+  onEdit: (params: GripParams) => void;
+  onDelete: (id: number) => void;
+  onAdd: () => void;
+  bgColor: string;
+  bgColorAlpha: string;
+  defaultParamsId: number | null;
+  onSetDefault: (id: number | null) => void;
 }

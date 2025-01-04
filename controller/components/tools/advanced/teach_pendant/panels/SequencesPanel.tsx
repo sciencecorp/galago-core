@@ -1,5 +1,29 @@
-import { Card, CardHeader, CardBody, HStack, Heading, Table, Thead, Tbody, Tr, Th, Td, Menu, MenuButton, MenuList, MenuItem, IconButton, Button, Grid, GridItem, Box, AlertDialog, AlertDialogBody, AlertDialogFooter, AlertDialogHeader, AlertDialogContent, AlertDialogOverlay, VStack, useColorModeValue } from "@chakra-ui/react";
-import { AddIcon, HamburgerIcon } from "@chakra-ui/icons";
+import {
+  Box,
+  Button,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  IconButton,
+  HStack,
+  Tooltip,
+  Grid,
+  GridItem,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
+  Heading,
+  useColorModeValue,
+  VStack,
+} from "@chakra-ui/react";
+import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import { FaPlay } from "react-icons/fa";
 import { Sequence, TeachPoint, MotionProfile, GripParams } from "../types";
 import { CommandList } from "../components/CommandList";
 import { useState, useEffect, useRef } from "react";
@@ -33,13 +57,23 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
   const [sequenceToDelete, setSequenceToDelete] = useState<Sequence | null>(null);
   const [expandedCommandIndex, setExpandedCommandIndex] = useState<number | null>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Update selected sequence when sequences change
   useEffect(() => {
     if (selectedSequence) {
       const updatedSequence = sequences.find(seq => seq.id === selectedSequence.id);
       if (updatedSequence) {
-        setSelectedSequence(updatedSequence);
+        // Preserve the sequence data while maintaining the same reference
+        setSelectedSequence(prev => ({
+          ...updatedSequence,
+          commands: updatedSequence.commands.map((cmd, i) => ({
+            ...cmd,
+            // Preserve any UI state that might be attached to the command
+            ...prev?.commands[i]
+          }))
+        }));
+        // Don't modify expandedCommandIndex here
       }
     }
   }, [sequences]);
@@ -52,11 +86,10 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
     } else {
       // If clicking a different sequence, expand it
       setSelectedSequence(sequence);
-      setExpandedCommandIndex(null);
     }
   };
 
-  const handleUpdateSequence = async (sequence: Sequence) => {
+  const handleSequenceUpdate = async (sequence: Sequence) => {
     await onUpdateSequence(sequence);
   };
 
@@ -81,18 +114,20 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
       <VStack height="100%" spacing={4}>
         <HStack width="100%" justify="space-between">
           <Heading size="md" paddingTop={12}>Sequences</Heading>
-          <Button leftIcon={<AddIcon />} size="sm" onClick={onCreateNew}>
-            New Sequence
-          </Button>
+          <HStack mb={4} justify="flex-end">
+            <Button leftIcon={<AddIcon />} size="sm" onClick={onCreateNew}>
+              New Sequence
+            </Button>
+          </HStack>
         </HStack>
         <Box width="100%" flex={1} overflow="hidden">
           <Grid 
-            templateColumns={selectedSequence ? "1fr 2fr" : "1fr"} 
+            templateColumns={selectedSequence ? "350px 1fr" : "1fr"} 
             gap={4} 
             height="100%"
             transition="grid-template-columns 0.2s"
           >
-            <GridItem height="100%" overflow="hidden">
+            <GridItem height="100%" overflow="hidden" minWidth={0}>
               <Box height="100%" overflow="auto" borderWidth="1px" borderRadius="md" >
                 <Table variant="simple" size="sm" css={{
                   'tr': {
@@ -109,7 +144,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                     <Tr>
                       <Th>Name</Th>
                       <Th>Commands</Th>
-                      <Th>Actions</Th>
+                      <Th textAlign="right">Actions</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -123,27 +158,43 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                       >
                         <Td>{sequence.name}</Td>
                         <Td>{sequence.commands.length}</Td>
-                        <Td>
-                          <Menu>
-                            <MenuButton
-                              as={IconButton}
-                              aria-label="Options"
-                              icon={<HamburgerIcon />}
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                            <MenuList>
-                              <MenuItem onClick={(e) => {
-                                e.stopPropagation();
-                                onRun(sequence);
-                              }}>Run</MenuItem>
-                              <MenuItem onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteClick(sequence);
-                              }} color="red.500">Delete</MenuItem>
-                            </MenuList>
-                          </Menu>
+                        <Td textAlign="right">
+                          <HStack spacing={2} justify="flex-end">
+                            <Tooltip label="Run sequence">
+                              <IconButton
+                                aria-label="Run sequence"
+                                icon={<FaPlay />}
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onRun(sequence);
+                                }}
+                              />
+                            </Tooltip>
+                            <Tooltip label="Edit sequence">
+                              <IconButton
+                                aria-label="Edit sequence"
+                                icon={<EditIcon />}
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSequenceClick(sequence);
+                                }}
+                              />
+                            </Tooltip>
+                            <Tooltip label="Delete sequence">
+                              <IconButton
+                                aria-label="Delete sequence"
+                                icon={<DeleteIcon />}
+                                size="sm"
+                                colorScheme="red"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteClick(sequence);
+                                }}
+                              />
+                            </Tooltip>
+                          </HStack>
                         </Td>
                       </Tr>
                     ))}
@@ -161,20 +212,27 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                   gripParams={gripParams}
                   onDelete={() => handleDeleteClick(selectedSequence)}
                   onCommandsChange={async (updatedCommands) => {
-                    await handleUpdateSequence({
-                      ...selectedSequence,
-                      commands: updatedCommands,
-                    });
+                    setIsEditing(true);
+                    try {
+                      await handleSequenceUpdate({
+                        ...selectedSequence,
+                        commands: updatedCommands,
+                      });
+                    } finally {
+                      setIsEditing(false);
+                    }
                   }}
                   onSequenceNameChange={async (newName) => {
-                    await handleUpdateSequence({
+                    await handleSequenceUpdate({
                       ...selectedSequence,
                       name: newName,
                     });
                   }}
                   expandedCommandIndex={expandedCommandIndex}
                   onCommandClick={(index) => {
-                    setExpandedCommandIndex(expandedCommandIndex === index ? null : index);
+                    if (!isEditing) {
+                      setExpandedCommandIndex(expandedCommandIndex === index ? null : index);
+                    }
                   }}
                 />
               </GridItem>

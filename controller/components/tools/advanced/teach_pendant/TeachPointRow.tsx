@@ -6,7 +6,7 @@ interface TeachPointRowProps {
   point: TeachPoint;
   isExpanded: boolean;
   onToggle: () => void;
-  onMove: (point: TeachPoint) => void;
+  onMove: (point: TeachPoint, action?: 'approach' | 'leave') => void;
   onEdit: (point: TeachPoint) => void;
   onDelete: (point: TeachPoint) => void;
   bgColorAlpha: string;
@@ -50,7 +50,14 @@ export const TeachPointRow: React.FC<TeachPointRowProps> = ({
           <Menu>
             <MenuButton as={IconButton} aria-label="Actions" icon={<HamburgerIcon />} variant="ghost" size="sm" />
             <MenuList>
-              <MenuItem onClick={() => onMove(point)}>Move To</MenuItem>
+              {point.type === 'nest' ? (
+                <>
+                  <MenuItem onClick={() => onMove(point, 'approach')}>Approach</MenuItem>
+                  <MenuItem onClick={() => onMove(point, 'leave')}>Leave</MenuItem>
+                </>
+              ) : (
+                <MenuItem onClick={() => onMove(point)}>Move To</MenuItem>
+              )}
               <MenuItem onClick={() => onEdit(point)}>Edit</MenuItem>
               <MenuItem color="red.500" onClick={() => onDelete(point)}>Delete</MenuItem>
             </MenuList>

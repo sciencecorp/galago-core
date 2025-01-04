@@ -61,6 +61,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             <Select
               value={jogAxis}
               onChange={(e) => setJogAxis(e.target.value)}
+              width="100%"
              >
               <option value="">Select Axis</option>
               <option value="x">X</option>
@@ -73,6 +74,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             <NumberInput
               value={jogDistance}
               onChange={(valueString) => setJogDistance(parseFloat(valueString))}
+              width="100%"
               >
               <NumberInputField />
               <NumberInputStepper>

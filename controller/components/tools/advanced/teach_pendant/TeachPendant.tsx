@@ -89,7 +89,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   } = useDisclosure();
   const [locations, setLocations] = useState<TeachPoint[]>([]);
   const bgColor = useColorModeValue("white", "gray.700");
-  const borderColor = useColorModeValue("gray.200", "gray.900");
+  const borderColor = useColorModeValue("gray.200", "gray.600");
   const bgColorAlpha = useColorModeValue("gray.50", "gray.900");
   const [activeTab, setActiveTab] = useState(0);
   const [currentTeachpoint, setCurrentTeachpoint] = useState("");
@@ -111,6 +111,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   const [filterType, setFilterType] = useState<ItemType | "all">("all");
   const [jogEnabled, setJogEnabled] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<TeachPoint | null>(null);
+  const [selectedAction, setSelectedAction] = useState<'approach' | 'leave' | undefined>();
   const toolStatusQuery = trpc.tool.status.useQuery(
     { toolId: toolId || '' },
     { enabled: !!toolId }
@@ -133,6 +134,8 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     { enabled: !!config.id && config.id !== 0 },
   );
 
+  const [defaultMotionProfileId, setDefaultMotionProfileId] = useState<number | null>(null);
+  const [defaultGripParamsId, setDefaultGripParamsId] = useState<number | null>(null);
 
   function jointsToCoordinate(joints: {
     j1?: number;
@@ -441,24 +444,12 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
   const deleteLocationMutation = trpc.robotArm.location.delete.useMutation({
     onSuccess: () => {
       robotArmLocationsQuery.refetch();
-      toast({
-        title: "Location deleted",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
     },
   });
 
   const deleteNestMutation = trpc.robotArm.nest.delete.useMutation({
     onSuccess: () => {
       robotArmNestsQuery.refetch();
-      toast({
-        title: "Nest deleted",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
     },
   });
 
@@ -591,23 +582,70 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     onEditModalOpen();
   };
 
-  const handleMoveCommand = async (point: TeachPoint, profile: MotionProfile) => {
+  const handleMoveCommand = async (point: TeachPoint, profile?: MotionProfile, action?: 'approach' | 'leave') => {
+    // If no profile provided, try to use default
+    if (!profile && defaultMotionProfileId) {
+      const defaultProfile = motionProfilesQuery.data?.find(p => p.id === defaultMotionProfileId);
+      if (!defaultProfile) {
+        toast({
+          title: "Error",
+          description: "Default motion profile not found",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+      profile = defaultProfile;
+    }
+
+    if (!profile) {
+      toast({
+        title: "Error",
+        description: "No motion profile selected",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
     console.log(`point:`, point);
-    const command: ToolCommandInfo = {
-      toolId: config.name,
-      toolType: config.type as ToolType,
-      command: "move",
-      params: {
-        waypoint: point.coordinate,
-        motion_profile_id: profile.profile_id,
-      },
-    };
+    console.log(`action:`, action);
+    
+    let command: ToolCommandInfo;
+    
+    if (point.type === 'nest' && action) {
+      command = {
+        toolId: config.name,
+        toolType: config.type as ToolType,
+        command: action === 'approach' ? 'approach' : 'leave',
+        params: {
+          nest_id: point.id,
+          motion_profile_id: profile.profile_id,
+        },
+      };
+    } else {
+      command = {
+        toolId: config.name,
+        toolType: config.type as ToolType,
+        command: "move",
+        params: {
+          waypoint: point.coordinate,
+          motion_profile_id: profile.profile_id,
+        },
+      };
+    }
+
+    console.log('Sending command:', command);
 
     try {
       await commandMutation.mutateAsync(command);
       toast({
         title: "Move Successful",
-        description: `Moved to ${point.name} with profile ${profile.name}`,
+        description: action 
+          ? `${action === 'approach' ? 'Approached' : 'Left'} nest ${point.name} with profile ${profile.name}`
+          : `Moved to ${point.name} with profile ${profile.name}`,
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -616,7 +654,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
       console.error("Error moving to location:", error);
       toast({
         title: "Move Error",
-        description: "Failed to move to location",
+        description: `Failed to ${action || 'move to'} ${point.name}`,
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -969,9 +1007,6 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
       onClose();
     };
 
-    if (!profile) {
-      console.log("Profile is null");
-    }
 
     return (
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
@@ -1165,10 +1200,6 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
       onClose();
     };
 
-    if (!params) {
-      console.log("Params is null");
-    }
-
     return (
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
@@ -1242,7 +1273,15 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     );
   };
 
-  const MoveModal: React.FC<MoveModalProps> = ({ isOpen, onClose, point, onMove }) => {
+  interface MoveModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    point: TeachPoint;
+    onMove: (point: TeachPoint, profile: MotionProfile, action?: 'approach' | 'leave') => void;
+    action?: 'approach' | 'leave';
+  }
+
+  const MoveModal: React.FC<MoveModalProps> = ({ isOpen, onClose, point, onMove, action }) => {
     const [selectedProfile, setSelectedProfile] = useState<MotionProfile | null>(null);
     const motionProfilesQuery = trpc.robotArm.motionProfile.getAll.useQuery(
       { toolId: config.id },
@@ -1251,7 +1290,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
 
     const handleMove = () => {
       if (!selectedProfile) return;
-      onMove(point, selectedProfile);
+      onMove(point, selectedProfile, action);
       onClose();
     };
 
@@ -1259,7 +1298,9 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Select Motion Profile</ModalHeader>
+          <ModalHeader>
+            {action ? `Select Motion Profile for ${action}` : 'Select Motion Profile'}
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <FormControl>
@@ -1311,11 +1352,10 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
     if (isCommandInProgress) return;
 
     let params: Record<string, any>;
-    console.log("Selected Grip Params ID", selectedGripParamsId);
-    if (selectedGripParamsId) { 
-      console.log("Selected Grip Params ID EXISTS", selectedGripParamsId);
-      const selectedParams = gripParamsQuery.data?.find(p => p.id === selectedGripParamsId);
-      console.log("Selected Grip Params", selectedParams);
+    const selectedId = selectedGripParamsId || defaultGripParamsId;
+
+    if (selectedId) {
+      const selectedParams = gripParamsQuery.data?.find(p => p.id === selectedId);
       if (!selectedParams) {
         toast({
           title: "Error",
@@ -1338,6 +1378,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
         force: manualForce,
       };
     }
+
     console.log("Params", params);
     console.log("Config ASDADADSADSDASD", config);  
     console.log("Action", action === "open" ? "open_gripper" : "close_gripper");
@@ -1573,7 +1614,19 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
             </HStack>
 
             <Box flex={1} width="100%" overflow="hidden">
-              <Tabs variant="enclosed" width="100%" height="100%" display="flex" flexDirection="column">
+              <Tabs 
+                variant="enclosed" 
+                width="100%" 
+                height="100%" 
+                display="flex" 
+                flexDirection="column"
+                css={{
+                  '[data-selected]': {
+                    borderColor: borderColor,
+                    borderBottomColor: bgColor,
+                  }
+                }}
+              >
                 <TabList>
                   <Tab>Teach Points</Tab>
                   <Tab>Motion Profiles</Tab>
@@ -1590,8 +1643,17 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                       expandedRows={expandedRows}
                       toggleRow={toggleRow}
                       onImport={handleImportTeachPendantData}
-                      onMove={(point) => {
+                      onMove={(point, action) => {
+                        if (defaultMotionProfileId) {
+                          const defaultProfile = motionProfilesQuery.data?.find(p => p.id === defaultMotionProfileId);
+                          if (defaultProfile) {
+                            handleMoveCommand(point, defaultProfile, action);
+                            return;
+                          }
+                        }
+                        // Fall back to modal if no default profile
                         setSelectedPoint(point);
+                        setSelectedAction(action);
                         onMoveModalOpen();
                       }}
                       onEdit={handleEdit}
@@ -1615,6 +1677,8 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                       onAdd={handleOpenMotionProfileModal}
                       bgColor={bgColor}
                       bgColorAlpha={bgColorAlpha}
+                      defaultProfileId={defaultMotionProfileId}
+                      onSetDefault={setDefaultMotionProfileId}
                     />
                   </TabPanel>
 
@@ -1629,6 +1693,8 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
                       onAdd={handleOpenGripParamsModal}
                       bgColor={bgColor}
                       bgColorAlpha={bgColorAlpha}
+                      defaultParamsId={defaultGripParamsId}
+                      onSetDefault={setDefaultGripParamsId}
                     />
                   </TabPanel>
 
@@ -1684,6 +1750,7 @@ export const TeachPendant: React.FC<TeachPendantProps> = ({ toolId, config }) =>
           }}
           point={selectedPoint!}
           onMove={handleMoveCommand}
+          action={selectedAction}
         />
         <SequenceModal
           config={config}

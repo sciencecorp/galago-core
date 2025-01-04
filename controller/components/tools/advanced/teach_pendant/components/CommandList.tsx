@@ -13,7 +13,7 @@ import {
     Center,
     SlideFade,
 } from "@chakra-ui/react";
-import { DeleteIcon, AddIcon, ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
+import { DeleteIcon, AddIcon, ChevronDownIcon, ChevronUpIcon, ArrowDownIcon } from "@chakra-ui/icons";
 import { useState, useEffect } from "react";
 import { SequenceCommand } from "../types";
 import { CommandModal } from "../modals/CommandModal";
@@ -267,15 +267,10 @@ export const CommandList: React.FC<CommandListProps> = ({
                                         </Box>
                                     </Box>
                                     {!isEditing && index < localCommands.length - 1 && (
-                                        <Center py={2}>
-                                            <ChevronDownIcon 
-                                                boxSize={4} 
-                                                color={arrowColor}
-                                                transition="transform 0.2s"
-                                                _hover={{
-                                                    transform: "scale(1.2)",
-                                                }}
-                                            />
+                                        <Center>
+                                            <Box color="gray.500" my={2}>
+                                                <ArrowDownIcon />
+                                            </Box>
                                         </Center>
                                     )}
                                     {isEditing && (
