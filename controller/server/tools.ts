@@ -13,6 +13,7 @@ import { Tool as ToolResponse } from "@/types/api";
 import { ToolConfig } from "gen-interfaces/controller";
 import { Script } from "@/types/api";
 import { Variable } from "@/types/api";
+import { WaypointConfig } from "gen-interfaces/tools/grpc_interfaces/pf400";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<string, Tool> = new Map();
@@ -84,71 +85,157 @@ export default class Tool {
     // Handle PF400 specific configuration
     if (this.type === ToolType.pf400) {
       try {
+        console.log("Tool", this);
+        console.log("End of Tool");
+        const numericId = this.info.id
+        console.log("Numeric ID:", numericId);
         console.log('Fetching waypoints for PF400 configuration...');
-        // Make a direct API call instead of using trpc hooks
-        const response = await get<any>(`/robot-arm-waypoints?tool_id=${this.id}`);
-        console.log('Received waypoints response:', response);
+        const response = await get<any>(`/robot-arm-waypoints?tool_id=${numericId}`);
+        // console.log("Response:", response);
+        // First configure basic settings
+        if (!config.pf400) {
+          throw new Error("PF400 config is missing");
+        }
 
-        if (response) {
-          const waypoints: string[] = [];
-          
-          // Add motion profiles
-          if (response.motionProfiles) {
-            console.log('Processing motion profiles:', response.motionProfiles);
-            for (const profile of response.motionProfiles) {
-              // Register motion profile with the PF400 server
-              await this.grpc.executeCommand({
-                pf400: {
-                  register_motion_profile: {
-                    id: profile.profile_id,
-                    speed: profile.speed,
-                    speed2: profile.speed2,
-                    accel: profile.acceleration,
-                    decel: profile.deceleration,
-                    accel_ramp: profile.accel_ramp,
-                    decel_ramp: profile.decel_ramp,
-                    inrange: profile.inrange,
-                    straight: profile.straight ? 1 : 0
-                  }
-                }
-              });
-            }
-          }
+        const pf400Config = {
+          host: String(config.pf400.host),
+          port: Number(config.pf400.port),
+          joints: Number(config.pf400.joints),
+          waypoints: [] as WaypointConfig[]
+        };
 
-          // Add waypoints
-          if (response.waypoints) {
-            console.log('Processing waypoints:', response.waypoints);
-            for (const waypoint of response.waypoints) {
-              waypoints.push(waypoint.name);
-            }
-          }
+        config = {
+          ...config,
+          pf400: pf400Config
+        };
 
-          if (config.pf400) {
-            console.log('Setting PF400 waypoints:', waypoints);
-            config.pf400.waypoints = waypoints;
+        // Send basic config first
+        const reply = await this.grpc.configure(config);
+        if (reply.response !== tool_base.ResponseCode.SUCCESS) {
+          throw new ToolCommandExecutionError(
+            reply.error_message ?? "Configure Command failed",
+            reply.response,
+          );
+        }
+
+        // Then register each component separately using commands
+        if (response.motion_profiles?.length) {
+          console.log("Registering motion profiles...");
+          for (const profile of response.motion_profiles) {
+            await this.executeCommand({
+              toolId: this.id,
+              toolType: this.type,
+              command: "register_motion_profile",
+              params: {
+                name: profile.name,
+                profile_id: profile.profile_id,
+                speed: profile.speed,
+                speed2: profile.speed2,
+                accel: profile.acceleration,
+                decel: profile.deceleration,
+                accel_ramp: profile.accel_ramp,
+                decel_ramp: profile.decel_ramp,
+                inrange: profile.inrange,
+                straight: profile.straight
+              }
+            });
           }
         }
+
+        // Register grip parameters
+        if (response.grip_params?.length) {
+          console.log("Registering grip parameters...");
+          for (const param of response.grip_params) {
+            await this.executeCommand({
+              toolId: this.id,
+              toolType: this.type,
+              command: "register_grip_param",
+              params: {
+                name: param.name,
+                width: param.width,
+                force: param.force,
+                speed: param.speed
+              }
+            });
+          }
+        }
+
+        // Register locations
+        if (response.locations?.length) {
+          console.log("Registering locations...");
+          for (const loc of response.locations) {
+            const location = `${loc.j1} ${loc.j2} ${loc.j3} ${loc.j4} ${loc.j5} ${loc.j6}`;
+            await this.executeCommand({
+              toolId: this.id,
+              toolType: this.type,
+              command: "register_location",
+              params: {
+                name: loc.name,
+                location: location,
+                location_type: loc.location_type
+              }
+            });
+          }
+        }
+
+        // Register nests
+        if (response.nests?.length) {
+          console.log("Registering nests...");
+          for (const nest of response.nests) {
+            const location = `${nest.j1} ${nest.j2} ${nest.j3} ${nest.j4} ${nest.j5} ${nest.j6}`;
+            await this.executeCommand({
+              toolId: this.id,
+              toolType: this.type,
+              command: "register_nest",
+              params: {
+                name: nest.name,
+                location: location,
+                location_type: nest.location_type,
+                orientation: nest.orientation,
+                safe_location_id: nest.safe_location_id
+              }
+            });
+          }
+        }
+
+        // Register labware
+        if (response.labware?.length) {
+          console.log("Registering labware...");
+          for (const item of response.labware) {
+            await this.executeCommand({
+              toolId: this.id,
+              toolType: this.type,
+              command: "register_labware",
+              params: {
+                id: item.id,
+                name: item.name,
+                description: "",
+                number_of_rows: 2,
+                number_of_columns: 3,
+                z_offset: 0,
+                width: 0,
+                height: 0,
+                plate_lid_offset: 0,
+                lid_offset: 0,
+                stack_height: 0,
+                has_lid: false,
+                image_url: "",
+                created_at: "2024-12-30T21:58:58.172326",
+                updated_at: "2024-12-30T21:58:58.172347",
+              }
+            });
+          }
+        }
+
+        return reply;
       } catch (error) {
-        console.error('Failed to fetch waypoints:', error);
-        // Continue with empty waypoints rather than failing
-        if (config.pf400) {
-          config.pf400.waypoints = [];
-        }
+        console.error('Failed to configure PF400:', error);
+        throw error;
       }
     }
 
-    console.log('Sending configuration to tool:', {
-      type: this.type,
-      config: config
-    });
-
-    const reply = await this.grpc.configure(config);
-    if (reply.response !== tool_base.ResponseCode.SUCCESS) {
-      throw new ToolCommandExecutionError(
-        reply.error_message ?? "Connect Command failed",
-        reply.response,
-      );
-    }
+    // For non-PF400 tools
+    return await this.grpc.configure(config);
   }
 
   async configureAllTools() {}

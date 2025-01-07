@@ -1,4 +1,11 @@
 from tools.base_server import ToolServer, serve
+from tools.pf400.waypoints_models import (
+    Waypoints,
+    Location,
+    Nest,
+    Coordinate,
+    MotionProfile,
+)
 from tools.grpc_interfaces.pf400_pb2 import Command, Config
 from .driver import Pf400Driver
 import argparse
@@ -15,7 +22,7 @@ class Pf400Server(ToolServer):
         self.driver: Pf400Driver
         self.sequence_location: str
         self.plate_handling_params: dict[str, dict[str, Union[Command.GraspPlate, Command.ReleasePlate]]] = {}
-        self.waypoints: dict[str, dict[str, Union[Command.GraspPlate, Command.ReleasePlate]]] = {}
+        self.waypoints: dict = {}
         # Store mappings for motion profiles, grip params, and labware
         self.motion_profile_map: dict[int, int] = {}  # Map DB ID to profile ID
         self.grip_params_map: dict[int, dict[str, int]] = {}  # Map DB ID to grip params
@@ -26,6 +33,9 @@ class Pf400Server(ToolServer):
 
     def _configure(self, config: Config) -> None:
         """Configure the robot driver with the given configuration."""
+        logging.info("Starting PF400 configuration")
+        logging.info(f"Received config: {config}")
+        
         self.config = config
         if self.driver:
             self.driver.close()
@@ -34,41 +44,68 @@ class Pf400Server(ToolServer):
             tcp_port=self.config.port
         )
         self.driver.initialize()
-
+        
+        # Reset all mappings
+        self.motion_profile_map = {}
+        self.grip_params_map = {}
+        self.labware_map = {}
+        self.waypoints = {}
+        
         # Load waypoints and mappings if provided in config
-        if hasattr(config, 'waypoints') and config.waypoints:
-            logging.info("Loading waypoints and parameter mappings...")
-            try:
-                for waypoint in config.waypoints:
-                    if waypoint.get('type') == 'motion_profile':
-                        profile_id = waypoint.get('profile_id')
-                        db_id = waypoint.get('id')
-                        if profile_id is not None and db_id is not None:
-                            self.motion_profile_map[db_id] = profile_id
-                            # Register the motion profile with the driver
-                            self.driver.register_motion_profile(str(profile_id))
-                            logging.info(f"Registered motion profile {profile_id} for DB ID {db_id}")
-                    
-                    elif waypoint.get('type') == 'grip_params':
-                        db_id = waypoint.get('id')
-                        params = waypoint.get('params', {})
-                        if db_id is not None and params:
-                            self.grip_params_map[db_id] = params
-                            logging.info(f"Loaded grip params for DB ID {db_id}: {params}")
-                    
-                    elif waypoint.get('type') == 'labware':
-                        db_id = waypoint.get('id')
-                        name = waypoint.get('name')
-                        if db_id is not None and name:
-                            self.labware_map[db_id] = name
-                            logging.info(f"Mapped labware ID {db_id} to name {name}")
+        if hasattr(config, 'waypoints'):
+            logging.info(f"Config has waypoints attribute")
+            logging.info(f"Waypoints type: {type(config.waypoints)}")
+            logging.info(f"Waypoints content: {config.waypoints}")
             
-            except Exception as e:
-                logging.error(f"Error loading waypoints and mappings: {str(e)}")
-                # Continue with empty mappings rather than failing
-                self.motion_profile_map = {}
-                self.grip_params_map = {}
-                self.labware_map = {}
+            if config.waypoints:
+                logging.info("Loading waypoints and parameter mappings...")
+                try:
+                    for waypoint_config in config.waypoints:
+                        waypoint_type = waypoint_config.WhichOneof('waypoint_type')
+                        
+                        if waypoint_type == 'motion_profile':
+                            profile = waypoint_config.motion_profile
+                            self.motion_profile_map[profile.id] = profile.profile_id
+                            # Register the motion profile with the driver
+                            self.driver.register_motion_profile(
+                                str(profile.profile_id),
+                                speed=profile.speed,
+                                speed2=profile.speed2,
+                                accel=profile.acceleration,
+                                decel=profile.deceleration,
+                                accel_ramp=profile.accel_ramp,
+                                decel_ramp=profile.decel_ramp,
+                                inrange=profile.inrange,
+                                straight=1 if profile.straight else 0
+                            )
+                            logging.info(f"Registered motion profile {profile.profile_id} for DB ID {profile.id}")
+                        
+                        elif waypoint_type == 'grip_param':
+                            param = waypoint_config.grip_param
+                            self.grip_params_map[param.id] = {
+                                'width': param.width,
+                                'force': param.force,
+                                'speed': param.speed
+                            }
+                            logging.info(f"Loaded grip params for DB ID {param.id}")
+                        
+                        elif waypoint_type == 'labware':
+                            labware = waypoint_config.labware
+                            self.labware_map[labware.id] = labware.name
+                            logging.info(f"Mapped labware ID {labware.id} to name {labware.name}")
+                        
+                        elif waypoint_type == 'location':
+                            location = waypoint_config.location
+                            self.waypoints[location.name] = location.location
+                            logging.info(f"Added waypoint {location.name}: {location.location}")
+                        
+                except Exception as e:
+                    logging.error(f"Error loading waypoints and mappings: {str(e)}")
+                    # Continue with empty mappings rather than failing
+                    self.motion_profile_map = {}
+                    self.grip_params_map = {}
+                    self.labware_map = {}
+                    self.waypoints = {}
 
     def _map_motion_profile(self, db_id: int) -> int:
         """Map database motion profile ID to robot profile ID"""
@@ -110,6 +147,65 @@ class Pf400Server(ToolServer):
         else:
             profile_id = 1
         self.driver.movej(coordinate, motion_profile=profile_id)
+
+    def Approach(self, params: Command.Approach) -> None:
+        nest_name = params.nest
+        if nest_name not in self.waypoints:
+            raise KeyError("Nest not found: " + nest_name)
+        if not params.motion_profile_id:
+            params.motion_profile_id = 1
+        nest_def = self.waypoints.nests[nest_name]
+        logging.info("Moving to nest %s at %s", nest_name, nest_def.loc)
+        logging.info(type(params.ignore_safepath))
+        logging.info("Ignore path is "+ str(params.ignore_safepath))
+        # It appears the monomer approach paths are actually reversed "leave" paths
+
+        ignore_path = False
+        if params.ignore_safepath == "true" or params.ignore_safepath == "True":
+            ignore_path = True
+        if ignore_path is not True:
+            logging.info("Going through safe path")
+            self.movePath(
+                self.nestPath(
+                    nest_def,
+                    offset=(
+                        params.x_offset,
+                        params.y_offset,
+                        params.z_offset,
+                    ),
+                )[::-1],
+                motion_profile_id=params.motion_profile_id,
+            )
+
+        self.moveTo(
+            nest_def.loc,
+            offset=(
+                params.x_offset,
+                params.y_offset,
+                params.z_offset,
+            ),
+            motion_profile_id=params.motion_profile_id,
+        )
+    
+    def Leave(self, params: Command.Leave) -> None:
+        nest_name = params.nest
+        if nest_name not in self.waypoints.nests:
+            raise KeyError("Nest not found: " + nest_name)
+        if not params.motion_profile_id:
+            params.motion_profile_id = 1
+        nest_def = self.waypoints.nests[nest_name]
+        logging.info("Leaving nest %s at %s", nest_name, nest_def.loc)
+        self.movePath(
+            self.nestPath(
+                nest_def,
+                offset=(
+                    params.x_offset,
+                    params.y_offset,
+                    params.z_offset,
+                ),
+            ),
+            motion_profile_id=params.motion_profile_id,
+        )
 
     def GraspPlate(self, params: Command.GraspPlate) -> None:
         # If params has an ID, map it to the actual grip parameters
@@ -260,8 +356,9 @@ class Pf400Server(ToolServer):
         """Execute a sequence of commands."""
         if not self.driver:
             raise Exception("Driver not initialized")
-
-        sequence = {} # TODO: Implement sequence loading
+        logging.info(f"Running sequence {params.sequence_name}")
+        logging.info(f"Waypoints: {self.waypoints}")    
+        sequence = self.waypoints.get(params.sequence_name, {})
         
         for command in sequence:
             # Extract command type and parameters
@@ -316,7 +413,106 @@ class Pf400Server(ToolServer):
     def EstimateWait(self, params: Command.Wait) -> int:
         return 1
     
+    def EstimateApproach(self, params: Command.Approach) -> int:
+        return 1
     
+    def EstimateLeave(self, params: Command.Leave) -> int:
+        return 1
+    
+    def GetWaypoints(self, params: Command.GetWaypoints) -> ExecuteCommandReply:
+        """Debug command to return current waypoints and mappings"""
+        response = ExecuteCommandReply()
+        response.return_reply = True
+        response.response = SUCCESS
+        
+        try:
+            meta = Struct()
+            meta.update({
+                "motion_profiles": str(self.motion_profile_map),
+                "grip_params": str(self.grip_params_map),
+                "labware": str(self.labware_map),
+                "config_waypoints": str(getattr(self.config, 'waypoints', None))
+            })
+            response.meta_data.CopyFrom(meta)
+            return response
+        except Exception as e:
+            logging.error(f"Error getting waypoints: {e}")
+            response.response = ERROR_FROM_TOOL
+            response.error_message = str(e)
+            return response
+    
+    def EstimateGetWaypoints(self, params: Command.GetWaypoints) -> int:
+        """Estimate duration for get_waypoints command"""
+        return 1  # This is an instant operation
+    
+    def EstimateRegisterGripParam(self, params: Command.RegisterGripParam) -> int:
+        """Estimate duration for register_grip_param command"""
+        return 1  # This is an instant operation
+    
+    def RegisterGripParam(self, params: Command.RegisterGripParam) -> None:
+        """Register grip parameters for later use"""
+        grip_id = params.id
+        self.grip_params_map[grip_id] = {
+            'width': params.width,
+            'force': params.force,
+            'speed': params.speed
+        }
+        logging.info(f"Registered grip parameters for ID {grip_id}")
+
+    def RegisterLocation(self, params: Command.RegisterLocation) -> None:
+        """Register a location/waypoint"""
+        self.waypoints[params.name] = params.location
+        logging.info(f"Registered location {params.name}: {params.location}")
+
+    def RegisterNest(self, params: Command.RegisterNest) -> None:
+        """Register a nest"""
+        self.waypoints[params.name] = params.nest
+        logging.info(f"Registered nest {params.name}: {params.nest}")
+
+    def RegisterSequence(self, params: Command.RegisterSequence) -> None:
+        """Register a sequence"""
+        self.waypoints[params.name] = params.sequence
+        logging.info(f"Registered sequence {params.name}: {params.sequence}")
+
+    def RegisterLabware(self, params: Command.RegisterLabware) -> None:
+        """Register labware definition"""
+        self.labware_map[params.id] = params.name
+        logging.info(f"Registered labware ID {params.id}: {params.name}")
+
+    def EstimateRegisterGripParam(self, params: Command.RegisterGripParam) -> int:
+        return 1
+
+    def EstimateRegisterLocation(self, params: Command.RegisterLocation) -> int:
+        return 1
+
+    def EstimateRegisterLabware(self, params: Command.RegisterLabware) -> int:
+        return 1
+
+    def EstimateRegisterNest(self, params: Command.RegisterNest) -> int:
+        return 1
+
+    def EstimateRegisterSequence(self, params: Command.RegisterSequence) -> int:
+        return 1
+
+    def RegisterMotionProfile(self, params: Command.RegisterMotionProfile) -> None:
+        """Register motion profile with the driver"""
+        self.motion_profile_map[params.id] = params.id
+        motion_profile = MotionProfile(
+            id=params.id,
+            speed=params.speed,
+            speed2=params.speed2,
+            acceleration=params.accel,
+            deceleration=params.decel,
+            accelramp=params.accel_ramp,
+            decelramp=params.decel_ramp,
+            inrange=params.inrange,
+            straight=params.straight,
+        )
+        self.driver.register_motion_profile(str(motion_profile))
+
+    def EstimateRegisterMotionProfile(self, params: Command.RegisterMotionProfile) -> int:
+        return 1
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     parser = argparse.ArgumentParser()

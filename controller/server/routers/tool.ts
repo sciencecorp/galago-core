@@ -125,20 +125,17 @@ export const toolRouter = router({
         const { toolId, config } = input;
         const tool = Tool.forId(toolId);
 
-        // Initialize waypoints array for PF400
-        if (tool.type === ToolType.pf400) {
-          if (!config.pf400) {
-            config.pf400 = {
-              host: "",
-              port: 0,
-              joints: 0,
-              waypoints: [],
-            };
-          }
-          config.pf400.waypoints = [];
+        // Initialize basic PF400 config if needed
+        if (tool.type === ToolType.pf400 && !config.pf400) {
+          config.pf400 = {
+            host: "",
+            port: 0,
+            joints: 0,
+          };
         }
 
-        const response = await tool.grpc.configure(config);
+        // Use tool.configure instead of tool.grpc.configure directly
+        const response = await tool.configure(config);
 
         if (response.response !== "SUCCESS") {
           throw new TRPCError({
@@ -167,5 +164,40 @@ export const toolRouter = router({
     )
     .mutation(async ({ input }) => {
       return await Tool.executeCommand(input);
+    }),
+
+  waypoints: procedure
+    .input(z.object({ 
+      toolId: z.number().int().positive()
+    }))
+    .query(async ({ input }) => {
+      try {
+        console.log('Fetching waypoints for tool:', input.toolId);
+        const response = await fetch(
+          `http://localhost:8000/robot-arm-waypoints?tool_id=${input.toolId}`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch waypoints: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Received waypoints from API:', data);
+        
+        const result = {
+          locations: data.locations || [],
+          nests: data.nests || [],
+          sequences: data.sequences || [],
+          motion_profiles: data.motion_profiles || [],
+          grip_params: data.grip_params || [],
+          labware: data.labware || []
+        };
+        
+        console.log('Returning waypoints:', result);
+        return result;
+      } catch (error) {
+        console.error('Error fetching waypoints:', error);
+        throw new Error('Failed to fetch waypoints');
+      }
     }),
 });

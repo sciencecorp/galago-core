@@ -25,6 +25,12 @@ message Command {
     GetCurrentLocation get_current_location = 18;
     Jog jog = 19;
     RawCommand raw_command = 20;
+    GetWaypoints get_waypoints = 21;
+    RegisterGripParam register_grip_param = 22;
+    RegisterLocation register_location = 23;
+    RegisterLabware register_labware = 24;
+    RegisterNest register_nest = 25;
+    RegisterSequence register_sequence = 26;
   }
 
   message RawCommand {
@@ -66,7 +72,6 @@ message Command {
 
   message RunSequence {
     string sequence_name = 1;
-    string labware = 2;
   }
   
   message UnFree {}
@@ -142,12 +147,71 @@ message Command {
     int32 duration = 1;
   }
 
+  message GetWaypoints {
+    // Empty message since we don't need parameters
+  }
+
+  message RegisterGripParam {
+    int32 id = 1;
+    int32 width = 2;
+    int32 force = 3;
+    int32 speed = 4;
+  }
+
+  message RegisterLocation {
+    string name = 1;
+    string location = 2;
+  }
+
+  message RegisterLabware {
+    int32 id = 1;
+    string name = 2;
+  }
+
 }
 
 message Config {
   string host = 1;
   int32 port = 2;
   int32 joints = 3;
-  repeated string waypoints = 4;
+}
+
+message WaypointConfig {
+  oneof waypoint_type {
+    MotionProfileConfig motion_profile = 1;
+    GripParamConfig grip_param = 2;
+    LabwareConfig labware = 3;
+    LocationConfig location = 4;
+  }
+}
+
+message MotionProfileConfig {
+  int32 id = 1;
+  int32 profile_id = 2;
+  float speed = 3;
+  float speed2 = 4;
+  float acceleration = 5;
+  float deceleration = 6;
+  float accel_ramp = 7;
+  float decel_ramp = 8;
+  float inrange = 9;
+  bool straight = 10;
+}
+
+message GripParamConfig {
+  int32 id = 1;
+  int32 width = 2;
+  int32 force = 3;
+  int32 speed = 4;
+}
+
+message LabwareConfig {
+  int32 id = 1;
+  string name = 2;
+}
+
+message LocationConfig {
+  string name = 1;
+  string location = 2;
 }
 
