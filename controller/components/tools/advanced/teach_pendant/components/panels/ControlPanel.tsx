@@ -99,8 +99,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               
               placeholder="Use Default Parameters"
             >
-              {gripParams.map(param => (
-                <option key={param.id} value={param.id}>{param.name}</option>
+              {gripParams.map((param, index) => (
+                <option key={param.id || `new-${index}`} value={param.id}>{param.name}</option>
               ))}
             </Select>
             <HStack spacing={4} width="100%">

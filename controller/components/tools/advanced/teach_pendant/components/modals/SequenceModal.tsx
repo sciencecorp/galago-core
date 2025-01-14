@@ -21,8 +21,8 @@ import {
 } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
 import { Tool } from "@/types/api";
-import { CommandModal } from "./modals/CommandModal";
-import { Sequence, SequenceCommand, TeachPoint, MotionProfile, GripParams } from "./types";
+import { CommandModal } from "./CommandModal";
+import { Sequence, SequenceCommand, TeachPoint, MotionProfile, GripParams } from "../types";
 
 interface SequenceModalProps {
   config: Tool;
@@ -56,15 +56,23 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
       setName(sequence?.name ?? "");
       setDescription(sequence?.description ?? "");
       setCommands(sequence?.commands ?? []);
+      setIsCommandModalOpen(false);
     }
   }, [isOpen, sequence]);
 
   const handleAddCommand = (command: { command: string; params: Record<string, any> }) => {
-    setCommands([...commands, { ...command, order: commands.length }]);
+    const newCommand = { ...command, order: commands.length };
+    const newCommands = [...commands, newCommand];
+    setCommands(newCommands);
+    setIsCommandModalOpen(false);
   };
 
   const handleRemoveCommand = (index: number) => {
-    setCommands(commands.filter((_, i) => i !== index));
+    const newCommands = commands.filter((_, i) => i !== index).map((cmd, i) => ({
+      ...cmd,
+      order: i,
+    }));
+    setCommands(newCommands);
   };
 
   const handleSave = () => {
@@ -79,12 +87,15 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
       return;
     }
 
-    onSave({
+    const sequenceData = {
       name,
       description,
       commands,
       tool_id: config.id,
-    });
+    };
+
+    onSave(sequenceData);
+    onClose();
   };
 
   return (

@@ -16,7 +16,7 @@ import {
   Heading,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, StarIcon } from "@chakra-ui/icons";
-import { MotionProfile } from "../types";
+import { MotionProfile } from "../types/index";
 
 interface MotionProfilesPanelProps {
   profiles: MotionProfile[];
@@ -79,11 +79,12 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
               </Thead>
               <Tbody>
                 {profiles.map((profile) => (
-                  <Tr key={profile.id} bg={profile.id === defaultProfileId ? bgColorAlpha : undefined}>
+                  <Tr key={profile.id || profile.profile_id || `new-${profile.name}`} bg={profile.id === defaultProfileId ? bgColorAlpha : undefined}>
                     <Td>
                       <Switch
                         isChecked={profile.id === defaultProfileId}
-                        onChange={() => onSetDefault(profile.id === defaultProfileId ? null : profile.id)}
+                        onChange={() => onSetDefault(profile.id === defaultProfileId ? null : (profile.id || profile.profile_id))}
+                        isDisabled={!profile.id && !profile.profile_id}
                       />
                     </Td>
                     <Td>{profile.name}</Td>

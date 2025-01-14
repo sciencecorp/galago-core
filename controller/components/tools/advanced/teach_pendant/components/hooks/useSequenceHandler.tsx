@@ -25,9 +25,9 @@ import { DeleteIcon } from "@chakra-ui/icons";
 import { RobotArmSequence } from "@/server/routers/robot-arm";
 import { ToolCommandInfo } from "@/types";
 import { Tool } from "@/types/api";
-import { CommandModal } from "./modals/CommandModal";
+import { CommandModal } from "../modals/CommandModal";
 import { ToolType } from "gen-interfaces/controller";
-import { TeachPoint, MotionProfile, GripParams } from "./types";
+import { TeachPoint, MotionProfile, GripParams } from "../types";
 
 export interface SequenceCommand {
   command: string;

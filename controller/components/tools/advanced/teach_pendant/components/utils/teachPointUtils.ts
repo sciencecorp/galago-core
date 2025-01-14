@@ -1,4 +1,4 @@
-import { TeachPoint, MotionProfile, GripParams, Sequence } from "./types";
+import { TeachPoint, MotionProfile, GripParams, Sequence } from "../types";
 
 export interface TeachPendantExport {
   version: string;

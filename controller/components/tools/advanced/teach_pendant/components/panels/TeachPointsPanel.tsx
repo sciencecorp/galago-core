@@ -15,7 +15,7 @@ import {
   Heading,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
-import { TeachPoint, TeachPointsPanelProps } from "../types";
+import { TeachPoint, TeachPointsPanelProps } from "../types/index";
 import { FaPlay, FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { MdOutlineReplay } from "react-icons/md";
 

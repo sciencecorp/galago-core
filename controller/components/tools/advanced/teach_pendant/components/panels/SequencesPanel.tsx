@@ -21,11 +21,15 @@ import {
   Heading,
   useColorModeValue,
   VStack,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { FaPlay } from "react-icons/fa";
 import { Sequence, TeachPoint, MotionProfile, GripParams } from "../types";
-import { CommandList } from "../components/CommandList";
+import { CommandList } from "../lists/CommandList";
 import { useState, useEffect, useRef } from "react";
 
 interface SequencesPanelProps {
@@ -64,16 +68,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
     if (selectedSequence) {
       const updatedSequence = sequences.find(seq => seq.id === selectedSequence.id);
       if (updatedSequence) {
-        // Preserve the sequence data while maintaining the same reference
-        setSelectedSequence(prev => ({
-          ...updatedSequence,
-          commands: updatedSequence.commands.map((cmd, i) => ({
-            ...cmd,
-            // Preserve any UI state that might be attached to the command
-            ...prev?.commands[i]
-          }))
-        }));
-        // Don't modify expandedCommandIndex here
+        setSelectedSequence(updatedSequence);
       }
     }
   }, [sequences]);
@@ -86,11 +81,21 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
     } else {
       // If clicking a different sequence, expand it
       setSelectedSequence(sequence);
+      setExpandedCommandIndex(null);
     }
   };
 
   const handleSequenceUpdate = async (sequence: Sequence) => {
-    await onUpdateSequence(sequence);
+    try {
+      await onUpdateSequence(sequence);
+      // Update the local selected sequence state after successful update
+      const updatedSequence = { ...sequence };
+      setSelectedSequence(updatedSequence);
+      // Clear editing state
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to update sequence:', error);
+    }
   };
 
   const handleDeleteClick = (sequence: Sequence) => {
@@ -160,40 +165,75 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                         <Td>{sequence.commands.length}</Td>
                         <Td textAlign="right">
                           <HStack spacing={2} justify="flex-end">
-                            <Tooltip label="Run sequence">
-                              <IconButton
-                                aria-label="Run sequence"
-                                icon={<FaPlay />}
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onRun(sequence);
-                                }}
-                              />
-                            </Tooltip>
-                            <Tooltip label="Edit sequence">
-                              <IconButton
-                                aria-label="Edit sequence"
-                                icon={<EditIcon />}
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleSequenceClick(sequence);
-                                }}
-                              />
-                            </Tooltip>
-                            <Tooltip label="Delete sequence">
-                              <IconButton
-                                aria-label="Delete sequence"
-                                icon={<DeleteIcon />}
-                                size="sm"
-                                colorScheme="red"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteClick(sequence);
-                                }}
-                              />
-                            </Tooltip>
+                            {selectedSequence ? (
+                              <Menu>
+                                <MenuButton
+                                  as={IconButton}
+                                  aria-label="Sequence actions"
+                                  icon={<HamburgerIcon />}
+                                  size="sm"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                                <MenuList onClick={(e) => e.stopPropagation()}>
+                                  <MenuItem
+                                    icon={<FaPlay />}
+                                    onClick={() => onRun(sequence)}
+                                  >
+                                    Run Sequence
+                                  </MenuItem>
+                                  <MenuItem
+                                    icon={<EditIcon />}
+                                    onClick={() => handleSequenceClick(sequence)}
+                                  >
+                                    Edit Sequence
+                                  </MenuItem>
+                                  <MenuItem
+                                    icon={<DeleteIcon />}
+                                    color="red.500"
+                                    onClick={() => handleDeleteClick(sequence)}
+                                  >
+                                    Delete Sequence
+                                  </MenuItem>
+                                </MenuList>
+                              </Menu>
+                            ) : (
+                              <>
+                                <Tooltip label="Run sequence">
+                                  <IconButton
+                                    aria-label="Run sequence"
+                                    icon={<FaPlay />}
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onRun(sequence);
+                                    }}
+                                  />
+                                </Tooltip>
+                                <Tooltip label="Edit sequence">
+                                  <IconButton
+                                    aria-label="Edit sequence"
+                                    icon={<EditIcon />}
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleSequenceClick(sequence);
+                                    }}
+                                  />
+                                </Tooltip>
+                                <Tooltip label="Delete sequence">
+                                  <IconButton
+                                    aria-label="Delete sequence"
+                                    icon={<DeleteIcon />}
+                                    size="sm"
+                                    colorScheme="red"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteClick(sequence);
+                                    }}
+                                  />
+                                </Tooltip>
+                              </>
+                            )}
                           </HStack>
                         </Td>
                       </Tr>
@@ -212,21 +252,24 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                   gripParams={gripParams}
                   onDelete={() => handleDeleteClick(selectedSequence)}
                   onCommandsChange={async (updatedCommands) => {
-                    setIsEditing(true);
                     try {
                       await handleSequenceUpdate({
                         ...selectedSequence,
                         commands: updatedCommands,
                       });
-                    } finally {
-                      setIsEditing(false);
+                    } catch (error) {
+                      console.error('Failed to update sequence commands:', error);
                     }
                   }}
                   onSequenceNameChange={async (newName) => {
-                    await handleSequenceUpdate({
-                      ...selectedSequence,
-                      name: newName,
-                    });
+                    try {
+                      await handleSequenceUpdate({
+                        ...selectedSequence,
+                        name: newName,
+                      });
+                    } catch (error) {
+                      console.error('Failed to update sequence name:', error);
+                    }
                   }}
                   expandedCommandIndex={expandedCommandIndex}
                   onCommandClick={(index) => {

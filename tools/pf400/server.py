@@ -445,73 +445,61 @@ class Pf400Server(ToolServer):
         """Estimate duration for get_waypoints command"""
         return 1  # This is an instant operation
     
-    def EstimateRegisterGripParam(self, params: Command.RegisterGripParam) -> int:
-        """Estimate duration for register_grip_param command"""
+    def LoadWaypoints(self, params: Command.LoadWaypoints) -> None:
+        """Load all waypoints and parameter mappings in a single call"""
+        try:
+            # Reset all mappings
+            self.motion_profile_map = {}
+            self.grip_params_map = {}
+            self.labware_map = {}
+            self.waypoints = {}
+            
+            for waypoint_config in params.waypoints:
+                waypoint_type = waypoint_config.WhichOneof('waypoint_type')
+                
+                if waypoint_type == 'motion_profile':
+                    profile = waypoint_config.motion_profile
+                    self.motion_profile_map[profile.id] = profile.profile_id
+                    # Register the motion profile with the driver
+                    self.driver.register_motion_profile(
+                        str(profile.profile_id),
+                        speed=profile.speed,
+                        speed2=profile.speed2,
+                        accel=profile.acceleration,
+                        decel=profile.deceleration,
+                        accel_ramp=profile.accel_ramp,
+                        decel_ramp=profile.decel_ramp,
+                        inrange=profile.inrange,
+                        straight=1 if profile.straight else 0
+                    )
+                    logging.info(f"Registered motion profile {profile.profile_id} for DB ID {profile.id}")
+                
+                elif waypoint_type == 'grip_param':
+                    param = waypoint_config.grip_param
+                    self.grip_params_map[param.id] = {
+                        'width': param.width,
+                        'force': param.force,
+                        'speed': param.speed
+                    }
+                    logging.info(f"Loaded grip params for DB ID {param.id}")
+                
+                elif waypoint_type == 'labware':
+                    labware = waypoint_config.labware
+                    self.labware_map[labware.id] = labware.name
+                    logging.info(f"Mapped labware ID {labware.id} to name {labware.name}")
+                
+                elif waypoint_type == 'location':
+                    location = waypoint_config.location
+                    self.waypoints[location.name] = location.location
+                    logging.info(f"Added waypoint {location.name}: {location.location}")
+                
+        except Exception as e:
+            logging.error(f"Error loading waypoints and mappings: {str(e)}")
+            raise
+
+    def EstimateLoadWaypoints(self, params: Command.LoadWaypoints) -> int:
+        """Estimate duration for load_waypoints command"""
         return 1  # This is an instant operation
-    
-    def RegisterGripParam(self, params: Command.RegisterGripParam) -> None:
-        """Register grip parameters for later use"""
-        grip_id = params.id
-        self.grip_params_map[grip_id] = {
-            'width': params.width,
-            'force': params.force,
-            'speed': params.speed
-        }
-        logging.info(f"Registered grip parameters for ID {grip_id}")
-
-    def RegisterLocation(self, params: Command.RegisterLocation) -> None:
-        """Register a location/waypoint"""
-        self.waypoints[params.name] = params.location
-        logging.info(f"Registered location {params.name}: {params.location}")
-
-    def RegisterNest(self, params: Command.RegisterNest) -> None:
-        """Register a nest"""
-        self.waypoints[params.name] = params.nest
-        logging.info(f"Registered nest {params.name}: {params.nest}")
-
-    def RegisterSequence(self, params: Command.RegisterSequence) -> None:
-        """Register a sequence"""
-        self.waypoints[params.name] = params.sequence
-        logging.info(f"Registered sequence {params.name}: {params.sequence}")
-
-    def RegisterLabware(self, params: Command.RegisterLabware) -> None:
-        """Register labware definition"""
-        self.labware_map[params.id] = params.name
-        logging.info(f"Registered labware ID {params.id}: {params.name}")
-
-    def EstimateRegisterGripParam(self, params: Command.RegisterGripParam) -> int:
-        return 1
-
-    def EstimateRegisterLocation(self, params: Command.RegisterLocation) -> int:
-        return 1
-
-    def EstimateRegisterLabware(self, params: Command.RegisterLabware) -> int:
-        return 1
-
-    def EstimateRegisterNest(self, params: Command.RegisterNest) -> int:
-        return 1
-
-    def EstimateRegisterSequence(self, params: Command.RegisterSequence) -> int:
-        return 1
-
-    def RegisterMotionProfile(self, params: Command.RegisterMotionProfile) -> None:
-        """Register motion profile with the driver"""
-        self.motion_profile_map[params.id] = params.id
-        motion_profile = MotionProfile(
-            id=params.id,
-            speed=params.speed,
-            speed2=params.speed2,
-            acceleration=params.accel,
-            deceleration=params.decel,
-            accelramp=params.accel_ramp,
-            decelramp=params.decel_ramp,
-            inrange=params.inrange,
-            straight=params.straight,
-        )
-        self.driver.register_motion_profile(str(motion_profile))
-
-    def EstimateRegisterMotionProfile(self, params: Command.RegisterMotionProfile) -> int:
-        return 1
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

@@ -1,6 +1,6 @@
-import { Tr, Td, IconButton, Badge, Menu, MenuButton, MenuList, MenuItem, HStack, VStack, Text } from "@chakra-ui/react";
+import { Tr, Td, IconButton, Badge, Menu, MenuButton, MenuList, MenuItem, HStack, VStack, Text, Table, Thead, Tbody, Th } from "@chakra-ui/react";
 import { ChevronUpIcon, ChevronDownIcon, HamburgerIcon } from "@chakra-ui/icons";
-import { TeachPoint } from "./types";
+import { TeachPoint } from "../types";
 
 interface TeachPointRowProps {
   point: TeachPoint;
@@ -74,16 +74,30 @@ export const TeachPointRow: React.FC<TeachPointRowProps> = ({
                 </Text>
                 <Badge colorScheme="gray">{point.locType ? point.locType.toUpperCase() : "N/A"}</Badge>
               </HStack>
-              <Text fontFamily="mono" fontSize="sm">
-                {point.coordinate
-                  ? point.coordinate.split(" ").map((coord: string, i: number) => (
-                      <span key={i}>
-                        {i > 0 && " | "}
-                        {parseFloat(coord).toFixed(3)}
-                      </span>
-                    ))
-                  : "No coordinates available"}
-              </Text>
+              <Table size="sm" variant="simple">
+                <Thead>
+                  <Tr>
+                    <Th>J1</Th>
+                    <Th>J2</Th>
+                    <Th>J3</Th>
+                    <Th>J4</Th>
+                    <Th>J5</Th>
+                    <Th>J6</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  <Tr>
+                    {point.coordinate
+                      ? point.coordinate.split(" ").map((coord: string, i: number) => (
+                          <Td key={i} fontFamily="mono">
+                            {parseFloat(coord).toFixed(3)}
+                          </Td>
+                        ))
+                      : <Td colSpan={6}>No coordinates available</Td>
+                    }
+                  </Tr>
+                </Tbody>
+              </Table>
               {point.type === "nest" && (
                 <>
                   <Text fontWeight="bold" mt={2}>Additional Properties</Text>

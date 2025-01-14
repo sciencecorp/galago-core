@@ -49,6 +49,7 @@ export const CommandList: React.FC<CommandListProps> = ({
     const [insertIndex, setInsertIndex] = useState<number | null>(null);
     const [editedSequenceName, setEditedSequenceName] = useState(sequenceName);
     const [localCommands, setLocalCommands] = useState(commands);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     
     const bgColor = useColorModeValue("white", "gray.700");
     const borderColor = useColorModeValue("gray.200", "gray.600");
@@ -57,8 +58,11 @@ export const CommandList: React.FC<CommandListProps> = ({
 
     // Update local state when props change
     useEffect(() => {
-        setLocalCommands(commands);
+        if (JSON.stringify(commands) !== JSON.stringify(localCommands)) {
+            setLocalCommands(commands);
+        }
         setEditedSequenceName(sequenceName);
+        setHasUnsavedChanges(false);
     }, [commands, sequenceName]);
 
     const handleAddCommand = (index: number) => {
@@ -67,15 +71,12 @@ export const CommandList: React.FC<CommandListProps> = ({
     };
 
     const handleDeleteCommand = (index: number) => {
-        const newCommands = [...localCommands];
-        newCommands.splice(index, 1);
-        // Reorder remaining commands
-        const reorderedCommands = newCommands.map((cmd, idx) => ({
+        const newCommands = localCommands.filter((_, i) => i !== index).map((cmd, idx) => ({
             ...cmd,
             order: idx,
         }));
-        setLocalCommands(reorderedCommands);
-        onCommandsChange(reorderedCommands);
+        setLocalCommands(newCommands);
+        setHasUnsavedChanges(true);
     };
 
     const handleEditCommand = (index: number, updatedCommand: Partial<SequenceCommand>) => {
@@ -85,7 +86,7 @@ export const CommandList: React.FC<CommandListProps> = ({
             ...updatedCommand,
         };
         setLocalCommands(newCommands);
-        onCommandsChange(newCommands);
+        setHasUnsavedChanges(true);
     };
 
     const handleModalAddCommand = (command: { command: string; params: Record<string, any> }) => {
@@ -95,31 +96,71 @@ export const CommandList: React.FC<CommandListProps> = ({
             order: insertIndex !== null ? insertIndex : localCommands.length,
         };
 
-        const newCommands = [...localCommands];
+        let newCommands: SequenceCommand[];
         if (insertIndex !== null) {
+            newCommands = [...localCommands];
             newCommands.splice(insertIndex, 0, newCommand);
-            // Reorder all commands after insertion
-            const reorderedCommands = newCommands.map((cmd, idx) => ({
+            newCommands = newCommands.map((cmd, idx) => ({
                 ...cmd,
                 order: idx,
             }));
-            setLocalCommands(reorderedCommands);
-            onCommandsChange(reorderedCommands);
         } else {
-            newCommands.push(newCommand);
-            setLocalCommands(newCommands);
-            onCommandsChange(newCommands);
+            newCommands = [...localCommands, { ...newCommand, order: localCommands.length }];
         }
 
+        setLocalCommands(newCommands);
+        setHasUnsavedChanges(true);
         setIsModalOpen(false);
         setInsertIndex(null);
     };
 
     const handleNameChange = (newName: string) => {
         setEditedSequenceName(newName);
-        onSequenceNameChange?.(newName);
+        setHasUnsavedChanges(true);
     };
-    
+
+    const handleSave = () => {
+        if (hasUnsavedChanges) {
+            onCommandsChange(localCommands);
+            if (editedSequenceName !== sequenceName) {
+                onSequenceNameChange?.(editedSequenceName);
+            }
+            setHasUnsavedChanges(false);
+        }
+        setIsEditing(false);
+    };
+
+    const getDisplayValue = (key: string, value: any): string => {
+        // Handle waypoint coordinates
+        if (key === 'waypoint') {
+            const matchingPoint = teachPoints.find(p => p.coordinate === value);
+            return matchingPoint ? matchingPoint.name : value;
+        }
+
+        switch (key) {
+            case 'waypoint_id':
+            case 'location_id':
+                const point = teachPoints.find(p => p.id === Number(value));
+                return point ? point.name : value;
+            case 'motion_profile_id':
+            case 'profile_id':
+                const profile = motionProfiles.find(p => p.id === Number(value));
+                return profile ? profile.name : value;
+            case 'grip_params_id':
+                const params = gripParams.find(p => p.id === Number(value));
+                return params ? params.name : value;
+            default:
+                return String(value);
+        }
+    };
+
+    const formatParamKey = (key: string): string => {
+        return key
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    };
+
     return (
         <Box
             border="1px"
@@ -152,10 +193,16 @@ export const CommandList: React.FC<CommandListProps> = ({
                     <HStack>
                         <Button
                             size="sm"
-                            colorScheme={isEditing ? "blue" : "gray"}
-                            onClick={() => setIsEditing(!isEditing)}
+                            colorScheme={isEditing ? (hasUnsavedChanges ? "blue" : "gray") : "gray"}
+                            onClick={() => {
+                                if (isEditing) {
+                                    handleSave();
+                                } else {
+                                    setIsEditing(true);
+                                }
+                            }}
                         >
-                            {isEditing ? "Save" : "Edit"}
+                            {isEditing ? (hasUnsavedChanges ? "Save" : "Done") : "Edit"}
                         </Button>
                         {isEditing && (
                             <IconButton
@@ -242,7 +289,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                                                     {Object.entries(command.params).map(([key, value]) => (
                                                         <HStack key={key} width="100%">
                                                             <Text fontSize="sm" color="gray.500" width="30%">
-                                                                {key}:
+                                                                {formatParamKey(key)}:
                                                             </Text>
                                                             {isEditing ? (
                                                                 <Input
@@ -258,7 +305,9 @@ export const CommandList: React.FC<CommandListProps> = ({
                                                                     }}
                                                                 />
                                                             ) : (
-                                                                <Text fontSize="sm">{value}</Text>
+                                                                <Text fontSize="sm" fontWeight="medium">
+                                                                    {getDisplayValue(key, value)}
+                                                                </Text>
                                                             )}
                                                         </HStack>
                                                     ))}

@@ -210,4 +210,10 @@ export const robotArmRouter = router({
         };
       }),
   }),
+  command: procedure
+    .input(z.object({
+      command: z.string(),
+      params: z.record(z.any())
+    }))
+    .mutation(({ input }) => post("/robot-arm-command", input)),
 });
