@@ -32,80 +32,71 @@ class Pf400Server(ToolServer):
         super().initialize()
 
     def _configure(self, config: Config) -> None:
-        """Configure the robot driver with the given configuration."""
-        logging.info("Starting PF400 configuration")
-        logging.info(f"Received config: {config}")
-        
-        self.config = config
-        if self.driver:
-            self.driver.close()
-        self.driver = Pf400Driver(
-            tcp_host=self.config.host,
-            tcp_port=self.config.port
-        )
-        self.driver.initialize()
-        
-        # Reset all mappings
-        self.motion_profile_map = {}
-        self.grip_params_map = {}
-        self.labware_map = {}
-        self.waypoints = {}
-        
-        # Load waypoints and mappings if provided in config
-        if hasattr(config, 'waypoints'):
-            logging.info(f"Config has waypoints attribute")
-            logging.info(f"Waypoints type: {type(config.waypoints)}")
-            logging.info(f"Waypoints content: {config.waypoints}")
-            
-            if config.waypoints:
-                logging.info("Loading waypoints and parameter mappings...")
-                try:
-                    for waypoint_config in config.waypoints:
-                        waypoint_type = waypoint_config.WhichOneof('waypoint_type')
-                        
-                        if waypoint_type == 'motion_profile':
-                            profile = waypoint_config.motion_profile
-                            self.motion_profile_map[profile.id] = profile.profile_id
-                            # Register the motion profile with the driver
-                            self.driver.register_motion_profile(
-                                str(profile.profile_id),
-                                speed=profile.speed,
-                                speed2=profile.speed2,
-                                accel=profile.acceleration,
-                                decel=profile.deceleration,
-                                accel_ramp=profile.accel_ramp,
-                                decel_ramp=profile.decel_ramp,
-                                inrange=profile.inrange,
-                                straight=1 if profile.straight else 0
-                            )
-                            logging.info(f"Registered motion profile {profile.profile_id} for DB ID {profile.id}")
-                        
-                        elif waypoint_type == 'grip_param':
-                            param = waypoint_config.grip_param
-                            self.grip_params_map[param.id] = {
-                                'width': param.width,
-                                'force': param.force,
-                                'speed': param.speed
-                            }
-                            logging.info(f"Loaded grip params for DB ID {param.id}")
-                        
-                        elif waypoint_type == 'labware':
-                            labware = waypoint_config.labware
-                            self.labware_map[labware.id] = labware.name
-                            logging.info(f"Mapped labware ID {labware.id} to name {labware.name}")
-                        
-                        elif waypoint_type == 'location':
-                            location = waypoint_config.location
-                            self.waypoints[location.name] = location.location
-                            logging.info(f"Added waypoint {location.name}: {location.location}")
-                        
-                except Exception as e:
-                    logging.error(f"Error loading waypoints and mappings: {str(e)}")
-                    # Continue with empty mappings rather than failing
-                    self.motion_profile_map = {}
-                    self.grip_params_map = {}
-                    self.labware_map = {}
-                    self.waypoints = {}
+        """Configure the PF400 server with the provided configuration."""
+        try:
+            # Configure basic settings
+            self.driver = Pf400Driver(
+                host=config.host,
+                port=config.port,
+                joints=config.joints
+            )
+            self.driver.connect()
+
+            # Reset all mappings
+            self.motion_profile_map = {}
+            self.grip_params_map = {}
+            self.labware_map = {}
+            self.waypoints = {}
+
+            # Process waypoints if provided
+            if hasattr(config, 'waypoints') and config.waypoints:
+                for waypoint_config in config.waypoints:
+                    waypoint_type = waypoint_config.WhichOneof('waypoint_type')
+                    
+                    if waypoint_type == 'motion_profile':
+                        profile = waypoint_config.motion_profile
+                        self.motion_profile_map[profile.id] = profile.profile_id
+                        # Register the motion profile with the driver
+                        self.driver.register_motion_profile(
+                            str(profile.profile_id),
+                            speed=profile.speed,
+                            speed2=profile.speed2,
+                            accel=profile.acceleration,
+                            decel=profile.deceleration,
+                            accel_ramp=profile.accel_ramp,
+                            decel_ramp=profile.decel_ramp,
+                            inrange=profile.inrange,
+                            straight=1 if profile.straight else 0
+                        )
+                        logging.info(f"Registered motion profile {profile.profile_id} for DB ID {profile.id}")
+                    
+                    elif waypoint_type == 'grip_param':
+                        param = waypoint_config.grip_param
+                        self.grip_params_map[param.id] = {
+                            'width': param.width,
+                            'force': param.force,
+                            'speed': param.speed
+                        }
+                        logging.info(f"Loaded grip params for DB ID {param.id}")
+                    
+                    elif waypoint_type == 'labware':
+                        labware = waypoint_config.labware
+                        self.labware_map[labware.id] = labware.name
+                        logging.info(f"Mapped labware ID {labware.id} to name {labware.name}")
+                    
+                    elif waypoint_type == 'location':
+                        location = waypoint_config.location
+                        self.waypoints[location.name] = location.location
+                        logging.info(f"Added waypoint {location.name}: {location.location}")
+
+        except Exception as e:
+            logging.error(f"Error configuring PF400: {str(e)}")
+            # Reset all mappings on error
+            self.motion_profile_map = {}
+            self.grip_params_map = {}
+            self.labware_map = {}
+            self.waypoints = {}
+            raise
 
     def _map_motion_profile(self, db_id: int) -> int:
         """Map database motion profile ID to robot profile ID"""

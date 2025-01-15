@@ -80,38 +80,6 @@ export function ToolConfigEditor({
   const config = toolSpecificConfig(defaultConfig);
   const [configString, setConfigString] = useState(JSON.stringify(config, null, 2));
 
-  const waypointsQuery = trpc.tool.waypoints.useQuery(
-    { toolId: parseInt(toolId) },
-    {
-      enabled: defaultConfig.type === ToolType.pf400,
-      onSuccess: (data) => {
-        console.log('Received waypoints data:', data);
-        if (data) {
-          try {
-            const currentConfig = JSON.parse(configString);
-            console.log('Current config:', currentConfig);
-            const updatedConfig = {
-              ...currentConfig,
-              locations: data.locations || [],
-              nests: data.nests || [],
-              sequences: data.sequences || [],
-              motion_profiles: data.motion_profiles || [],
-              grip_params: data.grip_params || [],
-              labware: data.labware || []
-            };
-            console.log('Updated config:', updatedConfig);
-            setConfigString(JSON.stringify(updatedConfig, null, 2));
-          } catch (err) {
-            console.error('Error updating config with waypoints:', err);
-          }
-        }
-      },
-      onError: (error) => {
-        console.error('Error fetching waypoints:', error);
-      }
-    }
-  );
-
   const saveConfig = useCallback(() => {
     console.log('Saving tool config:', {
       toolId,

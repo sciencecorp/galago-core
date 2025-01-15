@@ -65,14 +65,14 @@ const xmlHandler: FileFormatHandler = {
       result.teachPoints = locations.map((loc: any) => ({
         id: Number(loc.Index._text) || 0,
         name: loc.Name._text || "",
-        coordinate: JSON.stringify({
-          j1: Number(loc.Joint1._text) || 0,
-          j2: Number(loc.Joint2._text) || 0,
-          j3: Number(loc.Joint3._text) || 0,
-          j4: Number(loc.Joint4._text) || 0,
-          j5: Number(loc.Joint5._text) || 0,
-          j6: Number(loc.Joint6._text) || 0,
-        }),
+        coordinate: [
+          Number(loc.Joint1._text) || 0,
+          Number(loc.Joint2._text) || 0,
+          Number(loc.Joint3._text) || 0,
+          Number(loc.Joint4._text) || 0,
+          Number(loc.Joint5._text) || 0,
+          Number(loc.Joint6._text) || 0,
+        ].join(" "),
         type: "location",
         locType: "j",
       }));
@@ -87,23 +87,18 @@ const xmlHandler: FileFormatHandler = {
     if (data.teachPoints) {
       xmlData.ArrayOfLocation = {
         Location: data.teachPoints.map(point => {
-          let coords;
-          try {
-            coords = typeof point.coordinate === 'string' ? JSON.parse(point.coordinate) : point.coordinate;
-          } catch (e) {
-            coords = { j1: 0, j2: 0, j3: 0, j4: 0, j5: 0, j6: 0 };
-          }
+          const coords = point.coordinate.split(" ").map(Number);
           return {
             Name: { _text: point.name },
             Index: { _text: point.id.toString() },
             ZClearance: { _text: "0" },
             VerticalOffset: { _text: "false" },
-            Joint1: { _text: coords.j1.toString() },
-            Joint2: { _text: coords.j2.toString() },
-            Joint3: { _text: coords.j3.toString() },
-            Joint4: { _text: coords.j4.toString() },
-            Joint5: { _text: coords.j5.toString() },
-            Joint6: { _text: coords.j6.toString() },
+            Joint1: { _text: coords[0].toString() },
+            Joint2: { _text: coords[1].toString() },
+            Joint3: { _text: coords[2].toString() },
+            Joint4: { _text: coords[3].toString() },
+            Joint5: { _text: coords[4].toString() },
+            Joint6: { _text: coords[5].toString() },
             Joint7: { _text: "0" },
           };
         })
