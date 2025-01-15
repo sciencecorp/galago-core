@@ -129,7 +129,7 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
         <MenuButton as={Button} rightIcon={<ChevronDownIcon />} colorScheme="blue" variant="outline" leftIcon={<DownloadIcon />}>
           Export
         </MenuButton>
-        <MenuList>
+        <MenuList zIndex={1000} maxH="300px" overflowY="auto">
           <MenuItem onClick={() => handleExport('json')}>Export All (JSON)</MenuItem>
           <MenuItem onClick={() => handleExport('xml')}>Export All (XML)</MenuItem>
           <MenuItem onClick={() => handleExport('json', 'teachPoints')}>Export Teach Points (JSON)</MenuItem>
