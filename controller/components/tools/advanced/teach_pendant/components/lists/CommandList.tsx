@@ -12,6 +12,14 @@ import {
     FormLabel,
     Center,
     SlideFade,
+    Table,
+    Thead,
+    Tr,
+    Th,
+    Tbody,
+    Td,
+    NumberInput,
+    NumberInputField,
 } from "@chakra-ui/react";
 import { DeleteIcon, AddIcon, ChevronDownIcon, ChevronUpIcon, ArrowDownIcon } from "@chakra-ui/icons";
 import { useState, useEffect } from "react";
@@ -336,7 +344,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                                                     />
                                                 </HStack>
                                             </HStack>
-                                            <Collapse in={expandedCommandIndex === index}>
+                                            <Collapse in={isEditing || expandedCommandIndex === index}>
                                                 <VStack align="start" mt={3} spacing={3} pl={2}>
                                                     {Object.entries(command.params)
                                                         .filter(([key]) => key !== 'waypoint_id')
@@ -345,7 +353,54 @@ export const CommandList: React.FC<CommandListProps> = ({
                                                             <Text fontSize="sm" color="gray.500" width="30%">
                                                                 {formatParamKey(key)}:
                                                             </Text>
-                                                            {isEditing ? (
+                                                            {isEditing && (key === 'waypoint' || key === 'coordinate') ? (
+                                                                <Box width="100%" overflowX="auto">
+                                                                    <Table size="sm" variant="simple" width="auto">
+                                                                        <Thead>
+                                                                            <Tr>
+                                                                                <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J1</Th>
+                                                                                <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J2</Th>
+                                                                                <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J3</Th>
+                                                                                <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J4</Th>
+                                                                                <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J5</Th>
+                                                                                <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J6</Th>
+                                                                            </Tr>
+                                                                        </Thead>
+                                                                        <Tbody>
+                                                                            <Tr>
+                                                                                {(value || "0 0 0 0 0 0").split(" ").map((coord: string, i: number) => (
+                                                                                    <Td key={i} padding={0.5} width="auto">
+                                                                                        <NumberInput
+                                                                                            size="xs"
+                                                                                            value={parseFloat(coord) || 0}
+                                                                                            onChange={(valueString) => {
+                                                                                                const coords = (value || "0 0 0 0 0 0").split(" ").map(Number);
+                                                                                                coords[i] = parseFloat(valueString) || 0;
+                                                                                                handleEditCommand(index, {
+                                                                                                    params: {
+                                                                                                        ...command.params,
+                                                                                                        [key]: coords.join(" "),
+                                                                                                    },
+                                                                                                });
+                                                                                            }}
+                                                                                            step={0.001}
+                                                                                            precision={3}
+                                                                                            width="35px"
+                                                                                        >
+                                                                                            <NumberInputField 
+                                                                                                textAlign="right" 
+                                                                                                paddingInline={0}
+                                                                                                fontSize="xs"
+                                                                                                px={0.5}
+                                                                                            />
+                                                                                        </NumberInput>
+                                                                                    </Td>
+                                                                                ))}
+                                                                            </Tr>
+                                                                        </Tbody>
+                                                                    </Table>
+                                                                </Box>
+                                                            ) : isEditing ? (
                                                                 <Input
                                                                     size="sm"
                                                                     value={value}
@@ -359,9 +414,37 @@ export const CommandList: React.FC<CommandListProps> = ({
                                                                     }}
                                                                 />
                                                             ) : (
-                                                                <Text fontSize="sm" fontWeight="medium">
-                                                                    {getDisplayValue(key, value)}
-                                                                </Text>
+                                                                key === 'waypoint' || key === 'coordinate' ? (
+                                                                    <Box width="100%" overflowX="auto">
+                                                                        <Table size="sm" variant="simple" width="auto">
+                                                                            <Thead>
+                                                                                <Tr>
+                                                                                    <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J1</Th>
+                                                                                    <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J2</Th>
+                                                                                    <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J3</Th>
+                                                                                    <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J4</Th>
+                                                                                    <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J5</Th>
+                                                                                    <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J6</Th>
+                                                                                </Tr>
+                                                                            </Thead>
+                                                                            <Tbody>
+                                                                                <Tr>
+                                                                                    {(value || "0 0 0 0 0 0").split(" ").map((coord: string, i: number) => (
+                                                                                        <Td key={i} padding={0.5} width="auto">
+                                                                                            <Text fontSize="xs" textAlign="center" width="35px">
+                                                                                                {coord}
+                                                                                            </Text>
+                                                                                        </Td>
+                                                                                    ))}
+                                                                                </Tr>
+                                                                            </Tbody>
+                                                                        </Table>
+                                                                    </Box>
+                                                                ) : (
+                                                                    <Text fontSize="sm" fontWeight="medium">
+                                                                        {getDisplayValue(key, value)}
+                                                                    </Text>
+                                                                )
                                                             )}
                                                         </HStack>
                                                     ))}
