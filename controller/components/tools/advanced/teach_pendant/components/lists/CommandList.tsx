@@ -134,10 +134,24 @@ export const CommandList: React.FC<CommandListProps> = ({
         // Handle waypoint coordinates
         if (key === 'waypoint') {
             const matchingPoint = teachPoints.find(p => p.coordinate === value);
-            return matchingPoint ? matchingPoint.name : value;
+            if (matchingPoint) {
+                return matchingPoint.name;
+            }
+            // If no exact match found, try to find a point with similar coordinates
+            // This helps with floating point precision differences
+            const coordinates = value.split(" ").map(Number);
+            const similarPoint = teachPoints.find(p => {
+                const pointCoords = p.coordinate.split(" ").map(Number);
+                return coordinates.length === pointCoords.length &&
+                    coordinates.every((coord: number, i: number) => Math.abs(coord - pointCoords[i]) < 0.001);
+            });
+            return similarPoint ? similarPoint.name : value;
         }
 
         switch (key) {
+            case 'nest_id':
+                const nest = teachPoints.find(p => p.type === 'nest' && p.id === Number(value));
+                return nest ? nest.name : value;
             case 'waypoint_id':
             case 'location_id':
                 const point = teachPoints.find(p => p.id === Number(value));
@@ -255,9 +269,47 @@ export const CommandList: React.FC<CommandListProps> = ({
                                             }}
                                         >
                                             <HStack justify="space-between">
-                                                <Text fontWeight={expandedCommandIndex === index ? "bold" : "normal"}>
-                                                    {command.command}
-                                                </Text>
+                                                <HStack>
+                                                    <Text fontWeight={expandedCommandIndex === index ? "bold" : "normal"}>
+                                                        {command.command}
+                                                    </Text>
+                                                    <Text color="gray.500" fontSize="sm">
+                                                        {(() => {
+                                                            console.log('Command:', command.command);
+                                                            console.log('Command params:', command.params);
+                                                            console.log('TeachPoints:', teachPoints);
+                                                            
+                                                            if (command.command === "move") {
+                                                                if (command.params.waypoint_id) {
+                                                                    const displayValue = getDisplayValue('waypoint_id', command.params.waypoint_id);
+                                                                    console.log('Move command waypoint_id:', command.params.waypoint_id);
+                                                                    console.log('Display value:', displayValue);
+                                                                    return `: ${displayValue}`;
+                                                                }
+                                                                if (command.params.waypoint) {
+                                                                    const displayValue = getDisplayValue('waypoint', command.params.waypoint);
+                                                                    console.log('Move command waypoint:', command.params.waypoint);
+                                                                    console.log('Display value:', displayValue);
+                                                                    return `: ${displayValue}`;
+                                                                }
+                                                                return '';
+                                                            }
+                                                            if (command.command === "approach" && command.params.nest_id) {
+                                                                const displayValue = getDisplayValue('nest_id', command.params.nest_id);
+                                                                console.log('Approach command nest_id:', command.params.nest_id);
+                                                                console.log('Display value:', displayValue);
+                                                                return `: ${displayValue}`;
+                                                            }
+                                                            if (command.command === "leave" && command.params.nest_id) {
+                                                                const displayValue = getDisplayValue('nest_id', command.params.nest_id);
+                                                                console.log('Leave command nest_id:', command.params.nest_id);
+                                                                console.log('Display value:', displayValue);
+                                                                return `: ${displayValue}`;
+                                                            }
+                                                            return '';
+                                                        })()}
+                                                    </Text>
+                                                </HStack>
                                                 <HStack spacing={1}>
                                                     {isEditing && (
                                                         <IconButton
@@ -286,7 +338,9 @@ export const CommandList: React.FC<CommandListProps> = ({
                                             </HStack>
                                             <Collapse in={expandedCommandIndex === index}>
                                                 <VStack align="start" mt={3} spacing={3} pl={2}>
-                                                    {Object.entries(command.params).map(([key, value]) => (
+                                                    {Object.entries(command.params)
+                                                        .filter(([key]) => key !== 'waypoint_id')
+                                                        .map(([key, value]) => (
                                                         <HStack key={key} width="100%">
                                                             <Text fontSize="sm" color="gray.500" width="30%">
                                                                 {formatParamKey(key)}:
