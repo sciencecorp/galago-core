@@ -16,10 +16,10 @@ import {
 } from "@chakra-ui/react";
 import { Search2Icon } from "@chakra-ui/icons";
 import { Tool } from "@/types/api";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { jointsToCoordinate, coordinateToJoints } from "./components/utils/robotArmUtils";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
-import { TeachPoint, MotionProfile, Sequence } from "./components/types";
+import { TeachPoint, MotionProfile, GripParams, Sequence } from "./components/types";
 
 // Components
 import { TeachPendantActions } from "./components/actions/TeachPendantActions";
@@ -196,6 +196,38 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
   const [defaultProfileId, setDefaultProfileId] = useState<number | null>(null);
   const [defaultParamsId, setDefaultParamsId] = useState<number | null>(null);
 
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Filter items based on active tab and search term
+  const filteredItems = useMemo(() => {
+    const term = searchTerm.toLowerCase();
+    switch (activeTab) {
+      case 0: // Teach Points
+        return teachPoints.filter(point => 
+          point.name.toLowerCase().includes(term)
+        );
+      case 1: // Motion Profiles
+        return motionProfilesQuery.data?.filter(profile => 
+          profile.name.toLowerCase().includes(term)
+        ) || [];
+      case 2: // Grip Parameters
+        return gripParamsQuery.data?.filter(params => 
+          params.name.toLowerCase().includes(term)
+        ) || [];
+      case 3: // Sequences
+        return (robotArmSequencesQuery.data || [])
+          .filter(sequence => 
+            sequence && 
+            sequence.commands && 
+            Array.isArray(sequence.commands) &&
+            (sequence.name.toLowerCase().includes(term) || 
+            sequence.description?.toLowerCase().includes(term))
+          );
+      default:
+        return [];
+    }
+  }, [activeTab, searchTerm, teachPoints, motionProfilesQuery.data, gripParamsQuery.data, robotArmSequencesQuery.data]);
+
   return (
     <Card 
       borderWidth="1px" 
@@ -302,7 +334,11 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
               <InputLeftElement pointerEvents="none">
                 <Search2Icon color="gray.300" />
               </InputLeftElement>
-              <Input placeholder="Search..." />
+              <Input 
+                placeholder="Search..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </InputGroup>
 
             {/* Tabs Section */}
@@ -317,7 +353,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
               <TabPanels>
                 <TabPanel>
                   <TeachPointsPanel
-                    teachPoints={teachPoints}
+                    teachPoints={filteredItems as TeachPoint[]}
                     motionProfiles={motionProfiles}
                     gripParams={gripParams}
                     sequences={robotArmSequencesQuery.data || []}
@@ -337,12 +373,12 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     }}
                     bgColor={bgColor}
                     bgColorAlpha={bgColorAlpha}
-                    searchTerm=""
+                    searchTerm={searchTerm}
                   />
                 </TabPanel>
                 <TabPanel>
                   <MotionProfilesPanel
-                    profiles={motionProfilesQuery.data || []}
+                    profiles={filteredItems as MotionProfile[]}
                     onEdit={(profile) => {
                       setSelectedMotionProfile(profile);
                       motionProfileModal.onOpen();
@@ -364,7 +400,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 </TabPanel>
                 <TabPanel>
                   <GripParametersPanel
-                    params={gripParamsQuery.data || []}
+                    params={filteredItems as GripParams[]}
                     onEdit={(params) => {
                       setSelectedGripParams(params);
                       gripParamsModal.onOpen();
@@ -385,7 +421,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 </TabPanel>
                 <TabPanel>
                   <SequencesPanel
-                    sequences={robotArmSequencesQuery.data || []}
+                    sequences={filteredItems as Sequence[]}
                     teachPoints={teachPoints}
                     motionProfiles={motionProfiles}
                     gripParams={gripParams}

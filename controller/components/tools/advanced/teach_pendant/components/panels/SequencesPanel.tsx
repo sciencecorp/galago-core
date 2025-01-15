@@ -162,7 +162,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                         _hover={{ bg: bgColorAlpha }}
                       >
                         <Td>{sequence.name}</Td>
-                        <Td>{sequence.commands.length}</Td>
+                        <Td>{sequence.commands?.length || 0}</Td>
                         <Td textAlign="right">
                           <HStack spacing={2} justify="flex-end">
                             {selectedSequence ? (
