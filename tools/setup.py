@@ -50,16 +50,16 @@ class BuildProtobuf(_build_py):
                 [
                     "python", "-m", "grpc_tools.protoc",
                     f"-I{proto_src}",
-                    f"--python_out=grpc_interfaces/",
-                    f"--pyi_out=grpc_interfaces/",
-                    f"--grpc_python_out=grpc_interfaces/",
+                    "--python_out=grpc_interfaces/",
+                    "--pyi_out=grpc_interfaces/",
+                    "--grpc_python_out=grpc_interfaces/",
                     *root_proto_files,
                 ],
                 check=True,
             )
 
         super().run()
-        
+
         # # Compile the root-level .proto files
         # if root_proto_files:
         #     subprocess.run(
