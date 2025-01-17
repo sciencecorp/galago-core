@@ -85,6 +85,31 @@ export default class Tool {
     // Handle PF400 specific configuration
     if (this.type === ToolType.pf400) {
       try {
+        // If in simulation mode, just send basic config
+        if (config.simulated) {
+          console.log('Configuring PF400 in simulation mode...');
+          const pf400Config = {
+            host: String(config.pf400?.host || ""),
+            port: Number(config.pf400?.port || 0),
+            joints: Number(config.pf400?.joints || 0)
+          };
+
+          const reply = await this.grpc.configure({
+            ...config,
+            pf400: pf400Config
+          });
+
+          if (reply.response !== tool_base.ResponseCode.SUCCESS) {
+            throw new ToolCommandExecutionError(
+              reply.error_message ?? "Configure Command failed",
+              reply.response,
+            );
+          }
+
+          return reply;
+        }
+
+        // Not in simulation mode, proceed with full configuration
         const numericId = this.info.name;
         console.log('Fetching waypoints for PF400 configuration...');
         const response = await get<any>(`/robot-arm-waypoints?tool_id=${numericId}`);

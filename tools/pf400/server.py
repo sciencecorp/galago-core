@@ -34,19 +34,24 @@ class Pf400Server(ToolServer):
     def _configure(self, config: Config) -> None:
         """Configure the PF400 server with the provided configuration."""
         try:
-            # Configure basic settings
+            # Reset all mappings
+            self.motion_profile_map = {}
+            self.grip_params_map = {}
+            self.labware_map = {}
+            self.waypoints = {}
+
+            # If in simulation mode, don't attempt hardware connection
+            if self.simulated:
+                logging.info("Configuring PF400 in simulation mode")
+                return
+
+            # Configure hardware connection
             self.driver = Pf400Driver(
                 host=config.host,
                 port=config.port,
                 joints=config.joints
             )
             self.driver.connect()
-
-            # Reset all mappings
-            self.motion_profile_map = {}
-            self.grip_params_map = {}
-            self.labware_map = {}
-            self.waypoints = {}
 
             # Process waypoints if provided
             if hasattr(config, 'waypoints') and config.waypoints:
