@@ -49,16 +49,32 @@ class BuildProtobuf(_build_py):
             subprocess.run(
                 [
                     "python", "-m", "grpc_tools.protoc",
-                    "-I" + proto_src,
-                    "--python_out=grpc_interfaces/",
-                    "--pyi_out=grpc_interfaces/", 
-                    "--grpc_python_out=grpc_interfaces/",
+                    f"-I{proto_src}",
+                    f"--python_out=grpc_interfaces/",
+                    f"--pyi_out=grpc_interfaces/",
+                    f"--grpc_python_out=grpc_interfaces/",
                     *root_proto_files,
                 ],
                 check=True,
             )
 
         super().run()
+        
+        # # Compile the root-level .proto files
+        # if root_proto_files:
+        #     subprocess.run(
+        #         [
+        #             "python", "-m", "grpc_tools.protoc",
+        #             "-I" + proto_src,
+        #             "--python_out=grpc_interfaces/",
+        #             "--pyi_out=grpc_interfaces/", 
+        #             "--grpc_python_out=grpc_interfaces/",
+        #             *root_proto_files,
+        #         ],
+        #         check=True,
+        #     )
+
+        # super().run()
 
 def readme() -> str:
     readme_path = os.path.join(os.path.dirname(__file__), "README.md")
