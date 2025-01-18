@@ -25,6 +25,7 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  MenuDivider,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { FaPlay } from "react-icons/fa";
@@ -165,75 +166,37 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                         <Td>{sequence.commands?.length || 0}</Td>
                         <Td textAlign="right">
                           <HStack spacing={2} justify="flex-end">
-                            {selectedSequence ? (
-                              <Menu>
-                                <MenuButton
-                                  as={IconButton}
-                                  aria-label="Sequence actions"
-                                  icon={<HamburgerIcon />}
-                                  size="sm"
-                                  onClick={(e) => e.stopPropagation()}
-                                />
-                                <MenuList onClick={(e) => e.stopPropagation()}>
-                                  <MenuItem
-                                    icon={<FaPlay />}
-                                    onClick={() => onRun(sequence)}
-                                  >
-                                    Run Sequence
-                                  </MenuItem>
-                                  <MenuItem
-                                    icon={<EditIcon />}
-                                    onClick={() => handleSequenceClick(sequence)}
-                                  >
-                                    Edit Sequence
-                                  </MenuItem>
-                                  <MenuItem
-                                    icon={<DeleteIcon />}
-                                    color="red.500"
-                                    onClick={() => handleDeleteClick(sequence)}
-                                  >
-                                    Delete Sequence
-                                  </MenuItem>
-                                </MenuList>
-                              </Menu>
-                            ) : (
-                              <>
-                                <Tooltip label="Run sequence">
-                                  <IconButton
-                                    aria-label="Run sequence"
-                                    icon={<FaPlay />}
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onRun(sequence);
-                                    }}
-                                  />
-                                </Tooltip>
-                                <Tooltip label="Edit sequence">
-                                  <IconButton
-                                    aria-label="Edit sequence"
-                                    icon={<EditIcon />}
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleSequenceClick(sequence);
-                                    }}
-                                  />
-                                </Tooltip>
-                                <Tooltip label="Delete sequence">
-                                  <IconButton
-                                    aria-label="Delete sequence"
-                                    icon={<DeleteIcon />}
-                                    size="sm"
-                                    colorScheme="red"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteClick(sequence);
-                                    }}
-                                  />
-                                </Tooltip>
-                              </>
-                            )}
+                            <Menu>
+                              <MenuButton
+                                as={IconButton}
+                                aria-label="Sequence actions"
+                                icon={<HamburgerIcon />}
+                                size="sm"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <MenuList onClick={(e) => e.stopPropagation()}>
+                                <MenuItem
+                                  icon={<FaPlay />}
+                                  onClick={() => onRun(sequence)}
+                                >
+                                  Run Sequence
+                                </MenuItem>
+                                <MenuItem
+                                  icon={<EditIcon />}
+                                  onClick={() => handleSequenceClick(sequence)}
+                                >
+                                  Edit Sequence
+                                </MenuItem>
+                                <MenuDivider />
+                                <MenuItem
+                                  icon={<DeleteIcon />}
+                                  color="red.500"
+                                  onClick={() => handleDeleteClick(sequence)}
+                                >
+                                  Delete Sequence
+                                </MenuItem>
+                              </MenuList>
+                            </Menu>
                           </HStack>
                         </Td>
                       </Tr>

@@ -56,7 +56,7 @@ export const CommandList: React.FC<CommandListProps> = ({
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [insertIndex, setInsertIndex] = useState<number | null>(null);
     const [editedSequenceName, setEditedSequenceName] = useState(sequenceName);
-    const [localCommands, setLocalCommands] = useState(commands);
+    const [localCommands, setLocalCommands] = useState(commands || []);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     
     const bgColor = useColorModeValue("white", "gray.700");
@@ -66,8 +66,8 @@ export const CommandList: React.FC<CommandListProps> = ({
 
     // Update local state when props change
     useEffect(() => {
-        if (JSON.stringify(commands) !== JSON.stringify(localCommands)) {
-            setLocalCommands(commands);
+        if (JSON.stringify(commands || []) !== JSON.stringify(localCommands)) {
+            setLocalCommands(commands || []);
         }
         setEditedSequenceName(sequenceName);
         setHasUnsavedChanges(false);
@@ -254,7 +254,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                             </SlideFade>
                         )}
                         
-                        {localCommands.map((command, index) => (
+                        {localCommands?.map((command, index) => (
                             <SlideFade key={index} in={true} offsetY="20px">
                                 <VStack width="100%" spacing={0} align="stretch" mb={3}>
                                     <Box width="100%">

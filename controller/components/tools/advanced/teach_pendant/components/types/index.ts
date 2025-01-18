@@ -76,6 +76,8 @@ export interface TeachPointsPanelProps {
   onEdit: (point: TeachPoint) => void;
   onDelete: (point: TeachPoint) => void;
   onAdd: () => void;
+  onTeach: (point: TeachPoint) => void;
+  isConnected: boolean;
   bgColor: string;
   bgColorAlpha: string;
   searchTerm?: string;

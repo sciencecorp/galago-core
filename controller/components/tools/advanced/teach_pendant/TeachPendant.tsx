@@ -13,6 +13,7 @@ import {
   Input,
   Divider,
   Card,
+  useToast,
 } from "@chakra-ui/react";
 import { Search2Icon } from "@chakra-ui/icons";
 import { Tool } from "@/types/api";
@@ -48,6 +49,7 @@ interface TeachPendantProps {
 export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
   const bgColor = useColorModeValue("white", "gray.800");
   const bgColorAlpha = useColorModeValue("blackAlpha.50", "whiteAlpha.50");
+  const toast = useToast();
 
   // Hooks
   const {
@@ -132,11 +134,71 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
   const handleMoveCommand = commandHandlers.handleMoveCommand;
 
   const handleMove = (point: TeachPoint, action?: 'approach' | 'leave') => {
+    // Check if in simulation mode
+    if (toolStatusQuery.data?.status === "SIMULATED") {
+      toast({
+        title: "Simulation Mode",
+        description: "Robot movement is simulated. No actual movement will occur.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+
     const defaultProfile = motionProfiles[0];
     if (defaultProfile) {
       handleMoveCommand(robotArmCommandMutation, point, defaultProfile, action);
     }
   };
+
+  const handleTeach = async (point: TeachPoint) => {
+    // Check if in simulation mode
+    if (toolStatusQuery.data?.status === "SIMULATED") {
+      toast({
+        title: "Simulation Mode",
+        description: "Teaching points is not available in simulation mode.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+        position: "top",
+      });
+      return; // Don't proceed with teach operation in simulation mode
+    }
+
+    try {
+      // Get current joint position from robot
+      const response = await robotArmCommandMutation.mutateAsync({
+        command: "wherej",
+        params: {}
+      });
+
+      if (response) {
+        const coordinates = (response as string).split(" ").slice(1); // Remove first element which is status code
+
+        // Update the teach point with new coordinates
+        await updateLocationMutation.mutateAsync({
+          id: point.id,
+          name: point.name,
+          location_type: "j",
+          j1: parseFloat(coordinates[0]),
+          j2: parseFloat(coordinates[1]),
+          j3: parseFloat(coordinates[2]),
+          j4: parseFloat(coordinates[3]),
+          j5: parseFloat(coordinates[4]),
+          j6: parseFloat(coordinates[5]),
+          tool_id: config.id
+        });
+
+        // Refetch locations to update UI
+        robotArmLocationsQuery.refetch();
+      }
+    } catch (error) {
+      console.error('Failed to teach point:', error);
+    }
+  };
+
+  // Check if robot is connected (READY or SIMULATED)
+  const isConnected = toolStatusQuery.data?.status === "READY" || toolStatusQuery.data?.status === "SIMULATED";
 
   // Update local state when queries complete
   useEffect(() => {
@@ -293,6 +355,55 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
 
                     // Import motion profiles if present
                     if (data.motionProfiles?.length) {
+                      // First validate all motion profiles
+                      const existingProfiles = motionProfilesQuery.data || [];
+                      const invalidProfiles = data.motionProfiles.filter(
+                        profile => profile.profile_id < 1 || profile.profile_id > 14
+                      );
+                      if (invalidProfiles.length > 0) {
+                        toast({
+                          title: "Error",
+                          description: `Some motion profiles have invalid profile IDs. Profile IDs must be between 1 and 14. Invalid profiles: ${invalidProfiles.map(p => p.name).join(", ")}`,
+                          status: "error",
+                          duration: 5000,
+                          isClosable: true,
+                        });
+                        return;
+                      }
+
+                      // Check for duplicates within imported profiles
+                      const duplicateImportedIds = data.motionProfiles
+                        .map(p => p.profile_id)
+                        .filter((id, index, arr) => arr.indexOf(id) !== index);
+                      if (duplicateImportedIds.length > 0) {
+                        toast({
+                          title: "Error",
+                          description: `Found duplicate profile IDs in imported data: ${duplicateImportedIds.join(", ")}`,
+                          status: "error",
+                          duration: 5000,
+                          isClosable: true,
+                        });
+                        return;
+                      }
+
+                      // Check for conflicts with existing profiles
+                      const conflictingProfiles = data.motionProfiles.filter(
+                        importedProfile => existingProfiles.some(
+                          existingProfile => existingProfile.profile_id === importedProfile.profile_id
+                        )
+                      );
+                      if (conflictingProfiles.length > 0) {
+                        toast({
+                          title: "Error",
+                          description: `Some imported profiles have IDs that conflict with existing profiles: ${conflictingProfiles.map(p => `${p.name} (ID: ${p.profile_id})`).join(", ")}`,
+                          status: "error",
+                          duration: 5000,
+                          isClosable: true,
+                        });
+                        return;
+                      }
+
+                      // If all validations pass, import the profiles
                       for (const profile of data.motionProfiles) {
                         await createMotionProfileMutation.mutateAsync({
                           ...profile,
@@ -323,9 +434,23 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                       }
                       await robotArmSequencesQuery.refetch();
                     }
+
+                    toast({
+                      title: "Success",
+                      description: "Data imported successfully",
+                      status: "success",
+                      duration: 3000,
+                      isClosable: true,
+                    });
                   } catch (error) {
-                    console.error('Import failed:', error);
-                    throw error;
+                    console.error("Import error:", error);
+                    toast({
+                      title: "Error",
+                      description: "Failed to import data",
+                      status: "error",
+                      duration: 3000,
+                      isClosable: true,
+                    });
                   }
                 }}
               />
@@ -362,7 +487,40 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     onImport={async () => {}}
                     onMove={handleMove}
                     onEdit={(point) => {
-                      openTeachPointModal(point);
+                      if (point.coordinate !== undefined) {
+                        const newCoords = point.coordinate.split(" ").map(Number);
+                        const oldPoint = robotArmLocationsQuery.data?.find(loc => loc.id === point.id);
+                        
+                        // Only update if point doesn't exist or coordinates have changed
+                        const hasChanged = !oldPoint || 
+                          Math.abs(newCoords[0] - (oldPoint.j1 ?? 0)) >= 0.001 ||
+                          Math.abs(newCoords[1] - (oldPoint.j2 ?? 0)) >= 0.001 ||
+                          Math.abs(newCoords[2] - (oldPoint.j3 ?? 0)) >= 0.001 ||
+                          Math.abs(newCoords[3] - (oldPoint.j4 ?? 0)) >= 0.001 ||
+                          Math.abs(newCoords[4] - (oldPoint.j5 ?? 0)) >= 0.001 ||
+                          Math.abs(newCoords[5] - (oldPoint.j6 ?? 0)) >= 0.001;
+
+                        if (hasChanged) {
+                          const location = {
+                            id: point.id,
+                            name: point.name,
+                            location_type: "j" as const,
+                            j1: newCoords[0],
+                            j2: newCoords[1],
+                            j3: newCoords[2],
+                            j4: newCoords[3],
+                            j5: newCoords[4],
+                            j6: newCoords[5],
+                            tool_id: config.id,
+                          };
+                          updateLocationMutation.mutateAsync(location).then(() => {
+                            robotArmLocationsQuery.refetch();
+                          });
+                        }
+                      } else {
+                        // Opening modal for name edit
+                        openTeachPointModal(point);
+                      }
                     }}
                     onDelete={async (point: TeachPoint) => {
                       await deleteLocationMutation.mutateAsync({ id: point.id });
@@ -371,6 +529,8 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     onAdd={() => {
                       openTeachPointModal();
                     }}
+                    onTeach={handleTeach}
+                    isConnected={isConnected}
                     bgColor={bgColor}
                     bgColorAlpha={bgColorAlpha}
                     searchTerm={searchTerm}
@@ -475,6 +635,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
           }
         }}
         toolId={config.id}
+        existingProfiles={motionProfilesQuery.data || []}
       />
 
       <GripParamsModal

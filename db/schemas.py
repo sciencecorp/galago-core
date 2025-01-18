@@ -1,6 +1,8 @@
 import typing as t
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, conint
 import datetime
+from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 class TimestampMixin(BaseModel):
     created_at: t.Optional[datetime.datetime] = None
@@ -415,7 +417,7 @@ class RobotArmSequence(RobotArmSequenceCreate):
 # Motion Profile Schemas
 class RobotArmMotionProfileCreate(BaseModel):
     name: str
-    profile_id: int
+    profile_id: conint(ge=1, le=14)  # Constrained integer between 1 and 14
     speed: float
     speed2: float
     acceleration: float

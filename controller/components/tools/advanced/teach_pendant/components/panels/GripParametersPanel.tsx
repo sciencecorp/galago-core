@@ -14,9 +14,25 @@ import {
   useColorModeValue,
   VStack,
   Heading,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  MenuDivider,
+  NumberInput,
+  NumberInputField,
 } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon, CheckIcon } from "@chakra-ui/icons";
 import { GripParams } from "../types";
+import { useState, useRef } from "react";
+import { useOutsideClick } from "@chakra-ui/react";
+
+interface EditableParams {
+  id: number;
+  width: number;
+  speed: number;
+  force: number;
+}
 
 interface GripParametersPanelProps {
   params: GripParams[];
@@ -40,6 +56,48 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
   onSetDefault,
 }) => {
   const borderColor = useColorModeValue("gray.200", "gray.600");
+  const [editingParams, setEditingParams] = useState<EditableParams | null>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
+
+  useOutsideClick({
+    ref: tableRef,
+    handler: () => {
+      if (editingParams) {
+        setEditingParams(null);
+      }
+    },
+  });
+
+  const handleValueChange = (field: keyof EditableParams, value: number) => {
+    if (editingParams) {
+      setEditingParams({
+        ...editingParams,
+        [field]: isNaN(value) ? 0 : value,
+      });
+    }
+  };
+
+  const handleSaveParams = (param: GripParams) => {
+    if (editingParams) {
+      const updatedParams = {
+        ...param,
+        width: editingParams.width,
+        speed: editingParams.speed,
+        force: editingParams.force,
+      };
+      onEdit(updatedParams);
+      setEditingParams(null);
+    }
+  };
+
+  const startEditing = (param: GripParams) => {
+    setEditingParams({
+      id: param.id!,
+      width: param.width,
+      speed: param.speed,
+      force: param.force,
+    });
+  };
 
   return (
     <Box height="100%" overflow="hidden">
@@ -51,7 +109,7 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
           </Button>
         </HStack>
         <Box width="100%" flex={1} overflow="hidden">
-          <Box height="100%" overflow="auto" borderWidth="1px" borderRadius="md">
+          <Box ref={tableRef} height="100%" overflow="auto" borderWidth="1px" borderRadius="md">
             <Table variant="simple" size="sm" css={{
               'tr': {
                 borderColor: borderColor,
@@ -83,29 +141,92 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
                       />
                     </Td>
                     <Td>{param.name}</Td>
-                    <Td>{param.width}</Td>
-                    <Td>{param.speed}</Td>
-                    <Td>{param.force}</Td>
+                    {editingParams?.id === param.id ? (
+                      <>
+                        <Td>
+                          <NumberInput
+                            value={editingParams?.width ?? 0}
+                            onChange={(_, value) => handleValueChange('width', value)}
+                            step={1}
+                            precision={0}
+                            size="xs"
+                            min={0}
+                            max={255}
+                          >
+                            <NumberInputField width="65px" textAlign="left" />
+                          </NumberInput>
+                        </Td>
+                        <Td>
+                          <NumberInput
+                            value={editingParams?.speed ?? 0}
+                            onChange={(_, value) => handleValueChange('speed', value)}
+                            step={1}
+                            precision={0}
+                            size="xs"
+                            min={0}
+                            max={255}
+                          >
+                            <NumberInputField width="65px" textAlign="left" />
+                          </NumberInput>
+                        </Td>
+                        <Td>
+                          <NumberInput
+                            value={editingParams?.force ?? 0}
+                            onChange={(_, value) => handleValueChange('force', value)}
+                            step={1}
+                            precision={0}
+                            size="xs"
+                            min={0}
+                            max={255}
+                          >
+                            <NumberInputField width="65px" textAlign="left" />
+                          </NumberInput>
+                        </Td>
+                      </>
+                    ) : (
+                      <>
+                        <Td>{param.width}</Td>
+                        <Td>{param.speed}</Td>
+                        <Td>{param.force}</Td>
+                      </>
+                    )}
                     <Td textAlign="right">
-                      <HStack spacing={2} justify="flex-end">
-                        <Tooltip label="Edit parameters">
+                      {editingParams?.id === param.id ? (
+                        <Tooltip label="Save parameters">
                           <IconButton
-                            aria-label="Edit parameters"
-                            icon={<EditIcon />}
+                            aria-label="Save parameters"
+                            icon={<CheckIcon />}
                             size="sm"
-                            onClick={() => onEdit(param)}
+                            colorScheme="blue"
+                            onClick={() => handleSaveParams(param)}
                           />
                         </Tooltip>
-                        <Tooltip label="Delete parameters">
-                          <IconButton
-                            aria-label="Delete parameters"
-                            icon={<DeleteIcon />}
+                      ) : (
+                        <Menu>
+                          <MenuButton
+                            as={IconButton}
+                            aria-label="Grip parameter actions"
+                            icon={<HamburgerIcon />}
                             size="sm"
-                            colorScheme="red"
-                            onClick={() => onDelete(param.id!)}
                           />
-                        </Tooltip>
-                      </HStack>
+                          <MenuList>
+                            <MenuItem
+                              icon={<EditIcon />}
+                              onClick={() => startEditing(param)}
+                            >
+                              Edit Parameters
+                            </MenuItem>
+                            <MenuDivider />
+                            <MenuItem
+                              icon={<DeleteIcon />}
+                              onClick={() => onDelete(param.id!)}
+                              color="red.500"
+                            >
+                              Delete Parameters
+                            </MenuItem>
+                          </MenuList>
+                        </Menu>
+                      )}
                     </Td>
                   </Tr>
                 ))}

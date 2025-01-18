@@ -24,6 +24,7 @@ interface MotionProfileModalProps {
   profile?: MotionProfile;
   onSave?: (profile: Omit<MotionProfile, "id">) => void;
   toolId: number;
+  existingProfiles?: MotionProfile[];
 }
 
 export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
@@ -32,6 +33,7 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
   profile,
   onSave,
   toolId,
+  existingProfiles = [],
 }) => {
   const [name, setName] = useState("");
   const [profileId, setProfileId] = useState(1);
@@ -73,6 +75,31 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
       return;
     }
 
+    if (profileId < 1 || profileId > 14) {
+      toast({
+        title: "Error",
+        description: "Profile ID must be between 1 and 14",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    const duplicateProfile = existingProfiles.find(
+      p => p.profile_id === profileId && (!profile || p.id !== profile.id)
+    );
+    if (duplicateProfile) {
+      toast({
+        title: "Error",
+        description: `Profile ID ${profileId} is already in use by profile "${duplicateProfile.name}"`,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
     if (onSave) {
       onSave({
         name: name.trim(),
@@ -104,8 +131,13 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
               <Input value={name} onChange={(e) => setName(e.target.value)} />
             </FormControl>
             <FormControl>
-              <FormLabel>Profile ID</FormLabel>
-              <NumberInput value={profileId} onChange={(_, value) => setProfileId(value)}>
+              <FormLabel>Profile ID (1-14)</FormLabel>
+              <NumberInput 
+                value={profileId} 
+                onChange={(_, value) => setProfileId(value)}
+                min={1}
+                max={14}
+              >
                 <NumberInputField />
               </NumberInput>
             </FormControl>

@@ -230,6 +230,7 @@ class RobotArmMotionProfile(Base, TimestampMixin):
 
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
+        CheckConstraint("profile_id >= 1 AND profile_id <= 14", name="check_profile_id_range"),
     )
 
 class RobotArmGripParams(Base, TimestampMixin):

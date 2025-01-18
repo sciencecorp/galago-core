@@ -53,6 +53,8 @@ export const validateImportedData = (data: any): data is TeachPendantExport => {
       (profile: any) =>
         typeof profile.name === "string" &&
         typeof profile.profile_id === "number" &&
+        profile.profile_id >= 1 &&
+        profile.profile_id <= 14 &&
         typeof profile.speed === "number" &&
         typeof profile.speed2 === "number" &&
         typeof profile.acceleration === "number" &&
