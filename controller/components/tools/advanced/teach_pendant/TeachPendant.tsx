@@ -299,6 +299,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
       borderColor={bgColorAlpha}
       width="1200px"
       minW="1200px"
+      boxShadow={useColorModeValue('none', '0 0 10px rgba(255, 255, 255, 0.1)')}
     >
       <VStack p={4} spacing={4} align="stretch">
         {/* Main Content Area */}
