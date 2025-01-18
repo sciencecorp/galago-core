@@ -85,21 +85,28 @@ export default class Tool {
     // Handle PF400 specific configuration
     if (this.type === ToolType.pf400) {
       try {
+        console.log(`[PF400] Starting configuration for ${this.info.name} with config:`, JSON.stringify(config, null, 2));
+        
         // If in simulation mode, just send basic config
         if (config.simulated) {
-          console.log('Configuring PF400 in simulation mode...');
+          console.log('[PF400] Configuring in simulation mode...');
           const pf400Config = {
             host: String(config.pf400?.host || ""),
             port: Number(config.pf400?.port || 0),
             joints: Number(config.pf400?.joints || 0)
           };
 
+          console.log('[PF400] Simulation config:', JSON.stringify(pf400Config, null, 2));
+
           const reply = await this.grpc.configure({
             ...config,
             pf400: pf400Config
           });
 
+          console.log('[PF400] Simulation configure response:', JSON.stringify(reply, null, 2));
+
           if (reply.response !== tool_base.ResponseCode.SUCCESS) {
+            console.error('[PF400] Simulation configure failed:', reply.error_message);
             throw new ToolCommandExecutionError(
               reply.error_message ?? "Configure Command failed",
               reply.response,
@@ -110,9 +117,32 @@ export default class Tool {
         }
 
         // Not in simulation mode, proceed with full configuration
-        const numericId = this.info.name;
-        console.log('Fetching waypoints for PF400 configuration...');
-        const response = await get<any>(`/robot-arm-waypoints?tool_id=${numericId}`);
+        const toolName = this.info.name;
+        console.log('[PF400] Fetching tool info for:', toolName);
+        
+        let waypointsResponse;
+        try {
+          // First get the tool's numeric ID from the database
+          const toolInfo = await get<any>(`/tools/${toolName}`);
+          console.log('[PF400] Tool info:', toolInfo);
+          
+          if (!toolInfo || !toolInfo.id) {
+            throw new Error(`Could not find tool with name ${toolName}`);
+          }
+
+          console.log('[PF400] Fetching waypoints for tool ID:', toolInfo.id);
+          waypointsResponse = await get<any>(`/robot-arm-waypoints?tool_id=${toolInfo.id}`);
+          console.log('[PF400] Waypoints API response:', JSON.stringify(waypointsResponse, null, 2));
+        } catch (apiError: any) {
+          console.error('[PF400] Failed to fetch waypoints from API:', apiError);
+          console.error('[PF400] API error details:', {
+            message: apiError.message,
+            status: apiError.response?.status,
+            statusText: apiError.response?.statusText,
+            data: apiError.response?.data
+          });
+          throw apiError;
+        }
 
         // First configure basic settings
         if (!config.pf400) {
@@ -123,9 +153,9 @@ export default class Tool {
         const waypoints: pf400_protos.WaypointConfig[] = [];
 
         // Add motion profiles
-        if (response.motionProfiles?.length) {
-          console.log("Adding motion profiles to waypoints...");
-          for (const profile of response.motionProfiles) {
+        if (waypointsResponse.motion_profiles?.length) {
+          console.log('[PF400] Adding motion profiles:', waypointsResponse.motion_profiles.length);
+          for (const profile of waypointsResponse.motion_profiles) {
             waypoints.push({
               motion_profile: {
                 id: profile.id,
@@ -144,9 +174,9 @@ export default class Tool {
         }
 
         // Add grip parameters
-        if (response.gripParams?.length) {
-          console.log("Adding grip parameters to waypoints...");
-          for (const param of response.gripParams) {
+        if (waypointsResponse.grip_params?.length) {
+          console.log('[PF400] Adding grip parameters:', waypointsResponse.grip_params.length);
+          for (const param of waypointsResponse.grip_params) {
             waypoints.push({
               grip_param: {
                 id: param.id,
@@ -159,9 +189,9 @@ export default class Tool {
         }
 
         // Add locations
-        if (response.locations?.length) {
-          console.log("Adding locations to waypoints...");
-          for (const loc of response.locations) {
+        if (waypointsResponse.locations?.length) {
+          console.log('[PF400] Adding locations:', waypointsResponse.locations.length);
+          for (const loc of waypointsResponse.locations) {
             const location = `${loc.j1} ${loc.j2} ${loc.j3} ${loc.j4} ${loc.j5} ${loc.j6}`;
             waypoints.push({
               location: {
@@ -173,9 +203,9 @@ export default class Tool {
         }
 
         // Add nests
-        if (response.nests?.length) {
-          console.log("Adding nests to waypoints...");
-          for (const nest of response.nests) {
+        if (waypointsResponse.nests?.length) {
+          console.log('[PF400] Adding nests:', waypointsResponse.nests.length);
+          for (const nest of waypointsResponse.nests) {
             const location = `${nest.j1} ${nest.j2} ${nest.j3} ${nest.j4} ${nest.j5} ${nest.j6}`;
             waypoints.push({
               location: {
@@ -187,9 +217,9 @@ export default class Tool {
         }
 
         // Add labware
-        if (response.labware?.length) {
-          console.log("Adding labware to waypoints...");
-          for (const item of response.labware) {
+        if (waypointsResponse.labware?.length) {
+          console.log('[PF400] Adding labware:', waypointsResponse.labware.length);
+          for (const item of waypointsResponse.labware) {
             waypoints.push({
               labware: {
                 id: item.id,
@@ -207,20 +237,44 @@ export default class Tool {
           waypoints: waypoints
         };
 
-        // Send complete config with waypoints
-        const reply = await this.grpc.configure({
-          ...config,
-          pf400: pf400Config
+        console.log('[PF400] Sending final configuration:', {
+          host: pf400Config.host,
+          port: pf400Config.port,
+          joints: pf400Config.joints,
+          waypointCount: waypoints.length
         });
 
-        if (reply.response !== tool_base.ResponseCode.SUCCESS) {
-          throw new ToolCommandExecutionError(
-            reply.error_message ?? "Configure Command failed",
-            reply.response,
-          );
-        }
+        // Send complete config with waypoints
+        try {
+          const reply = await this.grpc.configure({
+            simulated: config.simulated,
+            pf400: {
+              host: String(config.pf400.host).replace('http://', '').replace('/', ''),
+              port: Number(config.pf400.port),
+              joints: Number(config.pf400.joints)
+            }
+          });
 
-        return reply;
+          console.log('[PF400] Configuration response:', JSON.stringify(reply, null, 2));
+
+          if (reply.response !== tool_base.ResponseCode.SUCCESS) {
+            console.error('[PF400] Configuration failed:', reply.error_message);
+            throw new ToolCommandExecutionError(
+              reply.error_message ?? "Configure Command failed",
+              reply.response,
+            );
+          }
+
+          console.log('[PF400] Configuration successful');
+          return reply;
+        } catch (grpcError: any) {
+          console.error('[PF400] GRPC configuration error:', {
+            message: grpcError.message,
+            code: grpcError.code,
+            details: grpcError.details
+          });
+          throw grpcError;
+        }
       } catch (error) {
         console.error('Failed to configure PF400:', error);
         throw error;

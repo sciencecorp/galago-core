@@ -46,12 +46,17 @@ class Pf400Server(ToolServer):
                 return
 
             # Configure hardware connection
-            self.driver = Pf400Driver(
-                host=config.host,
-                port=config.port,
-                joints=config.joints
-            )
-            self.driver.connect()
+            try:
+                self.driver = Pf400Driver(
+                    tcp_host=config.host,
+                    tcp_port=config.port
+                )
+                # Test connection by getting current position
+                self.driver.wherej()
+                logging.info("Successfully connected to PF400")
+            except Exception as e:
+                logging.error(f"Failed to connect to PF400: {e}")
+                raise
 
             # Process waypoints if provided
             if hasattr(config, 'waypoints') and config.waypoints:
