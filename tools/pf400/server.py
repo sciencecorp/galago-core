@@ -51,53 +51,14 @@ class Pf400Server(ToolServer):
                     tcp_host=config.host,
                     tcp_port=config.port
                 )
+                # Initialize the driver
+                self.driver.initialize()
                 # Test connection by getting current position
                 self.driver.wherej()
                 logging.info("Successfully connected to PF400")
             except Exception as e:
                 logging.error(f"Failed to connect to PF400: {e}")
                 raise
-
-            # Process waypoints if provided
-            if hasattr(config, 'waypoints') and config.waypoints:
-                for waypoint_config in config.waypoints:
-                    waypoint_type = waypoint_config.WhichOneof('waypoint_type')
-                    
-                    if waypoint_type == 'motion_profile':
-                        profile = waypoint_config.motion_profile
-                        self.motion_profile_map[profile.id] = profile.profile_id
-                        # Register the motion profile with the driver
-                        self.driver.register_motion_profile(
-                            str(profile.profile_id),
-                            speed=profile.speed,
-                            speed2=profile.speed2,
-                            accel=profile.acceleration,
-                            decel=profile.deceleration,
-                            accel_ramp=profile.accel_ramp,
-                            decel_ramp=profile.decel_ramp,
-                            inrange=profile.inrange,
-                            straight=1 if profile.straight else 0
-                        )
-                        logging.info(f"Registered motion profile {profile.profile_id} for DB ID {profile.id}")
-                    
-                    elif waypoint_type == 'grip_param':
-                        param = waypoint_config.grip_param
-                        self.grip_params_map[param.id] = {
-                            'width': param.width,
-                            'force': param.force,
-                            'speed': param.speed
-                        }
-                        logging.info(f"Loaded grip params for DB ID {param.id}")
-                    
-                    elif waypoint_type == 'labware':
-                        labware = waypoint_config.labware
-                        self.labware_map[labware.id] = labware.name
-                        logging.info(f"Mapped labware ID {labware.id} to name {labware.name}")
-                    
-                    elif waypoint_type == 'location':
-                        location = waypoint_config.location
-                        self.waypoints[location.name] = location.location
-                        logging.info(f"Added waypoint {location.name}: {location.location}")
 
         except Exception as e:
             logging.error(f"Error configuring PF400: {str(e)}")
@@ -142,8 +103,10 @@ class Pf400Server(ToolServer):
         motion_profile = getattr(params, 'motion_profile_id', None)
 
         if motion_profile:
+            logging.info(f"Motion profile ID {motion_profile} found in params")
             # Map the motion profile ID if it's from the database
             profile_id = self._map_motion_profile(motion_profile)
+            logging.info(f"Registering motion profile {profile_id} for DB ID {motion_profile}")
             self.driver.register_motion_profile(str(profile_id))
         else:
             profile_id = 1
@@ -383,7 +346,73 @@ class Pf400Server(ToolServer):
             
             # Execute the command
             method(command_field)
+
+    def GetWaypoints(self, params: Command.GetWaypoints) -> ExecuteCommandReply:
+        """Debug command to return current waypoints and mappings"""
+        response = ExecuteCommandReply()
+        response.return_reply = True
+        response.response = SUCCESS
+        
+        try:
+            meta = Struct()
+            meta.update({
+                "motion_profiles": str(self.motion_profile_map),
+                "grip_params": str(self.grip_params_map),
+                "labware": str(self.labware_map),
+                "config_waypoints": str(getattr(self.config, 'waypoints', None))
+            })
+            response.meta_data.CopyFrom(meta)
+            return response
+        except Exception as e:
+            logging.error(f"Error getting waypoints: {e}")
+            response.response = ERROR_FROM_TOOL
+            response.error_message = str(e)
+            return response
     
+    def LoadWaypoints(self, params: Command.LoadWaypoints) -> None:
+        """Load all waypoints and parameter mappings in a single call"""
+        try:
+            # Reset all mappings
+            self.motion_profile_map = {}
+            self.grip_params_map = {}
+            self.labware_map = {}
+            self.waypoints = {}
+            
+            for waypoint_config in params.waypoints:
+                waypoint_type = waypoint_config.WhichOneof('waypoint_type')
+                
+                if waypoint_type == 'motion_profile':
+                    profile = waypoint_config.motion_profile
+                    logging.info(f"PROOOOOOOOOOfile {profile}")
+                    logging.info(f"Loading moooooootion profile {profile.id}")
+                    self.motion_profile_map[profile.id] = profile.profile_id
+                    logging.info(f"Motion profile map: {self.motion_profile_map}")
+                    # Register the motion profile with the driver
+                    self.driver.register_motion_profile(str(profile))  
+                    logging.info(f"Registered motion profile {profile.profile_id} for DB ID {profile.id}")
+                elif waypoint_type == 'grip_param':
+                    param = waypoint_config.grip_param
+                    self.grip_params_map[param.id] = {
+                        'width': param.width,
+                        'force': param.force,
+                        'speed': param.speed
+                    }
+                    logging.info(f"Loaded grip params for DB ID {param.id}")
+                
+                elif waypoint_type == 'labware':
+                    labware = waypoint_config.labware
+                    self.labware_map[labware.id] = labware.name
+                    logging.info(f"Mapped labware ID {labware.id} to name {labware.name}")
+                
+                elif waypoint_type == 'location':
+                    location = waypoint_config.location
+                    self.waypoints[location.name] = location.location
+                    logging.info(f"Added waypoint {location.name}: {location.location}")
+                
+        except Exception as e:
+            logging.error(f"Error loading waypoints and mappings: {str(e)}")
+            raise
+        
     def estimateFree(self, params: Command.Free) -> int:
         return 1
 
@@ -420,83 +449,10 @@ class Pf400Server(ToolServer):
     def EstimateLeave(self, params: Command.Leave) -> int:
         return 1
     
-    def GetWaypoints(self, params: Command.GetWaypoints) -> ExecuteCommandReply:
-        """Debug command to return current waypoints and mappings"""
-        response = ExecuteCommandReply()
-        response.return_reply = True
-        response.response = SUCCESS
-        
-        try:
-            meta = Struct()
-            meta.update({
-                "motion_profiles": str(self.motion_profile_map),
-                "grip_params": str(self.grip_params_map),
-                "labware": str(self.labware_map),
-                "config_waypoints": str(getattr(self.config, 'waypoints', None))
-            })
-            response.meta_data.CopyFrom(meta)
-            return response
-        except Exception as e:
-            logging.error(f"Error getting waypoints: {e}")
-            response.response = ERROR_FROM_TOOL
-            response.error_message = str(e)
-            return response
     
     def EstimateGetWaypoints(self, params: Command.GetWaypoints) -> int:
         """Estimate duration for get_waypoints command"""
         return 1  # This is an instant operation
-    
-    def LoadWaypoints(self, params: Command.LoadWaypoints) -> None:
-        """Load all waypoints and parameter mappings in a single call"""
-        try:
-            # Reset all mappings
-            self.motion_profile_map = {}
-            self.grip_params_map = {}
-            self.labware_map = {}
-            self.waypoints = {}
-            
-            for waypoint_config in params.waypoints:
-                waypoint_type = waypoint_config.WhichOneof('waypoint_type')
-                
-                if waypoint_type == 'motion_profile':
-                    profile = waypoint_config.motion_profile
-                    self.motion_profile_map[profile.id] = profile.profile_id
-                    # Register the motion profile with the driver
-                    self.driver.register_motion_profile(
-                        str(profile.profile_id),
-                        speed=profile.speed,
-                        speed2=profile.speed2,
-                        accel=profile.acceleration,
-                        decel=profile.deceleration,
-                        accel_ramp=profile.accel_ramp,
-                        decel_ramp=profile.decel_ramp,
-                        inrange=profile.inrange,
-                        straight=1 if profile.straight else 0
-                    )
-                    logging.info(f"Registered motion profile {profile.profile_id} for DB ID {profile.id}")
-                
-                elif waypoint_type == 'grip_param':
-                    param = waypoint_config.grip_param
-                    self.grip_params_map[param.id] = {
-                        'width': param.width,
-                        'force': param.force,
-                        'speed': param.speed
-                    }
-                    logging.info(f"Loaded grip params for DB ID {param.id}")
-                
-                elif waypoint_type == 'labware':
-                    labware = waypoint_config.labware
-                    self.labware_map[labware.id] = labware.name
-                    logging.info(f"Mapped labware ID {labware.id} to name {labware.name}")
-                
-                elif waypoint_type == 'location':
-                    location = waypoint_config.location
-                    self.waypoints[location.name] = location.location
-                    logging.info(f"Added waypoint {location.name}: {location.location}")
-                
-        except Exception as e:
-            logging.error(f"Error loading waypoints and mappings: {str(e)}")
-            raise
 
     def EstimateLoadWaypoints(self, params: Command.LoadWaypoints) -> int:
         """Estimate duration for load_waypoints command"""

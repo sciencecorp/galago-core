@@ -58,7 +58,11 @@ export const validateImportedData = (data: any): data is TeachPendantExport => {
         typeof profile.speed === "number" &&
         typeof profile.speed2 === "number" &&
         typeof profile.acceleration === "number" &&
-        typeof profile.deceleration === "number"
+        typeof profile.deceleration === "number" &&
+        typeof profile.accel_ramp === "number" &&
+        typeof profile.decel_ramp === "number" &&
+        typeof profile.inrange === "number" &&
+        typeof profile.straight === "number"
     ) &&
     // Validate grip params
     data.data.gripParams.every(

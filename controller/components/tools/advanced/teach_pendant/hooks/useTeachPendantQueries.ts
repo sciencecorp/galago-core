@@ -238,7 +238,7 @@ export const useTeachPendantQueries = (toolId: string | undefined, configId: num
   });
 
   // Command mutation
-  const robotArmCommandMutation = trpc.robotArm.command.useMutation();
+  const robotArmCommandMutation = trpc.tool.runCommand.useMutation();
 
   return {
     toolStatusQuery,

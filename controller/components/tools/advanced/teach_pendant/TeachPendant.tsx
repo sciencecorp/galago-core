@@ -40,6 +40,7 @@ import { useTeachPendantUI } from "./hooks/useTeachPendantUI";
 import { useTeachPendantData } from "./hooks/useTeachPendantData";
 import { useTeachPendantSettings } from "./hooks/useTeachPendantSettings";
 import { useCommandHandlers } from "./utils/commandHandlers";
+import { ToolType } from "gen-interfaces/controller";
 
 interface TeachPendantProps {
   toolId: string | undefined;
@@ -128,7 +129,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
   const commandHandlers = useCommandHandlers(config);
 
   const handleJog = () => {
-    commandHandlers.handleJog(null, jogAxis, jogDistance);
+    commandHandlers.handleJog(robotArmCommandMutation, jogAxis, jogDistance);
   };
 
   const handleMoveCommand = commandHandlers.handleMoveCommand;
@@ -167,13 +168,16 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
 
     try {
       // Get current joint position from robot
+      console.log("Getting current joint position");
       const response = await robotArmCommandMutation.mutateAsync({
-        command: "wherej",
+        toolId: config.name,
+        toolType: config.type as ToolType,
+        command: "get_current_location",
         params: {}
       });
 
-      if (response) {
-        const coordinates = (response as string).split(" ").slice(1); // Remove first element which is status code
+      if (response?.meta_data?.fields?.response?.stringValue) {
+        const coordinates = response.meta_data.fields.response.stringValue.split(" ").slice(1);
 
         // Update the teach point with new coordinates
         await updateLocationMutation.mutateAsync({
@@ -297,7 +301,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
       overflow="hidden" 
       bgColor={bgColor}
       borderColor={bgColorAlpha}
-      width="1200px"
+      width="1500px"
       minW="1200px"
       boxShadow={useColorModeValue('0 4px 12px rgba(0, 0, 0, 0.1)', '0 4px 12px rgba(0, 0, 0, 0.4)')}
     >
@@ -310,11 +314,21 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
               <ToolStatusCard toolId={config.name} />
             </Box>
             <ControlPanel
-              onFree={() => commandHandlers.handleSimpleCommand(null, "free")}
-              onUnfree={() => commandHandlers.handleSimpleCommand(null, "unfree")}
-              onUnwind={() => commandHandlers.handleSimpleCommand(null, "unwind")}
-              onGripperOpen={() => commandHandlers.handleGripperCommand(null, "open", { width: 0, speed: 0, force: 0 })}
-              onGripperClose={() => commandHandlers.handleGripperCommand(null, "close", { width: 0, speed: 0, force: 0 })}
+              onFree={() => commandHandlers.handleSimpleCommand(robotArmCommandMutation, "free")}
+              onUnfree={() => commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unfree")}
+              onUnwind={() => commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")}
+              onGripperOpen={() => {
+                const defaultParams = gripParams.find(p => p.id === defaultParamsId);
+                if (defaultParams) {
+                  commandHandlers.handleGripperCommand(robotArmCommandMutation, "open", defaultParams);
+                }
+              }}
+              onGripperClose={() => {
+                const defaultParams = gripParams.find(p => p.id === defaultParamsId);
+                if (defaultParams) {
+                  commandHandlers.handleGripperCommand(robotArmCommandMutation, "close", defaultParams);
+                }
+              }}
               jogEnabled={jogEnabled}
               jogAxis={jogAxis}
               jogDistance={jogDistance}
@@ -540,7 +554,13 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 <TabPanel>
                   <MotionProfilesPanel
                     profiles={filteredItems as MotionProfile[]}
-                    onEdit={(profile) => {
+                    onInlineEdit={async (profile) => {
+                      await updateMotionProfileMutation.mutateAsync({
+                        ...profile,
+                        tool_id: config.id,
+                      });
+                    }}
+                    onModalEdit={(profile) => {
                       setSelectedMotionProfile(profile);
                       motionProfileModal.onOpen();
                     }}
@@ -552,11 +572,24 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                       setSelectedMotionProfile(null);
                       motionProfileModal.onOpen();
                     }}
-                    onRegister={(profile) => commandHandlers.handleRegisterMotionProfile(robotArmCommandMutation, profile)}
+                    onRegister={(profile) => {
+                      console.log("Registering motion profile with ID:", profile.profile_id);
+                      commandHandlers.handleRegisterMotionProfile(robotArmCommandMutation, {
+                        id: profile.profile_id,
+                        speed: profile.speed,
+                        speed2: profile.speed2,
+                        acceleration: profile.acceleration,
+                        deceleration: profile.deceleration,
+                        accel_ramp: profile.accel_ramp,
+                        decel_ramp: profile.decel_ramp,
+                        inrange: profile.inrange,
+                        straight: profile.straight
+                      })
+                    }}
                     bgColor={bgColor}
                     bgColorAlpha={bgColorAlpha}
                     defaultProfileId={defaultProfileId}
-                    onSetDefault={setDefaultProfileId}
+                    onSetDefault={(id: number | null) => setDefaultProfileId(id)}
                   />
                 </TabPanel>
                 <TabPanel>
@@ -578,6 +611,12 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     bgColorAlpha={bgColorAlpha}
                     defaultParamsId={defaultParamsId}
                     onSetDefault={setDefaultParamsId}
+                    onInlineEdit={async (params) => {
+                      await updateGripParamsMutation.mutateAsync({
+                        ...params,
+                        tool_id: config.id,
+                      });
+                    }}
                   />
                 </TabPanel>
                 <TabPanel>
@@ -616,7 +655,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         profile={selectedMotionProfile || undefined}
         onSave={async (profile) => {
           try {
-            console.log("Selected motion profile:", selectedMotionProfile);
             if (selectedMotionProfile?.id) {
               await updateMotionProfileMutation.mutateAsync({
                 id: selectedMotionProfile.id,

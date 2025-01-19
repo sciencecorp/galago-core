@@ -14,6 +14,7 @@ import {
   NumberInputField,
   VStack,
   useToast,
+  Switch,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { MotionProfile } from "@/components/tools/advanced/teach_pendant/components/types";
@@ -41,25 +42,39 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
   const [speed2, setSpeed2] = useState(50);
   const [acceleration, setAcceleration] = useState(50);
   const [deceleration, setDeceleration] = useState(50);
+  const [accelRamp, setAccelRamp] = useState(0);
+  const [decelRamp, setDecelRamp] = useState(0);
+  const [inrange, setInrange] = useState(0);
+  const [straight, setStraight] = useState(0);
   const toast = useToast();
 
   useEffect(() => {
-    if (isOpen) {
-      if (profile) {
-        setName(profile.name);
-        setProfileId(profile.profile_id);
-        setSpeed(profile.speed);
-        setSpeed2(profile.speed2);
-        setAcceleration(profile.acceleration);
-        setDeceleration(profile.deceleration);
-      } else {
-        setName("");
-        setProfileId(1);
-        setSpeed(50);
-        setSpeed2(50);
-        setAcceleration(50);
-        setDeceleration(50);
-      }
+    if (isOpen && !profile) {
+      setName("");
+      setProfileId(2);
+      setSpeed(60);
+      setSpeed2(60);
+      setAcceleration(60);
+      setDeceleration(60);
+      setAccelRamp(0.1);
+      setDecelRamp(0.1);
+      setInrange(0);
+      setStraight(0);
+    }
+  }, [isOpen, profile]);
+
+  useEffect(() => {
+    if (isOpen && profile) {
+      setName(profile.name);
+      setProfileId(profile.profile_id);
+      setSpeed(profile.speed);
+      setSpeed2(profile.speed2);
+      setAcceleration(profile.acceleration);
+      setDeceleration(profile.deceleration);
+      setAccelRamp(profile.accel_ramp);
+      setDecelRamp(profile.decel_ramp);
+      setInrange(profile.inrange);
+      setStraight(profile.straight);
     }
   }, [isOpen, profile]);
 
@@ -109,10 +124,10 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
         acceleration,
         deceleration,
         tool_id: toolId,
-        accel_ramp: 0,
-        decel_ramp: 0,
-        inrange: 0,
-        straight: 0
+        accel_ramp: accelRamp,
+        decel_ramp: decelRamp,
+        inrange,
+        straight
       });
     }
     onClose();
@@ -164,6 +179,28 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
               <NumberInput value={deceleration} onChange={(_, value) => setDeceleration(value)}>
                 <NumberInputField />
               </NumberInput>
+            </FormControl>
+            <FormControl>
+              <FormLabel>Accel Ramp (%)</FormLabel>
+              <NumberInput value={accelRamp} onChange={(_, value) => setAccelRamp(value)}>
+                <NumberInputField />
+              </NumberInput>
+            </FormControl>
+            <FormControl>
+              <FormLabel>Decel Ramp (%)</FormLabel>
+              <NumberInput value={decelRamp} onChange={(_, value) => setDecelRamp(value)}>
+                <NumberInputField />
+              </NumberInput>
+            </FormControl>
+            <FormControl>
+              <FormLabel>Inrange</FormLabel>
+              <NumberInput value={inrange} onChange={(_, value) => setInrange(value)}>
+                <NumberInputField />
+              </NumberInput>
+            </FormControl>
+            <FormControl>
+              <FormLabel>Straight</FormLabel>
+              <Switch value={straight} onChange={(e) => setStraight(e.target.checked ? 1 : 0)} />
             </FormControl>
           </VStack>
         </ModalBody>

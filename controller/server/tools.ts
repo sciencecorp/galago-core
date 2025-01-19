@@ -265,6 +265,92 @@ export default class Tool {
             );
           }
 
+          // After successful configuration, load waypoints
+          if (waypointsResponse) {
+            console.log('[PF400] Loading waypoints...');
+            const waypoints: pf400_protos.WaypointConfig[] = [];
+
+            // Add motion profiles
+            if (waypointsResponse.motion_profiles?.length) {
+              console.log('[PF400] Adding motion profiles:', waypointsResponse.motion_profiles.length);
+              for (const profile of waypointsResponse.motion_profiles) {
+                waypoints.push({
+                  motion_profile: {
+                    id: profile.id,
+                    profile_id: profile.id,
+                    speed: profile.speed,
+                    speed2: profile.speed2,
+                    acceleration: profile.acceleration,
+                    deceleration: profile.deceleration,
+                    accel_ramp: profile.accelramp,
+                    decel_ramp: profile.decelramp,
+                    inrange: profile.inrange,
+                    straight: profile.straight === 1
+                  }
+                });
+              }
+            }
+
+            // Add grip parameters
+            if (waypointsResponse.grip_params?.length) {
+              console.log('[PF400] Adding grip parameters:', waypointsResponse.grip_params.length);
+              for (const param of waypointsResponse.grip_params) {
+                waypoints.push({
+                  grip_param: {
+                    id: param.id,
+                    width: param.width,
+                    force: param.force,
+                    speed: param.speed
+                  }
+                });
+              }
+            }
+
+            // Add locations
+            if (waypointsResponse.locations?.length) {
+              console.log('[PF400] Adding locations:', waypointsResponse.locations.length);
+              for (const loc of waypointsResponse.locations) {
+                const location = `${loc.j1} ${loc.j2} ${loc.j3} ${loc.j4} ${loc.j5} ${loc.j6}`;
+                waypoints.push({
+                  location: {
+                    name: loc.name,
+                    location: location
+                  }
+                });
+              }
+            }
+
+            // Add labware
+            if (waypointsResponse.labware?.length) {
+              console.log('[PF400] Adding labware:', waypointsResponse.labware.length);
+              for (const item of waypointsResponse.labware) {
+                waypoints.push({
+                  labware: {
+                    id: item.id,
+                    name: item.name
+                  }
+                });
+              }
+            }
+
+            // Send waypoints to server
+            const loadWaypointsReply = await this.grpc.executeCommand({
+              pf400: {
+                load_waypoints: {
+                  waypoints: waypoints
+                }
+              }
+            });
+
+            if (loadWaypointsReply.response !== tool_base.ResponseCode.SUCCESS) {
+              console.error('[PF400] Failed to load waypoints:', loadWaypointsReply.error_message);
+              throw new ToolCommandExecutionError(
+                loadWaypointsReply.error_message ?? "Failed to load waypoints",
+                loadWaypointsReply.response,
+              );
+            }
+          }
+
           console.log('[PF400] Configuration successful');
           return reply;
         } catch (grpcError: any) {

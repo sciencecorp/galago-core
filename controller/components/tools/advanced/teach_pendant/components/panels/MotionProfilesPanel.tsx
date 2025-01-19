@@ -33,11 +33,16 @@ interface EditableProfile {
   speed2: number;
   acceleration: number;
   deceleration: number;
+  accel_ramp: number;
+  decel_ramp: number;
+  inrange: number;
+  straight: number;
 }
 
 interface MotionProfilesPanelProps {
   profiles: MotionProfile[];
-  onEdit: (profile: MotionProfile) => void;
+  onInlineEdit: (profile: MotionProfile) => void;
+  onModalEdit: (profile: MotionProfile) => void;
   onRegister: (profile: MotionProfile) => void;
   onDelete: (id: number) => void;
   onAdd: () => void;
@@ -49,7 +54,8 @@ interface MotionProfilesPanelProps {
 
 export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
   profiles,
-  onEdit,
+  onInlineEdit,
+  onModalEdit,
   onRegister,
   onDelete,
   onAdd,
@@ -88,8 +94,12 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
         speed2: editingProfile.speed2,
         acceleration: editingProfile.acceleration,
         deceleration: editingProfile.deceleration,
+        accel_ramp: editingProfile.accel_ramp,
+        decel_ramp: editingProfile.decel_ramp,
+        inrange: editingProfile.inrange,
+        straight: editingProfile.straight,
       };
-      onEdit(updatedProfile);
+      onInlineEdit(updatedProfile);
       setEditingProfile(null);
     }
   };
@@ -101,6 +111,10 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
       speed2: profile.speed2,
       acceleration: profile.acceleration,
       deceleration: profile.deceleration,
+      accel_ramp: profile.accel_ramp,
+      decel_ramp: profile.decel_ramp,
+      inrange: profile.inrange,
+      straight: profile.straight,
     });
   };
 
@@ -130,22 +144,26 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                 <Tr>
                   <Th>Default</Th>
                   <Th>Name</Th>
-                  <Th>Profile ID</Th>
+                  <Th>ID</Th>
                   <Th>Speed</Th>
                   <Th>Speed2</Th>
-                  <Th>Acceleration</Th>
-                  <Th>Deceleration</Th>
+                  <Th>Accel</Th>
+                  <Th>Decel</Th>
+                  <Th>A Ramp</Th>
+                  <Th>D Ramp</Th>
+                  <Th>InRange</Th>
+                  <Th>Str</Th>
                   <Th textAlign="right">Actions</Th>
                 </Tr>
               </Thead>
               <Tbody>
                 {profiles.map((profile) => (
-                  <Tr key={profile.id || profile.profile_id || `new-${profile.name}`} bg={profile.id === defaultProfileId ? bgColorAlpha : undefined}>
+                  <Tr key={profile.id || `new-${profile.name}`} bg={profile.id === defaultProfileId ? bgColorAlpha : undefined}>
                     <Td>
                       <Switch
                         isChecked={profile.id === defaultProfileId}
-                        onChange={() => onSetDefault(profile.id === defaultProfileId ? null : (profile.id || profile.profile_id))}
-                        isDisabled={!profile.id && !profile.profile_id}
+                        onChange={() => onSetDefault(profile.id === defaultProfileId ? null : profile.id)}
+                        isDisabled={!profile.id}
                       />
                     </Td>
                     <Td>{profile.name}</Td>
@@ -204,6 +222,51 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                             <NumberInputField width="65px" textAlign="left" />
                           </NumberInput>
                         </Td>
+                        <Td>
+                          <NumberInput
+                            value={editingProfile.accel_ramp}
+                            onChange={(_, value) => handleValueChange('accel_ramp', value)}
+                            step={0.1}
+                            precision={1}
+                            size="xs"
+                            min={0}
+                            max={100}
+                          >
+                            <NumberInputField width="65px" textAlign="left" />
+                          </NumberInput>
+                        </Td>
+                        <Td>
+                          <NumberInput
+                            value={editingProfile.decel_ramp}
+                            onChange={(_, value) => handleValueChange('decel_ramp', value)}
+                            step={0.1}
+                            precision={1}
+                            size="xs"
+                            min={0}
+                            max={100}
+                          >
+                            <NumberInputField width="65px" textAlign="left" />
+                          </NumberInput>
+                        </Td>
+                        <Td>
+                          <NumberInput
+                            value={editingProfile.inrange}
+                            onChange={(_, value) => handleValueChange('inrange', value)}
+                            step={1}
+                            precision={0}
+                            size="xs"
+                            min={0}
+                          >
+                            <NumberInputField width="65px" textAlign="left" />
+                          </NumberInput>
+                        </Td>
+                        <Td>
+                          <Switch
+                            isChecked={editingProfile.straight === 1}
+                            onChange={(e) => handleValueChange('straight', e.target.checked ? 1 : 0)}
+                            size="sm"
+                          />
+                        </Td>
                       </>
                     ) : (
                       <>
@@ -211,6 +274,10 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                         <Td>{profile.speed2}%</Td>
                         <Td>{profile.acceleration}%</Td>
                         <Td>{profile.deceleration}%</Td>
+                        <Td>{profile.accel_ramp}%</Td>
+                        <Td>{profile.decel_ramp}%</Td>
+                        <Td>{profile.inrange}</Td>
+                        <Td>{profile.straight ? 'Yes' : 'No'}</Td>
                       </>
                     )}
                     <Td textAlign="right">

@@ -37,6 +37,7 @@ interface EditableParams {
 interface GripParametersPanelProps {
   params: GripParams[];
   onEdit: (params: GripParams) => void;
+  onInlineEdit: (params: GripParams) => void;
   onDelete: (id: number) => void;
   onAdd: () => void;
   bgColor: string;
@@ -48,6 +49,7 @@ interface GripParametersPanelProps {
 export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
   params,
   onEdit,
+  onInlineEdit,
   onDelete,
   onAdd,
   bgColor,
@@ -85,7 +87,7 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
         speed: editingParams.speed,
         force: editingParams.force,
       };
-      onEdit(updatedParams);
+      onInlineEdit(updatedParams);
       setEditingParams(null);
     }
   };

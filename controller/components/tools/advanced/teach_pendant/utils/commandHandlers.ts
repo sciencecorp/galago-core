@@ -2,12 +2,26 @@ import { useToast } from "@chakra-ui/react";
 import { TeachPoint, MotionProfile, GripParams } from "../components/types";
 import { ToolCommandInfo } from "@/types";
 import { ToolType } from "gen-interfaces/controller";
+import { UseMutationResult } from "@tanstack/react-query";
+
+// Add a new interface for the robot motion profile format
+interface RobotMotionProfile {
+  id: number;
+  speed: number;
+  speed2: number;
+  acceleration: number;
+  deceleration: number;
+  accel_ramp: number;
+  decel_ramp: number;
+  inrange: number;
+  straight: number;
+}
 
 export const useCommandHandlers = (config: { name: string; type: string }) => {
   const toast = useToast();
 
   const handleJog = async (
-    commandMutation: any,
+    commandMutation: UseMutationResult<any, unknown, ToolCommandInfo>,
     jogAxis: string,
     jogDistance: number
   ) => {
@@ -54,7 +68,7 @@ export const useCommandHandlers = (config: { name: string; type: string }) => {
   };
 
   const handleMoveCommand = async (
-    commandMutation: any,
+    commandMutation: UseMutationResult<any, unknown, ToolCommandInfo>,
     point: TeachPoint,
     profile: MotionProfile,
     action?: 'approach' | 'leave'
@@ -68,7 +82,7 @@ export const useCommandHandlers = (config: { name: string; type: string }) => {
         command: action === 'approach' ? 'approach' : 'leave',
         params: {
           nest_id: point.id,
-          motion_profile_id: profile.profile_id,
+          motion_profile_id: profile.id,
         },
       };
     } else {
@@ -78,7 +92,7 @@ export const useCommandHandlers = (config: { name: string; type: string }) => {
         command: "move",
         params: {
           waypoint: point.coordinate,
-          motion_profile_id: profile.profile_id,
+          motion_profile_id: profile.id,
         },
       };
     }
@@ -107,13 +121,9 @@ export const useCommandHandlers = (config: { name: string; type: string }) => {
   };
 
   const handleGripperCommand = async (
-    commandMutation: any,
+    commandMutation: UseMutationResult<any, unknown, ToolCommandInfo>,
     action: "open" | "close",
-    params: {
-      width: number;
-      speed: number;
-      force: number;
-    }
+    params: GripParams
   ) => {
     const gripperCommand: ToolCommandInfo = {
       toolId: config.name,
@@ -148,7 +158,7 @@ export const useCommandHandlers = (config: { name: string; type: string }) => {
   };
 
   const handleSimpleCommand = async (
-    commandMutation: any,
+    commandMutation: UseMutationResult<any, unknown, ToolCommandInfo>,
     command: "free" | "unfree" | "unwind"
   ) => {
     const simpleCommand: ToolCommandInfo = {
@@ -180,8 +190,8 @@ export const useCommandHandlers = (config: { name: string; type: string }) => {
   };
 
   const handleRegisterMotionProfile = async (
-    commandMutation: any,
-    profile: MotionProfile
+    commandMutation: UseMutationResult<any, any, any>,
+    profile: RobotMotionProfile
   ) => {
     try {
       await commandMutation.mutateAsync({
@@ -191,8 +201,7 @@ export const useCommandHandlers = (config: { name: string; type: string }) => {
         params: {
           waypoints: [{
             motion_profile: {
-              id: profile.profile_id,
-              profile_id: profile.profile_id,
+              id: profile.id,
               speed: profile.speed,
               speed2: profile.speed2,
               acceleration: profile.acceleration,
@@ -207,7 +216,7 @@ export const useCommandHandlers = (config: { name: string; type: string }) => {
       });
       toast({
         title: "Success",
-        description: `Motion profile ${profile.name} registered with robot`,
+        description: `Motion profile ${profile.id} registered with robot`,
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -224,8 +233,8 @@ export const useCommandHandlers = (config: { name: string; type: string }) => {
   };
 
   const handleRunSequence = async (
-    commandMutation: any,
-    sequence: any
+    commandMutation: UseMutationResult<any, unknown, ToolCommandInfo>,
+    sequence: { id: number; name: string }
   ) => {
     const command: ToolCommandInfo = {
       toolId: config.name,
