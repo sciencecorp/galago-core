@@ -232,46 +232,11 @@ export const useCommandHandlers = (config: { name: string; type: string }) => {
     }
   };
 
-  const handleRunSequence = async (
-    commandMutation: UseMutationResult<any, unknown, ToolCommandInfo>,
-    sequence: { id: number; name: string }
-  ) => {
-    const command: ToolCommandInfo = {
-      toolId: config.name,
-      toolType: config.type as ToolType,
-      command: "run_sequence",
-      params: {
-        sequence_id: sequence.id,
-      },
-    };
-
-    try {
-      await commandMutation.mutateAsync(command);
-      toast({
-        title: "Success",
-        description: `Running sequence ${sequence.name}`,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error) {
-      console.error("Error running sequence:", error);
-      toast({
-        title: "Error",
-        description: "Failed to run sequence",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
-
   return {
     handleJog,
     handleMoveCommand,
     handleGripperCommand,
     handleSimpleCommand,
     handleRegisterMotionProfile,
-    handleRunSequence,
   };
 }; 

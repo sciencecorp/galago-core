@@ -136,8 +136,7 @@ export const CommandModal: React.FC<CommandModalProps> = ({
       const point = teachPoints.find(p => p.id === Number(processedParams.waypoint || processedParams.location || processedParams.nest));
       if (point) {
         if (processedParams.waypoint) {
-          processedParams.waypoint = point.coordinate;
-          processedParams.waypoint_id = point.id;
+          processedParams.waypoint = point.name;
         }
         if (processedParams.location) processedParams.location = point.name;
         if (processedParams.nest) {

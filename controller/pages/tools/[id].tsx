@@ -307,7 +307,6 @@ const commandFields: CommandFields = {
   pf400: {
     run_sequence: [
       { name: "sequence_name", type: "text" },
-      { name: "labware", type: "text" },
     ],
     move: move,
     grasp_plate: grasp_plate,

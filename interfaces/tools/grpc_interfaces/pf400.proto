@@ -151,6 +151,7 @@ message WaypointConfig {
     GripParamConfig grip_param = 2;
     LabwareConfig labware = 3;
     LocationConfig location = 4;
+    SequenceConfig sequence = 5;
   }
 }
 
@@ -182,5 +183,10 @@ message LabwareConfig {
 message LocationConfig {
   string name = 1;
   string location = 2;
+}
+
+message SequenceConfig {
+  string name = 1;
+  repeated Command commands = 2;
 }
 

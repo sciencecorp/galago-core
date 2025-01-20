@@ -149,7 +149,7 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
                     <Td>
                       {editingParams?.id === param.id ? (
                         <Input
-                          value={editingParams.name}
+                          value={editingParams?.name ?? ''}
                           onChange={(e) => handleValueChange('name', e.target.value)}
                           size="xs"
                           width="120px"

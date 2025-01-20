@@ -139,21 +139,9 @@ export const CommandList: React.FC<CommandListProps> = ({
     };
 
     const getDisplayValue = (key: string, value: any): string => {
-        // Handle waypoint coordinates
+        // Handle waypoint names
         if (key === 'waypoint') {
-            const matchingPoint = teachPoints.find(p => p.coordinate === value);
-            if (matchingPoint) {
-                return matchingPoint.name;
-            }
-            // If no exact match found, try to find a point with similar coordinates
-            // This helps with floating point precision differences
-            const coordinates = value.split(" ").map(Number);
-            const similarPoint = teachPoints.find(p => {
-                const pointCoords = p.coordinate.split(" ").map(Number);
-                return coordinates.length === pointCoords.length &&
-                    coordinates.every((coord: number, i: number) => Math.abs(coord - pointCoords[i]) < 0.001);
-            });
-            return similarPoint ? similarPoint.name : value;
+            return value; // Value is already the waypoint name
         }
 
         switch (key) {
@@ -347,7 +335,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                                             <Collapse in={isEditing || expandedCommandIndex === index}>
                                                 <VStack align="start" mt={3} spacing={3} pl={2}>
                                                     {Object.entries(command.params)
-                                                        .filter(([key]) => key !== 'waypoint_id')
+                                                        .filter(([key]) => key !== 'waypoint_id' && key !== 'waypoint')
                                                         .map(([key, value]) => (
                                                         <HStack key={key} width="100%">
                                                             <Text fontSize="sm" color="gray.500" width="30%">
@@ -430,9 +418,9 @@ export const CommandList: React.FC<CommandListProps> = ({
                                                                             <Tbody>
                                                                                 <Tr>
                                                                                     {(value || "0 0 0 0 0 0").split(" ").map((coord: string, i: number) => (
-                                                                                        <Td key={i} padding={0.5} width="auto">
-                                                                                            <Text fontSize="xs" textAlign="center" width="35px">
-                                                                                                {coord}
+                                                                                        <Td key={i} padding={1} width="auto">
+                                                                                            <Text fontSize="sm" textAlign="center" width="60px" fontFamily="mono">
+                                                                                                {Number(coord).toFixed(2)}
                                                                                             </Text>
                                                                                         </Td>
                                                                                     ))}

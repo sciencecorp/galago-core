@@ -41,6 +41,7 @@ import { useTeachPendantData } from "./hooks/useTeachPendantData";
 import { useTeachPendantSettings } from "./hooks/useTeachPendantSettings";
 import { useCommandHandlers } from "./utils/commandHandlers";
 import { ToolType } from "gen-interfaces/controller";
+import { useSequenceHandler } from "./components/hooks/useSequenceHandler";
 
 interface TeachPendantProps {
   toolId: string | undefined;
@@ -57,22 +58,18 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     toolStatusQuery,
     motionProfilesQuery,
     gripParamsQuery,
-    robotArmSequencesQuery,
     robotArmLocationsQuery,
     robotArmNestsQuery,
     createLocationMutation,
     updateLocationMutation,
     deleteLocationMutation,
-    robotArmCreateSequenceMutation,
-    robotArmUpdateSequenceMutation,
-    robotArmDeleteSequenceMutation,
-    robotArmCommandMutation,
     deleteGripParamsMutation,
     createMotionProfileMutation,
     updateMotionProfileMutation,
     createGripParamsMutation,
     updateGripParamsMutation,
     deleteMotionProfileMutation,
+    robotArmCommandMutation,
   } = useTeachPendantQueries(toolId, config.id);
 
   const {
@@ -89,7 +86,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     openTeachPointModal,
     openMotionProfileModal,
     openGripParamsModal,
-    openSequenceModal,
     selectedMotionProfile,
     setSelectedMotionProfile,
     selectedGripParams,
@@ -101,11 +97,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     motionProfileModal,
     gripParamsModal,
     teachPointModal,
-    sequenceModal,
   } = useTeachPendantUI();
-
-  // Convert string id to number for toggleRow
-  const toggleRow = (id: number) => toggleRowUI(id);
 
   const {
     teachPoints,
@@ -125,6 +117,19 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     updateGripParams,
     deleteGripParams,
   } = useTeachPendantData();
+
+  const {
+    sequences,
+    handleCreateSequence,
+    handleUpdateSequence,
+    handleDeleteSequence,
+    handleRunSequence,
+    handleEditSequence,
+    handleNewSequence,
+    isOpen: isSequenceModalOpen,
+    onClose: onSequenceModalClose,
+    selectedSequence: currentSequence,
+  } = useSequenceHandler(config);
 
   const commandHandlers = useCommandHandlers(config);
 
@@ -295,7 +300,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
           params.name.toLowerCase().includes(term)
         ) || [];
       case 3: // Sequences
-        return (robotArmSequencesQuery.data || [])
+        return (sequences || [])
           .filter(sequence => 
             sequence && 
             sequence.commands && 
@@ -306,7 +311,10 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
       default:
         return [];
     }
-  }, [activeTab, searchTerm, teachPoints, motionProfilesQuery.data, gripParamsQuery.data, robotArmSequencesQuery.data]);
+  }, [activeTab, searchTerm, teachPoints, motionProfilesQuery.data, gripParamsQuery.data, sequences]);
+
+  // Update toggleRow reference
+  const toggleRow = toggleRowUI;
 
   return (
     <Card 
@@ -365,7 +373,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 teachPoints={teachPoints}
                 motionProfiles={motionProfiles}
                 gripParams={gripParams}
-                sequences={robotArmSequencesQuery.data || []}
+                sequences={sequences || []}
                 onImport={async (data) => {
                   try {
                     // Import teach points if present
@@ -456,12 +464,9 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     // Import sequences if present
                     if (data.sequences?.length) {
                       for (const sequence of data.sequences) {
-                        await robotArmCreateSequenceMutation.mutateAsync({
-                          ...sequence,
-                          tool_id: config.id
-                        });
+                        await handleCreateSequence(sequence);
                       }
-                      await robotArmSequencesQuery.refetch();
+                      await robotArmLocationsQuery.refetch();
                     }
 
                     toast({
@@ -510,7 +515,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     teachPoints={filteredItems as TeachPoint[]}
                     motionProfiles={motionProfiles}
                     gripParams={gripParams}
-                    sequences={robotArmSequencesQuery.data || []}
+                    sequences={sequences || []}
                     expandedRows={new Set(Object.keys(expandedRows).map(Number))}
                     toggleRow={toggleRow}
                     onImport={async () => {}}
@@ -635,23 +640,14 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 </TabPanel>
                 <TabPanel>
                   <SequencesPanel
-                    sequences={filteredItems as Sequence[]}
+                    sequences={sequences || []}
                     teachPoints={teachPoints}
                     motionProfiles={motionProfiles}
                     gripParams={gripParams}
-                    onRun={async (sequence) => commandHandlers.handleRunSequence(robotArmCommandMutation, sequence)}
-                    onDelete={async (id) => {
-                      await robotArmDeleteSequenceMutation.mutateAsync({ id });
-                      robotArmSequencesQuery.refetch();
-                    }}
-                    onCreateNew={() => {
-                      setSelectedSequence(null);
-                      openSequenceModal();
-                    }}
-                    onUpdateSequence={async (sequence) => {
-                      await robotArmUpdateSequenceMutation.mutateAsync(sequence);
-                      robotArmSequencesQuery.refetch();
-                    }}
+                    onRun={handleRunSequence}
+                    onDelete={handleDeleteSequence}
+                    onCreateNew={handleNewSequence}
+                    onUpdateSequence={handleUpdateSequence}
                     bgColor={bgColor}
                     bgColorAlpha={bgColorAlpha}
                   />
@@ -768,23 +764,19 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
       />
 
       <SequenceModal
-        isOpen={sequenceModal.isOpen}
-        onClose={sequenceModal.onClose}
-        sequence={selectedSequence || undefined}
-        onSave={async (sequence) => {
-          const newSequence = {
-            ...sequence,
-            tool_id: config.id,
-          };
-          if (selectedSequence) {
-            await robotArmUpdateSequenceMutation.mutateAsync({
-              ...newSequence,
-              id: selectedSequence.id
+        isOpen={isSequenceModalOpen}
+        onClose={onSequenceModalClose}
+        sequence={currentSequence || undefined}
+        onSave={async (sequence: Omit<Sequence, "id">) => {
+          if (currentSequence) {
+            await handleUpdateSequence({
+              ...sequence,
+              id: currentSequence.id
             });
           } else {
-            await robotArmCreateSequenceMutation.mutateAsync(newSequence);
+            await handleCreateSequence(sequence);
           }
-          sequenceModal.onClose();
+          onSequenceModalClose();
         }}
         config={config}
         teachPoints={teachPoints}

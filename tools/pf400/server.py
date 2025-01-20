@@ -107,7 +107,7 @@ class Pf400Server(ToolServer):
             # Map the motion profile ID if it's from the database
             profile_id = self._map_motion_profile(motion_profile)
             logging.info(f"Registering motion profile {profile_id} for DB ID {motion_profile}")
-            self.driver.register_motion_profile(str(profile_id))
+            # self.driver.register_motion_profile(str(profile_id))
         else:
             profile_id = 1
         self.driver.movej(coordinate, motion_profile=profile_id)
@@ -317,16 +317,27 @@ class Pf400Server(ToolServer):
             return response
 
     def RunSequence(self, params: Command.RunSequence) -> None:
+        logging.info("Running sequence")
         """Execute a sequence of commands."""
         if not self.driver:
             raise Exception("Driver not initialized")
-        logging.info(f"Running sequence {params.sequence_name}")
-        logging.info(f"Waypoints: {self.waypoints}")    
-        sequence = self.waypoints.get(params.sequence_name, {})
+
+        sequence_name = params.sequence_name
+        if sequence_name not in self.waypoints:
+            raise Exception(f"Sequence '{sequence_name}' not found in waypoints")
+        
+        sequence = self.waypoints[sequence_name]
+        logging.info(f"Running sequence {sequence_name}")
+        logging.info(f"Sequence commands: {sequence}")
+        
+        if not isinstance(sequence, list):
+            raise Exception(f"Invalid sequence format for '{sequence_name}'")
         
         for command in sequence:
-            # Extract command type and parameters
-            command_type = command["command_type"]
+            if not isinstance(command, dict) or 'command' not in command or 'params' not in command:
+                raise Exception(f"Invalid command format in sequence '{sequence_name}'")
+            
+            command_type = command["command"]
             command_params = command["params"]
             
             # Convert command type to method name (e.g., "move" -> "Move")
@@ -339,6 +350,13 @@ class Pf400Server(ToolServer):
             # Create Command object with parameters
             command_obj = Command()
             command_field = getattr(command_obj, command_type)
+            
+            # For move commands, ensure waypoint exists
+            if command_type == "move" and "waypoint" in command_params:
+                waypoint = command_params["waypoint"]
+                if waypoint not in self.waypoints:
+                    raise Exception(f"Waypoint '{waypoint}' not found")
+                command_params["waypoint"] = self.waypoints[waypoint]
             
             # Parse parameters into protobuf message
             for key, value in command_params.items():
@@ -371,25 +389,24 @@ class Pf400Server(ToolServer):
     
     def LoadWaypoints(self, params: Command.LoadWaypoints) -> None:
         """Load all waypoints and parameter mappings in a single call"""
+        logging.info(f"Looooooooooooooading waypoints: {params.waypoints}")
         try:
-            # Reset all mappings
-            self.motion_profile_map = {}
-            self.grip_params_map = {}
-            self.labware_map = {}
-            self.waypoints = {}
-            
+            # Reset all mappings if no waypoints are provided
+            if not params.waypoints:
+                self.motion_profile_map = {}
+                self.grip_params_map = {}
+                self.labware_map = {}
+                self.waypoints = {}
+                return
+            logging.info(f"WWWWWWWWWWWWWaypoints: {params.waypoints}")
             for waypoint_config in params.waypoints:
                 waypoint_type = waypoint_config.WhichOneof('waypoint_type')
-                
+                logging.info(f"Waypoint Type: {waypoint_type}")
                 if waypoint_type == 'motion_profile':
                     profile = waypoint_config.motion_profile
-                    logging.info(f"PROOOOOOOOOOfile {profile}")
-                    logging.info(f"Loading moooooootion profile {profile.id}")
                     self.motion_profile_map[profile.id] = profile.profile_id
-                    logging.info(f"Motion profile map: {self.motion_profile_map}")
-                    # Register the motion profile with the driver
-                    # self.driver.register_motion_profile(str(profile))  
-                    logging.info(f"Registered motion profile {profile.profile_id} for DB ID {profile.id}")
+                    logging.info(f"Mapped motion profile {profile.profile_id} for DB ID {profile.id}")
+
                 elif waypoint_type == 'grip_param':
                     param = waypoint_config.grip_param
                     self.grip_params_map[param.id] = {
@@ -398,7 +415,7 @@ class Pf400Server(ToolServer):
                         'speed': param.speed
                     }
                     logging.info(f"Loaded grip params for DB ID {param.id}")
-                
+
                 elif waypoint_type == 'labware':
                     labware = waypoint_config.labware
                     self.labware_map[labware.id] = labware.name
@@ -407,8 +424,14 @@ class Pf400Server(ToolServer):
                 elif waypoint_type == 'location':
                     location = waypoint_config.location
                     self.waypoints[location.name] = location.location
-                    logging.info(f"Added waypoint {location.name}: {location.location}")
-                
+                    logging.info(f"Added location {location.name}: {location.location}")
+
+                elif waypoint_type == 'sequence':
+                    sequence = waypoint_config.sequence
+                    self.waypoints[sequence.name] = sequence.commands
+                    logging.info(f"Added sequence {sequence.name} with {len(sequence.commands)} commands")
+                    logging.debug(f"Sequence contents: {sequence.commands}")
+    
         except Exception as e:
             logging.error(f"Error loading waypoints and mappings: {str(e)}")
             raise
