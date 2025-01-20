@@ -21,6 +21,7 @@ import {
   MenuDivider,
   NumberInput,
   NumberInputField,
+  Input,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon, CheckIcon } from "@chakra-ui/icons";
 import { GripParams } from "../types";
@@ -29,6 +30,7 @@ import { useOutsideClick } from "@chakra-ui/react";
 
 interface EditableParams {
   id: number;
+  name: string;
   width: number;
   speed: number;
   force: number;
@@ -70,11 +72,11 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
     },
   });
 
-  const handleValueChange = (field: keyof EditableParams, value: number) => {
+  const handleValueChange = (field: keyof EditableParams, value: number | string) => {
     if (editingParams) {
       setEditingParams({
         ...editingParams,
-        [field]: isNaN(value) ? 0 : value,
+        [field]: field === 'name' ? value : (isNaN(value as number) ? 0 : value),
       });
     }
   };
@@ -83,6 +85,7 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
     if (editingParams) {
       const updatedParams = {
         ...param,
+        name: editingParams.name,
         width: editingParams.width,
         speed: editingParams.speed,
         force: editingParams.force,
@@ -95,6 +98,7 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
   const startEditing = (param: GripParams) => {
     setEditingParams({
       id: param.id!,
+      name: param.name,
       width: param.width,
       speed: param.speed,
       force: param.force,
@@ -142,7 +146,16 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
                         onChange={() => onSetDefault(param.id ? (param.id === defaultParamsId ? null : param.id) : null)}
                       />
                     </Td>
-                    <Td>{param.name}</Td>
+                    <Td>
+                      {editingParams?.id === param.id ? (
+                        <Input
+                          value={editingParams.name}
+                          onChange={(e) => handleValueChange('name', e.target.value)}
+                          size="xs"
+                          width="120px"
+                        />
+                      ) : param.name}
+                    </Td>
                     {editingParams?.id === param.id ? (
                       <>
                         <Td>

@@ -21,6 +21,7 @@ import {
   MenuDivider,
   NumberInput,
   NumberInputField,
+  Input,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon, CheckIcon } from "@chakra-ui/icons";
 import { MotionProfile } from "../types/index";
@@ -29,6 +30,7 @@ import { useOutsideClick } from "@chakra-ui/react";
 
 interface EditableProfile {
   id: number;
+  name: string;
   speed: number;
   speed2: number;
   acceleration: number;
@@ -77,11 +79,11 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
     },
   });
 
-  const handleValueChange = (field: keyof EditableProfile, value: number) => {
+  const handleValueChange = (field: keyof EditableProfile, value: number | string) => {
     if (editingProfile) {
       setEditingProfile({
         ...editingProfile,
-        [field]: isNaN(value) ? 0 : value,
+        [field]: field === 'name' ? value : (isNaN(value as number) ? 0 : value),
       });
     }
   };
@@ -90,6 +92,7 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
     if (editingProfile) {
       const updatedProfile = {
         ...profile,
+        name: editingProfile.name,
         speed: editingProfile.speed,
         speed2: editingProfile.speed2,
         acceleration: editingProfile.acceleration,
@@ -107,6 +110,7 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
   const startEditing = (profile: MotionProfile) => {
     setEditingProfile({
       id: profile.id!,
+      name: profile.name,
       speed: profile.speed,
       speed2: profile.speed2,
       acceleration: profile.acceleration,
@@ -166,7 +170,16 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                         isDisabled={!profile.id}
                       />
                     </Td>
-                    <Td>{profile.name}</Td>
+                    <Td>
+                      {editingProfile?.id === profile.id ? (
+                        <Input
+                          value={editingProfile.name}
+                          onChange={(e) => handleValueChange('name', e.target.value)}
+                          size="xs"
+                          width="120px"
+                        />
+                      ) : profile.name}
+                    </Td>
                     <Td>{profile.profile_id}</Td>
                     {editingProfile?.id === profile.id ? (
                       <>

@@ -318,15 +318,15 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
               onUnfree={() => commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unfree")}
               onUnwind={() => commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")}
               onGripperOpen={() => {
-                const defaultParams = gripParams.find(p => p.id === defaultParamsId);
-                if (defaultParams) {
-                  commandHandlers.handleGripperCommand(robotArmCommandMutation, "open", defaultParams);
+                const selectedParams = gripParams.find(p => p.id === defaultParamsId);
+                if (selectedParams) {
+                  commandHandlers.handleGripperCommand(robotArmCommandMutation, "open", selectedParams);
                 }
               }}
               onGripperClose={() => {
-                const defaultParams = gripParams.find(p => p.id === defaultParamsId);
-                if (defaultParams) {
-                  commandHandlers.handleGripperCommand(robotArmCommandMutation, "close", defaultParams);
+                const selectedParams = gripParams.find(p => p.id === defaultParamsId);
+                if (selectedParams) {
+                  commandHandlers.handleGripperCommand(robotArmCommandMutation, "close", selectedParams);
                 }
               }}
               jogEnabled={jogEnabled}
@@ -338,8 +338,8 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
               setJogEnabled={setJogEnabled}
               toolState={toolStatusQuery.data?.status}
               gripParams={gripParams}
-              selectedGripParamsId={null}
-              onGripParamsChange={() => {}}
+              selectedGripParamsId={defaultParamsId}
+              onGripParamsChange={setDefaultParamsId}
             />
           </VStack>
 

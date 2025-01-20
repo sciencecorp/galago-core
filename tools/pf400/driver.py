@@ -252,25 +252,46 @@ class Pf400Driver(ABCToolDriver):
     def __init__(self, tcp_host: str, tcp_port: int) -> None:
         self.state = RobotState()
         self.config = RobotConfig(tcp_host=tcp_host, tcp_port=tcp_port)
-        self.tcp_ip = Pf400TcpIp(tcp_host, tcp_port)
-        self.communicator = RobotCommunicator(tcp_ip=self.tcp_ip)
-        self.gripper = GripperController(
-            communicator=self.communicator,
-            state=self.state,
-            config=self.config
-        )
-        self.initializer = RobotInitializer(self.communicator)
+        self.tcp_ip = None
+        self.communicator = None
+        self.gripper = None
+        self.initializer = None
+        self.movement = None
         
     def initialize(self) -> None:
         """Initialize connection to robot"""
         try:
-            # Connection is already established in Pf400TcpIp constructor
+            # Close any existing connection first
+            if self.tcp_ip:
+                try:
+                    self.tcp_ip.close()
+                except Exception as e:
+                    logging.warning(f"Error closing existing connection: {e}")
+                self.tcp_ip = None
+
+            # Establish new connection
+            self.tcp_ip = Pf400TcpIp(self.config.tcp_host, self.config.tcp_port)
+            self.communicator = RobotCommunicator(tcp_ip=self.tcp_ip)
+            self.gripper = GripperController(
+                communicator=self.communicator,
+                state=self.state,
+                config=self.config
+            )
+            self.initializer = RobotInitializer(self.communicator)
+            
             # Initialize robot state without setting initial joint location
             self.initializer.initialize()
             self.movement = MovementController(self.communicator, self.state)
             logging.info("Successfully connected to PF400")
         except Exception as e:
             logging.error(f"Failed to connect to PF400: {str(e)}")
+            # Clean up on failure
+            if self.tcp_ip:
+                try:
+                    self.tcp_ip.close()
+                except:
+                    pass
+                self.tcp_ip = None
             raise
 
     def close(self) -> None:
@@ -278,9 +299,12 @@ class Pf400Driver(ABCToolDriver):
         try:
             if hasattr(self, 'tcp_ip') and self.tcp_ip:
                 self.tcp_ip.close()
+                self.tcp_ip = None
                 logging.info("Successfully closed PF400 connection")
         except Exception as e:
             logging.error(f"Error closing PF400 connection: {str(e)}")
+            # Still set to None even if close fails
+            self.tcp_ip = None
 
     # Movement commands
     def movej(self, loc_string: str, motion_profile: int = 1) -> None:
