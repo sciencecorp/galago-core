@@ -108,9 +108,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
     return (
       <Box p={2} borderRadius="md" bg={toolBg}>
         {selectedWorkcell === workcell.name ? (
-          <Text as="b">
-            {workcell.tools.length} Tools
-          </Text>
+          <Text as="b">{workcell.tools.length} Tools</Text>
         ) : (
           <Text color="gray.400">{workcell.tools.length} Tools</Text>
         )}
@@ -125,18 +123,14 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
       <Box p={2} borderRadius="md" bg={toolBg}>
         {selectedWorkcell === workcell.name ? (
           <EditableText
-              preview={
-                <Text as="b">
-                  {workcell.location}
-                </Text>
-              }
-              defaultValue={workcell.location}
-              onSubmit={(value) => {
-                value && handleEdit({ ...workcell, location: value });
-              }}
-            />
+            preview={<Text as="b">{workcell.location}</Text>}
+            defaultValue={workcell.location}
+            onSubmit={(value) => {
+              value && handleEdit({ ...workcell, location: value });
+            }}
+          />
         ) : (
-          <Text >{workcell.location}</Text>
+          <Text>{workcell.location}</Text>
         )}
       </Box>
     );
@@ -183,9 +177,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
             <EditableText
               preview={
                 selectedWorkcell === workcell.name ? (
-                  <Text fontSize="18px" >
-                    {workcell.description}
-                  </Text>
+                  <Text fontSize="18px">{workcell.description}</Text>
                 ) : (
                   <Text color="gray.400">{workcell.description}</Text>
                 )
@@ -210,12 +202,11 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
                 handleSelect();
               }}
               colorScheme={selectedWorkcell === workcell.name ? "teal" : "gray"}
-              variant="solid"
-              >
+              variant="solid">
               {selectedWorkcell === workcell.name ? "Selected" : "Select"}
             </Button>
             <DeleteWithConfirmation
-              disabled={(selectedWorkcell != workcell.name)}
+              disabled={selectedWorkcell != workcell.name}
               onDelete={handleDelete}
               label="workcell"
               variant="button"
