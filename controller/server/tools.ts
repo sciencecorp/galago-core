@@ -201,6 +201,13 @@ export default class Tool {
                 location: location
               }
             });
+            // Also store the location by name for sequence lookups
+            waypoints.push({
+              location: {
+                name: location,
+                location: location
+              }
+            });
           }
         }
 
@@ -212,6 +219,13 @@ export default class Tool {
             waypoints.push({
               location: {
                 name: nest.name,
+                location: location
+              }
+            });
+            // Also store the location by name for sequence lookups
+            waypoints.push({
+              location: {
+                name: location,
                 location: location
               }
             });
@@ -606,6 +620,198 @@ export default class Tool {
         toolbox: {},
       },
     };
+  }
+
+  async reloadWaypoints(): Promise<void> {
+    if (this.type !== ToolType.pf400) {
+      return; // Only PF400 tools have waypoints
+    }
+
+    console.log('[Tool] Reloading waypoints for tool:', this.info.name);
+    try {
+      // First get the tool's numeric ID from the database
+      const toolInfo = await get<any>(`/tools/${this.info.name}`);
+      if (!toolInfo || !toolInfo.id) {
+        throw new Error(`Could not find tool with name ${this.info.name}`);
+      }
+
+      // Fetch waypoints from the database
+      const waypointsResponse = await get<any>(`/robot-arm-waypoints?tool_id=${toolInfo.id}`);
+      
+      // Format waypoints for loading
+      const waypoints: pf400_protos.WaypointConfig[] = [];
+
+      // Add motion profiles
+      if (waypointsResponse.motion_profiles?.length) {
+        for (const profile of waypointsResponse.motion_profiles) {
+          waypoints.push({
+            motion_profile: {
+              id: profile.id,
+              profile_id: profile.id,
+              speed: profile.speed,
+              speed2: profile.speed2,
+              acceleration: profile.acceleration,
+              deceleration: profile.deceleration,
+              accel_ramp: profile.accelramp,
+              decel_ramp: profile.decelramp,
+              inrange: profile.inrange,
+              straight: profile.straight === 1
+            }
+          });
+        }
+      }
+
+      // Add grip parameters
+      if (waypointsResponse.grip_params?.length) {
+        for (const param of waypointsResponse.grip_params) {
+          waypoints.push({
+            grip_param: {
+              id: param.id,
+              width: param.width,
+              force: param.force,
+              speed: param.speed
+            }
+          });
+        }
+      }
+
+      // Add locations
+      if (waypointsResponse.locations?.length) {
+        for (const loc of waypointsResponse.locations) {
+          const location = `${loc.j1} ${loc.j2} ${loc.j3} ${loc.j4} ${loc.j5} ${loc.j6}`;
+          waypoints.push({
+            location: {
+              name: loc.name,
+              location: location
+            }
+          });
+          // Also store the location by name for sequence lookups
+          waypoints.push({
+            location: {
+              name: location,
+              location: location
+            }
+          });
+        }
+      }
+
+      // Add nests
+      if (waypointsResponse.nests?.length) {
+        for (const nest of waypointsResponse.nests) {
+          const location = `${nest.j1} ${nest.j2} ${nest.j3} ${nest.j4} ${nest.j5} ${nest.j6}`;
+          waypoints.push({
+            location: {
+              name: nest.name,
+              location: location
+            }
+          });
+          // Also store the location by name for sequence lookups
+          waypoints.push({
+            location: {
+              name: location,
+              location: location
+            }
+          });
+        }
+      }
+
+      // Add labware
+      if (waypointsResponse.labware?.length) {
+        for (const item of waypointsResponse.labware) {
+          waypoints.push({
+            labware: {
+              id: item.id,
+              name: item.name
+            }
+          });
+        }
+      }
+
+      // Add sequences
+      if (waypointsResponse.sequences?.length) {
+        for (const sequence of waypointsResponse.sequences) {
+          waypoints.push({
+            sequence: {
+              name: sequence.name,
+              commands: sequence.commands.map((cmd: { command: string; params: Record<string, any> }) => {
+                const commandObj: any = {};
+                switch (cmd.command) {
+                  case 'move':
+                    commandObj.move = {
+                      waypoint: cmd.params.waypoint,
+                      motion_profile_id: cmd.params.motion_profile_id
+                    };
+                    break;
+                  case 'grasp_plate':
+                    commandObj.grasp_plate = {
+                      width: cmd.params.width,
+                      speed: cmd.params.speed,
+                      force: cmd.params.force
+                    };
+                    break;
+                  case 'release_plate':
+                    commandObj.release_plate = {
+                      width: cmd.params.width,
+                      speed: cmd.params.speed
+                    };
+                    break;
+                  case 'approach':
+                    commandObj.approach = {
+                      nest: cmd.params.nest,
+                      x_offset: cmd.params.x_offset,
+                      y_offset: cmd.params.y_offset,
+                      z_offset: cmd.params.z_offset,
+                      motion_profile_id: cmd.params.motion_profile_id,
+                      ignore_safepath: cmd.params.ignore_safepath
+                    };
+                    break;
+                  case 'leave':
+                    commandObj.leave = {
+                      nest: cmd.params.nest,
+                      x_offset: cmd.params.x_offset,
+                      y_offset: cmd.params.y_offset,
+                      z_offset: cmd.params.z_offset,
+                      motion_profile_id: cmd.params.motion_profile_id
+                    };
+                    break;
+                  case 'transfer':
+                    commandObj.transfer = {
+                      source_nest: cmd.params.source_nest,
+                      destination_nest: cmd.params.destination_nest,
+                      grasp_params: cmd.params.grasp_params,
+                      release_params: cmd.params.release_params,
+                      motion_profile_id: cmd.params.motion_profile_id,
+                      grip_width: cmd.params.grip_width
+                    };
+                    break;
+                }
+                return commandObj;
+              })
+            }
+          });
+        }
+      }
+
+      // Send load waypoints command
+      const loadWaypointsCommand = {
+        load_waypoints: {
+          waypoints: waypoints
+        }
+      };
+
+      const loadReply = await this.grpc.executeCommand({
+        pf400: loadWaypointsCommand
+      });
+
+      if (loadReply.response !== tool_base.ResponseCode.SUCCESS) {
+        throw new Error(loadReply.error_message ?? "Load waypoints failed");
+      }
+
+      console.log('[Tool] Successfully reloaded waypoints');
+    } catch (error) {
+      console.error('[Tool] Error reloading waypoints:', error);
+      throw error;
+    }
   }
 }
 

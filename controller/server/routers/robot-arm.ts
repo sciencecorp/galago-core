@@ -3,6 +3,18 @@ import { procedure, router } from "@/server/trpc";
 import { get, post, put, del } from "../utils/api";
 import { zLabware } from "./labware";
 import { Labware } from "@/types/api";
+import Tool from "../tools";
+
+// Helper function to get tool instance
+const getToolInstance = async (toolId: number) => {
+  // Get the tool name from the database
+  const toolInfo = await get<any>(`/tools/${toolId}`);
+  if (!toolInfo || !toolInfo.name) {
+    throw new Error(`Could not find tool with ID ${toolId}`);
+  }
+  return Tool.forId(toolInfo.name);
+};
+
 const zRobotArmLocation = z.object({
   id: z.number().optional(),
   name: z.string(),
@@ -96,13 +108,31 @@ export const robotArmRouter = router({
       ),
     create: procedure
       .input(zRobotArmLocation.omit({ id: true }))
-      .mutation(({ input }) => post("/robot-arm-locations", input)),
+      .mutation(async ({ input }) => {
+        const result = await post("/robot-arm-locations", input);
+        // Reload waypoints for the affected tool
+        const tool = await getToolInstance(input.tool_id);
+        await tool.reloadWaypoints();
+        return result;
+      }),
     update: procedure
       .input(zRobotArmLocation)
-      .mutation(({ input }) => put(`/robot-arm-locations/${input.id}`, input)),
+      .mutation(async ({ input }) => {
+        const result = await put(`/robot-arm-locations/${input.id}`, input);
+        // Reload waypoints for the affected tool
+        const tool = await getToolInstance(input.tool_id);
+        await tool.reloadWaypoints();
+        return result;
+      }),
     delete: procedure
-      .input(z.object({ id: z.number() }))
-      .mutation(({ input }) => del(`/robot-arm-locations/${input.id}`)),
+      .input(z.object({ id: z.number(), tool_id: z.number() }))
+      .mutation(async ({ input }) => {
+        const result = await del(`/robot-arm-locations/${input.id}`);
+        // Reload waypoints for the affected tool
+        const tool = await getToolInstance(input.tool_id);
+        await tool.reloadWaypoints();
+        return result;
+      }),
   }),
   nest: router({
     getAll: procedure
@@ -112,13 +142,31 @@ export const robotArmRouter = router({
       ),
     create: procedure
       .input(zRobotArmNest.omit({ id: true }))
-      .mutation(({ input }) => post("/robot-arm-nests", input)),
+      .mutation(async ({ input }) => {
+        const result = await post("/robot-arm-nests", input);
+        // Reload waypoints for the affected tool
+        const tool = await getToolInstance(input.tool_id);
+        await tool.reloadWaypoints();
+        return result;
+      }),
     update: procedure
       .input(zRobotArmNest)
-      .mutation(({ input }) => put(`/robot-arm-nests/${input.id}`, input)),
+      .mutation(async ({ input }) => {
+        const result = await put(`/robot-arm-nests/${input.id}`, input);
+        // Reload waypoints for the affected tool
+        const tool = await getToolInstance(input.tool_id);
+        await tool.reloadWaypoints();
+        return result;
+      }),
     delete: procedure
-      .input(z.object({ id: z.number() }))
-      .mutation(({ input }) => del(`/robot-arm-nests/${input.id}`)),
+      .input(z.object({ id: z.number(), tool_id: z.number() }))
+      .mutation(async ({ input }) => {
+        const result = await del(`/robot-arm-nests/${input.id}`);
+        // Reload waypoints for the affected tool
+        const tool = await getToolInstance(input.tool_id);
+        await tool.reloadWaypoints();
+        return result;
+      }),
   }),
   motionProfile: router({
     getAll: procedure
@@ -129,13 +177,31 @@ export const robotArmRouter = router({
       ),
     create: procedure
       .input(zRobotArmMotionProfile.omit({ id: true }))
-      .mutation(({ input }) => post("/robot-arm-motion-profiles", input)),
+      .mutation(async ({ input }) => {
+        const result = await post("/robot-arm-motion-profiles", input);
+        // Reload waypoints for the affected tool
+        const tool = await getToolInstance(input.tool_id);
+        await tool.reloadWaypoints();
+        return result;
+      }),
     update: procedure
       .input(zRobotArmMotionProfile)
-      .mutation(({ input }) => put(`/robot-arm-motion-profiles/${input.id}`, input)),
+      .mutation(async ({ input }) => {
+        const result = await put(`/robot-arm-motion-profiles/${input.id}`, input);
+        // Reload waypoints for the affected tool
+        const tool = await getToolInstance(input.tool_id);
+        await tool.reloadWaypoints();
+        return result;
+      }),
     delete: procedure
-      .input(z.object({ id: z.number() }))
-      .mutation(({ input }) => del(`/robot-arm-motion-profiles/${input.id}`)),
+      .input(z.object({ id: z.number(), tool_id: z.number() }))
+      .mutation(async ({ input }) => {
+        const result = await del(`/robot-arm-motion-profiles/${input.id}`);
+        // Reload waypoints for the affected tool
+        const tool = await getToolInstance(input.tool_id);
+        await tool.reloadWaypoints();
+        return result;
+      }),
   }),
 
   gripParams: router({
@@ -147,13 +213,31 @@ export const robotArmRouter = router({
       ),
     create: procedure
       .input(zRobotArmGripParams.omit({ id: true }))
-      .mutation(({ input }) => post("/robot-arm-grip-params", input)),
+      .mutation(async ({ input }) => {
+        const result = await post("/robot-arm-grip-params", input);
+        // Reload waypoints for the affected tool
+        const tool = await getToolInstance(input.tool_id);
+        await tool.reloadWaypoints();
+        return result;
+      }),
     update: procedure
       .input(zRobotArmGripParams)
-      .mutation(({ input }) => put(`/robot-arm-grip-params/${input.id}`, input)),
+      .mutation(async ({ input }) => {
+        const result = await put(`/robot-arm-grip-params/${input.id}`, input);
+        // Reload waypoints for the affected tool
+        const tool = await getToolInstance(input.tool_id);
+        await tool.reloadWaypoints();
+        return result;
+      }),
     delete: procedure
-      .input(z.object({ id: z.number() }))
-      .mutation(({ input }) => del(`/robot-arm-grip-params/${input.id}`)),
+      .input(z.object({ id: z.number(), tool_id: z.number() }))
+      .mutation(async ({ input }) => {
+        const result = await del(`/robot-arm-grip-params/${input.id}`);
+        // Reload waypoints for the affected tool
+        const tool = await getToolInstance(input.tool_id);
+        await tool.reloadWaypoints();
+        return result;
+      }),
   }),
 
   sequence: router({
@@ -165,13 +249,31 @@ export const robotArmRouter = router({
       ),
     create: procedure
       .input(zRobotArmSequence.omit({ id: true }))
-      .mutation(({ input }) => post("/robot-arm-sequences", input)),
+      .mutation(async ({ input }) => {
+        const result = await post("/robot-arm-sequences", input);
+        // Reload waypoints for the affected tool
+        const tool = await getToolInstance(input.tool_id);
+        await tool.reloadWaypoints();
+        return result;
+      }),
     update: procedure
       .input(zRobotArmSequence)
-      .mutation(({ input }) => put(`/robot-arm-sequences/${input.id}`, input)),
+      .mutation(async ({ input }) => {
+        const result = await put(`/robot-arm-sequences/${input.id}`, input);
+        // Reload waypoints for the affected tool
+        const tool = await getToolInstance(input.tool_id);
+        await tool.reloadWaypoints();
+        return result;
+      }),
     delete: procedure
-      .input(z.object({ id: z.number() }))
-      .mutation(({ input }) => del(`/robot-arm-sequences/${input.id}`)),
+      .input(z.object({ id: z.number(), tool_id: z.number() }))
+      .mutation(async ({ input }) => {
+        const result = await del(`/robot-arm-sequences/${input.id}`);
+        // Reload waypoints for the affected tool
+        const tool = await getToolInstance(input.tool_id);
+        await tool.reloadWaypoints();
+        return result;
+      }),
   }),
 
   labware: router({
