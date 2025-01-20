@@ -133,7 +133,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                     <Td>
                       {editingPoint?.id === point.id && (
                         <Box>
-                          <HStack spacing={1} justify="center">
+                          <HStack spacing={2} justify="center">
                             {editingPoint.coordinates.map((coord, index) => (
                               <Box key={index}>
                                 <Box fontSize="xs" textAlign="center" mb={1}>J{index + 1}</Box>
@@ -146,7 +146,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                                   min={-360}
                                   max={360}
                                 >
-                                  <NumberInputField width="65px" textAlign="left" />
+                                  <NumberInputField width="100px" textAlign="left" />
                                 </NumberInput>
                               </Box>
                             ))}

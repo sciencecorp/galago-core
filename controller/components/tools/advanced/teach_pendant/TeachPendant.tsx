@@ -176,9 +176,13 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         params: {}
       });
 
-      if (response?.meta_data?.fields?.response?.stringValue) {
-        const coordinates = response.meta_data.fields.response.stringValue.split(" ").slice(1);
+      console.log("Current Location Response:", response);
 
+      if (response?.meta_data?.location) {
+        // Split the location string into coordinates, skipping the first value (0)
+        const coordinates = response.meta_data.location.split(" ").slice(1);
+        console.log("Coordinates:", coordinates);
+        
         // Update the teach point with new coordinates
         await updateLocationMutation.mutateAsync({
           id: point.id,
@@ -195,9 +199,19 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
 
         // Refetch locations to update UI
         robotArmLocationsQuery.refetch();
+      } else {
+        throw new Error("No location data received from robot");
       }
     } catch (error) {
       console.error('Failed to teach point:', error);
+      toast({
+        title: "Error",
+        description: "Failed to teach point. Please try again.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "top",
+      });
     }
   };
 

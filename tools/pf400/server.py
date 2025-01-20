@@ -388,7 +388,7 @@ class Pf400Server(ToolServer):
                     self.motion_profile_map[profile.id] = profile.profile_id
                     logging.info(f"Motion profile map: {self.motion_profile_map}")
                     # Register the motion profile with the driver
-                    self.driver.register_motion_profile(str(profile))  
+                    # self.driver.register_motion_profile(str(profile))  
                     logging.info(f"Registered motion profile {profile.profile_id} for DB ID {profile.id}")
                 elif waypoint_type == 'grip_param':
                     param = waypoint_config.grip_param
