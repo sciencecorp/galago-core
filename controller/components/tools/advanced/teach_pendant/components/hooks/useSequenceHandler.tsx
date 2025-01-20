@@ -270,6 +270,11 @@ export function useSequenceHandler(config: Tool) {
   };
 
   const handleRunSequence = async (sequence: RobotArmSequence) => {
+    console.log("Running sequence", sequence);
+    console.log("Sequence name", sequence.name);
+    console.log("Sequence commands", sequence.commands);
+    console.log("Sequence tool id", config.name);
+    console.log("Sequence tool type", config.type);
     const command: ToolCommandInfo = {
       toolId: config.name,
       toolType: config.type as ToolType,

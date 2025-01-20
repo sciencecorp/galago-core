@@ -28,10 +28,7 @@ class Pf400Server(ToolServer):
         self.grip_params_map: dict[int, dict[str, int]] = {}  # Map DB ID to grip params
         self.labware_map: dict[int, str] = {}  # Map DB ID to labware name
 
-    def initialize(self) -> None:
-        super().initialize()
-
-    def _configure(self, config: Config) -> None:
+    def _configure(self, request: Config) -> None:
         """Configure the PF400 server with the provided configuration."""
         try:
             # Reset all mappings
@@ -48,8 +45,8 @@ class Pf400Server(ToolServer):
             # Configure hardware connection
             try:
                 self.driver = Pf400Driver(
-                    tcp_host=config.host,
-                    tcp_port=config.port
+                    tcp_host=request.host,
+                    tcp_port=request.port
                 )
                 # Initialize the driver
                 self.driver.initialize()
@@ -323,12 +320,17 @@ class Pf400Server(ToolServer):
             raise Exception("Driver not initialized")
 
         sequence_name = params.sequence_name
+        logging.info(f"Looking for sequence '{sequence_name}' in waypoints")
+        logging.info(f"Available waypoints: {list(self.waypoints.keys())}")
+        logging.info(f"Waypoints content: {self.waypoints}")
+        
         if sequence_name not in self.waypoints:
             raise Exception(f"Sequence '{sequence_name}' not found in waypoints")
         
         sequence = self.waypoints[sequence_name]
-        logging.info(f"Running sequence {sequence_name}")
-        logging.info(f"Sequence commands: {sequence}")
+        logging.info(f"Found sequence {sequence_name}")
+        logging.info(f"Sequence type: {type(sequence)}")
+        logging.info(f"Sequence content: {sequence}")
         
         if not isinstance(sequence, list):
             raise Exception(f"Invalid sequence format for '{sequence_name}'")
@@ -389,7 +391,7 @@ class Pf400Server(ToolServer):
     
     def LoadWaypoints(self, params: Command.LoadWaypoints) -> None:
         """Load all waypoints and parameter mappings in a single call"""
-        logging.info(f"Looooooooooooooading waypoints: {params.waypoints}")
+        logging.info("Loading waypoints")
         try:
             # Reset all mappings if no waypoints are provided
             if not params.waypoints:
@@ -398,10 +400,12 @@ class Pf400Server(ToolServer):
                 self.labware_map = {}
                 self.waypoints = {}
                 return
-            logging.info(f"WWWWWWWWWWWWWaypoints: {params.waypoints}")
+            
+            logging.info(f"Processing {len(params.waypoints)} waypoint configurations")
             for waypoint_config in params.waypoints:
                 waypoint_type = waypoint_config.WhichOneof('waypoint_type')
-                logging.info(f"Waypoint Type: {waypoint_type}")
+                logging.info(f"Processing waypoint type: {waypoint_type}")
+                
                 if waypoint_type == 'motion_profile':
                     profile = waypoint_config.motion_profile
                     self.motion_profile_map[profile.id] = profile.profile_id
@@ -428,9 +432,29 @@ class Pf400Server(ToolServer):
 
                 elif waypoint_type == 'sequence':
                     sequence = waypoint_config.sequence
-                    self.waypoints[sequence.name] = sequence.commands
-                    logging.info(f"Added sequence {sequence.name} with {len(sequence.commands)} commands")
-                    logging.debug(f"Sequence contents: {sequence.commands}")
+                    logging.info(f"Loading sequence: {sequence.name}")
+                    logging.info(f"Sequence commands type: {type(sequence.commands)}")
+                    logging.info(f"Sequence commands: {sequence.commands}")
+                    
+                    # Convert sequence commands to proper dictionary format
+                    formatted_commands = []
+                    for cmd in sequence.commands:
+                        cmd_type = cmd.WhichOneof('command')
+                        if cmd_type:
+                            cmd_params = getattr(cmd, cmd_type)
+                            formatted_cmd = {
+                                "command": cmd_type,
+                                "params": {
+                                    key: getattr(cmd_params, key)
+                                    for key in cmd_params.DESCRIPTOR.fields_by_name.keys()
+                                }
+                            }
+                            formatted_commands.append(formatted_cmd)
+                    
+                    self.waypoints[sequence.name] = formatted_commands
+                    logging.info(f"Added sequence {sequence.name} with {len(formatted_commands)} commands")
+                    logging.info(f"Stored sequence type: {type(self.waypoints[sequence.name])}")
+                    logging.info(f"Stored sequence: {self.waypoints[sequence.name]}")
     
         except Exception as e:
             logging.error(f"Error loading waypoints and mappings: {str(e)}")

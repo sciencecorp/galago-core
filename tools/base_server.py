@@ -52,7 +52,7 @@ class ABCToolDriver:
 
 class ToolServer(tool_driver_pb2_grpc.ToolDriverServicer):
     toolType: str
-    toolId: str  = "undefined"
+    toolId: str = "undefined"
 
     def _configure(self, request: t.Any) -> None:
         # Up to the tool to configure itself
@@ -91,8 +91,11 @@ class ToolServer(tool_driver_pb2_grpc.ToolDriverServicer):
         logging.info(f"Received configuration: {request}")
         self.config = getattr(request, request.WhichOneof("config"))
         config_dict = MessageToDict(self.config)
-        if "toolId" in config_dict:
-            self.toolId = config_dict["toolId"]
+        
+        # Extract tool_id from the config
+        if "tool_id" in config_dict:
+            self.toolId = config_dict["tool_id"]
+            logging.info(f"Setting tool ID to {self.toolId}")
         
         if not request.simulated and self.simulated:
             self.setSimulated(request.simulated)

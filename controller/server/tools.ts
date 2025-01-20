@@ -94,7 +94,8 @@ export default class Tool {
           const pf400Config = {
             host: String(config.pf400?.host || ""),
             port: Number(config.pf400?.port || 0),
-            joints: Number(config.pf400?.joints || 0)
+            joints: Number(config.pf400?.joints || 0),
+            tool_id: this.info.name
           };
 
           console.log('[PF400] Simulation config:', JSON.stringify(pf400Config, null, 2));
@@ -371,7 +372,8 @@ export default class Tool {
         const pf400Config = {
           host: String(config.pf400?.host || ""),
           port: Number(config.pf400?.port || 0),
-          joints: Number(config.pf400?.joints || 0)
+          joints: Number(config.pf400?.joints || 0),
+          tool_id: this.info.name
         };
 
         console.log('[PF400] Sending basic configuration');
