@@ -6,6 +6,11 @@ export interface TeachPendantData {
   motionProfiles?: MotionProfile[];
   gripParams?: GripParams[];
   sequences?: Sequence[];
+  duplicates?: {
+    identical: TeachPoint[];
+    different: TeachPoint[];
+    originals: TeachPoint[];
+  };
 }
 
 export interface FileFormatHandler {
@@ -157,7 +162,7 @@ const xmlHandler: FileFormatHandler = {
         : [parsed.TeachPendantData.ArrayOfLocation.Location];
       console.log('Normalized locations array:', locations);
       
-      result.teachPoints = locations.map((loc: any) => {
+      const processedPoints = locations.map((loc: any) => {
         const point = {
           id: Number(loc.Index?._text) || 0,
           name: loc.Name?._text || loc.n?._text || "",
@@ -174,22 +179,44 @@ const xmlHandler: FileFormatHandler = {
         };
         return point;
       })
-      // Filter out invalid locations (empty names and all zero coordinates)
       .filter((point: TeachPoint) => {
         const isValid = point.name !== "" && 
                        point.coordinate !== "0 0 0 0 0 0" &&
                        point.coordinate.split(" ").some((coord: string) => Number(coord) !== 0);
         return isValid;
-      })
-      // Ensure unique sequential IDs
-      .map((point: TeachPoint, index: number) => ({
-        ...point,
-        id: index + 1
-      }));
+      });
+
+      // Handle duplicates
+      const duplicates = {
+        identical: [] as TeachPoint[],
+        different: [] as TeachPoint[],
+        originals: [] as TeachPoint[]
+      };
+
+      result.teachPoints = processedPoints.map((point: TeachPoint, index: number) => {
+        const existingPoint = (window as any).existingTeachPoints?.find((p: TeachPoint) => p.name === point.name);
+        if (existingPoint) {
+          if (existingPoint.coordinate === point.coordinate) {
+            duplicates.identical.push(point);
+            duplicates.originals.push(existingPoint);
+            return { ...existingPoint };
+          } else {
+            duplicates.different.push(point);
+            duplicates.originals.push(existingPoint);
+            return { ...existingPoint };
+          }
+        }
+        return { ...point, id: index + 1 };
+      });
+
+      result.duplicates = duplicates;
 
       const totalLocations = locations.length;
       const validLocations = result.teachPoints?.length || 0;
+      const identicalDupes = duplicates.identical.length;
+      const conflictingDupes = duplicates.different.length;
       console.log(`Processed ${validLocations} valid locations out of ${totalLocations} total locations`);
+      console.log(`Found ${identicalDupes} identical duplicates and ${conflictingDupes} conflicting duplicates`);
     }
 
     // Parse motion profiles

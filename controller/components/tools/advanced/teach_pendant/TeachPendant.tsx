@@ -378,6 +378,33 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                   try {
                     // Import teach points if present
                     if (data.teachPoints?.length) {
+                      // Check for duplicates
+                      if (data.duplicates) {
+                        const { identical, different } = data.duplicates;
+                        
+                        // Log identical duplicates that will be silently overwritten
+                        if (identical.length > 0) {
+                          console.log(`Silently overwriting ${identical.length} identical teach points`);
+                        }
+
+                        // If there are different duplicates, ask for confirmation
+                        if (different.length > 0) {
+                          const confirmOverwrite = window.confirm(
+                            `${different.length} teach points with the same names but different coordinates were found:\n\n` +
+                            different.map(point => point.name).join(", ") + "\n\n" +
+                            "Do you want to overwrite these points?"
+                          );
+
+                          if (!confirmOverwrite) {
+                            // Filter out the different duplicates from the import
+                            data.teachPoints = data.teachPoints.filter(point => 
+                              !different.some(d => d.name === point.name)
+                            );
+                          }
+                        }
+                      }
+
+                      // Process the remaining teach points
                       for (const point of data.teachPoints) {
                         const { j1, j2, j3, j4, j5, j6 } = coordinateToJoints(point.coordinate);
                         await createLocationMutation.mutateAsync({
