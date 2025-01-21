@@ -82,15 +82,17 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
 
       await onImport(parsed);
 
-      const importedTypes = Object.entries(parsed)
-        .filter(([_, value]) => Array.isArray(value) && value.length > 0)
-        .map(([key]) => key);
+      // Create a summary of what was imported
+      const summary = Object.entries(parsed)
+        .filter(([key, value]) => Array.isArray(value) && value.length > 0)
+        .map(([key, value]) => `${(value as any[]).length} ${key.replace(/([A-Z])/g, ' $1').toLowerCase().trim()}`)
+        .join(", ");
 
       toast({
         title: "Import Successful",
-        description: `Imported ${importedTypes.join(", ")}`,
+        description: `Imported ${summary}`,
         status: "success",
-        duration: 3000,
+        duration: 5000,
         isClosable: true,
       });
     } catch (error) {
@@ -98,7 +100,7 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
         title: "Import Failed",
         description: error instanceof Error ? error.message : "Failed to import data",
         status: "error",
-        duration: 3000,
+        duration: 5000,
         isClosable: true,
       });
     }

@@ -452,14 +452,31 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
 
                       // Check for conflicts with existing profiles
                       const conflictingProfiles = data.motionProfiles.filter(
-                        importedProfile => existingProfiles.some(
-                          existingProfile => existingProfile.profile_id === importedProfile.profile_id
-                        )
+                        importedProfile => {
+                          const existingProfile = existingProfiles.find(
+                            ep => ep.profile_id === importedProfile.profile_id
+                          );
+                          if (!existingProfile) return false;
+                          
+                          // Check if profiles are identical (ignoring id and tool_id)
+                          return (
+                            existingProfile.name !== importedProfile.name ||
+                            existingProfile.speed !== importedProfile.speed ||
+                            existingProfile.speed2 !== importedProfile.speed2 ||
+                            existingProfile.acceleration !== importedProfile.acceleration ||
+                            existingProfile.deceleration !== importedProfile.deceleration ||
+                            existingProfile.accel_ramp !== importedProfile.accel_ramp ||
+                            existingProfile.decel_ramp !== importedProfile.decel_ramp ||
+                            existingProfile.inrange !== importedProfile.inrange ||
+                            existingProfile.straight !== importedProfile.straight
+                          );
+                        }
                       );
+
                       if (conflictingProfiles.length > 0) {
                         toast({
                           title: "Error",
-                          description: `Some imported profiles have IDs that conflict with existing profiles: ${conflictingProfiles.map(p => `${p.name} (ID: ${p.profile_id})`).join(", ")}`,
+                          description: `Some imported profiles have different values but same IDs as existing profiles: ${conflictingProfiles.map(p => `${p.name} (ID: ${p.profile_id})`).join(", ")}`,
                           status: "error",
                           duration: 5000,
                           isClosable: true,
@@ -467,12 +484,16 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                         return;
                       }
 
-                      // If all validations pass, import the profiles
+                      // If all validations pass, import only the non-duplicate profiles
                       for (const profile of data.motionProfiles) {
-                        await createMotionProfileMutation.mutateAsync({
-                          ...profile,
-                          tool_id: config.id
-                        });
+                        // Skip if an identical profile already exists
+                        const existingProfile = existingProfiles.find(ep => ep.profile_id === profile.profile_id);
+                        if (!existingProfile) {
+                          await createMotionProfileMutation.mutateAsync({
+                            ...profile,
+                            tool_id: config.id
+                          });
+                        }
                       }
                       await motionProfilesQuery.refetch();
                     }
@@ -600,17 +621,18 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 <TabPanel>
                   <MotionProfilesPanel
                     profiles={filteredItems as MotionProfile[]}
-                    onInlineEdit={async (profile) => {
-                      await updateMotionProfileMutation.mutateAsync({
-                        ...profile,
-                        tool_id: config.id,
-                      });
+                    onEdit={async (profile: MotionProfile) => {
+                      if (profile.id) {
+                        await updateMotionProfileMutation.mutateAsync({
+                          ...profile,
+                          tool_id: config.id,
+                        });
+                      } else {
+                        setSelectedMotionProfile(profile);
+                        motionProfileModal.onOpen();
+                      }
                     }}
-                    onModalEdit={(profile) => {
-                      setSelectedMotionProfile(profile);
-                      motionProfileModal.onOpen();
-                    }}
-                    onDelete={async (id) => {
+                    onDelete={async (id: number) => {
                       await deleteMotionProfileMutation.mutateAsync({ id, tool_id: config.id });
                       motionProfilesQuery.refetch();
                     }}
@@ -618,7 +640,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                       setSelectedMotionProfile(null);
                       motionProfileModal.onOpen();
                     }}
-                    onRegister={(profile) => {
+                    onRegister={(profile: MotionProfile) => {
                       console.log("Registering motion profile with ID:", profile.profile_id);
                       commandHandlers.handleRegisterMotionProfile(robotArmCommandMutation, {
                         id: profile.profile_id,
@@ -653,16 +675,17 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                       setSelectedGripParams(null);
                       gripParamsModal.onOpen();
                     }}
-                    bgColor={bgColor}
-                    bgColorAlpha={bgColorAlpha}
-                    defaultParamsId={defaultParamsId}
-                    onSetDefault={setDefaultParamsId}
-                    onInlineEdit={async (params) => {
+                    onInlineEdit={async (params: GripParams) => {
                       await updateGripParamsMutation.mutateAsync({
                         ...params,
                         tool_id: config.id,
                       });
+                      gripParamsQuery.refetch();
                     }}
+                    bgColor={bgColor}
+                    bgColorAlpha={bgColorAlpha}
+                    defaultParamsId={defaultParamsId}
+                    onSetDefault={setDefaultParamsId}
                   />
                 </TabPanel>
                 <TabPanel>

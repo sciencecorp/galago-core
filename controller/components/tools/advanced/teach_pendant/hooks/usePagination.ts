@@ -6,14 +6,21 @@ export interface PaginationConfig {
   currentPage: number;
 }
 
-export const usePagination = <T>(items: T[], defaultItemsPerPage: number = 10) => {
+export const usePagination = <T extends { id?: number }>(items: T[], defaultItemsPerPage: number = 10) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(defaultItemsPerPage);
+
+  // Sort items by ID in descending order (newest first)
+  const sortedItems = [...items].sort((a, b) => {
+    const idA = a.id ?? 0;
+    const idB = b.id ?? 0;
+    return idB - idA;
+  });
 
   const totalItems = items.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const paginatedItems = items.slice(
+  const paginatedItems = sortedItems.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
