@@ -455,16 +455,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                           });
                         }
 
-                        if (successfulImports > 0) {
-                          toast({
-                            title: "Import Successful",
-                            description: `Successfully imported ${successfulImports} teach points`,
-                            status: "success",
-                            duration: 3000,
-                            isClosable: true,
-                          });
-                        }
-
                         await robotArmLocationsQuery.refetch();
                       } catch (error) {
                         console.error("Failed to import teach points:", error);
@@ -481,6 +471,9 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
 
                     // Import motion profiles if present
                     if (data.motionProfiles?.length) {
+                      const failedProfiles: string[] = [];
+                      let successfulImports = 0;
+
                       // First validate all motion profiles
                       const existingProfiles = motionProfilesQuery.data || [];
                       const invalidProfiles = data.motionProfiles.filter(
@@ -546,18 +539,56 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                         return;
                       }
 
-                      // If all validations pass, import only the non-duplicate profiles
-                      for (const profile of data.motionProfiles) {
-                        // Skip if an identical profile already exists
-                        const existingProfile = existingProfiles.find(ep => ep.profile_id === profile.profile_id);
-                        if (!existingProfile) {
-                          await createMotionProfileMutation.mutateAsync({
-                            ...profile,
-                            tool_id: config.id
+                      try {
+                        // If all validations pass, import only the non-duplicate profiles
+                        for (const profile of data.motionProfiles) {
+                          try {
+                            // Skip if an identical profile already exists
+                            const existingProfile = existingProfiles.find(ep => ep.profile_id === profile.profile_id);
+                            if (!existingProfile) {
+                              await createMotionProfileMutation.mutateAsync({
+                                ...profile,
+                                tool_id: config.id
+                              });
+                              successfulImports++;
+                            }
+                          } catch (error) {
+                            console.error(`Failed to import motion profile ${profile.name}:`, error);
+                            failedProfiles.push(profile.name);
+                          }
+                        }
+
+                        if (failedProfiles.length > 0) {
+                          toast({
+                            title: "Failed to Import Motion Profiles",
+                            description: `Failed to import ${failedProfiles.length} profiles:\n${failedProfiles.join(", ")}`,
+                            status: "error",
+                            duration: 5000,
+                            isClosable: true,
                           });
                         }
+
+                        if (successfulImports > 0) {
+                          toast({
+                            title: "Motion Profiles Imported",
+                            description: `Successfully imported ${successfulImports} motion profiles`,
+                            status: "success",
+                            duration: 3000,
+                            isClosable: true,
+                          });
+                        }
+
+                        await motionProfilesQuery.refetch();
+                      } catch (error) {
+                        console.error("Failed to import motion profiles:", error);
+                        toast({
+                          title: "Error",
+                          description: "Failed to import motion profiles",
+                          status: "error",
+                          duration: 3000,
+                          isClosable: true,
+                        });
                       }
-                      await motionProfilesQuery.refetch();
                     }
 
                     // Import grip parameters if present

@@ -52,24 +52,24 @@ const jsonHandler: FileFormatHandler = {
 const xmlHandler: FileFormatHandler = {
   validate: (data: any) => {
     console.log('XML Validation - Input data:', data);
+    // Get the actual data object, handling both wrapped and unwrapped formats
+    const actualData = data?.TeachPendantData?.TeachPendantData || data?.TeachPendantData || data;
+    console.log('XML Validation - Actual data:', actualData);
+
     // Check if data is in the wrapped format
-    const isWrappedValid = data && (
-      Array.isArray(data.teachPoints) ||
-      Array.isArray(data.motionProfiles) ||
-      Array.isArray(data.sequences) ||
-      Array.isArray(data.gripParams)
+    const isWrappedValid = actualData && (
+      Array.isArray(actualData.teachPoints) ||
+      Array.isArray(actualData.motionProfiles) ||
+      Array.isArray(actualData.sequences) ||
+      Array.isArray(actualData.gripParams)
     );
 
     // Check if data is in the unwrapped format
-    const isUnwrappedValid = data && (
-      data.ArrayOfLocation ||
-      data.ArrayOfMotionProfile ||
-      data.ArrayOfGripParams ||
-      data.ArrayOfSequence ||
-      data.TeachPendantData?.ArrayOfLocation ||
-      data.TeachPendantData?.ArrayOfMotionProfile ||
-      data.TeachPendantData?.ArrayOfGripParams ||
-      data.TeachPendantData?.ArrayOfSequence
+    const isUnwrappedValid = actualData && (
+      actualData.ArrayOfLocation?.Location ||
+      actualData.ArrayOfPreciseFlexMotionProfile?.PreciseFlexMotionProfile ||
+      actualData.ArrayOfGripParams?.GripParams ||
+      actualData.ArrayOfSequence?.Sequence
     );
 
     const isValid = isWrappedValid || isUnwrappedValid;
@@ -80,34 +80,39 @@ const xmlHandler: FileFormatHandler = {
     console.log('XML Parse - Raw input:', data);
     const result: TeachPendantData = {};
 
-    // Wrap multiple root nodes in a single parent node if needed
+    // Only wrap if not already wrapped
     const xmlData = data.trim();
-    const wrappedXml = xmlData.startsWith('<?xml')
-      ? xmlData.replace(/^<\?xml[^>]*>\s*/, '<?xml version="1.0"?>\n<TeachPendantData>')
-      : '<?xml version="1.0"?>\n<TeachPendantData>' + xmlData;
-    const wrappedData = wrappedXml + (wrappedXml.includes('</TeachPendantData>') ? '' : '</TeachPendantData>');
+    const wrappedXml = xmlData.includes('<TeachPendantData>') 
+      ? xmlData 
+      : `<?xml version="1.0"?>\n<TeachPendantData>${xmlData}</TeachPendantData>`;
 
-    const parsed = xml2js(wrappedData, { compact: true }) as any;
+    const parsed = xml2js(wrappedXml, { compact: true }) as any;
     console.log('XML Parse - After xml2js:', parsed);
 
+    // Get the actual data object, handling both wrapped and unwrapped formats
+    const actualData = parsed?.TeachPendantData?.TeachPendantData || parsed?.TeachPendantData || parsed;
+    console.log('XML Parse - Actual data:', actualData);
+
+    // Helper function to normalize array or single item
+    const normalizeArray = (item: any) => item ? (Array.isArray(item) ? item : [item]) : [];
+
     // Parse PreciseArm sequences
-    if (parsed.TeachPendantData?.ArrayOfSequence?.Sequence) {
-      console.log('Found sequences:', parsed.TeachPendantData.ArrayOfSequence.Sequence);
-      const sequences = Array.isArray(parsed.TeachPendantData.ArrayOfSequence.Sequence) 
-        ? parsed.TeachPendantData.ArrayOfSequence.Sequence 
-        : [parsed.TeachPendantData.ArrayOfSequence.Sequence];
+    const sequenceData = actualData?.ArrayOfSequence?.Sequence;
+    if (sequenceData) {
+      console.log('Found sequences:', sequenceData);
+      const sequences = normalizeArray(sequenceData);
       console.log('Normalized sequences array:', sequences);
 
       result.sequences = sequences.map((seq: any) => {
         console.log('Processing sequence:', seq);
-        const commands = Array.isArray(seq.Commands.RobotCommand)
-          ? seq.Commands.RobotCommand
-          : [seq.Commands.RobotCommand];
+        const commands = normalizeArray(seq.Commands?.RobotCommand);
         console.log('Sequence commands:', commands);
 
         return {
-          name: seq.Name?._text || seq.Name || seq.n?._text || '',
+          name: seq.Name?._text || seq.n?._text || '',
           description: "",
+          id: Number(seq.Id?._text) || 0,
+          tool_id: 1,
           commands: commands.map((cmd: any, index: number) => {
             console.log('Processing command:', cmd);
             const commandType = cmd._attributes?.xsi_type || cmd._attributes?.["xsi:type"] || "";
@@ -119,7 +124,7 @@ const xmlHandler: FileFormatHandler = {
               case "MoveCommand":
                 command = "move";
                 params = {
-                  waypoint: cmd.LocationName?._text || cmd.LocationName || '',
+                  waypoint: cmd.LocationName?._text || '',
                   motion_profile_id: 1
                 };
                 break;
@@ -155,15 +160,14 @@ const xmlHandler: FileFormatHandler = {
     }
 
     // Parse locations
-    if (parsed.TeachPendantData?.ArrayOfLocation) {
-      console.log('Found locations:', parsed.TeachPendantData.ArrayOfLocation);
-      const locations = Array.isArray(parsed.TeachPendantData.ArrayOfLocation.Location) 
-        ? parsed.TeachPendantData.ArrayOfLocation.Location 
-        : [parsed.TeachPendantData.ArrayOfLocation.Location];
+    const locationData = actualData?.ArrayOfLocation?.Location;
+    if (locationData) {
+      console.log('Found locations:', locationData);
+      const locations = normalizeArray(locationData);
       console.log('Normalized locations array:', locations);
       
       const processedPoints = locations.map((loc: any) => {
-        const point = {
+        const point: TeachPoint = {
           id: Number(loc.Index?._text) || 0,
           name: loc.Name?._text || loc.n?._text || "",
           coordinate: [
@@ -174,7 +178,7 @@ const xmlHandler: FileFormatHandler = {
             Number(loc.Joint5?._text) || 0,
             Number(loc.Joint6?._text) || 0,
           ].join(" "),
-          type: "location",
+          type: "location" as const,
           locType: "j",
         };
         return point;
@@ -220,25 +224,31 @@ const xmlHandler: FileFormatHandler = {
     }
 
     // Parse motion profiles
-    if (parsed.TeachPendantData?.ArrayOfPreciseFlexMotionProfile?.PreciseFlexMotionProfile) {
-      const profiles = Array.isArray(parsed.TeachPendantData.ArrayOfPreciseFlexMotionProfile.PreciseFlexMotionProfile)
-        ? parsed.TeachPendantData.ArrayOfPreciseFlexMotionProfile.PreciseFlexMotionProfile
-        : [parsed.TeachPendantData.ArrayOfPreciseFlexMotionProfile.PreciseFlexMotionProfile];
+    const profileData = actualData?.ArrayOfPreciseFlexMotionProfile?.PreciseFlexMotionProfile;
+    if (profileData) {
+      console.log('Found motion profiles:', profileData);
+      const profiles = normalizeArray(profileData);
+      console.log('Normalized profiles array:', profiles);
       
-      result.motionProfiles = profiles.map((profile: any) => ({
-        id: Number(profile.Id?._text) || 0,
-        name: profile.Name?._text || '',
-        profile_id: Number(profile.ProfileId?._text) || 1,
-        speed: Number(profile.Speed?._text) || 100,
-        speed2: Number(profile.Speed2?._text) || 100,
-        acceleration: Number(profile.Acceleration?._text) || 100,
-        deceleration: Number(profile.Deceleration?._text) || 100,
-        accel_ramp: Number(profile.AccelRamp?._text) || 100,
-        decel_ramp: Number(profile.DecelRamp?._text) || 100,
-        inrange: Number(profile.Inrange?._text) || 1,
-        straight: Number(profile.Straight?._text) || 0,
-        tool_id: 1
-      }));
+      result.motionProfiles = profiles.map((profile: any) => {
+        // Handle both attribute-based and element-based formats
+        const attrs = profile._attributes || {};
+        return {
+          id: Number(profile.Id?._text) || 0,
+          name: attrs.Name || profile.Name?._text || profile.n?._text || '',
+          profile_id: Number(profile.ProfileId?._text) || 1,
+          speed: Number(attrs.Velocity || profile.Speed?._text || profile.Velocity?._text) || 100,
+          speed2: Number(profile.Speed2?._text) || 100,
+          acceleration: Number(attrs.Acceleration || profile.Acceleration?._text) || 100,
+          deceleration: Number(attrs.Deceleration || profile.Deceleration?._text) || 100,
+          accel_ramp: Number(attrs.AccelerationRamp || profile.AccelRamp?._text || profile.AccelerationRamp?._text) || 0.2,
+          decel_ramp: Number(attrs.DecelerationRamp || profile.DecelRamp?._text || profile.DecelerationRamp?._text) || 0.2,
+          inrange: Number(attrs.InRange || profile.Inrange?._text || profile.InRange?._text) || 1,
+          straight: attrs.Straight === "true" || Number(profile.Straight?._text) === 1 ? 1 : 0,
+          tool_id: 1
+        };
+      });
+      console.log('Final motion profiles:', result.motionProfiles);
     }
 
     console.log('Final parsed result:', result);

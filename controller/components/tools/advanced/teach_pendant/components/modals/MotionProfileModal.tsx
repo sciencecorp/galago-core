@@ -79,37 +79,29 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
   }, [isOpen, profile]);
 
   const handleSave = () => {
+    const errors: string[] = [];
+
     if (!name.trim()) {
-      toast({
-        title: "Error",
-        description: "Name is required",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
+      errors.push("Name is required");
     }
 
     if (profileId < 1 || profileId > 14) {
-      toast({
-        title: "Error",
-        description: "Profile ID must be between 1 and 14",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
+      errors.push("Profile ID must be between 1 and 14");
     }
 
     const duplicateProfile = existingProfiles.find(
       p => p.profile_id === profileId && (!profile || p.id !== profile.id)
     );
     if (duplicateProfile) {
+      errors.push(`Profile ID ${profileId} is already in use by profile "${duplicateProfile.name}"`);
+    }
+
+    if (errors.length > 0) {
       toast({
-        title: "Error",
-        description: `Profile ID ${profileId} is already in use by profile "${duplicateProfile.name}"`,
+        title: "Validation Errors",
+        description: errors.join("\n"),
         status: "error",
-        duration: 3000,
+        duration: 5000,
         isClosable: true,
       });
       return;
