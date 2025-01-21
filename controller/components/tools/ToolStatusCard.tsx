@@ -46,7 +46,6 @@ const StyledCard = styled(Card)`
   margin-top: 10px;
   margin-bottom: 20px;
   overflow: hidden;
-
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
