@@ -108,9 +108,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
     return (
       <Box p={2} borderRadius="md" bg={toolBg}>
         {selectedWorkcell === workcell.name ? (
-          <Text as="b" color={bg}>
-            {workcell.tools.length} Tools
-          </Text>
+          <Text as="b">{workcell.tools.length} Tools</Text>
         ) : (
           <Text color="gray.400">{workcell.tools.length} Tools</Text>
         )}
@@ -124,11 +122,15 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
     return (
       <Box p={2} borderRadius="md" bg={toolBg}>
         {selectedWorkcell === workcell.name ? (
-          <Text as="b" color={bg}>
-            {workcell.name}
-          </Text>
+          <EditableText
+            preview={<Text as="b">{workcell.location}</Text>}
+            defaultValue={workcell.location}
+            onSubmit={(value) => {
+              value && handleEdit({ ...workcell, location: value });
+            }}
+          />
         ) : (
-          <Text color="gray.400">{workcell.location}</Text>
+          <Text>{workcell.location}</Text>
         )}
       </Box>
     );
@@ -139,9 +141,10 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
       p={2}
       width="380px"
       height="280px"
+      borderRadius="xl"
       direction={{ base: "column", sm: "row" }}
       overflow="hidden"
-      border={selectedWorkcell === workcell.name ? "2px solid" : "1px solid"}
+      border={selectedWorkcell === workcell.name ? "1px solid" : "1px solid"}
       borderColor={selectedWorkcell === workcell.name ? bg : "gray.200"}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -152,7 +155,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
       <VStack width="100%" alignItems="stretch">
         <CardBody width="100%">
           <Flex justifyContent="space-between" width="100%">
-            <Heading size="lg">
+            <Heading size="md">
               <EditableText
                 preview={
                   selectedWorkcell === workcell.name ? (
@@ -174,9 +177,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
             <EditableText
               preview={
                 selectedWorkcell === workcell.name ? (
-                  <Text as="b" color={bg}>
-                    {workcell.description}
-                  </Text>
+                  <Text fontSize="18px">{workcell.description}</Text>
                 ) : (
                   <Text color="gray.400">{workcell.description}</Text>
                 )
@@ -200,11 +201,12 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
               onClick={async () => {
                 handleSelect();
               }}
-              colorScheme="teal"
+              colorScheme={selectedWorkcell === workcell.name ? "teal" : "gray"}
               variant="solid">
               {selectedWorkcell === workcell.name ? "Selected" : "Select"}
             </Button>
             <DeleteWithConfirmation
+              disabled={selectedWorkcell != workcell.name}
               onDelete={handleDelete}
               label="workcell"
               variant="button"
