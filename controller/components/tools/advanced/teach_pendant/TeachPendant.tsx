@@ -413,33 +413,70 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
 
                       // Process the remaining teach points
                       const numJoints = (config.config as any)?.pf400?.joints || 6; // Default to 6 if not specified
-                      console.log("numJoints", numJoints);
-                      for (const point of data.teachPoints) {
-                        if (!validateJointCount(point.coordinate, parseInt(numJoints.toString()))) {
+                      const mismatchedPoints: string[] = [];
+                      let successfulImports = 0;
+                      
+                      try {
+                        for (const point of data.teachPoints) {
+                          if (!validateJointCount(point.coordinate, parseInt(numJoints.toString()))) {
+                            mismatchedPoints.push(point.name);
+                            continue;
+                          }
+
+                          const joints = coordinateToJoints(point.coordinate, parseInt(numJoints.toString()));
+                          const jointObj: { [key: string]: number } = {};
+                          for (let i = 1; i <= parseInt(numJoints.toString()); i++) {
+                            jointObj[`j${i}`] = joints[`j${i}`] || 0;
+                          }
+
+                          await createLocationMutation.mutateAsync({
+                            name: point.name,
+                            location_type: "j",
+                            ...jointObj,
+                            tool_id: config.id
+                          });
+                          console.log("Successfully imported point:", point.name);
+                          successfulImports++;
+                        }
+
+                        console.log("Import summary:", {
+                          totalPoints: data.teachPoints.length,
+                          successfulImports,
+                          mismatchedPoints
+                        });
+
+                        if (mismatchedPoints.length > 0) {
                           toast({
                             title: "Joint Count Mismatch",
-                            description: `Teach point "${point.name}" has incorrect number of joints for this robot configuration`,
-                            status: "error",
+                            description: `${mismatchedPoints.length} teach points have incorrect number of joints for this robot configuration:\n${mismatchedPoints.join(", ")}`,
+                            status: "error", 
                             duration: 5000,
                             isClosable: true,
                           });
-                          continue;
                         }
 
-                        const joints = coordinateToJoints(point.coordinate, parseInt(numJoints.toString()));
-                        const jointObj: { [key: string]: number } = {};
-                        for (let i = 1; i <= parseInt(numJoints.toString()); i++) {
-                          jointObj[`j${i}`] = joints[`j${i}`] || 0;
+                        if (successfulImports > 0) {
+                          toast({
+                            title: "Import Successful",
+                            description: `Successfully imported ${successfulImports} teach points`,
+                            status: "success",
+                            duration: 3000,
+                            isClosable: true,
+                          });
                         }
 
-                        await createLocationMutation.mutateAsync({
-                          name: point.name,
-                          location_type: "j",
-                          ...jointObj,
-                          tool_id: config.id
+                        await robotArmLocationsQuery.refetch();
+                      } catch (error) {
+                        console.error("Failed to import teach points:", error);
+                        toast({
+                          title: "Error",
+                          description: "Failed to import teach points",
+                          status: "error",
+                          duration: 3000,
+                          isClosable: true,
                         });
+                        return; // Exit early if teach points import fails
                       }
-                      await robotArmLocationsQuery.refetch();
                     }
 
                     // Import motion profiles if present
