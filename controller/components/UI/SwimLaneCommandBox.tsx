@@ -102,7 +102,7 @@ export const SwimLaneCommandBox: React.FC<SwimLaneCommandBoxProps> = ({
         borderColor={boxBorder}
         shadow="sm"
         position="relative">
-        <Box position="absolute" top="2" right="2" zIndex="2">
+        <Box position="absolute" top="2">
           {isEditing
             ? onDelete && (
                 <DeleteWithConfirmation
@@ -163,7 +163,7 @@ export const SwimLaneCommandBox: React.FC<SwimLaneCommandBoxProps> = ({
             onParamChange={onParamChange}
           />
         </VStack>
-        <Box position="absolute" bottom="4" right="4" opacity="0.9" zIndex="1">
+        <Box position="absolute" bottom="4" right="4" opacity="0.9">
           {renderToolImage(infoQuery.data)}
         </Box>
       </Box>
