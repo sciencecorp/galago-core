@@ -23,7 +23,8 @@ import {
   MenuDivider,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, CheckIcon, HamburgerIcon } from "@chakra-ui/icons";
-import { TeachPoint, TeachPointsPanelProps } from "../types/index";
+import { Tool } from "@/types/api";
+import { TeachPoint, MotionProfile, GripParams, Sequence } from "../types";
 import { FaPlay, FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { MdOutlineReplay } from "react-icons/md";
 import { BsRecordCircle } from "react-icons/bs";
@@ -36,6 +37,26 @@ interface EditablePoint {
   coordinates: number[];
 }
 
+interface TeachPointsPanelProps {
+  teachPoints: TeachPoint[];
+  motionProfiles: MotionProfile[];
+  gripParams: GripParams[];
+  sequences: Sequence[];
+  expandedRows: { [key: number]: boolean };
+  toggleRow: (id: number) => void;
+  onImport: (data: any) => void;
+  onMove: (point: TeachPoint, action?: 'approach' | 'leave') => void;
+  onEdit: (point: TeachPoint) => void;
+  onDelete: (point: TeachPoint) => void;
+  onAdd: () => void;
+  onTeach: (point: TeachPoint) => void;
+  isConnected: boolean;
+  bgColor: string;
+  bgColorAlpha: string;
+  searchTerm?: string;
+  config: Tool;
+}
+
 export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   teachPoints,
   motionProfiles,
@@ -43,6 +64,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   sequences,
   expandedRows,
   toggleRow,
+  onImport,
   onMove,
   onEdit,
   onDelete,
@@ -51,7 +73,8 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   isConnected,
   bgColor,
   bgColorAlpha,
-  searchTerm = "",
+  searchTerm,
+  config,
 }) => {
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const [editingPoint, setEditingPoint] = useState<EditablePoint | null>(null);
@@ -77,17 +100,23 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
 
   const handleCoordinateChange = (index: number, value: number) => {
     if (editingPoint) {
-      const newCoordinates = [...editingPoint.coordinates];
-      newCoordinates[index] = isNaN(value) ? 0 : value;
+      const numJoints = parseInt((config.config as any)?.pf400?.joints || "5");
+      const newCoordinates = Array.from({ length: numJoints }).map((_, i) => 
+        i === index ? value : (editingPoint.coordinates[i] || 0)
+      );
       setEditingPoint({ ...editingPoint, coordinates: newCoordinates });
     }
   };
 
   const handleSaveCoordinates = (point: TeachPoint) => {
     if (editingPoint) {
+      const numJoints = parseInt((config.config as any)?.pf400?.joints || "5");
+      const coordinates = Array.from({ length: numJoints }).map((_, i) => 
+        editingPoint.coordinates[i] || 0
+      );
       const updatedPoint = {
         ...point,
-        coordinate: editingPoint.coordinates.join(" ")
+        coordinate: coordinates.join(" ")
       };
       onEdit(updatedPoint);
       setEditingPoint(null);
@@ -95,9 +124,14 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   };
 
   const startEditing = (point: TeachPoint) => {
+    const numJoints = parseInt((config.config as any)?.pf400?.joints || "5");
+    const coordinates = point.coordinate ? 
+      point.coordinate.split(" ").map(Number) : 
+      Array(numJoints).fill(0);
+    
     setEditingPoint({
       id: point.id,
-      coordinates: point.coordinate ? point.coordinate.split(" ").map(Number) : [0, 0, 0, 0, 0, 0]
+      coordinates: Array.from({ length: numJoints }).map((_, i) => coordinates[i] || 0)
     });
   };
 
@@ -137,18 +171,18 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
               </Thead>
               <Tbody>
                 {paginatedItems.map((point) => (
-                  <Tr key={point.id} bg={expandedRows.has(point.id) ? bgColorAlpha : undefined}>
+                  <Tr key={point.id} bg={expandedRows[point.id] ? bgColorAlpha : undefined}>
                     <Td width="200px">{point.name}</Td>
                     <Td width="100px">{point.type}</Td>
                     <Td>
-                      {editingPoint?.id === point.id && (
+                      {editingPoint?.id === point.id ? (
                         <Box>
                           <HStack spacing={2} justify="center">
-                            {editingPoint.coordinates.map((coord, index) => (
+                            {Array.from({ length: parseInt((config.config as any)?.pf400?.joints || "5") }, (_, index) => (
                               <Box key={index}>
                                 <Box fontSize="xs" textAlign="center" mb={1}>J{index + 1}</Box>
                                 <NumberInput
-                                  value={coord}
+                                  value={editingPoint?.coordinates[index] || 0}
                                   onChange={(_, value) => handleCoordinateChange(index, value)}
                                   step={0.001}
                                   precision={3}
@@ -162,7 +196,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                             ))}
                           </HStack>
                         </Box>
-                      )}
+                      ) : null}
                     </Td>
                     <Td width="200px" textAlign="right">
                       {editingPoint?.id === point.id ? (

@@ -28,11 +28,6 @@ export const useTeachPendantState = () => {
     onClose: onMoveModalClose
   } = useDisclosure();
 
-  const {
-    isOpen: isEditModalOpen,
-    onOpen: onEditModalOpen,
-    onClose: onEditModalClose
-  } = useDisclosure();
 
   // General states
   const [isCommandInProgress, setIsCommandInProgress] = useState(false);
@@ -115,9 +110,6 @@ export const useTeachPendantState = () => {
     isMoveModalOpen,
     onMoveModalOpen,
     onMoveModalClose,
-    isEditModalOpen,
-    onEditModalOpen,
-    onEditModalClose,
 
     // General states
     isCommandInProgress,

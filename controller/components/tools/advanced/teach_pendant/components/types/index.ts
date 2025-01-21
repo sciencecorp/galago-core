@@ -1,20 +1,22 @@
 import { Tool } from "@/types/api";
 import { ToolConfig } from "gen-interfaces/controller";
+import { JointConfig } from "../utils/robotArmUtils";
 
 export interface TeachPendantProps {
   toolId: string | undefined;
   config: Tool;
 }
 
-export type TeachPoint = {
+export interface TeachPoint {
   id: number;
   name: string;
   coordinate: string;
-  type: "nest" | "location";
+  type: "location" | "nest";
   locType: "j";
+  joints?: JointConfig;
   orientation?: "portrait" | "landscape";
   safe_loc?: number;
-};
+}
 
 export interface MotionProfile {
   id: number;

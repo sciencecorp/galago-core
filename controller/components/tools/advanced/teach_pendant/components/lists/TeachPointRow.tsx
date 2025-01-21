@@ -1,9 +1,11 @@
 import { Tr, Td, IconButton, Badge, Menu, MenuButton, MenuList, MenuItem, HStack, VStack, Text, Table, Thead, Tbody, Th } from "@chakra-ui/react";
 import { ChevronUpIcon, ChevronDownIcon, HamburgerIcon } from "@chakra-ui/icons";
+import { Tool } from "@/types/api";
 import { TeachPoint } from "../types";
 
 interface TeachPointRowProps {
   point: TeachPoint;
+  config: Tool;
   isExpanded: boolean;
   onToggle: () => void;
   onMove: (point: TeachPoint, action?: 'approach' | 'leave') => void;
@@ -14,6 +16,7 @@ interface TeachPointRowProps {
 
 export const TeachPointRow: React.FC<TeachPointRowProps> = ({
   point,
+  config,
   isExpanded,
   onToggle,
   onMove,
@@ -77,12 +80,9 @@ export const TeachPointRow: React.FC<TeachPointRowProps> = ({
               <Table size="sm" variant="simple">
                 <Thead>
                   <Tr>
-                    <Th>J1</Th>
-                    <Th>J2</Th>
-                    <Th>J3</Th>
-                    <Th>J4</Th>
-                    <Th>J5</Th>
-                    <Th>J6</Th>
+                    {Array.from({ length: parseInt((config.config as any)?.pf400?.joints || "5") }, (_, i) => (
+                      <Th key={`j${i + 1}`}>J{i + 1}</Th>
+                    ))}
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -93,7 +93,7 @@ export const TeachPointRow: React.FC<TeachPointRowProps> = ({
                             {parseFloat(coord).toFixed(3)}
                           </Td>
                         ))
-                      : <Td colSpan={6}>No coordinates available</Td>
+                      : <Td colSpan={parseInt((config.config as any)?.pf400?.joints || "5")}>No coordinates available</Td>
                     }
                   </Tr>
                 </Tbody>

@@ -3,6 +3,8 @@ import { TeachPoint, MotionProfile, GripParams } from "../components/types";
 import { ToolCommandInfo } from "@/types";
 import { ToolType } from "gen-interfaces/controller";
 import { UseMutationResult } from "@tanstack/react-query";
+import { Tool } from "@/types/api";
+import { coordinateToJoints } from "../components/utils/robotArmUtils";
 
 // Add a new interface for the robot motion profile format
 interface RobotMotionProfile {
@@ -17,107 +19,44 @@ interface RobotMotionProfile {
   straight: number;
 }
 
-export const useCommandHandlers = (config: { name: string; type: string }) => {
+export function useCommandHandlers(config: Tool) {
   const toast = useToast();
 
-  const handleJog = async (
-    commandMutation: UseMutationResult<any, unknown, ToolCommandInfo>,
-    jogAxis: string,
-    jogDistance: number
+  const handleJog = (
+    mutation: UseMutationResult<any, unknown, any, unknown>,
+    axis: string,
+    distance: number
   ) => {
-    if (!jogAxis || jogDistance === 0) {
-      toast({
-        title: "Jog Error",
-        description: "Please select an axis and enter a distance",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    const jogCommand: ToolCommandInfo = {
+    mutation.mutate({
       toolId: config.name,
-      toolType: config.type as ToolType,
+      toolType: config.type,
       command: "jog",
       params: {
-        axis: jogAxis,
-        distance: jogDistance,
-      },
-    };
-
-    try {
-      await commandMutation.mutateAsync(jogCommand);
-      toast({
-        title: "Jog Successful",
-        description: `Jogged ${jogAxis} axis by ${jogDistance}`,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error) {
-      console.error("Error jogging:", error);
-      toast({
-        title: "Jog Error",
-        description: "Failed to jog",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
+        axis,
+        distance
+      }
+    });
   };
 
-  const handleMoveCommand = async (
-    commandMutation: UseMutationResult<any, unknown, ToolCommandInfo>,
+  const handleMoveCommand = (
+    mutation: UseMutationResult<any, unknown, any, unknown>,
     point: TeachPoint,
-    profile: MotionProfile,
+    motionProfile: MotionProfile,
     action?: 'approach' | 'leave'
   ) => {
-    let command: ToolCommandInfo;
-    
-    if (point.type === 'nest' && action) {
-      command = {
-        toolId: config.name,
-        toolType: config.type as ToolType,
-        command: action === 'approach' ? 'approach' : 'leave',
-        params: {
-          nest_id: point.id,
-          motion_profile_id: profile.id,
-        },
-      };
-    } else {
-      command = {
-        toolId: config.name,
-        toolType: config.type as ToolType,
-        command: "move",
-        params: {
-          waypoint: point.coordinate,
-          motion_profile_id: profile.id,
-        },
-      };
+    const command = action || 'move';
+    const params: any = action ? { nest: point.coordinate } : { waypoint: point.coordinate };
+
+    if (motionProfile?.id) {
+      params.motion_profile_id = motionProfile.id;
     }
 
-    try {
-      await commandMutation.mutateAsync(command);
-      toast({
-        title: "Move Successful",
-        description: action 
-          ? `${action === 'approach' ? 'Approached' : 'Left'} nest ${point.name} with profile ${profile.name}`
-          : `Moved to ${point.name} with profile ${profile.name}`,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error) {
-      console.error("Error moving to location:", error);
-      toast({
-        title: "Move Error",
-        description: `Failed to ${action || 'move to'} ${point.name}`,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
+    mutation.mutate({
+      toolId: config.name,
+      toolType: config.type,
+      command,
+      params
+    });
   };
 
   const handleGripperCommand = async (
@@ -239,4 +178,4 @@ export const useCommandHandlers = (config: { name: string; type: string }) => {
     handleSimpleCommand,
     handleRegisterMotionProfile,
   };
-}; 
+} 

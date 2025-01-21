@@ -29,11 +29,12 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { FaPlay } from "react-icons/fa";
-import { Sequence, TeachPoint, MotionProfile, GripParams } from "../types";
+import { Tool } from "@/types/api";
 import { CommandList } from "../lists/CommandList";
 import { useState, useEffect, useRef } from "react";
 import { usePagination } from "../../hooks/usePagination";
 import { PaginationControls } from "../common/PaginationControls";
+import { Sequence, TeachPoint, MotionProfile, GripParams } from "../types";
 
 interface SequencesPanelProps {
   sequences: Sequence[];
@@ -46,6 +47,7 @@ interface SequencesPanelProps {
   onUpdateSequence: (sequence: Sequence) => void;
   bgColor: string;
   bgColorAlpha: string;
+  config: Tool;
 }
 
 export const SequencesPanel: React.FC<SequencesPanelProps> = ({
@@ -59,6 +61,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
   onUpdateSequence,
   bgColor,
   bgColorAlpha,
+  config,
 }) => {
   const [selectedSequence, setSelectedSequence] = useState<Sequence | null>(null);
   const [sequenceToDelete, setSequenceToDelete] = useState<Sequence | null>(null);
@@ -251,6 +254,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                       setExpandedCommandIndex(expandedCommandIndex === index ? null : index);
                     }
                   }}
+                  config={config}
                 />
               </GridItem>
             )}

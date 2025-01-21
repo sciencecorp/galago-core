@@ -26,6 +26,7 @@ import { useState, useEffect } from "react";
 import { SequenceCommand } from "../types";
 import { CommandModal } from "../modals/CommandModal";
 import { TeachPoint, MotionProfile, GripParams } from "../types";
+import { Tool } from "@/types/api";
 
 interface CommandListProps {
     commands: SequenceCommand[];
@@ -33,6 +34,7 @@ interface CommandListProps {
     teachPoints: TeachPoint[];
     motionProfiles: MotionProfile[];
     gripParams: GripParams[];
+    config: Tool;
     onDelete?: () => void;
     onCommandsChange: (commands: SequenceCommand[]) => void;
     onSequenceNameChange?: (name: string) => void;
@@ -46,6 +48,7 @@ export const CommandList: React.FC<CommandListProps> = ({
     teachPoints,
     motionProfiles,
     gripParams,
+    config,
     onDelete,
     onCommandsChange,
     onSequenceNameChange,
@@ -346,12 +349,9 @@ export const CommandList: React.FC<CommandListProps> = ({
                                                                     <Table size="sm" variant="simple" width="auto">
                                                                         <Thead>
                                                                             <Tr>
-                                                                                <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J1</Th>
-                                                                                <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J2</Th>
-                                                                                <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J3</Th>
-                                                                                <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J4</Th>
-                                                                                <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J5</Th>
-                                                                                <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J6</Th>
+                                                                                {Array.from({ length: parseInt((config.config as any)?.pf400?.joints || "5") }, (_, i) => (
+                                                                                    <Th key={`j${i + 1}`} fontSize="xs" textAlign="center" px={1}>J{i + 1}</Th>
+                                                                                ))}
                                                                             </Tr>
                                                                         </Thead>
                                                                         <Tbody>
@@ -407,12 +407,9 @@ export const CommandList: React.FC<CommandListProps> = ({
                                                                         <Table size="sm" variant="simple" width="auto">
                                                                             <Thead>
                                                                                 <Tr>
-                                                                                    <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J1</Th>
-                                                                                    <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J2</Th>
-                                                                                    <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J3</Th>
-                                                                                    <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J4</Th>
-                                                                                    <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J5</Th>
-                                                                                    <Th padding={0.5} width="auto" fontSize="xs" textAlign="center" px={1}>J6</Th>
+                                                                                    {Array.from({ length: parseInt((config.config as any)?.pf400?.joints || "5") }, (_, i) => (
+                                                                                        <Th key={`j${i + 1}`} fontSize="xs" textAlign="center" px={1}>J{i + 1}</Th>
+                                                                                    ))}
                                                                                 </Tr>
                                                                             </Thead>
                                                                             <Tbody>

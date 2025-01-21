@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useDisclosure } from "@chakra-ui/react";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "../components/types";
+import { Tool } from "@/types/api";
 
-export const useTeachPendantUI = () => {
+export const useTeachPendantUI = (config: Tool) => {
   // Modal states using useDisclosure
   const motionProfileModal = useDisclosure();
   const gripParamsModal = useDisclosure();
@@ -18,20 +19,16 @@ export const useTeachPendantUI = () => {
   const [selectedSequence, setSelectedSequence] = useState<Sequence | null>(null);
 
   // UI state
-  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   const [activeTab, setActiveTab] = useState(0);
-  const [jogAxis, setJogAxis] = useState<string>("j1");
-  const [jogDistance, setJogDistance] = useState<number>(1);
-  const [jogEnabled, setJogEnabled] = useState<boolean>(false);
+  const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>({});
+  const [jogEnabled, setJogEnabled] = useState(false);
+  const [jogAxis, setJogAxis] = useState<string>(`j1`);  // Default to first joint
+  const [jogDistance, setJogDistance] = useState(1);
 
   // Row expansion handler
   const toggleRow = (id: number) => {
-    const newExpandedRows = new Set(expandedRows);
-    if (newExpandedRows.has(id)) {
-      newExpandedRows.delete(id);
-    } else {
-      newExpandedRows.add(id);
-    }
+    const newExpandedRows = { ...expandedRows };
+    newExpandedRows[id] = !newExpandedRows[id];
     setExpandedRows(newExpandedRows);
   };
 
@@ -81,18 +78,18 @@ export const useTeachPendantUI = () => {
     setSelectedSequence,
 
     // UI state
-    expandedRows,
     activeTab,
     setActiveTab,
+    expandedRows,
+    toggleRow,
+    jogEnabled,
+    setJogEnabled,
     jogAxis,
     setJogAxis,
     jogDistance,
     setJogDistance,
-    jogEnabled,
-    setJogEnabled,
 
     // Handlers
-    toggleRow,
     openMotionProfileModal,
     openGripParamsModal,
     openTeachPointModal,

@@ -18,7 +18,7 @@ import {
 import { Search2Icon } from "@chakra-ui/icons";
 import { Tool } from "@/types/api";
 import { useEffect, useState, useMemo } from "react";
-import { jointsToCoordinate, coordinateToJoints } from "./components/utils/robotArmUtils";
+import { jointsToCoordinate, coordinateToJoints, validateJointCount, JointConfig } from "./components/utils/robotArmUtils";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "./components/types";
 
@@ -40,7 +40,7 @@ import { useTeachPendantUI } from "./hooks/useTeachPendantUI";
 import { useTeachPendantData } from "./hooks/useTeachPendantData";
 import { useTeachPendantSettings } from "./hooks/useTeachPendantSettings";
 import { useCommandHandlers } from "./utils/commandHandlers";
-import { ToolType } from "gen-interfaces/controller";
+import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import { useSequenceHandler } from "./components/hooks/useSequenceHandler";
 
 interface TeachPendantProps {
@@ -97,7 +97,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     motionProfileModal,
     gripParamsModal,
     teachPointModal,
-  } = useTeachPendantUI();
+  } = useTeachPendantUI(config);
 
   const {
     teachPoints,
@@ -140,7 +140,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
   const handleMoveCommand = commandHandlers.handleMoveCommand;
 
   const handleMove = (point: TeachPoint, action?: 'approach' | 'leave') => {
-    // Check if in simulation mode
     if (toolStatusQuery.data?.status === "SIMULATED") {
       toast({
         title: "Simulation Mode",
@@ -153,12 +152,13 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
 
     const defaultProfile = motionProfiles[0];
     if (defaultProfile) {
-      handleMoveCommand(robotArmCommandMutation, point, defaultProfile, action);
+      const numJoints = (config.config as any)?.pf400?.joints || 6;
+      const joints = point.joints || coordinateToJoints(point.coordinate, parseInt(numJoints.toString()));
+      handleMoveCommand(robotArmCommandMutation, { ...point, joints }, defaultProfile, action);
     }
   };
 
   const handleTeach = async (point: TeachPoint) => {
-    // Check if in simulation mode
     if (toolStatusQuery.data?.status === "SIMULATED") {
       toast({
         title: "Simulation Mode",
@@ -168,12 +168,10 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         isClosable: true,
         position: "top",
       });
-      return; // Don't proceed with teach operation in simulation mode
+      return;
     }
 
     try {
-      // Get current joint position from robot
-      console.log("Getting current joint position");
       const response = await robotArmCommandMutation.mutateAsync({
         toolId: config.name,
         toolType: config.type as ToolType,
@@ -181,28 +179,34 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         params: {}
       });
 
-      console.log("Current Location Response:", response);
-
       if (response?.meta_data?.location) {
-        // Split the location string into coordinates, skipping the first value (0)
         const coordinates = response.meta_data.location.split(" ").slice(1);
-        console.log("Coordinates:", coordinates);
-        
-        // Update the teach point with new coordinates
+        const numJoints = (config.config as any)?.pf400?.joints || 6; // Default to 6 if not specified
+        console.log("numJoints", numJoints);
+        if (!validateJointCount(response.meta_data.location, parseInt(numJoints.toString()))) {
+          toast({
+            title: "Joint Count Mismatch",
+            description: `Robot returned ${coordinates.length} joints but tool is configured for ${numJoints} joints`,
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+            position: "top",
+          });
+          return;
+        }
+        const joints: JointConfig = {};
+        for (let i = 0; i < parseInt(numJoints.toString()); i++) {
+          joints[`j${i + 1}`] = parseFloat(coordinates[i]);
+        }
+
         await updateLocationMutation.mutateAsync({
           id: point.id,
           name: point.name,
           location_type: "j",
-          j1: parseFloat(coordinates[0]),
-          j2: parseFloat(coordinates[1]),
-          j3: parseFloat(coordinates[2]),
-          j4: parseFloat(coordinates[3]),
-          j5: parseFloat(coordinates[4]),
-          j6: parseFloat(coordinates[5]),
+          ...joints,
           tool_id: config.id
         });
 
-        // Refetch locations to update UI
         robotArmLocationsQuery.refetch();
       } else {
         throw new Error("No location data received from robot");
@@ -226,23 +230,26 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
   // Update local state when queries complete
   useEffect(() => {
     if (robotArmLocationsQuery.data) {
-      const formattedLocations = robotArmLocationsQuery.data.map(loc => ({
-        id: loc.id || 0,
-        name: loc.name,
-        coordinate: jointsToCoordinate({
-          j1: loc.j1 || 0,
-          j2: loc.j2 || 0,
-          j3: loc.j3 || 0,
-          j4: loc.j4 || 0,
-          j5: loc.j5 || 0,
-          j6: loc.j6 || 0,
-        }),
-        type: "location" as const,
-        locType: "j" as const,
-      }));
+      const numJoints = (config.config as any)?.pf400?.joints || 6;
+      const formattedLocations = robotArmLocationsQuery.data.map(loc => {
+        const joints: JointConfig = {};
+        for (let i = 1; i <= parseInt(numJoints.toString()); i++) {
+          const key = `j${i}`;
+          joints[key] = (loc as any)[key] || 0;
+        }
+        
+        return {
+          id: loc.id || 0,
+          name: loc.name,
+          coordinate: jointsToCoordinate(joints, parseInt(numJoints.toString())),
+          type: "location" as const,
+          locType: "j" as const,
+          joints
+        };
+      });
       setTeachPoints(formattedLocations);
     }
-  }, [robotArmLocationsQuery.data, setTeachPoints]);
+  }, [robotArmLocationsQuery.data, setTeachPoints, config]);
 
   useEffect(() => {
     if (motionProfilesQuery.data) {
@@ -258,25 +265,26 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
 
   useEffect(() => {
     if (robotArmNestsQuery.data) {
-      const formattedNests = robotArmNestsQuery.data.map(nest => ({
-        id: nest.id || 0,
-        name: nest.name,
-        coordinate: jointsToCoordinate({
-          j1: nest.j1 || 0,
-          j2: nest.j2 || 0,
-          j3: nest.j3 || 0,
-          j4: nest.j4 || 0,
-          j5: nest.j5 || 0,
-          j6: nest.j6 || 0,
-        }),
-        type: "nest" as const,
-        locType: "j" as const,
-        orientation: nest.orientation || "landscape",
-        safe_loc: nest.safe_location_id,
-      }));
+      const numJoints = (config.config as any)?.pf400?.joints || 6;
+      const formattedNests = robotArmNestsQuery.data.map(nest => {
+        const joints: JointConfig = {};
+        for (let i = 1; i <= parseInt(numJoints.toString()); i++) {
+          const key = `j${i}`;
+          joints[key] = (nest as any)[key] || 0;
+        }
+        
+        return {
+          id: nest.id || 0,
+          name: nest.name,
+          coordinate: jointsToCoordinate(joints, parseInt(numJoints.toString())),
+          type: "nest" as const,
+          locType: "j" as const,
+          joints
+        };
+      });
       setNests(formattedNests);
     }
-  }, [robotArmNestsQuery.data, setNests]);
+  }, [robotArmNestsQuery.data, setNests, config]);
 
   const [defaultProfileId, setDefaultProfileId] = useState<number | null>(null);
   const [defaultParamsId, setDefaultParamsId] = useState<number | null>(null);
@@ -376,7 +384,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 sequences={sequences || []}
                 onImport={async (data) => {
                   try {
-                    // Import teach points if present
                     if (data.teachPoints?.length) {
                       // Check for duplicates
                       if (data.duplicates) {
@@ -405,12 +412,30 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                       }
 
                       // Process the remaining teach points
+                      const numJoints = (config.config as any)?.pf400?.joints || 6; // Default to 6 if not specified
+                      console.log("numJoints", numJoints);
                       for (const point of data.teachPoints) {
-                        const { j1, j2, j3, j4, j5, j6 } = coordinateToJoints(point.coordinate);
+                        if (!validateJointCount(point.coordinate, parseInt(numJoints.toString()))) {
+                          toast({
+                            title: "Joint Count Mismatch",
+                            description: `Teach point "${point.name}" has incorrect number of joints for this robot configuration`,
+                            status: "error",
+                            duration: 5000,
+                            isClosable: true,
+                          });
+                          continue;
+                        }
+
+                        const joints = coordinateToJoints(point.coordinate, parseInt(numJoints.toString()));
+                        const jointObj: { [key: string]: number } = {};
+                        for (let i = 1; i <= parseInt(numJoints.toString()); i++) {
+                          jointObj[`j${i}`] = joints[`j${i}`] || 0;
+                        }
+
                         await createLocationMutation.mutateAsync({
                           name: point.name,
                           location_type: "j",
-                          j1, j2, j3, j4, j5, j6,
+                          ...jointObj,
                           tool_id: config.id
                         });
                       }
@@ -564,7 +589,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     motionProfiles={motionProfiles}
                     gripParams={gripParams}
                     sequences={sequences || []}
-                    expandedRows={new Set(Object.keys(expandedRows).map(Number))}
+                    expandedRows={Object.fromEntries(Object.keys(expandedRows).map(key => [key, true]))}
                     toggleRow={toggleRow}
                     onImport={async () => {}}
                     onMove={handleMove}
@@ -572,30 +597,30 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                       if (point.coordinate !== undefined) {
                         const newCoords = point.coordinate.split(" ").map(Number);
                         const oldPoint = robotArmLocationsQuery.data?.find(loc => loc.id === point.id);
+                        const numJoints = (config.config as any)?.pf400?.joints || 6;
                         
                         // Only update if point doesn't exist or coordinates have changed
                         const hasChanged = !oldPoint || 
-                          Math.abs(newCoords[0] - (oldPoint.j1 ?? 0)) >= 0.001 ||
-                          Math.abs(newCoords[1] - (oldPoint.j2 ?? 0)) >= 0.001 ||
-                          Math.abs(newCoords[2] - (oldPoint.j3 ?? 0)) >= 0.001 ||
-                          Math.abs(newCoords[3] - (oldPoint.j4 ?? 0)) >= 0.001 ||
-                          Math.abs(newCoords[4] - (oldPoint.j5 ?? 0)) >= 0.001 ||
-                          Math.abs(newCoords[5] - (oldPoint.j6 ?? 0)) >= 0.001;
+                          Array.from({ length: parseInt(numJoints.toString()) }).some((_, i) => {
+                            const jointKey = `j${i + 1}` as keyof typeof oldPoint;
+                            return Math.abs(newCoords[i] - ((oldPoint[jointKey] as number) ?? 0)) >= 0.001;
+                          });
 
                         if (hasChanged) {
+                          // Create base location object
                           const location = {
                             id: point.id,
                             name: point.name,
                             location_type: "j" as const,
-                            j1: newCoords[0],
-                            j2: newCoords[1],
-                            j3: newCoords[2],
-                            j4: newCoords[3],
-                            j5: newCoords[4],
-                            j6: newCoords[5],
                             tool_id: config.id,
                           };
-                          updateLocationMutation.mutateAsync(location).then(() => {
+
+                          // Dynamically add joint values
+                          for (let i = 1; i <= parseInt(numJoints.toString()); i++) {
+                            (location as any)[`j${i}`] = newCoords[i - 1];
+                          }
+
+                          updateLocationMutation.mutateAsync(location as any).then(() => {
                             robotArmLocationsQuery.refetch();
                           });
                         }
@@ -616,6 +641,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     bgColor={bgColor}
                     bgColorAlpha={bgColorAlpha}
                     searchTerm={searchTerm}
+                    config={config}
                   />
                 </TabPanel>
                 <TabPanel>
@@ -700,6 +726,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     onUpdateSequence={handleUpdateSequence}
                     bgColor={bgColor}
                     bgColorAlpha={bgColorAlpha}
+                    config={config}
                   />
                 </TabPanel>
               </TabPanels>
@@ -773,27 +800,18 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
           
           // Parse coordinates from the string
           const coords = point.coordinate.split(" ").map(Number);
+          const numJoints = (config.config as any)?.pf400?.joints || 6;
           
-          const location: {
-            name: string;
-            location_type: "j";
-            j1: number;
-            j2: number;
-            j3: number;
-            j4: number;
-            j5: number;
-            j6: number;
-            tool_id: number;
-            id?: number;
-          } = {
+          // Create dynamic joint object
+          const joints: { [key: string]: number } = {};
+          for (let i = 1; i <= parseInt(numJoints.toString()); i++) {
+            joints[`j${i}`] = coords[i - 1] || 0;
+          }
+          
+          const location = {
             name: point.name,
-            location_type: "j",
-            j1: coords[0],
-            j2: coords[1],
-            j3: coords[2],
-            j4: coords[3],
-            j5: coords[4],
-            j6: coords[5],
+            location_type: "j" as const,
+            ...joints,
             tool_id: config.id,
             ...(selectedTeachPoint?.id ? { id: selectedTeachPoint.id } : {})
           };
