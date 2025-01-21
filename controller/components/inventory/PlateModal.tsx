@@ -26,7 +26,7 @@ import {
   DrawerCloseButton,
 } from "@chakra-ui/react";
 import { Plate, Well, Reagent } from "@/types/api";
-import { PlateGrid } from "../UI/PlateGrid";
+import { PlateGrid } from "@/components/ui/PlateGrid";
 import { trpc } from "@/utils/trpc";
 
 interface PlateModalProps {

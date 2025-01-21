@@ -1,5 +1,5 @@
 import { ToolStatusCardsComponent } from "@/components/tools/ToolStatusCardsComponent";
-import HomeNavCard from "@/components/UI/HomeNavCard";
+import HomeNavCard from "@/components/ui/HomeNavCard";
 
 import { Card, Grid, Icon, Box, GridItem, Heading, Flex, VStack } from "@chakra-ui/react";
 import { PageProps } from "@/types";
@@ -11,7 +11,7 @@ import { MdOutlineIntegrationInstructions } from "react-icons/md";
 import { AiFillDatabase } from "react-icons/ai";
 import { TbLogs } from "react-icons/tb";
 import { MdBiotech } from "react-icons/md";
-import { Calendar } from "@/components/Calendar/Calendar";
+import { Calendar } from "@/components/calendar/Calendar";
 
 export default function Page() {
   const pages: PageProps[] = [

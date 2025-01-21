@@ -19,8 +19,8 @@ import { IoPlaySkipForward } from "react-icons/io5";
 import { BsSkipForwardFill } from "react-icons/bs";
 import { VscRunBelow } from "react-icons/vsc";
 import { trpc } from "@/utils/trpc";
-import { DeleteWithConfirmation } from "@/components/UI/Delete";
-import { ParameterEditor } from "@/components/UI/ParameterEditor";
+import { DeleteWithConfirmation } from "@/components/ui/Delete";
+import { ParameterEditor } from "@/components/ui/ParameterEditor";
 
 interface SwimLaneCommandBoxProps {
   command: any;

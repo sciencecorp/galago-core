@@ -27,11 +27,11 @@ import {
 } from "@chakra-ui/react";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import { useEffect, useState } from "react";
-import { DeleteWithConfirmation } from "../UI/Delete";
+import { DeleteWithConfirmation } from "../ui/Delete";
 import { Workcell } from "@/types/api";
 import { LuCheck, LuX } from "react-icons/lu";
-import { EditMenu } from "../UI/EditMenu";
-import { EditableText } from "../UI/Form";
+import { EditMenu } from "../ui/EditMenu";
+import { EditableText } from "../ui/Form";
 
 interface WorkcellCardProps {
   workcell: Workcell;

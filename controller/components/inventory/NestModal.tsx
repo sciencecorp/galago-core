@@ -36,7 +36,7 @@ import {
 import { Nest, Plate, Well, Reagent } from "@/types/api";
 import { HamburgerIcon, AddIcon, CloseIcon } from "@chakra-ui/icons";
 import PlateModal from "./PlateModal";
-import { WellPlateIcon } from "../UI/Icons";
+import { WellPlateIcon } from "@/components/ui/Icons";
 
 interface NestModalProps {
   isOpen: boolean;

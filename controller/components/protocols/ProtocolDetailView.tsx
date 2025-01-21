@@ -46,9 +46,9 @@ import { AddToolCommandModal } from "./AddToolCommandModal";
 import CommandComponent from "./CommandComponent";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
-import { DeleteWithConfirmation } from "@/components/UI/Delete";
+import { DeleteWithConfirmation } from "@/components/ui/Delete";
 import { PiToolbox } from "react-icons/pi";
-import { ParameterEditor } from "@/components/UI/ParameterEditor";
+import { ParameterEditor } from "@/components/ui/ParameterEditor";
 
 const CommandBox: React.FC<{
   command: any;

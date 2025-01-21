@@ -20,10 +20,10 @@ import {
 import { trpc } from "@/utils/trpc";
 import { Labware as LabwareResponse } from "@/types/api";
 import { LabwareModal } from "./LabwareModal";
-import { DeleteWithConfirmation } from "../UI/Delete";
-import { renderDatetime } from "../UI/Time";
-import { EditableText } from "../UI/Form";
-import { WellPlateIcon } from "../UI/Icons";
+import { DeleteWithConfirmation } from "../ui/Delete";
+import { renderDatetime } from "../ui/Time";
+import { EditableText } from "../ui/Form";
+import { WellPlateIcon } from "../ui/Icons";
 
 export const Labware: React.FC = () => {
   const [labware, setLabware] = useState<LabwareResponse[]>([]);
