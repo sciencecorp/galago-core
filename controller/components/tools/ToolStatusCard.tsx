@@ -30,7 +30,7 @@ import { HamburgerIcon } from "@chakra-ui/icons";
 import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
 import { PiToolbox } from "react-icons/pi";
-import { EditMenu } from "@/components/UI/EditMenu";
+import { EditMenu } from "@/components/ui/EditMenu";
 import { EditToolModal } from "./EditToolConfig";
 import { useRouter } from "next/router";
 

@@ -18,7 +18,7 @@ import {
   Progress,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { DeleteWithConfirmation } from "../UI/Delete";
+import { DeleteWithConfirmation } from "../ui/Delete";
 import { PlusSquareIcon, ChevronUpIcon } from "@chakra-ui/icons";
 import { QueueStatusComponent } from "./QueueStatuscomponent";
 import { getRunAttributes, groupCommandsByRun } from "@/utils/runUtils";
