@@ -79,7 +79,7 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
           <Box flex="1">
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>An error occurred while executing the command.</AlertDescription>
-            <AlertDescription>{getError.data.message}</AlertDescription>
+            <AlertDescription>{getError.data.toString()}</AlertDescription>
           </Box>
         </Alert>
       );
