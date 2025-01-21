@@ -257,7 +257,7 @@ export function useSequenceHandler(config: Tool) {
 
   const handleDeleteSequence = async (id: number) => {
     try {
-      await deleteSequenceMutation.mutateAsync({ id });
+      await deleteSequenceMutation.mutateAsync({ id, tool_id: config.id });
     } catch (error) {
       toast({
         title: "Error",

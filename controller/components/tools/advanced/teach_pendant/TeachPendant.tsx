@@ -557,7 +557,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                       }
                     }}
                     onDelete={async (point: TeachPoint) => {
-                      await deleteLocationMutation.mutateAsync({ id: point.id });
+                      await deleteLocationMutation.mutateAsync({ id: point.id, tool_id: config.id });
                       robotArmLocationsQuery.refetch();
                     }}
                     onAdd={() => {
@@ -584,7 +584,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                       motionProfileModal.onOpen();
                     }}
                     onDelete={async (id) => {
-                      await deleteMotionProfileMutation.mutateAsync({ id });
+                      await deleteMotionProfileMutation.mutateAsync({ id, tool_id: config.id });
                       motionProfilesQuery.refetch();
                     }}
                     onAdd={() => {
@@ -619,7 +619,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                       gripParamsModal.onOpen();
                     }}
                     onDelete={async (id) => {
-                      await deleteGripParamsMutation.mutateAsync({ id });
+                      await deleteGripParamsMutation.mutateAsync({ id, tool_id: config.id });
                       gripParamsQuery.refetch();
                     }}
                     onAdd={() => {
