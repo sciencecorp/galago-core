@@ -173,32 +173,28 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       ) : (
         <>
           <VStack>
-          <Box
-            pl={3}
-            pt={3}
-              >
-            <Image
-              onClick={toggleSidebar}
-              width="55px"
-              paddingLeft="0"
-              src="/site_logo.png"
-              alt="logo"
-              filter="invert(1)">
-            </Image>
-          </Box>
-          <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
-            <DrawerOverlay />
-            <DrawerContent
-              maxW="220px"
-              overflow="hidden"
-              _focus={{ outline: "none" }}
-              bg="teal.800"
-              color="white">
-              {SidebarContent}
-            </DrawerContent>
-          </Drawer>
+            <Box pl={3} pt={3}>
+              <Image
+                onClick={toggleSidebar}
+                width="55px"
+                paddingLeft="0"
+                src="/site_logo.png"
+                alt="logo"
+                filter="invert(1)"></Image>
+            </Box>
+            <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
+              <DrawerOverlay />
+              <DrawerContent
+                maxW="220px"
+                overflow="hidden"
+                _focus={{ outline: "none" }}
+                bg="teal.800"
+                color="white">
+                {SidebarContent}
+              </DrawerContent>
+            </Drawer>
           </VStack>
-          </>
+        </>
       )}
 
       {/* Content Area */}
