@@ -82,14 +82,15 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(true);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const isMobile = useBreakpointValue({ base: true, md: false });
-  const router = useRouter(); // Use Next.js router for navigation and active route detection
+  const router = useRouter();
 
   const toggleSidebar = () => {
-    if (isMobile) {
+    if (isMobile && !isSidebarExpanded) {
+      onOpen();
+    } else if (isMobile && isSidebarExpanded) {
       onClose();
-    } else {
-      setIsSidebarExpanded((prev) => !prev);
     }
+    setIsSidebarExpanded((prev) => !prev); // Toggle the expanded state on larger screens
   };
 
   const SidebarContent = (
@@ -102,7 +103,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
         transition: "min-width 0.3s ease, width 0.3s ease",
         width: isSidebarExpanded ? "230px" : "80px",
       }}>
-      <VStack left={0} p={0} spacing={4} align="stretch" width="100%">
+      <VStack left={0} p={1} spacing={4} align="stretch" width="100%">
         <HStack pb={10} pl={3} pt={2}>
           <Image
             onClick={toggleSidebar}
@@ -112,13 +113,14 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             alt="logo"
             filter="invert(1)"></Image>
         </HStack>
+
         {sidebarItems.map((item) => (
           <Link
             key={item.name}
             onClick={() => {
               router.push(item.path);
               document.title =
-                item.path == "/"
+                item.path === "/"
                   ? "Home"
                   : capitalizeFirst(`${item.path.replaceAll("/", "").replaceAll("_", " ")}`);
             }}
@@ -128,7 +130,8 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             display="flex"
             alignItems="center"
             justifyContent={isSidebarExpanded ? "start" : "center"}
-            bg={router.pathname === item.path ? "teal.600" : "transparent"}>
+            bg={router.pathname === item.path ? "teal.600" : "transparent"}
+            width={isMobile ? "100%" : "auto"}>
             {!isSidebarExpanded ? (
               <Tooltip label={item.name} placement="right">
                 <Box>
@@ -136,12 +139,12 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                 </Box>
               </Tooltip>
             ) : (
-              <item.icon size="26" />
-            )}
-            {isSidebarExpanded && (
-              <Text color="white" ml={4} fontSize="md">
-                {item.name}
-              </Text>
+              <>
+                <item.icon size="26" />
+                <Text color="white" ml={4} fontSize="md">
+                  {item.name}
+                </Text>
+              </>
             )}
           </Link>
         ))}
@@ -149,6 +152,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       </VStack>
     </Box>
   );
+
   return (
     <Flex>
       {!isMobile ? (
@@ -168,22 +172,37 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
         </Box>
       ) : (
         <>
-          <IconButton
-            bg="teal.500"
-            aria-label="Open Menu"
-            icon={<FiMenu />}
-            onClick={onOpen}
-            position="fixed"
-            top="0rem"
-            left="0rem"
-          />
+          <VStack>
+          <Box
+            pl={3}
+            pt={3}
+              >
+            <Image
+              onClick={toggleSidebar}
+              width="55px"
+              paddingLeft="0"
+              src="/site_logo.png"
+              alt="logo"
+              filter="invert(1)">
+            </Image>
+          </Box>
           <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
             <DrawerOverlay />
-            <DrawerContent>{SidebarContent}</DrawerContent>
+            <DrawerContent
+              maxW="220px"
+              overflow="hidden"
+              _focus={{ outline: "none" }}
+              bg="teal.800"
+              color="white">
+              {SidebarContent}
+            </DrawerContent>
           </Drawer>
-        </>
+          </VStack>
+          </>
       )}
-      <Box flex="1" p={4} ml={isSidebarExpanded ? "230px" : "70px"}>
+
+      {/* Content Area */}
+      <Box flex="1" p={4} ml={!isMobile && isSidebarExpanded ? "230px" : !isMobile ? "70px" : "0"}>
         {children}
       </Box>
     </Flex>

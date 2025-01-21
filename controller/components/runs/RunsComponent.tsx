@@ -104,8 +104,8 @@ export const RunsComponent: React.FC = () => {
                     size="md"
                   />
                 )}
-                <HStack width="100%">
-                  <Box width="90%">
+                <HStack mb={2} justify="space-between" width="100%">
+                  <Box>
                     <Button
                       p={1}
                       variant="ghost"
@@ -120,12 +120,10 @@ export const RunsComponent: React.FC = () => {
                       </Heading>
                     </Button>
                   </Box>
-                  <Box width="10%" textAlign="right">
-                    <DeleteWithConfirmation
-                      onDelete={() => handleConfirmDelete(run.Id)}
-                      label="Run"
-                    />
-                  </Box>
+                  <DeleteWithConfirmation
+                    onDelete={() => handleConfirmDelete(run.Id)}
+                    label="Run"
+                  />
                 </HStack>
               </VStack>
             </Box>

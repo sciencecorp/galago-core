@@ -23,7 +23,7 @@ export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
       {variant === "icon" && (
         <>
           <IconButton
-            padding="0"
+            padding="2"
             margin="0"
             minWidth="0"
             borderRadius="0"
