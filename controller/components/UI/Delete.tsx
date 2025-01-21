@@ -33,8 +33,10 @@ export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
             size={size}
             bg="transparent"
             onClick={onOpen}
+            _hover={{ bg: "transparent" }}
+            _focus={{ boxShadow: "none" }}
+            _active={{ bg: "transparent" }}
           />
-
           {showText && (
             <Text px={2} fontSize="md" onClick={onOpen} width="100%">
               Delete

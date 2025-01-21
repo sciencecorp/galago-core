@@ -13,25 +13,24 @@ import {
   Image,
   useColorModeValue,
   Center,
-  Portal,
 } from "@chakra-ui/react";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import { IoPlaySkipForward } from "react-icons/io5";
 import { BsSkipForwardFill } from "react-icons/bs";
 import { VscRunBelow } from "react-icons/vsc";
-import { Tooltip } from "@chakra-ui/react";
 import { PiToolbox } from "react-icons/pi";
 import { useRef } from "react";
 import { capitalizeFirst } from "@/utils/parser";
 import { FaRegFileCode } from "react-icons/fa6";
 import { RunCommand } from "@/types";
-import ReactCardFlip from "react-card-flip";
 
 interface LaneCommandComponentProps {
   command: RunCommand;
+  onCommandClick: (command: RunCommand) => void;
 }
 
-const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command }) => {
+const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) => {
+  const { command, onCommandClick } = props;
   const infoQuery = trpc.tool.info.useQuery({ toolId: command.commandInfo.toolId });
   const toolStatusQuery = trpc.tool.status.useQuery({ toolId: command.commandInfo.toolId });
   const skipMutation = trpc.commandQueue.skipCommand.useMutation();
@@ -39,12 +38,10 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
   const execMutation = trpc.tool.runCommand.useMutation();
   const { queueId, commandInfo, estimatedDuration, status } = command;
   let toolName = infoQuery.data?.name || "undefined";
-  //const MemoizedSwimLaneComponentItem = React.memo(SwimLaneCommandComponent);
   const [commandColor, setCommandColor] = useState<string>("White");
   const bgColor = useColorModeValue("gray.100", "gray.700");
   const errorColor = useColorModeValue("red.200", "red.800");
   const toolNameRef = useRef(toolName);
-  const [isFlipped, setIsFlipped] = useState(false);
 
   useEffect(() => {
     toolNameRef.current = toolName;
@@ -71,6 +68,7 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
             variant="ghost"
             colorScheme="teal"
             isRound
+            onClick={() => onCommandClick(command)}
           />
         </Box>
       );
@@ -81,9 +79,11 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
             src={config.image_url}
             alt={config.name}
             objectFit="contain"
-            height={"65px"}
-            width={"65px"}
+            height="65px"
+            width="65px"
             transition="all 0.3s ease-in-out"
+            cursor="pointer"
+            onClick={() => onCommandClick(command)}
           />
         </Box>
       );
@@ -115,46 +115,8 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
     queueId &&
     (command.status === "CREATED" || command.status === "FAILED" || command.status === "STARTED");
 
-  const handleFlip = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsFlipped(!isFlipped);
-  };
-
-  const formatParameterValue = (value: any): string => {
-    if (Array.isArray(value)) {
-      return value.join(", ");
-    } else if (typeof value === "object" && value !== null) {
-      return JSON.stringify(value, null, 2);
-    }
-    return String(value);
-  };
-
-  const ParameterDisplay = ({ params }: { params: Record<string, any> }) => {
-    return (
-      <VStack align="stretch" spacing={2}>
-        {Object.entries(params).map(([key, value]) => (
-          <Box key={key}>
-            <Text fontSize="xs" fontWeight="bold" color="blue.500">
-              {key.replace(/_/g, " ")}:
-            </Text>
-            <Box
-              ml={2}
-              fontSize="xs"
-              bg="gray.50"
-              p={1}
-              borderRadius="sm"
-              _dark={{ bg: "gray.700" }}>
-              {formatParameterValue(value)}
-            </Box>
-          </Box>
-        ))}
-      </VStack>
-    );
-  };
-
-  const CardFront = (
+  return (
     <Box
-      zIndex="-1"
       left="0px"
       right="0px"
       minW="250px"
@@ -166,7 +128,6 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
       borderLeftRadius="15"
       borderRightRadius="15"
       padding="6px"
-      boxSizing="border-box"
       background={setBackgroundColor(command.status)}
       border={command.status === "STARTED" ? "2px" : "1px"}
       borderColor={command.status === "STARTED" ? "teal" : "black"}>
@@ -182,48 +143,42 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
                 <MenuButton
                   as={IconButton}
                   aria-label="Options"
-                  padding="0"
-                  margin="0"
                   border={0}
                   bg="transparent"
                   icon={<HamburgerIcon fontSize="lg" />}
                   variant="outline"
                 />
-                <Portal>
-                  <MenuList zIndex="3">
-                    {queued ? (
-                      <MenuItem onClick={() => skipMutation.mutate(queueId)}>
-                        <IoPlaySkipForward />{" "}
-                        <Box as="span" ml={2}>
-                          Skip
-                        </Box>
-                      </MenuItem>
-                    ) : null}
-                    {queued ? (
-                      <MenuItem onClick={() => skipUntilMutation.mutate(queueId)}>
-                        <BsSkipForwardFill />{" "}
-                        <Box as="span" ml={2}>
-                          Skip to this command
-                        </Box>
-                      </MenuItem>
-                    ) : null}
-                    <MenuItem onClick={() => execMutation.mutate(command.commandInfo)}>
-                      <VscRunBelow />{" "}
+                <MenuList>
+                  {queued ? (
+                    <MenuItem onClick={() => skipMutation.mutate(queueId)}>
+                      <IoPlaySkipForward />{" "}
                       <Box as="span" ml={2}>
-                        Send to Tool
+                        Skip
                       </Box>
                     </MenuItem>
-                  </MenuList>
-                </Portal>
+                  ) : null}
+                  {queued ? (
+                    <MenuItem onClick={() => skipUntilMutation.mutate(queueId)}>
+                      <BsSkipForwardFill />{" "}
+                      <Box as="span" ml={2}>
+                        Skip to this command
+                      </Box>
+                    </MenuItem>
+                  ) : null}
+                  <MenuItem onClick={() => execMutation.mutate(command.commandInfo)}>
+                    <VscRunBelow />{" "}
+                    <Box as="span" ml={2}>
+                      Send to Tool
+                    </Box>
+                  </MenuItem>
+                </MenuList>
               </Menu>
             </Box>
           </HStack>
         </Box>
         <Center p={0}>
           <VStack spacing={2}>
-            <Box onClick={handleFlip} cursor="pointer">
-              {renderToolImage(infoQuery.data)}
-            </Box>
+            <Box>{renderToolImage(infoQuery.data)}</Box>
             <Box bottom={0} position="sticky">
               <Text>{capitalizeFirst(command.commandInfo.command.replaceAll("_", " "))}</Text>
             </Box>
@@ -231,51 +186,6 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = ({ command
         </Center>
       </VStack>
     </Box>
-  );
-
-  const CardBack = (
-    <Box
-      zIndex="-1"
-      left="0px"
-      right="0px"
-      minW="250px"
-      maxW="300px"
-      height="165px"
-      overflowY="auto"
-      mr="4"
-      fontSize="18px"
-      borderLeftRadius="15"
-      borderRightRadius="15"
-      padding="6px"
-      boxSizing="border-box"
-      background={setBackgroundColor(command.status)}
-      border={command.status === "STARTED" ? "2px" : "1px"}
-      borderColor={command.status === "STARTED" ? "teal" : "black"}
-      onClick={handleFlip}
-      cursor="pointer">
-      <VStack alignItems="stretch" h="100%" justify="start" p={2}>
-        <Text fontSize="sm" fontWeight="bold" mb={2}>
-          Parameters:
-        </Text>
-        <Box overflowY="auto" maxH="125px">
-          <ParameterDisplay params={command.commandInfo.params} />
-        </Box>
-      </VStack>
-    </Box>
-  );
-
-  return (
-    <ReactCardFlip
-      containerStyle={{ overflow: "visible" }}
-      cardStyles={{
-        front: { zIndex: 4 }, // Front card
-        back: { zIndex: 4 }, // Back card
-      }}
-      isFlipped={isFlipped}
-      flipDirection="horizontal">
-      {CardFront}
-      {CardBack}
-    </ReactCardFlip>
   );
 };
 

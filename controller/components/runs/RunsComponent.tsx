@@ -1,12 +1,8 @@
-import CommandComponent from "@/components/protocols/CommandComponent";
 import React, { useEffect, useState } from "react";
-import StatusTag from "@/components/tools/StatusTag";
-import { ToolStatusCardsComponent } from "@/components/tools/ToolStatusCardsComponent";
 import { SwimLaneComponent } from "@/components/runs/SwimLaneComponent";
 import RunQueueGanttChart from "@/components/runs/RunQueueGanttChart";
 import { trpc } from "@/utils/trpc";
 import {
-  Alert,
   Box,
   Button,
   Tabs,
@@ -17,45 +13,20 @@ import {
   Heading,
   HStack,
   VStack,
-  IconButton,
   useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalBody,
-  ModalFooter,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
   Text,
   Progress,
   useColorModeValue,
 } from "@chakra-ui/react";
-
-import { PlusSquareIcon, ChevronUpIcon, DeleteIcon } from "@chakra-ui/icons";
-import { RunCommand, RunQueue } from "@/types";
+import { DeleteWithConfirmation } from "../UI/Delete";
+import { PlusSquareIcon, ChevronUpIcon } from "@chakra-ui/icons";
 import { QueueStatusComponent } from "./QueueStatuscomponent";
 import { getRunAttributes, groupCommandsByRun } from "@/utils/runUtils";
 
-interface GroupedCommand {
-  Id: string;
-  Commands: RunCommand[];
-}
-
-interface RunsComponentProps {}
-
-interface RunQueueAttributes {
-  runId: string;
-  runName: string;
-  commandsCount: number;
-}
-
-export const RunsComponent: React.FC<RunsComponentProps> = () => {
+export const RunsComponent: React.FC = () => {
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [expandedRuns, setExpandedRuns] = useState<Set<string>>(new Set());
-  const [expandedParams, setExpandedParams] = useState<boolean>(false);
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const skipRunMutation = trpc.commandQueue.clearByRunId.useMutation();
-  const [selectedDeleteRun, setSelectedDeleteRun] = useState<string>("");
   const commandsAll = trpc.commandQueue.commands.useQuery(
     { limit: 1000, offset: 0 },
     { refetchInterval: 1000 },
@@ -80,7 +51,6 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
 
   const handleConfirmDelete = (runId: string) => {
     skipRunMutation.mutate(runId);
-    onClose();
   };
 
   const handleRunButtonClick = (runId: string | null) => {
@@ -96,11 +66,6 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
     });
   };
 
-  const handleDeleteButtonClick = (runId: string) => {
-    setSelectedDeleteRun(runId);
-    onOpen();
-  };
-
   const handleRunClick = (runId: string) => {
     setSelectedRunId((prevId) => (prevId === runId ? null : runId));
     setExpandedRuns((prev) => {
@@ -114,10 +79,6 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
     });
   };
 
-  const handleParamExpand = (expanded: boolean) => {
-    setExpandedParams(expanded);
-  };
-
   const renderRunsList = () => {
     return groupedCommands.map((run, index) => {
       const runAttributes = getRunAttributes(
@@ -126,26 +87,6 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
       );
       return (
         <VStack align="left" key={index} width="100%">
-          <Modal isOpen={isOpen} onClose={onClose} isCentered={true}>
-            <ModalContent>
-              <ModalHeader>Confirm Action</ModalHeader>
-              <ModalCloseButton />
-              <ModalBody>
-                <Text>Are you sure you want to delete this run?</Text>
-              </ModalBody>
-              <ModalFooter>
-                <Button
-                  colorScheme="blue"
-                  mr={3}
-                  onClick={() => handleConfirmDelete(selectedDeleteRun)}>
-                  Accept
-                </Button>
-                <Button variant="ghost" onClick={onClose}>
-                  Cancel
-                </Button>
-              </ModalFooter>
-            </ModalContent>
-          </Modal>
           <Box width="100%">
             <Box bg={commandBgColor} p={1} color="black" border="1px" width="100%">
               <VStack spacing="0">
@@ -166,12 +107,12 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
                 <HStack width="100%">
                   <Box width="90%">
                     <Button
-                      padding="2px"
+                      p={1}
                       variant="ghost"
                       onClick={() => handleRunButtonClick(run.Id)}
-                      color={borderColor}>
-                      {expandButtonIcon(run.Id)}
-                      <Heading size="md" padding="4px">
+                      color={borderColor}
+                      leftIcon={expandButtonIcon(run.Id)}>
+                      <Heading size="sm" padding="4px">
                         <HStack>
                           <Text as="b">{index + 1}.</Text>
                           <Text>{runAttributes.runName}</Text>
@@ -180,13 +121,10 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
                     </Button>
                   </Box>
                   <Box width="10%" textAlign="right">
-                    <IconButton
-                      onClick={() => handleDeleteButtonClick(run.Id)}
-                      variant="ghost"
-                      aria-label="Delete Run"
-                      size="lg"
-                      icon={<DeleteIcon />}
-                      color={borderColor}></IconButton>
+                    <DeleteWithConfirmation
+                      onDelete={() => handleConfirmDelete(run.Id)}
+                      label="Run"
+                    />
                   </Box>
                 </HStack>
               </VStack>
@@ -196,9 +134,8 @@ export const RunsComponent: React.FC<RunsComponentProps> = () => {
                 maxWidth="100%"
                 overflowX="auto"
                 overflowY="hidden"
-                zIndex={2}
+                // zIndex={1}
                 borderWidth="1px"
-                borderRadius="md"
                 borderColor="gray.200"
                 _dark={{ borderColor: "gray.600" }}>
                 <SwimLaneComponent runCommands={run.Commands} />
