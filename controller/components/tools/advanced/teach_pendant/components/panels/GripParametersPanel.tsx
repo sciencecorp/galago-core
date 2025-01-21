@@ -24,9 +24,11 @@ import {
   Input,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon, CheckIcon } from "@chakra-ui/icons";
-import { GripParams } from "../types";
+import { GripParams, GripParametersPanelProps } from "../types";
 import { useState, useRef } from "react";
 import { useOutsideClick } from "@chakra-ui/react";
+import { usePagination } from "../../hooks/usePagination";
+import { PaginationControls } from "../common/PaginationControls";
 
 interface EditableParams {
   id: number;
@@ -36,17 +38,7 @@ interface EditableParams {
   force: number;
 }
 
-interface GripParametersPanelProps {
-  params: GripParams[];
-  onEdit: (params: GripParams) => void;
-  onInlineEdit: (params: GripParams) => void;
-  onDelete: (id: number) => void;
-  onAdd: () => void;
-  bgColor: string;
-  bgColorAlpha: string;
-  defaultParamsId: number | null;
-  onSetDefault: (id: number | null) => void;
-}
+
 
 export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
   params,
@@ -59,6 +51,15 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
   defaultParamsId,
   onSetDefault,
 }) => {
+  const {
+    currentPage,
+    itemsPerPage,
+    totalPages,
+    paginatedItems,
+    onPageChange,
+    onItemsPerPageChange,
+  } = usePagination(params);
+
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const [editingParams, setEditingParams] = useState<EditableParams | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
@@ -138,7 +139,7 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
                 </Tr>
               </Thead>
               <Tbody>
-                {params.map((param) => (
+                {paginatedItems.map((param) => (
                   <Tr key={param.id} bg={param.id === defaultParamsId ? bgColorAlpha : undefined}>
                     <Td>
                       <Switch
@@ -249,6 +250,13 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
             </Table>
           </Box>
         </Box>
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          itemsPerPage={itemsPerPage}
+          onPageChange={onPageChange}
+          onItemsPerPageChange={onItemsPerPageChange}
+        />
       </VStack>
     </Box>
   );

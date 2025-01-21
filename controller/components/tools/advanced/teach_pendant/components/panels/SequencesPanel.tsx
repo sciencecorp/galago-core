@@ -32,6 +32,8 @@ import { FaPlay } from "react-icons/fa";
 import { Sequence, TeachPoint, MotionProfile, GripParams } from "../types";
 import { CommandList } from "../lists/CommandList";
 import { useState, useEffect, useRef } from "react";
+import { usePagination } from "../../hooks/usePagination";
+import { PaginationControls } from "../common/PaginationControls";
 
 interface SequencesPanelProps {
   sequences: Sequence[];
@@ -63,6 +65,15 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
   const [expandedCommandIndex, setExpandedCommandIndex] = useState<number | null>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
   const [isEditing, setIsEditing] = useState(false);
+
+  const {
+    currentPage,
+    itemsPerPage,
+    totalPages,
+    paginatedItems,
+    onPageChange,
+    onItemsPerPageChange,
+  } = usePagination(sequences);
 
   // Update selected sequence when sequences change
   useEffect(() => {
@@ -154,7 +165,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {sequences.map((sequence) => (
+                    {paginatedItems.map((sequence) => (
                       <Tr
                         key={sequence.id}
                         onClick={() => handleSequenceClick(sequence)}
@@ -246,6 +257,14 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
           </Grid>
         </Box>
       </VStack>
+
+      <PaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        itemsPerPage={itemsPerPage}
+        onPageChange={onPageChange}
+        onItemsPerPageChange={onItemsPerPageChange}
+      />
 
       <AlertDialog
         isOpen={sequenceToDelete !== null}

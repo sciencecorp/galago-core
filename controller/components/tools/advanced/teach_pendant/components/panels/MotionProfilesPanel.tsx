@@ -24,9 +24,11 @@ import {
   Input,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon, CheckIcon } from "@chakra-ui/icons";
-import { MotionProfile } from "../types/index";
+import { MotionProfile, MotionProfilesPanelProps } from "../types";
 import { useState, useRef } from "react";
 import { useOutsideClick } from "@chakra-ui/react";
+import { usePagination } from "../../hooks/usePagination";
+import { PaginationControls } from "../common/PaginationControls";
 
 interface EditableProfile {
   id: number;
@@ -41,31 +43,26 @@ interface EditableProfile {
   straight: number;
 }
 
-interface MotionProfilesPanelProps {
-  profiles: MotionProfile[];
-  onInlineEdit: (profile: MotionProfile) => void;
-  onModalEdit: (profile: MotionProfile) => void;
-  onRegister: (profile: MotionProfile) => void;
-  onDelete: (id: number) => void;
-  onAdd: () => void;
-  bgColor: string;
-  bgColorAlpha: string;
-  defaultProfileId: number | null;
-  onSetDefault: (id: number | null) => void;
-}
-
 export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
   profiles,
-  onInlineEdit,
-  onModalEdit,
-  onRegister,
+  onEdit,
   onDelete,
   onAdd,
+  onRegister,
   bgColor,
   bgColorAlpha,
   defaultProfileId,
   onSetDefault,
 }) => {
+  const {
+    currentPage,
+    itemsPerPage,
+    totalPages,
+    paginatedItems,
+    onPageChange,
+    onItemsPerPageChange,
+  } = usePagination(profiles);
+
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const [editingProfile, setEditingProfile] = useState<EditableProfile | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
@@ -102,7 +99,7 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
         inrange: editingProfile.inrange,
         straight: editingProfile.straight,
       };
-      onInlineEdit(updatedProfile);
+      onEdit(updatedProfile);
       setEditingProfile(null);
     }
   };
@@ -161,7 +158,7 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                 </Tr>
               </Thead>
               <Tbody>
-                {profiles.map((profile) => (
+                {paginatedItems.map((profile) => (
                   <Tr key={profile.id || `new-${profile.name}`} bg={profile.id === defaultProfileId ? bgColorAlpha : undefined}>
                     <Td>
                       <Switch
@@ -337,6 +334,13 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
             </Table>
           </Box>
         </Box>
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          itemsPerPage={itemsPerPage}
+          onPageChange={onPageChange}
+          onItemsPerPageChange={onItemsPerPageChange}
+        />
       </VStack>
     </Box>
   );

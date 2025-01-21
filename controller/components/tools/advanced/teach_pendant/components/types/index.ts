@@ -104,4 +104,5 @@ export interface GripParametersPanelProps {
   bgColorAlpha: string;
   defaultParamsId: number | null;
   onSetDefault: (id: number | null) => void;
+  onInlineEdit: (params: GripParams) => void;
 }

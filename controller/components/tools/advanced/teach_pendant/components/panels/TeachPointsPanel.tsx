@@ -28,6 +28,8 @@ import { FaPlay, FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { MdOutlineReplay } from "react-icons/md";
 import { BsRecordCircle } from "react-icons/bs";
 import { useState, useRef } from "react";
+import { usePagination } from "../../hooks/usePagination";
+import { PaginationControls } from "../common/PaginationControls";
 
 interface EditablePoint {
   id: number;
@@ -36,6 +38,9 @@ interface EditablePoint {
 
 export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   teachPoints,
+  motionProfiles,
+  gripParams,
+  sequences,
   expandedRows,
   toggleRow,
   onMove,
@@ -61,9 +66,14 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
     },
   });
   
-  const filteredPoints = teachPoints.filter(point => 
-    point.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const {
+    currentPage,
+    itemsPerPage,
+    totalPages,
+    paginatedItems,
+    onPageChange,
+    onItemsPerPageChange,
+  } = usePagination(teachPoints);
 
   const handleCoordinateChange = (index: number, value: number) => {
     if (editingPoint) {
@@ -126,7 +136,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                 </Tr>
               </Thead>
               <Tbody>
-                {filteredPoints.map((point) => (
+                {paginatedItems.map((point) => (
                   <Tr key={point.id} bg={expandedRows.has(point.id) ? bgColorAlpha : undefined}>
                     <Td width="200px">{point.name}</Td>
                     <Td width="100px">{point.type}</Td>
@@ -232,6 +242,13 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
             </Table>
           </Box>
         </Box>
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          itemsPerPage={itemsPerPage}
+          onPageChange={onPageChange}
+          onItemsPerPageChange={onItemsPerPageChange}
+        />
       </VStack>
     </Box>
   );
