@@ -70,7 +70,7 @@ export function ToolConfigEditor({
     },
   });
   const { isLoading } = configureMutation;
-  let [isSimulated, setSimulated] = useState(false);
+  const [isSimulated, setSimulated] = useState(false);
   const isReachable =
     statusQuery.isSuccess &&
     statusQuery.data &&
@@ -99,7 +99,6 @@ export function ToolConfigEditor({
           colorScheme="orange"
           onChange={(e) => {
             setSimulated(e.target.checked);
-            isSimulated = e.target.checked;
             saveConfig();
           }}
         />
