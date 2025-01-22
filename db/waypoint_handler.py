@@ -107,7 +107,7 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                     data['sequences'] = []
                     sequence_counter = 1
                     for seq in sequences:
-                        name = seq.find('Name').text
+                        name = seq.get('Name', '')  # Get name from attribute
                         if not name:  # Give default name if empty
                             name = f"Sequence_{sequence_counter}"
                             sequence_counter += 1
@@ -115,29 +115,33 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                         for cmd in seq.findall(".//RobotCommand"):
                             cmd_type = cmd.get('{http://www.w3.org/2001/XMLSchema-instance}type')
                             if cmd_type == "MoveCommand":
-                                commands.append({
-                                    'command': 'move',
-                                    'params': {
-                                        'waypoint': cmd.find('LocationName').text,
-                                        'motion_profile_id': 1
-                                    },
-                                    'order': len(commands)
-                                })
+                                loc_name = cmd.get('LocationName', '')
+                                if loc_name:
+                                    commands.append({
+                                        'command': 'move',
+                                        'params': {
+                                            'waypoint': loc_name,
+                                            'motion_profile_id': 1
+                                        },
+                                        'order': len(commands)
+                                    })
                             elif cmd_type == "PickPlateCommand":
+                                grip_width = cmd.get('GripWidth', '130')
                                 commands.append({
                                     'command': 'grasp_plate',
                                     'params': {
-                                        'width': float(cmd.find('GripWidth').text or 130),
+                                        'width': float(grip_width),
                                         'force': 15,
                                         'speed': 10
                                     },
                                     'order': len(commands)
                                 })
                             elif cmd_type == "PlacePlateCommand":
+                                grip_width = cmd.get('GripWidth', '130')
                                 commands.append({
                                     'command': 'release_plate',
                                     'params': {
-                                        'width': float(cmd.find('GripWidth').text or 130),
+                                        'width': float(grip_width),
                                         'speed': 10
                                     },
                                     'order': len(commands)
@@ -155,21 +159,23 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                     data['motion_profiles'] = []
                     profile_counter = 1
                     for p in profiles:
-                        name = p.find('Name').text
+                        name = p.get('Name', '')  # Get name from attribute
                         if not name:  # Give default name if empty
                             name = f"Profile_{profile_counter}"
                             profile_counter += 1
+                        
+                        # Get values from attributes with defaults
                         data['motion_profiles'].append({
                             'name': name,
-                            'profile_id': int(p.find('ProfileId').text),
-                            'speed': float(p.find('Speed').text or 100),
-                            'speed2': float(p.find('Speed2').text or 100),
-                            'acceleration': float(p.find('Acceleration').text or 100),
-                            'deceleration': float(p.find('Deceleration').text or 100),
-                            'accel_ramp': float(p.find('AccelRamp').text or 0.2),
-                            'decel_ramp': float(p.find('DecelRamp').text or 0.2),
-                            'inrange': int(p.find('Inrange').text or 1),
-                            'straight': int(p.find('Straight').text or 0),
+                            'profile_id': profile_counter,  # Auto-increment profile_id
+                            'speed': float(p.get('Velocity', 100)),
+                            'speed2': float(p.get('Velocity', 100)),  # Use same as velocity
+                            'acceleration': float(p.get('Acceleration', 100)),
+                            'deceleration': float(p.get('Deceleration', 100)),
+                            'accel_ramp': float(p.get('AccelerationRamp', 0.2)),
+                            'decel_ramp': float(p.get('DecelerationRamp', 0.2)),
+                            'inrange': int(p.get('InRange', 1)),
+                            'straight': 1 if p.get('Straight', '').lower() == 'true' else 0,
                             'tool_id': tool_id
                         })
 
