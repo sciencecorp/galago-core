@@ -1,5 +1,5 @@
 import typing as t
-from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi import FastAPI, HTTPException, Depends, Request, UploadFile, File
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -9,9 +9,14 @@ import models.inventory_models as models
 import schemas as schemas
 from models.db_session import SessionLocal,LogsSessionLocal, Base, LogBase
 import logging 
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List, Union
 import uvicorn
 from contextlib import asynccontextmanager
+import json
+import xml.etree.ElementTree as ET
+from xml.etree.ElementTree import ParseError
+from waypoint_handler import handle_waypoint_upload
+from pydantic import BaseModel
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -45,6 +50,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 
@@ -197,6 +203,7 @@ def get_nests(db: Session = Depends(get_db),
     else:
         return crud.nest.get_all(db)
 
+# upload teach pendant data through xml/json file #TODO @mohamed
 
 @app.get("/nests/{nest_id}", response_model=schemas.Nest)
 def get_nest(nest_id: int, db: Session = Depends(get_db)) -> t.Any:
@@ -871,3 +878,55 @@ def get_robot_arm_waypoints(
         "tool_id": tool_id,
         "labware": labware
     }
+
+# Schemas for waypoint data
+class TeachPoint(BaseModel):
+    name: str
+    coordinate: str
+    type: str = "location"
+    loc_type: str = "j"
+
+class Command(BaseModel):
+    command: str
+    params: Dict
+    order: int
+
+class Sequence(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    commands: List[Command]
+    tool_id: int = 1
+
+class MotionProfile(BaseModel):
+    name: str
+    profile_id: int
+    speed: float = 100
+    speed2: float = 100
+    acceleration: float = 100
+    deceleration: float = 100
+    accel_ramp: float = 0.2
+    decel_ramp: float = 0.2
+    inrange: int = 1
+    straight: int = 0
+    tool_id: int = 1
+
+class GripParam(BaseModel):
+    name: str
+    width: float
+    force: float = 15
+    speed: float = 10
+    tool_id: int = 1
+
+class WaypointData(BaseModel):
+    teach_points: Optional[List[TeachPoint]] = None
+    sequences: Optional[List[Sequence]] = None
+    motion_profiles: Optional[List[MotionProfile]] = None
+    grip_params: Optional[List[GripParam]] = None
+
+@app.post("/waypoints/upload")
+async def upload_waypoints(
+    file: UploadFile = File(...),
+    tool_id: int = 1,
+    db: Session = Depends(get_db)
+):
+    return await handle_waypoint_upload(file, tool_id, db)

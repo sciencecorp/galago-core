@@ -3,14 +3,14 @@ import { DownloadIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import { FiUpload } from "react-icons/fi";
 import { useRef } from "react";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "../types";
-import { fileFormatHandlers, detectFileFormat, downloadFile, TeachPendantData } from "../utils/fileFormatHandlers";
 
 interface TeachPendantActionsProps {
   teachPoints: TeachPoint[];
   motionProfiles: MotionProfile[];
   gripParams: GripParams[];
   sequences: Sequence[];
-  onImport: (data: TeachPendantData) => Promise<void>;
+  onImport: (data: any) => Promise<void>;
+  toolId: number;
 }
 
 export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
@@ -18,26 +18,26 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
   motionProfiles,
   gripParams,
   sequences,
-  onImport
+  onImport,
+  toolId
 }) => {
   const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleExport = (format: 'json' | 'xml', dataType?: keyof TeachPendantData) => {
-    const handler = fileFormatHandlers[format];
-    let exportData: TeachPendantData = {};
+  const handleExport = (format: 'json' | 'xml', dataType?: 'teachPoints' | 'motionProfiles' | 'gripParams' | 'sequences') => {
+    let exportData: any = {};
     
     // If a specific data type is selected, only export that type
     if (dataType) {
       switch (dataType) {
         case 'teachPoints':
-          exportData.teachPoints = teachPoints;
+          exportData.teach_points = teachPoints;
           break;
         case 'motionProfiles':
-          exportData.motionProfiles = motionProfiles;
+          exportData.motion_profiles = motionProfiles;
           break;
         case 'gripParams':
-          exportData.gripParams = gripParams;
+          exportData.grip_params = gripParams;
           break;
         case 'sequences':
           exportData.sequences = sequences;
@@ -46,17 +46,23 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
     } else {
       // Export all data
       exportData = {
-        teachPoints,
-        motionProfiles,
-        gripParams,
-        sequences
+        teach_points: teachPoints,
+        motion_profiles: motionProfiles,
+        grip_params: gripParams,
+        sequences: sequences
       };
     }
 
-    const serialized = handler.serialize(exportData);
-    const fileName = `teach-pendant-${dataType || 'all'}-${new Date().toISOString()}${handler.fileExtension}`;
-    
-    downloadFile(serialized, fileName, handler.mimeType);
+    const fileName = `teach-pendant-${dataType || 'all'}-${new Date().toISOString()}.${format}`;
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
     
     toast({
       title: "Export Successful",
@@ -72,29 +78,39 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
     if (!file) return;
 
     try {
-      const text = await file.text();
-      const handler = detectFileFormat(file.name);
-      const parsed = handler.parse(text);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('tool_id', toolId.toString());
 
-      if (!handler.validate(parsed)) {
-        throw new Error(`Invalid ${handler.fileExtension.slice(1).toUpperCase()} file format`);
+      const response = await fetch('http://localhost:8000/waypoints/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to import data');
       }
 
-      await onImport(parsed);
+      const result = await response.json();
+      
+      // Show a summary toast with the imported items
+      if (result.summary) {
+        const summaryText = Object.entries(result.summary as Record<string, number>)
+          .filter(([_, count]) => count > 0)
+          .map(([type, count]) => `${count} ${type.replace(/_/g, ' ')}`)
+          .join(', ');
 
-      // Create a summary of what was imported
-      const summary = Object.entries(parsed)
-        .filter(([key, value]) => Array.isArray(value) && value.length > 0)
-        .map(([key, value]) => `${(value as any[]).length} ${key.replace(/([A-Z])/g, ' $1').toLowerCase().trim()}`)
-        .join(", ");
+        toast({
+          title: "Import Successful",
+          description: `Imported ${summaryText}`,
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
 
-      toast({
-        title: "Import Successful",
-        description: `Imported ${summary}`,
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
+      await onImport(result.data);
     } catch (error) {
       toast({
         title: "Import Failed",

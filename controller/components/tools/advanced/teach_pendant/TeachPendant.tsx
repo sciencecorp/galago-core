@@ -324,6 +324,21 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
   // Update toggleRow reference
   const toggleRow = toggleRowUI;
 
+  const handleImport = async (data: any) => {
+    if (data.teach_points) {
+      await robotArmLocationsQuery.refetch();
+    }
+    if (data.sequences) {
+      await robotArmLocationsQuery.refetch();
+    }
+    if (data.motion_profiles) {
+      await motionProfilesQuery.refetch();
+    }
+    if (data.grip_params) {
+      await gripParamsQuery.refetch();
+    }
+  };
+
   return (
     <Card 
       borderWidth="1px" 
@@ -382,252 +397,8 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 motionProfiles={motionProfiles}
                 gripParams={gripParams}
                 sequences={sequences || []}
-                onImport={async (data) => {
-                  try {
-                    if (data.teachPoints?.length) {
-                      // Check for duplicates
-                      if (data.duplicates) {
-                        const { identical, different } = data.duplicates;
-                        
-                        // Log identical duplicates that will be silently overwritten
-                        if (identical.length > 0) {
-                          console.log(`Silently overwriting ${identical.length} identical teach points`);
-                        }
-
-                        // If there are different duplicates, ask for confirmation
-                        if (different.length > 0) {
-                          const confirmOverwrite = window.confirm(
-                            `${different.length} teach points with the same names but different coordinates were found:\n\n` +
-                            different.map(point => point.name).join(", ") + "\n\n" +
-                            "Do you want to overwrite these points?"
-                          );
-
-                          if (!confirmOverwrite) {
-                            // Filter out the different duplicates from the import
-                            data.teachPoints = data.teachPoints.filter(point => 
-                              !different.some(d => d.name === point.name)
-                            );
-                          }
-                        }
-                      }
-
-                      // Process the remaining teach points
-                      const numJoints = (config.config as any)?.pf400?.joints || 6; // Default to 6 if not specified
-                      const mismatchedPoints: string[] = [];
-                      let successfulImports = 0;
-                      
-                      try {
-                        for (const point of data.teachPoints) {
-                          if (!validateJointCount(point.coordinate, parseInt(numJoints.toString()))) {
-                            mismatchedPoints.push(point.name);
-                            continue;
-                          }
-
-                          const joints = coordinateToJoints(point.coordinate, parseInt(numJoints.toString()));
-                          const jointObj: { [key: string]: number } = {};
-                          for (let i = 1; i <= parseInt(numJoints.toString()); i++) {
-                            jointObj[`j${i}`] = joints[`j${i}`] || 0;
-                          }
-
-                          await createLocationMutation.mutateAsync({
-                            name: point.name,
-                            location_type: "j",
-                            ...jointObj,
-                            tool_id: config.id
-                          });
-                          console.log("Successfully imported point:", point.name);
-                          successfulImports++;
-                        }
-
-                        console.log("Import summary:", {
-                          totalPoints: data.teachPoints.length,
-                          successfulImports,
-                          mismatchedPoints
-                        });
-
-                        if (mismatchedPoints.length > 0) {
-                          toast({
-                            title: "Joint Count Mismatch",
-                            description: `${mismatchedPoints.length} teach points have incorrect number of joints for this robot configuration:\n${mismatchedPoints.join(", ")}`,
-                            status: "error", 
-                            duration: 5000,
-                            isClosable: true,
-                          });
-                        }
-
-                        await robotArmLocationsQuery.refetch();
-                      } catch (error) {
-                        console.error("Failed to import teach points:", error);
-                        toast({
-                          title: "Error",
-                          description: "Failed to import teach points",
-                          status: "error",
-                          duration: 3000,
-                          isClosable: true,
-                        });
-                        return; // Exit early if teach points import fails
-                      }
-                    }
-
-                    // Import motion profiles if present
-                    if (data.motionProfiles?.length) {
-                      const failedProfiles: string[] = [];
-                      let successfulImports = 0;
-
-                      // First validate all motion profiles
-                      const existingProfiles = motionProfilesQuery.data || [];
-                      const invalidProfiles = data.motionProfiles.filter(
-                        profile => profile.profile_id < 1 || profile.profile_id > 14
-                      );
-                      if (invalidProfiles.length > 0) {
-                        toast({
-                          title: "Error",
-                          description: `Some motion profiles have invalid profile IDs. Profile IDs must be between 1 and 14. Invalid profiles: ${invalidProfiles.map(p => p.name).join(", ")}`,
-                          status: "error",
-                          duration: 5000,
-                          isClosable: true,
-                        });
-                        return;
-                      }
-
-                      // Check for duplicates within imported profiles
-                      const duplicateImportedIds = data.motionProfiles
-                        .map(p => p.profile_id)
-                        .filter((id, index, arr) => arr.indexOf(id) !== index);
-                      if (duplicateImportedIds.length > 0) {
-                        toast({
-                          title: "Error",
-                          description: `Found duplicate profile IDs in imported data: ${duplicateImportedIds.join(", ")}`,
-                          status: "error",
-                          duration: 5000,
-                          isClosable: true,
-                        });
-                        return;
-                      }
-
-                      // Check for conflicts with existing profiles
-                      const conflictingProfiles = data.motionProfiles.filter(
-                        importedProfile => {
-                          const existingProfile = existingProfiles.find(
-                            ep => ep.profile_id === importedProfile.profile_id
-                          );
-                          if (!existingProfile) return false;
-                          
-                          // Check if profiles are identical (ignoring id and tool_id)
-                          return (
-                            existingProfile.name !== importedProfile.name ||
-                            existingProfile.speed !== importedProfile.speed ||
-                            existingProfile.speed2 !== importedProfile.speed2 ||
-                            existingProfile.acceleration !== importedProfile.acceleration ||
-                            existingProfile.deceleration !== importedProfile.deceleration ||
-                            existingProfile.accel_ramp !== importedProfile.accel_ramp ||
-                            existingProfile.decel_ramp !== importedProfile.decel_ramp ||
-                            existingProfile.inrange !== importedProfile.inrange ||
-                            existingProfile.straight !== importedProfile.straight
-                          );
-                        }
-                      );
-
-                      if (conflictingProfiles.length > 0) {
-                        toast({
-                          title: "Error",
-                          description: `Some imported profiles have different values but same IDs as existing profiles: ${conflictingProfiles.map(p => `${p.name} (ID: ${p.profile_id})`).join(", ")}`,
-                          status: "error",
-                          duration: 5000,
-                          isClosable: true,
-                        });
-                        return;
-                      }
-
-                      try {
-                        // If all validations pass, import only the non-duplicate profiles
-                        for (const profile of data.motionProfiles) {
-                          try {
-                            // Skip if an identical profile already exists
-                            const existingProfile = existingProfiles.find(ep => ep.profile_id === profile.profile_id);
-                            if (!existingProfile) {
-                              await createMotionProfileMutation.mutateAsync({
-                                ...profile,
-                                tool_id: config.id
-                              });
-                              successfulImports++;
-                            }
-                          } catch (error) {
-                            console.error(`Failed to import motion profile ${profile.name}:`, error);
-                            failedProfiles.push(profile.name);
-                          }
-                        }
-
-                        if (failedProfiles.length > 0) {
-                          toast({
-                            title: "Failed to Import Motion Profiles",
-                            description: `Failed to import ${failedProfiles.length} profiles:\n${failedProfiles.join(", ")}`,
-                            status: "error",
-                            duration: 5000,
-                            isClosable: true,
-                          });
-                        }
-
-                        if (successfulImports > 0) {
-                          toast({
-                            title: "Motion Profiles Imported",
-                            description: `Successfully imported ${successfulImports} motion profiles`,
-                            status: "success",
-                            duration: 3000,
-                            isClosable: true,
-                          });
-                        }
-
-                        await motionProfilesQuery.refetch();
-                      } catch (error) {
-                        console.error("Failed to import motion profiles:", error);
-                        toast({
-                          title: "Error",
-                          description: "Failed to import motion profiles",
-                          status: "error",
-                          duration: 3000,
-                          isClosable: true,
-                        });
-                      }
-                    }
-
-                    // Import grip parameters if present
-                    if (data.gripParams?.length) {
-                      for (const params of data.gripParams) {
-                        await createGripParamsMutation.mutateAsync({
-                          ...params,
-                          tool_id: config.id
-                        });
-                      }
-                      await gripParamsQuery.refetch();
-                    }
-
-                    // Import sequences if present
-                    if (data.sequences?.length) {
-                      for (const sequence of data.sequences) {
-                        await handleCreateSequence(sequence);
-                      }
-                      await robotArmLocationsQuery.refetch();
-                    }
-
-                    toast({
-                      title: "Success",
-                      description: "Data imported successfully",
-                      status: "success",
-                      duration: 3000,
-                      isClosable: true,
-                    });
-                  } catch (error) {
-                    console.error("Import error:", error);
-                    toast({
-                      title: "Error",
-                      description: "Failed to import data",
-                      status: "error",
-                      duration: 3000,
-                      isClosable: true,
-                    });
-                  }
-                }}
+                onImport={handleImport}
+                toolId={config.id}
               />
             </HStack>
             <InputGroup>

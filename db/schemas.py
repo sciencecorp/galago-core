@@ -3,6 +3,7 @@ from pydantic import BaseModel, model_validator, conint
 import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from typing import Optional, List, Dict, Any
 
 class TimestampMixin(BaseModel):
     created_at: t.Optional[datetime.datetime] = None
@@ -399,14 +400,14 @@ class RobotArmNest(RobotArmNestCreate):
 # RobotArm Sequence Schemas
 class RobotArmSequenceCreate(BaseModel):
     name: str
-    description: t.Optional[str] = None
-    commands: list[dict]
+    description: Optional[str] = None
+    commands: List[Dict[str, Any]]
     tool_id: int
 
 class RobotArmSequenceUpdate(BaseModel):
     name: t.Optional[str] = None
     description: t.Optional[str] = None
-    commands: t.Optional[list[dict]] = None
+    commands: t.Optional[List[Dict[str, Any]]] = None
     tool_id: t.Optional[int] = None
 
 class RobotArmSequence(RobotArmSequenceCreate):
