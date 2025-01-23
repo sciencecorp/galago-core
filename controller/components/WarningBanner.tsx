@@ -23,7 +23,6 @@ const WarningBanner: FC<WarningBannerProps> = ({ message }) => {
             top: 0,
             left: 0,
             right: 0,
-            zIndex: 1000,
           }}>
           <p style={{ margin: 0 }}>{message}</p>
         </div>

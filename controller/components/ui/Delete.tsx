@@ -23,7 +23,7 @@ export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
       {variant === "icon" && (
         <>
           <IconButton
-            padding="0"
+            padding="2"
             margin="0"
             minWidth="0"
             borderRadius="0"
@@ -33,8 +33,10 @@ export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
             size={size}
             bg="transparent"
             onClick={onOpen}
+            _hover={{ bg: "transparent" }}
+            _focus={{ boxShadow: "none" }}
+            _active={{ bg: "transparent" }}
           />
-
           {showText && (
             <Text px={2} fontSize="md" onClick={onOpen} width="100%">
               Delete
@@ -43,7 +45,7 @@ export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
         </>
       )}
       {variant === "button" && (
-        <Button onClick={onOpen} colorScheme="red" variant="solid">
+        <Button isDisabled={disabled} onClick={onOpen} colorScheme="red" variant="solid">
           Delete
         </Button>
       )}

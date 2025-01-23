@@ -29,7 +29,7 @@ import { useState, useMemo } from "react";
 import { ProtocolManager } from "./ProtocolManager";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { DeleteWithConfirmation } from "@/components/UI/Delete";
+import { DeleteWithConfirmation } from "@/components/ui/Delete";
 import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";

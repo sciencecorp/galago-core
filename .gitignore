@@ -57,6 +57,8 @@ next-env.d.ts
 # python
 .ruff_cache
 
+*.db
+
 **/inventory.db
 **/*.egg-info
 .mypy_cache

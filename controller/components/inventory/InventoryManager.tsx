@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Box, VStack, useToast } from "@chakra-ui/react";
 import { Inventory, Plate, Reagent, Nest } from "@/types/api";
-import { PageHeader } from "@/components/UI/PageHeader";
+import { PageHeader } from "@/components/ui/PageHeader";
 import InventorySearch from "./InventorySearch";
 import { InventoryToolCard } from "./InventoryToolCard";
 import { SimpleGrid } from "@chakra-ui/react";
-import AlertComponent from "@/components/UI/AlertComponent";
+import AlertComponent from "@/components/ui/AlertComponent";
 import { useColorMode } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 

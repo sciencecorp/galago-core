@@ -21,7 +21,7 @@ interface CalendarProps {
 }
 
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const paddingMap = { sm: 3, md: 3, lg: 3, xl: 12, "2xl": 14 };
+const paddingMap = { sm: 3, md: 3, lg: 3, xl: 5, "2xl": 7 };
 
 export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, size = "md" }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -141,7 +141,7 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
             onClick={() => handleDateClick(day)}
             cursor="pointer">
             <Flex direction="column" justifyContent="center" alignItems="center">
-              <Text fontSize="larger">{day.getDate()}</Text>
+              <Text fontSize="large">{day.getDate()}</Text>
             </Flex>
           </Grid>
         ))}

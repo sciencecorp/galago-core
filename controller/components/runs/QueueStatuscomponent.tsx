@@ -31,7 +31,7 @@ import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 
 import { getegid } from "process";
 import { get } from "http";
-import { PageHeader } from "@/components/UI/PageHeader";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { RunTag } from "./RunTag";
 
 interface QueueStatusComponent {
@@ -39,18 +39,19 @@ interface QueueStatusComponent {
 }
 
 export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns }) => {
-  const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 100 });
+  const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 1000 });
   const stateMutationOpts = {
-    onSettled: () => stateQuery.refetch(),
+    onSettled: () => {
+      stateQuery.refetch();
+      getError.refetch();
+    },
   };
   const queue = trpc.commandQueue;
   const restartMutation = queue.restart.useMutation(stateMutationOpts);
   const stopMutation = queue.stop.useMutation(stateMutationOpts);
   const clearAllMutation = queue.clearAll.useMutation(stateMutationOpts);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const getError = queue.getError.useQuery();
-  const { isOpen: errorOpen, onOpen: onErrorOpen, onClose: onErrorClose } = useDisclosure();
-  const [isErrorVisible, setErrorVisible] = useState(false);
+  const getError = queue.getError.useQuery(undefined, { refetchInterval: 1000 });
 
   const run = async () => {
     restartMutation.mutate();
@@ -69,29 +70,22 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
     onClose();
   };
 
-  const ErrorBanner = ({ show }: { show: boolean }) => {
-    if (!show) return null;
+  const ErrorBanner = () => {
     if (!getError.data) return null;
-    console.log("Error: ", JSON.stringify(getError));
-    return (
-      <Alert status="error" variant="left-accent">
-        <AlertIcon />
-        <Box flex="1">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>An error occurred while executing the command.</AlertDescription>
-          <AlertDescription>{getError.data.message}</AlertDescription>
-        </Box>
-        <HStack>
-          <CloseButton
-            alignSelf="flex-start"
-            position="relative"
-            right={-1}
-            top={-1}
-            onClick={() => setErrorVisible(false)}
-          />
-        </HStack>
-      </Alert>
-    );
+    if (stateQuery.data === ToolStatus.FAILED) {
+      return (
+        <Alert status="error" variant="left-accent">
+          <AlertIcon />
+          <Box flex="1">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>An error occurred while executing the command.</AlertDescription>
+            <AlertDescription>{getError.data.toString()}</AlertDescription>
+          </Box>
+        </Alert>
+      );
+    } else {
+      return null;
+    }
   };
 
   const confirmRunStartModal = () => {
@@ -120,19 +114,11 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
   if (stateQuery.isLoading) return <Spinner />;
   return (
     <>
-      <ErrorBanner show={isErrorVisible} />
+      <ErrorBanner />
       {confirmRunStartModal()}
       <PageHeader
         title="Runs"
         subTitle={`Total Runs: ${totalRuns}`}
-        titleIcon={
-          getError.data ? (
-            <RunTag
-              status={ToolStatus.FAILED}
-              handleClick={() => setErrorVisible(!isErrorVisible)}
-            />
-          ) : null
-        }
         mainButton={
           <Button colorScheme="green" variant="outline" onClick={() => onOpen()}>
             Start

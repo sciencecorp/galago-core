@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Text, Flex, Tooltip, useColorModeValue } from "@chakra-ui/react";
 import { RunQueue, RunCommand } from "@/types";
 import { getColorForInstrument } from "@/utils/colorUtils";
-import { calculateTimelinePosition, calculateBlockWidth } from "@/components/utils/timelineUtils";
+import { calculateTimelinePosition, calculateBlockWidth } from "@/components/utils/TimeLineUtils";
 import moment from "moment";
 
 interface RunBlockProps {
