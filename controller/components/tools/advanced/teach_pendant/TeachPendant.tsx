@@ -18,7 +18,12 @@ import {
 import { Search2Icon } from "@chakra-ui/icons";
 import { Tool } from "@/types/api";
 import { useEffect, useState, useMemo } from "react";
-import { jointsToCoordinate, coordinateToJoints, validateJointCount, JointConfig } from "./components/utils/robotArmUtils";
+import {
+  jointsToCoordinate,
+  coordinateToJoints,
+  validateJointCount,
+  JointConfig,
+} from "./components/utils/robotArmUtils";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "./components/types";
 
@@ -129,7 +134,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
 
   const handleMoveCommand = commandHandlers.handleMoveCommand;
 
-  const handleMove = (point: TeachPoint, action?: 'approach' | 'leave') => {
+  const handleMove = (point: TeachPoint, action?: "approach" | "leave") => {
     if (toolStatusQuery.data?.status === "SIMULATED") {
       toast({
         title: "Simulation Mode",
@@ -143,7 +148,8 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     const defaultProfile = motionProfiles[0];
     if (defaultProfile) {
       const numJoints = (config.config as any)?.pf400?.joints || 6;
-      const joints = point.joints || coordinateToJoints(point.coordinate, parseInt(numJoints.toString()));
+      const joints =
+        point.joints || coordinateToJoints(point.coordinate, parseInt(numJoints.toString()));
       handleMoveCommand(robotArmCommandMutation, { ...point, joints }, defaultProfile, action);
     }
   };
@@ -166,7 +172,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         toolId: config.name,
         toolType: config.type as ToolType,
         command: "get_current_location",
-        params: {}
+        params: {},
       });
 
       if (response?.meta_data?.location) {
@@ -193,7 +199,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
           name: point.name,
           location_type: "j",
           ...joints,
-          tool_id: config.id
+          tool_id: config.id,
         });
 
         robotArmLocationsQuery.refetch();
@@ -211,7 +217,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         throw new Error("No location data received from robot");
       }
     } catch (error) {
-      console.error('Failed to teach point:', error);
+      console.error("Failed to teach point:", error);
       toast({
         title: "Error",
         description: "Failed to teach point. Please try again.",
@@ -224,26 +230,27 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
   };
 
   // Check if robot is connected (READY or SIMULATED)
-  const isConnected = toolStatusQuery.data?.status === "READY" || toolStatusQuery.data?.status === "SIMULATED";
+  const isConnected =
+    toolStatusQuery.data?.status === "READY" || toolStatusQuery.data?.status === "SIMULATED";
 
   // Update local state when queries complete
   useEffect(() => {
     if (robotArmLocationsQuery.data) {
       const numJoints = (config.config as any)?.pf400?.joints || 6;
-      const formattedLocations = robotArmLocationsQuery.data.map(loc => {
+      const formattedLocations = robotArmLocationsQuery.data.map((loc) => {
         const joints: JointConfig = {};
         for (let i = 1; i <= parseInt(numJoints.toString()); i++) {
           const key = `j${i}`;
           joints[key] = (loc as any)[key] || 0;
         }
-        
+
         return {
           id: loc.id || 0,
           name: loc.name,
           coordinate: jointsToCoordinate(joints, parseInt(numJoints.toString())),
           type: "location" as const,
           locType: "j" as const,
-          joints
+          joints,
         };
       });
       setTeachPoints(formattedLocations);
@@ -265,20 +272,20 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
   useEffect(() => {
     if (robotArmNestsQuery.data) {
       const numJoints = (config.config as any)?.pf400?.joints || 6;
-      const formattedNests = robotArmNestsQuery.data.map(nest => {
+      const formattedNests = robotArmNestsQuery.data.map((nest) => {
         const joints: JointConfig = {};
         for (let i = 1; i <= parseInt(numJoints.toString()); i++) {
           const key = `j${i}`;
           joints[key] = (nest as any)[key] || 0;
         }
-        
+
         return {
           id: nest.id || 0,
           name: nest.name,
           coordinate: jointsToCoordinate(joints, parseInt(numJoints.toString())),
           type: "nest" as const,
           locType: "j" as const,
-          joints
+          joints,
         };
       });
       setNests(formattedNests);
@@ -295,30 +302,37 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     const term = searchTerm.toLowerCase();
     switch (activeTab) {
       case 0: // Teach Points
-        return teachPoints.filter(point => 
-          point.name.toLowerCase().includes(term)
-        );
+        return teachPoints.filter((point) => point.name.toLowerCase().includes(term));
       case 1: // Motion Profiles
-        return motionProfilesQuery.data?.filter(profile => 
-          profile.name.toLowerCase().includes(term)
-        ) || [];
+        return (
+          motionProfilesQuery.data?.filter((profile) =>
+            profile.name.toLowerCase().includes(term),
+          ) || []
+        );
       case 2: // Grip Parameters
-        return gripParamsQuery.data?.filter(params => 
-          params.name.toLowerCase().includes(term)
-        ) || [];
+        return (
+          gripParamsQuery.data?.filter((params) => params.name.toLowerCase().includes(term)) || []
+        );
       case 3: // Sequences
-        return (sequences || [])
-          .filter(sequence => 
-            sequence && 
-            sequence.commands && 
+        return (sequences || []).filter(
+          (sequence) =>
+            sequence &&
+            sequence.commands &&
             Array.isArray(sequence.commands) &&
-            (sequence.name.toLowerCase().includes(term) || 
-            sequence.description?.toLowerCase().includes(term))
-          );
+            (sequence.name.toLowerCase().includes(term) ||
+              sequence.description?.toLowerCase().includes(term)),
+        );
       default:
         return [];
     }
-  }, [activeTab, searchTerm, teachPoints, motionProfilesQuery.data, gripParamsQuery.data, sequences]);
+  }, [
+    activeTab,
+    searchTerm,
+    teachPoints,
+    motionProfilesQuery.data,
+    gripParamsQuery.data,
+    sequences,
+  ]);
 
   // Update toggleRow reference
   const toggleRow = toggleRowUI;
@@ -340,7 +354,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
 
   // Load default profile ID from localStorage
   useEffect(() => {
-    const savedProfileId = localStorage.getItem('defaultProfileId');
+    const savedProfileId = localStorage.getItem("defaultProfileId");
     if (savedProfileId) {
       setDefaultProfileId(parseInt(savedProfileId));
     }
@@ -349,21 +363,23 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
   // Save default profile ID to localStorage when it changes
   useEffect(() => {
     if (defaultProfileId !== null) {
-      localStorage.setItem('defaultProfileId', defaultProfileId.toString());
+      localStorage.setItem("defaultProfileId", defaultProfileId.toString());
     }
   }, [defaultProfileId]);
 
   return (
-    <Card 
-      borderWidth="1px" 
-      borderRadius="lg" 
-      overflow="hidden" 
+    <Card
+      borderWidth="1px"
+      borderRadius="lg"
+      overflow="hidden"
       bgColor={bgColor}
       borderColor={bgColorAlpha}
       width="1500px"
       minW="1200px"
-      boxShadow={useColorModeValue('0 4px 12px rgba(0, 0, 0, 0.1)', '0 4px 12px rgba(0, 0, 0, 0.4)')}
-    >
+      boxShadow={useColorModeValue(
+        "0 4px 12px rgba(0, 0, 0, 0.1)",
+        "0 4px 12px rgba(0, 0, 0, 0.4)",
+      )}>
       <VStack p={4} spacing={4} align="stretch">
         {/* Main Content Area */}
         <HStack align="start" spacing={4}>
@@ -374,9 +390,13 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
             </Box>
             <ControlPanel
               onFree={() => commandHandlers.handleSimpleCommand(robotArmCommandMutation, "free")}
-              onUnfree={() => commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unfree")}
+              onUnfree={() =>
+                commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unfree")
+              }
               onUnwind={() => {
-                const unwindPoint = teachPoints.find(point => point.name.toLowerCase() === "unwind");
+                const unwindPoint = teachPoints.find(
+                  (point) => point.name.toLowerCase() === "unwind",
+                );
                 if (unwindPoint) {
                   handleMove(unwindPoint);
                 } else {
@@ -390,7 +410,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 }
               }}
               onGripperOpen={() => {
-                const selectedParams = gripParams.find(p => p.id === defaultParamsId);
+                const selectedParams = gripParams.find((p) => p.id === defaultParamsId);
                 const params = selectedParams || {
                   ...DEFAULT_GRIP_VALUES,
                   id: 0,
@@ -400,7 +420,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 commandHandlers.handleGripperCommand(robotArmCommandMutation, "open", params);
               }}
               onGripperClose={() => {
-                const selectedParams = gripParams.find(p => p.id === defaultParamsId);
+                const selectedParams = gripParams.find((p) => p.id === defaultParamsId);
                 const params = selectedParams || {
                   ...DEFAULT_GRIP_VALUES,
                   id: 0,
@@ -420,9 +440,18 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
               gripParams={gripParams}
               selectedGripParamsId={defaultParamsId}
               onGripParamsChange={setDefaultParamsId}
-              isFreeLoading={robotArmCommandMutation.variables?.command === "free" && robotArmCommandMutation.isLoading}
-              isUnfreeLoading={robotArmCommandMutation.variables?.command === "unfree" && robotArmCommandMutation.isLoading}
-              isUnwindLoading={robotArmCommandMutation.variables?.command === "unwind" && robotArmCommandMutation.isLoading}
+              isFreeLoading={
+                robotArmCommandMutation.variables?.command === "free" &&
+                robotArmCommandMutation.isLoading
+              }
+              isUnfreeLoading={
+                robotArmCommandMutation.variables?.command === "unfree" &&
+                robotArmCommandMutation.isLoading
+              }
+              isUnwindLoading={
+                robotArmCommandMutation.variables?.command === "unwind" &&
+                robotArmCommandMutation.isLoading
+              }
             />
           </VStack>
 
@@ -439,9 +468,23 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 toolId={config.id}
                 onTeach={() => handleTeach(selectedTeachPoint!)}
                 onMove={handleMove}
-                onUnwind={() => commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")}
-                onGripperOpen={() => commandHandlers.handleGripperCommand(robotArmCommandMutation, "open", selectedGripParams!)}
-                onGripperClose={() => commandHandlers.handleGripperCommand(robotArmCommandMutation, "close", selectedGripParams!)}
+                onUnwind={() =>
+                  commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")
+                }
+                onGripperOpen={() =>
+                  commandHandlers.handleGripperCommand(
+                    robotArmCommandMutation,
+                    "open",
+                    selectedGripParams!,
+                  )
+                }
+                onGripperClose={() =>
+                  commandHandlers.handleGripperCommand(
+                    robotArmCommandMutation,
+                    "close",
+                    selectedGripParams!,
+                  )
+                }
                 jogEnabled={jogEnabled}
               />
             </HStack>
@@ -449,8 +492,8 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
               <InputLeftElement pointerEvents="none">
                 <Search2Icon color="gray.300" />
               </InputLeftElement>
-              <Input 
-                placeholder="Search..." 
+              <Input
+                placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -472,21 +515,29 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     motionProfiles={motionProfiles}
                     gripParams={gripParams}
                     sequences={sequences || []}
-                    expandedRows={Object.fromEntries(Object.keys(expandedRows).map(key => [key, true]))}
+                    expandedRows={Object.fromEntries(
+                      Object.keys(expandedRows).map((key) => [key, true]),
+                    )}
                     toggleRow={toggleRow}
                     onImport={async () => {}}
                     onMove={handleMove}
                     onEdit={(point) => {
                       if (point.coordinate !== undefined) {
                         const newCoords = point.coordinate.split(" ").map(Number);
-                        const oldPoint = robotArmLocationsQuery.data?.find(loc => loc.id === point.id);
+                        const oldPoint = robotArmLocationsQuery.data?.find(
+                          (loc) => loc.id === point.id,
+                        );
                         const numJoints = (config.config as any)?.pf400?.joints || 6;
-                        
+
                         // Only update if point doesn't exist or coordinates have changed
-                        const hasChanged = !oldPoint || 
+                        const hasChanged =
+                          !oldPoint ||
                           Array.from({ length: parseInt(numJoints.toString()) }).some((_, i) => {
                             const jointKey = `j${i + 1}` as keyof typeof oldPoint;
-                            return Math.abs(newCoords[i] - ((oldPoint[jointKey] as number) ?? 0)) >= 0.001;
+                            return (
+                              Math.abs(newCoords[i] - ((oldPoint[jointKey] as number) ?? 0)) >=
+                              0.001
+                            );
                           });
 
                         if (hasChanged) {
@@ -513,7 +564,10 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                       }
                     }}
                     onDelete={async (point: TeachPoint) => {
-                      await deleteLocationMutation.mutateAsync({ id: point.id, tool_id: config.id });
+                      await deleteLocationMutation.mutateAsync({
+                        id: point.id,
+                        tool_id: config.id,
+                      });
                       robotArmLocationsQuery.refetch();
                     }}
                     onAdd={() => {
@@ -559,8 +613,8 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                         accel_ramp: profile.accel_ramp,
                         decel_ramp: profile.decel_ramp,
                         inrange: profile.inrange,
-                        straight: profile.straight
-                      })
+                        straight: profile.straight,
+                      });
                     }}
                     bgColor={bgColor}
                     bgColorAlpha={bgColorAlpha}
@@ -639,7 +693,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
             await motionProfilesQuery.refetch();
             motionProfileModal.onClose();
           } catch (error) {
-            console.error('Failed to save motion profile:', error);
+            console.error("Failed to save motion profile:", error);
           }
         }}
         toolId={config.id}
@@ -667,7 +721,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
             await gripParamsQuery.refetch();
             gripParamsModal.onClose();
           } catch (error) {
-            console.error('Failed to save grip parameters:', error);
+            console.error("Failed to save grip parameters:", error);
           }
         }}
         toolId={config.id}
@@ -681,27 +735,27 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
           // Parse coordinates from the string
           const coords = point.coordinate.split(" ").map(Number);
           const numJoints = (config.config as any)?.pf400?.joints || 6;
-          
+
           // Create dynamic joint object
           const joints: { [key: string]: number } = {};
           for (let i = 1; i <= parseInt(numJoints.toString()); i++) {
             joints[`j${i}`] = coords[i - 1] || 0;
           }
-          
+
           const location = {
             name: point.name,
             location_type: "j" as const,
             ...joints,
             tool_id: config.id,
-            ...(selectedTeachPoint?.id ? { id: selectedTeachPoint.id } : {})
+            ...(selectedTeachPoint?.id ? { id: selectedTeachPoint.id } : {}),
           };
-          
+
           if (selectedTeachPoint) {
             await updateLocationMutation.mutateAsync(location);
           } else {
             await createLocationMutation.mutateAsync(location);
           }
-          
+
           // Refetch to update the UI
           await robotArmLocationsQuery.refetch();
           teachPointModal.onClose();
@@ -717,7 +771,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
           if (currentSequence) {
             await handleUpdateSequence({
               ...sequence,
-              id: currentSequence.id
+              id: currentSequence.id,
             });
           } else {
             await handleCreateSequence(sequence);

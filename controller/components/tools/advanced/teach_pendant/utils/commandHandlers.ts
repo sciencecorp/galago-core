@@ -25,7 +25,7 @@ export function useCommandHandlers(config: Tool) {
   const handleJog = (
     mutation: UseMutationResult<any, unknown, any, unknown>,
     axis: string,
-    distance: number
+    distance: number,
   ) => {
     mutation.mutate({
       toolId: config.name,
@@ -33,8 +33,8 @@ export function useCommandHandlers(config: Tool) {
       command: "jog",
       params: {
         axis,
-        distance
-      }
+        distance,
+      },
     });
   };
 
@@ -42,9 +42,9 @@ export function useCommandHandlers(config: Tool) {
     mutation: UseMutationResult<any, unknown, any, unknown>,
     point: TeachPoint,
     motionProfile: MotionProfile,
-    action?: 'approach' | 'leave'
+    action?: "approach" | "leave",
   ) => {
-    const command = action || 'move';
+    const command = action || "move";
     const params: any = action ? { nest: point.coordinate } : { waypoint: point.coordinate };
 
     if (motionProfile?.id) {
@@ -55,14 +55,14 @@ export function useCommandHandlers(config: Tool) {
       toolId: config.name,
       toolType: config.type,
       command,
-      params
+      params,
     });
   };
 
   const handleGripperCommand = async (
     commandMutation: UseMutationResult<any, unknown, ToolCommandInfo>,
     action: "open" | "close",
-    params: GripParams
+    params: GripParams,
   ) => {
     const gripperCommand: ToolCommandInfo = {
       toolId: config.name,
@@ -98,7 +98,7 @@ export function useCommandHandlers(config: Tool) {
 
   const handleSimpleCommand = async (
     commandMutation: UseMutationResult<any, unknown, ToolCommandInfo>,
-    command: "free" | "unfree" | "unwind"
+    command: "free" | "unfree" | "unwind",
   ) => {
     const simpleCommand: ToolCommandInfo = {
       toolId: config.name,
@@ -130,7 +130,7 @@ export function useCommandHandlers(config: Tool) {
 
   const handleRegisterMotionProfile = async (
     commandMutation: UseMutationResult<any, any, any>,
-    profile: RobotMotionProfile
+    profile: RobotMotionProfile,
   ) => {
     try {
       await commandMutation.mutateAsync({
@@ -138,19 +138,21 @@ export function useCommandHandlers(config: Tool) {
         toolType: config.type as ToolType,
         command: "load_waypoints",
         params: {
-          waypoints: [{
-            motion_profile: {
-              id: profile.id,
-              speed: profile.speed,
-              speed2: profile.speed2,
-              acceleration: profile.acceleration,
-              deceleration: profile.deceleration,
-              accel_ramp: profile.accel_ramp || 0,
-              decel_ramp: profile.decel_ramp || 0,
-              inrange: profile.inrange || 0,
-              straight: profile.straight || false
-            }
-          }]
+          waypoints: [
+            {
+              motion_profile: {
+                id: profile.id,
+                speed: profile.speed,
+                speed2: profile.speed2,
+                acceleration: profile.acceleration,
+                deceleration: profile.deceleration,
+                accel_ramp: profile.accel_ramp || 0,
+                decel_ramp: profile.decel_ramp || 0,
+                inrange: profile.inrange || 0,
+                straight: profile.straight || false,
+              },
+            },
+          ],
         },
       });
       toast({
@@ -178,4 +180,4 @@ export function useCommandHandlers(config: Tool) {
     handleSimpleCommand,
     handleRegisterMotionProfile,
   };
-} 
+}

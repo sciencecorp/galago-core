@@ -7,18 +7,18 @@ export const useTeachPendantQueries = (toolId: string | undefined, configId: num
 
   // Queries
   const toolStatusQuery = trpc.tool.status.useQuery(
-    { toolId: toolId || '' },
-    { enabled: !!toolId }
+    { toolId: toolId || "" },
+    { enabled: !!toolId },
   );
 
   const motionProfilesQuery = trpc.robotArm.motionProfile.getAll.useQuery(
     { toolId: configId },
-    { enabled: !!configId && configId !== 0 }
+    { enabled: !!configId && configId !== 0 },
   );
 
   const gripParamsQuery = trpc.robotArm.gripParams.getAll.useQuery(
     { toolId: configId },
-    { enabled: !!configId && configId !== 0 }
+    { enabled: !!configId && configId !== 0 },
   );
 
   const robotArmSequencesQuery = trpc.robotArm.sequence.getAll.useQuery(
@@ -160,4 +160,4 @@ export const useTeachPendantQueries = (toolId: string | undefined, configId: num
     robotArmDeleteSequenceMutation,
     robotArmCommandMutation,
   };
-}; 
+};

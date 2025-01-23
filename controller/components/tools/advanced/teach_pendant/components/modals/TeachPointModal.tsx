@@ -53,7 +53,7 @@ export const TeachPointModal: React.FC<TeachPointModalProps> = ({
       });
       return;
     }
-    
+
     // Create location object with empty coordinates
     const location = {
       id: point?.id ?? 0,
@@ -62,7 +62,7 @@ export const TeachPointModal: React.FC<TeachPointModalProps> = ({
       locType: "j" as const,
       coordinate: "",
     };
-    
+
     onSave(location);
     onClose();
   };
@@ -96,4 +96,4 @@ export const TeachPointModal: React.FC<TeachPointModalProps> = ({
       </ModalContent>
     </Modal>
   );
-}; 
+};

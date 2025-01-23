@@ -14,9 +14,7 @@ export const useTeachPendantData = () => {
   };
 
   const updateTeachPoint = (point: TeachPoint) => {
-    setTeachPoints((prev) =>
-      prev.map((p) => (p.id === point.id ? point : p))
-    );
+    setTeachPoints((prev) => prev.map((p) => (p.id === point.id ? point : p)));
   };
 
   const deleteTeachPoint = (id: number) => {
@@ -29,7 +27,7 @@ export const useTeachPendantData = () => {
 
   const updateMotionProfile = (profile: MotionProfile) => {
     setMotionProfiles((prev) =>
-      prev.map((p) => (p.profile_id === profile.profile_id ? profile : p))
+      prev.map((p) => (p.profile_id === profile.profile_id ? profile : p)),
     );
   };
 
@@ -42,9 +40,7 @@ export const useTeachPendantData = () => {
   };
 
   const updateGripParams = (params: GripParams) => {
-    setGripParams((prev) =>
-      prev.map((p) => (p.id === params.id ? params : p))
-    );
+    setGripParams((prev) => prev.map((p) => (p.id === params.id ? params : p)));
   };
 
   const deleteGripParams = (id: number) => {
@@ -56,9 +52,7 @@ export const useTeachPendantData = () => {
   };
 
   const updateNest = (nest: TeachPoint) => {
-    setNests((prev) =>
-      prev.map((n) => (n.id === nest.id ? nest : n))
-    );
+    setNests((prev) => prev.map((n) => (n.id === nest.id ? nest : n)));
   };
 
   const deleteNest = (id: number) => {
@@ -98,4 +92,4 @@ export const useTeachPendantData = () => {
     updateNest,
     deleteNest,
   };
-}; 
+};

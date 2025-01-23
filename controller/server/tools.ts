@@ -14,7 +14,7 @@ import { ToolConfig } from "gen-interfaces/controller";
 import { Script } from "@/types/api";
 import { Variable } from "@/types/api";
 import * as pf400_protos from "gen-interfaces/tools/grpc_interfaces/pf400";
-import { Command } from 'gen-interfaces/tools/grpc_interfaces/pf400';
+import { Command } from "gen-interfaces/tools/grpc_interfaces/pf400";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<string, Tool> = new Map();
@@ -86,25 +86,22 @@ export default class Tool {
     // Handle PF400 specific configuration
     if (this.type === ToolType.pf400) {
       try {
-        
         // If in simulation mode, just send basic config
         if (config.simulated) {
           const pf400Config = {
             host: String(config.pf400?.host || ""),
             port: Number(config.pf400?.port || 0),
             joints: Number(config.pf400?.joints || 0),
-            tool_id: this.info.name
+            tool_id: this.info.name,
           };
-
 
           const reply = await this.grpc.configure({
             ...config,
-            pf400: pf400Config
+            pf400: pf400Config,
           });
 
-
           if (reply.response !== tool_base.ResponseCode.SUCCESS) {
-            console.error('[PF400] Simulation configure failed:', reply.error_message);
+            console.error("[PF400] Simulation configure failed:", reply.error_message);
             throw new ToolCommandExecutionError(
               reply.error_message ?? "Configure Command failed",
               reply.response,
@@ -120,19 +117,19 @@ export default class Tool {
         try {
           // First get the tool's numeric ID from the database
           const toolInfo = await get<any>(`/tools/${toolName}`);
-          
+
           if (!toolInfo || !toolInfo.id) {
             throw new Error(`Could not find tool with name ${toolName}`);
           }
 
           waypointsResponse = await get<any>(`/robot-arm-waypoints?tool_id=${toolInfo.id}`);
         } catch (apiError: any) {
-          console.error('[PF400] Failed to fetch waypoints from API:', apiError);
-          console.error('[PF400] API error details:', {
+          console.error("[PF400] Failed to fetch waypoints from API:", apiError);
+          console.error("[PF400] API error details:", {
             message: apiError.message,
             status: apiError.response?.status,
             statusText: apiError.response?.statusText,
-            data: apiError.response?.data
+            data: apiError.response?.data,
           });
           throw apiError;
         }
@@ -159,8 +156,8 @@ export default class Tool {
                 accel_ramp: profile.accelramp,
                 decel_ramp: profile.decelramp,
                 inrange: profile.inrange,
-                straight: profile.straight === 1
-              }
+                straight: profile.straight === 1,
+              },
             });
           }
         }
@@ -173,8 +170,8 @@ export default class Tool {
                 id: param.id,
                 width: param.width,
                 force: param.force,
-                speed: param.speed
-              }
+                speed: param.speed,
+              },
             });
           }
         }
@@ -186,15 +183,15 @@ export default class Tool {
             waypoints.push({
               location: {
                 name: loc.name,
-                location: location
-              }
+                location: location,
+              },
             });
             // Also store the location by name for sequence lookups
             waypoints.push({
               location: {
                 name: location,
-                location: location
-              }
+                location: location,
+              },
             });
           }
         }
@@ -206,15 +203,15 @@ export default class Tool {
             waypoints.push({
               location: {
                 name: nest.name,
-                location: location
-              }
+                location: location,
+              },
             });
             // Also store the location by name for sequence lookups
             waypoints.push({
               location: {
                 name: location,
-                location: location
-              }
+                location: location,
+              },
             });
           }
         }
@@ -225,8 +222,8 @@ export default class Tool {
             waypoints.push({
               labware: {
                 id: item.id,
-                name: item.name
-              }
+                name: item.name,
+              },
             });
           }
         }
@@ -237,132 +234,134 @@ export default class Tool {
             waypoints.push({
               sequence: {
                 name: sequence.name,
-                commands: sequence.commands.map((cmd: { command: string; params: Record<string, any> }) => {
-                  // Convert command to proper format based on proto definition
-                  const commandObj: any = {};
-                  switch (cmd.command) {
-                    case 'move':
-                      commandObj.move = {
-                        waypoint: cmd.params.waypoint,
-                        motion_profile_id: cmd.params.motion_profile_id
-                      };
-                      break;
-                    case 'grasp_plate':
-                      commandObj.grasp_plate = {
-                        width: cmd.params.width,
-                        speed: cmd.params.speed,
-                        force: cmd.params.force
-                      };
-                      break;
-                    case 'release_plate':
-                      commandObj.release_plate = {
-                        width: cmd.params.width,
-                        speed: cmd.params.speed
-                      };
-                      break;
-                    case 'approach':
-                      commandObj.approach = {
-                        nest: cmd.params.nest,
-                        x_offset: cmd.params.x_offset,
-                        y_offset: cmd.params.y_offset,
-                        z_offset: cmd.params.z_offset,
-                        motion_profile_id: cmd.params.motion_profile_id,
-                        ignore_safepath: cmd.params.ignore_safepath
-                      };
-                      break;
-                    case 'leave':
-                      commandObj.leave = {
-                        nest: cmd.params.nest,
-                        x_offset: cmd.params.x_offset,
-                        y_offset: cmd.params.y_offset,
-                        z_offset: cmd.params.z_offset,
-                        motion_profile_id: cmd.params.motion_profile_id
-                      };
-                      break;
-                    case 'transfer':
-                      commandObj.transfer = {
-                        source_nest: cmd.params.source_nest,
-                        destination_nest: cmd.params.destination_nest,
-                        grasp_params: cmd.params.grasp_params,
-                        release_params: cmd.params.release_params,
-                        motion_profile_id: cmd.params.motion_profile_id,
-                        grip_width: cmd.params.grip_width
-                      };
-                      break;
-                    case 'smart_transfer':
-                      commandObj.smart_transfer = {
-                        source_nest: cmd.params.source_nest,
-                        destination_nest: cmd.params.destination_nest,
-                        grasp_params: cmd.params.grasp_params,
-                        release_params: cmd.params.release_params,
-                        motion_profile_id: cmd.params.motion_profile_id,
-                        grip_width: cmd.params.grip_width
-                      };
-                      break;
-                    case 'wait':
-                      commandObj.wait = {
-                        duration: cmd.params.duration
-                      };
-                      break;
-                    case 'free':
-                      commandObj.free = {};
-                      break;
-                    case 'unfree':
-                      commandObj.unfree = {};
-                      break;
-                    case 'unwind':
-                      commandObj.unwind = {};
-                      break;
-                    case 'run_sequence':
-                      commandObj.run_sequence = {
-                        sequence_name: cmd.params.sequence_name
-                      };
-                      break;
-                    case 'retrieve_plate':
-                      commandObj.retrieve_plate = {
-                        labware: cmd.params.labware,
-                        location: cmd.params.location,
-                        motion_profile_id: cmd.params.motion_profile_id
-                      };
-                      break;
-                    case 'dropoff_plate':
-                      commandObj.dropoff_plate = {
-                        labware: cmd.params.labware,
-                        location: cmd.params.location,
-                        motion_profile_id: cmd.params.motion_profile_id
-                      };
-                      break;
-                    case 'pick_lid':
-                      commandObj.pick_lid = {
-                        labware: cmd.params.labware,
-                        location: cmd.params.location,
-                        motion_profile_id: cmd.params.motion_profile_id,
-                        pick_from_plate: cmd.params.pick_from_plate
-                      };
-                      break;
-                    case 'place_lid':
-                      commandObj.place_lid = {
-                        labware: cmd.params.labware,
-                        location: cmd.params.location,
-                        motion_profile_id: cmd.params.motion_profile_id,
-                        place_on_plate: cmd.params.place_on_plate
-                      };
-                      break;
-                    case 'jog':
-                      commandObj.jog = {
-                        axis: cmd.params.axis,
-                        distance: cmd.params.distance
-                      };
-                      break;
-                    case 'raw_command':
-                      commandObj.raw_command = {
-                        command: cmd.params.command
-                      };
-                      break;
-                  }
-                  return commandObj;
-                })
-              }
+                commands: sequence.commands.map(
+                  (cmd: { command: string; params: Record<string, any> }) => {
+                    // Convert command to proper format based on proto definition
+                    const commandObj: any = {};
+                    switch (cmd.command) {
+                      case "move":
+                        commandObj.move = {
+                          waypoint: cmd.params.waypoint,
+                          motion_profile_id: cmd.params.motion_profile_id,
+                        };
+                        break;
+                      case "grasp_plate":
+                        commandObj.grasp_plate = {
+                          width: cmd.params.width,
+                          speed: cmd.params.speed,
+                          force: cmd.params.force,
+                        };
+                        break;
+                      case "release_plate":
+                        commandObj.release_plate = {
+                          width: cmd.params.width,
+                          speed: cmd.params.speed,
+                        };
+                        break;
+                      case "approach":
+                        commandObj.approach = {
+                          nest: cmd.params.nest,
+                          x_offset: cmd.params.x_offset,
+                          y_offset: cmd.params.y_offset,
+                          z_offset: cmd.params.z_offset,
+                          motion_profile_id: cmd.params.motion_profile_id,
+                          ignore_safepath: cmd.params.ignore_safepath,
+                        };
+                        break;
+                      case "leave":
+                        commandObj.leave = {
+                          nest: cmd.params.nest,
+                          x_offset: cmd.params.x_offset,
+                          y_offset: cmd.params.y_offset,
+                          z_offset: cmd.params.z_offset,
+                          motion_profile_id: cmd.params.motion_profile_id,
+                        };
+                        break;
+                      case "transfer":
+                        commandObj.transfer = {
+                          source_nest: cmd.params.source_nest,
+                          destination_nest: cmd.params.destination_nest,
+                          grasp_params: cmd.params.grasp_params,
+                          release_params: cmd.params.release_params,
+                          motion_profile_id: cmd.params.motion_profile_id,
+                          grip_width: cmd.params.grip_width,
+                        };
+                        break;
+                      case "smart_transfer":
+                        commandObj.smart_transfer = {
+                          source_nest: cmd.params.source_nest,
+                          destination_nest: cmd.params.destination_nest,
+                          grasp_params: cmd.params.grasp_params,
+                          release_params: cmd.params.release_params,
+                          motion_profile_id: cmd.params.motion_profile_id,
+                          grip_width: cmd.params.grip_width,
+                        };
+                        break;
+                      case "wait":
+                        commandObj.wait = {
+                          duration: cmd.params.duration,
+                        };
+                        break;
+                      case "free":
+                        commandObj.free = {};
+                        break;
+                      case "unfree":
+                        commandObj.unfree = {};
+                        break;
+                      case "unwind":
+                        commandObj.unwind = {};
+                        break;
+                      case "run_sequence":
+                        commandObj.run_sequence = {
+                          sequence_name: cmd.params.sequence_name,
+                        };
+                        break;
+                      case "retrieve_plate":
+                        commandObj.retrieve_plate = {
+                          labware: cmd.params.labware,
+                          location: cmd.params.location,
+                          motion_profile_id: cmd.params.motion_profile_id,
+                        };
+                        break;
+                      case "dropoff_plate":
+                        commandObj.dropoff_plate = {
+                          labware: cmd.params.labware,
+                          location: cmd.params.location,
+                          motion_profile_id: cmd.params.motion_profile_id,
+                        };
+                        break;
+                      case "pick_lid":
+                        commandObj.pick_lid = {
+                          labware: cmd.params.labware,
+                          location: cmd.params.location,
+                          motion_profile_id: cmd.params.motion_profile_id,
+                          pick_from_plate: cmd.params.pick_from_plate,
+                        };
+                        break;
+                      case "place_lid":
+                        commandObj.place_lid = {
+                          labware: cmd.params.labware,
+                          location: cmd.params.location,
+                          motion_profile_id: cmd.params.motion_profile_id,
+                          place_on_plate: cmd.params.place_on_plate,
+                        };
+                        break;
+                      case "jog":
+                        commandObj.jog = {
+                          axis: cmd.params.axis,
+                          distance: cmd.params.distance,
+                        };
+                        break;
+                      case "raw_command":
+                        commandObj.raw_command = {
+                          command: cmd.params.command,
+                        };
+                        break;
+                    }
+                    return commandObj;
+                  },
+                ),
+              },
             });
           }
         }
@@ -372,18 +371,16 @@ export default class Tool {
           host: String(config.pf400?.host || ""),
           port: Number(config.pf400?.port || 0),
           joints: Number(config.pf400?.joints || 0),
-          tool_id: this.info.name
+          tool_id: this.info.name,
         };
-
 
         const configReply = await this.grpc.configure({
           ...config,
-          pf400: pf400Config
+          pf400: pf400Config,
         });
 
-
         if (configReply.response !== tool_base.ResponseCode.SUCCESS) {
-          console.error('[PF400] Configure failed:', configReply.error_message);
+          console.error("[PF400] Configure failed:", configReply.error_message);
           throw new ToolCommandExecutionError(
             configReply.error_message ?? "Configure Command failed",
             configReply.response,
@@ -391,20 +388,19 @@ export default class Tool {
         }
 
         // Now load waypoints
-        
+
         const loadWaypointsCommand = {
           load_waypoints: {
-            waypoints: waypoints
-          }
+            waypoints: waypoints,
+          },
         };
 
         const loadReply = await this.grpc.executeCommand({
-          pf400: loadWaypointsCommand
+          pf400: loadWaypointsCommand,
         });
 
-
         if (loadReply.response !== tool_base.ResponseCode.SUCCESS) {
-          console.error('[PF400] Load waypoints failed:', loadReply.error_message);
+          console.error("[PF400] Load waypoints failed:", loadReply.error_message);
           throw new ToolCommandExecutionError(
             loadReply.error_message ?? "Load waypoints failed",
             loadReply.response,
@@ -413,7 +409,7 @@ export default class Tool {
 
         return configReply;
       } catch (e: any) {
-        console.error('[PF400] Error during configuration:', e);
+        console.error("[PF400] Error during configuration:", e);
         throw e;
       }
     }
@@ -616,7 +612,7 @@ export default class Tool {
 
       // Fetch waypoints from the database
       const waypointsResponse = await get<any>(`/robot-arm-waypoints?tool_id=${toolInfo.id}`);
-      
+
       // Format waypoints for loading
       const waypoints: pf400_protos.WaypointConfig[] = [];
 
@@ -634,8 +630,8 @@ export default class Tool {
               accel_ramp: profile.accelramp,
               decel_ramp: profile.decelramp,
               inrange: profile.inrange,
-              straight: profile.straight === 1
-            }
+              straight: profile.straight === 1,
+            },
           });
         }
       }
@@ -648,8 +644,8 @@ export default class Tool {
               id: param.id,
               width: param.width,
               force: param.force,
-              speed: param.speed
-            }
+              speed: param.speed,
+            },
           });
         }
       }
@@ -661,15 +657,15 @@ export default class Tool {
           waypoints.push({
             location: {
               name: loc.name,
-              location: location
-            }
+              location: location,
+            },
           });
           // Also store the location by name for sequence lookups
           waypoints.push({
             location: {
               name: location,
-              location: location
-            }
+              location: location,
+            },
           });
         }
       }
@@ -681,15 +677,15 @@ export default class Tool {
           waypoints.push({
             location: {
               name: nest.name,
-              location: location
-            }
+              location: location,
+            },
           });
           // Also store the location by name for sequence lookups
           waypoints.push({
             location: {
               name: location,
-              location: location
-            }
+              location: location,
+            },
           });
         }
       }
@@ -700,8 +696,8 @@ export default class Tool {
           waypoints.push({
             labware: {
               id: item.id,
-              name: item.name
-            }
+              name: item.name,
+            },
           });
         }
       }
@@ -712,61 +708,63 @@ export default class Tool {
           waypoints.push({
             sequence: {
               name: sequence.name,
-              commands: sequence.commands.map((cmd: { command: string; params: Record<string, any> }) => {
-                const commandObj: any = {};
-                switch (cmd.command) {
-                  case 'move':
-                    commandObj.move = {
-                      waypoint: cmd.params.waypoint,
-                      motion_profile_id: cmd.params.motion_profile_id
-                    };
-                    break;
-                  case 'grasp_plate':
-                    commandObj.grasp_plate = {
-                      width: cmd.params.width,
-                      speed: cmd.params.speed,
-                      force: cmd.params.force
-                    };
-                    break;
-                  case 'release_plate':
-                    commandObj.release_plate = {
-                      width: cmd.params.width,
-                      speed: cmd.params.speed
-                    };
-                    break;
-                  case 'approach':
-                    commandObj.approach = {
-                      nest: cmd.params.nest,
-                      x_offset: cmd.params.x_offset,
-                      y_offset: cmd.params.y_offset,
-                      z_offset: cmd.params.z_offset,
-                      motion_profile_id: cmd.params.motion_profile_id,
-                      ignore_safepath: cmd.params.ignore_safepath
-                    };
-                    break;
-                  case 'leave':
-                    commandObj.leave = {
-                      nest: cmd.params.nest,
-                      x_offset: cmd.params.x_offset,
-                      y_offset: cmd.params.y_offset,
-                      z_offset: cmd.params.z_offset,
-                      motion_profile_id: cmd.params.motion_profile_id
-                    };
-                    break;
-                  case 'transfer':
-                    commandObj.transfer = {
-                      source_nest: cmd.params.source_nest,
-                      destination_nest: cmd.params.destination_nest,
-                      grasp_params: cmd.params.grasp_params,
-                      release_params: cmd.params.release_params,
-                      motion_profile_id: cmd.params.motion_profile_id,
-                      grip_width: cmd.params.grip_width
-                    };
-                    break;
-                }
-                return commandObj;
-              })
-            }
+              commands: sequence.commands.map(
+                (cmd: { command: string; params: Record<string, any> }) => {
+                  const commandObj: any = {};
+                  switch (cmd.command) {
+                    case "move":
+                      commandObj.move = {
+                        waypoint: cmd.params.waypoint,
+                        motion_profile_id: cmd.params.motion_profile_id,
+                      };
+                      break;
+                    case "grasp_plate":
+                      commandObj.grasp_plate = {
+                        width: cmd.params.width,
+                        speed: cmd.params.speed,
+                        force: cmd.params.force,
+                      };
+                      break;
+                    case "release_plate":
+                      commandObj.release_plate = {
+                        width: cmd.params.width,
+                        speed: cmd.params.speed,
+                      };
+                      break;
+                    case "approach":
+                      commandObj.approach = {
+                        nest: cmd.params.nest,
+                        x_offset: cmd.params.x_offset,
+                        y_offset: cmd.params.y_offset,
+                        z_offset: cmd.params.z_offset,
+                        motion_profile_id: cmd.params.motion_profile_id,
+                        ignore_safepath: cmd.params.ignore_safepath,
+                      };
+                      break;
+                    case "leave":
+                      commandObj.leave = {
+                        nest: cmd.params.nest,
+                        x_offset: cmd.params.x_offset,
+                        y_offset: cmd.params.y_offset,
+                        z_offset: cmd.params.z_offset,
+                        motion_profile_id: cmd.params.motion_profile_id,
+                      };
+                      break;
+                    case "transfer":
+                      commandObj.transfer = {
+                        source_nest: cmd.params.source_nest,
+                        destination_nest: cmd.params.destination_nest,
+                        grasp_params: cmd.params.grasp_params,
+                        release_params: cmd.params.release_params,
+                        motion_profile_id: cmd.params.motion_profile_id,
+                        grip_width: cmd.params.grip_width,
+                      };
+                      break;
+                  }
+                  return commandObj;
+                },
+              ),
+            },
           });
         }
       }
@@ -774,20 +772,19 @@ export default class Tool {
       // Send load waypoints command
       const loadWaypointsCommand = {
         load_waypoints: {
-          waypoints: waypoints
-        }
+          waypoints: waypoints,
+        },
       };
 
       const loadReply = await this.grpc.executeCommand({
-        pf400: loadWaypointsCommand
+        pf400: loadWaypointsCommand,
       });
 
       if (loadReply.response !== tool_base.ResponseCode.SUCCESS) {
         throw new Error(loadReply.error_message ?? "Load waypoints failed");
       }
-
     } catch (error) {
-      console.error('[Tool] Error reloading waypoints:', error);
+      console.error("[Tool] Error reloading waypoints:", error);
       throw error;
     }
   }

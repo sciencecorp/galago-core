@@ -73,7 +73,7 @@ export const GripParamsModal: React.FC<GripParamsModalProps> = ({
         width,
         speed,
         force,
-        tool_id: toolId
+        tool_id: toolId,
       });
     }
     onClose();
@@ -120,4 +120,4 @@ export const GripParamsModal: React.FC<GripParamsModalProps> = ({
       </ModalContent>
     </Modal>
   );
-}; 
+};

@@ -80,7 +80,7 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
     if (editingProfile) {
       setEditingProfile({
         ...editingProfile,
-        [field]: field === 'name' ? value : (isNaN(value as number) ? 0 : value),
+        [field]: field === "name" ? value : isNaN(value as number) ? 0 : value,
       });
     }
   };
@@ -123,24 +123,29 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
     <Box height="100%" overflow="hidden">
       <VStack height="100%" spacing={4}>
         <HStack width="100%" justify="space-between">
-          <Heading size="md" paddingTop={12}>Motion Profiles</Heading>
+          <Heading size="md" paddingTop={12}>
+            Motion Profiles
+          </Heading>
           <Button leftIcon={<AddIcon />} size="sm" onClick={onAdd}>
             New Motion Profile
           </Button>
         </HStack>
         <Box width="100%" flex={1} overflow="hidden">
           <Box ref={tableRef} height="100%" overflow="auto" borderWidth="1px" borderRadius="md">
-            <Table variant="simple" size="sm" css={{
-              'tr': {
-                borderColor: borderColor,
-              },
-              'th': {
-                borderColor: borderColor,
-              },
-              'td': {
-                borderColor: borderColor,
-              }
-            }}>
+            <Table
+              variant="simple"
+              size="sm"
+              css={{
+                tr: {
+                  borderColor: borderColor,
+                },
+                th: {
+                  borderColor: borderColor,
+                },
+                td: {
+                  borderColor: borderColor,
+                },
+              }}>
               <Thead position="sticky" top={0} bg={bgColor} zIndex={1}>
                 <Tr>
                   <Th>Default</Th>
@@ -159,11 +164,15 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
               </Thead>
               <Tbody>
                 {paginatedItems.map((profile) => (
-                  <Tr key={profile.id || `new-${profile.name}`} bg={profile.id === defaultProfileId ? bgColorAlpha : undefined}>
+                  <Tr
+                    key={profile.id || `new-${profile.name}`}
+                    bg={profile.id === defaultProfileId ? bgColorAlpha : undefined}>
                     <Td>
                       <Switch
                         isChecked={profile.id === defaultProfileId}
-                        onChange={() => onSetDefault(profile.id === defaultProfileId ? null : profile.id)}
+                        onChange={() =>
+                          onSetDefault(profile.id === defaultProfileId ? null : profile.id)
+                        }
                         isDisabled={!profile.id}
                       />
                     </Td>
@@ -171,11 +180,13 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                       {editingProfile?.id === profile.id ? (
                         <Input
                           value={editingProfile.name}
-                          onChange={(e) => handleValueChange('name', e.target.value)}
+                          onChange={(e) => handleValueChange("name", e.target.value)}
                           size="xs"
                           width="120px"
                         />
-                      ) : profile.name}
+                      ) : (
+                        profile.name
+                      )}
                     </Td>
                     <Td>{profile.profile_id}</Td>
                     {editingProfile?.id === profile.id ? (
@@ -183,97 +194,92 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                         <Td>
                           <NumberInput
                             value={editingProfile.speed}
-                            onChange={(_, value) => handleValueChange('speed', value)}
+                            onChange={(_, value) => handleValueChange("speed", value)}
                             step={1}
                             precision={0}
                             size="xs"
                             min={0}
-                            max={100}
-                          >
+                            max={100}>
                             <NumberInputField width="65px" textAlign="left" />
                           </NumberInput>
                         </Td>
                         <Td>
                           <NumberInput
                             value={editingProfile.speed2}
-                            onChange={(_, value) => handleValueChange('speed2', value)}
+                            onChange={(_, value) => handleValueChange("speed2", value)}
                             step={1}
                             precision={0}
                             size="xs"
                             min={0}
-                            max={100}
-                          >
+                            max={100}>
                             <NumberInputField width="65px" textAlign="left" />
                           </NumberInput>
                         </Td>
                         <Td>
                           <NumberInput
                             value={editingProfile.acceleration}
-                            onChange={(_, value) => handleValueChange('acceleration', value)}
+                            onChange={(_, value) => handleValueChange("acceleration", value)}
                             step={1}
                             precision={0}
                             size="xs"
                             min={0}
-                            max={100}
-                          >
+                            max={100}>
                             <NumberInputField width="65px" textAlign="left" />
                           </NumberInput>
                         </Td>
                         <Td>
                           <NumberInput
                             value={editingProfile.deceleration}
-                            onChange={(_, value) => handleValueChange('deceleration', value)}
+                            onChange={(_, value) => handleValueChange("deceleration", value)}
                             step={1}
                             precision={0}
                             size="xs"
                             min={0}
-                            max={100}
-                          >
+                            max={100}>
                             <NumberInputField width="65px" textAlign="left" />
                           </NumberInput>
                         </Td>
                         <Td>
                           <NumberInput
                             value={editingProfile.accel_ramp}
-                            onChange={(_, value) => handleValueChange('accel_ramp', value)}
+                            onChange={(_, value) => handleValueChange("accel_ramp", value)}
                             step={0.1}
                             precision={1}
                             size="xs"
                             min={0}
-                            max={100}
-                          >
+                            max={100}>
                             <NumberInputField width="65px" textAlign="left" />
                           </NumberInput>
                         </Td>
                         <Td>
                           <NumberInput
                             value={editingProfile.decel_ramp}
-                            onChange={(_, value) => handleValueChange('decel_ramp', value)}
+                            onChange={(_, value) => handleValueChange("decel_ramp", value)}
                             step={0.1}
                             precision={1}
                             size="xs"
                             min={0}
-                            max={100}
-                          >
+                            max={100}>
                             <NumberInputField width="65px" textAlign="left" />
                           </NumberInput>
                         </Td>
                         <Td>
                           <NumberInput
                             value={editingProfile.inrange}
-                            onChange={(_, value) => handleValueChange('inrange', value)}
+                            onChange={(_, value) => handleValueChange("inrange", value)}
                             step={1}
                             precision={0}
                             size="xs"
-                            min={0}
-                          >
+                            min={0}>
                             <NumberInputField width="65px" textAlign="left" />
                           </NumberInput>
                         </Td>
                         <Td>
                           <Switch
                             isChecked={editingProfile.straight === 1}
-                            onChange={(e) => handleValueChange('straight', e.target.checked ? 1 : 0)}
+                            onChange={(e) =>
+                              handleValueChange("straight", e.target.checked ? 1 : 0)
+                            }
                             size="sm"
                           />
                         </Td>
@@ -287,7 +293,7 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                         <Td>{profile.accel_ramp}%</Td>
                         <Td>{profile.decel_ramp}%</Td>
                         <Td>{profile.inrange}</Td>
-                        <Td>{profile.straight ? 'Yes' : 'No'}</Td>
+                        <Td>{profile.straight ? "Yes" : "No"}</Td>
                       </>
                     )}
                     <Td textAlign="right">
@@ -310,18 +316,14 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                             size="sm"
                           />
                           <MenuList>
-                            <MenuItem
-                              icon={<EditIcon />}
-                              onClick={() => startEditing(profile)}
-                            >
+                            <MenuItem icon={<EditIcon />} onClick={() => startEditing(profile)}>
                               Edit Profile
                             </MenuItem>
                             <MenuDivider />
                             <MenuItem
                               icon={<DeleteIcon />}
                               onClick={() => onDelete(profile.id!)}
-                              color="red.500"
-                            >
+                              color="red.500">
                               Delete Profile
                             </MenuItem>
                           </MenuList>

@@ -54,7 +54,16 @@ interface SequenceModalProps {
   gripParams: GripParams[];
 }
 
-const SequenceModal: React.FC<SequenceModalProps> = ({ config, isOpen, onClose, sequence, onSave, teachPoints, motionProfiles, gripParams }) => {
+const SequenceModal: React.FC<SequenceModalProps> = ({
+  config,
+  isOpen,
+  onClose,
+  sequence,
+  onSave,
+  teachPoints,
+  motionProfiles,
+  gripParams,
+}) => {
   const [name, setName] = useState(sequence?.name ?? "");
   const [description, setDescription] = useState(sequence?.description ?? "");
   const [commands, setCommands] = useState(sequence?.commands ?? []);
@@ -277,7 +286,7 @@ export function useSequenceHandler(config: Tool) {
         command: "run_sequence",
         params: {
           sequence_id: sequence.id,
-        }
+        },
       });
     } catch (error) {
       toast({

@@ -5,7 +5,7 @@ import { GripParametersPanel } from "./GripParametersPanel";
 import { SequencesPanel } from "./SequencesPanel";
 import { TeachPoint } from "../types";
 
-interface DataPanelProps {  
+interface DataPanelProps {
   locations: any[];
   motionProfiles: any[];
   gripParams: any[];

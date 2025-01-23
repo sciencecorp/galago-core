@@ -39,12 +39,8 @@ const availableCommands: Record<string, CommandField[]> = {
     { name: "waypoint", type: "waypoint" },
     { name: "motion_profile_id", type: "motion_profile" },
   ],
-  grasp_plate: [
-    { name: "grip_params", type: "grip_params" },
-  ],
-  release_plate: [
-    { name: "grip_params", type: "grip_params" },
-  ],
+  grasp_plate: [{ name: "grip_params", type: "grip_params" }],
+  release_plate: [{ name: "grip_params", type: "grip_params" }],
   approach: [
     { name: "nest", type: "nest" },
     { name: "x_offset", type: "number", defaultValue: 0 },
@@ -75,9 +71,9 @@ const availableCommands: Record<string, CommandField[]> = {
   unwind: [],
 };
 
-export const CommandModal: React.FC<CommandModalProps> = ({ 
-  isOpen, 
-  onClose, 
+export const CommandModal: React.FC<CommandModalProps> = ({
+  isOpen,
+  onClose,
   onAddCommand,
   teachPoints,
   motionProfiles,
@@ -113,17 +109,19 @@ export const CommandModal: React.FC<CommandModalProps> = ({
 
   const handleSubmit = () => {
     const processedParams = { ...params };
-    
+
     // Convert selected objects to their required format
     if (processedParams.motion_profile_id) {
-      const profile = motionProfiles.find(p => p.id === Number(processedParams.motion_profile_id));
+      const profile = motionProfiles.find(
+        (p) => p.id === Number(processedParams.motion_profile_id),
+      );
       if (profile) {
         processedParams.motion_profile_id = profile.profile_id;
       }
     }
 
     if (processedParams.grip_params) {
-      const grip = gripParams.find(g => g.id === Number(processedParams.grip_params));
+      const grip = gripParams.find((g) => g.id === Number(processedParams.grip_params));
       if (grip) {
         processedParams.width = grip.width;
         processedParams.speed = grip.speed;
@@ -133,7 +131,11 @@ export const CommandModal: React.FC<CommandModalProps> = ({
     }
 
     if (processedParams.waypoint || processedParams.location || processedParams.nest) {
-      const point = teachPoints.find(p => p.id === Number(processedParams.waypoint || processedParams.location || processedParams.nest));
+      const point = teachPoints.find(
+        (p) =>
+          p.id ===
+          Number(processedParams.waypoint || processedParams.location || processedParams.nest),
+      );
       if (point) {
         if (processedParams.waypoint) {
           processedParams.waypoint = point.name;
@@ -147,7 +149,7 @@ export const CommandModal: React.FC<CommandModalProps> = ({
     }
 
     if (processedParams.labware) {
-      const labware = labwareList?.find(l => l.id === Number(processedParams.labware));
+      const labware = labwareList?.find((l) => l.id === Number(processedParams.labware));
       if (labware) {
         processedParams.labware = labware.id;
       }
@@ -168,10 +170,9 @@ export const CommandModal: React.FC<CommandModalProps> = ({
           <Select
             value={params[field.name]}
             onChange={(e) => setParams({ ...params, [field.name]: e.target.value })}
-            placeholder={`Select ${field.type}`}
-          >
+            placeholder={`Select ${field.type}`}>
             {(teachPoints || [])
-              .filter(p => field.type === "waypoint" ? true : p.type === field.type)
+              .filter((p) => (field.type === "waypoint" ? true : p.type === field.type))
               .map((point) => (
                 <option key={point.id} value={point.id}>
                   {point.name}
@@ -185,10 +186,9 @@ export const CommandModal: React.FC<CommandModalProps> = ({
           <Select
             value={params[field.name]}
             onChange={(e) => setParams({ ...params, [field.name]: e.target.value })}
-            placeholder="Select nest"
-          >
+            placeholder="Select nest">
             {(teachPoints || [])
-              .filter(p => p.type === "nest")
+              .filter((p) => p.type === "nest")
               .map((point) => (
                 <option key={point.id} value={point.id}>
                   {point.name}
@@ -202,8 +202,7 @@ export const CommandModal: React.FC<CommandModalProps> = ({
           <Select
             value={params[field.name]}
             onChange={(e) => setParams({ ...params, [field.name]: e.target.value })}
-            placeholder="Select motion profile"
-          >
+            placeholder="Select motion profile">
             {(motionProfiles || []).map((profile) => (
               <option key={profile.id} value={profile.profile_id}>
                 {profile.name} (Profile {profile.profile_id})
@@ -217,8 +216,7 @@ export const CommandModal: React.FC<CommandModalProps> = ({
           <Select
             value={params[field.name]}
             onChange={(e) => setParams({ ...params, [field.name]: e.target.value })}
-            placeholder="Select grip parameters"
-          >
+            placeholder="Select grip parameters">
             {(gripParams || []).map((param) => (
               <option key={param.id} value={param.id}>
                 {param.name}
@@ -232,8 +230,7 @@ export const CommandModal: React.FC<CommandModalProps> = ({
           <Select
             value={params[field.name]}
             onChange={(e) => setParams({ ...params, [field.name]: e.target.value })}
-            placeholder="Select labware"
-          >
+            placeholder="Select labware">
             {(labwareList || []).map((labware) => (
               <option key={labware.id} value={labware.id}>
                 {labware.name}
@@ -246,8 +243,7 @@ export const CommandModal: React.FC<CommandModalProps> = ({
         return (
           <Select
             value={params[field.name]}
-            onChange={(e) => setParams({ ...params, [field.name]: e.target.value === "true" })}
-          >
+            onChange={(e) => setParams({ ...params, [field.name]: e.target.value === "true" })}>
             <option value="false">False</option>
             <option value="true">True</option>
           </Select>
@@ -257,8 +253,7 @@ export const CommandModal: React.FC<CommandModalProps> = ({
         return (
           <NumberInput
             value={params[field.name]}
-            onChange={(_, value) => setParams({ ...params, [field.name]: value })}
-          >
+            onChange={(_, value) => setParams({ ...params, [field.name]: value })}>
             <NumberInputField />
           </NumberInput>
         );
@@ -285,8 +280,7 @@ export const CommandModal: React.FC<CommandModalProps> = ({
               <Select
                 placeholder="Select command"
                 value={selectedCommand}
-                onChange={(e) => handleCommandSelect(e.target.value)}
-              >
+                onChange={(e) => handleCommandSelect(e.target.value)}>
                 {Object.keys(availableCommands).map((cmd) => (
                   <option key={cmd} value={cmd}>
                     {cmd}

@@ -1,10 +1,4 @@
-import {
-  HStack,
-  Button,
-  Text,
-  Select,
-  Box,
-} from "@chakra-ui/react";
+import { HStack, Button, Text, Select, Box } from "@chakra-ui/react";
 
 interface PaginationControlsProps {
   currentPage: number;
@@ -29,8 +23,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           size="sm"
           width="70px"
           value={itemsPerPage}
-          onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-        >
+          onChange={(e) => onItemsPerPageChange(Number(e.target.value))}>
           <option value={5}>5</option>
           <option value={10}>10</option>
           <option value={20}>20</option>
@@ -39,21 +32,16 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
       </HStack>
 
       <HStack spacing={2}>
-        <Button
-          size="sm"
-          onClick={() => onPageChange(1)}
-          isDisabled={currentPage === 1}
-        >
+        <Button size="sm" onClick={() => onPageChange(1)} isDisabled={currentPage === 1}>
           First
         </Button>
         <Button
           size="sm"
           onClick={() => onPageChange(currentPage - 1)}
-          isDisabled={currentPage === 1}
-        >
+          isDisabled={currentPage === 1}>
           Previous
         </Button>
-        
+
         <Box px={2}>
           <Text fontSize="sm">
             Page {currentPage} of {totalPages}
@@ -63,18 +51,16 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
         <Button
           size="sm"
           onClick={() => onPageChange(currentPage + 1)}
-          isDisabled={currentPage === totalPages}
-        >
+          isDisabled={currentPage === totalPages}>
           Next
         </Button>
         <Button
           size="sm"
           onClick={() => onPageChange(totalPages)}
-          isDisabled={currentPage === totalPages}
-        >
+          isDisabled={currentPage === totalPages}>
           Last
         </Button>
       </HStack>
     </HStack>
   );
-}; 
+};

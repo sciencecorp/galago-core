@@ -44,7 +44,7 @@ interface TeachPointsPanelProps {
   expandedRows: { [key: number]: boolean };
   toggleRow: (id: number) => void;
   onImport: (data: any) => void;
-  onMove: (point: TeachPoint, action?: 'approach' | 'leave') => void;
+  onMove: (point: TeachPoint, action?: "approach" | "leave") => void;
   onEdit: (point: TeachPoint) => void;
   onDelete: (point: TeachPoint) => void;
   onAdd: () => void;
@@ -78,7 +78,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const [editingPoint, setEditingPoint] = useState<EditablePoint | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
-  
+
   const {
     currentPage,
     itemsPerPage,
@@ -91,8 +91,8 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   const handleCoordinateChange = (index: number, value: number) => {
     if (editingPoint) {
       const numJoints = parseInt((config.config as any)?.pf400?.joints || "5");
-      const newCoordinates = Array.from({ length: numJoints }).map((_, i) => 
-        i === index ? value : (editingPoint.coordinates[i] || 0)
+      const newCoordinates = Array.from({ length: numJoints }).map((_, i) =>
+        i === index ? value : editingPoint.coordinates[i] || 0,
       );
       setEditingPoint({ ...editingPoint, coordinates: newCoordinates });
     }
@@ -101,12 +101,12 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   const handleSaveCoordinates = (point: TeachPoint) => {
     if (editingPoint) {
       const numJoints = parseInt((config.config as any)?.pf400?.joints || "5");
-      const coordinates = Array.from({ length: numJoints }).map((_, i) => 
-        editingPoint.coordinates[i] || 0
+      const coordinates = Array.from({ length: numJoints }).map(
+        (_, i) => editingPoint.coordinates[i] || 0,
       );
       const updatedPoint = {
         ...point,
-        coordinate: coordinates.join(" ")
+        coordinate: coordinates.join(" "),
       };
       onEdit(updatedPoint);
       setEditingPoint(null);
@@ -115,13 +115,13 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
 
   const startEditing = (point: TeachPoint) => {
     const numJoints = parseInt((config.config as any)?.pf400?.joints || "5");
-    const coordinates = point.coordinate ? 
-      point.coordinate.split(" ").map(Number) : 
-      Array(numJoints).fill(0);
-    
+    const coordinates = point.coordinate
+      ? point.coordinate.split(" ").map(Number)
+      : Array(numJoints).fill(0);
+
     setEditingPoint({
       id: point.id,
-      coordinates: Array.from({ length: numJoints }).map((_, i) => coordinates[i] || 0)
+      coordinates: Array.from({ length: numJoints }).map((_, i) => coordinates[i] || 0),
     });
   };
 
@@ -129,34 +129,37 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
     <Box height="100%" overflow="hidden">
       <VStack height="100%" spacing={4}>
         <HStack width="100%" justify="space-between">
-          <Heading size="md" paddingTop={12}>Teach Points</Heading>
+          <Heading size="md" paddingTop={12}>
+            Teach Points
+          </Heading>
           <Button leftIcon={<AddIcon />} size="sm" onClick={onAdd}>
             New Teach Point
           </Button>
         </HStack>
         <Box width="100%" flex={1} overflow="hidden">
           <Box ref={tableRef} height="100%" overflow="auto" borderWidth="1px" borderRadius="md">
-            <Table variant="simple" size="sm" css={{
-              'tr': {
-                borderColor: borderColor,
-              },
-              'th': {
-                borderColor: borderColor,
-              },
-              'td': {
-                borderColor: borderColor,
-              }
-            }}>
+            <Table
+              variant="simple"
+              size="sm"
+              css={{
+                tr: {
+                  borderColor: borderColor,
+                },
+                th: {
+                  borderColor: borderColor,
+                },
+                td: {
+                  borderColor: borderColor,
+                },
+              }}>
               <Thead position="sticky" top={0} bg={bgColor} zIndex={1}>
                 <Tr>
                   <Th width="200px">Name</Th>
                   <Th width="100px">Type</Th>
-                  <Th>
-                    {editingPoint && (
-                      <Box textAlign="center">Coordinates</Box>
-                    )}
+                  <Th>{editingPoint && <Box textAlign="center">Coordinates</Box>}</Th>
+                  <Th width="200px" textAlign="right">
+                    Actions
                   </Th>
-                  <Th width="200px" textAlign="right">Actions</Th>
                 </Tr>
               </Thead>
               <Tbody>
@@ -168,22 +171,26 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                       {editingPoint?.id === point.id ? (
                         <Box>
                           <HStack spacing={2} justify="center">
-                            {Array.from({ length: parseInt((config.config as any)?.pf400?.joints || "5") }, (_, index) => (
-                              <Box key={index}>
-                                <Box fontSize="xs" textAlign="center" mb={1}>J{index + 1}</Box>
-                                <NumberInput
-                                  value={editingPoint?.coordinates[index] || 0}
-                                  onChange={(_, value) => handleCoordinateChange(index, value)}
-                                  step={0.001}
-                                  precision={3}
-                                  size="xs"
-                                  min={-360}
-                                  max={360}
-                                >
-                                  <NumberInputField width="100px" textAlign="left" />
-                                </NumberInput>
-                              </Box>
-                            ))}
+                            {Array.from(
+                              { length: parseInt((config.config as any)?.pf400?.joints || "5") },
+                              (_, index) => (
+                                <Box key={index}>
+                                  <Box fontSize="xs" textAlign="center" mb={1}>
+                                    J{index + 1}
+                                  </Box>
+                                  <NumberInput
+                                    value={editingPoint?.coordinates[index] || 0}
+                                    onChange={(_, value) => handleCoordinateChange(index, value)}
+                                    step={0.001}
+                                    precision={3}
+                                    size="xs"
+                                    min={-360}
+                                    max={360}>
+                                    <NumberInputField width="100px" textAlign="left" />
+                                  </NumberInput>
+                                </Box>
+                              ),
+                            )}
                           </HStack>
                         </Box>
                       ) : null}
@@ -209,51 +216,41 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                             size="sm"
                           />
                           <MenuList>
-                            {point.type === 'nest' ? (
+                            {point.type === "nest" ? (
                               <>
-                                <MenuItem 
-                                  icon={<FaPlay style={{ transform: 'scaleX(-1)' }}/>}
-                                  onClick={() => onMove(point, 'leave')}
-                                >
+                                <MenuItem
+                                  icon={<FaPlay style={{ transform: "scaleX(-1)" }} />}
+                                  onClick={() => onMove(point, "leave")}>
                                   Leave nest
                                 </MenuItem>
-                                <MenuItem 
+                                <MenuItem
                                   icon={<FaPlay />}
-                                  onClick={() => onMove(point, 'approach')}
-                                >
+                                  onClick={() => onMove(point, "approach")}>
                                   Approach nest
                                 </MenuItem>
                               </>
                             ) : (
                               <>
-                                <MenuItem 
-                                  icon={<FaPlay />}
-                                  onClick={() => onMove(point)}
-                                >
+                                <MenuItem icon={<FaPlay />} onClick={() => onMove(point)}>
                                   Move to point
                                 </MenuItem>
                                 {isConnected && (
-                                  <MenuItem 
+                                  <MenuItem
                                     icon={<BsRecordCircle />}
-                                    onClick={() => onTeach(point)}
-                                  >
+                                    onClick={() => onTeach(point)}>
                                     Teach current position
                                   </MenuItem>
                                 )}
                               </>
                             )}
                             <MenuDivider />
-                            <MenuItem 
-                              icon={<EditIcon />}
-                              onClick={() => startEditing(point)}
-                            >
+                            <MenuItem icon={<EditIcon />} onClick={() => startEditing(point)}>
                               Edit coordinates
                             </MenuItem>
-                            <MenuItem 
+                            <MenuItem
                               icon={<DeleteIcon />}
                               onClick={() => onDelete(point)}
-                              color="red.500"
-                            >
+                              color="red.500">
                               Delete point
                             </MenuItem>
                           </MenuList>

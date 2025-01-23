@@ -38,8 +38,6 @@ interface EditableParams {
   force: number;
 }
 
-
-
 export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
   params,
   onEdit,
@@ -77,7 +75,7 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
     if (editingParams) {
       setEditingParams({
         ...editingParams,
-        [field]: field === 'name' ? value : (isNaN(value as number) ? 0 : value),
+        [field]: field === "name" ? value : isNaN(value as number) ? 0 : value,
       });
     }
   };
@@ -110,24 +108,29 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
     <Box height="100%" overflow="hidden">
       <VStack height="100%" spacing={4}>
         <HStack width="100%" justify="space-between">
-          <Heading size="md" paddingTop={12}>Grip Parameters</Heading>
+          <Heading size="md" paddingTop={12}>
+            Grip Parameters
+          </Heading>
           <Button leftIcon={<AddIcon />} size="sm" onClick={onAdd}>
             New Grip Parameters
           </Button>
         </HStack>
         <Box width="100%" flex={1} overflow="hidden">
           <Box ref={tableRef} height="100%" overflow="auto" borderWidth="1px" borderRadius="md">
-            <Table variant="simple" size="sm" css={{
-              'tr': {
-                borderColor: borderColor,
-              },
-              'th': {
-                borderColor: borderColor,
-              },
-              'td': {
-                borderColor: borderColor,
-              }
-            }}>
+            <Table
+              variant="simple"
+              size="sm"
+              css={{
+                tr: {
+                  borderColor: borderColor,
+                },
+                th: {
+                  borderColor: borderColor,
+                },
+                td: {
+                  borderColor: borderColor,
+                },
+              }}>
               <Thead position="sticky" top={0} bg={bgColor} zIndex={1}>
                 <Tr>
                   <Th>Default</Th>
@@ -144,57 +147,60 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
                     <Td>
                       <Switch
                         isChecked={param.id === defaultParamsId}
-                        onChange={() => onSetDefault(param.id ? (param.id === defaultParamsId ? null : param.id) : null)}
+                        onChange={() =>
+                          onSetDefault(
+                            param.id ? (param.id === defaultParamsId ? null : param.id) : null,
+                          )
+                        }
                       />
                     </Td>
                     <Td>
                       {editingParams?.id === param.id ? (
                         <Input
-                          value={editingParams?.name ?? ''}
-                          onChange={(e) => handleValueChange('name', e.target.value)}
+                          value={editingParams?.name ?? ""}
+                          onChange={(e) => handleValueChange("name", e.target.value)}
                           size="xs"
                           width="120px"
                         />
-                      ) : param.name}
+                      ) : (
+                        param.name
+                      )}
                     </Td>
                     {editingParams?.id === param.id ? (
                       <>
                         <Td>
                           <NumberInput
                             value={editingParams?.width ?? 0}
-                            onChange={(_, value) => handleValueChange('width', value)}
+                            onChange={(_, value) => handleValueChange("width", value)}
                             step={1}
                             precision={0}
                             size="xs"
                             min={0}
-                            max={255}
-                          >
+                            max={255}>
                             <NumberInputField width="65px" textAlign="left" />
                           </NumberInput>
                         </Td>
                         <Td>
                           <NumberInput
                             value={editingParams?.speed ?? 0}
-                            onChange={(_, value) => handleValueChange('speed', value)}
+                            onChange={(_, value) => handleValueChange("speed", value)}
                             step={1}
                             precision={0}
                             size="xs"
                             min={0}
-                            max={255}
-                          >
+                            max={255}>
                             <NumberInputField width="65px" textAlign="left" />
                           </NumberInput>
                         </Td>
                         <Td>
                           <NumberInput
                             value={editingParams?.force ?? 0}
-                            onChange={(_, value) => handleValueChange('force', value)}
+                            onChange={(_, value) => handleValueChange("force", value)}
                             step={1}
                             precision={0}
                             size="xs"
                             min={0}
-                            max={255}
-                          >
+                            max={255}>
                             <NumberInputField width="65px" textAlign="left" />
                           </NumberInput>
                         </Td>
@@ -226,18 +232,14 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
                             size="sm"
                           />
                           <MenuList>
-                            <MenuItem
-                              icon={<EditIcon />}
-                              onClick={() => startEditing(param)}
-                            >
+                            <MenuItem icon={<EditIcon />} onClick={() => startEditing(param)}>
                               Edit Parameters
                             </MenuItem>
                             <MenuDivider />
                             <MenuItem
                               icon={<DeleteIcon />}
                               onClick={() => onDelete(param.id!)}
-                              color="red.500"
-                            >
+                              color="red.500">
                               Delete Parameters
                             </MenuItem>
                           </MenuList>

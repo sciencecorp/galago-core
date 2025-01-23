@@ -90,10 +90,12 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
     }
 
     const duplicateProfile = existingProfiles.find(
-      p => p.profile_id === profileId && (!profile || p.id !== profile.id)
+      (p) => p.profile_id === profileId && (!profile || p.id !== profile.id),
     );
     if (duplicateProfile) {
-      errors.push(`Profile ID ${profileId} is already in use by profile "${duplicateProfile.name}"`);
+      errors.push(
+        `Profile ID ${profileId} is already in use by profile "${duplicateProfile.name}"`,
+      );
     }
 
     if (errors.length > 0) {
@@ -119,7 +121,7 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
         accel_ramp: accelRamp,
         decel_ramp: decelRamp,
         inrange,
-        straight
+        straight,
       });
     }
     onClose();
@@ -139,12 +141,11 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
             </FormControl>
             <FormControl>
               <FormLabel>Profile ID (1-14)</FormLabel>
-              <NumberInput 
-                value={profileId} 
+              <NumberInput
+                value={profileId}
                 onChange={(_, value) => setProfileId(value)}
                 min={1}
-                max={14}
-              >
+                max={14}>
                 <NumberInputField />
               </NumberInput>
             </FormControl>
@@ -205,4 +206,4 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
       </ModalContent>
     </Modal>
   );
-}; 
+};

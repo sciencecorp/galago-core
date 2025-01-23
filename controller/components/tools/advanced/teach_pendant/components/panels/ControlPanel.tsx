@@ -1,4 +1,19 @@
-import { VStack, Card, CardHeader, CardBody, Button, HStack, Select, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Box, Heading } from "@chakra-ui/react";
+import {
+  VStack,
+  Card,
+  CardHeader,
+  CardBody,
+  Button,
+  HStack,
+  Select,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
+  Box,
+  Heading,
+} from "@chakra-ui/react";
 import { GripParams } from "../types";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 
@@ -52,9 +67,30 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         <CardHeader>Robot Control</CardHeader>
         <CardBody>
           <HStack width="100%" spacing={2}>
-            <Button onClick={onFree} colorScheme="green" size="md" isLoading={isFreeLoading} isDisabled={!isEnabled}>Free</Button>
-            <Button onClick={onUnfree} colorScheme="red" size="md" isLoading={isUnfreeLoading} isDisabled={!isEnabled}>Unfree</Button>
-            <Button onClick={onUnwind} colorScheme="purple" size="md" isLoading={isUnwindLoading} isDisabled={!isEnabled}>Unwind</Button>
+            <Button
+              onClick={onFree}
+              colorScheme="green"
+              size="md"
+              isLoading={isFreeLoading}
+              isDisabled={!isEnabled}>
+              Free
+            </Button>
+            <Button
+              onClick={onUnfree}
+              colorScheme="red"
+              size="md"
+              isLoading={isUnfreeLoading}
+              isDisabled={!isEnabled}>
+              Unfree
+            </Button>
+            <Button
+              onClick={onUnwind}
+              colorScheme="purple"
+              size="md"
+              isLoading={isUnwindLoading}
+              isDisabled={!isEnabled}>
+              Unwind
+            </Button>
           </HStack>
         </CardBody>
       </Card>
@@ -63,11 +99,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         <CardHeader>Jog Control</CardHeader>
         <CardBody>
           <VStack spacing={4}>
-            <Select
-              value={jogAxis}
-              onChange={(e) => setJogAxis(e.target.value)}
-              width="100%"
-             >
+            <Select value={jogAxis} onChange={(e) => setJogAxis(e.target.value)} width="100%">
               <option value="">Select Axis</option>
               <option value="x">X</option>
               <option value="y">Y</option>
@@ -79,8 +111,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             <NumberInput
               value={jogDistance}
               onChange={(valueString) => setJogDistance(parseFloat(valueString))}
-              width="100%"
-              >
+              width="100%">
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
@@ -101,16 +132,20 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             <Select
               value={selectedGripParamsId || ""}
               onChange={(e) => onGripParamsChange(e.target.value ? Number(e.target.value) : null)}
-              
-              placeholder="Use Default Parameters"
-            >
+              placeholder="Use Default Parameters">
               {gripParams.map((param, index) => (
-                <option key={param.id || `new-${index}`} value={param.id}>{param.name}</option>
+                <option key={param.id || `new-${index}`} value={param.id}>
+                  {param.name}
+                </option>
               ))}
             </Select>
             <HStack spacing={4} width="100%">
-              <Button onClick={onGripperOpen} colorScheme="green" flex={1} isDisabled={!isEnabled}>Open</Button>
-              <Button onClick={onGripperClose} colorScheme="red" flex={1} isDisabled={!isEnabled}>Close</Button>
+              <Button onClick={onGripperOpen} colorScheme="green" flex={1} isDisabled={!isEnabled}>
+                Open
+              </Button>
+              <Button onClick={onGripperClose} colorScheme="red" flex={1} isDisabled={!isEnabled}>
+                Close
+              </Button>
             </HStack>
           </VStack>
         </CardBody>

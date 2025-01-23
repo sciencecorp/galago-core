@@ -35,10 +35,10 @@ interface SequenceModalProps {
   gripParams: GripParams[];
 }
 
-export const SequenceModal: React.FC<SequenceModalProps> = ({ 
-  config, 
-  isOpen, 
-  onClose, 
+export const SequenceModal: React.FC<SequenceModalProps> = ({
+  config,
+  isOpen,
+  onClose,
   sequence,
   onSave,
   teachPoints,
@@ -68,10 +68,12 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
   };
 
   const handleRemoveCommand = (index: number) => {
-    const newCommands = commands.filter((_, i) => i !== index).map((cmd, i) => ({
-      ...cmd,
-      order: i,
-    }));
+    const newCommands = commands
+      .filter((_, i) => i !== index)
+      .map((cmd, i) => ({
+        ...cmd,
+        order: i,
+      }));
     setCommands(newCommands);
   };
 
@@ -168,4 +170,4 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
       />
     </>
   );
-}; 
+};

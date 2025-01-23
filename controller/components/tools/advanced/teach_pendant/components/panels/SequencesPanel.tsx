@@ -81,7 +81,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
   // Update selected sequence when sequences change
   useEffect(() => {
     if (selectedSequence) {
-      const updatedSequence = sequences.find(seq => seq.id === selectedSequence.id);
+      const updatedSequence = sequences.find((seq) => seq.id === selectedSequence.id);
       if (updatedSequence) {
         setSelectedSequence(updatedSequence);
       }
@@ -109,7 +109,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
       // Clear editing state
       setIsEditing(false);
     } catch (error) {
-      console.error('Failed to update sequence:', error);
+      console.error("Failed to update sequence:", error);
     }
   };
 
@@ -133,7 +133,9 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
     <Box height="100%" overflow="hidden">
       <VStack height="100%" spacing={4}>
         <HStack width="100%" justify="space-between">
-          <Heading size="md" paddingTop={12}>Sequences</Heading>
+          <Heading size="md" paddingTop={12}>
+            Sequences
+          </Heading>
           <HStack mb={4} justify="flex-end">
             <Button leftIcon={<AddIcon />} size="sm" onClick={onCreateNew}>
               New Sequence
@@ -141,25 +143,27 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
           </HStack>
         </HStack>
         <Box width="100%" flex={1} overflow="hidden">
-          <Grid 
-            templateColumns={selectedSequence ? "350px 1fr" : "1fr"} 
-            gap={4} 
+          <Grid
+            templateColumns={selectedSequence ? "350px 1fr" : "1fr"}
+            gap={4}
             height="100%"
-            transition="grid-template-columns 0.2s"
-          >
+            transition="grid-template-columns 0.2s">
             <GridItem height="100%" overflow="hidden" minWidth={0}>
-              <Box height="100%" overflow="auto" borderWidth="1px" borderRadius="md" >
-                <Table variant="simple" size="sm" css={{
-                  'tr': {
-                    borderColor: borderColor,
-                  },
-                  'th': {
-                    borderColor: borderColor,
-                  },
-                  'td': {
-                    borderColor: borderColor,
-                  }
-                }}>
+              <Box height="100%" overflow="auto" borderWidth="1px" borderRadius="md">
+                <Table
+                  variant="simple"
+                  size="sm"
+                  css={{
+                    tr: {
+                      borderColor: borderColor,
+                    },
+                    th: {
+                      borderColor: borderColor,
+                    },
+                    td: {
+                      borderColor: borderColor,
+                    },
+                  }}>
                   <Thead position="sticky" top={0} bg={bgColor} zIndex={1}>
                     <Tr>
                       <Th>Name</Th>
@@ -174,8 +178,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                         onClick={() => handleSequenceClick(sequence)}
                         cursor="pointer"
                         bg={selectedSequence?.id === sequence.id ? bgColorAlpha : "transparent"}
-                        _hover={{ bg: bgColorAlpha }}
-                      >
+                        _hover={{ bg: bgColorAlpha }}>
                         <Td>{sequence.name}</Td>
                         <Td>{sequence.commands?.length || 0}</Td>
                         <Td textAlign="right">
@@ -189,24 +192,19 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                                 onClick={(e) => e.stopPropagation()}
                               />
                               <MenuList onClick={(e) => e.stopPropagation()}>
-                                <MenuItem
-                                  icon={<FaPlay />}
-                                  onClick={() => onRun(sequence)}
-                                >
+                                <MenuItem icon={<FaPlay />} onClick={() => onRun(sequence)}>
                                   Run Sequence
                                 </MenuItem>
                                 <MenuItem
                                   icon={<EditIcon />}
-                                  onClick={() => handleSequenceClick(sequence)}
-                                >
+                                  onClick={() => handleSequenceClick(sequence)}>
                                   Edit Sequence
                                 </MenuItem>
                                 <MenuDivider />
                                 <MenuItem
                                   icon={<DeleteIcon />}
                                   color="red.500"
-                                  onClick={() => handleDeleteClick(sequence)}
-                                >
+                                  onClick={() => handleDeleteClick(sequence)}>
                                   Delete Sequence
                                 </MenuItem>
                               </MenuList>
@@ -235,7 +233,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                         commands: updatedCommands,
                       });
                     } catch (error) {
-                      console.error('Failed to update sequence commands:', error);
+                      console.error("Failed to update sequence commands:", error);
                     }
                   }}
                   onSequenceNameChange={async (newName) => {
@@ -245,7 +243,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                         name: newName,
                       });
                     } catch (error) {
-                      console.error('Failed to update sequence name:', error);
+                      console.error("Failed to update sequence name:", error);
                     }
                   }}
                   expandedCommandIndex={expandedCommandIndex}
@@ -273,8 +271,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
       <AlertDialog
         isOpen={sequenceToDelete !== null}
         leastDestructiveRef={cancelRef}
-        onClose={() => setSequenceToDelete(null)}
-      >
+        onClose={() => setSequenceToDelete(null)}>
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
@@ -282,7 +279,8 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
             </AlertDialogHeader>
 
             <AlertDialogBody>
-              Are you sure you want to delete the sequence "{sequenceToDelete?.name}"? This action cannot be undone.
+              Are you sure you want to delete the sequence "{sequenceToDelete?.name}"? This action
+              cannot be undone.
             </AlertDialogBody>
 
             <AlertDialogFooter>

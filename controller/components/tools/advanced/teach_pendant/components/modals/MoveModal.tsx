@@ -19,8 +19,8 @@ interface MoveModalProps {
   isOpen: boolean;
   onClose: () => void;
   point: TeachPoint;
-  onMove: (point: TeachPoint, profile: MotionProfile, action?: 'approach' | 'leave') => void;
-  action?: 'approach' | 'leave';
+  onMove: (point: TeachPoint, profile: MotionProfile, action?: "approach" | "leave") => void;
+  action?: "approach" | "leave";
   config: any;
 }
 
@@ -55,8 +55,7 @@ export const MoveModal: React.FC<MoveModalProps> = ({
               <Select
                 value={selectedProfileId || ""}
                 onChange={(e) => setSelectedProfileId(Number(e.target.value))}
-                placeholder="Select motion profile"
-              >
+                placeholder="Select motion profile">
                 {config.motionProfiles?.map((profile: MotionProfile) => (
                   <option key={profile.id} value={profile.id}>
                     {profile.name}

@@ -58,4 +58,4 @@ export const useTeachPendantSettings = () => {
     updateDefaultMotionSpeed,
     updateDefaultGripForce,
   };
-}; 
+};

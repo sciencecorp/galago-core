@@ -167,34 +167,36 @@ export const toolRouter = router({
     }),
 
   waypoints: procedure
-    .input(z.object({ 
-      toolId: z.number().int().positive()
-    }))
+    .input(
+      z.object({
+        toolId: z.number().int().positive(),
+      }),
+    )
     .query(async ({ input }) => {
       try {
         const response = await fetch(
-          `http://localhost:8000/robot-arm-waypoints?tool_id=${input.toolId}`
+          `http://localhost:8000/robot-arm-waypoints?tool_id=${input.toolId}`,
         );
-        
+
         if (!response.ok) {
           throw new Error(`Failed to fetch waypoints: ${response.statusText}`);
         }
-        
+
         const data = await response.json();
-        
+
         const result = {
           locations: data.locations || [],
           nests: data.nests || [],
           sequences: data.sequences || [],
           motion_profiles: data.motion_profiles || [],
           grip_params: data.grip_params || [],
-          labware: data.labware || []
+          labware: data.labware || [],
         };
-        
+
         return result;
       } catch (error) {
-        console.error('Error fetching waypoints:', error);
-        throw new Error('Failed to fetch waypoints');
+        console.error("Error fetching waypoints:", error);
+        throw new Error("Failed to fetch waypoints");
       }
     }),
 });

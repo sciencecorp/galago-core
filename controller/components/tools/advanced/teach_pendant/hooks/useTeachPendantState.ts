@@ -7,27 +7,26 @@ export const useTeachPendantState = () => {
   const {
     isOpen: isTeachPointModalOpen,
     onOpen: onTeachPointModalOpen,
-    onClose: onTeachPointModalClose
+    onClose: onTeachPointModalClose,
   } = useDisclosure();
 
   const {
     isOpen: isMotionProfileModalOpen,
     onOpen: onMotionProfileModalOpen,
-    onClose: onMotionProfileModalClose
+    onClose: onMotionProfileModalClose,
   } = useDisclosure();
 
   const {
     isOpen: isGripParamsModalOpen,
     onOpen: onGripParamsModalOpen,
-    onClose: onGripParamsModalClose
+    onClose: onGripParamsModalClose,
   } = useDisclosure();
 
   const {
     isOpen: isMoveModalOpen,
     onOpen: onMoveModalOpen,
-    onClose: onMoveModalClose
+    onClose: onMoveModalClose,
   } = useDisclosure();
-
 
   // General states
   const [isCommandInProgress, setIsCommandInProgress] = useState(false);
@@ -41,7 +40,7 @@ export const useTeachPendantState = () => {
   const [selectedGripParams, setSelectedGripParams] = useState<GripParams | null>(null);
   const [selectedPoint, setSelectedPoint] = useState<TeachPoint | null>(null);
   const [editingPoint, setEditingPoint] = useState<TeachPoint | null>(null);
-  const [selectedAction, setSelectedAction] = useState<'approach' | 'leave' | undefined>();
+  const [selectedAction, setSelectedAction] = useState<"approach" | "leave" | undefined>();
 
   // UI states
   const [activeTab, setActiveTab] = useState(0);
@@ -183,4 +182,4 @@ export const useTeachPendantState = () => {
     handleOpenGripParamsModal,
     toggleRow,
   };
-}; 
+};

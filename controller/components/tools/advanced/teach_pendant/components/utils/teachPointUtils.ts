@@ -8,14 +8,14 @@ export interface TeachPendantExport {
     motionProfiles: MotionProfile[];
     gripParams: GripParams[];
     sequences: Sequence[];
-  }
+  };
 }
 
 export const exportTeachPendantData = (
   teachPoints: TeachPoint[],
   motionProfiles: MotionProfile[],
   gripParams: GripParams[],
-  sequences: Sequence[]
+  sequences: Sequence[],
 ): TeachPendantExport => {
   return {
     version: "1.0",
@@ -25,7 +25,7 @@ export const exportTeachPendantData = (
       motionProfiles,
       gripParams,
       sequences,
-    }
+    },
   };
 };
 
@@ -46,7 +46,7 @@ export const validateImportedData = (data: any): data is TeachPendantExport => {
         typeof point.name === "string" &&
         typeof point.coordinate === "string" &&
         (point.type === "nest" || point.type === "location") &&
-        point.locType === "j"
+        point.locType === "j",
     ) &&
     // Validate motion profiles
     data.data.motionProfiles.every(
@@ -62,7 +62,7 @@ export const validateImportedData = (data: any): data is TeachPendantExport => {
         typeof profile.accel_ramp === "number" &&
         typeof profile.decel_ramp === "number" &&
         typeof profile.inrange === "number" &&
-        typeof profile.straight === "number"
+        typeof profile.straight === "number",
     ) &&
     // Validate grip params
     data.data.gripParams.every(
@@ -70,7 +70,7 @@ export const validateImportedData = (data: any): data is TeachPendantExport => {
         typeof params.name === "string" &&
         typeof params.width === "number" &&
         typeof params.speed === "number" &&
-        typeof params.force === "number"
+        typeof params.force === "number",
     ) &&
     // Validate sequences
     data.data.sequences.every(
@@ -78,10 +78,8 @@ export const validateImportedData = (data: any): data is TeachPendantExport => {
         typeof sequence.name === "string" &&
         Array.isArray(sequence.commands) &&
         sequence.commands.every(
-          (cmd: any) =>
-            typeof cmd.command === "string" &&
-            typeof cmd.params === "object"
-        )
+          (cmd: any) => typeof cmd.command === "string" && typeof cmd.params === "object",
+        ),
     )
   );
 };

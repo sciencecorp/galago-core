@@ -305,9 +305,7 @@ const commandFields: CommandFields = {
     toggle_light: [],
   },
   pf400: {
-    run_sequence: [
-      { name: "sequence_name", type: "text" },
-    ],
+    run_sequence: [{ name: "sequence_name", type: "text" }],
     move: move,
     grasp_plate: grasp_plate,
     release_plate: release_plate,
