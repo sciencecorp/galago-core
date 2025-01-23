@@ -38,9 +38,8 @@ import { TeachPointModal } from "./components/modals/TeachPointModal";
 import { useTeachPendantQueries } from "./hooks/useTeachPendantQueries";
 import { useTeachPendantUI } from "./hooks/useTeachPendantUI";
 import { useTeachPendantData } from "./hooks/useTeachPendantData";
-import { useTeachPendantSettings } from "./hooks/useTeachPendantSettings";
 import { useCommandHandlers } from "./utils/commandHandlers";
-import { ToolConfig, ToolType } from "gen-interfaces/controller";
+import { ToolType } from "gen-interfaces/controller";
 import { useSequenceHandler } from "./components/hooks/useSequenceHandler";
 
 interface TeachPendantProps {
@@ -90,16 +89,11 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     jogDistance,
     setJogDistance,
     openTeachPointModal,
-    openMotionProfileModal,
-    openGripParamsModal,
     selectedMotionProfile,
     setSelectedMotionProfile,
     selectedGripParams,
     setSelectedGripParams,
     selectedTeachPoint,
-    setSelectedTeachPoint,
-    selectedSequence,
-    setSelectedSequence,
     motionProfileModal,
     gripParamsModal,
     teachPointModal,
@@ -112,16 +106,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     setMotionProfiles,
     gripParams,
     setGripParams,
-    nests,
     setNests,
-    updateTeachPoint,
-    deleteTeachPoint,
-    addMotionProfile,
-    updateMotionProfile,
-    deleteMotionProfile,
-    addGripParams,
-    updateGripParams,
-    deleteGripParams,
   } = useTeachPendantData();
 
   const {
@@ -130,7 +115,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     handleUpdateSequence,
     handleDeleteSequence,
     handleRunSequence,
-    handleEditSequence,
     handleNewSequence,
     isOpen: isSequenceModalOpen,
     onClose: onSequenceModalClose,
