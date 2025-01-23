@@ -28,7 +28,6 @@ export function validateJointCount(coordinate: string, expectedJoints: number): 
   // Only slice if first value is 0 or 1
   const firstValue = parseFloat(values[0]);
   const jointValues = (firstValue === 0 || firstValue === 1) ? values.slice(1) : values;
-  console.log("JOINT VALUES", jointValues);
   return jointValues.length === expectedJoints;
 }
 

@@ -172,7 +172,6 @@ export const toolRouter = router({
     }))
     .query(async ({ input }) => {
       try {
-        console.log('Fetching waypoints for tool:', input.toolId);
         const response = await fetch(
           `http://localhost:8000/robot-arm-waypoints?tool_id=${input.toolId}`
         );
@@ -182,7 +181,6 @@ export const toolRouter = router({
         }
         
         const data = await response.json();
-        console.log('Received waypoints from API:', data);
         
         const result = {
           locations: data.locations || [],
@@ -193,7 +191,6 @@ export const toolRouter = router({
           labware: data.labware || []
         };
         
-        console.log('Returning waypoints:', result);
         return result;
       } catch (error) {
         console.error('Error fetching waypoints:', error);

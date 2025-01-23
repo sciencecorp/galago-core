@@ -81,19 +81,10 @@ export function ToolConfigEditor({
   const [configString, setConfigString] = useState(JSON.stringify(config, null, 2));
 
   const saveConfig = useCallback(() => {
-    console.log('Saving tool config:', {
-      toolId,
-      toolType,
-      isSimulated,
-      configString
-    });
-    
     const config = {
       simulated: isSimulated,
       [toolType]: JSON.parse(configString)
-    };
-    console.log('Sending configuration:', config);
-    
+    };    
     configureMutation.mutate({
       toolId: toolId,
       config: config,

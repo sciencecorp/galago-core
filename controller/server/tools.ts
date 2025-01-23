@@ -86,11 +86,9 @@ export default class Tool {
     // Handle PF400 specific configuration
     if (this.type === ToolType.pf400) {
       try {
-        console.log(`[PF400] Starting configuration for ${this.info.name} with config:`, JSON.stringify(config, null, 2));
         
         // If in simulation mode, just send basic config
         if (config.simulated) {
-          console.log('[PF400] Configuring in simulation mode...');
           const pf400Config = {
             host: String(config.pf400?.host || ""),
             port: Number(config.pf400?.port || 0),
@@ -98,14 +96,12 @@ export default class Tool {
             tool_id: this.info.name
           };
 
-          console.log('[PF400] Simulation config:', JSON.stringify(pf400Config, null, 2));
 
           const reply = await this.grpc.configure({
             ...config,
             pf400: pf400Config
           });
 
-          console.log('[PF400] Simulation configure response:', JSON.stringify(reply, null, 2));
 
           if (reply.response !== tool_base.ResponseCode.SUCCESS) {
             console.error('[PF400] Simulation configure failed:', reply.error_message);
@@ -120,21 +116,16 @@ export default class Tool {
 
         // Not in simulation mode, proceed with full configuration
         const toolName = this.info.name;
-        console.log('[PF400] Fetching tool info for:', toolName);
-        
         let waypointsResponse;
         try {
           // First get the tool's numeric ID from the database
           const toolInfo = await get<any>(`/tools/${toolName}`);
-          console.log('[PF400] Tool info:', toolInfo);
           
           if (!toolInfo || !toolInfo.id) {
             throw new Error(`Could not find tool with name ${toolName}`);
           }
 
-          console.log('[PF400] Fetching waypoints for tool ID:', toolInfo.id);
           waypointsResponse = await get<any>(`/robot-arm-waypoints?tool_id=${toolInfo.id}`);
-          console.log('[PF400] Waypoints API response:', JSON.stringify(waypointsResponse, null, 2));
         } catch (apiError: any) {
           console.error('[PF400] Failed to fetch waypoints from API:', apiError);
           console.error('[PF400] API error details:', {
@@ -156,7 +147,6 @@ export default class Tool {
 
         // Add motion profiles
         if (waypointsResponse.motion_profiles?.length) {
-          console.log('[PF400] Adding motion profiles:', waypointsResponse.motion_profiles.length);
           for (const profile of waypointsResponse.motion_profiles) {
             waypoints.push({
               motion_profile: {
@@ -177,7 +167,6 @@ export default class Tool {
 
         // Add grip parameters
         if (waypointsResponse.grip_params?.length) {
-          console.log('[PF400] Adding grip parameters:', waypointsResponse.grip_params.length);
           for (const param of waypointsResponse.grip_params) {
             waypoints.push({
               grip_param: {
@@ -192,7 +181,6 @@ export default class Tool {
 
         // Add locations
         if (waypointsResponse.locations?.length) {
-          console.log('[PF400] Adding locations:', waypointsResponse.locations.length);
           for (const loc of waypointsResponse.locations) {
             const location = `${loc.j1} ${loc.j2} ${loc.j3} ${loc.j4} ${loc.j5} ${loc.j6}`;
             waypoints.push({
@@ -213,7 +201,6 @@ export default class Tool {
 
         // Add nests
         if (waypointsResponse.nests?.length) {
-          console.log('[PF400] Adding nests:', waypointsResponse.nests.length);
           for (const nest of waypointsResponse.nests) {
             const location = `${nest.j1} ${nest.j2} ${nest.j3} ${nest.j4} ${nest.j5} ${nest.j6}`;
             waypoints.push({
@@ -234,7 +221,6 @@ export default class Tool {
 
         // Add labware
         if (waypointsResponse.labware?.length) {
-          console.log('[PF400] Adding labware:', waypointsResponse.labware.length);
           for (const item of waypointsResponse.labware) {
             waypoints.push({
               labware: {
@@ -247,7 +233,6 @@ export default class Tool {
 
         // Add sequences
         if (waypointsResponse.sequences?.length) {
-          console.log('Adding sequences to waypoints:', waypointsResponse.sequences.length);
           for (const sequence of waypointsResponse.sequences) {
             waypoints.push({
               sequence: {
@@ -390,14 +375,12 @@ export default class Tool {
           tool_id: this.info.name
         };
 
-        console.log('[PF400] Sending basic configuration');
 
         const configReply = await this.grpc.configure({
           ...config,
           pf400: pf400Config
         });
 
-        console.log('[PF400] Configure response:', JSON.stringify(configReply, null, 2));
 
         if (configReply.response !== tool_base.ResponseCode.SUCCESS) {
           console.error('[PF400] Configure failed:', configReply.error_message);
@@ -408,7 +391,6 @@ export default class Tool {
         }
 
         // Now load waypoints
-        console.log('[PF400] Loading waypoints:', waypoints.length);
         
         const loadWaypointsCommand = {
           load_waypoints: {
@@ -416,12 +398,10 @@ export default class Tool {
           }
         };
 
-        console.log('[PF400] Loading waypoints:', waypoints.length);
         const loadReply = await this.grpc.executeCommand({
           pf400: loadWaypointsCommand
         });
 
-        console.log('[PF400] Load waypoints response:', JSON.stringify(loadReply, null, 2));
 
         if (loadReply.response !== tool_base.ResponseCode.SUCCESS) {
           console.error('[PF400] Load waypoints failed:', loadReply.error_message);
@@ -627,7 +607,6 @@ export default class Tool {
       return; // Only PF400 tools have waypoints
     }
 
-    console.log('[Tool] Reloading waypoints for tool:', this.info.name);
     try {
       // First get the tool's numeric ID from the database
       const toolInfo = await get<any>(`/tools/${this.info.name}`);
@@ -807,7 +786,6 @@ export default class Tool {
         throw new Error(loadReply.error_message ?? "Load waypoints failed");
       }
 
-      console.log('[Tool] Successfully reloaded waypoints');
     } catch (error) {
       console.error('[Tool] Error reloading waypoints:', error);
       throw error;
