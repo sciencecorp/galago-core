@@ -690,9 +690,26 @@ export default function Page() {
           )}
 
           {/* Right Side */}
-          {config?.type === ToolType.pf400 && (
+          {config?.type === ToolType.pf400 && config && (
             <Box flex={1}>
-              <TeachPendant toolId={id || ""} config={config} />
+              <TeachPendant
+                toolId={id || ""}
+                config={{
+                  id: parseInt(id || "0"),
+                  type: config.type,
+                  joints: 6,
+                  workcell_id: 0,
+                  status: "UNKNOWN",
+                  last_updated: new Date(),
+                  created_at: new Date(),
+                  name: config.name,
+                  ip: config.ip,
+                  port: config.port,
+                  description: config.description,
+                  image_url: config.image_url,
+                  config: config.config || { simulated: false },
+                }}
+              />
             </Box>
           )}
         </HStack>
