@@ -141,30 +141,35 @@ export const CommandList: React.FC<CommandListProps> = ({
         setIsEditing(false);
     };
 
-    const getDisplayValue = (key: string, value: any): string => {
-        // Handle waypoint names
-        if (key === 'waypoint') {
-            return value; // Value is already the waypoint name
-        }
-
-        switch (key) {
-            case 'nest_id':
-                const nest = teachPoints.find(p => p.type === 'nest' && p.id === Number(value));
-                return nest ? nest.name : value;
-            case 'waypoint_id':
-            case 'location_id':
-                const point = teachPoints.find(p => p.id === Number(value));
-                return point ? point.name : value;
-            case 'motion_profile_id':
-            case 'profile_id':
-                const profile = motionProfiles.find(p => p.id === Number(value));
-                return profile ? profile.name : value;
-            case 'grip_params_id':
-                const params = gripParams.find(p => p.id === Number(value));
-                return params ? params.name : value;
+    const getDisplayValue = (command: SequenceCommand) => {
+        let displayValue = "";
+        
+        switch (command.command) {
+            case "move":
+                if (command.params.waypoint_id) {
+                    const point = teachPoints.find(p => p.id === command.params.waypoint_id);
+                    displayValue = point ? point.name : `Unknown (${command.params.waypoint_id})`;
+                } else if (command.params.waypoint) {
+                    displayValue = command.params.waypoint;
+                }
+                break;
+            case "approach":
+                if (command.params.nest_id) {
+                    const point = teachPoints.find(p => p.id === command.params.nest_id);
+                    displayValue = point ? point.name : `Unknown (${command.params.nest_id})`;
+                }
+                break;
+            case "leave":
+                if (command.params.nest_id) {
+                    const point = teachPoints.find(p => p.id === command.params.nest_id);
+                    displayValue = point ? point.name : `Unknown (${command.params.nest_id})`;
+                }
+                break;
             default:
-                return String(value);
+                displayValue = command.command;
         }
+        
+        return displayValue;
     };
 
     const formatParamKey = (key: string): string => {
@@ -273,40 +278,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                                                         {command.command}
                                                     </Text>
                                                     <Text color="gray.500" fontSize="sm">
-                                                        {(() => {
-                                                            console.log('Command:', command.command);
-                                                            console.log('Command params:', command.params);
-                                                            console.log('TeachPoints:', teachPoints);
-                                                            
-                                                            if (command.command === "move") {
-                                                                if (command.params.waypoint_id) {
-                                                                    const displayValue = getDisplayValue('waypoint_id', command.params.waypoint_id);
-                                                                    console.log('Move command waypoint_id:', command.params.waypoint_id);
-                                                                    console.log('Display value:', displayValue);
-                                                                    return `: ${displayValue}`;
-                                                                }
-                                                                if (command.params.waypoint) {
-                                                                    const displayValue = getDisplayValue('waypoint', command.params.waypoint);
-                                                                    console.log('Move command waypoint:', command.params.waypoint);
-                                                                    console.log('Display value:', displayValue);
-                                                                    return `: ${displayValue}`;
-                                                                }
-                                                                return '';
-                                                            }
-                                                            if (command.command === "approach" && command.params.nest_id) {
-                                                                const displayValue = getDisplayValue('nest_id', command.params.nest_id);
-                                                                console.log('Approach command nest_id:', command.params.nest_id);
-                                                                console.log('Display value:', displayValue);
-                                                                return `: ${displayValue}`;
-                                                            }
-                                                            if (command.command === "leave" && command.params.nest_id) {
-                                                                const displayValue = getDisplayValue('nest_id', command.params.nest_id);
-                                                                console.log('Leave command nest_id:', command.params.nest_id);
-                                                                console.log('Display value:', displayValue);
-                                                                return `: ${displayValue}`;
-                                                            }
-                                                            return '';
-                                                        })()}
+                                                        {getDisplayValue(command)}
                                                     </Text>
                                                 </HStack>
                                                 <HStack spacing={1}>
@@ -427,7 +399,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                                                                     </Box>
                                                                 ) : (
                                                                     <Text fontSize="sm" fontWeight="medium">
-                                                                        {getDisplayValue(key, value)}
+                                                                        {getDisplayValue(command)}
                                                                     </Text>
                                                                 )
                                                             )}

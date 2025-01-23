@@ -4,10 +4,10 @@ export interface JointConfig {
   [key: string]: number | undefined;
 }
 
-export function jointsToCoordinate(joints: JointConfig, numJoints: number): string {
-  const jointValues = Array.from({ length: numJoints }, (_, i) => joints[`j${i + 1}`] ?? 0);
+export const jointsToCoordinate = (joints: JointConfig, numJoints: number): string => {
+  const jointValues = Array.from({ length: numJoints }, (_, i) => joints[`j${i + 1}`] || 0);
   return jointValues.join(" ");
-}
+};
 
 export function coordinateToJoints(coordinate: string, numJoints: number): JointConfig {
   const values = coordinate.split(" ").map(Number);

@@ -566,7 +566,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                       motionProfileModal.onOpen();
                     }}
                     onRegister={(profile: MotionProfile) => {
-                      console.log("Registering motion profile with ID:", profile.profile_id);
                       commandHandlers.handleRegisterMotionProfile(robotArmCommandMutation, {
                         id: profile.profile_id,
                         speed: profile.speed,
@@ -695,8 +694,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         onClose={teachPointModal.onClose}
         point={selectedTeachPoint || undefined}
         onSave={async (point: TeachPoint) => {
-          console.log('Saving point with data:', point);
-          
           // Parse coordinates from the string
           const coords = point.coordinate.split(" ").map(Number);
           const numJoints = (config.config as any)?.pf400?.joints || 6;
@@ -714,8 +711,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
             tool_id: config.id,
             ...(selectedTeachPoint?.id ? { id: selectedTeachPoint.id } : {})
           };
-          
-          console.log('Saving location:', location);
           
           if (selectedTeachPoint) {
             await updateLocationMutation.mutateAsync(location);

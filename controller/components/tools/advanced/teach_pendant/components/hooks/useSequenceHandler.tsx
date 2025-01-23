@@ -269,29 +269,15 @@ export function useSequenceHandler(config: Tool) {
     }
   };
 
-  const handleRunSequence = async (sequence: RobotArmSequence) => {
-    console.log("Running sequence", sequence);
-    console.log("Sequence name", sequence.name);
-    console.log("Sequence commands", sequence.commands);
-    console.log("Sequence tool id", config.name);
-    console.log("Sequence tool type", config.type);
-    const command: ToolCommandInfo = {
-      toolId: config.name,
-      toolType: config.type as ToolType,
-      command: "run_sequence",
-      params: {
-        sequence_name: sequence.name,
-      },
-    };
-
+  const handleRunSequence = async (sequence: Sequence) => {
     try {
-      await commandMutation.mutateAsync(command);
-      toast({
-        title: "Success",
-        description: "Sequence executed successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
+      await commandMutation.mutateAsync({
+        toolId: config.name,
+        toolType: config.type as ToolType,
+        command: "run_sequence",
+        params: {
+          sequence_id: sequence.id,
+        }
       });
     } catch (error) {
       toast({
