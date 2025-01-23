@@ -1,4 +1,4 @@
-import { VStack, Card, CardHeader, CardBody, Button, HStack, Select, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper } from "@chakra-ui/react";
+import { VStack, Card, CardHeader, CardBody, Button, HStack, Select, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Box, Heading } from "@chakra-ui/react";
 import { GripParams } from "../types";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 
@@ -15,10 +15,13 @@ interface ControlPanelProps {
   setJogDistance: (distance: number) => void;
   onJog: () => void;
   setJogEnabled: (enabled: boolean) => void;
-  toolState: ToolStatus | undefined;
+  toolState?: string;
   gripParams: GripParams[];
   selectedGripParamsId: number | null;
   onGripParamsChange: (id: number | null) => void;
+  isFreeLoading?: boolean;
+  isUnfreeLoading?: boolean;
+  isUnwindLoading?: boolean;
 }
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
@@ -38,18 +41,20 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   gripParams,
   selectedGripParamsId,
   onGripParamsChange,
+  isFreeLoading = false,
+  isUnfreeLoading = false,
+  isUnwindLoading = false,
 }) => {
   const isEnabled = toolState === ToolStatus.SIMULATED || toolState === ToolStatus.READY;
-
   return (
     <VStack spacing={4} width="100%" height="100%">
       <Card width="100%">
         <CardHeader>Robot Control</CardHeader>
         <CardBody>
           <HStack width="100%" spacing={2}>
-            <Button onClick={onFree} colorScheme="green" size="md" isDisabled={!isEnabled}>Free</Button>
-            <Button onClick={onUnfree} colorScheme="red" size="md" isDisabled={!isEnabled}>Unfree</Button>
-            <Button onClick={onUnwind} colorScheme="purple" size="md" isDisabled={!isEnabled}>Unwind</Button>
+            <Button onClick={onFree} colorScheme="green" size="md" isLoading={isFreeLoading} isDisabled={!isEnabled}>Free</Button>
+            <Button onClick={onUnfree} colorScheme="red" size="md" isLoading={isUnfreeLoading} isDisabled={!isEnabled}>Unfree</Button>
+            <Button onClick={onUnwind} colorScheme="purple" size="md" isLoading={isUnwindLoading} isDisabled={!isEnabled}>Unwind</Button>
           </HStack>
         </CardBody>
       </Card>

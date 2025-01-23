@@ -15,7 +15,6 @@ import {
   Heading,
   NumberInput,
   NumberInputField,
-  useOutsideClick,
   Menu,
   MenuButton,
   MenuList,
@@ -79,15 +78,6 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const [editingPoint, setEditingPoint] = useState<EditablePoint | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
-  
-  useOutsideClick({
-    ref: tableRef,
-    handler: () => {
-      if (editingPoint) {
-        setEditingPoint(null);
-      }
-    },
-  });
   
   const {
     currentPage,

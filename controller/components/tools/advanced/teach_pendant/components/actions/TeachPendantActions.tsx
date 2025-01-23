@@ -3,6 +3,8 @@ import { DownloadIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import { FiUpload } from "react-icons/fi";
 import { useRef } from "react";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "../types";
+import { FaLocationArrow } from "react-icons/fa";
+import { VStack } from "@chakra-ui/react";
 
 interface TeachPendantActionsProps {
   teachPoints: TeachPoint[];
@@ -11,6 +13,12 @@ interface TeachPendantActionsProps {
   sequences: Sequence[];
   onImport: (data: any) => Promise<void>;
   toolId: number;
+  onTeach?: () => void;
+  onMove?: (point: TeachPoint, action?: 'approach' | 'leave') => void;
+  onUnwind?: () => void;
+  onGripperOpen?: () => void;
+  onGripperClose?: () => void;
+  jogEnabled?: boolean;
 }
 
 export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
@@ -19,7 +27,13 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
   gripParams,
   sequences,
   onImport,
-  toolId
+  toolId,
+  onTeach,
+  onMove,
+  onUnwind,
+  onGripperOpen,
+  onGripperClose,
+  jogEnabled
 }) => {
   const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -124,6 +138,18 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+  };
+
+  const handleTeach = () => {
+    onTeach?.();
+    toast({
+      title: "Position Taught",
+      description: "Current position has been saved",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+      position: "top",
+    });
   };
 
   return (

@@ -48,6 +48,12 @@ interface TeachPendantProps {
   config: Tool;
 }
 
+const DEFAULT_GRIP_VALUES = {
+  width: 90,
+  speed: 120,
+  force: 100,
+};
+
 export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
   const bgColor = useColorModeValue("white", "gray.800");
   const bgColorAlpha = useColorModeValue("blackAlpha.50", "whiteAlpha.50");
@@ -181,8 +187,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
 
       if (response?.meta_data?.location) {
         const coordinates = response.meta_data.location.split(" ").slice(1);
-        const numJoints = (config.config as any)?.pf400?.joints || 6; // Default to 6 if not specified
-        console.log("numJoints", numJoints);
+        const numJoints = (config.config as any)?.pf400?.joints || 6;
         if (!validateJointCount(response.meta_data.location, parseInt(numJoints.toString()))) {
           toast({
             title: "Joint Count Mismatch",
@@ -208,6 +213,16 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         });
 
         robotArmLocationsQuery.refetch();
+
+        // Add success toast
+        toast({
+          title: "Point Updated",
+          description: `Successfully taught new position to point "${point.name}"`,
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "top",
+        });
       } else {
         throw new Error("No location data received from robot");
       }
@@ -339,6 +354,21 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     }
   };
 
+  // Load default profile ID from localStorage
+  useEffect(() => {
+    const savedProfileId = localStorage.getItem('defaultProfileId');
+    if (savedProfileId) {
+      setDefaultProfileId(parseInt(savedProfileId));
+    }
+  }, []);
+
+  // Save default profile ID to localStorage when it changes
+  useEffect(() => {
+    if (defaultProfileId !== null) {
+      localStorage.setItem('defaultProfileId', defaultProfileId.toString());
+    }
+  }, [defaultProfileId]);
+
   return (
     <Card 
       borderWidth="1px" 
@@ -361,18 +391,39 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
             <ControlPanel
               onFree={() => commandHandlers.handleSimpleCommand(robotArmCommandMutation, "free")}
               onUnfree={() => commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unfree")}
-              onUnwind={() => commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")}
+              onUnwind={() => {
+                const unwindPoint = teachPoints.find(point => point.name.toLowerCase() === "unwind");
+                if (unwindPoint) {
+                  handleMove(unwindPoint);
+                } else {
+                  toast({
+                    title: "No Unwind Position",
+                    description: "Please create a teach point named 'unwind' first.",
+                    status: "warning",
+                    duration: 3000,
+                    isClosable: true,
+                  });
+                }
+              }}
               onGripperOpen={() => {
                 const selectedParams = gripParams.find(p => p.id === defaultParamsId);
-                if (selectedParams) {
-                  commandHandlers.handleGripperCommand(robotArmCommandMutation, "open", selectedParams);
-                }
+                const params = selectedParams || {
+                  ...DEFAULT_GRIP_VALUES,
+                  id: 0,
+                  name: "Default",
+                  tool_id: config.id,
+                };
+                commandHandlers.handleGripperCommand(robotArmCommandMutation, "open", params);
               }}
               onGripperClose={() => {
                 const selectedParams = gripParams.find(p => p.id === defaultParamsId);
-                if (selectedParams) {
-                  commandHandlers.handleGripperCommand(robotArmCommandMutation, "close", selectedParams);
-                }
+                const params = selectedParams || {
+                  ...DEFAULT_GRIP_VALUES,
+                  id: 0,
+                  name: "Default",
+                  tool_id: config.id,
+                };
+                commandHandlers.handleGripperCommand(robotArmCommandMutation, "close", params);
               }}
               jogEnabled={jogEnabled}
               jogAxis={jogAxis}
@@ -385,6 +436,9 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
               gripParams={gripParams}
               selectedGripParamsId={defaultParamsId}
               onGripParamsChange={setDefaultParamsId}
+              isFreeLoading={robotArmCommandMutation.variables?.command === "free" && robotArmCommandMutation.isLoading}
+              isUnfreeLoading={robotArmCommandMutation.variables?.command === "unfree" && robotArmCommandMutation.isLoading}
+              isUnwindLoading={robotArmCommandMutation.variables?.command === "unwind" && robotArmCommandMutation.isLoading}
             />
           </VStack>
 
@@ -399,6 +453,12 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 sequences={sequences || []}
                 onImport={handleImport}
                 toolId={config.id}
+                onTeach={() => handleTeach(selectedTeachPoint!)}
+                onMove={handleMove}
+                onUnwind={() => commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")}
+                onGripperOpen={() => commandHandlers.handleGripperCommand(robotArmCommandMutation, "open", selectedGripParams!)}
+                onGripperClose={() => commandHandlers.handleGripperCommand(robotArmCommandMutation, "close", selectedGripParams!)}
+                jogEnabled={jogEnabled}
               />
             </HStack>
             <InputGroup>
