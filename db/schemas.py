@@ -1,8 +1,6 @@
 import typing as t
 from pydantic import BaseModel, model_validator, conint
 import datetime
-from sqlalchemy.orm import Session
-from sqlalchemy import select
 from typing import Optional, List, Dict, Any
 
 class TimestampMixin(BaseModel):

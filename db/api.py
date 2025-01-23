@@ -9,12 +9,9 @@ import models.inventory_models as models
 import schemas as schemas
 from models.db_session import SessionLocal,LogsSessionLocal, Base, LogBase
 import logging 
-from typing import Optional, Dict, Any, List, Union
+from typing import Optional, Dict, Any, List
 import uvicorn
 from contextlib import asynccontextmanager
-import json
-import xml.etree.ElementTree as ET
-from xml.etree.ElementTree import ParseError
 from waypoint_handler import handle_waypoint_upload
 from pydantic import BaseModel
 
@@ -864,7 +861,9 @@ def get_robot_arm_waypoints(
     locations = crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": tool_id})
     nests = crud.robot_arm_nest.get_all_by(db, obj_in={"tool_id": tool_id})
     sequences = crud.robot_arm_sequence.get_all_by(db, obj_in={"tool_id": tool_id})
-    motion_profiles = crud.robot_arm_motion_profile.get_all_by(db, obj_in={"tool_id": tool_id})
+    motion_profiles = crud.robot_arm_motion_profile.get_all_by(
+        db, obj_in={"tool_id": tool_id}
+    )
     grip_params = crud.robot_arm_grip_params.get_all_by(db, obj_in={"tool_id": tool_id})
     labware = crud.labware.get_all(db)
     return {

@@ -4,7 +4,7 @@ from xml.etree.ElementTree import ParseError
 from fastapi import HTTPException, UploadFile
 from sqlalchemy.orm import Session
 import crud
-from models.inventory_models import RobotArmLocation, RobotArmSequence, RobotArmMotionProfile, RobotArmGripParams
+from models.inventory_models import RobotArmLocation
 import schemas
 from pydantic import BaseModel
 from typing import Dict, List, Optional
@@ -113,7 +113,9 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                             sequence_counter += 1
                         commands = []
                         for cmd in seq.findall(".//RobotCommand"):
-                            cmd_type = cmd.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                            cmd_type = cmd.get(
+                                '{http://www.w3.org/2001/XMLSchema-instance}type'
+                            )
                             if cmd_type == "MoveCommand":
                                 loc_name = cmd.get('LocationName', '')
                                 if loc_name:
@@ -169,18 +171,20 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                             'name': name,
                             'profile_id': profile_counter,  # Auto-increment profile_id
                             'speed': float(p.get('Velocity', 100)),
-                            'speed2': float(p.get('Velocity', 100)),  # Use same as velocity
+                            'speed2': float(p.get('Velocity', 100)),  
                             'acceleration': float(p.get('Acceleration', 100)),
                             'deceleration': float(p.get('Deceleration', 100)),
                             'accel_ramp': float(p.get('AccelerationRamp', 0.2)),
                             'decel_ramp': float(p.get('DecelerationRamp', 0.2)),
                             'inrange': int(p.get('InRange', 1)),
-                            'straight': 1 if p.get('Straight', '').lower() == 'true' else 0,
+                            'straight': 1 if p.get('Straight', 
+                                                   '').lower() == 'true' else 0,
                             'tool_id': tool_id
                         })
 
             except ParseError as e:
-                raise HTTPException(status_code=400, detail=f"Invalid XML format: {str(e)}")
+                raise HTTPException(status_code=400, 
+                                    detail=f"Invalid XML format: {str(e)}")
         elif file_ext == 'json':
             try:
                 data = json.loads(content.decode())
@@ -217,16 +221,19 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                     grip_params_list = []
                     param_counter = 1
                     for grip_type, params in data['grip_params'].items():
-                        params['name'] = params.get('name', f"GripParams_{param_counter}")
+                        params['name'] = params.get('name', 
+                                                    f"GripParams_{param_counter}")
                         params['tool_id'] = tool_id
                         grip_params_list.append(params)
                         param_counter += 1
                     data['grip_params'] = grip_params_list
 
             except json.JSONDecodeError as e:
-                raise HTTPException(status_code=400, detail=f"Invalid JSON format: {str(e)}")
+                raise HTTPException(status_code=400, 
+                                    detail=f"Invalid JSON format: {str(e)}")
         else:
-            raise HTTPException(status_code=400, detail="Unsupported file format. Please upload XML or JSON file.")
+            raise HTTPException(status_code=400, 
+                detail="Unsupported file format. Please upload XML or JSON file.")
 
         # Validate data against schema
         waypoint_data = WaypointData(**data)
@@ -247,11 +254,12 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
             if waypoint_data.teach_points:
                 for point in waypoint_data.teach_points:
                     # Get unique name for the location
-                    unique_name = get_unique_name(db, point.name, RobotArmLocation, tool_id)
+                    unique_name = get_unique_name(db, point.name, 
+                                        RobotArmLocation, tool_id)
                     
                     # Parse coordinates
                     coords = point.coordinate.split()
-                    coords.extend(['0'] * (6 - len(coords)))  # Ensure we have 6 values
+                    coords.extend(['0'] * (6 - len(coords)))  
                     
                     location = crud.robot_arm_location.create(
                         db,

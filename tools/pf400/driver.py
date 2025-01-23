@@ -289,8 +289,8 @@ class Pf400Driver(ABCToolDriver):
             if self.tcp_ip:
                 try:
                     self.tcp_ip.close()
-                except:
-                    pass
+                except Exception as close_error:
+                    logging.warning(f"Error while closing connection during cleanup: {close_error}")
                 self.tcp_ip = None
             raise
 

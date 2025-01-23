@@ -4,8 +4,6 @@ from sqlalchemy.orm import relationship
 from .db_session import Base
 from sqlalchemy.ext.declarative import declared_attr
 import datetime
-from pydantic import BaseModel
-from typing import List
 
 class TimestampMixin:
     @declared_attr
@@ -230,7 +228,8 @@ class RobotArmMotionProfile(Base, TimestampMixin):
 
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
-        CheckConstraint("profile_id >= 1 AND profile_id <= 14", name="check_profile_id_range"),
+        CheckConstraint("profile_id >= 1 AND profile_id <= 14", 
+                        name="check_profile_id_range"),
     )
 
 class RobotArmGripParams(Base, TimestampMixin):

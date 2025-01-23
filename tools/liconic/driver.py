@@ -298,19 +298,6 @@ class LiconicStxDriver(ABCToolDriver):
         self.serial_comm.write("RD 1812")
         self._expect_response(expected)
 
-    # CO2 Control Methods
-    def get_co2_set_point(self) -> str:
-        self.serial_comm.write("RD DM894")
-        return self.serial_comm.read()
-
-    def set_co2_set_point(self, level: float) -> None:
-        self.serial_comm.write(f"WR DM894 {str(int(level * 100)).zfill(5)}")
-        self._expect_response("OK")
-
-    def get_co2_cur_level(self) -> str:
-        self.serial_comm.write("RD DM984")
-        return self.serial_comm.read()
-
     def start_monitor(self) -> None:
         self.co2_monitor.start_monitoring()
 
@@ -350,11 +337,6 @@ class LiconicStxDriver(ABCToolDriver):
         self.write("RD DM984")
         return self.read()
 
-    def start_monitor(self) -> None:
-        self.monitor_thread = threading.Thread(target=self.monitor_co2_level)
-        self.monitor_thread.daemon = True
-        self.monitor_thread.start()
-        return None
 
     def write_co2_log(self, value:str) -> None:
 

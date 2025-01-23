@@ -1,11 +1,4 @@
 from tools.base_server import ToolServer, serve
-from tools.pf400.waypoints_models import (
-    Waypoints,
-    Location,
-    Nest,
-    Coordinate,
-    MotionProfile,
-)
 from tools.grpc_interfaces.pf400_pb2 import Command, Config
 from .driver import Pf400Driver
 import argparse

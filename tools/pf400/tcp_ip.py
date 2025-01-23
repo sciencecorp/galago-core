@@ -35,8 +35,8 @@ class Pf400TcpIp:
             if self.conn:
                 try:
                     self.conn.close()
-                except:
-                    pass
+                except Exception as close_error:
+                    logging.warning(f"Error closing connection: {close_error}")
                 self.conn = None
             raise
 
@@ -99,10 +99,10 @@ class Pf400TcpIp:
         if self.conn:
             try:
                 self.write_and_read("attach 0")
-            except:
-                pass
+            except Exception as e:
+                logging.warning(f"Error detaching from PF400: {e}")
             try:
                 self.conn.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(f"Error closing connection: {e}")
             self.conn = None
