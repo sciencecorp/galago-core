@@ -375,6 +375,7 @@ export default function Page() {
   const [id, setId] = useState<string | null>(null);
 
   const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
+  const toolQuery = trpc.tool.get.useQuery(id || "");
   const config = infoQuery.data;
   const [commandExecutionStatus, setCommandExecutionStatus] = useState<CommandStatus>({});
   const [selectedCommand, setSelectedCommand] = useState<string | undefined>();
@@ -695,7 +696,7 @@ export default function Page() {
               <TeachPendant
                 toolId={id || ""}
                 config={{
-                  id: config.id || "1",
+                  id: toolQuery.data?.id || 1,
                   type: config.type,
                   joints: 6,
                   workcell_id: 0,
