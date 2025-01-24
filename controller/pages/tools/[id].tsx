@@ -695,7 +695,7 @@ export default function Page() {
               <TeachPendant
                 toolId={id || ""}
                 config={{
-                  id: parseInt(id || "0"),
+                  id: config.id || "1",
                   type: config.type,
                   joints: 6,
                   workcell_id: 0,
