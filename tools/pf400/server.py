@@ -20,6 +20,7 @@ class Pf400Server(ToolServer):
         self.motion_profile_map: dict[int, int] = {}  # Map DB ID to profile ID
         self.grip_params_map: dict[int, dict[str, int]] = {}  # Map DB ID to grip params
         self.labware_map: dict[int, str] = {}  # Map DB ID to labware name
+        self.nests: dict = {}  # Store nest definitions
 
     def _configure(self, request: Config) -> None:
         """Configure the PF400 server with the provided configuration."""
@@ -86,7 +87,6 @@ class Pf400Server(ToolServer):
     def UnFree(self, params: Command.UnFree) -> None:
         self.driver.unfree()
 
-
     def Move(self, params: Command.Move) -> None:
         """Execute a move command with the given coordinate and motion profile."""
         coordinate = params.waypoint
@@ -102,17 +102,41 @@ class Pf400Server(ToolServer):
             profile_id = 1
         self.driver.movej(coordinate, motion_profile=profile_id)
 
+    def movePath(self, path: list[str], motion_profile_id: int = 1) -> None:
+        """Move through a series of waypoints"""
+        for waypoint in path:
+            self.driver.movej(waypoint, motion_profile=motion_profile_id)
+
+    def moveTo(self, location: str, offset: tuple[float, float, float] = (0, 0, 0), motion_profile_id: int = 1) -> None:
+        """Move to a location with optional offset"""
+        coords = location.split()
+        adjusted_coords = [float(coords[i]) + offset[i] for i in range(3)]
+        adjusted_coords.extend([float(x) for x in coords[3:]])
+        adjusted_location = ' '.join(map(str, adjusted_coords))
+        self.driver.movej(adjusted_location, motion_profile=motion_profile_id)
+
+    def nestPath(self, nest_def: dict, offset: tuple[float, float, float] = (0, 0, 0)) -> list[str]:
+        """Get the path for a nest with optional offset"""
+        if 'path' not in nest_def:
+            return []
+        path = []
+        for waypoint in nest_def['path']:
+            coords = waypoint.split()
+            adjusted_coords = [float(coords[i]) + offset[i] for i in range(3)]
+            adjusted_coords.extend([float(x) for x in coords[3:]])
+            path.append(' '.join(map(str, adjusted_coords)))
+        return path
+
     def Approach(self, params: Command.Approach) -> None:
         nest_name = params.nest
-        if nest_name not in self.waypoints:
+        if nest_name not in self.nests:
             raise KeyError("Nest not found: " + nest_name)
         if not params.motion_profile_id:
             params.motion_profile_id = 1
-        nest_def = self.waypoints.nests[nest_name]
-        logging.info("Moving to nest %s at %s", nest_name, nest_def.loc)
+        nest_def = self.nests[nest_name]
+        logging.info("Moving to nest %s at %s", nest_name, nest_def['loc'])
         logging.info(type(params.ignore_safepath))
         logging.info("Ignore path is "+ str(params.ignore_safepath))
-        # It appears the monomer approach paths are actually reversed "leave" paths
 
         ignore_path = False
         if params.ignore_safepath == "true" or params.ignore_safepath == "True":
@@ -132,7 +156,7 @@ class Pf400Server(ToolServer):
             )
 
         self.moveTo(
-            nest_def.loc,
+            nest_def['loc'],
             offset=(
                 params.x_offset,
                 params.y_offset,
@@ -140,15 +164,15 @@ class Pf400Server(ToolServer):
             ),
             motion_profile_id=params.motion_profile_id,
         )
-    
+
     def Leave(self, params: Command.Leave) -> None:
         nest_name = params.nest
-        if nest_name not in self.waypoints.nests:
+        if nest_name not in self.nests:
             raise KeyError("Nest not found: " + nest_name)
         if not params.motion_profile_id:
             params.motion_profile_id = 1
-        nest_def = self.waypoints.nests[nest_name]
-        logging.info("Leaving nest %s at %s", nest_name, nest_def.loc)
+        nest_def = self.nests[nest_name]
+        logging.info("Leaving nest %s at %s", nest_name, nest_def['loc'])
         self.movePath(
             self.nestPath(
                 nest_def,
@@ -247,6 +271,7 @@ class Pf400Server(ToolServer):
             Command.Move(waypoint=adjusted_nest, motion_profile_id=profile_id),
             release,
         ])
+
     def Jog(self, params: Command.Jog) -> None:
         """Handle jog command from UI"""
         logging.info(f"Jogging {params.axis} by {params.distance}")
@@ -281,6 +306,7 @@ class Pf400Server(ToolServer):
             motion_profile_id=profile_id,
             grip_width=params.grip_width,
         )
+
     def Wait(self, params: Command.Wait) -> None:
         self.driver.wait(duration=params.duration)
 
@@ -392,6 +418,7 @@ class Pf400Server(ToolServer):
                 self.grip_params_map = {}
                 self.labware_map = {}
                 self.waypoints = {}
+                self.nests = {}
                 return
             
             logging.info(f"Processing {len(params.waypoints)} waypoint configurations")
@@ -420,35 +447,59 @@ class Pf400Server(ToolServer):
                 
                 elif waypoint_type == 'location':
                     location = waypoint_config.location
-                    self.waypoints[location.name] = location.location
+                    if location.name.startswith('nest_'):
+                        # Handle nest locations
+                        nest_name = location.name[5:]  # Remove 'nest_' prefix
+                        if nest_name not in self.nests:
+                            self.nests[nest_name] = {}
+                        self.nests[nest_name]['loc'] = location.location
+                        self.nests[nest_name].setdefault('path', [])
+                    else:
+                        # Handle regular locations
+                        self.waypoints[location.name] = location.location
                     logging.info(f"Added location {location.name}: {location.location}")
 
                 elif waypoint_type == 'sequence':
                     sequence = waypoint_config.sequence
-                    logging.info(f"Loading sequence: {sequence.name}")
-                    logging.info(f"Sequence commands type: {type(sequence.commands)}")
-                    logging.info(f"Sequence commands: {sequence.commands}")
-                    
-                    # Convert sequence commands to proper dictionary format
-                    formatted_commands = []
-                    for cmd in sequence.commands:
-                        cmd_type = cmd.WhichOneof('command')
-                        if cmd_type:
-                            cmd_params = getattr(cmd, cmd_type)
-                            formatted_cmd = {
-                                "command": cmd_type,
-                                "params": {
-                                    key: getattr(cmd_params, key)
-                                    for key in cmd_params.DESCRIPTOR.fields_by_name.keys()
+                    if sequence.name.startswith('nest_path_'):
+                        # Handle nest paths
+                        nest_name = sequence.name[10:]  # Remove 'nest_path_' prefix
+                        if nest_name not in self.nests:
+                            self.nests[nest_name] = {'loc': '', 'path': []}
+                        # Extract path waypoints from sequence
+                        path = []
+                        for cmd in sequence.commands:
+                            cmd_type = cmd.WhichOneof('command')
+                            if cmd_type == 'move':
+                                path.append(cmd.move.waypoint)
+                        self.nests[nest_name]['path'] = path
+                        logging.info(f"Added path for nest {nest_name}")
+                    else:
+                        # Handle regular sequences
+                        logging.info(f"Loading sequence: {sequence.name}")
+                        logging.info(f"Sequence commands type: {type(sequence.commands)}")
+                        logging.info(f"Sequence commands: {sequence.commands}")
+                        
+                        # Convert sequence commands to proper dictionary format
+                        formatted_commands = []
+                        for cmd in sequence.commands:
+                            cmd_type = cmd.WhichOneof('command')
+                            if cmd_type:
+                                cmd_params = getattr(cmd, cmd_type)
+                                formatted_cmd = {
+                                    "command": cmd_type,
+                                    "params": {
+                                        key: getattr(cmd_params, key)
+                                        for key in cmd_params.DESCRIPTOR.fields_by_name.keys()
+                                    }
                                 }
-                            }
-                            formatted_commands.append(formatted_cmd)
-                    
-                    self.waypoints[sequence.name] = formatted_commands
-                    logging.info(f"Added sequence {sequence.name} with {len(formatted_commands)} commands")
-                    logging.info(f"Stored sequence type: {type(self.waypoints[sequence.name])}")
-                    logging.info(f"Stored sequence: {self.waypoints[sequence.name]}")
-    
+                                formatted_commands.append(formatted_cmd)
+                        
+                        self.waypoints[sequence.name] = formatted_commands
+                        logging.info(f"Added sequence {sequence.name} with {len(formatted_commands)} commands")
+                        logging.info(f"Stored sequence type: {type(self.waypoints[sequence.name])}")
+                        logging.info(f"Stored sequence: {self.waypoints[sequence.name]}")
+
         except Exception as e:
             logging.error(f"Error loading waypoints and mappings: {str(e)}")
             raise

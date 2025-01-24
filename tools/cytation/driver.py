@@ -26,7 +26,7 @@ class CytationConfig:
 
 class CytationCommand:
     """Represents a command to be executed by the Cytation device"""
-    def __init__(self, command: str, params: dict[str, Any] = None):
+    def __init__(self, command: str, params: Optional[dict[str, Any]] = None):
         self.command = command
         self.params = params or {}
 
@@ -93,8 +93,8 @@ class CytationOutput:
     def _process_picture_export(self, xml_response: str, experiment_name: str) -> None:
         """Process and move picture export files to the correct location"""
         root = ET.fromstring(xml_response)
-        save_dir = root.findall("Folder")[0].text
-        image_name = root.findall("Image")[0].text
+        save_dir = root.findall("Folder")[0].text or ""  # Handle None case
+        image_name = root.findall("Image")[0].text or ""  # Handle None case
 
         if save_dir:
             new_dir = os.path.join(self.experiment_dir, experiment_name, image_name)
@@ -102,10 +102,11 @@ class CytationOutput:
 
             for file_element in root.findall("PictureFile"):
                 filename = file_element.text
-                shutil.move(
-                    os.path.join(save_dir, filename),
-                    os.path.join(new_dir, filename)
-                )
+                if filename:  # Handle None case
+                    shutil.move(
+                        os.path.join(save_dir, filename),
+                        os.path.join(new_dir, filename)
+                    )
 
     def save_export_builders(self, plate: Any, experiment_name: str) -> None:
         """Saves export builder outputs"""
@@ -210,16 +211,18 @@ class CytationDriver(ABCToolDriver):
             return self._handle_start_read(app, params, experiment_handler, output_handler)
         elif command == "open_carrier":
             app.CarrierOut()
+            return None
         elif command == "close_carrier":
             app.CarrierIn()
+            return None
         elif command == "test_reader_communication":
-            return app.TestReaderCommunication
+            return int(app.TestReaderCommunication)
 
         return None
 
     def _handle_start_read(self, app: Any, params: dict[str, Any],
                           experiment_handler: CytationExperiment,
-                          output_handler: CytationOutput) -> None:
+                          output_handler: CytationOutput) -> Optional[int]:
         """Handles the start_read command"""
         experiment, plate, experiment_name = experiment_handler.create_experiment(
             params["protocol_file"], params["experiment_name"]
@@ -234,6 +237,8 @@ class CytationDriver(ABCToolDriver):
         output_handler.save_export_builders(plate, experiment_name)
         # Uncomment if raw data moving is needed
         # output_handler.move_raw_data(plate, experiment_name)
+        
+        return 0  # Indicate successful completion
 
     def _monitor_read_progress(self, plate: Any) -> None:
         """Monitors the progress of a plate read"""
@@ -287,14 +292,14 @@ class CytationDriver(ABCToolDriver):
         if reader_state != 1:
             raise Exception(f"Expected reader state 1. Got {reader_state}")
 
-    def _test_reader_communication(self) -> Optional[Union[str, int]]:
+    def _test_reader_communication(self) -> Optional[int]:
         """Tests communication with the reader"""
         self.schedule_command("test_reader_communication")
-        return self.wait_for_command("test_reader_communication", timeout=8)
+        result = self.wait_for_command("test_reader_communication", timeout=8)
+        return int(result) if result is not None else None
 
-    def schedule_command(self, command: str, params: dict[str, Any] = None) -> None:
-        """Schedules a command for execution"""
-        logging.info(f"Scheduling command {command}, {params}")
+    def schedule_command(self, command: str, params: Optional[dict[str, Any]] = None) -> None:
+        """Schedule a command for execution"""
         with self._command_lock:
             self.command_queue.put({"command": command, "params": params or {}})
 
@@ -313,7 +318,12 @@ class CytationDriver(ABCToolDriver):
                     command_obj = self.command_response_queue.get()
                     if command_obj["command"] == command:
                         logging.info(f"Command {command} completed. Waited {seconds_spent_waiting}s")
-                        return command_obj["response"]
+                        response = command_obj["response"]
+                        if response is not None:
+                            if isinstance(response, (str, int)):
+                                return response
+                            return str(response)  # Convert any other type to string
+                        return None
                     logging.warning(f"Unexpected command {command_obj['command']} received")
 
             times += 1

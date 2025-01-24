@@ -62,7 +62,7 @@ class ToolBoxServer(ToolServer):
           return response
      
      def GetLiconicSensorData(self, params:Command.GetLiconicSensorData) -> ExecuteCommandReply:
-          s  = Struct()
+          s = Struct()
           response = ExecuteCommandReply()
           response.return_reply = True
           response.response = SUCCESS
@@ -77,13 +77,15 @@ class ToolBoxServer(ToolServer):
                logging.info("Error is "+str(exc))
                logging.exception(exc)
                response.response = ERROR_FROM_TOOL
-               response.meta_data.CopyFrom(str(exc))
+               error_struct = Struct()
+               error_struct.update({'error': str(exc)})
+               response.meta_data.CopyFrom(error_struct)
 
           return response
 
      
      def GetOT2ImagesByDate(self, params:Command.GetOT2ImagesByDate) -> ExecuteCommandReply:
-          s  = Struct()
+          s = Struct()
           response = ExecuteCommandReply()
           response.return_reply = True
           response.response = SUCCESS
@@ -99,7 +101,9 @@ class ToolBoxServer(ToolServer):
                logging.info("Error is "+str(exc))
                logging.exception(exc)
                response.response = ERROR_FROM_TOOL
-               response.meta_data.CopyFrom(str(exc))
+               error_struct = Struct()
+               error_struct.update({'error': str(exc)})
+               response.meta_data.CopyFrom(error_struct)
           return response
      
      def GetOT2ImageBytes(self, params:Command.GetOT2ImageBytes) -> ExecuteCommandReply:

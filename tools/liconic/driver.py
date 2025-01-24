@@ -108,6 +108,7 @@ class CO2Monitor:
     def __init__(self, driver: 'LiconicStxDriver'):
         self.driver = driver
         self.config = driver.config
+        self.liconic_config = driver.liconic_config
         self.serial_comm = driver.serial_comm
         self.monitoring = False
         self.co2_out_of_range = False
@@ -127,7 +128,7 @@ class CO2Monitor:
                     co2_level = self._get_current_co2_level()
                     self._write_co2_log(co2_level)
                     self._check_co2_alerts(co2_level)
-                time.sleep(self.driver.config.co2_check_interval)
+                time.sleep(self.liconic_config.co2_check_interval)
         except Exception as e:
             logging.error(f"CO2 monitor thread error: {e}", exc_info=True)
             self.monitoring = False
@@ -156,12 +157,12 @@ class CO2Monitor:
             logging.error(f"Failed to write CO2 log: {e}")
 
     def _check_co2_alerts(self, co2_level: float) -> None:
-        if co2_level < self.driver.config.co2_low_threshold:
+        if co2_level < self.liconic_config.co2_low_threshold:
             self.co2_out_of_range = True
             error_message = f"CO2 level is low: {co2_level}%"
             logging.error(error_message)
             self.driver._send_slack_alert(error_message)
-        elif co2_level > self.driver.config.co2_normal_threshold and self.co2_out_of_range:
+        elif co2_level > self.liconic_config.co2_normal_threshold and self.co2_out_of_range:
             if self.config.app_config.slack_error_channel:
                 self.driver.slack_client.clear_last_error(
                     self.config.app_config.slack_error_channel
@@ -177,7 +178,11 @@ class LiconicStxDriver(ABCToolDriver):
         self.config.load_workcell_config()
         self.slack_client = Slack(self.config)
         
-        self.liconic_config = LiconicConfig()
+        self.liconic_config = LiconicConfig(
+            co2_check_interval=300,  # seconds
+            co2_low_threshold=3.0,
+            co2_normal_threshold=4.0
+        )
         self.serial_comm = SerialCommunication(com_port, self.liconic_config)
         self.co2_monitor = CO2Monitor(self)
         
@@ -221,7 +226,7 @@ class LiconicStxDriver(ABCToolDriver):
                 channel_id=self.config.app_config.slack_error_channel
             )
 
-    def wait_for_ready(self, timeout: int = None, custom_error: Optional[str] = None) -> None:
+    def wait_for_ready(self, timeout: Optional[int] = None, custom_error: Optional[str] = None) -> None:
         timeout = timeout or self.liconic_config.wait_timeout
         elapsed_time = 0
         
@@ -327,7 +332,8 @@ class LiconicStxDriver(ABCToolDriver):
 
     def get_co2_set_point(self) -> str:
         self.write("RD DM894")
-        return self.read()
+        response = self.read()
+        return str(response)
 
     def set_co2_set_point(self, level: float) -> None:
         self.write(f"WR DM894 {str(int(level * 100)).zfill(5)}")
@@ -335,25 +341,23 @@ class LiconicStxDriver(ABCToolDriver):
 
     def get_co2_cur_level(self) -> str:
         self.write("RD DM984")
-        return self.read()
+        response = self.read()
+        return str(response)
 
-
-    def write_co2_log(self, value:str) -> None:
-
-        #Write to local files
+    def write_co2_log(self, value: str) -> None:
         if self.co2_log_path is None:
             return
-        if(os.path.exists(self.co2_log_path) is False):
+        if not os.path.exists(self.co2_log_path):
             logging.debug("folder does not exist. creating folder")
-            os.mkdir(self.co2_log_path )
-        today =  datetime.today().strftime('%Y-%m-%d')
-        today_folder = os.path.join(self.co2_log_path ,today)
-        if(os.path.exists(today_folder) is False):
+            os.mkdir(self.co2_log_path)
+        today = datetime.today().strftime('%Y-%m-%d')
+        today_folder = os.path.join(self.co2_log_path, today)
+        if not os.path.exists(today_folder):
             logging.debug("folder does not exist. creating folder")
             os.mkdir(today_folder)
         trace_file = os.path.join(today_folder, "liconic_co2.txt")
         try:
-            if os.path.exists(trace_file) is False:
+            if not os.path.exists(trace_file):
                 with open(trace_file, 'w+') as f:
                     f.write('Time,Value\n')
         except Exception as e:
@@ -367,32 +371,22 @@ class LiconicStxDriver(ABCToolDriver):
             logging.debug(e)
             return
 
-    def check_last_co2_level(self, data_points:int) -> Optional[int]:
+    def check_last_co2_level(self, data_points: int) -> Optional[int]:
         if self.co2_log_path is None:
-            return
-        today =  datetime.today().strftime('%Y-%m-%d')
-        today_file = os.path.join(self.co2_log_path,today,"liconic_co2.txt")
+            return None
+        today = datetime.today().strftime('%Y-%m-%d')
+        today_file = os.path.join(self.co2_log_path, today, "liconic_co2.txt")
         logging.info(today_file)
-        if(os.path.exists(today_file) is False):
+        if not os.path.exists(today_file):
             logging.debug("folder does not exist.")
-            return None 
+            return None
         with open(today_file, "r") as f:
             lines = f.readlines()
-            logging.info(F"length of lines {len(lines)}")
-            # if len(lines) > data_points+1:
-            #     last_data_points = lines[-data_points:]
-            #     sum = 0
-            #     for line in last_data_points:
-            #         value = int(line.replace("\n","").split(",")[1])
-            #         sum += value
-            #     avg = sum/data_points
-            #     return avg
+            logging.info(f"length of lines {len(lines)}")
             return None
 
     def monitor_co2_level(self) -> None:
         self.monitoring = True
-        config = Config()
-        config.load_app_config()
         try:
             while True:
                 logging.info("Liconic monitor thread is running...")
@@ -401,18 +395,17 @@ class LiconicStxDriver(ABCToolDriver):
                     co2_level = float(self.get_co2_cur_level())/100
                     logging.info(f"CO2 level is {co2_level}")
                     self.write_co2_log(str(co2_level))
-                    if co2_level < 3:
+                    if co2_level < self.liconic_config.co2_low_threshold:
                         self.co2_out_of_range = True
                         error_message = f"CO2 level is low: {co2_level}%"
                         logging.error(error_message)
-                    if co2_level > 4 and self.co2_out_of_range:
+                    if co2_level > self.liconic_config.co2_normal_threshold and self.co2_out_of_range:
                         if self.config.app_config.slack_error_channel:
                             self.slack_client.clear_last_error(self.config.app_config.slack_error_channel)
                         self.co2_out_of_range = False
-                time.sleep(300)
+                time.sleep(self.liconic_config.co2_check_interval)
                 
         except Exception as e:
             logging.warning("Liconic monitor thread encounter an error. Restart the tool")
             logging.exception("Error is" + str(e))
             self.monitoring = False
-        return None
