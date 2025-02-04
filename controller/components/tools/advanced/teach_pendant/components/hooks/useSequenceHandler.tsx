@@ -285,7 +285,7 @@ export function useSequenceHandler(config: Tool) {
         toolType: config.type as ToolType,
         command: "run_sequence",
         params: {
-          sequence_id: sequence.id,
+          sequence_name: sequence.name,
         },
       });
     } catch (error) {

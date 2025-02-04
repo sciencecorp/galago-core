@@ -393,22 +393,9 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
               onUnfree={() =>
                 commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unfree")
               }
-              onUnwind={() => {
-                const unwindPoint = teachPoints.find(
-                  (point) => point.name.toLowerCase() === "unwind",
-                );
-                if (unwindPoint) {
-                  handleMove(unwindPoint);
-                } else {
-                  toast({
-                    title: "No Unwind Position",
-                    description: "Please create a teach point named 'unwind' first.",
-                    status: "warning",
-                    duration: 3000,
-                    isClosable: true,
-                  });
-                }
-              }}
+              onUnwind={() =>
+                commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")
+              }
               onGripperOpen={() => {
                 const selectedParams = gripParams.find((p) => p.id === defaultParamsId);
                 const params = selectedParams || {

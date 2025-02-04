@@ -1,5 +1,6 @@
 from tools.base_server import ToolServer, serve
 from tools.grpc_interfaces.pf400_pb2 import Command, Config
+from tools.labware import LabwareDb, Labware
 from .driver import Pf400Driver
 import argparse
 from typing import Optional, Union
@@ -272,6 +273,16 @@ class Pf400Server(ToolServer):
             release,
         ])
 
+    def RetrievePlate(self, params: Command.RetrievePlate) -> None:
+        labware:Labware = self.all_labware.get_labware(params.labware)
+        offset = (0,0,labware.zoffset)
+        self.retrieve_plate(source_nest=params.location, motion_profile_id=params.motion_profile_id, nest_offset=offset)
+
+    def DropOffPlate(self, params: Command.DropOffPlate) -> None:
+        labware:Labware = self.all_labware.get_labware(params.labware)
+        offset = (0,0,labware.zoffset)
+        self.dropoff_plate(destination_nest=params.location, motion_profile_id=params.motion_profile_id, nest_offset=offset)
+
     def Jog(self, params: Command.Jog) -> None:
         """Handle jog command from UI"""
         logging.info(f"Jogging {params.axis} by {params.distance}")
@@ -305,6 +316,89 @@ class Pf400Server(ToolServer):
             ),
             motion_profile_id=profile_id,
             grip_width=params.grip_width,
+        )
+
+    def PickLid(self, params: Command.PickLid) -> None:
+        labware:Labware = self.all_labware.get_labware(params.labware)
+        if params.location not in self.waypoints.nests:
+            raise KeyError("Nest not found: " + params.location)
+        grasp: Command.GraspPlate
+        tmp_grasp: Union[Command.GraspPlate,Command.ReleasePlate] = self.plate_handling_params[
+            self.waypoints.nests[params.location].orientation
+        ]["grasp"]
+        if isinstance(tmp_grasp, Command.GraspPlate):
+            grasp = tmp_grasp
+            grasp.force = 15
+            grasp.speed = 10
+        else:
+            raise Exception("Invalid grasp params")
+
+        tmp_adjust_gripper = self.plate_handling_params[self.waypoints.nests[params.location].orientation]["release"]
+        if isinstance(tmp_adjust_gripper, Command.ReleasePlate):
+            adjust_gripper = tmp_adjust_gripper
+        else:
+            raise Exception("Invalid release params")
+
+        if params.pick_from_plate:
+            lid_height = labware.height - 4 + labware.plate_lid_offset
+        else:
+            lid_height = labware.plate_lid_offset + labware.lid_offset
+            
+        self.runSequence(
+            [
+                adjust_gripper,
+                Command.Approach(
+                    nest=params.location,
+                    z_offset=lid_height,
+                    motion_profile_id=params.motion_profile_id,
+                    ignore_safepath="false"
+                ),
+                grasp,
+                Command.Approach(
+                    nest=params.location,
+                    z_offset=lid_height + 8,
+                    motion_profile_id=params.motion_profile_id,
+                    ignore_safepath="true"
+                ),
+            ]
+        )
+    
+    def PlaceLid(self, params: Command.PlaceLid) -> None:
+        labware:Labware = self.all_labware.get_labware(params.labware)
+        if params.location not in self.waypoints.nests:
+            raise KeyError("Nest not found: " + params.location)
+        
+        release: Command.ReleasePlate
+        tmp_release: Union[Command.GraspPlate, Command.ReleasePlate] = self.plate_handling_params[
+            self.waypoints.nests[params.location].orientation
+        ]["release"]
+        if isinstance(tmp_release, Command.ReleasePlate):
+            release = tmp_release
+        else:
+            raise Exception("Invalid release params")
+        
+        logging.info("Place lid params are "+ str(params.place_on_plate))
+        if params.place_on_plate:
+            lid_height = labware.height - 4 + labware.plate_lid_offset
+        else:
+            lid_height = labware.plate_lid_offset + labware.lid_offset
+
+        self.runSequence(
+            [
+                Command.Approach(
+                    nest=params.location,
+                    z_offset=lid_height,
+                    motion_profile_id=params.motion_profile_id,
+                    ignore_safepath="true"
+                ),
+                release,
+                Command.Approach(
+                    nest=params.location,
+                    z_offset=lid_height + 8,
+                    motion_profile_id=params.motion_profile_id,
+                    ignore_safepath="true"
+                ),
+            ]
         )
 
     def Wait(self, params: Command.Wait) -> None:
@@ -507,7 +601,41 @@ class Pf400Server(ToolServer):
     def estimateFree(self, params: Command.Free) -> int:
         return 1
 
+    def Unwind(self, params: Command.Unwind) -> None:
+        """Unwind the robot arm while maintaining Z height and gripper width."""
+        waypoint_name = "unwind"
+        if waypoint_name not in self.waypoints:
+            raise KeyError("Unwind location not found")
+        
+        # Get the unwind waypoint location
+        waypoint_loc = self.waypoints[waypoint_name]
+        
+        # Get current position
+        current_loc = self.driver.wherej()
+        current_loc_array = current_loc.split(" ")
+        
+        # Get the unwind waypoint coordinates
+        unwind_loc_array = waypoint_loc.split()
+        
+        # Determine if we're using a 5 or 6 joint robot based on the current position
+        is_five_joint = len(current_loc_array) <= 6
+        
+        # Create new location string maintaining Z height and gripper width
+        if is_five_joint:
+            # Format: X Y Z R1 R2
+            new_loc = f"{current_loc_array[1]} {unwind_loc_array[1]} {unwind_loc_array[2]} {unwind_loc_array[3]} {current_loc_array[5]}"
+        else:
+            # Format: X Y Z R1 R2 R3
+            new_loc = f"{current_loc_array[1]} {unwind_loc_array[1]} {unwind_loc_array[2]} {unwind_loc_array[3]} {current_loc_array[5]} {current_loc_array[6]}"
+        
+        # Execute the unwind movement with motion profile 2
+        logging.info(f"Unwinding to {new_loc} with motion profile 2")
+        self.driver.movej(new_loc, motion_profile=2)
+
     def estimateUnFree(self, params: Command.UnFree) -> int:
+        return 1
+
+    def estimateUnwind(self, params: Command.Unwind) -> int:
         return 1
     
     def estimateGraspPlate(self, params: Command.GraspPlate) -> int:
@@ -540,6 +668,11 @@ class Pf400Server(ToolServer):
     def EstimateLeave(self, params: Command.Leave) -> int:
         return 1
     
+    def EstimatePickLid(self, params: Command.PickLid) -> int:
+        return 1
+    
+    def EstimatePlaceLid(self, params: Command.PlaceLid) -> int:
+        return 1
     
     def EstimateGetWaypoints(self, params: Command.GetWaypoints) -> int:
         """Estimate duration for get_waypoints command"""
