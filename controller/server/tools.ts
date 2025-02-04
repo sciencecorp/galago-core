@@ -80,6 +80,13 @@ export default class Tool {
     return this.info.type;
   }
 
+
+  async pf400Configure(config: tool_base.Config) {
+  
+  
+  }
+  
+  
   async configure(config: tool_base.Config) {
     this.config = config;
 

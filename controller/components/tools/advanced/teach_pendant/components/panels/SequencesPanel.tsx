@@ -264,6 +264,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
         currentPage={currentPage}
         totalPages={totalPages}
         itemsPerPage={itemsPerPage}
+        totalItems={sequences.length}
         onPageChange={onPageChange}
         onItemsPerPageChange={onItemsPerPageChange}
       />

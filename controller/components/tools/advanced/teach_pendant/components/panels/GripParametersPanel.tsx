@@ -256,6 +256,7 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
           currentPage={currentPage}
           totalPages={totalPages}
           itemsPerPage={itemsPerPage}
+          totalItems={params.length}
           onPageChange={onPageChange}
           onItemsPerPageChange={onItemsPerPageChange}
         />

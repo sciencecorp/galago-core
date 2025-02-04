@@ -27,7 +27,7 @@ import { TeachPoint, MotionProfile, GripParams, Sequence } from "../types";
 import { FaPlay, FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { MdOutlineReplay } from "react-icons/md";
 import { BsRecordCircle } from "react-icons/bs";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { usePagination } from "../../hooks/usePagination";
 import { PaginationControls } from "../common/PaginationControls";
 
@@ -87,6 +87,13 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
     onPageChange,
     onItemsPerPageChange,
   } = usePagination(teachPoints);
+
+
+  useEffect(() => {
+    console.log("teachPoints", teachPoints);  
+    console.log(JSON.stringify(teachPoints));
+  },[teachPoints]);
+
 
   const handleCoordinateChange = (index: number, value: number) => {
     if (editingPoint) {
@@ -155,8 +162,13 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
               <Thead position="sticky" top={0} bg={bgColor} zIndex={1}>
                 <Tr>
                   <Th width="200px">Name</Th>
-                  <Th width="100px">Type</Th>
-                  <Th>{editingPoint && <Box textAlign="center">Coordinates</Box>}</Th>
+                  {/* <Th>{editingPoint && <Box textAlign="center">Coordinates</Box>}</Th> */}
+                  <Th>Joint 1</Th>
+                  <Th>Joint 2</Th>
+                  <Th>Joint 3</Th>
+                  <Th>Joint 4</Th>
+                  <Th>Joint 5</Th>
+                  <Th>Joint 6</Th>
                   <Th width="200px" textAlign="right">
                     Actions
                   </Th>
@@ -166,7 +178,12 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                 {paginatedItems.map((point) => (
                   <Tr key={point.id} bg={expandedRows[point.id] ? bgColorAlpha : undefined}>
                     <Td width="200px">{point.name}</Td>
-                    <Td width="100px">{point.type}</Td>
+                    <Td></Td>
+                    <Td></Td>
+                    <Td></Td>
+                    <Td></Td>
+                    <Td></Td>
+                    <Td></Td>
                     <Td>
                       {editingPoint?.id === point.id ? (
                         <Box>

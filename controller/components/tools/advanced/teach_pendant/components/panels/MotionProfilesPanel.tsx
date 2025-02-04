@@ -340,6 +340,7 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
           currentPage={currentPage}
           totalPages={totalPages}
           itemsPerPage={itemsPerPage}
+          totalItems={profiles.length}
           onPageChange={onPageChange}
           onItemsPerPageChange={onItemsPerPageChange}
         />
