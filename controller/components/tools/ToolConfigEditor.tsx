@@ -31,6 +31,7 @@ export function ToolConfigEditor({
   toolId: string;
   defaultConfig: ToolConfig;
 }): JSX.Element {
+
   const statusQuery = trpc.tool.status.useQuery(
     { toolId: toolId },
     {
@@ -52,12 +53,7 @@ export function ToolConfigEditor({
       statusQuery.refetch();
     },
     onError: (data) => {
-      if (data.message === "Expected reader state 1. Got -528") {
-        error_description = cytation_error;
-      } else {
-        error_description = data.message;
-      }
-      // Set the command status to 'error' on failure
+      error_description = data.message;
       toast.closeAll(),
         toast({
           title: "Failed to connect to instrument",
@@ -80,16 +76,16 @@ export function ToolConfigEditor({
   const config = toolSpecificConfig(defaultConfig);
   const [configString, setConfigString] = useState(JSON.stringify(config, null, 2));
 
-  const saveConfig = useCallback(() => {
+  const saveConfig = async (simulated:boolean) => {
     const config = {
-      simulated: isSimulated,
+      simulated: simulated,
       [toolType]: JSON.parse(configString),
     };
     configureMutation.mutate({
       toolId: toolId,
       config: config,
     });
-  }, [toolId, toolType, configString, isSimulated, configureMutation]);
+  };
 
   return (
     <VStack spacing={2} align="start">
@@ -101,20 +97,14 @@ export function ToolConfigEditor({
           isChecked={isSimulated}
           isDisabled={!isReachable}
           colorScheme="orange"
-          onChange={(e) => {
+          onChange={async (e) => {
             setSimulated(e.target.checked);
-            saveConfig();
+            await saveConfig(e.target.checked);
           }}
         />
       </HStack>
-      {/* <Textarea
-        value={configString}
-        onChange={(e) => setConfigString(e.target.value)}
-        fontFamily="monospace"
-        fontSize={12}
-      /> */}
-      ()
-      <Button onClick={saveConfig} isDisabled={!isReachable}>
+
+      <Button onClick={async()=> saveConfig(false)} isDisabled={!isReachable || isSimulated}>
         Connect
       </Button>
       {isLoading && <Spinner ml={2} />} {/* Spinner appears next to the button when loading */}
