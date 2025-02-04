@@ -48,7 +48,7 @@ services:
     networks:
       - app-network
     volumes:
-      - ./db:/app
+      - .:/app
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s

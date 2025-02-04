@@ -1,4 +1,4 @@
-import React, { useState, ReactNode } from "react";
+import React, { useState, ReactNode, useEffect } from "react";
 import {
   Box,
   Flex,
@@ -79,10 +79,11 @@ function DarkModeToggle() {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ children }) => {
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(true);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const isMobile = useBreakpointValue({ base: true, md: false });
   const router = useRouter();
+
 
   const toggleSidebar = () => {
     if (isMobile && !isSidebarExpanded) {

@@ -16,23 +16,18 @@ import {
   Heading,
   useToast,
   Tag,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  IconButton,
   Select,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { SearchIcon, ChevronDownIcon, ArrowUpDownIcon } from "@chakra-ui/icons";
+import { SearchIcon, ArrowUpDownIcon } from "@chakra-ui/icons";
 import { useState, useMemo } from "react";
-import { ProtocolManager } from "./ProtocolManager";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { DeleteWithConfirmation } from "@/components/ui/Delete";
-import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
+import { RiAddFill } from "react-icons/ri";
+import { PageHeader } from "../ui/PageHeader";
+
 type SortField = "name" | "category" | "workcell" | "number_of_commands";
 type SortOrder = "asc" | "desc";
 
@@ -130,17 +125,19 @@ export const ProtocolPageComponent: React.FC = () => {
       bg={bgColor}
       borderRadius="lg"
       p={6}
-      color={textColor}
-      borderColor={borderColor}
-      borderWidth="1px">
+      color={textColor}>
       <VStack align="stretch" spacing={6}>
-        <HStack justify="space-between">
-          <Heading size="lg">Protocols</Heading>
-          <Button colorScheme="teal" onClick={() => router.push("/protocols/new")}>
+        <PageHeader
+           title="Protocols" 
+           mainButton={
+            <Button 
+              leftIcon={<RiAddFill />}
+              colorScheme="teal"
+              onClick={()=>console.log("New Protocol")}>
             New Protocol
           </Button>
-        </HStack>
-
+           }
+           />
         <HStack spacing={4}>
           <InputGroup maxW="400px">
             <InputLeftElement pointerEvents="none">

@@ -206,7 +206,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
               {selectedWorkcell === workcell.name ? "Selected" : "Select"}
             </Button>
             <DeleteWithConfirmation
-              disabled={selectedWorkcell != workcell.name}
+              disabled={(selectedWorkcell === workcell.name)}
               onDelete={handleDelete}
               label="workcell"
               variant="button"

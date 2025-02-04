@@ -124,20 +124,6 @@ export const toolRouter = router({
       try {
         const { toolId, config } = input;
         const tool = Tool.forId(toolId);
-
-        // Initialize waypoints array for PF400
-        if (tool.type === ToolType.pf400) {
-          if (!config.pf400) {
-            config.pf400 = {
-              host: "",
-              port: 0,
-              joints: 0,
-              waypoints: [],
-            };
-          }
-          config.pf400.waypoints = [];
-        }
-
         const response = await tool.grpc.configure(config);
 
         if (response.response !== "SUCCESS") {

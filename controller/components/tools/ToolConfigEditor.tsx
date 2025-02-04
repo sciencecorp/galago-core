@@ -1,12 +1,10 @@
 import { trpc } from "@/utils/trpc";
 import {
-  Box,
   Button,
   HStack,
   Spinner,
   Switch,
   Text,
-  Textarea,
   Tooltip,
   VStack,
   useToast,
@@ -72,20 +70,20 @@ export function ToolConfigEditor({
   const { isLoading } = configureMutation;
   const [isSimulated, setSimulated] = useState(false);
   const isReachable =
-    statusQuery.isSuccess &&
-    statusQuery.data &&
-    statusQuery.data.status !== ToolStatus.OFFLINE &&
-    toolId != "1206";
+          statusQuery.isSuccess &&
+          statusQuery.data &&
+          statusQuery.data.status !== ToolStatus.OFFLINE &&
+          toolId != "Tool Box";
   const toolType = defaultConfig.type;
   const config = toolSpecificConfig(defaultConfig);
   const [configString, setConfigString] = useState(JSON.stringify(config, null, 2));
 
-  const saveConfig = useCallback(() => {
+  const saveConfig = async (isSimulated:boolean) => {
     configureMutation.mutate({
       toolId: toolId,
       config: { simulated: isSimulated, [toolType]: JSON.parse(configString) },
     });
-  }, [toolId, toolType, configString, isSimulated, configureMutation]);
+  };
 
   return (
     <VStack spacing={2} align="start">
@@ -97,20 +95,13 @@ export function ToolConfigEditor({
           isChecked={isSimulated}
           isDisabled={!isReachable}
           colorScheme="orange"
-          onChange={(e) => {
+          onChange={async (e) => {
             setSimulated(e.target.checked);
-            saveConfig();
+            await saveConfig(e.target.checked);
           }}
         />
       </HStack>
-      {/* <Textarea
-        value={configString}
-        onChange={(e) => setConfigString(e.target.value)}
-        fontFamily="monospace"
-        fontSize={12}
-      /> */}
-      ()
-      <Button onClick={saveConfig} isDisabled={!isReachable}>
+      <Button onClick={async()=>saveConfig} isDisabled={!isReachable}>
         Connect
       </Button>
       {isLoading && <Spinner ml={2} />} {/* Spinner appears next to the button when loading */}
