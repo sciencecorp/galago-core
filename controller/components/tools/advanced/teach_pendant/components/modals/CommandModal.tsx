@@ -186,9 +186,9 @@ export const CommandModal: React.FC<CommandModalProps> = ({
           <Select
             value={params[field.name]}
             onChange={(e) => setParams({ ...params, [field.name]: e.target.value })}
-            placeholder="Select nest">
+            placeholder="Select location">
             {(teachPoints || [])
-              .filter((p) => p.type === "nest")
+              .filter((p) => p.type === "location")
               .map((point) => (
                 <option key={point.id} value={point.id}>
                   {point.name}

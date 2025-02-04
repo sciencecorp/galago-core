@@ -444,7 +444,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                                   </Box>
                                 ) : (
                                   <Text fontSize="sm" fontWeight="medium">
-                                    {getDisplayValue(command)}
+                                    {value.toString()}
                                   </Text>
                                 )}
                               </HStack>

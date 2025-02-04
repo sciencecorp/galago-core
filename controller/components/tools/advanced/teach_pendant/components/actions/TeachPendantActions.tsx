@@ -100,43 +100,45 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
   };
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = event.target.files;
+    if (!files?.length) return;
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("tool_id", toolId.toString());
+      for (let i = 0; i < files.length; i++) {
+        const formData = new FormData();
+        formData.append("file", files[i]);
+        formData.append("tool_id", toolId.toString());
 
-      const response = await fetch("http://localhost:8000/waypoints/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || "Failed to import data");
-      }
-
-      const result = await response.json();
-
-      // Show a summary toast with the imported items
-      if (result.summary) {
-        const summaryText = Object.entries(result.summary as Record<string, number>)
-          .filter(([_, count]) => count > 0)
-          .map(([type, count]) => `${count} ${type.replace(/_/g, " ")}`)
-          .join(", ");
-
-        toast({
-          title: "Import Successful",
-          description: `Imported ${summaryText}`,
-          status: "success",
-          duration: 5000,
-          isClosable: true,
+        const response = await fetch("http://localhost:8000/waypoints/upload", {
+          method: "POST",
+          body: formData,
         });
-      }
 
-      await onImport(result.data);
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(`Failed to import ${files[i].name}: ${error.detail || "Unknown error"}`);
+        }
+
+        const result = await response.json();
+
+        // Show a summary toast for each file
+        if (result.summary) {
+          const summaryText = Object.entries(result.summary as Record<string, number>)
+            .filter(([_, count]) => count > 0)
+            .map(([type, count]) => `${count} ${type.replace(/_/g, " ")}`)
+            .join(", ");
+
+          toast({
+            title: `Imported ${files[i].name}`,
+            description: summaryText ? `Imported ${summaryText}` : "File imported successfully",
+            status: "success",
+            duration: 5000,
+            isClosable: true,
+          });
+        }
+
+        await onImport(result.data);
+      }
     } catch (error) {
       toast({
         title: "Import Failed",
@@ -171,6 +173,7 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
         accept=".json,.xml"
         onChange={handleImport}
         ref={fileInputRef}
+        multiple
         display="none"
       />
       <Button

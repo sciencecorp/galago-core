@@ -136,23 +136,18 @@ export function useCommandHandlers(config: Tool) {
       await commandMutation.mutateAsync({
         toolId: config.name,
         toolType: config.type as ToolType,
-        command: "load_waypoints",
+        command: "register_motion_profile",
         params: {
-          waypoints: [
-            {
-              motion_profile: {
-                id: profile.id,
-                speed: profile.speed,
-                speed2: profile.speed2,
-                acceleration: profile.acceleration,
-                deceleration: profile.deceleration,
-                accel_ramp: profile.accel_ramp || 0,
-                decel_ramp: profile.decel_ramp || 0,
-                inrange: profile.inrange || 0,
-                straight: profile.straight || false,
-              },
-            },
-          ],
+            id: profile.id,
+            profile_id: profile.id,
+            speed: profile.speed,
+            speed2: profile.speed2,
+            acceleration: profile.acceleration,
+            deceleration: profile.deceleration,
+            accel_ramp: profile.accel_ramp || 0,
+            decel_ramp: profile.decel_ramp || 0,
+            inrange: profile.inrange || 0,
+            straight: profile.straight || false,
         },
       });
       toast({
