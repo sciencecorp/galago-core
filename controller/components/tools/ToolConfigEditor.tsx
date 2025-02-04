@@ -32,6 +32,7 @@ export function ToolConfigEditor({
   toolId: string;
   defaultConfig: ToolConfig;
 }): JSX.Element {
+
   const statusQuery = trpc.tool.status.useQuery(
     { toolId: toolId },
     {
@@ -53,12 +54,7 @@ export function ToolConfigEditor({
       statusQuery.refetch();
     },
     onError: (data) => {
-      if (data.message === "Expected reader state 1. Got -528") {
-        error_description = cytation_error;
-      } else {
-        error_description = data.message;
-      }
-      // Set the command status to 'error' on failure
+      error_description = data.message;
       toast.closeAll(),
         toast({
           title: "Failed to connect to instrument",
@@ -108,6 +104,7 @@ export function ToolConfigEditor({
           }}
         />
       </HStack>
+
       <Button onClick={async()=> saveConfig(false)} isDisabled={!isReachable || isSimulated}>
         Connect
       </Button>

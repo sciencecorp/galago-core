@@ -82,6 +82,7 @@ export const toolRouter = router({
     const allTools = await get<ToolResponse[]>(`/tools`);
     Tool.reloadWorkcellConfig(allTools as controller_protos.ToolConfig[]);
     const toolIds = allTools.map((tool) => tool.name);
+    console.log("Tool IDs:", toolIds);
     toolIds.push("Tool Box");
     return toolIds;
   }),

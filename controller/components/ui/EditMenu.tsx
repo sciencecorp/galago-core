@@ -18,13 +18,11 @@ export const EditMenu: React.FC<EditMenuProps> = (props) => {
         <MenuItem icon={<RiEdit2Line />} onClick={props.onEdit}>
           Edit
         </MenuItem>
-        <MenuItem>
-          <DeleteWithConfirmation
-            onDelete={() => props.onDelete && props.onDelete()}
-            label="tool"
-            showText={true}
-          />
-        </MenuItem>
+        <DeleteWithConfirmation
+          onDelete={() => props.onDelete && props.onDelete()}
+          label="tool"
+          showText={true}
+        />
       </MenuList>
     </Menu>
   );
