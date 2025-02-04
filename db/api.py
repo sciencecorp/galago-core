@@ -12,8 +12,10 @@ import logging
 from typing import Optional, Dict, Any, List
 import uvicorn
 from contextlib import asynccontextmanager
-from waypoint_handler import handle_waypoint_upload
+from waypoint_handler import handle_waypoint_upload, handle_waypoint_upload_xml
 from pydantic import BaseModel
+import json
+from initializers import initialize_database
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -31,6 +33,13 @@ async def lifespan(app: FastAPI)-> t.AsyncGenerator[None, None]:
     try:
         Base.metadata.create_all(bind=SessionLocal().get_bind())
         LogBase.metadata.create_all(bind=LogsSessionLocal().get_bind())
+        
+        # Initialize database with default data
+        db = SessionLocal()
+        try:
+            initialize_database(db)
+        finally:
+            db.close()
     except Exception as e:
         logging.error(e)
         raise e
@@ -865,7 +874,6 @@ def get_robot_arm_waypoints(
         db, obj_in={"tool_id": tool_id}
     )
     grip_params = crud.robot_arm_grip_params.get_all_by(db, obj_in={"tool_id": tool_id})
-    labware = crud.labware.get_all(db)
     return {
         "id": tool_id,
         "name": f"Waypoints for Tool {tool_id}",
@@ -875,7 +883,6 @@ def get_robot_arm_waypoints(
         "motion_profiles": motion_profiles,
         "grip_params": grip_params,
         "tool_id": tool_id,
-        "labware": labware
     }
 
 # Schemas for waypoint data
