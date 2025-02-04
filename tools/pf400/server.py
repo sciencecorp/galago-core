@@ -1,12 +1,28 @@
 from tools.base_server import ToolServer, serve
 from tools.grpc_interfaces.pf400_pb2 import Command, Config
-from tools.labware import LabwareDb, Labware
 from .driver import Pf400Driver
 import argparse
+from tools.pf400.waypoints_models import (
+    Waypoints,
+    Location,
+    Nest,
+    Coordinate,
+    MotionProfile,
+)    
 from typing import Optional, Union
 from tools.grpc_interfaces.tool_base_pb2 import ExecuteCommandReply, SUCCESS, ERROR_FROM_TOOL
 from google.protobuf.struct_pb2 import Struct
 import logging
+from dataclasses import dataclass
+
+@dataclass
+class Labware:
+    name: str
+    width: float
+    height: float
+    zoffset: float
+    plate_lid_offset: float
+    lid_offset: float
 
 class Pf400Server(ToolServer):
     toolType = "pf400"
@@ -16,11 +32,11 @@ class Pf400Server(ToolServer):
         self.driver: Pf400Driver
         self.sequence_location: str
         self.plate_handling_params: dict[str, dict[str, Union[Command.GraspPlate, Command.ReleasePlate]]] = {}
-        self.waypoints: dict = {}
+        self.waypoints: Waypoints
         # Store mappings for motion profiles, grip params, and labware
         self.motion_profile_map: dict[int, int] = {}  # Map DB ID to profile ID
         self.grip_params_map: dict[int, dict[str, int]] = {}  # Map DB ID to grip params
-        self.labware_map: dict[int, str] = {}  # Map DB ID to labware name
+        self.labware_map: dict[str, Labware] = {}  # Map labware name to definition
         self.nests: dict = {}  # Store nest definitions
 
     def _configure(self, request: Config) -> None:
@@ -108,7 +124,7 @@ class Pf400Server(ToolServer):
         for waypoint in path:
             self.driver.movej(waypoint, motion_profile=motion_profile_id)
 
-    def moveTo(self, location: str, offset: tuple[float, float, float] = (0, 0, 0), motion_profile_id: int = 1) -> None:
+    def moveTo(self, location: Location, offset: tuple[float, float, float] = (0, 0, 0), motion_profile_id: int = 1) -> None:
         """Move to a location with optional offset"""
         coords = location.split()
         adjusted_coords = [float(coords[i]) + offset[i] for i in range(3)]
@@ -116,7 +132,7 @@ class Pf400Server(ToolServer):
         adjusted_location = ' '.join(map(str, adjusted_coords))
         self.driver.movej(adjusted_location, motion_profile=motion_profile_id)
 
-    def nestPath(self, nest_def: dict, offset: tuple[float, float, float] = (0, 0, 0)) -> list[str]:
+    def nestPath(self, nest_def: Nest, offset: tuple[float, float, float] = (0, 0, 0)) -> list[str]:
         """Get the path for a nest with optional offset"""
         if 'path' not in nest_def:
             return []
@@ -185,6 +201,19 @@ class Pf400Server(ToolServer):
             ),
             motion_profile_id=params.motion_profile_id,
         )
+    def RegisterMotionProfile(self, params: Command.RegisterMotionProfile) -> None:
+        motion_profile = MotionProfile(
+            id=params.id,
+            speed=params.speed,
+            speed2=params.speed2,
+            acceleration=params.accel,
+            deceleration=params.decel,
+            accelramp=params.accel_ramp,
+            decelramp=params.decel_ramp,
+            inrange=params.inrange,
+            straight=params.straight,
+        )
+        self.driver.register_motion_profile(motion_profile)
 
     def GraspPlate(self, params: Command.GraspPlate) -> None:
         # If params has an ID, map it to the actual grip parameters
@@ -204,12 +233,12 @@ class Pf400Server(ToolServer):
 
     def retrieve_plate(
         self,
-        source_nest: str,
+        source_nest: Location,
         grasp_params: Optional[Command.GraspPlate] = None,
         nest_offset: tuple[float, float, float] = (0, 0, 0),
         motion_profile_id: int = 1,
         grip_width: int = 0,
-        labware_id: Optional[int] = None,
+        labware_id: Labware = None,
     ) -> None:
         """Retrieve a plate from the specified coordinates."""
         # Map the motion profile ID if it's from the database
@@ -241,7 +270,7 @@ class Pf400Server(ToolServer):
 
     def dropoff_plate(
         self,
-        destination_nest: str,
+        destination_nest: Location,
         release_params: Optional[Command.ReleasePlate] = None,
         nest_offset: tuple[float, float, float] = (0, 0, 0),
         motion_profile_id: int = 1,
@@ -274,13 +303,17 @@ class Pf400Server(ToolServer):
         ])
 
     def RetrievePlate(self, params: Command.RetrievePlate) -> None:
-        labware:Labware = self.all_labware.get_labware(params.labware)
-        offset = (0,0,labware.zoffset)
+        if params.labware not in self.labware_map:
+            raise KeyError(f"Labware '{params.labware}' not found")
+        labware = self.labware_map[params.labware]
+        offset = (0, 0, labware.zoffset)
         self.retrieve_plate(source_nest=params.location, motion_profile_id=params.motion_profile_id, nest_offset=offset)
 
     def DropOffPlate(self, params: Command.DropOffPlate) -> None:
-        labware:Labware = self.all_labware.get_labware(params.labware)
-        offset = (0,0,labware.zoffset)
+        if params.labware not in self.labware_map:
+            raise KeyError(f"Labware '{params.labware}' not found")
+        labware = self.labware_map[params.labware]
+        offset = (0, 0, labware.zoffset)
         self.dropoff_plate(destination_nest=params.location, motion_profile_id=params.motion_profile_id, nest_offset=offset)
 
     def Jog(self, params: Command.Jog) -> None:
@@ -319,7 +352,9 @@ class Pf400Server(ToolServer):
         )
 
     def PickLid(self, params: Command.PickLid) -> None:
-        labware:Labware = self.all_labware.get_labware(params.labware)
+        if params.labware not in self.labware_map:
+            raise KeyError(f"Labware '{params.labware}' not found")
+        labware = self.labware_map[params.labware]
         if params.location not in self.waypoints.nests:
             raise KeyError("Nest not found: " + params.location)
         grasp: Command.GraspPlate
@@ -364,7 +399,9 @@ class Pf400Server(ToolServer):
         )
     
     def PlaceLid(self, params: Command.PlaceLid) -> None:
-        labware:Labware = self.all_labware.get_labware(params.labware)
+        if params.labware not in self.labware_map:
+            raise KeyError(f"Labware '{params.labware}' not found")
+        labware = self.labware_map[params.labware]
         if params.location not in self.waypoints.nests:
             raise KeyError("Nest not found: " + params.location)
         
@@ -479,28 +516,6 @@ class Pf400Server(ToolServer):
             
             # Execute the command
             method(command_field)
-
-    def GetWaypoints(self, params: Command.GetWaypoints) -> ExecuteCommandReply:
-        """Debug command to return current waypoints and mappings"""
-        response = ExecuteCommandReply()
-        response.return_reply = True
-        response.response = SUCCESS
-        
-        try:
-            meta = Struct()
-            meta.update({
-                "motion_profiles": str(self.motion_profile_map),
-                "grip_params": str(self.grip_params_map),
-                "labware": str(self.labware_map),
-                "config_waypoints": str(getattr(self.config, 'waypoints', None))
-            })
-            response.meta_data.CopyFrom(meta)
-            return response
-        except Exception as e:
-            logging.error(f"Error getting waypoints: {e}")
-            response.response = ERROR_FROM_TOOL
-            response.error_message = str(e)
-            return response
     
     def LoadWaypoints(self, params: Command.LoadWaypoints) -> None:
         """Load all waypoints and parameter mappings in a single call"""
@@ -536,8 +551,15 @@ class Pf400Server(ToolServer):
 
                 elif waypoint_type == 'labware':
                     labware = waypoint_config.labware
-                    self.labware_map[labware.id] = labware.name
-                    logging.info(f"Mapped labware ID {labware.id} to name {labware.name}")
+                    self.labware_map[labware.name] = Labware(
+                        name=labware.name,
+                        width=labware.width,
+                        height=labware.height,
+                        zoffset=labware.zoffset,
+                        plate_lid_offset=labware.plate_lid_offset,
+                        lid_offset=labware.lid_offset
+                    )
+                    logging.info(f"Loaded labware definition for {labware.name}")
                 
                 elif waypoint_type == 'location':
                     location = waypoint_config.location
@@ -597,6 +619,32 @@ class Pf400Server(ToolServer):
         except Exception as e:
             logging.error(f"Error loading waypoints and mappings: {str(e)}")
             raise
+
+    def LoadLabware(self, params: Command.LoadLabware) -> None:
+        """Load labware definitions into the labware map"""
+        logging.info("Loading labware")
+        try:
+            # Reset labware map if no labware is provided
+            if not params.labware:
+                self.labware_map = {}
+                return
+            
+            # Process each labware item
+            for labware in params.labware:
+                self.labware_map[labware.name] = Labware(
+                    name=labware.name,
+                    width=labware.width,
+                    height=labware.height,
+                    zoffset=labware.zoffset,
+                    plate_lid_offset=labware.plate_lid_offset,
+                    lid_offset=labware.lid_offset
+                )
+                logging.info(f"Loaded labware definition for {labware.name}")
+        except Exception as e:
+            logging.error(f"Error loading labware: {str(e)}")
+            raise
+
+    
         
     def estimateFree(self, params: Command.Free) -> int:
         return 1
@@ -668,18 +716,30 @@ class Pf400Server(ToolServer):
     def EstimateLeave(self, params: Command.Leave) -> int:
         return 1
     
-    def EstimatePickLid(self, params: Command.PickLid) -> int:
+    def EstimateRetrievePlate(self, params: Command.RetrievePlate) -> int:
+        return 1
+    
+    def EstimateDropOffPlate(self, params: Command.DropOffPlate) -> int:
+        return 1
+    
+    def EstimateRegisterMotionProfile(self, params: Command.RegisterMotionProfile) -> int:
+        return 1
+    
+    def EstimateGraspPlate(self, params: Command.GraspPlate) -> int:
+        return 1
+    
+    def EstimateReleasePlate(self, params: Command.ReleasePlate) -> int:
         return 1
     
     def EstimatePlaceLid(self, params: Command.PlaceLid) -> int:
-        return 1
+        return 1 
     
-    def EstimateGetWaypoints(self, params: Command.GetWaypoints) -> int:
-        """Estimate duration for get_waypoints command"""
-        return 1  # This is an instant operation
-
     def EstimateLoadWaypoints(self, params: Command.LoadWaypoints) -> int:
         """Estimate duration for load_waypoints command"""
+        return 1  # This is an instant operation
+    
+    def EstimateLoadLabware(self, params: Command.LoadLabware) -> int:
+        """Estimate duration for load_labware command"""
         return 1  # This is an instant operation
 
 if __name__ == "__main__":

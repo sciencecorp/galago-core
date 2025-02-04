@@ -86,7 +86,6 @@
     "ts-proto": "^1.138.0",
     "use-file-picker": "^2.1.2",
     "winston": "^3.11.0",
-    "xml-js": "^1.6.11",
     "zod": "^3.20.2"
   },
   "devDependencies": {

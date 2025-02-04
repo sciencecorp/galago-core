@@ -24,8 +24,9 @@ message Command {
     GetCurrentLocation get_current_location = 18;
     Jog jog = 19;
     RawCommand raw_command = 20;
-    GetWaypoints get_waypoints = 21;
     LoadWaypoints load_waypoints = 27;
+    LoadLabware load_labware = 28;
+    RegisterMotionProfile register_motion_profile = 29;
   }
 
   message RawCommand {
@@ -130,12 +131,17 @@ message Command {
     int32 duration = 1;
   }
 
-  message GetWaypoints {
-    // Empty message since we don't need parameters
-  }
-
+  
   message LoadWaypoints {
     repeated WaypointConfig waypoints = 1;
+  }
+
+  message LoadLabware {
+    repeated LabwareConfig labware = 1;
+  }
+
+  message RegisterMotionProfile {
+    MotionProfileConfig motion_profile = 1;
   }
 }
 
@@ -178,6 +184,11 @@ message GripParamConfig {
 message LabwareConfig {
   int32 id = 1;
   string name = 2;
+  float width = 3;
+  float height = 4;
+  float zoffset = 5;
+  float plate_lid_offset = 6;
+  float lid_offset = 7;
 }
 
 message LocationConfig {

@@ -474,7 +474,6 @@ class RobotArmWaypoints(BaseModel):
     grip_params: list[RobotArmGripParams]  # Full grip parameter objects
     sequences: list[RobotArmSequence]  # Full sequence objects
     tool_id: int
-    labware: list[Labware]
 
     class Config:
         from_attributes = True
