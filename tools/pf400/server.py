@@ -114,7 +114,7 @@ class Pf400Server(ToolServer):
             # Map the motion profile ID if it's from the database
             profile_id = self._map_motion_profile(motion_profile)
             logging.info(f"Registering motion profile {profile_id} for DB ID {motion_profile}")
-            # self.driver.register_motion_profile(str(profile_id))
+            self.driver.register_motion_profile(str(profile_id))
         else:
             profile_id = 1
         self.driver.movej(coordinate, motion_profile=profile_id)
