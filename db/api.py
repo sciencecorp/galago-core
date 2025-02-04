@@ -12,7 +12,7 @@ import logging
 from typing import Optional, Dict, Any, List
 import uvicorn
 from contextlib import asynccontextmanager
-from waypoint_handler import handle_waypoint_upload, handle_waypoint_upload_xml
+from waypoint_handler import handle_waypoint_upload
 from pydantic import BaseModel
 import json
 from initializers import initialize_database
