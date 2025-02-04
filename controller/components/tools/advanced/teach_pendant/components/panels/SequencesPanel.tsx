@@ -144,7 +144,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
         </HStack>
         <Box width="100%" flex={1} overflow="hidden">
           <Grid
-            templateColumns={selectedSequence ? "350px 1fr" : "1fr"}
+            templateColumns={selectedSequence ? "450px 1fr" : "1fr"}
             gap={4}
             height="100%"
             transition="grid-template-columns 0.2s">
