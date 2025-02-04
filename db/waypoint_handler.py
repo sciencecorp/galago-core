@@ -188,7 +188,25 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
         elif file_ext == 'json':
             try:
                 data = json.loads(content.decode())
-                if data.get('data'):
+                
+                # Handle direct sequence array format
+                if isinstance(data, list):
+                    # Create a sequence object from the command array
+                    data = {
+                        'sequences': [{
+                            'name': file.filename.replace('.json', ''),
+                            'description': 'Imported sequence',
+                            'commands': [
+                                {
+                                    'command': cmd['command'],
+                                    'params': cmd['params'],
+                                    'order': idx
+                                } for idx, cmd in enumerate(data)
+                            ],
+                            'tool_id': tool_id
+                        }]
+                    }
+                elif data.get('data'):
                     data = data['data']
                 
                 # Convert locations to teach_points
