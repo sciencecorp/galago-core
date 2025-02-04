@@ -21,7 +21,7 @@ import { FiMenu, FiHome } from "react-icons/fi";
 import { IconType } from "react-icons";
 import { useRouter } from "next/router";
 import { MdOutlineTransitEnterexit } from "react-icons/md";
-import { RiRobot2Line } from "react-icons/ri";
+import { FaToolbox } from "react-icons/fa";
 import { TbVariable } from "react-icons/tb";
 import { MdOutlineIntegrationInstructions } from "react-icons/md";
 import { RiCalendarCheckLine } from "react-icons/ri";
@@ -30,8 +30,8 @@ import { MoonIcon, SunIcon } from "@chakra-ui/icons";
 import { FiBook } from "react-icons/fi";
 import { FaChartGantt } from "react-icons/fa6";
 import { capitalizeFirst } from "@/utils/parser";
-import { GoContainer } from "react-icons/go";
-import { CgMenuGridR } from "react-icons/cg";
+import { GrStorage } from "react-icons/gr";
+import { HiOutlineRectangleStack } from "react-icons/hi2";
 import { GiChaingun } from "react-icons/gi";
 
 interface SidebarItem {
@@ -49,11 +49,11 @@ const sidebarItems: SidebarItem[] = [
   { name: "Home", icon: FiHome, path: "/" },
   { name: "Runs", icon: FaChartGantt, path: "/runs" },
   { name: "Workcells", icon: GiChaingun, path: "/workcells" },
-  { name: "Tools", icon: RiRobot2Line, path: "/tools" },
+  { name: "Tools", icon: FaToolbox, path: "/tools" },
   { name: "Protocols", icon: PiPathBold, path: "/protocols" },
-  { name: "Inventory", icon: GoContainer, path: "/inventory" },
+  { name: "Inventory", icon: GrStorage, path: "/inventory" },
   // { name: "Schedule", icon: RiCalendarCheckLine, path: "/schedule" },
-  { name: "Labware", icon: CgMenuGridR, path: "/labware" },
+  { name: "Labware", icon: HiOutlineRectangleStack, path: "/labware" },
   // { name: "Tables", icon: LuTableProperties, path: "/tables" }, //Will keep thinking about this one, not sure we want to give users so much complexity/abstraction
   { name: "Logs", icon: FiBook, path: "/logs" },
   { name: "Variables", icon: TbVariable, path: "/variables" },
