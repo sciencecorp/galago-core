@@ -52,12 +52,6 @@ interface TeachPendantProps {
   config: Tool;
 }
 
-const DEFAULT_GRIP_VALUES = {
-  width: 90,
-  speed: 120,
-  force: 100,
-};
-
 export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
   const bgColor = useColorModeValue("white", "gray.800");
   const bgColorAlpha = useColorModeValue("blackAlpha.50", "whiteAlpha.50");
@@ -398,23 +392,35 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
               }
               onGripperOpen={() => {
                 const selectedParams = gripParams.find((p) => p.id === defaultParamsId);
-                const params = selectedParams || {
-                  ...DEFAULT_GRIP_VALUES,
-                  id: 0,
-                  name: "Default",
-                  tool_id: config.id,
-                };
-                commandHandlers.handleGripperCommand(robotArmCommandMutation, "open", params);
+                if (selectedParams) {
+                  commandHandlers.handleGripperCommand(robotArmCommandMutation, "open", selectedParams);
+                } else {
+                  // Let server handle defaults
+                  commandHandlers.handleGripperCommand(robotArmCommandMutation, "open", {
+                    id: 0,
+                    name: "Default",
+                    tool_id: config.id,
+                    width: 0,  // Server will override with its defaults
+                    speed: 0,  // Server will override with its defaults
+                    force: 0   // Server will override with its defaults
+                  });
+                }
               }}
               onGripperClose={() => {
                 const selectedParams = gripParams.find((p) => p.id === defaultParamsId);
-                const params = selectedParams || {
-                  ...DEFAULT_GRIP_VALUES,
-                  id: 0,
-                  name: "Default",
-                  tool_id: config.id,
-                };
-                commandHandlers.handleGripperCommand(robotArmCommandMutation, "close", params);
+                if (selectedParams) {
+                  commandHandlers.handleGripperCommand(robotArmCommandMutation, "close", selectedParams);
+                } else {
+                  // Let server handle defaults
+                  commandHandlers.handleGripperCommand(robotArmCommandMutation, "close", {
+                    id: 0,
+                    name: "Default",
+                    tool_id: config.id,
+                    width: 0,  // Server will override with its defaults
+                    speed: 0,  // Server will override with its defaults
+                    force: 0   // Server will override with its defaults
+                  });
+                }
               }}
               jogEnabled={jogEnabled}
               jogAxis={jogAxis}
