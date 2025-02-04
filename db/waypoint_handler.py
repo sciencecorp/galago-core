@@ -8,6 +8,7 @@ from models.inventory_models import RobotArmLocation
 import schemas
 from pydantic import BaseModel
 from typing import Dict, List, Optional
+import re 
 
 # Schemas for waypoint data
 class TeachPoint(BaseModel):
@@ -62,6 +63,9 @@ def get_unique_name(db: Session, name: str, table, tool_id: int) -> str:
         counter += 1
     return name
 
+def is_valid_location_name(name):
+    return bool(re.search(r'[a-zA-Z]', name))  #Ensure at least one letter is present
+
 async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
     try:
         content = await file.read()
@@ -76,12 +80,10 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                 locations = root.findall(".//Location")
                 if locations:
                     data['teach_points'] = []
-                    location_counter = 1
                     for loc in locations:
                         name = loc.find('Name').text
-                        if not name:  # Give default name if empty
-                            name = f"Location_{location_counter}"
-                            location_counter += 1
+                        if not name or not is_valid_location_name(name):  # Skip if empty or invalid name
+                            continue
                         
                         # Get joint values, handling missing or empty text
                         joints = []

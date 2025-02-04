@@ -651,12 +651,8 @@ def delete_script(script_id:int, db: Session = Depends(get_db)) -> t.Any:
 @app.get("/robot-arm-locations", 
          response_model=list[schemas.RobotArmLocation])
 def get_robot_arm_locations(
-    db: Session = Depends(get_db),
-    tool_id: Optional[int] = None
+    db: Session = Depends(get_db)
 ) -> t.Any:
-    if tool_id:
-        return crud.robot_arm_location.get_all_by(db, 
-                                obj_in={"tool_id": tool_id})
     return crud.robot_arm_location.get_all(db)
 
 @app.post("/robot-arm-locations", 

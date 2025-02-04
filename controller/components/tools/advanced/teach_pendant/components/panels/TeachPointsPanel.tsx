@@ -267,6 +267,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
           currentPage={currentPage}
           totalPages={totalPages}
           itemsPerPage={itemsPerPage}
+          totalItems={teachPoints.length}
           onPageChange={onPageChange}
           onItemsPerPageChange={onItemsPerPageChange}
         />
