@@ -888,7 +888,7 @@ def get_robot_arm_waypoints(
 # Schemas for waypoint data
 class TeachPoint(BaseModel):
     name: str
-    coordinate: str
+    coordinates: str
     type: str = "location"
     loc_type: str = "j"
 

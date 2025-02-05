@@ -339,23 +339,13 @@ class Script(ScriptCreate, TimestampMixin):
 class RobotArmLocationCreate(BaseModel):
     name: str
     location_type: str  # 'j' for joint or 'c' for cartesian
-    j1: t.Optional[float] = None
-    j2: t.Optional[float] = None
-    j3: t.Optional[float] = None
-    j4: t.Optional[float] = None
-    j5: t.Optional[float] = None
-    j6: t.Optional[float] = None
+    coordinates: t.Optional[str] = None  # Space-separated coordinate values
     tool_id: int
 
 class RobotArmLocationUpdate(BaseModel):
     name: t.Optional[str] = None
     location_type: t.Optional[str] = None
-    j1: t.Optional[float] = None
-    j2: t.Optional[float] = None
-    j3: t.Optional[float] = None
-    j4: t.Optional[float] = None
-    j5: t.Optional[float] = None
-    j6: t.Optional[float] = None
+    coordinates: t.Optional[str] = None  # Space-separated coordinate values
     tool_id: t.Optional[int] = None
 
 class RobotArmLocation(RobotArmLocationCreate):
@@ -368,12 +358,7 @@ class RobotArmNestCreate(BaseModel):
     name: str
     orientation: t.Literal["portrait", "landscape"]
     location_type: str  # 'j' for joint or 'c' for cartesian
-    j1: t.Optional[float] = None
-    j2: t.Optional[float] = None
-    j3: t.Optional[float] = None
-    j4: t.Optional[float] = None
-    j5: t.Optional[float] = None
-    j6: t.Optional[float] = None
+    coordinates: t.Optional[str] = None  # Space-separated coordinate values
     safe_location_id: int
     tool_id: int
 
@@ -381,12 +366,7 @@ class RobotArmNestUpdate(BaseModel):
     name: t.Optional[str] = None
     orientation: t.Optional[t.Literal["portrait", "landscape"]] = None
     location_type: t.Optional[str] = None  # 'j' for joint or 'c' for cartesian
-    j1: t.Optional[float] = None
-    j2: t.Optional[float] = None
-    j3: t.Optional[float] = None
-    j4: t.Optional[float] = None
-    j5: t.Optional[float] = None
-    j6: t.Optional[float] = None
+    coordinates: t.Optional[str] = None  # Space-separated coordinate values
     safe_location_id: t.Optional[int] = None
     tool_id: t.Optional[int] = None
 

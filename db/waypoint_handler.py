@@ -12,7 +12,7 @@ from typing import Dict, List, Optional
 # Schemas for waypoint data
 class TeachPoint(BaseModel):
     name: str
-    coordinate: str
+    coordinates: str
     type: str = "location"
     loc_type: str = "j"
 
@@ -96,7 +96,7 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                         
                         data['teach_points'].append({
                             'name': name,
-                            'coordinate': ' '.join(joints),
+                            'coordinates': ' '.join(joints),
                             'type': 'location',
                             'loc_type': 'j'
                         })
@@ -215,7 +215,7 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                     for name, loc_data in data['locations'].items():
                         teach_point = {
                             'name': name,
-                            'coordinate': loc_data['loc'],
+                            'coordinates': loc_data['loc'],
                             'type': 'location',
                             'loc_type': loc_data.get('loc_type', 'j')
                         }
@@ -276,7 +276,7 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                                         RobotArmLocation, tool_id)
                     
                     # Parse coordinates
-                    coords = point.coordinate.split()
+                    coords = point.coordinates.split()
                     coords.extend(['0'] * (6 - len(coords)))  
                     
                     location = crud.robot_arm_location.create(
@@ -284,12 +284,7 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                         obj_in=schemas.RobotArmLocationCreate(
                             name=unique_name,
                             location_type=point.loc_type,
-                            j1=float(coords[0]),
-                            j2=float(coords[1]),
-                            j3=float(coords[2]),
-                            j4=float(coords[3]),
-                            j5=float(coords[4]),
-                            j6=float(coords[5]),
+                            coordinates=coords,
                             tool_id=tool_id
                         )
                     )

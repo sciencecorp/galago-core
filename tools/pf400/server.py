@@ -106,7 +106,7 @@ class Pf400Server(ToolServer):
 
     def Move(self, params: Command.Move) -> None:
         """Execute a move command with the given coordinate and motion profile."""
-        coordinate = params.waypoint
+        coordinates = params.waypoint
         motion_profile = getattr(params, 'motion_profile_id', None)
 
         if motion_profile:
@@ -117,7 +117,7 @@ class Pf400Server(ToolServer):
             self.driver.register_motion_profile(str(profile_id))
         else:
             profile_id = 1
-        self.driver.movej(coordinate, motion_profile=profile_id)
+        self.driver.movej(coordinates, motion_profile=profile_id)
 
     def movePath(self, path: list[str], motion_profile_id: int = 1) -> None:
         """Move through a series of waypoints"""

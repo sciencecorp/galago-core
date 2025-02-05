@@ -17,12 +17,7 @@ const zRobotArmLocation = z.object({
   id: z.number().optional(),
   name: z.string(),
   location_type: z.enum(["j", "c"]),
-  j1: z.number().optional(),
-  j2: z.number().optional(),
-  j3: z.number().optional(),
-  j4: z.number().optional(),
-  j5: z.number().optional(),
-  j6: z.number().optional(),
+  coordinates: z.string(),  // Space-separated coordinates values
   tool_id: z.number(),
 });
 
@@ -31,12 +26,7 @@ const zRobotArmNest = z.object({
   name: z.string(),
   orientation: z.enum(["portrait", "landscape"]),
   location_type: z.enum(["j", "c"]),
-  j1: z.number().optional(),
-  j2: z.number().optional(),
-  j3: z.number().optional(),
-  j4: z.number().optional(),
-  j5: z.number().optional(),
-  j6: z.number().optional(),
+  coordinates: z.string(),  // Space-separated coordinates values
   safe_location_id: z.number(),
   tool_id: z.number(),
 });

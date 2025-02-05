@@ -327,7 +327,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                                 <Text fontSize="sm" color="gray.500" width="30%">
                                   {formatParamKey(key)}:
                                 </Text>
-                                {isEditing && (key === "waypoint" || key === "coordinate") ? (
+                                {isEditing && (key === "waypoint" || key === "coordinates") ? (
                                   <Box width="100%" overflowX="auto">
                                     <Table size="sm" variant="simple" width="auto">
                                       <Thead>
@@ -400,7 +400,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                                       });
                                     }}
                                   />
-                                ) : key === "waypoint" || key === "coordinate" ? (
+                                ) : key === "waypoint" || key === "coordinates" ? (
                                   <Box width="100%" overflowX="auto">
                                     <Table size="sm" variant="simple" width="auto">
                                       <Thead>
