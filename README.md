@@ -109,10 +109,6 @@ redis-cli ping
 
 ## Launching Galago
 
-### On Windows.
-
-Launch Galago.exe in the root folder of the repo. You can pin a shortcut to your taskbar or desktop.
-
 ```bash
 bin/make run
 ```
