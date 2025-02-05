@@ -18,7 +18,7 @@ import {
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { BsTools } from "react-icons/bs";
-import { BsGrid3X3 } from "react-icons/bs";
+import { HiOutlineRectangleStack } from "react-icons/hi2";
 import { BsBoxSeam } from "react-icons/bs";
 import { PiPathBold } from "react-icons/pi";
 import { GiChaingun } from "react-icons/gi";
@@ -286,7 +286,7 @@ export default function Page() {
                         <Heading size="md">Labware</Heading>
                         <Text color="gray.500">Lab equipment</Text>
                       </VStack>
-                      <Icon as={BsGrid3X3} boxSize={8} color={iconColor} />
+                      <Icon as={HiOutlineRectangleStack} boxSize={8} color={iconColor} />
                     </HStack>
                     <Divider />
                     <Stat>
