@@ -7,17 +7,10 @@ import * as tool_driver from "gen-interfaces/tools/grpc_interfaces/tool_driver";
 import { ToolType } from "gen-interfaces/controller";
 import { PromisifiedGrpcClient, promisifyGrpcClient } from "./utils/promisifyGrpcCall";
 import { setInterval, clearInterval } from "timers";
-import { trpc } from "@/utils/trpc";
 import { get } from "@/server/utils/api";
-import { Tool as ToolResponse } from "@/types/api";
-import { ToolConfig } from "gen-interfaces/controller";
 import { Script } from "@/types/api";
 import { Variable } from "@/types/api";
-import * as pf400_protos from "gen-interfaces/tools/grpc_interfaces/pf400";
-import { Command } from "gen-interfaces/tools/grpc_interfaces/pf400";
-import { buildGoogleStructValue } from "utils/struct";
-import { GripParametersPanel } from "@/components/tools/advanced/teach_pendant/components/panels/GripParametersPanel";
-import { motion } from "framer-motion";
+import { Labware } from "@/types/api";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<string, Tool> = new Map();
@@ -85,39 +78,48 @@ export default class Tool {
 
 
   async loadPF400Waypoints() {
-    //We need to pass waypoints from the database. 
     const waypointsReponse = await get<any>(`/robot-arm-waypoints?tool_id=1`);
-    //Execute tool commans to load waypoints
-    console.log("Tool Id", this.info.name);
-    console.log("Type", this.info.type);
-    console.log("Waypoints", waypointsReponse.locations);
-  
     await this.executeCommand({
       toolId:"Pf400",
       toolType: ToolType.pf400,
       command: "load_waypoints",
       params: {
         locations: waypointsReponse.locations,
-        grip_params: {},
-        motion_profiles: {},
+        grip_params: waypointsReponse.grip_params,
+        motion_profiles: waypointsReponse.motion_profiles,
       },
     })
   }
-  
-  
- 
+
+  async loadLabware() {
+    const labwareResponse = await get<Labware>(`/labware`);
+    await this.executeCommand({
+      toolId: "Pf400",
+      toolType: ToolType.pf400,
+      command: "load_labware",
+      params: {
+        labware: labwareResponse,
+      },
+    });
+  }
+
+  async loadSequences() {
+      const sequencesResponse = await get<any>(`/robot-arm-waypoints?tool_id=1`);
+      await this.executeCommand({
+        toolId: "Pf400",
+        toolType: ToolType.pf400,
+        command: "load_sequences",
+        params: {
+          sequences: sequencesResponse.sequences,
+    }})
+  }
+    
   async configure(config: tool_base.Config) {
     this.config = config;
     const reply = await this.grpc.configure(config);
     if(this.info.type === ToolType.pf400){
-      console.log("Executing PF400 Waypoints");
-      try{
-        await this.loadPF400Waypoints();
-        console.log("PF400 Waypoints Loaded");
-      }
-      catch(e){
-        console.error("Error while loading PF400 Waypoints: ", e);
-      }
+      await this.loadPF400Waypoints();
+      await this.loadLabware();
     }
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
       throw new ToolCommandExecutionError(
@@ -126,7 +128,6 @@ export default class Tool {
       );
     }
   }
-
 
   _payloadForCommand(command: ToolCommandInfo): tool_base.Command {
     return {
