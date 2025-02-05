@@ -12,6 +12,14 @@ import {
   useToast,
   Tooltip,
   Wrap,
+  Card,
+  CardBody,
+  Icon,
+  Divider,
+  StatGroup,
+  Stat,
+  StatLabel,
+  StatNumber,
 } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import { CloseIcon } from "@chakra-ui/icons";
@@ -24,6 +32,7 @@ import { RiDeleteBinLine } from "react-icons/ri";
 import { NewScript } from "./NewScript";
 import { PageHeader } from "../ui/PageHeader";
 import { DeleteWithConfirmation } from "../ui/Delete";
+import { VscCode } from "react-icons/vsc";
 
 export const ScriptsEditor: React.FC = (props) => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
@@ -45,6 +54,7 @@ export const ScriptsEditor: React.FC = (props) => {
   const activeTabFontColor = useColorModeValue("teal.600", "teal.200");
   const runScript = trpc.script.run.useMutation();
   const [runError, setRunError] = useState<boolean>(false);
+  const headerBg = useColorModeValue("white", "gray.700");
 
   useEffect(() => {
     setCurrentContent(scripts.find((script) => script.name === activeTab)?.content || "");
@@ -295,75 +305,106 @@ export const ScriptsEditor: React.FC = (props) => {
   };
 
   return (
-    <Box p={1} height="100%">
-      <PageHeader title="Scripts" mainButton={<NewScript />} />
-      <HStack width="100%" border={`1px solid gray`} boxShadow="md" mt={4} alignItems="flex-start">
-        <VStack width="15%" alignItems="flex-start" spacing={4} p={0} height="100%">
-          <Text ml={3} as="b">
-            SEARCH
-          </Text>
-          <Input
-            width="98%"
-            ml={2}
-            placeholder="Search"
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <Box width="100%">
-            <Scripts />
-          </Box>
-        </VStack>
-        <VStack width="85%" borderLeft={`1px solid gray`} boxShadow="md" spacing={0}>
-          <Box width="100%">
-            <Tabs />
-          </Box>
-          {activeTab && openTabs.length > 0 ? (
-            <Editor
-              height="60vh"
-              defaultLanguage="python"
-              value={currentContent}
-              theme={codeTheme}
-              options={{
-                fontSize: 20,
-              }}
-              onChange={(value) => handleCodeChange(value)}
-            />
-          ) : (
-            <Box
-              width="100%"
-              height="60vh"
-              display="flex"
-              justifyContent="center"
-              alignItems="center">
-              <Text>Select a script to view or edit</Text>
-            </Box>
-          )}
-          <Box width="100%" height="20vh" bg={consoleBg} borderTop={`1px solid gray`}>
-            <OutputConsole />
-            <Box width="100%" height="80%" p={2} overflowY="auto">
-              {/* Display console text with preserved formatting */}
-              <Text whiteSpace="pre-wrap" fontFamily="monospace" textColor={runError ? "red" : ""}>
-                {consoleText}
-              </Text>
-            </Box>
-          </Box>
-        </VStack>
-      </HStack>
-      <HStack
-        spacing={2}
-        padding={4}
-        boxShadow="md"
-        borderBottom={`1px solid gray`}
-        borderRight={`1px solid gray`}
-        borderLeft={`1px solid gray`}
-        justifyContent="flex-end"
-        position="relative">
-        <Button colorScheme="gray" size="sm" onClick={handleSave}>
-          Save
-        </Button>
-        <Button colorScheme="teal" size="sm" onClick={handleRunScript}>
-          Run
-        </Button>
-      </HStack>
+    <Box maxW="100%">
+      <VStack spacing={4} align="stretch" width="100%">
+        <Card bg={headerBg} shadow="md">
+          <CardBody>
+            <VStack spacing={4} align="stretch">
+              <PageHeader
+                title="Scripts"
+                subTitle="Create and manage Python scripts"
+                titleIcon={<Icon as={VscCode} boxSize={8} color="teal.500" />}
+                mainButton={<NewScript />}
+              />
+              
+              <Divider />
+              
+              <StatGroup>
+                <Stat>
+                  <StatLabel>Total Scripts</StatLabel>
+                  <StatNumber>{scripts.length}</StatNumber>
+                </Stat>
+                <Stat>
+                  <StatLabel>Open Scripts</StatLabel>
+                  <StatNumber>{openTabs.length}</StatNumber>
+                </Stat>
+                <Stat>
+                  <StatLabel>Active Script</StatLabel>
+                  <StatNumber fontSize="lg">{activeTab?.replace('.py', '') || 'None'}</StatNumber>
+                </Stat>
+              </StatGroup>
+            </VStack>
+          </CardBody>
+        </Card>
+
+        <Card bg={headerBg} shadow="md">
+          <CardBody>
+            <HStack width="100%" alignItems="flex-start" spacing={4}>
+              <VStack width="200px" minW="200px" alignItems="flex-start" spacing={4}>
+                <Input
+                  placeholder="Search scripts..."
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Box width="100%">
+                  <Scripts />
+                </Box>
+              </VStack>
+
+              <VStack flex={1} spacing={0}>
+                <HStack width="100%" spacing={4} align="flex-start" justify="space-between">
+                  <Box width="100%">
+                    <HStack width="100%" justify="space-between" mb={2}>
+                      <Box flex={1} overflow="hidden">
+                        <Tabs />
+                      </Box>
+                      <HStack spacing={2} flexShrink={0}>
+                        <Button colorScheme="gray" onClick={handleSave}>
+                          Save
+                        </Button>
+                        <Button colorScheme="teal" onClick={handleRunScript}>
+                          Run
+                        </Button>
+                      </HStack>
+                    </HStack>
+                    <Box width="100%" overflow="hidden">
+                      {activeTab && openTabs.length > 0 ? (
+                        <Editor
+                          height="60vh"
+                          defaultLanguage="python"
+                          value={currentContent}
+                          theme={codeTheme}
+                          options={{
+                            fontSize: 20,
+                            wordWrap: "on"
+                          }}
+                          onChange={(value) => handleCodeChange(value)}
+                        />
+                      ) : (
+                        <Box
+                          width="100%"
+                          height="60vh"
+                          display="flex"
+                          justifyContent="center"
+                          alignItems="center">
+                          <Text>Select a script to view or edit</Text>
+                        </Box>
+                      )}
+                    </Box>
+                    <Box width="100%" height="20vh" bg={consoleBg} borderTop={`1px solid ${borderColor}`}>
+                      <OutputConsole />
+                      <Box width="100%" height="80%" p={2} overflowY="auto">
+                        <Text whiteSpace="pre-wrap" fontFamily="monospace" textColor={runError ? "red" : ""}>
+                          {consoleText}
+                        </Text>
+                      </Box>
+                    </Box>
+                  </Box>
+                </HStack>
+              </VStack>
+            </HStack>
+          </CardBody>
+        </Card>
+      </VStack>
     </Box>
   );
 };

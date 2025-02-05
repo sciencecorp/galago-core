@@ -100,7 +100,14 @@ export const VariableModal: React.FC = () => {
               </FormControl>
               <FormControl>
                 <FormLabel>Value</FormLabel>
-                <Input value={value} onChange={(e) => setValue(e.target.value)} />
+                {type === "boolean" ? (
+                  <Select value={value} onChange={(e) => setValue(e.target.value)} placeholder="Choose a value">
+                    <option value="true">True</option>
+                    <option value="false">False</option>
+                  </Select>
+                ) : (
+                  <Input value={value} onChange={(e) => setValue(e.target.value)} />
+                )}
               </FormControl>
             </VStack>
           </ModalBody>

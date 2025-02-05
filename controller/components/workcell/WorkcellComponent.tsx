@@ -75,7 +75,7 @@ export const WorkcellComponent = () => {
           </CardBody>
         </Card>
 
-        <Card bg={containerBg} shadow="md">
+        <Card bg={headerBg} shadow="md" >
           <CardBody>
             <SimpleGrid 
               columns={{ base: 1, md: 2, lg: 3, xl: 4 }} 

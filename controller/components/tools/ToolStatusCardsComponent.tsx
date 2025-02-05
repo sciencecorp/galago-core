@@ -27,6 +27,11 @@ import {
   Icon,
   Card,
   CardBody,
+  InputGroup,
+  InputLeftElement,
+  Input,
+  Select,
+  Spacer,
 } from "@chakra-ui/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { ToolConfig, ToolType } from "gen-interfaces/controller";
@@ -36,6 +41,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { load } from "@grpc/grpc-js";
 import { Tool } from "@/types/api";
 import { BsTools } from "react-icons/bs";
+import { SearchIcon } from "@chakra-ui/icons";
 
 const CarouselContainer = styled.div`
   display: flex;
@@ -70,6 +76,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
   const containerBg = useColorModeValue("white", "gray.800");
   const headerBg = useColorModeValue("white", "gray.700");
   const borderColor = useColorModeValue("gray.200", "gray.700");
+  const tableBgColor = useColorModeValue("white", "gray.700");
 
   useEffect(() => {
     if (fetchedIds) {
@@ -130,25 +137,42 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
                   <StatNumber fontSize="lg">{selectedWorkcell || "None"}</StatNumber>
                 </Stat>
               </StatGroup>
+
+              <Divider />
+
+              <HStack spacing={4} width="100%">
+                <InputGroup maxW="400px">
+                  <InputLeftElement pointerEvents="none">
+                    <SearchIcon color="gray.300" />
+                  </InputLeftElement>
+                  <Input
+                    placeholder="Search tools..."
+                    onChange={(e) => {
+                      const searchTerm = e.target.value.toLowerCase();
+                      setToolIds(fetchedIds?.filter(id => id.toLowerCase().includes(searchTerm)) || []);
+                    }}
+                    bg={tableBgColor}
+                  />
+                </InputGroup>
+                <Spacer />
+              </HStack>
             </VStack>
           </CardBody>
         </Card>
 
-        <Card bg={containerBg} shadow="md">
+        <Card bg={headerBg} shadow="md">
           <CardBody>
             {showAsGrid ? (
               <SimpleGrid 
-                columns={{ base: 1, md: 3, lg: 4, xl: 5 }} 
-                spacing={4}
+                columns={{ base: 1, md: 2, lg: 3, xl: 4 }} 
+                spacing={6}
                 w="100%"
                 alignItems="start"
-                justifyItems="center"
+                px={2}
+                py={2}
               >
                 {toolIds.map((id) => (
-                  <Box 
-                    key={id}
-                    width="280px"
-                  >
+                  <Box key={id}>
                     <ToolStatusCard toolId={id} />
                   </Box>
                 ))}

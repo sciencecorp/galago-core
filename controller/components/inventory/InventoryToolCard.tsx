@@ -13,12 +13,20 @@ import {
   IconButton,
   SimpleGrid,
   VStack,
+  HStack,
+  Badge,
+  Divider,
+  Icon,
+  Tooltip,
 } from "@chakra-ui/react";
 import { Nest, Plate, Reagent } from "@/types/api";
 import NestModal from "./NestModal";
 import styled from "@emotion/styled";
 import { trpc } from "@/utils/trpc";
 import { PiToolbox } from "react-icons/pi";
+import { useColorModeValue } from "@chakra-ui/react";
+import { BsGrid3X3, BsBoxSeam } from "react-icons/bs";
+import { FaFlask } from "react-icons/fa";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -69,6 +77,11 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   onDeleteNest,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const cardBg = useColorModeValue("white", "gray.900");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const iconColor = useColorModeValue("gray.600", "gray.400");
+  const statBg = useColorModeValue("gray.50", "gray.800");
+
   const { isOpen, onOpen, onClose } = useDisclosure();
   const workcells = trpc.workcell.getAll.useQuery();
   const SelectedWorkcellName = trpc.workcell.getSelectedWorkcell.useQuery();
@@ -81,8 +94,19 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
 
   const toolNests = nests.filter((nest) => nest.name?.toString() === name?.toString());
   const toolPlates = plates.filter((plate) => toolNests.some((nest) => nest.id === plate.nest_id));
+  
+  // Get reagent count for this tool's plates
+  const { data: plateReagents = [] } = trpc.inventory.getReagents.useQuery<Reagent[]>(
+    toolPlates[0]?.id || 0,
+    {
+      enabled: toolPlates.length > 0
+    }
+  );
 
-  function renderToolImage(config: any) {
+  // Count reagents
+  const reagentCount = (plateReagents as Reagent[]).length || 0;
+
+  const renderToolImage = (config: any) => {
     if (!config?.image_url) {
       return <Box></Box>;
     } else if (config.name === "Tool Box") {
@@ -104,43 +128,99 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
           src={`/tool_icons/${config.type}.png`}
           alt={name}
           objectFit="contain"
-          height={isHovered ? "120px" : "120px"}
-          width={isHovered ? "120px" : "120px"}
-          transition="all 0.3s ease-in-out"
+          height="80px"
+          width="80px"
+          opacity={0.9}
         />
       );
     }
-  }
+  };
 
   return (
     <>
-      <StyledCard
+      <Card
+        bg={cardBg}
+        borderColor={borderColor}
+        borderWidth="1px"
+        height="280px"
+        width="280px"
+        borderRadius="lg"
         onClick={onOpen}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}>
-        <CardHeader pb="0px">
-          <Flex justifyContent="space-between" alignItems="center">
-            <Box>
-              <Heading size="md">{name}</Heading>
-              <Text fontSize="sm" color="gray.500">
-                {toolNests.length} Nests | {toolPlates.length} Plates
-              </Text>
-            </Box>
-          </Flex>
-        </CardHeader>
-
-        <CardBody>
-          <VStack align="stretch" spacing={4} mb={2}>
-            <Flex
-              justifyContent="center"
-              alignItems="center"
-              height={isHovered ? "auto" : "100%"}
-              transition="all 0.3s ease-in-out">
-              {toolData ? renderToolImage(toolData) : <Spinner size="lg" />}
+        transition="all 0.2s"
+        cursor="pointer"
+        _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
+      >
+        <CardHeader pb={4}>
+          <VStack align="stretch" spacing={2}>
+            <Flex justify="space-between" align="center">
+              <HStack spacing={3}>
+                <Box boxSize="50px" display="flex" alignItems="center" justifyContent="center">
+                  {toolData ? renderToolImage(toolData) : <Spinner size="md" />}
+                </Box>
+                <Box>
+                  <Heading size="md">{name}</Heading>
+                  <Text fontSize="sm" color="gray.500">
+                    Inventory
+                  </Text>
+                </Box>
+              </HStack>
             </Flex>
           </VStack>
+        </CardHeader>
+
+        <Divider />
+
+        <CardBody pt={4}>
+          <VStack align="stretch" spacing={4}>
+            <SimpleGrid columns={3} spacing={2}>
+              <Tooltip label="Total Nests" placement="top">
+                <Box 
+                  p={2} 
+                  bg={statBg} 
+                  borderRadius="md"
+                  textAlign="center"
+                >
+                  <Icon as={BsGrid3X3} color={iconColor} mb={1} />
+                  <Text fontWeight="bold" fontSize="md">
+                    {toolNests.length}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">Nests</Text>
+                </Box>
+              </Tooltip>
+              
+              <Tooltip label="Total Plates" placement="top">
+                <Box 
+                  p={2} 
+                  bg={statBg} 
+                  borderRadius="md"
+                  textAlign="center"
+                >
+                  <Icon as={BsBoxSeam} color={iconColor} mb={1} />
+                  <Text fontWeight="bold" fontSize="md">
+                    {toolPlates.length}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">Plates</Text>
+                </Box>
+              </Tooltip>
+
+              <Tooltip label="Total Reagents" placement="top">
+                <Box 
+                  p={2} 
+                  bg={statBg} 
+                  borderRadius="md"
+                  textAlign="center"
+                >
+                  <Icon as={FaFlask} color={iconColor} mb={1} />
+                  <Text fontWeight="bold" fontSize="md">
+                    {reagentCount}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">Reagents</Text>
+                </Box>
+              </Tooltip>
+            </SimpleGrid>
+          </VStack>
         </CardBody>
-      </StyledCard>
+      </Card>
 
       <NestModal
         isOpen={isOpen}

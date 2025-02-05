@@ -1,9 +1,5 @@
 import { trpc } from "@/utils/trpc";
 import {
-  Heading,
-  HStack,
-  Spinner,
-  Switch,
   Table,
   Tag,
   Tbody,
@@ -16,14 +12,28 @@ import {
   Box,
   Button,
   Select,
+  Card,
+  CardBody,
+  Icon,
+  Divider,
+  StatGroup,
+  Stat,
+  StatLabel,
+  StatNumber,
+  HStack,
+  useColorModeValue,
+  InputGroup,
+  InputLeftElement,
+  Input,
 } from "@chakra-ui/react";
-import { InfoOutlineIcon, CloseIcon, WarningIcon, QuestionOutlineIcon } from "@chakra-ui/icons";
-import { useEffect, useState } from "react";
+import { InfoOutlineIcon, CloseIcon, WarningIcon, QuestionOutlineIcon, SearchIcon } from "@chakra-ui/icons";
+import { useEffect, useState, useMemo } from "react";
 import { Log } from "@/types/api";
 import { renderDatetime } from "../ui/Time";
 import { FiInfo } from "react-icons/fi";
-
 import { VscRefresh } from "react-icons/vsc";
+import { FiBook } from "react-icons/fi";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 interface LogViewProps {}
 
@@ -52,7 +62,13 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
   const [logs, setLogs] = useState<Log[]>([]);
   const [limit, setLimit] = useState<number>(25);
   const [offset, setOffset] = useState<number>(0);
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedLevel, setSelectedLevel] = useState<string>("");
+  
+  const headerBg = useColorModeValue("white", "gray.700");
+  const tableBgColor = useColorModeValue("white", "gray.700");
+  const hoverBgColor = useColorModeValue("gray.50", "gray.600");
+
   const hasPrevious = offset > 0;
   const hasNext = logs.length === limit || false;
 
@@ -68,73 +84,137 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
     }
   }, [fetchedLogs, offset, limit]);
 
-  const handleNext = () => {
-    if (hasNext) {
-      setOffset(offset + limit);
-    }
-  };
+  // Calculate stats
+  const totalLogs = logs.length;
+  const errorCount = logs.filter(log => log.level === 'error').length;
+  const warningCount = logs.filter(log => log.level === 'warning').length;
 
-  const handlePrevious = () => {
-    if (hasPrevious) {
-      setOffset(Math.max(offset - limit, 0));
-    }
-  };
-
-  const handleLimitChange = (e: number) => {
-    setLimit(e);
-  };
+  // Filter logs based on search and level
+  const filteredLogs = useMemo(() => {
+    return logs.filter(log => {
+      const matchesSearch = 
+        log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        log.details.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesLevel = !selectedLevel || log.level === selectedLevel;
+      return matchesSearch && matchesLevel;
+    });
+  }, [logs, searchQuery, selectedLevel]);
 
   return (
-    <VStack spacing={1} p={4} maxHeight="calc(100vh - 80px)" overflowY="auto" mt={10}>
-      <HStack justify="space-between" width="100%">
-        <Heading>Logs</Heading>
-        <Button onClick={() => refetch()} colorScheme="teal" leftIcon={<VscRefresh />}>
-          Refresh
-        </Button>
-      </HStack>
-      <HStack margin="10px"></HStack>
-      <Table mt={8}>
-        <Thead>
-          <Tr>
-            <Th p={1}></Th>
-            <Th p={1}>Level</Th>
-            <Th p={1}>Actions</Th>
-            <Th p={1}>Details</Th>
-            <Th p={1}>Created On</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {logs.map((log, index) => {
-            return (
-              <Tr key={index} h="50px">
-                <Td p={1}>{getIconFromLogType(log.level)}</Td>
-                <Td p={1}>{log.level}</Td>
-                <Td p={1}>{log.action}</Td>
-                <Td p={1}>{log.details}</Td>
-                <Td p={1}>{renderDatetime(String(log.created_at))}</Td>
-              </Tr>
-            );
-          })}
-        </Tbody>
-      </Table>
-      <HStack>
-        <Box>Per Page:</Box>
-        <Select
-          value={limit}
-          width="75px"
-          size="sm"
-          onChange={(e) => setLimit(Number(e.target.value))}>
-          <option value="25">25</option>
-          <option value="50">50</option>
-          <option value="100">100</option>
-        </Select>
-        <Button size="sm" disabled={!hasPrevious} onClick={handlePrevious}>
-          Previous
-        </Button>
-        <Button size="sm" disabled={!hasNext} onClick={handleNext}>
-          Next
-        </Button>
-      </HStack>
-    </VStack>
+    <Box maxW="100%">
+      <VStack spacing={4} align="stretch">
+        <Card bg={headerBg} shadow="md">
+          <CardBody>
+            <VStack spacing={4} align="stretch">
+              <PageHeader
+                title="Logs"
+                subTitle="Monitor and analyze system logs"
+                titleIcon={<Icon as={FiBook} boxSize={8} color="teal.500" />}
+                mainButton={
+                  <Button onClick={() => refetch()} colorScheme="teal" leftIcon={<VscRefresh />}>
+                    Refresh
+                  </Button>
+                }
+              />
+              
+              <Divider />
+              
+              <StatGroup>
+                <Stat>
+                  <StatLabel>Total Logs</StatLabel>
+                  <StatNumber>{totalLogs}</StatNumber>
+                </Stat>
+                <Stat>
+                  <StatLabel>Errors</StatLabel>
+                  <StatNumber color="red.500">{errorCount}</StatNumber>
+                </Stat>
+                <Stat>
+                  <StatLabel>Warnings</StatLabel>
+                  <StatNumber color="orange.500">{warningCount}</StatNumber>
+                </Stat>
+              </StatGroup>
+
+              <Divider />
+
+              <HStack spacing={4}>
+                <InputGroup maxW="400px">
+                  <InputLeftElement pointerEvents="none">
+                    <SearchIcon color="gray.300" />
+                  </InputLeftElement>
+                  <Input
+                    placeholder="Search logs..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    bg={tableBgColor}
+                  />
+                </InputGroup>
+                <Select
+                  value={selectedLevel}
+                  onChange={(e) => setSelectedLevel(e.target.value)}
+                  maxW="200px"
+                >
+                  <option value="">All Levels</option>
+                  <option value="error">Error</option>
+                  <option value="warning">Warning</option>
+                  <option value="info">Info</option>
+                  <option value="debug">Debug</option>
+                </Select>
+              </HStack>
+            </VStack>
+          </CardBody>
+        </Card>
+
+        <Card bg={headerBg} shadow="md">
+          <CardBody>
+            <VStack spacing={4} align="stretch">
+              <Box overflowX="auto">
+                <Table>
+                  <Thead>
+                    <Tr>
+                      <Th p={1}></Th>
+                      <Th p={1}>Level</Th>
+                      <Th p={1}>Actions</Th>
+                      <Th p={1}>Details</Th>
+                      <Th p={1}>Created On</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {filteredLogs.map((log, index) => (
+                      <Tr key={index} _hover={{ bg: hoverBgColor }}>
+                        <Td p={1}>{getIconFromLogType(log.level)}</Td>
+                        <Td p={1}>{log.level}</Td>
+                        <Td p={1}>{log.action}</Td>
+                        <Td p={1}>{log.details}</Td>
+                        <Td p={1}>{renderDatetime(String(log.created_at))}</Td>
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+              </Box>
+
+              <HStack justify="flex-end" spacing={4}>
+                <Box>Per Page:</Box>
+                <Select
+                  value={limit}
+                  width="75px"
+                  size="sm"
+                  onChange={(e) => setLimit(Number(e.target.value))}
+                >
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </Select>
+                <Button size="sm" disabled={!hasPrevious} onClick={() => setOffset(Math.max(offset - limit, 0))}>
+                  Previous
+                </Button>
+                <Button size="sm" disabled={!hasNext} onClick={() => setOffset(offset + limit)}>
+                  Next
+                </Button>
+              </HStack>
+            </VStack>
+          </CardBody>
+        </Card>
+      </VStack>
+    </Box>
   );
 };
