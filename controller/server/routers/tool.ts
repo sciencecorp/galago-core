@@ -82,7 +82,6 @@ export const toolRouter = router({
     const allTools = await get<ToolResponse[]>(`/tools`);
     Tool.reloadWorkcellConfig(allTools as controller_protos.ToolConfig[]);
     const toolIds = allTools.map((tool) => tool.name);
-    console.log("Tool IDs:", toolIds);
     toolIds.push("Tool Box");
     return toolIds;
   }),
@@ -139,58 +138,5 @@ export const toolRouter = router({
     )
     .mutation(async ({ input }) => {
       return await Tool.executeCommand(input);
-    }),
-
-  waypoints: procedure
-    .input(
-      z.object({
-        toolId: z.number().int().positive(),
-      }),
-    )
-    .query(async ({ input }) => {
-      try {
-        const response = await fetch(
-          `http://localhost:8000/robot-arm-waypoints?tool_id=${input.toolId}`,
-        );
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch waypoints: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-
-        const result = {
-          locations: data.locations || [],
-          nests: data.nests || [],
-          sequences: data.sequences || [],
-          motion_profiles: data.motion_profiles || [],
-          grip_params: data.grip_params || [],
-        };
-
-        return result;
-      } catch (error) {
-        console.error("Error fetching waypoints:", error);
-        throw new Error("Failed to fetch waypoints");
-      }
-    }),
-
-  reloadWaypoints: procedure
-    .input(z.string())
-    .mutation(async ({ input: toolId }) => {
-      const tool = Tool.forId(toolId);
-      if (!tool) {
-        throw new Error(`Tool ${toolId} not found`);
-      }
-      await tool.reloadWaypoints();
-    }),
-
-  reloadLabware: procedure
-    .input(z.string())
-    .mutation(async ({ input: toolId }) => {
-      const tool = Tool.forId(toolId);
-      if (!tool) {
-        throw new Error(`Tool ${toolId} not found`);
-      }
-      await tool.reloadLabware();
     }),
 });

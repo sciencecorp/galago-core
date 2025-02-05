@@ -56,29 +56,31 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
     const totalDays = endOfMonth.getDate();
 
     // Fill in the dates for the previous month
-    for (let i = 0; i < startDay; i++) {
-      dates.push(new Date(currentDate.getFullYear(), currentDate.getMonth(), -i));
+    const prevMonthLastDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0).getDate();
+    for (let i = startDay - 1; i >= 0; i--) {
+      dates.push(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, prevMonthLastDay - i));
     }
-    dates.reverse();
 
     // Fill in the dates for the current month
     for (let i = 1; i <= totalDays; i++) {
       dates.push(new Date(currentDate.getFullYear(), currentDate.getMonth(), i));
     }
 
+    // Fill in the dates for the next month
+    const nextMonthDays = 35 - dates.length; // Fill the remaining slots in a 6-row grid
+    for (let i = 1; i <= nextMonthDays; i++) {
+      dates.push(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, i));
+    }
+
     setDaysInMonth(dates);
   };
 
   const handlePrevMonth = () => {
-    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
-    setCurrentDate(newDate);
-    generateCalendarDays();
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   };
 
   const handleNextMonth = () => {
-    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
-    setCurrentDate(newDate);
-    generateCalendarDays();
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   };
 
   const isCurrentDay = (date: Date) =>
@@ -100,51 +102,57 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
   };
 
   return (
-    <VStack spacing={4} p={4} border="1px solid lightgray" borderRadius="15px" boxShadow="lg">
+    <VStack spacing={4} p={4} border="1px solid lightgray" borderRadius="md" boxShadow="mf">
       <Heading size="lg">
         {currentDate.toLocaleString("default", { month: "long" })} {currentDate.getFullYear()}
       </Heading>
       <Box display="flex" justifyContent="space-between" width="100%">
-        <Button color={bgColor} onClick={handlePrevMonth} variant="ghost">
+        <Button left={-4} color={bgColor} onClick={handlePrevMonth} variant="ghost">
           <FiChevronLeft /> Previous
         </Button>
-        <Button onClick={handleNextMonth} colorScheme="teal" color={bgColor} variant="ghost">
+        <Button left={4} onClick={handleNextMonth} colorScheme="teal" color={bgColor} variant="ghost">
           <FiChevronRight /> Next
         </Button>
       </Box>
-      <Grid templateColumns="repeat(7, 1fr)" gap={2} mt={4} width="100%">
+      <Grid templateColumns="repeat(7, 1fr)" gap={1} mt={4} width="100%">
         {daysOfWeek.map((day) => (
           <Text key={day} fontWeight="bold" textAlign="center">
             {day}
           </Text>
         ))}
-        {daysInMonth.map((day, index) => (
-          <Grid
-            width="100%"
-            height="100%"
-            display="flex"
-            alignItems="center"
-            justifyContent="space-around"
-            key={index}
-            textAlign="center"
-            color="teal.800"
-            p={paddingSize}
-            borderRadius="md"
-            bg={
-              isCurrentDay(day)
-                ? "teal.300"
-                : selectedDate?.toDateString() === day.toDateString()
-                  ? "teal.400"
+        {daysInMonth.map((day, index) => {
+          const isOutsideMonth = day.getMonth() !== currentDate.getMonth();
+
+          return (
+            <Grid
+              width="100%"
+              height="100%"
+              display="flex"
+              alignItems="center"
+              justifyContent="space-around"
+              key={index}
+              textAlign="center"
+              color={isOutsideMonth ? "gray.500" : "teal.800"}
+              p={paddingSize}
+              borderRadius="sm"
+              bg={
+                isCurrentDay(day)
+                  ? "teal.500"
+                  : selectedDate?.toDateString() === day.toDateString()
+                  ? "teal.200"
+                  : isOutsideMonth
+                  ? "gray.300" 
                   : "gray.100"
-            }
-            _hover={{ bg: hoverColor }}
-            onClick={() => handleDateClick(day)}
-            cursor="pointer">
-            <Flex direction="column" justifyContent="center" alignItems="center">
-              <Text fontSize="large">{day.getDate()}</Text>
-            </Flex>
-          </Grid>
-        ))}
+              }
+              _hover={{ bg: isOutsideMonth ? "gray.300" : hoverColor }}
+              onClick={() => handleDateClick(day)}
+              cursor="pointer">
+              <Flex direction="column" justifyContent="center" alignItems="center">
+                <Text fontSize="large">{day.getDate()}</Text>
+              </Flex>
+            </Grid>
+          );
+        })}
       </Grid>
 
       <HStack spacing={4} width="100%" mt={4}>
@@ -153,16 +161,16 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
         </Text>
         <Box width="90%">
           <Input
-            fontSize="25px"
-            height="60px"
+            fontSize="20px"
+            height="40px"
             type="time"
             value={selectedTime}
             onChange={handleTimeChange}
             width="100%"
             placeholder="Select Time"
             padding="10px"
-            borderRadius="10px"
-            boxShadow="md"
+            borderRadius="sm"
+            boxShadow="sm"
           />
         </Box>
       </HStack>

@@ -1,31 +1,46 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, \
-JSON, Date, Boolean, Float, DateTime, CheckConstraint
-from sqlalchemy.orm import relationship
+from sqlalchemy import (
+    Column,
+    ForeignKey,
+    Integer,
+    String,
+    JSON,
+    Date,
+    Boolean,
+    Float,
+    DateTime,
+    CheckConstraint,
+)
+from sqlalchemy.orm import relationship, RelationshipProperty
 from .db_session import Base
 from sqlalchemy.ext.declarative import declared_attr
 import datetime
+from typing import List
+import typing as t
+
 
 class TimestampMixin:
     @declared_attr
     def created_at(cls) -> Column:
         return Column(DateTime, default=datetime.datetime.now())
+
     @declared_attr
     def updated_at(cls) -> Column:
-        return Column(DateTime, default=datetime.datetime.now(), 
-                      onupdate=datetime.datetime.now())
+        return Column(
+            DateTime, default=datetime.datetime.now(), onupdate=datetime.datetime.now()
+        )
+
 
 class Workcell(Base, TimestampMixin):
     __tablename__ = "workcells"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
     location = Column(String, nullable=True)
-    description = Column(String, nullable=True) 
-    tools = relationship("Tool", back_populates="workcell", 
-                         cascade="all, delete-orphan")
-    
-    __table_args__ = (
-        CheckConstraint("name <> ''", name="check_non_empty_name"),
+    description = Column(String, nullable=True)
+    tools: t.Union[List["Tool"], RelationshipProperty] = relationship(
+        "Tool", back_populates="workcell", cascade="all, delete-orphan"
     )
+    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+
 
 class Tool(Base, TimestampMixin):
     __tablename__ = "tools"
@@ -36,25 +51,16 @@ class Tool(Base, TimestampMixin):
     image_url = Column(String, nullable=True)
     ip = Column(String, nullable=False)
     port = Column(Integer, nullable=False)
-    config = Column(JSON, nullable=True) 
+    config = Column(JSON, nullable=True)
     workcell_id = Column(String, ForeignKey("workcells.id"))
-    workcell = relationship("Workcell", back_populates="tools")
-    nests = relationship("Nest", back_populates="tool")
-    robot_arm_locations = relationship("RobotArmLocation", 
-                                       back_populates="tool")
-    robot_arm_nests = relationship("RobotArmNest", 
-                                   back_populates="tool")
-    robot_arm_sequences = relationship("RobotArmSequence", 
-                                       back_populates="tool")
-    robot_arm_motion_profiles = relationship("RobotArmMotionProfile", 
-                                             back_populates="tool")
-    robot_arm_grip_params = relationship("RobotArmGripParams", 
-                                         back_populates="tool")
-
-    __table_args__ = (
-        CheckConstraint("name <> ''", 
-                        name="check_non_empty_name"),
+    workcell: t.Union[List["Workcell"], RelationshipProperty] = relationship(
+        "Workcell", back_populates="tools"
     )
+    nests: t.Union[List["Nest"], RelationshipProperty] = relationship(
+        "Nest", back_populates="tool"
+    )
+    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+
 
 class Nest(Base, TimestampMixin):
     __tablename__ = "nests"
@@ -63,8 +69,9 @@ class Nest(Base, TimestampMixin):
     row = Column(Integer)
     column = Column(Integer)
     tool_id = Column(Integer, ForeignKey("tools.id"))
-    tool = relationship("Tool", back_populates="nests")
-    plate = relationship("Plate", back_populates="nest", uselist=False)
+
+    tool: t.Union[List["Tool"], RelationshipProperty]  = relationship("Tool", back_populates="nests")
+    plate: t.Union[List["Plate"], RelationshipProperty]  = relationship("Plate", back_populates="nest", uselist=False)
 
 
 class Plate(Base, TimestampMixin):
@@ -73,10 +80,9 @@ class Plate(Base, TimestampMixin):
     name = Column(String, nullable=True)
     barcode = Column(String)
     plate_type = Column(String)
-    nest_id = Column(Integer, 
-                     ForeignKey("nests.id"), nullable=True)
-    nest = relationship("Nest", back_populates="plate")
-    wells = relationship("Well", back_populates="plate")
+    nest_id = Column(Integer, ForeignKey("nests.id"), nullable=True)
+    nest: t.Union[List["Nest"], RelationshipProperty] = relationship("Nest", back_populates="plate")
+    wells : t.Union[List["Well"], RelationshipProperty] = relationship("Well", back_populates="plate")
 
 
 class Well(Base, TimestampMixin):
@@ -85,12 +91,10 @@ class Well(Base, TimestampMixin):
     row = Column(String)
     column = Column(Integer)
 
-    plate_id = Column(Integer, 
-                      ForeignKey("plates.id"))
-    plate = relationship("Plate", 
-                         back_populates="wells")
-    reagents = relationship("Reagent", 
-                            back_populates="well")
+    plate_id = Column(Integer, ForeignKey("plates.id"))
+    plate: t.Union[List["Plate"], RelationshipProperty] = relationship("Plate", back_populates="wells")
+    reagents: t.Union[List["Reagent"], RelationshipProperty] = relationship("Reagent", back_populates="well")
+
 
 class Reagent(Base, TimestampMixin):
     __tablename__ = "reagents"
@@ -98,25 +102,25 @@ class Reagent(Base, TimestampMixin):
     name = Column(String)
     expiration_date = Column(Date)
     volume = Column(Float)
-
     well_id = Column(Integer, ForeignKey("wells.id"))
-    well = relationship("Well", back_populates="reagents")
+    well: t.Union[List["Well"], RelationshipProperty] = relationship("Well", back_populates="reagents")
+
 
 class VariableType(Base, TimestampMixin):
-    __tablename__= "variable_types"
+    __tablename__ = "variable_types"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
 
-class Variable(Base,TimestampMixin):
+
+class Variable(Base, TimestampMixin):
     __tablename__ = "variables"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True, nullable=False)
-    value = Column(String , nullable=False)
+    value = Column(String, nullable=False)
     type = Column(String)
 
-    __table_args__ = (
-        CheckConstraint("name <> ''", name="check_non_empty_name"),
-    )
+    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+
 
 class Labware(Base, TimestampMixin):
     __tablename__ = "labware"
@@ -132,12 +136,11 @@ class Labware(Base, TimestampMixin):
     plate_lid_offset = Column(Float, nullable=True)
     lid_offset = Column(Float, nullable=True)
     stack_height = Column(Float, nullable=True)
-    has_lid = Column(Boolean, nullable=True) 
+    has_lid = Column(Boolean, nullable=True)
 
-    __table_args__ = (
-        CheckConstraint("name <> ''", name="check_non_empty_name"),
-    )
-    
+    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+
+
 class Script(Base, TimestampMixin):
     __tablename__ = "scripts"
     id = Column(Integer, primary_key=True)
@@ -145,9 +148,8 @@ class Script(Base, TimestampMixin):
     description = Column(String, nullable=False)
     content = Column(String, nullable=False)
     language = Column(String, nullable=False)
-    is_blocking = Column(Boolean, nullable=False) 
+    is_blocking = Column(Boolean, nullable=False)
 
-    
 class AppSettings(Base, TimestampMixin):
     __tablename__ = "app_settings"
     id = Column(Integer, primary_key=True, index=True)
@@ -204,7 +206,7 @@ class RobotArmMotionProfile(Base, TimestampMixin):
     __tablename__ = "robot_arm_motion_profiles"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
-    profile_id = Column(Integer, nullable=False)  
+    profile_id = Column(Integer, nullable=False)
     speed = Column(Float, nullable=False)
     speed2 = Column(Float, nullable=False)
     acceleration = Column(Float, nullable=False)
@@ -214,7 +216,6 @@ class RobotArmMotionProfile(Base, TimestampMixin):
     inrange = Column(Float, nullable=False)
     straight = Column(Integer, nullable=False)
     tool_id = Column(Integer, ForeignKey("tools.id"))
-    tool = relationship("Tool", back_populates="robot_arm_motion_profiles")
 
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
@@ -230,8 +231,5 @@ class RobotArmGripParams(Base, TimestampMixin):
     speed = Column(Integer, nullable=False)
     force = Column(Integer, nullable=False)
     tool_id = Column(Integer, ForeignKey("tools.id"))
-    tool = relationship("Tool", back_populates="robot_arm_grip_params")
 
-    __table_args__ = (
-        CheckConstraint("name <> ''", name="check_non_empty_name"),
-    )
+    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)

@@ -32,7 +32,6 @@ import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { getegid } from "process";
 import { get } from "http";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { RunTag } from "./RunTag";
 
 interface QueueStatusComponent {
   totalRuns: number;

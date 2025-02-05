@@ -1,21 +1,18 @@
 
 import { trpc } from "@/utils/trpc";
 import {
-  Box,
   Button,
   HStack,
   Spinner,
   Switch,
   Text,
-  Textarea,
   Tooltip,
   VStack,
   useToast,
 } from "@chakra-ui/react";
-import { Any } from "@grpc/grpc-js/build/src/generated/google/protobuf/Any";
-import { ToolConfig, ToolType } from "gen-interfaces/controller";
+import { ToolConfig } from "gen-interfaces/controller";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 
 function toolSpecificConfig(toolConfig: ToolConfig): Record<string, any> | undefined {
   const toolType = toolConfig.type;
@@ -44,17 +41,17 @@ export function ToolConfigEditor({
       },
     },
   );
-  const toast = useToast();
 
-  const cytation_error =
-    "There are multiple instances of Gen5 software. Please delete them in task manager and try to connect again";
-  var error_description = "";
+  const toast = useToast();
+  var error_description = "Error connecting to instrument";
   const configureMutation = trpc.tool.configure.useMutation({
     onSuccess: () => {
       statusQuery.refetch();
     },
     onError: (data) => {
-      error_description = data.message;
+      if(data.message){
+        error_description = data.message;
+      }
       toast.closeAll(),
         toast({
           title: "Failed to connect to instrument",
@@ -69,10 +66,10 @@ export function ToolConfigEditor({
   const { isLoading } = configureMutation;
   const [isSimulated, setSimulated] = useState(false);
   const isReachable =
-    statusQuery.isSuccess &&
-    statusQuery.data &&
-    statusQuery.data.status !== ToolStatus.OFFLINE &&
-    toolId != "1206";
+          statusQuery.isSuccess &&
+          statusQuery.data &&
+          statusQuery.data.status !== ToolStatus.OFFLINE &&
+          toolId != "Tool Box";
   const toolType = defaultConfig.type;
   const config = toolSpecificConfig(defaultConfig);
   const [configString, setConfigString] = useState(JSON.stringify(config, null, 2));
