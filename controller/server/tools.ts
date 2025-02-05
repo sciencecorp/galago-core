@@ -119,7 +119,7 @@ export default class Tool {
     const reply = await this.grpc.configure(config);
     if(this.info.type === ToolType.pf400){
       await this.loadPF400Waypoints();
-      await this.loadLabware();
+      // await this.loadLabware();
     }
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
       throw new ToolCommandExecutionError(
