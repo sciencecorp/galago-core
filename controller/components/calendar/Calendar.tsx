@@ -108,7 +108,12 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
         <Button size="sm" color={bgColor} onClick={handlePrevMonth} variant="ghost">
           <FiChevronLeft />
         </Button>
-        <Button size="sm" onClick={handleNextMonth} colorScheme="teal" color={bgColor} variant="ghost">
+        <Button
+          size="sm"
+          onClick={handleNextMonth}
+          colorScheme="teal"
+          color={bgColor}
+          variant="ghost">
           <FiChevronRight />
         </Button>
       </Box>

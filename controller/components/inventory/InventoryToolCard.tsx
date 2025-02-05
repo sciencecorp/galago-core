@@ -94,13 +94,13 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
 
   const toolNests = nests.filter((nest) => nest.name?.toString() === name?.toString());
   const toolPlates = plates.filter((plate) => toolNests.some((nest) => nest.id === plate.nest_id));
-  
+
   // Get reagent count for this tool's plates
   const { data: plateReagents = [] } = trpc.inventory.getReagents.useQuery<Reagent[]>(
     toolPlates[0]?.id || 0,
     {
-      enabled: toolPlates.length > 0
-    }
+      enabled: toolPlates.length > 0,
+    },
   );
 
   // Count reagents
@@ -148,8 +148,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
         onClick={onOpen}
         transition="all 0.2s"
         cursor="pointer"
-        _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
-      >
+        _hover={{ transform: "translateY(-2px)", shadow: "lg" }}>
         <CardHeader pb={4}>
           <VStack align="stretch" spacing={2}>
             <Flex justify="space-between" align="center">
@@ -174,47 +173,38 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
           <VStack align="stretch" spacing={4}>
             <SimpleGrid columns={3} spacing={2}>
               <Tooltip label="Total Nests" placement="top">
-                <Box 
-                  p={2} 
-                  bg={statBg} 
-                  borderRadius="md"
-                  textAlign="center"
-                >
+                <Box p={2} bg={statBg} borderRadius="md" textAlign="center">
                   <Icon as={BsGrid3X3} color={iconColor} mb={1} />
                   <Text fontWeight="bold" fontSize="md">
                     {toolNests.length}
                   </Text>
-                  <Text fontSize="xs" color="gray.500">Nests</Text>
+                  <Text fontSize="xs" color="gray.500">
+                    Nests
+                  </Text>
                 </Box>
               </Tooltip>
-              
+
               <Tooltip label="Total Plates" placement="top">
-                <Box 
-                  p={2} 
-                  bg={statBg} 
-                  borderRadius="md"
-                  textAlign="center"
-                >
+                <Box p={2} bg={statBg} borderRadius="md" textAlign="center">
                   <Icon as={BsBoxSeam} color={iconColor} mb={1} />
                   <Text fontWeight="bold" fontSize="md">
                     {toolPlates.length}
                   </Text>
-                  <Text fontSize="xs" color="gray.500">Plates</Text>
+                  <Text fontSize="xs" color="gray.500">
+                    Plates
+                  </Text>
                 </Box>
               </Tooltip>
 
               <Tooltip label="Total Reagents" placement="top">
-                <Box 
-                  p={2} 
-                  bg={statBg} 
-                  borderRadius="md"
-                  textAlign="center"
-                >
+                <Box p={2} bg={statBg} borderRadius="md" textAlign="center">
                   <Icon as={FaFlask} color={iconColor} mb={1} />
                   <Text fontWeight="bold" fontSize="md">
                     {reagentCount}
                   </Text>
-                  <Text fontSize="xs" color="gray.500">Reagents</Text>
+                  <Text fontSize="xs" color="gray.500">
+                    Reagents
+                  </Text>
                 </Box>
               </Tooltip>
             </SimpleGrid>

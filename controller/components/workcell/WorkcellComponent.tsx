@@ -41,7 +41,8 @@ export const WorkcellComponent = () => {
   }, [fetchedWorkcells]);
 
   const getActiveWorkcells = () => {
-    return workcells.filter(w => selectedWorkcellId && w.id.toString() === selectedWorkcellId).length;
+    return workcells.filter((w) => selectedWorkcellId && w.id.toString() === selectedWorkcellId)
+      .length;
   };
 
   return (
@@ -56,9 +57,9 @@ export const WorkcellComponent = () => {
                 mainButton={<NewWorkcellModal />}
                 titleIcon={<Icon as={GiChaingun} boxSize={8} color="teal.500" />}
               />
-              
+
               <Divider />
-              
+
               <StatGroup>
                 <Stat>
                   <StatLabel>Total Workcells</StatLabel>
@@ -66,29 +67,22 @@ export const WorkcellComponent = () => {
                 </Stat>
                 <Stat>
                   <StatLabel>Active Workcell</StatLabel>
-                  <StatNumber fontSize="lg">
-                    {selectedWorkcellId || "None"}
-                  </StatNumber>
+                  <StatNumber fontSize="lg">{selectedWorkcellId || "None"}</StatNumber>
                 </Stat>
               </StatGroup>
             </VStack>
           </CardBody>
         </Card>
 
-        <Card bg={headerBg} shadow="md" >
+        <Card bg={headerBg} shadow="md">
           <CardBody>
-            <SimpleGrid 
-              columns={{ base: 1, md: 2, lg: 3, xl: 4 }} 
+            <SimpleGrid
+              columns={{ base: 1, md: 2, lg: 3, xl: 4 }}
               spacing={6}
               w="100%"
-              alignItems="start"
-            >
+              alignItems="start">
               {workcells.map((workcell) => (
-                <WorkcellCard 
-                  key={workcell.id} 
-                  onChange={refetch} 
-                  workcell={workcell} 
-                />
+                <WorkcellCard key={workcell.id} onChange={refetch} workcell={workcell} />
               ))}
             </SimpleGrid>
           </CardBody>

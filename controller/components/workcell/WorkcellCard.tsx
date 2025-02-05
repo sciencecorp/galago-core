@@ -131,8 +131,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
       shadow="md"
       transition="all 0.2s"
       _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
-      overflow="hidden"
-    >
+      overflow="hidden">
       <CardBody p={4}>
         <VStack align="stretch" spacing={4}>
           <HStack justify="space-between">
@@ -210,20 +209,13 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
         </VStack>
       </CardBody>
 
-      <CardFooter 
-        pt={0} 
-        pb={4} 
-        px={4}
-        borderTop="1px" 
-        borderColor={borderColor}
-      >
+      <CardFooter pt={0} pb={4} px={4} borderTop="1px" borderColor={borderColor}>
         <Button
           width="full"
           colorScheme={isSelected ? "teal" : "gray"}
           variant={isSelected ? "solid" : "outline"}
           onClick={handleSelect}
-          size="sm"
-        >
+          size="sm">
           {isSelected ? "Selected" : "Select Workcell"}
         </Button>
       </CardFooter>

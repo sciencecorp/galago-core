@@ -316,9 +316,9 @@ export const ScriptsEditor: React.FC = (props) => {
                 titleIcon={<Icon as={VscCode} boxSize={8} color="teal.500" />}
                 mainButton={<NewScript />}
               />
-              
+
               <Divider />
-              
+
               <StatGroup>
                 <Stat>
                   <StatLabel>Total Scripts</StatLabel>
@@ -330,7 +330,7 @@ export const ScriptsEditor: React.FC = (props) => {
                 </Stat>
                 <Stat>
                   <StatLabel>Active Script</StatLabel>
-                  <StatNumber fontSize="lg">{activeTab?.replace('.py', '') || 'None'}</StatNumber>
+                  <StatNumber fontSize="lg">{activeTab?.replace(".py", "") || "None"}</StatNumber>
                 </Stat>
               </StatGroup>
             </VStack>
@@ -375,7 +375,7 @@ export const ScriptsEditor: React.FC = (props) => {
                           theme={codeTheme}
                           options={{
                             fontSize: 20,
-                            wordWrap: "on"
+                            wordWrap: "on",
                           }}
                           onChange={(value) => handleCodeChange(value)}
                         />
@@ -390,10 +390,17 @@ export const ScriptsEditor: React.FC = (props) => {
                         </Box>
                       )}
                     </Box>
-                    <Box width="100%" height="20vh" bg={consoleBg} borderTop={`1px solid ${borderColor}`}>
+                    <Box
+                      width="100%"
+                      height="20vh"
+                      bg={consoleBg}
+                      borderTop={`1px solid ${borderColor}`}>
                       <OutputConsole />
                       <Box width="100%" height="80%" p={2} overflowY="auto">
-                        <Text whiteSpace="pre-wrap" fontFamily="monospace" textColor={runError ? "red" : ""}>
+                        <Text
+                          whiteSpace="pre-wrap"
+                          fontFamily="monospace"
+                          textColor={runError ? "red" : ""}>
                           {consoleText}
                         </Text>
                       </Box>

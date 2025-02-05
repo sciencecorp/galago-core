@@ -46,7 +46,11 @@ export default function Page() {
   const { data: protocols } = trpc.protocol.allNames.useQuery({ workcellName: "" });
   const { data: labware } = trpc.labware.getAll.useQuery();
   const { data: variables } = trpc.variable.getAll.useQuery();
-  const { data: logs } = trpc.logging.getPaginated.useQuery({ limit: 5, skip: 0, descending: true });
+  const { data: logs } = trpc.logging.getPaginated.useQuery({
+    limit: 5,
+    skip: 0,
+    descending: true,
+  });
   const { data: plates } = trpc.inventory.getPlates.useQuery<Plate[]>("");
   const { data: scripts } = trpc.script.getAll.useQuery();
   const { data: runs } = trpc.run.all.useQuery({ workcellName: "" });
@@ -63,8 +67,8 @@ export default function Page() {
   const runCount = Array.isArray(runs) ? runs.length : 0;
 
   // Calculate active runs
-  const activeRuns = Array.isArray(runs) 
-    ? runs.filter(run => run.status === "CREATED" || run.status === "STARTED").length 
+  const activeRuns = Array.isArray(runs)
+    ? runs.filter((run) => run.status === "CREATED" || run.status === "STARTED").length
     : 0;
 
   return (
@@ -72,15 +76,14 @@ export default function Page() {
       <VStack spacing={6} align="stretch">
         <HStack align="start" spacing={6}>
           {/* Calendar Card */}
-          <Card 
-            bg={headerBg} 
+          <Card
+            bg={headerBg}
             shadow="md"
             maxH="500px"
             maxW="300px"
             minW="300px"
             overflow="hidden"
-            display={{ base: 'none', md: 'block' }}
-          >
+            display={{ base: "none", md: "block" }}>
             <CardBody>
               <VStack align="stretch" spacing={4}>
                 <HStack justify="space-between">
@@ -102,13 +105,12 @@ export default function Page() {
           <SimpleGrid flex="1" columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
             {/* Tools Card */}
             <Link href="/tools">
-              <Card 
-                bg={headerBg} 
-                shadow="md" 
+              <Card
+                bg={headerBg}
+                shadow="md"
                 _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
                 transition="all 0.2s"
-                cursor="pointer"
-              >
+                cursor="pointer">
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
                     <HStack justify="space-between">
@@ -131,13 +133,12 @@ export default function Page() {
 
             {/* Runs Card */}
             <Link href="/runs">
-              <Card 
-                bg={headerBg} 
+              <Card
+                bg={headerBg}
                 shadow="md"
                 _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
                 transition="all 0.2s"
-                cursor="pointer"
-              >
+                cursor="pointer">
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
                     <HStack justify="space-between">
@@ -160,13 +161,12 @@ export default function Page() {
 
             {/* Scripts Card */}
             <Link href="/scripts">
-              <Card 
-                bg={headerBg} 
+              <Card
+                bg={headerBg}
                 shadow="md"
                 _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
                 transition="all 0.2s"
-                cursor="pointer"
-              >
+                cursor="pointer">
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
                     <HStack justify="space-between">
@@ -189,13 +189,12 @@ export default function Page() {
 
             {/* Workcells Card */}
             <Link href="/workcells">
-              <Card 
-                bg={headerBg} 
+              <Card
+                bg={headerBg}
                 shadow="md"
                 _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
                 transition="all 0.2s"
-                cursor="pointer"
-              >
+                cursor="pointer">
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
                     <HStack justify="space-between">
@@ -218,13 +217,12 @@ export default function Page() {
 
             {/* Protocols Card */}
             <Link href="/protocols">
-              <Card 
-                bg={headerBg} 
+              <Card
+                bg={headerBg}
                 shadow="md"
                 _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
                 transition="all 0.2s"
-                cursor="pointer"
-              >
+                cursor="pointer">
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
                     <HStack justify="space-between">
@@ -247,13 +245,12 @@ export default function Page() {
 
             {/* Inventory Card */}
             <Link href="/inventory">
-              <Card 
-                bg={headerBg} 
+              <Card
+                bg={headerBg}
                 shadow="md"
                 _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
                 transition="all 0.2s"
-                cursor="pointer"
-              >
+                cursor="pointer">
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
                     <HStack justify="space-between">
@@ -276,13 +273,12 @@ export default function Page() {
 
             {/* Labware Card */}
             <Link href="/labware">
-              <Card 
-                bg={headerBg} 
+              <Card
+                bg={headerBg}
                 shadow="md"
                 _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
                 transition="all 0.2s"
-                cursor="pointer"
-              >
+                cursor="pointer">
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
                     <HStack justify="space-between">
@@ -305,13 +301,12 @@ export default function Page() {
 
             {/* Variables Card */}
             <Link href="/variables">
-              <Card 
-                bg={headerBg} 
+              <Card
+                bg={headerBg}
                 shadow="md"
                 _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
                 transition="all 0.2s"
-                cursor="pointer"
-              >
+                cursor="pointer">
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
                     <HStack justify="space-between">
@@ -334,13 +329,12 @@ export default function Page() {
 
             {/* Logs Card */}
             <Link href="/logs">
-              <Card 
-                bg={headerBg} 
+              <Card
+                bg={headerBg}
                 shadow="md"
                 _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
                 transition="all 0.2s"
-                cursor="pointer"
-              >
+                cursor="pointer">
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
                     <HStack justify="space-between">

@@ -52,7 +52,7 @@ export const WellPlateIcon: React.FC<WellPlateIconProps> = ({ rows, columns, siz
           height="100%"
           viewBox={`0 0 ${width} ${height}`}
           preserveAspectRatio="xMidYMid meet"
-          style={{ overflow: 'visible' }}>
+          style={{ overflow: "visible" }}>
           {/* Plate border */}
           <rect
             x="1"

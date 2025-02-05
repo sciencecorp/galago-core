@@ -26,7 +26,13 @@ import {
   InputLeftElement,
   Input,
 } from "@chakra-ui/react";
-import { InfoOutlineIcon, CloseIcon, WarningIcon, QuestionOutlineIcon, SearchIcon } from "@chakra-ui/icons";
+import {
+  InfoOutlineIcon,
+  CloseIcon,
+  WarningIcon,
+  QuestionOutlineIcon,
+  SearchIcon,
+} from "@chakra-ui/icons";
 import { useEffect, useState, useMemo } from "react";
 import { Log } from "@/types/api";
 import { renderDatetime } from "../ui/Time";
@@ -64,7 +70,7 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
   const [offset, setOffset] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedLevel, setSelectedLevel] = useState<string>("");
-  
+
   const headerBg = useColorModeValue("white", "gray.700");
   const tableBgColor = useColorModeValue("white", "gray.700");
   const hoverBgColor = useColorModeValue("gray.50", "gray.600");
@@ -86,13 +92,13 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
 
   // Calculate stats
   const totalLogs = logs.length;
-  const errorCount = logs.filter(log => log.level === 'error').length;
-  const warningCount = logs.filter(log => log.level === 'warning').length;
+  const errorCount = logs.filter((log) => log.level === "error").length;
+  const warningCount = logs.filter((log) => log.level === "warning").length;
 
   // Filter logs based on search and level
   const filteredLogs = useMemo(() => {
-    return logs.filter(log => {
-      const matchesSearch = 
+    return logs.filter((log) => {
+      const matchesSearch =
         log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
         log.details.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesLevel = !selectedLevel || log.level === selectedLevel;
@@ -116,9 +122,9 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                   </Button>
                 }
               />
-              
+
               <Divider />
-              
+
               <StatGroup>
                 <Stat>
                   <StatLabel>Total Logs</StatLabel>
@@ -151,8 +157,7 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                 <Select
                   value={selectedLevel}
                   onChange={(e) => setSelectedLevel(e.target.value)}
-                  maxW="200px"
-                >
+                  maxW="200px">
                   <option value="">All Levels</option>
                   <option value="error">Error</option>
                   <option value="warning">Warning</option>
@@ -198,13 +203,15 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                   value={limit}
                   width="75px"
                   size="sm"
-                  onChange={(e) => setLimit(Number(e.target.value))}
-                >
+                  onChange={(e) => setLimit(Number(e.target.value))}>
                   <option value="25">25</option>
                   <option value="50">50</option>
                   <option value="100">100</option>
                 </Select>
-                <Button size="sm" disabled={!hasPrevious} onClick={() => setOffset(Math.max(offset - limit, 0))}>
+                <Button
+                  size="sm"
+                  disabled={!hasPrevious}
+                  onClick={() => setOffset(Math.max(offset - limit, 0))}>
                   Previous
                 </Button>
                 <Button size="sm" disabled={!hasNext} onClick={() => setOffset(offset + limit)}>

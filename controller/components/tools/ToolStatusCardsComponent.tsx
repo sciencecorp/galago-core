@@ -72,7 +72,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visibleCards, setVisibleCards] = useState(3);
   const [selectedWorkcell, setSelectedWorkcell] = useState<string | null>(null);
-  
+
   const containerBg = useColorModeValue("white", "gray.800");
   const headerBg = useColorModeValue("white", "gray.700");
   const borderColor = useColorModeValue("gray.200", "gray.700");
@@ -122,11 +122,13 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
                 titleIcon={<Icon as={BsTools} boxSize={8} color="teal.500" />}
                 title="Tools"
                 subTitle="Manage and monitor your connected tools"
-                mainButton={<NewToolModal isDisabled={selectedWorkcell === "" || selectedWorkcell === null} />}
+                mainButton={
+                  <NewToolModal isDisabled={selectedWorkcell === "" || selectedWorkcell === null} />
+                }
               />
-              
+
               <Divider />
-              
+
               <StatGroup>
                 <Stat>
                   <StatLabel>Total Tools</StatLabel>
@@ -149,7 +151,9 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
                     placeholder="Search tools..."
                     onChange={(e) => {
                       const searchTerm = e.target.value.toLowerCase();
-                      setToolIds(fetchedIds?.filter(id => id.toLowerCase().includes(searchTerm)) || []);
+                      setToolIds(
+                        fetchedIds?.filter((id) => id.toLowerCase().includes(searchTerm)) || [],
+                      );
                     }}
                     bg={tableBgColor}
                   />
@@ -163,14 +167,13 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
         <Card bg={headerBg} shadow="md">
           <CardBody>
             {showAsGrid ? (
-              <SimpleGrid 
-                columns={{ base: 1, md: 2, lg: 3, xl: 4 }} 
+              <SimpleGrid
+                columns={{ base: 1, md: 2, lg: 3, xl: 4 }}
                 spacing={6}
                 w="100%"
                 alignItems="start"
                 px={2}
-                py={2}
-              >
+                py={2}>
                 {toolIds.map((id) => (
                   <Box key={id}>
                     <ToolStatusCard toolId={id} />
@@ -189,14 +192,9 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
                   <CardsContainer
                     style={{
                       transform: `translateX(-${currentIndex * (100 / visibleCards)}%)`,
-                    }}
-                  >
+                    }}>
                     {toolIds.map((id) => (
-                      <Box
-                        key={id}
-                        flex={`0 0 ${100 / visibleCards}%`}
-                        px={2}
-                      >
+                      <Box key={id} flex={`0 0 ${100 / visibleCards}%`} px={2}>
                         <ToolStatusCard toolId={id} />
                       </Box>
                     ))}

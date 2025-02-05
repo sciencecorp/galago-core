@@ -34,7 +34,7 @@ export const InventoryManager = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertStatus, setAlertStatus] = useState<"success" | "error" | "warning" | "info">("info");
   const [alertDescription, setAlertDescription] = useState("");
-  
+
   const { colorMode } = useColorMode();
   const isDarkMode = colorMode === "dark";
   const toast = useToast();
@@ -44,23 +44,21 @@ export const InventoryManager = () => {
   const selectedWorkcell = workcells.data?.find(
     (workcell) => workcell.name === SelectedWorkcellName.data,
   );
-  
-  const {
-    data: nests = [],
-    refetch: refetchNests,
-  } = trpc.inventory.getNests.useQuery<Nest[]>(SelectedWorkcellName.data ?? "");
-  
-  const {
-    data: plates = [],
-    refetch: refetchPlates,
-  } = trpc.inventory.getPlates.useQuery<Plate[]>(selectedWorkcell?.name || "", {
-    enabled: !!selectedWorkcell?.id,
-  });
-  
-  const {
-    data: reagents = [],
-    refetch: refetchReagents,
-  } = trpc.inventory.getReagents.useQuery<Reagent[]>(selectedWorkcell?.id ?? 0, {
+
+  const { data: nests = [], refetch: refetchNests } = trpc.inventory.getNests.useQuery<Nest[]>(
+    SelectedWorkcellName.data ?? "",
+  );
+
+  const { data: plates = [], refetch: refetchPlates } = trpc.inventory.getPlates.useQuery<Plate[]>(
+    selectedWorkcell?.name || "",
+    {
+      enabled: !!selectedWorkcell?.id,
+    },
+  );
+
+  const { data: reagents = [], refetch: refetchReagents } = trpc.inventory.getReagents.useQuery<
+    Reagent[]
+  >(selectedWorkcell?.id ?? 0, {
     enabled: !!plates && Array.isArray(plates) && plates.length > 0,
   });
 
@@ -216,9 +214,9 @@ export const InventoryManager = () => {
                 titleIcon={<Icon as={BsBoxSeam} boxSize={8} color="teal.500" />}
                 mainButton={null}
               />
-              
+
               <Divider />
-              
+
               <StatGroup>
                 <Stat>
                   <StatLabel>Total Plates</StatLabel>
@@ -230,8 +228,12 @@ export const InventoryManager = () => {
                 </Stat>
                 <Stat>
                   <StatLabel>Nests</StatLabel>
-                  <StatNumber>{occupiedNests} / {totalNests}</StatNumber>
-                  <Text fontSize="sm" color="gray.500">Occupied</Text>
+                  <StatNumber>
+                    {occupiedNests} / {totalNests}
+                  </StatNumber>
+                  <Text fontSize="sm" color="gray.500">
+                    Occupied
+                  </Text>
                 </Stat>
               </StatGroup>
 
@@ -253,14 +255,13 @@ export const InventoryManager = () => {
 
         <Card bg={headerBg} shadow="md">
           <CardBody>
-            <SimpleGrid 
-              columns={{ base: 1, sm: 2, md: 3, lg: 4, xl: 4 }} 
+            <SimpleGrid
+              columns={{ base: 1, sm: 2, md: 3, lg: 4, xl: 4 }}
               spacing={6}
               w="100%"
               alignItems="start"
               px={2}
-              py={2}
-            >
+              py={2}>
               {workcellTools.map((tool: Tool) => (
                 <Box key={tool.id}>
                   <InventoryToolCard

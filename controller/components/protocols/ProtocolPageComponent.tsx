@@ -147,14 +147,17 @@ export const ProtocolPageComponent: React.FC = () => {
               subTitle="Manage and run your automation protocols"
               titleIcon={<Icon as={PiPathBold} boxSize={8} color="teal.500" />}
               mainButton={
-                <Button colorScheme="teal" leftIcon={<RiAddFill />} onClick={() => router.push("/protocols/new")}>
+                <Button
+                  colorScheme="teal"
+                  leftIcon={<RiAddFill />}
+                  onClick={() => router.push("/protocols/new")}>
                   New Protocol
                 </Button>
               }
             />
-            
+
             <Divider />
-            
+
             <StatGroup>
               <Stat>
                 <StatLabel>Total Protocols</StatLabel>
@@ -265,7 +268,9 @@ export const ProtocolPageComponent: React.FC = () => {
                         <Link href={`/protocols/${protocol.id}`}>{protocol.name}</Link>
                       </Td>
                       <Td>
-                        <Tag colorScheme={getCategoryColor(protocol.category)}>{protocol.category}</Tag>
+                        <Tag colorScheme={getCategoryColor(protocol.category)}>
+                          {protocol.category}
+                        </Tag>
                       </Td>
                       <Td>{protocol.workcell}</Td>
                       <Td>{protocol.description}</Td>
@@ -279,7 +284,9 @@ export const ProtocolPageComponent: React.FC = () => {
                             onClick={() => handleRunClick(protocol.id.toString())}>
                             Run
                           </Button>
-                          <Button size="sm" onClick={() => router.push(`/protocols/${protocol.id}/edit`)}>
+                          <Button
+                            size="sm"
+                            onClick={() => router.push(`/protocols/${protocol.id}/edit`)}>
                             Edit
                           </Button>
                         </HStack>
@@ -294,10 +301,7 @@ export const ProtocolPageComponent: React.FC = () => {
       </Card>
 
       {runModalProtocolId && (
-        <NewProtocolRunModal
-          id={runModalProtocolId}
-          onClose={handleRunModalClose}
-        />
+        <NewProtocolRunModal id={runModalProtocolId} onClose={handleRunModalClose} />
       )}
     </VStack>
   );

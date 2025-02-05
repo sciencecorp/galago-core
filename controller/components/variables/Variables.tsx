@@ -86,10 +86,13 @@ export const Variables: React.FC = () => {
   // Calculate stats
   const totalVariables = variables.length;
   const typeStats = useMemo(() => {
-    const stats = variables.reduce((acc, variable) => {
-      acc[variable.type] = (acc[variable.type] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const stats = variables.reduce(
+      (acc, variable) => {
+        acc[variable.type] = (acc[variable.type] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
     return stats;
   }, [variables]);
 
@@ -147,9 +150,9 @@ export const Variables: React.FC = () => {
                 titleIcon={<Icon as={TbVariable} boxSize={8} color="teal.500" />}
                 mainButton={<VariableModal />}
               />
-              
+
               <Divider />
-              
+
               <StatGroup>
                 <Stat>
                   <StatLabel>Total Variables</StatLabel>
@@ -173,7 +176,7 @@ export const Variables: React.FC = () => {
                 </Stat>
                 <Stat>
                   <StatLabel>Object Variables</StatLabel>
-                  <StatNumber>{typeStats.object || 0}</StatNumber>  
+                  <StatNumber>{typeStats.object || 0}</StatNumber>
                 </Stat>
               </StatGroup>
 
@@ -196,8 +199,7 @@ export const Variables: React.FC = () => {
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
                   maxW="200px"
-                  bg={tableBgColor}
-                >
+                  bg={tableBgColor}>
                   <option value="string">String</option>
                   <option value="number">Number</option>
                   <option value="boolean">Boolean</option>
