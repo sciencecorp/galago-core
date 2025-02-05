@@ -117,7 +117,7 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
           <FiChevronRight />
         </Button>
       </Box>
-      <Grid templateColumns="repeat(7, minmax(30px, 1fr))" gap={0.5} width="fit-content">
+      <Grid templateColumns="repeat(7, minmax(35px, 1fr))" gap={0.5} width="fit-content">
         {daysOfWeek.map((day) => (
           <Text key={day} fontWeight="bold" textAlign="center" fontSize="xs" p={0}>
             {day}
@@ -125,8 +125,8 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
         ))}
         {daysInMonth.map((day, index) => (
           <Grid
-            width="30px"
-            height="30px"
+            width="35px"
+            height="35px"
             display="flex"
             alignItems="center"
             justifyContent="center"
