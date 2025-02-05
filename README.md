@@ -3,7 +3,7 @@
 Galago consists of several distinct modules:
 
 - Controller, a NEXT.js app which governs a defined set of devices (execution management and scheduling)
-- Tool drivers which implement a gRPC interface and handle tool-specific control logic
+- [Tool drivers](https://github.com/sciencecorp/galago-tools) which implement a gRPC interface and handle tool-specific control logic
 
 To build the protobuf interfaces, simply run `bin/make proto`.
 
@@ -11,28 +11,49 @@ To build the protobuf interfaces, simply run `bin/make proto`.
 
 The controller app boots with a config file that specifies a specific set of tools and their network configurations. The config file is specific to each workcell (or related group of tools). These config files live in the `config` directory.
 
-
 ## Getting started
-
 ## Requirements
 
-1. Bash (Can use git bash)
-2. Mamba preferred.
+1. Node 18.20.3
+2. Python 3.9
 3. WSL (Windows only)
 
-## Install Mamba (miniforge3)
+## Docker and docker compose are recommended. 
+
+### Build and launch controller. 
+```
+docker-compose -f docker-compose.yml up --build #Prod Mode 
+docker-compose -f docker-compose.dev.yml up --build #Dev Mode 
+
+```
+
+## Other docker commands.
+```
+#Stop containters
+docker-compose -f docker-compose.dev.yml down
+
+#remove existing images
+docker-compose -f docker-compose.dev.yml down --rmi all
+
+#rebuild and restart
+docker-compose -f docker-compose.dev.yml up --build
+
+#add npm deps to dev environment
+docker exec -it galago-web-dev npm install <package name>
+```
+
+
+## If not using docker it is recommended to use a virtual environment. Eg. miniconda, mamba. and follow the steps below
 
 ### On Mac
 
 ```zsh
 brew install miniforge
 mamba init
-#Restart shell
 ```
 
 ### On Windows.
-
-Run the mamba_installer.ps1 file on the root folder or [Download here](https://github.com/conda-forge/miniforge?tab=readme-ov-file). Make sure to add mamba to path when prompted.
+[Download here](https://github.com/conda-forge/miniforge?tab=readme-ov-file). Make sure to add mamba to path when prompted.
 
 ### Clone the repo:
 
@@ -42,22 +63,17 @@ cd galago-core
 ```
 
 ### Build the base environmnent.
-
-Note: On windows you will need to make sure mamba is added to path and will need to run this on command prompt.
-(Alternatively run the powershell script in admin mode, this installs mamba and creates the environments)
-
 ```
 mamba create --name galago-core python=3.9.12 nodejs=18.20.3 -y
 ```
 
-Activate galago-core environment
-
+### Activate environment
 ```
 mamba activate galago-core #mac bash
 source C:/Users/<User>/mamba/Scripts/activate galago-core #windows bash
 ```
 
-Build dependencies
+### Build dependencies
 
 ```
 mamba activate galago-core
@@ -65,20 +81,7 @@ bin/make deps
 bin/make proto
 ```
 
-### 32 bits python environment.
-
-This is required by some of the tools. Eg. Agilent ActiveX or VWorks. If you are not running such tools skip this.
-
-```
-# Set CONDA_FORCE_32BIT environment variable
-set CONDA_FORCE_32BIT=1
-set CONDA_SUBDIR="win-32"
-mamba create -n galago-core32
-mamba activate galago-core32
-python -m pip install -r tools/requirements32.txt
-```
-
-## Redis
+## Redis 
 
 Redis is used for queueing commands and runs by the controller. We recommend having a local instance running but a remote connection would also work.
 
@@ -111,68 +114,6 @@ redis-cli ping
 Launch Galago.exe in the root folder of the repo. You can pin a shortcut to your taskbar or desktop.
 
 ```bash
-mamba activate galago-core #mac
-source C:/Users/<User>/mamba/Scripts/activate galago-core #windows bash
 bin/make run
 ```
 
-### Basic redis commands\*\*
-
-```zsh
-
-#Restart the server
-brew services restart redis
-
-#Enter the redis cli
-redis-cli
-
-#Switch db
-SELECT <index>
-
-#Get keys
-KEYS *
-
-#Get key type
-type <key>
-
-#get string
-get <key>
-
-#get hash
-hgetall <key>
-
-#get all items in a list
-lrange <key> 0 -1
-
-#get set
-smembers <key>
-
-#get zset
-zrange <key> 0 -1 withscores
-
-#clear all in selected db
-flushdb
-```
-
-**Force Kill**
-
-```
-pkill -9 python
-lsof -t -i tcp:3010 | xargs kill
-```
-
-## Docker commands
-
-```
-#Stop containters
-docker-compose -f docker-compose.dev.yml down
-
-#remove existing images
-docker-compose -f docker-compose.dev.yml down --rmi all
-
-#rebuild and restart
-docker-compose -f docker-compose.dev.yml up --build
-
-#add npm deps to dev environment
-docker exec -it galago-web-dev npm install <package name>
-```
