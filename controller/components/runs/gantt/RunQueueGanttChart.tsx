@@ -24,6 +24,7 @@ import { useColorModeValue } from "@chakra-ui/react";
 import { ToolType } from "gen-interfaces/controller";
 import { RunCommand } from "@/types";
 import { PiToolbox } from "react-icons/pi";
+import { getToolColor } from "@/utils/colorUtils";
 
 interface GanttChartProps {
   onRunClick: (runId: string) => void;
@@ -159,17 +160,6 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
       );
     }
     return lines;
-  };
-
-  const getToolColor = (toolType: ToolType): string => {
-    const colors: Record<string, string> = {
-      pf400: "#4299E1",
-      cytation: "#48BB78",
-      liconic: "#F6AD55",
-      opentrons2: "#9F7AEA",
-      toolbox: "#FC8181",
-    };
-    return colors[toolType.toLowerCase()] || "#CBD5E0";
   };
 
   const renderCommands = () => {
