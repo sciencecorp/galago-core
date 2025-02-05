@@ -275,9 +275,8 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                     unique_name = get_unique_name(db, point.name, 
                                         RobotArmLocation, tool_id)
                     
-                    # Parse coordinates
-                    coords = point.coordinates.split()
-                    coords.extend(['0'] * (6 - len(coords)))  
+                    # Ensure coordinates are in string format
+                    coords = point.coordinates if isinstance(point.coordinates, str) else ' '.join(map(str, point.coordinates))
                     
                     location = crud.robot_arm_location.create(
                         db,
