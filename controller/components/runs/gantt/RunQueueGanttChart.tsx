@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Box, VStack, HStack, Text, Progress, Tooltip, Flex, Spinner, Image } from "@chakra-ui/react";
+import {
+  Box,
+  VStack,
+  HStack,
+  Text,
+  Progress,
+  Tooltip,
+  Flex,
+  Spinner,
+  Image,
+} from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import moment from "moment";
 import {
@@ -59,7 +69,9 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
     const allCommands = commandsAll.data;
     const firstCommandTime = moment(allCommands[0].createdAt);
     const lastCommandTime = allCommands.reduce((latest, cmd) => {
-      const cmdEndTime = moment(cmd.completedAt || moment(cmd.createdAt).add(cmd.estimatedDuration || 600, "seconds"));
+      const cmdEndTime = moment(
+        cmd.completedAt || moment(cmd.createdAt).add(cmd.estimatedDuration || 600, "seconds"),
+      );
       return cmdEndTime.isAfter(latest) ? cmdEndTime : latest;
     }, firstCommandTime);
 
@@ -164,17 +176,22 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
     if (!commandsAll.data) return null;
 
     // Sort commands by queueId to maintain execution order
-    const sortedCommands = [...commandsAll.data].sort((a, b) => (a.queueId || 0) - (b.queueId || 0));
+    const sortedCommands = [...commandsAll.data].sort(
+      (a, b) => (a.queueId || 0) - (b.queueId || 0),
+    );
 
     // Group commands by tool type
-    const commandsByTool = sortedCommands.reduce((acc, cmd) => {
-      const toolType = cmd.commandInfo.toolType;
-      if (!acc[toolType]) {
-        acc[toolType] = [];
-      }
-      acc[toolType].push(cmd);
-      return acc;
-    }, {} as Record<string, RunCommand[]>);
+    const commandsByTool = sortedCommands.reduce(
+      (acc, cmd) => {
+        const toolType = cmd.commandInfo.toolType;
+        if (!acc[toolType]) {
+          acc[toolType] = [];
+        }
+        acc[toolType].push(cmd);
+        return acc;
+      },
+      {} as Record<string, RunCommand[]>,
+    );
 
     const toolTypes = Object.keys(commandsByTool);
     const rowHeight = 60;
@@ -184,96 +201,98 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
     // Calculate start times based on previous commands
     let lastEndTime = moment(0);
 
-    return sortedCommands.map((command) => {
-      const toolType = command.commandInfo.toolType;
-      const toolIndex = toolTypes.indexOf(toolType);
-      
-      // Calculate start and end times
-      const startMoment = moment.max(moment(command.createdAt), lastEndTime);
-      const endMoment = moment(command.completedAt || startMoment.clone().add(command.estimatedDuration || 600, "seconds"));
-      lastEndTime = endMoment.clone().add(2, 'seconds'); // Add 2 second gap between blocks
-      
-      // Skip if outside visible window
-      if (endMoment.isBefore(startTime) || startMoment.isAfter(endTime)) {
-        return null;
-      }
+    return sortedCommands
+      .map((command) => {
+        const toolType = command.commandInfo.toolType;
+        const toolIndex = toolTypes.indexOf(toolType);
 
-      const visibleStartTime = moment.max(startMoment, startTime);
-      const visibleEndTime = moment.min(endMoment, endTime);
-      const left = `${(visibleStartTime.diff(startTime, "seconds") / totalDuration) * 100}%`;
-      const width = `${(visibleEndTime.diff(visibleStartTime, "seconds") / totalDuration) * 100}%`;
-      const isSelected = selectedRunId === command.runId;
-      const bgColor = getToolColor(command.commandInfo.toolType as ToolType);
+        // Calculate start and end times
+        const startMoment = moment.max(moment(command.createdAt), lastEndTime);
+        const endMoment = moment(
+          command.completedAt ||
+            startMoment.clone().add(command.estimatedDuration || 600, "seconds"),
+        );
+        lastEndTime = endMoment.clone().add(2, "seconds"); // Add 2 second gap between blocks
 
-      return (
-        <Tooltip 
-          key={command.queueId} 
-          label={`Tool: ${command.commandInfo.toolType} | Command:${command.commandInfo.command} | Status: ${command.status}`}
-        >
-          <Box
-            position="absolute"
-            height={`${blockHeight}px`}
-            top={`${toolIndex * rowHeight + verticalPadding}px`}
-            left={left}
-            width={`calc(${width} - 4px)`}
-            marginLeft="2px"
-            onClick={() => onRunClick(command.runId)}
-            cursor="pointer"
-            border="1px solid"
-            borderColor={commandBorderColor}
-            borderRadius="md"
-            bg={bgColor}
-            opacity={command.status === "COMPLETED" ? 0.7 : isSelected ? 1 : 0.9}
-            _hover={{ opacity: 1, transform: "translateY(-1px)" }}
-            transition="all 0.2s"
-            zIndex={2}
-            boxShadow={isSelected ? "md" : "none"}
-          >
-            <Text
+        // Skip if outside visible window
+        if (endMoment.isBefore(startTime) || startMoment.isAfter(endTime)) {
+          return null;
+        }
+
+        const visibleStartTime = moment.max(startMoment, startTime);
+        const visibleEndTime = moment.min(endMoment, endTime);
+        const left = `${(visibleStartTime.diff(startTime, "seconds") / totalDuration) * 100}%`;
+        const width = `${(visibleEndTime.diff(visibleStartTime, "seconds") / totalDuration) * 100}%`;
+        const isSelected = selectedRunId === command.runId;
+        const bgColor = getToolColor(command.commandInfo.toolType as ToolType);
+
+        return (
+          <Tooltip
+            key={command.queueId}
+            label={`Tool: ${command.commandInfo.toolType} | Command:${command.commandInfo.command} | Status: ${command.status}`}>
+            <Box
               position="absolute"
-              left="5px"
-              top="50%"
-              transform="translateY(-50%)"
-              fontSize="md"
-              fontWeight="bold"
-              letterSpacing="wide"
-              color="white"
-              isTruncated
-              maxWidth="90%"
-            >
-              {command.commandInfo.command.split('_').map(word => 
-                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-              ).join(' ')}
-            </Text>
-          </Box>
-        </Tooltip>
-      );
-    }).filter(Boolean);
+              height={`${blockHeight}px`}
+              top={`${toolIndex * rowHeight + verticalPadding}px`}
+              left={left}
+              width={`calc(${width} - 4px)`}
+              marginLeft="2px"
+              onClick={() => onRunClick(command.runId)}
+              cursor="pointer"
+              border="1px solid"
+              borderColor={commandBorderColor}
+              borderRadius="md"
+              bg={bgColor}
+              opacity={command.status === "COMPLETED" ? 0.7 : isSelected ? 1 : 0.9}
+              _hover={{ opacity: 1, transform: "translateY(-1px)" }}
+              transition="all 0.2s"
+              zIndex={2}
+              boxShadow={isSelected ? "md" : "none"}>
+              <Text
+                position="absolute"
+                left="5px"
+                top="50%"
+                transform="translateY(-50%)"
+                fontSize="md"
+                fontWeight="bold"
+                letterSpacing="wide"
+                color="white"
+                isTruncated
+                maxWidth="90%">
+                {command.commandInfo.command
+                  .split("_")
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                  .join(" ")}
+              </Text>
+            </Box>
+          </Tooltip>
+        );
+      })
+      .filter(Boolean);
   };
 
   const renderToolLabels = () => {
     if (!commandsAll.data) return null;
 
-    const toolTypes = Array.from(new Set(commandsAll.data.map(cmd => cmd.commandInfo.toolType)));
+    const toolTypes = Array.from(new Set(commandsAll.data.map((cmd) => cmd.commandInfo.toolType)));
     const rowHeight = 60;
 
     if (toolInfoQuery.isLoading) return null;
 
     return (
-      <Box 
-        position="absolute" 
-        left="0" 
-        top="0" 
-        width="200px" 
-        height="100%" 
-        borderRight="1px solid" 
+      <Box
+        position="absolute"
+        left="0"
+        top="0"
+        width="200px"
+        height="100%"
+        borderRight="1px solid"
         borderColor={borderColor}
-        bg={toolLabelsBgColor}
-      >
+        bg={toolLabelsBgColor}>
         {toolTypes.map((toolType, index) => {
-          const toolInfo = toolInfoQuery.data?.find(t => t.type === toolType);
+          const toolInfo = toolInfoQuery.data?.find((t) => t.type === toolType);
           const imageUrl = toolInfo?.image_url;
-          const isToolbox = toolType.toLowerCase() === 'toolbox';
+          const isToolbox = toolType.toLowerCase() === "toolbox";
 
           return (
             <Box
@@ -290,8 +309,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
               alignItems="center"
               gap="3"
               _hover={{ bg: toolLabelHoverBg }}
-              transition="background 0.2s"
-            >
+              transition="background 0.2s">
               <Flex
                 width="40px"
                 height="40px"
@@ -299,11 +317,10 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
                 borderRadius="md"
                 justifyContent="center"
                 alignItems="center"
-                boxShadow="sm"
-              >
+                boxShadow="sm">
                 {isToolbox ? (
-                  <Box width="30px" height="30px" color={getToolColor('toolbox' as ToolType)}>
-                    <PiToolbox style={{ width: '100%', height: '100%' }} />
+                  <Box width="30px" height="30px" color={getToolColor("toolbox" as ToolType)}>
+                    <PiToolbox style={{ width: "100%", height: "100%" }} />
                   </Box>
                 ) : imageUrl ? (
                   <Image
@@ -314,7 +331,12 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
                     objectFit="contain"
                   />
                 ) : (
-                  <Box width="30px" height="30px" bg={getToolColor(toolType as ToolType)} borderRadius="md" />
+                  <Box
+                    width="30px"
+                    height="30px"
+                    bg={getToolColor(toolType as ToolType)}
+                    borderRadius="md"
+                  />
                 )}
               </Flex>
               <VStack align="start" spacing="0" flex="1">
@@ -322,7 +344,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
                   {toolType}
                 </Text>
                 <Text fontSize="xs" color="gray.500" isTruncated>
-                  {toolInfo?.description || 'Tool'}
+                  {toolInfo?.description || "Tool"}
                 </Text>
               </VStack>
             </Box>
@@ -367,7 +389,9 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
     />
   );
 
-  const toolTypes = commandsAll.data ? Array.from(new Set(commandsAll.data.map(cmd => cmd.commandInfo.toolType))) : [];
+  const toolTypes = commandsAll.data
+    ? Array.from(new Set(commandsAll.data.map((cmd) => cmd.commandInfo.toolType)))
+    : [];
   const totalHeight = toolTypes.length * 60;
 
   return (
@@ -389,14 +413,8 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
             overflowX="hidden"
             bg={mainBgColor}
             border="1px solid"
-            borderColor={borderColor}
-          >
-            <Box
-              position="relative"
-              minHeight="100%"
-              height={`${totalHeight}px`}
-              pt="10px"
-            >
+            borderColor={borderColor}>
+            <Box position="relative" minHeight="100%" height={`${totalHeight}px`} pt="10px">
               {renderGridLines()}
               <Box position="relative" zIndex={2}>
                 {renderCommands()}

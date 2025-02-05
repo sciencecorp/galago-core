@@ -31,7 +31,7 @@ import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 
 const LastUpdatedTime = () => {
   const [time, setTime] = useState<string>("");
-  
+
   useEffect(() => {
     const updateTime = () => setTime(new Date().toLocaleTimeString());
     updateTime();
@@ -69,11 +69,11 @@ export const RunsComponent: React.FC = () => {
 
   // Calculate statistics
   const totalRuns = groupedCommands.length;
-  const completedRuns = groupedCommands.filter(run => 
-    run.Commands.every(cmd => cmd.status === "COMPLETED")
+  const completedRuns = groupedCommands.filter((run) =>
+    run.Commands.every((cmd) => cmd.status === "COMPLETED"),
   ).length;
-  const activeRuns = groupedCommands.filter(run => 
-    run.Commands.some(cmd => cmd.status === "STARTED")
+  const activeRuns = groupedCommands.filter((run) =>
+    run.Commands.some((cmd) => cmd.status === "STARTED"),
   ).length;
   const pendingRuns = totalRuns - completedRuns - activeRuns;
 
@@ -140,8 +140,7 @@ export const RunsComponent: React.FC = () => {
                 bg: hoverBgColor,
                 transform: "translateY(-1px)",
                 boxShadow: "sm",
-              }}
-            >
+              }}>
               <VStack spacing="2">
                 {runAttributes.commandsCount - run.Commands.length > 0 && (
                   <Progress
@@ -165,8 +164,7 @@ export const RunsComponent: React.FC = () => {
                     color={textColor}
                     leftIcon={expandButtonIcon(run.Id)}
                     size="sm"
-                    _hover={{ bg: "transparent" }}
-                  >
+                    _hover={{ bg: "transparent" }}>
                     <HStack spacing={2}>
                       <Text fontSize="sm" fontWeight="medium">
                         {index + 1}.
@@ -192,8 +190,7 @@ export const RunsComponent: React.FC = () => {
                 borderColor={borderColor}
                 borderRadius="md"
                 mt={2}
-                bg={useColorModeValue("white", "gray.800")}
-              >
+                bg={useColorModeValue("white", "gray.800")}>
                 <SwimLaneComponent runCommands={run.Commands} />
               </Box>
             )}
@@ -215,7 +212,9 @@ export const RunsComponent: React.FC = () => {
                   <VStack align="start" spacing={1}>
                     <Heading size="lg">Run Queue</Heading>
                     <HStack>
-                      <Badge colorScheme={stateQuery.data === ToolStatus.BUSY ? "green" : "gray"} fontSize="sm">
+                      <Badge
+                        colorScheme={stateQuery.data === ToolStatus.BUSY ? "green" : "gray"}
+                        fontSize="sm">
                         {stateQuery.data === ToolStatus.BUSY ? "Running" : "Stopped"}
                       </Badge>
                       <LastUpdatedTime />
@@ -224,9 +223,9 @@ export const RunsComponent: React.FC = () => {
                 </HStack>
                 <QueueStatusComponent totalRuns={totalRuns} />
               </Flex>
-              
+
               <Divider />
-              
+
               <StatGroup>
                 <Stat>
                   <StatLabel>Total Runs</StatLabel>

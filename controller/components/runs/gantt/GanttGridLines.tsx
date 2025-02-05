@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, useColorModeValue } from '@chakra-ui/react';
+import React from "react";
+import { Box, useColorModeValue } from "@chakra-ui/react";
 
 interface GanttGridLinesProps {
   intervals: number;
@@ -26,4 +26,4 @@ export const GanttGridLines: React.FC<GanttGridLinesProps> = ({ intervals }) => 
     );
   }
   return <>{lines}</>;
-}; 
+};

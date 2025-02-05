@@ -1,5 +1,19 @@
 import React from "react";
-import { Box, Text, VStack, HStack, IconButton, Select, Menu, MenuButton, MenuList, MenuItem, Button, Flex, useColorModeValue } from "@chakra-ui/react";
+import {
+  Box,
+  Text,
+  VStack,
+  HStack,
+  IconButton,
+  Select,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Button,
+  Flex,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import { ArrowLeftIcon, ArrowRightIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import { BiTime } from "react-icons/bi";
 import moment from "moment";
@@ -52,7 +66,12 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
 
   const renderTimeLabels = () => {
     const labels = [];
-    const format = timeScale === TimeScale.SECONDS ? "h:mm:ss" : timeScale === TimeScale.HOURS ? "MMM D, h A" : "h:mm A";
+    const format =
+      timeScale === TimeScale.SECONDS
+        ? "h:mm:ss"
+        : timeScale === TimeScale.HOURS
+          ? "MMM D, h A"
+          : "h:mm A";
 
     // Render labels for grid lines (excluding the first and last)
     for (let i = 1; i < timeIntervals; i++) {
@@ -79,10 +98,9 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
             borderColor: useColorModeValue("gray.300", "gray.500"),
           }}
           maxW="100px"
-          isTruncated
-        >
+          isTruncated>
           {intervalTime.format(format)}
-        </Text>
+        </Text>,
       );
     }
     return labels;
@@ -120,7 +138,7 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
             colorScheme="gray"
           />
         </HStack>
-        
+
         <Box marginLeft="200px" flex={1}>
           <Menu>
             <MenuButton
@@ -131,76 +149,70 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
               variant="outline"
               colorScheme="blue"
               float="right"
-              marginRight={4}
-            >
+              marginRight={4}>
               {getScaleLabel(timeScale)}
             </MenuButton>
-            <MenuList 
+            <MenuList
               bg={menuBg}
               borderColor={borderColor}
               boxShadow="md"
               zIndex={100}
               sx={{
-                '& > button': {
-                  bg: 'inherit',
-                  width: '100%',
+                "& > button": {
+                  bg: "inherit",
+                  width: "100%",
                 },
                 backgroundColor: menuBg,
-                position: 'relative',
-              }}
-            >
+                position: "relative",
+              }}>
               <MenuItem
                 onClick={() => onZoomChange(TimeScale.SECONDS)}
                 sx={{
                   backgroundColor: timeScale === TimeScale.SECONDS ? selectedBg : menuBg,
-                  '&:hover': {
+                  "&:hover": {
                     backgroundColor: menuHoverBg,
                   },
-                  position: 'relative',
-                  zIndex: 101
-                }}
-              >
+                  position: "relative",
+                  zIndex: 101,
+                }}>
                 Seconds View
               </MenuItem>
               <MenuItem
                 onClick={() => onZoomChange(TimeScale.MINUTES)}
                 sx={{
                   backgroundColor: timeScale === TimeScale.MINUTES ? selectedBg : menuBg,
-                  '&:hover': {
+                  "&:hover": {
                     backgroundColor: menuHoverBg,
                   },
-                  position: 'relative',
-                  zIndex: 101
-                }}
-              >
+                  position: "relative",
+                  zIndex: 101,
+                }}>
                 Minutes View
               </MenuItem>
               <MenuItem
                 onClick={() => onZoomChange(TimeScale.HOURS)}
                 sx={{
                   backgroundColor: timeScale === TimeScale.HOURS ? selectedBg : menuBg,
-                  '&:hover': {
+                  "&:hover": {
                     backgroundColor: menuHoverBg,
                   },
-                  position: 'relative',
-                  zIndex: 101
-                }}
-              >
+                  position: "relative",
+                  zIndex: 101,
+                }}>
                 Hours View
               </MenuItem>
             </MenuList>
           </Menu>
         </Box>
       </Flex>
-      
-      <Box 
-        position="relative" 
+
+      <Box
+        position="relative"
         width="calc(100% - 200px)"
-        height="24px" 
+        height="24px"
         mt={2}
         marginLeft="200px"
-        paddingX={4}
-      >
+        paddingX={4}>
         {renderTimeLabels()}
       </Box>
     </VStack>

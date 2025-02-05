@@ -1,13 +1,13 @@
-import React from 'react';
-import { Box, useColorModeValue } from '@chakra-ui/react';
+import React from "react";
+import { Box, useColorModeValue } from "@chakra-ui/react";
 
 interface CurrentTimeLineProps {
   position: number;
 }
 
 export const CurrentTimeLine: React.FC<CurrentTimeLineProps> = ({ position }) => {
-  const circleBg = useColorModeValue('white', 'gray.800');
-  
+  const circleBg = useColorModeValue("white", "gray.800");
+
   return (
     <Box
       position="absolute"
@@ -36,4 +36,4 @@ export const CurrentTimeLine: React.FC<CurrentTimeLineProps> = ({ position }) =>
       }}
     />
   );
-}; 
+};

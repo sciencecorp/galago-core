@@ -121,7 +121,7 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
   const isRunning = stateQuery.data === ToolStatus.BUSY;
   const isStopped = stateQuery.data === ToolStatus.OFFLINE;
   const hasFailed = stateQuery.data === ToolStatus.FAILED;
-  
+
   // Check if there are any commands (including completed ones) to clear
   const hasCommandsToClear = commandsQuery.data && commandsQuery.data.length > 0;
 
@@ -135,8 +135,7 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
             leftIcon={<Icon as={FaPause} />}
             colorScheme="orange"
             variant="solid"
-            onClick={() => pause()}
-          >
+            onClick={() => pause()}>
             Pause Queue
           </Button>
         ) : (
@@ -145,8 +144,7 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
             colorScheme="green"
             variant="solid"
             onClick={() => onOpen()}
-            isDisabled={totalRuns === 0}
-          >
+            isDisabled={totalRuns === 0}>
             Start Queue
           </Button>
         )}
@@ -156,8 +154,9 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
           variant="outline"
           onClick={() => clear()}
           isDisabled={!hasCommandsToClear}
-          title={hasCommandsToClear ? "Clear all runs including completed ones" : "No runs to clear"}
-        >
+          title={
+            hasCommandsToClear ? "Clear all runs including completed ones" : "No runs to clear"
+          }>
           Clear All
         </Button>
       </ButtonGroup>
