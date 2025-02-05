@@ -60,7 +60,7 @@ export const TeachPointModal: React.FC<TeachPointModalProps> = ({
       name,
       type: "location" as const,
       locType: "j" as const,
-      coordinate: "",
+      coordinates: "",
     };
 
     onSave(location);

@@ -44,7 +44,7 @@ export const validateImportedData = (data: any): data is TeachPendantExport => {
     data.data.teachPoints.every(
       (point: any) =>
         typeof point.name === "string" &&
-        typeof point.coordinate === "string" &&
+        typeof point.coordinates === "string" &&
         (point.type === "nest" || point.type === "location") &&
         point.locType === "j",
     ) &&

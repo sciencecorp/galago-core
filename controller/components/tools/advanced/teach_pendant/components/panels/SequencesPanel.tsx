@@ -136,15 +136,13 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
           <Heading size="md" paddingTop={12}>
             Sequences
           </Heading>
-          <HStack mb={4} justify="flex-end">
             <Button leftIcon={<AddIcon />} size="sm" onClick={onCreateNew}>
               New Sequence
             </Button>
-          </HStack>
         </HStack>
         <Box width="100%" flex={1} overflow="hidden">
           <Grid
-            templateColumns={selectedSequence ? "350px 1fr" : "1fr"}
+            templateColumns={selectedSequence ? "450px 1fr" : "1fr"}
             gap={4}
             height="100%"
             transition="grid-template-columns 0.2s">

@@ -22,7 +22,7 @@ export const useTeachPendantUI = (config: Tool) => {
   const [activeTab, setActiveTab] = useState(0);
   const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>({});
   const [jogEnabled, setJogEnabled] = useState(false);
-  const [jogAxis, setJogAxis] = useState<string>(`j1`); // Default to first joint
+  const [jogAxis, setJogAxis] = useState<string>("1");
   const [jogDistance, setJogDistance] = useState(1);
 
   // Row expansion handler

@@ -45,7 +45,7 @@ export function useCommandHandlers(config: Tool) {
     action?: "approach" | "leave",
   ) => {
     const command = action || "move";
-    const params: any = action ? { nest: point.coordinate } : { waypoint: point.coordinate };
+    const params: any = action ? { nest: point.coordinates } : { waypoint: point.coordinates };
 
     if (motionProfile?.id) {
       params.motion_profile_id = motionProfile.id;

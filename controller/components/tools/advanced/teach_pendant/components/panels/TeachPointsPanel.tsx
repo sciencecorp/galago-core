@@ -106,7 +106,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
       );
       const updatedPoint = {
         ...point,
-        coordinate: coordinates.join(" "),
+        coordinates: coordinates.join(" "),
       };
       onEdit(updatedPoint);
       setEditingPoint(null);
@@ -115,8 +115,8 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
 
   const startEditing = (point: TeachPoint) => {
     const numJoints = parseInt((config.config as any)?.pf400?.joints || "5");
-    const coordinates = point.coordinate
-      ? point.coordinate.split(" ").map(Number)
+    const coordinates = point.coordinates
+      ? point.coordinates.split(" ").map(Number)
       : Array(numJoints).fill(0);
 
     setEditingPoint({
@@ -155,13 +155,8 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
               <Thead position="sticky" top={0} bg={bgColor} zIndex={1}>
                 <Tr>
                   <Th width="200px">Name</Th>
-                  {/* <Th>{editingPoint && <Box textAlign="center">Coordinates</Box>}</Th> */}
-                  <Th>Joint 1</Th>
-                  <Th>Joint 2</Th>
-                  <Th>Joint 3</Th>
-                  <Th>Joint 4</Th>
-                  <Th>Joint 5</Th>
-                  <Th>Joint 6</Th>
+                  <Th width="100px">Type</Th>
+                  <Th textAlign="center">Coordinates</Th>
                   <Th width="200px" textAlign="right">
                     Actions
                   </Th>
@@ -203,7 +198,37 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                             )}
                           </HStack>
                         </Box>
-                      ) : null}
+                      ) : (
+                        <HStack spacing={2} justify="center">
+                          {Array.from(
+                            { length: parseInt((config.config as any)?.pf400?.joints || "5") },
+                            (_, index) => {
+                              const coordinates = point.coordinates
+                                ? point.coordinates.split(" ").map(Number)
+                                : Array(parseInt((config.config as any)?.pf400?.joints || "5")).fill(0);
+                              return (
+                                <Box key={index}>
+                                  <Box fontSize="xs" textAlign="center" mb={1}>
+                                    J{index + 1}
+                                  </Box>
+                                  <Box
+                                    width="100px"
+                                    textAlign="center"
+                                    borderWidth="1px"
+                                    borderRadius="md"
+                                    py={1}
+                                    px={2}
+                                    fontSize="sm"
+                                    fontFamily="mono"
+                                  >
+                                    {coordinates[index]?.toFixed(3) || "0.000"}
+                                  </Box>
+                                </Box>
+                              );
+                            },
+                          )}
+                        </HStack>
+                      )}
                     </Td>
                     <Td width="200px" textAlign="right">
                       {editingPoint?.id === point.id ? (

@@ -1,8 +1,6 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { get, post, put, del } from "../utils/api";
-import { zLabware } from "./labware";
-import { Labware } from "@/types/api";
 import Tool from "../tools";
 
 // Helper function to get tool instance
@@ -19,12 +17,7 @@ const zRobotArmLocation = z.object({
   id: z.number().optional(),
   name: z.string(),
   location_type: z.enum(["j", "c"]),
-  j1: z.number().optional(),
-  j2: z.number().optional(),
-  j3: z.number().optional(),
-  j4: z.number().optional(),
-  j5: z.number().optional(),
-  j6: z.number().optional(),
+  coordinates: z.string(),  // Space-separated coordinates values
   tool_id: z.number(),
 });
 
@@ -33,12 +26,7 @@ const zRobotArmNest = z.object({
   name: z.string(),
   orientation: z.enum(["portrait", "landscape"]),
   location_type: z.enum(["j", "c"]),
-  j1: z.number().optional(),
-  j2: z.number().optional(),
-  j3: z.number().optional(),
-  j4: z.number().optional(),
-  j5: z.number().optional(),
-  j6: z.number().optional(),
+  coordinates: z.string(),  // Space-separated coordinates values
   safe_location_id: z.number(),
   tool_id: z.number(),
 });
@@ -89,7 +77,6 @@ const zRobotArmWaypoints = z.object({
   motionProfiles: z.array(zRobotArmMotionProfile),
   gripParams: z.array(zRobotArmGripParams),
   sequences: z.array(zRobotArmSequence),
-  labware: z.array(zLabware),
   tool_id: z.number(),
 });
 
@@ -258,40 +245,13 @@ export const robotArmRouter = router({
         return result;
       }),
   }),
-
-  labware: router({
-    getAll: procedure
-      .input(z.object({ toolId: z.number() }))
-      .query(({ input }): Promise<Labware[]> => get(`/labware?tool_id=${input.toolId}`)),
-  }),
   waypoints: router({
     getAll: procedure
       .input(z.object({ toolId: z.number() }))
-      .query(async ({ input }): Promise<z.infer<typeof zRobotArmWaypoints>> => {
-        const [nests, locations, sequences, motionProfiles, gripParams, labware] =
-          await Promise.all([
-            get(`/robot-arm-nests?tool_id=${input.toolId}`) as Promise<RobotArmNest[]>,
-            get(`/robot-arm-locations?tool_id=${input.toolId}`) as Promise<RobotArmLocation[]>,
-            get(`/robot-arm-sequences?tool_id=${input.toolId}`) as Promise<RobotArmSequence[]>,
-            get(`/robot-arm-motion-profiles?tool_id=${input.toolId}`) as Promise<
-              RobotArmMotionProfile[]
-            >,
-            get(`/robot-arm-grip-params?tool_id=${input.toolId}`) as Promise<RobotArmGripParams[]>,
-            get(`/labware?tool_id=${input.toolId}`) as Promise<Labware[]>,
-          ]);
-
-        return {
-          id: input.toolId,
-          name: `Waypoints for Tool ${input.toolId}`,
-          locations: locations,
-          nests: nests,
-          sequences: sequences,
-          motionProfiles: motionProfiles,
-          gripParams: gripParams,
-          labware: labware,
-          tool_id: input.toolId,
-        };
-      }),
+      .query(
+        ({ input }): Promise<z.infer<typeof zRobotArmWaypoints>> =>
+          get(`/robot-arm-waypoints?tool_id=${input.toolId}`),
+      ),
   }),
   command: procedure
     .input(

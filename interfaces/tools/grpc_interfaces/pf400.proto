@@ -133,6 +133,14 @@ message Command {
   message LoadSequences {
     google.protobuf.Struct load_sequences=1;
   }
+
+  message LoadLabware {
+    repeated LabwareConfig labware = 1;
+  }
+
+  message RegisterMotionProfile {
+    MotionProfileConfig motion_profile = 1;
+  }
 }
 
 message Config {

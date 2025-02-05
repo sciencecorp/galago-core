@@ -165,7 +165,6 @@ export const toolRouter = router({
           sequences: data.sequences || [],
           motion_profiles: data.motion_profiles || [],
           grip_params: data.grip_params || [],
-          labware: data.labware || [],
         };
 
         return result;
@@ -173,5 +172,25 @@ export const toolRouter = router({
         console.error("Error fetching waypoints:", error);
         throw new Error("Failed to fetch waypoints");
       }
+    }),
+
+  reloadWaypoints: procedure
+    .input(z.string())
+    .mutation(async ({ input: toolId }) => {
+      const tool = Tool.forId(toolId);
+      if (!tool) {
+        throw new Error(`Tool ${toolId} not found`);
+      }
+      await tool.reloadWaypoints();
+    }),
+
+  reloadLabware: procedure
+    .input(z.string())
+    .mutation(async ({ input: toolId }) => {
+      const tool = Tool.forId(toolId);
+      if (!tool) {
+        throw new Error(`Tool ${toolId} not found`);
+      }
+      await tool.reloadLabware();
     }),
 });

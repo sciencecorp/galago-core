@@ -9,26 +9,26 @@ export const jointsToCoordinate = (joints: JointConfig, numJoints: number): stri
   return jointValues.join(" ");
 };
 
-export function coordinateToJoints(coordinate: string, numJoints: number): JointConfig {
-  const values = coordinate.split(" ").map(Number);
+export function coordinateToJoints(coordinates: string, numJoints: number): JointConfig {
+  const values = coordinates.split(" ").map(Number);
   const joints: JointConfig = {};
 
-  // Skip the first value (j0) if it exists
-  const startIndex = values.length > numJoints ? 1 : 0;
+  // Handle the coordinate string directly
+  for (let i = 0; i < Math.min(values.length, numJoints); i++) {
+    joints[`j${i + 1}`] = values[i];
+  }
 
-  for (let i = 0; i < numJoints; i++) {
-    joints[`j${i + 1}`] = values[startIndex + i];
+  // Fill in any missing joints with 0
+  for (let i = values.length; i < numJoints; i++) {
+    joints[`j${i + 1}`] = 0;
   }
 
   return joints;
 }
 
-export function validateJointCount(coordinate: string, expectedJoints: number): boolean {
-  const values = coordinate.split(" ");
-  // Only slice if first value is 0 or 1
-  const firstValue = parseFloat(values[0]);
-  const jointValues = firstValue === 0 || firstValue === 1 ? values.slice(1) : values;
-  return jointValues.length === expectedJoints;
+export function validateJointCount(coordinates: string, expectedJoints: number): boolean {
+  const values = coordinates.split(" ").slice(1);
+  return values.length === expectedJoints;
 }
 
 export function filterItems<T extends { name: string; type?: string }>(

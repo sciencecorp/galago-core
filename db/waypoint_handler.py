@@ -13,7 +13,7 @@ import re
 # Schemas for waypoint data
 class TeachPoint(BaseModel):
     name: str
-    coordinate: str
+    coordinates: str
     type: str = "location"
     loc_type: str = "j"
 
@@ -98,7 +98,7 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                         
                         data['teach_points'].append({
                             'name': name,
-                            'coordinate': ' '.join(joints),
+                            'coordinates': ' '.join(joints),
                             'type': 'location',
                             'loc_type': 'j'
                         })
@@ -190,7 +190,25 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
         elif file_ext == 'json':
             try:
                 data = json.loads(content.decode())
-                if data.get('data'):
+                
+                # Handle direct sequence array format
+                if isinstance(data, list):
+                    # Create a sequence object from the command array
+                    data = {
+                        'sequences': [{
+                            'name': file.filename.replace('.json', ''),
+                            'description': 'Imported sequence',
+                            'commands': [
+                                {
+                                    'command': cmd['command'],
+                                    'params': cmd['params'],
+                                    'order': idx
+                                } for idx, cmd in enumerate(data)
+                            ],
+                            'tool_id': tool_id
+                        }]
+                    }
+                elif data.get('data'):
                     data = data['data']
                 
                 # Convert locations to teach_points
@@ -199,7 +217,7 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                     for name, loc_data in data['locations'].items():
                         teach_point = {
                             'name': name,
-                            'coordinate': loc_data['loc'],
+                            'coordinates': loc_data['loc'],
                             'type': 'location',
                             'loc_type': loc_data.get('loc_type', 'j')
                         }
@@ -259,21 +277,15 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                     unique_name = get_unique_name(db, point.name, 
                                         RobotArmLocation, tool_id)
                     
-                    # Parse coordinates
-                    coords = point.coordinate.split()
-                    coords.extend(['0'] * (6 - len(coords)))  
+                    # Ensure coordinates are in string format
+                    coords = point.coordinates if isinstance(point.coordinates, str) else ' '.join(map(str, point.coordinates))
                     
                     location = crud.robot_arm_location.create(
                         db,
                         obj_in=schemas.RobotArmLocationCreate(
                             name=unique_name,
                             location_type=point.loc_type,
-                            j1=float(coords[0]),
-                            j2=float(coords[1]),
-                            j3=float(coords[2]),
-                            j4=float(coords[3]),
-                            j5=float(coords[4]),
-                            j6=float(coords[5]),
+                            coordinates=coords,
                             tool_id=tool_id
                         )
                     )

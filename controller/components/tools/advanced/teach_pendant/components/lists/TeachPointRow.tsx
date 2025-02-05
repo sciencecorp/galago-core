@@ -116,8 +116,8 @@ export const TeachPointRow: React.FC<TeachPointRowProps> = ({
                 </Thead>
                 <Tbody>
                   <Tr>
-                    {point.coordinate ? (
-                      point.coordinate.split(" ").map((coord: string, i: number) => (
+                    {point.coordinates ? (
+                      point.coordinates.split(" ").map((coord: string, i: number) => (
                         <Td key={i} fontFamily="mono">
                           {parseFloat(coord).toFixed(3)}
                         </Td>
