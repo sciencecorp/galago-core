@@ -180,12 +180,8 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
       });
 
       if (response?.meta_data?.location) {
-        console.log("response.meta_data.location", response.meta_data.location);
         const coordinates = response.meta_data.location.split(" ").slice(1);
-        console.log("coordinates", coordinates);
-        console.log("config.config", config.config);
         const numJoints = (config.config as any)?.pf400?.joints || 6;
-        console.log("numJoints", numJoints);
         if (!validateJointCount(response.meta_data.location, parseInt(numJoints.toString()))) {
           toast({
             title: "Joint Count Mismatch",

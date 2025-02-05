@@ -27,10 +27,7 @@ export function coordinateToJoints(coordinates: string, numJoints: number): Join
 }
 
 export function validateJointCount(coordinates: string, expectedJoints: number): boolean {
-  console.log("coordinates", coordinates);
-  console.log("expectedJoints", expectedJoints);
   const values = coordinates.split(" ").slice(1);
-  console.log("values", values);
   return values.length === expectedJoints;
 }
 
