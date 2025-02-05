@@ -7,6 +7,7 @@ import {
   useColorModeValue,
   VStack,
   Text,
+  Flex,
 } from "@chakra-ui/react";
 
 interface PageHeaderProps {
@@ -22,24 +23,24 @@ export const PageHeader: React.FC<PageHeaderProps> = (props) => {
   const { title, mainButton, secondaryButton, tertiaryButton, titleIcon, subTitle } = props;
   return (
     <Box width="100%">
-      <HStack mb={2} justify="space-between" width="100%">
-        <Box>
-          <HStack>
-            <VStack align="flex-start">
-              <HStack>
-                <Heading mb={0}>{title}</Heading>
-                {titleIcon}
-              </HStack>
-              <Heading size="sm">{subTitle}</Heading>
-            </VStack>
-          </HStack>
-        </Box>
+      <Flex justify="space-between" align="center" width="100%">
+        <HStack spacing={4}>
+          {titleIcon}
+          <VStack align="start" spacing={1}>
+            <Heading size="lg">{title}</Heading>
+            {subTitle && (
+              <Text color="gray.500" fontSize="sm">
+                {subTitle}
+              </Text>
+            )}
+          </VStack>
+        </HStack>
         <ButtonGroup>
           {mainButton}
           {secondaryButton}
           {tertiaryButton}
         </ButtonGroup>
-      </HStack>
+      </Flex>
     </Box>
   );
 };
