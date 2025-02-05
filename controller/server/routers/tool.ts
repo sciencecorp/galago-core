@@ -118,40 +118,14 @@ export const toolRouter = router({
     .input(
       z.object({
         toolId: z.string(),
-        config: z.custom<Config>(),
-      }),
+        config: z.custom<Config>().transform(Config.fromPartial),
+      })
     )
     .mutation(async ({ input }) => {
-      try {
-        const { toolId, config } = input;
-        const tool = Tool.forId(toolId);
-
-        // Initialize basic PF400 config if needed
-        if (tool.type === ToolType.pf400 && !config.pf400) {
-          config.pf400 = {
-            host: "",
-            port: 0,
-            joints: 0,
-          };
-        }
-
-        // Use tool.configure instead of tool.grpc.configure directly
-        const response = await tool.configure(config);
-
-        if (response.response !== "SUCCESS") {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: response.error_message || "Failed to configure tool",
-          });
-        }
-
-        return response;
-      } catch (error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: error instanceof Error ? error.message : "Failed to configure tool",
-        });
-      }
+      const { toolId, config } = input;
+      const tool = Tool.forId(toolId);
+      const resp = await tool.configure(config);
+      return resp;
     }),
 
   runCommand: procedure

@@ -88,13 +88,6 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
     onItemsPerPageChange,
   } = usePagination(teachPoints);
 
-
-  useEffect(() => {
-    console.log("teachPoints", teachPoints);  
-    console.log(JSON.stringify(teachPoints));
-  },[teachPoints]);
-
-
   const handleCoordinateChange = (index: number, value: number) => {
     if (editingPoint) {
       const numJoints = parseInt((config.config as any)?.pf400?.joints || "5");

@@ -15,6 +15,9 @@ import { Script } from "@/types/api";
 import { Variable } from "@/types/api";
 import * as pf400_protos from "gen-interfaces/tools/grpc_interfaces/pf400";
 import { Command } from "gen-interfaces/tools/grpc_interfaces/pf400";
+import { buildGoogleStructValue } from "utils/struct";
+import { GripParametersPanel } from "@/components/tools/advanced/teach_pendant/components/panels/GripParametersPanel";
+import { motion } from "framer-motion";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<string, Tool> = new Map();
@@ -81,32 +84,47 @@ export default class Tool {
   }
 
 
-  async modifyPF400Config(config: tool_base.Config) {
+  async loadPF400Waypoints() {
     //We need to pass waypoints from the database. 
-    console.log("")
-    const waypoints = await get<any>(`/robot-arm-waypoints?tool_id=${this.info.name}`);
-    console.log("Got waypoints from the database", waypoints);
+    const waypointsReponse = await get<any>(`/robot-arm-waypoints?tool_id=1`);
+    //Execute tool commans to load waypoints
+    console.log("Tool Id", this.info.name);
+    console.log("Type", this.info.type);
+    console.log("Waypoints", waypointsReponse.locations);
   
+    await this.executeCommand({
+      toolId:"Pf400",
+      toolType: ToolType.pf400,
+      command: "load_waypoints",
+      params: {
+        locations: waypointsReponse.locations,
+        grip_params: {},
+        motion_profiles: {},
+      },
+    })
   }
   
   
  
   async configure(config: tool_base.Config) {
     this.config = config;
-    if(this.type === ToolType.pf400){
-      console.log("Configuring PF400 tool");
+    const reply = await this.grpc.configure(config);
+    if(this.info.type === ToolType.pf400){
+      console.log("Executing PF400 Waypoints");
+      try{
+        await this.loadPF400Waypoints();
+        console.log("PF400 Waypoints Loaded");
+      }
+      catch(e){
+        console.error("Error while loading PF400 Waypoints: ", e);
+      }
     }
-    try{
-      const reply = await this.grpc.configure(config);
-    }catch(e){
-      console.error("Error while configuring tool", e);
+    if (reply.response !== tool_base.ResponseCode.SUCCESS) {
+      throw new ToolCommandExecutionError(
+        reply.error_message ?? "Connect Command failed",
+        reply.response,
+      );
     }
-    // if(reply.response !== tool_base.ResponseCode.SUCCESS){
-    //   throw new ToolCommandExecutionError(
-    //     reply.error_message ?? "Connect Command failed",
-    //     reply.response
-    //   );
-    // }
   }
 
 
@@ -121,8 +139,6 @@ export default class Tool {
   static async executeCommand(command: ToolCommandInfo) {
     return await Tool.forId(command.toolId).executeCommand(command);
   }
-
-  static isVariable(param: any) {}
 
   async executeCommand(command: ToolCommandInfo) {
     const params = command.params;
