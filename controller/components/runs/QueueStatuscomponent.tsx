@@ -21,6 +21,8 @@ import {
   AlertDescription,
   Box,
   CloseButton,
+  ButtonGroup,
+  Icon,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import StatusTag from "@/components/tools/StatusTag";
@@ -28,6 +30,7 @@ import { ExecuteCommandReply, ResponseCode } from "gen-interfaces/tools/grpc_int
 import { ToolCommandInfo } from "@/types";
 import { ToolType } from "gen-interfaces/controller";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
+import { FaPlay, FaPause, FaStop, FaTrash } from "react-icons/fa";
 
 import { getegid } from "process";
 import { get } from "http";
@@ -40,10 +43,12 @@ interface QueueStatusComponent {
 
 export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns }) => {
   const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 1000 });
+  const commandsQuery = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
   const stateMutationOpts = {
     onSettled: () => {
       stateQuery.refetch();
       getError.refetch();
+      commandsQuery.refetch();
     },
   };
   const queue = trpc.commandQueue;
@@ -111,30 +116,51 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
     );
   };
 
-  if (stateQuery.isLoading) return <Spinner />;
+  if (stateQuery.isLoading || commandsQuery.isLoading) return <Spinner />;
+
+  const isRunning = stateQuery.data === ToolStatus.BUSY;
+  const isStopped = stateQuery.data === ToolStatus.OFFLINE;
+  const hasFailed = stateQuery.data === ToolStatus.FAILED;
+  
+  // Check if there are any commands (including completed ones) to clear
+  const hasCommandsToClear = commandsQuery.data && commandsQuery.data.length > 0;
+
   return (
     <>
       <ErrorBanner />
       {confirmRunStartModal()}
-      <PageHeader
-        title="Runs"
-        subTitle={`Total Runs: ${totalRuns}`}
-        mainButton={
-          <Button colorScheme="green" variant="outline" onClick={() => onOpen()}>
-            Start
+      <ButtonGroup spacing={2}>
+        {isRunning ? (
+          <Button
+            leftIcon={<Icon as={FaPause} />}
+            colorScheme="orange"
+            variant="solid"
+            onClick={() => pause()}
+          >
+            Pause Queue
           </Button>
-        }
-        secondaryButton={
-          <Button colorScheme="red" variant="outline" onClick={() => pause()}>
-            Stop
+        ) : (
+          <Button
+            leftIcon={<Icon as={FaPlay} />}
+            colorScheme="green"
+            variant="solid"
+            onClick={() => onOpen()}
+            isDisabled={totalRuns === 0}
+          >
+            Start Queue
           </Button>
-        }
-        tertiaryButton={
-          <Button colorScheme="white" variant="outline" onClick={() => clear()}>
-            Clear
-          </Button>
-        }
-      />
+        )}
+        <Button
+          leftIcon={<Icon as={FaTrash} />}
+          colorScheme="red"
+          variant="outline"
+          onClick={() => clear()}
+          isDisabled={!hasCommandsToClear}
+          title={hasCommandsToClear ? "Clear all runs including completed ones" : "No runs to clear"}
+        >
+          Clear All
+        </Button>
+      </ButtonGroup>
     </>
   );
 };
