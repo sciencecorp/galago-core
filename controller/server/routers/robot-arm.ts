@@ -98,14 +98,14 @@ export const robotArmRouter = router({
       const result = await post("/robot-arm-locations", input);
       // Reload waypoints for the affected tool
       const tool = await getToolInstance(input.tool_id);
-      await tool.reloadWaypoints();
+      // await tool.reloadWaypoints();
       return result;
     }),
     update: procedure.input(zRobotArmLocation).mutation(async ({ input }) => {
       const result = await put(`/robot-arm-locations/${input.id}`, input);
       // Reload waypoints for the affected tool
       const tool = await getToolInstance(input.tool_id);
-      await tool.reloadWaypoints();
+      // await tool.reloadWaypoints();
       return result;
     }),
     delete: procedure
@@ -114,7 +114,7 @@ export const robotArmRouter = router({
         const result = await del(`/robot-arm-locations/${input.id}`);
         // Reload waypoints for the affected tool
         const tool = await getToolInstance(input.tool_id);
-        await tool.reloadWaypoints();
+        // await tool.reloadWaypoints();
         return result;
       }),
   }),
@@ -128,14 +128,14 @@ export const robotArmRouter = router({
       const result = await post("/robot-arm-nests", input);
       // Reload waypoints for the affected tool
       const tool = await getToolInstance(input.tool_id);
-      await tool.reloadWaypoints();
+      // await tool.reloadWaypoints();
       return result;
     }),
     update: procedure.input(zRobotArmNest).mutation(async ({ input }) => {
       const result = await put(`/robot-arm-nests/${input.id}`, input);
       // Reload waypoints for the affected tool
       const tool = await getToolInstance(input.tool_id);
-      await tool.reloadWaypoints();
+      // await tool.reloadWaypoints();
       return result;
     }),
     delete: procedure
@@ -144,7 +144,7 @@ export const robotArmRouter = router({
         const result = await del(`/robot-arm-nests/${input.id}`);
         // Reload waypoints for the affected tool
         const tool = await getToolInstance(input.tool_id);
-        await tool.reloadWaypoints();
+        // await tool.reloadWaypoints();
         return result;
       }),
   }),
@@ -161,14 +161,14 @@ export const robotArmRouter = router({
         const result = await post("/robot-arm-motion-profiles", input);
         // Reload waypoints for the affected tool
         const tool = await getToolInstance(input.tool_id);
-        await tool.reloadWaypoints();
+        // await tool.reloadWaypoints();
         return result;
       }),
     update: procedure.input(zRobotArmMotionProfile).mutation(async ({ input }) => {
       const result = await put(`/robot-arm-motion-profiles/${input.id}`, input);
       // Reload waypoints for the affected tool
       const tool = await getToolInstance(input.tool_id);
-      await tool.reloadWaypoints();
+      // await tool.reloadWaypoints();
       return result;
     }),
     delete: procedure
@@ -177,7 +177,7 @@ export const robotArmRouter = router({
         const result = await del(`/robot-arm-motion-profiles/${input.id}`);
         // Reload waypoints for the affected tool
         const tool = await getToolInstance(input.tool_id);
-        await tool.reloadWaypoints();
+        // await tool.reloadWaypoints();
         return result;
       }),
   }),
@@ -193,14 +193,14 @@ export const robotArmRouter = router({
       const result = await post("/robot-arm-grip-params", input);
       // Reload waypoints for the affected tool
       const tool = await getToolInstance(input.tool_id);
-      await tool.reloadWaypoints();
+      // await tool.reloadWaypoints();
       return result;
     }),
     update: procedure.input(zRobotArmGripParams).mutation(async ({ input }) => {
       const result = await put(`/robot-arm-grip-params/${input.id}`, input);
       // Reload waypoints for the affected tool
       const tool = await getToolInstance(input.tool_id);
-      await tool.reloadWaypoints();
+      // await tool.reloadWaypoints();
       return result;
     }),
     delete: procedure
@@ -209,7 +209,7 @@ export const robotArmRouter = router({
         const result = await del(`/robot-arm-grip-params/${input.id}`);
         // Reload waypoints for the affected tool
         const tool = await getToolInstance(input.tool_id);
-        await tool.reloadWaypoints();
+        // await tool.reloadWaypoints();
         return result;
       }),
   }),
@@ -225,14 +225,14 @@ export const robotArmRouter = router({
       const result = await post("/robot-arm-sequences", input);
       // Reload waypoints for the affected tool
       const tool = await getToolInstance(input.tool_id);
-      await tool.reloadWaypoints();
+      // await tool.reloadWaypoints();
       return result;
     }),
     update: procedure.input(zRobotArmSequence).mutation(async ({ input }) => {
       const result = await put(`/robot-arm-sequences/${input.id}`, input);
       // Reload waypoints for the affected tool
       const tool = await getToolInstance(input.tool_id);
-      await tool.reloadWaypoints();
+      // await tool.reloadWaypoints();
       return result;
     }),
     delete: procedure
@@ -241,7 +241,7 @@ export const robotArmRouter = router({
         const result = await del(`/robot-arm-sequences/${input.id}`);
         // Reload waypoints for the affected tool
         const tool = await getToolInstance(input.tool_id);
-        await tool.reloadWaypoints();
+        // await tool.reloadWaypoints();
         return result;
       }),
   }),

@@ -11,6 +11,7 @@ import { get } from "@/server/utils/api";
 import { Script } from "@/types/api";
 import { Variable } from "@/types/api";
 import { Labware } from "@/types/api";
+import { buildGoogleStructValue } from "utils/struct";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<string, Tool> = new Map();
@@ -79,12 +80,13 @@ export default class Tool {
 
   async loadPF400Waypoints() {
     const waypointsReponse = await get<any>(`/robot-arm-waypoints?tool_id=1`);
+    console.log("Locations", waypointsReponse.locations); 
     await this.executeCommand({
       toolId:"Pf400",
       toolType: ToolType.pf400,
       command: "load_waypoints",
       params: {
-        locations: waypointsReponse.locations,
+        locations: buildGoogleStructValue(waypointsReponse),
         grip_params: waypointsReponse.grip_params,
         motion_profiles: waypointsReponse.motion_profiles,
       },

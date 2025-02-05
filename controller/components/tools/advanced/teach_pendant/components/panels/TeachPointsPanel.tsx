@@ -30,6 +30,7 @@ import { BsRecordCircle } from "react-icons/bs";
 import { useState, useRef, useEffect } from "react";
 import { usePagination } from "../../hooks/usePagination";
 import { PaginationControls } from "../common/PaginationControls";
+import { EditableText } from "@/components/ui/Form";
 
 interface EditablePoint {
   id: number;
@@ -98,31 +99,13 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
     }
   };
 
-  const handleSaveCoordinates = (point: TeachPoint) => {
-    if (editingPoint) {
-      const numJoints = parseInt((config.config as any)?.pf400?.joints || "5");
-      const coordinates = Array.from({ length: numJoints }).map(
-        (_, i) => editingPoint.coordinates[i] || 0,
-      );
-      const updatedPoint = {
-        ...point,
-        coordinates: coordinates.join(" "),
-      };
-      onEdit(updatedPoint);
+  const handleSaveCoordinates = (teachpoint: TeachPoint, newValue: number , jointIndex:number) => {
+
+      const updatedPoint = teachpoint.coordinates.split(" ");
+      updatedPoint[jointIndex] = newValue.toString();
+
+      onEdit({ ...teachpoint, coordinates: updatedPoint.join(" ") });
       setEditingPoint(null);
-    }
-  };
-
-  const startEditing = (point: TeachPoint) => {
-    const numJoints = parseInt((config.config as any)?.pf400?.joints || "5");
-    const coordinates = point.coordinates
-      ? point.coordinates.split(" ").map(Number)
-      : Array(numJoints).fill(0);
-
-    setEditingPoint({
-      id: point.id,
-      coordinates: Array.from({ length: numJoints }).map((_, i) => coordinates[i] || 0),
-    });
   };
 
   return (
@@ -155,93 +138,32 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
               <Thead position="sticky" top={0} bg={bgColor} zIndex={1}>
                 <Tr>
                   <Th width="200px">Name</Th>
-                  <Th width="100px">Type</Th>
-                  <Th textAlign="center">Coordinates</Th>
+                  <Th textAlign="center">Joint 1</Th>
+                  <Th textAlign="center">Joint 2</Th>
+                  <Th textAlign="center">Joint 3</Th>
+                  <Th textAlign="center">Joint 4</Th>
+                  <Th textAlign="center">Joint 5</Th>
+                  <Th textAlign="center">Joint 6</Th>
                   <Th width="200px" textAlign="right">
                     Actions
                   </Th>
                 </Tr>
               </Thead>
               <Tbody>
-                {paginatedItems.map((point) => (
+                {paginatedItems.map((point, index) => (
                   <Tr key={point.id} bg={expandedRows[point.id] ? bgColorAlpha : undefined}>
                     <Td width="200px">{point.name}</Td>
-                    <Td></Td>
-                    <Td></Td>
-                    <Td></Td>
-                    <Td></Td>
-                    <Td></Td>
-                    <Td></Td>
-                    <Td>
-                      {editingPoint?.id === point.id ? (
-                        <Box>
-                          <HStack spacing={2} justify="center">
-                            {Array.from(
-                              { length: parseInt((config.config as any)?.pf400?.joints || "5") },
-                              (_, index) => (
-                                <Box key={index}>
-                                  <Box fontSize="xs" textAlign="center" mb={1}>
-                                    J{index + 1}
-                                  </Box>
-                                  <NumberInput
-                                    value={editingPoint?.coordinates[index] || 0}
-                                    onChange={(_, value) => handleCoordinateChange(index, value)}
-                                    step={0.001}
-                                    precision={3}
-                                    size="xs"
-                                    min={-360}
-                                    max={360}>
-                                    <NumberInputField width="100px" textAlign="left" />
-                                  </NumberInput>
-                                </Box>
-                              ),
-                            )}
-                          </HStack>
-                        </Box>
-                      ) : (
-                        <HStack spacing={2} justify="center">
-                          {Array.from(
-                            { length: parseInt((config.config as any)?.pf400?.joints || "5") },
-                            (_, index) => {
-                              const coordinates = point.coordinates
-                                ? point.coordinates.split(" ").map(Number)
-                                : Array(parseInt((config.config as any)?.pf400?.joints || "5")).fill(0);
-                              return (
-                                <Box key={index}>
-                                  <Box fontSize="xs" textAlign="center" mb={1}>
-                                    J{index + 1}
-                                  </Box>
-                                  <Box
-                                    width="100px"
-                                    textAlign="center"
-                                    borderWidth="1px"
-                                    borderRadius="md"
-                                    py={1}
-                                    px={2}
-                                    fontSize="sm"
-                                    fontFamily="mono"
-                                  >
-                                    {coordinates[index]?.toFixed(3) || "0.000"}
-                                  </Box>
-                                </Box>
-                              );
-                            },
-                          )}
-                        </HStack>
-                      )}
-                    </Td>
+                    {point.coordinates.split(" ").map((coord, index) => (
+                      <Td key={index} textAlign="center">
+                        <EditableText
+                          onSubmit={async (value) => {
+                            value && handleSaveCoordinates(point, Number(value), index);
+                          }}
+                          defaultValue={coord}
+                        />
+                      </Td>
+                    ))}
                     <Td width="200px" textAlign="right">
-                      {editingPoint?.id === point.id ? (
-                        <Tooltip label="Save coordinates">
-                          <IconButton
-                            aria-label="Save coordinates"
-                            icon={<CheckIcon />}
-                            size="sm"
-                            colorScheme="blue"
-                            onClick={() => handleSaveCoordinates(point)}
-                          />
-                        </Tooltip>
-                      ) : (
                         <Menu>
                           <MenuButton
                             as={IconButton}
@@ -251,37 +173,17 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                             size="sm"
                           />
                           <MenuList>
-                            {point.type === "nest" ? (
-                              <>
-                                <MenuItem
-                                  icon={<FaPlay style={{ transform: "scaleX(-1)" }} />}
-                                  onClick={() => onMove(point, "leave")}>
-                                  Leave nest
-                                </MenuItem>
-                                <MenuItem
-                                  icon={<FaPlay />}
-                                  onClick={() => onMove(point, "approach")}>
-                                  Approach nest
-                                </MenuItem>
-                              </>
-                            ) : (
-                              <>
-                                <MenuItem icon={<FaPlay />} onClick={() => onMove(point)}>
-                                  Move to point
-                                </MenuItem>
-                                {isConnected && (
-                                  <MenuItem
-                                    icon={<BsRecordCircle />}
-                                    onClick={() => onTeach(point)}>
-                                    Teach current position
-                                  </MenuItem>
-                                )}
-                              </>
+                            <MenuItem icon={<FaPlay />} onClick={() => onMove(point)}>
+                              Move to point
+                            </MenuItem>
+                            {isConnected && (
+                              <MenuItem
+                                icon={<BsRecordCircle />}
+                                onClick={() => onTeach(point)}>
+                                Teach current position
+                              </MenuItem>
                             )}
                             <MenuDivider />
-                            <MenuItem icon={<EditIcon />} onClick={() => startEditing(point)}>
-                              Edit coordinates
-                            </MenuItem>
                             <MenuItem
                               icon={<DeleteIcon />}
                               onClick={() => onDelete(point)}
@@ -290,7 +192,6 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                             </MenuItem>
                           </MenuList>
                         </Menu>
-                      )}
                     </Td>
                   </Tr>
                 ))}

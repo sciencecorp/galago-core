@@ -99,23 +99,6 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4}>
-              <FormControl>
-                <FormLabel>Name</FormLabel>
-                <Input
-                  placeholder="New name"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Description</FormLabel>
-                <Input
-                  placeholder="New description"
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
-                />
-              </FormControl>
-              <Divider />
               {config &&
                 type != ToolType.unknown &&
                 type != ToolType.UNRECOGNIZED &&
