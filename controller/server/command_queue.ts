@@ -26,7 +26,7 @@ export class CommandQueue {
   private _state: CommandQueueState = ToolStatus.OFFLINE;
   // There should only be one running promise to avoid race conditions
   private _runningPromise?: Promise<any>;
-  error: Error | string = "";
+  error?: Error;
 
   commands: RedisQueue;
   //runRequest: RunStore;
@@ -75,7 +75,6 @@ export class CommandQueue {
     return this.commands.getRun(runId);
   }
   async clearAll() {
-    this.clearError();
     await this.commands.clearAll();
   }
   async clearByRunId(runId: string) {
@@ -90,22 +89,17 @@ export class CommandQueue {
     await this.commands.clearCompleted();
   }
 
-  clearError() {
-    logger.info("Clearing error state.");
-    this.error = "";
-    this._setState(ToolStatus.READY);
-  }
   slackNotificationsEnabled: boolean = true;
 
+  // Initialize the run state and start the command queue
   async _start() {
-    this.clearError();
     logAction({
       level: "info",
       action: "Command Queue started",
       details: "Command Queue started by user.",
     });
     this._setState(ToolStatus.READY);
-    this.error = "";
+    this.error = undefined;
     logAction({ level: "info", action: "Queue Ready", details: "Command Queue is Ready." });
     try {
       this._runningPromise = this._runBusyLoopWhileQueueNotEmpty(120);
@@ -137,7 +131,6 @@ export class CommandQueue {
   }
 
   private async _runBusyLoopWhileQueueNotEmpty(timeout = 120) {
-    this.clearError();
     this._setState(ToolStatus.BUSY);
     let threadTs: string | undefined;
     const startedAt = Date.now();
@@ -201,8 +194,6 @@ export class CommandQueue {
           });
           errorMessage = new Error("Unknown error while trying to execute tool command");
         }
-        // console.log("Failes to execute command, error is", errorMessage);
-        // this.error = errorMessage;
         logger.error("Failed to execute command", e);
         await this.commands.fail(
           nextCommand.queueId,
@@ -216,7 +207,6 @@ export class CommandQueue {
 
   // Run a command immediately by sending it to the tool
   async executeCommand(command: StoredRunCommand) {
-    this.clearError();
     await Tool.executeCommand(command.commandInfo);
     await this.commands.complete(command.queueId);
   }
