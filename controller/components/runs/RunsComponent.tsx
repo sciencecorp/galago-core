@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { SwimLaneComponent } from "@/components/runs/SwimLaneComponent";
-import RunQueueGanttChart from "@/components/runs/RunQueueGanttChart";
+import { SwimLaneComponent } from "@/components/runs/list/SwimLaneComponent";
+import RunQueueGanttChart from "@/components/runs/gantt/RunQueueGanttChart";
 import { trpc } from "@/utils/trpc";
 import {
   Box,
@@ -24,7 +24,7 @@ import {
 } from "@chakra-ui/react";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { PlusSquareIcon, ChevronUpIcon, TimeIcon } from "@chakra-ui/icons";
-import { QueueStatusComponent } from "./QueueStatuscomponent";
+import { QueueStatusComponent } from "./status/QueueStatuscomponent";
 import { getRunAttributes, groupCommandsByRun } from "@/utils/runUtils";
 import { SiGithubactions } from "react-icons/si";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";

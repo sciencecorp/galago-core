@@ -12,7 +12,7 @@ import {
   useDisclosure,
   Text,
 } from "@chakra-ui/react";
-import SwimLaneCommandComponent from "@/components/runs/SwimLaneCommandComponent";
+import SwimLaneCommandComponent from "./SwimLaneCommandComponent";
 import { RunCommand } from "@/types";
 import React, { useState } from "react";
 import { capitalizeFirst } from "@/utils/parser";
