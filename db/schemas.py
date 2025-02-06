@@ -449,7 +449,6 @@ class RobotArmWaypoints(BaseModel):
     id: int
     name: str
     locations: list[RobotArmLocation]  # Full location objects
-    nests: list[RobotArmNest]  # Full nest objects
     motion_profiles: list[RobotArmMotionProfile]  # Full motion profile objects
     grip_params: list[RobotArmGripParams]  # Full grip parameter objects
     sequences: list[RobotArmSequence]  # Full sequence objects

@@ -868,7 +868,6 @@ def get_robot_arm_waypoints(
 ) -> t.Any:
     # Get all related data for the tool
     locations = crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": tool_id})
-    nests = crud.robot_arm_nest.get_all_by(db, obj_in={"tool_id": tool_id})
     sequences = crud.robot_arm_sequence.get_all_by(db, obj_in={"tool_id": tool_id})
     motion_profiles = crud.robot_arm_motion_profile.get_all_by(
         db, obj_in={"tool_id": tool_id}
@@ -878,7 +877,6 @@ def get_robot_arm_waypoints(
         "id": tool_id,
         "name": f"Waypoints for Tool {tool_id}",
         "locations": locations,
-        "nests": nests,
         "sequences": sequences,
         "motion_profiles": motion_profiles,
         "grip_params": grip_params,
