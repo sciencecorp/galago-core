@@ -12,6 +12,14 @@ import {
   useToast,
   Tooltip,
   Wrap,
+  Card,
+  CardBody,
+  Icon,
+  Divider,
+  StatGroup,
+  Stat,
+  StatLabel,
+  StatNumber,
 } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import { CloseIcon } from "@chakra-ui/icons";
@@ -24,6 +32,8 @@ import { RiDeleteBinLine } from "react-icons/ri";
 import { NewScript } from "./NewScript";
 import { PageHeader } from "../ui/PageHeader";
 import { DeleteWithConfirmation } from "../ui/Delete";
+import { VscCode } from "react-icons/vsc";
+import { FiBook } from "react-icons/fi";
 
 export const ScriptsEditor: React.FC = (props) => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
@@ -37,7 +47,7 @@ export const ScriptsEditor: React.FC = (props) => {
   const codeTheme = useColorModeValue("vs-light", "vs-dark");
   const toast = useToast();
   const [scriptsEdited, setScriptsEdited] = useState<Script[]>([]);
-  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const borderColor = useColorModeValue("gray.200", "gray.600");
   const [isEditing, setIsEditing] = useState(false);
   const [currentContent, setCurrentContent] = useState<string>("");
   const consoleHeaderBg = useColorModeValue("gray.100", "gray.800");
@@ -45,6 +55,11 @@ export const ScriptsEditor: React.FC = (props) => {
   const activeTabFontColor = useColorModeValue("teal.600", "teal.200");
   const runScript = trpc.script.run.useMutation();
   const [runError, setRunError] = useState<boolean>(false);
+  const headerBg = useColorModeValue("white", "gray.700");
+  const tabBg = useColorModeValue("gray.50", "gray.700");
+  const activeTabBg = useColorModeValue("white", "gray.800");
+  const hoverBg = useColorModeValue("gray.100", "gray.600");
+  const bgColor = useColorModeValue("gray.50", "gray.700");
 
   useEffect(() => {
     setCurrentContent(scripts.find((script) => script.name === activeTab)?.content || "");
@@ -204,25 +219,47 @@ export const ScriptsEditor: React.FC = (props) => {
 
   const Tabs = () => {
     return (
-      <HStack spacing={0} justifyContent="flex-start">
+      <HStack spacing={0} justifyContent="flex-start" overflowX="auto" py={1}>
         {openTabs.map((tab, index) => (
           <Button
-            leftIcon={<SiPython fontSize="12px" />}
             key={index}
             onClick={() => setActiveTab(tab)}
-            borderRadius={0}
-            variant="outline"
             display="flex"
             justifyContent="space-between"
             alignItems="center"
             minW="180px"
-            maxW="480px"
-            w={tab.length > 15 ? "auto" : "180px"}
-            paddingX={2}>
-            <Box flex="1" textAlign="left" pl={1} isTruncated width="100%" pr={2}>
-              <Text color={activeTab === tab ? activeTabFontColor : ""}>{tab}</Text>
-            </Box>
-            <CloseIcon fontSize={8} onClick={() => removeTab(tab)} />
+            maxW="280px"
+            height="36px"
+            mr={1}
+            borderWidth="1px"
+            borderColor={activeTab === tab ? borderColor : "transparent"}
+            borderRadius="md"
+            bg={activeTab === tab ? activeTabBg : tabBg}
+            _hover={{ bg: hoverBg }}
+            transition="all 0.2s"
+            position="relative"
+            overflow="hidden"
+            px={3}>
+            <HStack spacing={2} flex={1}>
+              <SiPython fontSize="12px" color={activeTab === tab ? "teal" : "gray"} />
+              <Text color={activeTab === tab ? activeTabFontColor : ""} fontSize="sm" isTruncated>
+                {tab}
+              </Text>
+            </HStack>
+            <Box
+              as={CloseIcon}
+              fontSize={8}
+              opacity={0.7}
+              _hover={{ opacity: 1 }}
+              ml={2}
+              onClick={(e: React.MouseEvent) => {
+                e.stopPropagation();
+                removeTab(tab);
+              }}
+            />
+            {activeTab === tab && (
+              <Box position="absolute" bottom={0} left={0} right={0} height="2px" bg="teal.500" />
+            )}
           </Button>
         ))}
       </HStack>
@@ -295,75 +332,142 @@ export const ScriptsEditor: React.FC = (props) => {
   };
 
   return (
-    <Box p={1} height="100%">
-      <PageHeader title="Scripts" mainButton={<NewScript />} />
-      <HStack width="100%" border={`1px solid gray`} boxShadow="md" mt={4} alignItems="flex-start">
-        <VStack width="15%" alignItems="flex-start" spacing={4} p={0} height="100%">
-          <Text ml={3} as="b">
-            SEARCH
-          </Text>
-          <Input
-            width="98%"
-            ml={2}
-            placeholder="Search"
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <Box width="100%">
-            <Scripts />
-          </Box>
-        </VStack>
-        <VStack width="85%" borderLeft={`1px solid gray`} boxShadow="md" spacing={0}>
-          <Box width="100%">
-            <Tabs />
-          </Box>
-          {activeTab && openTabs.length > 0 ? (
-            <Editor
-              height="60vh"
-              defaultLanguage="python"
-              value={currentContent}
-              theme={codeTheme}
-              options={{
-                fontSize: 20,
-              }}
-              onChange={(value) => handleCodeChange(value)}
-            />
-          ) : (
-            <Box
-              width="100%"
-              height="60vh"
-              display="flex"
-              justifyContent="center"
-              alignItems="center">
-              <Text>Select a script to view or edit</Text>
-            </Box>
-          )}
-          <Box width="100%" height="20vh" bg={consoleBg} borderTop={`1px solid gray`}>
-            <OutputConsole />
-            <Box width="100%" height="80%" p={2} overflowY="auto">
-              {/* Display console text with preserved formatting */}
-              <Text whiteSpace="pre-wrap" fontFamily="monospace" textColor={runError ? "red" : ""}>
-                {consoleText}
-              </Text>
-            </Box>
-          </Box>
-        </VStack>
-      </HStack>
-      <HStack
-        spacing={2}
-        padding={4}
-        boxShadow="md"
-        borderBottom={`1px solid gray`}
-        borderRight={`1px solid gray`}
-        borderLeft={`1px solid gray`}
-        justifyContent="flex-end"
-        position="relative">
-        <Button colorScheme="gray" size="sm" onClick={handleSave}>
-          Save
-        </Button>
-        <Button colorScheme="teal" size="sm" onClick={handleRunScript}>
-          Run
-        </Button>
-      </HStack>
+    <Box maxW="100%">
+      <VStack spacing={4} align="stretch" width="100%">
+        <Card bg={headerBg} shadow="md">
+          <CardBody>
+            <VStack spacing={4} align="stretch">
+              <PageHeader
+                title="Scripts"
+                subTitle="Create and manage Python scripts"
+                titleIcon={<Icon as={VscCode} boxSize={8} color="teal.500" />}
+                mainButton={<NewScript />}
+              />
+
+              <Divider />
+
+              <StatGroup>
+                <Stat>
+                  <StatLabel>Total Scripts</StatLabel>
+                  <StatNumber>{scripts.length}</StatNumber>
+                </Stat>
+                <Stat>
+                  <StatLabel>Open Scripts</StatLabel>
+                  <StatNumber>{openTabs.length}</StatNumber>
+                </Stat>
+                <Stat>
+                  <StatLabel>Active Script</StatLabel>
+                  <StatNumber fontSize="lg">{activeTab?.replace(".py", "") || "None"}</StatNumber>
+                </Stat>
+              </StatGroup>
+            </VStack>
+          </CardBody>
+        </Card>
+
+        <Card bg={headerBg} shadow="md">
+          <CardBody>
+            <HStack width="100%" alignItems="flex-start" spacing={4}>
+              <VStack width="200px" minW="200px" alignItems="flex-start" spacing={4}>
+                <Input
+                  placeholder="Search scripts..."
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Box width="100%" flex={1} overflowY="auto">
+                  <Scripts />
+                </Box>
+              </VStack>
+
+              <VStack flex={1} spacing={4}>
+                <Box
+                  width="100%"
+                  borderRadius="md"
+                  overflow="hidden"
+                  borderWidth="1px"
+                  borderColor={borderColor}>
+                  <HStack
+                    width="100%"
+                    justify="space-between"
+                    p={2}
+                    borderBottomWidth="1px"
+                    borderColor={borderColor}>
+                    <Box flex={1} overflow="hidden">
+                      <Tabs />
+                    </Box>
+                    <HStack spacing={2} flexShrink={0}>
+                      <Button colorScheme="gray" onClick={handleSave}>
+                        Save
+                      </Button>
+                      <Button colorScheme="teal" onClick={handleRunScript}>
+                        Run
+                      </Button>
+                    </HStack>
+                  </HStack>
+                  <Box width="100%" overflow="hidden">
+                    {activeTab && openTabs.length > 0 ? (
+                      <Editor
+                        height="55vh"
+                        defaultLanguage="python"
+                        value={currentContent}
+                        theme={codeTheme}
+                        options={{
+                          fontSize: 20,
+                          wordWrap: "on",
+                        }}
+                        onChange={(value) => handleCodeChange(value)}
+                      />
+                    ) : (
+                      <Box
+                        width="100%"
+                        height="55vh"
+                        display="flex"
+                        justifyContent="center"
+                        alignItems="center"
+                        bg={bgColor}
+                        position="relative"
+                        _before={{
+                          content: '""',
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          background:
+                            "repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(128,128,128,0.1) 10px, rgba(128,128,128,0.1) 20px)",
+                        }}>
+                        <VStack spacing={4}>
+                          <Text fontSize="sm" color="gray.400">
+                            Select a script to get started
+                          </Text>
+                          <Icon as={VscCode} boxSize={8} color="gray.400" />
+                        </VStack>
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+
+                <Box
+                  width="100%"
+                  height="20vh"
+                  bg={consoleBg}
+                  borderRadius="md"
+                  borderWidth="1px"
+                  borderColor={borderColor}
+                  overflow="hidden">
+                  <OutputConsole />
+                  <Box width="100%" height="80%" p={2} overflowY="auto">
+                    <Text
+                      whiteSpace="pre-wrap"
+                      fontFamily="monospace"
+                      textColor={runError ? "red" : ""}>
+                      {consoleText}
+                    </Text>
+                  </Box>
+                </Box>
+              </VStack>
+            </HStack>
+          </CardBody>
+        </Card>
+      </VStack>
     </Box>
   );
 };

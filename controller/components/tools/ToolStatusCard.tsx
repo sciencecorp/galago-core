@@ -21,6 +21,7 @@ import {
   useToast,
   useDisclosure,
   Modal,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import Link from "next/link";
@@ -60,6 +61,8 @@ interface ToolStatusCardProps {
 export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardProps) {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
+  const cardBg = useColorModeValue("white", "gray.900");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
 
   const infoQuery = trpc.tool.info.useQuery({ toolId: toolId || "" });
   const toolData = infoQuery.data;
@@ -131,9 +134,19 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
 
   return (
     <>
-      <StyledCard
+      <Card
+        bg={cardBg}
+        borderColor={borderColor}
+        borderWidth="1px"
+        height="280px"
+        width="280px"
+        borderRadius="lg"
+        boxShadow="md"
+        transition="0.3s ease-out"
+        overflow="hidden"
+        _hover={{ transform: "translateY(-5px)", shadow: "lg" }}
         p={2}
-        style={{ width: "280px", ...style }}
+        style={{ ...style }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}>
         <CardHeader pb="0px">
@@ -174,7 +187,7 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
             </Flex>
           </VStack>
         </CardBody>
-      </StyledCard>
+      </Card>
       <EditToolModal
         toolId={toolId}
         toolInfo={toolData as ToolConfig}

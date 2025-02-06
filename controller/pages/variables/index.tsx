@@ -8,7 +8,7 @@ export default function Page() {
   }, []);
 
   return (
-    <Box mt={20}>
+    <Box maxW="100%">
       <Variables />
     </Box>
   );

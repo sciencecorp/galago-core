@@ -100,35 +100,40 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
   };
 
   return (
-    <VStack spacing={4} p={4} border="1px solid lightgray" borderRadius="15px" boxShadow="lg">
-      <Heading size="lg">
+    <VStack spacing={2} p={2} border="1px solid lightgray" borderRadius="15px" boxShadow="lg">
+      <Heading size="md">
         {currentDate.toLocaleString("default", { month: "long" })} {currentDate.getFullYear()}
       </Heading>
       <Box display="flex" justifyContent="space-between" width="100%">
-        <Button color={bgColor} onClick={handlePrevMonth} variant="ghost">
-          <FiChevronLeft /> Previous
+        <Button size="sm" color={bgColor} onClick={handlePrevMonth} variant="ghost">
+          <FiChevronLeft />
         </Button>
-        <Button onClick={handleNextMonth} colorScheme="teal" color={bgColor} variant="ghost">
-          <FiChevronRight /> Next
+        <Button
+          size="sm"
+          onClick={handleNextMonth}
+          colorScheme="teal"
+          color={bgColor}
+          variant="ghost">
+          <FiChevronRight />
         </Button>
       </Box>
-      <Grid templateColumns="repeat(7, 1fr)" gap={2} mt={4} width="100%">
+      <Grid templateColumns="repeat(7, minmax(35px, 1fr))" gap={0.5} width="fit-content">
         {daysOfWeek.map((day) => (
-          <Text key={day} fontWeight="bold" textAlign="center">
+          <Text key={day} fontWeight="bold" textAlign="center" fontSize="xs" p={0}>
             {day}
           </Text>
         ))}
         {daysInMonth.map((day, index) => (
           <Grid
-            width="100%"
-            height="100%"
+            width="35px"
+            height="35px"
             display="flex"
             alignItems="center"
-            justifyContent="space-around"
+            justifyContent="center"
             key={index}
             textAlign="center"
             color="teal.800"
-            p={paddingSize}
+            p={0}
             borderRadius="md"
             bg={
               isCurrentDay(day)
@@ -140,29 +145,24 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
             _hover={{ bg: hoverColor }}
             onClick={() => handleDateClick(day)}
             cursor="pointer">
-            <Flex direction="column" justifyContent="center" alignItems="center">
-              <Text fontSize="large">{day.getDate()}</Text>
-            </Flex>
+            <Text fontSize="xs">{day.getDate()}</Text>
           </Grid>
         ))}
       </Grid>
 
-      <HStack spacing={4} width="100%" mt={4}>
-        <Text as="b" fontStyle="italic" fontSize="large">
+      <HStack spacing={2} width="100%">
+        <Text as="b" fontStyle="italic" fontSize="sm">
           Time:
         </Text>
         <Box width="90%">
           <Input
-            fontSize="25px"
-            height="60px"
+            size="sm"
             type="time"
             value={selectedTime}
             onChange={handleTimeChange}
             width="100%"
             placeholder="Select Time"
-            padding="10px"
-            borderRadius="10px"
-            boxShadow="md"
+            borderRadius="md"
           />
         </Box>
       </HStack>
