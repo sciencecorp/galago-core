@@ -99,11 +99,11 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
     }
   };
 
-  const handleSaveCoordinates = (teachpoint: TeachPoint, newValue: number , jointIndex:number) => {
-      const updatedPoint = teachpoint.coordinates.split(" ");
-      updatedPoint[jointIndex] = newValue.toString();
-      onEdit({ ...teachpoint, coordinates: updatedPoint.join(" ") });
-      setEditingPoint(null);
+  const handleSaveCoordinates = (teachpoint: TeachPoint, newValue: number, jointIndex: number) => {
+    const updatedPoint = teachpoint.coordinates.split(" ");
+    updatedPoint[jointIndex] = newValue.toString();
+    onEdit({ ...teachpoint, coordinates: updatedPoint.join(" ") });
+    setEditingPoint(null);
   };
 
   return (
@@ -162,34 +162,32 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                       </Td>
                     ))}
                     <Td width="200px" textAlign="right">
-                        <Menu>
-                          <MenuButton
-                            as={IconButton}
-                            aria-label="Actions"
-                            icon={<HamburgerIcon />}
-                            variant="outline"
-                            size="sm"
-                          />
-                          <MenuList>
-                            <MenuItem icon={<FaPlay />} onClick={() => onMove(point)}>
-                              Move to point
+                      <Menu>
+                        <MenuButton
+                          as={IconButton}
+                          aria-label="Actions"
+                          icon={<HamburgerIcon />}
+                          variant="outline"
+                          size="sm"
+                        />
+                        <MenuList>
+                          <MenuItem icon={<FaPlay />} onClick={() => onMove(point)}>
+                            Move to point
+                          </MenuItem>
+                          {isConnected && (
+                            <MenuItem icon={<BsRecordCircle />} onClick={() => onTeach(point)}>
+                              Teach current position
                             </MenuItem>
-                            {isConnected && (
-                              <MenuItem
-                                icon={<BsRecordCircle />}
-                                onClick={() => onTeach(point)}>
-                                Teach current position
-                              </MenuItem>
-                            )}
-                            <MenuDivider />
-                            <MenuItem
-                              icon={<DeleteIcon />}
-                              onClick={() => onDelete(point)}
-                              color="red.500">
-                              Delete point
-                            </MenuItem>
-                          </MenuList>
-                        </Menu>
+                          )}
+                          <MenuDivider />
+                          <MenuItem
+                            icon={<DeleteIcon />}
+                            onClick={() => onDelete(point)}
+                            color="red.500">
+                            Delete point
+                          </MenuItem>
+                        </MenuList>
+                      </Menu>
                     </Td>
                   </Tr>
                 ))}

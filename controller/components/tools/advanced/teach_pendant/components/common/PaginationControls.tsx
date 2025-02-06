@@ -1,12 +1,10 @@
-import { HStack, Button, Text, Select, Box,IconButton} from "@chakra-ui/react";
+import { HStack, Button, Text, Select, Box, IconButton } from "@chakra-ui/react";
 import {
   RiArrowDownSLine,
   RiArrowLeftSLine,
   RiArrowRightSLine,
   RiArrowUpSLine,
-  
 } from "react-icons/ri";
-
 
 interface PaginationControlsProps {
   currentPage: number;
@@ -25,7 +23,6 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
   onPageChange,
   onItemsPerPageChange,
 }) => {
-
   const start = (currentPage - 1) * itemsPerPage + 1;
   const end = Math.min(currentPage * itemsPerPage, totalPages);
   const total = totalPages;
@@ -51,17 +48,15 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
       </Text>
 
       <HStack spacing={2}>
-      <IconButton
+        <IconButton
           icon={<RiArrowLeftSLine />}
           size="sm"
           aria-label="Previous Page"
           isDisabled={currentPage === 1}
           onClick={() => onPageChange(currentPage - 1)}
         />
-          <Text fontSize="sm">
-            Page
-          </Text>
-          <Select
+        <Text fontSize="sm">Page</Text>
+        <Select
           value={currentPage}
           size="sm"
           onChange={(e) => onPageChange(Number(e.target.value))}>

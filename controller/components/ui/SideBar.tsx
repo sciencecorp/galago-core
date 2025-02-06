@@ -84,7 +84,6 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   const isMobile = useBreakpointValue({ base: true, md: false });
   const router = useRouter();
 
-
   const toggleSidebar = () => {
     if (isMobile && !isSidebarExpanded) {
       onOpen();

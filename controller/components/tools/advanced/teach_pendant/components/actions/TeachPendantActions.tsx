@@ -72,9 +72,11 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
     } else {
       // Export all data
       exportData = {
-        teach_points: teachPoints.map(point => ({
+        teach_points: teachPoints.map((point) => ({
           ...point,
-          coordinates: Array.isArray(point.coordinates) ? point.coordinates.join(" ") : point.coordinates
+          coordinates: Array.isArray(point.coordinates)
+            ? point.coordinates.join(" ")
+            : point.coordinates,
         })),
         motion_profiles: motionProfiles,
         grip_params: gripParams,

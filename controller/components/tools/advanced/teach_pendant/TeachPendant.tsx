@@ -390,32 +390,40 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
               onGripperOpen={() => {
                 const selectedParams = gripParams.find((p) => p.id === defaultParamsId);
                 if (selectedParams) {
-                  commandHandlers.handleGripperCommand(robotArmCommandMutation, "open", selectedParams);
+                  commandHandlers.handleGripperCommand(
+                    robotArmCommandMutation,
+                    "open",
+                    selectedParams,
+                  );
                 } else {
                   // Let server handle defaults
                   commandHandlers.handleGripperCommand(robotArmCommandMutation, "open", {
                     id: 0,
                     name: "Default",
                     tool_id: config.id,
-                    width: 0,  // Server will override with its defaults
-                    speed: 0,  // Server will override with its defaults
-                    force: 0   // Server will override with its defaults
+                    width: 0, // Server will override with its defaults
+                    speed: 0, // Server will override with its defaults
+                    force: 0, // Server will override with its defaults
                   });
                 }
               }}
               onGripperClose={() => {
                 const selectedParams = gripParams.find((p) => p.id === defaultParamsId);
                 if (selectedParams) {
-                  commandHandlers.handleGripperCommand(robotArmCommandMutation, "close", selectedParams);
+                  commandHandlers.handleGripperCommand(
+                    robotArmCommandMutation,
+                    "close",
+                    selectedParams,
+                  );
                 } else {
                   // Let server handle defaults
                   commandHandlers.handleGripperCommand(robotArmCommandMutation, "close", {
                     id: 0,
                     name: "Default",
                     tool_id: config.id,
-                    width: 0,  // Server will override with its defaults
-                    speed: 0,  // Server will override with its defaults
-                    force: 0   // Server will override with its defaults
+                    width: 0, // Server will override with its defaults
+                    speed: 0, // Server will override with its defaults
+                    force: 0, // Server will override with its defaults
                   });
                 }
               }}
@@ -459,7 +467,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 onTeach={() => handleTeach(selectedTeachPoint!)}
                 onMove={handleMove}
                 onUnwind={() =>
-                  commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")
+                  commandHandlers.handleSimpleCommand(robotArmCommandMutation, "retract")
                 }
                 onGripperOpen={() =>
                   commandHandlers.handleGripperCommand(

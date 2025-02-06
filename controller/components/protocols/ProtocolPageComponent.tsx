@@ -121,23 +121,19 @@ export const ProtocolPageComponent: React.FC = () => {
   };
 
   return (
-    <Box
-      bg={bgColor}
-      borderRadius="lg"
-      p={6}
-      color={textColor}>
+    <Box bg={bgColor} borderRadius="lg" p={6} color={textColor}>
       <VStack align="stretch" spacing={6}>
         <PageHeader
-           title="Protocols" 
-           mainButton={
-            <Button 
+          title="Protocols"
+          mainButton={
+            <Button
               leftIcon={<RiAddFill />}
               colorScheme="teal"
-              onClick={()=>console.log("New Protocol")}>
-            New Protocol
-          </Button>
-           }
-           />
+              onClick={() => console.log("New Protocol")}>
+              New Protocol
+            </Button>
+          }
+        />
         <HStack spacing={4}>
           <InputGroup maxW="400px">
             <InputLeftElement pointerEvents="none">

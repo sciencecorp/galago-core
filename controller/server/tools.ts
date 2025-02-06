@@ -77,12 +77,11 @@ export default class Tool {
     return this.info.type;
   }
 
-
   async loadPF400Waypoints() {
     const waypointsReponse = await get<any>(`/robot-arm-waypoints?tool_id=1`);
-    console.log("Locations", waypointsReponse.locations); 
+    console.log("Locations", waypointsReponse.locations);
     await this.executeCommand({
-      toolId:"Pf400",
+      toolId: "Pf400",
       toolType: ToolType.pf400,
       command: "load_waypoints",
       params: {
@@ -90,7 +89,7 @@ export default class Tool {
         grip_params: waypointsReponse.grip_params,
         motion_profiles: waypointsReponse.motion_profiles,
       },
-    })
+    });
   }
 
   async loadLabware() {
@@ -106,20 +105,21 @@ export default class Tool {
   }
 
   async loadSequences() {
-      const sequencesResponse = await get<any>(`/robot-arm-waypoints?tool_id=1`);
-      await this.executeCommand({
-        toolId: "Pf400",
-        toolType: ToolType.pf400,
-        command: "load_sequences",
-        params: {
-          sequences: sequencesResponse.sequences,
-    }})
+    const sequencesResponse = await get<any>(`/robot-arm-waypoints?tool_id=1`);
+    await this.executeCommand({
+      toolId: "Pf400",
+      toolType: ToolType.pf400,
+      command: "load_sequences",
+      params: {
+        sequences: sequencesResponse.sequences,
+      },
+    });
   }
-    
+
   async configure(config: tool_base.Config) {
     this.config = config;
     const reply = await this.grpc.configure(config);
-    if(this.info.type === ToolType.pf400){
+    if (this.info.type === ToolType.pf400) {
       await this.loadPF400Waypoints();
       // await this.loadLabware();
     }

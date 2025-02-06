@@ -118,7 +118,7 @@ export const toolRouter = router({
       z.object({
         toolId: z.string(),
         config: z.custom<Config>().transform(Config.fromPartial),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const { toolId, config } = input;

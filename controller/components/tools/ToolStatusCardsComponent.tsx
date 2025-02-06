@@ -1,19 +1,11 @@
 import { useState, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
-import {
-  Box,
-  IconButton,
-  Flex,
-  SimpleGrid,
-  VStack,
-  useToast,
-} from "@chakra-ui/react";
+import { Box, IconButton, Flex, SimpleGrid, VStack, useToast } from "@chakra-ui/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { NewToolModal } from "./NewToolModal";
 import { PageHeader } from "@/components/ui/PageHeader";
 import styled from "@emotion/styled";
-
 
 export const ToolStatusCardsComponent: React.FC = () => {
   const { data: fetchedIds } = trpc.tool.availableIDs.useQuery();
@@ -55,12 +47,7 @@ export const ToolStatusCardsComponent: React.FC = () => {
 
   return (
     <Box flex={1}>
-      <PageHeader
-        title="Tools"
-        mainButton={
-          <NewToolModal isDisabled={!selectedWorkcell} />
-        }
-      />
+      <PageHeader title="Tools" mainButton={<NewToolModal isDisabled={!selectedWorkcell} />} />
       <Flex wrap="wrap" justify="center" gap={2} mt={4} alignItems="flex-start">
         {toolIds.map((toolId, index) => (
           <ToolStatusCard key={`${toolId}-${index}`} toolId={toolId} />

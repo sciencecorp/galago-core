@@ -10,7 +10,7 @@ export interface TeachPendantProps {
 export interface TeachPoint {
   id: number;
   name: string;
-  coordinates: string; 
+  coordinates: string;
   type: "location" | "nest";
   locType: "j";
   joints?: JointConfig;

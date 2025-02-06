@@ -136,9 +136,9 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
           <Heading size="md" paddingTop={12}>
             Sequences
           </Heading>
-            <Button leftIcon={<AddIcon />} size="sm" onClick={onCreateNew}>
-              New Sequence
-            </Button>
+          <Button leftIcon={<AddIcon />} size="sm" onClick={onCreateNew}>
+            New Sequence
+          </Button>
         </HStack>
         <Box width="100%" flex={1} overflow="hidden">
           <Grid

@@ -56,9 +56,15 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
     const totalDays = endOfMonth.getDate();
 
     // Fill in the dates for the previous month
-    const prevMonthLastDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0).getDate();
+    const prevMonthLastDay = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      0,
+    ).getDate();
     for (let i = startDay - 1; i >= 0; i--) {
-      dates.push(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, prevMonthLastDay - i));
+      dates.push(
+        new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, prevMonthLastDay - i),
+      );
     }
 
     // Fill in the dates for the current month
@@ -110,7 +116,12 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
         <Button left={-4} color={bgColor} onClick={handlePrevMonth} variant="ghost">
           <FiChevronLeft /> Previous
         </Button>
-        <Button left={4} onClick={handleNextMonth} colorScheme="teal" color={bgColor} variant="ghost">
+        <Button
+          left={4}
+          onClick={handleNextMonth}
+          colorScheme="teal"
+          color={bgColor}
+          variant="ghost">
           <FiChevronRight /> Next
         </Button>
       </Box>
@@ -139,10 +150,10 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
                 isCurrentDay(day)
                   ? "teal.500"
                   : selectedDate?.toDateString() === day.toDateString()
-                  ? "teal.200"
-                  : isOutsideMonth
-                  ? "gray.300" 
-                  : "gray.100"
+                    ? "teal.200"
+                    : isOutsideMonth
+                      ? "gray.300"
+                      : "gray.100"
               }
               _hover={{ bg: isOutsideMonth ? "gray.300" : hoverColor }}
               onClick={() => handleDateClick(day)}

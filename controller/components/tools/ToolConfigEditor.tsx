@@ -1,15 +1,5 @@
-
 import { trpc } from "@/utils/trpc";
-import {
-  Button,
-  HStack,
-  Spinner,
-  Switch,
-  Text,
-  Tooltip,
-  VStack,
-  useToast,
-} from "@chakra-ui/react";
+import { Button, HStack, Spinner, Switch, Text, Tooltip, VStack, useToast } from "@chakra-ui/react";
 import { ToolConfig } from "gen-interfaces/controller";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { useState } from "react";
@@ -29,7 +19,6 @@ export function ToolConfigEditor({
   toolId: string;
   defaultConfig: ToolConfig;
 }): JSX.Element {
-
   const statusQuery = trpc.tool.status.useQuery(
     { toolId: toolId },
     {
@@ -49,7 +38,7 @@ export function ToolConfigEditor({
       statusQuery.refetch();
     },
     onError: (data) => {
-      if(data.message){
+      if (data.message) {
         error_description = data.message;
       }
       toast.closeAll(),
@@ -66,15 +55,15 @@ export function ToolConfigEditor({
   const { isLoading } = configureMutation;
   const [isSimulated, setSimulated] = useState(false);
   const isReachable =
-          statusQuery.isSuccess &&
-          statusQuery.data &&
-          statusQuery.data.status !== ToolStatus.OFFLINE &&
-          toolId != "Tool Box";
+    statusQuery.isSuccess &&
+    statusQuery.data &&
+    statusQuery.data.status !== ToolStatus.OFFLINE &&
+    toolId != "Tool Box";
   const toolType = defaultConfig.type;
   const config = toolSpecificConfig(defaultConfig);
   const [configString, setConfigString] = useState(JSON.stringify(config, null, 2));
 
-  const saveConfig = async (simulated:boolean) => {
+  const saveConfig = async (simulated: boolean) => {
     const config = {
       simulated: simulated,
       [toolType]: JSON.parse(configString),
@@ -101,8 +90,7 @@ export function ToolConfigEditor({
           }}
         />
       </HStack>
-
-      <Button onClick={async()=> saveConfig(false)} isDisabled={!isReachable || isSimulated}>
+      <Button onClick={async () => saveConfig(false)} isDisabled={!isReachable || isSimulated}>
         Connect
       </Button>
       {isLoading && <Spinner ml={2} />} {/* Spinner appears next to the button when loading */}

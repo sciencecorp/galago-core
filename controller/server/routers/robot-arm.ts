@@ -17,7 +17,7 @@ const zRobotArmLocation = z.object({
   id: z.number().optional(),
   name: z.string(),
   location_type: z.enum(["j", "c"]),
-  coordinates: z.string(),  // Space-separated coordinates values
+  coordinates: z.string(), // Space-separated coordinates values
   tool_id: z.number(),
 });
 
@@ -26,7 +26,7 @@ const zRobotArmNest = z.object({
   name: z.string(),
   orientation: z.enum(["portrait", "landscape"]),
   location_type: z.enum(["j", "c"]),
-  coordinates: z.string(),  // Space-separated coordinates values
+  coordinates: z.string(), // Space-separated coordinates values
   safe_location_id: z.number(),
   tool_id: z.number(),
 });
