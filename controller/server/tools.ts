@@ -79,39 +79,25 @@ export default class Tool {
 
   async loadPF400Waypoints() {
     const waypointsReponse = await get<any>(`/robot-arm-waypoints?tool_id=1`);
-    console.log("Locations", waypointsReponse.locations);
     await this.executeCommand({
       toolId: "Pf400",
       toolType: ToolType.pf400,
       command: "load_waypoints",
       params: {
-        locations: buildGoogleStructValue(waypointsReponse),
-        grip_params: waypointsReponse.grip_params,
-        motion_profiles: waypointsReponse.motion_profiles,
+        waypoints: buildGoogleStructValue(waypointsReponse),
       },
     });
   }
 
-  async loadLabware() {
+  async loadLabwareToPF400() {
     const labwareResponse = await get<Labware>(`/labware`);
+    console.log("labwareResponse", labwareResponse);
     await this.executeCommand({
       toolId: "Pf400",
       toolType: ToolType.pf400,
       command: "load_labware",
       params: {
-        labware: labwareResponse,
-      },
-    });
-  }
-
-  async loadSequences() {
-    const sequencesResponse = await get<any>(`/robot-arm-waypoints?tool_id=1`);
-    await this.executeCommand({
-      toolId: "Pf400",
-      toolType: ToolType.pf400,
-      command: "load_sequences",
-      params: {
-        sequences: sequencesResponse.sequences,
+        labwares: {labwares:labwareResponse},
       },
     });
   }
@@ -121,7 +107,7 @@ export default class Tool {
     const reply = await this.grpc.configure(config);
     if (this.info.type === ToolType.pf400) {
       await this.loadPF400Waypoints();
-      // await this.loadLabware();
+      await this.loadLabwareToPF400();
     }
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
       throw new ToolCommandExecutionError(
