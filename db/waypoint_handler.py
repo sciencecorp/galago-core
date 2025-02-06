@@ -224,7 +224,27 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                             'loc_type': loc_data.get('loc_type', 'j')
                         }
                         data['teach_points'].append(teach_point)
-
+                if "nests" in data and isinstance(data["nests"], dict):
+                        for name, nest_data in data["nests"].items():
+                            # The nest data has keys: "approach_path", "loc", "orientation", "safe_loc"
+                            # We ignore approach_path and safe_loc.
+                            loc_info = nest_data.get("loc")
+                            if isinstance(loc_info, dict):
+                                coordinates = loc_info.get("loc")
+                                loc_type = loc_info.get("loc_type", "j")
+                            else:
+                                coordinates = loc_info
+                                loc_type = "j"
+                            
+                            teach_point = {
+                                "name": name,
+                                "coordinates": coordinates,
+                                "type": "nest",
+                                "loc_type": loc_type,
+                                "orientation": nest_data.get("orientation"),
+                            }
+                            data["teach_points"].append(teach_point)
+                            
                 # Fix motion profiles format
                 if 'motion_profiles' in data:
                     profile_counter = 1
