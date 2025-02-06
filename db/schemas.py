@@ -262,7 +262,7 @@ class Labware(TimestampMixin, LabwareCreate):
     class Config:
         from_attributes=True
 
-class LabwareUpdate(LabwareCreate):
+class LabwareUpdate(BaseModel):
     name: t.Optional[str] = None
     description : t.Optional[str] = None
     number_of_rows: t.Optional[int] = None
@@ -428,16 +428,16 @@ class RobotArmMotionProfile(RobotArmMotionProfileCreate):
 # Grip Params Schemas
 class RobotArmGripParamsCreate(BaseModel):
     name: str
-    width: int
-    speed: int
-    force: int
+    width: float
+    speed: float
+    force: float
     tool_id: int
 
 class RobotArmGripParamsUpdate(BaseModel):
     name: t.Optional[str] = None
-    width: t.Optional[int] = None
-    speed: t.Optional[int] = None
-    force: t.Optional[int] = None
+    width: t.Optional[float] = None
+    speed: t.Optional[float] = None
+    force: t.Optional[float] = None
     tool_id: t.Optional[int] = None
 
 class RobotArmGripParams(RobotArmGripParamsCreate):

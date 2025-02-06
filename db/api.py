@@ -14,7 +14,6 @@ import uvicorn
 from contextlib import asynccontextmanager
 from db.waypoint_handler import handle_waypoint_upload
 from pydantic import BaseModel
-import json
 from db.initializers import initialize_database
 
 logging.basicConfig(

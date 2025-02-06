@@ -3,7 +3,6 @@ import { SwimLaneComponent } from "@/components/runs/list/SwimLaneComponent";
 import RunQueueGanttChart from "@/components/runs/gantt/RunQueueGanttChart";
 import { trpc } from "@/utils/trpc";
 import {
-  Box,
   Button,
   Heading,
   HStack,
@@ -21,6 +20,12 @@ import {
   StatNumber,
   StatGroup,
   Icon,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Box,
+  CloseButton,
 } from "@chakra-ui/react";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { PlusSquareIcon, ChevronUpIcon, TimeIcon } from "@chakra-ui/icons";
@@ -66,6 +71,26 @@ export const RunsComponent: React.FC = () => {
   const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
   const groupedCommands = commandsAll.data ? groupCommandsByRun(commandsAll.data) : [];
   const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 1000 });
+  const queue = trpc.commandQueue;
+  const getError = queue.getError.useQuery(undefined, { refetchInterval: 1500 });
+
+  const ErrorBanner = () => {
+    if (!getError.data) return null;
+    if (stateQuery.data === ToolStatus.FAILED) {
+      return (
+        <Alert status="error" variant="left-accent">
+          <AlertIcon />
+          <Box flex="1">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>An error occurred while executing the command.</AlertDescription>
+            <AlertDescription>{getError.data.toString()}</AlertDescription>
+          </Box>
+        </Alert>
+      );
+    } else {
+      return null;
+    }
+  };
 
   // Calculate statistics
   const totalRuns = groupedCommands.length;
@@ -126,6 +151,7 @@ export const RunsComponent: React.FC = () => {
       );
       return (
         <VStack align="left" key={index} width="100%">
+          <ErrorBanner />
           <Box width="100%">
             <Box
               bg={commandBgColor}
@@ -202,6 +228,7 @@ export const RunsComponent: React.FC = () => {
 
   return (
     <Box width="100%">
+      <ErrorBanner /> 
       <VStack spacing={6} align="stretch">
         <Card bg={cardBg} shadow="md">
           <CardBody>

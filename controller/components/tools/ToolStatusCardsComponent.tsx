@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
@@ -140,13 +139,10 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
         </Card>
         <Card bg={headerBg} shadow="md">
           <CardBody>
-            <Flex justify="space-between" align="center" mb={4}>
-              <Heading size="md">Tool Status</Heading>
-            </Flex>
-          <Flex wrap="wrap" justify="center" gap={4} mt={4} alignItems="flex-start">
-          {toolIds.map((toolId, index) => (
-            <ToolStatusCard key={`${toolId}-${index}`} toolId={toolId} />
-          ))}
+          <Flex wrap="wrap" justify="space-evenly" mt={4} align="stretch" gap={4}>
+            {toolIds.map((toolId, index) => (
+              <ToolStatusCard key={`${toolId}-${index}`} toolId={toolId} />
+            ))}
           </Flex>
           </CardBody>
         </Card>

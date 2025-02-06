@@ -33,15 +33,9 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
-<<<<<<< HEAD
-import { RiAddFill } from "react-icons/ri";
-import { PageHeader } from "../ui/PageHeader";
-
-=======
 import { PageHeader } from "@/components/ui/PageHeader";
 import { PiPathBold } from "react-icons/pi";
 import { RiAddFill } from "react-icons/ri";
->>>>>>> origin/main
 type SortField = "name" | "category" | "workcell" | "number_of_commands";
 type SortOrder = "asc" | "desc";
 
