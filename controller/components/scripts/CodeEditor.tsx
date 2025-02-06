@@ -436,7 +436,7 @@ export const ScriptsEditor: React.FC = (props) => {
                         }}>
                         <VStack spacing={4}>
                           <Text fontSize="sm" color="gray.400">
-                            Select a script from the left panel to get started
+                            Select a script to get started
                           </Text>
                           <Icon as={VscCode} boxSize={8} color="gray.400" />
                         </VStack>
