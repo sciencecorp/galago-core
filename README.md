@@ -41,8 +41,12 @@ docker-compose -f docker-compose.dev.yml down --rmi all
 #rebuild and restart
 docker-compose -f docker-compose.dev.yml up --build
 
+#rebuild a specific service
+docker-compose up -d --force-recreate --no-deps --build service_name 
+
 #add npm deps to dev environment
 docker exec -it galago-web-dev npm install <package name>
+
 ```
 
 ## If not using docker it is recommended to use a virtual environment. Eg. miniconda, mamba. and follow the steps below

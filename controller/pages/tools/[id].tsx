@@ -52,7 +52,7 @@ type CommandFields = {
 };
 
 const move: Field[] = [
-  { name: "waypoint", type: "text" },
+  { name: "name", type: "text" },
   { name: "motion_profile_id", type: "number", defaultValue: 2 },
 ];
 const grasp_plate: Field[] = [

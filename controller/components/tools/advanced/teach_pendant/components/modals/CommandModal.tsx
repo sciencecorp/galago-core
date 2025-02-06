@@ -34,13 +34,26 @@ interface CommandField {
   defaultValue?: any;
 }
 
+const release_plate = [
+  { name: "width", type: "number", defaultValue: 130 },
+  { name: "speed", type: "number", defaultValue: 10 },
+];
+
+const grasp_plate = [
+  { name: "width", type: "number", defaultValue: 122 },
+  { name: "speed", type: "number", defaultValue: 10 },
+  { name: "force", type: "number", defaultValue: 20 },
+];
+
 const availableCommands: Record<string, CommandField[]> = {
   move: [
-    { name: "waypoint", type: "waypoint" },
+    { name: "name", type: "waypoint" },
     { name: "motion_profile_id", type: "motion_profile" },
   ],
-  grasp_plate: [{ name: "grip_params", type: "grip_params" }],
-  release_plate: [{ name: "grip_params", type: "grip_params" }],
+  // grasp_plate: [{ name: "grip_params", type: "grip_params" }],
+  // release_plate: [{ name: "grip_params", type: "grip_params" }],
+  release_plate: release_plate,
+  grasp_plate: grasp_plate,
   approach: [
     { name: "nest", type: "nest" },
     { name: "x_offset", type: "number", defaultValue: 0 },
