@@ -9,17 +9,15 @@ import {
   Td,
   IconButton,
   HStack,
-  Tooltip,
   VStack,
   useColorModeValue,
   Heading,
-  NumberInput,
-  NumberInputField,
   Menu,
   MenuButton,
   MenuList,
   MenuItem,
   MenuDivider,
+  Select
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, CheckIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { Tool } from "@/types/api";
@@ -27,7 +25,7 @@ import { TeachPoint, MotionProfile, GripParams, Sequence } from "../types";
 import { FaPlay, FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { MdOutlineReplay } from "react-icons/md";
 import { BsRecordCircle } from "react-icons/bs";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, use } from "react";
 import { usePagination } from "../../hooks/usePagination";
 import { PaginationControls } from "../common/PaginationControls";
 import { EditableText } from "@/components/ui/Form";
@@ -59,12 +57,7 @@ interface TeachPointsPanelProps {
 
 export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   teachPoints,
-  motionProfiles,
-  gripParams,
-  sequences,
   expandedRows,
-  toggleRow,
-  onImport,
   onMove,
   onEdit,
   onDelete,
@@ -73,8 +66,6 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   isConnected,
   bgColor,
   bgColorAlpha,
-  searchTerm,
-  config,
 }) => {
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const [editingPoint, setEditingPoint] = useState<EditablePoint | null>(null);
@@ -89,22 +80,21 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
     onItemsPerPageChange,
   } = usePagination(teachPoints);
 
-  const handleCoordinateChange = (index: number, value: number) => {
-    if (editingPoint) {
-      const numJoints = parseInt((config.config as any)?.pf400?.joints || "5");
-      const newCoordinates = Array.from({ length: numJoints }).map((_, i) =>
-        i === index ? value : editingPoint.coordinates[i] || 0,
-      );
-      setEditingPoint({ ...editingPoint, coordinates: newCoordinates });
-    }
-  };
-
   const handleSaveCoordinates = (teachpoint: TeachPoint, newValue: number, jointIndex: number) => {
     const updatedPoint = teachpoint.coordinates.split(" ");
     updatedPoint[jointIndex] = newValue.toString();
     onEdit({ ...teachpoint, coordinates: updatedPoint.join(" ") });
-    setEditingPoint(null);
   };
+
+  const handleSaveOrientation = (teachpoint: TeachPoint, newValue: "landscape" | "portrait") => {
+    console.log("Orientation", newValue);
+    console.log("Updating")
+    onEdit({ ...teachpoint, orientation: newValue });
+  }
+
+  useEffect(() => {
+    console.log("Items", paginatedItems);
+  }, [paginatedItems]);
 
   return (
     <Box height="100%" overflow="hidden">
@@ -135,13 +125,14 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
               }}>
               <Thead position="sticky" top={0} bg={bgColor} zIndex={1}>
                 <Tr>
-                  <Th width="200px">Name</Th>
-                  <Th textAlign="center">Joint 1</Th>
-                  <Th textAlign="center">Joint 2</Th>
-                  <Th textAlign="center">Joint 3</Th>
-                  <Th textAlign="center">Joint 4</Th>
-                  <Th textAlign="center">Joint 5</Th>
-                  <Th textAlign="center">Joint 6</Th>
+                  <Th>Name</Th>
+                  <Th>Joint 1</Th>
+                  <Th>Joint 2</Th>
+                  <Th>Joint 3</Th>
+                  <Th>Joint 4</Th>
+                  <Th>Joint 5</Th>
+                  <Th>Joint 6</Th>
+                  <Th>Orientation</Th>
                   <Th width="200px" textAlign="right">
                     Actions
                   </Th>
@@ -152,7 +143,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                   <Tr key={point.id} bg={expandedRows[point.id] ? bgColorAlpha : undefined}>
                     <Td width="200px">{point.name}</Td>
                     {point?.coordinates?.split(" ").map((coord, index) => (
-                      <Td key={index} textAlign="center">
+                      <Td key={index}>
                         <EditableText
                           onSubmit={async (value) => {
                             value && handleSaveCoordinates(point, Number(value), index);
@@ -161,6 +152,22 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                         />
                       </Td>
                     ))}
+                    <Td>
+                    <Select
+                    value={point.orientation}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const orientation: "portrait" | "landscape" | undefined =
+                        value === "portrait" || value === "landscape" ? value : undefined;
+                      if (orientation !== undefined) {
+                        handleSaveOrientation(point, orientation);
+                      }
+                    }}
+                  >
+                    <option value="portrait">Portrait</option>
+                    <option value="landscape">Landscape</option>
+                  </Select>
+                    </Td>
                     <Td width="200px" textAlign="right">
                       <Menu>
                         <MenuButton

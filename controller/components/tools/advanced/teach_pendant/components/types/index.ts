@@ -14,7 +14,7 @@ export interface TeachPoint {
   type: "location" | "nest";
   locType: "j";
   joints?: JointConfig;
-  orientation?: "portrait" | "landscape";
+  orientation: "portrait" | "landscape";
   safe_loc?: number;
 }
 

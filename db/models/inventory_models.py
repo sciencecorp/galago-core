@@ -162,6 +162,7 @@ class RobotArmLocation(Base, TimestampMixin):
     location_type = Column(String, nullable=False)  
     coordinates = Column(String, nullable=False)
     tool_id = Column(Integer, ForeignKey("tools.id"))
+    orientation = Column(String, nullable=False)  
     tool = relationship("Tool", back_populates="robot_arm_locations")
     dependent_nests = relationship("RobotArmNest", 
                                  back_populates="safe_location",

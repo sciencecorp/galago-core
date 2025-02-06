@@ -16,6 +16,8 @@ class TeachPoint(BaseModel):
     coordinates: str
     type: str = "location"
     loc_type: str = "j"
+    orientation: Optional[str] = None
+
 
 class Command(BaseModel):
     command: str
@@ -286,7 +288,8 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                             name=unique_name,
                             location_type=point.loc_type,
                             coordinates=coords,
-                            tool_id=tool_id
+                            tool_id=tool_id,
+                            orientation="landscape"
                         )
                     )
                     results['teach_points'].append(location)

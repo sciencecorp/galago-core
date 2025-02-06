@@ -341,13 +341,15 @@ class RobotArmLocationCreate(BaseModel):
     location_type: str  # 'j' for joint or 'c' for cartesian
     coordinates: t.Optional[str] = None  # Space-separated coordinate values
     tool_id: int
+    orientation: t.Literal["portrait", "landscape"]
 
 class RobotArmLocationUpdate(BaseModel):
     name: t.Optional[str] = None
     location_type: t.Optional[str] = None
     coordinates: t.Optional[str] = None  # Space-separated coordinate values
     tool_id: t.Optional[int] = None
-
+    orientation: t.Optional[t.Literal["portrait", "landscape"]] = None
+    
 class RobotArmLocation(RobotArmLocationCreate):
     id: int
     class Config:

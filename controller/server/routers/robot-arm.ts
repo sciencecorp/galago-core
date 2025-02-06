@@ -18,6 +18,7 @@ const zRobotArmLocation = z.object({
   name: z.string(),
   location_type: z.enum(["j", "c"]),
   coordinates: z.string(), // Space-separated coordinates values
+  orientation: z.enum(["portrait", "landscape"]),
   tool_id: z.number(),
 });
 
@@ -102,6 +103,7 @@ export const robotArmRouter = router({
       return result;
     }),
     update: procedure.input(zRobotArmLocation).mutation(async ({ input }) => {
+      console.log("Updating location in router", input);
       const result = await put(`/robot-arm-locations/${input.id}`, input);
       // Reload waypoints for the affected tool
       const tool = await getToolInstance(input.tool_id);

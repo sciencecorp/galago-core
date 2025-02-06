@@ -60,6 +60,7 @@ interface LocationUpdate {
   location_type: "j" | "c";
   coordinates: string;
   tool_id: number;
+  orientation: "landscape" | "portrait";
 }
 
 export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
@@ -200,6 +201,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
           location_type: "j",
           coordinates: coordinates.join(" "),
           tool_id: config.id,
+          orientation: point.orientation,
         };
 
         await updateLocationMutation.mutateAsync(locationUpdate);
@@ -243,6 +245,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         coordinates: loc.coordinates || "0 0 0 0 0 0",
         type: "location" as const,
         locType: "j" as const,
+        orientation: loc.orientation || undefined,
       }));
       setTeachPoints(formattedLocations);
     }
@@ -520,47 +523,55 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     onImport={async () => {}}
                     onMove={handleMove}
                     onEdit={(point) => {
-                      if (point.coordinates !== undefined) {
-                        const newCoords = point.coordinates.split(" ").map(Number);
-                        const oldPoint = robotArmLocationsQuery.data?.find(
-                          (loc) => loc.id === point.id,
-                        );
-                        const numJoints = (config.config as any)?.pf400?.joints || 6;
+                      // if (point.coordinates !== undefined) {
+                      //   const newCoords = point.coordinates.split(" ").map(Number);
+                      //   const oldPoint = robotArmLocationsQuery.data?.find(
+                      //     (loc) => loc.id === point.id,
+                      //   );
+                      //   const numJoints = (config.config as any)?.pf400?.joints || 6;
 
-                        // Only update if point doesn't exist or coordinates have changed
-                        const hasChanged =
-                          !oldPoint ||
-                          Array.from({ length: parseInt(numJoints.toString()) }).some((_, i) => {
-                            const jointKey = `j${i + 1}` as keyof typeof oldPoint;
-                            return (
-                              Math.abs(newCoords[i] - ((oldPoint[jointKey] as number) ?? 0)) >=
-                              0.001
-                            );
-                          });
+                      //   // Only update if point doesn't exist or coordinates have changed
+                      //   const hasChanged =
+                      //     !oldPoint ||
+                      //     Array.from({ length: parseInt(numJoints.toString()) }).some((_, i) => {
+                      //       const jointKey = `j${i + 1}` as keyof typeof oldPoint;
+                      //       return (
+                      //         Math.abs(newCoords[i] - ((oldPoint[jointKey] as number) ?? 0)) >=
+                      //         0.001
+                      //       );
+                      //     });
 
-                        if (hasChanged) {
-                          // Create base location object
+                      //   if (hasChanged) {
+                      //     // Create base location object
+                      //     const location = {
+                      //       id: point.id,
+                      //       name: point.name,
+                      //       location_type: "j" as const,
+                      //       coordinates: point.coordinates,
+                      //       tool_id: config.id,
+                      //       orientation: point.orientation,
+                      //     };
+
+                      //     // Dynamically add joint values
+                      //     for (let i = 1; i <= parseInt(numJoints.toString()); i++) {
+                      //       (location as any)[`j${i}`] = newCoords[i - 1];
+                      //     }
+
                           const location = {
                             id: point.id,
                             name: point.name,
                             location_type: "j" as const,
                             coordinates: point.coordinates,
                             tool_id: config.id,
+                            orientation: point.orientation,
                           };
-
-                          // Dynamically add joint values
-                          for (let i = 1; i <= parseInt(numJoints.toString()); i++) {
-                            (location as any)[`j${i}`] = newCoords[i - 1];
-                          }
-
-                          updateLocationMutation.mutateAsync(location as any).then(() => {
+                          updateLocationMutation.mutateAsync(location).then(() => {
                             robotArmLocationsQuery.refetch();
                           });
-                        }
-                      } else {
-                        // Opening modal for name edit
-                        openTeachPointModal(point);
-                      }
+                        // }
+                      // } else {
+                      //   openTeachPointModal(point);
+                      // }
                     }}
                     onDelete={async (point: TeachPoint) => {
                       await deleteLocationMutation.mutateAsync({
@@ -744,6 +755,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
           const location = {
             name: point.name,
             location_type: "j" as const,
+            orientation: point.orientation,
             coordinates: point.coordinates,
             tool_id: config.id,
             ...(selectedTeachPoint?.id ? { id: selectedTeachPoint.id } : {}),
