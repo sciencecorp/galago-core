@@ -1,7 +1,7 @@
 import logging
 from sqlalchemy.orm import Session
-import crud
-import schemas
+from db import crud
+from db import schemas
 
 def create_default_labware(db: Session) -> None:
     """Create default labware if it doesn't exist."""

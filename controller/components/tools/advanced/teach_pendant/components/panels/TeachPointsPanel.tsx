@@ -100,10 +100,8 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   };
 
   const handleSaveCoordinates = (teachpoint: TeachPoint, newValue: number , jointIndex:number) => {
-
       const updatedPoint = teachpoint.coordinates.split(" ");
       updatedPoint[jointIndex] = newValue.toString();
-
       onEdit({ ...teachpoint, coordinates: updatedPoint.join(" ") });
       setEditingPoint(null);
   };
@@ -153,7 +151,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                 {paginatedItems.map((point, index) => (
                   <Tr key={point.id} bg={expandedRows[point.id] ? bgColorAlpha : undefined}>
                     <Td width="200px">{point.name}</Td>
-                    {point.coordinates.split(" ").map((coord, index) => (
+                    {point?.coordinates?.split(" ").map((coord, index) => (
                       <Td key={index} textAlign="center">
                         <EditableText
                           onSubmit={async (value) => {

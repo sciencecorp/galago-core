@@ -380,12 +380,12 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
               <ToolStatusCard toolId={config.name} />
             </Box>
             <ControlPanel
-              onFree={() => commandHandlers.handleSimpleCommand(robotArmCommandMutation, "free")}
+              onFree={() => commandHandlers.handleSimpleCommand(robotArmCommandMutation, "release")}
               onUnfree={() =>
-                commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unfree")
+                commandHandlers.handleSimpleCommand(robotArmCommandMutation, "engage")
               }
               onUnwind={() =>
-                commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")
+                commandHandlers.handleSimpleCommand(robotArmCommandMutation, "retract")
               }
               onGripperOpen={() => {
                 const selectedParams = gripParams.find((p) => p.id === defaultParamsId);
@@ -431,15 +431,15 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
               selectedGripParamsId={defaultParamsId}
               onGripParamsChange={setDefaultParamsId}
               isFreeLoading={
-                robotArmCommandMutation.variables?.command === "free" &&
+                robotArmCommandMutation.variables?.command === "release" &&
                 robotArmCommandMutation.isLoading
               }
               isUnfreeLoading={
-                robotArmCommandMutation.variables?.command === "unfree" &&
+                robotArmCommandMutation.variables?.command === "engage" &&
                 robotArmCommandMutation.isLoading
               }
               isUnwindLoading={
-                robotArmCommandMutation.variables?.command === "unwind" &&
+                robotArmCommandMutation.variables?.command === "retract" &&
                 robotArmCommandMutation.isLoading
               }
             />

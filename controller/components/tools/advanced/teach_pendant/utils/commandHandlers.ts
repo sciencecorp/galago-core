@@ -98,7 +98,7 @@ export function useCommandHandlers(config: Tool) {
 
   const handleSimpleCommand = async (
     commandMutation: UseMutationResult<any, unknown, ToolCommandInfo>,
-    command: "free" | "unfree" | "unwind",
+    command: "release" | "engage" | "retract",
   ) => {
     const simpleCommand: ToolCommandInfo = {
       toolId: config.name,

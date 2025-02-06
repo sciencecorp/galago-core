@@ -3,9 +3,9 @@ import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import ParseError
 from fastapi import HTTPException, UploadFile
 from sqlalchemy.orm import Session
-import crud
-from models.inventory_models import RobotArmLocation
-import schemas
+from db import crud
+from db.models.inventory_models import RobotArmLocation
+from db import schemas
 from pydantic import BaseModel
 from typing import Dict, List, Optional
 import re 

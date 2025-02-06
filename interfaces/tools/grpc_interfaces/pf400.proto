@@ -23,8 +23,6 @@ message Command {
     RawCommand raw_command = 16;
     RegisterMotionProfile register_motion_profile = 17;
     LoadWaypoints load_waypoints = 18;
-    LoadLabware load_labware = 19;
-    LoadSequences load_sequences =20;
   }
 
   message RawCommand {
@@ -124,22 +122,6 @@ message Command {
     optional google.protobuf.Struct locations = 1; 
     optional google.protobuf.Struct grip_params =2;
     optional google.protobuf.Struct motion_profiles =3;
-  }
-
-  message LoadLabware {
-    google.protobuf.Struct load_labware =1;
-  }
-
-  message LoadSequences {
-    google.protobuf.Struct load_sequences=1;
-  }
-
-  message LoadLabware {
-    repeated LabwareConfig labware = 1;
-  }
-
-  message RegisterMotionProfile {
-    MotionProfileConfig motion_profile = 1;
   }
 }
 

@@ -348,10 +348,9 @@ const commandFields: CommandFields = {
       { name: "motion_profile_id", type: "number", defaultValue: 2 },
       { name: "grip_width", type: "number" },
     ],
-    free: [],
-    unfree: [],
-    unwind: [],
-    get_teachpoints: [],
+    release: [],
+    engage: [],
+    retract: [],
   },
 };
 

@@ -66,9 +66,9 @@ const availableCommands: Record<string, CommandField[]> = {
     { name: "location", type: "location" },
     { name: "motion_profile_id", type: "motion_profile" },
   ],
-  free: [],
-  unfree: [],
-  unwind: [],
+  engage: [],
+  release: [],
+  retract: [],
 };
 
 export const CommandModal: React.FC<CommandModalProps> = ({
