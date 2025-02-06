@@ -30,7 +30,7 @@ import { MoonIcon, SunIcon } from "@chakra-ui/icons";
 import { FiBook } from "react-icons/fi";
 import { FaChartGantt } from "react-icons/fa6";
 import { capitalizeFirst } from "@/utils/parser";
-import { GrStorage } from "react-icons/gr";
+import { BsBoxSeam } from "react-icons/bs";
 import { HiOutlineRectangleStack } from "react-icons/hi2";
 import { GiChaingun } from "react-icons/gi";
 
@@ -51,7 +51,7 @@ const sidebarItems: SidebarItem[] = [
   { name: "Workcells", icon: GiChaingun, path: "/workcells" },
   { name: "Tools", icon: FaToolbox, path: "/tools" },
   { name: "Protocols", icon: PiPathBold, path: "/protocols" },
-  { name: "Inventory", icon: GrStorage, path: "/inventory" },
+  { name: "Inventory", icon: BsBoxSeam, path: "/inventory" },
   // { name: "Schedule", icon: RiCalendarCheckLine, path: "/schedule" },
   { name: "Labware", icon: HiOutlineRectangleStack, path: "/labware" },
   // { name: "Tables", icon: LuTableProperties, path: "/tables" }, //Will keep thinking about this one, not sure we want to give users so much complexity/abstraction

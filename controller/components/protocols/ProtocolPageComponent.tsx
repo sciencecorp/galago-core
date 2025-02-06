@@ -18,6 +18,14 @@ import {
   Tag,
   Select,
   useColorModeValue,
+  Card,
+  CardBody,
+  Icon,
+  Divider,
+  StatGroup,
+  Stat,
+  StatLabel,
+  StatNumber,
 } from "@chakra-ui/react";
 import { SearchIcon, ArrowUpDownIcon } from "@chakra-ui/icons";
 import { useState, useMemo } from "react";
@@ -25,9 +33,15 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
+<<<<<<< HEAD
 import { RiAddFill } from "react-icons/ri";
 import { PageHeader } from "../ui/PageHeader";
 
+=======
+import { PageHeader } from "@/components/ui/PageHeader";
+import { PiPathBold } from "react-icons/pi";
+import { RiAddFill } from "react-icons/ri";
+>>>>>>> origin/main
 type SortField = "name" | "category" | "workcell" | "number_of_commands";
 type SortOrder = "asc" | "desc";
 
@@ -39,7 +53,8 @@ export const ProtocolPageComponent: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [runModalProtocolId, setRunModalProtocolId] = useState<string | null>(null);
 
-  const bgColor = useColorModeValue("white", "gray.800");
+  const headerBg = useColorModeValue("white", "gray.700");
+  const containerBg = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
   const tableBgColor = useColorModeValue("white", "gray.700");
@@ -121,133 +136,180 @@ export const ProtocolPageComponent: React.FC = () => {
   };
 
   return (
-    <Box bg={bgColor} borderRadius="lg" p={6} color={textColor}>
-      <VStack align="stretch" spacing={6}>
-        <PageHeader
-          title="Protocols"
-          mainButton={
-            <Button
-              leftIcon={<RiAddFill />}
-              colorScheme="teal"
-              onClick={() => console.log("New Protocol")}>
-              New Protocol
-            </Button>
-          }
-        />
-        <HStack spacing={4}>
-          <InputGroup maxW="400px">
-            <InputLeftElement pointerEvents="none">
-              <SearchIcon color="gray.300" />
-            </InputLeftElement>
-            <Input
-              placeholder="Search protocols..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              bg={tableBgColor}
+    <VStack spacing={4} align="stretch">
+      <Card bg={headerBg} shadow="md">
+        <CardBody>
+          <VStack spacing={4} align="stretch">
+            <PageHeader
+              title="Protocols"
+              subTitle="Manage and run your automation protocols"
+              titleIcon={<Icon as={PiPathBold} boxSize={8} color="teal.500" />}
+              mainButton={
+                <Button
+                  colorScheme="teal"
+                  leftIcon={<RiAddFill />}
+                  onClick={() => router.push("/protocols/new")}>
+                  New Protocol
+                </Button>
+              }
             />
-          </InputGroup>
 
-          <Select
-            placeholder="All Categories"
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            maxW="200px"
-            bg={tableBgColor}>
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </option>
-            ))}
-          </Select>
+            <Divider />
 
-          <Select
-            placeholder="All Workcells"
-            value={workcellFilter}
-            onChange={(e) => setWorkcellFilter(e.target.value)}
-            maxW="200px"
-            bg={tableBgColor}>
-            {uniqueWorkcells.map((workcell) => (
-              <option key={workcell} value={workcell}>
-                {workcell}
-              </option>
-            ))}
-          </Select>
-        </HStack>
+            <StatGroup>
+              <Stat>
+                <StatLabel>Total Protocols</StatLabel>
+                <StatNumber>{protocols?.length || 0}</StatNumber>
+              </Stat>
+              <Stat>
+                <StatLabel>Categories</StatLabel>
+                <StatNumber>{categories.length}</StatNumber>
+              </Stat>
+              <Stat>
+                <StatLabel>Workcells</StatLabel>
+                <StatNumber>{uniqueWorkcells.length}</StatNumber>
+              </Stat>
+            </StatGroup>
 
-        <Table variant="simple">
-          <Thead>
-            <Tr>
-              <Th cursor="pointer" onClick={() => handleSort("name")}>
-                <HStack spacing={2}>
-                  <span>Name</span>
-                  {sortField === "name" && (
-                    <ArrowUpDownIcon
-                      transform={sortOrder === "desc" ? "rotate(180deg)" : undefined}
-                    />
-                  )}
-                </HStack>
-              </Th>
-              <Th>Category</Th>
-              <Th>Workcell</Th>
-              <Th>Description</Th>
-              {/* <Th cursor="pointer" onClick={() => handleSort("created_at")}>
-                <HStack spacing={2}>
-                  <span>Created At</span>
-                  {sortField === "created_at" && (
-                    <ArrowUpDownIcon 
-                      transform={sortOrder === "desc" ? "rotate(180deg)" : undefined}
-                    />
-                  )}
-                </HStack>
-              </Th> */}
-              <Th cursor="pointer" onClick={() => handleSort("number_of_commands")}>
-                <HStack spacing={2}>
-                  <span>Commands</span>
-                  {sortField === "number_of_commands" && (
-                    <ArrowUpDownIcon
-                      transform={sortOrder === "desc" ? "rotate(180deg)" : undefined}
-                    />
-                  )}
-                </HStack>
-              </Th>
-              <Th>Actions</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {sortedProtocols.map((protocol) => (
-              <Tr key={protocol.id} _hover={{ bg: hoverBgColor }}>
-                <Td>
-                  <Link href={`/protocols/${protocol.id}`}>{protocol.name}</Link>
-                </Td>
-                <Td>
-                  <Tag colorScheme={getCategoryColor(protocol.category)}>{protocol.category}</Tag>
-                </Td>
-                <Td>{protocol.workcell}</Td>
-                <Td>{protocol.description}</Td>
-                {/* <Td>{protocol.created_at}</Td> */}
-                <Td>{protocol.number_of_commands}</Td>
-                <Td>
-                  <HStack spacing={2}>
-                    <Button
-                      size="sm"
-                      colorScheme="green"
-                      onClick={() => handleRunClick(protocol.id.toString())}>
-                      Run
-                    </Button>
-                    <Button size="sm" onClick={() => router.push(`/protocols/${protocol.id}/edit`)}>
-                      Edit
-                    </Button>
-                  </HStack>
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      </VStack>
+            <Divider />
+
+            <HStack spacing={4}>
+              <InputGroup maxW="400px">
+                <InputLeftElement pointerEvents="none">
+                  <SearchIcon color="gray.300" />
+                </InputLeftElement>
+                <Input
+                  placeholder="Search protocols..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  bg={tableBgColor}
+                />
+              </InputGroup>
+
+              <Select
+                placeholder="All Categories"
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                maxW="200px"
+                bg={tableBgColor}>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </option>
+                ))}
+              </Select>
+
+              <Select
+                placeholder="All Workcells"
+                value={workcellFilter}
+                onChange={(e) => setWorkcellFilter(e.target.value)}
+                maxW="200px"
+                bg={tableBgColor}>
+                {uniqueWorkcells.map((workcell) => (
+                  <option key={workcell} value={workcell}>
+                    {workcell}
+                  </option>
+                ))}
+              </Select>
+            </HStack>
+          </VStack>
+        </CardBody>
+      </Card>
+
+      <Card bg={headerBg} shadow="md">
+        <CardBody>
+          <VStack align="stretch" spacing={4}>
+            <Box overflowX="auto">
+              <Table
+                variant="simple"
+                sx={{
+                  th: {
+                    borderColor: useColorModeValue("gray.200", "gray.600"),
+                  },
+                  td: {
+                    borderColor: useColorModeValue("gray.200", "gray.600"),
+                  },
+                }}>
+                <Thead>
+                  <Tr>
+                    <Th cursor="pointer" onClick={() => handleSort("name")}>
+                      <HStack spacing={2}>
+                        <span>Name</span>
+                        {sortField === "name" && (
+                          <ArrowUpDownIcon
+                            transform={sortOrder === "desc" ? "rotate(180deg)" : undefined}
+                          />
+                        )}
+                      </HStack>
+                    </Th>
+                    <Th>Category</Th>
+                    <Th>Workcell</Th>
+                    <Th>Description</Th>
+                    {/* <Th cursor="pointer" onClick={() => handleSort("created_at")}>
+                      <HStack spacing={2}>
+                        <span>Created At</span>
+                        {sortField === "created_at" && (
+                          <ArrowUpDownIcon 
+                            transform={sortOrder === "desc" ? "rotate(180deg)" : undefined}
+                          />
+                        )}
+                      </HStack>
+                    </Th> */}
+                    <Th cursor="pointer" onClick={() => handleSort("number_of_commands")}>
+                      <HStack spacing={2}>
+                        <span>Commands</span>
+                        {sortField === "number_of_commands" && (
+                          <ArrowUpDownIcon
+                            transform={sortOrder === "desc" ? "rotate(180deg)" : undefined}
+                          />
+                        )}
+                      </HStack>
+                    </Th>
+                    <Th>Actions</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {sortedProtocols.map((protocol) => (
+                    <Tr key={protocol.id} _hover={{ bg: hoverBgColor }}>
+                      <Td>
+                        <Link href={`/protocols/${protocol.id}`}>{protocol.name}</Link>
+                      </Td>
+                      <Td>
+                        <Tag colorScheme={getCategoryColor(protocol.category)}>
+                          {protocol.category}
+                        </Tag>
+                      </Td>
+                      <Td>{protocol.workcell}</Td>
+                      <Td>{protocol.description}</Td>
+                      {/* <Td>{protocol.created_at}</Td> */}
+                      <Td>{protocol.number_of_commands}</Td>
+                      <Td>
+                        <HStack spacing={2}>
+                          <Button
+                            size="sm"
+                            colorScheme="green"
+                            onClick={() => handleRunClick(protocol.id.toString())}>
+                            Run
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => router.push(`/protocols/${protocol.id}/edit`)}>
+                            Edit
+                          </Button>
+                        </HStack>
+                      </Td>
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            </Box>
+          </VStack>
+        </CardBody>
+      </Card>
 
       {runModalProtocolId && (
         <NewProtocolRunModal id={runModalProtocolId} onClose={handleRunModalClose} />
       )}
-    </Box>
+    </VStack>
   );
 };

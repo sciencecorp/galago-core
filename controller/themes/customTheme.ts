@@ -2,11 +2,23 @@ import { extendTheme } from "@chakra-ui/react";
 
 // Define custom colors and styles
 const customTheme = extendTheme({
+  config: {
+    initialColorMode: "system",
+    useSystemColorMode: true,
+  },
   styles: {
     global: (props: { colorMode: string }) => ({
       body: {
         bg: props.colorMode === "dark" ? "gray.900" : "white",
         color: props.colorMode === "dark" ? "whiteAlpha.900" : "gray.800",
+      },
+      table: {
+        th: {
+          borderColor: props.colorMode === "dark" ? "gray.500" : "gray.200",
+        },
+        td: {
+          borderColor: props.colorMode === "dark" ? "gray.500" : "gray.200",
+        },
       },
     }),
   },
@@ -60,6 +72,11 @@ const customTheme = extendTheme({
     Heading: {
       baseStyle: (props: { colorMode: string }) => ({
         color: props.colorMode === "dark" ? "whiteAlpha.900" : "gray.800",
+      }),
+    },
+    Divider: {
+      baseStyle: (props: { colorMode: string }) => ({
+        borderColor: props.colorMode === "dark" ? "gray.500" : "gray.200",
       }),
     },
   },

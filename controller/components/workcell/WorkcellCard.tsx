@@ -24,6 +24,12 @@ import {
   useColorModeValue,
   Editable,
   useToast,
+  Badge,
+  Wrap,
+  WrapItem,
+  Avatar,
+  AvatarGroup,
+  Tooltip,
 } from "@chakra-ui/react";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import { useEffect, useState } from "react";
@@ -32,6 +38,9 @@ import { Workcell } from "@/types/api";
 import { LuCheck, LuX } from "react-icons/lu";
 import { EditMenu } from "../ui/EditMenu";
 import { EditableText } from "../ui/Form";
+import { BsTools } from "react-icons/bs";
+import { MdLocationOn } from "react-icons/md";
+import { format } from "date-fns";
 
 interface WorkcellCardProps {
   workcell: Workcell;
@@ -41,8 +50,9 @@ interface WorkcellCardProps {
 export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
   const { workcell } = props;
   const [isHovered, setIsHovered] = useState(false);
-  const bg = useColorModeValue("teal.700", "teal.200");
-  const toolBg = useColorModeValue("gray.200", "gray.800");
+  const cardBg = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const selectedBg = useColorModeValue("teal.50", "teal.900");
   const deleteWorkcell = trpc.workcell.delete.useMutation();
   const clearToolStore = trpc.tool.clearToolStore.useMutation();
   const editWorkcell = trpc.workcell.edit.useMutation();
@@ -72,7 +82,9 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
 
   const handleDelete = async () => {
     try {
-      await setWorkcell.mutate("");
+      if (selectedWorkcellData === workcell.name) {
+        await setWorkcell.mutate("");
+      }
       await deleteWorkcell.mutateAsync(workcell.id);
       await clearToolStore.mutate();
       props.onChange && props.onChange();
@@ -102,119 +114,111 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
     }
   };
 
-  const Tools = () => {
-    if (!workcell) return;
-    if (!workcell.tools) return;
-    return (
-      <Box p={2} borderRadius="md" bg={toolBg}>
-        {selectedWorkcell === workcell.name ? (
-          <Text as="b">{workcell.tools.length} Tools</Text>
-        ) : (
-          <Text color="gray.400">{workcell.tools.length} Tools</Text>
-        )}
-      </Box>
-    );
+  // Generate a consistent color based on workcell name
+  const getWorkcellColor = (name: string) => {
+    const colors = ["red", "orange", "yellow", "green", "teal", "blue", "cyan", "purple", "pink"];
+    const hash = name.split("").reduce((acc, char) => char.charCodeAt(0) + acc, 0);
+    return colors[hash % colors.length];
   };
 
-  const Location = () => {
-    if (!workcell) return;
-    if (!workcell.location) return;
-    return (
-      <Box p={2} borderRadius="md" bg={toolBg}>
-        {selectedWorkcell === workcell.name ? (
-          <EditableText
-            preview={<Text as="b">{workcell.location}</Text>}
-            defaultValue={workcell.location}
-            onSubmit={(value) => {
-              value && handleEdit({ ...workcell, location: value });
-            }}
-          />
-        ) : (
-          <Text>{workcell.location}</Text>
-        )}
-      </Box>
-    );
-  };
+  const isSelected = selectedWorkcellData === workcell.name;
 
   return (
     <Card
-      p={2}
-      width="380px"
-      height="280px"
-      borderRadius="xl"
-      direction={{ base: "column", sm: "row" }}
-      overflow="hidden"
-      border={selectedWorkcell === workcell.name ? "1px solid" : "1px solid"}
-      borderColor={selectedWorkcell === workcell.name ? bg : "gray.200"}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      boxShadow={isHovered ? "xl" : "sm"}
-      transform={isHovered ? "translateY(-5px)" : "none"}
-      transition="all 0.2s ease-in-out"
-      cursor="pointer">
-      <VStack width="100%" alignItems="stretch">
-        <CardBody width="100%">
-          <Flex justifyContent="space-between" width="100%">
-            <Heading size="md">
-              <EditableText
-                preview={
-                  selectedWorkcell === workcell.name ? (
-                    <Text as="b" color={bg}>
-                      {workcell.name}
-                    </Text>
-                  ) : (
-                    <Text color="gray.400">{workcell.name}</Text>
-                  )
-                }
-                defaultValue={workcell.name}
-                onSubmit={(value) => {
-                  value && handleEdit({ ...workcell, name: value });
-                }}
+      bg={isSelected ? selectedBg : cardBg}
+      borderColor={borderColor}
+      borderWidth="1px"
+      shadow="md"
+      transition="all 0.2s"
+      _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
+      overflow="hidden">
+      <CardBody p={4}>
+        <VStack align="stretch" spacing={4}>
+          <HStack justify="space-between">
+            <HStack spacing={3}>
+              <Avatar
+                size="md"
+                name={workcell.name}
+                bg={`${getWorkcellColor(workcell.name)}.500`}
+                color="white"
               />
-            </Heading>
-          </Flex>
-          <Text fontSize="16px" mt={8}>
-            <EditableText
-              preview={
-                selectedWorkcell === workcell.name ? (
-                  <Text fontSize="18px">{workcell.description}</Text>
-                ) : (
-                  <Text color="gray.400">{workcell.description}</Text>
-                )
-              }
-              defaultValue={workcell.description}
-              onSubmit={(value) => {
-                value && handleEdit({ ...workcell, description: value });
-              }}
-            />
-          </Text>
-          <Box mt={2} width="100%">
-            <HStack width="100%" spacing={1}>
-              {Tools()}
-              {Location()}
+              <VStack align="start" spacing={0}>
+                <EditableText
+                  defaultValue={workcell.name}
+                  preview={<Heading size="md">{workcell.name}</Heading>}
+                  onSubmit={(value) => {
+                    if (value) handleEdit({ ...workcell, name: value });
+                  }}
+                />
+                <HStack fontSize="sm" color="gray.500">
+                  <Icon as={MdLocationOn} />
+                  <EditableText
+                    defaultValue={workcell.location || ""}
+                    preview={<Text>{workcell.location || "No location"}</Text>}
+                    onSubmit={(value) => handleEdit({ ...workcell, location: value || "" })}
+                  />
+                </HStack>
+              </VStack>
             </HStack>
-          </Box>
-        </CardBody>
-        <CardFooter pt={0} justifyContent="flex-start" width="100%">
-          <ButtonGroup>
-            <Button
-              onClick={async () => {
-                handleSelect();
-              }}
-              colorScheme={selectedWorkcell === workcell.name ? "teal" : "gray"}
-              variant="solid">
-              {selectedWorkcell === workcell.name ? "Selected" : "Select"}
-            </Button>
             <DeleteWithConfirmation
-              disabled={selectedWorkcell === workcell.name}
               onDelete={handleDelete}
               label="workcell"
-              variant="button"
+              variant="icon"
               customText="Are you sure? This will delete all tools in this workcell."
             />
-          </ButtonGroup>
-        </CardFooter>
-      </VStack>
+          </HStack>
+
+          {workcell.description && (
+            <EditableText
+              defaultValue={workcell.description}
+              preview={
+                <Text fontSize="sm" color="gray.500" noOfLines={2}>
+                  {workcell.description}
+                </Text>
+              }
+              onSubmit={(value) => handleEdit({ ...workcell, description: value || "" })}
+            />
+          )}
+
+          <HStack justify="space-between" align="center">
+            <HStack>
+              <Icon as={BsTools} />
+              <Text fontSize="sm">{workcell.tools.length} Tools</Text>
+            </HStack>
+            <Badge colorScheme={isSelected ? "teal" : "gray"}>
+              {isSelected ? "Active" : "Inactive"}
+            </Badge>
+          </HStack>
+
+          {workcell.tools.length > 0 && (
+            <AvatarGroup size="md" max={4} spacing="-1.5rem">
+              {workcell.tools.map((tool) => (
+                <Tooltip key={tool.id} label={tool.name}>
+                  <Avatar
+                    name={tool.name}
+                    src={tool.image_url}
+                    bg={`${getWorkcellColor(tool.name)}.500`}
+                    p={1}
+                    borderWidth={2}
+                    borderColor={cardBg}
+                  />
+                </Tooltip>
+              ))}
+            </AvatarGroup>
+          )}
+        </VStack>
+      </CardBody>
+
+      <CardFooter pt={0} pb={4} px={4} borderTop="1px" borderColor={borderColor}>
+        <Button
+          width="full"
+          colorScheme={isSelected ? "teal" : "gray"}
+          variant={isSelected ? "solid" : "outline"}
+          onClick={handleSelect}
+          size="sm">
+          {isSelected ? "Selected" : "Select Workcell"}
+        </Button>
+      </CardFooter>
     </Card>
   );
 };

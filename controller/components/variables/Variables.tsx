@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   VStack,
   Box,
   Button,
   HStack,
-  Heading,
   Input,
   Table,
   Thead,
@@ -15,9 +14,17 @@ import {
   useToast,
   InputGroup,
   InputLeftElement,
-  InputRightElement,
   Text,
   Select,
+  Card,
+  CardBody,
+  Icon,
+  Divider,
+  StatGroup,
+  Stat,
+  StatLabel,
+  StatNumber,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { SearchIcon } from "@chakra-ui/icons";
 import { trpc } from "@/utils/trpc";
@@ -29,12 +36,18 @@ import { EditableText } from "../ui/Form";
 import { VscSymbolString } from "react-icons/vsc";
 import { MdOutlineNumbers } from "react-icons/md";
 import { VscSymbolBoolean } from "react-icons/vsc";
+import { TbVariable } from "react-icons/tb";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 export const Variables: React.FC = () => {
   const [variables, setVariables] = useState<Variable[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("");
   const toast = useToast();
+
+  const headerBg = useColorModeValue("white", "gray.700");
+  const tableBgColor = useColorModeValue("white", "gray.700");
+  const hoverBgColor = useColorModeValue("gray.50", "gray.600");
 
   const { data: fetchedVariables, refetch } = trpc.variable.getAll.useQuery();
   const editVariable = trpc.variable.edit.useMutation();
@@ -70,11 +83,26 @@ export const Variables: React.FC = () => {
     }
   };
 
-  const filteredVariables = variables?.filter(
-    (variable) =>
-      variable.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      (typeFilter === "" || variable.type === typeFilter),
-  );
+  // Calculate stats
+  const totalVariables = variables.length;
+  const typeStats = useMemo(() => {
+    const stats = variables.reduce(
+      (acc, variable) => {
+        acc[variable.type] = (acc[variable.type] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+    return stats;
+  }, [variables]);
+
+  const filteredVariables = useMemo(() => {
+    return variables?.filter(
+      (variable) =>
+        variable.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        (typeFilter === "" || variable.type === typeFilter),
+    );
+  }, [variables, searchQuery, typeFilter]);
 
   const renderTypeIcon = (type: string) => {
     switch (type) {
@@ -83,14 +111,9 @@ export const Variables: React.FC = () => {
       case "number":
         return <MdOutlineNumbers />;
       case "boolean":
-        return (
-          <Box>
-            <VscSymbolBoolean />
-            <Text>{type}</Text>
-          </Box>
-        );
+        return <VscSymbolBoolean />;
       default:
-        return type;
+        return null;
     }
   };
 
@@ -116,77 +139,143 @@ export const Variables: React.FC = () => {
   };
 
   return (
-    <Box flex={1}>
-      <VStack align="stretch" spacing={6} width="100%">
-        <HStack mt={2} mb={2} justify="space-between" width="100%">
-          <Heading size="lg">Variables</Heading>
-          <VariableModal />
-        </HStack>
-        <HStack spacing={4} width="100%">
-          <InputGroup>
-            <InputLeftElement pointerEvents="none">
-              <SearchIcon color="gray.300" />
-            </InputLeftElement>
-            <Input
-              placeholder="Search variables"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </InputGroup>
-          <Select
-            placeholder="Filter by type"
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}>
-            <option value="string">String</option>
-            <option value="number">Number</option>
-            <option value="boolean">Boolean</option>
-            <option value="array">Array</option>
-            <option value="object">Object</option>
-          </Select>
-        </HStack>
-        <Table variant="simple" width="100%">
-          <Thead>
-            <Tr>
-              <Th>Name</Th>
-              <Th>Type</Th>
-              <Th>Value</Th>
-              <Th>Created On</Th>
-              <Th>Updated On</Th>
-              <Th></Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {filteredVariables.map((variable) => (
-              <Tr key={variable.id}>
-                <Td>
-                  <EditableText
-                    onSubmit={async (value) => {
-                      value && (await handleVariableUpdate({ ...variable, name: value }));
-                    }}
-                    defaultValue={variable.name}
+    <Box maxW="100%">
+      <VStack spacing={4} align="stretch">
+        <Card bg={headerBg} shadow="md">
+          <CardBody>
+            <VStack spacing={4} align="stretch">
+              <PageHeader
+                title="Variables"
+                subTitle="Manage system-wide variables and configurations"
+                titleIcon={<Icon as={TbVariable} boxSize={8} color="teal.500" />}
+                mainButton={<VariableModal />}
+              />
+
+              <Divider />
+
+              <StatGroup>
+                <Stat>
+                  <StatLabel>Total Variables</StatLabel>
+                  <StatNumber>{totalVariables}</StatNumber>
+                </Stat>
+                <Stat>
+                  <StatLabel>String Variables</StatLabel>
+                  <StatNumber>{typeStats.string || 0}</StatNumber>
+                </Stat>
+                <Stat>
+                  <StatLabel>Number Variables</StatLabel>
+                  <StatNumber>{typeStats.number || 0}</StatNumber>
+                </Stat>
+                <Stat>
+                  <StatLabel>Boolean Variables</StatLabel>
+                  <StatNumber>{typeStats.boolean || 0}</StatNumber>
+                </Stat>
+                <Stat>
+                  <StatLabel>Array Variables</StatLabel>
+                  <StatNumber>{typeStats.array || 0}</StatNumber>
+                </Stat>
+                <Stat>
+                  <StatLabel>Object Variables</StatLabel>
+                  <StatNumber>{typeStats.object || 0}</StatNumber>
+                </Stat>
+              </StatGroup>
+
+              <Divider />
+
+              <HStack spacing={4}>
+                <InputGroup maxW="400px">
+                  <InputLeftElement pointerEvents="none">
+                    <SearchIcon color="gray.300" />
+                  </InputLeftElement>
+                  <Input
+                    placeholder="Search variables..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    bg={tableBgColor}
                   />
-                </Td>
-                <Td>{variable.type}</Td>
-                <Td>
-                  <EditableText
-                    onSubmit={async (value) => {
-                      value && (await handleVariableUpdate({ ...variable, value: value }));
-                    }}
-                    defaultValue={variable.value}
-                  />
-                </Td>
-                <Td>{renderDatetime(String(variable.created_at))}</Td>
-                <Td>{renderDatetime(String(variable.updated_at))}</Td>
-                <Td>
-                  <DeleteWithConfirmation
-                    onDelete={() => handleDelete(variable)}
-                    label="variable"
-                  />
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
+                </InputGroup>
+                <Select
+                  placeholder="All Types"
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  maxW="200px"
+                  bg={tableBgColor}>
+                  <option value="string">String</option>
+                  <option value="number">Number</option>
+                  <option value="boolean">Boolean</option>
+                  <option value="array">Array</option>
+                  <option value="object">Object</option>
+                </Select>
+              </HStack>
+            </VStack>
+          </CardBody>
+        </Card>
+
+        <Card bg={headerBg} shadow="md">
+          <CardBody>
+            <VStack spacing={4} align="stretch">
+              <Box overflowX="auto">
+                <Table
+                  variant="simple"
+                  sx={{
+                    th: {
+                      borderColor: useColorModeValue("gray.200", "gray.600"),
+                    },
+                    td: {
+                      borderColor: useColorModeValue("gray.200", "gray.600"),
+                    },
+                  }}>
+                  <Thead>
+                    <Tr>
+                      <Th>Name</Th>
+                      <Th>Type</Th>
+                      <Th>Value</Th>
+                      <Th>Created On</Th>
+                      <Th>Updated On</Th>
+                      <Th>Actions</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {filteredVariables.map((variable) => (
+                      <Tr key={variable.id} _hover={{ bg: hoverBgColor }}>
+                        <Td>
+                          <EditableText
+                            onSubmit={async (value) => {
+                              value && (await handleVariableUpdate({ ...variable, name: value }));
+                            }}
+                            defaultValue={variable.name}
+                          />
+                        </Td>
+                        <Td>
+                          <HStack>
+                            {renderTypeIcon(variable.type)}
+                            <Text>{variable.type}</Text>
+                          </HStack>
+                        </Td>
+                        <Td>
+                          <EditableText
+                            onSubmit={async (value) => {
+                              value && (await handleVariableUpdate({ ...variable, value: value }));
+                            }}
+                            defaultValue={variable.value}
+                          />
+                        </Td>
+                        <Td>{renderDatetime(String(variable.created_at))}</Td>
+                        <Td>{renderDatetime(String(variable.updated_at))}</Td>
+                        <Td>
+                          <DeleteWithConfirmation
+                            onDelete={() => handleDelete(variable)}
+                            label="variable"
+                          />
+                        </Td>
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+              </Box>
+            </VStack>
+          </CardBody>
+        </Card>
       </VStack>
     </Box>
   );

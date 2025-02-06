@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, SimpleGrid, Tooltip } from "@chakra-ui/react";
+import { Box, Tooltip } from "@chakra-ui/react";
 
 interface WellPlateIconProps {
   rows: number;
@@ -25,46 +25,58 @@ export const WellPlateIcon: React.FC<WellPlateIconProps> = ({ rows, columns, siz
   // Add special case for 384-well plate
   const is384Well = rows === 16 && columns === 24;
   const is96Well = rows === 8 && columns === 12;
-  const displayRows = is384Well ? 10 : is96Well ? 6 : rows; // Show only 10 rows for 384-well, 6 rows for 96-well
-  const wellSize = "1px";
-  const gridSpacing = is384Well ? "1px" : "2px";
-  const boxPadding = is384Well ? "3px" : "4px";
+  const displayRows = is384Well ? 10 : is96Well ? 6 : rows;
+
+  // SVG viewBox calculations
+  const padding = 4;
+  const wellSize = 10;
+  const spacing = is384Well ? 2 : 3;
+  const width = columns * wellSize + (columns - 1) * spacing + 2 * padding;
+  const height = displayRows * wellSize + (displayRows - 1) * spacing + 2 * padding;
+
+  // Generate well positions
+  const wells = [];
+  for (let row = 0; row < displayRows; row++) {
+    for (let col = 0; col < columns; col++) {
+      const cx = padding + col * (wellSize + spacing) + wellSize / 2;
+      const cy = padding + row * (wellSize + spacing) + wellSize / 2;
+      wells.push({ cx, cy });
+    }
+  }
 
   return (
     <Tooltip label={`${format} plate (${rows}×${columns})`} hasArrow placement="top">
-      <Box
-        width={size}
-        height={`calc(${size} * 0.7)`}
-        border="2px solid"
-        borderColor="gray.400"
-        _dark={{ borderColor: "gray.300" }}
-        borderRadius="md"
-        p={boxPadding}
-        overflow="hidden"
-        position="relative">
-        <SimpleGrid
-          columns={columns}
-          spacing={gridSpacing}
+      <Box width={size} height={`calc(${size} * 0.7)`}>
+        <svg
           width="100%"
           height="100%"
-          position="absolute"
-          top="50%"
-          left="50%"
-          transform="translate(-50%, -50%)">
-          {Array.from({ length: displayRows * columns }).map((_, i) => (
-            <Box
+          viewBox={`0 0 ${width} ${height}`}
+          preserveAspectRatio="xMidYMid meet"
+          style={{ overflow: "visible" }}>
+          {/* Plate border */}
+          <rect
+            x="1"
+            y="1"
+            width={width - 2}
+            height={height - 2}
+            rx="3"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          />
+          {/* Wells */}
+          {wells.map((well, i) => (
+            <circle
               key={i}
-              border={`${wellSize} solid`}
-              borderColor="gray.400"
-              _dark={{ borderColor: "gray.300" }}
-              bg="transparent"
-              borderRadius={is384Well ? "2px" : "50%"}
-              width="100%"
-              paddingBottom="100%"
-              position="relative"
+              cx={well.cx}
+              cy={well.cy}
+              r={is384Well ? wellSize / 2.5 : wellSize / 2}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1"
             />
           ))}
-        </SimpleGrid>
+        </svg>
       </Box>
     </Tooltip>
   );

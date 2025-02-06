@@ -108,80 +108,69 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
   };
 
   return (
-    <VStack spacing={4} p={4} border="1px solid lightgray" borderRadius="md" boxShadow="mf">
-      <Heading size="lg">
+    <VStack spacing={2} p={2} border="1px solid lightgray" borderRadius="15px" boxShadow="lg">
+      <Heading size="md">
         {currentDate.toLocaleString("default", { month: "long" })} {currentDate.getFullYear()}
       </Heading>
       <Box display="flex" justifyContent="space-between" width="100%">
-        <Button left={-4} color={bgColor} onClick={handlePrevMonth} variant="ghost">
-          <FiChevronLeft /> Previous
+        <Button size="sm" color={bgColor} onClick={handlePrevMonth} variant="ghost">
+          <FiChevronLeft />
         </Button>
         <Button
-          left={4}
+          size="sm"
           onClick={handleNextMonth}
           colorScheme="teal"
           color={bgColor}
           variant="ghost">
-          <FiChevronRight /> Next
+          <FiChevronRight />
         </Button>
       </Box>
-      <Grid templateColumns="repeat(7, 1fr)" gap={1} mt={4} width="100%">
+      <Grid templateColumns="repeat(7, minmax(35px, 1fr))" gap={0.5} width="fit-content">
         {daysOfWeek.map((day) => (
-          <Text key={day} fontWeight="bold" textAlign="center">
+          <Text key={day} fontWeight="bold" textAlign="center" fontSize="xs" p={0}>
             {day}
           </Text>
         ))}
-        {daysInMonth.map((day, index) => {
-          const isOutsideMonth = day.getMonth() !== currentDate.getMonth();
-
-          return (
-            <Grid
-              width="100%"
-              height="100%"
-              display="flex"
-              alignItems="center"
-              justifyContent="space-around"
-              key={index}
-              textAlign="center"
-              color={isOutsideMonth ? "gray.500" : "teal.800"}
-              p={paddingSize}
-              borderRadius="sm"
-              bg={
-                isCurrentDay(day)
-                  ? "teal.500"
-                  : selectedDate?.toDateString() === day.toDateString()
-                    ? "teal.200"
-                    : isOutsideMonth
-                      ? "gray.300"
-                      : "gray.100"
-              }
-              _hover={{ bg: isOutsideMonth ? "gray.300" : hoverColor }}
-              onClick={() => handleDateClick(day)}
-              cursor="pointer">
-              <Flex direction="column" justifyContent="center" alignItems="center">
-                <Text fontSize="large">{day.getDate()}</Text>
-              </Flex>
-            </Grid>
-          );
-        })}
+        {daysInMonth.map((day, index) => (
+          <Grid
+            width="35px"
+            height="35px"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            key={index}
+            textAlign="center"
+            color="teal.800"
+            p={0}
+            borderRadius="md"
+            bg={
+              isCurrentDay(day)
+                ? "teal.300"
+                : selectedDate?.toDateString() === day.toDateString()
+                  ? "teal.400"
+                  : "gray.100"
+            }
+            _hover={{ bg: hoverColor }}
+            onClick={() => handleDateClick(day)}
+            cursor="pointer">
+            <Text fontSize="xs">{day.getDate()}</Text>
+          </Grid>
+        ))}
       </Grid>
 
-      <HStack spacing={4} width="100%" mt={4}>
-        <Text as="b" fontStyle="italic" fontSize="large">
+      <HStack spacing={2} width="100%">
+        <Text as="b" fontStyle="italic" fontSize="sm">
           Time:
         </Text>
         <Box width="90%">
           <Input
-            fontSize="20px"
-            height="40px"
+            size="sm"
             type="time"
             value={selectedTime}
             onChange={handleTimeChange}
             width="100%"
             placeholder="Select Time"
-            padding="10px"
-            borderRadius="sm"
-            boxShadow="sm"
+            borderRadius="md"
           />
         </Box>
       </HStack>

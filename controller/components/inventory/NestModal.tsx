@@ -279,7 +279,8 @@ const NestModal: React.FC<NestModalProps> = ({
               e.stopPropagation();
               setSelectedNestId(nest.id);
             }}
-            size="sm">
+            size="sm"
+            variant="ghost">
             <AddIcon mr={2} /> Plate
           </Button>
         </PopoverTrigger>
@@ -530,7 +531,7 @@ const NestModal: React.FC<NestModalProps> = ({
                       gridRowStart: 1,
                     }}
                     boxSizing="border-box">
-                    <Text color="blue.500">Add First Nest</Text>
+                    <Text color="blue.500">Add Nest</Text>
                   </Box>
                 ) : (
                   potentialNests.map(({ row, col }) => (
