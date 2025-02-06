@@ -46,7 +46,7 @@ export const ScriptsEditor: React.FC = (props) => {
   const codeTheme = useColorModeValue("vs-light", "vs-dark");
   const toast = useToast();
   const [scriptsEdited, setScriptsEdited] = useState<Script[]>([]);
-  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const borderColor = useColorModeValue("gray.200", "gray.600");
   const [isEditing, setIsEditing] = useState(false);
   const [currentContent, setCurrentContent] = useState<string>("");
   const consoleHeaderBg = useColorModeValue("gray.100", "gray.800");
@@ -55,6 +55,9 @@ export const ScriptsEditor: React.FC = (props) => {
   const runScript = trpc.script.run.useMutation();
   const [runError, setRunError] = useState<boolean>(false);
   const headerBg = useColorModeValue("white", "gray.700");
+  const tabBg = useColorModeValue("gray.50", "gray.700");
+  const activeTabBg = useColorModeValue("white", "gray.800");
+  const hoverBg = useColorModeValue("gray.100", "gray.600");
 
   useEffect(() => {
     setCurrentContent(scripts.find((script) => script.name === activeTab)?.content || "");
@@ -214,25 +217,47 @@ export const ScriptsEditor: React.FC = (props) => {
 
   const Tabs = () => {
     return (
-      <HStack spacing={0} justifyContent="flex-start">
+      <HStack spacing={0} justifyContent="flex-start" overflowX="auto" py={1}>
         {openTabs.map((tab, index) => (
           <Button
-            leftIcon={<SiPython fontSize="12px" />}
             key={index}
             onClick={() => setActiveTab(tab)}
-            borderRadius={0}
-            variant="outline"
             display="flex"
             justifyContent="space-between"
             alignItems="center"
             minW="180px"
-            maxW="480px"
-            w={tab.length > 15 ? "auto" : "180px"}
-            paddingX={2}>
-            <Box flex="1" textAlign="left" pl={1} isTruncated width="100%" pr={2}>
-              <Text color={activeTab === tab ? activeTabFontColor : ""}>{tab}</Text>
-            </Box>
-            <CloseIcon fontSize={8} onClick={() => removeTab(tab)} />
+            maxW="280px"
+            height="36px"
+            mr={1}
+            borderWidth="1px"
+            borderColor={activeTab === tab ? borderColor : "transparent"}
+            borderRadius="md"
+            bg={activeTab === tab ? activeTabBg : tabBg}
+            _hover={{ bg: hoverBg }}
+            transition="all 0.2s"
+            position="relative"
+            overflow="hidden"
+            px={3}>
+            <HStack spacing={2} flex={1}>
+              <SiPython fontSize="12px" color={activeTab === tab ? "teal" : "gray"} />
+              <Text color={activeTab === tab ? activeTabFontColor : ""} fontSize="sm" isTruncated>
+                {tab}
+              </Text>
+            </HStack>
+            <Box
+              as={CloseIcon}
+              fontSize={8}
+              opacity={0.7}
+              _hover={{ opacity: 1 }}
+              ml={2}
+              onClick={(e: React.MouseEvent) => {
+                e.stopPropagation();
+                removeTab(tab);
+              }}
+            />
+            {activeTab === tab && (
+              <Box position="absolute" bottom={0} left={0} right={0} height="2px" bg="teal.500" />
+            )}
           </Button>
         ))}
       </HStack>
@@ -345,68 +370,80 @@ export const ScriptsEditor: React.FC = (props) => {
                   placeholder="Search scripts..."
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <Box width="100%">
+                <Box width="100%" flex={1} overflowY="auto">
                   <Scripts />
                 </Box>
               </VStack>
 
-              <VStack flex={1} spacing={0}>
-                <HStack width="100%" spacing={4} align="flex-start" justify="space-between">
-                  <Box width="100%">
-                    <HStack width="100%" justify="space-between" mb={2}>
-                      <Box flex={1} overflow="hidden">
-                        <Tabs />
-                      </Box>
-                      <HStack spacing={2} flexShrink={0}>
-                        <Button colorScheme="gray" onClick={handleSave}>
-                          Save
-                        </Button>
-                        <Button colorScheme="teal" onClick={handleRunScript}>
-                          Run
-                        </Button>
-                      </HStack>
+              <VStack flex={1} spacing={4}>
+                <Box
+                  width="100%"
+                  borderRadius="md"
+                  overflow="hidden"
+                  borderWidth="1px"
+                  borderColor={borderColor}>
+                  <HStack
+                    width="100%"
+                    justify="space-between"
+                    p={2}
+                    borderBottomWidth="1px"
+                    borderColor={borderColor}>
+                    <Box flex={1} overflow="hidden">
+                      <Tabs />
+                    </Box>
+                    <HStack spacing={2} flexShrink={0}>
+                      <Button colorScheme="gray" onClick={handleSave}>
+                        Save
+                      </Button>
+                      <Button colorScheme="teal" onClick={handleRunScript}>
+                        Run
+                      </Button>
                     </HStack>
-                    <Box width="100%" overflow="hidden">
-                      {activeTab && openTabs.length > 0 ? (
-                        <Editor
-                          height="60vh"
-                          defaultLanguage="python"
-                          value={currentContent}
-                          theme={codeTheme}
-                          options={{
-                            fontSize: 20,
-                            wordWrap: "on",
-                          }}
-                          onChange={(value) => handleCodeChange(value)}
-                        />
-                      ) : (
-                        <Box
-                          width="100%"
-                          height="60vh"
-                          display="flex"
-                          justifyContent="center"
-                          alignItems="center">
-                          <Text>Select a script to view or edit</Text>
-                        </Box>
-                      )}
-                    </Box>
-                    <Box
-                      width="100%"
-                      height="20vh"
-                      bg={consoleBg}
-                      borderTop={`1px solid ${borderColor}`}>
-                      <OutputConsole />
-                      <Box width="100%" height="80%" p={2} overflowY="auto">
-                        <Text
-                          whiteSpace="pre-wrap"
-                          fontFamily="monospace"
-                          textColor={runError ? "red" : ""}>
-                          {consoleText}
-                        </Text>
+                  </HStack>
+                  <Box width="100%" overflow="hidden">
+                    {activeTab && openTabs.length > 0 ? (
+                      <Editor
+                        height="55vh"
+                        defaultLanguage="python"
+                        value={currentContent}
+                        theme={codeTheme}
+                        options={{
+                          fontSize: 20,
+                          wordWrap: "on",
+                        }}
+                        onChange={(value) => handleCodeChange(value)}
+                      />
+                    ) : (
+                      <Box
+                        width="100%"
+                        height="55vh"
+                        display="flex"
+                        justifyContent="center"
+                        alignItems="center">
+                        <Text>Select a script to view or edit</Text>
                       </Box>
-                    </Box>
+                    )}
                   </Box>
-                </HStack>
+                </Box>
+
+                <Box
+                  width="100%"
+                  height="20vh"
+                  bg={consoleBg}
+                  borderRadius="md"
+                  borderWidth="1px"
+                  borderColor={borderColor}
+                  overflow="hidden">
+                  <OutputConsole />
+                  <Box width="100%" height="80%" p={2} overflowY="auto">
+                    <Text
+                      whiteSpace="pre-wrap"
+                      fontFamily="monospace"
+                      textColor={runError ? "red" : ""}>
+                      {consoleText}
+                    </Text>
+                  </Box>
+                </Box>
               </VStack>
             </HStack>
           </CardBody>

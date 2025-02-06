@@ -215,7 +215,16 @@ export const Variables: React.FC = () => {
           <CardBody>
             <VStack spacing={4} align="stretch">
               <Box overflowX="auto">
-                <Table variant="simple">
+                <Table
+                  variant="simple"
+                  sx={{
+                    th: {
+                      borderColor: useColorModeValue("gray.200", "gray.600"),
+                    },
+                    td: {
+                      borderColor: useColorModeValue("gray.200", "gray.600"),
+                    },
+                  }}>
                   <Thead>
                     <Tr>
                       <Th>Name</Th>

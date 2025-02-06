@@ -222,7 +222,16 @@ export const ProtocolPageComponent: React.FC = () => {
         <CardBody>
           <VStack align="stretch" spacing={4}>
             <Box overflowX="auto">
-              <Table variant="simple">
+              <Table
+                variant="simple"
+                sx={{
+                  th: {
+                    borderColor: useColorModeValue("gray.200", "gray.600"),
+                  },
+                  td: {
+                    borderColor: useColorModeValue("gray.200", "gray.600"),
+                  },
+                }}>
                 <Thead>
                   <Tr>
                     <Th cursor="pointer" onClick={() => handleSort("name")}>
