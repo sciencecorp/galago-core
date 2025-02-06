@@ -33,6 +33,7 @@ import { NewScript } from "./NewScript";
 import { PageHeader } from "../ui/PageHeader";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { VscCode } from "react-icons/vsc";
+import { FiBook } from "react-icons/fi";
 
 export const ScriptsEditor: React.FC = (props) => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
@@ -58,6 +59,7 @@ export const ScriptsEditor: React.FC = (props) => {
   const tabBg = useColorModeValue("gray.50", "gray.700");
   const activeTabBg = useColorModeValue("white", "gray.800");
   const hoverBg = useColorModeValue("gray.100", "gray.600");
+  const bgColor = useColorModeValue("gray.50", "gray.700");
 
   useEffect(() => {
     setCurrentContent(scripts.find((script) => script.name === activeTab)?.content || "");
@@ -419,8 +421,25 @@ export const ScriptsEditor: React.FC = (props) => {
                         height="55vh"
                         display="flex"
                         justifyContent="center"
-                        alignItems="center">
-                        <Text>Select a script to view or edit</Text>
+                        alignItems="center"
+                        bg={bgColor}
+                        position="relative"
+                        _before={{
+                          content: '""',
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          background:
+                            "repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(128,128,128,0.1) 10px, rgba(128,128,128,0.1) 20px)",
+                        }}>
+                        <VStack spacing={4}>
+                          <Text fontSize="sm" color="gray.400">
+                            Select a script from the left panel to get started
+                          </Text>
+                          <Icon as={VscCode} boxSize={8} color="gray.400" />
+                        </VStack>
                       </Box>
                     )}
                   </Box>
