@@ -97,56 +97,20 @@ export const robotArmRouter = router({
       ),
     create: procedure.input(zRobotArmLocation.omit({ id: true })).mutation(async ({ input }) => {
       const result = await post("/robot-arm-locations", input);
-      // Reload waypoints for the affected tool
-      const tool = await getToolInstance(input.tool_id);
-      // await tool.reloadWaypoints();
+      Tool.loadLabwareToPF400();
       return result;
     }),
     update: procedure.input(zRobotArmLocation).mutation(async ({ input }) => {
       console.log("Updating location in router", input);
       const result = await put(`/robot-arm-locations/${input.id}`, input);
-      // Reload waypoints for the affected tool
-      const tool = await getToolInstance(input.tool_id);
-      // await tool.reloadWaypoints();
+      Tool.loadLabwareToPF400();
       return result;
     }),
     delete: procedure
       .input(z.object({ id: z.number(), tool_id: z.number() }))
       .mutation(async ({ input }) => {
         const result = await del(`/robot-arm-locations/${input.id}`);
-        // Reload waypoints for the affected tool
-        const tool = await getToolInstance(input.tool_id);
-        // await tool.reloadWaypoints();
-        return result;
-      }),
-  }),
-  nest: router({
-    getAll: procedure
-      .input(z.object({ toolId: z.number() }))
-      .query(
-        ({ input }): Promise<RobotArmNest[]> => get(`/robot-arm-nests?tool_id=${input.toolId}`),
-      ),
-    create: procedure.input(zRobotArmNest.omit({ id: true })).mutation(async ({ input }) => {
-      const result = await post("/robot-arm-nests", input);
-      // Reload waypoints for the affected tool
-      const tool = await getToolInstance(input.tool_id);
-      // await tool.reloadWaypoints();
-      return result;
-    }),
-    update: procedure.input(zRobotArmNest).mutation(async ({ input }) => {
-      const result = await put(`/robot-arm-nests/${input.id}`, input);
-      // Reload waypoints for the affected tool
-      const tool = await getToolInstance(input.tool_id);
-      // await tool.reloadWaypoints();
-      return result;
-    }),
-    delete: procedure
-      .input(z.object({ id: z.number(), tool_id: z.number() }))
-      .mutation(async ({ input }) => {
-        const result = await del(`/robot-arm-nests/${input.id}`);
-        // Reload waypoints for the affected tool
-        const tool = await getToolInstance(input.tool_id);
-        // await tool.reloadWaypoints();
+        Tool.loadLabwareToPF400();
         return result;
       }),
   }),
@@ -161,25 +125,19 @@ export const robotArmRouter = router({
       .input(zRobotArmMotionProfile.omit({ id: true }))
       .mutation(async ({ input }) => {
         const result = await post("/robot-arm-motion-profiles", input);
-        // Reload waypoints for the affected tool
-        const tool = await getToolInstance(input.tool_id);
-        // await tool.reloadWaypoints();
+        Tool.loadLabwareToPF400();
         return result;
       }),
     update: procedure.input(zRobotArmMotionProfile).mutation(async ({ input }) => {
       const result = await put(`/robot-arm-motion-profiles/${input.id}`, input);
-      // Reload waypoints for the affected tool
-      const tool = await getToolInstance(input.tool_id);
-      // await tool.reloadWaypoints();
+      Tool.loadLabwareToPF400();
       return result;
     }),
     delete: procedure
       .input(z.object({ id: z.number(), tool_id: z.number() }))
       .mutation(async ({ input }) => {
         const result = await del(`/robot-arm-motion-profiles/${input.id}`);
-        // Reload waypoints for the affected tool
-        const tool = await getToolInstance(input.tool_id);
-        // await tool.reloadWaypoints();
+        Tool.loadLabwareToPF400();
         return result;
       }),
   }),
@@ -193,25 +151,19 @@ export const robotArmRouter = router({
       ),
     create: procedure.input(zRobotArmGripParams.omit({ id: true })).mutation(async ({ input }) => {
       const result = await post("/robot-arm-grip-params", input);
-      // Reload waypoints for the affected tool
-      const tool = await getToolInstance(input.tool_id);
-      // await tool.reloadWaypoints();
+      Tool.loadLabwareToPF400();
       return result;
     }),
     update: procedure.input(zRobotArmGripParams).mutation(async ({ input }) => {
       const result = await put(`/robot-arm-grip-params/${input.id}`, input);
-      // Reload waypoints for the affected tool
-      const tool = await getToolInstance(input.tool_id);
-      // await tool.reloadWaypoints();
+      Tool.loadLabwareToPF400();
       return result;
     }),
     delete: procedure
       .input(z.object({ id: z.number(), tool_id: z.number() }))
       .mutation(async ({ input }) => {
         const result = await del(`/robot-arm-grip-params/${input.id}`);
-        // Reload waypoints for the affected tool
-        const tool = await getToolInstance(input.tool_id);
-        // await tool.reloadWaypoints();
+        Tool.loadLabwareToPF400();
         return result;
       }),
   }),
@@ -232,18 +184,14 @@ export const robotArmRouter = router({
     }),
     update: procedure.input(zRobotArmSequence).mutation(async ({ input }) => {
       const result = await put(`/robot-arm-sequences/${input.id}`, input);
-      // Reload waypoints for the affected tool
-      const tool = await getToolInstance(input.tool_id);
-      // await tool.reloadWaypoints();
+      Tool.loadLabwareToPF400();
       return result;
     }),
     delete: procedure
       .input(z.object({ id: z.number(), tool_id: z.number() }))
       .mutation(async ({ input }) => {
         const result = await del(`/robot-arm-sequences/${input.id}`);
-        // Reload waypoints for the affected tool
-        const tool = await getToolInstance(input.tool_id);
-        // await tool.reloadWaypoints();
+        Tool.loadLabwareToPF400();
         return result;
       }),
   }),
@@ -254,13 +202,13 @@ export const robotArmRouter = router({
         ({ input }): Promise<z.infer<typeof zRobotArmWaypoints>> =>
           get(`/robot-arm-waypoints?tool_id=${input.toolId}`),
       ),
-  }),
-  command: procedure
-    .input(
-      z.object({
-        command: z.string(),
-        params: z.record(z.any()),
-      }),
-    )
-    .mutation(({ input }) => post("/robot-arm-command", input)),
+    }),
+    command: procedure
+      .input(
+        z.object({
+          command: z.string(),
+          params: z.record(z.any()),
+        }),
+      )
+      .mutation(({ input }) => post("/robot-arm-command", input)),
 });

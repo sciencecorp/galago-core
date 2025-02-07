@@ -77,7 +77,7 @@ export default class Tool {
     return this.info.type;
   }
 
-  async loadPF400Waypoints() {
+  static async loadPF400Waypoints() {
     const waypointsReponse = await get<any>(`/robot-arm-waypoints?tool_id=1`);
     await this.executeCommand({
       toolId: "Pf400",
@@ -89,7 +89,7 @@ export default class Tool {
     });
   }
 
-  async loadLabwareToPF400() {
+  static async loadLabwareToPF400() {
     const labwareResponse = await get<Labware>(`/labware`);
     console.log("labwareResponse", labwareResponse);
     await this.executeCommand({
@@ -106,8 +106,8 @@ export default class Tool {
     this.config = config;
     const reply = await this.grpc.configure(config);
     if (this.info.type === ToolType.pf400) {
-      await this.loadPF400Waypoints();
-      await this.loadLabwareToPF400();
+      await Tool.loadPF400Waypoints();
+      await Tool.loadLabwareToPF400();
     }
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
       throw new ToolCommandExecutionError(
@@ -136,6 +136,7 @@ export default class Tool {
 
       const paramValue = String(params[key]);
 
+      //Functionality to pass variables form db
       if (paramValue.startsWith("{{") && paramValue.endsWith("}}")) {
         try {
           const varValue = await get<Variable>(`/variables/${paramValue.slice(2, -2)}`);
@@ -146,6 +147,7 @@ export default class Tool {
       }
     }
 
+    //Functionality to run python scripts store in db
     if (command.command === "run_python_script" && command.toolId === "Tool Box") {
       const scriptId = String(command.params.script_content);
       command.params.script_content = (await get<Script>(`/scripts/${scriptId}`)).content;

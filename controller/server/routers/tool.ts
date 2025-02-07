@@ -6,7 +6,6 @@ import { procedure, router } from "@/server/trpc";
 import { ToolType } from "gen-interfaces/controller";
 import { get, post, put, del } from "@/server/utils/api";
 import * as controller_protos from "gen-interfaces/controller";
-import { TRPCError } from "@trpc/server";
 
 const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
 
