@@ -280,6 +280,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
           type: "nest" as const,
           locType: "j" as const,
           joints,
+          orientation: nest.orientation,
         };
       });
       setNests(formattedNests);
@@ -752,10 +753,12 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
             joints[`j${i}`] = coords[i - 1] || 0;
           }
 
+          const orientation = !point.orientation ? "landscape" : point.orientation;
+
           const location = {
             name: point.name,
             location_type: "j" as const,
-            orientation: point.orientation,
+            orientation: orientation,
             coordinates: point.coordinates,
             tool_id: config.id,
             ...(selectedTeachPoint?.id ? { id: selectedTeachPoint.id } : {}),

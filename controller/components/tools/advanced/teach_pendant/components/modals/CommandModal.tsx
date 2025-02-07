@@ -47,8 +47,9 @@ const grasp_plate = [
 
 const availableCommands: Record<string, CommandField[]> = {
   move: [
-    { name: "name", type: "waypoint" },
-    { name: "motion_profile_id", type: "motion_profile" },
+    { name: "name", type: "string" },
+    { name: "motion_profile_id", type: "number", defaultValue: 1 },
+    { name: "z_offset", type: "number", defaultValue: 0 },
   ],
   // grasp_plate: [{ name: "grip_params", type: "grip_params" }],
   // release_plate: [{ name: "grip_params", type: "grip_params" }],
@@ -59,7 +60,7 @@ const availableCommands: Record<string, CommandField[]> = {
     { name: "x_offset", type: "number", defaultValue: 0 },
     { name: "y_offset", type: "number", defaultValue: 0 },
     { name: "z_offset", type: "number", defaultValue: 0 },
-    { name: "motion_profile_id", type: "motion_profile" },
+    { name: "motion_profile_id", type: "number", defaultValue: 1 },
     { name: "ignore_safepath", type: "boolean", defaultValue: false },
   ],
   leave: [
@@ -67,17 +68,19 @@ const availableCommands: Record<string, CommandField[]> = {
     { name: "x_offset", type: "number", defaultValue: 0 },
     { name: "y_offset", type: "number", defaultValue: 0 },
     { name: "z_offset", type: "number", defaultValue: 0 },
-    { name: "motion_profile_id", type: "motion_profile" },
+    { name: "motion_profile_id", type: "number", defaultValue: 1 },
   ],
   retrieve_plate: [
-    { name: "labware", type: "labware" },
-    { name: "location", type: "location" },
-    { name: "motion_profile_id", type: "motion_profile" },
+    { name: "labware", type: "string" },
+    { name: "location", type: "string" },
+    { name: "z_offset", type: "number", defaultValue: 0 },
+    { name: "motion_profile_id", type: "number", defaultValue: 1 },
   ],
   dropoff_plate: [
-    { name: "labware", type: "labware" },
-    { name: "location", type: "location" },
-    { name: "motion_profile_id", type: "motion_profile" },
+    { name: "labware", type: "string" },
+    { name: "location", type: "string" },
+    { name: "motion_profile_id", type: "number", defaultValue: 1 },
+    { name: "z_offset", type: "number", defaultValue: 0 },
   ],
   engage: [],
   release: [],
