@@ -74,8 +74,6 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
     onClose();
   };
 
-
-
   const confirmRunStartModal = () => {
     return (
       <Modal isOpen={isOpen} onClose={onClose}>

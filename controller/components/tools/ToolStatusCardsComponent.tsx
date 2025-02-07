@@ -139,11 +139,11 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
         </Card>
         <Card bg={headerBg} shadow="md">
           <CardBody>
-          <Flex wrap="wrap" justify="space-evenly" mt={4} align="stretch" gap={4}>
-            {toolIds.map((toolId, index) => (
-              <ToolStatusCard key={`${toolId}-${index}`} toolId={toolId} />
-            ))}
-          </Flex>
+            <Flex wrap="wrap" justify="space-evenly" mt={4} align="stretch" gap={4}>
+              {toolIds.map((toolId, index) => (
+                <ToolStatusCard key={`${toolId}-${index}`} toolId={toolId} />
+              ))}
+            </Flex>
           </CardBody>
         </Card>
       </VStack>

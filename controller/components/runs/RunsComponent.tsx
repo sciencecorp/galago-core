@@ -78,7 +78,7 @@ export const RunsComponent: React.FC = () => {
     if (!getError.data) return null;
     if (stateQuery.data === ToolStatus.FAILED) {
       return (
-        <Alert status="error" variant="left-accent"  mb={2}>
+        <Alert status="error" variant="left-accent" mb={2}>
           <AlertIcon />
           <Box flex="1">
             <AlertTitle>Error</AlertTitle>
@@ -227,7 +227,7 @@ export const RunsComponent: React.FC = () => {
 
   return (
     <Box width="100%">
-      <ErrorBanner /> 
+      <ErrorBanner />
       <VStack spacing={6} align="stretch">
         <Card bg={cardBg} shadow="md">
           <CardBody>
