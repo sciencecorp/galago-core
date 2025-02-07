@@ -43,15 +43,14 @@ export function useCommandHandlers(config: Tool) {
     point: TeachPoint,
     motionProfile: MotionProfile,
   ) => {
-
     mutation.mutate({
       toolId: config.name,
       toolType: config.type,
-      command:"move",
+      command: "move",
       params: {
         name: point.name,
         motion_profile_id: motionProfile.id,
-      }
+      },
     });
   };
 
