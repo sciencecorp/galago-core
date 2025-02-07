@@ -406,7 +406,7 @@ export default function Page() {
     if (commandOptions) {
       setSelectedCommand(Object.keys(commandOptions)[0]);
     }
-  }, [commandOptions]);
+  }, []);
 
   useEffect(() => {
     if (selectedCommand) {

@@ -38,6 +38,9 @@ docker-compose -f docker-compose.dev.yml down
 #remove existing images
 docker-compose -f docker-compose.dev.yml down --rmi all
 
+#Remove orphans 
+docker compose -f docker-compose.dev.yml down --rmi all --remove-orphans
+
 #rebuild and restart
 docker-compose -f docker-compose.dev.yml up --build
 

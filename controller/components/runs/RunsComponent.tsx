@@ -67,6 +67,7 @@ export const RunsComponent: React.FC = () => {
   const hoverBgColor = useColorModeValue("gray.100", "gray.600");
   const textColor = useColorModeValue("gray.800", "gray.100");
   const cardBg = useColorModeValue("white", "gray.700");
+  const expandedRunBg = useColorModeValue("gray.100", "gray.800");
   const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
   const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
   const groupedCommands = commandsAll.data ? groupCommandsByRun(commandsAll.data) : [];
@@ -105,10 +106,12 @@ export const RunsComponent: React.FC = () => {
   useEffect(() => {
     if (commandsAll.data && commandsAll.data.length > 0 && !selectedRunId) {
       const firstRunId = commandsAll.data[0].runId;
-      setSelectedRunId(firstRunId);
-      setExpandedRuns(new Set([firstRunId]));
+      if (firstRunId !== selectedRunId) {
+        setSelectedRunId(firstRunId);
+        setExpandedRuns(new Set([firstRunId]));
+      }
     }
-  }, [commandsAll.data]);
+  }, [commandsAll.data, selectedRunId]);
 
   function expandButtonIcon(runId: string) {
     return expandedRuns.has(runId) ? <ChevronUpIcon /> : <PlusSquareIcon />;
@@ -215,7 +218,7 @@ export const RunsComponent: React.FC = () => {
                 borderColor={borderColor}
                 borderRadius="md"
                 mt={2}
-                bg={useColorModeValue("white", "gray.800")}>
+                bg={expandedRunBg}>
                 <SwimLaneComponent runCommands={run.Commands} />
               </Box>
             )}

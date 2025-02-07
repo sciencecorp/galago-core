@@ -69,7 +69,15 @@ test() {
 
 test_ts() {
   echo "Runnning Node Tests"
-  (cd controller && npx prettier . --check && npx tsc --build --clean && npm run test)
+  (cd controller && npx prettier . --check && npx tsc --build --clean && npm run test) &&
+  build_prod
+}
+
+build_prod() {
+  echo "Building production assets..."
+  npm_deps
+  (cd controller && npm run build)
+  echo "Production build complete."
 }
 
 test_py() {

@@ -82,11 +82,12 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
   useEffect(() => {
     if (selectedSequence) {
       const updatedSequence = sequences.find((seq) => seq.id === selectedSequence.id);
-      if (updatedSequence) {
+      // Only update if the found sequence is different from the current selectedSequence.
+      if (updatedSequence && updatedSequence !== selectedSequence) {
         setSelectedSequence(updatedSequence);
       }
     }
-  }, [sequences]);
+  }, [sequences, selectedSequence]);
 
   const handleSequenceClick = (sequence: Sequence) => {
     if (selectedSequence?.id === sequence.id) {
@@ -276,12 +277,10 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
               Delete Sequence
             </AlertDialogHeader>
-
             <AlertDialogBody>
-              Are you sure you want to delete the sequence "{sequenceToDelete?.name}"? This action
-              cannot be undone.
+              Are you sure you want to delete the sequence &quot;{sequenceToDelete?.name}&quot;?
+              This action cannot be undone.
             </AlertDialogBody>
-
             <AlertDialogFooter>
               <Button ref={cancelRef} onClick={() => setSequenceToDelete(null)}>
                 Cancel

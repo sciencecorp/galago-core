@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Button,
@@ -32,25 +32,9 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
   const paddingSize = useBreakpointValue(paddingMap);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  useEffect(() => {
-    generateCalendarDays();
-  }, [currentDate]);
-
-  useEffect(() => {
-    updateTime();
-    const timer = setInterval(updateTime, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const handleDateClick = (date: Date) => {
-    setSelectedDate(date);
-    onDateSelect && onDateSelect(date);
-  };
-
-  const generateCalendarDays = () => {
+  const generateCalendarDays = useCallback(() => {
     const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
     const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-
     const dates: Date[] = [];
     const startDay = startOfMonth.getDay();
     const totalDays = endOfMonth.getDate();
@@ -72,13 +56,28 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
       dates.push(new Date(currentDate.getFullYear(), currentDate.getMonth(), i));
     }
 
-    // Fill in the dates for the next month
-    const nextMonthDays = 35 - dates.length; // Fill the remaining slots in a 6-row grid
+    // Fill in the dates for the next month to complete a 6-row grid
+    const nextMonthDays = 35 - dates.length;
     for (let i = 1; i <= nextMonthDays; i++) {
       dates.push(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, i));
     }
 
     setDaysInMonth(dates);
+  }, [currentDate]);
+
+  useEffect(() => {
+    generateCalendarDays();
+  }, [generateCalendarDays]);
+
+  useEffect(() => {
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(date);
+    onDateSelect && onDateSelect(date);
   };
 
   const handlePrevMonth = () => {

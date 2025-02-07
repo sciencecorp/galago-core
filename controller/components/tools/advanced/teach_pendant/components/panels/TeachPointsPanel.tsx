@@ -141,7 +141,14 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
               <Tbody>
                 {paginatedItems.map((point, index) => (
                   <Tr key={point.id} bg={expandedRows[point.id] ? bgColorAlpha : undefined}>
-                    <Td width="200px">{point.name}</Td>
+                    <Td width="200px">
+                      <EditableText 
+                        defaultValue={point.name}
+                        onSubmit={(value) => {
+                          value && onEdit({ ...point, name: value });
+                        }}
+                      />
+                    </Td>
                     {point?.coordinates?.split(" ").map((coord, index) => (
                       <Td key={index}>
                         <EditableText
