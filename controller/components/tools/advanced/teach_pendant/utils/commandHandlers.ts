@@ -42,20 +42,16 @@ export function useCommandHandlers(config: Tool) {
     mutation: UseMutationResult<any, unknown, any, unknown>,
     point: TeachPoint,
     motionProfile: MotionProfile,
-    action?: "approach" | "leave",
   ) => {
-    const command = action || "move";
-    const params: any = action ? { nest: point.coordinates } : { waypoint: point.coordinates };
-
-    if (motionProfile?.id) {
-      params.motion_profile_id = motionProfile.id;
-    }
 
     mutation.mutate({
       toolId: config.name,
       toolType: config.type,
-      command,
-      params,
+      command:"move",
+      params: {
+        name: point.name,
+        motion_profile_id: motionProfile.id,
+      }
     });
   };
 

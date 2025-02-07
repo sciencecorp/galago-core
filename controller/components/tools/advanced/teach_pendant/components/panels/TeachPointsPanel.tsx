@@ -185,7 +185,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                         />
                         <MenuList>
                           <MenuItem icon={<FaPlay />} onClick={() => onMove(point)}>
-                            Move to point
+                            Move To
                           </MenuItem>
                           {isConnected && (
                             <MenuItem icon={<BsRecordCircle />} onClick={() => onTeach(point)}>

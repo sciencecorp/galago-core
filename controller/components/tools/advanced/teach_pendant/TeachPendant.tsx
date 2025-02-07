@@ -139,7 +139,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
 
   const handleMoveCommand = commandHandlers.handleMoveCommand;
 
-  const handleMove = (point: TeachPoint, action?: "approach" | "leave") => {
+  const handleMove = (point: TeachPoint) => {
     if (toolStatusQuery.data?.status === "SIMULATED") {
       toast({
         title: "Simulation Mode",
@@ -155,7 +155,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
       const numJoints = (config.config as any)?.pf400?.joints || 6;
       const joints =
         point.joints || coordinateToJoints(point.coordinates, parseInt(numJoints.toString()));
-      handleMoveCommand(robotArmCommandMutation, { ...point, joints }, defaultProfile, action);
+      handleMoveCommand(robotArmCommandMutation, { ...point, joints }, defaultProfile);
     }
   };
 
@@ -372,7 +372,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
       minW="1200px"
       boxShadow={useColorModeValue(
         "0 4px 12px rgba(0, 0, 0, 0.1)",
-        "0 4px 12px rgba(0, 0, 0, 0.4)",
+        "0 4px 12px rgba(255, 255, 255, 0.4)",
       )}>
       <VStack p={4} spacing={4} align="stretch">
         {/* Main Content Area */}
