@@ -43,7 +43,7 @@ interface TeachPointsPanelProps {
   expandedRows: { [key: number]: boolean };
   toggleRow: (id: number) => void;
   onImport: (data: any) => void;
-  onMove: (point: TeachPoint, action?: "approach" | "leave") => void;
+  onMove: (point: TeachPoint) => void;
   onEdit: (point: TeachPoint) => void;
   onDelete: (point: TeachPoint) => void;
   onAdd: () => void;

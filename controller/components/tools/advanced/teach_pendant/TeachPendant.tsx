@@ -137,7 +137,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
 
   const handleMoveCommand = commandHandlers.handleMoveCommand;
 
-  const handleMove = (point: TeachPoint, action?: "approach" | "leave") => {
+  const handleMove = (point: TeachPoint) => {
     if (toolStatusQuery.data?.status === "SIMULATED") {
       toast({
         title: "Simulation Mode",
@@ -153,7 +153,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
       const numJoints = (config.config as any)?.pf400?.joints || 6;
       const joints =
         point.joints || coordinateToJoints(point.coordinates, parseInt(numJoints.toString()));
-      handleMoveCommand(robotArmCommandMutation, { ...point, joints }, defaultProfile, action);
+      handleMoveCommand(robotArmCommandMutation, { ...point, joints }, defaultProfile);
     }
   };
 
