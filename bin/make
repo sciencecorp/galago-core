@@ -31,7 +31,7 @@ run_debug() {
 python_deps() {
   echo "Installing Python Dependencies"
   python -m pip install -r db/requirements.txt
-  python -m pip install grpcio-tools grpcio mypy ruff
+  python -m pip install grpcio-tools
   echo "Python Dependencies Installed"
 } 
 
