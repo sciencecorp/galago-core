@@ -379,7 +379,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         <HStack align="start" spacing={4}>
           {/* Left Side - Status Card and Control Panel */}
           <VStack width="280px" flexShrink={0} spacing={4} align="stretch" pl={0}>
-            <Box ml={-4}>
+            <Box>
               <ToolStatusCard toolId={config.name} />
             </Box>
             <ControlPanel
