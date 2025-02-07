@@ -15,6 +15,7 @@ from contextlib import asynccontextmanager
 from db.waypoint_handler import handle_waypoint_upload
 from pydantic import BaseModel
 from db.initializers import initialize_database
+from sqlalchemy import func
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -160,7 +161,10 @@ def get_tools(db: Session = Depends(get_db)) -> t.Any:
 
 @app.get("/tools/{tool_id}", response_model=schemas.Tool)
 def get_tool(tool_id: str, db: Session = Depends(get_db)) -> t.Any:
-    tool = crud.tool.get(db, id=tool_id)
+    #Get tool by lowercase name
+    tool = db.query(models.Tool).filter(
+            func.lower(models.Tool.name) == tool_id
+        ).first()
     if tool is None:
         raise HTTPException(status_code=404, detail="Tool not found")
     return tool
@@ -180,23 +184,26 @@ def create_tool(tool: schemas.ToolCreate, db: Session = Depends(get_db)) -> t.An
     return crud.tool.create(db, obj_in=tool)
 
 @app.put("/tools/{tool_id}", response_model=schemas.Tool)
-def update_tool(tool_id: t.Union[str,int], 
+def update_tool(tool_id: str, 
                 tool_update: schemas.ToolUpdate, 
                 db: Session = Depends(get_db)) -> t.Any:
-    tool = crud.tool.get(db, id=tool_id)
+    tool = db.query(models.Tool).filter(
+        func.lower(models.Tool.name) == tool_id.lower().replace(" ", "_")
+    ).first()
+    #tool = crud.tool.get(db, id=tool_id)
     if tool is None:
         raise HTTPException(status_code=404, detail="Tool not found")
     return crud.tool.update(db, db_obj=tool, obj_in=tool_update)
 
 @app.delete("/tools/{tool_id}", response_model=schemas.Tool)
-def delete_tool(tool_id: t.Union[int,str], 
+def delete_tool(tool_id: str, 
                 db: Session = Depends(get_db)) -> t.Any:
-    tool = crud.tool.get(db, id=tool_id)
+    tool = db.query(models.Tool).filter(
+        func.lower(models.Tool.name) == tool_id.lower().replace(" ", "_")
+    ).first()
     if tool is None:
         raise HTTPException(status_code=404, detail="Tool not found")
-    # Convert tool_id to int if it's a string
-    tool_id_int = int(tool_id) if isinstance(tool_id, str) else tool_id
-    return crud.tool.remove(db, id=tool_id_int)
+    return crud.tool.remove(db, id=tool.id)
 
 # CRUD API endpoints for Nests
 @app.get("/nests", response_model=list[schemas.Nest])

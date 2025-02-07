@@ -92,7 +92,7 @@ export const toolRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      const tool = Tool.forId(input.toolId);
+      const tool = Tool.forId(input.toolId.toLocaleLowerCase().replaceAll(" ", "_"));
       return await tool.fetchStatus();
     }),
 
@@ -103,7 +103,7 @@ export const toolRouter = router({
       }),
     )
     .query(({ input }) => {
-      const tool = Tool.forId(input.toolId);
+      const tool = Tool.forId(input.toolId.toLocaleLowerCase().replaceAll(" ", "_"));
       return tool.info;
     }),
 

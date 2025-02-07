@@ -262,12 +262,10 @@ export default class Tool {
     //If the tool does not exist in the store, create a new tool object
     if (!tool) {
       let toolInfo = {} as controller_protos.ToolConfig;
-      if (id == "Tool Box") {
+      if (id == "tool_box") {
         const result = this.toolBoxConfig();
         toolInfo = result;
       } else {
-        console.log("Tool id: ", id);
-        console.log("All tools: ", this.allTools);
         const result = this.allTools.find(
           (tool) =>
             tool.name.toLocaleLowerCase().replaceAll(" ", "_") ===
