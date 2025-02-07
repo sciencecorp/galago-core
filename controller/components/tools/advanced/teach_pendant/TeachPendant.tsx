@@ -74,7 +74,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     motionProfilesQuery,
     gripParamsQuery,
     robotArmLocationsQuery,
-    robotArmNestsQuery,
     createLocationMutation,
     updateLocationMutation,
     deleteLocationMutation,
@@ -116,7 +115,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     setMotionProfiles,
     gripParams,
     setGripParams,
-    setNests,
   } = useTeachPendantData();
 
   const {
@@ -263,30 +261,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     }
   }, [gripParamsQuery.data, setGripParams]);
 
-  useEffect(() => {
-    if (robotArmNestsQuery.data) {
-      const numJoints = (config.config as any)?.pf400?.joints || 6;
-      const formattedNests = robotArmNestsQuery.data.map((nest) => {
-        const joints: JointConfig = {};
-        for (let i = 1; i <= parseInt(numJoints.toString()); i++) {
-          const key = `j${i}`;
-          joints[key] = (nest as any)[key] || 0;
-        }
-
-        return {
-          id: nest.id || 0,
-          name: nest.name,
-          coordinates: jointsToCoordinate(joints, parseInt(numJoints.toString())),
-          type: "nest" as const,
-          locType: "j" as const,
-          joints,
-          orientation: nest.orientation,
-        };
-      });
-      setNests(formattedNests);
-    }
-  }, [robotArmNestsQuery.data, setNests, config]);
-
   const [defaultProfileId, setDefaultProfileId] = useState<number | null>(null);
   const [defaultParamsId, setDefaultParamsId] = useState<number | null>(null);
 
@@ -380,7 +354,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         <HStack align="start" spacing={4}>
           {/* Left Side - Status Card and Control Panel */}
           <VStack width="280px" flexShrink={0} spacing={4} align="stretch" pl={0}>
-            <Box ml={-4}>
+            <Box>
               <ToolStatusCard toolId={config.name} />
             </Box>
             <ControlPanel

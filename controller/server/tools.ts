@@ -79,8 +79,9 @@ export default class Tool {
 
   static async loadPF400Waypoints() {
     const waypointsReponse = await get<any>(`/robot-arm-waypoints?tool_id=1`);
+    if(Tool.forId("pf400").status !== ToolStatus.READY) return;
     await this.executeCommand({
-      toolId: "Pf400",
+      toolId: "pf400",
       toolType: ToolType.pf400,
       command: "load_waypoints",
       params: {
@@ -91,9 +92,9 @@ export default class Tool {
 
   static async loadLabwareToPF400() {
     const labwareResponse = await get<Labware>(`/labware`);
-    console.log("labwareResponse", labwareResponse);
+    if(Tool.forId("pf400").status !== ToolStatus.READY) return;
     await this.executeCommand({
-      toolId: "Pf400",
+      toolId: "pf400",
       toolType: ToolType.pf400,
       command: "load_labware",
       params: {
@@ -105,10 +106,6 @@ export default class Tool {
   async configure(config: tool_base.Config) {
     this.config = config;
     const reply = await this.grpc.configure(config);
-    if (this.info.type === ToolType.pf400) {
-      await Tool.loadPF400Waypoints();
-      await Tool.loadLabwareToPF400();
-    }
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
       throw new ToolCommandExecutionError(
         reply.error_message ?? "Connect Command failed",
@@ -254,6 +251,7 @@ export default class Tool {
   }
 
   static forId(id: string): Tool {
+    console.log("Tool id: ", id);
     const global_key = "__global_tool_store";
     const me = global as any;
     if (!me[global_key]) {
@@ -261,13 +259,16 @@ export default class Tool {
     }
     const store: Map<string, Tool> = me[global_key];
     let tool = store.get(id);
+    //If the tool does not exist in the store, create a new tool object
     if (!tool) {
       let toolInfo = {} as controller_protos.ToolConfig;
       if (id == "Tool Box") {
         const result = this.toolBoxConfig();
         toolInfo = result;
       } else {
-        const result = this.allTools.find((tool) => tool.name === id);
+        console.log("Tool id: ", id);
+        console.log("All tools: ", this.allTools);
+        const result = this.allTools.find((tool) => tool.name.toLocaleLowerCase().replaceAll(" ", "_") === id.toLocaleLowerCase().replaceAll(" ", "_"));
         if (!result) {
           throw new Error(`Tool with id ${id} not found in in database'`);
         }

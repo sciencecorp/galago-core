@@ -31,11 +31,6 @@ export const useTeachPendantQueries = (toolId: string | undefined, configId: num
     { enabled: !!configId && configId !== 0 },
   );
 
-  const robotArmNestsQuery = trpc.robotArm.nest.getAll.useQuery(
-    { toolId: configId },
-    { enabled: !!configId && configId !== 0 },
-  );
-
   const waypointsQuery = trpc.robotArm.waypoints.getAll.useQuery(
     { toolId: configId },
     { enabled: !!configId && configId !== 0 },
@@ -96,23 +91,6 @@ export const useTeachPendantQueries = (toolId: string | undefined, configId: num
     },
   });
 
-  const createNestMutation = trpc.robotArm.nest.create.useMutation({
-    onSuccess: () => {
-      robotArmNestsQuery.refetch();
-    },
-  });
-
-  const updateNestMutation = trpc.robotArm.nest.update.useMutation({
-    onSuccess: () => {
-      robotArmNestsQuery.refetch();
-    },
-  });
-
-  const deleteNestMutation = trpc.robotArm.nest.delete.useMutation({
-    onSuccess: () => {
-      robotArmNestsQuery.refetch();
-    },
-  });
 
   const robotArmCreateSequenceMutation = trpc.robotArm.sequence.create.useMutation({
     onSuccess: () => {
@@ -141,7 +119,6 @@ export const useTeachPendantQueries = (toolId: string | undefined, configId: num
     gripParamsQuery,
     robotArmSequencesQuery,
     robotArmLocationsQuery,
-    robotArmNestsQuery,
     waypointsQuery,
     createMotionProfileMutation,
     updateMotionProfileMutation,
@@ -152,9 +129,6 @@ export const useTeachPendantQueries = (toolId: string | undefined, configId: num
     createLocationMutation,
     updateLocationMutation,
     deleteLocationMutation,
-    createNestMutation,
-    updateNestMutation,
-    deleteNestMutation,
     robotArmCreateSequenceMutation,
     robotArmUpdateSequenceMutation,
     robotArmDeleteSequenceMutation,
