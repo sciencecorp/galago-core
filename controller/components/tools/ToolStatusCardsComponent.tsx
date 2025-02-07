@@ -26,7 +26,6 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { BsTools } from "react-icons/bs";
 import { SearchIcon } from "@chakra-ui/icons";
 
-
 interface ToolStatusCardsProps {
   showAsGrid?: boolean;
 }

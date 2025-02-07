@@ -3,7 +3,6 @@ import { procedure, router } from "@/server/trpc";
 import { get, post, put, del } from "../utils/api";
 import Tool from "../tools";
 
-
 const zRobotArmLocation = z.object({
   id: z.number().optional(),
   name: z.string(),
@@ -190,13 +189,13 @@ export const robotArmRouter = router({
         ({ input }): Promise<z.infer<typeof zRobotArmWaypoints>> =>
           get(`/robot-arm-waypoints?tool_id=${input.toolId}`),
       ),
-    }),
-    command: procedure
-      .input(
-        z.object({
-          command: z.string(),
-          params: z.record(z.any()),
-        }),
-      )
-      .mutation(({ input }) => post("/robot-arm-command", input)),
+  }),
+  command: procedure
+    .input(
+      z.object({
+        command: z.string(),
+        params: z.record(z.any()),
+      }),
+    )
+    .mutation(({ input }) => post("/robot-arm-command", input)),
 });

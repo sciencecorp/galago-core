@@ -91,7 +91,6 @@ export const useTeachPendantQueries = (toolId: string | undefined, configId: num
     },
   });
 
-
   const robotArmCreateSequenceMutation = trpc.robotArm.sequence.create.useMutation({
     onSuccess: () => {
       robotArmSequencesQuery.refetch();

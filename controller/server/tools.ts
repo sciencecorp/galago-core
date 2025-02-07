@@ -79,7 +79,7 @@ export default class Tool {
 
   static async loadPF400Waypoints() {
     const waypointsReponse = await get<any>(`/robot-arm-waypoints?tool_id=1`);
-    if(Tool.forId("pf400").status !== ToolStatus.READY) return;
+    if (Tool.forId("pf400").status !== ToolStatus.READY) return;
     await this.executeCommand({
       toolId: "pf400",
       toolType: ToolType.pf400,
@@ -92,7 +92,7 @@ export default class Tool {
 
   static async loadLabwareToPF400() {
     const labwareResponse = await get<Labware>(`/labware`);
-    if(Tool.forId("pf400").status !== ToolStatus.READY) return;
+    if (Tool.forId("pf400").status !== ToolStatus.READY) return;
     await this.executeCommand({
       toolId: "pf400",
       toolType: ToolType.pf400,
@@ -268,7 +268,11 @@ export default class Tool {
       } else {
         console.log("Tool id: ", id);
         console.log("All tools: ", this.allTools);
-        const result = this.allTools.find((tool) => tool.name.toLocaleLowerCase().replaceAll(" ", "_") === id.toLocaleLowerCase().replaceAll(" ", "_"));
+        const result = this.allTools.find(
+          (tool) =>
+            tool.name.toLocaleLowerCase().replaceAll(" ", "_") ===
+            id.toLocaleLowerCase().replaceAll(" ", "_"),
+        );
         if (!result) {
           throw new Error(`Tool with id ${id} not found in in database'`);
         }
