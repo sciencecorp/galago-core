@@ -557,18 +557,18 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                       //       (location as any)[`j${i}`] = newCoords[i - 1];
                       //     }
 
-                          const location = {
-                            id: point.id,
-                            name: point.name,
-                            location_type: "j" as const,
-                            coordinates: point.coordinates,
-                            tool_id: config.id,
-                            orientation: point.orientation,
-                          };
-                          updateLocationMutation.mutateAsync(location).then(() => {
-                            robotArmLocationsQuery.refetch();
-                          });
-                        // }
+                      const location = {
+                        id: point.id,
+                        name: point.name,
+                        location_type: "j" as const,
+                        coordinates: point.coordinates,
+                        tool_id: config.id,
+                        orientation: point.orientation,
+                      };
+                      updateLocationMutation.mutateAsync(location).then(() => {
+                        robotArmLocationsQuery.refetch();
+                      });
+                      // }
                       // } else {
                       //   openTeachPointModal(point);
                       // }

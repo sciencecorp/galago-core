@@ -17,7 +17,7 @@ import {
   MenuList,
   MenuItem,
   MenuDivider,
-  Select
+  Select,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, CheckIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { Tool } from "@/types/api";
@@ -88,9 +88,9 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
 
   const handleSaveOrientation = (teachpoint: TeachPoint, newValue: "landscape" | "portrait") => {
     console.log("Orientation", newValue);
-    console.log("Updating")
+    console.log("Updating");
     onEdit({ ...teachpoint, orientation: newValue });
-  }
+  };
 
   useEffect(() => {
     console.log("Items", paginatedItems);
@@ -153,20 +153,19 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                       </Td>
                     ))}
                     <Td>
-                    <Select
-                    value={point.orientation}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      const orientation: "portrait" | "landscape" | undefined =
-                        value === "portrait" || value === "landscape" ? value : undefined;
-                      if (orientation !== undefined) {
-                        handleSaveOrientation(point, orientation);
-                      }
-                    }}
-                  >
-                    <option value="portrait">Portrait</option>
-                    <option value="landscape">Landscape</option>
-                  </Select>
+                      <Select
+                        value={point.orientation}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const orientation: "portrait" | "landscape" | undefined =
+                            value === "portrait" || value === "landscape" ? value : undefined;
+                          if (orientation !== undefined) {
+                            handleSaveOrientation(point, orientation);
+                          }
+                        }}>
+                        <option value="portrait">Portrait</option>
+                        <option value="landscape">Landscape</option>
+                      </Select>
                     </Td>
                     <Td width="200px" textAlign="right">
                       <Menu>

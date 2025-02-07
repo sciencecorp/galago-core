@@ -286,7 +286,7 @@ export function useSequenceHandler(config: Tool) {
         command: "run_sequence",
         params: {
           sequence_name: sequence.name,
-          labware: "default"
+          labware: "default",
         },
       });
     } catch (error) {

@@ -97,7 +97,7 @@ export default class Tool {
       toolType: ToolType.pf400,
       command: "load_labware",
       params: {
-        labwares: {labwares:labwareResponse},
+        labwares: { labwares: labwareResponse },
       },
     });
   }
