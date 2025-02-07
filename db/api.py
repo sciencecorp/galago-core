@@ -1,17 +1,21 @@
 import typing as t
-from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi import FastAPI, HTTPException, Depends, Request, UploadFile, File
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-import crud as crud
-import models.inventory_models as models
-import schemas as schemas
-from models.db_session import SessionLocal,LogsSessionLocal, Base, LogBase
-import logging 
-from typing import Optional, Dict, Any
+from db import crud
+import db.models.inventory_models as models
+from db import schemas
+from db.models.db_session import SessionLocal, LogsSessionLocal, Base, LogBase
+import logging
+from typing import Optional, Dict, Any, List
 import uvicorn
 from contextlib import asynccontextmanager
+from db.waypoint_handler import handle_waypoint_upload
+from pydantic import BaseModel
+from db.initializers import initialize_database
+from sqlalchemy import func
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -29,6 +33,13 @@ async def lifespan(app: FastAPI)-> t.AsyncGenerator[None, None]:
     try:
         Base.metadata.create_all(bind=SessionLocal().get_bind())
         LogBase.metadata.create_all(bind=LogsSessionLocal().get_bind())
+        
+        # Initialize database with default data
+        db = SessionLocal()
+        try:
+            initialize_database(db)
+        finally:
+            db.close()
     except Exception as e:
         logging.error(e)
         raise e
@@ -45,6 +56,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 
@@ -149,7 +161,10 @@ def get_tools(db: Session = Depends(get_db)) -> t.Any:
 
 @app.get("/tools/{tool_id}", response_model=schemas.Tool)
 def get_tool(tool_id: str, db: Session = Depends(get_db)) -> t.Any:
-    tool = crud.tool.get(db, id=tool_id)
+    #Get tool by lowercase name
+    tool = db.query(models.Tool).filter(
+            func.lower(models.Tool.name) == tool_id
+        ).first()
     if tool is None:
         raise HTTPException(status_code=404, detail="Tool not found")
     return tool
@@ -169,21 +184,26 @@ def create_tool(tool: schemas.ToolCreate, db: Session = Depends(get_db)) -> t.An
     return crud.tool.create(db, obj_in=tool)
 
 @app.put("/tools/{tool_id}", response_model=schemas.Tool)
-def update_tool(tool_id: t.Union[str,int], 
+def update_tool(tool_id: str, 
                 tool_update: schemas.ToolUpdate, 
                 db: Session = Depends(get_db)) -> t.Any:
-    tool = crud.tool.get(db, id=tool_id)
+    tool = db.query(models.Tool).filter(
+        func.lower(models.Tool.name) == tool_id.lower().replace(" ", "_")
+    ).first()
+    #tool = crud.tool.get(db, id=tool_id)
     if tool is None:
         raise HTTPException(status_code=404, detail="Tool not found")
     return crud.tool.update(db, db_obj=tool, obj_in=tool_update)
 
 @app.delete("/tools/{tool_id}", response_model=schemas.Tool)
-def delete_tool(tool_id: t.Union[int,str], 
+def delete_tool(tool_id: str, 
                 db: Session = Depends(get_db)) -> t.Any:
-    tool = crud.tool.get(db, id=tool_id)
+    tool = db.query(models.Tool).filter(
+        func.lower(models.Tool.name) == tool_id.lower().replace(" ", "_")
+    ).first()
     if tool is None:
         raise HTTPException(status_code=404, detail="Tool not found")
-    return crud.tool.remove(db, id=tool_id)
+    return crud.tool.remove(db, id=tool.id)
 
 # CRUD API endpoints for Nests
 @app.get("/nests", response_model=list[schemas.Nest])
@@ -197,6 +217,7 @@ def get_nests(db: Session = Depends(get_db),
     else:
         return crud.nest.get_all(db)
 
+# upload teach pendant data through xml/json file #TODO @mohamed
 
 @app.get("/nests/{nest_id}", response_model=schemas.Nest)
 def get_nest(nest_id: int, db: Session = Depends(get_db)) -> t.Any:
@@ -608,10 +629,12 @@ def update_setting(name: str,
     filter(models.AppSettings.name == name).first()
     if not settings:
         settings = crud.settings.create(db, 
-                        obj_in=schemas.AppSettingsCreate(name=name, 
-                        value=setting_update.value,
-                        is_active=True))
-    return crud.variables.update(db, db_obj=settings, 
+                        obj_in=schemas.AppSettingsCreate(
+                            name=name, 
+                             # Provide default empty string if None
+                            value=setting_update.value or "", 
+                            is_active=True))
+    return crud.settings.update(db, db_obj=settings, 
                                  obj_in=setting_update)
 
 @app.get("/scripts", response_model=list[schemas.Script])
@@ -728,8 +751,9 @@ def delete_robot_arm_nest(nest_id: int, db: Session = Depends(get_db)) -> t.Any:
     if not nest:
         raise HTTPException(status_code=404, detail="Nest not found")
     
-    # Clear any references to this nest before deletion
-    nest.safe_location_id = None
+    # Update the safe_location_id to None and commit
+    db.query(models.RobotArmNest).filter_by(id=nest_id). \
+    update({"safe_location_id": None})
     db.commit()
     
     return crud.robot_arm_nest.remove(db, id=nest_id)
@@ -847,3 +871,77 @@ def delete_robot_arm_grip_params(params_id: int,
     if not params:
         raise HTTPException(status_code=404, detail="Grip parameters not found")
     return crud.robot_arm_grip_params.remove(db, id=params_id)
+
+@app.get("/robot-arm-waypoints", response_model=schemas.RobotArmWaypoints)
+def get_robot_arm_waypoints(
+    tool_id: int,
+    db: Session = Depends(get_db)
+) -> t.Any:
+    # Get all related data for the tool
+    locations = crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": tool_id})
+    sequences = crud.robot_arm_sequence.get_all_by(db, obj_in={"tool_id": tool_id})
+    motion_profiles = crud.robot_arm_motion_profile.get_all_by(
+        db, obj_in={"tool_id": tool_id}
+    )
+    grip_params = crud.robot_arm_grip_params.get_all_by(db, obj_in={"tool_id": tool_id})
+    return {
+        "id": tool_id,
+        "name": f"Waypoints for Tool {tool_id}",
+        "locations": locations,
+        "sequences": sequences,
+        "motion_profiles": motion_profiles,
+        "grip_params": grip_params,
+        "tool_id": tool_id,
+    }
+
+# Schemas for waypoint data
+class TeachPoint(BaseModel):
+    name: str
+    coordinates: str
+    type: str = "location"
+    loc_type: str = "j"
+
+class Command(BaseModel):
+    command: str
+    params: Dict
+    order: int
+
+class Sequence(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    commands: List[Command]
+    tool_id: int = 1
+
+class MotionProfile(BaseModel):
+    name: str
+    profile_id: int
+    speed: float = 100
+    speed2: float = 100
+    acceleration: float = 100
+    deceleration: float = 100
+    accel_ramp: float = 0.2
+    decel_ramp: float = 0.2
+    inrange: int = 1
+    straight: int = 0
+    tool_id: int = 1
+
+class GripParam(BaseModel):
+    name: str
+    width: float
+    force: float = 15
+    speed: float = 10
+    tool_id: int = 1
+
+class WaypointData(BaseModel):
+    teach_points: Optional[List[TeachPoint]] = None
+    sequences: Optional[List[Sequence]] = None
+    motion_profiles: Optional[List[MotionProfile]] = None
+    grip_params: Optional[List[GripParam]] = None
+
+@app.post("/waypoints/upload")
+async def upload_waypoints(
+    file: UploadFile = File(...),
+    tool_id: int = 1,
+    db: Session = Depends(get_db)
+):
+    return await handle_waypoint_upload(file, tool_id, db)

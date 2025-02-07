@@ -5,7 +5,7 @@ export const mockToolCommands = {
     move: {
       schema: z.object({
         waypoint: z.string(),
-        motion_profile_id: z.number().default(2),
+        motion_profile_id: z.number().min(1).max(14).default(2),
       }),
     },
     grasp_plate: {

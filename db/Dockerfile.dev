@@ -18,6 +18,8 @@ RUN pip install --no-cache-dir --timeout=120 -r requirements.txt \
     && pip install --no-cache-dir --timeout=120 -r requirements-dev.txt
 
 COPY . . 
+ENV PYTHONPATH="/app"
+
 # Install debugging tools
 RUN pip install debugpy
 

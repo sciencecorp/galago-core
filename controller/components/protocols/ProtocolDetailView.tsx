@@ -282,7 +282,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   };
 
   const handleSaveChanges = () => {
-    console.log("Save changes");
     setIsEditing(false);
   };
 

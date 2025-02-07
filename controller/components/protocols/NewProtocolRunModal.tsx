@@ -220,7 +220,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                 <ButtonGroup>
                   <Button onClick={handleClose}>Cancel</Button>
                   <Button
-                    colorScheme="blue"
+                    colorScheme="teal"
                     onClick={() => {
                       createRunMutation.mutate(
                         {
@@ -233,7 +233,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                         },
                       );
                     }}>
-                    Start Run
+                    Queue Run
                   </Button>
                 </ButtonGroup>
               </ModalFooter>

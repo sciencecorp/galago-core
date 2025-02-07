@@ -24,6 +24,7 @@ import { capitalizeFirst } from "@/utils/parser";
 import { useParams } from "react-router";
 import Head from "next/head";
 import { ToolConfig } from "gen-interfaces/controller";
+import { TeachPendant } from "@/components/tools/advanced/teach_pendant/TeachPendant";
 // Assuming you're using TypeScript, you could define a type for the status object
 type CommandStatus = {
   [commandName: string]: "idle" | "success" | "error";
@@ -51,7 +52,7 @@ type CommandFields = {
 };
 
 const move: Field[] = [
-  { name: "waypoint", type: "text" },
+  { name: "name", type: "text" },
   { name: "motion_profile_id", type: "number", defaultValue: 2 },
 ];
 const grasp_plate: Field[] = [
@@ -304,10 +305,7 @@ const commandFields: CommandFields = {
     toggle_light: [],
   },
   pf400: {
-    run_sequence: [
-      { name: "sequence_name", type: "text" },
-      { name: "labware", type: "text" },
-    ],
+    run_sequence: [{ name: "sequence_name", type: "text" }],
     move: move,
     grasp_plate: grasp_plate,
     release_plate: release_plate,
@@ -350,10 +348,9 @@ const commandFields: CommandFields = {
       { name: "motion_profile_id", type: "number", defaultValue: 2 },
       { name: "grip_width", type: "number" },
     ],
-    free: [],
-    unfree: [],
-    unwind: [],
-    get_teachpoints: [],
+    release: [],
+    engage: [],
+    retract: [],
   },
 };
 
@@ -377,6 +374,7 @@ export default function Page() {
   const [id, setId] = useState<string | null>(null);
 
   const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
+  const toolQuery = trpc.tool.get.useQuery(id || "");
   const config = infoQuery.data;
   const [commandExecutionStatus, setCommandExecutionStatus] = useState<CommandStatus>({});
   const [selectedCommand, setSelectedCommand] = useState<string | undefined>();
@@ -408,7 +406,7 @@ export default function Page() {
     if (commandOptions) {
       setSelectedCommand(Object.keys(commandOptions)[0]);
     }
-  }, [commandOptions]);
+  }, []);
 
   useEffect(() => {
     if (selectedCommand) {
@@ -665,33 +663,55 @@ export default function Page() {
       </Head>
       <Box p={12} maxWidth="1800px" margin="auto">
         <HStack spacing={4} align="start" width="100%">
-          {/* Left Side */}
-          <VStack spacing={4} align="stretch" flex={1}>
-            <ToolStatusCard toolId={id || ""} />
-            <FormControl>
-              <VStack width="100%" spacing={1}>
-                <FormLabel>Select Command</FormLabel>
-                <Select placeholder="Select command" onChange={handleChange}>
-                  {Object.keys(commandOptions).map((command) => (
-                    <option key={command} value={command}>
-                      {capitalizeFirst(command.replaceAll("_", " "))}
-                    </option>
-                  ))}
-                </Select>
-                {selectedCommand && (
-                  <>
-                    {renderFields(commandOptions[selectedCommand])}
-                    <Button width="100%" onClick={handleSubmit} colorScheme="teal">
-                      Send Command
-                    </Button>
-                  </>
-                )}
-              </VStack>
-            </FormControl>
-          </VStack>
+          {config?.type !== ToolType.pf400 && (
+            <VStack spacing={4} align="stretch" flex={1}>
+              <ToolStatusCard toolId={id || ""} />
+              <FormControl>
+                <VStack width="100%" spacing={1}>
+                  <FormLabel>Select Command</FormLabel>
+                  <Select placeholder="Select command" onChange={handleChange}>
+                    {Object.keys(commandOptions).map((command) => (
+                      <option key={command} value={command}>
+                        {capitalizeFirst(command.replaceAll("_", " "))}
+                      </option>
+                    ))}
+                  </Select>
+                  {selectedCommand && (
+                    <>
+                      {renderFields(commandOptions[selectedCommand])}
+                      <Button width="100%" onClick={handleSubmit} colorScheme="teal">
+                        Send Command
+                      </Button>
+                    </>
+                  )}
+                </VStack>
+              </FormControl>
+            </VStack>
+          )}
 
           {/* Right Side */}
-          {config?.type === ToolType.pf400 && <Box flex={1}></Box>}
+          {config?.type === ToolType.pf400 && config && (
+            <Box flex={1}>
+              <TeachPendant
+                toolId={id || ""}
+                config={{
+                  id: toolQuery.data?.id || 1,
+                  type: config.type,
+                  joints: 6,
+                  workcell_id: 0,
+                  status: "UNKNOWN",
+                  last_updated: new Date(),
+                  created_at: new Date(),
+                  name: config.name,
+                  ip: config.ip,
+                  port: config.port,
+                  description: config.description,
+                  image_url: config.image_url,
+                  config: config.config || { simulated: false },
+                }}
+              />
+            </Box>
+          )}
         </HStack>
       </Box>
     </>

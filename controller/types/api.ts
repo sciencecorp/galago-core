@@ -164,6 +164,7 @@ export interface Tool {
   last_updated: Date;
   created_at: Date;
   config: Config;
+  joints: number;
 }
 
 export interface LogType {

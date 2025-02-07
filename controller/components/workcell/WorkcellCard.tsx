@@ -78,7 +78,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
         document.title = `Workcell - ${workcell.name}`;
       }
     }
-  }, [selectedWorkcellData]);
+  }, [workcell.name, selectedWorkcellData]);
 
   const handleDelete = async () => {
     try {

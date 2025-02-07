@@ -82,6 +82,7 @@ export const SwimLaneComponent: React.FC<SwimLaneProps> = ({ runCommands }) => {
           </DrawerBody>
         </DrawerContent>
       </Drawer>
+
       <HStack spacing={0} width="900px">
         {runCommands.map((command, i) => {
           return (

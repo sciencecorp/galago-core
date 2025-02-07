@@ -7,12 +7,11 @@ import * as tool_driver from "gen-interfaces/tools/grpc_interfaces/tool_driver";
 import { ToolType } from "gen-interfaces/controller";
 import { PromisifiedGrpcClient, promisifyGrpcClient } from "./utils/promisifyGrpcCall";
 import { setInterval, clearInterval } from "timers";
-import { trpc } from "@/utils/trpc";
 import { get } from "@/server/utils/api";
-import { Tool as ToolResponse } from "@/types/api";
-import { ToolConfig } from "gen-interfaces/controller";
 import { Script } from "@/types/api";
 import { Variable } from "@/types/api";
+import { Labware } from "@/types/api";
+import { buildGoogleStructValue } from "utils/struct";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<string, Tool> = new Map();
@@ -78,28 +77,34 @@ export default class Tool {
     return this.info.type;
   }
 
+  static async loadPF400Waypoints() {
+    const waypointsReponse = await get<any>(`/robot-arm-waypoints?tool_id=1`);
+    if (Tool.forId("pf400").status !== ToolStatus.READY) return;
+    await this.executeCommand({
+      toolId: "pf400",
+      toolType: ToolType.pf400,
+      command: "load_waypoints",
+      params: {
+        waypoints: buildGoogleStructValue(waypointsReponse),
+      },
+    });
+  }
+
+  static async loadLabwareToPF400() {
+    const labwareResponse = await get<Labware>(`/labware`);
+    if (Tool.forId("pf400").status !== ToolStatus.READY) return;
+    await this.executeCommand({
+      toolId: "pf400",
+      toolType: ToolType.pf400,
+      command: "load_labware",
+      params: {
+        labwares: { labwares: labwareResponse },
+      },
+    });
+  }
+
   async configure(config: tool_base.Config) {
     this.config = config;
-
-    // Handle PF400 specific configuration
-    // if (this.type === ToolType.pf400) {
-    //   try {
-    //     // Make a direct API call instead of using trpc hooks
-    //     const response = await get<any>(`/robot-arm/waypoints/${this.id}`);
-    //     if (response && Array.isArray(response)) {
-    //       if (config.pf400) {
-    //         config.pf400.waypoints = response.map(wp => wp.coordinate);
-    //       }
-    //     }
-    //   } catch (error) {
-    //     console.error('Failed to fetch waypoints:', error);
-    //     // Continue with empty waypoints rather than failing
-    //     if (config.pf400) {
-    //       config.pf400.waypoints = [];
-    //     }
-    //   }
-    // }
-
     const reply = await this.grpc.configure(config);
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
       throw new ToolCommandExecutionError(
@@ -108,8 +113,6 @@ export default class Tool {
       );
     }
   }
-
-  async configureAllTools() {}
 
   _payloadForCommand(command: ToolCommandInfo): tool_base.Command {
     return {
@@ -123,8 +126,6 @@ export default class Tool {
     return await Tool.forId(command.toolId).executeCommand(command);
   }
 
-  static isVariable(param: any) {}
-
   async executeCommand(command: ToolCommandInfo) {
     const params = command.params;
     for (const key in params) {
@@ -132,6 +133,7 @@ export default class Tool {
 
       const paramValue = String(params[key]);
 
+      //Functionality to pass variables form db
       if (paramValue.startsWith("{{") && paramValue.endsWith("}}")) {
         try {
           const varValue = await get<Variable>(`/variables/${paramValue.slice(2, -2)}`);
@@ -142,6 +144,7 @@ export default class Tool {
       }
     }
 
+    //Functionality to run python scripts store in db
     if (command.command === "run_python_script" && command.toolId === "Tool Box") {
       const scriptId = String(command.params.script_content);
       command.params.script_content = (await get<Script>(`/scripts/${scriptId}`)).content;
@@ -248,6 +251,7 @@ export default class Tool {
   }
 
   static forId(id: string): Tool {
+    console.log("Tool id: ", id);
     const global_key = "__global_tool_store";
     const me = global as any;
     if (!me[global_key]) {
@@ -255,13 +259,18 @@ export default class Tool {
     }
     const store: Map<string, Tool> = me[global_key];
     let tool = store.get(id);
+    //If the tool does not exist in the store, create a new tool object
     if (!tool) {
       let toolInfo = {} as controller_protos.ToolConfig;
-      if (id == "Tool Box") {
+      if (id == "tool_box") {
         const result = this.toolBoxConfig();
         toolInfo = result;
       } else {
-        const result = this.allTools.find((tool) => tool.name === id);
+        const result = this.allTools.find(
+          (tool) =>
+            tool.name.toLocaleLowerCase().replaceAll(" ", "_") ===
+            id.toLocaleLowerCase().replaceAll(" ", "_"),
+        );
         if (!result) {
           throw new Error(`Tool with id ${id} not found in in database'`);
         }

@@ -1,20 +1,8 @@
 import { trpc } from "@/utils/trpc";
-import {
-  Box,
-  Button,
-  HStack,
-  Spinner,
-  Switch,
-  Text,
-  Textarea,
-  Tooltip,
-  VStack,
-  useToast,
-} from "@chakra-ui/react";
-import { Any } from "@grpc/grpc-js/build/src/generated/google/protobuf/Any";
+import { Button, HStack, Spinner, Switch, Text, Tooltip, VStack, useToast } from "@chakra-ui/react";
 import { ToolConfig } from "gen-interfaces/controller";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 
 function toolSpecificConfig(toolConfig: ToolConfig): Record<string, any> | undefined {
   const toolType = toolConfig.type;
@@ -42,22 +30,17 @@ export function ToolConfigEditor({
       },
     },
   );
-  const toast = useToast();
 
-  const cytation_error =
-    "There are multiple instances of Gen5 software. Please delete them in task manager and try to connect again";
-  var error_description = "";
+  const toast = useToast();
+  var error_description = "Error connecting to instrument";
   const configureMutation = trpc.tool.configure.useMutation({
     onSuccess: () => {
       statusQuery.refetch();
     },
     onError: (data) => {
-      if (data.message === "Expected reader state 1. Got -528") {
-        error_description = cytation_error;
-      } else {
+      if (data.message) {
         error_description = data.message;
       }
-      // Set the command status to 'error' on failure
       toast.closeAll(),
         toast({
           title: "Failed to connect to instrument",
@@ -75,17 +58,21 @@ export function ToolConfigEditor({
     statusQuery.isSuccess &&
     statusQuery.data &&
     statusQuery.data.status !== ToolStatus.OFFLINE &&
-    toolId != "1206";
+    toolId != "Tool Box";
   const toolType = defaultConfig.type;
   const config = toolSpecificConfig(defaultConfig);
   const [configString, setConfigString] = useState(JSON.stringify(config, null, 2));
 
-  const saveConfig = useCallback(() => {
+  const saveConfig = async (simulated: boolean) => {
+    const config = {
+      simulated: simulated,
+      [toolType]: JSON.parse(configString),
+    };
     configureMutation.mutate({
       toolId: toolId,
-      config: { simulated: isSimulated, [toolType]: JSON.parse(configString) },
+      config: config,
     });
-  }, [toolId, toolType, configString, isSimulated, configureMutation]);
+  };
 
   return (
     <VStack spacing={2} align="start">
@@ -97,20 +84,13 @@ export function ToolConfigEditor({
           isChecked={isSimulated}
           isDisabled={!isReachable}
           colorScheme="orange"
-          onChange={(e) => {
+          onChange={async (e) => {
             setSimulated(e.target.checked);
-            saveConfig();
+            await saveConfig(e.target.checked);
           }}
         />
       </HStack>
-      {/* <Textarea
-        value={configString}
-        onChange={(e) => setConfigString(e.target.value)}
-        fontFamily="monospace"
-        fontSize={12}
-      /> */}
-      ()
-      <Button onClick={saveConfig} isDisabled={!isReachable}>
+      <Button onClick={async () => saveConfig(false)} isDisabled={!isReachable || isSimulated}>
         Connect
       </Button>
       {isLoading && <Spinner ml={2} />} {/* Spinner appears next to the button when loading */}

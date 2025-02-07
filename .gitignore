@@ -72,7 +72,4 @@ next-env.d.ts
 
 app_config.json
 
-# Ignore all waypoints.json files
-**/waypoints.json
-
 tools/build/*

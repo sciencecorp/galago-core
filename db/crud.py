@@ -4,10 +4,10 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-import schemas as schemas
-import models.inventory_models as models
-import models.log_models as log_model
-import typing as t  
+from db import schemas
+import db.models.inventory_models as models
+import db.models.log_models as log_model
+import typing as t
 
 ModelType = TypeVar("ModelType", bound=models.Base)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)

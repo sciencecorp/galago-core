@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Button,
@@ -32,9 +32,42 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
   const paddingSize = useBreakpointValue(paddingMap);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
+  const generateCalendarDays = useCallback(() => {
+    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    const dates: Date[] = [];
+    const startDay = startOfMonth.getDay();
+    const totalDays = endOfMonth.getDate();
+
+    // Fill in the dates for the previous month
+    const prevMonthLastDay = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      0,
+    ).getDate();
+    for (let i = startDay - 1; i >= 0; i--) {
+      dates.push(
+        new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, prevMonthLastDay - i),
+      );
+    }
+
+    // Fill in the dates for the current month
+    for (let i = 1; i <= totalDays; i++) {
+      dates.push(new Date(currentDate.getFullYear(), currentDate.getMonth(), i));
+    }
+
+    // Fill in the dates for the next month to complete a 6-row grid
+    const nextMonthDays = 35 - dates.length;
+    for (let i = 1; i <= nextMonthDays; i++) {
+      dates.push(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, i));
+    }
+
+    setDaysInMonth(dates);
+  }, [currentDate]);
+
   useEffect(() => {
     generateCalendarDays();
-  }, [currentDate]);
+  }, [generateCalendarDays]);
 
   useEffect(() => {
     updateTime();
@@ -47,38 +80,12 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
     onDateSelect && onDateSelect(date);
   };
 
-  const generateCalendarDays = () => {
-    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-
-    const dates: Date[] = [];
-    const startDay = startOfMonth.getDay();
-    const totalDays = endOfMonth.getDate();
-
-    // Fill in the dates for the previous month
-    for (let i = 0; i < startDay; i++) {
-      dates.push(new Date(currentDate.getFullYear(), currentDate.getMonth(), -i));
-    }
-    dates.reverse();
-
-    // Fill in the dates for the current month
-    for (let i = 1; i <= totalDays; i++) {
-      dates.push(new Date(currentDate.getFullYear(), currentDate.getMonth(), i));
-    }
-
-    setDaysInMonth(dates);
-  };
-
   const handlePrevMonth = () => {
-    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
-    setCurrentDate(newDate);
-    generateCalendarDays();
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   };
 
   const handleNextMonth = () => {
-    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
-    setCurrentDate(newDate);
-    generateCalendarDays();
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   };
 
   const isCurrentDay = (date: Date) =>
