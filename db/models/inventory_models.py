@@ -145,7 +145,8 @@ class Script(Base, TimestampMixin):
     description = Column(String, nullable=False)
     content = Column(String, nullable=False)
     language = Column(String, nullable=False)
-    is_blocking = Column(Boolean, nullable=False) 
+    is_blocking = Column(Boolean, nullable=False)
+    folder = Column(String, nullable=True, default="/")  # Root folder is "/"
 
     
 class AppSettings(Base, TimestampMixin):

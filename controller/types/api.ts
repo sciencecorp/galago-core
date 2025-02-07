@@ -198,6 +198,7 @@ export interface Script {
   description: string;
   is_blocking: boolean;
   language: string;
+  folder: string;
   created_at: Date;
   updated_at: Date;
 }

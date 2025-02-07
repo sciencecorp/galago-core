@@ -322,12 +322,14 @@ class ScriptCreate(BaseModel):
     content: t.Optional[str] = None
     language: t.Optional[str] = None
     is_blocking: bool = True
+    folder: t.Optional[str] = "/"
 
 class ScriptUpdate(BaseModel):
     name: t.Optional[str] = None
     description: t.Optional[str] = None
     content: t.Optional[str] = None
     is_blocking: t.Optional[bool] = None
+    folder: t.Optional[str] = None
 
 class Script(ScriptCreate, TimestampMixin):
     id: t.Union[int,str]

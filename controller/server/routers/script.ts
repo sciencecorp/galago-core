@@ -15,6 +15,7 @@ export const zScript = z.object({
   content: z.string(),
   description: z.string().optional(),
   language: z.string(),
+  folder: z.string().default("/"),
 });
 
 export const scriptRouter = router({
