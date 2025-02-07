@@ -61,6 +61,7 @@ export const TeachPointModal: React.FC<TeachPointModalProps> = ({
       type: "location" as const,
       locType: "j" as const,
       coordinates: "",
+      orientation: point?.orientation ?? ("portrait" as const),
     };
 
     onSave(location);

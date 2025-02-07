@@ -194,7 +194,9 @@ def delete_tool(tool_id: t.Union[int,str],
     tool = crud.tool.get(db, id=tool_id)
     if tool is None:
         raise HTTPException(status_code=404, detail="Tool not found")
-    return crud.tool.remove(db, id=tool_id)
+    # Convert tool_id to int if it's a string
+    tool_id_int = int(tool_id) if isinstance(tool_id, str) else tool_id
+    return crud.tool.remove(db, id=tool_id_int)
 
 # CRUD API endpoints for Nests
 @app.get("/nests", response_model=list[schemas.Nest])
@@ -620,10 +622,12 @@ def update_setting(name: str,
     filter(models.AppSettings.name == name).first()
     if not settings:
         settings = crud.settings.create(db, 
-                        obj_in=schemas.AppSettingsCreate(name=name, 
-                        value=setting_update.value,
-                        is_active=True))
-    return crud.variables.update(db, db_obj=settings, 
+                        obj_in=schemas.AppSettingsCreate(
+                            name=name, 
+                             # Provide default empty string if None
+                            value=setting_update.value or "", 
+                            is_active=True))
+    return crud.settings.update(db, db_obj=settings, 
                                  obj_in=setting_update)
 
 @app.get("/scripts", response_model=list[schemas.Script])
@@ -740,8 +744,9 @@ def delete_robot_arm_nest(nest_id: int, db: Session = Depends(get_db)) -> t.Any:
     if not nest:
         raise HTTPException(status_code=404, detail="Nest not found")
     
-    # Clear any references to this nest before deletion
-    nest.safe_location_id = None
+    # Update the safe_location_id to None and commit
+    db.query(models.RobotArmNest).filter_by(id=nest_id). \
+    update({"safe_location_id": None})
     db.commit()
     
     return crud.robot_arm_nest.remove(db, id=nest_id)

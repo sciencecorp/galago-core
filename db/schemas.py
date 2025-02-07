@@ -1,5 +1,5 @@
 import typing as t
-from pydantic import BaseModel, model_validator, conint
+from pydantic import BaseModel, model_validator, Field
 import datetime
 from typing import Optional, List, Dict, Any
 
@@ -290,12 +290,13 @@ class ProtocolCreate(ProtocolBase):
     workcell: str
     description: t.Optional[str] = None
 
-class ProtocolUpdate(ProtocolBase):
+class ProtocolUpdate(BaseModel):
     name: t.Optional[str] = None
     category: t.Optional[str] = None
     workcell: t.Optional[str] = None
     description: t.Optional[str] = None
     commands: t.Optional[t.List[t.Any]] = None
+    ui_params: t.Optional[t.Dict[str, t.Any]] = None
 
 class Protocol(ProtocolBase):
     id: int
@@ -331,7 +332,7 @@ class ScriptUpdate(BaseModel):
     is_blocking: t.Optional[bool] = None
 
 class Script(ScriptCreate, TimestampMixin):
-    id: t.Union[int,str]
+    id: int
     class Config:
         from_attributes=True
 
@@ -361,7 +362,7 @@ class RobotArmNestCreate(BaseModel):
     orientation: t.Literal["portrait", "landscape"]
     location_type: str  # 'j' for joint or 'c' for cartesian
     coordinates: t.Optional[str] = None  # Space-separated coordinate values
-    safe_location_id: int
+    safe_location_id: t.Optional[int] = None
     tool_id: int
 
 class RobotArmNestUpdate(BaseModel):
@@ -398,7 +399,7 @@ class RobotArmSequence(RobotArmSequenceCreate):
 # Motion Profile Schemas
 class RobotArmMotionProfileCreate(BaseModel):
     name: str
-    profile_id: conint(ge=1, le=14)  # Constrained integer between 1 and 14
+    profile_id: t.Annotated[int, Field(ge=1, le=14)] 
     speed: float
     speed2: float
     acceleration: float

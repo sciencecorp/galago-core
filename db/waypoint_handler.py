@@ -7,7 +7,7 @@ from db import crud
 from db.models.inventory_models import RobotArmLocation
 from db import schemas
 from pydantic import BaseModel
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 import re 
 
 # Schemas for waypoint data
@@ -24,7 +24,7 @@ class Command(BaseModel):
     params: Dict
     order: int
 
-class Sequence(BaseModel):
+class RobotSequence(BaseModel):
     name: str
     description: Optional[str] = ""
     commands: List[Command]
@@ -52,7 +52,7 @@ class GripParam(BaseModel):
 
 class WaypointData(BaseModel):
     teach_points: Optional[List[TeachPoint]] = None
-    sequences: Optional[List[Sequence]] = None
+    sequences: Optional[List[RobotSequence]] = None
     motion_profiles: Optional[List[MotionProfile]] = None
     grip_params: Optional[List[GripParam]] = None
 
@@ -71,20 +71,26 @@ def is_valid_location_name(name):
 async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
     try:
         content = await file.read()
+        if not file.filename:
+            raise ValueError("Filename is required")
         file_ext = file.filename.lower().split('.')[-1]
         
         if file_ext == 'xml':
             try:
                 root = ET.fromstring(content.decode())
-                data = {}
+                data: Dict[str, Any] = {}
                 
                 # Parse locations
                 locations = root.findall(".//Location")
                 if locations:
                     data['teach_points'] = []
                     for loc in locations:
-                        name = loc.find('Name').text
-                        if not name or not is_valid_location_name(name):  # Skip if empty or invalid name
+                        name_elem = loc.find('Name')
+                        if name_elem is None or name_elem.text is None:
+                            continue
+                        name: str = name_elem.text
+                        # Skip if empty or invalid name
+                        if not name or not is_valid_location_name(name):
                             continue
                         
                         # Get joint values, handling missing or empty text
@@ -106,17 +112,17 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                         })
 
                 # Parse sequences
-                sequences = root.findall(".//Sequence")
-                if sequences:
+                xml_sequences: List[ET.Element] = root.findall(".//Sequence")
+                if xml_sequences:
                     data['sequences'] = []
                     sequence_counter = 1
-                    for seq in sequences:
-                        name = seq.get('Name', '')  # Get name from attribute
+                    for xml_seq in xml_sequences:
+                        name = xml_seq.get('Name', '')  # Get name from attribute
                         if not name:  # Give default name if empty
                             name = f"Sequence_{sequence_counter}"
                             sequence_counter += 1
-                        commands = []
-                        for cmd in seq.findall(".//RobotCommand"):
+                        commands: List[Dict[str, Any]] = []
+                        for cmd in xml_seq.findall(".//RobotCommand"):
                             cmd_type = cmd.get(
                                 '{http://www.w3.org/2001/XMLSchema-instance}type'
                             )
@@ -173,7 +179,8 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                         # Get values from attributes with defaults
                         data['motion_profiles'].append({
                             'name': name,
-                            'profile_id': profile_counter,  # Auto-increment profile_id
+                            # Auto-increment profile_id
+                            'profile_id': profile_counter,  
                             'speed': float(p.get('Velocity', 100)),
                             'speed2': float(p.get('Velocity', 100)),  
                             'acceleration': float(p.get('Acceleration', 100)),
@@ -226,7 +233,8 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                         data['teach_points'].append(teach_point)
                 if "nests" in data and isinstance(data["nests"], dict):
                         for name, nest_data in data["nests"].items():
-                            # The nest data has keys: "approach_path", "loc", "orientation", "safe_loc"
+                            # The nest data has keys: "approach_path", 
+                            # "loc", "orientation", "safe_loc"
                             # We ignore approach_path and safe_loc.
                             loc_info = nest_data.get("loc")
                             if isinstance(loc_info, dict):
@@ -285,7 +293,7 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
             # Start transaction
             db.begin()
             
-            results = {
+            results: Dict[str, List[Any]] = {
                 'teach_points': [],
                 'sequences': [],
                 'motion_profiles': [],
@@ -300,7 +308,8 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                                         RobotArmLocation, tool_id)
                     
                     # Ensure coordinates are in string format
-                    coords = point.coordinates if isinstance(point.coordinates, str) else ' '.join(map(str, point.coordinates))
+                    coords = point.coordinates if isinstance(point.coordinates, str) \
+                        else ' '.join(map(str, point.coordinates))
                     
                     location = crud.robot_arm_location.create(
                         db,
@@ -316,9 +325,11 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
 
             # Store sequences
             if waypoint_data.sequences:
+                sequence_list: List[schemas.RobotArmSequence] = []
+
                 for seq in waypoint_data.sequences:
                     # Convert Command objects to dictionaries
-                    commands_dict = [
+                    commands_dict: List[Dict[str, Any]] = [
                         {
                             'command': cmd.command,
                             'params': cmd.params,
@@ -334,10 +345,11 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                             commands=commands_dict
                         )
                     )
-                    results['sequences'].append(sequence)
+                    sequence_list.append(sequence)
 
             # Store motion profiles
             if waypoint_data.motion_profiles:
+                motion_profiles: List[schemas.RobotArmMotionProfile] = []
                 for profile in waypoint_data.motion_profiles:
                     motion_profile = crud.robot_arm_motion_profile.create(
                         db,
@@ -355,10 +367,11 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                             straight=profile.straight
                         )
                     )
-                    results['motion_profiles'].append(motion_profile)
+                    motion_profiles.append(motion_profile)
 
             # Store grip parameters
             if waypoint_data.grip_params:
+                grip_params: List[schemas.RobotArmGripParams] = []
                 for param in waypoint_data.grip_params:
                     grip_param = crud.robot_arm_grip_params.create(
                         db,
@@ -370,7 +383,7 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                             speed=param.speed
                         )
                     )
-                    results['grip_params'].append(grip_param)
+                    grip_params.append(grip_param)
 
             # Commit transaction
             db.commit()
