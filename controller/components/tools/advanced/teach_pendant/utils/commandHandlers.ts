@@ -47,7 +47,7 @@ export function useCommandHandlers(config: Tool) {
     const params = {
       name: point.name,
       motion_profile_id: motionProfile.id,
-    }
+    };
 
     mutation.mutate({
       toolId: config.name,
