@@ -5,7 +5,6 @@ on:
 
 jobs:
   build-and-publish:
-    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     permissions:
         contents: read
@@ -33,10 +32,10 @@ jobs:
           push: true
           tags: ghcr.io/sciencecorp/galago-web:latest
 
-    #   - name: Build and push galago-db
-    #     uses: docker/build-push-action@v4
-    #     with:
-    #       context: ./db
-    #       file: Dockerfile
-    #       push: true
-    #       tags: ghcr.io/sciencecorp/galago-db:latest
+      - name: Build and push galago-db
+        uses: docker/build-push-action@v4
+        with:
+          context: ./db
+          file: Dockerfile
+          push: true
+          tags: ghcr.io/sciencecorp/galago-db:latest
