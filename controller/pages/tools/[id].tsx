@@ -403,12 +403,6 @@ export default function Page() {
   }, [config?.name]);
 
   useEffect(() => {
-    if (commandOptions) {
-      setSelectedCommand(Object.keys(commandOptions)[0]);
-    }
-  }, []);
-
-  useEffect(() => {
     if (selectedCommand) {
       setFormValues((prevValues) => {
         const newValues = { ...prevValues };

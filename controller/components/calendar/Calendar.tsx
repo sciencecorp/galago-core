@@ -21,7 +21,7 @@ interface CalendarProps {
 }
 
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const paddingMap = { sm: 3, md: 3, lg: 3, xl: 5, "2xl": 7 };
+const paddingMap = { sm: 4, md: 4, lg: 4, xl: 5, "2xl": 7 };
 
 export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, size = "md" }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -141,7 +141,7 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
             textAlign="center"
             color="teal.800"
             p={0}
-            borderRadius="md"
+            borderRadius="sm"
             bg={
               isCurrentDay(day)
                 ? "teal.300"
