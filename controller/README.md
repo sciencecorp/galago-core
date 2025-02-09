@@ -4,4 +4,4 @@ A Next.js + tRPC app that manages and visualizes the workcell's state, accepts p
 
 ## Getting Started
 
-Requires `node 18.13.0`. Install dependencies with `npm i`. Start the development server with `npm run dev`.
+Requires `node 18`. Install dependencies with `npm i`. Start the development server with `npm run dev`.

@@ -89,7 +89,7 @@ test_py() {
 }
 
 pytest() {
-  pytest tools/tests/ -vv
+  pytest db/tests/ -vv
 }
 
 unittest_py() {
