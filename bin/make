@@ -17,20 +17,9 @@ build_env() {
     echo "Conda environment '$ENV_NAME' created."
 }
 
-run() {
-  echo "Launching Tools" 
-  python -m tools.launch_tools "$@"
-}
-
-run_debug() {
-  echo "Launching Tools in Debug Mode" 
-  python -m tools.launch_tools --debug
-}
-
 python_deps() {
   echo "Installing Python Dependencies"
   python -m pip install -r db/requirements.txt
-  python -m pip install grpcio-tools
   echo "Python Dependencies Installed"
 } 
 
@@ -130,11 +119,6 @@ proto_ts_v2() {
     --ts_proto_opt=snakeToCamel=false \
     --ts_proto_opt=outputServices=grpc-js \
     ${PROTO_SRC}/*.proto ${PROTO_SRC}/tools/grpc_interfaces/*.proto
-}
-
-run(){
-  echo "Launching Tools" 
-  python -m tools.launch_tools
 }
 
 # Generate all protobuf definitions
