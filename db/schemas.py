@@ -3,6 +3,7 @@ from pydantic import BaseModel, model_validator, Field
 import datetime
 from typing import Optional, List, Dict, Any
 
+
 class TimestampMixin(BaseModel):
     created_at: t.Optional[datetime.datetime] = None
     updated_at: t.Optional[datetime.datetime] = None
@@ -18,6 +19,7 @@ class ToolCreate(BaseModel):
     config: t.Optional[dict] = None
     workcell_id: t.Optional[int] = None
 
+
 class ToolUpdate(BaseModel):
     name: t.Optional[str] = None
     description: t.Optional[str] = None
@@ -29,6 +31,7 @@ class ToolUpdate(BaseModel):
 
 class Tool(ToolCreate, TimestampMixin):
     id: int
+
     class Config:
         from_attributes = True
 
@@ -39,10 +42,12 @@ class WorkcellCreate(BaseModel):
     description: t.Optional[str] = None
     location: t.Optional[str] = None
 
+
 class WorkcellUpdate(BaseModel):
     name: t.Optional[str] = None
     description: t.Optional[str] = None
     location: t.Optional[str] = None
+
 
 class Workcell(WorkcellCreate, TimestampMixin):
     id: int
@@ -50,7 +55,8 @@ class Workcell(WorkcellCreate, TimestampMixin):
 
     class Config:
         from_attributes = True
-        
+
+
 # Instrument Schemas
 class InstrumentCreate(BaseModel):
     name: str
@@ -66,7 +72,8 @@ class Instrument(InstrumentCreate):
     id: int
 
     class Config:
-        from_attributes=True
+        from_attributes = True
+
 
 # Nest Schemas
 class NestCreate(BaseModel):
@@ -82,12 +89,14 @@ class NestUpdate(BaseModel):
     column: t.Optional[int] = None
     tool_id: t.Optional[int] = None
 
+
 class Nest(NestCreate):
     id: int
 
     class Config:
-        from_attributes=True
-        #orm_mode = True 
+        from_attributes = True
+        # orm_mode = True
+
 
 # Plate Schemas
 class PlateCreate(BaseModel):
@@ -108,8 +117,8 @@ class Plate(PlateCreate):
     id: int
 
     class Config:
-        from_attributes=True
-        #orm_mode = True 
+        from_attributes = True
+        # orm_mode = True
 
 
 # Well Schemas
@@ -129,8 +138,8 @@ class Well(WellCreate):
     id: int
 
     class Config:
-        from_attributes=True
-        #orm_mode = True 
+        from_attributes = True
+        # orm_mode = True
 
 
 # Reagent Schemas
@@ -152,8 +161,9 @@ class Reagent(ReagentCreate):
     id: int
 
     class Config:
-        from_attributes=True
-        #orm_mode = True 
+        from_attributes = True
+        # orm_mode = True
+
 
 class Inventory(BaseModel):
     workcell: Workcell
@@ -168,26 +178,30 @@ class PlateInfo(Plate):
     nest: t.Optional[Nest] = None
     wells: t.List["Well"]
 
-#Log schemas
+
+# Log schemas
 class LogCreate(BaseModel):
-    level: str 
+    level: str
     action: str
     details: str
+
 
 class LogUpdate(BaseModel):
     id: t.Optional[int] = None
     name: t.Optional[str] = None
 
+
 class Log(TimestampMixin, LogCreate):
     id: int
-    
+
     class Config:
-        from_attributes=True
+        from_attributes = True
+
 
 class VariableBase(BaseModel):
     name: str
     value: str
-    type: str 
+    type: str
 
     @classmethod
     def validate_value_type(cls, data: t.Any) -> t.Any:
@@ -196,59 +210,71 @@ class VariableBase(BaseModel):
         if isinstance(data, dict):
             for key, value in data.items():
                 model_dictionary[key] = value
-                if key == 'type' and value not in \
-                ['string', 'number', 'boolean', 'array', 'json']:
-                    raise ValueError('Type must be one of string, '
-                                     'number, boolean, array, json')
+                if key == "type" and value not in [
+                    "string",
+                    "number",
+                    "boolean",
+                    "array",
+                    "json",
+                ]:
+                    raise ValueError(
+                        "Type must be one of string, " "number, boolean, array, json"
+                    )
 
-            if 'type' in model_dictionary and 'value' in model_dictionary:
-                if model_dictionary['type'] == "string" and \
-                    not isinstance(model_dictionary['value'], str):
-                    raise ValueError('Value must be a string')
+            if "type" in model_dictionary and "value" in model_dictionary:
+                if model_dictionary["type"] == "string" and not isinstance(
+                    model_dictionary["value"], str
+                ):
+                    raise ValueError("Value must be a string")
 
-                if model_dictionary['type'] == 'number':
+                if model_dictionary["type"] == "number":
                     try:
-                        float(model_dictionary['value'])
+                        float(model_dictionary["value"])
                     except ValueError:
-                        raise ValueError('Value must be a number')
+                        raise ValueError("Value must be a number")
 
-                if model_dictionary['type'] == 'boolean' and \
-                str(model_dictionary['value']).lower() not in ['true', 'false']:
-                    raise ValueError('Value must be a boolean')
-            
+                if model_dictionary["type"] == "boolean" and str(
+                    model_dictionary["value"]
+                ).lower() not in ["true", "false"]:
+                    raise ValueError("Value must be a boolean")
+
         return data
+
 
 class VariableCreate(VariableBase):
     name: str
     type: str
-    
-    @model_validator(mode='before')
+
+    @model_validator(mode="before")
     @classmethod
     def check_value_type(cls, data: t.Any) -> t.Any:
         return cls.validate_value_type(data)
 
+
 class Variable(TimestampMixin, VariableCreate):
     id: int
-    
+
     class Config:
-        from_attributes=True
+        from_attributes = True
+
 
 class VariableUpdate(BaseModel):
     name: t.Optional[str] = None
-    value: t.Optional[t.Union[str,int,bool]] = None
-    type: t.Optional[str] = None 
+    value: t.Optional[t.Union[str, int, bool]] = None
+    type: t.Optional[str] = None
 
-    @model_validator(mode='before')
+    @model_validator(mode="before")
     @classmethod
     def check_value_type(cls, data: t.Any) -> t.Any:
         return VariableBase.validate_value_type(data)
+
 
 class LabwareCreate(BaseModel):
     name: str
     description: str
     number_of_rows: int
     number_of_columns: int
-    z_offset: float = 0 
+    z_offset: float = 0
     width: int
     height: int
     plate_lid_offset: t.Optional[int] = None
@@ -257,14 +283,17 @@ class LabwareCreate(BaseModel):
     has_lid: t.Optional[bool] = False
     image_url: t.Optional[str] = None
 
+
 class Labware(TimestampMixin, LabwareCreate):
     id: int
+
     class Config:
-        from_attributes=True
+        from_attributes = True
+
 
 class LabwareUpdate(BaseModel):
     name: t.Optional[str] = None
-    description : t.Optional[str] = None
+    description: t.Optional[str] = None
     number_of_rows: t.Optional[int] = None
     number_of_columns: t.Optional[int] = None
     z_offset: t.Optional[float] = None
@@ -276,6 +305,7 @@ class LabwareUpdate(BaseModel):
     has_lid: t.Optional[bool] = None
     image_url: t.Optional[str] = None
 
+
 class ProtocolBase(BaseModel):
     name: str
     category: str
@@ -284,11 +314,13 @@ class ProtocolBase(BaseModel):
     commands: t.Optional[t.List[t.Any]] = None
     ui_params: t.Optional[t.Dict[str, t.Any]] = None
 
+
 class ProtocolCreate(ProtocolBase):
     name: str
     category: str
     workcell: str
     description: t.Optional[str] = None
+
 
 class ProtocolUpdate(BaseModel):
     name: t.Optional[str] = None
@@ -298,25 +330,32 @@ class ProtocolUpdate(BaseModel):
     commands: t.Optional[t.List[t.Any]] = None
     ui_params: t.Optional[t.Dict[str, t.Any]] = None
 
+
 class Protocol(ProtocolBase):
     id: int
+
     class Config:
         from_attributes = True
 
+
 class AppSettingsCreate(BaseModel):
-    name : str
-    value : str
-    is_active : bool = True
+    name: str
+    value: str
+    is_active: bool = True
+
 
 class AppSettingsUpdate(BaseModel):
-    name : t.Optional[str] = None
-    value : t.Optional[str] = None
-    is_active : t.Optional[bool] = None
+    name: t.Optional[str] = None
+    value: t.Optional[str] = None
+    is_active: t.Optional[bool] = None
+
 
 class AppSettings(TimestampMixin, AppSettingsCreate):
     id: int
+
     class Config:
-        from_attributes=True
+        from_attributes = True
+
 
 class ScriptCreate(BaseModel):
     name: str
@@ -325,16 +364,20 @@ class ScriptCreate(BaseModel):
     language: t.Optional[str] = None
     is_blocking: bool = True
 
+
 class ScriptUpdate(BaseModel):
     name: t.Optional[str] = None
     description: t.Optional[str] = None
     content: t.Optional[str] = None
     is_blocking: t.Optional[bool] = None
 
+
 class Script(ScriptCreate, TimestampMixin):
     id: int
+
     class Config:
-        from_attributes=True
+        from_attributes = True
+
 
 # RobotArm Location Schemas
 class RobotArmLocationCreate(BaseModel):
@@ -344,17 +387,21 @@ class RobotArmLocationCreate(BaseModel):
     tool_id: int
     orientation: t.Literal["portrait", "landscape"]
 
+
 class RobotArmLocationUpdate(BaseModel):
     name: t.Optional[str] = None
     location_type: t.Optional[str] = None
     coordinates: t.Optional[str] = None  # Space-separated coordinate values
     tool_id: t.Optional[int] = None
     orientation: t.Optional[t.Literal["portrait", "landscape"]] = None
-    
+
+
 class RobotArmLocation(RobotArmLocationCreate):
     id: int
+
     class Config:
         from_attributes = True
+
 
 # RobotArm Nest Schemas
 class RobotArmNestCreate(BaseModel):
@@ -365,6 +412,7 @@ class RobotArmNestCreate(BaseModel):
     safe_location_id: t.Optional[int] = None
     tool_id: int
 
+
 class RobotArmNestUpdate(BaseModel):
     name: t.Optional[str] = None
     orientation: t.Optional[t.Literal["portrait", "landscape"]] = None
@@ -373,10 +421,13 @@ class RobotArmNestUpdate(BaseModel):
     safe_location_id: t.Optional[int] = None
     tool_id: t.Optional[int] = None
 
+
 class RobotArmNest(RobotArmNestCreate):
     id: int
+
     class Config:
         from_attributes = True
+
 
 # RobotArm Sequence Schemas
 class RobotArmSequenceCreate(BaseModel):
@@ -385,21 +436,25 @@ class RobotArmSequenceCreate(BaseModel):
     commands: List[Dict[str, Any]]
     tool_id: int
 
+
 class RobotArmSequenceUpdate(BaseModel):
     name: t.Optional[str] = None
     description: t.Optional[str] = None
     commands: t.Optional[List[Dict[str, Any]]] = None
     tool_id: t.Optional[int] = None
 
+
 class RobotArmSequence(RobotArmSequenceCreate):
     id: int
+
     class Config:
         from_attributes = True
+
 
 # Motion Profile Schemas
 class RobotArmMotionProfileCreate(BaseModel):
     name: str
-    profile_id: t.Annotated[int, Field(ge=1, le=14)] 
+    profile_id: t.Annotated[int, Field(ge=1, le=14)]
     speed: float
     speed2: float
     acceleration: float
@@ -409,6 +464,7 @@ class RobotArmMotionProfileCreate(BaseModel):
     inrange: float
     straight: int
     tool_id: int
+
 
 class RobotArmMotionProfileUpdate(BaseModel):
     name: t.Optional[str] = None
@@ -423,10 +479,13 @@ class RobotArmMotionProfileUpdate(BaseModel):
     straight: t.Optional[int] = None
     tool_id: t.Optional[int] = None
 
+
 class RobotArmMotionProfile(RobotArmMotionProfileCreate):
     id: int
+
     class Config:
         from_attributes = True
+
 
 # Grip Params Schemas
 class RobotArmGripParamsCreate(BaseModel):
@@ -436,6 +495,7 @@ class RobotArmGripParamsCreate(BaseModel):
     force: float
     tool_id: int
 
+
 class RobotArmGripParamsUpdate(BaseModel):
     name: t.Optional[str] = None
     width: t.Optional[float] = None
@@ -443,10 +503,13 @@ class RobotArmGripParamsUpdate(BaseModel):
     force: t.Optional[float] = None
     tool_id: t.Optional[int] = None
 
+
 class RobotArmGripParams(RobotArmGripParamsCreate):
     id: int
+
     class Config:
         from_attributes = True
+
 
 class RobotArmWaypoints(BaseModel):
     id: int

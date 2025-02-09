@@ -28,14 +28,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.model = model
 
     def paginate(
-            self, 
-            db:Session, 
-            *, 
-            skip:int = 0,
-            limit:int = 50,
-            order_by:Optional[str] = None,
-            descending:bool = False, 
-            filters: Optional[Dict[str, Any]] = None
+        self,
+        db: Session,
+        *,
+        skip: int = 0,
+        limit: int = 50,
+        order_by: Optional[str] = None,
+        descending: bool = False,
+        filters: Optional[Dict[str, Any]] = None,
     ) -> List[ModelType]:
         query = db.query(self.model)
         if filters:
@@ -45,22 +45,22 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         else:
             query = query.order_by(self.model.id)
         return query.offset(skip).limit(limit).all()
-    
-    def get(self, db: Session, id: t.Union[int,str]) -> Optional[ModelType]:
-        if isinstance(id, int): 
+
+    def get(self, db: Session, id: t.Union[int, str]) -> Optional[ModelType]:
+        if isinstance(id, int):
             return db.query(self.model).filter(self.model.id == id).one_or_none()
-        elif isinstance(id, str) and id.isdigit(): 
+        elif isinstance(id, str) and id.isdigit():
             return db.query(self.model).filter(self.model.id == int(id)).one_or_none()
-        elif isinstance(id, str): 
+        elif isinstance(id, str):
             return db.query(self.model).filter(self.model.name == id).one_or_none()
         else:
             return db.query(self.model).filter(self.model.name == id).one_or_none()
-        
+
     def get_multi(
         self, db: Session, *, skip: int = 0, limit: int = 100
     ) -> List[ModelType]:
         return db.query(self.model).offset(skip).limit(limit).all()
-    
+
     def get_all(self, db: Session) -> List[ModelType]:
         return db.query(self.model).all()
 
@@ -201,6 +201,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         return query.filter_by(**obj_in_data).all()
 
+
 workcell = CRUDBase[models.Workcell, schemas.WorkcellCreate, schemas.WorkcellUpdate](
     models.Workcell
 )
@@ -213,40 +214,38 @@ reagent = CRUDBase[models.Reagent, schemas.ReagentCreate, schemas.ReagentUpdate]
 )
 tool = CRUDBase[models.Tool, schemas.ToolCreate, schemas.ToolUpdate](models.Tool)
 logs = CRUDBase[log_model.Log, schemas.LogCreate, schemas.LogUpdate](log_model.Log)
-variables = CRUDBase[models.Variable,
-                     schemas.VariableCreate, 
-                     schemas.VariableUpdate](models.Variable)
-labware = CRUDBase[models.Labware,
-                   schemas.LabwareCreate, 
-                   schemas.LabwareUpdate](models.Labware)
-settings = CRUDBase[models.AppSettings,
-                    schemas.AppSettingsCreate, 
-                    schemas.AppSettingsUpdate](models.AppSettings)
-scripts = CRUDBase[models.Script,
-                   schemas.ScriptCreate, 
-                   schemas.ScriptUpdate](models.Script)
-robot_arm_location = CRUDBase[models.RobotArmLocation, 
-                              schemas.RobotArmLocationCreate, 
-                              schemas.RobotArmLocationUpdate](
-    models.RobotArmLocation
+variables = CRUDBase[models.Variable, schemas.VariableCreate, schemas.VariableUpdate](
+    models.Variable
 )
-robot_arm_nest = CRUDBase[models.RobotArmNest, 
-                          schemas.RobotArmNestCreate, 
-                          schemas.RobotArmNestUpdate](
-    models.RobotArmNest
+labware = CRUDBase[models.Labware, schemas.LabwareCreate, schemas.LabwareUpdate](
+    models.Labware
 )
-robot_arm_sequence = CRUDBase[models.RobotArmSequence, 
-                               schemas.RobotArmSequenceCreate, 
-                               schemas.RobotArmSequenceUpdate](
-    models.RobotArmSequence
+settings = CRUDBase[
+    models.AppSettings, schemas.AppSettingsCreate, schemas.AppSettingsUpdate
+](models.AppSettings)
+scripts = CRUDBase[models.Script, schemas.ScriptCreate, schemas.ScriptUpdate](
+    models.Script
 )
-robot_arm_motion_profile = CRUDBase[models.RobotArmMotionProfile, 
-                                    schemas.RobotArmMotionProfileCreate, 
-                                    schemas.RobotArmMotionProfileUpdate](
-    models.RobotArmMotionProfile
-)
-robot_arm_grip_params = CRUDBase[models.RobotArmGripParams, 
-                                  schemas.RobotArmGripParamsCreate, 
-                                  schemas.RobotArmGripParamsUpdate](
-    models.RobotArmGripParams
-)
+robot_arm_location = CRUDBase[
+    models.RobotArmLocation,
+    schemas.RobotArmLocationCreate,
+    schemas.RobotArmLocationUpdate,
+](models.RobotArmLocation)
+robot_arm_nest = CRUDBase[
+    models.RobotArmNest, schemas.RobotArmNestCreate, schemas.RobotArmNestUpdate
+](models.RobotArmNest)
+robot_arm_sequence = CRUDBase[
+    models.RobotArmSequence,
+    schemas.RobotArmSequenceCreate,
+    schemas.RobotArmSequenceUpdate,
+](models.RobotArmSequence)
+robot_arm_motion_profile = CRUDBase[
+    models.RobotArmMotionProfile,
+    schemas.RobotArmMotionProfileCreate,
+    schemas.RobotArmMotionProfileUpdate,
+](models.RobotArmMotionProfile)
+robot_arm_grip_params = CRUDBase[
+    models.RobotArmGripParams,
+    schemas.RobotArmGripParamsCreate,
+    schemas.RobotArmGripParamsUpdate,
+](models.RobotArmGripParams)
