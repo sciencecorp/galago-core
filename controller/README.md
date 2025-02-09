@@ -1,6 +1,6 @@
-# Foundry Controller
+# Web App
 
-A Next.js + tRPC app that manages and visualizes the foundry state, accepts protocol blocks for scheduling, and manages execution for its associated tools via gRPC.
+A Next.js + tRPC app that manages and visualizes the workcell's state, accepts protocol blocks for scheduling, and manages execution for its associated tools via gRPC.
 
 ## Getting Started
 
