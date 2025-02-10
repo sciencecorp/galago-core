@@ -1,15 +1,15 @@
 name: Publish Docker Images
 
 on:
-    workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     permissions:
-        contents: read
-        packages: write
-        actions: write 
+      contents: read
+      packages: write
+      actions: write 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
