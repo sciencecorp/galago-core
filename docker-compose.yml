@@ -24,10 +24,6 @@ services:
       - GRPC_SERVER_IP=host.docker.internal
       - API_BASE_URL=http://db:8000/api
       - REDIS_HOST=redis://queue:6379/1
-
-    volumes:
-      - ./controller:/app
-      - ./controller/node_modules:/app/node_modules
     depends_on:
       - queue
       - db
@@ -41,9 +37,9 @@ services:
       - "8000:8000"
     environment:
       - ENVIRONMENT=production
-    volumes:
-      - .:/app
     restart: always
+    volumes:
+      - sqlite_data:/data
     networks:
       - app-network
     healthcheck:
@@ -53,10 +49,8 @@ services:
       retries: 3
 
 volumes:
-  node_modules:
   redis_data:
   sqlite_data:
-  npm_cache:
 
 networks:
   app-network:
