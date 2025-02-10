@@ -42,6 +42,7 @@ COPY --from=builder /app/controller/gen-interfaces ./gen-interfaces
 
 # Setup .next folder with correct permissions
 RUN mkdir .next && chown nextjs:nodejs .next
+COPY --from=builder --chown=nextjs:nodejs /app/controller/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/controller/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/controller/.next/static ./.next/static
 
@@ -55,4 +56,3 @@ ENV PORT 3010
 
 # Start the app
 CMD ["npm", "run", "start"]
-
