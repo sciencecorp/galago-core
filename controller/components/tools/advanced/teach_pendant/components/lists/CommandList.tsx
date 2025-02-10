@@ -80,7 +80,7 @@ export const CommandList: React.FC<CommandListProps> = ({
     }
     setEditedSequenceName(sequenceName);
     setHasUnsavedChanges(false);
-  }, [commands, sequenceName, localCommands]);
+  }, [commands, sequenceName]);
 
   const handleAddCommand = (index: number) => {
     setInsertIndex(index);
