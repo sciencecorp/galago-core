@@ -25,7 +25,7 @@ tools/pf400/config/*.json
 trace_log.log
 *log
 workcells/*.log
-package-lock.json
+#package-lock.json
 package.json
 dump.rdb
 
