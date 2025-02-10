@@ -13,10 +13,10 @@ services:
       - app-network
 
   galago-web:
-    build:
-      context: .
-      dockerfile: controller/Dockerfile
-    #image: ghcr.io/sciencecorp/galago-web:latest
+    # build:
+    #   context: .
+    #   dockerfile: controller/Dockerfile
+    image: ghcr.io/sciencecorp/galago-web:latest
     container_name: galago-web
     #platform: linux/amd64    # Force using AMD64 images
     ports:
@@ -35,10 +35,10 @@ services:
       - app-network
   
   db:
-    build:
-      context: ./db
-      dockerfile: Dockerfile
-    #image: ghcr.io/sciencecorp/galago-db:latest
+    # build:
+    #   context: ./db
+    #   dockerfile: Dockerfile
+    image: ghcr.io/sciencecorp/galago-db:latest
     #platform: linux/amd64  
     container_name: galago-db
     ports:
