@@ -36,6 +36,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./db
-          file: Dockerfile
+          file: db/Dockerfile
           push: true
           tags: ghcr.io/sciencecorp/galago-db:latest
