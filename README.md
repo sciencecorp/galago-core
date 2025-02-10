@@ -7,17 +7,14 @@ Galago consists of several distinct modules:
 
 To build the protobuf interfaces, simply run `bin/make proto`.
 
-## Controller
-
-The controller app boots with a config file that specifies a specific set of tools and their network configurations. The config file is specific to each workcell (or related group of tools). These config files live in the `config` directory.
 
 ## Getting started
 
-## Requirements
+### Requirements
 
-1. Node 18.20.3
+1. Node 18
 2. Python 3.9
-3. WSL (Windows only)
+3. Docker
 
 ## Docker and docker compose are recommended.
 

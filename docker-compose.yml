@@ -1,3 +1,4 @@
+#Production docker-compose file
 services:
   queue:
     image: redis:6.2-alpine
@@ -8,12 +9,14 @@ services:
       - redis_data:/data
     ports:
       - "1203:6379"
+    networks:
+      - app-network
 
   galago-web:
-    build:
-      context: .
-      dockerfile: controller/Dockerfile
+    image: ghcr.io/sciencecorp/galago-web:latest
     container_name: galago-web
+    ports:
+      - "3010:3010"
     restart: always
     environment:
       - NODE_ENV=production
@@ -21,29 +24,29 @@ services:
       - GRPC_SERVER_IP=host.docker.internal
       - API_BASE_URL=http://db:8000/api
       - REDIS_HOST=redis://queue:6379/1
-    ports:
-      - "3010:3010"
-    volumes:
-      - ../config:/app/config
-      - ../interfaces:/app/interfaces:ro
     depends_on:
       - queue
       - db
     networks:
       - app-network
+  
   db:
-    build:
-      context: ./db
-      dockerfile: Dockerfile
+    image: ghcr.io/sciencecorp/galago-db:latest
     container_name: galago-db
     ports:
       - "8000:8000"
     environment:
       - ENVIRONMENT=production
-    volumes:
-      - sqlite_data:/app/inventory.db
-      - sqlite_data:/app/logs.db
     restart: always
+    volumes:
+      - sqlite_data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 volumes:
   redis_data:

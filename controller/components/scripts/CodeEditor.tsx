@@ -20,6 +20,7 @@ import {
   Stat,
   StatLabel,
   StatNumber,
+  useDisclosure,
 } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import { CloseIcon } from "@chakra-ui/icons";
@@ -34,6 +35,8 @@ import { PageHeader } from "../ui/PageHeader";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { VscCode } from "react-icons/vsc";
 import { FiBook } from "react-icons/fi";
+
+import { ConfirmationModal } from "../ui/ConfirmationModal";
 
 export const ScriptsEditor: React.FC = (props) => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
@@ -60,10 +63,12 @@ export const ScriptsEditor: React.FC = (props) => {
   const activeTabBg = useColorModeValue("white", "gray.800");
   const hoverBg = useColorModeValue("gray.100", "gray.600");
   const bgColor = useColorModeValue("gray.50", "gray.700");
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [scriptToDelete, setScriptToDelete] = useState<Script | null>(null);
 
   useEffect(() => {
     setCurrentContent(scripts.find((script) => script.name === activeTab)?.content || "");
-  }, [activeTab]);
+  }, [activeTab, scripts]);
 
   const handleRunScript = async () => {
     setRunError(false);
@@ -174,13 +179,13 @@ export const ScriptsEditor: React.FC = (props) => {
     }
   };
 
-  const handleDelete = async (script: Script) => {
+  const handleDelete = async () => {
+    if (!scriptToDelete) return;
     try {
-      await deleteScript.mutateAsync(script.id);
-      if (openTabs.includes(script.name)) {
-        setOpenTabs(openTabs.filter((t) => t !== script.name));
+      await deleteScript.mutateAsync(scriptToDelete.id);
+      if (openTabs.includes(scriptToDelete.name)) {
+        setOpenTabs(openTabs.filter((t) => t !== scriptToDelete.name));
       }
-
       refetch();
       toast({
         title: "Script deleted successfully",
@@ -275,14 +280,21 @@ export const ScriptsEditor: React.FC = (props) => {
               <Button
                 justifyContent="flex-start"
                 leftIcon={<SiPython />}
+                rightIcon={
+                  <RiDeleteBinLine
+                    onClick={() => {
+                      onOpen();
+                      setScriptToDelete(script);
+                    }}
+                  />
+                }
                 borderRadius={0}
+                pr={1}
                 key={index}
                 onClick={() => handleScriptClicked(script.name)}
                 width="100%">
                 <HStack justify="space-between" width="100%">
                   <Text fontSize="14px">{script.name}</Text>
-                  <Spacer />
-                  <DeleteWithConfirmation label="Script" onDelete={() => handleDelete(script)} />
                 </HStack>
               </Button>
             </Tooltip>
@@ -333,6 +345,18 @@ export const ScriptsEditor: React.FC = (props) => {
 
   return (
     <Box maxW="100%">
+      <ConfirmationModal
+        colorScheme="red"
+        confirmText={"Delete"}
+        header={`Delete Script?`}
+        isOpen={isOpen}
+        onClick={() => {
+          handleDelete();
+          onClose();
+        }}
+        onClose={onClose}>
+        {`Are you sure you want to delete ${scriptToDelete?.name}?`}
+      </ConfirmationModal>
       <VStack spacing={4} align="stretch" width="100%">
         <Card bg={headerBg} shadow="md">
           <CardBody>
