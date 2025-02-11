@@ -32,7 +32,7 @@ services:
       - db
     networks:
       - app-network
-  
+
   db:
     # build:
     #   context: ./db

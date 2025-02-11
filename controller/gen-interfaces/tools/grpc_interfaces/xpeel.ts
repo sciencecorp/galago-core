@@ -15,17 +15,13 @@ export interface Command_Peel {
   threshold: number;
 }
 
-export interface Command_CheckStatus {
-}
+export interface Command_CheckStatus {}
 
-export interface Command_Reset {
-}
+export interface Command_Reset {}
 
-export interface Command_Restart {
-}
+export interface Command_Restart {}
 
-export interface Command_GetRemainingTape {
-}
+export interface Command_GetRemainingTape {}
 
 export interface Config {
   com_port: string;
@@ -56,7 +52,10 @@ export const Command = {
       Command_Restart.encode(message.restart, writer.uint32(34).fork()).ldelim();
     }
     if (message.get_remaining_tape !== undefined) {
-      Command_GetRemainingTape.encode(message.get_remaining_tape, writer.uint32(42).fork()).ldelim();
+      Command_GetRemainingTape.encode(
+        message.get_remaining_tape,
+        writer.uint32(42).fork(),
+      ).ldelim();
     }
     return writer;
   },
@@ -115,7 +114,9 @@ export const Command = {
   fromJSON(object: any): Command {
     return {
       peel: isSet(object.peel) ? Command_Peel.fromJSON(object.peel) : undefined,
-      check_status: isSet(object.check_status) ? Command_CheckStatus.fromJSON(object.check_status) : undefined,
+      check_status: isSet(object.check_status)
+        ? Command_CheckStatus.fromJSON(object.check_status)
+        : undefined,
       reset: isSet(object.reset) ? Command_Reset.fromJSON(object.reset) : undefined,
       restart: isSet(object.restart) ? Command_Restart.fromJSON(object.restart) : undefined,
       get_remaining_tape: isSet(object.get_remaining_tape)
@@ -126,15 +127,20 @@ export const Command = {
 
   toJSON(message: Command): unknown {
     const obj: any = {};
-    message.peel !== undefined && (obj.peel = message.peel ? Command_Peel.toJSON(message.peel) : undefined);
+    message.peel !== undefined &&
+      (obj.peel = message.peel ? Command_Peel.toJSON(message.peel) : undefined);
     message.check_status !== undefined &&
-      (obj.check_status = message.check_status ? Command_CheckStatus.toJSON(message.check_status) : undefined);
-    message.reset !== undefined && (obj.reset = message.reset ? Command_Reset.toJSON(message.reset) : undefined);
+      (obj.check_status = message.check_status
+        ? Command_CheckStatus.toJSON(message.check_status)
+        : undefined);
+    message.reset !== undefined &&
+      (obj.reset = message.reset ? Command_Reset.toJSON(message.reset) : undefined);
     message.restart !== undefined &&
       (obj.restart = message.restart ? Command_Restart.toJSON(message.restart) : undefined);
-    message.get_remaining_tape !== undefined && (obj.get_remaining_tape = message.get_remaining_tape
-      ? Command_GetRemainingTape.toJSON(message.get_remaining_tape)
-      : undefined);
+    message.get_remaining_tape !== undefined &&
+      (obj.get_remaining_tape = message.get_remaining_tape
+        ? Command_GetRemainingTape.toJSON(message.get_remaining_tape)
+        : undefined);
     return obj;
   },
 
@@ -144,21 +150,26 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.peel = (object.peel !== undefined && object.peel !== null)
-      ? Command_Peel.fromPartial(object.peel)
-      : undefined;
-    message.check_status = (object.check_status !== undefined && object.check_status !== null)
-      ? Command_CheckStatus.fromPartial(object.check_status)
-      : undefined;
-    message.reset = (object.reset !== undefined && object.reset !== null)
-      ? Command_Reset.fromPartial(object.reset)
-      : undefined;
-    message.restart = (object.restart !== undefined && object.restart !== null)
-      ? Command_Restart.fromPartial(object.restart)
-      : undefined;
-    message.get_remaining_tape = (object.get_remaining_tape !== undefined && object.get_remaining_tape !== null)
-      ? Command_GetRemainingTape.fromPartial(object.get_remaining_tape)
-      : undefined;
+    message.peel =
+      object.peel !== undefined && object.peel !== null
+        ? Command_Peel.fromPartial(object.peel)
+        : undefined;
+    message.check_status =
+      object.check_status !== undefined && object.check_status !== null
+        ? Command_CheckStatus.fromPartial(object.check_status)
+        : undefined;
+    message.reset =
+      object.reset !== undefined && object.reset !== null
+        ? Command_Reset.fromPartial(object.reset)
+        : undefined;
+    message.restart =
+      object.restart !== undefined && object.restart !== null
+        ? Command_Restart.fromPartial(object.restart)
+        : undefined;
+    message.get_remaining_tape =
+      object.get_remaining_tape !== undefined && object.get_remaining_tape !== null
+        ? Command_GetRemainingTape.fromPartial(object.get_remaining_tape)
+        : undefined;
     return message;
   },
 };
@@ -385,11 +396,15 @@ export const Command_GetRemainingTape = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_GetRemainingTape>, I>>(base?: I): Command_GetRemainingTape {
+  create<I extends Exact<DeepPartial<Command_GetRemainingTape>, I>>(
+    base?: I,
+  ): Command_GetRemainingTape {
     return Command_GetRemainingTape.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_GetRemainingTape>, I>>(_: I): Command_GetRemainingTape {
+  fromPartial<I extends Exact<DeepPartial<Command_GetRemainingTape>, I>>(
+    _: I,
+  ): Command_GetRemainingTape {
     const message = createBaseCommand_GetRemainingTape();
     return message;
   },
@@ -453,13 +468,19 @@ export const Config = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends Array<infer U>
+    ? Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends {}
+        ? { [K in keyof T]?: DeepPartial<T[K]> }
+        : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {

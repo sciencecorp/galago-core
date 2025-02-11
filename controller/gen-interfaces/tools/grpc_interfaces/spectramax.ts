@@ -9,11 +9,9 @@ export interface Command {
   start_read?: Command_StartRead | undefined;
 }
 
-export interface Command_OpenDrawer {
-}
+export interface Command_OpenDrawer {}
 
-export interface Command_CloseDrawer {
-}
+export interface Command_CloseDrawer {}
 
 export interface Command_StartRead {
   protocol_file: string;
@@ -82,20 +80,32 @@ export const Command = {
 
   fromJSON(object: any): Command {
     return {
-      open_drawer: isSet(object.open_drawer) ? Command_OpenDrawer.fromJSON(object.open_drawer) : undefined,
-      close_drawer: isSet(object.close_drawer) ? Command_CloseDrawer.fromJSON(object.close_drawer) : undefined,
-      start_read: isSet(object.start_read) ? Command_StartRead.fromJSON(object.start_read) : undefined,
+      open_drawer: isSet(object.open_drawer)
+        ? Command_OpenDrawer.fromJSON(object.open_drawer)
+        : undefined,
+      close_drawer: isSet(object.close_drawer)
+        ? Command_CloseDrawer.fromJSON(object.close_drawer)
+        : undefined,
+      start_read: isSet(object.start_read)
+        ? Command_StartRead.fromJSON(object.start_read)
+        : undefined,
     };
   },
 
   toJSON(message: Command): unknown {
     const obj: any = {};
     message.open_drawer !== undefined &&
-      (obj.open_drawer = message.open_drawer ? Command_OpenDrawer.toJSON(message.open_drawer) : undefined);
+      (obj.open_drawer = message.open_drawer
+        ? Command_OpenDrawer.toJSON(message.open_drawer)
+        : undefined);
     message.close_drawer !== undefined &&
-      (obj.close_drawer = message.close_drawer ? Command_CloseDrawer.toJSON(message.close_drawer) : undefined);
+      (obj.close_drawer = message.close_drawer
+        ? Command_CloseDrawer.toJSON(message.close_drawer)
+        : undefined);
     message.start_read !== undefined &&
-      (obj.start_read = message.start_read ? Command_StartRead.toJSON(message.start_read) : undefined);
+      (obj.start_read = message.start_read
+        ? Command_StartRead.toJSON(message.start_read)
+        : undefined);
     return obj;
   },
 
@@ -105,15 +115,18 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.open_drawer = (object.open_drawer !== undefined && object.open_drawer !== null)
-      ? Command_OpenDrawer.fromPartial(object.open_drawer)
-      : undefined;
-    message.close_drawer = (object.close_drawer !== undefined && object.close_drawer !== null)
-      ? Command_CloseDrawer.fromPartial(object.close_drawer)
-      : undefined;
-    message.start_read = (object.start_read !== undefined && object.start_read !== null)
-      ? Command_StartRead.fromPartial(object.start_read)
-      : undefined;
+    message.open_drawer =
+      object.open_drawer !== undefined && object.open_drawer !== null
+        ? Command_OpenDrawer.fromPartial(object.open_drawer)
+        : undefined;
+    message.close_drawer =
+      object.close_drawer !== undefined && object.close_drawer !== null
+        ? Command_CloseDrawer.fromPartial(object.close_drawer)
+        : undefined;
+    message.start_read =
+      object.start_read !== undefined && object.start_read !== null
+        ? Command_StartRead.fromPartial(object.start_read)
+        : undefined;
     return message;
   },
 };
@@ -350,13 +363,19 @@ export const Config = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends Array<infer U>
+    ? Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends {}
+        ? { [K in keyof T]?: DeepPartial<T[K]> }
+        : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {

@@ -16,8 +16,7 @@ export interface Command_LoadProtocol {
   protocol: string;
 }
 
-export interface Config {
-}
+export interface Config {}
 
 function createBaseCommand(): Command {
   return { run_protocol: undefined, load_protocol: undefined };
@@ -66,17 +65,25 @@ export const Command = {
 
   fromJSON(object: any): Command {
     return {
-      run_protocol: isSet(object.run_protocol) ? Command_RunProtocol.fromJSON(object.run_protocol) : undefined,
-      load_protocol: isSet(object.load_protocol) ? Command_LoadProtocol.fromJSON(object.load_protocol) : undefined,
+      run_protocol: isSet(object.run_protocol)
+        ? Command_RunProtocol.fromJSON(object.run_protocol)
+        : undefined,
+      load_protocol: isSet(object.load_protocol)
+        ? Command_LoadProtocol.fromJSON(object.load_protocol)
+        : undefined,
     };
   },
 
   toJSON(message: Command): unknown {
     const obj: any = {};
     message.run_protocol !== undefined &&
-      (obj.run_protocol = message.run_protocol ? Command_RunProtocol.toJSON(message.run_protocol) : undefined);
+      (obj.run_protocol = message.run_protocol
+        ? Command_RunProtocol.toJSON(message.run_protocol)
+        : undefined);
     message.load_protocol !== undefined &&
-      (obj.load_protocol = message.load_protocol ? Command_LoadProtocol.toJSON(message.load_protocol) : undefined);
+      (obj.load_protocol = message.load_protocol
+        ? Command_LoadProtocol.toJSON(message.load_protocol)
+        : undefined);
     return obj;
   },
 
@@ -86,12 +93,14 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.run_protocol = (object.run_protocol !== undefined && object.run_protocol !== null)
-      ? Command_RunProtocol.fromPartial(object.run_protocol)
-      : undefined;
-    message.load_protocol = (object.load_protocol !== undefined && object.load_protocol !== null)
-      ? Command_LoadProtocol.fromPartial(object.load_protocol)
-      : undefined;
+    message.run_protocol =
+      object.run_protocol !== undefined && object.run_protocol !== null
+        ? Command_RunProtocol.fromPartial(object.run_protocol)
+        : undefined;
+    message.load_protocol =
+      object.load_protocol !== undefined && object.load_protocol !== null
+        ? Command_LoadProtocol.fromPartial(object.load_protocol)
+        : undefined;
     return message;
   },
 };
@@ -145,7 +154,9 @@ export const Command_RunProtocol = {
     return Command_RunProtocol.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_RunProtocol>, I>>(object: I): Command_RunProtocol {
+  fromPartial<I extends Exact<DeepPartial<Command_RunProtocol>, I>>(
+    object: I,
+  ): Command_RunProtocol {
     const message = createBaseCommand_RunProtocol();
     message.protocol = object.protocol ?? "";
     return message;
@@ -201,7 +212,9 @@ export const Command_LoadProtocol = {
     return Command_LoadProtocol.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_LoadProtocol>, I>>(object: I): Command_LoadProtocol {
+  fromPartial<I extends Exact<DeepPartial<Command_LoadProtocol>, I>>(
+    object: I,
+  ): Command_LoadProtocol {
     const message = createBaseCommand_LoadProtocol();
     message.protocol = object.protocol ?? "";
     return message;
@@ -254,13 +267,19 @@ export const Config = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends Array<infer U>
+    ? Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends {}
+        ? { [K in keyof T]?: DeepPartial<T[K]> }
+        : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {

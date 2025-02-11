@@ -38,18 +38,25 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
   const [newConfig, setNewConfig] = useState<Record<string, Record<string, any>>>({});
   const editTool = trpc.tool.edit.useMutation();
   const getTool = trpc.tool.info.useQuery({ toolId: toolId });
-  const { description, name, config, type} = getTool.data || {};
+  const { description, name, config, type } = getTool.data || {};
   // const { name, description, config, type } = toolInfo;
   const context = trpc.useContext();
 
   useEffect(() => {
-    if (isOpen && config && type !== ToolType.unknown && type !== ToolType.UNRECOGNIZED && type != undefined) {
+    if (
+      isOpen &&
+      config &&
+      type !== ToolType.unknown &&
+      type !== ToolType.UNRECOGNIZED &&
+      type != undefined
+    ) {
       setNewConfig({ [type]: { ...config[type] } });
     }
   }, [isOpen, config, type]);
 
   const handleConfigChange = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
     const { value } = e.target;
+    if (!type) return;
     if (type !== ToolType.unknown && type !== ToolType.UNRECOGNIZED) {
       setNewConfig((prev) => ({
         ...prev,
@@ -101,6 +108,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
               {config &&
                 type != ToolType.unknown &&
                 type != ToolType.UNRECOGNIZED &&
+                type != undefined &&
                 Object.entries(config[type] || {}).map(([key, value]) => (
                   <FormControl key={key}>
                     <FormLabel>{capitalizeFirst(key).replaceAll("_", " ")}</FormLabel>

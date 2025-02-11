@@ -258,15 +258,12 @@ export default class Tool {
   }
 
   static async reloadSingleToolConfig(tool: controller_protos.ToolConfig) {
-    const normalizedName =Tool.normalizeToolId(tool.name);
+    const normalizedName = Tool.normalizeToolId(tool.name);
     await this.removeTool(tool.name);
     // Replace or update the tool config in allTools
-    this.allTools = this.allTools.filter(
-      (t) => Tool.normalizeToolId(t.name) !== normalizedName
-    );
+    this.allTools = this.allTools.filter((t) => Tool.normalizeToolId(t.name) !== normalizedName);
     this.allTools.push(tool);
   }
-
 
   static forId(id: string): Tool {
     const global_key = "__global_tool_store";
@@ -282,8 +279,7 @@ export default class Tool {
       if (id == "tool_box") {
         const result = this.toolBoxConfig();
         toolInfo = result;
-      } 
-      else {
+      } else {
         const result = this.allTools.find(
           (tool) =>
             tool.name.toLocaleLowerCase().replaceAll(" ", "_") ===

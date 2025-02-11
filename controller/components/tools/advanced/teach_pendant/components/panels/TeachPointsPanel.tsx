@@ -90,8 +90,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
     onEdit({ ...teachpoint, orientation: newValue });
   };
 
-  useEffect(() => {
-  }, [paginatedItems]);
+  useEffect(() => {}, [paginatedItems]);
 
   return (
     <Box height="100%" overflow="hidden">

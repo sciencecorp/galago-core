@@ -8,11 +8,9 @@ export interface Command {
   dispense?: Command_Dispense | undefined;
 }
 
-export interface Command_Home {
-}
+export interface Command_Home {}
 
-export interface Command_Dispense {
-}
+export interface Command_Dispense {}
 
 export interface Config {
   port: number;
@@ -72,7 +70,8 @@ export const Command = {
 
   toJSON(message: Command): unknown {
     const obj: any = {};
-    message.home !== undefined && (obj.home = message.home ? Command_Home.toJSON(message.home) : undefined);
+    message.home !== undefined &&
+      (obj.home = message.home ? Command_Home.toJSON(message.home) : undefined);
     message.dispense !== undefined &&
       (obj.dispense = message.dispense ? Command_Dispense.toJSON(message.dispense) : undefined);
     return obj;
@@ -84,12 +83,14 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.home = (object.home !== undefined && object.home !== null)
-      ? Command_Home.fromPartial(object.home)
-      : undefined;
-    message.dispense = (object.dispense !== undefined && object.dispense !== null)
-      ? Command_Dispense.fromPartial(object.dispense)
-      : undefined;
+    message.home =
+      object.home !== undefined && object.home !== null
+        ? Command_Home.fromPartial(object.home)
+        : undefined;
+    message.dispense =
+      object.dispense !== undefined && object.dispense !== null
+        ? Command_Dispense.fromPartial(object.dispense)
+        : undefined;
     return message;
   },
 };
@@ -240,13 +241,19 @@ export const Config = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends Array<infer U>
+    ? Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends {}
+        ? { [K in keyof T]?: DeepPartial<T[K]> }
+        : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
