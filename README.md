@@ -12,18 +12,22 @@ To build the protobuf interfaces, simply run `bin/make proto`.
 
 ### Requirements
 
-1. Node 18
+1. Node 18.13
 2. Python 3.9
-3. Docker
+3. Docker and Docker compose
 
 ## Docker and docker compose are recommended.
 
 ### Build and launch controller.
 
 ```
-docker-compose -f docker-compose.yml up --build #Prod Mode
+docker-compose -f docker-compose.yml up --build #Prod Mode 
+```
+or if using docker compose v2 
+```
+docker-compose -f docker-compose.yml up --build
+```
 docker-compose -f docker-compose.dev.yml up --build #Dev Mode
-
 ```
 
 ## Other docker commands.
@@ -38,15 +42,11 @@ docker-compose -f docker-compose.dev.yml down --rmi all
 #Remove orphans
 docker compose -f docker-compose.dev.yml down --rmi all --remove-orphans
 
-#rebuild and restart
-docker-compose -f docker-compose.dev.yml up --build
-
 #rebuild a specific service
 docker-compose up -d --force-recreate --no-deps --build service_name
 
 #add npm deps to dev environment
 docker exec -it galago-web-dev npm install <package name>
-
 ```
 
 ## If not using docker it is recommended to use a virtual environment. Eg. miniconda, mamba. and follow the steps below

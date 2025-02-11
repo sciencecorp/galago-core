@@ -63,6 +63,7 @@ export const toolRouter = router({
         config: (config.config as Config) ?? tool.info.config,
       };
 
+      await Tool.reloadSingleToolConfig(tool.info);
       return response;
     }),
 

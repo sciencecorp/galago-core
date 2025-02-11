@@ -175,14 +175,19 @@ export default class Tool {
     return reply.estimated_duration_seconds;
   }
 
+  static normalizeToolId(id: string): string {
+    return id.toLocaleLowerCase().replaceAll(" ", "_");
+  }
+
   static async removeTool(toolId: string) {
+    const normalizedId = Tool.normalizeToolId(toolId);
     const global_key = "__global_tool_store";
     const me = global as any;
     if (!me[global_key]) {
       return;
     }
     const store: Map<string, Tool> = me[global_key];
-    const tool = store.get(toolId);
+    const tool = store.get(normalizedId);
     if (!tool) {
       return;
     }
@@ -191,9 +196,9 @@ export default class Tool {
       if (tool.grpc) {
         tool.grpc.close();
       }
-      store.delete(toolId);
+      store.delete(normalizedId);
     } catch (error) {
-      console.error(`Error while removing tool ${toolId}: ${error}`);
+      console.error(`Error while removing tool ${normalizedId}: ${error}`);
     }
   }
 
@@ -228,29 +233,16 @@ export default class Tool {
     this.allTools = tools;
   }
 
-  static async getToolConfigDefinition(toolType: ToolType) {
-    if (toolType === ToolType.UNRECOGNIZED || toolType === ToolType.unknown) {
-      console.warn(`Received unsupported or unknown ToolType: ${toolType}`);
-      return {}; // Return a default or empty config object
-    }
-    const toolTypeName = ToolType[toolType];
-    if (!toolTypeName) {
-      throw new Error(`Unsupported ToolType: ${toolType}`);
-    }
-    const modulePath = `gen-interfaces/tools/grpc_interfaces/${toolType.toLowerCase()}`;
-    try {
-      // Dynamically import the module
-      const toolModule = await import(
-        /* webpackInclude: /\.ts$/ */ `gen-interfaces/tools/grpc_interfaces/${toolType}`
-      );
-      if (!toolModule || !toolModule.Config) {
-        throw new Error(`Config type not found in module: ${modulePath}`);
-      }
-      return toolModule.Config.create({});
-    } catch (error) {
-      throw new Error(`Failed to load config for ToolType: ${toolTypeName}. Error: ${error}`);
-    }
+  static async reloadSingleToolConfig(tool: controller_protos.ToolConfig) {
+    const normalizedName =Tool.normalizeToolId(tool.name);
+    await this.removeTool(tool.name);
+    // Replace or update the tool config in allTools
+    this.allTools = this.allTools.filter(
+      (t) => Tool.normalizeToolId(t.name) !== normalizedName
+    );
+    this.allTools.push(tool);
   }
+
 
   static forId(id: string): Tool {
     console.log("Tool id: ", id);
@@ -267,7 +259,8 @@ export default class Tool {
       if (id == "tool_box") {
         const result = this.toolBoxConfig();
         toolInfo = result;
-      } else {
+      } 
+      else {
         const result = this.allTools.find(
           (tool) =>
             tool.name.toLocaleLowerCase().replaceAll(" ", "_") ===
