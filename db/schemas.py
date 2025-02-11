@@ -309,30 +309,38 @@ class LabwareUpdate(BaseModel):
 class ProtocolBase(BaseModel):
     name: str
     category: str
-    workcell: str
+    workcell_id: int
     description: t.Optional[str] = None
-    commands: t.Optional[t.List[t.Any]] = None
-    ui_params: t.Optional[t.Dict[str, t.Any]] = None
+    icon: t.Optional[str] = None
+    parameters_schema: t.Dict[str, t.Any]
+    commands_template: t.List[t.Dict[str, t.Any]]
+    version: t.Optional[int] = 1
+    is_active: t.Optional[bool] = True
 
 
 class ProtocolCreate(ProtocolBase):
     name: str
     category: str
-    workcell: str
+    workcell_id: int
     description: t.Optional[str] = None
+    icon: t.Optional[str] = None
 
 
 class ProtocolUpdate(BaseModel):
     name: t.Optional[str] = None
     category: t.Optional[str] = None
-    workcell: t.Optional[str] = None
     description: t.Optional[str] = None
-    commands: t.Optional[t.List[t.Any]] = None
-    ui_params: t.Optional[t.Dict[str, t.Any]] = None
+    icon: t.Optional[str] = None
+    parameters_schema: t.Optional[t.Dict[str, t.Any]] = None
+    commands_template: t.Optional[t.List[t.Dict[str, t.Any]]] = None
+    version: t.Optional[int] = None
+    is_active: t.Optional[bool] = None
 
 
 class Protocol(ProtocolBase):
     id: int
+    created_at: t.Optional[str] = None
+    updated_at: t.Optional[str] = None
 
     class Config:
         from_attributes = True

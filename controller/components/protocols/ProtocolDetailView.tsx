@@ -29,6 +29,18 @@ import {
   NumberInputField,
   Switch,
   Input,
+  Drawer,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerHeader,
+  DrawerBody,
+  DrawerCloseButton,
+  useDisclosure,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Center,
 } from "@chakra-ui/react";
 import {
   DeleteIcon,
@@ -38,6 +50,7 @@ import {
   ArrowForwardIcon,
   ChevronUpIcon,
   ChevronDownIcon,
+  HamburgerIcon,
 } from "@chakra-ui/icons";
 import { useRouter } from "next/router";
 import { ProtocolManager } from "./ProtocolManager";
@@ -49,6 +62,39 @@ import { trpc } from "@/utils/trpc";
 import { DeleteWithConfirmation } from "@/components/ui/Delete";
 import { PiToolbox } from "react-icons/pi";
 import { ParameterEditor } from "@/components/ui/ParameterEditor";
+import SwimLaneCommandComponent from "../runs/list/SwimLaneCommandComponent";
+import { capitalizeFirst } from "@/utils/parser";
+import { VscRunBelow } from "react-icons/vsc";
+
+// Move renderToolImage to be accessible to all components
+const renderToolImage = (config: any) => {
+  if (!config) return null;
+  if (!config.image_url) return null;
+  if (config.name === "Tool Box") {
+    return (
+      <IconButton
+        aria-label="Tool Box"
+        icon={<PiToolbox style={{ width: "60px", height: "60px" }} />}
+        variant="ghost"
+        colorScheme="teal"
+        isRound
+        size="lg"
+      />
+    );
+  }
+  return (
+    <Image
+      src={config.image_url}
+      alt={config.name}
+      sizes="100vw"
+      style={{
+        width: "60px",
+        height: "60px",
+        objectFit: "contain",
+      }}
+    />
+  );
+};
 
 const CommandBox: React.FC<{
   command: any;
@@ -65,39 +111,11 @@ const CommandBox: React.FC<{
   const infoQuery = trpc.tool.info.useQuery({ toolId: command.commandInfo.toolId });
 
   const formatToolId = (toolId: string) => {
+    if (!toolId) return "";
     return toolId
       .split("_")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(" ");
-  };
-
-  const renderToolImage = (config: any) => {
-    if (!config) return null;
-    if (!config.image_url) return null;
-    if (config.name === "Tool Box") {
-      return (
-        <IconButton
-          aria-label="Tool Box"
-          icon={<PiToolbox style={{ width: "100%", height: "100%" }} />}
-          variant="ghost"
-          colorScheme="teal"
-          isRound
-          size="md"
-        />
-      );
-    }
-    return (
-      <Image
-        src={config.image_url}
-        alt={config.name}
-        sizes="100vw"
-        style={{
-          width: "40px",
-          height: "40px",
-          objectFit: "contain",
-        }}
-      />
-    );
   };
 
   return (
@@ -125,7 +143,7 @@ const CommandBox: React.FC<{
         position="relative">
         <VStack align="stretch" spacing={4}>
           <Text fontWeight="bold" fontSize="md">
-            {formatToolId(command.commandInfo.toolId)}
+            {formatToolId(command.commandInfo.toolType)}
           </Text>
           <Tag>{command.commandInfo.command}</Tag>
           <ParameterEditor
@@ -177,6 +195,92 @@ const handleWheel = (e: WheelEvent) => {
   }
 };
 
+// Create a custom version of SwimLaneCommandComponent for the protocol editor
+const ProtocolSwimLaneCommandComponent: React.FC<{
+  command: any;
+  onCommandClick: (command: any) => void;
+  onRunCommand: (command: any) => void;
+  onDeleteCommand: () => void;
+  isEditing?: boolean;
+}> = ({ command, onCommandClick, onRunCommand, onDeleteCommand, isEditing = false }) => {
+  const infoQuery = trpc.tool.info.useQuery({ toolId: command.commandInfo.toolId });
+  const execMutation = trpc.tool.runCommand.useMutation();
+
+  return (
+    <Box
+      onClick={(e) => {
+        // Only trigger click if not clicking menu
+        const target = e.target as HTMLElement;
+        if (!target.closest('.command-menu')) {
+          onCommandClick(command);
+        }
+      }}
+    >
+      <Box
+        left="0px"
+        right="0px"
+        minW="250px"
+        maxW="300px"
+        height="165px"
+        overflowY="auto"
+        mr="4"
+        fontSize="18px"
+        borderLeftRadius="15"
+        borderRightRadius="15"
+        padding="6px"
+        background={useColorModeValue("gray.100", "gray.700")}
+        border="1px"
+        borderColor="black">
+        <VStack alignItems="stretch">
+          <Box>
+            <HStack spacing={2}>
+              <Box width="90%">
+                <Text as="b">{capitalizeFirst(command.commandInfo.toolType)}</Text>
+              </Box>
+              <Box className="command-menu">
+                <Menu>
+                  <MenuButton
+                    as={IconButton}
+                    aria-label="Options"
+                    border={0}
+                    bg="transparent"
+                    icon={<HamburgerIcon fontSize="lg" />}
+                    variant="outline"
+                  />
+                  <MenuList>
+                    <MenuItem 
+                      onClick={() => onRunCommand(command)}
+                      icon={<VscRunBelow />}
+                    >
+                      Run Command
+                    </MenuItem>
+                    {isEditing && (
+                      <MenuItem 
+                        onClick={onDeleteCommand}
+                        icon={<DeleteIcon />}
+                      >
+                        Delete Command
+                      </MenuItem>
+                    )}
+                  </MenuList>
+                </Menu>
+              </Box>
+            </HStack>
+          </Box>
+          <Center p={0}>
+            <VStack spacing={2}>
+              <Box>{renderToolImage(infoQuery.data)}</Box>
+              <Box bottom={0} position="sticky">
+                <Text>{capitalizeFirst(command.commandInfo.command.replaceAll("_", " "))}</Text>
+              </Box>
+            </VStack>
+          </Center>
+        </VStack>
+      </Box>
+    </Box>
+  );
+};
+
 export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const router = useRouter();
   const toast = useToast();
@@ -185,11 +289,40 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const [isRunModalOpen, setIsRunModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [addCommandPosition, setAddCommandPosition] = useState<number | null>(null);
+  const [selectedCommand, setSelectedCommand] = useState<any | null>(null);
+  const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
 
-  const { data: protocol, isLoading, isError } = trpc.protocol.get.useQuery({ id });
+  const {
+    data: protocol,
+    isLoading,
+    error,
+    refetch
+  } = trpc.protocol.getById.useQuery({ id: parseInt(id) });
+
+  const updateProtocol = trpc.protocol.update.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Protocol updated",
+        status: "success",
+        duration: 3000,
+      });
+      refetch();
+    },
+  });
+
+  const deleteProtocol = trpc.protocol.delete.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Protocol deleted",
+        status: "success",
+        duration: 3000,
+      });
+      router.push("/protocols");
+    },
+  });
 
   const handleAddCommandAtPosition = (position: number) => {
     setAddCommandPosition(position);
@@ -197,16 +330,16 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   };
 
   useEffect(() => {
-    if (!protocol?.commands) return;
+    if (!protocol?.commands_template) return;
 
-    const newCommands = protocol.commands.map((cmd: any) => ({
-      queueId: cmd.queueId || `${Date.now()}-${Math.random()}`,
+    const newCommands = protocol.commands_template.map((cmd: any) => ({
+      queueId: `${Date.now()}-${Math.random()}`,
       commandInfo: {
-        toolId: cmd.toolId || cmd.commandInfo?.toolId,
-        toolType: cmd.toolType || cmd.commandInfo?.toolType,
-        command: cmd.command || cmd.commandInfo?.command,
-        params: cmd.params || cmd.commandInfo?.params,
-        label: cmd.label || cmd.commandInfo?.label || "",
+        toolId: cmd.toolType,
+        toolType: cmd.toolType || "",
+        command: cmd.command,
+        params: cmd.params || {},
+        label: cmd.label || "",
       },
       status: "CREATED",
       estimatedDuration: 0,
@@ -219,7 +352,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     }));
 
     setCommands(newCommands);
-  }, [protocol?.commands]);
+  }, [protocol?.commands_template]);
 
   useEffect(() => {
     return () => {
@@ -232,7 +365,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     return <Spinner size="xl" />;
   }
 
-  if (isError || !protocol) {
+  if (error || !protocol) {
     return (
       <Alert status="error">
         <AlertIcon />
@@ -278,11 +411,62 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   };
 
   const handleDeleteCommand = (index: number) => {
-    console.log("Delete command at index:", index);
+    setCommands((prevCommands) => {
+      const updatedCommands = [...prevCommands];
+      updatedCommands.splice(index, 1);
+      return updatedCommands;
+    });
   };
 
   const handleSaveChanges = () => {
+    if (!protocol) return;
+    
+    // Convert commands to the format expected by the API
+    const commandsTemplate = commands.map(cmd => ({
+      toolId: cmd.commandInfo.toolId,
+      toolType: cmd.commandInfo.toolType,
+      command: cmd.commandInfo.command,
+      params: cmd.commandInfo.params,
+      label: cmd.commandInfo.label || "",
+    }));
+    
+    updateProtocol.mutate({
+      id: protocol.id,
+      data: {
+        name: protocol.name,
+        description: protocol.description,
+        parameters_schema: protocol.parameters_schema,
+        commands_template: commandsTemplate,
+      },
+    });
+    
     setIsEditing(false);
+  };
+
+  const handleDelete = () => {
+    if (!protocol) return;
+    deleteProtocol.mutate({ id: protocol.id });
+  };
+
+  const handleRunCommand = (command: any) => {
+    const execMutation = trpc.tool.runCommand.useMutation();
+    execMutation.mutate(command.commandInfo, {
+      onSuccess: () => {
+        toast({
+          title: "Command executed",
+          status: "success",
+          duration: 3000,
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: "Failed to execute command",
+          description: error.message,
+          status: "error",
+          duration: 5000,
+        });
+      },
+    });
   };
 
   return (
@@ -352,34 +536,47 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
             },
           }}>
           <HStack spacing={4} align="flex-start" minW="min-content">
-            {commands.map((command: any, index: number) => (
-              <CommandBox
-                key={command.queueId}
-                command={command}
-                isEditing={isEditing}
-                isLast={index === commands.length - 1}
-                position={index}
-                onAddCommand={handleAddCommandAtPosition}
-                onParamChange={(newParams) => {
-                  setCommands((prevCommands) => {
-                    const updatedCommands = prevCommands.map((cmd, i) => {
-                      if (i === index) {
-                        return {
-                          ...cmd,
-                          commandInfo: {
-                            ...cmd.commandInfo,
-                            params: newParams,
-                          },
-                        };
-                      }
-                      return cmd;
-                    });
-                    return updatedCommands;
-                  });
-                }}
-                onDelete={() => handleDeleteCommand(index)}
-              />
-            ))}
+            {commands.length === 0 && isEditing ? (
+              <Button
+                leftIcon={<AddIcon />}
+                colorScheme="blue"
+                variant="outline"
+                onClick={() => handleAddCommandAtPosition(0)}
+              >
+                Add First Command
+              </Button>
+            ) : (
+              commands.map((command: any, index: number) => (
+                <HStack key={command.queueId}>
+                  {isEditing && (
+                    <IconButton
+                      aria-label="Add command before"
+                      icon={<AddIcon />}
+                      size="sm"
+                      colorScheme="blue"
+                      variant="ghost"
+                      onClick={() => handleAddCommandAtPosition(index)}
+                      _hover={{ bg: "blue.100" }}
+                    />
+                  )}
+                  <ProtocolSwimLaneCommandComponent
+                    command={command}
+                    onCommandClick={(cmd) => {
+                      setSelectedCommand(cmd);
+                      onDrawerOpen();
+                    }}
+                    onRunCommand={handleRunCommand}
+                    onDeleteCommand={() => handleDeleteCommand(index)}
+                    isEditing={isEditing}
+                  />
+                  {index < commands.length - 1 && (
+                    <Box color={useColorModeValue("gray.500", "gray.400")}>
+                      <ArrowForwardIcon boxSize={6} />
+                    </Box>
+                  )}
+                </HStack>
+              ))
+            )}
           </HStack>
         </Box>
       </VStack>
@@ -391,7 +588,83 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         onCommandAdded={handleCommandAdded}
       />
 
-      {isRunModalOpen && <NewProtocolRunModal id={id} onClose={handleRunModalClose} />}
+      {isRunModalOpen && (
+        <NewProtocolRunModal 
+          id={protocol.id.toString()} 
+          onClose={handleRunModalClose} 
+        />
+      )}
+
+      <Drawer isOpen={isDrawerOpen} onClose={onDrawerClose} placement="right" size="md">
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <DrawerHeader>Command Details</DrawerHeader>
+          <DrawerBody>
+            {selectedCommand ? (
+              <VStack spacing={4} align="self-start">
+                <Divider />
+                <Text as="b">Tool:</Text>
+                <Text>{capitalizeFirst(selectedCommand.commandInfo.toolType)}</Text>
+                <Divider />
+                <Text as="b">Name:</Text>
+                <Text>
+                  {capitalizeFirst(selectedCommand.commandInfo.command.replaceAll("_", " "))}
+                </Text>
+                <Divider />
+                <Text as="b" fontSize="18px">
+                  Parameters
+                </Text>
+                <VStack align="stretch" spacing={2} w="100%">
+                  {Object.entries(selectedCommand.commandInfo.params).map(([key, value], index) => (
+                    <Box key={index}>
+                      <Text as="b" flex="1">
+                        {capitalizeFirst(key).replaceAll("_", " ")}:
+                      </Text>
+                      <Box flex="3">
+                        <input
+                          type="text"
+                          defaultValue={value as string}
+                          style={{
+                            width: "100%",
+                            padding: "8px",
+                            border: "1px solid lightgray",
+                            borderRadius: "4px",
+                          }}
+                          onChange={(e) => {
+                            if (isEditing) {
+                              const newParams = {
+                                ...selectedCommand.commandInfo.params,
+                                [key]: e.target.value,
+                              };
+                              setCommands((prevCommands) =>
+                                prevCommands.map((cmd) =>
+                                  cmd.queueId === selectedCommand.queueId
+                                    ? {
+                                        ...cmd,
+                                        commandInfo: {
+                                          ...cmd.commandInfo,
+                                          params: newParams,
+                                        },
+                                      }
+                                    : cmd,
+                                ),
+                              );
+                            }
+                          }}
+                          readOnly={!isEditing}
+                        />
+                      </Box>
+                    </Box>
+                  ))}
+                </VStack>
+              </VStack>
+            ) : (
+              <Text>No command selected.</Text>
+            )}
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
     </Box>
   );
 };

@@ -1,4 +1,4 @@
-import { Protocol } from "@/types/api";
+import { NewProtocolForm } from "./NewProtocolForm";
 import {
   Box,
   Button,
@@ -26,8 +26,20 @@ import {
   Stat,
   StatLabel,
   StatNumber,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  IconButton,
 } from "@chakra-ui/react";
-import { SearchIcon, ArrowUpDownIcon } from "@chakra-ui/icons";
+import { SearchIcon, ArrowUpDownIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -46,6 +58,7 @@ export const ProtocolPageComponent: React.FC = () => {
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [runModalProtocolId, setRunModalProtocolId] = useState<string | null>(null);
+  const { isOpen: isNewProtocolOpen, onOpen: onNewProtocolOpen, onClose: onNewProtocolClose } = useDisclosure();
 
   const headerBg = useColorModeValue("white", "gray.700");
   const containerBg = useColorModeValue("white", "gray.800");
@@ -56,8 +69,29 @@ export const ProtocolPageComponent: React.FC = () => {
 
   const router = useRouter();
   const toast = useToast();
-  const workcellName = "Cell Culture Workcell";
-  const { data: protocols, isLoading, isError } = trpc.protocol.allNames.useQuery({ workcellName });
+  const { data: workcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
+  const { data: protocols, isLoading, isError, refetch } = trpc.protocol.allNames.useQuery({ workcellName: workcellName || "" });
+  const deleteMutation = trpc.protocol.delete.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Protocol deleted",
+        description: "The protocol has been successfully deleted",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+      refetch(); // Refresh the protocols list
+    },
+    onError: (error) => {
+      toast({
+        title: "Error deleting protocol",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    },
+  });
 
   // Get unique workcells and categories for filters
   const uniqueWorkcells = useMemo(() => {
@@ -129,6 +163,26 @@ export const ProtocolPageComponent: React.FC = () => {
     setRunModalProtocolId(null);
   };
 
+  const handleDelete = async (protocolId: string) => {
+    // Check if it's a TypeScript protocol (non-numeric ID)
+    if (isNaN(parseInt(protocolId))) {
+      toast({
+        title: "Cannot Delete",
+        description: "TypeScript-based protocols cannot be deleted as they are part of the codebase. Only database protocols can be deleted.",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    try {
+      await deleteMutation.mutateAsync({ id: parseInt(protocolId) });
+    } catch (error) {
+      // Error is handled in onError callback above
+    }
+  };
+
   return (
     <VStack spacing={4} align="stretch">
       <Card bg={headerBg} shadow="md">
@@ -142,7 +196,7 @@ export const ProtocolPageComponent: React.FC = () => {
                 <Button
                   colorScheme="teal"
                   leftIcon={<RiAddFill />}
-                  onClick={() => router.push("/protocols/new")}>
+                  onClick={onNewProtocolOpen}>
                   New Protocol
                 </Button>
               }
@@ -278,19 +332,34 @@ export const ProtocolPageComponent: React.FC = () => {
                       {/* <Td>{protocol.created_at}</Td> */}
                       <Td>{protocol.number_of_commands}</Td>
                       <Td>
-                        <HStack spacing={2}>
-                          <Button
+                        <Menu>
+                          <MenuButton
+                            as={IconButton}
+                            icon={<HamburgerIcon />}
+                            variant="ghost"
                             size="sm"
-                            colorScheme="green"
-                            onClick={() => handleRunClick(protocol.id.toString())}>
-                            Run
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => router.push(`/protocols/${protocol.id}/edit`)}>
-                            Edit
-                          </Button>
-                        </HStack>
+                          />
+                          <MenuList>
+                            <MenuItem
+                              onClick={() => handleRunClick(protocol.id.toString())}
+                              color="green.500"
+                            >
+                              Run
+                            </MenuItem>
+                            <MenuItem
+                              onClick={() => router.push(`/protocols/${protocol.id}/edit`)}
+                              color="blue.500"
+                            >
+                              Edit
+                            </MenuItem>
+                            <MenuItem
+                              color="red.500"
+                              onClick={() => handleDelete(protocol.id.toString())}
+                            >
+                              Delete
+                            </MenuItem>
+                          </MenuList>
+                        </Menu>
                       </Td>
                     </Tr>
                   ))}
@@ -304,6 +373,17 @@ export const ProtocolPageComponent: React.FC = () => {
       {runModalProtocolId && (
         <NewProtocolRunModal id={runModalProtocolId} onClose={handleRunModalClose} />
       )}
+
+      <Modal isOpen={isNewProtocolOpen} onClose={onNewProtocolClose} size="xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Create New Protocol</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <NewProtocolForm />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </VStack>
   );
 };

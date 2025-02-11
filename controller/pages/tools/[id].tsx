@@ -37,17 +37,17 @@ type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormVal
 
 type FieldType = "text" | "number" | "text_array" | "boolean" | Field[];
 
-interface Field {
+export interface Field {
   name: string;
-  type: FieldType;
-  defaultValue?: AtomicFormValues;
+  type: "text" | "number" | "text_array" | "boolean";
+  defaultValue?: any;
 }
 
-interface Command {
+export interface Command {
   [command: string]: Field[];
 }
 
-type CommandFields = {
+export type CommandFields = {
   [tool: string]: Command;
 };
 
@@ -80,7 +80,7 @@ const leave: Field[] = [
   { name: "motion_profile_id", type: "number", defaultValue: 2 },
 ];
 
-const commandFields: CommandFields = {
+export const commandFields: CommandFields = {
   toolbox: {
     run_python_script: [
       {
@@ -222,7 +222,7 @@ const commandFields: CommandFields = {
     ],
 
     print: [
-      { name: "format_name", type: "number" },
+      { name: "format_name", type: "text" },
       { name: "field_0", type: "text" },
       { name: "field_1", type: "text" },
       { name: "field_2", type: "text" },
@@ -269,8 +269,8 @@ const commandFields: CommandFields = {
     open_carrier: [],
     close_carrier: [],
     start_read: [
-      { name: "protocol_file", type: "text", defaultValue: "test" },
-      { name: "experiment_name", type: "text", defaultValue: "boop" },
+      { name: "protocol_file", type: "text", defaultValue: "C://protocols" },
+      { name: "experiment_name", type: "text", defaultValue: "C://experiments" },
       { name: "well_addresses", type: "text_array", defaultValue: ["A1", "B2"] },
     ],
   },
@@ -306,50 +306,49 @@ const commandFields: CommandFields = {
   },
   pf400: {
     run_sequence: [{ name: "sequence_name", type: "text" }],
-    move: move,
-    grasp_plate: grasp_plate,
-    release_plate: release_plate,
-    approach: approach,
-    leave: leave,
+    move: [
+      { name: "name", type: "text" },
+      { name: "motion_profile_id", type: "number", defaultValue: 1 },
+      { name: "z_offset", type: "number", defaultValue: 0 },
+    ],
+    grasp_plate: [
+      { name: "width", type: "number", defaultValue: 122 },
+      { name: "speed", type: "number", defaultValue: 10 },
+      { name: "force", type: "number", defaultValue: 20 },
+    ],
+    release_plate: [
+      { name: "width", type: "number", defaultValue: 130 },
+      { name: "speed", type: "number", defaultValue: 10 },
+    ],
+    approach: [
+      { name: "nest", type: "text" },
+      { name: "x_offset", type: "number", defaultValue: 0 },
+      { name: "y_offset", type: "number", defaultValue: 0 },
+      { name: "z_offset", type: "number", defaultValue: 0 },
+      { name: "motion_profile_id", type: "number", defaultValue: 1 },
+      { name: "ignore_safepath", type: "boolean", defaultValue: false },
+    ],
+    leave: [
+      { name: "nest", type: "text" },
+      { name: "x_offset", type: "number", defaultValue: 0 },
+      { name: "y_offset", type: "number", defaultValue: 0 },
+      { name: "z_offset", type: "number", defaultValue: 0 },
+      { name: "motion_profile_id", type: "number", defaultValue: 1 },
+    ],
     retrieve_plate: [
       { name: "labware", type: "text" },
       { name: "location", type: "text" },
-      { name: "motion_profile_id", type: "number", defaultValue: 2 },
+      { name: "z_offset", type: "number", defaultValue: 0 },
+      { name: "motion_profile_id", type: "number", defaultValue: 1 },
     ],
     dropoff_plate: [
       { name: "labware", type: "text" },
       { name: "location", type: "text" },
-      { name: "motion_profile_id", type: "number", defaultValue: 2 },
+      { name: "motion_profile_id", type: "number", defaultValue: 1 },
+      { name: "z_offset", type: "number", defaultValue: 0 },
     ],
-    transfer: [
-      { name: "source_nest", type: approach },
-      { name: "destination_nest", type: leave },
-      { name: "grasp_params", type: grasp_plate },
-      { name: "release_params", type: release_plate },
-      { name: "motion_profile_id", type: "number", defaultValue: 2 },
-      { name: "grip_width", type: "number" },
-    ],
-    register_motion_profile: [
-      { name: "id", type: "number" },
-      { name: "speed", type: "number" },
-      { name: "speed2", type: "number" },
-      { name: "accel", type: "number" },
-      { name: "decel", type: "number" },
-      { name: "accel_ramp", type: "number" },
-      { name: "decel_ramp", type: "number" },
-      { name: "inrange", type: "number" },
-      { name: "straight", type: "number" },
-    ],
-    smart_transfer: [
-      { name: "source_nest", type: approach },
-      { name: "destination_nest", type: leave },
-      { name: "grasp_params", type: grasp_plate },
-      { name: "release_params", type: release_plate },
-      { name: "motion_profile_id", type: "number", defaultValue: 2 },
-      { name: "grip_width", type: "number" },
-    ],
-    release: [],
     engage: [],
+    release: [],
     retract: [],
   },
 };

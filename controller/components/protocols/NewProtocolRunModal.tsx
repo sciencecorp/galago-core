@@ -119,7 +119,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   const workcellName = workcellData.data;
   const protocol = trpc.protocol.get.useQuery(
     {
-      id: id.toString(),
+      id: id,
     },
     {
       onSuccess: (data) => {},
@@ -196,7 +196,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                         <FormControl key={param} isInvalid={!!(formErrors && formErrors[param])}>
                           <FormLabel>{capitalizeFirst(param.replaceAll("_", " "))}</FormLabel>
                           <ParamInput
-                            paramInfo={paramInfo}
+                            paramInfo={paramInfo as ProtocolParamInfo}
                             value={userDefinedParams[param]}
                             setValue={(value) =>
                               setUserDefinedParams({ ...userDefinedParams, [param]: value })

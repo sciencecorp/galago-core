@@ -13,22 +13,18 @@ import {
   VStack,
   Input,
   useToast,
+  NumberInput,
+  NumberInputField,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { trpc } from "@/utils/trpc";
-import { z } from "zod";
-import { mockToolCommands } from "@/mocks/mockToolCommands";
+import { commandFields, Field, Command } from "@/pages/tools/[id]";
 
 interface AddToolCommandModalProps {
   isOpen: boolean;
   onClose: () => void;
   protocolId: string;
   onCommandAdded: (newCommand: any) => void;
-}
-
-interface ToolCommand {
-  schema: z.ZodSchema;
-  // Add other properties if needed
 }
 
 export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
@@ -43,12 +39,12 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   const [commandParams, setCommandParams] = useState<Record<string, any>>({});
 
   const toolsQuery = trpc.tool.getAll.useQuery();
-  const availableCommands = selectedTool
-    ? (mockToolCommands[selectedTool as keyof typeof mockToolCommands] as Record<
-        string,
-        ToolCommand
-      >) || {}
-    : {};
+  
+  // Get available commands for the selected tool
+  const availableCommands: Command = selectedTool ? commandFields[selectedTool] || {} : {};
+  
+  // Get fields for the selected command
+  const fields: Field[] = selectedTool && selectedCommand ? availableCommands[selectedCommand] || [] : [];
 
   const handleSubmit = () => {
     const toolId = toolsQuery.data?.find((tool) => tool.type === selectedTool)?.id || "0";
@@ -79,11 +75,6 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
       duration: 3000,
     });
   };
-
-  let commandSchema;
-  if (availableCommands[selectedCommand as keyof typeof availableCommands]) {
-    commandSchema = availableCommands[selectedCommand as keyof typeof availableCommands]?.schema;
-  }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -130,17 +121,52 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               </FormControl>
             )}
 
-            {commandSchema && (
+            {fields.length > 0 && (
               <VStack spacing={4} align="stretch" width="100%">
-                {Object.entries(commandSchema || {}).map(([param, schema]) => (
-                  <FormControl key={param}>
-                    <FormLabel>{param}</FormLabel>
-                    <Input
-                      value={commandParams[param] || ""}
-                      onChange={(e) =>
-                        setCommandParams({ ...commandParams, [param]: e.target.value })
-                      }
-                    />
+                {fields.map((field: Field) => (
+                  <FormControl key={field.name}>
+                    <FormLabel>{field.name}</FormLabel>
+                    {field.type === "number" ? (
+                      <NumberInput
+                        value={commandParams[field.name] || field.defaultValue || ""}
+                        onChange={(value) =>
+                          setCommandParams({ ...commandParams, [field.name]: parseFloat(value) })
+                        }
+                      >
+                        <NumberInputField />
+                      </NumberInput>
+                    ) : field.type === "text_array" ? (
+                      <Input
+                        value={commandParams[field.name] ? JSON.stringify(commandParams[field.name]) : field.defaultValue ? JSON.stringify(field.defaultValue) : ""}
+                        onChange={(e) => {
+                          try {
+                            const arrayValue = JSON.parse(e.target.value);
+                            setCommandParams({ ...commandParams, [field.name]: arrayValue });
+                          } catch {
+                            // If parsing fails, store as string
+                            setCommandParams({ ...commandParams, [field.name]: e.target.value });
+                          }
+                        }}
+                        placeholder="Enter as JSON array: ['item1', 'item2']"
+                      />
+                    ) : field.type === "boolean" ? (
+                      <Select
+                        value={commandParams[field.name]?.toString() || field.defaultValue?.toString() || "false"}
+                        onChange={(e) => 
+                          setCommandParams({ ...commandParams, [field.name]: e.target.value === "true" })
+                        }
+                      >
+                        <option value="true">True</option>
+                        <option value="false">False</option>
+                      </Select>
+                    ) : (
+                      <Input
+                        value={commandParams[field.name] || field.defaultValue || ""}
+                        onChange={(e) =>
+                          setCommandParams({ ...commandParams, [field.name]: e.target.value })
+                        }
+                      />
+                    )}
                   </FormControl>
                 ))}
               </VStack>
