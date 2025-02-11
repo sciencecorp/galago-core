@@ -11,9 +11,11 @@ export interface Command {
   home_shield?: Command_HomeShield | undefined;
 }
 
-export interface Command_Home {}
+export interface Command_Home {
+}
 
-export interface Command_CloseShield {}
+export interface Command_CloseShield {
+}
 
 export interface Command_OpenShield {
   bucket_id: number;
@@ -26,24 +28,21 @@ export interface Command_Spin {
   duration: number;
 }
 
-export interface Command_AbortSpin {}
+export interface Command_AbortSpin {
+}
 
-export interface Command_Reset {}
+export interface Command_Reset {
+}
 
-export interface Command_HomeShield {}
+export interface Command_HomeShield {
+}
 
 export interface Config {
   can_port: number;
 }
 
 function createBaseCommand(): Command {
-  return {
-    home: undefined,
-    close_shield: undefined,
-    open_shield: undefined,
-    spin: undefined,
-    home_shield: undefined,
-  };
+  return { home: undefined, close_shield: undefined, open_shield: undefined, spin: undefined, home_shield: undefined };
 }
 
 export const Command = {
@@ -120,37 +119,23 @@ export const Command = {
   fromJSON(object: any): Command {
     return {
       home: isSet(object.home) ? Command_Home.fromJSON(object.home) : undefined,
-      close_shield: isSet(object.close_shield)
-        ? Command_CloseShield.fromJSON(object.close_shield)
-        : undefined,
-      open_shield: isSet(object.open_shield)
-        ? Command_OpenShield.fromJSON(object.open_shield)
-        : undefined,
+      close_shield: isSet(object.close_shield) ? Command_CloseShield.fromJSON(object.close_shield) : undefined,
+      open_shield: isSet(object.open_shield) ? Command_OpenShield.fromJSON(object.open_shield) : undefined,
       spin: isSet(object.spin) ? Command_Spin.fromJSON(object.spin) : undefined,
-      home_shield: isSet(object.home_shield)
-        ? Command_HomeShield.fromJSON(object.home_shield)
-        : undefined,
+      home_shield: isSet(object.home_shield) ? Command_HomeShield.fromJSON(object.home_shield) : undefined,
     };
   },
 
   toJSON(message: Command): unknown {
     const obj: any = {};
-    message.home !== undefined &&
-      (obj.home = message.home ? Command_Home.toJSON(message.home) : undefined);
+    message.home !== undefined && (obj.home = message.home ? Command_Home.toJSON(message.home) : undefined);
     message.close_shield !== undefined &&
-      (obj.close_shield = message.close_shield
-        ? Command_CloseShield.toJSON(message.close_shield)
-        : undefined);
+      (obj.close_shield = message.close_shield ? Command_CloseShield.toJSON(message.close_shield) : undefined);
     message.open_shield !== undefined &&
-      (obj.open_shield = message.open_shield
-        ? Command_OpenShield.toJSON(message.open_shield)
-        : undefined);
-    message.spin !== undefined &&
-      (obj.spin = message.spin ? Command_Spin.toJSON(message.spin) : undefined);
+      (obj.open_shield = message.open_shield ? Command_OpenShield.toJSON(message.open_shield) : undefined);
+    message.spin !== undefined && (obj.spin = message.spin ? Command_Spin.toJSON(message.spin) : undefined);
     message.home_shield !== undefined &&
-      (obj.home_shield = message.home_shield
-        ? Command_HomeShield.toJSON(message.home_shield)
-        : undefined);
+      (obj.home_shield = message.home_shield ? Command_HomeShield.toJSON(message.home_shield) : undefined);
     return obj;
   },
 
@@ -160,26 +145,21 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.home =
-      object.home !== undefined && object.home !== null
-        ? Command_Home.fromPartial(object.home)
-        : undefined;
-    message.close_shield =
-      object.close_shield !== undefined && object.close_shield !== null
-        ? Command_CloseShield.fromPartial(object.close_shield)
-        : undefined;
-    message.open_shield =
-      object.open_shield !== undefined && object.open_shield !== null
-        ? Command_OpenShield.fromPartial(object.open_shield)
-        : undefined;
-    message.spin =
-      object.spin !== undefined && object.spin !== null
-        ? Command_Spin.fromPartial(object.spin)
-        : undefined;
-    message.home_shield =
-      object.home_shield !== undefined && object.home_shield !== null
-        ? Command_HomeShield.fromPartial(object.home_shield)
-        : undefined;
+    message.home = (object.home !== undefined && object.home !== null)
+      ? Command_Home.fromPartial(object.home)
+      : undefined;
+    message.close_shield = (object.close_shield !== undefined && object.close_shield !== null)
+      ? Command_CloseShield.fromPartial(object.close_shield)
+      : undefined;
+    message.open_shield = (object.open_shield !== undefined && object.open_shield !== null)
+      ? Command_OpenShield.fromPartial(object.open_shield)
+      : undefined;
+    message.spin = (object.spin !== undefined && object.spin !== null)
+      ? Command_Spin.fromPartial(object.spin)
+      : undefined;
+    message.home_shield = (object.home_shield !== undefined && object.home_shield !== null)
+      ? Command_HomeShield.fromPartial(object.home_shield)
+      : undefined;
     return message;
   },
 };
@@ -615,19 +595,13 @@ export const Config = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-    ? Array<DeepPartial<U>>
-    : T extends ReadonlyArray<infer U>
-      ? ReadonlyArray<DeepPartial<U>>
-      : T extends {}
-        ? { [K in keyof T]?: DeepPartial<T[K]> }
-        : Partial<T>;
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
+export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {

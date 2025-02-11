@@ -190,9 +190,9 @@ const commandFields: CommandFields = {
   },
   plateloc: {
     seal: [],
-    set_temperature: [{ name: "temperature", type: "text" }],
-    set_seal_time: [{ name: "sealTime", type: "text" }],
-    get_actual_temperature: [],
+    set_temperature: [{ name: "temperature", type: "number" }],
+    set_seal_time: [{ name: "time", type: "number" }],
+    // get_actual_temperature: [],
     stage_in: [],
     stage_out: [],
     show_diagnostics: [],
