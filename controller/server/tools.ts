@@ -233,6 +233,30 @@ export default class Tool {
     this.allTools = tools;
   }
 
+  static async getToolConfigDefinition(toolType: ToolType) {
+    if (toolType === ToolType.UNRECOGNIZED || toolType === ToolType.unknown) {
+      console.warn(`Received unsupported or unknown ToolType: ${toolType}`);
+      return {}; // Return a default or empty config object
+    }
+    const toolTypeName = ToolType[toolType];
+    if (!toolTypeName) {
+      throw new Error(`Unsupported ToolType: ${toolType}`);
+    }
+    const modulePath = `gen-interfaces/tools/grpc_interfaces/${toolType.toLowerCase()}`;
+    try {
+      // Dynamically import the module
+      const toolModule = await import(
+        /* webpackInclude: /\.ts$/ */ `gen-interfaces/tools/grpc_interfaces/${toolType}`
+      );
+      if (!toolModule || !toolModule.Config) {
+        throw new Error(`Config type not found in module: ${modulePath}`);
+      }
+      return toolModule.Config.create({});
+    } catch (error) {
+      throw new Error(`Failed to load config for ToolType: ${toolTypeName}. Error: ${error}`);
+    }
+  }
+
   static async reloadSingleToolConfig(tool: controller_protos.ToolConfig) {
     const normalizedName =Tool.normalizeToolId(tool.name);
     await this.removeTool(tool.name);
@@ -245,7 +269,6 @@ export default class Tool {
 
 
   static forId(id: string): Tool {
-    console.log("Tool id: ", id);
     const global_key = "__global_tool_store";
     const me = global as any;
     if (!me[global_key]) {
