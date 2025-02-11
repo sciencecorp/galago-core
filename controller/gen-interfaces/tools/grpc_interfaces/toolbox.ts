@@ -62,8 +62,7 @@ export interface Command_TextToSpeech {
   text: string;
 }
 
-export interface Command_GetWorkcells {
-}
+export interface Command_GetWorkcells {}
 
 export interface Command_LogMediaExchange {
   source_barcode: string;
@@ -113,15 +112,13 @@ export interface Command_SendSlackAlert {
   error_message: string;
 }
 
-export interface Command_ClearLastSlackAlert {
-}
+export interface Command_ClearLastSlackAlert {}
 
 export interface Command_ValidateFolder {
   folder_path: string;
 }
 
-export interface Config {
-}
+export interface Config {}
 
 function createBaseCommand(): Command {
   return {
@@ -170,19 +167,34 @@ export const Command = {
       Command_GetWorkcells.encode(message.get_workcells, writer.uint32(58).fork()).ldelim();
     }
     if (message.log_media_exchange !== undefined) {
-      Command_LogMediaExchange.encode(message.log_media_exchange, writer.uint32(66).fork()).ldelim();
+      Command_LogMediaExchange.encode(
+        message.log_media_exchange,
+        writer.uint32(66).fork(),
+      ).ldelim();
     }
     if (message.get_liconic_sensor_data !== undefined) {
-      Command_GetLiconicSensorData.encode(message.get_liconic_sensor_data, writer.uint32(74).fork()).ldelim();
+      Command_GetLiconicSensorData.encode(
+        message.get_liconic_sensor_data,
+        writer.uint32(74).fork(),
+      ).ldelim();
     }
     if (message.get_ot2_images_by_date !== undefined) {
-      Command_GetOT2ImagesByDate.encode(message.get_ot2_images_by_date, writer.uint32(82).fork()).ldelim();
+      Command_GetOT2ImagesByDate.encode(
+        message.get_ot2_images_by_date,
+        writer.uint32(82).fork(),
+      ).ldelim();
     }
     if (message.get_ot2_image_bytes !== undefined) {
-      Command_GetOT2ImageBytes.encode(message.get_ot2_image_bytes, writer.uint32(90).fork()).ldelim();
+      Command_GetOT2ImageBytes.encode(
+        message.get_ot2_image_bytes,
+        writer.uint32(90).fork(),
+      ).ldelim();
     }
     if (message.get_ot2_image_prediction !== undefined) {
-      Command_GetOT2ImagePrediction.encode(message.get_ot2_image_prediction, writer.uint32(98).fork()).ldelim();
+      Command_GetOT2ImagePrediction.encode(
+        message.get_ot2_image_prediction,
+        writer.uint32(98).fork(),
+      ).ldelim();
     }
     if (message.run_python_script !== undefined) {
       Command_RunPythonScript.encode(message.run_python_script, writer.uint32(106).fork()).ldelim();
@@ -191,11 +203,16 @@ export const Command = {
       Command_SendSlackAlert.encode(message.send_slack_alert, writer.uint32(114).fork()).ldelim();
     }
     if (message.clear_last_slack_alert !== undefined) {
-      Command_ClearLastSlackAlert.encode(message.clear_last_slack_alert, writer.uint32(122).fork()).ldelim();
+      Command_ClearLastSlackAlert.encode(
+        message.clear_last_slack_alert,
+        writer.uint32(122).fork(),
+      ).ldelim();
     }
     if (message.get_log_media_exchange_by_date !== undefined) {
-      Command_GetLogMediaExchangeByDate.encode(message.get_log_media_exchange_by_date, writer.uint32(130).fork())
-        .ldelim();
+      Command_GetLogMediaExchangeByDate.encode(
+        message.get_log_media_exchange_by_date,
+        writer.uint32(130).fork(),
+      ).ldelim();
     }
     if (message.validate_folder !== undefined) {
       Command_ValidateFolder.encode(message.validate_folder, writer.uint32(138).fork()).ldelim();
@@ -274,14 +291,20 @@ export const Command = {
             break;
           }
 
-          message.get_liconic_sensor_data = Command_GetLiconicSensorData.decode(reader, reader.uint32());
+          message.get_liconic_sensor_data = Command_GetLiconicSensorData.decode(
+            reader,
+            reader.uint32(),
+          );
           continue;
         case 10:
           if (tag !== 82) {
             break;
           }
 
-          message.get_ot2_images_by_date = Command_GetOT2ImagesByDate.decode(reader, reader.uint32());
+          message.get_ot2_images_by_date = Command_GetOT2ImagesByDate.decode(
+            reader,
+            reader.uint32(),
+          );
           continue;
         case 11:
           if (tag !== 90) {
@@ -295,7 +318,10 @@ export const Command = {
             break;
           }
 
-          message.get_ot2_image_prediction = Command_GetOT2ImagePrediction.decode(reader, reader.uint32());
+          message.get_ot2_image_prediction = Command_GetOT2ImagePrediction.decode(
+            reader,
+            reader.uint32(),
+          );
           continue;
         case 13:
           if (tag !== 106) {
@@ -316,14 +342,20 @@ export const Command = {
             break;
           }
 
-          message.clear_last_slack_alert = Command_ClearLastSlackAlert.decode(reader, reader.uint32());
+          message.clear_last_slack_alert = Command_ClearLastSlackAlert.decode(
+            reader,
+            reader.uint32(),
+          );
           continue;
         case 16:
           if (tag !== 130) {
             break;
           }
 
-          message.get_log_media_exchange_by_date = Command_GetLogMediaExchangeByDate.decode(reader, reader.uint32());
+          message.get_log_media_exchange_by_date = Command_GetLogMediaExchangeByDate.decode(
+            reader,
+            reader.uint32(),
+          );
           continue;
         case 17:
           if (tag !== 138) {
@@ -351,12 +383,24 @@ export const Command = {
   fromJSON(object: any): Command {
     return {
       timer: isSet(object.timer) ? Command_Timer.fromJSON(object.timer) : undefined,
-      user_message: isSet(object.user_message) ? Command_UserMessage.fromJSON(object.user_message) : undefined,
-      show_image: isSet(object.show_image) ? Command_ShowImage.fromJSON(object.show_image) : undefined,
-      slack_message: isSet(object.slack_message) ? Command_SlackMessage.fromJSON(object.slack_message) : undefined,
-      send_email: isSet(object.send_email) ? Command_SendEmail.fromJSON(object.send_email) : undefined,
-      text_to_speech: isSet(object.text_to_speech) ? Command_TextToSpeech.fromJSON(object.text_to_speech) : undefined,
-      get_workcells: isSet(object.get_workcells) ? Command_GetWorkcells.fromJSON(object.get_workcells) : undefined,
+      user_message: isSet(object.user_message)
+        ? Command_UserMessage.fromJSON(object.user_message)
+        : undefined,
+      show_image: isSet(object.show_image)
+        ? Command_ShowImage.fromJSON(object.show_image)
+        : undefined,
+      slack_message: isSet(object.slack_message)
+        ? Command_SlackMessage.fromJSON(object.slack_message)
+        : undefined,
+      send_email: isSet(object.send_email)
+        ? Command_SendEmail.fromJSON(object.send_email)
+        : undefined,
+      text_to_speech: isSet(object.text_to_speech)
+        ? Command_TextToSpeech.fromJSON(object.text_to_speech)
+        : undefined,
+      get_workcells: isSet(object.get_workcells)
+        ? Command_GetWorkcells.fromJSON(object.get_workcells)
+        : undefined,
       log_media_exchange: isSet(object.log_media_exchange)
         ? Command_LogMediaExchange.fromJSON(object.log_media_exchange)
         : undefined,
@@ -387,58 +431,84 @@ export const Command = {
       validate_folder: isSet(object.validate_folder)
         ? Command_ValidateFolder.fromJSON(object.validate_folder)
         : undefined,
-      write_to_json: isSet(object.write_to_json) ? Command_WriteToJson.fromJSON(object.write_to_json) : undefined,
+      write_to_json: isSet(object.write_to_json)
+        ? Command_WriteToJson.fromJSON(object.write_to_json)
+        : undefined,
     };
   },
 
   toJSON(message: Command): unknown {
     const obj: any = {};
-    message.timer !== undefined && (obj.timer = message.timer ? Command_Timer.toJSON(message.timer) : undefined);
+    message.timer !== undefined &&
+      (obj.timer = message.timer ? Command_Timer.toJSON(message.timer) : undefined);
     message.user_message !== undefined &&
-      (obj.user_message = message.user_message ? Command_UserMessage.toJSON(message.user_message) : undefined);
+      (obj.user_message = message.user_message
+        ? Command_UserMessage.toJSON(message.user_message)
+        : undefined);
     message.show_image !== undefined &&
-      (obj.show_image = message.show_image ? Command_ShowImage.toJSON(message.show_image) : undefined);
+      (obj.show_image = message.show_image
+        ? Command_ShowImage.toJSON(message.show_image)
+        : undefined);
     message.slack_message !== undefined &&
-      (obj.slack_message = message.slack_message ? Command_SlackMessage.toJSON(message.slack_message) : undefined);
+      (obj.slack_message = message.slack_message
+        ? Command_SlackMessage.toJSON(message.slack_message)
+        : undefined);
     message.send_email !== undefined &&
-      (obj.send_email = message.send_email ? Command_SendEmail.toJSON(message.send_email) : undefined);
+      (obj.send_email = message.send_email
+        ? Command_SendEmail.toJSON(message.send_email)
+        : undefined);
     message.text_to_speech !== undefined &&
-      (obj.text_to_speech = message.text_to_speech ? Command_TextToSpeech.toJSON(message.text_to_speech) : undefined);
+      (obj.text_to_speech = message.text_to_speech
+        ? Command_TextToSpeech.toJSON(message.text_to_speech)
+        : undefined);
     message.get_workcells !== undefined &&
-      (obj.get_workcells = message.get_workcells ? Command_GetWorkcells.toJSON(message.get_workcells) : undefined);
-    message.log_media_exchange !== undefined && (obj.log_media_exchange = message.log_media_exchange
-      ? Command_LogMediaExchange.toJSON(message.log_media_exchange)
-      : undefined);
-    message.get_liconic_sensor_data !== undefined && (obj.get_liconic_sensor_data = message.get_liconic_sensor_data
-      ? Command_GetLiconicSensorData.toJSON(message.get_liconic_sensor_data)
-      : undefined);
-    message.get_ot2_images_by_date !== undefined && (obj.get_ot2_images_by_date = message.get_ot2_images_by_date
-      ? Command_GetOT2ImagesByDate.toJSON(message.get_ot2_images_by_date)
-      : undefined);
-    message.get_ot2_image_bytes !== undefined && (obj.get_ot2_image_bytes = message.get_ot2_image_bytes
-      ? Command_GetOT2ImageBytes.toJSON(message.get_ot2_image_bytes)
-      : undefined);
-    message.get_ot2_image_prediction !== undefined && (obj.get_ot2_image_prediction = message.get_ot2_image_prediction
-      ? Command_GetOT2ImagePrediction.toJSON(message.get_ot2_image_prediction)
-      : undefined);
-    message.run_python_script !== undefined && (obj.run_python_script = message.run_python_script
-      ? Command_RunPythonScript.toJSON(message.run_python_script)
-      : undefined);
-    message.send_slack_alert !== undefined && (obj.send_slack_alert = message.send_slack_alert
-      ? Command_SendSlackAlert.toJSON(message.send_slack_alert)
-      : undefined);
-    message.clear_last_slack_alert !== undefined && (obj.clear_last_slack_alert = message.clear_last_slack_alert
-      ? Command_ClearLastSlackAlert.toJSON(message.clear_last_slack_alert)
-      : undefined);
+      (obj.get_workcells = message.get_workcells
+        ? Command_GetWorkcells.toJSON(message.get_workcells)
+        : undefined);
+    message.log_media_exchange !== undefined &&
+      (obj.log_media_exchange = message.log_media_exchange
+        ? Command_LogMediaExchange.toJSON(message.log_media_exchange)
+        : undefined);
+    message.get_liconic_sensor_data !== undefined &&
+      (obj.get_liconic_sensor_data = message.get_liconic_sensor_data
+        ? Command_GetLiconicSensorData.toJSON(message.get_liconic_sensor_data)
+        : undefined);
+    message.get_ot2_images_by_date !== undefined &&
+      (obj.get_ot2_images_by_date = message.get_ot2_images_by_date
+        ? Command_GetOT2ImagesByDate.toJSON(message.get_ot2_images_by_date)
+        : undefined);
+    message.get_ot2_image_bytes !== undefined &&
+      (obj.get_ot2_image_bytes = message.get_ot2_image_bytes
+        ? Command_GetOT2ImageBytes.toJSON(message.get_ot2_image_bytes)
+        : undefined);
+    message.get_ot2_image_prediction !== undefined &&
+      (obj.get_ot2_image_prediction = message.get_ot2_image_prediction
+        ? Command_GetOT2ImagePrediction.toJSON(message.get_ot2_image_prediction)
+        : undefined);
+    message.run_python_script !== undefined &&
+      (obj.run_python_script = message.run_python_script
+        ? Command_RunPythonScript.toJSON(message.run_python_script)
+        : undefined);
+    message.send_slack_alert !== undefined &&
+      (obj.send_slack_alert = message.send_slack_alert
+        ? Command_SendSlackAlert.toJSON(message.send_slack_alert)
+        : undefined);
+    message.clear_last_slack_alert !== undefined &&
+      (obj.clear_last_slack_alert = message.clear_last_slack_alert
+        ? Command_ClearLastSlackAlert.toJSON(message.clear_last_slack_alert)
+        : undefined);
     message.get_log_media_exchange_by_date !== undefined &&
       (obj.get_log_media_exchange_by_date = message.get_log_media_exchange_by_date
         ? Command_GetLogMediaExchangeByDate.toJSON(message.get_log_media_exchange_by_date)
         : undefined);
-    message.validate_folder !== undefined && (obj.validate_folder = message.validate_folder
-      ? Command_ValidateFolder.toJSON(message.validate_folder)
-      : undefined);
+    message.validate_folder !== undefined &&
+      (obj.validate_folder = message.validate_folder
+        ? Command_ValidateFolder.toJSON(message.validate_folder)
+        : undefined);
     message.write_to_json !== undefined &&
-      (obj.write_to_json = message.write_to_json ? Command_WriteToJson.toJSON(message.write_to_json) : undefined);
+      (obj.write_to_json = message.write_to_json
+        ? Command_WriteToJson.toJSON(message.write_to_json)
+        : undefined);
     return obj;
   },
 
@@ -448,65 +518,79 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.timer = (object.timer !== undefined && object.timer !== null)
-      ? Command_Timer.fromPartial(object.timer)
-      : undefined;
-    message.user_message = (object.user_message !== undefined && object.user_message !== null)
-      ? Command_UserMessage.fromPartial(object.user_message)
-      : undefined;
-    message.show_image = (object.show_image !== undefined && object.show_image !== null)
-      ? Command_ShowImage.fromPartial(object.show_image)
-      : undefined;
-    message.slack_message = (object.slack_message !== undefined && object.slack_message !== null)
-      ? Command_SlackMessage.fromPartial(object.slack_message)
-      : undefined;
-    message.send_email = (object.send_email !== undefined && object.send_email !== null)
-      ? Command_SendEmail.fromPartial(object.send_email)
-      : undefined;
-    message.text_to_speech = (object.text_to_speech !== undefined && object.text_to_speech !== null)
-      ? Command_TextToSpeech.fromPartial(object.text_to_speech)
-      : undefined;
-    message.get_workcells = (object.get_workcells !== undefined && object.get_workcells !== null)
-      ? Command_GetWorkcells.fromPartial(object.get_workcells)
-      : undefined;
-    message.log_media_exchange = (object.log_media_exchange !== undefined && object.log_media_exchange !== null)
-      ? Command_LogMediaExchange.fromPartial(object.log_media_exchange)
-      : undefined;
+    message.timer =
+      object.timer !== undefined && object.timer !== null
+        ? Command_Timer.fromPartial(object.timer)
+        : undefined;
+    message.user_message =
+      object.user_message !== undefined && object.user_message !== null
+        ? Command_UserMessage.fromPartial(object.user_message)
+        : undefined;
+    message.show_image =
+      object.show_image !== undefined && object.show_image !== null
+        ? Command_ShowImage.fromPartial(object.show_image)
+        : undefined;
+    message.slack_message =
+      object.slack_message !== undefined && object.slack_message !== null
+        ? Command_SlackMessage.fromPartial(object.slack_message)
+        : undefined;
+    message.send_email =
+      object.send_email !== undefined && object.send_email !== null
+        ? Command_SendEmail.fromPartial(object.send_email)
+        : undefined;
+    message.text_to_speech =
+      object.text_to_speech !== undefined && object.text_to_speech !== null
+        ? Command_TextToSpeech.fromPartial(object.text_to_speech)
+        : undefined;
+    message.get_workcells =
+      object.get_workcells !== undefined && object.get_workcells !== null
+        ? Command_GetWorkcells.fromPartial(object.get_workcells)
+        : undefined;
+    message.log_media_exchange =
+      object.log_media_exchange !== undefined && object.log_media_exchange !== null
+        ? Command_LogMediaExchange.fromPartial(object.log_media_exchange)
+        : undefined;
     message.get_liconic_sensor_data =
-      (object.get_liconic_sensor_data !== undefined && object.get_liconic_sensor_data !== null)
+      object.get_liconic_sensor_data !== undefined && object.get_liconic_sensor_data !== null
         ? Command_GetLiconicSensorData.fromPartial(object.get_liconic_sensor_data)
         : undefined;
     message.get_ot2_images_by_date =
-      (object.get_ot2_images_by_date !== undefined && object.get_ot2_images_by_date !== null)
+      object.get_ot2_images_by_date !== undefined && object.get_ot2_images_by_date !== null
         ? Command_GetOT2ImagesByDate.fromPartial(object.get_ot2_images_by_date)
         : undefined;
-    message.get_ot2_image_bytes = (object.get_ot2_image_bytes !== undefined && object.get_ot2_image_bytes !== null)
-      ? Command_GetOT2ImageBytes.fromPartial(object.get_ot2_image_bytes)
-      : undefined;
+    message.get_ot2_image_bytes =
+      object.get_ot2_image_bytes !== undefined && object.get_ot2_image_bytes !== null
+        ? Command_GetOT2ImageBytes.fromPartial(object.get_ot2_image_bytes)
+        : undefined;
     message.get_ot2_image_prediction =
-      (object.get_ot2_image_prediction !== undefined && object.get_ot2_image_prediction !== null)
+      object.get_ot2_image_prediction !== undefined && object.get_ot2_image_prediction !== null
         ? Command_GetOT2ImagePrediction.fromPartial(object.get_ot2_image_prediction)
         : undefined;
-    message.run_python_script = (object.run_python_script !== undefined && object.run_python_script !== null)
-      ? Command_RunPythonScript.fromPartial(object.run_python_script)
-      : undefined;
-    message.send_slack_alert = (object.send_slack_alert !== undefined && object.send_slack_alert !== null)
-      ? Command_SendSlackAlert.fromPartial(object.send_slack_alert)
-      : undefined;
+    message.run_python_script =
+      object.run_python_script !== undefined && object.run_python_script !== null
+        ? Command_RunPythonScript.fromPartial(object.run_python_script)
+        : undefined;
+    message.send_slack_alert =
+      object.send_slack_alert !== undefined && object.send_slack_alert !== null
+        ? Command_SendSlackAlert.fromPartial(object.send_slack_alert)
+        : undefined;
     message.clear_last_slack_alert =
-      (object.clear_last_slack_alert !== undefined && object.clear_last_slack_alert !== null)
+      object.clear_last_slack_alert !== undefined && object.clear_last_slack_alert !== null
         ? Command_ClearLastSlackAlert.fromPartial(object.clear_last_slack_alert)
         : undefined;
     message.get_log_media_exchange_by_date =
-      (object.get_log_media_exchange_by_date !== undefined && object.get_log_media_exchange_by_date !== null)
+      object.get_log_media_exchange_by_date !== undefined &&
+      object.get_log_media_exchange_by_date !== null
         ? Command_GetLogMediaExchangeByDate.fromPartial(object.get_log_media_exchange_by_date)
         : undefined;
-    message.validate_folder = (object.validate_folder !== undefined && object.validate_folder !== null)
-      ? Command_ValidateFolder.fromPartial(object.validate_folder)
-      : undefined;
-    message.write_to_json = (object.write_to_json !== undefined && object.write_to_json !== null)
-      ? Command_WriteToJson.fromPartial(object.write_to_json)
-      : undefined;
+    message.validate_folder =
+      object.validate_folder !== undefined && object.validate_folder !== null
+        ? Command_ValidateFolder.fromPartial(object.validate_folder)
+        : undefined;
+    message.write_to_json =
+      object.write_to_json !== undefined && object.write_to_json !== null
+        ? Command_WriteToJson.fromPartial(object.write_to_json)
+        : undefined;
     return message;
   },
 };
@@ -574,7 +658,9 @@ export const Command_WriteToJson = {
     return Command_WriteToJson.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_WriteToJson>, I>>(object: I): Command_WriteToJson {
+  fromPartial<I extends Exact<DeepPartial<Command_WriteToJson>, I>>(
+    object: I,
+  ): Command_WriteToJson {
     const message = createBaseCommand_WriteToJson();
     message.struct_object = object.struct_object ?? undefined;
     message.file_path = object.file_path ?? "";
@@ -728,7 +814,9 @@ export const Command_UserMessage = {
     return Command_UserMessage.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_UserMessage>, I>>(object: I): Command_UserMessage {
+  fromPartial<I extends Exact<DeepPartial<Command_UserMessage>, I>>(
+    object: I,
+  ): Command_UserMessage {
     const message = createBaseCommand_UserMessage();
     message.message = object.message ?? "";
     message.title = object.title ?? "";
@@ -883,7 +971,9 @@ export const Command_SlackMessage = {
     return Command_SlackMessage.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_SlackMessage>, I>>(object: I): Command_SlackMessage {
+  fromPartial<I extends Exact<DeepPartial<Command_SlackMessage>, I>>(
+    object: I,
+  ): Command_SlackMessage {
     const message = createBaseCommand_SlackMessage();
     message.message = object.message ?? "";
     return message;
@@ -1023,7 +1113,9 @@ export const Command_TextToSpeech = {
     return Command_TextToSpeech.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_TextToSpeech>, I>>(object: I): Command_TextToSpeech {
+  fromPartial<I extends Exact<DeepPartial<Command_TextToSpeech>, I>>(
+    object: I,
+  ): Command_TextToSpeech {
     const message = createBaseCommand_TextToSpeech();
     message.text = object.text ?? "";
     return message;
@@ -1170,8 +1262,12 @@ export const Command_LogMediaExchange = {
     return {
       source_barcode: isSet(object.source_barcode) ? String(object.source_barcode) : "",
       destination_name: isSet(object.destination_name) ? String(object.destination_name) : "",
-      destination_barcode: isSet(object.destination_barcode) ? String(object.destination_barcode) : "",
-      source_wells: Array.isArray(object?.source_wells) ? object.source_wells.map((e: any) => String(e)) : [],
+      destination_barcode: isSet(object.destination_barcode)
+        ? String(object.destination_barcode)
+        : "",
+      source_wells: Array.isArray(object?.source_wells)
+        ? object.source_wells.map((e: any) => String(e))
+        : [],
       percent_exchange: isSet(object.percent_exchange) ? Number(object.percent_exchange) : 0,
       new_tips: isSet(object.new_tips) ? Boolean(object.new_tips) : false,
     };
@@ -1181,22 +1277,28 @@ export const Command_LogMediaExchange = {
     const obj: any = {};
     message.source_barcode !== undefined && (obj.source_barcode = message.source_barcode);
     message.destination_name !== undefined && (obj.destination_name = message.destination_name);
-    message.destination_barcode !== undefined && (obj.destination_barcode = message.destination_barcode);
+    message.destination_barcode !== undefined &&
+      (obj.destination_barcode = message.destination_barcode);
     if (message.source_wells) {
       obj.source_wells = message.source_wells.map((e) => e);
     } else {
       obj.source_wells = [];
     }
-    message.percent_exchange !== undefined && (obj.percent_exchange = Math.round(message.percent_exchange));
+    message.percent_exchange !== undefined &&
+      (obj.percent_exchange = Math.round(message.percent_exchange));
     message.new_tips !== undefined && (obj.new_tips = message.new_tips);
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_LogMediaExchange>, I>>(base?: I): Command_LogMediaExchange {
+  create<I extends Exact<DeepPartial<Command_LogMediaExchange>, I>>(
+    base?: I,
+  ): Command_LogMediaExchange {
     return Command_LogMediaExchange.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_LogMediaExchange>, I>>(object: I): Command_LogMediaExchange {
+  fromPartial<I extends Exact<DeepPartial<Command_LogMediaExchange>, I>>(
+    object: I,
+  ): Command_LogMediaExchange {
     const message = createBaseCommand_LogMediaExchange();
     message.source_barcode = object.source_barcode ?? "";
     message.destination_name = object.destination_name ?? "";
@@ -1213,7 +1315,10 @@ function createBaseCommand_GetLogMediaExchangeByDate(): Command_GetLogMediaExcha
 }
 
 export const Command_GetLogMediaExchangeByDate = {
-  encode(message: Command_GetLogMediaExchangeByDate, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(
+    message: Command_GetLogMediaExchangeByDate,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
     if (message.date !== "") {
       writer.uint32(10).string(message.date);
     }
@@ -1273,7 +1378,10 @@ function createBaseCommand_GetLiconicSensorData(): Command_GetLiconicSensorData 
 }
 
 export const Command_GetLiconicSensorData = {
-  encode(message: Command_GetLiconicSensorData, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(
+    message: Command_GetLiconicSensorData,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
     if (message.tool_id !== "") {
       writer.uint32(10).string(message.tool_id);
     }
@@ -1327,11 +1435,15 @@ export const Command_GetLiconicSensorData = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_GetLiconicSensorData>, I>>(base?: I): Command_GetLiconicSensorData {
+  create<I extends Exact<DeepPartial<Command_GetLiconicSensorData>, I>>(
+    base?: I,
+  ): Command_GetLiconicSensorData {
     return Command_GetLiconicSensorData.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_GetLiconicSensorData>, I>>(object: I): Command_GetLiconicSensorData {
+  fromPartial<I extends Exact<DeepPartial<Command_GetLiconicSensorData>, I>>(
+    object: I,
+  ): Command_GetLiconicSensorData {
     const message = createBaseCommand_GetLiconicSensorData();
     message.tool_id = object.tool_id ?? "";
     message.date = object.date ?? "";
@@ -1344,7 +1456,10 @@ function createBaseCommand_GetOT2ImagesByDate(): Command_GetOT2ImagesByDate {
 }
 
 export const Command_GetOT2ImagesByDate = {
-  encode(message: Command_GetOT2ImagesByDate, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(
+    message: Command_GetOT2ImagesByDate,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
     if (message.date !== "") {
       writer.uint32(10).string(message.date);
     }
@@ -1384,11 +1499,15 @@ export const Command_GetOT2ImagesByDate = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_GetOT2ImagesByDate>, I>>(base?: I): Command_GetOT2ImagesByDate {
+  create<I extends Exact<DeepPartial<Command_GetOT2ImagesByDate>, I>>(
+    base?: I,
+  ): Command_GetOT2ImagesByDate {
     return Command_GetOT2ImagesByDate.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_GetOT2ImagesByDate>, I>>(object: I): Command_GetOT2ImagesByDate {
+  fromPartial<I extends Exact<DeepPartial<Command_GetOT2ImagesByDate>, I>>(
+    object: I,
+  ): Command_GetOT2ImagesByDate {
     const message = createBaseCommand_GetOT2ImagesByDate();
     message.date = object.date ?? "";
     return message;
@@ -1454,11 +1573,15 @@ export const Command_GetOT2ImageBytes = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_GetOT2ImageBytes>, I>>(base?: I): Command_GetOT2ImageBytes {
+  create<I extends Exact<DeepPartial<Command_GetOT2ImageBytes>, I>>(
+    base?: I,
+  ): Command_GetOT2ImageBytes {
     return Command_GetOT2ImageBytes.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_GetOT2ImageBytes>, I>>(object: I): Command_GetOT2ImageBytes {
+  fromPartial<I extends Exact<DeepPartial<Command_GetOT2ImageBytes>, I>>(
+    object: I,
+  ): Command_GetOT2ImageBytes {
     const message = createBaseCommand_GetOT2ImageBytes();
     message.date = object.date ?? "";
     message.image_file = object.image_file ?? "";
@@ -1502,13 +1625,17 @@ export const Command_ImageResponse = {
   },
 
   fromJSON(object: any): Command_ImageResponse {
-    return { image_data: isSet(object.image_data) ? bytesFromBase64(object.image_data) : new Uint8Array(0) };
+    return {
+      image_data: isSet(object.image_data) ? bytesFromBase64(object.image_data) : new Uint8Array(0),
+    };
   },
 
   toJSON(message: Command_ImageResponse): unknown {
     const obj: any = {};
     message.image_data !== undefined &&
-      (obj.image_data = base64FromBytes(message.image_data !== undefined ? message.image_data : new Uint8Array(0)));
+      (obj.image_data = base64FromBytes(
+        message.image_data !== undefined ? message.image_data : new Uint8Array(0),
+      ));
     return obj;
   },
 
@@ -1516,7 +1643,9 @@ export const Command_ImageResponse = {
     return Command_ImageResponse.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_ImageResponse>, I>>(object: I): Command_ImageResponse {
+  fromPartial<I extends Exact<DeepPartial<Command_ImageResponse>, I>>(
+    object: I,
+  ): Command_ImageResponse {
     const message = createBaseCommand_ImageResponse();
     message.image_data = object.image_data ?? new Uint8Array(0);
     return message;
@@ -1528,7 +1657,10 @@ function createBaseCommand_GetOT2ImagePrediction(): Command_GetOT2ImagePredictio
 }
 
 export const Command_GetOT2ImagePrediction = {
-  encode(message: Command_GetOT2ImagePrediction, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(
+    message: Command_GetOT2ImagePrediction,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
     if (message.date !== "") {
       writer.uint32(10).string(message.date);
     }
@@ -1582,7 +1714,9 @@ export const Command_GetOT2ImagePrediction = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_GetOT2ImagePrediction>, I>>(base?: I): Command_GetOT2ImagePrediction {
+  create<I extends Exact<DeepPartial<Command_GetOT2ImagePrediction>, I>>(
+    base?: I,
+  ): Command_GetOT2ImagePrediction {
     return Command_GetOT2ImagePrediction.fromPartial(base ?? {});
   },
 
@@ -1655,11 +1789,15 @@ export const Command_RunPythonScript = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_RunPythonScript>, I>>(base?: I): Command_RunPythonScript {
+  create<I extends Exact<DeepPartial<Command_RunPythonScript>, I>>(
+    base?: I,
+  ): Command_RunPythonScript {
     return Command_RunPythonScript.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_RunPythonScript>, I>>(object: I): Command_RunPythonScript {
+  fromPartial<I extends Exact<DeepPartial<Command_RunPythonScript>, I>>(
+    object: I,
+  ): Command_RunPythonScript {
     const message = createBaseCommand_RunPythonScript();
     message.script_content = object.script_content ?? "";
     message.blocking = object.blocking ?? false;
@@ -1750,11 +1888,15 @@ export const Command_SendSlackAlert = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_SendSlackAlert>, I>>(base?: I): Command_SendSlackAlert {
+  create<I extends Exact<DeepPartial<Command_SendSlackAlert>, I>>(
+    base?: I,
+  ): Command_SendSlackAlert {
     return Command_SendSlackAlert.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_SendSlackAlert>, I>>(object: I): Command_SendSlackAlert {
+  fromPartial<I extends Exact<DeepPartial<Command_SendSlackAlert>, I>>(
+    object: I,
+  ): Command_SendSlackAlert {
     const message = createBaseCommand_SendSlackAlert();
     message.workcell = object.workcell ?? "";
     message.tool = object.tool ?? "";
@@ -1798,11 +1940,15 @@ export const Command_ClearLastSlackAlert = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_ClearLastSlackAlert>, I>>(base?: I): Command_ClearLastSlackAlert {
+  create<I extends Exact<DeepPartial<Command_ClearLastSlackAlert>, I>>(
+    base?: I,
+  ): Command_ClearLastSlackAlert {
     return Command_ClearLastSlackAlert.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_ClearLastSlackAlert>, I>>(_: I): Command_ClearLastSlackAlert {
+  fromPartial<I extends Exact<DeepPartial<Command_ClearLastSlackAlert>, I>>(
+    _: I,
+  ): Command_ClearLastSlackAlert {
     const message = createBaseCommand_ClearLastSlackAlert();
     return message;
   },
@@ -1853,11 +1999,15 @@ export const Command_ValidateFolder = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_ValidateFolder>, I>>(base?: I): Command_ValidateFolder {
+  create<I extends Exact<DeepPartial<Command_ValidateFolder>, I>>(
+    base?: I,
+  ): Command_ValidateFolder {
     return Command_ValidateFolder.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_ValidateFolder>, I>>(object: I): Command_ValidateFolder {
+  fromPartial<I extends Exact<DeepPartial<Command_ValidateFolder>, I>>(
+    object: I,
+  ): Command_ValidateFolder {
     const message = createBaseCommand_ValidateFolder();
     message.folder_path = object.folder_path ?? "";
     return message;
@@ -1954,13 +2104,19 @@ function base64FromBytes(arr: Uint8Array): string {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends Array<infer U>
+    ? Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends {}
+        ? { [K in keyof T]?: DeepPartial<T[K]> }
+        : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isObject(value: any): boolean {

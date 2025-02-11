@@ -13,25 +13,20 @@ export interface Command {
   wait_for_shake_to_finish?: Command_WaitForShakeToFinish | undefined;
 }
 
-export interface Command_Grip {
-}
+export interface Command_Grip {}
 
-export interface Command_Ungrip {
-}
+export interface Command_Ungrip {}
 
-export interface Command_Home {
-}
+export interface Command_Home {}
 
 export interface Command_StartShake {
   speed: number;
   duration: number;
 }
 
-export interface Command_StopShake {
-}
+export interface Command_StopShake {}
 
-export interface Command_Reset {
-}
+export interface Command_Reset {}
 
 export interface Command_WaitForShakeToFinish {
   timeout: number;
@@ -74,7 +69,10 @@ export const Command = {
       Command_Reset.encode(message.reset, writer.uint32(50).fork()).ldelim();
     }
     if (message.wait_for_shake_to_finish !== undefined) {
-      Command_WaitForShakeToFinish.encode(message.wait_for_shake_to_finish, writer.uint32(58).fork()).ldelim();
+      Command_WaitForShakeToFinish.encode(
+        message.wait_for_shake_to_finish,
+        writer.uint32(58).fork(),
+      ).ldelim();
     }
     return writer;
   },
@@ -133,7 +131,10 @@ export const Command = {
             break;
           }
 
-          message.wait_for_shake_to_finish = Command_WaitForShakeToFinish.decode(reader, reader.uint32());
+          message.wait_for_shake_to_finish = Command_WaitForShakeToFinish.decode(
+            reader,
+            reader.uint32(),
+          );
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -149,8 +150,12 @@ export const Command = {
       grip: isSet(object.grip) ? Command_Grip.fromJSON(object.grip) : undefined,
       ungrip: isSet(object.ungrip) ? Command_Ungrip.fromJSON(object.ungrip) : undefined,
       home: isSet(object.home) ? Command_Home.fromJSON(object.home) : undefined,
-      start_shake: isSet(object.start_shake) ? Command_StartShake.fromJSON(object.start_shake) : undefined,
-      stop_shake: isSet(object.stop_shake) ? Command_StopShake.fromJSON(object.stop_shake) : undefined,
+      start_shake: isSet(object.start_shake)
+        ? Command_StartShake.fromJSON(object.start_shake)
+        : undefined,
+      stop_shake: isSet(object.stop_shake)
+        ? Command_StopShake.fromJSON(object.stop_shake)
+        : undefined,
       reset: isSet(object.reset) ? Command_Reset.fromJSON(object.reset) : undefined,
       wait_for_shake_to_finish: isSet(object.wait_for_shake_to_finish)
         ? Command_WaitForShakeToFinish.fromJSON(object.wait_for_shake_to_finish)
@@ -160,17 +165,26 @@ export const Command = {
 
   toJSON(message: Command): unknown {
     const obj: any = {};
-    message.grip !== undefined && (obj.grip = message.grip ? Command_Grip.toJSON(message.grip) : undefined);
-    message.ungrip !== undefined && (obj.ungrip = message.ungrip ? Command_Ungrip.toJSON(message.ungrip) : undefined);
-    message.home !== undefined && (obj.home = message.home ? Command_Home.toJSON(message.home) : undefined);
+    message.grip !== undefined &&
+      (obj.grip = message.grip ? Command_Grip.toJSON(message.grip) : undefined);
+    message.ungrip !== undefined &&
+      (obj.ungrip = message.ungrip ? Command_Ungrip.toJSON(message.ungrip) : undefined);
+    message.home !== undefined &&
+      (obj.home = message.home ? Command_Home.toJSON(message.home) : undefined);
     message.start_shake !== undefined &&
-      (obj.start_shake = message.start_shake ? Command_StartShake.toJSON(message.start_shake) : undefined);
+      (obj.start_shake = message.start_shake
+        ? Command_StartShake.toJSON(message.start_shake)
+        : undefined);
     message.stop_shake !== undefined &&
-      (obj.stop_shake = message.stop_shake ? Command_StopShake.toJSON(message.stop_shake) : undefined);
-    message.reset !== undefined && (obj.reset = message.reset ? Command_Reset.toJSON(message.reset) : undefined);
-    message.wait_for_shake_to_finish !== undefined && (obj.wait_for_shake_to_finish = message.wait_for_shake_to_finish
-      ? Command_WaitForShakeToFinish.toJSON(message.wait_for_shake_to_finish)
-      : undefined);
+      (obj.stop_shake = message.stop_shake
+        ? Command_StopShake.toJSON(message.stop_shake)
+        : undefined);
+    message.reset !== undefined &&
+      (obj.reset = message.reset ? Command_Reset.toJSON(message.reset) : undefined);
+    message.wait_for_shake_to_finish !== undefined &&
+      (obj.wait_for_shake_to_finish = message.wait_for_shake_to_finish
+        ? Command_WaitForShakeToFinish.toJSON(message.wait_for_shake_to_finish)
+        : undefined);
     return obj;
   },
 
@@ -180,26 +194,32 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.grip = (object.grip !== undefined && object.grip !== null)
-      ? Command_Grip.fromPartial(object.grip)
-      : undefined;
-    message.ungrip = (object.ungrip !== undefined && object.ungrip !== null)
-      ? Command_Ungrip.fromPartial(object.ungrip)
-      : undefined;
-    message.home = (object.home !== undefined && object.home !== null)
-      ? Command_Home.fromPartial(object.home)
-      : undefined;
-    message.start_shake = (object.start_shake !== undefined && object.start_shake !== null)
-      ? Command_StartShake.fromPartial(object.start_shake)
-      : undefined;
-    message.stop_shake = (object.stop_shake !== undefined && object.stop_shake !== null)
-      ? Command_StopShake.fromPartial(object.stop_shake)
-      : undefined;
-    message.reset = (object.reset !== undefined && object.reset !== null)
-      ? Command_Reset.fromPartial(object.reset)
-      : undefined;
+    message.grip =
+      object.grip !== undefined && object.grip !== null
+        ? Command_Grip.fromPartial(object.grip)
+        : undefined;
+    message.ungrip =
+      object.ungrip !== undefined && object.ungrip !== null
+        ? Command_Ungrip.fromPartial(object.ungrip)
+        : undefined;
+    message.home =
+      object.home !== undefined && object.home !== null
+        ? Command_Home.fromPartial(object.home)
+        : undefined;
+    message.start_shake =
+      object.start_shake !== undefined && object.start_shake !== null
+        ? Command_StartShake.fromPartial(object.start_shake)
+        : undefined;
+    message.stop_shake =
+      object.stop_shake !== undefined && object.stop_shake !== null
+        ? Command_StopShake.fromPartial(object.stop_shake)
+        : undefined;
+    message.reset =
+      object.reset !== undefined && object.reset !== null
+        ? Command_Reset.fromPartial(object.reset)
+        : undefined;
     message.wait_for_shake_to_finish =
-      (object.wait_for_shake_to_finish !== undefined && object.wait_for_shake_to_finish !== null)
+      object.wait_for_shake_to_finish !== undefined && object.wait_for_shake_to_finish !== null
         ? Command_WaitForShakeToFinish.fromPartial(object.wait_for_shake_to_finish)
         : undefined;
     return message;
@@ -502,7 +522,10 @@ function createBaseCommand_WaitForShakeToFinish(): Command_WaitForShakeToFinish 
 }
 
 export const Command_WaitForShakeToFinish = {
-  encode(message: Command_WaitForShakeToFinish, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(
+    message: Command_WaitForShakeToFinish,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
     if (message.timeout !== 0) {
       writer.uint32(8).int32(message.timeout);
     }
@@ -542,11 +565,15 @@ export const Command_WaitForShakeToFinish = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_WaitForShakeToFinish>, I>>(base?: I): Command_WaitForShakeToFinish {
+  create<I extends Exact<DeepPartial<Command_WaitForShakeToFinish>, I>>(
+    base?: I,
+  ): Command_WaitForShakeToFinish {
     return Command_WaitForShakeToFinish.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_WaitForShakeToFinish>, I>>(object: I): Command_WaitForShakeToFinish {
+  fromPartial<I extends Exact<DeepPartial<Command_WaitForShakeToFinish>, I>>(
+    object: I,
+  ): Command_WaitForShakeToFinish {
     const message = createBaseCommand_WaitForShakeToFinish();
     message.timeout = object.timeout ?? 0;
     return message;
@@ -611,13 +638,19 @@ export const Config = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends Array<infer U>
+    ? Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends {}
+        ? { [K in keyof T]?: DeepPartial<T[K]> }
+        : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {

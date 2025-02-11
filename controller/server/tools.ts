@@ -147,7 +147,7 @@ export default class Tool {
     }
 
     //Functionality to run python scripts store in db
-    if (command.command === "run_python_script" && command.toolId === "Tool Box") {
+    if (command.command === "run_python_script" && command.toolId === "tool_box") {
       const scriptId = String(command.params.script_content);
       command.params.script_content = (await get<Script>(`/scripts/${scriptId}`)).content;
     }
@@ -175,14 +175,19 @@ export default class Tool {
     return reply.estimated_duration_seconds;
   }
 
+  static normalizeToolId(id: string): string {
+    return id.toLocaleLowerCase().replaceAll(" ", "_");
+  }
+
   static async removeTool(toolId: string) {
+    const normalizedId = Tool.normalizeToolId(toolId);
     const global_key = "__global_tool_store";
     const me = global as any;
     if (!me[global_key]) {
       return;
     }
     const store: Map<string, Tool> = me[global_key];
-    const tool = store.get(toolId);
+    const tool = store.get(normalizedId);
     if (!tool) {
       return;
     }
@@ -191,9 +196,9 @@ export default class Tool {
       if (tool.grpc) {
         tool.grpc.close();
       }
-      store.delete(toolId);
+      store.delete(normalizedId);
     } catch (error) {
-      console.error(`Error while removing tool ${toolId}: ${error}`);
+      console.error(`Error while removing tool ${normalizedId}: ${error}`);
     }
   }
 
@@ -252,8 +257,15 @@ export default class Tool {
     }
   }
 
+  static async reloadSingleToolConfig(tool: controller_protos.ToolConfig) {
+    const normalizedName = Tool.normalizeToolId(tool.name);
+    await this.removeTool(tool.name);
+    // Replace or update the tool config in allTools
+    this.allTools = this.allTools.filter((t) => Tool.normalizeToolId(t.name) !== normalizedName);
+    this.allTools.push(tool);
+  }
+
   static forId(id: string): Tool {
-    console.log("Tool id: ", id);
     const global_key = "__global_tool_store";
     const me = global as any;
     if (!me[global_key]) {

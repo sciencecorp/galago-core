@@ -45,6 +45,7 @@ export const NewToolModal: React.FC<NewToolModalProps> = (props) => {
     });
 
   useEffect(() => {
+    console.log("configData", configData);
     if (configData) {
       setDefaultConfig(configData);
     }

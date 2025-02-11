@@ -28,28 +28,35 @@ interface EditToolModalProps {
   toolInfo: ToolConfig;
   isOpen: boolean;
   onClose: () => void;
-  refetch: () => void;
 }
 
 export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
-  const { toolId, toolInfo, isOpen, onClose, refetch } = props;
+  const { toolId, isOpen, onClose } = props;
   const toast = useToast();
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [newConfig, setNewConfig] = useState<Record<string, Record<string, any>>>({});
   const editTool = trpc.tool.edit.useMutation();
   const getTool = trpc.tool.info.useQuery({ toolId: toolId });
-  const { name, description, config, type } = toolInfo;
+  const { description, name, config, type } = getTool.data || {};
+  // const { name, description, config, type } = toolInfo;
   const context = trpc.useContext();
 
   useEffect(() => {
-    if (isOpen && config && type !== ToolType.unknown && type !== ToolType.UNRECOGNIZED) {
+    if (
+      isOpen &&
+      config &&
+      type !== ToolType.unknown &&
+      type !== ToolType.UNRECOGNIZED &&
+      type != undefined
+    ) {
       setNewConfig({ [type]: { ...config[type] } });
     }
   }, [isOpen, config, type]);
 
   const handleConfigChange = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
     const { value } = e.target;
+    if (!type) return;
     if (type !== ToolType.unknown && type !== ToolType.UNRECOGNIZED) {
       setNewConfig((prev) => ({
         ...prev,
@@ -77,7 +84,6 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
         isClosable: true,
       });
       onClose();
-
       context.tool.info.invalidate({ toolId });
     } catch (error) {
       toast({
@@ -102,6 +108,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
               {config &&
                 type != ToolType.unknown &&
                 type != ToolType.UNRECOGNIZED &&
+                type != undefined &&
                 Object.entries(config[type] || {}).map(([key, value]) => (
                   <FormControl key={key}>
                     <FormLabel>{capitalizeFirst(key).replaceAll("_", " ")}</FormLabel>

@@ -11,7 +11,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --timeout=120 -r requirements.txt
 
 # Copy the application code
-COPY . /app
+COPY . /app/db
+
 ENV PYTHONPATH="/app"
 
 # Expose the port FastAPI will run on

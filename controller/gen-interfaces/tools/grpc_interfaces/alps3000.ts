@@ -22,23 +22,17 @@ export interface Command_SetSealTime {
   seal_time: number;
 }
 
-export interface Command_GetInstrumentStatus {
-}
+export interface Command_GetInstrumentStatus {}
 
-export interface Command_SealPlate {
-}
+export interface Command_SealPlate {}
 
-export interface Command_GetError {
-}
+export interface Command_GetError {}
 
-export interface Command_GetTemperatureActual {
-}
+export interface Command_GetTemperatureActual {}
 
-export interface Command_GetSealingTime {
-}
+export interface Command_GetSealingTime {}
 
-export interface Command_GetTemperatureSetpoint {
-}
+export interface Command_GetTemperatureSetpoint {}
 
 export interface Config {
   profile: string;
@@ -76,14 +70,19 @@ export const Command = {
       Command_SetSealTime.encode(message.set_sealing_time, writer.uint32(42).fork()).ldelim();
     }
     if (message.get_sealing_temperature_setpoint !== undefined) {
-      Command_GetTemperatureSetpoint.encode(message.get_sealing_temperature_setpoint, writer.uint32(50).fork())
-        .ldelim();
+      Command_GetTemperatureSetpoint.encode(
+        message.get_sealing_temperature_setpoint,
+        writer.uint32(50).fork(),
+      ).ldelim();
     }
     if (message.get_sealing_time !== undefined) {
       Command_SetSealTime.encode(message.get_sealing_time, writer.uint32(58).fork()).ldelim();
     }
     if (message.get_sealing_temperature_actual !== undefined) {
-      Command_GetTemperatureActual.encode(message.get_sealing_temperature_actual, writer.uint32(66).fork()).ldelim();
+      Command_GetTemperatureActual.encode(
+        message.get_sealing_temperature_actual,
+        writer.uint32(66).fork(),
+      ).ldelim();
     }
     return writer;
   },
@@ -135,7 +134,10 @@ export const Command = {
             break;
           }
 
-          message.get_sealing_temperature_setpoint = Command_GetTemperatureSetpoint.decode(reader, reader.uint32());
+          message.get_sealing_temperature_setpoint = Command_GetTemperatureSetpoint.decode(
+            reader,
+            reader.uint32(),
+          );
           continue;
         case 7:
           if (tag !== 58) {
@@ -149,7 +151,10 @@ export const Command = {
             break;
           }
 
-          message.get_sealing_temperature_actual = Command_GetTemperatureActual.decode(reader, reader.uint32());
+          message.get_sealing_temperature_actual = Command_GetTemperatureActual.decode(
+            reader,
+            reader.uint32(),
+          );
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -162,8 +167,12 @@ export const Command = {
 
   fromJSON(object: any): Command {
     return {
-      get_status: isSet(object.get_status) ? Command_GetInstrumentStatus.fromJSON(object.get_status) : undefined,
-      seal_plate: isSet(object.seal_plate) ? Command_SealPlate.fromJSON(object.seal_plate) : undefined,
+      get_status: isSet(object.get_status)
+        ? Command_GetInstrumentStatus.fromJSON(object.get_status)
+        : undefined,
+      seal_plate: isSet(object.seal_plate)
+        ? Command_SealPlate.fromJSON(object.seal_plate)
+        : undefined,
       get_error: isSet(object.get_error) ? Command_GetError.fromJSON(object.get_error) : undefined,
       set_temperature: isSet(object.set_temperature)
         ? Command_SetTemperature.fromJSON(object.set_temperature)
@@ -186,24 +195,31 @@ export const Command = {
   toJSON(message: Command): unknown {
     const obj: any = {};
     message.get_status !== undefined &&
-      (obj.get_status = message.get_status ? Command_GetInstrumentStatus.toJSON(message.get_status) : undefined);
+      (obj.get_status = message.get_status
+        ? Command_GetInstrumentStatus.toJSON(message.get_status)
+        : undefined);
     message.seal_plate !== undefined &&
-      (obj.seal_plate = message.seal_plate ? Command_SealPlate.toJSON(message.seal_plate) : undefined);
+      (obj.seal_plate = message.seal_plate
+        ? Command_SealPlate.toJSON(message.seal_plate)
+        : undefined);
     message.get_error !== undefined &&
       (obj.get_error = message.get_error ? Command_GetError.toJSON(message.get_error) : undefined);
-    message.set_temperature !== undefined && (obj.set_temperature = message.set_temperature
-      ? Command_SetTemperature.toJSON(message.set_temperature)
-      : undefined);
-    message.set_sealing_time !== undefined && (obj.set_sealing_time = message.set_sealing_time
-      ? Command_SetSealTime.toJSON(message.set_sealing_time)
-      : undefined);
+    message.set_temperature !== undefined &&
+      (obj.set_temperature = message.set_temperature
+        ? Command_SetTemperature.toJSON(message.set_temperature)
+        : undefined);
+    message.set_sealing_time !== undefined &&
+      (obj.set_sealing_time = message.set_sealing_time
+        ? Command_SetSealTime.toJSON(message.set_sealing_time)
+        : undefined);
     message.get_sealing_temperature_setpoint !== undefined &&
       (obj.get_sealing_temperature_setpoint = message.get_sealing_temperature_setpoint
         ? Command_GetTemperatureSetpoint.toJSON(message.get_sealing_temperature_setpoint)
         : undefined);
-    message.get_sealing_time !== undefined && (obj.get_sealing_time = message.get_sealing_time
-      ? Command_SetSealTime.toJSON(message.get_sealing_time)
-      : undefined);
+    message.get_sealing_time !== undefined &&
+      (obj.get_sealing_time = message.get_sealing_time
+        ? Command_SetSealTime.toJSON(message.get_sealing_time)
+        : undefined);
     message.get_sealing_temperature_actual !== undefined &&
       (obj.get_sealing_temperature_actual = message.get_sealing_temperature_actual
         ? Command_GetTemperatureActual.toJSON(message.get_sealing_temperature_actual)
@@ -217,30 +233,38 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.get_status = (object.get_status !== undefined && object.get_status !== null)
-      ? Command_GetInstrumentStatus.fromPartial(object.get_status)
-      : undefined;
-    message.seal_plate = (object.seal_plate !== undefined && object.seal_plate !== null)
-      ? Command_SealPlate.fromPartial(object.seal_plate)
-      : undefined;
-    message.get_error = (object.get_error !== undefined && object.get_error !== null)
-      ? Command_GetError.fromPartial(object.get_error)
-      : undefined;
-    message.set_temperature = (object.set_temperature !== undefined && object.set_temperature !== null)
-      ? Command_SetTemperature.fromPartial(object.set_temperature)
-      : undefined;
-    message.set_sealing_time = (object.set_sealing_time !== undefined && object.set_sealing_time !== null)
-      ? Command_SetSealTime.fromPartial(object.set_sealing_time)
-      : undefined;
+    message.get_status =
+      object.get_status !== undefined && object.get_status !== null
+        ? Command_GetInstrumentStatus.fromPartial(object.get_status)
+        : undefined;
+    message.seal_plate =
+      object.seal_plate !== undefined && object.seal_plate !== null
+        ? Command_SealPlate.fromPartial(object.seal_plate)
+        : undefined;
+    message.get_error =
+      object.get_error !== undefined && object.get_error !== null
+        ? Command_GetError.fromPartial(object.get_error)
+        : undefined;
+    message.set_temperature =
+      object.set_temperature !== undefined && object.set_temperature !== null
+        ? Command_SetTemperature.fromPartial(object.set_temperature)
+        : undefined;
+    message.set_sealing_time =
+      object.set_sealing_time !== undefined && object.set_sealing_time !== null
+        ? Command_SetSealTime.fromPartial(object.set_sealing_time)
+        : undefined;
     message.get_sealing_temperature_setpoint =
-      (object.get_sealing_temperature_setpoint !== undefined && object.get_sealing_temperature_setpoint !== null)
+      object.get_sealing_temperature_setpoint !== undefined &&
+      object.get_sealing_temperature_setpoint !== null
         ? Command_GetTemperatureSetpoint.fromPartial(object.get_sealing_temperature_setpoint)
         : undefined;
-    message.get_sealing_time = (object.get_sealing_time !== undefined && object.get_sealing_time !== null)
-      ? Command_SetSealTime.fromPartial(object.get_sealing_time)
-      : undefined;
+    message.get_sealing_time =
+      object.get_sealing_time !== undefined && object.get_sealing_time !== null
+        ? Command_SetSealTime.fromPartial(object.get_sealing_time)
+        : undefined;
     message.get_sealing_temperature_actual =
-      (object.get_sealing_temperature_actual !== undefined && object.get_sealing_temperature_actual !== null)
+      object.get_sealing_temperature_actual !== undefined &&
+      object.get_sealing_temperature_actual !== null
         ? Command_GetTemperatureActual.fromPartial(object.get_sealing_temperature_actual)
         : undefined;
     return message;
@@ -292,11 +316,15 @@ export const Command_SetTemperature = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_SetTemperature>, I>>(base?: I): Command_SetTemperature {
+  create<I extends Exact<DeepPartial<Command_SetTemperature>, I>>(
+    base?: I,
+  ): Command_SetTemperature {
     return Command_SetTemperature.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_SetTemperature>, I>>(object: I): Command_SetTemperature {
+  fromPartial<I extends Exact<DeepPartial<Command_SetTemperature>, I>>(
+    object: I,
+  ): Command_SetTemperature {
     const message = createBaseCommand_SetTemperature();
     message.temperature = object.temperature ?? 0;
     return message;
@@ -352,7 +380,9 @@ export const Command_SetSealTime = {
     return Command_SetSealTime.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_SetSealTime>, I>>(object: I): Command_SetSealTime {
+  fromPartial<I extends Exact<DeepPartial<Command_SetSealTime>, I>>(
+    object: I,
+  ): Command_SetSealTime {
     const message = createBaseCommand_SetSealTime();
     message.seal_time = object.seal_time ?? 0;
     return message;
@@ -393,11 +423,15 @@ export const Command_GetInstrumentStatus = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_GetInstrumentStatus>, I>>(base?: I): Command_GetInstrumentStatus {
+  create<I extends Exact<DeepPartial<Command_GetInstrumentStatus>, I>>(
+    base?: I,
+  ): Command_GetInstrumentStatus {
     return Command_GetInstrumentStatus.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_GetInstrumentStatus>, I>>(_: I): Command_GetInstrumentStatus {
+  fromPartial<I extends Exact<DeepPartial<Command_GetInstrumentStatus>, I>>(
+    _: I,
+  ): Command_GetInstrumentStatus {
     const message = createBaseCommand_GetInstrumentStatus();
     return message;
   },
@@ -525,11 +559,15 @@ export const Command_GetTemperatureActual = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_GetTemperatureActual>, I>>(base?: I): Command_GetTemperatureActual {
+  create<I extends Exact<DeepPartial<Command_GetTemperatureActual>, I>>(
+    base?: I,
+  ): Command_GetTemperatureActual {
     return Command_GetTemperatureActual.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_GetTemperatureActual>, I>>(_: I): Command_GetTemperatureActual {
+  fromPartial<I extends Exact<DeepPartial<Command_GetTemperatureActual>, I>>(
+    _: I,
+  ): Command_GetTemperatureActual {
     const message = createBaseCommand_GetTemperatureActual();
     return message;
   },
@@ -569,11 +607,15 @@ export const Command_GetSealingTime = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_GetSealingTime>, I>>(base?: I): Command_GetSealingTime {
+  create<I extends Exact<DeepPartial<Command_GetSealingTime>, I>>(
+    base?: I,
+  ): Command_GetSealingTime {
     return Command_GetSealingTime.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_GetSealingTime>, I>>(_: I): Command_GetSealingTime {
+  fromPartial<I extends Exact<DeepPartial<Command_GetSealingTime>, I>>(
+    _: I,
+  ): Command_GetSealingTime {
     const message = createBaseCommand_GetSealingTime();
     return message;
   },
@@ -613,11 +655,15 @@ export const Command_GetTemperatureSetpoint = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_GetTemperatureSetpoint>, I>>(base?: I): Command_GetTemperatureSetpoint {
+  create<I extends Exact<DeepPartial<Command_GetTemperatureSetpoint>, I>>(
+    base?: I,
+  ): Command_GetTemperatureSetpoint {
     return Command_GetTemperatureSetpoint.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_GetTemperatureSetpoint>, I>>(_: I): Command_GetTemperatureSetpoint {
+  fromPartial<I extends Exact<DeepPartial<Command_GetTemperatureSetpoint>, I>>(
+    _: I,
+  ): Command_GetTemperatureSetpoint {
     const message = createBaseCommand_GetTemperatureSetpoint();
     return message;
   },
@@ -696,13 +742,19 @@ export const Config = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends Array<infer U>
+    ? Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends {}
+        ? { [K in keyof T]?: DeepPartial<T[K]> }
+        : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {

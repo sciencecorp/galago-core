@@ -8,8 +8,7 @@ export interface Command {
   assert_barcode?: Command_AssertBarcode | undefined;
 }
 
-export interface Command_Reset {
-}
+export interface Command_Reset {}
 
 export interface Command_AssertBarcode {
   barcode: string;
@@ -67,15 +66,20 @@ export const Command = {
   fromJSON(object: any): Command {
     return {
       reset: isSet(object.reset) ? Command_Reset.fromJSON(object.reset) : undefined,
-      assert_barcode: isSet(object.assert_barcode) ? Command_AssertBarcode.fromJSON(object.assert_barcode) : undefined,
+      assert_barcode: isSet(object.assert_barcode)
+        ? Command_AssertBarcode.fromJSON(object.assert_barcode)
+        : undefined,
     };
   },
 
   toJSON(message: Command): unknown {
     const obj: any = {};
-    message.reset !== undefined && (obj.reset = message.reset ? Command_Reset.toJSON(message.reset) : undefined);
+    message.reset !== undefined &&
+      (obj.reset = message.reset ? Command_Reset.toJSON(message.reset) : undefined);
     message.assert_barcode !== undefined &&
-      (obj.assert_barcode = message.assert_barcode ? Command_AssertBarcode.toJSON(message.assert_barcode) : undefined);
+      (obj.assert_barcode = message.assert_barcode
+        ? Command_AssertBarcode.toJSON(message.assert_barcode)
+        : undefined);
     return obj;
   },
 
@@ -85,12 +89,14 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.reset = (object.reset !== undefined && object.reset !== null)
-      ? Command_Reset.fromPartial(object.reset)
-      : undefined;
-    message.assert_barcode = (object.assert_barcode !== undefined && object.assert_barcode !== null)
-      ? Command_AssertBarcode.fromPartial(object.assert_barcode)
-      : undefined;
+    message.reset =
+      object.reset !== undefined && object.reset !== null
+        ? Command_Reset.fromPartial(object.reset)
+        : undefined;
+    message.assert_barcode =
+      object.assert_barcode !== undefined && object.assert_barcode !== null
+        ? Command_AssertBarcode.fromPartial(object.assert_barcode)
+        : undefined;
     return message;
   },
 };
@@ -188,7 +194,9 @@ export const Command_AssertBarcode = {
     return Command_AssertBarcode.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_AssertBarcode>, I>>(object: I): Command_AssertBarcode {
+  fromPartial<I extends Exact<DeepPartial<Command_AssertBarcode>, I>>(
+    object: I,
+  ): Command_AssertBarcode {
     const message = createBaseCommand_AssertBarcode();
     message.barcode = object.barcode ?? "";
     return message;
@@ -253,13 +261,19 @@ export const Config = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends Array<infer U>
+    ? Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends {}
+        ? { [K in keyof T]?: DeepPartial<T[K]> }
+        : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {

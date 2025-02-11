@@ -1,15 +1,15 @@
 name: Publish Docker Images
 
 on:
-    workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     permissions:
-        contents: read
-        packages: write
-        actions: write 
+      contents: read
+      packages: write
+      actions: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -31,6 +31,7 @@ jobs:
           file: controller/Dockerfile
           push: true
           tags: ghcr.io/sciencecorp/galago-web:latest
+          platforms: linux/amd64,linux/arm64
 
       - name: Build and push galago-db
         uses: docker/build-push-action@v4
@@ -39,3 +40,4 @@ jobs:
           file: db/Dockerfile
           push: true
           tags: ghcr.io/sciencecorp/galago-db:latest
+          platforms: linux/amd64,linux/arm64
