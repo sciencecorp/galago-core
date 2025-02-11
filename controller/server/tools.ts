@@ -104,6 +104,8 @@ export default class Tool {
   }
 
   async configure(config: tool_base.Config) {
+    await Tool.loadLabwareToPF400();
+    await Tool.loadPF400Waypoints();
     this.config = config;
     const reply = await this.grpc.configure(config);
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
