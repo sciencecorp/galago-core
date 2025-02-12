@@ -125,7 +125,7 @@ export default class Tool {
   }
 
   static async executeCommand(command: ToolCommandInfo) {
-    return await Tool.forId(command.toolId).executeCommand(command);
+    return await Tool.forId(this.normalizeToolId(command.toolId)).executeCommand(command);
   }
 
   async executeCommand(command: ToolCommandInfo) {

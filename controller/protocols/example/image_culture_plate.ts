@@ -10,10 +10,6 @@ const zWellSelection = z.array(
 
 export const ImageCulturePlateParams = z
   .object({
-    cytationProgram: z
-      .string()
-      .describe("The name of the Cytation protocol to run")
-      .default("Brightfield_10x"),
     liconic_cassette: z.number().positive().int().default(1),
     liconic_level: z.number().positive().int().default(1),
     wellPlateID: z.string().describe("ID of the well plate").default("1"),
@@ -36,7 +32,6 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
     const cassette = params.liconic_cassette;
     const level = params.liconic_level;
     const wellPlateID: string = params.wellPlateID;
-    const experiment_name: string = `${params.cytationProgram?.split(".")[0]}_${wellPlateID}_`;
 
     let cultureLabware = "default";
     if (params.culturePlateType?.includes("6 well")) {
@@ -48,6 +43,16 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
 
     let protocol_cmds: ToolCommandInfo[] = [
       {
+        label: "Test script",
+        toolId: "Tool Box",
+        command: "run_python_script",
+        toolType: ToolType.toolbox,
+        params: {
+          script_content: "show_user_input.py",
+          blocking: false,
+        },
+      },
+      {
         label: "Unload plate from Liconic",
         toolId: "Liconic",
         toolType: ToolType.liconic,
@@ -55,16 +60,6 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         params: {
           cassette: cassette,
           level: level,
-        },
-      },
-      {
-        label: "Test script",
-        toolId: "Tool Box",
-        command: "run_python_script",
-        toolType: ToolType.toolbox,
-        params: {
-          script_content: "plate_status.py",
-          blocking: false,
         },
       },
       {
@@ -102,16 +97,34 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         },
       },
     ];
-
+    protocol_cmds.push({
+      toolId: "Tool Box",
+      toolType: ToolType.toolbox,
+      command: "run_python_script",
+      params: {
+        script_content: "check_plate_confluence.py",
+        blocking: false,
+      },
+    });
     protocol_cmds.push({
       label: "Image Plate/Run Cytation Program",
       toolId: "Cytation",
       toolType: ToolType.cytation,
       command: "start_read",
       params: {
-        protocol_file: `${params.cytationProgram}`,
-        experiment_name: experiment_name,
+        protocol_file: `{{cytation_program}}`,
+        experiment_name: `$Exp_${wellPlateID}`,
         well_addresses: params.wellAddresses,
+      },
+    });
+
+    protocol_cmds.push({
+      toolId: "Tool Box",
+      toolType: ToolType.toolbox,
+      command: "run_python_script",
+      params: {
+        script_content: "upload_data.py",
+        blocking: false,
       },
     });
 
@@ -158,15 +171,6 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         },
       },
       {
-        toolId: "Tool Box",
-        toolType: ToolType.toolbox,
-        command: "run_python_script",
-        params: {
-          script_content: "run_counter.py",
-          blocking: false,
-        },
-      },
-      {
         label: "Load plate into Liconic",
         toolId: "Liconic",
         toolType: ToolType.liconic,
@@ -182,7 +186,7 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
         command: "run_python_script",
         toolType: ToolType.toolbox,
         params: {
-          script_content: "plate_status.py",
+          script_content: "run_complete_message.py",
           blocking: false,
         },
       },

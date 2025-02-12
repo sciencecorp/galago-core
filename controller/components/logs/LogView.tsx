@@ -82,7 +82,11 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
     limit: limit,
     skip: offset,
     descending: true,
-  });
+  },
+  { 
+    refetchInterval: 1000,
+  }
+);
 
   useEffect(() => {
     if (fetchedLogs) {
@@ -116,11 +120,11 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                 title="Logs"
                 subTitle="Monitor and analyze system logs"
                 titleIcon={<Icon as={FiBook} boxSize={8} color="teal.500" />}
-                mainButton={
-                  <Button onClick={() => refetch()} colorScheme="teal" leftIcon={<VscRefresh />}>
-                    Refresh
-                  </Button>
-                }
+                // mainButton={
+                //   <Button onClick={() => refetch()} colorScheme="teal" leftIcon={<VscRefresh />}>
+                //     Refresh
+                //   </Button>
+                // }
               />
 
               <Divider />

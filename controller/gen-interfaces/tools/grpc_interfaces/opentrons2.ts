@@ -22,17 +22,13 @@ export interface Command_Sleep {
   seconds: number;
 }
 
-export interface Command_Pause {
-}
+export interface Command_Pause {}
 
-export interface Command_Resume {
-}
+export interface Command_Resume {}
 
-export interface Command_Cancel {
-}
+export interface Command_Cancel {}
 
-export interface Command_ToggleLight {
-}
+export interface Command_ToggleLight {}
 
 export interface Config {
   robot_ip: string;
@@ -134,25 +130,37 @@ export const Command = {
 
   fromJSON(object: any): Command {
     return {
-      run_program: isSet(object.run_program) ? Command_RunProgram.fromJSON(object.run_program) : undefined,
+      run_program: isSet(object.run_program)
+        ? Command_RunProgram.fromJSON(object.run_program)
+        : undefined,
       sleep: isSet(object.sleep) ? Command_Sleep.fromJSON(object.sleep) : undefined,
       pause: isSet(object.pause) ? Command_Pause.fromJSON(object.pause) : undefined,
       resume: isSet(object.resume) ? Command_Resume.fromJSON(object.resume) : undefined,
       cancel: isSet(object.cancel) ? Command_Cancel.fromJSON(object.cancel) : undefined,
-      toggle_light: isSet(object.toggle_light) ? Command_ToggleLight.fromJSON(object.toggle_light) : undefined,
+      toggle_light: isSet(object.toggle_light)
+        ? Command_ToggleLight.fromJSON(object.toggle_light)
+        : undefined,
     };
   },
 
   toJSON(message: Command): unknown {
     const obj: any = {};
     message.run_program !== undefined &&
-      (obj.run_program = message.run_program ? Command_RunProgram.toJSON(message.run_program) : undefined);
-    message.sleep !== undefined && (obj.sleep = message.sleep ? Command_Sleep.toJSON(message.sleep) : undefined);
-    message.pause !== undefined && (obj.pause = message.pause ? Command_Pause.toJSON(message.pause) : undefined);
-    message.resume !== undefined && (obj.resume = message.resume ? Command_Resume.toJSON(message.resume) : undefined);
-    message.cancel !== undefined && (obj.cancel = message.cancel ? Command_Cancel.toJSON(message.cancel) : undefined);
+      (obj.run_program = message.run_program
+        ? Command_RunProgram.toJSON(message.run_program)
+        : undefined);
+    message.sleep !== undefined &&
+      (obj.sleep = message.sleep ? Command_Sleep.toJSON(message.sleep) : undefined);
+    message.pause !== undefined &&
+      (obj.pause = message.pause ? Command_Pause.toJSON(message.pause) : undefined);
+    message.resume !== undefined &&
+      (obj.resume = message.resume ? Command_Resume.toJSON(message.resume) : undefined);
+    message.cancel !== undefined &&
+      (obj.cancel = message.cancel ? Command_Cancel.toJSON(message.cancel) : undefined);
     message.toggle_light !== undefined &&
-      (obj.toggle_light = message.toggle_light ? Command_ToggleLight.toJSON(message.toggle_light) : undefined);
+      (obj.toggle_light = message.toggle_light
+        ? Command_ToggleLight.toJSON(message.toggle_light)
+        : undefined);
     return obj;
   },
 
@@ -162,24 +170,30 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.run_program = (object.run_program !== undefined && object.run_program !== null)
-      ? Command_RunProgram.fromPartial(object.run_program)
-      : undefined;
-    message.sleep = (object.sleep !== undefined && object.sleep !== null)
-      ? Command_Sleep.fromPartial(object.sleep)
-      : undefined;
-    message.pause = (object.pause !== undefined && object.pause !== null)
-      ? Command_Pause.fromPartial(object.pause)
-      : undefined;
-    message.resume = (object.resume !== undefined && object.resume !== null)
-      ? Command_Resume.fromPartial(object.resume)
-      : undefined;
-    message.cancel = (object.cancel !== undefined && object.cancel !== null)
-      ? Command_Cancel.fromPartial(object.cancel)
-      : undefined;
-    message.toggle_light = (object.toggle_light !== undefined && object.toggle_light !== null)
-      ? Command_ToggleLight.fromPartial(object.toggle_light)
-      : undefined;
+    message.run_program =
+      object.run_program !== undefined && object.run_program !== null
+        ? Command_RunProgram.fromPartial(object.run_program)
+        : undefined;
+    message.sleep =
+      object.sleep !== undefined && object.sleep !== null
+        ? Command_Sleep.fromPartial(object.sleep)
+        : undefined;
+    message.pause =
+      object.pause !== undefined && object.pause !== null
+        ? Command_Pause.fromPartial(object.pause)
+        : undefined;
+    message.resume =
+      object.resume !== undefined && object.resume !== null
+        ? Command_Resume.fromPartial(object.resume)
+        : undefined;
+    message.cancel =
+      object.cancel !== undefined && object.cancel !== null
+        ? Command_Cancel.fromPartial(object.cancel)
+        : undefined;
+    message.toggle_light =
+      object.toggle_light !== undefined && object.toggle_light !== null
+        ? Command_ToggleLight.fromPartial(object.toggle_light)
+        : undefined;
     return message;
   },
 };
@@ -573,13 +587,19 @@ export const Config = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends Array<infer U>
+    ? Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends {}
+        ? { [K in keyof T]?: DeepPartial<T[K]> }
+        : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isObject(value: any): boolean {
