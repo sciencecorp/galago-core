@@ -190,15 +190,7 @@ export interface AppConfig {
 }
 
 function createBaseToolConfig(): ToolConfig {
-  return {
-    name: "",
-    type: ToolType.unknown,
-    ip: "",
-    port: 0,
-    config: undefined,
-    description: "",
-    image_url: "",
-  };
+  return { name: "", type: ToolType.unknown, ip: "", port: 0, config: undefined, description: "", image_url: "" };
 }
 
 export const ToolConfig = {
@@ -310,8 +302,7 @@ export const ToolConfig = {
     message.type !== undefined && (obj.type = toolTypeToJSON(message.type));
     message.ip !== undefined && (obj.ip = message.ip);
     message.port !== undefined && (obj.port = Math.round(message.port));
-    message.config !== undefined &&
-      (obj.config = message.config ? Config.toJSON(message.config) : undefined);
+    message.config !== undefined && (obj.config = message.config ? Config.toJSON(message.config) : undefined);
     message.description !== undefined && (obj.description = message.description);
     message.image_url !== undefined && (obj.image_url = message.image_url);
     return obj;
@@ -327,10 +318,9 @@ export const ToolConfig = {
     message.type = object.type ?? ToolType.unknown;
     message.ip = object.ip ?? "";
     message.port = object.port ?? 0;
-    message.config =
-      object.config !== undefined && object.config !== null
-        ? Config.fromPartial(object.config)
-        : undefined;
+    message.config = (object.config !== undefined && object.config !== null)
+      ? Config.fromPartial(object.config)
+      : undefined;
     message.description = object.description ?? "";
     message.image_url = object.image_url ?? "";
     return message;
@@ -418,9 +408,7 @@ export const WorkcellConfig = {
       name: isSet(object.name) ? String(object.name) : "",
       description: isSet(object.description) ? String(object.description) : "",
       location: isSet(object.location) ? String(object.location) : "",
-      tools: Array.isArray(object?.tools)
-        ? object.tools.map((e: any) => ToolConfig.fromJSON(e))
-        : [],
+      tools: Array.isArray(object?.tools) ? object.tools.map((e: any) => ToolConfig.fromJSON(e)) : [],
     };
   },
 
@@ -431,7 +419,7 @@ export const WorkcellConfig = {
     message.description !== undefined && (obj.description = message.description);
     message.location !== undefined && (obj.location = message.location);
     if (message.tools) {
-      obj.tools = message.tools.map((e) => (e ? ToolConfig.toJSON(e) : undefined));
+      obj.tools = message.tools.map((e) => e ? ToolConfig.toJSON(e) : undefined);
     } else {
       obj.tools = [];
     }
@@ -563,9 +551,7 @@ export const AppConfig = {
       redis_ip: isSet(object.redis_ip) ? String(object.redis_ip) : "",
       slack_bot_tocken: isSet(object.slack_bot_tocken) ? String(object.slack_bot_tocken) : "",
       slack_channel_id: isSet(object.slack_channel_id) ? String(object.slack_channel_id) : "",
-      enable_slack_error: isSet(object.enable_slack_error)
-        ? Boolean(object.enable_slack_error)
-        : false,
+      enable_slack_error: isSet(object.enable_slack_error) ? Boolean(object.enable_slack_error) : false,
       slack_admins_ids: Array.isArray(object?.slack_admins_ids)
         ? object.slack_admins_ids.map((e: any) => String(e))
         : [],
@@ -579,8 +565,7 @@ export const AppConfig = {
     message.redis_ip !== undefined && (obj.redis_ip = message.redis_ip);
     message.slack_bot_tocken !== undefined && (obj.slack_bot_tocken = message.slack_bot_tocken);
     message.slack_channel_id !== undefined && (obj.slack_channel_id = message.slack_channel_id);
-    message.enable_slack_error !== undefined &&
-      (obj.enable_slack_error = message.enable_slack_error);
+    message.enable_slack_error !== undefined && (obj.enable_slack_error = message.enable_slack_error);
     if (message.slack_admins_ids) {
       obj.slack_admins_ids = message.slack_admins_ids.map((e) => e);
     } else {
@@ -608,19 +593,13 @@ export const AppConfig = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-    ? Array<DeepPartial<U>>
-    : T extends ReadonlyArray<infer U>
-      ? ReadonlyArray<DeepPartial<U>>
-      : T extends {}
-        ? { [K in keyof T]?: DeepPartial<T[K]> }
-        : Partial<T>;
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
+export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {

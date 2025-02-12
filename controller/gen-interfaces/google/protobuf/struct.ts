@@ -77,15 +77,25 @@ export interface Struct_FieldsEntry {
  */
 export interface Value {
   /** Represents a null value. */
-  null_value?: NullValue | undefined;
+  null_value?:
+    | NullValue
+    | undefined;
   /** Represents a double value. */
-  number_value?: number | undefined;
+  number_value?:
+    | number
+    | undefined;
   /** Represents a string value. */
-  string_value?: string | undefined;
+  string_value?:
+    | string
+    | undefined;
   /** Represents a boolean value. */
-  bool_value?: boolean | undefined;
+  bool_value?:
+    | boolean
+    | undefined;
   /** Represents a structured value. */
-  struct_value?: { [key: string]: any } | undefined;
+  struct_value?:
+    | { [key: string]: any }
+    | undefined;
   /** Represents a repeated `Value`. */
   list_value?: Array<any> | undefined;
 }
@@ -143,13 +153,10 @@ export const Struct = {
   fromJSON(object: any): Struct {
     return {
       fields: isObject(object.fields)
-        ? Object.entries(object.fields).reduce<{ [key: string]: any | undefined }>(
-            (acc, [key, value]) => {
-              acc[key] = value as any | undefined;
-              return acc;
-            },
-            {},
-          )
+        ? Object.entries(object.fields).reduce<{ [key: string]: any | undefined }>((acc, [key, value]) => {
+          acc[key] = value as any | undefined;
+          return acc;
+        }, {})
         : {},
     };
   },
@@ -250,10 +257,7 @@ export const Struct_FieldsEntry = {
   },
 
   fromJSON(object: any): Struct_FieldsEntry {
-    return {
-      key: isSet(object.key) ? String(object.key) : "",
-      value: isSet(object?.value) ? object.value : undefined,
-    };
+    return { key: isSet(object.key) ? String(object.key) : "", value: isSet(object?.value) ? object.value : undefined };
   },
 
   toJSON(message: Struct_FieldsEntry): unknown {
@@ -381,8 +385,7 @@ export const Value = {
   toJSON(message: Value): unknown {
     const obj: any = {};
     message.null_value !== undefined &&
-      (obj.null_value =
-        message.null_value !== undefined ? nullValueToJSON(message.null_value) : undefined);
+      (obj.null_value = message.null_value !== undefined ? nullValueToJSON(message.null_value) : undefined);
     message.number_value !== undefined && (obj.number_value = message.number_value);
     message.string_value !== undefined && (obj.string_value = message.string_value);
     message.bool_value !== undefined && (obj.bool_value = message.bool_value);
@@ -520,19 +523,13 @@ export const ListValue = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-    ? Array<DeepPartial<U>>
-    : T extends ReadonlyArray<infer U>
-      ? ReadonlyArray<DeepPartial<U>>
-      : T extends {}
-        ? { [K in keyof T]?: DeepPartial<T[K]> }
-        : Partial<T>;
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
+export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isObject(value: any): boolean {
