@@ -43,16 +43,6 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
 
     let protocol_cmds: ToolCommandInfo[] = [
       {
-        label: "Test script",
-        toolId: "Tool Box",
-        command: "run_python_script",
-        toolType: ToolType.toolbox,
-        params: {
-          script_content: "show_user_input.py",
-          blocking: false,
-        },
-      },
-      {
         label: "Unload plate from Liconic",
         toolId: "Liconic",
         toolType: ToolType.liconic,
@@ -98,12 +88,12 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
       },
     ];
     protocol_cmds.push({
-      toolId: "Tool Box",
+      toolId: "tool_box",
       toolType: ToolType.toolbox,
       command: "run_python_script",
       params: {
         script_content: "check_plate_confluence.py",
-        blocking: false,
+        blocking: true,
       },
     });
     protocol_cmds.push({
@@ -119,12 +109,12 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
     });
 
     protocol_cmds.push({
-      toolId: "Tool Box",
+      toolId: "tool_box",
       toolType: ToolType.toolbox,
       command: "run_python_script",
       params: {
         script_content: "upload_data.py",
-        blocking: false,
+        blocking: true,
       },
     });
 
@@ -182,12 +172,12 @@ export default class ImageCulturePlate extends Protocol<typeof ImageCulturePlate
       },
       {
         label: "Test script",
-        toolId: "Tool Box",
+        toolId: "tool_box",
         command: "run_python_script",
         toolType: ToolType.toolbox,
         params: {
           script_content: "run_complete_message.py",
-          blocking: false,
+          blocking: true,
         },
       },
     ] as ToolCommandInfo[]);
