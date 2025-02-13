@@ -27,7 +27,6 @@ import {
   Input,
 } from "@chakra-ui/react";
 import {
-  InfoOutlineIcon,
   CloseIcon,
   WarningIcon,
   QuestionOutlineIcon,
@@ -37,7 +36,6 @@ import { useEffect, useState, useMemo } from "react";
 import { Log } from "@/types/api";
 import { renderDatetime } from "../ui/Time";
 import { FiInfo } from "react-icons/fi";
-import { VscRefresh } from "react-icons/vsc";
 import { FiBook } from "react-icons/fi";
 import { PageHeader } from "@/components/ui/PageHeader";
 
