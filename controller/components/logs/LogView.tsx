@@ -26,12 +26,7 @@ import {
   InputLeftElement,
   Input,
 } from "@chakra-ui/react";
-import {
-  CloseIcon,
-  WarningIcon,
-  QuestionOutlineIcon,
-  SearchIcon,
-} from "@chakra-ui/icons";
+import { CloseIcon, WarningIcon, QuestionOutlineIcon, SearchIcon } from "@chakra-ui/icons";
 import { useEffect, useState, useMemo } from "react";
 import { Log } from "@/types/api";
 import { renderDatetime } from "../ui/Time";
@@ -77,15 +72,16 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
   const hasPrevious = offset > 0;
   const hasNext = logs.length === limit || false;
 
-  const { data: fetchedLogs, refetch } = trpc.logging.getPaginated.useQuery({
-    limit: limit,
-    skip: offset,
-    descending: true,
-  },
-  { 
-    refetchInterval: 1000,
-  }
-);
+  const { data: fetchedLogs, refetch } = trpc.logging.getPaginated.useQuery(
+    {
+      limit: limit,
+      skip: offset,
+      descending: true,
+    },
+    {
+      refetchInterval: 1000,
+    },
+  );
 
   useEffect(() => {
     if (fetchedLogs) {

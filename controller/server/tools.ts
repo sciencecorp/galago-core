@@ -149,8 +149,8 @@ export default class Tool {
 
     //Functionality to run python scripts store in db
     if (command.command === "run_python_script" && command.toolId === "tool_box") {
-      const scriptId = String(command.params.script_content); 
-      
+      const scriptId = String(command.params.script_content);
+
       try {
         const script = await get<Script>(`/scripts/${scriptId}`);
         command.params.script_content = script.content;
