@@ -48,8 +48,9 @@ function getIconFromLogType(logType: string) {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    width: "24px",
-    height: "24px",
+    width: "18x",
+    height: "18px",
+    padding: "2px",
   };
 
   switch (logType) {
@@ -120,15 +121,8 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                 title="Logs"
                 subTitle="Monitor and analyze system logs"
                 titleIcon={<Icon as={FiBook} boxSize={8} color="teal.500" />}
-                // mainButton={
-                //   <Button onClick={() => refetch()} colorScheme="teal" leftIcon={<VscRefresh />}>
-                //     Refresh
-                //   </Button>
-                // }
               />
-
               <Divider />
-
               <StatGroup>
                 <Stat>
                   <StatLabel>Total Logs</StatLabel>
@@ -143,9 +137,7 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                   <StatNumber color="orange.500">{warningCount}</StatNumber>
                 </Stat>
               </StatGroup>
-
               <Divider />
-
               <HStack spacing={4}>
                 <InputGroup maxW="400px">
                   <InputLeftElement pointerEvents="none">

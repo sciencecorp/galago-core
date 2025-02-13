@@ -149,21 +149,19 @@ export default class Tool {
 
     //Functionality to run python scripts store in db
     if (command.command === "run_python_script" && command.toolId === "tool_box") {
-      const scriptId = String(command.params.script_content); // Verify this is really the script ID!
+      const scriptId = String(command.params.script_content); 
       
-      // Retrieve the script only once.
-      const script = await get<Script>(`/scripts/${scriptId}`);
-      
-      // Ensure the script has valid content.
-      if (!script?.content || script.content.includes(`Script ${scriptId} Not Found`)) {
-        throw new Error(`Script Not Found`);
+      try {
+        const script = await get<Script>(`/scripts/${scriptId}`);
+        command.params.script_content = script.content;
+      } catch (e: any) {
+        console.warn("Error at fetching script", e);
+        if (e.status === 404) {
+          throw new Error(`Script ${scriptId} not found`);
+        }
+        throw new Error(`Failed to fetch ${scriptId}. ${e}`);
       }
-      
-      // Use the script content for the command.
-      command.params.script_content = script.content;
-      console.log("Script content: ", command.params.script_content);
     }
-
     const reply = await this.grpc.executeCommand(this._payloadForCommand(command));
     if (reply.return_reply) {
       return reply;
