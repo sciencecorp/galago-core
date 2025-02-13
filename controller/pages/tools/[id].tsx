@@ -234,11 +234,11 @@ const commandFields: CommandFields = {
     rotate_stage: [{ name: "angle", type: "number" }],
   },
   xpeel: {
-    DesealPlate: [],
-    CheckStatus: [],
-    ResetDevice: [],
-    RestartDevice: [],
-    CheckTapeRemaining: [],
+    peel: [],
+    check_status: [],
+    reset: [],
+    restart: [],
+    get_remaining_tape: [],
   },
   hig_centrifuge: {
     home: [],
