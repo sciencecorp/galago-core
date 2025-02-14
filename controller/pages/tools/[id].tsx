@@ -21,9 +21,7 @@ import { trpc } from "@/utils/trpc";
 import { ToolCommandInfo } from "@/types";
 import { ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
-import { useParams } from "react-router";
 import Head from "next/head";
-import { ToolConfig } from "gen-interfaces/controller";
 import { TeachPendant } from "@/components/tools/advanced/teach_pendant/TeachPendant";
 // Assuming you're using TypeScript, you could define a type for the status object
 type CommandStatus = {
@@ -236,11 +234,11 @@ export const commandFields: CommandFields = {
     rotate_stage: [{ name: "angle", type: "number" }],
   },
   xpeel: {
-    DesealPlate: [],
-    CheckStatus: [],
-    ResetDevice: [],
-    RestartDevice: [],
-    CheckTapeRemaining: [],
+    peel: [],
+    check_status: [],
+    reset: [],
+    restart: [],
+    get_remaining_tape: [],
   },
   hig_centrifuge: {
     home: [],
@@ -368,8 +366,6 @@ const ToolCommands = (commands: CommandFields) => {
 
 export default function Page() {
   const router = useRouter();
-  const params = useParams();
-
   const [id, setId] = useState<string | null>(null);
 
   const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
@@ -400,12 +396,6 @@ export default function Page() {
       document.title = `Tool: ${config.name}`;
     }
   }, [config?.name]);
-
-  useEffect(() => {
-    if (commandOptions) {
-      setSelectedCommand(Object.keys(commandOptions)[0]);
-    }
-  }, []);
 
   useEffect(() => {
     if (selectedCommand) {

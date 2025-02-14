@@ -18,12 +18,7 @@ import {
 import { Search2Icon } from "@chakra-ui/icons";
 import { Tool } from "@/types/api";
 import { useEffect, useState, useMemo } from "react";
-import {
-  jointsToCoordinate,
-  coordinateToJoints,
-  validateJointCount,
-  JointConfig,
-} from "./components/utils/robotArmUtils";
+import { coordinateToJoints, validateJointCount } from "./components/utils/robotArmUtils";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "./components/types";
 import { z } from "zod";

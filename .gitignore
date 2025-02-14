@@ -11,7 +11,6 @@ __pycache__/
 controller/.next/
 controller/out/
 controller/build
-controller/gen-interfaces/
 controller/app.log
 stdout.txt 
 tmp_file.py 
@@ -26,8 +25,8 @@ tools/pf400/config/*.json
 trace_log.log
 *log
 workcells/*.log
-package-lock.json
-package.json
+#package-lock.json
+# package.json
 dump.rdb
 
 # debug

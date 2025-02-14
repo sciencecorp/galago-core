@@ -63,6 +63,7 @@ export const toolRouter = router({
         config: (config.config as Config) ?? tool.info.config,
       };
 
+      await Tool.reloadSingleToolConfig(tool.info);
       return response;
     }),
 
@@ -81,7 +82,7 @@ export const toolRouter = router({
     const allTools = await get<ToolResponse[]>(`/tools`);
     Tool.reloadWorkcellConfig(allTools as controller_protos.ToolConfig[]);
     const toolIds = allTools.map((tool) => tool.name.toLocaleLowerCase().replaceAll(" ", "_"));
-    toolIds.push("Tool Box");
+    toolIds.push("tool_box");
     return toolIds;
   }),
 

@@ -7,17 +7,13 @@ Galago consists of several distinct modules:
 
 To build the protobuf interfaces, simply run `bin/make proto`.
 
-## Controller
-
-The controller app boots with a config file that specifies a specific set of tools and their network configurations. The config file is specific to each workcell (or related group of tools). These config files live in the `config` directory.
-
 ## Getting started
 
-## Requirements
+### Requirements
 
-1. Node 18.20.3
+1. Node 18.13
 2. Python 3.9
-3. WSL (Windows only)
+3. Docker and Docker compose
 
 ## Docker and docker compose are recommended.
 
@@ -25,6 +21,14 @@ The controller app boots with a config file that specifies a specific set of too
 
 ```
 docker-compose -f docker-compose.yml up --build #Prod Mode
+```
+
+or if using docker compose v2
+
+```
+docker-compose -f docker-compose.yml up --build
+```
+
 docker-compose -f docker-compose.dev.yml up --build #Dev Mode
 
 ```
@@ -32,6 +36,7 @@ docker-compose -f docker-compose.dev.yml up --build #Dev Mode
 ## Other docker commands.
 
 ```
+
 #Stop containters
 docker-compose -f docker-compose.dev.yml down
 
@@ -41,16 +46,13 @@ docker-compose -f docker-compose.dev.yml down --rmi all
 #Remove orphans
 docker compose -f docker-compose.dev.yml down --rmi all --remove-orphans
 
-#rebuild and restart
-docker-compose -f docker-compose.dev.yml up --build
-
 #rebuild a specific service
 docker-compose up -d --force-recreate --no-deps --build service_name
 
 #add npm deps to dev environment
 docker exec -it galago-web-dev npm install <package name>
 
-```
+````
 
 ## If not using docker it is recommended to use a virtual environment. Eg. miniconda, mamba. and follow the steps below
 
@@ -59,7 +61,7 @@ docker exec -it galago-web-dev npm install <package name>
 ```zsh
 brew install miniforge
 mamba init
-```
+````
 
 ### On Windows.
 

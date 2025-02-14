@@ -87,14 +87,10 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   };
 
   const handleSaveOrientation = (teachpoint: TeachPoint, newValue: "landscape" | "portrait") => {
-    console.log("Orientation", newValue);
-    console.log("Updating");
     onEdit({ ...teachpoint, orientation: newValue });
   };
 
-  useEffect(() => {
-    console.log("Items", paginatedItems);
-  }, [paginatedItems]);
+  useEffect(() => {}, [paginatedItems]);
 
   return (
     <Box height="100%" overflow="hidden">
