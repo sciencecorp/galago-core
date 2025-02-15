@@ -191,7 +191,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
           </HStack>
 
           {workcell.tools.length > 0 && (
-            <AvatarGroup size="md" max={4} spacing="-1.5rem">
+            <AvatarGroup size="md" max={8} spacing="-1.5rem">
               {workcell.tools.map((tool) => (
                 <Tooltip key={tool.id} label={tool.name}>
                   <Avatar

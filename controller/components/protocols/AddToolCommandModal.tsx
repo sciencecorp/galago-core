@@ -15,16 +15,24 @@ import {
   useToast,
   NumberInput,
   NumberInputField,
+  HStack,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
 import { commandFields, Field, Command } from "@/pages/tools/[id]";
+import { AddIcon } from "@chakra-ui/icons";
 
 interface AddToolCommandModalProps {
   isOpen: boolean;
   onClose: () => void;
   protocolId: string;
   onCommandAdded: (newCommand: any) => void;
+  protocolParams?: Record<string, any>;
 }
 
 export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
@@ -32,6 +40,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   onClose,
   protocolId,
   onCommandAdded,
+  protocolParams = {},
 }) => {
   const toast = useToast();
   const [selectedTool, setSelectedTool] = useState("");
@@ -39,6 +48,18 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   const [commandParams, setCommandParams] = useState<Record<string, any>>({});
 
   const toolsQuery = trpc.tool.getAll.useQuery();
+  const selectedToolData = toolsQuery.data?.find((tool) => tool.type === selectedTool);
+  
+  // Query for PF400 locations and sequences when needed
+  const waypointsQuery = trpc.robotArm.waypoints.getAll.useQuery(
+    { toolId: selectedToolData?.id || 0 },
+    { enabled: !!selectedToolData?.id && selectedTool === "pf400" }
+  );
+
+  // Reset params when tool or command changes
+  useEffect(() => {
+    setCommandParams({});
+  }, [selectedTool, selectedCommand]);
   
   // Get available commands for the selected tool
   const availableCommands: Command = selectedTool ? commandFields[selectedTool] || {} : {};
@@ -47,12 +68,10 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   const fields: Field[] = selectedTool && selectedCommand ? availableCommands[selectedCommand] || [] : [];
 
   const handleSubmit = () => {
-    const toolId = toolsQuery.data?.find((tool) => tool.type === selectedTool)?.id || "0";
-
     const newCommand = {
       queueId: Date.now(),
       commandInfo: {
-        toolId: toolId,
+        toolId: selectedTool,
         toolType: selectedTool,
         command: selectedCommand,
         params: commandParams,
@@ -74,6 +93,141 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
       status: "success",
       duration: 3000,
     });
+  };
+
+  const renderField = (field: Field) => {
+    // Add parameter reference button
+    const ParameterReferenceButton = () => (
+      <Menu>
+        <MenuButton
+          as={IconButton}
+          aria-label="Insert parameter reference"
+          icon={<AddIcon />}
+          size="sm"
+          variant="ghost"
+        />
+        <MenuList>
+          {Object.entries(protocolParams).map(([paramName, schema]) => (
+            <MenuItem
+              key={paramName}
+              onClick={() => {
+                setCommandParams({
+                  ...commandParams,
+                  [field.name]: `\${${paramName}}`
+                });
+              }}
+            >
+              {paramName} ({schema.type})
+            </MenuItem>
+          ))}
+        </MenuList>
+      </Menu>
+    );
+
+    // Special handling for PF400 location and sequence fields
+    if (selectedTool === "pf400") {
+      // For move command's name parameter (locations)
+      if (selectedCommand === "move" && field.name === "name") {
+        return (
+          <Select
+            value={commandParams[field.name] || ""}
+            onChange={(e) => setCommandParams({ ...commandParams, [field.name]: e.target.value })}
+          >
+            <option value="">Select location</option>
+            {waypointsQuery.data?.locations.map((loc) => (
+              <option key={loc.id} value={loc.name}>
+                {loc.name}
+              </option>
+            ))}
+          </Select>
+        );
+      }
+      
+      // For run_sequence command's sequence_name parameter
+      if (selectedCommand === "run_sequence" && field.name === "sequence_name") {
+        return (
+          <Select
+            value={commandParams[field.name] || ""}
+            onChange={(e) => setCommandParams({ ...commandParams, [field.name]: e.target.value })}
+          >
+            <option value="">Select sequence</option>
+            {waypointsQuery.data?.sequences.map((seq) => (
+              <option key={seq.id} value={seq.name}>
+                {seq.name}
+              </option>
+            ))}
+          </Select>
+        );
+      }
+    }
+
+    // Default field rendering based on type
+    switch (field.type) {
+      case "number":
+        return (
+          <HStack>
+            <NumberInput
+              flex={1}
+              value={commandParams[field.name] || field.defaultValue || ""}
+              onChange={(value) =>
+                setCommandParams({ ...commandParams, [field.name]: parseFloat(value) })
+              }
+            >
+              <NumberInputField />
+            </NumberInput>
+            <ParameterReferenceButton />
+          </HStack>
+        );
+      case "text_array":
+        return (
+          <HStack>
+            <Input
+              flex={1}
+              value={commandParams[field.name] ? JSON.stringify(commandParams[field.name]) : field.defaultValue ? JSON.stringify(field.defaultValue) : ""}
+              onChange={(e) => {
+                try {
+                  const arrayValue = JSON.parse(e.target.value);
+                  setCommandParams({ ...commandParams, [field.name]: arrayValue });
+                } catch {
+                  // If parsing fails, store as string
+                  setCommandParams({ ...commandParams, [field.name]: e.target.value });
+                }
+              }}
+              placeholder="Enter as JSON array: ['item1', 'item2']"
+            />
+            <ParameterReferenceButton />
+          </HStack>
+        );
+      case "boolean":
+        return (
+          <HStack>
+            <Select
+              flex={1}
+              value={commandParams[field.name]?.toString() || field.defaultValue?.toString() || "false"}
+              onChange={(e) => 
+                setCommandParams({ ...commandParams, [field.name]: e.target.value === "true" })
+              }
+            >
+              <option value="true">True</option>
+              <option value="false">False</option>
+            </Select>
+            <ParameterReferenceButton />
+          </HStack>
+        );
+      default:
+        return (
+          <HStack>
+            <Input
+              flex={1}
+              value={commandParams[field.name] || field.defaultValue || ""}
+              onChange={(e) =>
+                setCommandParams({ ...commandParams, [field.name]: e.target.value })
+              }
+            />
+            <ParameterReferenceButton />
+          </HStack>
+        );
+    }
   };
 
   return (
@@ -126,47 +280,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                 {fields.map((field: Field) => (
                   <FormControl key={field.name}>
                     <FormLabel>{field.name}</FormLabel>
-                    {field.type === "number" ? (
-                      <NumberInput
-                        value={commandParams[field.name] || field.defaultValue || ""}
-                        onChange={(value) =>
-                          setCommandParams({ ...commandParams, [field.name]: parseFloat(value) })
-                        }
-                      >
-                        <NumberInputField />
-                      </NumberInput>
-                    ) : field.type === "text_array" ? (
-                      <Input
-                        value={commandParams[field.name] ? JSON.stringify(commandParams[field.name]) : field.defaultValue ? JSON.stringify(field.defaultValue) : ""}
-                        onChange={(e) => {
-                          try {
-                            const arrayValue = JSON.parse(e.target.value);
-                            setCommandParams({ ...commandParams, [field.name]: arrayValue });
-                          } catch {
-                            // If parsing fails, store as string
-                            setCommandParams({ ...commandParams, [field.name]: e.target.value });
-                          }
-                        }}
-                        placeholder="Enter as JSON array: ['item1', 'item2']"
-                      />
-                    ) : field.type === "boolean" ? (
-                      <Select
-                        value={commandParams[field.name]?.toString() || field.defaultValue?.toString() || "false"}
-                        onChange={(e) => 
-                          setCommandParams({ ...commandParams, [field.name]: e.target.value === "true" })
-                        }
-                      >
-                        <option value="true">True</option>
-                        <option value="false">False</option>
-                      </Select>
-                    ) : (
-                      <Input
-                        value={commandParams[field.name] || field.defaultValue || ""}
-                        onChange={(e) =>
-                          setCommandParams({ ...commandParams, [field.name]: e.target.value })
-                        }
-                      />
-                    )}
+                    {renderField(field)}
                   </FormControl>
                 ))}
               </VStack>
