@@ -154,8 +154,8 @@ export interface ParameterSchema {
   min?: number;
   max?: number;
   regex?: string;
-  items?: ParameterSchema;  // For array types
-  values?: string[];  // For enum types
+  items?: ParameterSchema; // For array types
+  values?: string[]; // For enum types
   default?: any;
 }
 

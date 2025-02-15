@@ -23,7 +23,7 @@ export class DatabaseProtocol extends Protocol {
     this.description = dbProtocol.description;
     this.icon = dbProtocol.icon;
     this.protocolId = dbProtocol.id.toString();
-    
+
     // Convert the JSON schema back to a Zod schema
     this.paramSchema = this.jsonToZodSchema(dbProtocol.parameters_schema);
     this.commandsTemplate = dbProtocol.commands_template;
@@ -32,11 +32,11 @@ export class DatabaseProtocol extends Protocol {
   private jsonToZodSchema(jsonSchema: any): z.ZodObject<any> {
     // Convert the stored JSON schema back to a Zod schema
     const schemaShape: Record<string, z.ZodTypeAny> = {};
-    
+
     for (const [key, value] of Object.entries(jsonSchema)) {
       const fieldSchema = value as any;
       let zodField: z.ZodTypeAny;
-      
+
       switch (fieldSchema.type) {
         case "string":
           zodField = z.string();
@@ -78,32 +78,32 @@ export class DatabaseProtocol extends Protocol {
     // Use the commands template to generate commands
     // The template can contain variable substitutions using ${param.name} syntax
     let commands: ToolCommandInfo[] = JSON.parse(JSON.stringify(this.commandsTemplate));
-    
+
     // Replace parameter placeholders in the commands
     commands = this.replaceParameterPlaceholders(commands, params);
-    
+
     return commands;
   }
 
   private replaceParameterPlaceholders(obj: any, params: any): any {
-    if (typeof obj === 'string') {
+    if (typeof obj === "string") {
       return obj.replace(/\${([^}]+)}/g, (_, path) => {
-        return path.split('.').reduce((value: any, key: string) => value?.[key], params);
+        return path.split(".").reduce((value: any, key: string) => value?.[key], params);
       });
     }
-    
+
     if (Array.isArray(obj)) {
-      return obj.map(item => this.replaceParameterPlaceholders(item, params));
+      return obj.map((item) => this.replaceParameterPlaceholders(item, params));
     }
-    
-    if (typeof obj === 'object' && obj !== null) {
+
+    if (typeof obj === "object" && obj !== null) {
       const result: any = {};
       for (const [key, value] of Object.entries(obj)) {
         result[key] = this.replaceParameterPlaceholders(value, params);
       }
       return result;
     }
-    
+
     return obj;
   }
 
@@ -115,4 +115,4 @@ export class DatabaseProtocol extends Protocol {
       throw new Error(`Failed to load protocol ${protocolId} from database: ${error}`);
     }
   }
-} 
+}

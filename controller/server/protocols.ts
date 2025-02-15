@@ -15,9 +15,9 @@ const staticProtocols: Protocol[] = [new ImageCulturePlate(), new VariablesDemo(
 async function loadDatabaseProtocols(): Promise<Protocol[]> {
   try {
     const response = await axios.get(`${API_BASE_URL}/protocols`, {
-      params: { is_active: true }
+      params: { is_active: true },
     });
-    
+
     const dbProtocols = await Promise.all(
       response.data.map(async (protocolData: any) => {
         try {
@@ -26,7 +26,7 @@ async function loadDatabaseProtocols(): Promise<Protocol[]> {
           console.error(`Failed to load protocol ${protocolData.id}:`, error);
           return null;
         }
-      })
+      }),
     );
 
     return dbProtocols.filter((p): p is Protocol => p !== null);
@@ -40,11 +40,13 @@ async function loadDatabaseProtocols(): Promise<Protocol[]> {
 export let Protocols: Protocol[] = [...staticProtocols];
 
 // Load database protocols and update the Protocols array
-loadDatabaseProtocols().then(dbProtocols => {
-  Protocols = [...staticProtocols, ...dbProtocols];
-}).catch(error => {
-  console.error("Failed to initialize database protocols:", error);
-});
+loadDatabaseProtocols()
+  .then((dbProtocols) => {
+    Protocols = [...staticProtocols, ...dbProtocols];
+  })
+  .catch((error) => {
+    console.error("Failed to initialize database protocols:", error);
+  });
 
 // Function to reload protocols (useful when protocols are added/updated in the database)
 export async function reloadProtocols(): Promise<void> {

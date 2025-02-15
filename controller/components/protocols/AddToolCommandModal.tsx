@@ -49,23 +49,24 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
 
   const toolsQuery = trpc.tool.getAll.useQuery();
   const selectedToolData = toolsQuery.data?.find((tool) => tool.type === selectedTool);
-  
+
   // Query for PF400 locations and sequences when needed
   const waypointsQuery = trpc.robotArm.waypoints.getAll.useQuery(
     { toolId: selectedToolData?.id || 0 },
-    { enabled: !!selectedToolData?.id && selectedTool === "pf400" }
+    { enabled: !!selectedToolData?.id && selectedTool === "pf400" },
   );
 
   // Reset params when tool or command changes
   useEffect(() => {
     setCommandParams({});
   }, [selectedTool, selectedCommand]);
-  
+
   // Get available commands for the selected tool
   const availableCommands: Command = selectedTool ? commandFields[selectedTool] || {} : {};
-  
+
   // Get fields for the selected command
-  const fields: Field[] = selectedTool && selectedCommand ? availableCommands[selectedCommand] || [] : [];
+  const fields: Field[] =
+    selectedTool && selectedCommand ? availableCommands[selectedCommand] || [] : [];
 
   const handleSubmit = () => {
     const newCommand = {
@@ -113,10 +114,9 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               onClick={() => {
                 setCommandParams({
                   ...commandParams,
-                  [field.name]: `\${${paramName}}`
+                  [field.name]: `\${${paramName}}`,
                 });
-              }}
-            >
+              }}>
               {paramName} ({schema.type})
             </MenuItem>
           ))}
@@ -131,8 +131,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
         return (
           <Select
             value={commandParams[field.name] || ""}
-            onChange={(e) => setCommandParams({ ...commandParams, [field.name]: e.target.value })}
-          >
+            onChange={(e) => setCommandParams({ ...commandParams, [field.name]: e.target.value })}>
             <option value="">Select location</option>
             {waypointsQuery.data?.locations.map((loc) => (
               <option key={loc.id} value={loc.name}>
@@ -142,14 +141,13 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           </Select>
         );
       }
-      
+
       // For run_sequence command's sequence_name parameter
       if (selectedCommand === "run_sequence" && field.name === "sequence_name") {
         return (
           <Select
             value={commandParams[field.name] || ""}
-            onChange={(e) => setCommandParams({ ...commandParams, [field.name]: e.target.value })}
-          >
+            onChange={(e) => setCommandParams({ ...commandParams, [field.name]: e.target.value })}>
             <option value="">Select sequence</option>
             {waypointsQuery.data?.sequences.map((seq) => (
               <option key={seq.id} value={seq.name}>
@@ -171,8 +169,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               value={commandParams[field.name] || field.defaultValue || ""}
               onChange={(value) =>
                 setCommandParams({ ...commandParams, [field.name]: parseFloat(value) })
-              }
-            >
+              }>
               <NumberInputField />
             </NumberInput>
             <ParameterReferenceButton />
@@ -183,7 +180,13 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           <HStack>
             <Input
               flex={1}
-              value={commandParams[field.name] ? JSON.stringify(commandParams[field.name]) : field.defaultValue ? JSON.stringify(field.defaultValue) : ""}
+              value={
+                commandParams[field.name]
+                  ? JSON.stringify(commandParams[field.name])
+                  : field.defaultValue
+                    ? JSON.stringify(field.defaultValue)
+                    : ""
+              }
               onChange={(e) => {
                 try {
                   const arrayValue = JSON.parse(e.target.value);
@@ -203,11 +206,12 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           <HStack>
             <Select
               flex={1}
-              value={commandParams[field.name]?.toString() || field.defaultValue?.toString() || "false"}
-              onChange={(e) => 
-                setCommandParams({ ...commandParams, [field.name]: e.target.value === "true" })
+              value={
+                commandParams[field.name]?.toString() || field.defaultValue?.toString() || "false"
               }
-            >
+              onChange={(e) =>
+                setCommandParams({ ...commandParams, [field.name]: e.target.value === "true" })
+              }>
               <option value="true">True</option>
               <option value="false">False</option>
             </Select>
@@ -220,9 +224,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
             <Input
               flex={1}
               value={commandParams[field.name] || field.defaultValue || ""}
-              onChange={(e) =>
-                setCommandParams({ ...commandParams, [field.name]: e.target.value })
-              }
+              onChange={(e) => setCommandParams({ ...commandParams, [field.name]: e.target.value })}
             />
             <ParameterReferenceButton />
           </HStack>

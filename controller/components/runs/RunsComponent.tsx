@@ -71,15 +71,16 @@ export const RunsComponent: React.FC = () => {
   const expandedRunBg = useColorModeValue("gray.100", "gray.800");
   const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
   const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
-  const groupedCommands = useMemo(() => 
-    commandsAll.data ? groupCommandsByRun(commandsAll.data) : []
-  , [commandsAll.data]);
+  const groupedCommands = useMemo(
+    () => (commandsAll.data ? groupCommandsByRun(commandsAll.data) : []),
+    [commandsAll.data],
+  );
   const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 1000 });
   const queue = trpc.commandQueue;
-  const getError = queue.getError.useQuery(undefined, { 
+  const getError = queue.getError.useQuery(undefined, {
     refetchInterval: 1500,
     select: (data) => data || null,
-    retry: false
+    retry: false,
   });
 
   const ErrorBanner = () => {
@@ -126,10 +127,9 @@ export const RunsComponent: React.FC = () => {
       for (const run of groupedCommands) {
         const runInfo = runsInfo.data?.find((r) => r.id === run.Id);
         const cmdInfo = CommandInfo.data?.find((r) => r.runId === run.Id);
-        
+
         // Only update if we don't have attributes for this run or if the data has changed
-        if (!runAttributesMap[run.Id] || 
-            runAttributesMap[run.Id].status !== cmdInfo?.status) {
+        if (!runAttributesMap[run.Id] || runAttributesMap[run.Id].status !== cmdInfo?.status) {
           const attributes = await getRunAttributes(runInfo, cmdInfo);
           newAttributes[run.Id] = attributes;
         } else {
@@ -138,7 +138,7 @@ export const RunsComponent: React.FC = () => {
       }
       setRunAttributesMap(newAttributes);
     };
-    
+
     updateRunAttributes();
   }, [runsInfo.data, CommandInfo.data]);
 

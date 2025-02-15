@@ -218,11 +218,10 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
       onClick={(e) => {
         // Only trigger click if not clicking menu
         const target = e.target as HTMLElement;
-        if (!target.closest('.command-menu')) {
+        if (!target.closest(".command-menu")) {
           onCommandClick(command);
         }
-      }}
-    >
+      }}>
       <Box
         left="0px"
         right="0px"
@@ -255,17 +254,11 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
                     variant="outline"
                   />
                   <MenuList>
-                    <MenuItem 
-                      onClick={() => onRunCommand(command)}
-                      icon={<VscRunBelow />}
-                    >
+                    <MenuItem onClick={() => onRunCommand(command)} icon={<VscRunBelow />}>
                       Run Command
                     </MenuItem>
                     {isEditing && (
-                      <MenuItem 
-                        onClick={onDeleteCommand}
-                        icon={<DeleteIcon />}
-                      >
+                      <MenuItem onClick={onDeleteCommand} icon={<DeleteIcon />}>
                         Delete Command
                       </MenuItem>
                     )}
@@ -306,7 +299,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     data: protocol,
     isLoading,
     error,
-    refetch
+    refetch,
   } = trpc.protocol.getById.useQuery({ id: parseInt(id) });
 
   const updateProtocol = trpc.protocol.update.useMutation({
@@ -427,16 +420,16 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
 
   const handleSaveChanges = () => {
     if (!protocol) return;
-    
+
     // Convert commands to the format expected by the API
-    const commandsTemplate = commands.map(cmd => ({
+    const commandsTemplate = commands.map((cmd) => ({
       toolId: cmd.commandInfo.toolId,
       toolType: cmd.commandInfo.toolType,
       command: cmd.commandInfo.command,
       params: cmd.commandInfo.params,
       label: cmd.commandInfo.label || "",
     }));
-    
+
     updateProtocol.mutate({
       id: protocol.id,
       data: {
@@ -447,7 +440,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         icon: protocol.icon || "",
       },
     });
-    
+
     setIsEditing(false);
   };
 
@@ -530,95 +523,47 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         <VStack align="stretch" spacing={4}>
           <Heading size="md">Protocol Parameters</Heading>
           {isEditing ? (
-            <Box
-              p={4}
-              borderWidth="1px"
-              borderRadius="lg"
-              borderColor={borderColor}
-              bg={bgColor}
-            >
+            <Box p={4} borderWidth="1px" borderRadius="lg" borderColor={borderColor} bg={bgColor}>
               <VStack align="stretch" spacing={4}>
-                {Object.entries(protocol.parameters_schema || {}).map(([paramName, schemaData], index) => {
-                  const schema = schemaData as ParameterSchema;
-                  return (
-                    <HStack key={index} spacing={4}>
-                      <FormControl flex={1}>
-                        <FormLabel>Parameter Name</FormLabel>
-                        <Input
-                          value={paramName}
-                          onChange={(e) => {
-                            const newSchema = { ...protocol.parameters_schema } as Record<string, ParameterSchema>;
-                            delete newSchema[paramName];
-                            newSchema[e.target.value] = schema;
-                            updateProtocol.mutate({
-                              id: protocol.id,
-                              data: {
-                                ...protocol,
-                                parameters_schema: newSchema,
-                                icon: protocol.icon || "",
-                              }
-                            });
-                          }}
-                        />
-                      </FormControl>
-                      <FormControl flex={1}>
-                        <FormLabel>Type</FormLabel>
-                        <Select
-                          value={schema.type}
-                          onChange={(e) => {
-                            const newSchema = { ...protocol.parameters_schema } as Record<string, ParameterSchema>;
-                            newSchema[paramName] = {
-                              ...schema,
-                              type: e.target.value
-                            };
-                            updateProtocol.mutate({
-                              id: protocol.id,
-                              data: {
-                                ...protocol,
-                                parameters_schema: newSchema,
-                                icon: protocol.icon || "",
-                              }
-                            });
-                          }}
-                        >
-                          <option value="string">String</option>
-                          <option value="number">Number</option>
-                          <option value="boolean">Boolean</option>
-                          <option value="array">Array</option>
-                        </Select>
-                      </FormControl>
-                      <FormControl flex={2}>
-                        <FormLabel>Description</FormLabel>
-                        <Input
-                          value={schema.description || ""}
-                          onChange={(e) => {
-                            const newSchema = { ...protocol.parameters_schema } as Record<string, ParameterSchema>;
-                            newSchema[paramName] = {
-                              ...schema,
-                              description: e.target.value
-                            };
-                            updateProtocol.mutate({
-                              id: protocol.id,
-                              data: {
-                                ...protocol,
-                                parameters_schema: newSchema,
-                                icon: protocol.icon || "",
-                              }
-                            });
-                          }}
-                        />
-                      </FormControl>
-                      <FormControl flex={1}>
-                        <FormLabel>Default Value</FormLabel>
-                        <Input
-                          value={schema.default !== undefined ? JSON.stringify(schema.default) : ""}
-                          onChange={(e) => {
-                            try {
-                              const defaultValue = JSON.parse(e.target.value);
-                              const newSchema = { ...protocol.parameters_schema } as Record<string, ParameterSchema>;
+                {Object.entries(protocol.parameters_schema || {}).map(
+                  ([paramName, schemaData], index) => {
+                    const schema = schemaData as ParameterSchema;
+                    return (
+                      <HStack key={index} spacing={4}>
+                        <FormControl flex={1}>
+                          <FormLabel>Parameter Name</FormLabel>
+                          <Input
+                            value={paramName}
+                            onChange={(e) => {
+                              const newSchema = { ...protocol.parameters_schema } as Record<
+                                string,
+                                ParameterSchema
+                              >;
+                              delete newSchema[paramName];
+                              newSchema[e.target.value] = schema;
+                              updateProtocol.mutate({
+                                id: protocol.id,
+                                data: {
+                                  ...protocol,
+                                  parameters_schema: newSchema,
+                                  icon: protocol.icon || "",
+                                },
+                              });
+                            }}
+                          />
+                        </FormControl>
+                        <FormControl flex={1}>
+                          <FormLabel>Type</FormLabel>
+                          <Select
+                            value={schema.type}
+                            onChange={(e) => {
+                              const newSchema = { ...protocol.parameters_schema } as Record<
+                                string,
+                                ParameterSchema
+                              >;
                               newSchema[paramName] = {
                                 ...schema,
-                                default: defaultValue
+                                type: e.target.value,
                               };
                               updateProtocol.mutate({
                                 id: protocol.id,
@@ -626,37 +571,97 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                                   ...protocol,
                                   parameters_schema: newSchema,
                                   icon: protocol.icon || "",
-                                }
+                                },
                               });
-                            } catch (error) {
-                              // Handle invalid JSON input
-                              console.error("Invalid JSON for default value");
+                            }}>
+                            <option value="string">String</option>
+                            <option value="number">Number</option>
+                            <option value="boolean">Boolean</option>
+                            <option value="array">Array</option>
+                          </Select>
+                        </FormControl>
+                        <FormControl flex={2}>
+                          <FormLabel>Description</FormLabel>
+                          <Input
+                            value={schema.description || ""}
+                            onChange={(e) => {
+                              const newSchema = { ...protocol.parameters_schema } as Record<
+                                string,
+                                ParameterSchema
+                              >;
+                              newSchema[paramName] = {
+                                ...schema,
+                                description: e.target.value,
+                              };
+                              updateProtocol.mutate({
+                                id: protocol.id,
+                                data: {
+                                  ...protocol,
+                                  parameters_schema: newSchema,
+                                  icon: protocol.icon || "",
+                                },
+                              });
+                            }}
+                          />
+                        </FormControl>
+                        <FormControl flex={1}>
+                          <FormLabel>Default Value</FormLabel>
+                          <Input
+                            value={
+                              schema.default !== undefined ? JSON.stringify(schema.default) : ""
                             }
+                            onChange={(e) => {
+                              try {
+                                const defaultValue = JSON.parse(e.target.value);
+                                const newSchema = { ...protocol.parameters_schema } as Record<
+                                  string,
+                                  ParameterSchema
+                                >;
+                                newSchema[paramName] = {
+                                  ...schema,
+                                  default: defaultValue,
+                                };
+                                updateProtocol.mutate({
+                                  id: protocol.id,
+                                  data: {
+                                    ...protocol,
+                                    parameters_schema: newSchema,
+                                    icon: protocol.icon || "",
+                                  },
+                                });
+                              } catch (error) {
+                                // Handle invalid JSON input
+                                console.error("Invalid JSON for default value");
+                              }
+                            }}
+                            placeholder="Enter as JSON"
+                          />
+                        </FormControl>
+                        <IconButton
+                          aria-label="Delete parameter"
+                          icon={<DeleteIcon />}
+                          colorScheme="red"
+                          variant="ghost"
+                          onClick={() => {
+                            const newSchema = { ...protocol.parameters_schema } as Record<
+                              string,
+                              ParameterSchema
+                            >;
+                            delete newSchema[paramName];
+                            updateProtocol.mutate({
+                              id: protocol.id,
+                              data: {
+                                ...protocol,
+                                parameters_schema: newSchema,
+                                icon: protocol.icon || "",
+                              },
+                            });
                           }}
-                          placeholder="Enter as JSON"
                         />
-                      </FormControl>
-                      <IconButton
-                        aria-label="Delete parameter"
-                        icon={<DeleteIcon />}
-                        colorScheme="red"
-                        variant="ghost"
-                        onClick={() => {
-                          const newSchema = { ...protocol.parameters_schema } as Record<string, ParameterSchema>;
-                          delete newSchema[paramName];
-                          updateProtocol.mutate({
-                            id: protocol.id,
-                            data: {
-                              ...protocol,
-                              parameters_schema: newSchema,
-                              icon: protocol.icon || "",
-                            }
-                          });
-                        }}
-                      />
-                    </HStack>
-                  );
-                })}
+                      </HStack>
+                    );
+                  },
+                )}
                 <IconButton
                   aria-label="Add parameter"
                   icon={<AddIcon />}
@@ -664,12 +669,15 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    const newSchema = { ...protocol.parameters_schema } as Record<string, ParameterSchema>;
+                    const newSchema = { ...protocol.parameters_schema } as Record<
+                      string,
+                      ParameterSchema
+                    >;
                     const newParamName = `parameter_${Object.keys(newSchema).length + 1}`;
                     newSchema[newParamName] = {
                       type: "string",
                       description: "",
-                      default: ""
+                      default: "",
                     };
                     updateProtocol.mutate({
                       id: protocol.id,
@@ -677,20 +685,14 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                         ...protocol,
                         parameters_schema: newSchema,
                         icon: protocol.icon || "",
-                      }
+                      },
                     });
                   }}
                 />
               </VStack>
             </Box>
           ) : (
-            <Box
-              p={4}
-              borderWidth="1px"
-              borderRadius="lg"
-              borderColor={borderColor}
-              bg={bgColor}
-            >
+            <Box p={4} borderWidth="1px" borderRadius="lg" borderColor={borderColor} bg={bgColor}>
               {Object.entries(protocol.parameters_schema || {}).length > 0 ? (
                 <Table variant="simple">
                   <Thead>
@@ -702,17 +704,21 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {Object.entries(protocol.parameters_schema || {}).map(([paramName, schemaData], index) => {
-                      const schema = schemaData as ParameterSchema;
-                      return (
-                        <Tr key={index}>
-                          <Td>{paramName}</Td>
-                          <Td>{schema.type}</Td>
-                          <Td>{schema.description || "-"}</Td>
-                          <Td>{schema.default !== undefined ? JSON.stringify(schema.default) : "-"}</Td>
-                        </Tr>
-                      );
-                    })}
+                    {Object.entries(protocol.parameters_schema || {}).map(
+                      ([paramName, schemaData], index) => {
+                        const schema = schemaData as ParameterSchema;
+                        return (
+                          <Tr key={index}>
+                            <Td>{paramName}</Td>
+                            <Td>{schema.type}</Td>
+                            <Td>{schema.description || "-"}</Td>
+                            <Td>
+                              {schema.default !== undefined ? JSON.stringify(schema.default) : "-"}
+                            </Td>
+                          </Tr>
+                        );
+                      },
+                    )}
                   </Tbody>
                 </Table>
               ) : (
@@ -746,8 +752,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                 leftIcon={<AddIcon />}
                 colorScheme="blue"
                 variant="outline"
-                onClick={() => handleAddCommandAtPosition(0)}
-              >
+                onClick={() => handleAddCommandAtPosition(0)}>
                 Add First Command
               </Button>
             ) : (
@@ -784,10 +789,12 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                       onClick={() => handleAddCommandAtPosition(index + 1)}
                       _hover={{ bg: "blue.100" }}
                     />
-                  ) : index < commands.length - 1 && (
-                    <Box color={useColorModeValue("gray.500", "gray.400")}>
-                      <ArrowForwardIcon boxSize={6} />
-                    </Box>
+                  ) : (
+                    index < commands.length - 1 && (
+                      <Box color={useColorModeValue("gray.500", "gray.400")}>
+                        <ArrowForwardIcon boxSize={6} />
+                      </Box>
+                    )
                   )}
                 </HStack>
               ))
@@ -805,10 +812,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       />
 
       {isRunModalOpen && (
-        <NewProtocolRunModal 
-          id={protocol.id.toString()} 
-          onClose={handleRunModalClose} 
-        />
+        <NewProtocolRunModal id={protocol.id.toString()} onClose={handleRunModalClose} />
       )}
 
       <Drawer isOpen={isDrawerOpen} onClose={onDrawerClose} placement="right" size="md">
