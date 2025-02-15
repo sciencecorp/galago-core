@@ -202,7 +202,9 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                               setUserDefinedParams({ ...userDefinedParams, [param]: value })
                             }
                           />
-                          <FormHelperText>{paramInfo.description}</FormHelperText>
+                          <FormHelperText>
+                            {(paramInfo as ProtocolParamInfo).description}
+                          </FormHelperText>
                           {formErrors &&
                             formErrors[param]?._errors.map((key, error) => (
                               <FormErrorMessage key={key}>{error}</FormErrorMessage>

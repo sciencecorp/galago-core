@@ -294,7 +294,10 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
-
+  const tableBgColor = useColorModeValue("white", "gray.700");
+  const hoverBgColor = useColorModeValue("gray.50", "gray.600");
+  const tableBorderColor = useColorModeValue("gray.200", "gray.600");
+  const arrowColor = useColorModeValue("gray.500", "gray.400");
   const {
     data: protocol,
     isLoading,
@@ -694,7 +697,16 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
           ) : (
             <Box p={4} borderWidth="1px" borderRadius="lg" borderColor={borderColor} bg={bgColor}>
               {Object.entries(protocol.parameters_schema || {}).length > 0 ? (
-                <Table variant="simple">
+                <Table
+                  variant="simple"
+                  sx={{
+                    th: {
+                      borderColor: tableBorderColor,
+                    },
+                    td: {
+                      borderColor: tableBorderColor,
+                    },
+                  }}>
                   <Thead>
                     <Tr>
                       <Th>Parameter</Th>
@@ -791,7 +803,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                     />
                   ) : (
                     index < commands.length - 1 && (
-                      <Box color={useColorModeValue("gray.500", "gray.400")}>
+                      <Box color={arrowColor}>
                         <ArrowForwardIcon boxSize={6} />
                       </Box>
                     )

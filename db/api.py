@@ -1072,7 +1072,8 @@ async def create_protocol(protocol: ProtocolCreate, db: Session = Depends(get_db
             db.flush()  # Flush to get the ID without committing
             logging.info(f"Protocol object created with ID: {db_protocol.id}")
             
-            # Verify the protocol can be converted to dict (catches serialization issues)
+            # Verify the protocol can be converted to dict 
+            # (catches serialization issues)
             protocol_dict = db_protocol.to_dict()
             logging.info(f"Protocol successfully serialized: {protocol_dict}")
             
@@ -1149,7 +1150,8 @@ async def get_protocols(
         query = query.filter(Protocol.workcell_id == workcell_id)
     elif workcell_name is not None:
         # Get workcell by name and then filter by its ID
-        workcell = db.query(models.Workcell).filter(models.Workcell.name == workcell_name).first()
+        workcell = db.query(models.Workcell). \
+            filter(models.Workcell.name == workcell_name).first()
         if workcell:
             query = query.filter(Protocol.workcell_id == workcell.id)
         else:

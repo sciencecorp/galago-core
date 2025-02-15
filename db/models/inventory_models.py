@@ -196,7 +196,8 @@ class Reagent(Base, TimestampMixin):
         return {
             "id": self.id,
             "name": self.name,
-            "expiration_date": self.expiration_date.isoformat() if self.expiration_date else None,
+            "expiration_date": self.expiration_date.isoformat() \
+                if self.expiration_date else None,
             "volume": self.volume,
             "well_id": self.well_id,
             "created_at": self.created_at.isoformat() if self.created_at else None,
@@ -362,7 +363,7 @@ class Protocol(Base, TimestampMixin):
     version = Column(Integer, nullable=False, default=1)
     is_active = Column(Boolean, nullable=False, default=True)
     
-    workcell = relationship("Workcell")
+    workcell = relationship("Workcell")  # type: Optional["Workcell"]  # type: ignore
 
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
