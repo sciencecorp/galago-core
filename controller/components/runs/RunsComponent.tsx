@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { SwimLaneComponent } from "@/components/runs/list/SwimLaneComponent";
 import RunQueueGanttChart from "@/components/runs/gantt/RunQueueGanttChart";
 import { trpc } from "@/utils/trpc";
@@ -33,7 +33,7 @@ import { QueueStatusComponent } from "./status/QueueStatuscomponent";
 import { getRunAttributes, groupCommandsByRun } from "@/utils/runUtils";
 import { SiGithubactions } from "react-icons/si";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
-
+import { BsInbox } from "react-icons/bs";
 const LastUpdatedTime = () => {
   const [time, setTime] = useState<string>("");
 
@@ -57,6 +57,7 @@ const LastUpdatedTime = () => {
 export const RunsComponent: React.FC = () => {
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [expandedRuns, setExpandedRuns] = useState<Set<string>>(new Set());
+  const [runAttributesMap, setRunAttributesMap] = useState<Record<string, any>>({});
   const skipRunMutation = trpc.commandQueue.clearByRunId.useMutation();
   const commandsAll = trpc.commandQueue.commands.useQuery(
     { limit: 1000, offset: 0 },
@@ -70,13 +71,19 @@ export const RunsComponent: React.FC = () => {
   const expandedRunBg = useColorModeValue("gray.100", "gray.800");
   const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
   const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
-  const groupedCommands = commandsAll.data ? groupCommandsByRun(commandsAll.data) : [];
+  const groupedCommands = useMemo(() => 
+    commandsAll.data ? groupCommandsByRun(commandsAll.data) : []
+  , [commandsAll.data]);
   const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 1000 });
   const queue = trpc.commandQueue;
-  const getError = queue.getError.useQuery(undefined, { refetchInterval: 1500 });
+  const getError = queue.getError.useQuery(undefined, { 
+    refetchInterval: 1500,
+    select: (data) => data || null,
+    retry: false
+  });
 
   const ErrorBanner = () => {
-    if (!getError.data) return null;
+    if (!getError.data && !getError.error) return null;
     if (stateQuery.data === ToolStatus.FAILED) {
       return (
         <Alert status="error" variant="left-accent" mb={2}>
@@ -84,7 +91,7 @@ export const RunsComponent: React.FC = () => {
           <Box flex="1">
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>An error occurred while executing the command.</AlertDescription>
-            <AlertDescription>{getError.data.toString()}</AlertDescription>
+            {getError.data && <AlertDescription>{getError.data.toString()}</AlertDescription>}
           </Box>
         </Alert>
       );
@@ -112,6 +119,28 @@ export const RunsComponent: React.FC = () => {
       }
     }
   }, [commandsAll.data, selectedRunId]);
+
+  useEffect(() => {
+    const updateRunAttributes = async () => {
+      const newAttributes: Record<string, any> = {};
+      for (const run of groupedCommands) {
+        const runInfo = runsInfo.data?.find((r) => r.id === run.Id);
+        const cmdInfo = CommandInfo.data?.find((r) => r.runId === run.Id);
+        
+        // Only update if we don't have attributes for this run or if the data has changed
+        if (!runAttributesMap[run.Id] || 
+            runAttributesMap[run.Id].status !== cmdInfo?.status) {
+          const attributes = await getRunAttributes(runInfo, cmdInfo);
+          newAttributes[run.Id] = attributes;
+        } else {
+          newAttributes[run.Id] = runAttributesMap[run.Id];
+        }
+      }
+      setRunAttributesMap(newAttributes);
+    };
+    
+    updateRunAttributes();
+  }, [runsInfo.data, CommandInfo.data]);
 
   function expandButtonIcon(runId: string) {
     return expandedRuns.has(runId) ? <ChevronUpIcon /> : <PlusSquareIcon />;
@@ -148,10 +177,17 @@ export const RunsComponent: React.FC = () => {
 
   const renderRunsList = () => {
     return groupedCommands.map((run, index) => {
-      const runAttributes = getRunAttributes(
-        runsInfo.data?.find((r) => r.id === run.Id),
-        CommandInfo.data?.find((r) => r.runId === run.Id),
-      );
+      const runAttributes = runAttributesMap[run.Id] || {
+        runId: "",
+        runName: "",
+        commandsCount: 0,
+        params: {},
+        status: "UNKNOWN",
+        createdAt: "",
+        completedAt: "",
+        startedAt: "",
+      };
+
       return (
         <VStack align="left" key={index} width="100%">
           <Box width="100%">
@@ -294,9 +330,15 @@ export const RunsComponent: React.FC = () => {
               {commandsAll.data && commandsAll.data.length > 0 ? (
                 renderRunsList()
               ) : (
-                <Heading mt="10px" size="lg" color="gray">
-                  No protocols queued
-                </Heading>
+                <VStack spacing={3} py={4}>
+                  <Icon as={BsInbox} boxSize={8} color="gray.400" />
+                  <Heading size="md" color="gray.400" fontWeight="medium">
+                    Queue is Empty
+                  </Heading>
+                  <Text color="gray.500" fontSize="sm">
+                    No protocols are currently queued for execution
+                  </Text>
+                </VStack>
               )}
             </VStack>
           </CardBody>

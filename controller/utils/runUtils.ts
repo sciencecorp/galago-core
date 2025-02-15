@@ -1,10 +1,12 @@
 import moment from "moment";
 import { RunQueue, RunCommand, GroupedCommand } from "@/types";
+import { Protocols } from "@/server/protocols";
+import { DatabaseProtocol } from "@/protocols/database_protocol";
 
-export function getRunAttributes(
+export async function getRunAttributes(
   runInfo: any,
   commandInfo: any,
-): {
+): Promise<{
   runId: string;
   runName: string;
   commandsCount: number;
@@ -13,7 +15,7 @@ export function getRunAttributes(
   createdAt: string;
   completedAt: string;
   startedAt: string;
-} {
+}> {
   if (!runInfo) {
     return {
       runId: "",
@@ -27,7 +29,25 @@ export function getRunAttributes(
     };
   }
 
-  let runName = runInfo.run_type.replaceAll("_", " ").toUpperCase();
+  // Try to find protocol in TypeScript protocols first
+  let protocolName = runInfo.run_type;
+  const tsProtocol = Protocols.find((p) => p.protocolId === runInfo.run_type);
+  if (tsProtocol) {
+    protocolName = tsProtocol.name;
+  } else {
+    // If not found in TypeScript protocols, try to load from database
+    try {
+      const dbProtocol = await DatabaseProtocol.loadFromDatabase(runInfo.run_type);
+      if (dbProtocol) {
+        protocolName = dbProtocol.name;
+      }
+    } catch (error) {
+      console.warn("Failed to load protocol name:", error);
+      // Fallback to using run_type if protocol not found
+    }
+  }
+
+  let runName = protocolName;
   if (runInfo.params.wellPlateID !== undefined) {
     runName = `WP-${runInfo.params.wellPlateID} | ${runName}`;
   }
