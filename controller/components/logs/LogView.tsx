@@ -26,18 +26,11 @@ import {
   InputLeftElement,
   Input,
 } from "@chakra-ui/react";
-import {
-  InfoOutlineIcon,
-  CloseIcon,
-  WarningIcon,
-  QuestionOutlineIcon,
-  SearchIcon,
-} from "@chakra-ui/icons";
+import { CloseIcon, WarningIcon, QuestionOutlineIcon, SearchIcon } from "@chakra-ui/icons";
 import { useEffect, useState, useMemo } from "react";
 import { Log } from "@/types/api";
 import { renderDatetime } from "../ui/Time";
 import { FiInfo } from "react-icons/fi";
-import { VscRefresh } from "react-icons/vsc";
 import { FiBook } from "react-icons/fi";
 import { PageHeader } from "@/components/ui/PageHeader";
 
@@ -48,8 +41,9 @@ function getIconFromLogType(logType: string) {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    width: "24px",
-    height: "24px",
+    width: "18x",
+    height: "18px",
+    padding: "2px",
   };
 
   switch (logType) {
@@ -78,11 +72,16 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
   const hasPrevious = offset > 0;
   const hasNext = logs.length === limit || false;
 
-  const { data: fetchedLogs, refetch } = trpc.logging.getPaginated.useQuery({
-    limit: limit,
-    skip: offset,
-    descending: true,
-  });
+  const { data: fetchedLogs, refetch } = trpc.logging.getPaginated.useQuery(
+    {
+      limit: limit,
+      skip: offset,
+      descending: true,
+    },
+    {
+      refetchInterval: 1000,
+    },
+  );
 
   useEffect(() => {
     if (fetchedLogs) {
@@ -116,15 +115,8 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                 title="Logs"
                 subTitle="Monitor and analyze system logs"
                 titleIcon={<Icon as={FiBook} boxSize={8} color="teal.500" />}
-                mainButton={
-                  <Button onClick={() => refetch()} colorScheme="teal" leftIcon={<VscRefresh />}>
-                    Refresh
-                  </Button>
-                }
               />
-
               <Divider />
-
               <StatGroup>
                 <Stat>
                   <StatLabel>Total Logs</StatLabel>
@@ -139,9 +131,7 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                   <StatNumber color="orange.500">{warningCount}</StatNumber>
                 </Stat>
               </StatGroup>
-
               <Divider />
-
               <HStack spacing={4}>
                 <InputGroup maxW="400px">
                   <InputLeftElement pointerEvents="none">

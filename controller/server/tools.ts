@@ -12,6 +12,7 @@ import { Script } from "@/types/api";
 import { Variable } from "@/types/api";
 import { Labware } from "@/types/api";
 import { buildGoogleStructValue } from "utils/struct";
+import { loggingRouter } from "./routers/logging";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<string, Tool> = new Map();
@@ -125,7 +126,7 @@ export default class Tool {
   }
 
   static async executeCommand(command: ToolCommandInfo) {
-    return await Tool.forId(command.toolId).executeCommand(command);
+    return await Tool.forId(this.normalizeToolId(command.toolId)).executeCommand(command);
   }
 
   async executeCommand(command: ToolCommandInfo) {
@@ -149,9 +150,18 @@ export default class Tool {
     //Functionality to run python scripts store in db
     if (command.command === "run_python_script" && command.toolId === "tool_box") {
       const scriptId = String(command.params.script_content);
-      command.params.script_content = (await get<Script>(`/scripts/${scriptId}`)).content;
-    }
 
+      try {
+        const script = await get<Script>(`/scripts/${scriptId}`);
+        command.params.script_content = script.content;
+      } catch (e: any) {
+        console.warn("Error at fetching script", e);
+        if (e.status === 404) {
+          throw new Error(`Script ${scriptId} not found`);
+        }
+        throw new Error(`Failed to fetch ${scriptId}. ${e}`);
+      }
+    }
     const reply = await this.grpc.executeCommand(this._payloadForCommand(command));
     if (reply.return_reply) {
       return reply;

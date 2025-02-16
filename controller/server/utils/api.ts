@@ -33,7 +33,10 @@ export const get = async <T>(url: string, params?: any): Promise<T> => {
     if (axios.isAxiosError(error)) {
       const errorMsg = unpackError(error);
       console.error("Request error:", errorMsg);
-      throw new Error(`Error: ${error.response?.status} - ${errorMsg}`);
+      const err = new Error(`${error.response?.status} - ${errorMsg}`);
+      // Attach the status code to the error
+      (err as any).status = error.response?.status;
+      throw err;
     } else {
       console.error("Unexpected error:", error);
       throw new Error("An unexpected error occurred");
@@ -50,7 +53,7 @@ export const post = async <T>(url: string, data: any): Promise<T | null> => {
       const errorMsg = unpackError(error);
       console.error("Request error:", errorMsg);
       throw new Error(
-        `Error: ${error.response?.status} - ${errorMsg} - ${JSON.stringify(error.response?.data?.detail)}`,
+        `${error.response?.status} - ${errorMsg} - ${JSON.stringify(error.response?.data?.detail)}`,
       );
     } else {
       console.error("Unexpected error:", error);
