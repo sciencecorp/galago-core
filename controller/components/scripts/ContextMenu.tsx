@@ -10,6 +10,7 @@ interface ContextMenuProps {
   onNewScript?: (scriptName: string) => void;
   onOpen?: () => void;
   onDelete?: () => void;
+  onRename?: () => void;
   type?: "folder" | "file";
 }
 
@@ -21,6 +22,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
   onNewScript,
   onOpen,
   onDelete,
+  onRename,
   type = "folder",
 }) => {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -72,6 +74,29 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
                 New Script
               </Button>
             )}
+            {onRename && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  onRename();
+                  onClose();
+                }}>
+                Rename
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="sm"
+                colorScheme="red"
+                onClick={() => {
+                  onDelete();
+                  onClose();
+                }}>
+                Delete
+              </Button>
+            )}
           </>
         ) : (
           <>
@@ -84,6 +109,17 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
                   onClose();
                 }}>
                 Open
+              </Button>
+            )}
+            {onRename && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  onRename();
+                  onClose();
+                }}>
+                Rename
               </Button>
             )}
             {onDelete && (

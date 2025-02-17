@@ -33,6 +33,8 @@ interface FolderTreeProps {
   onNewFolder: (folderName: string) => void;
   onNewScript: (scriptName: string) => void;
   onScriptClick: (name: string) => void;
+  onRename?: (type: "folder" | "file", path: string) => void;
+  onDelete?: (type: "folder" | "file", path: string) => void;
 }
 
 export const FolderTree: React.FC<FolderTreeProps> = ({
@@ -45,13 +47,15 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
   onNewFolder,
   onNewScript,
   onScriptClick,
+  onRename,
+  onDelete,
 }) => {
   const isExpanded = expandedFolders.has(node.path);
   const indent = level * 12;
   const folderIconColor = useColorModeValue("gray.500", "gray.400");
-  const hoverBg = useColorModeValue("gray.100", "gray.700");
+  const hoverBg = useColorModeValue("gray.100", "gray.600");
   const isSelected = selectedItem?.path === node.path;
-  const selectedBg = useColorModeValue("blue.50", "blue.900");
+  const selectedBg = useColorModeValue("blue.50", "teal.900");
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
   const handleContextMenu = (e: React.MouseEvent, type: "folder" | "file", path: string) => {
@@ -59,6 +63,14 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
     e.stopPropagation();
     onSelectItem(type, path);
     setContextMenu({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleClick = (e: React.MouseEvent, type: "folder" | "file", path: string) => {
+    e.stopPropagation(); // Prevent event bubbling
+    onSelectItem(type, path);
+    if (type === "folder") {
+      onToggleFolder(path);
+    }
   };
 
   const handleFileClick = (script: Script) => {
@@ -77,7 +89,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
             height="32px"
             pl={`${indent}px`}
             leftIcon={isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
-            onClick={() => onToggleFolder(node.path)}
+            onClick={(e) => handleClick(e, "folder", node.path)}
             onContextMenu={(e) => handleContextMenu(e, "folder", node.path)}
             bg={isSelected ? selectedBg : undefined}
             _hover={{ bg: hoverBg }}>
@@ -92,6 +104,8 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
               onClose={() => setContextMenu(null)}
               onNewFolder={onNewFolder}
               onNewScript={onNewScript}
+              onRename={() => onRename?.("folder", node.path)}
+              onDelete={() => onDelete?.("folder", node.path)}
               type="folder"
             />
           )}
@@ -111,7 +125,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                   pl={`${indent + (node.path === "/" ? 0 : 24)}px`}
                   bg={selectedItem?.path === script.name ? selectedBg : undefined}
                   _hover={{ bg: hoverBg }}
-                  onClick={() => handleFileClick(script)}
+                  onClick={(e) => handleClick(e, "file", script.name)}
                   onContextMenu={(e) => handleContextMenu(e, "file", script.name)}>
                   <HStack spacing={2}>
                     <SiPython size={14} />
@@ -127,6 +141,8 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                       y={contextMenu.y}
                       onClose={() => setContextMenu(null)}
                       onOpen={() => onScriptClick(script.name)}
+                      onRename={() => onRename?.("file", script.name)}
+                      onDelete={() => onDelete?.("file", script.name)}
                       type="file"
                     />
                   )}
@@ -145,6 +161,8 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
               onNewFolder={onNewFolder}
               onNewScript={onNewScript}
               onScriptClick={onScriptClick}
+              onRename={onRename}
+              onDelete={onDelete}
             />
           ))}
         </VStack>

@@ -25,6 +25,8 @@ interface ExplorerProps {
   onNewScript: (scriptName: string) => void;
   onScriptClick: (name: string) => void;
   onScriptDelete: (script: Script) => void;
+  onFolderDelete?: (path: string) => void;
+  onRename?: (type: "folder" | "file", path: string) => void;
   activeTab?: "explorer" | "search";
   onTabChange?: (tab: "explorer" | "search") => void;
 }
@@ -40,6 +42,8 @@ export const Explorer: React.FC<ExplorerProps> = ({
   onNewScript,
   onScriptClick,
   onScriptDelete,
+  onFolderDelete,
+  onRename,
   activeTab: externalActiveTab = "explorer",
   onTabChange,
 }) => {
@@ -87,6 +91,17 @@ export const Explorer: React.FC<ExplorerProps> = ({
     } else if (e.key === "Escape") {
       setShowNewScriptInput(false);
       setNewScriptName("");
+    }
+  };
+
+  const handleDelete = (type: "folder" | "file", path: string) => {
+    if (type === "folder") {
+      onFolderDelete?.(path);
+    } else {
+      const script = scripts.find((s) => s.name === path);
+      if (script) {
+        onScriptDelete(script);
+      }
     }
   };
 
@@ -194,6 +209,8 @@ export const Explorer: React.FC<ExplorerProps> = ({
             onNewFolder={onNewFolder}
             onNewScript={onNewScript}
             onScriptClick={onScriptClick}
+            onRename={onRename}
+            onDelete={handleDelete}
           />
         ) : (
           <ScriptList

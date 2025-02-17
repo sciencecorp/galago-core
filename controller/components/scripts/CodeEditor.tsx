@@ -206,30 +206,103 @@ export const ScriptsEditor: React.FC = (props) => {
     }
   };
 
-  const handleDelete = async (script: Script) => {
-    try {
-      await deleteScript.mutateAsync(script.id);
-      if (openTabs.includes(script.name)) {
-        setOpenTabs(openTabs.filter((t) => t !== script.name));
-      }
+  const handleDelete = async (type: "folder" | "file", path: string) => {
+    if (type === "folder") {
+      // Remove the folder from temporary folders
+      setTemporaryFolders((prev) => {
+        const next = new Set(prev);
+        next.delete(path);
+        return next;
+      });
 
-      refetch();
+      // Close any open files in this folder
+      const folderScripts = scripts.filter((script) => script.folder === path);
+      folderScripts.forEach((script) => {
+        setOpenTabs((prev) => prev.filter((tab) => tab !== script.name));
+        if (activeTab === script.name) {
+          setActiveTab(null);
+        }
+      });
+
       toast({
-        title: "Script deleted successfully",
+        title: "Folder deleted",
         status: "success",
         duration: 3000,
         isClosable: true,
-        position: "top",
       });
-    } catch (error) {
-      toast({
-        title: "Error deleting script",
-        description: `Please try again. ${error}`,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
+    } else {
+      try {
+        const script = scripts.find((s) => s.name === path);
+        if (!script) {
+          throw new Error("Script not found");
+        }
+        await deleteScript.mutateAsync(script.id);
+        await refetch();
+        setOpenTabs((prev) => prev.filter((tab) => tab !== path));
+        if (activeTab === path) {
+          setActiveTab(null);
+        }
+        toast({
+          title: "Script deleted",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      } catch (error) {
+        toast({
+          title: "Error deleting script",
+          description: String(error),
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    }
+  };
+
+  const handleRename = (type: "folder" | "file", path: string) => {
+    const newName = window.prompt(
+      `Enter new name for ${type}:`,
+      type === "folder" ? path.split("/").pop() : path.replace(".py", ""),
+    );
+
+    if (!newName) return;
+
+    if (type === "folder") {
+      // Update temporary folders
+      setTemporaryFolders((prev) => {
+        const next = new Set(prev);
+        next.delete(path);
+        const newPath = path.replace(/[^/]+$/, newName);
+        next.add(newPath);
+        return next;
       });
+
+      // Update scripts in the folder
+      scripts.forEach((script) => {
+        if (script.folder === path) {
+          const newPath = path.replace(/[^/]+$/, newName);
+          editScript.mutate({
+            ...script,
+            folder: newPath,
+          });
+        }
+      });
+    } else {
+      const script = scripts.find((s) => s.name === path);
+      if (script) {
+        const newPath = `${newName}.py`;
+        editScript.mutate({
+          ...script,
+          name: newPath,
+        });
+
+        // Update open tabs
+        setOpenTabs((prev) => prev.map((tab) => (tab === path ? newPath : tab)));
+        if (activeTab === path) {
+          setActiveTab(newPath);
+        }
+      }
     }
   };
 
@@ -404,9 +477,9 @@ export const ScriptsEditor: React.FC = (props) => {
     const isExpanded = expandedFolders.has(node.path);
     const indent = level * 12;
     const folderIconColor = useColorModeValue("gray.500", "gray.400");
-    const hoverBg = useColorModeValue("gray.100", "gray.700");
+    const hoverBg = useColorModeValue("gray.100", "gray.600");
     const isSelected = selectedItem?.type === "folder" && selectedItem.path === node.path;
-    const selectedBg = useColorModeValue("blue.50", "blue.900");
+    const selectedBg = useColorModeValue("blue.50", "teal.900");
     const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
     const handleContextMenu = (e: React.MouseEvent, type: "folder" | "file", path: string) => {
@@ -493,14 +566,17 @@ export const ScriptsEditor: React.FC = (props) => {
   const handleCreateFolder = () => {
     if (!newFolderName) return;
 
-    const targetPath = selectedItem?.path || currentFolder;
+    // Get the target path from the selected folder or current folder
+    const targetPath = (selectedItem?.type === "folder" ? selectedItem.path : currentFolder) || "/";
+
+    // Create the new folder path
     const newFolder = targetPath === "/" ? `/${newFolderName}` : `${targetPath}/${newFolderName}`;
 
     setTemporaryFolders((prev) => new Set([...prev, newFolder]));
     setNewFolderName("");
     setShowNewFolderInput(false);
     setCurrentFolder(newFolder);
-    setExpandedFolders((prev) => new Set([...prev, newFolder]));
+    setExpandedFolders((prev) => new Set([...prev, targetPath, newFolder]));
   };
 
   const handleFolderInputKeyDown = (e: React.KeyboardEvent) => {
@@ -535,7 +611,8 @@ export const ScriptsEditor: React.FC = (props) => {
       return;
     }
 
-    const targetPath = selectedItem?.path || currentFolder;
+    // Get the target path from the selected folder or current folder
+    const targetPath = (selectedItem?.type === "folder" ? selectedItem.path : currentFolder) || "/";
     const name = `${newScriptName}.py`;
     const script = {
       name,
@@ -571,6 +648,9 @@ export const ScriptsEditor: React.FC = (props) => {
       setNewScriptName("");
       setShowNewScriptInput(false);
       handleScriptClicked(name);
+
+      // Expand the parent folder
+      setExpandedFolders((prev) => new Set([...prev, targetPath]));
     } catch (error) {
       toast({
         title: "Error creating script",
@@ -669,7 +749,9 @@ export const ScriptsEditor: React.FC = (props) => {
             onNewFolder={handleNewFolder}
             onNewScript={handleNewScript}
             onScriptClick={handleScriptClicked}
-            onScriptDelete={handleDelete}
+            onScriptDelete={(script) => handleDelete("file", script.name)}
+            onFolderDelete={(path) => handleDelete("folder", path)}
+            onRename={handleRename}
             activeTab={explorerActiveTab}
             onTabChange={setExplorerActiveTab}
           />
