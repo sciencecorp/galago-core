@@ -131,7 +131,6 @@ export const NewProtocolForm = () => {
 
     try {
       const result = await createProtocol.mutateAsync(protocolData);
-      console.log("Protocol creation result:", result);
     } catch (error: any) {
       console.error("Error details:", {
         message: error.message,
