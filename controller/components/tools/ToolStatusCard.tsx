@@ -193,7 +193,6 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
         toolInfo={toolData as ToolConfig}
         isOpen={isOpen}
         onClose={onClose}
-        refetch={refetch}
       />
     </>
   );

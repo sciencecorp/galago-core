@@ -6,7 +6,6 @@ import { procedure, router } from "@/server/trpc";
 import { ToolType } from "gen-interfaces/controller";
 import { get, post, put, del } from "@/server/utils/api";
 import * as controller_protos from "gen-interfaces/controller";
-import { TRPCError } from "@trpc/server";
 
 const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
 
@@ -64,6 +63,7 @@ export const toolRouter = router({
         config: (config.config as Config) ?? tool.info.config,
       };
 
+      await Tool.reloadSingleToolConfig(tool.info);
       return response;
     }),
 
@@ -81,8 +81,8 @@ export const toolRouter = router({
   availableIDs: procedure.query(async () => {
     const allTools = await get<ToolResponse[]>(`/tools`);
     Tool.reloadWorkcellConfig(allTools as controller_protos.ToolConfig[]);
-    const toolIds = allTools.map((tool) => tool.name);
-    toolIds.push("Tool Box");
+    const toolIds = allTools.map((tool) => tool.name.toLocaleLowerCase().replaceAll(" ", "_"));
+    toolIds.push("tool_box");
     return toolIds;
   }),
 
@@ -93,7 +93,7 @@ export const toolRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      const tool = Tool.forId(input.toolId);
+      const tool = Tool.forId(input.toolId.toLocaleLowerCase().replaceAll(" ", "_"));
       return await tool.fetchStatus();
     }),
 
@@ -104,7 +104,7 @@ export const toolRouter = router({
       }),
     )
     .query(({ input }) => {
-      const tool = Tool.forId(input.toolId);
+      const tool = Tool.forId(input.toolId.toLocaleLowerCase().replaceAll(" ", "_"));
       return tool.info;
     }),
 
@@ -117,43 +117,14 @@ export const toolRouter = router({
     .input(
       z.object({
         toolId: z.string(),
-        config: z.custom<Config>(),
+        config: z.custom<Config>().transform(Config.fromPartial),
       }),
     )
     .mutation(async ({ input }) => {
-      try {
-        const { toolId, config } = input;
-        const tool = Tool.forId(toolId);
-
-        // Initialize waypoints array for PF400
-        if (tool.type === ToolType.pf400) {
-          if (!config.pf400) {
-            config.pf400 = {
-              host: "",
-              port: 0,
-              joints: 0,
-              waypoints: [],
-            };
-          }
-          config.pf400.waypoints = [];
-        }
-
-        const response = await tool.grpc.configure(config);
-
-        if (response.response !== "SUCCESS") {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: response.error_message || "Failed to configure tool",
-          });
-        }
-
-        return response;
-      } catch (error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: error instanceof Error ? error.message : "Failed to configure tool",
-        });
-      }
+      const { toolId, config } = input;
+      const tool = Tool.forId(toolId);
+      const resp = await tool.configure(config);
+      return resp;
     }),
 
   runCommand: procedure

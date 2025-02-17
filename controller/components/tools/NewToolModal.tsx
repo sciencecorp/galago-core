@@ -45,6 +45,7 @@ export const NewToolModal: React.FC<NewToolModalProps> = (props) => {
     });
 
   useEffect(() => {
+    console.log("configData", configData);
     if (configData) {
       setDefaultConfig(configData);
     }
@@ -138,7 +139,10 @@ export const NewToolModal: React.FC<NewToolModalProps> = (props) => {
               </FormControl>
               <FormControl>
                 <FormLabel>Name</FormLabel>
-                <Input value={name} onChange={(e) => setName(e.target.value)} />
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value.toLocaleLowerCase().replaceAll(" ", "_"))}
+                />
               </FormControl>
               <FormControl>
                 <FormLabel>Description</FormLabel>

@@ -1,9 +1,14 @@
 from pathlib import Path
 
-IVENTORY_DB = "inventory.db"
-LOGS_DB = "logs.db"
 BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "data"
 
+# Create the data directory if it doesn't exist
+if not DATA_DIR.exists():
+    DATA_DIR.mkdir(parents=True)
 
-INVENTORY_DB_URL = f"sqlite:///{IVENTORY_DB}"
-LOGS_DB_URL = f"sqlite:///{LOGS_DB}"
+inventory_db_path = DATA_DIR / "inventory.db"
+logs_db_path = DATA_DIR / "logs.db"
+
+INVENTORY_DB_URL = f"sqlite:///{inventory_db_path}"
+LOGS_DB_URL = f"sqlite:///{logs_db_path}"

@@ -49,7 +49,9 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
   const menuBg = useColorModeValue("white", "gray.700");
   const menuHoverBg = useColorModeValue("gray.100", "gray.600");
   const selectedBg = useColorModeValue("blue.50", "blue.900");
-
+  const textBg = useColorModeValue("gray.50", "gray.700");
+  const hoverBg = useColorModeValue("gray.50", "gray.700");
+  const hoverBorderColor = useColorModeValue("gray.300", "gray.500");
   const handleShift = (direction: "forward" | "backward") => {
     const shiftAmount = totalDuration / 4;
     const newStart =
@@ -88,14 +90,14 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
           fontSize="xs"
           fontWeight="medium"
           color={labelColor}
-          bg={useColorModeValue("white", "gray.800")}
+          bg={textBg}
           px={1}
           rounded="sm"
           borderWidth="1px"
           borderColor={borderColor}
           _hover={{
-            bg: useColorModeValue("gray.50", "gray.700"),
-            borderColor: useColorModeValue("gray.300", "gray.500"),
+            bg: hoverBg,
+            borderColor: hoverBorderColor,
           }}
           maxW="100px"
           isTruncated>

@@ -38,12 +38,12 @@ export const scriptRouter = router({
 
   run: procedure.input(z.string()).mutation(async ({ input }) => {
     const commandInfo = {
-      toolId: "Tool Box",
+      toolId: "tool_box",
       toolType: ToolType.toolbox,
       command: "run_python_script",
       params: {
         script_content: input,
-        blocking: false,
+        blocking: true,
       },
     };
     return await Tool.executeCommand(commandInfo);

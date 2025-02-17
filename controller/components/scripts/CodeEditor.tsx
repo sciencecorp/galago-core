@@ -55,6 +55,8 @@ interface FolderNode {
   subFolders: FolderNode[];
 }
 
+import { ConfirmationModal } from "../ui/ConfirmationModal";
+
 export const ScriptsEditor: React.FC = (props) => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>(null);
@@ -95,7 +97,7 @@ export const ScriptsEditor: React.FC = (props) => {
 
   useEffect(() => {
     setCurrentContent(scripts.find((script) => script.name === activeTab)?.content || "");
-  }, [activeTab]);
+  }, [activeTab, scripts]);
 
   const handleRunScript = async () => {
     setRunError(false);

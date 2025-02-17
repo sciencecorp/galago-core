@@ -3,7 +3,6 @@ import { SwimLaneComponent } from "@/components/runs/list/SwimLaneComponent";
 import RunQueueGanttChart from "@/components/runs/gantt/RunQueueGanttChart";
 import { trpc } from "@/utils/trpc";
 import {
-  Box,
   Button,
   Heading,
   HStack,
@@ -21,6 +20,12 @@ import {
   StatNumber,
   StatGroup,
   Icon,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Box,
+  CloseButton,
 } from "@chakra-ui/react";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { PlusSquareIcon, ChevronUpIcon, TimeIcon } from "@chakra-ui/icons";
@@ -62,10 +67,31 @@ export const RunsComponent: React.FC = () => {
   const hoverBgColor = useColorModeValue("gray.100", "gray.600");
   const textColor = useColorModeValue("gray.800", "gray.100");
   const cardBg = useColorModeValue("white", "gray.700");
+  const expandedRunBg = useColorModeValue("gray.100", "gray.800");
   const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
   const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
   const groupedCommands = commandsAll.data ? groupCommandsByRun(commandsAll.data) : [];
   const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 1000 });
+  const queue = trpc.commandQueue;
+  const getError = queue.getError.useQuery(undefined, { refetchInterval: 1500 });
+
+  const ErrorBanner = () => {
+    if (!getError.data) return null;
+    if (stateQuery.data === ToolStatus.FAILED) {
+      return (
+        <Alert status="error" variant="left-accent" mb={2}>
+          <AlertIcon />
+          <Box flex="1">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>An error occurred while executing the command.</AlertDescription>
+            <AlertDescription>{getError.data.toString()}</AlertDescription>
+          </Box>
+        </Alert>
+      );
+    } else {
+      return null;
+    }
+  };
 
   // Calculate statistics
   const totalRuns = groupedCommands.length;
@@ -80,10 +106,12 @@ export const RunsComponent: React.FC = () => {
   useEffect(() => {
     if (commandsAll.data && commandsAll.data.length > 0 && !selectedRunId) {
       const firstRunId = commandsAll.data[0].runId;
-      setSelectedRunId(firstRunId);
-      setExpandedRuns(new Set([firstRunId]));
+      if (firstRunId !== selectedRunId) {
+        setSelectedRunId(firstRunId);
+        setExpandedRuns(new Set([firstRunId]));
+      }
     }
-  }, [commandsAll.data]);
+  }, [commandsAll.data, selectedRunId]);
 
   function expandButtonIcon(runId: string) {
     return expandedRuns.has(runId) ? <ChevronUpIcon /> : <PlusSquareIcon />;
@@ -190,7 +218,7 @@ export const RunsComponent: React.FC = () => {
                 borderColor={borderColor}
                 borderRadius="md"
                 mt={2}
-                bg={useColorModeValue("white", "gray.800")}>
+                bg={expandedRunBg}>
                 <SwimLaneComponent runCommands={run.Commands} />
               </Box>
             )}
@@ -202,6 +230,7 @@ export const RunsComponent: React.FC = () => {
 
   return (
     <Box width="100%">
+      <ErrorBanner />
       <VStack spacing={6} align="stretch">
         <Card bg={cardBg} shadow="md">
           <CardBody>

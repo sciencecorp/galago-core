@@ -35,7 +35,6 @@ import { FaPlay, FaPause, FaStop, FaTrash } from "react-icons/fa";
 import { getegid } from "process";
 import { get } from "http";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { RunTag } from "./RunTag";
 
 interface QueueStatusComponent {
   totalRuns: number;
@@ -56,7 +55,7 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
   const stopMutation = queue.stop.useMutation(stateMutationOpts);
   const clearAllMutation = queue.clearAll.useMutation(stateMutationOpts);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const getError = queue.getError.useQuery(undefined, { refetchInterval: 1000 });
+  const getError = queue.getError.useQuery(undefined, { refetchInterval: 1500 });
 
   const run = async () => {
     restartMutation.mutate();
@@ -75,24 +74,6 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
     onClose();
   };
 
-  const ErrorBanner = () => {
-    if (!getError.data) return null;
-    if (stateQuery.data === ToolStatus.FAILED) {
-      return (
-        <Alert status="error" variant="left-accent">
-          <AlertIcon />
-          <Box flex="1">
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>An error occurred while executing the command.</AlertDescription>
-            <AlertDescription>{getError.data.toString()}</AlertDescription>
-          </Box>
-        </Alert>
-      );
-    } else {
-      return null;
-    }
-  };
-
   const confirmRunStartModal = () => {
     return (
       <Modal isOpen={isOpen} onClose={onClose}>
@@ -104,7 +85,7 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
             <Text>Make sure instruments are not unintentionally in simulation mode.</Text>
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={handleConfirmStart}>
+            <Button colorScheme="teal" mr={3} onClick={handleConfirmStart}>
               Accept
             </Button>
             <Button variant="ghost" onClick={onClose}>
@@ -127,7 +108,6 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
 
   return (
     <>
-      <ErrorBanner />
       {confirmRunStartModal()}
       <ButtonGroup spacing={2}>
         {isRunning ? (

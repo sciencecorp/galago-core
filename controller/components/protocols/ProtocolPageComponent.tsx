@@ -16,11 +16,6 @@ import {
   Heading,
   useToast,
   Tag,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  IconButton,
   Select,
   useColorModeValue,
   Card,
@@ -32,13 +27,10 @@ import {
   StatLabel,
   StatNumber,
 } from "@chakra-ui/react";
-import { SearchIcon, ChevronDownIcon, ArrowUpDownIcon } from "@chakra-ui/icons";
+import { SearchIcon, ArrowUpDownIcon } from "@chakra-ui/icons";
 import { useState, useMemo } from "react";
-import { ProtocolManager } from "./ProtocolManager";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { DeleteWithConfirmation } from "@/components/ui/Delete";
-import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
 import { PageHeader } from "@/components/ui/PageHeader";
