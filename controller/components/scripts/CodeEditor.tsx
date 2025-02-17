@@ -31,7 +31,13 @@ import Editor from "@monaco-editor/react";
 import { CloseIcon, ChevronDownIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { SiPython } from "react-icons/si";
 import { set } from "zod";
-import { RiAddFill, RiFolderAddLine, RiFolderLine, RiFileAddLine, RiSearchLine } from "react-icons/ri";
+import {
+  RiAddFill,
+  RiFolderAddLine,
+  RiFolderLine,
+  RiFileAddLine,
+  RiSearchLine,
+} from "react-icons/ri";
 import { trpc } from "@/utils/trpc";
 import { Script } from "@/types/api";
 import { RiDeleteBinLine } from "react-icons/ri";
@@ -39,8 +45,8 @@ import { PageHeader } from "../ui/PageHeader";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { VscCode } from "react-icons/vsc";
 import { FiBook } from "react-icons/fi";
-import { ContextMenu } from './ContextMenu';
-import { Explorer } from './Explorer';
+import { ContextMenu } from "./ContextMenu";
+import { Explorer } from "./Explorer";
 
 interface FolderNode {
   name: string;
@@ -82,7 +88,10 @@ export const ScriptsEditor: React.FC = (props) => {
   const [newScriptName, setNewScriptName] = useState<string>("");
   const addScript = trpc.script.add.useMutation();
   const [temporaryFolders, setTemporaryFolders] = useState<Set<string>>(new Set());
-  const [selectedItem, setSelectedItem] = useState<{ type: 'folder' | 'file', path: string } | null>(null);
+  const [selectedItem, setSelectedItem] = useState<{
+    type: "folder" | "file";
+    path: string;
+  } | null>(null);
 
   useEffect(() => {
     setCurrentContent(scripts.find((script) => script.name === activeTab)?.content || "");
@@ -246,26 +255,21 @@ export const ScriptsEditor: React.FC = (props) => {
         width="100%"
         overflowX="auto"
         css={{
-          '&::-webkit-scrollbar': {
-            height: '8px',
+          "&::-webkit-scrollbar": {
+            height: "8px",
           },
-          '&::-webkit-scrollbar-track': {
-            background: 'transparent',
+          "&::-webkit-scrollbar-track": {
+            background: "transparent",
           },
-          '&::-webkit-scrollbar-thumb': {
-            background: '#888',
-            borderRadius: '4px',
+          "&::-webkit-scrollbar-thumb": {
+            background: "#888",
+            borderRadius: "4px",
           },
-          '&::-webkit-scrollbar-thumb:hover': {
-            background: '#555',
+          "&::-webkit-scrollbar-thumb:hover": {
+            background: "#555",
           },
-        }}
-      >
-        <Flex 
-          width="max-content"
-          minWidth="100%"
-          py={1}
-        >
+        }}>
+        <Flex width="max-content" minWidth="100%" py={1}>
           {openTabs.map((tab, index) => (
             <Button
               key={index}
@@ -320,14 +324,14 @@ export const ScriptsEditor: React.FC = (props) => {
     folderMap.set("/", root);
 
     // Add temporary folders first
-    temporaryFolders.forEach(folderPath => {
+    temporaryFolders.forEach((folderPath) => {
       const folderParts = folderPath.split("/").filter(Boolean);
       let currentPath = "";
-      
-      folderParts.forEach(part => {
+
+      folderParts.forEach((part) => {
         const parentPath = currentPath || "/";
         currentPath = currentPath ? `${currentPath}/${part}` : `/${part}`;
-        
+
         if (!folderMap.has(currentPath)) {
           const newFolder: FolderNode = {
             name: part,
@@ -336,7 +340,7 @@ export const ScriptsEditor: React.FC = (props) => {
             subFolders: [],
           };
           folderMap.set(currentPath, newFolder);
-          
+
           const parentFolder = folderMap.get(parentPath);
           if (parentFolder) {
             parentFolder.subFolders.push(newFolder);
@@ -346,16 +350,16 @@ export const ScriptsEditor: React.FC = (props) => {
     });
 
     // Then add script folders and scripts as before
-    scripts.forEach(script => {
+    scripts.forEach((script) => {
       const folderPath = script.folder;
       if (!folderMap.has(folderPath)) {
         const folderParts = folderPath.split("/").filter(Boolean);
         let currentPath = "";
-        
-        folderParts.forEach(part => {
+
+        folderParts.forEach((part) => {
           const parentPath = currentPath || "/";
           currentPath = currentPath ? `${currentPath}/${part}` : `/${part}`;
-          
+
           if (!folderMap.has(currentPath)) {
             const newFolder: FolderNode = {
               name: part,
@@ -364,7 +368,7 @@ export const ScriptsEditor: React.FC = (props) => {
               subFolders: [],
             };
             folderMap.set(currentPath, newFolder);
-            
+
             const parentFolder = folderMap.get(parentPath);
             if (parentFolder) {
               parentFolder.subFolders.push(newFolder);
@@ -374,7 +378,7 @@ export const ScriptsEditor: React.FC = (props) => {
       }
     });
 
-    scripts.forEach(script => {
+    scripts.forEach((script) => {
       const folder = folderMap.get(script.folder);
       if (folder) {
         folder.scripts.push(script);
@@ -385,7 +389,7 @@ export const ScriptsEditor: React.FC = (props) => {
   };
 
   const toggleFolder = (path: string) => {
-    setExpandedFolders(prev => {
+    setExpandedFolders((prev) => {
       const next = new Set(prev);
       if (next.has(path)) {
         next.delete(path);
@@ -401,20 +405,20 @@ export const ScriptsEditor: React.FC = (props) => {
     const indent = level * 12;
     const folderIconColor = useColorModeValue("gray.500", "gray.400");
     const hoverBg = useColorModeValue("gray.100", "gray.700");
-    const isSelected = selectedItem?.type === 'folder' && selectedItem.path === node.path;
+    const isSelected = selectedItem?.type === "folder" && selectedItem.path === node.path;
     const selectedBg = useColorModeValue("blue.50", "blue.900");
     const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
-    const handleContextMenu = (e: React.MouseEvent, type: 'folder' | 'file', path: string) => {
+    const handleContextMenu = (e: React.MouseEvent, type: "folder" | "file", path: string) => {
       e.preventDefault();
       e.stopPropagation();
       setSelectedItem({ type, path });
       setContextMenu({ x: e.clientX, y: e.clientY });
     };
 
-    const handleClick = (type: 'folder' | 'file', path: string) => {
+    const handleClick = (type: "folder" | "file", path: string) => {
       setSelectedItem({ type, path });
-      if (type === 'folder') {
+      if (type === "folder") {
         toggleFolder(path);
       }
     };
@@ -430,11 +434,10 @@ export const ScriptsEditor: React.FC = (props) => {
               height="32px"
               pl={`${indent}px`}
               leftIcon={isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
-              onClick={() => handleClick('folder', node.path)}
-              onContextMenu={(e) => handleContextMenu(e, 'folder', node.path)}
+              onClick={() => handleClick("folder", node.path)}
+              onContextMenu={(e) => handleContextMenu(e, "folder", node.path)}
               bg={isSelected ? selectedBg : undefined}
-              _hover={{ bg: hoverBg }}
-            >
+              _hover={{ bg: hoverBg }}>
               <Icon as={RiFolderLine} color={folderIconColor} mr={2} />
               <Text fontSize="sm">{node.name}</Text>
             </Button>
@@ -462,11 +465,14 @@ export const ScriptsEditor: React.FC = (props) => {
                     variant="ghost"
                     height="32px"
                     pl={`${indent + (node.path === "/" ? 0 : 24)}px`}
-                    bg={selectedItem?.type === 'file' && selectedItem.path === script.name ? selectedBg : undefined}
+                    bg={
+                      selectedItem?.type === "file" && selectedItem.path === script.name
+                        ? selectedBg
+                        : undefined
+                    }
                     _hover={{ bg: hoverBg }}
-                    onClick={() => handleClick('file', script.name)}
-                    onContextMenu={(e) => handleContextMenu(e, 'file', script.name)}
-                  >
+                    onClick={() => handleClick("file", script.name)}
+                    onContextMenu={(e) => handleContextMenu(e, "file", script.name)}>
                     <HStack spacing={2}>
                       <SiPython size={14} />
                       <Text fontSize="sm">{script.name}</Text>
@@ -486,23 +492,21 @@ export const ScriptsEditor: React.FC = (props) => {
 
   const handleCreateFolder = () => {
     if (!newFolderName) return;
-    
+
     const targetPath = selectedItem?.path || currentFolder;
-    const newFolder = targetPath === "/" 
-      ? `/${newFolderName}` 
-      : `${targetPath}/${newFolderName}`;
-    
-    setTemporaryFolders(prev => new Set([...prev, newFolder]));
+    const newFolder = targetPath === "/" ? `/${newFolderName}` : `${targetPath}/${newFolderName}`;
+
+    setTemporaryFolders((prev) => new Set([...prev, newFolder]));
     setNewFolderName("");
     setShowNewFolderInput(false);
     setCurrentFolder(newFolder);
-    setExpandedFolders(prev => new Set([...prev, newFolder]));
+    setExpandedFolders((prev) => new Set([...prev, newFolder]));
   };
 
   const handleFolderInputKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleCreateFolder();
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       setShowNewFolderInput(false);
       setNewFolderName("");
     }
@@ -517,7 +521,7 @@ export const ScriptsEditor: React.FC = (props) => {
 
   const handleCreateScript = async () => {
     if (!newScriptName) return;
-    
+
     const isNotValid = validateScriptName(newScriptName);
     if (isNotValid) {
       toast({
@@ -539,19 +543,19 @@ export const ScriptsEditor: React.FC = (props) => {
       content: "",
       language: "python",
       is_blocking: true,
-      folder: targetPath
+      folder: targetPath,
     };
 
     try {
       await addScript.mutateAsync(script);
       await refetch();
-      
+
       // When a script is created, make all parent folders permanent
-      const folderParts = targetPath.split('/').filter(Boolean);
+      const folderParts = targetPath.split("/").filter(Boolean);
       let currentPath = "";
-      folderParts.forEach(part => {
+      folderParts.forEach((part) => {
         currentPath = currentPath ? `${currentPath}/${part}` : `/${part}`;
-        setTemporaryFolders(prev => {
+        setTemporaryFolders((prev) => {
           const next = new Set(prev);
           next.delete(currentPath);
           return next;
@@ -579,9 +583,9 @@ export const ScriptsEditor: React.FC = (props) => {
   };
 
   const handleScriptInputKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleCreateScript();
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       setShowNewScriptInput(false);
       setNewScriptName("");
     }
@@ -589,27 +593,25 @@ export const ScriptsEditor: React.FC = (props) => {
 
   const Scripts = () => {
     const folderTree = buildFolderTree();
-    const [explorerActiveTab, setExplorerActiveTab] = useState<'explorer' | 'search'>('explorer');
-    
-    const handleSelectItem = (type: 'folder' | 'file', path: string) => {
+    const [explorerActiveTab, setExplorerActiveTab] = useState<"explorer" | "search">("explorer");
+
+    const handleSelectItem = (type: "folder" | "file", path: string) => {
       setSelectedItem({ type, path });
     };
 
     const handleNewFolder = (folderName: string) => {
       // Only use the selected path if it's a folder type
-      const targetPath = selectedItem?.type === 'folder' ? selectedItem.path : currentFolder;
-      const newFolder = targetPath === "/" 
-        ? `/${folderName}` 
-        : `${targetPath}/${folderName}`;
-      
-      setTemporaryFolders(prev => new Set([...prev, newFolder]));
+      const targetPath = selectedItem?.type === "folder" ? selectedItem.path : currentFolder;
+      const newFolder = targetPath === "/" ? `/${folderName}` : `${targetPath}/${folderName}`;
+
+      setTemporaryFolders((prev) => new Set([...prev, newFolder]));
       setCurrentFolder(newFolder);
-      setExpandedFolders(prev => new Set([...prev, newFolder]));
+      setExpandedFolders((prev) => new Set([...prev, newFolder]));
     };
 
     const handleNewScript = async (scriptName: string) => {
       // Only use the selected path if it's a folder type
-      const targetPath = selectedItem?.type === 'folder' ? selectedItem.path : currentFolder;
+      const targetPath = selectedItem?.type === "folder" ? selectedItem.path : currentFolder;
       const name = `${scriptName}.py`;
       const script = {
         name,
@@ -617,19 +619,19 @@ export const ScriptsEditor: React.FC = (props) => {
         content: "",
         language: "python",
         is_blocking: true,
-        folder: targetPath
+        folder: targetPath,
       };
 
       try {
         await addScript.mutateAsync(script);
         await refetch();
-        
+
         // When a script is created, make all parent folders permanent
-        const folderParts = targetPath.split('/').filter(Boolean);
+        const folderParts = targetPath.split("/").filter(Boolean);
         let currentPath = "";
-        folderParts.forEach(part => {
+        folderParts.forEach((part) => {
           currentPath = currentPath ? `${currentPath}/${part}` : `/${part}`;
-          setTemporaryFolders(prev => {
+          setTemporaryFolders((prev) => {
             const next = new Set(prev);
             next.delete(currentPath);
             return next;
@@ -653,7 +655,7 @@ export const ScriptsEditor: React.FC = (props) => {
         });
       }
     };
-    
+
     return (
       <Box height="100%" display="flex" flexDirection="column">
         <Box flex={1} overflowY="auto">
@@ -762,11 +764,7 @@ export const ScriptsEditor: React.FC = (props) => {
                   overflow="hidden"
                   borderWidth="1px"
                   borderColor={borderColor}>
-                  <Box
-                    width="100%"
-                    borderBottomWidth="1px"
-                    borderColor={borderColor}
-                    p={2}>
+                  <Box width="100%" borderBottomWidth="1px" borderColor={borderColor} p={2}>
                     <Flex width="100%" justify="space-between" align="center">
                       <Box flex={1} minW={0} overflow="hidden">
                         <Tabs />
@@ -781,9 +779,9 @@ export const ScriptsEditor: React.FC = (props) => {
                       </HStack>
                     </Flex>
                   </Box>
-                  <Box width="100%" >
+                  <Box width="100%">
                     {activeTab && openTabs.length > 0 ? (
-                      <Box width="100%" >
+                      <Box width="100%">
                         <Editor
                           height="55vh"
                           defaultLanguage="python"

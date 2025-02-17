@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import { Box, VStack, Button } from '@chakra-ui/react';
-import { Script } from '@/types/api';
+import React, { useEffect, useRef } from "react";
+import { Box, VStack, Button } from "@chakra-ui/react";
+import { Script } from "@/types/api";
 
 interface ContextMenuProps {
   x: number;
@@ -10,18 +10,18 @@ interface ContextMenuProps {
   onNewScript?: (scriptName: string) => void;
   onOpen?: () => void;
   onDelete?: () => void;
-  type?: 'folder' | 'file';
+  type?: "folder" | "file";
 }
 
-export const ContextMenu: React.FC<ContextMenuProps> = ({ 
-  x, 
-  y, 
-  onClose, 
-  onNewFolder, 
+export const ContextMenu: React.FC<ContextMenuProps> = ({
+  x,
+  y,
+  onClose,
+  onNewFolder,
   onNewScript,
   onOpen,
   onDelete,
-  type = 'folder'
+  type = "folder",
 }) => {
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -32,8 +32,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
   return (
@@ -46,20 +46,18 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
       bg="white"
       shadow="md"
       borderRadius="md"
-      borderWidth="1px"
-    >
+      borderWidth="1px">
       <VStack align="stretch" spacing={0}>
-        {type === 'folder' ? (
+        {type === "folder" ? (
           <>
             {onNewFolder && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  onNewFolder('New Folder');
+                  onNewFolder("New Folder");
                   onClose();
-                }}
-              >
+                }}>
                 New Folder
               </Button>
             )}
@@ -68,10 +66,9 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  onNewScript('New Script');
+                  onNewScript("New Script");
                   onClose();
-                }}
-              >
+                }}>
                 New Script
               </Button>
             )}
@@ -85,8 +82,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
                 onClick={() => {
                   onOpen();
                   onClose();
-                }}
-              >
+                }}>
                 Open
               </Button>
             )}
@@ -98,8 +94,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
                 onClick={() => {
                   onDelete();
                   onClose();
-                }}
-              >
+                }}>
                 Delete
               </Button>
             )}
@@ -108,4 +103,4 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
       </VStack>
     </Box>
   );
-}; 
+};

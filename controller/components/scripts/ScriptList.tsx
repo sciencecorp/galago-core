@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Box,
   Button,
@@ -11,9 +11,9 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
-} from '@chakra-ui/react';
-import { SiPython } from 'react-icons/si';
-import { Script } from '@/types/api';
+} from "@chakra-ui/react";
+import { SiPython } from "react-icons/si";
+import { Script } from "@/types/api";
 
 interface ScriptListProps {
   scripts: Script[];
@@ -33,9 +33,10 @@ export const ScriptList: React.FC<ScriptListProps> = ({
   return (
     <VStack spacing={0} align="stretch">
       {scripts
-        .filter(script => 
-          script.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          script.description.toLowerCase().includes(searchQuery.toLowerCase())
+        .filter(
+          (script) =>
+            script.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            script.description.toLowerCase().includes(searchQuery.toLowerCase()),
         )
         .map((script, index) => (
           <Tooltip key={index} label={script.description}>
@@ -47,8 +48,7 @@ export const ScriptList: React.FC<ScriptListProps> = ({
                   justifyContent="flex-start"
                   variant="ghost"
                   height="32px"
-                  _hover={{ bg: hoverBg }}
-                >
+                  _hover={{ bg: hoverBg }}>
                   <HStack spacing={2}>
                     <SiPython size={14} />
                     <Text fontSize="sm">{script.name}</Text>
@@ -67,4 +67,4 @@ export const ScriptList: React.FC<ScriptListProps> = ({
         ))}
     </VStack>
   );
-}; 
+};
