@@ -58,7 +58,6 @@ export class CommandQueue {
   getError() {
     return this.error || null;
   }
-
   // Used to start or restart the command queue from the main event loop.
   // Idempotent if already running.
   async allCommands(): Promise<StoredRunCommand[]> {

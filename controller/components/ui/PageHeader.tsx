@@ -12,7 +12,7 @@ import {
 
 interface PageHeaderProps {
   title: string;
-  mainButton: React.ReactNode;
+  mainButton?: React.ReactNode;
   subTitle?: string;
   titleIcon?: React.ReactNode;
   secondaryButton?: React.ReactNode;
