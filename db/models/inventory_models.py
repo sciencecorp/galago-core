@@ -40,16 +40,6 @@ class Workcell(Base, TimestampMixin):
 
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "location": self.location,
-            "description": self.description,
-            "tools": [tool.to_dict() for tool in self.tools],
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
 
 
 class Tool(Base, TimestampMixin):
@@ -87,21 +77,6 @@ class Tool(Base, TimestampMixin):
 
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "type": self.type,
-            "name": self.name,
-            "description": self.description,
-            "image_url": self.image_url,
-            "ip": self.ip,
-            "port": self.port,
-            "config": self.config,
-            "workcell_id": self.workcell_id,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
-
 
 class Nest(Base, TimestampMixin):
     __tablename__ = "nests"
@@ -116,17 +91,6 @@ class Nest(Base, TimestampMixin):
     plate = relationship(
         "Plate", back_populates="nest", uselist=False
     )  # type: Optional["Plate"]  # type: ignore
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "row": self.row,
-            "column": self.column,
-            "tool_id": self.tool_id,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
 
 
 class Plate(Base, TimestampMixin):
@@ -143,17 +107,6 @@ class Plate(Base, TimestampMixin):
         "Well", back_populates="plate"
     )  # type: List["Well"]  # type: ignore
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "barcode": self.barcode,
-            "plate_type": self.plate_type,
-            "nest_id": self.nest_id,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
-
 
 class Well(Base, TimestampMixin):
     __tablename__ = "wells"
@@ -169,17 +122,6 @@ class Well(Base, TimestampMixin):
         "Reagent", back_populates="well"
     )  # type: List["Reagent"]  # type: ignore
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "row": self.row,
-            "column": self.column,
-            "plate_id": self.plate_id,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
-
-
 class Reagent(Base, TimestampMixin):
     __tablename__ = "reagents"
     id = Column(Integer, primary_key=True)
@@ -191,18 +133,6 @@ class Reagent(Base, TimestampMixin):
     well = relationship(
         "Well", back_populates="reagents"
     )  # type: Optional["Well"]  # type: ignore
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "expiration_date": self.expiration_date.isoformat() \
-                if self.expiration_date else None,
-            "volume": self.volume,
-            "well_id": self.well_id,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
 
 
 class VariableType(Base, TimestampMixin):
@@ -366,19 +296,3 @@ class Protocol(Base, TimestampMixin):
     workcell = relationship("Workcell")  # type: Optional["Workcell"]  # type: ignore
 
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "category": self.category,
-            "workcell_id": self.workcell_id,
-            "description": self.description,
-            "icon": self.icon,
-            "parameters_schema": self.parameters_schema,
-            "commands_template": self.commands_template,
-            "version": self.version,
-            "is_active": self.is_active,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }

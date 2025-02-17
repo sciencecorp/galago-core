@@ -108,12 +108,12 @@ def get_inventory(workcell_name: str, db: Session = Depends(get_db)) -> t.Any:
     wells = crud.well.get_all_by_workcell_id(db, workcell_id=workcell.id)
     reagents = crud.reagent.get_all_by_workcell_id(db, workcell_id=workcell.id)
     return {
-        "workcell": workcell.to_dict(),
-        "tools": [tool.to_dict() for tool in tools],
-        "nests": [nest.to_dict() for nest in nests],
-        "plates": [plate.to_dict() for plate in plates],
-        "wells": [well.to_dict() for well in wells],
-        "reagents": [reagent.to_dict() for reagent in reagents],
+        "workcell": workcell,
+        "tools": [tool for tool in tools],
+        "nests": [nest for nest in nests],
+        "plates": [plate for plate in plates],
+        "wells": [well for well in wells],
+        "reagents": [reagent for reagent in reagents],
     }
 
 
@@ -126,7 +126,7 @@ def test():
 @app.get("/workcells", response_model=list[schemas.Workcell])
 def get_workcells(db: Session = Depends(get_db)) -> t.Any:
     workcells = crud.workcell.get_all(db)
-    return [workcell.to_dict() for workcell in workcells]
+    return [workcell for workcell in workcells]
 
 
 @app.get("/workcells/{workcell_id}", response_model=schemas.Workcell)
@@ -134,7 +134,7 @@ def get_workcell(workcell_id: int, db: Session = Depends(get_db)) -> t.Any:
     workcell = crud.workcell.get(db, id=workcell_id)
     if workcell is None:
         raise HTTPException(status_code=404, detail="Workcell not found")
-    return workcell.to_dict()
+    return workcell
 
 
 @app.post("/workcells", response_model=schemas.Workcell)
@@ -142,7 +142,7 @@ def create_workcell(
     workcell: schemas.WorkcellCreate, db: Session = Depends(get_db)
 ) -> t.Any:
     db_workcell = crud.workcell.create(db, obj_in=workcell)
-    return db_workcell.to_dict()
+    return db_workcell
 
 
 @app.put("/workcells/{workcell_id}", response_model=schemas.Workcell)
@@ -155,7 +155,7 @@ def update_workcell(
     if workcell is None:
         raise HTTPException(status_code=404, detail="Workcell not found")
     updated_workcell = crud.workcell.update(db, db_obj=workcell, obj_in=workcell_update)
-    return updated_workcell.to_dict()
+    return updated_workcell
 
 
 @app.delete("/workcells/{workcell_id}", response_model=schemas.Workcell)
@@ -164,7 +164,7 @@ def delete_workcell(workcell_id: int, db: Session = Depends(get_db)) -> t.Any:
     if workcell is None:
         raise HTTPException(status_code=404, detail="Workcell not found")
     deleted_workcell = crud.workcell.remove(db, id=workcell_id)
-    return deleted_workcell.to_dict()
+    return deleted_workcell
 
 
 @app.get("/tools", response_model=list[schemas.Tool])
@@ -1074,13 +1074,13 @@ async def create_protocol(protocol: ProtocolCreate, db: Session = Depends(get_db
             
             # Verify the protocol can be converted to dict 
             # (catches serialization issues)
-            protocol_dict = db_protocol.to_dict()
+            protocol_dict = db_protocol
             logging.info(f"Protocol successfully serialized: {protocol_dict}")
             
             db.commit()
             db.refresh(db_protocol)
             logging.info(f"Successfully created protocol: {db_protocol.id}")
-            return db_protocol.to_dict()
+            return db_protocol
             
         except Exception as e:
             db.rollback()
@@ -1118,7 +1118,7 @@ async def update_protocol(
     db.commit()
     db.refresh(db_protocol)
     logging.info(f"Successfully updated protocol: {db_protocol.id}")
-    return db_protocol.to_dict()
+    return db_protocol
 
 @app.delete("/protocols/{id}")
 async def delete_protocol(id: int, db: Session = Depends(get_db)):
@@ -1135,7 +1135,7 @@ async def get_protocol(id: int, db: Session = Depends(get_db)):
     db_protocol = db.query(Protocol).get(id)
     if not db_protocol:
         raise HTTPException(status_code=404, detail="Protocol not found")
-    return db_protocol.to_dict()
+    return db_protocol
 
 @app.get("/protocols", response_model=List[schemas.Protocol])
 async def get_protocols(
@@ -1162,4 +1162,4 @@ async def get_protocols(
         query = query.filter(models.Protocol.is_active == is_active)
     
     protocols = query.all()
-    return [protocol.to_dict() for protocol in protocols]
+    return [protocol for protocol in protocols]
