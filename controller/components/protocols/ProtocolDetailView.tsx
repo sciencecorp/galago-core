@@ -54,7 +54,6 @@ import {
   HamburgerIcon,
 } from "@chakra-ui/icons";
 import { useRouter } from "next/router";
-import { ProtocolManager } from "./ProtocolManager";
 import { useState, useEffect, useMemo } from "react";
 import { AddToolCommandModal } from "./AddToolCommandModal";
 import CommandComponent from "./CommandComponent";
