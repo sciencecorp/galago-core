@@ -31,15 +31,6 @@ const protocolSchema = z.object({
 
 export const protocolRouter = router({
   all: procedure.input(z.object({})).query(async () => {
-    const tsProtocols = Protocols.map((protocol: Protocol) => ({
-      name: protocol.name,
-      id: protocol.protocolId,
-      category: protocol.category,
-      workcell: protocol.workcell,
-      commands: protocol.preview(),
-      uiParams: protocol.uiParams(),
-    }));
-
     try {
       const response = await axios.get(`${API_BASE_URL}/protocols`);
       const dbProtocols = response.data.map((protocol: any) => ({
@@ -51,28 +42,16 @@ export const protocolRouter = router({
         uiParams: protocol.parameters_schema,
       }));
 
-      return [...tsProtocols, ...dbProtocols];
+      return dbProtocols;
     } catch (error) {
       console.error("Failed to fetch database protocols:", error);
-      return tsProtocols;
+      return [];
     }
   }),
   allNames: procedure
     .input(z.object({ workcellName: z.string() }))
     .query<AllNamesOutput>(async ({ input }): Promise<AllNamesOutput> => {
       const { workcellName } = input;
-
-      const tsProtocols = Protocols.filter(
-        (protocol: Protocol) => protocol.workcell === workcellName,
-      ).map((protocol: Protocol) => ({
-        name: protocol.name,
-        id: protocol.protocolId,
-        category: protocol.category,
-        workcell: protocol.workcell,
-        number_of_commands: protocol.preview().length,
-        description: protocol.description,
-        icon: protocol.icon,
-      }));
 
       try {
         const response = await axios.get(`${API_BASE_URL}/protocols`, {
@@ -88,28 +67,14 @@ export const protocolRouter = router({
           icon: protocol.icon,
         }));
 
-        return [...tsProtocols, ...dbProtocols];
+        return dbProtocols;
       } catch (error) {
         console.error("Failed to fetch database protocols:", error);
-        return tsProtocols;
+        return [];
       }
     }),
   get: procedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
     const { id } = input;
-
-    const tsProtocol = Protocols.find((p: Protocol) => p.protocolId === id);
-    if (tsProtocol) {
-      return {
-        name: tsProtocol.name,
-        id: tsProtocol.protocolId,
-        category: tsProtocol.category,
-        workcell: tsProtocol.workcell,
-        commands: tsProtocol.preview(),
-        uiParams: tsProtocol.uiParams(),
-        icon: tsProtocol.icon,
-        description: tsProtocol.description,
-      };
-    }
 
     try {
       const response = await axios.get(`${API_BASE_URL}/protocols/${id}`);
