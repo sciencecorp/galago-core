@@ -95,8 +95,6 @@ export const protocolRouter = router({
   }),
   create: procedure.input(protocolSchema).mutation(async ({ input }) => {
     try {
-      console.log("Creating protocol with data:", JSON.stringify(input, null, 2));
-
       const protocolData = {
         ...input,
         version: input.version || 1,
@@ -105,12 +103,8 @@ export const protocolRouter = router({
         commands_template: input.commands_template || [],
       };
 
-      console.log("Sending request to:", `${API_BASE_URL}/protocols`);
-      console.log("Request payload:", JSON.stringify(protocolData, null, 2));
-
       const response = await axios.post(`${API_BASE_URL}/protocols`, protocolData);
 
-      console.log("Response:", response.data);
       await reloadProtocols();
       return response.data;
     } catch (error: any) {
