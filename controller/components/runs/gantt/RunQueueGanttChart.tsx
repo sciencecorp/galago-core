@@ -224,7 +224,8 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
           opacity = 0.7;
         } else if (command.status === "SKIPPED") {
           opacity = 0.5;
-          pattern = "repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255,255,255,0.3) 5px, rgba(255,255,255,0.3) 10px)";
+          pattern =
+            "repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255,255,255,0.3) 5px, rgba(255,255,255,0.3) 10px)";
           borderStyle = "dashed";
         }
 
@@ -260,17 +261,16 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
               sx={{
                 "@keyframes pulse": {
                   "0%": {
-                    boxShadow: "0 0 0 0 rgba(49, 151, 149, 0.4)"
+                    boxShadow: "0 0 0 0 rgba(49, 151, 149, 0.4)",
                   },
                   "70%": {
-                    boxShadow: "0 0 0 10px rgba(49, 151, 149, 0)"
+                    boxShadow: "0 0 0 10px rgba(49, 151, 149, 0)",
                   },
                   "100%": {
-                    boxShadow: "0 0 0 0 rgba(49, 151, 149, 0)"
-                  }
-                }
-              }}
-            >
+                    boxShadow: "0 0 0 0 rgba(49, 151, 149, 0)",
+                  },
+                },
+              }}>
               {command.status === "STARTED" && (
                 <Box
                   position="absolute"
@@ -285,8 +285,8 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
                     "@keyframes blink": {
                       "0%": { opacity: 1 },
                       "50%": { opacity: 0.4 },
-                      "100%": { opacity: 1 }
-                    }
+                      "100%": { opacity: 1 },
+                    },
                   }}
                 />
               )}
@@ -300,8 +300,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
                 letterSpacing="wide"
                 color="white"
                 isTruncated
-                maxWidth="90%"
-              >
+                maxWidth="90%">
                 {command.commandInfo.command
                   .split("_")
                   .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -332,8 +331,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
         borderRight="1px solid"
         borderColor={borderColor}
         bg={toolLabelsBgColor}
-        zIndex={1}
-      >
+        zIndex={1}>
         {toolTypes.map((toolType, index) => {
           const toolInfo = toolInfoQuery.data?.find((t) => t.type === toolType);
           const imageUrl = toolInfo?.image_url;
