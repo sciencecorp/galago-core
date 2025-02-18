@@ -546,9 +546,18 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                           <Input
                             value={paramName}
                             onChange={(e) => {
-                              const newSchema = { ...localParametersSchema };
-                              delete newSchema[paramName];
-                              newSchema[e.target.value] = schema;
+                              // Create new schema preserving order
+                              const newSchema = Object.entries(localParametersSchema).reduce(
+                                (acc, [key, value]) => {
+                                  if (key === paramName) {
+                                    acc[e.target.value] = value;
+                                  } else {
+                                    acc[key] = value;
+                                  }
+                                  return acc;
+                                },
+                                {} as Record<string, ParameterSchema>,
+                              );
                               setLocalParametersSchema(newSchema);
                             }}
                           />
