@@ -39,8 +39,8 @@ enum TimeScale {
 
 const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRunId }) => {
   const [currentTime, setCurrentTime] = useState(moment());
-  const [startTime, setStartTime] = useState(moment());
-  const [endTime, setEndTime] = useState(moment().add(2, "hours"));
+  const [startTime, setStartTime] = useState(moment().subtract(1, "minute"));
+  const [endTime, setEndTime] = useState(moment().add(1, "hour").add(59, "minutes"));
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
   const [timeScale, setTimeScale] = useState<TimeScale>(TimeScale.MINUTES);
 
@@ -185,10 +185,9 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
 
     const toolTypes = Object.keys(commandsByTool);
     const rowHeight = 60;
-    const blockHeight = 45; // Reduced block height to allow for padding
-    const verticalPadding = 0; // Calculate padding to center block
+    const blockHeight = 45;
+    const verticalPadding = 0;
 
-    // Calculate start times based on previous commands
     let lastEndTime = moment(0);
 
     return sortedCommands
@@ -202,7 +201,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
           command.completedAt ||
             startMoment.clone().add(command.estimatedDuration || 600, "seconds"),
         );
-        lastEndTime = endMoment.clone().add(2, "seconds"); // Add 2 second gap between blocks
+        lastEndTime = endMoment.clone().add(2, "seconds");
 
         // Skip if outside visible window
         if (endMoment.isBefore(startTime) || startMoment.isAfter(endTime)) {
@@ -216,10 +215,27 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
         const isSelected = selectedRunId === command.runId;
         const bgColor = getToolColor(command.commandInfo.toolType as ToolType);
 
+        // Determine opacity and style based on command status
+        let opacity = 0.9;
+        let pattern = "none";
+        let borderStyle = "solid";
+
+        if (command.status === "COMPLETED") {
+          opacity = 0.7;
+        } else if (command.status === "SKIPPED") {
+          opacity = 0.5;
+          pattern = "repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255,255,255,0.3) 5px, rgba(255,255,255,0.3) 10px)";
+          borderStyle = "dashed";
+        }
+
+        if (isSelected) {
+          opacity = 1;
+        }
+
         return (
           <Tooltip
             key={command.queueId}
-            label={`Tool: ${command.commandInfo.toolType} | Command:${command.commandInfo.command} | Status: ${command.status}`}>
+            label={`Tool: ${command.commandInfo.toolType} | Command: ${command.commandInfo.command} | Status: ${command.status}`}>
             <Box
               position="absolute"
               height={`${blockHeight}px`}
@@ -229,15 +245,51 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
               marginLeft="2px"
               onClick={() => onRunClick(command.runId)}
               cursor="pointer"
-              border="1px solid"
+              border="1px"
+              borderStyle={borderStyle}
               borderColor={commandBorderColor}
               borderRadius="md"
               bg={bgColor}
-              opacity={command.status === "COMPLETED" ? 0.7 : isSelected ? 1 : 0.9}
+              opacity={opacity}
               _hover={{ opacity: 1, transform: "translateY(-1px)" }}
               transition="all 0.2s"
               zIndex={2}
-              boxShadow={isSelected ? "md" : "none"}>
+              boxShadow={isSelected ? "md" : "none"}
+              backgroundImage={pattern}
+              animation={command.status === "STARTED" ? "pulse 2s infinite" : undefined}
+              sx={{
+                "@keyframes pulse": {
+                  "0%": {
+                    boxShadow: "0 0 0 0 rgba(49, 151, 149, 0.4)"
+                  },
+                  "70%": {
+                    boxShadow: "0 0 0 10px rgba(49, 151, 149, 0)"
+                  },
+                  "100%": {
+                    boxShadow: "0 0 0 0 rgba(49, 151, 149, 0)"
+                  }
+                }
+              }}
+            >
+              {command.status === "STARTED" && (
+                <Box
+                  position="absolute"
+                  top="2px"
+                  right="2px"
+                  width="8px"
+                  height="8px"
+                  borderRadius="full"
+                  bg="teal.400"
+                  animation="blink 1s infinite"
+                  sx={{
+                    "@keyframes blink": {
+                      "0%": { opacity: 1 },
+                      "50%": { opacity: 0.4 },
+                      "100%": { opacity: 1 }
+                    }
+                  }}
+                />
+              )}
               <Text
                 position="absolute"
                 left="5px"
@@ -248,7 +300,8 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
                 letterSpacing="wide"
                 color="white"
                 isTruncated
-                maxWidth="90%">
+                maxWidth="90%"
+              >
                 {command.commandInfo.command
                   .split("_")
                   .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -278,7 +331,9 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
         height="100%"
         borderRight="1px solid"
         borderColor={borderColor}
-        bg={toolLabelsBgColor}>
+        bg={toolLabelsBgColor}
+        zIndex={1}
+      >
         {toolTypes.map((toolType, index) => {
           const toolInfo = toolInfoQuery.data?.find((t) => t.type === toolType);
           const imageUrl = toolInfo?.image_url;
