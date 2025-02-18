@@ -289,7 +289,9 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [addCommandPosition, setAddCommandPosition] = useState<number | null>(null);
   const [selectedCommand, setSelectedCommand] = useState<any | null>(null);
-  const [localParametersSchema, setLocalParametersSchema] = useState<Record<string, ParameterSchema>>({});
+  const [localParametersSchema, setLocalParametersSchema] = useState<
+    Record<string, ParameterSchema>
+  >({});
   const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
