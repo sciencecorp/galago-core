@@ -2,6 +2,7 @@ import typing as t
 from pydantic import BaseModel, model_validator, Field
 import datetime
 from typing import Optional, List, Dict, Any
+from pydantic import ConfigDict
 
 
 class TimestampMixin(BaseModel):
@@ -339,11 +340,10 @@ class ProtocolUpdate(BaseModel):
 
 class Protocol(ProtocolBase):
     id: int
-    created_at: t.Optional[str] = None
-    updated_at: t.Optional[str] = None
+    created_at: t.Optional[datetime.datetime] = None
+    updated_at: t.Optional[datetime.datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True, json_encoders={datetime.datetime: lambda dt: dt.isoformat()})
 
 
 class AppSettingsCreate(BaseModel):
