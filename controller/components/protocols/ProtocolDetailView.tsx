@@ -289,6 +289,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [addCommandPosition, setAddCommandPosition] = useState<number | null>(null);
   const [selectedCommand, setSelectedCommand] = useState<any | null>(null);
+  const [localParametersSchema, setLocalParametersSchema] = useState<Record<string, ParameterSchema>>({});
   const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
@@ -355,6 +356,12 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
 
     setCommands(newCommands);
   }, [protocol?.commands_template]);
+
+  useEffect(() => {
+    if (protocol?.parameters_schema) {
+      setLocalParametersSchema(protocol.parameters_schema);
+    }
+  }, [protocol?.parameters_schema]);
 
   useEffect(() => {
     return () => {
@@ -437,7 +444,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       data: {
         name: protocol.name,
         description: protocol.description,
-        parameters_schema: protocol.parameters_schema,
+        parameters_schema: localParametersSchema,
         commands_template: commandsTemplate,
         icon: protocol.icon || "",
       },
@@ -527,7 +534,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
           {isEditing ? (
             <Box p={4} borderWidth="1px" borderRadius="lg" borderColor={borderColor} bg={bgColor}>
               <VStack align="stretch" spacing={4}>
-                {Object.entries(protocol.parameters_schema || {}).map(
+                {Object.entries(localParametersSchema || {}).map(
                   ([paramName, schemaData], index) => {
                     const schema = schemaData as ParameterSchema;
                     return (
@@ -537,20 +544,10 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                           <Input
                             value={paramName}
                             onChange={(e) => {
-                              const newSchema = { ...protocol.parameters_schema } as Record<
-                                string,
-                                ParameterSchema
-                              >;
+                              const newSchema = { ...localParametersSchema };
                               delete newSchema[paramName];
                               newSchema[e.target.value] = schema;
-                              updateProtocol.mutate({
-                                id: protocol.id,
-                                data: {
-                                  ...protocol,
-                                  parameters_schema: newSchema,
-                                  icon: protocol.icon || "",
-                                },
-                              });
+                              setLocalParametersSchema(newSchema);
                             }}
                           />
                         </FormControl>
@@ -559,22 +556,12 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                           <Select
                             value={schema.type}
                             onChange={(e) => {
-                              const newSchema = { ...protocol.parameters_schema } as Record<
-                                string,
-                                ParameterSchema
-                              >;
+                              const newSchema = { ...localParametersSchema };
                               newSchema[paramName] = {
                                 ...schema,
                                 type: e.target.value,
                               };
-                              updateProtocol.mutate({
-                                id: protocol.id,
-                                data: {
-                                  ...protocol,
-                                  parameters_schema: newSchema,
-                                  icon: protocol.icon || "",
-                                },
-                              });
+                              setLocalParametersSchema(newSchema);
                             }}>
                             <option value="string">String</option>
                             <option value="number">Number</option>
@@ -587,22 +574,12 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                           <Input
                             value={schema.description || ""}
                             onChange={(e) => {
-                              const newSchema = { ...protocol.parameters_schema } as Record<
-                                string,
-                                ParameterSchema
-                              >;
+                              const newSchema = { ...localParametersSchema };
                               newSchema[paramName] = {
                                 ...schema,
                                 description: e.target.value,
                               };
-                              updateProtocol.mutate({
-                                id: protocol.id,
-                                data: {
-                                  ...protocol,
-                                  parameters_schema: newSchema,
-                                  icon: protocol.icon || "",
-                                },
-                              });
+                              setLocalParametersSchema(newSchema);
                             }}
                           />
                         </FormControl>
@@ -615,22 +592,12 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                             onChange={(e) => {
                               try {
                                 const defaultValue = JSON.parse(e.target.value);
-                                const newSchema = { ...protocol.parameters_schema } as Record<
-                                  string,
-                                  ParameterSchema
-                                >;
+                                const newSchema = { ...localParametersSchema };
                                 newSchema[paramName] = {
                                   ...schema,
                                   default: defaultValue,
                                 };
-                                updateProtocol.mutate({
-                                  id: protocol.id,
-                                  data: {
-                                    ...protocol,
-                                    parameters_schema: newSchema,
-                                    icon: protocol.icon || "",
-                                  },
-                                });
+                                setLocalParametersSchema(newSchema);
                               } catch (error) {
                                 // Handle invalid JSON input
                                 console.error("Invalid JSON for default value");
@@ -645,19 +612,9 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                           colorScheme="red"
                           variant="ghost"
                           onClick={() => {
-                            const newSchema = { ...protocol.parameters_schema } as Record<
-                              string,
-                              ParameterSchema
-                            >;
+                            const newSchema = { ...localParametersSchema };
                             delete newSchema[paramName];
-                            updateProtocol.mutate({
-                              id: protocol.id,
-                              data: {
-                                ...protocol,
-                                parameters_schema: newSchema,
-                                icon: protocol.icon || "",
-                              },
-                            });
+                            setLocalParametersSchema(newSchema);
                           }}
                         />
                       </HStack>
@@ -671,24 +628,14 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    const newSchema = { ...protocol.parameters_schema } as Record<
-                      string,
-                      ParameterSchema
-                    >;
+                    const newSchema = { ...localParametersSchema };
                     const newParamName = `parameter_${Object.keys(newSchema).length + 1}`;
                     newSchema[newParamName] = {
                       type: "string",
                       description: "",
                       default: "",
                     };
-                    updateProtocol.mutate({
-                      id: protocol.id,
-                      data: {
-                        ...protocol,
-                        parameters_schema: newSchema,
-                        icon: protocol.icon || "",
-                      },
-                    });
+                    setLocalParametersSchema(newSchema);
                   }}
                 />
               </VStack>
