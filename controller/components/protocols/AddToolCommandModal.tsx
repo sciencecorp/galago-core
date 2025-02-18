@@ -89,11 +89,6 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     };
     onCommandAdded(newCommand);
     onClose();
-    toast({
-      title: "Command added",
-      status: "success",
-      duration: 3000,
-    });
   };
 
   const renderField = (field: Field) => {
