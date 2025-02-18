@@ -1,5 +1,4 @@
 import Protocol from "@/protocols/protocol";
-import { DatabaseProtocol } from "@/protocols/database_protocol";
 
 import axios from "axios";
 
@@ -15,7 +14,7 @@ async function loadDatabaseProtocols(): Promise<Protocol[]> {
     const dbProtocols = await Promise.all(
       response.data.map(async (protocolData: any) => {
         try {
-          return new DatabaseProtocol(protocolData);
+          return new Protocol(protocolData);
         } catch (error) {
           console.error(`Failed to load protocol ${protocolData.id}:`, error);
           return null;

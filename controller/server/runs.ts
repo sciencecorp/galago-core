@@ -4,7 +4,7 @@ import { ZodError } from "zod";
 import CommandQueue from "./command_queue";
 import { Protocols } from "./protocols";
 import Tool from "./tools";
-import { DatabaseProtocol } from "@/protocols/database_protocol";
+import Protocol from "@/protocols/protocol";
 
 // Right now, just an in-memory store wrapping a Map.
 export default class RunStore {
@@ -66,7 +66,7 @@ export default class RunStore {
     // If not found in TypeScript protocols, try to load from database
     if (!protocol) {
       try {
-        protocol = await DatabaseProtocol.loadFromDatabase(protocolId);
+        protocol = await Protocol.loadFromDatabase(protocolId);
       } catch (error) {
         throw new ProtocolNotFoundError(protocolId);
       }

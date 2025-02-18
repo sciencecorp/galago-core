@@ -1,7 +1,7 @@
 import moment from "moment";
 import { RunQueue, RunCommand, GroupedCommand } from "@/types";
 import { Protocols } from "@/server/protocols";
-import { DatabaseProtocol } from "@/protocols/database_protocol";
+import Protocol from "@/protocols/protocol";
 
 export async function getRunAttributes(
   runInfo: any,
@@ -37,7 +37,7 @@ export async function getRunAttributes(
   } else {
     // If not found in TypeScript protocols, try to load from database
     try {
-      const dbProtocol = await DatabaseProtocol.loadFromDatabase(runInfo.run_type);
+      const dbProtocol = await Protocol.loadFromDatabase(runInfo.run_type);
       if (dbProtocol) {
         protocolName = dbProtocol.name;
       }
