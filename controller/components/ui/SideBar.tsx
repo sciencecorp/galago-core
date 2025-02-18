@@ -73,7 +73,6 @@ function DarkModeToggle() {
       bottom="20px"
       left="20px"
       bg="transparent"
-      variant="outline"
     />
   );
 }
