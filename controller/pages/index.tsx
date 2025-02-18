@@ -127,8 +127,8 @@ export default function Page() {
                     </HStack>
                     <Divider />
                     <Text fontSize="sm">
-                      Explore our comprehensive documentation to learn about Galago's features, best
-                      practices, and get started with automation.
+                      Explore our comprehensive documentation to learn about Galago&apos;s features,
+                      best practices, and get started with automation.
                     </Text>
                   </VStack>
                 </CardBody>
