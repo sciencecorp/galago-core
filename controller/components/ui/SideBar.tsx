@@ -28,6 +28,7 @@ import { RiCalendarCheckLine } from "react-icons/ri";
 import { PiPathBold } from "react-icons/pi";
 import { MoonIcon, SunIcon } from "@chakra-ui/icons";
 import { FiBook } from "react-icons/fi";
+import { BsTools } from "react-icons/bs";
 import { FaChartGantt } from "react-icons/fa6";
 import { capitalizeFirst } from "@/utils/parser";
 import { BsBoxSeam } from "react-icons/bs";
@@ -49,7 +50,7 @@ const sidebarItems: SidebarItem[] = [
   { name: "Home", icon: FiHome, path: "/" },
   { name: "Runs", icon: FaChartGantt, path: "/runs" },
   { name: "Workcells", icon: GiChaingun, path: "/workcells" },
-  { name: "Tools", icon: FaToolbox, path: "/tools" },
+  { name: "Tools", icon: BsTools, path: "/tools" },
   { name: "Protocols", icon: PiPathBold, path: "/protocols" },
   { name: "Inventory", icon: BsBoxSeam, path: "/inventory" },
   // { name: "Schedule", icon: RiCalendarCheckLine, path: "/schedule" },
