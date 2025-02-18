@@ -11,6 +11,10 @@ import {
   useToast,
   FormErrorMessage,
   FormHelperText,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { useRouter } from "next/router";
@@ -27,6 +31,7 @@ export const NewProtocolForm = () => {
   const { data: workcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
   const { data: workcells } = trpc.workcell.getAll.useQuery();
   const selectedWorkcell = workcells?.find((w) => w.name === workcellName);
+  const hasWorkcells = workcells && workcells.length > 0;
 
   // Add query to check existing protocols
   const { data: existingProtocols } = trpc.protocol.allNames.useQuery(
@@ -100,6 +105,10 @@ export const NewProtocolForm = () => {
       newErrors.category = "Category is required";
     }
 
+    if (!selectedWorkcell) {
+      newErrors.workcell_id = "A workcell must be selected";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -157,6 +166,31 @@ export const NewProtocolForm = () => {
   return (
     <Box as="form" onSubmit={handleSubmit} p={4}>
       <VStack spacing={4} align="stretch">
+        {!hasWorkcells && (
+          <Alert status="warning" borderRadius="md">
+            <AlertIcon />
+            <Box>
+              <AlertTitle>No Workcell Available</AlertTitle>
+              <AlertDescription>
+                You need to create a workcell before you can create a protocol. Please create a
+                workcell first.
+              </AlertDescription>
+            </Box>
+          </Alert>
+        )}
+
+        {!selectedWorkcell && hasWorkcells && (
+          <Alert status="info" borderRadius="md">
+            <AlertIcon />
+            <Box>
+              <AlertTitle>No Workcell Selected</AlertTitle>
+              <AlertDescription>
+                Please select a workcell from the workcell selector before creating a protocol.
+              </AlertDescription>
+            </Box>
+          </Alert>
+        )}
+
         <FormControl isRequired isInvalid={!!errors.name}>
           <FormLabel>Name</FormLabel>
           <Input
@@ -164,13 +198,18 @@ export const NewProtocolForm = () => {
             value={formData.name}
             onChange={handleChange}
             placeholder="Protocol name"
+            isDisabled={!selectedWorkcell}
           />
           <FormErrorMessage>{errors.name}</FormErrorMessage>
         </FormControl>
 
         <FormControl isRequired isInvalid={!!errors.category}>
           <FormLabel>Category</FormLabel>
-          <Select name="category" value={formData.category} onChange={handleChange}>
+          <Select
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            isDisabled={!selectedWorkcell}>
             <option value="development">Development</option>
             <option value="production">Production</option>
             <option value="qc">QC</option>
@@ -185,6 +224,7 @@ export const NewProtocolForm = () => {
             value={formData.description || ""}
             onChange={handleChange}
             placeholder="Protocol description"
+            isDisabled={!selectedWorkcell}
           />
         </FormControl>
 
@@ -193,7 +233,7 @@ export const NewProtocolForm = () => {
           colorScheme="blue"
           isLoading={createProtocol.isLoading}
           loadingText="Creating..."
-          disabled={createProtocol.isLoading}>
+          isDisabled={createProtocol.isLoading || !selectedWorkcell}>
           Create Protocol
         </Button>
       </VStack>
