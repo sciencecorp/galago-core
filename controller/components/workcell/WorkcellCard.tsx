@@ -131,7 +131,8 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
       shadow="md"
       transition="all 0.2s"
       _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
-      overflow="hidden">
+      overflow="hidden"
+      minWidth="375px">
       <CardBody p={4}>
         <VStack align="stretch" spacing={4}>
           <HStack justify="space-between">
@@ -191,7 +192,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
           </HStack>
 
           {workcell.tools.length > 0 && (
-            <AvatarGroup size="md" max={8} spacing="-1.5rem">
+            <AvatarGroup size="md" max={8} spacing="-0.75rem">
               {workcell.tools.map((tool) => (
                 <Tooltip key={tool.id} label={tool.name}>
                   <Avatar
