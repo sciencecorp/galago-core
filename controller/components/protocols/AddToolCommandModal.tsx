@@ -43,37 +43,37 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   protocolParams = {},
 }) => {
   const toast = useToast();
-  const [selectedTool, setSelectedTool] = useState("");
+  const [selectedToolType, setSelectedToolType] = useState("");
   const [selectedCommand, setSelectedCommand] = useState("");
   const [commandParams, setCommandParams] = useState<Record<string, any>>({});
 
   const toolsQuery = trpc.tool.getAll.useQuery();
-  const selectedToolData = toolsQuery.data?.find((tool) => tool.type === selectedTool);
+  const selectedToolData = toolsQuery.data?.find((tool) => tool.type === selectedToolType);
 
   // Query for PF400 locations and sequences when needed
   const waypointsQuery = trpc.robotArm.waypoints.getAll.useQuery(
     { toolId: selectedToolData?.id || 0 },
-    { enabled: !!selectedToolData?.id && selectedTool === "pf400" },
+    { enabled: !!selectedToolData?.id && selectedToolType === "pf400" },
   );
 
   // Reset params when tool or command changes
   useEffect(() => {
     setCommandParams({});
-  }, [selectedTool, selectedCommand]);
+  }, [selectedToolType, selectedCommand]);
 
   // Get available commands for the selected tool
-  const availableCommands: Command = selectedTool ? commandFields[selectedTool] || {} : {};
+  const availableCommands: Command = selectedToolType ? commandFields[selectedToolType] || {} : {};
 
   // Get fields for the selected command
   const fields: Field[] =
-    selectedTool && selectedCommand ? availableCommands[selectedCommand] || [] : [];
+    selectedToolType && selectedCommand ? availableCommands[selectedCommand] || [] : [];
 
   const handleSubmit = () => {
     const newCommand = {
       queueId: Date.now(),
       commandInfo: {
-        toolId: selectedTool,
-        toolType: selectedTool,
+        toolId: selectedToolData?.id,
+        toolType: selectedToolType,
         command: selectedCommand,
         params: commandParams,
         label: "",
@@ -125,7 +125,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     );
 
     // Special handling for PF400 location and sequence fields
-    if (selectedTool === "pf400") {
+    if (selectedToolType === "pf400") {
       // For move command's name parameter (locations)
       if (selectedCommand === "move" && field.name === "name") {
         return (
@@ -244,9 +244,9 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               <FormLabel>Tool</FormLabel>
               <Select
                 placeholder="Select tool"
-                value={selectedTool}
+                value={selectedToolType}
                 onChange={(e) => {
-                  setSelectedTool(e.target.value);
+                  setSelectedToolType(e.target.value);
                   setSelectedCommand("");
                   setCommandParams({});
                 }}>
@@ -258,7 +258,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               </Select>
             </FormControl>
 
-            {selectedTool && (
+            {selectedToolType && (
               <FormControl isRequired>
                 <FormLabel>Command</FormLabel>
                 <Select
@@ -298,7 +298,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
             colorScheme="blue"
             onClick={handleSubmit}
             isLoading={false}
-            isDisabled={!selectedTool || !selectedCommand}>
+            isDisabled={!selectedToolType || !selectedCommand}>
             Add Command
           </Button>
         </ModalFooter>
