@@ -314,6 +314,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     Record<string, ParameterSchema>
   >({});
   const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
+  const execMutation = trpc.tool.runCommand.useMutation();
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
@@ -491,7 +492,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   };
 
   const handleRunCommand = (command: any) => {
-    const execMutation = trpc.tool.runCommand.useMutation();
     execMutation.mutate(command.commandInfo, {
       onSuccess: () => {
         toast({

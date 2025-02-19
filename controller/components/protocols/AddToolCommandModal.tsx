@@ -75,7 +75,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     const newCommand = {
       queueId: Date.now(),
       commandInfo: {
-        toolId: selectedToolType === "toolbox" ? "tool_box" : selectedToolData?.id?.toString(),
+        toolId: selectedToolType === "toolbox" ? "tool_box" : selectedToolData?.name?.toLocaleLowerCase().replaceAll(" ", "_"),
         toolType: selectedToolType,
         command: selectedCommand,
         params: commandParams,
