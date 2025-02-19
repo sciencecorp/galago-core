@@ -114,7 +114,10 @@ const CommandBox: React.FC<{
   const boxBg = useColorModeValue("white", "gray.700");
   const boxBorder = useColorModeValue("gray.200", "gray.600");
   const arrowColor = useColorModeValue("gray.500", "gray.400");
-  const infoQuery = trpc.tool.info.useQuery({ toolId: command.commandInfo.toolId });
+  const infoQuery = trpc.tool.info.useQuery(
+    { toolId: command.commandInfo.toolId },
+    { enabled: !command.commandInfo.tool_info },
+  );
 
   const formatToolId = (toolId: string) => {
     if (!toolId) return "";
@@ -122,6 +125,26 @@ const CommandBox: React.FC<{
       .split("_")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(" ");
+  };
+
+  const renderToolIcon = () => {
+    if (command.commandInfo.tool_info?.image_url) {
+      return (
+        <Box position="absolute" bottom="4" right="4" opacity="0.9" zIndex="1">
+          <Image
+            src={command.commandInfo.tool_info.image_url}
+            alt={command.commandInfo.toolType}
+            boxSize="32px"
+            objectFit="contain"
+          />
+        </Box>
+      );
+    }
+    return (
+      <Box position="absolute" bottom="4" right="4" opacity="0.9" zIndex="1">
+        {renderToolImage(infoQuery.data)}
+      </Box>
+    );
   };
 
   return (
@@ -168,9 +191,7 @@ const CommandBox: React.FC<{
             </Box>
           )}
         </VStack>
-        <Box position="absolute" bottom="4" right="4" opacity="0.9" zIndex="1">
-          {renderToolImage(infoQuery.data)}
-        </Box>
+        {renderToolIcon()}
       </Box>
       <VStack spacing={2} justify="center" height="100%">
         {isLast && isEditing ? (
@@ -340,11 +361,15 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     const newCommands = protocol.commands_template.map((cmd: any) => ({
       queueId: `${Date.now()}-${Math.random()}`,
       commandInfo: {
-        toolId: cmd.toolType,
-        toolType: cmd.toolType || "",
+        toolId: cmd.toolId,
+        toolType: cmd.toolType,
         command: cmd.command,
         params: cmd.params || {},
         label: cmd.label || "",
+        tool_info: cmd.tool_info || {
+          type: cmd.toolType,
+          image_url: cmd.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
+        },
       },
       status: "CREATED",
       estimatedDuration: 0,
@@ -439,6 +464,11 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       command: cmd.commandInfo.command,
       params: cmd.commandInfo.params,
       label: cmd.commandInfo.label || "",
+      // Add tool info for UI
+      tool_info: {
+        type: cmd.commandInfo.toolType,
+        image_url: cmd.commandInfo.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
+      },
     }));
 
     updateProtocol.mutate({

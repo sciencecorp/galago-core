@@ -48,7 +48,10 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   const [commandParams, setCommandParams] = useState<Record<string, any>>({});
 
   const toolsQuery = trpc.tool.getAll.useQuery();
-  const selectedToolData = toolsQuery.data?.find((tool) => tool.type === selectedToolType);
+  const toolBoxQuery = trpc.tool.getToolBox.useQuery();
+  const selectedToolData =
+    toolsQuery.data?.find((tool) => tool.type === selectedToolType) ||
+    (toolBoxQuery.data?.type === selectedToolType ? toolBoxQuery.data : undefined);
 
   // Query for PF400 locations and sequences when needed
   const waypointsQuery = trpc.robotArm.waypoints.getAll.useQuery(
@@ -72,7 +75,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     const newCommand = {
       queueId: Date.now(),
       commandInfo: {
-        toolId: selectedToolData?.id,
+        toolId: selectedToolType === "toolbox" ? "tool_box" : selectedToolData?.id?.toString(),
         toolType: selectedToolType,
         command: selectedCommand,
         params: commandParams,
@@ -250,6 +253,11 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                     {tool.type}
                   </option>
                 ))}
+                {toolBoxQuery.data && (
+                  <option key={toolBoxQuery.data.type} value={toolBoxQuery.data.type}>
+                    {toolBoxQuery.data.type}
+                  </option>
+                )}
               </Select>
             </FormControl>
 
