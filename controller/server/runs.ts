@@ -76,11 +76,11 @@ export default class RunStore {
       throw new ProtocolNotFoundError(protocolId);
     }
 
-    const validationErrors = await protocol.validationErrors(params);
+    const validationErrors = protocol.validationErrors(params);
     if (validationErrors) {
       throw validationErrors;
     }
-    const commands = await protocol.generate({
+    const commands = protocol.generate({
       protocolId,
       params,
     });
