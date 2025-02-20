@@ -58,6 +58,7 @@ export const RunsComponent: React.FC = () => {
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [expandedRuns, setExpandedRuns] = useState<Set<string>>(new Set());
   const [runAttributesMap, setRunAttributesMap] = useState<Record<string, any>>({});
+  const [isErrorVisible, setIsErrorVisible] = useState(true);
   const skipRunMutation = trpc.commandQueue.clearByRunId.useMutation();
   const commandsAll = trpc.commandQueue.commands.useQuery(
     { limit: 1000, offset: 0 },
@@ -85,7 +86,7 @@ export const RunsComponent: React.FC = () => {
 
   const ErrorBanner = () => {
     if (!getError.data && !getError.error) return null;
-    if (stateQuery.data === ToolStatus.FAILED) {
+    if (stateQuery.data === ToolStatus.FAILED && isErrorVisible) {
       return (
         <Alert status="error" variant="left-accent" mb={2}>
           <AlertIcon />
@@ -94,6 +95,7 @@ export const RunsComponent: React.FC = () => {
             <AlertDescription>An error occurred while executing the command.</AlertDescription>
             {getError.data && <AlertDescription>{getError.data.toString()}</AlertDescription>}
           </Box>
+          <CloseButton onClick={() => setIsErrorVisible(false)} />
         </Alert>
       );
     } else {
