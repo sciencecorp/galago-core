@@ -607,7 +607,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                             <option value="string">String</option>
                             <option value="number">Number</option>
                             <option value="boolean">Boolean</option>
-                            <option value="array">Array</option>
                           </Select>
                         </FormControl>
                         <FormControl flex={2}>
@@ -626,26 +625,61 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                         </FormControl>
                         <FormControl flex={1}>
                           <FormLabel>Default Value</FormLabel>
-                          <Input
-                            value={
-                              schema.default !== undefined ? JSON.stringify(schema.default) : ""
-                            }
-                            onChange={(e) => {
-                              try {
-                                const defaultValue = JSON.parse(e.target.value);
+                          {schema.type === "boolean" ? (
+                            <Select
+                              value={String(schema.default) || ""}
+                              onChange={(e) => {
                                 const newSchema = { ...localParametersSchema };
                                 newSchema[paramName] = {
                                   ...schema,
-                                  default: defaultValue,
+                                  default: e.target.value === "true",
                                 };
                                 setLocalParametersSchema(newSchema);
-                              } catch (error) {
-                                // Handle invalid JSON input
-                                console.error("Invalid JSON for default value");
-                              }
-                            }}
-                            placeholder="Enter as JSON"
-                          />
+                              }}
+                              placeholder="Select boolean value">
+                              <option value="true">true</option>
+                              <option value="false">false</option>
+                            </Select>
+                          ) : (
+                            <Input
+                              value={schema.default !== undefined ? schema.default : ""}
+                              onChange={(e) => {
+                                try {
+                                  let defaultValue;
+                                  // Type validation based on schema type
+                                  switch (schema.type) {
+                                    case "number":
+                                      defaultValue = Number(e.target.value);
+                                      if (isNaN(defaultValue)) {
+                                        throw new Error("Invalid number");
+                                      }
+                                      break;
+                                    case "string":
+                                      defaultValue = e.target.value;
+                                      break;
+                                    default:
+                                      throw new Error("Invalid type");
+                                  }
+
+                                  const newSchema = { ...localParametersSchema };
+                                  newSchema[paramName] = {
+                                    ...schema,
+                                    default: defaultValue,
+                                  };
+                                  setLocalParametersSchema(newSchema);
+                                } catch (error) {
+                                  // Handle invalid input
+                                  toast({
+                                    title: "Invalid default value",
+                                    description: `Please enter a valid ${schema.type}`,
+                                    status: "error",
+                                    duration: 3000,
+                                  });
+                                }
+                              }}
+                              placeholder={`Enter ${schema.type} value`}
+                            />
+                          )}
                         </FormControl>
                         <IconButton
                           aria-label="Delete parameter"
