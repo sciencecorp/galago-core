@@ -49,7 +49,7 @@ function ParamInput({
           value={value ?? paramInfo.default ?? ""}
           onChange={(_stringValue, numberValue) => {
             // Ensure we pass a number, not a string
-            setValue(typeof numberValue === 'string' ? parseFloat(numberValue) : numberValue);
+            setValue(typeof numberValue === "string" ? parseFloat(numberValue) : numberValue);
           }}>
           <NumberInputField />
           <NumberInputStepper>

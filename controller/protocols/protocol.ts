@@ -46,7 +46,7 @@ export default class Protocol<
     const shape: { [key: string]: z.ZodTypeAny } = {};
 
     // Handle both JSON Schema format and simple format
-    const entries = jsonSchema.properties 
+    const entries = jsonSchema.properties
       ? Object.entries(jsonSchema.properties)
       : Object.entries(jsonSchema);
 
@@ -55,7 +55,7 @@ export default class Protocol<
       let zodType: z.ZodTypeAny;
 
       // If it's the simple format, prop is the type string
-      const type = typeof prop === 'string' ? prop : prop.type;
+      const type = typeof prop === "string" ? prop : prop.type;
 
       switch (type) {
         case "string":
