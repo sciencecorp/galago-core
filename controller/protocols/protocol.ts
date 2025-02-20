@@ -39,17 +39,25 @@ export default class Protocol<
   }
 
   private jsonToZodSchema(jsonSchema: any): z.ZodObject<any> {
-    if (!jsonSchema || !jsonSchema.properties) {
+    if (!jsonSchema) {
       return z.object({});
     }
 
     const shape: { [key: string]: z.ZodTypeAny } = {};
 
-    for (const [key, value] of Object.entries(jsonSchema.properties)) {
+    // Handle both JSON Schema format and simple format
+    const entries = jsonSchema.properties 
+      ? Object.entries(jsonSchema.properties)
+      : Object.entries(jsonSchema);
+
+    for (const [key, value] of entries) {
       const prop = value as any;
       let zodType: z.ZodTypeAny;
 
-      switch (prop.type) {
+      // If it's the simple format, prop is the type string
+      const type = typeof prop === 'string' ? prop : prop.type;
+
+      switch (type) {
         case "string":
           if (prop.enum) {
             zodType = z.enum(prop.enum as [string, ...string[]]);
@@ -67,17 +75,17 @@ export default class Protocol<
           zodType = z.boolean();
           break;
         case "array":
-          if (prop.items.type === "string") {
+          if (prop.items?.type === "string") {
             if (prop.items.enum) {
               zodType = z.array(z.enum(prop.items.enum as [string, ...string[]]));
             } else {
               zodType = z.array(z.string());
             }
-          } else if (prop.items.type === "number") {
+          } else if (prop.items?.type === "number") {
             zodType = z.array(z.number());
-          } else if (prop.items.type === "integer") {
+          } else if (prop.items?.type === "integer") {
             zodType = z.array(z.number().int());
-          } else if (prop.items.type === "boolean") {
+          } else if (prop.items?.type === "boolean") {
             zodType = z.array(z.boolean());
           } else {
             zodType = z.array(z.any());
@@ -87,11 +95,12 @@ export default class Protocol<
           zodType = z.any();
       }
 
-      if (!jsonSchema.required?.includes(key)) {
-        zodType = zodType.optional();
+      // Handle required fields
+      if (jsonSchema.required?.includes(key)) {
+        shape[key] = zodType;
+      } else {
+        shape[key] = zodType.optional();
       }
-
-      shape[key] = zodType;
     }
 
     return z.object(shape);

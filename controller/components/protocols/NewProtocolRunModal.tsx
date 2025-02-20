@@ -46,8 +46,11 @@ function ParamInput({
     case "number":
       return (
         <NumberInput
-          value={value || paramInfo.default}
-          onChange={(_stringValue, numberValue) => setValue(numberValue)}>
+          value={value ?? paramInfo.default ?? ""}
+          onChange={(_stringValue, numberValue) => {
+            // Ensure we pass a number, not a string
+            setValue(typeof numberValue === 'string' ? parseFloat(numberValue) : numberValue);
+          }}>
           <NumberInputField />
           <NumberInputStepper>
             <NumberIncrementStepper />
@@ -58,7 +61,7 @@ function ParamInput({
     case "enum":
       return (
         <Select
-          value={value || paramInfo.default}
+          value={value ?? paramInfo.default ?? ""}
           onChange={(e) => setValue(e.currentTarget.value)}>
           {paramInfo.options.map((value) => (
             <option key={value} value={value}>
@@ -71,14 +74,14 @@ function ParamInput({
       if (Array.isArray(paramInfo.default)) {
         return (
           <Input
-            value={value || paramInfo.default}
+            value={value ?? paramInfo.default ?? ""}
             onChange={(e) => setValue(e.currentTarget.value.split(",").map((s) => s.trim()))}
           />
         );
       } else {
         return (
           <Input
-            value={value || paramInfo.default}
+            value={value ?? paramInfo.default ?? ""}
             onChange={(e) => setValue(e.currentTarget.value)}
           />
         );
@@ -86,14 +89,14 @@ function ParamInput({
     case "boolean":
       return (
         <Checkbox
-          isChecked={value || paramInfo.default}
+          isChecked={value ?? paramInfo.default ?? false}
           onChange={(e) => setValue(e.currentTarget.checked)}
         />
       );
     case "Barcode":
       return (
         <Input
-          value={value || paramInfo.default}
+          value={value ?? paramInfo.default ?? ""}
           onChange={(e) => setValue(e.currentTarget.value)}
         />
       );
@@ -104,7 +107,7 @@ function ParamInput({
         <>
           <Text>Unknown param type: {paramInfo.type}</Text>
           <Input
-            value={value || paramInfo.default}
+            value={value ?? paramInfo.default ?? ""}
             onChange={(e) => setValue(e.currentTarget.value)}
           />
         </>
