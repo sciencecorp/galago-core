@@ -134,26 +134,26 @@ export default class Protocol<
 
   private async resolveVariables(params: Record<string, any>): Promise<Record<string, any>> {
     const resolvedParams: Record<string, any> = {};
-    
+
     for (const [key, value] of Object.entries(params)) {
-      if (typeof value === 'string' && value.startsWith('$')) {
+      if (typeof value === "string" && value.startsWith("$")) {
         const variableName = value.slice(1); // Remove $ prefix
         try {
           const response = await axios.get(`${API_BASE_URL}/variables/${variableName}`);
           const variable = response.data;
-          
+
           // Convert value based on type
           switch (variable.type) {
-            case 'number':
+            case "number":
               resolvedParams[key] = parseFloat(variable.value);
               break;
-            case 'boolean':
-              resolvedParams[key] = variable.value.toLowerCase() === 'true';
+            case "boolean":
+              resolvedParams[key] = variable.value.toLowerCase() === "true";
               break;
-            case 'array':
+            case "array":
               resolvedParams[key] = JSON.parse(variable.value);
               break;
-            case 'object':
+            case "object":
               resolvedParams[key] = JSON.parse(variable.value);
               break;
             default:
@@ -167,14 +167,14 @@ export default class Protocol<
         resolvedParams[key] = value;
       }
     }
-    
+
     return resolvedParams;
   }
 
   async generate(runRequest: RunRequest): Promise<ToolCommandInfo[] | false> {
     // Resolve any variables in the parameters
     const resolvedParams = await this.resolveVariables(runRequest.params);
-    
+
     const parsedParams = this.maybeParseParams(resolvedParams);
     if (!parsedParams) {
       return false;

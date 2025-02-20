@@ -50,7 +50,7 @@ function ParamInput({
   setValue: (value: any) => void;
 }) {
   const { data: variables } = trpc.variable.getAll.useQuery();
-  const filteredVariables = variables?.filter(v => v.type === paramInfo.type);
+  const filteredVariables = variables?.filter((v) => v.type === paramInfo.type);
 
   const renderInput = () => {
     switch (paramInfo.type) {
@@ -131,9 +131,9 @@ function ParamInput({
       {renderInput()}
       <Popover placement="right">
         <PopoverTrigger>
-          <IconButton 
-            aria-label="Select variable" 
-            icon={<ChevronDownIcon />} 
+          <IconButton
+            aria-label="Select variable"
+            icon={<ChevronDownIcon />}
             size="sm"
             isDisabled={!filteredVariables?.length}
           />
@@ -147,8 +147,7 @@ function ParamInput({
                   size="sm"
                   variant="ghost"
                   justifyContent="start"
-                  onClick={() => setValue(`$${variable.name}`)}
-                >
+                  onClick={() => setValue(`$${variable.name}`)}>
                   {variable.name}
                 </Button>
               ))}
