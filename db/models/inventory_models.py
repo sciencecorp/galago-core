@@ -41,7 +41,6 @@ class Workcell(Base, TimestampMixin):
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
 
-
 class Tool(Base, TimestampMixin):
     __tablename__ = "tools"
     id = Column(Integer, primary_key=True)
@@ -121,6 +120,7 @@ class Well(Base, TimestampMixin):
     reagents = relationship(
         "Reagent", back_populates="well"
     )  # type: List["Reagent"]  # type: ignore
+
 
 class Reagent(Base, TimestampMixin):
     __tablename__ = "reagents"
@@ -292,7 +292,7 @@ class Protocol(Base, TimestampMixin):
     commands_template = Column(JSON, nullable=False)  # Template for generating commands
     version = Column(Integer, nullable=False, default=1)
     is_active = Column(Boolean, nullable=False, default=True)
-    
+
     workcell = relationship("Workcell")  # type: Optional["Workcell"]  # type: ignore
 
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)

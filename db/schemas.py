@@ -343,7 +343,10 @@ class Protocol(ProtocolBase):
     created_at: t.Optional[datetime.datetime] = None
     updated_at: t.Optional[datetime.datetime] = None
 
-    model_config = ConfigDict(from_attributes=True, json_encoders={datetime.datetime: lambda dt: dt.isoformat()})
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_encoders={datetime.datetime: lambda dt: dt.isoformat()},
+    )
 
 
 class AppSettingsCreate(BaseModel):

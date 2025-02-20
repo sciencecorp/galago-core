@@ -1030,6 +1030,7 @@ class ProtocolCreate(BaseModel):
     version: Optional[int] = 1
     is_active: Optional[bool] = True
 
+
 class ProtocolUpdate(BaseModel):
     name: Optional[str] = None
     category: Optional[str] = None
@@ -1040,18 +1041,19 @@ class ProtocolUpdate(BaseModel):
     version: Optional[int] = None
     is_active: Optional[bool] = None
 
+
 @app.post("/protocols", response_model=schemas.Protocol)
 async def create_protocol(protocol: ProtocolCreate, db: Session = Depends(get_db)):
     try:
         logging.info(f"Creating protocol with data: {protocol.dict()}")
-        
+
         # Check if workcell exists
         workcell = db.query(models.Workcell).get(protocol.workcell_id)
         if not workcell:
             logging.error(f"Workcell with ID {protocol.workcell_id} not found")
             raise HTTPException(
                 status_code=400,
-                detail=f"Workcell with ID {protocol.workcell_id} not found"
+                detail=f"Workcell with ID {protocol.workcell_id} not found",
             )
 
         # Create new protocol with validated data
@@ -1064,71 +1066,66 @@ async def create_protocol(protocol: ProtocolCreate, db: Session = Depends(get_db
             parameters_schema=protocol.parameters_schema or {},
             commands_template=protocol.commands_template or [],
             version=protocol.version or 1,
-            is_active=protocol.is_active if protocol.is_active is not None else True
+            is_active=protocol.is_active if protocol.is_active is not None else True,
         )
-        
+
         try:
             db.add(db_protocol)
             db.flush()  # Flush to get the ID without committing
             logging.info(f"Protocol object created with ID: {db_protocol.id}")
-            
-            # Verify the protocol can be converted to dict 
+
+            # Verify the protocol can be converted to dict
             # (catches serialization issues)
             protocol_dict = db_protocol
             logging.info(f"Protocol successfully serialized: {protocol_dict}")
-            
+
             db.commit()
             db.refresh(db_protocol)
             logging.info(f"Successfully created protocol: {db_protocol.id}")
             return db_protocol
-            
+
         except Exception as e:
             db.rollback()
             logging.error(f"Database error while creating protocol: {str(e)}")
             logging.error(f"Full error details: {repr(e)}")
-            raise HTTPException(
-                status_code=500,
-                detail=f"Database error: {str(e)}"
-            )
-            
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
     except HTTPException:
         raise
     except Exception as e:
         logging.error(f"Unexpected error while creating protocol: {str(e)}")
         logging.error(f"Full error details: {repr(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Unexpected error: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
 
 @app.put("/protocols/{id}", response_model=schemas.Protocol)
 async def update_protocol(
-    id: int,
-    protocol: ProtocolUpdate,
-    db: Session = Depends(get_db)
+    id: int, protocol: ProtocolUpdate, db: Session = Depends(get_db)
 ):
     db_protocol = db.query(Protocol).get(id)
     if not db_protocol:
         raise HTTPException(status_code=404, detail="Protocol not found")
-    
+
     update_data = protocol.dict(exclude_unset=True)
     for key, value in update_data.items():
         setattr(db_protocol, key, value)
-    
+
     db.commit()
     db.refresh(db_protocol)
     logging.info(f"Successfully updated protocol: {db_protocol.id}")
     return db_protocol
+
 
 @app.delete("/protocols/{id}")
 async def delete_protocol(id: int, db: Session = Depends(get_db)):
     db_protocol = db.query(Protocol).get(id)
     if not db_protocol:
         raise HTTPException(status_code=404, detail="Protocol not found")
-    
+
     db.delete(db_protocol)
     db.commit()
     return {"success": True}
+
 
 @app.get("/protocols/{id}", response_model=schemas.Protocol)
 async def get_protocol(id: int, db: Session = Depends(get_db)):
@@ -1137,29 +1134,33 @@ async def get_protocol(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Protocol not found")
     return db_protocol
 
+
 @app.get("/protocols", response_model=List[schemas.Protocol])
 async def get_protocols(
     workcell_id: Optional[int] = None,
     workcell_name: Optional[str] = None,
     is_active: Optional[bool] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     query = db.query(Protocol)
-    
+
     if workcell_id is not None:
         query = query.filter(Protocol.workcell_id == workcell_id)
     elif workcell_name is not None:
         # Get workcell by name and then filter by its ID
-        workcell = db.query(models.Workcell). \
-            filter(models.Workcell.name == workcell_name).first()
+        workcell = (
+            db.query(models.Workcell)
+            .filter(models.Workcell.name == workcell_name)
+            .first()
+        )
         if workcell:
             query = query.filter(Protocol.workcell_id == workcell.id)
         else:
             # If workcell not found, return empty list
             return []
-    
+
     if is_active is not None:
         query = query.filter(models.Protocol.is_active == is_active)
-    
+
     protocols = query.all()
     return [protocol for protocol in protocols]
