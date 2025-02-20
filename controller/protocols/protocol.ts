@@ -132,18 +132,67 @@ export default class Protocol<
     return obj;
   }
 
-  generate(runRequest: RunRequest): ToolCommandInfo[] | false {
-    const parsedParams = this.maybeParseParams(runRequest.params);
+  private async resolveVariables(params: Record<string, any>): Promise<Record<string, any>> {
+    const resolvedParams: Record<string, any> = {};
+    
+    for (const [key, value] of Object.entries(params)) {
+      if (typeof value === 'string' && value.startsWith('$')) {
+        const variableName = value.slice(1); // Remove $ prefix
+        try {
+          const response = await axios.get(`${API_BASE_URL}/variables/${variableName}`);
+          const variable = response.data;
+          
+          // Convert value based on type
+          switch (variable.type) {
+            case 'number':
+              resolvedParams[key] = parseFloat(variable.value);
+              break;
+            case 'boolean':
+              resolvedParams[key] = variable.value.toLowerCase() === 'true';
+              break;
+            case 'array':
+              resolvedParams[key] = JSON.parse(variable.value);
+              break;
+            case 'object':
+              resolvedParams[key] = JSON.parse(variable.value);
+              break;
+            default:
+              resolvedParams[key] = variable.value;
+          }
+        } catch (error) {
+          console.error(`Failed to resolve variable ${variableName}:`, error);
+          resolvedParams[key] = value; // Keep original value if resolution fails
+        }
+      } else {
+        resolvedParams[key] = value;
+      }
+    }
+    
+    return resolvedParams;
+  }
+
+  async generate(runRequest: RunRequest): Promise<ToolCommandInfo[] | false> {
+    // Resolve any variables in the parameters
+    const resolvedParams = await this.resolveVariables(runRequest.params);
+    
+    const parsedParams = this.maybeParseParams(resolvedParams);
     if (!parsedParams) {
       return false;
     }
     return this._generateCommands(parsedParams);
   }
 
-  validationErrors(params: Record<string, any>): ZodError | undefined {
-    const result = this.paramSchema.safeParse(params);
-    if (!result.success) {
-      return result.error;
+  async validationErrors(params: Record<string, any>): Promise<ZodError | undefined> {
+    try {
+      // Resolve variables before validation
+      const resolvedParams = await this.resolveVariables(params);
+      this.paramSchema.parse(resolvedParams);
+      return undefined;
+    } catch (e) {
+      if (e instanceof ZodError) {
+        return e;
+      }
+      throw e;
     }
   }
 

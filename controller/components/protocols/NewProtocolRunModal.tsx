@@ -27,11 +27,18 @@ import {
   useToast,
   VStack,
   Box,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverBody,
+  HStack,
+  IconButton,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { z } from "zod";
 import { capitalizeFirst } from "@/utils/parser";
+import { ChevronDownIcon } from "@chakra-ui/icons";
 
 function ParamInput({
   paramInfo,
@@ -42,77 +49,115 @@ function ParamInput({
   value: any;
   setValue: (value: any) => void;
 }) {
-  switch (paramInfo.type) {
-    case "number":
-      return (
-        <NumberInput
-          value={value ?? paramInfo.default ?? ""}
-          onChange={(_stringValue, numberValue) => {
-            // Ensure we pass a number, not a string
-            setValue(typeof numberValue === "string" ? parseFloat(numberValue) : numberValue);
-          }}>
-          <NumberInputField />
-          <NumberInputStepper>
-            <NumberIncrementStepper />
-            <NumberDecrementStepper />
-          </NumberInputStepper>
-        </NumberInput>
-      );
-    case "enum":
-      return (
-        <Select
-          value={value ?? paramInfo.default ?? ""}
-          onChange={(e) => setValue(e.currentTarget.value)}>
-          {paramInfo.options.map((value) => (
-            <option key={value} value={value}>
-              {value}
-            </option>
-          ))}
-        </Select>
-      );
-    case "string":
-      if (Array.isArray(paramInfo.default)) {
+  const { data: variables } = trpc.variable.getAll.useQuery();
+  const filteredVariables = variables?.filter(v => v.type === paramInfo.type);
+
+  const renderInput = () => {
+    switch (paramInfo.type) {
+      case "number":
         return (
-          <Input
+          <NumberInput
             value={value ?? paramInfo.default ?? ""}
-            onChange={(e) => setValue(e.currentTarget.value.split(",").map((s) => s.trim()))}
+            onChange={(_stringValue, numberValue) => {
+              // Ensure we pass a number, not a string
+              setValue(typeof numberValue === "string" ? parseFloat(numberValue) : numberValue);
+            }}>
+            <NumberInputField />
+            <NumberInputStepper>
+              <NumberIncrementStepper />
+              <NumberDecrementStepper />
+            </NumberInputStepper>
+          </NumberInput>
+        );
+      case "enum":
+        return (
+          <Select
+            value={value ?? paramInfo.default ?? ""}
+            onChange={(e) => setValue(e.currentTarget.value)}>
+            {paramInfo.options.map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </Select>
+        );
+      case "string":
+        if (Array.isArray(paramInfo.default)) {
+          return (
+            <Input
+              value={value ?? paramInfo.default ?? ""}
+              onChange={(e) => setValue(e.currentTarget.value.split(",").map((s) => s.trim()))}
+            />
+          );
+        } else {
+          return (
+            <Input
+              value={value ?? paramInfo.default ?? ""}
+              onChange={(e) => setValue(e.currentTarget.value)}
+            />
+          );
+        }
+      case "boolean":
+        return (
+          <Checkbox
+            isChecked={value ?? paramInfo.default ?? false}
+            onChange={(e) => setValue(e.currentTarget.checked)}
           />
         );
-      } else {
+      case "Barcode":
         return (
           <Input
             value={value ?? paramInfo.default ?? ""}
             onChange={(e) => setValue(e.currentTarget.value)}
           />
         );
-      }
-    case "boolean":
-      return (
-        <Checkbox
-          isChecked={value ?? paramInfo.default ?? false}
-          onChange={(e) => setValue(e.currentTarget.checked)}
-        />
-      );
-    case "Barcode":
-      return (
-        <Input
-          value={value ?? paramInfo.default ?? ""}
-          onChange={(e) => setValue(e.currentTarget.value)}
-        />
-      );
-    case "WellPlateWithWells":
-      return <div>Insert cool well plate picker here</div>;
-    default:
-      return (
-        <>
-          <Text>Unknown param type: {paramInfo.type}</Text>
-          <Input
-            value={value ?? paramInfo.default ?? ""}
-            onChange={(e) => setValue(e.currentTarget.value)}
+      case "WellPlateWithWells":
+        return <div>Insert cool well plate picker here</div>;
+      default:
+        return (
+          <>
+            <Text>Unknown param type: {paramInfo.type}</Text>
+            <Input
+              value={value ?? paramInfo.default ?? ""}
+              onChange={(e) => setValue(e.currentTarget.value)}
+            />
+          </>
+        );
+    }
+  };
+
+  return (
+    <HStack width="100%">
+      {renderInput()}
+      <Popover placement="right">
+        <PopoverTrigger>
+          <IconButton 
+            aria-label="Select variable" 
+            icon={<ChevronDownIcon />} 
+            size="sm"
+            isDisabled={!filteredVariables?.length}
           />
-        </>
-      );
-  }
+        </PopoverTrigger>
+        <PopoverContent>
+          <PopoverBody>
+            <VStack align="stretch">
+              {filteredVariables?.map((variable) => (
+                <Button
+                  key={variable.id}
+                  size="sm"
+                  variant="ghost"
+                  justifyContent="start"
+                  onClick={() => setValue(`$${variable.name}`)}
+                >
+                  {variable.name}
+                </Button>
+              ))}
+            </VStack>
+          </PopoverBody>
+        </PopoverContent>
+      </Popover>
+    </HStack>
+  );
 }
 
 export default function NewProtocolRunModal({ id, onClose }: { id: string; onClose: () => void }) {
