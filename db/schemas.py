@@ -357,12 +357,38 @@ class AppSettings(TimestampMixin, AppSettingsCreate):
         from_attributes = True
 
 
+class ScriptFolderBase(BaseModel):
+    name: str
+    description: t.Optional[str] = None
+    parent_id: t.Optional[int] = None
+
+
+class ScriptFolderCreate(ScriptFolderBase):
+    pass
+
+
+class ScriptFolderUpdate(BaseModel):
+    name: t.Optional[str] = None
+    description: t.Optional[str] = None
+    parent_id: t.Optional[int] = None
+
+
+class ScriptFolder(ScriptFolderBase, TimestampMixin):
+    id: int
+    subfolders: t.List['ScriptFolder'] = []
+    scripts: t.List['Script'] = []
+
+    class Config:
+        from_attributes = True
+
+
 class ScriptCreate(BaseModel):
     name: str
     description: str
     content: t.Optional[str] = None
     language: t.Optional[str] = None
     is_blocking: bool = True
+    folder_id: t.Optional[int] = None
 
 
 class ScriptUpdate(BaseModel):
@@ -370,10 +396,12 @@ class ScriptUpdate(BaseModel):
     description: t.Optional[str] = None
     content: t.Optional[str] = None
     is_blocking: t.Optional[bool] = None
+    folder_id: t.Optional[int] = None
 
 
 class Script(ScriptCreate, TimestampMixin):
     id: int
+    folder: t.Optional[ScriptFolder] = None
 
     class Config:
         from_attributes = True
@@ -522,3 +550,6 @@ class RobotArmWaypoints(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+ScriptFolder.model_rebuild()  # This is needed for the recursive relationship

@@ -683,6 +683,44 @@ def update_setting(
         )
     return crud.settings.update(db, db_obj=settings, obj_in=setting_update)
 
+@app.get("/script-folders", response_model=list[schemas.ScriptFolder])
+def get_script_folders(db: Session = Depends(get_db)) -> t.Any:
+    return crud.script_folders.get_all(db)
+
+
+@app.get("/script-folders/{folder_id}", response_model=schemas.ScriptFolder)
+def get_script_folder(folder_id: int, db: Session = Depends(get_db)) -> t.Any:
+    folder = crud.script_folders.get(db, id=folder_id)
+    if folder is None:
+        raise HTTPException(status_code=404, detail="Script folder not found")
+    return folder
+
+
+@app.post("/script-folders", response_model=schemas.ScriptFolder)
+def create_script_folder(folder: schemas.ScriptFolderCreate, db: Session = Depends(get_db)) -> t.Any:
+    return crud.script_folders.create(db, obj_in=folder)
+
+
+@app.put("/script-folders/{folder_id}", response_model=schemas.ScriptFolder)
+def update_script_folder(
+    folder_id: int, folder_update: schemas.ScriptFolderUpdate, db: Session = Depends(get_db)
+) -> t.Any:
+    folder = crud.script_folders.get(db, id=folder_id)
+    if not folder:
+        raise HTTPException(status_code=404, detail="Script folder not found")
+    return crud.script_folders.update(db, db_obj=folder, obj_in=folder_update)
+
+
+@app.delete("/script-folders/{folder_id}", response_model=schemas.ScriptFolder)
+def delete_script_folder(folder_id: int, db: Session = Depends(get_db)) -> t.Any:
+    folder = crud.script_folders.get(db, id=folder_id)
+    if not folder:
+        raise HTTPException(status_code=404, detail="Script folder not found")
+    if folder.scripts or folder.subfolders:
+        raise HTTPException(status_code=400, detail="Cannot delete non-empty folder")
+    return crud.script_folders.remove(db, id=folder_id)
+
+
 
 @app.get("/scripts", response_model=list[schemas.Script])
 def get_scripts(db: Session = Depends(get_db)) -> t.Any:

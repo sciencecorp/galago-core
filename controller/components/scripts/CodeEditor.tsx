@@ -34,25 +34,32 @@ import { SiPython } from "react-icons/si";
 import { set } from "zod";
 import { RiAddFill, RiDeleteBinLine, RiEdit2Line } from "react-icons/ri";
 import { trpc } from "@/utils/trpc";
-import { Script } from "@/types/api";
+import { Script, ScriptFolder } from "@/types/api";
 import { NewScript } from "./NewScript";
 import { PageHeader } from "../ui/PageHeader";
 import { VscCode } from "react-icons/vsc";
 import { FaPlay } from "react-icons/fa";
 import { IoIosSave } from "react-icons/io";
-import { HamburgerIcon } from "@chakra-ui/icons";
-
 import { ConfirmationModal } from "../ui/ConfirmationModal";
+import { ScriptFolderTree } from "./ScriptFolderTree";
+import { TbFolderPlus } from "react-icons/tb";
 
 export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>(null);
+  const [activeFolder, setActiveFolder] = useState<ScriptFolder | null>(null);
+  const [openFolders, setOpenFolders] = useState<Set<number>>(new Set());
   const [searchQuery, setSearchQuery] = useState<string>("");
   const consoleBg = useColorModeValue("white", "#222324");
   const [scripts, setScripts] = useState<Script[]>([]);
+  const [folders, setFolders] = useState<ScriptFolder[]>([]);
   const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
+  const { data: fetchedFolders, refetch: refetchFolders } = trpc.script.getAllFolders.useQuery();
   const editScript = trpc.script.edit.useMutation();
   const deleteScript = trpc.script.delete.useMutation();
+  const addFolder = trpc.script.addFolder.useMutation();
+  const editFolder = trpc.script.editFolder.useMutation();
+  const deleteFolder = trpc.script.deleteFolder.useMutation();
   const codeTheme = useColorModeValue("vs-light", "vs-dark");
   const toast = useToast();
   const [scriptsEdited, setScriptsEdited] = useState<Script[]>([]);
@@ -80,6 +87,12 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   useEffect(() => {
     setCurrentContent(scripts.find((script) => script.name === activeTab)?.content || "");
   }, [activeTab, scripts]);
+
+  useEffect(() => {
+    if (fetchedFolders) {
+      setFolders(fetchedFolders);
+    }
+  }, [fetchedFolders]);
 
   const handleRunScript = async () => {
     setRunError(false);
@@ -233,31 +246,26 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     }
   }, [fetchedScript, searchQuery]);
 
-  const handleRename = async (oldName: string, newName: string) => {
+  const handleRename = async (script: Script, newName: string) => {
     // Remove .py from the new name if user added it
     const cleanNewName = newName.replace(/\.py$/, '');
     
-    if (!cleanNewName.trim() || oldName.replace(/\.py$/, '') === cleanNewName) {
+    if (!cleanNewName.trim() || script.name.replace(/\.py$/, '') === cleanNewName) {
       setEditingScriptName(null);
       return;
     }
 
     try {
-      const script = scripts.find(s => s.name === oldName);
-      if (!script) {
-        throw new Error("Script not found");
-      }
-      
       await editScript.mutateAsync({
         ...script,
         name: `${cleanNewName}.py`
       });
 
       // Update tabs if the renamed script was open
-      if (openTabs.includes(oldName)) {
-        setOpenTabs(openTabs.map(tab => tab === oldName ? `${cleanNewName}.py` : tab));
+      if (openTabs.includes(script.name)) {
+        setOpenTabs(openTabs.map(tab => tab === script.name ? `${cleanNewName}.py` : tab));
       }
-      if (activeTab === oldName) {
+      if (activeTab === script.name) {
         setActiveTab(`${cleanNewName}.py`);
       }
       refetch();
@@ -279,6 +287,88 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       });
     }
     setEditingScriptName(null);
+  };
+
+  const handleFolderCreate = async (name: string, parentId?: number) => {
+    try {
+      await addFolder.mutateAsync({
+        name,
+        parent_id: parentId,
+      });
+      await refetchFolders();
+      toast({
+        title: "Folder created successfully",
+        status: "success",
+        duration: 3000,
+      });
+    } catch (error) {
+      toast({
+        title: "Error creating folder",
+        description: String(error),
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleFolderRename = async (folder: ScriptFolder, newName: string) => {
+    try {
+      await editFolder.mutateAsync({
+        id: folder.id,
+        name: newName,
+      });
+      await refetchFolders();
+      toast({
+        title: "Folder renamed successfully",
+        status: "success",
+        duration: 3000,
+      });
+    } catch (error) {
+      toast({
+        title: "Error renaming folder",
+        description: String(error),
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleFolderDelete = async (folder: ScriptFolder) => {
+    try {
+      await deleteFolder.mutateAsync(folder.id);
+      await refetchFolders();
+      toast({
+        title: "Folder deleted successfully",
+        status: "success",
+        duration: 3000,
+      });
+    } catch (error) {
+      toast({
+        title: "Error deleting folder",
+        description: String(error),
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleScriptClick = (script: Script) => {
+    setActiveFolder(null);
+    handleScriptClicked(script.name);
+  };
+
+  const handleFolderClick = (folder: ScriptFolder) => {
+    setActiveTab(null);
+    setActiveFolder(folder);
+    setOpenFolders(prev => {
+      const next = new Set(prev);
+      if (next.has(folder.id)) {
+        next.delete(folder.id);
+      } else {
+        next.add(folder.id);
+      }
+      return next;
+    });
   };
 
   const Tabs = () => {
@@ -333,89 +423,24 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const Scripts = () => {
     return (
       <Box height="100%" display="flex" flexDirection="column" position="absolute" top={0} left={0} right={0} bottom={0}>
-        <VStack spacing={0.5} align="stretch" width="100%" overflowY="auto">
-          {scripts.map((script, index) => (
-            <Tooltip key={index} label={script.description} openDelay={1000}>
-              <Button
-                justifyContent="flex-start"
-                leftIcon={<SiPython color={activeTab === script.name ? "teal" : "gray"} />}
-                rightIcon={
-                  <Menu strategy="fixed">
-                    <MenuButton
-                      as={IconButton}
-                      aria-label="Options"
-                      icon={<HamburgerIcon />}
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                    <Portal>
-                      <MenuList
-                        minW="120px"
-                        w="auto">
-                        <MenuItem
-                          icon={<RiEdit2Line />}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingScriptName(script.name);
-                            setNewScriptName(script.name.replace(/\.py$/, ''));
-                          }}>
-                          Rename
-                        </MenuItem>
-                        <MenuItem
-                          icon={<RiDeleteBinLine />}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onOpen();
-                            setScriptToDelete(script);
-                          }}>
-                          Delete
-                        </MenuItem>
-                      </MenuList>
-                    </Portal>
-                  </Menu>
-                }
-                borderRadius={4}
-                pr={1}
-                key={index}
-                onClick={() => handleScriptClicked(script.name)}
-                width="100%"
-                bg={activeTab === script.name ? selectedBg : 'transparent'}
-                borderWidth={activeTab === script.name ? "1px" : "0"}
-                borderColor={activeTab === script.name ? selectedBorder : 'transparent'}
-                _hover={{
-                  bg: activeTab === script.name ? selectedBg : hoverBg
-                }}>
-                <HStack justify="space-between" width="100%">
-                  {editingScriptName === script.name ? (
-                    <Input
-                      size="sm"
-                      value={newScriptName}
-                      onChange={(e) => setNewScriptName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleRename(script.name, newScriptName);
-                        } else if (e.key === 'Escape') {
-                          setEditingScriptName(null);
-                        }
-                      }}
-                      onBlur={() => handleRename(script.name, newScriptName)}
-                      autoFocus
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  ) : (
-                    <Text 
-                      fontSize="14px" 
-                      fontWeight={activeTab === script.name ? "medium" : "normal"}
-                      color={activeTab === script.name ? activeTabFontColor : "inherit"}>
-                      {script.name.replace(/\.py$/, '')}
-                    </Text>
-                  )}
-                </HStack>
-              </Button>
-            </Tooltip>
-          ))}
+        <VStack spacing={0.5} align="stretch" width="100%" overflowY="auto" height="100%">
+          <ScriptFolderTree
+            folders={folders}
+            scripts={scripts}
+            activeScript={activeTab}
+            activeFolder={activeFolder}
+            onScriptClick={handleScriptClick}
+            onFolderClick={handleFolderClick}
+            onScriptRename={handleRename}
+            onScriptDelete={(script) => {
+              onOpen();
+              setScriptToDelete(script);
+            }}
+            onFolderCreate={handleFolderCreate}
+            onFolderRename={handleFolderRename}
+            onFolderDelete={handleFolderDelete}
+            openFolders={openFolders}
+          />
         </VStack>
       </Box>
     );
@@ -454,6 +479,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   };
 
   const handleScriptClicked = (script: string) => {
+    setActiveFolder(null);
     if (!openTabs.includes(script)) {
       setOpenTabs([...openTabs, script]);
     }
@@ -514,6 +540,18 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                   <NewScript />
+                  <Tooltip label="Create new folder" placement="top">
+                    <IconButton
+                      aria-label="New folder"
+                      icon={<Icon as={TbFolderPlus} />}
+                      colorScheme="teal"
+                      variant="ghost"
+                      onClick={() => {
+                        const name = prompt("Enter new folder name:");
+                        if (name) handleFolderCreate(name);
+                      }}
+                    />
+                  </Tooltip>
                 </HStack>
                 <Box width="100%" flex={1} overflowY="auto" position="relative">
                   <Scripts />
@@ -544,7 +582,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                         </Button>
                       </Tooltip>
                       <Tooltip label="Run script" openDelay={1000} hasArrow>
-                        <Button colorScheme="gray" onClick={handleRunScript}>
+                        <Button colorScheme="gray" onClick={handleRunScript} _hover={{ bg: "gray.100" }}>
                           <Icon as={FaPlay} boxSize={4} />
                         </Button>
                       </Tooltip>

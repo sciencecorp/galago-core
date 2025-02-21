@@ -226,6 +226,9 @@ settings = CRUDBase[
 scripts = CRUDBase[models.Script, schemas.ScriptCreate, schemas.ScriptUpdate](
     models.Script
 )
+script_folders = CRUDBase[models.ScriptFolder, schemas.ScriptFolderCreate, schemas.ScriptFolderUpdate](
+    models.ScriptFolder
+)
 robot_arm_location = CRUDBase[
     models.RobotArmLocation,
     schemas.RobotArmLocationCreate,

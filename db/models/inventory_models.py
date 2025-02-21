@@ -170,14 +170,30 @@ class Labware(Base, TimestampMixin):
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
 
+class ScriptFolder(Base, TimestampMixin):
+    __tablename__ = "script_folders"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    parent_id = Column(Integer, ForeignKey('script_folders.id'), nullable=True)
+    description = Column(String, nullable=True)
+    
+    # Relationships
+    parent = relationship("ScriptFolder", remote_side=[id], backref="subfolders")
+    scripts = relationship("Script", back_populates="folder")
+
+
 class Script(Base, TimestampMixin):
     __tablename__ = "scripts"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False)
     description = Column(String, nullable=False)
     content = Column(String, nullable=False)
     language = Column(String, nullable=False)
     is_blocking = Column(Boolean, nullable=False)
+    folder_id = Column(Integer, ForeignKey('script_folders.id'), nullable=True)
+    
+    # Relationships
+    folder = relationship("ScriptFolder", back_populates="scripts")
 
 
 class AppSettings(Base, TimestampMixin):
