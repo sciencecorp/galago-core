@@ -23,7 +23,7 @@ const protocolSchema = z.object({
   workcell_id: z.number(),
   description: z.string().optional(),
   icon: z.string().optional(),
-  parameters_schema: z.record(z.any()),
+  params: z.record(z.any()),
   commands_template: z.array(z.any()),
   version: z.number().optional(),
   is_active: z.boolean().optional(),
@@ -39,7 +39,7 @@ export const protocolRouter = router({
         category: protocol.category,
         workcell: protocol.workcell_id.toString(),
         commands: protocol.commands_template,
-        uiParams: protocol.parameters_schema,
+        uiParams: protocol.params,
       }));
 
       return dbProtocols;
@@ -85,7 +85,7 @@ export const protocolRouter = router({
         category: dbProtocol.category,
         workcell: dbProtocol.workcell_id.toString(),
         commands: dbProtocol.commands_template,
-        uiParams: dbProtocol.parameters_schema,
+        uiParams: dbProtocol.params,
         icon: dbProtocol.icon,
         description: dbProtocol.description,
       };
@@ -99,7 +99,7 @@ export const protocolRouter = router({
         ...input,
         version: input.version || 1,
         is_active: input.is_active ?? true,
-        parameters_schema: input.parameters_schema || {},
+        params: input.params || {},
         commands_template: input.commands_template || [],
       };
 

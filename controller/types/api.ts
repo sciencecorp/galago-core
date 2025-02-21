@@ -138,7 +138,7 @@ export interface Protocol {
   workcell?: string;
   description?: string;
   icon?: string;
-  parameters_schema: Record<string, ParameterSchema>;
+  params: Record<string, ParameterSchema>;
   commands_template: ToolCommand[];
   version?: number;
   is_active?: boolean;

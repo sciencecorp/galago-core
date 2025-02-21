@@ -313,7 +313,7 @@ class ProtocolBase(BaseModel):
     workcell_id: int
     description: t.Optional[str] = None
     icon: t.Optional[str] = None
-    parameters_schema: t.Dict[str, t.Any]
+    params: t.Dict[str, t.Any]
     commands_template: t.List[t.Dict[str, t.Any]]
     version: t.Optional[int] = 1
     is_active: t.Optional[bool] = True
@@ -332,7 +332,7 @@ class ProtocolUpdate(BaseModel):
     category: t.Optional[str] = None
     description: t.Optional[str] = None
     icon: t.Optional[str] = None
-    parameters_schema: t.Optional[t.Dict[str, t.Any]] = None
+    params: t.Optional[t.Dict[str, t.Any]] = None
     commands_template: t.Optional[t.List[t.Dict[str, t.Any]]] = None
     version: t.Optional[int] = None
     is_active: t.Optional[bool] = None

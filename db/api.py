@@ -1025,7 +1025,7 @@ class ProtocolCreate(BaseModel):
     workcell_id: int
     description: Optional[str] = None
     icon: Optional[str] = None
-    parameters_schema: Dict[str, Any]
+    params: Dict[str, Any]
     commands_template: List[Dict[str, Any]]
     version: Optional[int] = 1
     is_active: Optional[bool] = True
@@ -1036,7 +1036,7 @@ class ProtocolUpdate(BaseModel):
     category: Optional[str] = None
     description: Optional[str] = None
     icon: Optional[str] = None
-    parameters_schema: Optional[Dict[str, Any]] = None
+    params: Optional[Dict[str, Any]] = None
     commands_template: Optional[List[Dict[str, Any]]] = None
     version: Optional[int] = None
     is_active: Optional[bool] = None
@@ -1063,7 +1063,7 @@ async def create_protocol(protocol: ProtocolCreate, db: Session = Depends(get_db
             workcell_id=protocol.workcell_id,
             description=protocol.description,
             icon=protocol.icon,
-            parameters_schema=protocol.parameters_schema or {},
+            params=protocol.params or {},
             commands_template=protocol.commands_template or [],
             version=protocol.version or 1,
             is_active=protocol.is_active if protocol.is_active is not None else True,

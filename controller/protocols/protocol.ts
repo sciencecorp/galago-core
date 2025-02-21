@@ -34,7 +34,7 @@ export default class Protocol<
       this.icon = dbProtocol.icon;
       this.protocolId = dbProtocol.id;
       this.commandsTemplate = dbProtocol.commands_template;
-      this.paramSchema = this.jsonToZodSchema(dbProtocol.parameters_schema) as ParamSchema;
+      this.paramSchema = this.jsonToZodSchema(dbProtocol.params) as ParamSchema;
     }
   }
 
