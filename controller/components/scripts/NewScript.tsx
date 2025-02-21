@@ -15,7 +15,10 @@ import {
   FormControl,
   FormLabel,
   Select,
+  IconButton,
+  Tooltip,
 } from "@chakra-ui/react";
+import { FaFileCirclePlus } from "react-icons/fa6";
 import { trpc } from "@/utils/trpc";
 import { RiAddFill } from "react-icons/ri";
 import { ToolType } from "gen-interfaces/controller";
@@ -93,9 +96,17 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
 
   return (
     <>
-      <Button onClick={onOpen} colorScheme="teal" leftIcon={<RiAddFill />} isDisabled={isDisabled}>
-        New Script
-      </Button>
+      <Tooltip label="Create New Script" placement="top">
+        <IconButton
+          aria-label="New Script"
+          icon={<FaFileCirclePlus />}
+          colorScheme="teal"
+          variant="ghost"
+          size="md"
+          onClick={onOpen}
+          isDisabled={isDisabled}
+        />
+      </Tooltip>
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>

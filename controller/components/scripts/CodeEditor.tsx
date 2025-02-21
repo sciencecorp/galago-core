@@ -21,24 +21,30 @@ import {
   StatLabel,
   StatNumber,
   useDisclosure,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  IconButton,
+  Portal,
 } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import { CloseIcon } from "@chakra-ui/icons";
 import { SiPython } from "react-icons/si";
 import { set } from "zod";
-import { RiAddFill } from "react-icons/ri";
+import { RiAddFill, RiDeleteBinLine, RiEdit2Line } from "react-icons/ri";
 import { trpc } from "@/utils/trpc";
 import { Script } from "@/types/api";
-import { RiDeleteBinLine } from "react-icons/ri";
 import { NewScript } from "./NewScript";
 import { PageHeader } from "../ui/PageHeader";
-import { DeleteWithConfirmation } from "../ui/Delete";
 import { VscCode } from "react-icons/vsc";
-import { FiBook } from "react-icons/fi";
+import { FaPlay } from "react-icons/fa";
+import { IoIosSave } from "react-icons/io";
+import { HamburgerIcon } from "@chakra-ui/icons";
 
 import { ConfirmationModal } from "../ui/ConfirmationModal";
 
-export const ScriptsEditor: React.FC = (props) => {
+export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -65,6 +71,11 @@ export const ScriptsEditor: React.FC = (props) => {
   const bgColor = useColorModeValue("gray.50", "gray.700");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [scriptToDelete, setScriptToDelete] = useState<Script | null>(null);
+  const [editingScriptName, setEditingScriptName] = useState<string | null>(null);
+  const [newScriptName, setNewScriptName] = useState<string>("");
+  const selectedBg = useColorModeValue("teal.50", "teal.900");
+  const selectedBorder = useColorModeValue("teal.500", "teal.200");
+  const { isOpen: isNewScriptOpen, onOpen: onNewScriptOpen, onClose: onNewScriptClose } = useDisclosure();
 
   useEffect(() => {
     setCurrentContent(scripts.find((script) => script.name === activeTab)?.content || "");
@@ -222,6 +233,54 @@ export const ScriptsEditor: React.FC = (props) => {
     }
   }, [fetchedScript, searchQuery]);
 
+  const handleRename = async (oldName: string, newName: string) => {
+    // Remove .py from the new name if user added it
+    const cleanNewName = newName.replace(/\.py$/, '');
+    
+    if (!cleanNewName.trim() || oldName.replace(/\.py$/, '') === cleanNewName) {
+      setEditingScriptName(null);
+      return;
+    }
+
+    try {
+      const script = scripts.find(s => s.name === oldName);
+      if (!script) {
+        throw new Error("Script not found");
+      }
+      
+      await editScript.mutateAsync({
+        ...script,
+        name: `${cleanNewName}.py`
+      });
+
+      // Update tabs if the renamed script was open
+      if (openTabs.includes(oldName)) {
+        setOpenTabs(openTabs.map(tab => tab === oldName ? `${cleanNewName}.py` : tab));
+      }
+      if (activeTab === oldName) {
+        setActiveTab(`${cleanNewName}.py`);
+      }
+      refetch();
+      toast({
+        title: "Script renamed successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+        position: "top",
+      });
+    } catch (error) {
+      toast({
+        title: "Error renaming script",
+        description: `Please try again. ${error}`,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "top",
+      });
+    }
+    setEditingScriptName(null);
+  };
+
   const Tabs = () => {
     return (
       <HStack spacing={0} justifyContent="flex-start" overflowX="auto" py={1}>
@@ -273,28 +332,86 @@ export const ScriptsEditor: React.FC = (props) => {
 
   const Scripts = () => {
     return (
-      <Box height="100%" display="flex" flexDirection="column">
-        <VStack spacing={0.5} align="stretch" width="100%" flex="1" overflowY="auto">
+      <Box height="100%" display="flex" flexDirection="column" position="absolute" top={0} left={0} right={0} bottom={0}>
+        <VStack spacing={0.5} align="stretch" width="100%" overflowY="auto">
           {scripts.map((script, index) => (
-            <Tooltip label={script.description} key={index}>
+            <Tooltip key={index} label={script.description} openDelay={1000}>
               <Button
                 justifyContent="flex-start"
-                leftIcon={<SiPython />}
+                leftIcon={<SiPython color={activeTab === script.name ? "teal" : "gray"} />}
                 rightIcon={
-                  <RiDeleteBinLine
-                    onClick={() => {
-                      onOpen();
-                      setScriptToDelete(script);
-                    }}
-                  />
+                  <Menu strategy="fixed">
+                    <MenuButton
+                      as={IconButton}
+                      aria-label="Options"
+                      icon={<HamburgerIcon />}
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <Portal>
+                      <MenuList
+                        minW="120px"
+                        w="auto">
+                        <MenuItem
+                          icon={<RiEdit2Line />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingScriptName(script.name);
+                            setNewScriptName(script.name.replace(/\.py$/, ''));
+                          }}>
+                          Rename
+                        </MenuItem>
+                        <MenuItem
+                          icon={<RiDeleteBinLine />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpen();
+                            setScriptToDelete(script);
+                          }}>
+                          Delete
+                        </MenuItem>
+                      </MenuList>
+                    </Portal>
+                  </Menu>
                 }
                 borderRadius={0}
                 pr={1}
                 key={index}
                 onClick={() => handleScriptClicked(script.name)}
-                width="100%">
+                width="100%"
+                bg={activeTab === script.name ? selectedBg : 'transparent'}
+                borderY="1px"
+                borderColor={activeTab === script.name ? selectedBorder : 'transparent'}
+                _hover={{
+                  bg: activeTab === script.name ? selectedBg : hoverBg
+                }}>
                 <HStack justify="space-between" width="100%">
-                  <Text fontSize="14px">{script.name}</Text>
+                  {editingScriptName === script.name ? (
+                    <Input
+                      size="sm"
+                      value={newScriptName}
+                      onChange={(e) => setNewScriptName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleRename(script.name, newScriptName);
+                        } else if (e.key === 'Escape') {
+                          setEditingScriptName(null);
+                        }
+                      }}
+                      onBlur={() => handleRename(script.name, newScriptName)}
+                      autoFocus
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  ) : (
+                    <Text 
+                      fontSize="14px" 
+                      fontWeight={activeTab === script.name ? "medium" : "normal"}
+                      color={activeTab === script.name ? activeTabFontColor : "inherit"}>
+                      {script.name.replace(/\.py$/, '')}
+                    </Text>
+                  )}
                 </HStack>
               </Button>
             </Tooltip>
@@ -365,7 +482,6 @@ export const ScriptsEditor: React.FC = (props) => {
                 title="Scripts"
                 subTitle="Create and manage Python scripts"
                 titleIcon={<Icon as={VscCode} boxSize={8} color="teal.500" />}
-                mainButton={<NewScript />}
               />
 
               <Divider />
@@ -390,24 +506,28 @@ export const ScriptsEditor: React.FC = (props) => {
 
         <Card bg={headerBg} shadow="md">
           <CardBody>
-            <HStack width="100%" alignItems="flex-start" spacing={4}>
-              <VStack width="200px" minW="200px" alignItems="flex-start" spacing={4}>
-                <Input
-                  placeholder="Search scripts..."
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <Box width="100%" flex={1} overflowY="auto">
+            <HStack width="100%" alignItems="stretch" spacing={4} height="calc(100vh - 300px)" minH="500px">
+              <VStack width="200px" minW="200px" alignItems="flex-start" spacing={4} height="100%">
+                <HStack width="100%" spacing={2}>
+                  <Input
+                    placeholder="Search scripts..."
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <NewScript />
+                </HStack>
+                <Box width="100%" flex={1} overflowY="auto" position="relative">
                   <Scripts />
                 </Box>
               </VStack>
 
-              <VStack flex={1} spacing={4}>
+              <VStack flex={1} spacing={4} height="100%">
                 <Box
                   width="100%"
                   borderRadius="md"
                   overflow="hidden"
                   borderWidth="1px"
-                  borderColor={borderColor}>
+                  borderColor={borderColor}
+                  flex={1}>
                   <HStack
                     width="100%"
                     justify="space-between"
@@ -418,12 +538,16 @@ export const ScriptsEditor: React.FC = (props) => {
                       <Tabs />
                     </Box>
                     <HStack spacing={2} flexShrink={0}>
-                      <Button colorScheme="gray" onClick={handleSave}>
-                        Save
-                      </Button>
-                      <Button colorScheme="teal" onClick={handleRunScript}>
-                        Run
-                      </Button>
+                      <Tooltip label="Save script" openDelay={1000} hasArrow>
+                        <Button colorScheme="gray" onClick={handleSave}>
+                          <Icon as={IoIosSave} boxSize={6} />
+                        </Button>
+                      </Tooltip>
+                      <Tooltip label="Run script" openDelay={1000} hasArrow>
+                        <Button colorScheme="gray" onClick={handleRunScript}>
+                          <Icon as={FaPlay} boxSize={4} />
+                        </Button>
+                      </Tooltip>
                     </HStack>
                   </HStack>
                   <Box width="100%" overflow="hidden">
