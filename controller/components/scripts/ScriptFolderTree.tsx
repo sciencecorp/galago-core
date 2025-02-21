@@ -131,14 +131,6 @@ const FolderNode: React.FC<FolderNodeProps> = ({
           />
           <MenuList minW="auto">
             <MenuItem
-              icon={<RiFolderAddLine />}
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsCreatingSubfolder(true);
-              }}>
-              New Sub-folder
-            </MenuItem>
-            <MenuItem
               icon={<RiEdit2Line />}
               onClick={(e) => {
                 e.stopPropagation();
