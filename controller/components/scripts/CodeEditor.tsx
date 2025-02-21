@@ -375,13 +375,13 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                     </Portal>
                   </Menu>
                 }
-                borderRadius={0}
+                borderRadius={4}
                 pr={1}
                 key={index}
                 onClick={() => handleScriptClicked(script.name)}
                 width="100%"
                 bg={activeTab === script.name ? selectedBg : 'transparent'}
-                borderY="1px"
+                borderWidth={activeTab === script.name ? "1px" : "0"}
                 borderColor={activeTab === script.name ? selectedBorder : 'transparent'}
                 _hover={{
                   bg: activeTab === script.name ? selectedBg : hoverBg
