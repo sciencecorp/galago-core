@@ -358,7 +358,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     if (!protocol?.commands) return;
 
     const newCommands = protocol.commands.map((cmd: any) => ({
-      queueId: `${Date.now()}-${Math.random()}`,
+      queueId: cmd.queueId || `${Date.now()}-${Math.random()}`,
       commandInfo: {
         toolId: cmd.toolId,
         toolType: cmd.toolType,
@@ -370,14 +370,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
           image_url: cmd.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
         },
       },
-      status: "CREATED",
-      estimatedDuration: 0,
-      createdAt: new Date(),
-      startedAt: new Date(),
-      completedAt: undefined,
-      failedAt: undefined,
-      skippedAt: undefined,
-      runId: undefined,
     }));
 
     setCommands(newCommands);
