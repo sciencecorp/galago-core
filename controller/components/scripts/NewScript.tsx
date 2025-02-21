@@ -27,10 +27,12 @@ import { Script } from "@/types/api";
 
 interface NewScriptProps {
   isDisabled?: boolean;
+  activeFolderId?: number;
+  onScriptCreated?: () => void;
 }
 
 export const NewScript: React.FC<NewScriptProps> = (props) => {
-  const { isDisabled } = props;
+  const { isDisabled, activeFolderId, onScriptCreated } = props;
   const [scriptName, setScriptName] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(false);
@@ -63,11 +65,19 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
       return;
     }
     let name = `${scriptName}.py`;
-    const script = { name, description, content, language, is_blocking };
+    const script = { 
+      name, 
+      description, 
+      content, 
+      language, 
+      is_blocking,
+      folder_id: activeFolderId 
+    };
     setIsLoading(true);
     try {
       await addScript.mutateAsync(script);
       await refetch();
+      onScriptCreated?.();
       toast({
         title: `Script created successfully`,
         status: "success",

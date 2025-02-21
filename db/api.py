@@ -683,9 +683,10 @@ def update_setting(
         )
     return crud.settings.update(db, db_obj=settings, obj_in=setting_update)
 
-@app.get("/script-folders", response_model=list[schemas.ScriptFolder])
+@app.get("/script-folders", response_model=list[schemas.ScriptFolderResponse])
 def get_script_folders(db: Session = Depends(get_db)) -> t.Any:
-    return crud.script_folders.get_all(db)
+    # Only return root folders (where parent_id is null)
+    return [folder for folder in crud.script_folders.get_all(db) if folder.parent_id is None]
 
 
 @app.get("/script-folders/{folder_id}", response_model=schemas.ScriptFolder)
@@ -696,7 +697,7 @@ def get_script_folder(folder_id: int, db: Session = Depends(get_db)) -> t.Any:
     return folder
 
 
-@app.post("/script-folders", response_model=schemas.ScriptFolder)
+@app.post("/script-folders", response_model=schemas.ScriptFolderResponse)
 def create_script_folder(folder: schemas.ScriptFolderCreate, db: Session = Depends(get_db)) -> t.Any:
     return crud.script_folders.create(db, obj_in=folder)
 

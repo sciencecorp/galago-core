@@ -357,6 +357,37 @@ class AppSettings(TimestampMixin, AppSettingsCreate):
         from_attributes = True
 
 
+class ScriptBase(BaseModel):
+    name: str
+    description: t.Optional[str] = None
+    content: str = ""
+    language: str = "python"
+    is_blocking: bool = True
+    folder_id: t.Optional[int] = None
+
+
+class ScriptCreate(ScriptBase):
+    pass
+
+
+class ScriptUpdate(BaseModel):
+    name: t.Optional[str] = None
+    description: t.Optional[str] = None
+    content: t.Optional[str] = None
+    language: t.Optional[str] = None
+    is_blocking: t.Optional[bool] = None
+    folder_id: t.Optional[int] = None
+
+
+class Script(ScriptBase):
+    id: int
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+
+    class Config:
+        orm_mode = True
+
+
 class ScriptFolderBase(BaseModel):
     name: str
     description: t.Optional[str] = None
@@ -373,38 +404,27 @@ class ScriptFolderUpdate(BaseModel):
     parent_id: t.Optional[int] = None
 
 
-class ScriptFolder(ScriptFolderBase, TimestampMixin):
+class ScriptFolder(ScriptFolderBase):
     id: int
-    subfolders: t.List['ScriptFolder'] = []
-    scripts: t.List['Script'] = []
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    subfolders: list['ScriptFolder'] = []
+    scripts: list['Script'] = []
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 
-class ScriptCreate(BaseModel):
-    name: str
-    description: str
-    content: t.Optional[str] = None
-    language: t.Optional[str] = None
-    is_blocking: bool = True
-    folder_id: t.Optional[int] = None
-
-
-class ScriptUpdate(BaseModel):
-    name: t.Optional[str] = None
-    description: t.Optional[str] = None
-    content: t.Optional[str] = None
-    is_blocking: t.Optional[bool] = None
-    folder_id: t.Optional[int] = None
-
-
-class Script(ScriptCreate, TimestampMixin):
+# Break the circular reference by using a simplified script model for folders
+class ScriptFolderResponse(ScriptFolderBase):
     id: int
-    folder: t.Optional[ScriptFolder] = None
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    subfolders: list['ScriptFolderResponse'] = []
+    scripts: list['Script'] = []
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 
 # RobotArm Location Schemas

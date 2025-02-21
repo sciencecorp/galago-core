@@ -49,6 +49,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [activeFolder, setActiveFolder] = useState<ScriptFolder | null>(null);
   const [openFolders, setOpenFolders] = useState<Set<number>>(new Set());
+  const [activeOpenFolder, setActiveOpenFolder] = useState<ScriptFolder | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const consoleBg = useColorModeValue("white", "#222324");
   const [scripts, setScripts] = useState<Script[]>([]);
@@ -83,6 +84,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const selectedBg = useColorModeValue("teal.50", "teal.900");
   const selectedBorder = useColorModeValue("teal.500", "teal.200");
   const { isOpen: isNewScriptOpen, onOpen: onNewScriptOpen, onClose: onNewScriptClose } = useDisclosure();
+  const [folderCreating, setFolderCreating] = useState(false);
 
   useEffect(() => {
     setCurrentContent(scripts.find((script) => script.name === activeTab)?.content || "");
@@ -211,13 +213,6 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
         setOpenTabs(openTabs.filter((t) => t !== scriptToDelete.name));
       }
       refetch();
-      toast({
-        title: "Script deleted successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
     } catch (error) {
       toast({
         title: "Error deleting script",
@@ -269,13 +264,6 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
         setActiveTab(`${cleanNewName}.py`);
       }
       refetch();
-      toast({
-        title: "Script renamed successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
     } catch (error) {
       toast({
         title: "Error renaming script",
@@ -290,25 +278,13 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   };
 
   const handleFolderCreate = async (name: string, parentId?: number) => {
-    try {
+    console.log("Parent ID", parentId);
+    console.log("Active open folder asdasd", activeOpenFolder);
       await addFolder.mutateAsync({
         name,
         parent_id: parentId,
       });
       await refetchFolders();
-      toast({
-        title: "Folder created successfully",
-        status: "success",
-        duration: 3000,
-      });
-    } catch (error) {
-      toast({
-        title: "Error creating folder",
-        description: String(error),
-        status: "error",
-        duration: 3000,
-      });
-    }
   };
 
   const handleFolderRename = async (folder: ScriptFolder, newName: string) => {
@@ -318,11 +294,6 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
         name: newName,
       });
       await refetchFolders();
-      toast({
-        title: "Folder renamed successfully",
-        status: "success",
-        duration: 3000,
-      });
     } catch (error) {
       toast({
         title: "Error renaming folder",
@@ -337,11 +308,6 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     try {
       await deleteFolder.mutateAsync(folder.id);
       await refetchFolders();
-      toast({
-        title: "Folder deleted successfully",
-        status: "success",
-        duration: 3000,
-      });
     } catch (error) {
       toast({
         title: "Error deleting folder",
@@ -364,8 +330,10 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       const next = new Set(prev);
       if (next.has(folder.id)) {
         next.delete(folder.id);
+        setActiveOpenFolder(null);
       } else {
         next.add(folder.id);
+        setActiveOpenFolder(folder);
       }
       return next;
     });
@@ -429,6 +397,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
             scripts={scripts}
             activeScript={activeTab}
             activeFolder={activeFolder}
+            activeOpenFolder={activeOpenFolder}
             onScriptClick={handleScriptClick}
             onFolderClick={handleFolderClick}
             onScriptRename={handleRename}
@@ -436,10 +405,17 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
               onOpen();
               setScriptToDelete(script);
             }}
-            onFolderCreate={handleFolderCreate}
+            onFolderCreate={(name, parentId) => {
+
+              console.log("Active open folder", activeOpenFolder);
+              handleFolderCreate(name, activeOpenFolder?.id || parentId);
+              setFolderCreating(false);
+            }}
             onFolderRename={handleFolderRename}
             onFolderDelete={handleFolderDelete}
             openFolders={openFolders}
+            isCreatingRootFolder={folderCreating}
+            onCancelRootFolderCreation={() => setFolderCreating(false)}
           />
         </VStack>
       </Box>
@@ -484,6 +460,12 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       setOpenTabs([...openTabs, script]);
     }
     setActiveTab(script);
+  };
+
+  // Add a function to refresh scripts and folders
+  const refreshData = async () => {
+    await refetch();
+    await refetchFolders();
   };
 
   return (
@@ -539,7 +521,10 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                     placeholder="Search scripts..."
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
-                  <NewScript />
+                  <NewScript 
+                    activeFolderId={openFolders.size > 0 ? activeFolder?.id : undefined} 
+                    onScriptCreated={refreshData}
+                  />
                   <Tooltip label="Create new folder" placement="top">
                     <IconButton
                       aria-label="New folder"
@@ -547,8 +532,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                       colorScheme="teal"
                       variant="ghost"
                       onClick={() => {
-                        const name = prompt("Enter new folder name:");
-                        if (name) handleFolderCreate(name);
+                        setFolderCreating(true);
                       }}
                     />
                   </Tooltip>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -27,6 +27,7 @@ interface FolderTreeProps {
   scripts: Script[];
   activeScript: string | null;
   activeFolder?: ScriptFolder | null;
+  activeOpenFolder?: ScriptFolder | null;
   onScriptClick: (script: Script) => void;
   onFolderClick?: (folder: ScriptFolder) => void;
   onScriptRename: (script: Script, newName: string) => void;
@@ -35,6 +36,9 @@ interface FolderTreeProps {
   onFolderRename: (folder: ScriptFolder, newName: string) => void;
   onFolderDelete: (folder: ScriptFolder) => void;
   openFolders: Set<number>;
+  isCreatingRootFolder?: boolean;
+  onCancelRootFolderCreation?: () => void;
+  children?: React.ReactNode;
 }
 
 interface FolderNodeProps extends FolderTreeProps {
@@ -58,6 +62,7 @@ const FolderNode: React.FC<FolderNodeProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(folder.name);
+  const [isCreatingSubfolder, setIsCreatingSubfolder] = useState(false);
   const toast = useToast();
 
   const selectedBg = useColorModeValue("teal.50", "teal.900");
@@ -90,7 +95,7 @@ const FolderNode: React.FC<FolderNodeProps> = ({
       >
         <Icon 
           as={isOpen ? FaFolderOpen : FaFolder} 
-          color={isActive ? selectedColor : "teal.500"} 
+          color={isActive ? selectedColor :  "gray.500"} 
         />
         {isEditing ? (
           <Input
@@ -129,8 +134,7 @@ const FolderNode: React.FC<FolderNodeProps> = ({
               icon={<RiFolderAddLine />}
               onClick={(e) => {
                 e.stopPropagation();
-                const name = prompt("Enter new folder name:");
-                if (name) onFolderCreate(name, folder.id);
+                setIsCreatingSubfolder(true);
               }}>
               New Sub-folder
             </MenuItem>
@@ -161,6 +165,17 @@ const FolderNode: React.FC<FolderNodeProps> = ({
           </MenuList>
         </Menu>
       </HStack>
+      {isCreatingSubfolder && (
+        <Box ml={4} mb={1}>
+          <InlineFolderCreation
+            onSubmit={(name) => {
+              onFolderCreate(name, folder.id);
+              setIsCreatingSubfolder(false);
+            }}
+            onCancel={() => setIsCreatingSubfolder(false)}
+          />
+        </Box>
+      )}
       {isOpen && (
         <Box ml={4}>
           {folder.subfolders.map((subfolder) => (
@@ -297,6 +312,54 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
   );
 };
 
+interface InlineFolderCreationProps {
+  onSubmit: (name: string) => void;
+  onCancel: () => void;
+}
+
+const InlineFolderCreation: React.FC<InlineFolderCreationProps> = ({ onSubmit, onCancel }) => {
+  const [name, setName] = useState("");
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const hoverBg = useColorModeValue("gray.100", "gray.600");
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  const handleSubmit = () => {
+    if (name.trim()) {
+      onSubmit(name.trim());
+      setName("");
+    } else {
+      onCancel();
+    }
+  };
+
+  return (
+    <HStack
+      spacing={1}
+      px={2}
+      py={1}
+      borderRadius="md"
+      bg={hoverBg}
+    >
+      <Icon as={FaFolder} color="teal.500" />
+      <Input
+        ref={inputRef}
+        size="sm"
+        value={name}
+        placeholder="New folder name"
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') handleSubmit();
+          if (e.key === 'Escape') onCancel();
+        }}
+        onBlur={handleSubmit}
+      />
+    </HStack>
+  );
+};
+
 export const ScriptFolderTree: React.FC<FolderTreeProps> = ({
   folders,
   scripts,
@@ -310,9 +373,17 @@ export const ScriptFolderTree: React.FC<FolderTreeProps> = ({
   onFolderRename,
   onFolderDelete,
   openFolders,
+  isCreatingRootFolder,
+  onCancelRootFolderCreation,
 }) => {
   return (
     <VStack align="stretch" width="100%" spacing={1}>
+      {isCreatingRootFolder && (
+        <InlineFolderCreation
+          onSubmit={(name) => onFolderCreate(name)}
+          onCancel={() => onCancelRootFolderCreation?.()}
+        />
+      )}
       {folders.map((folder) => (
         <FolderNode
           key={folder.id}
