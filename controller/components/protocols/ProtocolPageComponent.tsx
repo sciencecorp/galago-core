@@ -1,4 +1,4 @@
-import { Protocol } from "@/types/api";
+import { NewProtocolForm } from "./NewProtocolForm";
 import {
   Box,
   Button,
@@ -26,8 +26,28 @@ import {
   Stat,
   StatLabel,
   StatNumber,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  IconButton,
+  Editable,
+  EditableInput,
+  EditablePreview,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverBody,
+  Text,
 } from "@chakra-ui/react";
-import { SearchIcon, ArrowUpDownIcon } from "@chakra-ui/icons";
+import { SearchIcon, ArrowUpDownIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -36,6 +56,8 @@ import { trpc } from "@/utils/trpc";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { PiPathBold } from "react-icons/pi";
 import { RiAddFill } from "react-icons/ri";
+import { EditableText } from "../ui/Form";
+
 type SortField = "name" | "category" | "workcell" | "number_of_commands";
 type SortOrder = "asc" | "desc";
 
@@ -46,6 +68,11 @@ export const ProtocolPageComponent: React.FC = () => {
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [runModalProtocolId, setRunModalProtocolId] = useState<string | null>(null);
+  const {
+    isOpen: isNewProtocolOpen,
+    onOpen: onNewProtocolOpen,
+    onClose: onNewProtocolClose,
+  } = useDisclosure();
 
   const headerBg = useColorModeValue("white", "gray.700");
   const containerBg = useColorModeValue("white", "gray.800");
@@ -56,13 +83,70 @@ export const ProtocolPageComponent: React.FC = () => {
 
   const router = useRouter();
   const toast = useToast();
-  const workcellName = "Cell Culture Workcell";
-  const { data: protocols, isLoading, isError } = trpc.protocol.allNames.useQuery({ workcellName });
+  const { data: workcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
+  const {
+    data: protocols,
+    isLoading,
+    isError,
+    refetch,
+  } = trpc.protocol.allNames.useQuery({ workcellName: workcellName || "" });
+  const { data: workcells } = trpc.workcell.getAll.useQuery();
+  const deleteMutation = trpc.protocol.delete.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Protocol deleted",
+        description: "The protocol has been successfully deleted",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+      refetch(); // Refresh the protocols list
+    },
+    onError: (error) => {
+      toast({
+        title: "Error deleting protocol",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    },
+  });
+
+  const updateProtocol = trpc.protocol.update.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Protocol updated",
+        status: "success",
+        duration: 3000,
+      });
+      refetch();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error updating protocol",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+      });
+    },
+  });
 
   // Get unique workcells and categories for filters
   const uniqueWorkcells = useMemo(() => {
-    const workcells = new Set(protocols?.map((p) => p.workcell));
-    return Array.from(workcells);
+    if (!protocols || !workcells) return [];
+    // Get unique workcell IDs from protocols
+    const workcellIds = new Set(protocols.map((p) => p.workcell));
+    // Filter workcells to only include those that are actually in use
+    const usedWorkcells = workcells.filter((w) => workcellIds.has(w.id.toString()));
+    return usedWorkcells;
+  }, [protocols, workcells]);
+
+  // Get unique categories actually in use
+  const uniqueCategories = useMemo(() => {
+    if (!protocols) return [];
+    const categories = new Set(protocols.map((p) => p.category));
+    return Array.from(categories);
   }, [protocols]);
 
   const categories = ["development", "qc", "production"];
@@ -129,8 +213,53 @@ export const ProtocolPageComponent: React.FC = () => {
     setRunModalProtocolId(null);
   };
 
+  const handleDelete = async (protocolId: string) => {
+    // Check if it's a TypeScript protocol (non-numeric ID)
+    if (isNaN(parseInt(protocolId))) {
+      toast({
+        title: "Cannot Delete",
+        description:
+          "TypeScript-based protocols cannot be deleted as they are part of the codebase. Only database protocols can be deleted.",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    try {
+      await deleteMutation.mutateAsync({ id: parseInt(protocolId) });
+    } catch (error) {
+      // Error is handled in onError callback above
+    }
+  };
+
+  const getWorkcellName = (workcellId: string) => {
+    const workcell = workcells?.find((w) => w.id.toString() === workcellId);
+    return workcell?.name || workcellId;
+  };
+
+  const handleUpdateProtocol = (protocolId: string, updates: any) => {
+    // Skip update for TypeScript protocols
+    if (isNaN(parseInt(protocolId))) {
+      toast({
+        title: "Cannot Update",
+        description:
+          "TypeScript-based protocols cannot be modified as they are part of the codebase.",
+        status: "warning",
+        duration: 5000,
+      });
+      return;
+    }
+
+    updateProtocol.mutate({
+      id: parseInt(protocolId),
+      data: updates,
+    });
+  };
+
   return (
-    <VStack spacing={4} align="stretch">
+    <VStack spacing={4} align="stretch" minH="100vh" pb={8}>
       <Card bg={headerBg} shadow="md">
         <CardBody>
           <VStack spacing={4} align="stretch">
@@ -139,10 +268,7 @@ export const ProtocolPageComponent: React.FC = () => {
               subTitle="Manage and run your automation protocols"
               titleIcon={<Icon as={PiPathBold} boxSize={8} color="teal.500" />}
               mainButton={
-                <Button
-                  colorScheme="teal"
-                  leftIcon={<RiAddFill />}
-                  onClick={() => router.push("/protocols/new")}>
+                <Button colorScheme="teal" leftIcon={<RiAddFill />} onClick={onNewProtocolOpen}>
                   New Protocol
                 </Button>
               }
@@ -156,11 +282,11 @@ export const ProtocolPageComponent: React.FC = () => {
                 <StatNumber>{protocols?.length || 0}</StatNumber>
               </Stat>
               <Stat>
-                <StatLabel>Categories</StatLabel>
-                <StatNumber>{categories.length}</StatNumber>
+                <StatLabel>Categories in Use</StatLabel>
+                <StatNumber>{uniqueCategories.length}</StatNumber>
               </Stat>
               <Stat>
-                <StatLabel>Workcells</StatLabel>
+                <StatLabel>Workcells in Use</StatLabel>
                 <StatNumber>{uniqueWorkcells.length}</StatNumber>
               </Stat>
             </StatGroup>
@@ -200,8 +326,8 @@ export const ProtocolPageComponent: React.FC = () => {
                 maxW="200px"
                 bg={tableBgColor}>
                 {uniqueWorkcells.map((workcell) => (
-                  <option key={workcell} value={workcell}>
-                    {workcell}
+                  <option key={workcell.id} value={workcell.id.toString()}>
+                    {workcell.name}
                   </option>
                 ))}
               </Select>
@@ -210,10 +336,10 @@ export const ProtocolPageComponent: React.FC = () => {
         </CardBody>
       </Card>
 
-      <Card bg={headerBg} shadow="md">
+      <Card bg={headerBg} shadow="md" flex={1}>
         <CardBody>
-          <VStack align="stretch" spacing={4}>
-            <Box overflowX="auto">
+          <VStack align="stretch" spacing={4} height="100%">
+            <Box overflowX="auto" flex={1}>
               <Table
                 variant="simple"
                 sx={{
@@ -266,31 +392,120 @@ export const ProtocolPageComponent: React.FC = () => {
                   {sortedProtocols.map((protocol) => (
                     <Tr key={protocol.id} _hover={{ bg: hoverBgColor }}>
                       <Td>
-                        <Link href={`/protocols/${protocol.id}`}>{protocol.name}</Link>
+                        <EditableText
+                          defaultValue={protocol.name}
+                          preview={<Link href={`/protocols/${protocol.id}`}>{protocol.name}</Link>}
+                          onSubmit={(value) => {
+                            if (value && value !== protocol.name) {
+                              handleUpdateProtocol(protocol.id.toString(), { name: value });
+                            }
+                          }}
+                        />
                       </Td>
                       <Td>
-                        <Tag colorScheme={getCategoryColor(protocol.category)}>
-                          {protocol.category}
-                        </Tag>
+                        <Popover placement="bottom" closeOnBlur={true}>
+                          <PopoverTrigger>
+                            <Tag
+                              colorScheme={getCategoryColor(protocol.category)}
+                              cursor="pointer"
+                              _hover={{ opacity: 0.8 }}>
+                              {protocol.category}
+                            </Tag>
+                          </PopoverTrigger>
+                          <PopoverContent width="fit-content">
+                            <PopoverBody>
+                              <VStack align="stretch" spacing={2}>
+                                {categories.map((category) => (
+                                  <Button
+                                    key={category}
+                                    size="sm"
+                                    variant={category === protocol.category ? "solid" : "ghost"}
+                                    colorScheme={getCategoryColor(category)}
+                                    onClick={() => {
+                                      if (category !== protocol.category) {
+                                        handleUpdateProtocol(protocol.id.toString(), { category });
+                                      }
+                                    }}>
+                                    {category}
+                                  </Button>
+                                ))}
+                              </VStack>
+                            </PopoverBody>
+                          </PopoverContent>
+                        </Popover>
                       </Td>
-                      <Td>{protocol.workcell}</Td>
-                      <Td>{protocol.description}</Td>
-                      {/* <Td>{protocol.created_at}</Td> */}
+                      <Td>
+                        <Popover placement="bottom" closeOnBlur={true}>
+                          <PopoverTrigger>
+                            <Text cursor="pointer" _hover={{ color: "blue.500" }}>
+                              {getWorkcellName(protocol.workcell)}
+                            </Text>
+                          </PopoverTrigger>
+                          <PopoverContent width="fit-content">
+                            <PopoverBody>
+                              <VStack align="stretch" spacing={2}>
+                                {workcells?.map((workcell) => (
+                                  <Button
+                                    key={workcell.id}
+                                    size="sm"
+                                    variant={
+                                      workcell.id.toString() === protocol.workcell
+                                        ? "solid"
+                                        : "ghost"
+                                    }
+                                    onClick={() => {
+                                      if (workcell.id.toString() !== protocol.workcell) {
+                                        handleUpdateProtocol(protocol.id.toString(), {
+                                          workcell_id: workcell.id,
+                                        });
+                                      }
+                                    }}>
+                                    {workcell.name}
+                                  </Button>
+                                ))}
+                              </VStack>
+                            </PopoverBody>
+                          </PopoverContent>
+                        </Popover>
+                      </Td>
+                      <Td>
+                        <EditableText
+                          defaultValue={protocol.description || ""}
+                          preview={<Text>{protocol.description || "-"}</Text>}
+                          onSubmit={(value) => {
+                            if (value !== protocol.description) {
+                              handleUpdateProtocol(protocol.id.toString(), { description: value });
+                            }
+                          }}
+                        />
+                      </Td>
                       <Td>{protocol.number_of_commands}</Td>
                       <Td>
-                        <HStack spacing={2}>
-                          <Button
+                        <Menu>
+                          <MenuButton
+                            as={IconButton}
+                            icon={<HamburgerIcon />}
+                            variant="ghost"
                             size="sm"
-                            colorScheme="green"
-                            onClick={() => handleRunClick(protocol.id.toString())}>
-                            Run
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => router.push(`/protocols/${protocol.id}/edit`)}>
-                            Edit
-                          </Button>
-                        </HStack>
+                          />
+                          <MenuList>
+                            <MenuItem
+                              onClick={() => handleRunClick(protocol.id.toString())}
+                              color="green.500">
+                              Run
+                            </MenuItem>
+                            <MenuItem
+                              onClick={() => router.push(`/protocols/${protocol.id}/edit`)}
+                              color="blue.500">
+                              Edit
+                            </MenuItem>
+                            <MenuItem
+                              color="red.500"
+                              onClick={() => handleDelete(protocol.id.toString())}>
+                              Delete
+                            </MenuItem>
+                          </MenuList>
+                        </Menu>
                       </Td>
                     </Tr>
                   ))}
@@ -304,6 +519,17 @@ export const ProtocolPageComponent: React.FC = () => {
       {runModalProtocolId && (
         <NewProtocolRunModal id={runModalProtocolId} onClose={handleRunModalClose} />
       )}
+
+      <Modal isOpen={isNewProtocolOpen} onClose={onNewProtocolClose} size="xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Create New Protocol</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <NewProtocolForm />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </VStack>
   );
 };

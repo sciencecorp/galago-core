@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { ToolStatusCardsComponent } from "../../components/tools/ToolStatusCardsComponent";
+import { ToolStatusCardsComponent } from "../../components/tools/ToolsComponent";
 
 export default function Page() {
   useEffect(() => {

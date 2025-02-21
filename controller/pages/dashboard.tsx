@@ -1,7 +1,7 @@
 import CommandComponent from "@/components/protocols/CommandComponent";
 import { useState } from "react";
 import StatusTag from "@/components/tools/StatusTag";
-import { ToolStatusCardsComponent } from "@/components/tools/ToolStatusCardsComponent";
+import { ToolStatusCardsComponent } from "@/components/tools/ToolsComponent";
 import { trpc } from "@/utils/trpc";
 import {
   useDisclosure,

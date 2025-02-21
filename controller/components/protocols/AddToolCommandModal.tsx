@@ -13,22 +13,26 @@ import {
   VStack,
   Input,
   useToast,
+  NumberInput,
+  NumberInputField,
+  HStack,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
-import { z } from "zod";
-import { mockToolCommands } from "@/mocks/mockToolCommands";
+import { commandFields, Field, Command } from "@/pages/tools/[id]";
+import { AddIcon } from "@chakra-ui/icons";
 
 interface AddToolCommandModalProps {
   isOpen: boolean;
   onClose: () => void;
   protocolId: string;
   onCommandAdded: (newCommand: any) => void;
-}
-
-interface ToolCommand {
-  schema: z.ZodSchema;
-  // Add other properties if needed
+  protocolParams?: Record<string, any>;
 }
 
 export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
@@ -36,28 +40,46 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   onClose,
   protocolId,
   onCommandAdded,
+  protocolParams = {},
 }) => {
   const toast = useToast();
-  const [selectedTool, setSelectedTool] = useState("");
+  const [selectedToolType, setSelectedToolType] = useState("");
   const [selectedCommand, setSelectedCommand] = useState("");
   const [commandParams, setCommandParams] = useState<Record<string, any>>({});
 
   const toolsQuery = trpc.tool.getAll.useQuery();
-  const availableCommands = selectedTool
-    ? (mockToolCommands[selectedTool as keyof typeof mockToolCommands] as Record<
-        string,
-        ToolCommand
-      >) || {}
-    : {};
+  const toolBoxQuery = trpc.tool.getToolBox.useQuery();
+  const selectedToolData =
+    toolsQuery.data?.find((tool) => tool.type === selectedToolType) ||
+    (toolBoxQuery.data?.type === selectedToolType ? toolBoxQuery.data : undefined);
+
+  // Query for PF400 locations and sequences when needed
+  const waypointsQuery = trpc.robotArm.waypoints.getAll.useQuery(
+    { toolId: selectedToolData?.id || 0 },
+    { enabled: !!selectedToolData?.id && selectedToolType === "pf400" },
+  );
+
+  // Reset params when tool or command changes
+  useEffect(() => {
+    setCommandParams({});
+  }, [selectedToolType, selectedCommand]);
+
+  // Get available commands for the selected tool
+  const availableCommands: Command = selectedToolType ? commandFields[selectedToolType] || {} : {};
+
+  // Get fields for the selected command
+  const fields: Field[] =
+    selectedToolType && selectedCommand ? availableCommands[selectedCommand] || [] : [];
 
   const handleSubmit = () => {
-    const toolId = toolsQuery.data?.find((tool) => tool.type === selectedTool)?.id || "0";
-
     const newCommand = {
       queueId: Date.now(),
       commandInfo: {
-        toolId: toolId,
-        toolType: selectedTool,
+        toolId:
+          selectedToolType === "toolbox"
+            ? "tool_box"
+            : selectedToolData?.name?.toLocaleLowerCase().replaceAll(" ", "_"),
+        toolType: selectedToolType,
         command: selectedCommand,
         params: commandParams,
         label: "",
@@ -73,17 +95,143 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     };
     onCommandAdded(newCommand);
     onClose();
-    toast({
-      title: "Command added",
-      status: "success",
-      duration: 3000,
-    });
   };
 
-  let commandSchema;
-  if (availableCommands[selectedCommand as keyof typeof availableCommands]) {
-    commandSchema = availableCommands[selectedCommand as keyof typeof availableCommands]?.schema;
-  }
+  const renderField = (field: Field) => {
+    // Add parameter reference button
+    const ParameterReferenceButton = () => (
+      <Menu>
+        <MenuButton
+          as={IconButton}
+          aria-label="Insert parameter reference"
+          icon={<AddIcon />}
+          size="sm"
+          variant="ghost"
+        />
+        <MenuList>
+          {Object.entries(protocolParams).map(([paramName, schema]) => (
+            <MenuItem
+              key={paramName}
+              onClick={() => {
+                setCommandParams({
+                  ...commandParams,
+                  [field.name]: `\${${paramName}}`,
+                });
+              }}>
+              {paramName} ({schema.type})
+            </MenuItem>
+          ))}
+        </MenuList>
+      </Menu>
+    );
+
+    // Special handling for PF400 location and sequence fields
+    if (selectedToolType === "pf400") {
+      // For move command's name parameter (locations)
+      if (selectedCommand === "move" && field.name === "name") {
+        return (
+          <Select
+            value={commandParams[field.name] || ""}
+            onChange={(e) => setCommandParams({ ...commandParams, [field.name]: e.target.value })}>
+            <option value="">Select location</option>
+            {waypointsQuery.data?.locations.map((loc) => (
+              <option key={loc.id} value={loc.name}>
+                {loc.name}
+              </option>
+            ))}
+          </Select>
+        );
+      }
+
+      // For run_sequence command's sequence_name parameter
+      if (selectedCommand === "run_sequence" && field.name === "sequence_name") {
+        return (
+          <Select
+            value={commandParams[field.name] || ""}
+            onChange={(e) => setCommandParams({ ...commandParams, [field.name]: e.target.value })}>
+            <option value="">Select sequence</option>
+            {waypointsQuery.data?.sequences.map((seq) => (
+              <option key={seq.id} value={seq.name}>
+                {seq.name}
+              </option>
+            ))}
+          </Select>
+        );
+      }
+    }
+
+    // Default field rendering based on type
+    switch (field.type) {
+      case "number":
+        return (
+          <HStack>
+            <NumberInput
+              flex={1}
+              value={commandParams[field.name] || field.defaultValue || ""}
+              onChange={(value) =>
+                setCommandParams({ ...commandParams, [field.name]: parseFloat(value) })
+              }>
+              <NumberInputField />
+            </NumberInput>
+            <ParameterReferenceButton />
+          </HStack>
+        );
+      case "text_array":
+        return (
+          <HStack>
+            <Input
+              flex={1}
+              value={
+                commandParams[field.name]
+                  ? JSON.stringify(commandParams[field.name])
+                  : field.defaultValue
+                    ? JSON.stringify(field.defaultValue)
+                    : ""
+              }
+              onChange={(e) => {
+                try {
+                  const arrayValue = JSON.parse(e.target.value);
+                  setCommandParams({ ...commandParams, [field.name]: arrayValue });
+                } catch {
+                  // If parsing fails, store as string
+                  setCommandParams({ ...commandParams, [field.name]: e.target.value });
+                }
+              }}
+              placeholder="Enter as JSON array: ['item1', 'item2']"
+            />
+            <ParameterReferenceButton />
+          </HStack>
+        );
+      case "boolean":
+        return (
+          <HStack>
+            <Select
+              flex={1}
+              value={
+                commandParams[field.name]?.toString() || field.defaultValue?.toString() || "false"
+              }
+              onChange={(e) =>
+                setCommandParams({ ...commandParams, [field.name]: e.target.value === "true" })
+              }>
+              <option value="true">True</option>
+              <option value="false">False</option>
+            </Select>
+            <ParameterReferenceButton />
+          </HStack>
+        );
+      default:
+        return (
+          <HStack>
+            <Input
+              flex={1}
+              value={commandParams[field.name] || field.defaultValue || ""}
+              onChange={(e) => setCommandParams({ ...commandParams, [field.name]: e.target.value })}
+            />
+            <ParameterReferenceButton />
+          </HStack>
+        );
+    }
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -97,9 +245,9 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               <FormLabel>Tool</FormLabel>
               <Select
                 placeholder="Select tool"
-                value={selectedTool}
+                value={selectedToolType}
                 onChange={(e) => {
-                  setSelectedTool(e.target.value);
+                  setSelectedToolType(e.target.value);
                   setSelectedCommand("");
                   setCommandParams({});
                 }}>
@@ -108,10 +256,15 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                     {tool.type}
                   </option>
                 ))}
+                {toolBoxQuery.data && (
+                  <option key={toolBoxQuery.data.type} value={toolBoxQuery.data.type}>
+                    {toolBoxQuery.data.type}
+                  </option>
+                )}
               </Select>
             </FormControl>
 
-            {selectedTool && (
+            {selectedToolType && (
               <FormControl isRequired>
                 <FormLabel>Command</FormLabel>
                 <Select
@@ -130,17 +283,12 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               </FormControl>
             )}
 
-            {commandSchema && (
+            {fields.length > 0 && (
               <VStack spacing={4} align="stretch" width="100%">
-                {Object.entries(commandSchema || {}).map(([param, schema]) => (
-                  <FormControl key={param}>
-                    <FormLabel>{param}</FormLabel>
-                    <Input
-                      value={commandParams[param] || ""}
-                      onChange={(e) =>
-                        setCommandParams({ ...commandParams, [param]: e.target.value })
-                      }
-                    />
+                {fields.map((field: Field) => (
+                  <FormControl key={field.name}>
+                    <FormLabel>{field.name}</FormLabel>
+                    {renderField(field)}
                   </FormControl>
                 ))}
               </VStack>
@@ -156,7 +304,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
             colorScheme="blue"
             onClick={handleSubmit}
             isLoading={false}
-            isDisabled={!selectedTool || !selectedCommand}>
+            isDisabled={!selectedToolType || !selectedCommand}>
             Add Command
           </Button>
         </ModalFooter>

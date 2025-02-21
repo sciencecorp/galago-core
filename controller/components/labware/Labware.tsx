@@ -33,12 +33,11 @@ import { trpc } from "@/utils/trpc";
 import { Labware as LabwareResponse } from "@/types/api";
 import { LabwareModal } from "./LabwareModal";
 import { DeleteWithConfirmation } from "../ui/Delete";
-import { renderDatetime } from "../ui/Time";
 import { EditableText } from "../ui/Form";
 import { WellPlateIcon } from "../ui/Icons";
 import { SearchIcon } from "@chakra-ui/icons";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { BsGrid3X3 } from "react-icons/bs";
+import { HiOutlineRectangleStack } from "react-icons/hi2";
 
 export const Labware: React.FC = () => {
   const [labware, setLabware] = useState<LabwareResponse[]>([]);
@@ -126,7 +125,7 @@ export const Labware: React.FC = () => {
               <PageHeader
                 title="Labware"
                 subTitle="Manage and configure your labware definitions"
-                titleIcon={<Icon as={BsGrid3X3} boxSize={8} color="teal.500" />}
+                titleIcon={<Icon as={HiOutlineRectangleStack} boxSize={8} color="teal.500" />}
                 mainButton={<LabwareModal />}
               />
 

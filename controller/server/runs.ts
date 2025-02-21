@@ -4,6 +4,7 @@ import { ZodError } from "zod";
 import CommandQueue from "./command_queue";
 import { Protocols } from "./protocols";
 import Tool from "./tools";
+import Protocol from "@/protocols/protocol";
 
 // Right now, just an in-memory store wrapping a Map.
 export default class RunStore {
@@ -57,9 +58,19 @@ export default class RunStore {
     protocolId: string,
     params: Record<string, any>,
   ): Promise<Run> {
-    const protocol = Protocols.find(
+    // First try to find in TypeScript-defined protocols
+    let protocol = Protocols.find(
       (p) => p.protocolId === protocolId && p.workcell === workcellName,
     );
+
+    // If not found in TypeScript protocols, try to load from database
+    if (!protocol) {
+      try {
+        protocol = await Protocol.loadFromDatabase(protocolId);
+      } catch (error) {
+        throw new ProtocolNotFoundError(protocolId);
+      }
+    }
 
     if (!protocol) {
       throw new ProtocolNotFoundError(protocolId);
@@ -95,8 +106,6 @@ export default class RunStore {
       status: "CREATED",
       createdAt: new Date(),
     };
-
-    // await this.estimateCommandDurations(run);
 
     RunStore.global.set(runId, run);
 

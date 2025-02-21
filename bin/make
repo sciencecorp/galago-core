@@ -31,6 +31,7 @@ python_deps() {
   echo "Installing Python Dependencies"
   python -m pip install -r db/requirements.txt
   python -m pip install grpcio-tools
+  python -m pip install black
   echo "Python Dependencies Installed"
 } 
 
@@ -141,6 +142,22 @@ run(){
 proto() {
   clean_proto
   proto_ts
+}
+
+format_py() {
+  echo "Formatting Python files with Black"
+  black .
+}
+
+format_ts() {
+  echo "Formatting TypeScript/JavaScript files with Prettier"
+  (cd controller && npx prettier --write .)
+}
+
+format() {
+  format_py
+  format_ts
+  echo "All files formatted!"
 }
 
 for cmd in "$@"; do

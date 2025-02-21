@@ -16,6 +16,7 @@ from db.waypoint_handler import handle_waypoint_upload
 from pydantic import BaseModel
 from db.initializers import initialize_database
 from sqlalchemy import func
+from .models.inventory_models import Protocol
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -108,11 +109,11 @@ def get_inventory(workcell_name: str, db: Session = Depends(get_db)) -> t.Any:
     reagents = crud.reagent.get_all_by_workcell_id(db, workcell_id=workcell.id)
     return {
         "workcell": workcell,
-        "tools": tools,
-        "nests": nests,
-        "plates": plates,
-        "wells": wells,
-        "reagents": reagents,
+        "tools": [tool for tool in tools],
+        "nests": [nest for nest in nests],
+        "plates": [plate for plate in plates],
+        "wells": [well for well in wells],
+        "reagents": [reagent for reagent in reagents],
     }
 
 
@@ -124,7 +125,8 @@ def test():
 # CRUD API endpoints for Workcells
 @app.get("/workcells", response_model=list[schemas.Workcell])
 def get_workcells(db: Session = Depends(get_db)) -> t.Any:
-    return crud.workcell.get_all(db)
+    workcells = crud.workcell.get_all(db)
+    return [workcell for workcell in workcells]
 
 
 @app.get("/workcells/{workcell_id}", response_model=schemas.Workcell)
@@ -139,7 +141,8 @@ def get_workcell(workcell_id: int, db: Session = Depends(get_db)) -> t.Any:
 def create_workcell(
     workcell: schemas.WorkcellCreate, db: Session = Depends(get_db)
 ) -> t.Any:
-    return crud.workcell.create(db, obj_in=workcell)
+    db_workcell = crud.workcell.create(db, obj_in=workcell)
+    return db_workcell
 
 
 @app.put("/workcells/{workcell_id}", response_model=schemas.Workcell)
@@ -151,7 +154,8 @@ def update_workcell(
     workcell = crud.workcell.get(db, id=workcell_id)
     if workcell is None:
         raise HTTPException(status_code=404, detail="Workcell not found")
-    return crud.workcell.update(db, db_obj=workcell, obj_in=workcell_update)
+    updated_workcell = crud.workcell.update(db, db_obj=workcell, obj_in=workcell_update)
+    return updated_workcell
 
 
 @app.delete("/workcells/{workcell_id}", response_model=schemas.Workcell)
@@ -159,7 +163,8 @@ def delete_workcell(workcell_id: int, db: Session = Depends(get_db)) -> t.Any:
     workcell = crud.workcell.get(db, id=workcell_id)
     if workcell is None:
         raise HTTPException(status_code=404, detail="Workcell not found")
-    return crud.workcell.remove(db, id=workcell_id)
+    deleted_workcell = crud.workcell.remove(db, id=workcell_id)
+    return deleted_workcell
 
 
 @app.get("/tools", response_model=list[schemas.Tool])
@@ -1012,3 +1017,150 @@ async def upload_waypoints(
     file: UploadFile = File(...), tool_id: int = 1, db: Session = Depends(get_db)
 ):
     return await handle_waypoint_upload(file, tool_id, db)
+
+
+class ProtocolCreate(BaseModel):
+    name: str
+    category: str
+    workcell_id: int
+    description: Optional[str] = None
+    icon: Optional[str] = None
+    params: Dict[str, Any]
+    commands: List[Dict[str, Any]]
+    version: Optional[int] = 1
+    is_active: Optional[bool] = True
+
+
+class ProtocolUpdate(BaseModel):
+    name: Optional[str] = None
+    category: Optional[str] = None
+    description: Optional[str] = None
+    icon: Optional[str] = None
+    params: Optional[Dict[str, Any]] = None
+    commands: Optional[List[Dict[str, Any]]] = None
+    version: Optional[int] = None
+    is_active: Optional[bool] = None
+
+
+@app.post("/protocols", response_model=schemas.Protocol)
+async def create_protocol(protocol: ProtocolCreate, db: Session = Depends(get_db)):
+    try:
+        logging.info(f"Creating protocol with data: {protocol.dict()}")
+
+        # Check if workcell exists
+        workcell = db.query(models.Workcell).get(protocol.workcell_id)
+        if not workcell:
+            logging.error(f"Workcell with ID {protocol.workcell_id} not found")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Workcell with ID {protocol.workcell_id} not found",
+            )
+
+        # Create new protocol with validated data
+        db_protocol = Protocol(
+            name=protocol.name,
+            category=protocol.category,
+            workcell_id=protocol.workcell_id,
+            description=protocol.description,
+            icon=protocol.icon,
+            params=protocol.params or {},
+            commands=protocol.commands or [],
+            version=protocol.version or 1,
+            is_active=protocol.is_active if protocol.is_active is not None else True,
+        )
+
+        try:
+            db.add(db_protocol)
+            db.flush()  # Flush to get the ID without committing
+            logging.info(f"Protocol object created with ID: {db_protocol.id}")
+
+            # Verify the protocol can be converted to dict
+            # (catches serialization issues)
+            protocol_dict = db_protocol
+            logging.info(f"Protocol successfully serialized: {protocol_dict}")
+
+            db.commit()
+            db.refresh(db_protocol)
+            logging.info(f"Successfully created protocol: {db_protocol.id}")
+            return db_protocol
+
+        except Exception as e:
+            db.rollback()
+            logging.error(f"Database error while creating protocol: {str(e)}")
+            logging.error(f"Full error details: {repr(e)}")
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Unexpected error while creating protocol: {str(e)}")
+        logging.error(f"Full error details: {repr(e)}")
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+
+@app.put("/protocols/{id}", response_model=schemas.Protocol)
+async def update_protocol(
+    id: int, protocol: ProtocolUpdate, db: Session = Depends(get_db)
+):
+    db_protocol = db.query(Protocol).get(id)
+    if not db_protocol:
+        raise HTTPException(status_code=404, detail="Protocol not found")
+
+    update_data = protocol.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_protocol, key, value)
+
+    db.commit()
+    db.refresh(db_protocol)
+    logging.info(f"Successfully updated protocol: {db_protocol.id}")
+    return db_protocol
+
+
+@app.delete("/protocols/{id}")
+async def delete_protocol(id: int, db: Session = Depends(get_db)):
+    db_protocol = db.query(Protocol).get(id)
+    if not db_protocol:
+        raise HTTPException(status_code=404, detail="Protocol not found")
+
+    db.delete(db_protocol)
+    db.commit()
+    return {"success": True}
+
+
+@app.get("/protocols/{id}", response_model=schemas.Protocol)
+async def get_protocol(id: int, db: Session = Depends(get_db)):
+    db_protocol = db.query(Protocol).get(id)
+    if not db_protocol:
+        raise HTTPException(status_code=404, detail="Protocol not found")
+    return db_protocol
+
+
+@app.get("/protocols", response_model=List[schemas.Protocol])
+async def get_protocols(
+    workcell_id: Optional[int] = None,
+    workcell_name: Optional[str] = None,
+    is_active: Optional[bool] = None,
+    db: Session = Depends(get_db),
+):
+    query = db.query(Protocol)
+
+    if workcell_id is not None:
+        query = query.filter(Protocol.workcell_id == workcell_id)
+    elif workcell_name is not None:
+        # Get workcell by name and then filter by its ID
+        workcell = (
+            db.query(models.Workcell)
+            .filter(models.Workcell.name == workcell_name)
+            .first()
+        )
+        if workcell:
+            query = query.filter(Protocol.workcell_id == workcell.id)
+        else:
+            # If workcell not found, return empty list
+            return []
+
+    if is_active is not None:
+        query = query.filter(models.Protocol.is_active == is_active)
+
+    protocols = query.all()
+    return [protocol for protocol in protocols]
