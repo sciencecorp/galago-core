@@ -207,9 +207,9 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                                 "accel_ramp": float(p.get("AccelerationRamp", 0.2)),
                                 "decel_ramp": float(p.get("DecelerationRamp", 0.2)),
                                 "inrange": int(p.get("InRange", 1)),
-                                "straight": 1
-                                if p.get("Straight", "").lower() == "true"
-                                else 0,
+                                "straight": (
+                                    1 if p.get("Straight", "").lower() == "true" else 0
+                                ),
                                 "tool_id": tool_id,
                             }
                         )

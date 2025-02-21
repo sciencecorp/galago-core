@@ -139,7 +139,7 @@ export interface Protocol {
   description?: string;
   icon?: string;
   params: Record<string, ParameterSchema>;
-  commands_template: ToolCommand[];
+  commands: ToolCommand[];
   version?: number;
   is_active?: boolean;
   created_at?: string;

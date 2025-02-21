@@ -289,7 +289,7 @@ class Protocol(Base, TimestampMixin):
     description = Column(String, nullable=True)
     icon = Column(String, nullable=True)
     params = Column(JSON, nullable=False)  # Zod schema for parameters
-    commands_template = Column(JSON, nullable=False)  # Template for generating commands
+    commands = Column(JSON, nullable=False)  # Template for generating commands
     version = Column(Integer, nullable=False, default=1)
     is_active = Column(Boolean, nullable=False, default=True)
 

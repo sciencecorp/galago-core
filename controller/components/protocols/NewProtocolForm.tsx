@@ -45,7 +45,7 @@ export const NewProtocolForm = () => {
     workcell_id: selectedWorkcell?.id || 1,
     description: "",
     params: {},
-    commands_template: [],
+    commands: [],
     version: 1,
     is_active: true,
   });
@@ -132,7 +132,7 @@ export const NewProtocolForm = () => {
       category: formData.category.trim(),
       description: formData.description?.trim() || "",
       params: formData.params || {},
-      commands_template: formData.commands_template || [],
+      commands: formData.commands || [],
       version: 1,
       is_active: true,
       workcell_id: Number(formData.workcell_id),

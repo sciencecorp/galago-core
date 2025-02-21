@@ -314,7 +314,7 @@ class ProtocolBase(BaseModel):
     description: t.Optional[str] = None
     icon: t.Optional[str] = None
     params: t.Dict[str, t.Any]
-    commands_template: t.List[t.Dict[str, t.Any]]
+    commands: t.List[t.Dict[str, t.Any]]
     version: t.Optional[int] = 1
     is_active: t.Optional[bool] = True
 
@@ -333,7 +333,7 @@ class ProtocolUpdate(BaseModel):
     description: t.Optional[str] = None
     icon: t.Optional[str] = None
     params: t.Optional[t.Dict[str, t.Any]] = None
-    commands_template: t.Optional[t.List[t.Dict[str, t.Any]]] = None
+    commands: t.Optional[t.List[t.Dict[str, t.Any]]] = None
     version: t.Optional[int] = None
     is_active: t.Optional[bool] = None
 

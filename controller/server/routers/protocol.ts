@@ -24,7 +24,7 @@ const protocolSchema = z.object({
   description: z.string().optional(),
   icon: z.string().optional(),
   params: z.record(z.any()),
-  commands_template: z.array(z.any()),
+  commands: z.array(z.any()),
   version: z.number().optional(),
   is_active: z.boolean().optional(),
 });
@@ -38,7 +38,7 @@ export const protocolRouter = router({
         id: protocol.id.toString(),
         category: protocol.category,
         workcell: protocol.workcell_id.toString(),
-        commands: protocol.commands_template,
+        commands: protocol.commands,
         uiParams: protocol.params,
       }));
 
@@ -62,7 +62,7 @@ export const protocolRouter = router({
           id: protocol.id.toString(),
           category: protocol.category,
           workcell: protocol.workcell_id.toString(),
-          number_of_commands: protocol.commands_template.length,
+          number_of_commands: protocol.commands.length,
           description: protocol.description,
           icon: protocol.icon,
         }));
@@ -84,7 +84,7 @@ export const protocolRouter = router({
         id: dbProtocol.id,
         category: dbProtocol.category,
         workcell: dbProtocol.workcell_id.toString(),
-        commands: dbProtocol.commands_template,
+        commands: dbProtocol.commands,
         uiParams: dbProtocol.params,
         icon: dbProtocol.icon,
         description: dbProtocol.description,
@@ -100,7 +100,7 @@ export const protocolRouter = router({
         version: input.version || 1,
         is_active: input.is_active ?? true,
         params: input.params || {},
-        commands_template: input.commands_template || [],
+        commands: input.commands || [],
       };
 
       const response = await axios.post(`${API_BASE_URL}/protocols`, protocolData);

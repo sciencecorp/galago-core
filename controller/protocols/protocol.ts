@@ -23,7 +23,7 @@ export default class Protocol<
   workcell: string = "";
   description?: string;
   icon?: any;
-  private commandsTemplate: any;
+  private commands: any;
 
   constructor(dbProtocol?: any) {
     if (dbProtocol) {
@@ -33,7 +33,7 @@ export default class Protocol<
       this.description = dbProtocol.description;
       this.icon = dbProtocol.icon;
       this.protocolId = dbProtocol.id;
-      this.commandsTemplate = dbProtocol.commands_template;
+      this.commands = dbProtocol.commands;
       this.paramSchema = this.jsonToZodSchema(dbProtocol.params) as ParamSchema;
     }
   }
@@ -107,11 +107,11 @@ export default class Protocol<
   }
 
   _generateCommands(params: z.infer<ParamSchema>): ToolCommandInfo[] {
-    if (!this.commandsTemplate) {
+    if (!this.commands) {
       return [];
     }
 
-    const commands = this.replaceParameterPlaceholders(this.commandsTemplate, params);
+    const commands = this.replaceParameterPlaceholders(this.commands, params);
     return commands;
   }
 

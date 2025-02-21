@@ -355,9 +355,9 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   };
 
   useEffect(() => {
-    if (!protocol?.commands_template) return;
+    if (!protocol?.commands) return;
 
-    const newCommands = protocol.commands_template.map((cmd: any) => ({
+    const newCommands = protocol.commands.map((cmd: any) => ({
       queueId: `${Date.now()}-${Math.random()}`,
       commandInfo: {
         toolId: cmd.toolId,
@@ -381,7 +381,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     }));
 
     setCommands(newCommands);
-  }, [protocol?.commands_template]);
+  }, [protocol?.commands]);
 
   useEffect(() => {
     if (protocol?.params) {
@@ -457,7 +457,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     if (!protocol) return;
 
     // Convert commands to the format expected by the API
-    const commandsTemplate = commands.map((cmd) => ({
+    const newCommands = commands.map((cmd) => ({
       toolId: cmd.commandInfo.toolId,
       toolType: cmd.commandInfo.toolType,
       command: cmd.commandInfo.command,
@@ -476,7 +476,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         name: protocol.name,
         description: protocol.description,
         params: localParams,
-        commands_template: commandsTemplate,
+        commands: newCommands,
         icon: protocol.icon || "",
       },
     });
@@ -564,136 +564,134 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
           {isEditing ? (
             <Box p={4} borderWidth="1px" borderRadius="lg" borderColor={borderColor} bg={bgColor}>
               <VStack align="stretch" spacing={4}>
-                {Object.entries(localParams || {}).map(
-                  ([paramName, schemaData], index) => {
-                    const schema = schemaData as ParameterSchema;
-                    return (
-                      <HStack key={index} spacing={4}>
-                        <FormControl flex={1}>
-                          <FormLabel>Parameter Name</FormLabel>
-                          <Input
-                            value={paramName}
-                            onChange={(e) => {
-                              // Create new schema preserving order
-                              const newSchema = Object.entries(localParams).reduce(
-                                (acc, [key, value]) => {
-                                  if (key === paramName) {
-                                    acc[e.target.value] = value;
-                                  } else {
-                                    acc[key] = value;
-                                  }
-                                  return acc;
-                                },
-                                {} as Record<string, ParameterSchema>,
-                              );
-                              setLocalParams(newSchema);
-                            }}
-                          />
-                        </FormControl>
-                        <FormControl flex={1}>
-                          <FormLabel>Type</FormLabel>
-                          <Select
-                            value={schema.type}
-                            onChange={(e) => {
-                              const newSchema = { ...localParams };
-                              newSchema[paramName] = {
-                                ...schema,
-                                type: e.target.value,
-                              };
-                              setLocalParams(newSchema);
-                            }}>
-                            <option value="string">String</option>
-                            <option value="number">Number</option>
-                            <option value="boolean">Boolean</option>
-                          </Select>
-                        </FormControl>
-                        <FormControl flex={2}>
-                          <FormLabel>Description</FormLabel>
-                          <Input
-                            value={schema.description || ""}
-                            onChange={(e) => {
-                              const newSchema = { ...localParams };
-                              newSchema[paramName] = {
-                                ...schema,
-                                description: e.target.value,
-                              };
-                              setLocalParams(newSchema);
-                            }}
-                          />
-                        </FormControl>
-                        <FormControl flex={1}>
-                          <FormLabel>Default Value</FormLabel>
-                          {schema.type === "boolean" ? (
-                            <Select
-                              value={String(schema.default) || ""}
-                              onChange={(e) => {
-                                const newSchema = { ...localParams };
-                                newSchema[paramName] = {
-                                  ...schema,
-                                  default: e.target.value === "true",
-                                };
-                                setLocalParams(newSchema);
-                              }}
-                              placeholder="Select boolean value">
-                              <option value="true">true</option>
-                              <option value="false">false</option>
-                            </Select>
-                          ) : (
-                            <Input
-                              value={schema.default !== undefined ? schema.default : ""}
-                              onChange={(e) => {
-                                try {
-                                  let defaultValue;
-                                  // Type validation based on schema type
-                                  switch (schema.type) {
-                                    case "number":
-                                      defaultValue = Number(e.target.value);
-                                      if (isNaN(defaultValue)) {
-                                        throw new Error("Invalid number");
-                                      }
-                                      break;
-                                    case "string":
-                                      defaultValue = e.target.value;
-                                      break;
-                                    default:
-                                      throw new Error("Invalid type");
-                                  }
-
-                                  const newSchema = { ...localParams };
-                                  newSchema[paramName] = {
-                                    ...schema,
-                                    default: defaultValue,
-                                  };
-                                  setLocalParams(newSchema);
-                                } catch (error) {
-                                  // Handle invalid input
-                                  toast({
-                                    title: "Invalid default value",
-                                    description: `Please enter a valid ${schema.type}`,
-                                    status: "error",
-                                    duration: 3000,
-                                  });
+                {Object.entries(localParams || {}).map(([paramName, schemaData], index) => {
+                  const schema = schemaData as ParameterSchema;
+                  return (
+                    <HStack key={index} spacing={4}>
+                      <FormControl flex={1}>
+                        <FormLabel>Parameter Name</FormLabel>
+                        <Input
+                          value={paramName}
+                          onChange={(e) => {
+                            // Create new schema preserving order
+                            const newSchema = Object.entries(localParams).reduce(
+                              (acc, [key, value]) => {
+                                if (key === paramName) {
+                                  acc[e.target.value] = value;
+                                } else {
+                                  acc[key] = value;
                                 }
-                              }}
-                              placeholder={`Enter ${schema.type} value`}
-                            />
-                          )}
-                        </FormControl>
-                        <IconButton
-                          aria-label="Delete parameter"
-                          icon={<DeleteIcon />}
-                          colorScheme="red"
-                          variant="ghost"
-                          onClick={() => {
-                            const newSchema = { ...localParams };
-                            delete newSchema[paramName];
+                                return acc;
+                              },
+                              {} as Record<string, ParameterSchema>,
+                            );
                             setLocalParams(newSchema);
                           }}
                         />
-                      </HStack>
-                    );
-                  },
-                )}
+                      </FormControl>
+                      <FormControl flex={1}>
+                        <FormLabel>Type</FormLabel>
+                        <Select
+                          value={schema.type}
+                          onChange={(e) => {
+                            const newSchema = { ...localParams };
+                            newSchema[paramName] = {
+                              ...schema,
+                              type: e.target.value,
+                            };
+                            setLocalParams(newSchema);
+                          }}>
+                          <option value="string">String</option>
+                          <option value="number">Number</option>
+                          <option value="boolean">Boolean</option>
+                        </Select>
+                      </FormControl>
+                      <FormControl flex={2}>
+                        <FormLabel>Description</FormLabel>
+                        <Input
+                          value={schema.description || ""}
+                          onChange={(e) => {
+                            const newSchema = { ...localParams };
+                            newSchema[paramName] = {
+                              ...schema,
+                              description: e.target.value,
+                            };
+                            setLocalParams(newSchema);
+                          }}
+                        />
+                      </FormControl>
+                      <FormControl flex={1}>
+                        <FormLabel>Default Value</FormLabel>
+                        {schema.type === "boolean" ? (
+                          <Select
+                            value={String(schema.default) || ""}
+                            onChange={(e) => {
+                              const newSchema = { ...localParams };
+                              newSchema[paramName] = {
+                                ...schema,
+                                default: e.target.value === "true",
+                              };
+                              setLocalParams(newSchema);
+                            }}
+                            placeholder="Select boolean value">
+                            <option value="true">true</option>
+                            <option value="false">false</option>
+                          </Select>
+                        ) : (
+                          <Input
+                            value={schema.default !== undefined ? schema.default : ""}
+                            onChange={(e) => {
+                              try {
+                                let defaultValue;
+                                // Type validation based on schema type
+                                switch (schema.type) {
+                                  case "number":
+                                    defaultValue = Number(e.target.value);
+                                    if (isNaN(defaultValue)) {
+                                      throw new Error("Invalid number");
+                                    }
+                                    break;
+                                  case "string":
+                                    defaultValue = e.target.value;
+                                    break;
+                                  default:
+                                    throw new Error("Invalid type");
+                                }
+
+                                const newSchema = { ...localParams };
+                                newSchema[paramName] = {
+                                  ...schema,
+                                  default: defaultValue,
+                                };
+                                setLocalParams(newSchema);
+                              } catch (error) {
+                                // Handle invalid input
+                                toast({
+                                  title: "Invalid default value",
+                                  description: `Please enter a valid ${schema.type}`,
+                                  status: "error",
+                                  duration: 3000,
+                                });
+                              }
+                            }}
+                            placeholder={`Enter ${schema.type} value`}
+                          />
+                        )}
+                      </FormControl>
+                      <IconButton
+                        aria-label="Delete parameter"
+                        icon={<DeleteIcon />}
+                        colorScheme="red"
+                        variant="ghost"
+                        onClick={() => {
+                          const newSchema = { ...localParams };
+                          delete newSchema[paramName];
+                          setLocalParams(newSchema);
+                        }}
+                      />
+                    </HStack>
+                  );
+                })}
                 <IconButton
                   aria-label="Add parameter"
                   icon={<AddIcon />}
@@ -735,21 +733,19 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {Object.entries(protocol.params || {}).map(
-                      ([paramName, schemaData], index) => {
-                        const schema = schemaData as ParameterSchema;
-                        return (
-                          <Tr key={index}>
-                            <Td>{paramName}</Td>
-                            <Td>{schema.type}</Td>
-                            <Td>{schema.description || "-"}</Td>
-                            <Td>
-                              {schema.default !== undefined ? JSON.stringify(schema.default) : "-"}
-                            </Td>
-                          </Tr>
-                        );
-                      },
-                    )}
+                    {Object.entries(protocol.params || {}).map(([paramName, schemaData], index) => {
+                      const schema = schemaData as ParameterSchema;
+                      return (
+                        <Tr key={index}>
+                          <Td>{paramName}</Td>
+                          <Td>{schema.type}</Td>
+                          <Td>{schema.description || "-"}</Td>
+                          <Td>
+                            {schema.default !== undefined ? JSON.stringify(schema.default) : "-"}
+                          </Td>
+                        </Tr>
+                      );
+                    })}
                   </Tbody>
                 </Table>
               ) : (
