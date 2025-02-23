@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   Box,
-  Button,
   HStack,
   Text,
   IconButton,
@@ -23,7 +22,6 @@ import {
   DeleteIcon,
   FolderIcon,
   FolderOpenIcon,
-  FolderAddIcon,
 } from "../ui/Icons";
 import { InlineFolderCreation } from "./NewFolder";
 

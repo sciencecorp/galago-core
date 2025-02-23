@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Box, HStack, Input, Icon, IconButton, Tooltip } from "@chakra-ui/react";
+import { HStack, Input, Icon, IconButton, Tooltip } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { validateFolderName, showErrorToast } from "./utils";
 import { useScriptColors } from "../ui/Theme";
