@@ -2,6 +2,7 @@ import typing as t
 from pydantic import BaseModel, model_validator, Field
 import datetime
 from typing import Optional, List, Dict, Any
+from pydantic import ConfigDict
 
 
 class TimestampMixin(BaseModel):
@@ -309,33 +310,43 @@ class LabwareUpdate(BaseModel):
 class ProtocolBase(BaseModel):
     name: str
     category: str
-    workcell: str
+    workcell_id: int
     description: t.Optional[str] = None
-    commands: t.Optional[t.List[t.Any]] = None
-    ui_params: t.Optional[t.Dict[str, t.Any]] = None
+    icon: t.Optional[str] = None
+    params: t.Dict[str, t.Any]
+    commands: t.List[t.Dict[str, t.Any]]
+    version: t.Optional[int] = 1
+    is_active: t.Optional[bool] = True
 
 
 class ProtocolCreate(ProtocolBase):
     name: str
     category: str
-    workcell: str
+    workcell_id: int
     description: t.Optional[str] = None
+    icon: t.Optional[str] = None
 
 
 class ProtocolUpdate(BaseModel):
     name: t.Optional[str] = None
     category: t.Optional[str] = None
-    workcell: t.Optional[str] = None
     description: t.Optional[str] = None
-    commands: t.Optional[t.List[t.Any]] = None
-    ui_params: t.Optional[t.Dict[str, t.Any]] = None
+    icon: t.Optional[str] = None
+    params: t.Optional[t.Dict[str, t.Any]] = None
+    commands: t.Optional[t.List[t.Dict[str, t.Any]]] = None
+    version: t.Optional[int] = None
+    is_active: t.Optional[bool] = None
 
 
 class Protocol(ProtocolBase):
     id: int
+    created_at: t.Optional[datetime.datetime] = None
+    updated_at: t.Optional[datetime.datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_encoders={datetime.datetime: lambda dt: dt.isoformat()},
+    )
 
 
 class AppSettingsCreate(BaseModel):

@@ -134,10 +134,36 @@ export interface Protocol {
   id: number;
   name: string;
   category: string;
-  workcell: string;
-  number_of_commands: number;
-  description: string;
-  icon: string;
+  workcell_id: number;
+  workcell?: string;
+  description?: string;
+  icon?: string;
+  params: Record<string, ParameterSchema>;
+  commands: ToolCommand[];
+  version?: number;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  number_of_commands?: number;
+}
+
+export interface ParameterSchema {
+  type: "string" | "number" | "boolean" | "array" | "enum";
+  description?: string;
+  optional?: boolean;
+  min?: number;
+  max?: number;
+  regex?: string;
+  items?: ParameterSchema; // For array types
+  values?: string[]; // For enum types
+  default?: any;
+}
+
+export interface ToolCommand {
+  toolId: string;
+  command: string;
+  label?: string;
+  params: Record<string, any>;
 }
 
 export interface Variable {

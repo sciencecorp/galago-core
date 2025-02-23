@@ -24,6 +24,7 @@ import { PiPathBold } from "react-icons/pi";
 import { GiChaingun } from "react-icons/gi";
 import { TbVariable } from "react-icons/tb";
 import { FiBook } from "react-icons/fi";
+import { FaBookOpen } from "react-icons/fa6";
 import { BsCalendarWeek } from "react-icons/bs";
 import { VscCode } from "react-icons/vsc";
 import { FaChartGantt } from "react-icons/fa6";
@@ -75,31 +76,65 @@ export default function Page() {
     <Box maxW="100%" p={4}>
       <VStack spacing={6} align="stretch">
         <HStack align="start" spacing={6}>
-          {/* Calendar Card */}
-          <Card
-            bg={headerBg}
-            shadow="md"
-            maxH="500px"
-            maxW="300px"
-            minW="300px"
-            overflow="hidden"
-            display={{ base: "none", md: "block" }}>
-            <CardBody>
-              <VStack align="stretch" spacing={4}>
-                <HStack justify="space-between">
-                  <VStack align="start" spacing={0}>
-                    <Heading size="md">Calendar</Heading>
-                    <Text color="gray.500">Schedule overview</Text>
+          {/* Left Side Cards */}
+          <VStack spacing={6} display={{ base: "none", md: "flex" }}>
+            {/* Calendar Card */}
+            <Card
+              bg={headerBg}
+              shadow="md"
+              // maxH="400px"
+              h="440px"
+              maxW="300px"
+              minW="300px"
+              overflow="hidden">
+              <CardBody>
+                <VStack align="stretch" spacing={2}>
+                  <HStack justify="space-between">
+                    <VStack align="start" spacing={0}>
+                      <Heading size="md">Calendar</Heading>
+                      <Text color="gray.500">Schedule overview</Text>
+                    </VStack>
+                    <Icon as={BsCalendarWeek} boxSize={8} color={iconColor} />
+                  </HStack>
+                  <Divider />
+                  <Box display="flex" justifyContent="center">
+                    <Calendar />
+                  </Box>
+                </VStack>
+              </CardBody>
+            </Card>
+
+            {/* Documentation Card */}
+            <Link href="https://sciencecorp.github.io/galago-docs/" target="_blank">
+              <Card
+                bg={headerBg}
+                shadow="md"
+                maxW="300px"
+                minW="300px"
+                h="205px"
+                overflow="hidden"
+                _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
+                transition="all 0.2s"
+                cursor="pointer">
+                <CardBody>
+                  <VStack align="stretch" spacing={2}>
+                    <HStack justify="space-between">
+                      <VStack align="start" spacing={0}>
+                        <Heading size="md">Documentation</Heading>
+                        <Text color="gray.500">Learn more about Galago</Text>
+                      </VStack>
+                      <Icon as={FaBookOpen} boxSize={8} color={iconColor} />
+                    </HStack>
+                    <Divider />
+                    <Text fontSize="sm">
+                      Explore our comprehensive documentation to learn about Galago&apos;s features,
+                      best practices, and get started with automation.
+                    </Text>
                   </VStack>
-                  <Icon as={BsCalendarWeek} boxSize={8} color={iconColor} />
-                </HStack>
-                <Divider />
-                <Box display="flex" justifyContent="center">
-                  <Calendar />
-                </Box>
-              </VStack>
-            </CardBody>
-          </Card>
+                </CardBody>
+              </Card>
+            </Link>
+          </VStack>
 
           {/* Dashboard Cards Grid */}
           <SimpleGrid flex="1" columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>

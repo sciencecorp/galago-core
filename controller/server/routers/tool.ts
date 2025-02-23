@@ -38,6 +38,25 @@ export const toolRouter = router({
     return response;
   }),
 
+  getToolBox: procedure.query(() => {
+    const toolbox = Tool.toolBoxConfig();
+    return {
+      id: -1,
+      name: "tool_box",
+      type: toolbox.type,
+      ip: toolbox.ip,
+      port: toolbox.port,
+      description: toolbox.description,
+      image_url: "/tool_icons/toolbox.png",
+      status: "READY",
+      last_updated: new Date(),
+      created_at: new Date(),
+      config: toolbox.config || { simulated: false, toolbox: {} },
+      workcell_id: 1,
+      joints: 0,
+    } as ToolResponse;
+  }),
+
   add: procedure.input(zTool.omit({ id: true, port: true })).mutation(async ({ input }) => {
     const response = post<ToolResponse>(`/tools`, input);
     return response;
