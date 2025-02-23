@@ -566,7 +566,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                         </Button>
                       </Tooltip>
                       <Tooltip label="Run script" openDelay={1000} hasArrow>
-                        <Button colorScheme="gray" onClick={handleRunScript} _hover={{ bg: "gray.100" }}>
+                        <Button colorScheme="gray" onClick={handleRunScript}>
                           <Icon as={FaPlay} boxSize={4} />
                         </Button>
                       </Tooltip>
