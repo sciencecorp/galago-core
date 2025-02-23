@@ -14,11 +14,7 @@ import {
   Icon,
 } from "@chakra-ui/react";
 import { ScriptFolder, Script } from "@/types/api";
-import {
-  validateFolderName,
-  removeFileExtension,
-  showErrorToast,
-} from "./utils";
+import { validateFolderName, removeFileExtension, showErrorToast } from "./utils";
 import { useScriptColors } from "../ui/Theme";
 import {
   MenuIcon,
@@ -102,7 +98,10 @@ const FolderNode: React.FC<FolderNodeProps> = ({
         onClick={() => onFolderClick?.(folder)}
         cursor="pointer"
         position="relative">
-        <Icon as={isOpen ? FolderOpenIcon : FolderIcon} color={isActive ? selectedColor : "gray.500"} />
+        <Icon
+          as={isOpen ? FolderOpenIcon : FolderIcon}
+          color={isActive ? selectedColor : "gray.500"}
+        />
         {isEditing ? (
           <Input
             size="sm"
@@ -146,7 +145,10 @@ const FolderNode: React.FC<FolderNodeProps> = ({
               onClick={(e) => {
                 e.stopPropagation();
                 if (folder.scripts.length > 0 || folder.subfolders.length > 0) {
-                  showErrorToast("Cannot delete non-empty folder", "Please move or delete the contents of the folder first.");
+                  showErrorToast(
+                    "Cannot delete non-empty folder",
+                    "Please move or delete the contents of the folder first.",
+                  );
                   return;
                 }
                 onFolderDelete(folder);

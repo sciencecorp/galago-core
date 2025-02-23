@@ -29,16 +29,13 @@ import { NewFolder } from "./NewFolder";
 import { PageHeader } from "../ui/PageHeader";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
 import { ScriptFolderTree } from "./FolderTree";
-import { warningToast, successToast as showSuccessToast, errorToast as showErrorToast } from "../ui/Toast";
-import { useScriptColors } from "../ui/Theme";
 import {
-  CloseIcon,
-  PythonIcon,
-  CodeIcon,
-  PlayIcon,
-  SaveIcon,
-  FolderAddIcon,
-} from "../ui/Icons";
+  warningToast,
+  successToast as showSuccessToast,
+  errorToast as showErrorToast,
+} from "../ui/Toast";
+import { useScriptColors } from "../ui/Theme";
+import { CloseIcon, PythonIcon, CodeIcon, PlayIcon, SaveIcon, FolderAddIcon } from "../ui/Icons";
 
 export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
@@ -47,15 +44,8 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [openFolders, setOpenFolders] = useState<Set<number>>(new Set());
   const [activeOpenFolder, setActiveOpenFolder] = useState<ScriptFolder | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const {
-    selectedBg,
-    hoverBg,
-    selectedColor,
-    bgColor,
-    borderColor,
-    consoleHeaderBg,
-    consoleBg,
-  } = useScriptColors();
+  const { selectedBg, hoverBg, selectedColor, bgColor, borderColor, consoleHeaderBg, consoleBg } =
+    useScriptColors();
   const [scripts, setScripts] = useState<Script[]>([]);
   const [folders, setFolders] = useState<ScriptFolder[]>([]);
   const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
@@ -102,7 +92,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     setRunError(false);
     setConsoleText("");
     if (!activeTab) return;
-    
+
     toast({
       title: `Executing ${activeTab}...`,
       description: "Please wait.",
@@ -156,7 +146,10 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       refetch();
       showSuccessToast("Script updated successfully", "Your changes have been saved.");
     } catch (error) {
-      showErrorToast("Error updating script", "An error occurred while saving the script. Please try again.");
+      showErrorToast(
+        "Error updating script",
+        "An error occurred while saving the script. Please try again.",
+      );
     }
   };
 

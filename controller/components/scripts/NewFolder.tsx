@@ -1,12 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import {
-  Box,
-  HStack,
-  Input,
-  Icon,
-  IconButton,
-  Tooltip,
-} from "@chakra-ui/react";
+import { Box, HStack, Input, Icon, IconButton, Tooltip } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { validateFolderName, showErrorToast } from "./utils";
 import { useScriptColors } from "../ui/Theme";
@@ -25,7 +18,10 @@ interface InlineFolderCreationProps {
   onCancel: () => void;
 }
 
-export const InlineFolderCreation: React.FC<InlineFolderCreationProps> = ({ onSubmit, onCancel }): JSX.Element => {
+export const InlineFolderCreation: React.FC<InlineFolderCreationProps> = ({
+  onSubmit,
+  onCancel,
+}): JSX.Element => {
   const [name, setName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const { hoverBg } = useScriptColors();
@@ -102,4 +98,4 @@ export const NewFolder: React.FC<NewFolderProps> = ({
       />
     </Tooltip>
   );
-}; 
+};

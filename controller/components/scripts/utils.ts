@@ -29,4 +29,4 @@ export const showErrorToast = (title: string, description: string) => {
 
 export const showSuccessToast = (title: string, description: string = "") => {
   successToast(title, description);
-}; 
+};
