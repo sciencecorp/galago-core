@@ -3,7 +3,6 @@ import {
   VStack,
   Button,
   Input,
-  useToast,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -17,11 +16,9 @@ import {
   IconButton,
   Tooltip,
 } from "@chakra-ui/react";
-import { FaFileCirclePlus } from "react-icons/fa6";
 import { trpc } from "@/utils/trpc";
-import { Script } from "@/types/api";
 import { validateScriptName, addPythonExtension, showErrorToast, showSuccessToast } from "./utils";
-
+import { FileAddIcon } from "../ui/Icons";
 interface NewScriptProps {
   isDisabled?: boolean;
   activeFolderId?: number;
@@ -77,7 +74,7 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
       <Tooltip label="Create New Script" placement="top">
         <IconButton
           aria-label="New Script"
-          icon={<FaFileCirclePlus />}
+          icon={<FileAddIcon />}
           colorScheme="teal"
           variant="ghost"
           size="md"

@@ -6,12 +6,10 @@ import {
   Text,
   Input,
   VStack,
-  Spacer,
   useColorModeValue,
   Flex,
   useToast,
   Tooltip,
-  Wrap,
   Card,
   CardBody,
   Icon,
@@ -21,28 +19,26 @@ import {
   StatLabel,
   StatNumber,
   useDisclosure,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
   IconButton,
-  Portal,
 } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
-import { CloseIcon } from "@chakra-ui/icons";
-import { SiPython } from "react-icons/si";
-import { VscCode } from "react-icons/vsc";
-import { FaPlay } from "react-icons/fa";
-import { IoIosSave } from "react-icons/io";
-import { TbFolderPlus } from "react-icons/tb";
 import { trpc } from "@/utils/trpc";
 import { Script, ScriptFolder } from "@/types/api";
 import { NewScript } from "./NewScript";
+import { NewFolder } from "./NewFolder";
 import { PageHeader } from "../ui/PageHeader";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
-import { ScriptFolderTree } from "./ScriptFolderTree";
-import { useScriptColors, removeFileExtension } from "./utils";
+import { ScriptFolderTree } from "./FolderTree";
 import { warningToast, successToast as showSuccessToast, errorToast as showErrorToast } from "../ui/Toast";
+import { useScriptColors } from "../ui/Theme";
+import {
+  CloseIcon,
+  PythonIcon,
+  CodeIcon,
+  PlayIcon,
+  SaveIcon,
+  FolderAddIcon,
+} from "../ui/Icons";
 
 export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
@@ -320,7 +316,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
             overflow="hidden"
             px={3}>
             <HStack spacing={2} flex={1}>
-              <SiPython fontSize="12px" color={activeTab === tab ? "teal" : "gray"} />
+              <PythonIcon fontSize="12px" color={activeTab === tab ? "teal" : "gray"} />
               <Text color={activeTab === tab ? activeTabFontColor : ""} fontSize="sm" isTruncated>
                 {tab}
               </Text>
@@ -452,7 +448,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
               <PageHeader
                 title="Scripts"
                 subTitle="Create and manage Python scripts"
-                titleIcon={<Icon as={VscCode} boxSize={8} color="teal.500" />}
+                titleIcon={<Icon as={CodeIcon} boxSize={8} color="teal.500" />}
               />
 
               <Divider />
@@ -493,17 +489,12 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                     activeFolderId={openFolders.size > 0 ? activeFolder?.id : undefined}
                     onScriptCreated={refreshData}
                   />
-                  <Tooltip label="Create new folder" placement="top">
-                    <IconButton
-                      aria-label="New folder"
-                      icon={<Icon as={TbFolderPlus} />}
-                      colorScheme="teal"
-                      variant="ghost"
-                      onClick={() => {
-                        setFolderCreating(true);
-                      }}
-                    />
-                  </Tooltip>
+                  <NewFolder
+                    isCreatingRoot={folderCreating}
+                    onCancel={() => setFolderCreating(false)}
+                    onFolderCreated={refreshData}
+                    parentId={activeOpenFolder?.id}
+                  />
                 </HStack>
                 <Box width="100%" flex={1} overflowY="auto" position="relative">
                   <Scripts />
@@ -530,12 +521,12 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                     <HStack spacing={2} flexShrink={0}>
                       <Tooltip label="Save script" openDelay={1000} hasArrow>
                         <Button colorScheme="gray" onClick={handleSave}>
-                          <Icon as={IoIosSave} boxSize={6} />
+                          <Icon as={SaveIcon} boxSize={6} />
                         </Button>
                       </Tooltip>
                       <Tooltip label="Run script" openDelay={1000} hasArrow>
                         <Button colorScheme="gray" onClick={handleRunScript}>
-                          <Icon as={FaPlay} boxSize={4} />
+                          <Icon as={PlayIcon} boxSize={4} />
                         </Button>
                       </Tooltip>
                     </HStack>
@@ -559,7 +550,8 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                         height="55vh"
                         display="flex"
                         justifyContent="center"
-                        alignItems="center"
+                        alignItems="flex-start"
+                        paddingTop="15vh"
                         bg={bgColor}
                         position="relative"
                         _before={{
@@ -572,11 +564,11 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                           background:
                             "repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(128,128,128,0.1) 10px, rgba(128,128,128,0.1) 20px)",
                         }}>
-                        <VStack spacing={4}>
+                        <VStack spacing={2}>
                           <Text fontSize="sm" color="gray.400">
                             Select a script to get started
                           </Text>
-                          <Icon as={VscCode} boxSize={8} color="gray.400" />
+                          <Icon as={CodeIcon} boxSize={8} color="gray.400" />
                         </VStack>
                       </Box>
                     )}

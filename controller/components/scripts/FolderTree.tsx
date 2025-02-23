@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -10,23 +10,26 @@ import {
   MenuList,
   MenuItem,
   Input,
-  useToast,
   VStack,
   Icon,
-  useColorModeValue,
 } from "@chakra-ui/react";
-import { HamburgerIcon } from "@chakra-ui/icons";
-import { SiPython } from "react-icons/si";
-import { RiEdit2Line, RiDeleteBinLine, RiFolderAddLine } from "react-icons/ri";
-import { FaFolder, FaFolderOpen } from "react-icons/fa";
 import { ScriptFolder, Script } from "@/types/api";
-import { trpc } from "@/utils/trpc";
 import {
   validateFolderName,
-  useScriptColors,
   removeFileExtension,
   showErrorToast,
 } from "./utils";
+import { useScriptColors } from "../ui/Theme";
+import {
+  MenuIcon,
+  PythonIcon,
+  EditIcon,
+  DeleteIcon,
+  FolderIcon,
+  FolderOpenIcon,
+  FolderAddIcon,
+} from "../ui/Icons";
+import { InlineFolderCreation } from "./NewFolder";
 
 interface FolderTreeProps {
   folders: ScriptFolder[];
@@ -68,7 +71,6 @@ const FolderNode: React.FC<FolderNodeProps> = ({
 }): JSX.Element => {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(folder.name);
-  const [isCreatingSubfolder, setIsCreatingSubfolder] = useState(false);
   const { selectedBg, hoverBg, selectedColor } = useScriptColors();
 
   const handleRename = () => {
@@ -100,7 +102,7 @@ const FolderNode: React.FC<FolderNodeProps> = ({
         onClick={() => onFolderClick?.(folder)}
         cursor="pointer"
         position="relative">
-        <Icon as={isOpen ? FaFolderOpen : FaFolder} color={isActive ? selectedColor : "gray.500"} />
+        <Icon as={isOpen ? FolderOpenIcon : FolderIcon} color={isActive ? selectedColor : "gray.500"} />
         {isEditing ? (
           <Input
             size="sm"
@@ -123,7 +125,7 @@ const FolderNode: React.FC<FolderNodeProps> = ({
           <MenuButton
             as={IconButton}
             aria-label="Folder options"
-            icon={<HamburgerIcon />}
+            icon={<MenuIcon />}
             variant="unstyled"
             size="sm"
             onClick={(e) => e.stopPropagation()}
@@ -132,7 +134,7 @@ const FolderNode: React.FC<FolderNodeProps> = ({
           />
           <MenuList minW="auto">
             <MenuItem
-              icon={<RiEdit2Line />}
+              icon={<EditIcon />}
               onClick={(e) => {
                 e.stopPropagation();
                 setIsEditing(true);
@@ -140,7 +142,7 @@ const FolderNode: React.FC<FolderNodeProps> = ({
               Rename
             </MenuItem>
             <MenuItem
-              icon={<RiDeleteBinLine />}
+              icon={<DeleteIcon />}
               onClick={(e) => {
                 e.stopPropagation();
                 if (folder.scripts.length > 0 || folder.subfolders.length > 0) {
@@ -154,17 +156,6 @@ const FolderNode: React.FC<FolderNodeProps> = ({
           </MenuList>
         </Menu>
       </HStack>
-      {isCreatingSubfolder && (
-        <Box ml={4} mb={1}>
-          <InlineFolderCreation
-            onSubmit={(name) => {
-              onFolderCreate(name, folder.id);
-              setIsCreatingSubfolder(false);
-            }}
-            onCancel={() => setIsCreatingSubfolder(false)}
-          />
-        </Box>
-      )}
       {isOpen && (
         <Box ml={4}>
           {folder.subfolders.map((subfolder) => (
@@ -240,7 +231,7 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
       onClick={onClick}
       cursor="pointer"
       position="relative">
-      <SiPython color={isActive ? "teal" : "gray"} />
+      <PythonIcon color={isActive ? "teal" : "gray"} />
       {isEditing ? (
         <Input
           size="sm"
@@ -267,7 +258,7 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
         <MenuButton
           as={IconButton}
           aria-label="Script options"
-          icon={<HamburgerIcon />}
+          icon={<MenuIcon />}
           variant="unstyled"
           size="sm"
           onClick={(e) => e.stopPropagation()}
@@ -276,7 +267,7 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
         />
         <MenuList minW="auto">
           <MenuItem
-            icon={<RiEdit2Line />}
+            icon={<EditIcon />}
             onClick={(e) => {
               e.stopPropagation();
               setIsEditing(true);
@@ -284,7 +275,7 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
             Rename
           </MenuItem>
           <MenuItem
-            icon={<RiDeleteBinLine />}
+            icon={<DeleteIcon />}
             onClick={(e) => {
               e.stopPropagation();
               onDelete(script);
@@ -293,53 +284,6 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
           </MenuItem>
         </MenuList>
       </Menu>
-    </HStack>
-  );
-};
-
-interface InlineFolderCreationProps {
-  onSubmit: (name: string) => void;
-  onCancel: () => void;
-}
-
-const InlineFolderCreation: React.FC<InlineFolderCreationProps> = ({ onSubmit, onCancel }): JSX.Element => {
-  const [name, setName] = useState("");
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  const { hoverBg } = useScriptColors();
-
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
-
-  const handleSubmit = () => {
-    const validationError = validateFolderName(name);
-    if (validationError) {
-      showErrorToast("Invalid folder name", validationError);
-      return;
-    }
-    if (name.trim()) {
-      onSubmit(name.trim());
-      setName("");
-    } else {
-      onCancel();
-    }
-  };
-
-  return (
-    <HStack spacing={1} px={2} py={1} borderRadius="md" bg={hoverBg}>
-      <Icon as={FaFolder} color="teal.500" />
-      <Input
-        ref={inputRef}
-        size="sm"
-        value={name}
-        placeholder="New folder name"
-        onChange={(e) => setName(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") handleSubmit();
-          if (e.key === "Escape") onCancel();
-        }}
-        onBlur={handleSubmit}
-      />
     </HStack>
   );
 };
