@@ -70,6 +70,19 @@ const FolderNode: React.FC<FolderNodeProps> = ({
   const selectedColor = useColorModeValue("teal.600", "teal.200");
 
   const handleRename = () => {
+    const validationError = validateFolderName(newName);
+    if (validationError) {
+      toast({
+        title: "Invalid folder name",
+        description: validationError,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "top",
+      });
+      setIsEditing(false);
+      return;
+    }
     if (newName.trim() && newName !== folder.name) {
       onFolderRename(folder, newName);
     }
@@ -301,16 +314,39 @@ interface InlineFolderCreationProps {
   onCancel: () => void;
 }
 
+const validateFolderName = (name: string): string => {
+  if (!name) return "Name cannot be empty";
+  if (name.length > 25) return "Name cannot exceed 25 characters";
+  if (!/^[a-z][a-z0-9_]*$/.test(name))
+    return "Name must start with a lowercase letter and contain only lowercase letters, numbers, and underscores";
+  if (/_{2,}/.test(name)) return "Name cannot contain consecutive underscores";
+  if (name.endsWith("_")) return "Name cannot end with an underscore";
+  return "";
+};
+
 const InlineFolderCreation: React.FC<InlineFolderCreationProps> = ({ onSubmit, onCancel }) => {
   const [name, setName] = useState("");
   const inputRef = React.useRef<HTMLInputElement>(null);
   const hoverBg = useColorModeValue("gray.100", "gray.600");
+  const toast = useToast();
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
   const handleSubmit = () => {
+    const validationError = validateFolderName(name);
+    if (validationError) {
+      toast({
+        title: "Invalid folder name",
+        description: validationError,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "top",
+      });
+      return;
+    }
     if (name.trim()) {
       onSubmit(name.trim());
       setName("");
