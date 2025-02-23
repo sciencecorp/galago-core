@@ -205,22 +205,25 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteScript = async () => {
     if (!scriptToDelete) return;
     try {
       await deleteScript.mutateAsync(scriptToDelete.id);
       if (openTabs.includes(scriptToDelete.name)) {
-        setOpenTabs(openTabs.filter((t) => t !== scriptToDelete.name));
+        removeTab(scriptToDelete.name);
+        if (activeTab === scriptToDelete.name) {
+          setActiveTab(openTabs[0] || null);
+        }
       }
-      refetch();
+      await refreshData();
+      onClose();
+      setScriptToDelete(null);
     } catch (error) {
       toast({
         title: "Error deleting script",
-        description: `Please try again. ${error}`,
+        description: String(error),
         status: "error",
         duration: 3000,
-        isClosable: true,
-        position: "top",
       });
     }
   };
@@ -263,7 +266,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       if (activeTab === script.name) {
         setActiveTab(`${cleanNewName}.py`);
       }
-      refetch();
+      await refreshData();
     } catch (error) {
       toast({
         title: "Error renaming script",
@@ -307,7 +310,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const handleFolderDelete = async (folder: ScriptFolder) => {
     try {
       await deleteFolder.mutateAsync(folder.id);
-      await refetchFolders();
+      await refreshData();
     } catch (error) {
       toast({
         title: "Error deleting folder",
@@ -476,8 +479,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
         header={`Delete Script?`}
         isOpen={isOpen}
         onClick={() => {
-          handleDelete();
-          onClose();
+          handleDeleteScript();
         }}
         onClose={onClose}>
         {`Are you sure you want to delete ${scriptToDelete?.name}?`}
