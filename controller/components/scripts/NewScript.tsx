@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   VStack,
   Button,
@@ -14,16 +14,13 @@ import {
   useDisclosure,
   FormControl,
   FormLabel,
-  Select,
   IconButton,
   Tooltip,
 } from "@chakra-ui/react";
 import { FaFileCirclePlus } from "react-icons/fa6";
 import { trpc } from "@/utils/trpc";
-import { RiAddFill } from "react-icons/ri";
-import { ToolType } from "gen-interfaces/controller";
-import { capitalizeFirst } from "@/utils/parser";
 import { Script } from "@/types/api";
+import { validateScriptName, addPythonExtension, showErrorToast, showSuccessToast } from "./utils";
 
 interface NewScriptProps {
   isDisabled?: boolean;
@@ -36,67 +33,35 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
   const [scriptName, setScriptName] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(false);
-  const toast = useToast();
-  const addScript = trpc.script.add.useMutation();
   const [description, setDescription] = useState("");
+  const addScript = trpc.script.add.useMutation();
   const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
 
-  const validateScriptName = (name: string): string => {
-    if (!name) return "Name cannot be empty";
-    if (name.length > 25) return "Name cannot exceed 25 characters";
-    if (!/^[a-z][a-z0-9_]*$/.test(name))
-      return "Name must start with a lowercase letter and contain only lowercase letters, numbers, and underscores";
-    if (/_{2,}/.test(name)) return "Name cannot contain consecutive underscores";
-    if (name.endsWith("_")) return "Name cannot end with an underscore";
-    return "";
-  };
-
   const handleSave = async () => {
-    let is_blocking = true;
-    let language = "python";
-    let content = "";
-    let isNotValid = validateScriptName(scriptName);
+    const isNotValid = validateScriptName(scriptName);
     if (isNotValid) {
-      toast({
-        title: "Error creating script",
-        description: isNotValid,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
+      showErrorToast("Error creating script", isNotValid);
       return;
     }
-    let name = `${scriptName}.py`;
+
     const script = {
-      name,
+      name: addPythonExtension(scriptName),
       description,
-      content,
-      language,
-      is_blocking,
+      content: "",
+      language: "python",
+      is_blocking: true,
       folder_id: activeFolderId,
     };
+
     setIsLoading(true);
     try {
       await addScript.mutateAsync(script);
       await refetch();
       onScriptCreated?.();
-      toast({
-        title: `Script created successfully`,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
+      showSuccessToast("Script created successfully");
       onClose();
     } catch (error) {
-      toast({
-        title: "Error creating script",
-        description: `Please try again. ${error}`,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      showErrorToast("Error creating script", `Please try again. ${error}`);
     }
     setIsLoading(false);
     clearForm();

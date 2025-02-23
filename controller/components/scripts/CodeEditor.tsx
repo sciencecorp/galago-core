@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -31,18 +31,18 @@ import {
 import Editor from "@monaco-editor/react";
 import { CloseIcon } from "@chakra-ui/icons";
 import { SiPython } from "react-icons/si";
-import { set } from "zod";
-import { RiAddFill, RiDeleteBinLine, RiEdit2Line } from "react-icons/ri";
+import { VscCode } from "react-icons/vsc";
+import { FaPlay } from "react-icons/fa";
+import { IoIosSave } from "react-icons/io";
+import { TbFolderPlus } from "react-icons/tb";
 import { trpc } from "@/utils/trpc";
 import { Script, ScriptFolder } from "@/types/api";
 import { NewScript } from "./NewScript";
 import { PageHeader } from "../ui/PageHeader";
-import { VscCode } from "react-icons/vsc";
-import { FaPlay } from "react-icons/fa";
-import { IoIosSave } from "react-icons/io";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
 import { ScriptFolderTree } from "./ScriptFolderTree";
-import { TbFolderPlus } from "react-icons/tb";
+import { useScriptColors, removeFileExtension } from "./utils";
+import { warningToast, successToast as showSuccessToast, errorToast as showErrorToast } from "../ui/Toast";
 
 export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
@@ -51,7 +51,15 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [openFolders, setOpenFolders] = useState<Set<number>>(new Set());
   const [activeOpenFolder, setActiveOpenFolder] = useState<ScriptFolder | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const consoleBg = useColorModeValue("white", "#222324");
+  const {
+    selectedBg,
+    hoverBg,
+    selectedColor,
+    bgColor,
+    borderColor,
+    consoleHeaderBg,
+    consoleBg,
+  } = useScriptColors();
   const [scripts, setScripts] = useState<Script[]>([]);
   const [folders, setFolders] = useState<ScriptFolder[]>([]);
   const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
@@ -64,10 +72,8 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const codeTheme = useColorModeValue("vs-light", "vs-dark");
   const toast = useToast();
   const [scriptsEdited, setScriptsEdited] = useState<Script[]>([]);
-  const borderColor = useColorModeValue("gray.200", "gray.600");
   const [isEditing, setIsEditing] = useState(false);
   const [currentContent, setCurrentContent] = useState<string>("");
-  const consoleHeaderBg = useColorModeValue("gray.100", "gray.800");
   const [consoleText, setConsoleText] = useState<string>("");
   const activeTabFontColor = useColorModeValue("teal.600", "teal.200");
   const runScript = trpc.script.run.useMutation();
@@ -75,14 +81,10 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const headerBg = useColorModeValue("white", "gray.700");
   const tabBg = useColorModeValue("gray.50", "gray.700");
   const activeTabBg = useColorModeValue("white", "gray.800");
-  const hoverBg = useColorModeValue("gray.100", "gray.600");
-  const bgColor = useColorModeValue("gray.50", "gray.700");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [scriptToDelete, setScriptToDelete] = useState<Script | null>(null);
   const [editingScriptName, setEditingScriptName] = useState<string | null>(null);
   const [newScriptName, setNewScriptName] = useState<string>("");
-  const selectedBg = useColorModeValue("teal.50", "teal.900");
-  const selectedBorder = useColorModeValue("teal.500", "teal.200");
   const {
     isOpen: isNewScriptOpen,
     onOpen: onNewScriptOpen,
@@ -104,54 +106,35 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     setRunError(false);
     setConsoleText("");
     if (!activeTab) return;
+    
     toast({
       title: `Executing ${activeTab}...`,
-      description: `Please wait.`,
+      description: "Please wait.",
       status: "loading",
       duration: null,
       isClosable: false,
-      position: "top", // or "bottom"
+      position: "bottom-left",
     });
+
     try {
       const response = await runScript.mutateAsync(activeTab, {
         onSuccess: () => {
           toast.closeAll();
-          toast({
-            title: `Script Completed!`,
-            status: "success",
-            duration: 2000,
-            isClosable: true,
-            position: "top",
-          });
+          showSuccessToast("Script Completed!", "The script execution finished successfully.");
         },
         onError: (error) => {
           setRunError(true);
           setConsoleText(error.message);
           toast.closeAll();
-          toast({
-            title: "Failed to run script",
-            description: `Error= ${error.message}`,
-            status: "error",
-            duration: 10000,
-            isClosable: true,
-            position: "top",
-          });
+          showErrorToast("Failed to run script", `Error= ${error.message}`);
         },
       });
+
       if (response?.error_message) {
         setRunError(true);
         setConsoleText(response.error_message);
-        setRunError(true);
-        setConsoleText(response?.error_message || "");
         toast.closeAll();
-        toast({
-          title: "Failed to run script",
-          description: `Error= ${response?.error_message || ""}`,
-          status: "error",
-          duration: 10000,
-          isClosable: true,
-          position: "top",
-        });
+        showErrorToast("Failed to run script", `Error= ${response.error_message}`);
         return;
       }
       setConsoleText(response?.meta_data?.response || "");
@@ -162,50 +145,22 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
 
   const handleSave = async () => {
     if (!activeTab) {
-      toast({
-        title: "No active tab",
-        description: "Please select a script to save.",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
+      showErrorToast("No active tab", "Please select a script to save.");
       return;
     }
 
     const script = scriptsEdited.find((script) => script.name === activeTab);
     if (!script) {
-      toast({
-        title: "No changes detected",
-        description: "No edits were made to the active script.",
-        status: "info",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
+      warningToast("No changes detected", "No edits were made to the active script.");
       return;
     }
 
     try {
       await editScript.mutateAsync(script);
       refetch();
-      toast({
-        title: "Script updated successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
+      showSuccessToast("Script updated successfully", "Your changes have been saved.");
     } catch (error) {
-      console.error("Error updating script:", error);
-      toast({
-        title: "Error updating script",
-        description: "An error occurred while saving the script. Please try again.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
+      showErrorToast("Error updating script", "An error occurred while saving the script. Please try again.");
     }
   };
 
@@ -223,12 +178,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       onClose();
       setScriptToDelete(null);
     } catch (error) {
-      toast({
-        title: "Error deleting script",
-        description: String(error),
-        status: "error",
-        duration: 3000,
-      });
+      showErrorToast("Error deleting script", String(error));
     }
   };
 

@@ -21,6 +21,12 @@ import { RiEdit2Line, RiDeleteBinLine, RiFolderAddLine } from "react-icons/ri";
 import { FaFolder, FaFolderOpen } from "react-icons/fa";
 import { ScriptFolder, Script } from "@/types/api";
 import { trpc } from "@/utils/trpc";
+import {
+  validateFolderName,
+  useScriptColors,
+  removeFileExtension,
+  showErrorToast,
+} from "./utils";
 
 interface FolderTreeProps {
   folders: ScriptFolder[];
@@ -59,27 +65,16 @@ const FolderNode: React.FC<FolderNodeProps> = ({
   onFolderRename,
   onFolderDelete,
   openFolders,
-}) => {
+}): JSX.Element => {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(folder.name);
   const [isCreatingSubfolder, setIsCreatingSubfolder] = useState(false);
-  const toast = useToast();
-
-  const selectedBg = useColorModeValue("teal.50", "teal.900");
-  const hoverBg = useColorModeValue("gray.100", "gray.600");
-  const selectedColor = useColorModeValue("teal.600", "teal.200");
+  const { selectedBg, hoverBg, selectedColor } = useScriptColors();
 
   const handleRename = () => {
     const validationError = validateFolderName(newName);
     if (validationError) {
-      toast({
-        title: "Invalid folder name",
-        description: validationError,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
+      showErrorToast("Invalid folder name", validationError);
       setIsEditing(false);
       return;
     }
@@ -149,11 +144,7 @@ const FolderNode: React.FC<FolderNodeProps> = ({
               onClick={(e) => {
                 e.stopPropagation();
                 if (folder.scripts.length > 0 || folder.subfolders.length > 0) {
-                  toast({
-                    title: "Cannot delete non-empty folder",
-                    status: "error",
-                    duration: 3000,
-                  });
+                  showErrorToast("Cannot delete non-empty folder", "Please move or delete the contents of the folder first.");
                   return;
                 }
                 onFolderDelete(folder);
@@ -225,13 +216,10 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
   onClick,
   onRename,
   onDelete,
-}) => {
+}): JSX.Element => {
   const [isEditing, setIsEditing] = useState(false);
-  const [newName, setNewName] = useState(script.name.replace(/\.py$/, ""));
-
-  const selectedBg = useColorModeValue("teal.50", "teal.900");
-  const hoverBg = useColorModeValue("gray.100", "gray.700");
-  const selectedColor = useColorModeValue("teal.600", "teal.200");
+  const [newName, setNewName] = useState(removeFileExtension(script.name));
+  const { selectedBg, hoverBg, selectedColor } = useScriptColors();
 
   const handleRename = () => {
     if (newName.trim() && newName !== script.name.replace(/\.py$/, "")) {
@@ -314,21 +302,10 @@ interface InlineFolderCreationProps {
   onCancel: () => void;
 }
 
-const validateFolderName = (name: string): string => {
-  if (!name) return "Name cannot be empty";
-  if (name.length > 25) return "Name cannot exceed 25 characters";
-  if (!/^[a-z][a-z0-9_]*$/.test(name))
-    return "Name must start with a lowercase letter and contain only lowercase letters, numbers, and underscores";
-  if (/_{2,}/.test(name)) return "Name cannot contain consecutive underscores";
-  if (name.endsWith("_")) return "Name cannot end with an underscore";
-  return "";
-};
-
-const InlineFolderCreation: React.FC<InlineFolderCreationProps> = ({ onSubmit, onCancel }) => {
+const InlineFolderCreation: React.FC<InlineFolderCreationProps> = ({ onSubmit, onCancel }): JSX.Element => {
   const [name, setName] = useState("");
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const hoverBg = useColorModeValue("gray.100", "gray.600");
-  const toast = useToast();
+  const { hoverBg } = useScriptColors();
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -337,14 +314,7 @@ const InlineFolderCreation: React.FC<InlineFolderCreationProps> = ({ onSubmit, o
   const handleSubmit = () => {
     const validationError = validateFolderName(name);
     if (validationError) {
-      toast({
-        title: "Invalid folder name",
-        description: validationError,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
+      showErrorToast("Invalid folder name", validationError);
       return;
     }
     if (name.trim()) {
