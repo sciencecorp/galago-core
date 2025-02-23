@@ -174,9 +174,9 @@ class ScriptFolder(Base, TimestampMixin):
     __tablename__ = "script_folders"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    parent_id = Column(Integer, ForeignKey('script_folders.id'), nullable=True)
+    parent_id = Column(Integer, ForeignKey("script_folders.id"), nullable=True)
     description = Column(String, nullable=True)
-    
+
     # Relationships
     parent = relationship("ScriptFolder", remote_side=[id], backref="subfolders")
     scripts = relationship("Script", back_populates="folder")
@@ -190,8 +190,8 @@ class Script(Base, TimestampMixin):
     content = Column(String, nullable=False)
     language = Column(String, nullable=False)
     is_blocking = Column(Boolean, nullable=False)
-    folder_id = Column(Integer, ForeignKey('script_folders.id'), nullable=True)
-    
+    folder_id = Column(Integer, ForeignKey("script_folders.id"), nullable=True)
+
     # Relationships
     folder = relationship("ScriptFolder", back_populates="scripts")
 

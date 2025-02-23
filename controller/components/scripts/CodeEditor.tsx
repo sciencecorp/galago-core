@@ -83,7 +83,11 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [newScriptName, setNewScriptName] = useState<string>("");
   const selectedBg = useColorModeValue("teal.50", "teal.900");
   const selectedBorder = useColorModeValue("teal.500", "teal.200");
-  const { isOpen: isNewScriptOpen, onOpen: onNewScriptOpen, onClose: onNewScriptClose } = useDisclosure();
+  const {
+    isOpen: isNewScriptOpen,
+    onOpen: onNewScriptOpen,
+    onClose: onNewScriptClose,
+  } = useDisclosure();
   const [folderCreating, setFolderCreating] = useState(false);
 
   useEffect(() => {
@@ -246,9 +250,9 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
 
   const handleRename = async (script: Script, newName: string) => {
     // Remove .py from the new name if user added it
-    const cleanNewName = newName.replace(/\.py$/, '');
-    
-    if (!cleanNewName.trim() || script.name.replace(/\.py$/, '') === cleanNewName) {
+    const cleanNewName = newName.replace(/\.py$/, "");
+
+    if (!cleanNewName.trim() || script.name.replace(/\.py$/, "") === cleanNewName) {
       setEditingScriptName(null);
       return;
     }
@@ -256,12 +260,12 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     try {
       await editScript.mutateAsync({
         ...script,
-        name: `${cleanNewName}.py`
+        name: `${cleanNewName}.py`,
       });
 
       // Update tabs if the renamed script was open
       if (openTabs.includes(script.name)) {
-        setOpenTabs(openTabs.map(tab => tab === script.name ? `${cleanNewName}.py` : tab));
+        setOpenTabs(openTabs.map((tab) => (tab === script.name ? `${cleanNewName}.py` : tab)));
       }
       if (activeTab === script.name) {
         setActiveTab(`${cleanNewName}.py`);
@@ -283,11 +287,11 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const handleFolderCreate = async (name: string, parentId?: number) => {
     console.log("Parent ID", parentId);
     console.log("Active open folder asdasd", activeOpenFolder);
-      await addFolder.mutateAsync({
-        name,
-        parent_id: parentId,
-      });
-      await refetchFolders();
+    await addFolder.mutateAsync({
+      name,
+      parent_id: parentId,
+    });
+    await refetchFolders();
   };
 
   const handleFolderRename = async (folder: ScriptFolder, newName: string) => {
@@ -329,7 +333,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const handleFolderClick = (folder: ScriptFolder) => {
     setActiveTab(null);
     setActiveFolder(folder);
-    setOpenFolders(prev => {
+    setOpenFolders((prev) => {
       const next = new Set(prev);
       if (next.has(folder.id)) {
         next.delete(folder.id);
@@ -393,7 +397,15 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
 
   const Scripts = () => {
     return (
-      <Box height="100%" display="flex" flexDirection="column" position="absolute" top={0} left={0} right={0} bottom={0}>
+      <Box
+        height="100%"
+        display="flex"
+        flexDirection="column"
+        position="absolute"
+        top={0}
+        left={0}
+        right={0}
+        bottom={0}>
         <VStack spacing={0.5} align="stretch" width="100%" overflowY="auto" height="100%">
           <ScriptFolderTree
             folders={folders}
@@ -409,7 +421,6 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
               setScriptToDelete(script);
             }}
             onFolderCreate={(name, parentId) => {
-
               console.log("Active open folder", activeOpenFolder);
               handleFolderCreate(name, activeOpenFolder?.id || parentId);
               setFolderCreating(false);
@@ -516,15 +527,20 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
 
         <Card bg={headerBg} shadow="md">
           <CardBody>
-            <HStack width="100%" alignItems="stretch" spacing={4} height="calc(100vh - 300px)" minH="500px">
+            <HStack
+              width="100%"
+              alignItems="stretch"
+              spacing={4}
+              height="calc(100vh - 300px)"
+              minH="500px">
               <VStack width="200px" minW="200px" alignItems="flex-start" spacing={4} height="100%">
                 <HStack width="100%" spacing={2}>
                   <Input
                     placeholder="Search scripts..."
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
-                  <NewScript 
-                    activeFolderId={openFolders.size > 0 ? activeFolder?.id : undefined} 
+                  <NewScript
+                    activeFolderId={openFolders.size > 0 ? activeFolder?.id : undefined}
                     onScriptCreated={refreshData}
                   />
                   <Tooltip label="Create new folder" placement="top">

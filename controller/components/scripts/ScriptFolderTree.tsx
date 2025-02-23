@@ -81,8 +81,8 @@ const FolderNode: React.FC<FolderNodeProps> = ({
 
   return (
     <Box>
-      <HStack 
-        spacing={1} 
+      <HStack
+        spacing={1}
         mb={1}
         px={2}
         py={1}
@@ -91,12 +91,8 @@ const FolderNode: React.FC<FolderNodeProps> = ({
         _hover={{ bg: isActive ? selectedBg : hoverBg }}
         onClick={() => onFolderClick?.(folder)}
         cursor="pointer"
-        position="relative"
-      >
-        <Icon 
-          as={isOpen ? FaFolderOpen : FaFolder} 
-          color={isActive ? selectedColor :  "gray.500"} 
-        />
+        position="relative">
+        <Icon as={isOpen ? FaFolderOpen : FaFolder} color={isActive ? selectedColor : "gray.500"} />
         {isEditing ? (
           <Input
             size="sm"
@@ -104,17 +100,14 @@ const FolderNode: React.FC<FolderNodeProps> = ({
             onChange={(e) => setNewName(e.target.value)}
             onBlur={handleRename}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') handleRename();
-              if (e.key === 'Escape') setIsEditing(false);
+              if (e.key === "Enter") handleRename();
+              if (e.key === "Escape") setIsEditing(false);
             }}
             onClick={(e) => e.stopPropagation()}
             autoFocus
           />
         ) : (
-          <Text
-            flex={1}
-            color={isActive ? selectedColor : "inherit"}
-          >
+          <Text flex={1} color={isActive ? selectedColor : "inherit"}>
             {folder.name}
           </Text>
         )}
@@ -221,14 +214,14 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
   onDelete,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [newName, setNewName] = useState(script.name.replace(/\.py$/, ''));
+  const [newName, setNewName] = useState(script.name.replace(/\.py$/, ""));
 
   const selectedBg = useColorModeValue("teal.50", "teal.900");
   const hoverBg = useColorModeValue("gray.100", "gray.700");
   const selectedColor = useColorModeValue("teal.600", "teal.200");
 
   const handleRename = () => {
-    if (newName.trim() && newName !== script.name.replace(/\.py$/, '')) {
+    if (newName.trim() && newName !== script.name.replace(/\.py$/, "")) {
       onRename(script, newName);
     }
     setIsEditing(false);
@@ -245,8 +238,7 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
       _hover={{ bg: isActive ? selectedBg : hoverBg }}
       onClick={onClick}
       cursor="pointer"
-      position="relative"
-    >
+      position="relative">
       <SiPython color={isActive ? "teal" : "gray"} />
       {isEditing ? (
         <Input
@@ -255,8 +247,8 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
           onChange={(e) => setNewName(e.target.value)}
           onBlur={handleRename}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') handleRename();
-            if (e.key === 'Escape') setIsEditing(false);
+            if (e.key === "Enter") handleRename();
+            if (e.key === "Escape") setIsEditing(false);
           }}
           onClick={(e) => e.stopPropagation()}
           autoFocus
@@ -267,7 +259,7 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
           fontSize="14px"
           fontWeight={isActive ? "medium" : "normal"}
           color={isActive ? selectedColor : "inherit"}>
-          {script.name.replace(/\.py$/, '')}
+          {script.name.replace(/\.py$/, "")}
         </Text>
       )}
       <Menu>
@@ -282,7 +274,7 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
           right={2}
         />
         <MenuList minW="auto">
-          <MenuItem 
+          <MenuItem
             icon={<RiEdit2Line />}
             onClick={(e) => {
               e.stopPropagation();
@@ -328,13 +320,7 @@ const InlineFolderCreation: React.FC<InlineFolderCreationProps> = ({ onSubmit, o
   };
 
   return (
-    <HStack
-      spacing={1}
-      px={2}
-      py={1}
-      borderRadius="md"
-      bg={hoverBg}
-    >
+    <HStack spacing={1} px={2} py={1} borderRadius="md" bg={hoverBg}>
       <Icon as={FaFolder} color="teal.500" />
       <Input
         ref={inputRef}
@@ -343,8 +329,8 @@ const InlineFolderCreation: React.FC<InlineFolderCreationProps> = ({ onSubmit, o
         placeholder="New folder name"
         onChange={(e) => setName(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') handleSubmit();
-          if (e.key === 'Escape') onCancel();
+          if (e.key === "Enter") handleSubmit();
+          if (e.key === "Escape") onCancel();
         }}
         onBlur={handleSubmit}
       />
@@ -409,4 +395,4 @@ export const ScriptFolderTree: React.FC<FolderTreeProps> = ({
         ))}
     </VStack>
   );
-}; 
+};

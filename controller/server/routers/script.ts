@@ -77,12 +77,10 @@ export const scriptRouter = router({
     return response;
   }),
 
-  addFolder: procedure
-    .input(zScriptFolder.omit({ id: true }))
-    .mutation(async ({ input }) => {
-      const response = await post<ScriptFolder>(`/script-folders`, input);
-      return response;
-    }),
+  addFolder: procedure.input(zScriptFolder.omit({ id: true })).mutation(async ({ input }) => {
+    const response = await post<ScriptFolder>(`/script-folders`, input);
+    return response;
+  }),
 
   editFolder: procedure.input(zScriptFolder).mutation(async ({ input }) => {
     const { id } = input;

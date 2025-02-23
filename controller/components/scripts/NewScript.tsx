@@ -65,13 +65,13 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
       return;
     }
     let name = `${scriptName}.py`;
-    const script = { 
-      name, 
-      description, 
-      content, 
-      language, 
+    const script = {
+      name,
+      description,
+      content,
+      language,
       is_blocking,
-      folder_id: activeFolderId 
+      folder_id: activeFolderId,
     };
     setIsLoading(true);
     try {

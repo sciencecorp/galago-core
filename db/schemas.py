@@ -419,8 +419,8 @@ class ScriptFolder(ScriptFolderBase):
     id: int
     created_at: datetime.datetime
     updated_at: datetime.datetime
-    subfolders: list['ScriptFolder'] = []
-    scripts: list['Script'] = []
+    subfolders: list["ScriptFolder"] = []
+    scripts: list["Script"] = []
 
     class Config:
         orm_mode = True
@@ -431,8 +431,8 @@ class ScriptFolderResponse(ScriptFolderBase):
     id: int
     created_at: datetime.datetime
     updated_at: datetime.datetime
-    subfolders: list['ScriptFolderResponse'] = []
-    scripts: list['Script'] = []
+    subfolders: list["ScriptFolderResponse"] = []
+    scripts: list["Script"] = []
 
     class Config:
         orm_mode = True
