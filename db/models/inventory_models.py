@@ -9,11 +9,15 @@ from sqlalchemy import (
     Float,
     DateTime,
     CheckConstraint,
+    Enum,
+    and_,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, remote
+from sqlalchemy.sql import func
 from .db_session import Base
 from sqlalchemy.ext.declarative import declared_attr
 import datetime
+import enum
 
 
 class TimestampMixin:
@@ -77,6 +81,26 @@ class Tool(Base, TimestampMixin):
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
 
+class NestStatus(enum.Enum):
+    empty = "empty"
+    occupied = "occupied"
+    reserved = "reserved"
+    error = "error"
+
+
+class PlateStatus(enum.Enum):
+    stored = "stored"
+    in_use = "in_use"
+    completed = "completed"
+    disposed = "disposed"
+
+
+class PlateNestAction(enum.Enum):
+    check_in = "check_in"
+    check_out = "check_out"
+    transfer = "transfer"
+
+
 class Nest(Base, TimestampMixin):
     __tablename__ = "nests"
     id = Column(Integer, primary_key=True)
@@ -84,12 +108,11 @@ class Nest(Base, TimestampMixin):
     row = Column(Integer)
     column = Column(Integer)
     tool_id = Column(Integer, ForeignKey("tools.id"))
-    tool = relationship(
-        "Tool", back_populates="nests"
-    )  # type: Optional["Tool"] # type: ignore
-    plate = relationship(
-        "Plate", back_populates="nest", uselist=False
-    )  # type: Optional["Plate"]  # type: ignore
+    status = Column(Enum(NestStatus), default=NestStatus.empty)
+    
+    # Relationships
+    tool = relationship("Tool", back_populates="nests")
+    plate_history = relationship("PlateNestHistory", back_populates="nest")
 
 
 class Plate(Base, TimestampMixin):
@@ -99,12 +122,25 @@ class Plate(Base, TimestampMixin):
     barcode = Column(String)
     plate_type = Column(String)
     nest_id = Column(Integer, ForeignKey("nests.id"), nullable=True)
-    nest = relationship(
-        "Nest", back_populates="plate"
-    )  # type: Optional["Nest"]  # type: ignore
-    wells = relationship(
-        "Well", back_populates="plate"
-    )  # type: List["Well"]  # type: ignore
+    status = Column(Enum(PlateStatus), default=PlateStatus.stored)
+
+    # Relationships
+    current_nest = relationship("Nest", foreign_keys=[nest_id], uselist=False)
+    nest_history = relationship("PlateNestHistory", back_populates="plate")
+    wells = relationship("Well", back_populates="plate")
+
+
+class PlateNestHistory(Base, TimestampMixin):
+    __tablename__ = "plate_nest_history"
+    id = Column(Integer, primary_key=True)
+    plate_id = Column(Integer, ForeignKey("plates.id"))
+    nest_id = Column(Integer, ForeignKey("nests.id"))
+    action = Column(Enum(PlateNestAction))
+    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    plate = relationship("Plate", back_populates="nest_history")
+    nest = relationship("Nest", back_populates="plate_history")
 
 
 class Well(Base, TimestampMixin):
@@ -112,27 +148,23 @@ class Well(Base, TimestampMixin):
     id = Column(Integer, primary_key=True)
     row = Column(String)
     column = Column(Integer)
-
     plate_id = Column(Integer, ForeignKey("plates.id"))
-    plate = relationship(
-        "Plate", back_populates="wells"
-    )  # type: Optional["Plate"]  # type: ignore
-    reagents = relationship(
-        "Reagent", back_populates="well"
-    )  # type: List["Reagent"]  # type: ignore
+    
+    # Relationships
+    plate = relationship("Plate", back_populates="wells")
+    reagents = relationship("Reagent", back_populates="well")
 
 
 class Reagent(Base, TimestampMixin):
     __tablename__ = "reagents"
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    expiration_date = Column(Date)
+    expiration_date = Column(DateTime)
     volume = Column(Float)
-
     well_id = Column(Integer, ForeignKey("wells.id"))
-    well = relationship(
-        "Well", back_populates="reagents"
-    )  # type: Optional["Well"]  # type: ignore
+    
+    # Relationships
+    well = relationship("Well", back_populates="reagents")
 
 
 class VariableType(Base, TimestampMixin):

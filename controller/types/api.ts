@@ -37,11 +37,17 @@ export interface Instrument extends InstrumentCreate {
   id: number;
 }
 
+export type NestStatus = 'empty' | 'occupied' | 'reserved' | 'error';
+export type PlateStatus = 'stored' | 'in_use' | 'completed' | 'disposed';
+export type PlateNestAction = 'check_in' | 'check_out' | 'transfer';
+
 export interface NestCreate {
   name: string;
   row: number;
   column: number;
   tool_id: number;
+  status?: NestStatus;
+  current_plate_id?: number | null;
 }
 
 export interface NestUpdate {
@@ -49,28 +55,54 @@ export interface NestUpdate {
   row?: number;
   column?: number;
   tool_id?: number;
+  status?: NestStatus;
+  current_plate_id?: number | null;
 }
 
 export interface Nest extends NestCreate {
   id: number;
+  status: NestStatus;
+  current_plate_id: number | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface PlateCreate {
   name: string | null;
   barcode: string;
   plate_type: string;
-  nest_id: number | null;
+  nest_id?: number | null;
+  status?: PlateStatus;
 }
 
 export interface PlateUpdate {
+  id?: number;
   name?: string | null;
   barcode?: string;
   plate_type?: string;
   nest_id?: number | null;
+  status?: PlateStatus;
 }
 
-export interface Plate extends PlateCreate {
+export interface Plate {
   id: number;
+  name: string | null;
+  barcode: string;
+  plate_type: string;
+  nest_id: number | null;
+  status: PlateStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlateNestHistory {
+  id: number;
+  plate_id: number;
+  nest_id: number;
+  action: PlateNestAction;
+  timestamp: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface WellCreate {

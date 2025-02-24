@@ -17,6 +17,7 @@ const zPlate = z.object({
   barcode: z.string(),
   plate_type: z.string(),
   nest_id: z.number().nullable(),
+  status: z.enum(['stored', 'in_use', 'completed', 'disposed']).optional(),
 });
 
 const zReagent = z.object({

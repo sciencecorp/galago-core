@@ -20,7 +20,7 @@ import {
   Tooltip,
 } from "@chakra-ui/react";
 import { Nest, Plate, Reagent } from "@/types/api";
-import NestModal from "./NestModal";
+import NestModal from "../modals/NestModal";
 import styled from "@emotion/styled";
 import { trpc } from "@/utils/trpc";
 import { PiToolbox } from "react-icons/pi";
@@ -64,6 +64,7 @@ interface InventoryToolCardProps {
   onCreateReagent: (nestId: number, reagentData: Omit<Reagent, "id" | "well_id">) => void;
   onNestClick: (nest: Nest) => void;
   onDeleteNest: (nestId: number) => Promise<void>;
+  onPlateClick?: (plate: Plate) => void;
 }
 
 export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
@@ -75,6 +76,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   onCreateReagent,
   onNestClick,
   onDeleteNest,
+  onPlateClick,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const cardBg = useColorModeValue("white", "gray.900");
@@ -218,16 +220,17 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
         toolName={name || ""}
         nests={toolNests}
         plates={plates}
-        onCreatePlate={(nestId, plateData) =>
-          onCreatePlate(nestId, {
-            ...plateData,
-            plate_type: plateData.plateType,
-          })
-        }
-        onDeleteNest={onDeleteNest}
-        onCreateReagent={onCreateReagent}
-        onNestClick={onNestClick}
+        selectedNests={[]}
+        isMultiSelect={true}
+        onNestSelect={(nestIds) => {
+          nestIds.forEach(id => {
+            const nest = nests.find(n => n.id === id);
+            if (nest) onNestClick(nest);
+          });
+        }}
         onCreateNest={(row, column) => onCreateNest(toolId, `${name}`, row, column)}
+        onDeleteNest={onDeleteNest}
+        onPlateClick={onPlateClick}
       />
     </>
   );

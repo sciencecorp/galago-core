@@ -15,15 +15,20 @@ import {
   HStack,
   Text,
   SimpleGrid,
+  Button,
+  ButtonGroup,
 } from "@chakra-ui/react";
 import { Inventory, Plate, Reagent, Nest, Tool } from "@/types/api";
 import { PageHeader } from "@/components/ui/PageHeader";
-import InventorySearch from "./InventorySearch";
-import { InventoryToolCard } from "./InventoryToolCard";
+import InventorySearch from "./search/InventorySearch";
+import { InventoryToolCard } from "./cards/InventoryToolCard";
 import AlertComponent from "@/components/ui/AlertComponent";
 import { useColorMode } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { BsBoxSeam } from "react-icons/bs";
+import CheckInModal from "./modals/CheckInModal";
+import CheckOutModal from "./modals/CheckOutModal";
+import PlateModal from "./modals/PlateModal";
 
 export const InventoryManager = () => {
   const [search, setSearch] = useState("");
@@ -34,6 +39,10 @@ export const InventoryManager = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertStatus, setAlertStatus] = useState<"success" | "error" | "warning" | "info">("info");
   const [alertDescription, setAlertDescription] = useState("");
+  const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
+  const [isCheckOutModalOpen, setIsCheckOutModalOpen] = useState(false);
+  const [isPlateModalOpen, setIsPlateModalOpen] = useState(false);
+  const [plateForModal, setPlateForModal] = useState<Plate | null>(null);
 
   const { colorMode } = useColorMode();
   const isDarkMode = colorMode === "dark";
@@ -65,6 +74,7 @@ export const InventoryManager = () => {
   const createNestMutation = trpc.inventory.createNest.useMutation();
   const deleteNestMutation = trpc.inventory.deleteNest.useMutation();
   const createPlateMutation = trpc.inventory.createPlate.useMutation();
+  const updatePlateMutation = trpc.inventory.updatePlate.useMutation();
   const createReagentMutation = trpc.inventory.createReagent.useMutation();
 
   const workcellTools = selectedWorkcell?.tools || [];
@@ -74,10 +84,14 @@ export const InventoryManager = () => {
   const borderColor = useColorModeValue("gray.200", "gray.700");
 
   // Calculate stats with proper typing
-  const totalPlates = (plates as Plate[]).length;
-  const totalReagents = (reagents as Reagent[]).length;
-  const totalNests = (nests as Nest[]).length;
-  const occupiedNests = (plates as Plate[]).filter((plate: Plate) => plate.nest_id !== null).length;
+  const typedNests = nests as Nest[];
+  const typedPlates = plates as Plate[];
+  const typedReagents = reagents as Reagent[];
+
+  const totalPlates = typedPlates.length;
+  const totalReagents = typedReagents.length;
+  const totalNests = typedNests.length;
+  const occupiedNests = typedPlates.filter((plate) => plate.nest_id !== null).length;
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const searchTerm = e.target.value.toLowerCase();
@@ -86,6 +100,11 @@ export const InventoryManager = () => {
 
   const handlePlateSelect = (plate: Plate) => {
     setSelectedPlate(plate);
+  };
+
+  const handlePlateClick = (plate: Plate) => {
+    setPlateForModal(plate);
+    setIsPlateModalOpen(true);
   };
 
   const handleReagentSelect = (reagent: Reagent) => {
@@ -110,12 +129,6 @@ export const InventoryManager = () => {
         tool_id: toolId,
       });
       refetchNests();
-      toast({
-        title: "Nest created successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
     } catch (error) {
       console.error("Error creating nest:", error);
       toast({
@@ -132,12 +145,6 @@ export const InventoryManager = () => {
     try {
       await deleteNestMutation.mutateAsync(nestId);
       refetchNests();
-      toast({
-        title: "Nest deleted successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
     } catch (error) {
       console.error("Error deleting nest:", error);
       toast({
@@ -162,12 +169,6 @@ export const InventoryManager = () => {
         nest_id: nestId,
       });
       refetchPlates();
-      toast({
-        title: "Plate created successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
     } catch (error) {
       console.error("Error creating plate:", error);
       toast({
@@ -190,15 +191,143 @@ export const InventoryManager = () => {
         well_id: wellId,
       });
       refetchReagents();
+    } catch (error) {
+      console.error("Error creating reagent:", error);
+      throw error;
+    }
+  };
+
+  const handleCheckIn = async ({
+    nestId,
+    plates: newPlates,
+    triggerToolCommand,
+  }: {
+    nestId: number;
+    plates: Array<{ barcode: string; name: string; plate_type: string }>;
+    triggerToolCommand: boolean;
+  }) => {
+    try {
+      // Get the nest to check capacity
+      const targetNest = typedNests.find((n: Nest) => n.id === nestId);
+      if (!targetNest) {
+        throw new Error("Selected nest not found");
+      }
+
+      // Check if the nest already has a plate
+      const nestHasPlate = typedPlates.some(p => p.nest_id === nestId);
+      if (nestHasPlate) {
+        throw new Error("Selected nest is already occupied");
+      }
+
+      // Create all plates
+      for (const plateData of newPlates) {
+        await createPlateMutation.mutateAsync({
+          ...plateData,
+          nest_id: nestId,
+        });
+      }
+
+      // If tool command is requested and it's a single plate
+      if (triggerToolCommand && newPlates.length === 1) {
+        // Here you would trigger the physical tool command
+        // This is a placeholder for the actual implementation
+        toast({
+          title: "Tool command triggered",
+          description: "Physical check-in command sent to the tool",
+          status: "info",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+
+      refetchPlates();
+      setSelectedPlate(null);
+      setIsCheckInModalOpen(false);
+
       toast({
-        title: "Reagent created successfully",
+        title: "Check-in successful",
+        description: `${newPlates.length} plate(s) checked in successfully`,
         status: "success",
         duration: 3000,
         isClosable: true,
       });
     } catch (error) {
-      console.error("Error creating reagent:", error);
-      throw error;
+      console.error("Error checking in plate(s):", error);
+      toast({
+        title: "Error checking in plate(s)",
+        description: error instanceof Error ? error.message : "Unknown error",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleCheckOut = async ({
+    plateId,
+    barcode,
+    triggerToolCommand,
+  }: {
+    plateId?: number;
+    barcode?: string;
+    triggerToolCommand: boolean;
+  }) => {
+    try {
+      let plateToCheckOut: Plate | undefined;
+
+      if (plateId) {
+        plateToCheckOut = typedPlates.find(p => p.id === plateId);
+      } else if (barcode) {
+        plateToCheckOut = typedPlates.find(p => p.barcode === barcode);
+      }
+
+      if (!plateToCheckOut) {
+        throw new Error("Plate not found");
+      }
+
+      if (!plateToCheckOut.nest_id) {
+        throw new Error("Plate is not checked into any nest");
+      }
+
+      // Update the plate to remove it from the nest
+      await updatePlateMutation.mutateAsync({
+        ...plateToCheckOut,
+        nest_id: null,
+      });
+
+      // If tool command is requested
+      if (triggerToolCommand) {
+        // Here you would trigger the physical tool command
+        // This is a placeholder for the actual implementation
+        toast({
+          title: "Tool command triggered",
+          description: "Physical check-out command sent to the tool",
+          status: "info",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+
+      refetchPlates();
+      setSelectedPlate(null);
+      setIsCheckOutModalOpen(false);
+
+      toast({
+        title: "Check-out successful",
+        description: `Plate ${plateToCheckOut.name || plateToCheckOut.barcode} checked out successfully`,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error("Error checking out plate:", error);
+      toast({
+        title: "Error checking out plate",
+        description: error instanceof Error ? error.message : "Unknown error",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
     }
   };
 
@@ -208,12 +337,27 @@ export const InventoryManager = () => {
         <Card bg={headerBg} shadow="md">
           <CardBody>
             <VStack spacing={4} align="stretch">
-              <PageHeader
-                title="Inventory"
-                subTitle="Manage plates, reagents, and nests across your workcells"
-                titleIcon={<Icon as={BsBoxSeam} boxSize={8} color="teal.500" />}
-                mainButton={null}
-              />
+              <HStack justify="space-between" align="center">
+                <PageHeader
+                  title="Inventory"
+                  subTitle="Manage plates, reagents, and nests across your workcells"
+                  titleIcon={<Icon as={BsBoxSeam} boxSize={8} color="teal.500" />}
+                  mainButton={null}
+                />
+                <ButtonGroup>
+                  <Button
+                    colorScheme="teal"
+                    onClick={() => setIsCheckInModalOpen(true)}>
+                    Check In
+                  </Button>
+                  <Button
+                    colorScheme="teal"
+                    variant="outline"
+                    onClick={() => setIsCheckOutModalOpen(true)}>
+                    Check Out
+                  </Button>
+                </ButtonGroup>
+              </HStack>
 
               <Divider />
 
@@ -266,13 +410,14 @@ export const InventoryManager = () => {
                 <Box key={tool.id}>
                   <InventoryToolCard
                     toolId={tool.id}
-                    nests={(nests as Nest[]).filter((n: Nest) => n.tool_id === tool.id)}
-                    plates={plates as Plate[]}
+                    nests={typedNests.filter((n: Nest) => n.tool_id === tool.id)}
+                    plates={typedPlates}
                     onCreateNest={handleCreateNest}
                     onDeleteNest={handleDeleteNest}
                     onCreatePlate={handleCreatePlate}
                     onCreateReagent={handleCreateReagent}
                     onNestClick={handleNestSelect}
+                    onPlateClick={handlePlateClick}
                   />
                 </Box>
               ))}
@@ -288,6 +433,40 @@ export const InventoryManager = () => {
           title={alertStatus.charAt(0).toUpperCase() + alertStatus.slice(1)}
           description={alertDescription}
           onClose={() => setShowAlert(false)}
+        />
+      )}
+
+      <CheckInModal
+        isOpen={isCheckInModalOpen}
+        onClose={() => setIsCheckInModalOpen(false)}
+        tools={workcellTools}
+        availableNests={typedNests}
+        selectedPlate={selectedPlate}
+        plates={typedPlates}
+        onSubmit={handleCheckIn}
+        onPlateClick={handlePlateClick}
+      />
+
+      <CheckOutModal
+        isOpen={isCheckOutModalOpen}
+        onClose={() => setIsCheckOutModalOpen(false)}
+        selectedPlate={selectedPlate}
+        tools={workcellTools}
+        availableNests={typedNests}
+        plates={typedPlates}
+        onSubmit={handleCheckOut}
+        onPlateClick={handlePlateClick}
+      />
+
+      {plateForModal && (
+        <PlateModal
+          isOpen={isPlateModalOpen}
+          onClose={() => {
+            setIsPlateModalOpen(false);
+            setPlateForModal(null);
+          }}
+          plate={plateForModal}
+          onCreateReagent={handleCreateReagent}
         />
       )}
     </Box>

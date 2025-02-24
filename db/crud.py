@@ -8,6 +8,7 @@ from db import schemas
 import db.models.inventory_models as models
 import db.models.log_models as log_model
 import typing as t
+from datetime import datetime
 
 ModelType = TypeVar("ModelType", bound=models.Base)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
@@ -156,30 +157,30 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         obj_in_data = self._exclude_unset(jsonable_encoder(obj_in))
         query = db.query(self.model)
 
-        if isinstance(self.model(), models.Workcell):
+        if self.model == models.Workcell:
             return (
                 query.filter(models.Workcell.id == workcell_id)
                 .filter_by(**obj_in_data)
                 .all()
             )
-        elif isinstance(self.model(), models.Tool):
+        elif self.model == models.Tool:
             query = query.join(models.Workcell).filter(
                 models.Workcell.id == workcell_id
             )
-        elif isinstance(self.model(), models.Nest):
+        elif self.model == models.Nest:
             query = (
                 query.join(models.Tool)
                 .join(models.Workcell)
                 .filter(models.Workcell.id == workcell_id)
             )
-        elif isinstance(self.model(), models.Plate):
+        elif self.model == models.Plate:
             query = (
                 query.join(models.Nest)
                 .join(models.Tool)
                 .join(models.Workcell)
                 .filter(models.Workcell.id == workcell_id)
             )
-        elif isinstance(self.model(), models.Well):
+        elif self.model == models.Well:
             query = (
                 query.join(models.Plate)
                 .join(models.Nest)
@@ -187,7 +188,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
                 .join(models.Workcell)
                 .filter(models.Workcell.id == workcell_id)
             )
-        elif isinstance(self.model(), models.Reagent):
+        elif self.model == models.Reagent:
             query = (
                 query.join(models.Well)
                 .join(models.Plate)
@@ -202,11 +203,132 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return query.filter_by(**obj_in_data).all()
 
 
+class CRUDNest(CRUDBase[models.Nest, schemas.NestCreate, schemas.NestUpdate]):
+    def __init__(self):
+        super().__init__(models.Nest)
+
+    def get_available_nests(self, db: Session, tool_id: Optional[int] = None) -> List[models.Nest]:
+        """Get all available (empty) nests, optionally filtered by tool_id"""
+        query = db.query(models.Nest).filter(models.Nest.status == models.NestStatus.empty)
+        if tool_id:
+            query = query.filter(models.Nest.tool_id == tool_id)
+        return query.all()
+
+    def check_in_plate(
+        self, 
+        db: Session, 
+        nest_id: int, 
+        plate_data: schemas.PlateCreate
+    ) -> models.Plate:
+        """Check in a plate to a nest"""
+        # Verify nest is available
+        nest = db.query(models.Nest).filter(
+            models.Nest.id == nest_id,
+            models.Nest.status == models.NestStatus.empty
+        ).first()
+        if not nest:
+            raise ValueError("Nest is not available")
+
+        # Create plate
+        plate = models.Plate(
+            **plate_data.dict(),
+            nest_id=nest_id,
+            status=models.PlateStatus.stored
+        )
+        db.add(plate)
+
+        # Update nest status
+        nest.status = models.NestStatus.occupied
+
+        # Record history
+        history = models.PlateNestHistory(
+            plate_id=plate.id,
+            nest_id=nest_id,
+            action=models.PlateNestAction.check_in
+        )
+        db.add(history)
+        
+        db.commit()
+        db.refresh(plate)
+        return plate
+
+    def check_out_plate(
+        self, 
+        db: Session, 
+        plate_id: int
+    ) -> models.Plate:
+        """Check out a plate from its nest"""
+        plate = db.query(models.Plate).filter(models.Plate.id == plate_id).first()
+        if not plate or not plate.nest_id:
+            raise ValueError("Plate not found or not in a nest")
+
+        nest = db.query(models.Nest).filter(models.Nest.id == plate.nest_id).first()
+        if not nest:
+            raise ValueError("Associated nest not found")
+
+        # Record history
+        history = models.PlateNestHistory(
+            plate_id=plate.id,
+            nest_id=nest.id,
+            action=models.PlateNestAction.check_out
+        )
+        db.add(history)
+
+        # Update nest and plate
+        nest.status = models.NestStatus.empty
+        plate.nest_id = None
+        plate.status = models.PlateStatus.in_use
+
+        db.commit()
+        db.refresh(plate)
+        return plate
+
+    def transfer_plate(
+        self, 
+        db: Session, 
+        plate_id: int, 
+        new_nest_id: int
+    ) -> models.Plate:
+        """Transfer a plate from one nest to another"""
+        plate = db.query(models.Plate).filter(models.Plate.id == plate_id).first()
+        if not plate:
+            raise ValueError("Plate not found")
+
+        new_nest = db.query(models.Nest).filter(
+            models.Nest.id == new_nest_id,
+            models.Nest.status == models.NestStatus.empty
+        ).first()
+        if not new_nest:
+            raise ValueError("New nest is not available")
+
+        old_nest_id = plate.nest_id
+        if old_nest_id:
+            old_nest = db.query(models.Nest).filter(models.Nest.id == old_nest_id).first()
+            if old_nest:
+                old_nest.status = models.NestStatus.empty
+
+        # Record history
+        history = models.PlateNestHistory(
+            plate_id=plate.id,
+            nest_id=new_nest_id,
+            action=models.PlateNestAction.transfer
+        )
+        db.add(history)
+
+        # Update new nest and plate
+        new_nest.status = models.NestStatus.occupied
+        plate.nest_id = new_nest_id
+
+        db.commit()
+        db.refresh(plate)
+        return plate
+
+
 workcell = CRUDBase[models.Workcell, schemas.WorkcellCreate, schemas.WorkcellUpdate](
     models.Workcell
 )
 
-nest = CRUDBase[models.Nest, schemas.NestCreate, schemas.NestUpdate](models.Nest)
+nest = CRUDNest()
 plate = CRUDBase[models.Plate, schemas.PlateCreate, schemas.PlateUpdate](models.Plate)
 well = CRUDBase[models.Well, schemas.WellCreate, schemas.WellUpdate](models.Well)
 reagent = CRUDBase[models.Reagent, schemas.ReagentCreate, schemas.ReagentUpdate](
