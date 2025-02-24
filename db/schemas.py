@@ -79,11 +79,13 @@ class NestStatus(str, PyEnum):
     reserved = "reserved"
     error = "error"
 
+
 class PlateStatus(str, PyEnum):
     stored = "stored"
     in_use = "in_use"
     completed = "completed"
     disposed = "disposed"
+
 
 class PlateNestAction(str, PyEnum):
     check_in = "check_in"
@@ -99,11 +101,14 @@ class NestBase(BaseModel):
     tool_id: int
     status: NestStatus = NestStatus.empty
 
+
 class NestCreate(NestBase):
     pass
 
+
 class NestUpdate(NestBase):
     pass
+
 
 class Nest(NestBase):
     id: int
@@ -120,11 +125,14 @@ class PlateBase(BaseModel):
     nest_id: t.Optional[int] = None
     status: PlateStatus = PlateStatus.stored
 
+
 class PlateCreate(PlateBase):
     pass
 
+
 class PlateUpdate(PlateBase):
     pass
+
 
 class Plate(PlateBase):
     id: int
@@ -528,11 +536,14 @@ class PlateNestHistoryBase(BaseModel):
     action: PlateNestAction
     timestamp: datetime
 
+
 class PlateNestHistoryCreate(PlateNestHistoryBase):
     pass
 
+
 class PlateNestHistoryUpdate(PlateNestHistoryBase):
     pass
+
 
 class PlateNestHistory(PlateNestHistoryBase):
     id: int
@@ -545,6 +556,7 @@ class PlateNestHistory(PlateNestHistoryBase):
 class NestWithRelations(Nest):
     current_plate: t.Optional[Plate] = None
     plate_history: t.List[PlateNestHistory] = []
+
 
 class PlateWithRelations(Plate):
     current_nest: t.Optional[Nest] = None

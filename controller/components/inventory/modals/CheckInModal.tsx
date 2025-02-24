@@ -82,10 +82,10 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
   const [numberOfPlates, setNumberOfPlates] = useState(1);
   const toast = useToast();
 
-  const filteredNests = availableNests.filter(nest => 
-    selectedToolId ? nest.tool_id === selectedToolId : true
+  const filteredNests = availableNests.filter((nest) =>
+    selectedToolId ? nest.tool_id === selectedToolId : true,
   );
-  console.log('Filtered Nests:', filteredNests);
+  console.log("Filtered Nests:", filteredNests);
 
   const bgColor = useColorModeValue("gray.50", "gray.700");
   const borderColor = useColorModeValue("gray.200", "gray.600");
@@ -98,7 +98,7 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.type !== "text/csv" && !file.name.endsWith('.csv')) {
+      if (file.type !== "text/csv" && !file.name.endsWith(".csv")) {
         toast({
           title: "Invalid file type",
           description: "Please upload a CSV file",
@@ -114,10 +114,10 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
 
   const getNextAvailableNest = (): number | "" => {
     // Find nests that belong to the selected tool and are empty
-    const availableEmptyNests = filteredNests.filter(nest => {
+    const availableEmptyNests = filteredNests.filter((nest) => {
       // Check if the nest has no plate assigned to it
-      const hasPlate = plates.some(plate => plate.nest_id === nest.id);
-      return !hasPlate && nest.status === 'empty';
+      const hasPlate = plates.some((plate) => plate.nest_id === nest.id);
+      return !hasPlate && nest.status === "empty";
     });
     console.log("availableEmptyNests", availableEmptyNests);
 
@@ -149,12 +149,14 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
-      
+
       let targetNestId = selectedNestIds[0];
       if (nestSelectionMode === "automatic") {
         const nextNest = getNextAvailableNest();
         if (nextNest === "") {
-          throw new Error("No empty nests available. Please select a nest manually or create new nests.");
+          throw new Error(
+            "No empty nests available. Please select a nest manually or create new nests.",
+          );
         }
         targetNestId = nextNest;
       }
@@ -163,15 +165,20 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
         throw new Error("Please select a nest");
       }
 
-      let plates: Array<{ barcode: string; name: string; plate_type: string; status: PlateStatus }> = [];
+      let plates: Array<{
+        barcode: string;
+        name: string;
+        plate_type: string;
+        status: PlateStatus;
+      }> = [];
 
       if (uploadedFile) {
         // Process CSV file
         const text = await uploadedFile.text();
-        const rows = text.split('\n').slice(1); // Skip header row
-        plates = rows.map(row => {
-          const [barcode, name, plate_type] = row.split(',').map(cell => cell.trim());
-          return { barcode, name, plate_type, status: 'stored' as PlateStatus };
+        const rows = text.split("\n").slice(1); // Skip header row
+        plates = rows.map((row) => {
+          const [barcode, name, plate_type] = row.split(",").map((cell) => cell.trim());
+          return { barcode, name, plate_type, status: "stored" as PlateStatus };
         });
       } else {
         if (!manualPlateName || !manualPlateType) {
@@ -184,16 +191,18 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
             barcode: manualBarcode || generateBarcode(index),
             name: `${manualPlateName}-${index + 1}`,
             plate_type: manualPlateType,
-            status: 'stored' as PlateStatus
+            status: "stored" as PlateStatus,
           }));
         } else {
           // Single plate entry
-          plates = [{
-            barcode: manualBarcode || generateBarcode(),
-            name: manualPlateName,
-            plate_type: manualPlateType,
-            status: 'stored' as PlateStatus
-          }];
+          plates = [
+            {
+              barcode: manualBarcode || generateBarcode(),
+              name: manualPlateName,
+              plate_type: manualPlateType,
+              status: "stored" as PlateStatus,
+            },
+          ];
         }
       }
 
@@ -289,7 +298,12 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
                       />
                     </FormControl>
                     {(uploadedFile !== null || numberOfPlates > 1) && triggerToolCommand && (
-                      <Text color="orange.300" fontSize="sm" mt={2} display="flex" alignItems="center">
+                      <Text
+                        color="orange.300"
+                        fontSize="sm"
+                        mt={2}
+                        display="flex"
+                        alignItems="center">
                         <Icon as={BsLightningCharge} mr={1} /> Only for single plate
                       </Text>
                     )}
@@ -310,17 +324,13 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
                   borderRadius="md"
                   borderColor={borderColor}>
                   <TabList mb="1em">
-                    <Tab 
-                      _selected={{ bg: selectedBg, borderColor: borderColor }}
-                      color={textColor}>
+                    <Tab _selected={{ bg: selectedBg, borderColor: borderColor }} color={textColor}>
                       <HStack>
                         <Text>Single Entry</Text>
                         <Badge colorScheme="blue">1 Plate</Badge>
                       </HStack>
                     </Tab>
-                    <Tab 
-                      _selected={{ bg: selectedBg, borderColor: borderColor }}
-                      color={textColor}>
+                    <Tab _selected={{ bg: selectedBg, borderColor: borderColor }} color={textColor}>
                       <HStack>
                         <Text>Batch Entry</Text>
                         <Badge colorScheme="purple">Multiple</Badge>
@@ -333,9 +343,13 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
                         <VStack spacing={4} flex="1">
                           <FormControl isRequired>
                             <HStack justify="space-between" align="center" mb={2}>
-                              <FormLabel color={labelColor} mb={0}>Barcode</FormLabel>
+                              <FormLabel color={labelColor} mb={0}>
+                                Barcode
+                              </FormLabel>
                               <HStack spacing={2} align="center">
-                                <Text fontSize="sm" color={textColor}>Auto</Text>
+                                <Text fontSize="sm" color={textColor}>
+                                  Auto
+                                </Text>
                                 <Switch
                                   id="auto-barcode"
                                   isChecked={useAutoBarcode}
@@ -353,7 +367,9 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
                             <Input
                               value={manualBarcode}
                               onChange={(e) => setManualBarcode(e.target.value)}
-                              placeholder={useAutoBarcode ? "Will be auto-generated" : "Enter plate barcode"}
+                              placeholder={
+                                useAutoBarcode ? "Will be auto-generated" : "Enter plate barcode"
+                              }
                               bg={inputBg}
                               isDisabled={useAutoBarcode}
                             />
@@ -421,9 +437,13 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
                         <HStack spacing={4} width="100%">
                           <FormControl isRequired flex="1">
                             <HStack justify="space-between" align="center" mb={2}>
-                              <FormLabel color={labelColor} mb={0}>Base Barcode</FormLabel>
+                              <FormLabel color={labelColor} mb={0}>
+                                Base Barcode
+                              </FormLabel>
                               <HStack spacing={2} align="center">
-                                <Text fontSize="sm" color={textColor}>Auto</Text>
+                                <Text fontSize="sm" color={textColor}>
+                                  Auto
+                                </Text>
                                 <Switch
                                   id="auto-barcode-batch"
                                   isChecked={useAutoBarcode}
@@ -441,12 +461,18 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
                             <Input
                               value={manualBarcode}
                               onChange={(e) => setManualBarcode(e.target.value)}
-                              placeholder={useAutoBarcode ? "Will be auto-generated" : "Will be suffixed (-1, -2, etc.)"}
+                              placeholder={
+                                useAutoBarcode
+                                  ? "Will be auto-generated"
+                                  : "Will be suffixed (-1, -2, etc.)"
+                              }
                               bg={inputBg}
                               isDisabled={useAutoBarcode}
                             />
                             <FormHelperText color={textColor}>
-                              {useAutoBarcode ? "Auto-generate barcodes" : "Enter base barcode manually"}
+                              {useAutoBarcode
+                                ? "Auto-generate barcodes"
+                                : "Enter base barcode manually"}
                             </FormHelperText>
                           </FormControl>
                           <FormControl isRequired flex="1">
@@ -482,7 +508,7 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
                               type="file"
                               ref={fileInputRef}
                               onChange={handleFileUpload}
-                              style={{ display: 'none' }}
+                              style={{ display: "none" }}
                               accept=".csv"
                             />
                           </HStack>
@@ -553,7 +579,8 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
                 isDisabled={
                   !selectedToolId ||
                   (nestSelectionMode === "manual" && selectedNestIds.length === 0) ||
-                  (!uploadedFile && (!useAutoBarcode && !manualBarcode || !manualPlateName || !manualPlateType))
+                  (!uploadedFile &&
+                    ((!useAutoBarcode && !manualBarcode) || !manualPlateName || !manualPlateType))
                 }>
                 Check In
               </Button>
@@ -565,28 +592,27 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
       {/* Nest Selection Modal */}
       {isNestModalOpen && (
         <>
-          {console.log('Selected Tool ID:', selectedToolId)}
-          {console.log('Filtered Nests:', filteredNests)}
-          {console.log('Available Nests:', availableNests)}
-          {console.log('Plates:', plates)}
+          {console.log("Selected Tool ID:", selectedToolId)}
+          {console.log("Filtered Nests:", filteredNests)}
+          {console.log("Available Nests:", availableNests)}
+          {console.log("Plates:", plates)}
           <NestModal
             isOpen={isNestModalOpen}
             onClose={() => setIsNestModalOpen(false)}
-            toolName={tools.find(t => t.id === selectedToolId)?.name || ""}
+            toolName={tools.find((t) => t.id === selectedToolId)?.name || ""}
             nests={filteredNests}
-            plates={plates.filter(plate => 
-              availableNests.some(n => 
-                (!selectedToolId || n.tool_id === selectedToolId) && 
-                plate.nest_id === n.id
-              )
+            plates={plates.filter((plate) =>
+              availableNests.some(
+                (n) => (!selectedToolId || n.tool_id === selectedToolId) && plate.nest_id === n.id,
+              ),
             )}
             selectedNests={numberOfPlates === 1 ? selectedNestIds.slice(0, 1) : selectedNestIds}
             isMultiSelect={numberOfPlates > 1}
             maxSelections={numberOfPlates}
             onNestSelect={(nestIds) => {
-              console.log('Nests selected:', nestIds);
+              console.log("Nests selected:", nestIds);
               const newSelectedNests = numberOfPlates === 1 ? nestIds.slice(0, 1) : nestIds;
-              setSelectedNestIds(newSelectedNests);          
+              setSelectedNestIds(newSelectedNests);
             }}
             onCreateNest={async () => {}}
             onDeleteNest={async () => {}}

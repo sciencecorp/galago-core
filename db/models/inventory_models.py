@@ -109,7 +109,7 @@ class Nest(Base, TimestampMixin):
     column = Column(Integer)
     tool_id = Column(Integer, ForeignKey("tools.id"))
     status = Column(Enum(NestStatus), default=NestStatus.empty)
-    
+
     # Relationships
     tool = relationship("Tool", back_populates="nests")
     plate_history = relationship("PlateNestHistory", back_populates="nest")
@@ -137,7 +137,7 @@ class PlateNestHistory(Base, TimestampMixin):
     nest_id = Column(Integer, ForeignKey("nests.id"))
     action = Column(Enum(PlateNestAction))
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     # Relationships
     plate = relationship("Plate", back_populates="nest_history")
     nest = relationship("Nest", back_populates="plate_history")
@@ -149,7 +149,7 @@ class Well(Base, TimestampMixin):
     row = Column(String)
     column = Column(Integer)
     plate_id = Column(Integer, ForeignKey("plates.id"))
-    
+
     # Relationships
     plate = relationship("Plate", back_populates="wells")
     reagents = relationship("Reagent", back_populates="well")
@@ -162,7 +162,7 @@ class Reagent(Base, TimestampMixin):
     expiration_date = Column(DateTime)
     volume = Column(Float)
     well_id = Column(Integer, ForeignKey("wells.id"))
-    
+
     # Relationships
     well = relationship("Well", back_populates="reagents")
 

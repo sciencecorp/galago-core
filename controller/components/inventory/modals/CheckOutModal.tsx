@@ -76,15 +76,15 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
   const labelColor = useColorModeValue("gray.700", "gray.200");
   const sectionBg = useColorModeValue("gray.50", "whiteAlpha.50");
 
-  const filteredNests = availableNests.filter(nest => 
-    selectedToolId ? nest.tool_id === selectedToolId : true
+  const filteredNests = availableNests.filter((nest) =>
+    selectedToolId ? nest.tool_id === selectedToolId : true,
   );
 
   const handleNestSelection = (nestId: number) => {
     setSelectedNestId(nestId);
     setIsNestModalOpen(false);
     // Find the plate in the selected nest
-    const nest = availableNests.find(n => n.id === nestId);
+    const nest = availableNests.find((n) => n.id === nestId);
     if (nest && nest.current_plate_id) {
       setPlateId(String(nest.current_plate_id));
     }
@@ -203,21 +203,25 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
                       </FormControl>
                       <FormControl>
                         <FormLabel color={labelColor}>Current Nest</FormLabel>
-                        <Input 
-                          value={selectedPlate?.nest_id || "Not checked in"} 
-                          isReadOnly 
+                        <Input
+                          value={selectedPlate?.nest_id || "Not checked in"}
+                          isReadOnly
                           bg={inputBg}
                         />
                       </FormControl>
                       <FormControl>
                         <FormLabel color={labelColor}>Status</FormLabel>
-                        <Badge colorScheme={
-                          selectedPlate?.status === 'stored' ? 'green' :
-                          selectedPlate?.status === 'in_use' ? 'blue' :
-                          selectedPlate?.status === 'completed' ? 'purple' :
-                          'red'
-                        }>
-                          {selectedPlate?.status || 'Unknown'}
+                        <Badge
+                          colorScheme={
+                            selectedPlate?.status === "stored"
+                              ? "green"
+                              : selectedPlate?.status === "in_use"
+                                ? "blue"
+                                : selectedPlate?.status === "completed"
+                                  ? "purple"
+                                  : "red"
+                          }>
+                          {selectedPlate?.status || "Unknown"}
                         </Badge>
                       </FormControl>
                     </VStack>
@@ -248,12 +252,12 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
                       {selectionMode === "manual" ? (
                         <Tabs isFitted variant="enclosed" borderColor={borderColor}>
                           <TabList mb="1em">
-                            <Tab 
+                            <Tab
                               _selected={{ bg: selectedBg, borderColor: borderColor }}
                               color={textColor}>
                               By Barcode
                             </Tab>
-                            <Tab 
+                            <Tab
                               _selected={{ bg: selectedBg, borderColor: borderColor }}
                               color={textColor}>
                               By Plate ID
@@ -310,8 +314,7 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
                 loadingText="Checking Out..."
                 size="lg"
                 isDisabled={
-                  !selectedToolId ||
-                  (!selectedPlate && !barcode && !plateId && !selectedNestId)
+                  !selectedToolId || (!selectedPlate && !barcode && !plateId && !selectedNestId)
                 }>
                 Check Out
               </Button>
@@ -325,11 +328,9 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
         <NestModal
           isOpen={isNestModalOpen}
           onClose={() => setIsNestModalOpen(false)}
-          toolName={tools.find(t => t.id === selectedToolId)?.name || ""}
+          toolName={tools.find((t) => t.id === selectedToolId)?.name || ""}
           nests={filteredNests}
-          plates={plates.filter(plate => 
-            filteredNests.some(n => plate.nest_id === n.id)
-          )}
+          plates={plates.filter((plate) => filteredNests.some((n) => plate.nest_id === n.id))}
           selectedNests={selectedNestId ? [selectedNestId] : []}
           isMultiSelect={false}
           onNestSelect={(nestIds) => handleNestSelection(nestIds[0])}

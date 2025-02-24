@@ -223,8 +223,8 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
         selectedNests={[]}
         isMultiSelect={true}
         onNestSelect={(nestIds) => {
-          nestIds.forEach(id => {
-            const nest = nests.find(n => n.id === id);
+          nestIds.forEach((id) => {
+            const nest = nests.find((n) => n.id === id);
             if (nest) onNestClick(nest);
           });
         }}

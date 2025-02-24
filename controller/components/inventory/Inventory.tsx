@@ -214,7 +214,7 @@ export const InventoryManager = () => {
       }
 
       // Check if the nest already has a plate
-      const nestHasPlate = typedPlates.some(p => p.nest_id === nestId);
+      const nestHasPlate = typedPlates.some((p) => p.nest_id === nestId);
       if (nestHasPlate) {
         throw new Error("Selected nest is already occupied");
       }
@@ -276,9 +276,9 @@ export const InventoryManager = () => {
       let plateToCheckOut: Plate | undefined;
 
       if (plateId) {
-        plateToCheckOut = typedPlates.find(p => p.id === plateId);
+        plateToCheckOut = typedPlates.find((p) => p.id === plateId);
       } else if (barcode) {
-        plateToCheckOut = typedPlates.find(p => p.barcode === barcode);
+        plateToCheckOut = typedPlates.find((p) => p.barcode === barcode);
       }
 
       if (!plateToCheckOut) {
@@ -345,9 +345,7 @@ export const InventoryManager = () => {
                   mainButton={null}
                 />
                 <ButtonGroup>
-                  <Button
-                    colorScheme="teal"
-                    onClick={() => setIsCheckInModalOpen(true)}>
+                  <Button colorScheme="teal" onClick={() => setIsCheckInModalOpen(true)}>
                     Check In
                   </Button>
                   <Button

@@ -207,33 +207,35 @@ class CRUDNest(CRUDBase[models.Nest, schemas.NestCreate, schemas.NestUpdate]):
     def __init__(self):
         super().__init__(models.Nest)
 
-    def get_available_nests(self, db: Session, tool_id: Optional[int] = None) -> List[models.Nest]:
+    def get_available_nests(
+        self, db: Session, tool_id: Optional[int] = None
+    ) -> List[models.Nest]:
         """Get all available (empty) nests, optionally filtered by tool_id"""
-        query = db.query(models.Nest).filter(models.Nest.status == models.NestStatus.empty)
+        query = db.query(models.Nest).filter(
+            models.Nest.status == models.NestStatus.empty
+        )
         if tool_id:
             query = query.filter(models.Nest.tool_id == tool_id)
         return query.all()
 
     def check_in_plate(
-        self, 
-        db: Session, 
-        nest_id: int, 
-        plate_data: schemas.PlateCreate
+        self, db: Session, nest_id: int, plate_data: schemas.PlateCreate
     ) -> models.Plate:
         """Check in a plate to a nest"""
         # Verify nest is available
-        nest = db.query(models.Nest).filter(
-            models.Nest.id == nest_id,
-            models.Nest.status == models.NestStatus.empty
-        ).first()
+        nest = (
+            db.query(models.Nest)
+            .filter(
+                models.Nest.id == nest_id, models.Nest.status == models.NestStatus.empty
+            )
+            .first()
+        )
         if not nest:
             raise ValueError("Nest is not available")
 
         # Create plate
         plate = models.Plate(
-            **plate_data.dict(),
-            nest_id=nest_id,
-            status=models.PlateStatus.stored
+            **plate_data.dict(), nest_id=nest_id, status=models.PlateStatus.stored
         )
         db.add(plate)
 
@@ -242,21 +244,15 @@ class CRUDNest(CRUDBase[models.Nest, schemas.NestCreate, schemas.NestUpdate]):
 
         # Record history
         history = models.PlateNestHistory(
-            plate_id=plate.id,
-            nest_id=nest_id,
-            action=models.PlateNestAction.check_in
+            plate_id=plate.id, nest_id=nest_id, action=models.PlateNestAction.check_in
         )
         db.add(history)
-        
+
         db.commit()
         db.refresh(plate)
         return plate
 
-    def check_out_plate(
-        self, 
-        db: Session, 
-        plate_id: int
-    ) -> models.Plate:
+    def check_out_plate(self, db: Session, plate_id: int) -> models.Plate:
         """Check out a plate from its nest"""
         plate = db.query(models.Plate).filter(models.Plate.id == plate_id).first()
         if not plate or not plate.nest_id:
@@ -268,9 +264,7 @@ class CRUDNest(CRUDBase[models.Nest, schemas.NestCreate, schemas.NestUpdate]):
 
         # Record history
         history = models.PlateNestHistory(
-            plate_id=plate.id,
-            nest_id=nest.id,
-            action=models.PlateNestAction.check_out
+            plate_id=plate.id, nest_id=nest.id, action=models.PlateNestAction.check_out
         )
         db.add(history)
 
@@ -284,26 +278,29 @@ class CRUDNest(CRUDBase[models.Nest, schemas.NestCreate, schemas.NestUpdate]):
         return plate
 
     def transfer_plate(
-        self, 
-        db: Session, 
-        plate_id: int, 
-        new_nest_id: int
+        self, db: Session, plate_id: int, new_nest_id: int
     ) -> models.Plate:
         """Transfer a plate from one nest to another"""
         plate = db.query(models.Plate).filter(models.Plate.id == plate_id).first()
         if not plate:
             raise ValueError("Plate not found")
 
-        new_nest = db.query(models.Nest).filter(
-            models.Nest.id == new_nest_id,
-            models.Nest.status == models.NestStatus.empty
-        ).first()
+        new_nest = (
+            db.query(models.Nest)
+            .filter(
+                models.Nest.id == new_nest_id,
+                models.Nest.status == models.NestStatus.empty,
+            )
+            .first()
+        )
         if not new_nest:
             raise ValueError("New nest is not available")
 
         old_nest_id = plate.nest_id
         if old_nest_id:
-            old_nest = db.query(models.Nest).filter(models.Nest.id == old_nest_id).first()
+            old_nest = (
+                db.query(models.Nest).filter(models.Nest.id == old_nest_id).first()
+            )
             if old_nest:
                 old_nest.status = models.NestStatus.empty
 
@@ -311,7 +308,7 @@ class CRUDNest(CRUDBase[models.Nest, schemas.NestCreate, schemas.NestUpdate]):
         history = models.PlateNestHistory(
             plate_id=plate.id,
             nest_id=new_nest_id,
-            action=models.PlateNestAction.transfer
+            action=models.PlateNestAction.transfer,
         )
         db.add(history)
 

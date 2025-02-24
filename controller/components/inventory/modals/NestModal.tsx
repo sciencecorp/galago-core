@@ -59,7 +59,7 @@ const NestModal: React.FC<NestModalProps> = ({
   onPlateClick,
 }) => {
   const [localSelectedNests, setLocalSelectedNests] = useState<number[]>(selectedNests || []);
-  const [dimensionMode, setDimensionMode] = useState<'row' | 'column'>('column');
+  const [dimensionMode, setDimensionMode] = useState<"row" | "column">("column");
   const toast = useToast();
 
   const maxRows = Math.max(...nests.map((nest) => nest.row), 1);
@@ -82,17 +82,17 @@ const NestModal: React.FC<NestModalProps> = ({
 
   const handleNestClick = (nest: Nest) => {
     let newSelection: number[];
-    
+
     if (isMultiSelect) {
       if (localSelectedNests.includes(nest.id)) {
         // Always allow deselection
-        newSelection = localSelectedNests.filter(id => id !== nest.id);
+        newSelection = localSelectedNests.filter((id) => id !== nest.id);
       } else {
         // Check if we can add more selections
         if (maxSelections && localSelectedNests.length >= maxSelections) {
           toast({
             title: "Selection limit reached",
-            description: `You can only select up to ${maxSelections} nest${maxSelections > 1 ? 's' : ''}`,
+            description: `You can only select up to ${maxSelections} nest${maxSelections > 1 ? "s" : ""}`,
             status: "warning",
             duration: 3000,
             isClosable: true,
@@ -104,7 +104,7 @@ const NestModal: React.FC<NestModalProps> = ({
     } else {
       newSelection = [nest.id];
     }
-    
+
     setLocalSelectedNests(newSelection);
     onNestSelect(newSelection);
   };
@@ -115,37 +115,45 @@ const NestModal: React.FC<NestModalProps> = ({
   };
 
   const getPlateTypeInfo = (plateType: string) => {
-    const rows = plateType.includes("384") ? 16 : 
-                 plateType.includes("96") ? 8 : 
-                 plateType.includes("24") ? 4 : 2;
-    const cols = plateType.includes("384") ? 24 : 
-                 plateType.includes("96") ? 12 : 
-                 plateType.includes("24") ? 6 : 3;
+    const rows = plateType.includes("384")
+      ? 16
+      : plateType.includes("96")
+        ? 8
+        : plateType.includes("24")
+          ? 4
+          : 2;
+    const cols = plateType.includes("384")
+      ? 24
+      : plateType.includes("96")
+        ? 12
+        : plateType.includes("24")
+          ? 6
+          : 3;
     return { rows, cols };
   };
 
-  const handleDimensionChange = async (type: 'row' | 'column', operation: 'add' | 'remove') => {
+  const handleDimensionChange = async (type: "row" | "column", operation: "add" | "remove") => {
     try {
-      const currentMax = type === 'row' ? maxRows : maxColumns;
-      const newValue = operation === 'add' ? currentMax + 1 : Math.max(1, currentMax - 1);
-      
-      if (operation === 'remove' && onDeleteNest) {
+      const currentMax = type === "row" ? maxRows : maxColumns;
+      const newValue = operation === "add" ? currentMax + 1 : Math.max(1, currentMax - 1);
+
+      if (operation === "remove" && onDeleteNest) {
         // Delete nests in the last row/column
-        const nestsToDelete = nests.filter(nest => 
-          type === 'row' ? nest.row === currentMax : nest.column === currentMax
+        const nestsToDelete = nests.filter((nest) =>
+          type === "row" ? nest.row === currentMax : nest.column === currentMax,
         );
-        
+
         for (const nest of nestsToDelete) {
           await onDeleteNest(nest.id);
         }
-      } else if (operation === 'add' && onCreateNest) {
+      } else if (operation === "add" && onCreateNest) {
         // If inventory is empty, create first nest at (1,1)
         if (nests.length === 0) {
           await onCreateNest(1, 1);
         }
-        
+
         // Add new nests in the new row/column
-        if (type === 'row') {
+        if (type === "row") {
           for (let col = 1; col <= maxColumns; col++) {
             if (nests.length === 0 && col === 1) continue; // Skip (1,1) if we just created it
             await onCreateNest(newValue, col);
@@ -169,9 +177,9 @@ const NestModal: React.FC<NestModalProps> = ({
   };
 
   const renderNestContent = (nest: Nest) => {
-    const plate = plates.find(p => p.nest_id === nest.id);
+    const plate = plates.find((p) => p.nest_id === nest.id);
     const isSelected = localSelectedNests.includes(nest.id);
-    
+
     return (
       <Box
         key={nest.id}
@@ -193,10 +201,10 @@ const NestModal: React.FC<NestModalProps> = ({
           transform: "scale(1.02)",
           shadow: "sm",
           borderColor: selectedNestBorder,
-          bg: isSelected ? selectedNestBg : 'transparent',
+          bg: isSelected ? selectedNestBg : "transparent",
         }}>
         {plate && (
-          <Tooltip label={`${plate.name || 'Unnamed Plate'}`}>
+          <Tooltip label={`${plate.name || "Unnamed Plate"}`}>
             <Box
               onClick={(e) => {
                 e.stopPropagation(); // Prevent nest selection when clicking the plate
@@ -222,8 +230,9 @@ const NestModal: React.FC<NestModalProps> = ({
             position="absolute"
             top="-2"
             left="-2"
-            colorScheme={nest.status === 'empty' ? 'gray' : 
-                        nest.status === 'reserved' ? 'yellow' : 'red'}
+            colorScheme={
+              nest.status === "empty" ? "gray" : nest.status === "reserved" ? "yellow" : "red"
+            }
             borderRadius="full"
             p="1"
             fontSize="xs">
@@ -267,29 +276,34 @@ const NestModal: React.FC<NestModalProps> = ({
                 <Button
                   size="sm"
                   variant="ghost"
-                  rightIcon={dimensionMode === 'column' ? <Icon as={BsGrid3X3} /> : <Icon as={BsGrid3X3} transform="rotate(90deg)" />}
-                  onClick={() => setDimensionMode(prev => prev === 'column' ? 'row' : 'column')}
+                  rightIcon={
+                    dimensionMode === "column" ? (
+                      <Icon as={BsGrid3X3} />
+                    ) : (
+                      <Icon as={BsGrid3X3} transform="rotate(90deg)" />
+                    )
+                  }
+                  onClick={() => setDimensionMode((prev) => (prev === "column" ? "row" : "column"))}
                   color={textColor}
-                  fontWeight="medium"
-                >
-                  {dimensionMode === 'column' ? 'Columns' : 'Rows'}
+                  fontWeight="medium">
+                  {dimensionMode === "column" ? "Columns" : "Rows"}
                 </Button>
                 <Tooltip label={`Add ${dimensionMode}`}>
                   <IconButton
                     aria-label={`Add ${dimensionMode}`}
                     icon={<AddIcon />}
                     size="sm"
-                    onClick={() => handleDimensionChange(dimensionMode, 'add')}
+                    onClick={() => handleDimensionChange(dimensionMode, "add")}
                     colorScheme="teal"
                   />
                 </Tooltip>
-                {(dimensionMode === 'row' ? maxRows : maxColumns) > 1 && (
+                {(dimensionMode === "row" ? maxRows : maxColumns) > 1 && (
                   <Tooltip label={`Remove ${dimensionMode}`}>
                     <IconButton
                       aria-label={`Remove ${dimensionMode}`}
                       icon={<MinusIcon />}
                       size="sm"
-                      onClick={() => handleDimensionChange(dimensionMode, 'remove')}
+                      onClick={() => handleDimensionChange(dimensionMode, "remove")}
                       colorScheme="teal"
                     />
                   </Tooltip>
@@ -309,8 +323,7 @@ const NestModal: React.FC<NestModalProps> = ({
                   mb={i < maxRows - 1 ? "12px" : 0}
                   display="flex"
                   alignItems="center"
-                  justifyContent="flex-end"
-                >
+                  justifyContent="flex-end">
                   <Box
                     bg={labelBg}
                     px={2}
@@ -354,7 +367,7 @@ const NestModal: React.FC<NestModalProps> = ({
                     const nest = nests.find(
                       (n) => n.row === rowIndex + 1 && n.column === colIndex + 1,
                     );
-                    
+
                     if (!nest) {
                       return (
                         <Box
@@ -382,7 +395,8 @@ const NestModal: React.FC<NestModalProps> = ({
           <ModalFooter borderBottomWidth="1px" py={4}>
             <HStack width="100%" justify="space-between">
               <Text color="gray.500" fontSize="sm">
-                {localSelectedNests.length} nest{localSelectedNests.length !== 1 ? "s" : ""} selected
+                {localSelectedNests.length} nest{localSelectedNests.length !== 1 ? "s" : ""}{" "}
+                selected
               </Text>
               <Button
                 colorScheme="teal"
