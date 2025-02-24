@@ -4,15 +4,13 @@ from sqlalchemy import (
     Integer,
     String,
     JSON,
-    Date,
     Boolean,
     Float,
     DateTime,
     CheckConstraint,
     Enum,
-    and_,
 )
-from sqlalchemy.orm import relationship, remote
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from .db_session import Base
 from sqlalchemy.ext.declarative import declared_attr

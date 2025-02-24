@@ -2,7 +2,6 @@ import typing as t
 from pydantic import BaseModel, model_validator, Field, ConfigDict
 from datetime import datetime, date
 from typing import Optional, List, Dict, Any
-from pydantic import ConfigDict
 from enum import Enum as PyEnum
 
 
