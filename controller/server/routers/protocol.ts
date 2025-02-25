@@ -58,7 +58,7 @@ export const protocolRouter = router({
       params: input.params || {},
       commands: input.commands || [],
     };
-    const response = await post(`${API_BASE_URL}/protocols`, protocolData);
+    const response = await post<Protocol>(`${API_BASE_URL}/protocols`, protocolData);
     logAction({
       level: "info",
       action: "New Protocol Added",

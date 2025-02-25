@@ -172,9 +172,13 @@ export const ProtocolPageComponent: React.FC = () => {
         return sortOrder === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
       }
 
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
+      }
+
       return sortOrder === "asc"
-        ? (aValue) - (bValue)
-        : (bValue) - (aValue);
+        ? Number(aValue) - Number(bValue)
+        : Number(bValue) - Number(aValue);
     });
   }, [filteredProtocols, sortField, sortOrder]);
 
