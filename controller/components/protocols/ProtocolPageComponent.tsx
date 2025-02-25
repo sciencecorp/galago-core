@@ -426,9 +426,7 @@ export const ProtocolPageComponent: React.FC = () => {
                                     key={workcell.id}
                                     size="sm"
                                     variant={
-                                      workcell.id === protocol.workcell_id
-                                        ? "solid"
-                                        : "ghost"
+                                      workcell.id === protocol.workcell_id ? "solid" : "ghost"
                                     }
                                     onClick={() => {
                                       if (workcell.id !== protocol.workcell_id) {
