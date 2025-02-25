@@ -1,9 +1,10 @@
-import Protocol from "@/protocols/protocol";
-import { Protocols, reloadProtocols } from "@/server/protocols";
+import {Protocol} from "@/types/api";
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import axios from "axios";
 import { TRPCError } from "@trpc/server";
+import { logAction } from "@/server/logger";
+import { get} from "../utils/api";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
 
@@ -31,67 +32,22 @@ const protocolSchema = z.object({
 
 export const protocolRouter = router({
   all: procedure.input(z.object({})).query(async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/protocols`);
-      const dbProtocols = response.data.map((protocol: any) => ({
-        name: protocol.name,
-        id: protocol.id.toString(),
-        category: protocol.category,
-        workcell: protocol.workcell_id.toString(),
-        commands: protocol.commands,
-        uiParams: protocol.params,
-      }));
-
-      return dbProtocols;
-    } catch (error) {
-      console.error("Failed to fetch database protocols:", error);
-      return [];
-    }
+      const response = await get<Protocol[]>('/protocols');
+      return response;
   }),
   allNames: procedure
     .input(z.object({ workcellName: z.string() }))
-    .query<AllNamesOutput>(async ({ input }): Promise<AllNamesOutput> => {
+    .query(async ({ input }) => {
       const { workcellName } = input;
-
-      try {
-        const response = await axios.get(`${API_BASE_URL}/protocols`, {
-          params: { workcell_name: workcellName },
-        });
-        const dbProtocols = response.data.map((protocol: any) => ({
-          name: protocol.name,
-          id: protocol.id.toString(),
-          category: protocol.category,
-          workcell: protocol.workcell_id.toString(),
-          number_of_commands: protocol.commands.length,
-          description: protocol.description,
-          icon: protocol.icon,
-        }));
-
-        return dbProtocols;
-      } catch (error) {
-        console.error("Failed to fetch database protocols:", error);
-        return [];
-      }
+      const response =  await get<Protocol[]>(`protocols`, {
+        params: { workcell_name: workcellName }
+      });
+      return response;
     }),
   get: procedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
     const { id } = input;
-
-    try {
-      const response = await axios.get(`${API_BASE_URL}/protocols/${id}`);
-      const dbProtocol = response.data;
-      return {
-        name: dbProtocol.name,
-        id: dbProtocol.id,
-        category: dbProtocol.category,
-        workcell: dbProtocol.workcell_id.toString(),
-        commands: dbProtocol.commands,
-        uiParams: dbProtocol.params,
-        icon: dbProtocol.icon,
-        description: dbProtocol.description,
-      };
-    } catch (error) {
-      return null;
-    }
+    const response = await get<Protocol>(`/protocols/${id}`);
+    return response;
   }),
   create: procedure.input(protocolSchema).mutation(async ({ input }) => {
     try {
@@ -105,7 +61,6 @@ export const protocolRouter = router({
 
       const response = await axios.post(`${API_BASE_URL}/protocols`, protocolData);
 
-      await reloadProtocols();
       return response.data;
     } catch (error: any) {
       console.error("Protocol creation error details:", {
@@ -138,12 +93,10 @@ export const protocolRouter = router({
     )
     .mutation(async ({ input }) => {
       const response = await axios.put(`${API_BASE_URL}/protocols/${input.id}`, input.data);
-      await reloadProtocols();
       return response.data;
     }),
   delete: procedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
     await axios.delete(`${API_BASE_URL}/protocols/${input.id}`);
-    await reloadProtocols();
     return { success: true };
   }),
   getById: procedure.input(z.object({ id: z.number() })).query(async ({ input }) => {

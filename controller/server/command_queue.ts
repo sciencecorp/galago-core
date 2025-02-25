@@ -94,12 +94,11 @@ export class CommandQueue {
   async _start() {
     logAction({
       level: "info",
-      action: "Command Queue started",
+      action: "Queue Started",
       details: "Command Queue started by user.",
     });
     this._setState(ToolStatus.READY);
     this.error = undefined;
-    logAction({ level: "info", action: "Queue Ready", details: "Command Queue is Ready." });
     try {
       this._runningPromise = this._runBusyLoopWhileQueueNotEmpty(120);
       await this._runningPromise;
@@ -121,8 +120,8 @@ export class CommandQueue {
 
   async stop() {
     this._setState(ToolStatus.OFFLINE);
-    logger.info("Command Queue is stopped!");
-    logAction({ level: "info", action: "Queue was stopped", details: "Queue stopped." });
+    logger.info("Command Queue stopped!");
+    logAction({ level: "info", action: "Queue stopped", details: "Queue stopped." });
     if (this._runningPromise) {
       await this._runningPromise;
     }
@@ -162,11 +161,6 @@ export class CommandQueue {
 
       try {
         logger.info("Executing command", nextCommand.commandInfo);
-        logAction({
-          level: "info",
-          action: "Executing Command",
-          details: "Executing command: " + JSON.stringify(nextCommand.commandInfo.command),
-        });
         await this.executeCommand(nextCommand);
         logAction({
           level: "info",
@@ -178,19 +172,7 @@ export class CommandQueue {
         let errorMessage = null;
         if (e instanceof Error) {
           errorMessage = e.message;
-          logAction({
-            level: "error",
-            action: "Command Error",
-            details: "Error while running command: " + errorMessage,
-          });
         } else {
-          logAction({
-            level: "error",
-            action: "Command Error",
-            details:
-              "Unknown error while trying to execute tool command" +
-              nextCommand.commandInfo.command,
-          });
           errorMessage = new Error("Unknown error while trying to execute tool command");
         }
         logger.error("Failed to execute command", e);

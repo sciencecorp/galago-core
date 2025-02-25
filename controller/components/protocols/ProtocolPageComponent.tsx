@@ -13,7 +13,6 @@ import {
   Thead,
   Tr,
   VStack,
-  Heading,
   useToast,
   Tag,
   Select,
@@ -58,7 +57,7 @@ import { PiPathBold } from "react-icons/pi";
 import { RiAddFill } from "react-icons/ri";
 import { EditableText } from "../ui/Form";
 
-type SortField = "name" | "category" | "workcell" | "number_of_commands";
+type SortField = "name" | "category" | "workcell";
 type SortOrder = "asc" | "desc";
 
 export const ProtocolPageComponent: React.FC = () => {
@@ -75,9 +74,6 @@ export const ProtocolPageComponent: React.FC = () => {
   } = useDisclosure();
 
   const headerBg = useColorModeValue("white", "gray.700");
-  const containerBg = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
   const tableBgColor = useColorModeValue("white", "gray.700");
   const hoverBgColor = useColorModeValue("gray.50", "gray.600");
 
@@ -234,8 +230,8 @@ export const ProtocolPageComponent: React.FC = () => {
     }
   };
 
-  const getWorkcellName = (workcellId: string) => {
-    const workcell = workcells?.find((w) => w.id.toString() === workcellId);
+  const getWorkcellName = (workcellId: number) => {
+    const workcell = workcells?.find((w) => w.id === workcellId);
     return workcell?.name || workcellId;
   };
 
@@ -365,39 +361,20 @@ export const ProtocolPageComponent: React.FC = () => {
                     <Th>Category</Th>
                     <Th>Workcell</Th>
                     <Th>Description</Th>
-                    {/* <Th cursor="pointer" onClick={() => handleSort("created_at")}>
-                      <HStack spacing={2}>
-                        <span>Created At</span>
-                        {sortField === "created_at" && (
-                          <ArrowUpDownIcon 
-                            transform={sortOrder === "desc" ? "rotate(180deg)" : undefined}
-                          />
-                        )}
-                      </HStack>
-                    </Th> */}
-                    <Th cursor="pointer" onClick={() => handleSort("number_of_commands")}>
-                      <HStack spacing={2}>
-                        <span>Commands</span>
-                        {sortField === "number_of_commands" && (
-                          <ArrowUpDownIcon
-                            transform={sortOrder === "desc" ? "rotate(180deg)" : undefined}
-                          />
-                        )}
-                      </HStack>
-                    </Th>
+                    <Th>Commands</Th>
                     <Th>Actions</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {sortedProtocols.map((protocol) => (
-                    <Tr key={protocol.id} _hover={{ bg: hoverBgColor }}>
+                  {sortedProtocols.map((protocol, index) => (
+                    <Tr key={index} _hover={{ bg: hoverBgColor }}>
                       <Td>
                         <EditableText
                           defaultValue={protocol.name}
                           preview={<Link href={`/protocols/${protocol.id}`}>{protocol.name}</Link>}
                           onSubmit={(value) => {
                             if (value && value !== protocol.name) {
-                              handleUpdateProtocol(protocol.id.toString(), { name: value });
+                              handleUpdateProtocol(protocol.name.toString(), { name: value });
                             }
                           }}
                         />
@@ -438,7 +415,7 @@ export const ProtocolPageComponent: React.FC = () => {
                         <Popover placement="bottom" closeOnBlur={true}>
                           <PopoverTrigger>
                             <Text cursor="pointer" _hover={{ color: "blue.500" }}>
-                              {getWorkcellName(protocol.workcell)}
+                              {getWorkcellName(protocol.workcell_id)}
                             </Text>
                           </PopoverTrigger>
                           <PopoverContent width="fit-content">
@@ -449,12 +426,12 @@ export const ProtocolPageComponent: React.FC = () => {
                                     key={workcell.id}
                                     size="sm"
                                     variant={
-                                      workcell.id.toString() === protocol.workcell
+                                      workcell.id === protocol.workcell_id
                                         ? "solid"
                                         : "ghost"
                                     }
                                     onClick={() => {
-                                      if (workcell.id.toString() !== protocol.workcell) {
+                                      if (workcell.id !== protocol.workcell_id) {
                                         handleUpdateProtocol(protocol.id.toString(), {
                                           workcell_id: workcell.id,
                                         });
@@ -479,7 +456,7 @@ export const ProtocolPageComponent: React.FC = () => {
                           }}
                         />
                       </Td>
-                      <Td>{protocol.number_of_commands}</Td>
+                      <Td>{protocol.commands.length}</Td>
                       <Td>
                         <Menu>
                           <MenuButton

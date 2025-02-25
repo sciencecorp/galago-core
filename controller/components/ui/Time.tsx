@@ -5,7 +5,7 @@ import React from "react";
 export const renderDate = (date: string) => moment.tz(date, "America/Los_Angeles").format("ll");
 
 export const renderDatetime = (date: string) =>
-  moment.tz(date, "America/Los_Angeles").format("lll");
+  moment.utc(date).tz("America/Los_Angeles").format("lll");
 
 export const renderDaysSince = (start: string | Date, end?: string | Date) =>
   moment
