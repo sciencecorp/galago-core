@@ -11,6 +11,7 @@ import {
   Input,
   VStack,
   Icon,
+  Tooltip,
 } from "@chakra-ui/react";
 import { ScriptFolder, Script } from "@/types/api";
 import { validateFolderName, removeFileExtension, showErrorToast } from "./utils";
@@ -246,13 +247,19 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
           autoFocus
         />
       ) : (
-        <Text
-          flex={1}
-          fontSize="14px"
-          fontWeight={isActive ? "medium" : "normal"}
-          color={isActive ? selectedColor : "inherit"}>
-          {script.name.replace(/\.py$/, "")}
-        </Text>
+        <Tooltip 
+          label={script.description || "No description available"} 
+          openDelay={1000} 
+          placement="right"
+          hasArrow>
+          <Text
+            flex={1}
+            fontSize="14px"
+            fontWeight={isActive ? "medium" : "normal"}
+            color={isActive ? selectedColor : "inherit"}>
+            {script.name.replace(/\.py$/, "")}
+          </Text>
+        </Tooltip>
       )}
       <Menu>
         <MenuButton
