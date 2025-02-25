@@ -247,9 +247,9 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
           autoFocus
         />
       ) : (
-        <Tooltip 
-          label={script.description || "No description available"} 
-          openDelay={1000} 
+        <Tooltip
+          label={script.description || "No description available"}
+          openDelay={1000}
           placement="right"
           hasArrow>
           <Text
