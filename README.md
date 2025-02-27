@@ -49,6 +49,9 @@ docker compose -f docker-compose.dev.yml down --rmi all --remove-orphans
 #rebuild a specific service
 docker-compose up -d --force-recreate --no-deps --build service_name
 
+e.g
+docker-compose -f docker-compose.dev.yml up --build db
+
 #add npm deps to dev environment
 docker exec -it galago-web-dev npm install <package name>
 
