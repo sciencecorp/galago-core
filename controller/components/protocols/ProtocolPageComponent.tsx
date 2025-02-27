@@ -13,7 +13,6 @@ import {
   Thead,
   Tr,
   VStack,
-  Heading,
   useToast,
   Tag,
   Select,
@@ -58,7 +57,7 @@ import { PiPathBold } from "react-icons/pi";
 import { RiAddFill } from "react-icons/ri";
 import { EditableText } from "../ui/Form";
 
-type SortField = "name" | "category" | "workcell" | "number_of_commands";
+type SortField = "name" | "category";
 type SortOrder = "asc" | "desc";
 
 export const ProtocolPageComponent: React.FC = () => {
@@ -75,9 +74,6 @@ export const ProtocolPageComponent: React.FC = () => {
   } = useDisclosure();
 
   const headerBg = useColorModeValue("white", "gray.700");
-  const containerBg = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
   const tableBgColor = useColorModeValue("white", "gray.700");
   const hoverBgColor = useColorModeValue("gray.50", "gray.600");
 
@@ -136,9 +132,9 @@ export const ProtocolPageComponent: React.FC = () => {
   const uniqueWorkcells = useMemo(() => {
     if (!protocols || !workcells) return [];
     // Get unique workcell IDs from protocols
-    const workcellIds = new Set(protocols.map((p) => p.workcell));
+    const workcellIds = new Set(protocols.map((p) => p.workcell_id));
     // Filter workcells to only include those that are actually in use
-    const usedWorkcells = workcells.filter((w) => workcellIds.has(w.id.toString()));
+    const usedWorkcells = workcells.filter((w) => workcellIds.has(w.id));
     return usedWorkcells;
   }, [protocols, workcells]);
 
@@ -159,9 +155,8 @@ export const ProtocolPageComponent: React.FC = () => {
         protocol.description?.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesCategory = !categoryFilter || protocol.category === categoryFilter;
-      const matchesWorkcell = !workcellFilter || protocol.workcell === workcellFilter;
 
-      return matchesSearch && matchesCategory && matchesWorkcell;
+      return matchesSearch && matchesCategory;
     });
   }, [protocols, searchQuery, categoryFilter, workcellFilter]);
 
@@ -177,9 +172,13 @@ export const ProtocolPageComponent: React.FC = () => {
         return sortOrder === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
       }
 
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
+      }
+
       return sortOrder === "asc"
-        ? (aValue as number) - (bValue as number)
-        : (bValue as number) - (aValue as number);
+        ? Number(aValue) - Number(bValue)
+        : Number(bValue) - Number(aValue);
     });
   }, [filteredProtocols, sortField, sortOrder]);
 
@@ -234,26 +233,14 @@ export const ProtocolPageComponent: React.FC = () => {
     }
   };
 
-  const getWorkcellName = (workcellId: string) => {
-    const workcell = workcells?.find((w) => w.id.toString() === workcellId);
+  const getWorkcellName = (workcellId: number) => {
+    const workcell = workcells?.find((w) => w.id === workcellId);
     return workcell?.name || workcellId;
   };
 
-  const handleUpdateProtocol = (protocolId: string, updates: any) => {
-    // Skip update for TypeScript protocols
-    if (isNaN(parseInt(protocolId))) {
-      toast({
-        title: "Cannot Update",
-        description:
-          "TypeScript-based protocols cannot be modified as they are part of the codebase.",
-        status: "warning",
-        duration: 5000,
-      });
-      return;
-    }
-
+  const handleUpdateProtocol = (protocolId: number, updates: any) => {
     updateProtocol.mutate({
-      id: parseInt(protocolId),
+      id: protocolId,
       data: updates,
     });
   };
@@ -365,39 +352,20 @@ export const ProtocolPageComponent: React.FC = () => {
                     <Th>Category</Th>
                     <Th>Workcell</Th>
                     <Th>Description</Th>
-                    {/* <Th cursor="pointer" onClick={() => handleSort("created_at")}>
-                      <HStack spacing={2}>
-                        <span>Created At</span>
-                        {sortField === "created_at" && (
-                          <ArrowUpDownIcon 
-                            transform={sortOrder === "desc" ? "rotate(180deg)" : undefined}
-                          />
-                        )}
-                      </HStack>
-                    </Th> */}
-                    <Th cursor="pointer" onClick={() => handleSort("number_of_commands")}>
-                      <HStack spacing={2}>
-                        <span>Commands</span>
-                        {sortField === "number_of_commands" && (
-                          <ArrowUpDownIcon
-                            transform={sortOrder === "desc" ? "rotate(180deg)" : undefined}
-                          />
-                        )}
-                      </HStack>
-                    </Th>
+                    <Th>Commands</Th>
                     <Th>Actions</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {sortedProtocols.map((protocol) => (
-                    <Tr key={protocol.id} _hover={{ bg: hoverBgColor }}>
+                  {sortedProtocols.map((protocol, index) => (
+                    <Tr key={index} _hover={{ bg: hoverBgColor }}>
                       <Td>
                         <EditableText
                           defaultValue={protocol.name}
                           preview={<Link href={`/protocols/${protocol.id}`}>{protocol.name}</Link>}
                           onSubmit={(value) => {
                             if (value && value !== protocol.name) {
-                              handleUpdateProtocol(protocol.id.toString(), { name: value });
+                              handleUpdateProtocol(protocol.id, { name: value });
                             }
                           }}
                         />
@@ -423,7 +391,7 @@ export const ProtocolPageComponent: React.FC = () => {
                                     colorScheme={getCategoryColor(category)}
                                     onClick={() => {
                                       if (category !== protocol.category) {
-                                        handleUpdateProtocol(protocol.id.toString(), { category });
+                                        handleUpdateProtocol(protocol.id, { category });
                                       }
                                     }}>
                                     {category}
@@ -438,7 +406,7 @@ export const ProtocolPageComponent: React.FC = () => {
                         <Popover placement="bottom" closeOnBlur={true}>
                           <PopoverTrigger>
                             <Text cursor="pointer" _hover={{ color: "blue.500" }}>
-                              {getWorkcellName(protocol.workcell)}
+                              {getWorkcellName(protocol.workcell_id)}
                             </Text>
                           </PopoverTrigger>
                           <PopoverContent width="fit-content">
@@ -449,13 +417,11 @@ export const ProtocolPageComponent: React.FC = () => {
                                     key={workcell.id}
                                     size="sm"
                                     variant={
-                                      workcell.id.toString() === protocol.workcell
-                                        ? "solid"
-                                        : "ghost"
+                                      workcell.id === protocol.workcell_id ? "solid" : "ghost"
                                     }
                                     onClick={() => {
-                                      if (workcell.id.toString() !== protocol.workcell) {
-                                        handleUpdateProtocol(protocol.id.toString(), {
+                                      if (workcell.id !== protocol.workcell_id) {
+                                        handleUpdateProtocol(protocol.id, {
                                           workcell_id: workcell.id,
                                         });
                                       }
@@ -474,12 +440,12 @@ export const ProtocolPageComponent: React.FC = () => {
                           preview={<Text>{protocol.description || "-"}</Text>}
                           onSubmit={(value) => {
                             if (value !== protocol.description) {
-                              handleUpdateProtocol(protocol.id.toString(), { description: value });
+                              handleUpdateProtocol(protocol.id, { description: value });
                             }
                           }}
                         />
                       </Td>
-                      <Td>{protocol.number_of_commands}</Td>
+                      <Td>{protocol.commands.length}</Td>
                       <Td>
                         <Menu>
                           <MenuButton

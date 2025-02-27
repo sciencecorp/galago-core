@@ -3,6 +3,7 @@ import { procedure, router } from "@/server/trpc";
 import { Labware } from "@/types/api";
 import { get, post, put, del } from "../utils/api";
 import Tool from "../tools";
+import { logAction } from "@/server/logger";
 
 export const zLabware = z.object({
   id: z.number().optional(),
@@ -35,6 +36,11 @@ export const labwareRouter = router({
   // Add new labware
   add: procedure.input(zLabware.omit({ id: true })).mutation(async ({ input }) => {
     const response = await post<Labware>(`/labware`, input);
+    logAction({
+      level: "info",
+      action: "New Labware Added",
+      details: `Labware ${input.name} added successfully.`,
+    });
     await Tool.loadLabwareToPF400();
     return response;
   }),
@@ -43,6 +49,11 @@ export const labwareRouter = router({
   edit: procedure.input(zLabware).mutation(async ({ input }) => {
     const { id } = input;
     const response = await put<Labware>(`/labware/${id}`, input);
+    logAction({
+      level: "info",
+      action: "Labware Edited",
+      details: `Labware ${input.name} updated successfully.`,
+    });
     await Tool.loadLabwareToPF400();
     return response;
   }),

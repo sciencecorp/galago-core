@@ -142,7 +142,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
     },
   );
 
-  const uiParams = protocol.data?.uiParams || {};
+  const uiParams = protocol.data?.params || {};
   const { isOpen, onOpen } = useDisclosure({ defaultIsOpen: true });
   const [userDefinedParams, setUserDefinedParams] = useState<Record<string, any>>({});
   const [formErrors, setFormErrors] = useState<z.inferFormattedError<z.AnyZodObject>>();

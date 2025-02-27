@@ -13,6 +13,8 @@ import { Variable } from "@/types/api";
 import { Labware } from "@/types/api";
 import { buildGoogleStructValue } from "utils/struct";
 import { loggingRouter } from "./routers/logging";
+import { logAction } from "./logger";
+import { log } from "console";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<string, Tool> = new Map();
@@ -105,11 +107,22 @@ export default class Tool {
   }
 
   async configure(config: tool_base.Config) {
+    //Log tool configuration
+    logAction({
+      level: "info",
+      action: "Tool Configuration",
+      details: `Configuring tool ${this.info.name} of type ${this.info.type} with config: ${JSON.stringify(config).replaceAll("{", "").replaceAll("}", "")}`,
+    });
     await Tool.loadLabwareToPF400();
     await Tool.loadPF400Waypoints();
     this.config = config;
     const reply = await this.grpc.configure(config);
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
+      logAction({
+        level: "error",
+        action: "Tool Configuration Error",
+        details: `Failed to configure tool ${this.info.name}. Error: ${reply.error_message}`,
+      });
       throw new ToolCommandExecutionError(
         reply.error_message ?? "Connect Command failed",
         reply.response,
@@ -126,6 +139,11 @@ export default class Tool {
   }
 
   static async executeCommand(command: ToolCommandInfo) {
+    logAction({
+      level: "info",
+      action: "Tool Command Execution",
+      details: `Executing command: ${command.command}, Tool: ${command.toolId}, Params:${JSON.stringify(command.params).replaceAll("{", "").replaceAll("}", "")}`,
+    });
     return await Tool.forId(this.normalizeToolId(command.toolId)).executeCommand(command);
   }
 
@@ -135,13 +153,16 @@ export default class Tool {
       if (params[key] == null) continue;
 
       const paramValue = String(params[key]);
-
-      //Functionality to pass variables form db
       if (paramValue.startsWith("{{") && paramValue.endsWith("}}")) {
         try {
           const varValue = await get<Variable>(`/variables/${paramValue.slice(2, -2)}`);
           params[key] = varValue.value;
         } catch (e) {
+          logAction({
+            level: "error",
+            action: "Variable Error",
+            details: `Variable ${paramValue.slice(2, -2)} not found`,
+          });
           throw new Error(`Variable ${paramValue.slice(2, -2)} not found`);
         }
       }
@@ -159,6 +180,11 @@ export default class Tool {
         command.params.script_content = script.content;
       } catch (e: any) {
         console.warn("Error at fetching script", e);
+        logAction({
+          level: "error",
+          action: "Script Error",
+          details: `Failed to fetch ${scriptId}. ${e}`,
+        });
         if (e.status === 404) {
           throw new Error(`Script ${scriptId} not found`);
         }
@@ -170,6 +196,11 @@ export default class Tool {
       return reply;
     }
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
+      logAction({
+        level: "error",
+        action: "Tool Command Execution Error",
+        details: `Failed to execute command: ${command.command}, Tool: ${command.toolId}. Error: ${reply.error_message}`,
+      });
       throw new ToolCommandExecutionError(
         reply.error_message ?? "Tool command failed",
         reply.response,

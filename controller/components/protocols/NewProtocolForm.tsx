@@ -61,13 +61,15 @@ export const NewProtocolForm = () => {
 
   const createProtocol = trpc.protocol.create.useMutation({
     onSuccess: (data) => {
-      toast({
-        title: "Protocol created",
-        description: "Successfully created new protocol",
-        status: "success",
-        duration: 3000,
-      });
-      router.push(`/protocols/${data.id}`);
+      if (data) {
+        toast({
+          title: "Protocol created",
+          description: "Successfully created new protocol",
+          status: "success",
+          duration: 3000,
+        });
+        router.push(`/protocols/${data.id}`);
+      }
     },
     onError: (error: any) => {
       console.error("Protocol creation error:", error);
