@@ -416,14 +416,16 @@ class ScriptFolderUpdate(BaseModel):
 
 
 class ScriptFolder(ScriptFolderBase):
+    model_config = ConfigDict(
+        postponed_annotations=True,
+        from_attributes=True
+    )
+    
     id: int
     created_at: datetime.datetime
     updated_at: datetime.datetime
     subfolders: list["ScriptFolder"] = []
     scripts: list["Script"] = []
-
-    class Config:
-        orm_mode = True
 
 
 # Break the circular reference by using a simplified script model for folders
@@ -581,6 +583,3 @@ class RobotArmWaypoints(BaseModel):
 
     class Config:
         from_attributes = True
-
-
-ScriptFolder.model_rebuild()  # This is needed for the recursive relationship
