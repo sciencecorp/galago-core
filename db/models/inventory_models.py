@@ -7,26 +7,11 @@ from sqlalchemy import (
     Date,
     Boolean,
     Float,
-    DateTime,
     CheckConstraint,
 )
 from sqlalchemy.orm import relationship
 from .db_session import Base
-from sqlalchemy.ext.declarative import declared_attr
-import datetime
-
-
-class TimestampMixin:
-    @declared_attr
-    def created_at(cls) -> Column:
-        return Column(DateTime, default=datetime.datetime.now())
-
-    @declared_attr
-    def updated_at(cls) -> Column:
-        return Column(
-            DateTime, default=datetime.datetime.now(), onupdate=datetime.datetime.now()
-        )
-
+from .utils import TimestampMixin
 
 class Workcell(Base, TimestampMixin):
     __tablename__ = "workcells"

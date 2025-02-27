@@ -3,6 +3,7 @@ import { procedure, router } from "@/server/trpc";
 import { Variable } from "@/types/api";
 import { get, post, put, del } from "../utils/api";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
+import { logAction } from "@/server/logger";
 
 export const zVariable = z.object({
   id: z.number().optional(),
@@ -29,6 +30,11 @@ export const variableRouter = router({
     .input(zVariable.omit({ id: true })) // Input does not require `id`
     .mutation(async ({ input }) => {
       const response = await post<Variable>(`/variables`, input);
+      logAction({
+        level: "info",
+        action: "New Variable Added",
+        details: `Variable ${input.name} of type ${input.type} added successfully.`,
+      });
       return response;
     }),
 
@@ -36,12 +42,22 @@ export const variableRouter = router({
   edit: procedure.input(zVariable).mutation(async ({ input }) => {
     const { id } = input;
     const response = await put<Variable>(`/variables/${id}`, input);
+    logAction({
+      level: "info",
+      action: "Variable Edited",
+      details: `Variable ${input.name} value updated to ${input.value}.`,
+    });
     return response;
   }),
 
   // Delete a variable
   delete: procedure.input(z.number()).mutation(async ({ input }) => {
     await del(`/variables/${input}`);
+    logAction({
+      level: "info",
+      action: "New Variable Added",
+      details: `Variable deleted successfully.`,
+    });
     return { message: "Variable deleted successfully" };
   }),
 });

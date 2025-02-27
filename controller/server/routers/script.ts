@@ -6,6 +6,8 @@ import { Script } from "@/types/api";
 import { run } from "node:test";
 import Tool from "@/server/tools";
 import { ToolType } from "gen-interfaces/controller";
+import { logAction } from "@/server/logger";
+import { log } from "console";
 
 const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
 
@@ -32,6 +34,11 @@ export const scriptRouter = router({
     .input(zScript.omit({ id: true })) // Input does not require `id`
     .mutation(async ({ input }) => {
       const response = await post<Script>(`/scripts`, input);
+      logAction({
+        level: "info",
+        action: "New Script Added",
+        details: `Script ${input.name} added successfully.`,
+      });
       return response;
     }),
 
@@ -51,6 +58,11 @@ export const scriptRouter = router({
   edit: procedure.input(zScript).mutation(async ({ input }) => {
     const { id } = input;
     const response = await put<Script>(`/scripts/${id}`, input);
+    logAction({
+      level: "info",
+      action: "Script Edited",
+      details: `Script ${input.name} updated successfully.`,
+    });
     return response;
   }),
 

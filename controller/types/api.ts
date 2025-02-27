@@ -135,7 +135,6 @@ export interface Protocol {
   name: string;
   category: string;
   workcell_id: number;
-  workcell?: string;
   description?: string;
   icon?: string;
   params: Record<string, ParameterSchema>;
@@ -144,7 +143,6 @@ export interface Protocol {
   is_active?: boolean;
   created_at?: string;
   updated_at?: string;
-  number_of_commands?: number;
 }
 
 export interface ParameterSchema {

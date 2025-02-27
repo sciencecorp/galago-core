@@ -1,46 +1,27 @@
 import { trpc } from "@/utils/trpc";
 import {
-  Alert,
-  Box,
   Card,
   CardBody,
-  CardHeader,
   Heading,
   Text,
   HStack,
-  Spinner,
   VStack,
-  Flex,
-  Image,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  IconButton,
   Icon,
   CardFooter,
   Button,
-  ButtonGroup,
   useColorModeValue,
-  Editable,
   useToast,
   Badge,
-  Wrap,
-  WrapItem,
   Avatar,
   AvatarGroup,
   Tooltip,
 } from "@chakra-ui/react";
-import { HamburgerIcon } from "@chakra-ui/icons";
 import { useEffect, useState } from "react";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { Workcell } from "@/types/api";
-import { LuCheck, LuX } from "react-icons/lu";
-import { EditMenu } from "../ui/EditMenu";
 import { EditableText } from "../ui/Form";
 import { BsTools } from "react-icons/bs";
 import { MdLocationOn } from "react-icons/md";
-import { format } from "date-fns";
 
 interface WorkcellCardProps {
   workcell: Workcell;
@@ -49,7 +30,6 @@ interface WorkcellCardProps {
 
 export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
   const { workcell } = props;
-  const [isHovered, setIsHovered] = useState(false);
   const cardBg = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const selectedBg = useColorModeValue("teal.50", "teal.900");
@@ -91,7 +71,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
     } catch (error) {
       toast({
         title: "Error deleting workcell",
-        description: `Please try again. ${error}`,
+        description: `Can't delete a workcell with active protocols. ${error}. `,
         status: "error",
         duration: 3000,
         isClosable: true,

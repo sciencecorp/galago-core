@@ -62,21 +62,6 @@ const release_plate: Field[] = [
   { name: "width", type: "number", defaultValue: 130 },
   { name: "speed", type: "number", defaultValue: 10 },
 ];
-const approach: Field[] = [
-  { name: "nest", type: "text" },
-  { name: "x_offset", type: "number", defaultValue: 0 },
-  { name: "y_offset", type: "number", defaultValue: 0 },
-  { name: "z_offset", type: "number", defaultValue: 0 },
-  { name: "motion_profile_id", type: "number", defaultValue: 2 },
-  { name: "ignore_safepath", type: "text", defaultValue: "false" },
-];
-const leave: Field[] = [
-  { name: "nest", type: "text" },
-  { name: "x_offset", type: "number", defaultValue: 0 },
-  { name: "y_offset", type: "number", defaultValue: 0 },
-  { name: "z_offset", type: "number", defaultValue: 0 },
-  { name: "motion_profile_id", type: "number", defaultValue: 2 },
-];
 
 export const commandFields: CommandFields = {
   toolbox: {
@@ -317,21 +302,6 @@ export const commandFields: CommandFields = {
     release_plate: [
       { name: "width", type: "number", defaultValue: 130 },
       { name: "speed", type: "number", defaultValue: 10 },
-    ],
-    approach: [
-      { name: "nest", type: "text" },
-      { name: "x_offset", type: "number", defaultValue: 0 },
-      { name: "y_offset", type: "number", defaultValue: 0 },
-      { name: "z_offset", type: "number", defaultValue: 0 },
-      { name: "motion_profile_id", type: "number", defaultValue: 1 },
-      { name: "ignore_safepath", type: "boolean", defaultValue: false },
-    ],
-    leave: [
-      { name: "nest", type: "text" },
-      { name: "x_offset", type: "number", defaultValue: 0 },
-      { name: "y_offset", type: "number", defaultValue: 0 },
-      { name: "z_offset", type: "number", defaultValue: 0 },
-      { name: "motion_profile_id", type: "number", defaultValue: 1 },
     ],
     retrieve_plate: [
       { name: "labware", type: "text" },
