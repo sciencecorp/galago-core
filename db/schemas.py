@@ -417,7 +417,6 @@ class ScriptFolderUpdate(BaseModel):
 
 class ScriptFolder(ScriptFolderBase):
     model_config = ConfigDict(
-        postponed_annotations=True,
         from_attributes=True
     )
     
