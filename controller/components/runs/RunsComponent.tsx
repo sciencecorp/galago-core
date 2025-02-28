@@ -64,7 +64,7 @@ export const RunsComponent: React.FC = () => {
     { limit: 1000, offset: 0 },
     { refetchInterval: 1000 },
   );
-  const commandBgColor = useColorModeValue("gray.50", "gray.700");
+  const commandBgColor = useColorModeValue("gray.50", "gray.800");
   const borderColor = useColorModeValue("gray.300", "gray.600");
   const hoverBgColor = useColorModeValue("gray.100", "gray.600");
   const textColor = useColorModeValue("gray.800", "gray.100");
@@ -194,7 +194,7 @@ export const RunsComponent: React.FC = () => {
         <VStack align="left" key={index} width="100%">
           <Box width="100%">
             <Box
-              // bg={commandBgColor}
+              bg={commandBgColor}
               p={2}
               color={textColor}
               borderWidth="1px"

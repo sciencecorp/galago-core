@@ -27,6 +27,10 @@ import {
   useToast,
   VStack,
   Box,
+  Divider,
+  useColorModeValue,
+  useNumberInput,
+  HStack,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -120,6 +124,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   const toast = useToast();
   const workcellData = trpc.workcell.getSelectedWorkcell.useQuery();
   const workcellName = workcellData.data;
+  const [runNumber, setRunNumber] = useState<number>(1);
   const protocol = trpc.protocol.get.useQuery(
     {
       id: id,
@@ -146,6 +151,19 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   const { isOpen, onOpen } = useDisclosure({ defaultIsOpen: true });
   const [userDefinedParams, setUserDefinedParams] = useState<Record<string, any>>({});
   const [formErrors, setFormErrors] = useState<z.inferFormattedError<z.AnyZodObject>>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { getInputProps, getIncrementButtonProps, getDecrementButtonProps } = useNumberInput({
+    step: 1,
+    defaultValue: 1,
+    min: 1,
+    max: 100,
+    precision: 0,
+  });
+
+  const inc = getIncrementButtonProps();
+  const dec = getDecrementButtonProps();
+  const numberOfRuns = getInputProps();
 
   const createRunMutation = trpc.run.create.useMutation({
     onSuccess: (data) => {
@@ -169,7 +187,6 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
 
   const handleClose = () => {
     onClose();
-    router.push("/protocols", undefined, { shallow: true });
   };
 
   const handleSuccess = () => {
@@ -189,7 +206,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
             size="2xl">
             <ModalOverlay />
             <ModalContent>
-              <ModalHeader>New Protocol Run</ModalHeader>
+              <ModalHeader>New Run</ModalHeader>
               <ModalCloseButton onClick={handleClose} />
               <ModalBody>
                 <VStack align="start" spacing={4}>
@@ -215,6 +232,15 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                         </FormControl>
                       );
                     })}
+                    <Divider borderColor={useColorModeValue("gray.400", "gray.100")} shadow="lg" />
+                    <FormControl>
+                      <FormLabel textAlign="center">No. Runs</FormLabel>
+                      <HStack justifyContent="center">
+                        <Button {...dec}>-</Button>
+                        <Input maxWidth="150px" {...numberOfRuns} textAlign="center" />
+                        <Button {...inc}>+</Button>
+                      </HStack>
+                    </FormControl>
                     {formErrors?._errors.map((key, error) => (
                       <FormErrorMessage key={key}>{error}</FormErrorMessage>
                     ))}
@@ -225,13 +251,16 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                 <ButtonGroup>
                   <Button onClick={handleClose}>Cancel</Button>
                   <Button
+                    isLoading={createRunMutation.isLoading}
+                    isDisabled={createRunMutation.isLoading}
                     colorScheme="teal"
-                    onClick={() => {
-                      createRunMutation.mutate(
+                    onClick={async () => {
+                      await createRunMutation.mutate(
                         {
                           protocolId: id,
                           workcellName: workcellName,
                           params: userDefinedParams,
+                          numberOfRuns: Number(numberOfRuns.value),
                         },
                         {
                           onSuccess: handleSuccess,
