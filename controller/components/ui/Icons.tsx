@@ -1,5 +1,19 @@
 import React from "react";
-import { Box, Tooltip } from "@chakra-ui/react";
+import { Box, Tooltip, Icon as ChakraIcon, IconProps as ChakraIconProps } from "@chakra-ui/react";
+import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
+import { SiPython } from "react-icons/si";
+import { VscCode } from "react-icons/vsc";
+import { FaPlay, FaFolder, FaFolderOpen } from "react-icons/fa";
+import { IoIosSave } from "react-icons/io";
+import { FaFileCirclePlus } from "react-icons/fa6";
+import { TbFolderPlus } from "react-icons/tb";
+import { RiEdit2Line, RiDeleteBinLine, RiFolderAddLine } from "react-icons/ri";
+
+// Types
+interface IconBaseProps extends ChakraIconProps {
+  color?: string;
+  size?: string | number;
+}
 
 interface WellPlateIconProps {
   rows: number;
@@ -7,6 +21,52 @@ interface WellPlateIconProps {
   size?: string;
 }
 
+// Custom Components
+export const Icon = ({ as, ...props }: IconBaseProps & { as: React.ElementType }) => {
+  return <ChakraIcon as={as} {...props} />;
+};
+
+// Categorized Icon Groups
+export const ScriptIcons = {
+  Python: SiPython,
+  Code: VscCode,
+  Play: FaPlay,
+  Save: IoIosSave,
+  Close: CloseIcon,
+  FileAdd: FaFileCirclePlus,
+} as const;
+
+export const FolderIcons = {
+  Folder: FaFolder,
+  FolderOpen: FaFolderOpen,
+  FolderAdd: TbFolderPlus,
+  FolderAddLine: RiFolderAddLine,
+} as const;
+
+export const ActionIcons = {
+  Edit: RiEdit2Line,
+  Delete: RiDeleteBinLine,
+  Menu: HamburgerIcon,
+} as const;
+
+// Individual Icon Exports with Consistent Naming
+export {
+  SiPython as PythonIcon,
+  VscCode as CodeIcon,
+  FaPlay as PlayIcon,
+  IoIosSave as SaveIcon,
+  CloseIcon,
+  FaFolder as FolderIcon,
+  FaFolderOpen as FolderOpenIcon,
+  TbFolderPlus as FolderAddIcon,
+  RiEdit2Line as EditIcon,
+  RiDeleteBinLine as DeleteIcon,
+  RiFolderAddLine as FolderAddLineIcon,
+  HamburgerIcon as MenuIcon,
+  FaFileCirclePlus as FileAddIcon,
+};
+
+// Custom Icon Components
 export const WellPlateIcon: React.FC<WellPlateIconProps> = ({ rows, columns, size = "48px" }) => {
   // Determine if this matches a standard plate format
   const getStandardFormat = (r: number, c: number): string => {
