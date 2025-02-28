@@ -124,7 +124,6 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   const toast = useToast();
   const workcellData = trpc.workcell.getSelectedWorkcell.useQuery();
   const workcellName = workcellData.data;
-  const [runNumber, setRunNumber] = useState<number>(1);
   const protocol = trpc.protocol.get.useQuery(
     {
       id: id,
@@ -151,8 +150,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   const { isOpen, onOpen } = useDisclosure({ defaultIsOpen: true });
   const [userDefinedParams, setUserDefinedParams] = useState<Record<string, any>>({});
   const [formErrors, setFormErrors] = useState<z.inferFormattedError<z.AnyZodObject>>();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const spacerColor = useColorModeValue("gray.400", "gray.100");
   const { getInputProps, getIncrementButtonProps, getDecrementButtonProps } = useNumberInput({
     step: 1,
     defaultValue: 1,
@@ -232,7 +230,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                         </FormControl>
                       );
                     })}
-                    <Divider borderColor={useColorModeValue("gray.400", "gray.100")} shadow="lg" />
+                    <Divider borderColor={spacerColor} shadow="lg" />
                     <FormControl>
                       <FormLabel textAlign="center">No. Runs</FormLabel>
                       <HStack justifyContent="center">
