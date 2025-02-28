@@ -69,7 +69,7 @@ export const RunsComponent: React.FC = () => {
   const hoverBgColor = useColorModeValue("gray.100", "gray.600");
   const textColor = useColorModeValue("gray.800", "gray.100");
   const cardBg = useColorModeValue("white", "gray.700");
-  const expandedRunBg = useColorModeValue("gray.100", "gray.800");
+  const expandedRunBg = useColorModeValue("gray.50", "gray.800");
   const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
   const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
   const groupedCommands = useMemo(
@@ -194,7 +194,7 @@ export const RunsComponent: React.FC = () => {
         <VStack align="left" key={index} width="100%">
           <Box width="100%">
             <Box
-              bg={commandBgColor}
+              // bg={commandBgColor}
               p={2}
               color={textColor}
               borderWidth="1px"
