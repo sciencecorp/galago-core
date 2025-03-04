@@ -26,19 +26,15 @@ export interface Command_SendRawCommand {
   cmd: string;
 }
 
-export interface Command_Reset {}
+export interface Command_Reset {
+}
 
 export interface Config {
   com_port: string;
 }
 
 function createBaseCommand(): Command {
-  return {
-    fetch_plate: undefined,
-    store_plate: undefined,
-    reset: undefined,
-    raw_command: undefined,
-  };
+  return { fetch_plate: undefined, store_plate: undefined, reset: undefined, raw_command: undefined };
 }
 
 export const Command = {
@@ -104,35 +100,22 @@ export const Command = {
 
   fromJSON(object: any): Command {
     return {
-      fetch_plate: isSet(object.fetch_plate)
-        ? Command_FetchPlate.fromJSON(object.fetch_plate)
-        : undefined,
-      store_plate: isSet(object.store_plate)
-        ? Command_StorePlate.fromJSON(object.store_plate)
-        : undefined,
+      fetch_plate: isSet(object.fetch_plate) ? Command_FetchPlate.fromJSON(object.fetch_plate) : undefined,
+      store_plate: isSet(object.store_plate) ? Command_StorePlate.fromJSON(object.store_plate) : undefined,
       reset: isSet(object.reset) ? Command_Reset.fromJSON(object.reset) : undefined,
-      raw_command: isSet(object.raw_command)
-        ? Command_SendRawCommand.fromJSON(object.raw_command)
-        : undefined,
+      raw_command: isSet(object.raw_command) ? Command_SendRawCommand.fromJSON(object.raw_command) : undefined,
     };
   },
 
   toJSON(message: Command): unknown {
     const obj: any = {};
     message.fetch_plate !== undefined &&
-      (obj.fetch_plate = message.fetch_plate
-        ? Command_FetchPlate.toJSON(message.fetch_plate)
-        : undefined);
+      (obj.fetch_plate = message.fetch_plate ? Command_FetchPlate.toJSON(message.fetch_plate) : undefined);
     message.store_plate !== undefined &&
-      (obj.store_plate = message.store_plate
-        ? Command_StorePlate.toJSON(message.store_plate)
-        : undefined);
-    message.reset !== undefined &&
-      (obj.reset = message.reset ? Command_Reset.toJSON(message.reset) : undefined);
+      (obj.store_plate = message.store_plate ? Command_StorePlate.toJSON(message.store_plate) : undefined);
+    message.reset !== undefined && (obj.reset = message.reset ? Command_Reset.toJSON(message.reset) : undefined);
     message.raw_command !== undefined &&
-      (obj.raw_command = message.raw_command
-        ? Command_SendRawCommand.toJSON(message.raw_command)
-        : undefined);
+      (obj.raw_command = message.raw_command ? Command_SendRawCommand.toJSON(message.raw_command) : undefined);
     return obj;
   },
 
@@ -142,22 +125,18 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.fetch_plate =
-      object.fetch_plate !== undefined && object.fetch_plate !== null
-        ? Command_FetchPlate.fromPartial(object.fetch_plate)
-        : undefined;
-    message.store_plate =
-      object.store_plate !== undefined && object.store_plate !== null
-        ? Command_StorePlate.fromPartial(object.store_plate)
-        : undefined;
-    message.reset =
-      object.reset !== undefined && object.reset !== null
-        ? Command_Reset.fromPartial(object.reset)
-        : undefined;
-    message.raw_command =
-      object.raw_command !== undefined && object.raw_command !== null
-        ? Command_SendRawCommand.fromPartial(object.raw_command)
-        : undefined;
+    message.fetch_plate = (object.fetch_plate !== undefined && object.fetch_plate !== null)
+      ? Command_FetchPlate.fromPartial(object.fetch_plate)
+      : undefined;
+    message.store_plate = (object.store_plate !== undefined && object.store_plate !== null)
+      ? Command_StorePlate.fromPartial(object.store_plate)
+      : undefined;
+    message.reset = (object.reset !== undefined && object.reset !== null)
+      ? Command_Reset.fromPartial(object.reset)
+      : undefined;
+    message.raw_command = (object.raw_command !== undefined && object.raw_command !== null)
+      ? Command_SendRawCommand.fromPartial(object.raw_command)
+      : undefined;
     return message;
   },
 };
@@ -375,15 +354,11 @@ export const Command_SendRawCommand = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_SendRawCommand>, I>>(
-    base?: I,
-  ): Command_SendRawCommand {
+  create<I extends Exact<DeepPartial<Command_SendRawCommand>, I>>(base?: I): Command_SendRawCommand {
     return Command_SendRawCommand.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_SendRawCommand>, I>>(
-    object: I,
-  ): Command_SendRawCommand {
+  fromPartial<I extends Exact<DeepPartial<Command_SendRawCommand>, I>>(object: I): Command_SendRawCommand {
     const message = createBaseCommand_SendRawCommand();
     message.cmd = object.cmd ?? "";
     return message;
@@ -492,19 +467,13 @@ export const Config = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-    ? Array<DeepPartial<U>>
-    : T extends ReadonlyArray<infer U>
-      ? ReadonlyArray<DeepPartial<U>>
-      : T extends {}
-        ? { [K in keyof T]?: DeepPartial<T[K]> }
-        : Partial<T>;
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
+export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {

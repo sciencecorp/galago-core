@@ -9,7 +9,8 @@ export interface Command {
   run_runset?: Command_RunRunset | undefined;
 }
 
-export interface Command_Initialize {}
+export interface Command_Initialize {
+}
 
 export interface Command_RunProtocol {
   protocol_file: string;
@@ -80,32 +81,20 @@ export const Command = {
 
   fromJSON(object: any): Command {
     return {
-      initialize: isSet(object.initialize)
-        ? Command_Initialize.fromJSON(object.initialize)
-        : undefined,
-      run_protocol: isSet(object.run_protocol)
-        ? Command_RunProtocol.fromJSON(object.run_protocol)
-        : undefined,
-      run_runset: isSet(object.run_runset)
-        ? Command_RunRunset.fromJSON(object.run_runset)
-        : undefined,
+      initialize: isSet(object.initialize) ? Command_Initialize.fromJSON(object.initialize) : undefined,
+      run_protocol: isSet(object.run_protocol) ? Command_RunProtocol.fromJSON(object.run_protocol) : undefined,
+      run_runset: isSet(object.run_runset) ? Command_RunRunset.fromJSON(object.run_runset) : undefined,
     };
   },
 
   toJSON(message: Command): unknown {
     const obj: any = {};
     message.initialize !== undefined &&
-      (obj.initialize = message.initialize
-        ? Command_Initialize.toJSON(message.initialize)
-        : undefined);
+      (obj.initialize = message.initialize ? Command_Initialize.toJSON(message.initialize) : undefined);
     message.run_protocol !== undefined &&
-      (obj.run_protocol = message.run_protocol
-        ? Command_RunProtocol.toJSON(message.run_protocol)
-        : undefined);
+      (obj.run_protocol = message.run_protocol ? Command_RunProtocol.toJSON(message.run_protocol) : undefined);
     message.run_runset !== undefined &&
-      (obj.run_runset = message.run_runset
-        ? Command_RunRunset.toJSON(message.run_runset)
-        : undefined);
+      (obj.run_runset = message.run_runset ? Command_RunRunset.toJSON(message.run_runset) : undefined);
     return obj;
   },
 
@@ -115,18 +104,15 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.initialize =
-      object.initialize !== undefined && object.initialize !== null
-        ? Command_Initialize.fromPartial(object.initialize)
-        : undefined;
-    message.run_protocol =
-      object.run_protocol !== undefined && object.run_protocol !== null
-        ? Command_RunProtocol.fromPartial(object.run_protocol)
-        : undefined;
-    message.run_runset =
-      object.run_runset !== undefined && object.run_runset !== null
-        ? Command_RunRunset.fromPartial(object.run_runset)
-        : undefined;
+    message.initialize = (object.initialize !== undefined && object.initialize !== null)
+      ? Command_Initialize.fromPartial(object.initialize)
+      : undefined;
+    message.run_protocol = (object.run_protocol !== undefined && object.run_protocol !== null)
+      ? Command_RunProtocol.fromPartial(object.run_protocol)
+      : undefined;
+    message.run_runset = (object.run_runset !== undefined && object.run_runset !== null)
+      ? Command_RunRunset.fromPartial(object.run_runset)
+      : undefined;
     return message;
   },
 };
@@ -224,9 +210,7 @@ export const Command_RunProtocol = {
     return Command_RunProtocol.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_RunProtocol>, I>>(
-    object: I,
-  ): Command_RunProtocol {
+  fromPartial<I extends Exact<DeepPartial<Command_RunProtocol>, I>>(object: I): Command_RunProtocol {
     const message = createBaseCommand_RunProtocol();
     message.protocol_file = object.protocol_file ?? "";
     return message;
@@ -347,19 +331,13 @@ export const Config = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-    ? Array<DeepPartial<U>>
-    : T extends ReadonlyArray<infer U>
-      ? ReadonlyArray<DeepPartial<U>>
-      : T extends {}
-        ? { [K in keyof T]?: DeepPartial<T[K]> }
-        : Partial<T>;
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
+export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {

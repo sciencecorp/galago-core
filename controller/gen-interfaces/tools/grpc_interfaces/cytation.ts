@@ -9,9 +9,11 @@ export interface Command {
   start_read?: Command_StartRead | undefined;
 }
 
-export interface Command_OpenCarrier {}
+export interface Command_OpenCarrier {
+}
 
-export interface Command_CloseCarrier {}
+export interface Command_CloseCarrier {
+}
 
 export interface Command_StartRead {
   protocol_file: string;
@@ -303,32 +305,20 @@ export const Command = {
 
   fromJSON(object: any): Command {
     return {
-      open_carrier: isSet(object.open_carrier)
-        ? Command_OpenCarrier.fromJSON(object.open_carrier)
-        : undefined,
-      close_carrier: isSet(object.close_carrier)
-        ? Command_CloseCarrier.fromJSON(object.close_carrier)
-        : undefined,
-      start_read: isSet(object.start_read)
-        ? Command_StartRead.fromJSON(object.start_read)
-        : undefined,
+      open_carrier: isSet(object.open_carrier) ? Command_OpenCarrier.fromJSON(object.open_carrier) : undefined,
+      close_carrier: isSet(object.close_carrier) ? Command_CloseCarrier.fromJSON(object.close_carrier) : undefined,
+      start_read: isSet(object.start_read) ? Command_StartRead.fromJSON(object.start_read) : undefined,
     };
   },
 
   toJSON(message: Command): unknown {
     const obj: any = {};
     message.open_carrier !== undefined &&
-      (obj.open_carrier = message.open_carrier
-        ? Command_OpenCarrier.toJSON(message.open_carrier)
-        : undefined);
+      (obj.open_carrier = message.open_carrier ? Command_OpenCarrier.toJSON(message.open_carrier) : undefined);
     message.close_carrier !== undefined &&
-      (obj.close_carrier = message.close_carrier
-        ? Command_CloseCarrier.toJSON(message.close_carrier)
-        : undefined);
+      (obj.close_carrier = message.close_carrier ? Command_CloseCarrier.toJSON(message.close_carrier) : undefined);
     message.start_read !== undefined &&
-      (obj.start_read = message.start_read
-        ? Command_StartRead.toJSON(message.start_read)
-        : undefined);
+      (obj.start_read = message.start_read ? Command_StartRead.toJSON(message.start_read) : undefined);
     return obj;
   },
 
@@ -338,18 +328,15 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.open_carrier =
-      object.open_carrier !== undefined && object.open_carrier !== null
-        ? Command_OpenCarrier.fromPartial(object.open_carrier)
-        : undefined;
-    message.close_carrier =
-      object.close_carrier !== undefined && object.close_carrier !== null
-        ? Command_CloseCarrier.fromPartial(object.close_carrier)
-        : undefined;
-    message.start_read =
-      object.start_read !== undefined && object.start_read !== null
-        ? Command_StartRead.fromPartial(object.start_read)
-        : undefined;
+    message.open_carrier = (object.open_carrier !== undefined && object.open_carrier !== null)
+      ? Command_OpenCarrier.fromPartial(object.open_carrier)
+      : undefined;
+    message.close_carrier = (object.close_carrier !== undefined && object.close_carrier !== null)
+      ? Command_CloseCarrier.fromPartial(object.close_carrier)
+      : undefined;
+    message.start_read = (object.start_read !== undefined && object.start_read !== null)
+      ? Command_StartRead.fromPartial(object.start_read)
+      : undefined;
     return message;
   },
 };
@@ -501,9 +488,7 @@ export const Command_StartRead = {
     return {
       protocol_file: isSet(object.protocol_file) ? String(object.protocol_file) : "",
       experiment_name: isSet(object.experiment_name) ? String(object.experiment_name) : undefined,
-      well_addresses: Array.isArray(object?.well_addresses)
-        ? object.well_addresses.map((e: any) => String(e))
-        : [],
+      well_addresses: Array.isArray(object?.well_addresses) ? object.well_addresses.map((e: any) => String(e)) : [],
     };
   },
 
@@ -533,11 +518,7 @@ export const Command_StartRead = {
 };
 
 function createBaseConfig(): Config {
-  return {
-    protocol_dir: "",
-    experiment_dir: "",
-    reader_type: Config_CytationReaderType.CYTATION_UNKNOWN,
-  };
+  return { protocol_dir: "", experiment_dir: "", reader_type: Config_CytationReaderType.CYTATION_UNKNOWN };
 }
 
 export const Config = {
@@ -605,8 +586,7 @@ export const Config = {
     const obj: any = {};
     message.protocol_dir !== undefined && (obj.protocol_dir = message.protocol_dir);
     message.experiment_dir !== undefined && (obj.experiment_dir = message.experiment_dir);
-    message.reader_type !== undefined &&
-      (obj.reader_type = config_CytationReaderTypeToJSON(message.reader_type));
+    message.reader_type !== undefined && (obj.reader_type = config_CytationReaderTypeToJSON(message.reader_type));
     return obj;
   },
 
@@ -625,19 +605,13 @@ export const Config = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-    ? Array<DeepPartial<U>>
-    : T extends ReadonlyArray<infer U>
-      ? ReadonlyArray<DeepPartial<U>>
-      : T extends {}
-        ? { [K in keyof T]?: DeepPartial<T[K]> }
-        : Partial<T>;
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
+export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {

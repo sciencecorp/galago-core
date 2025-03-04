@@ -30,7 +30,8 @@ export interface Command_RawCommand {
   command: string;
 }
 
-export interface Command_GetCurrentLocation {}
+export interface Command_GetCurrentLocation {
+}
 
 export interface Command_Jog {
   axis: string;
@@ -70,11 +71,14 @@ export interface Command_RunSequence {
   labware: string;
 }
 
-export interface Command_Engage {}
+export interface Command_Engage {
+}
 
-export interface Command_Release {}
+export interface Command_Release {
+}
 
-export interface Command_Retract {}
+export interface Command_Retract {
+}
 
 export interface Command_Move {
   name: string;
@@ -128,6 +132,7 @@ export interface Config {
   host: string;
   port: number;
   joints: number;
+  gpl_version: string;
 }
 
 function createBaseCommand(): Command {
@@ -196,10 +201,7 @@ export const Command = {
       Command_PlaceLid.encode(message.place_lid, writer.uint32(106).fork()).ldelim();
     }
     if (message.get_current_location !== undefined) {
-      Command_GetCurrentLocation.encode(
-        message.get_current_location,
-        writer.uint32(114).fork(),
-      ).ldelim();
+      Command_GetCurrentLocation.encode(message.get_current_location, writer.uint32(114).fork()).ldelim();
     }
     if (message.jog !== undefined) {
       Command_Jog.encode(message.jog, writer.uint32(122).fork()).ldelim();
@@ -208,10 +210,7 @@ export const Command = {
       Command_RawCommand.encode(message.raw_command, writer.uint32(130).fork()).ldelim();
     }
     if (message.register_motion_profile !== undefined) {
-      Command_RegisterMotionProfile.encode(
-        message.register_motion_profile,
-        writer.uint32(138).fork(),
-      ).ldelim();
+      Command_RegisterMotionProfile.encode(message.register_motion_profile, writer.uint32(138).fork()).ldelim();
     }
     if (message.load_waypoints !== undefined) {
       Command_LoadWaypoints.encode(message.load_waypoints, writer.uint32(146).fork()).ldelim();
@@ -346,10 +345,7 @@ export const Command = {
             break;
           }
 
-          message.register_motion_profile = Command_RegisterMotionProfile.decode(
-            reader,
-            reader.uint32(),
-          );
+          message.register_motion_profile = Command_RegisterMotionProfile.decode(reader, reader.uint32());
           continue;
         case 18:
           if (tag !== 146) {
@@ -377,107 +373,69 @@ export const Command = {
   fromJSON(object: any): Command {
     return {
       move: isSet(object.move) ? Command_Move.fromJSON(object.move) : undefined,
-      grasp_plate: isSet(object.grasp_plate)
-        ? Command_GraspPlate.fromJSON(object.grasp_plate)
-        : undefined,
-      release_plate: isSet(object.release_plate)
-        ? Command_ReleasePlate.fromJSON(object.release_plate)
-        : undefined,
+      grasp_plate: isSet(object.grasp_plate) ? Command_GraspPlate.fromJSON(object.grasp_plate) : undefined,
+      release_plate: isSet(object.release_plate) ? Command_ReleasePlate.fromJSON(object.release_plate) : undefined,
       transfer: isSet(object.transfer) ? Command_Transfer.fromJSON(object.transfer) : undefined,
       wait: isSet(object.wait) ? Command_Wait.fromJSON(object.wait) : undefined,
       release: isSet(object.release) ? Command_Release.fromJSON(object.release) : undefined,
       engage: isSet(object.engage) ? Command_Engage.fromJSON(object.engage) : undefined,
       retract: isSet(object.retract) ? Command_Retract.fromJSON(object.retract) : undefined,
-      run_sequence: isSet(object.run_sequence)
-        ? Command_RunSequence.fromJSON(object.run_sequence)
-        : undefined,
-      retrieve_plate: isSet(object.retrieve_plate)
-        ? Command_RetrievePlate.fromJSON(object.retrieve_plate)
-        : undefined,
-      dropoff_plate: isSet(object.dropoff_plate)
-        ? Command_DropOffPlate.fromJSON(object.dropoff_plate)
-        : undefined,
+      run_sequence: isSet(object.run_sequence) ? Command_RunSequence.fromJSON(object.run_sequence) : undefined,
+      retrieve_plate: isSet(object.retrieve_plate) ? Command_RetrievePlate.fromJSON(object.retrieve_plate) : undefined,
+      dropoff_plate: isSet(object.dropoff_plate) ? Command_DropOffPlate.fromJSON(object.dropoff_plate) : undefined,
       pick_lid: isSet(object.pick_lid) ? Command_PickLid.fromJSON(object.pick_lid) : undefined,
       place_lid: isSet(object.place_lid) ? Command_PlaceLid.fromJSON(object.place_lid) : undefined,
       get_current_location: isSet(object.get_current_location)
         ? Command_GetCurrentLocation.fromJSON(object.get_current_location)
         : undefined,
       jog: isSet(object.jog) ? Command_Jog.fromJSON(object.jog) : undefined,
-      raw_command: isSet(object.raw_command)
-        ? Command_RawCommand.fromJSON(object.raw_command)
-        : undefined,
+      raw_command: isSet(object.raw_command) ? Command_RawCommand.fromJSON(object.raw_command) : undefined,
       register_motion_profile: isSet(object.register_motion_profile)
         ? Command_RegisterMotionProfile.fromJSON(object.register_motion_profile)
         : undefined,
-      load_waypoints: isSet(object.load_waypoints)
-        ? Command_LoadWaypoints.fromJSON(object.load_waypoints)
-        : undefined,
-      load_labware: isSet(object.load_labware)
-        ? Command_LoadLabware.fromJSON(object.load_labware)
-        : undefined,
+      load_waypoints: isSet(object.load_waypoints) ? Command_LoadWaypoints.fromJSON(object.load_waypoints) : undefined,
+      load_labware: isSet(object.load_labware) ? Command_LoadLabware.fromJSON(object.load_labware) : undefined,
     };
   },
 
   toJSON(message: Command): unknown {
     const obj: any = {};
-    message.move !== undefined &&
-      (obj.move = message.move ? Command_Move.toJSON(message.move) : undefined);
+    message.move !== undefined && (obj.move = message.move ? Command_Move.toJSON(message.move) : undefined);
     message.grasp_plate !== undefined &&
-      (obj.grasp_plate = message.grasp_plate
-        ? Command_GraspPlate.toJSON(message.grasp_plate)
-        : undefined);
+      (obj.grasp_plate = message.grasp_plate ? Command_GraspPlate.toJSON(message.grasp_plate) : undefined);
     message.release_plate !== undefined &&
-      (obj.release_plate = message.release_plate
-        ? Command_ReleasePlate.toJSON(message.release_plate)
-        : undefined);
+      (obj.release_plate = message.release_plate ? Command_ReleasePlate.toJSON(message.release_plate) : undefined);
     message.transfer !== undefined &&
       (obj.transfer = message.transfer ? Command_Transfer.toJSON(message.transfer) : undefined);
-    message.wait !== undefined &&
-      (obj.wait = message.wait ? Command_Wait.toJSON(message.wait) : undefined);
+    message.wait !== undefined && (obj.wait = message.wait ? Command_Wait.toJSON(message.wait) : undefined);
     message.release !== undefined &&
       (obj.release = message.release ? Command_Release.toJSON(message.release) : undefined);
-    message.engage !== undefined &&
-      (obj.engage = message.engage ? Command_Engage.toJSON(message.engage) : undefined);
+    message.engage !== undefined && (obj.engage = message.engage ? Command_Engage.toJSON(message.engage) : undefined);
     message.retract !== undefined &&
       (obj.retract = message.retract ? Command_Retract.toJSON(message.retract) : undefined);
     message.run_sequence !== undefined &&
-      (obj.run_sequence = message.run_sequence
-        ? Command_RunSequence.toJSON(message.run_sequence)
-        : undefined);
+      (obj.run_sequence = message.run_sequence ? Command_RunSequence.toJSON(message.run_sequence) : undefined);
     message.retrieve_plate !== undefined &&
-      (obj.retrieve_plate = message.retrieve_plate
-        ? Command_RetrievePlate.toJSON(message.retrieve_plate)
-        : undefined);
+      (obj.retrieve_plate = message.retrieve_plate ? Command_RetrievePlate.toJSON(message.retrieve_plate) : undefined);
     message.dropoff_plate !== undefined &&
-      (obj.dropoff_plate = message.dropoff_plate
-        ? Command_DropOffPlate.toJSON(message.dropoff_plate)
-        : undefined);
+      (obj.dropoff_plate = message.dropoff_plate ? Command_DropOffPlate.toJSON(message.dropoff_plate) : undefined);
     message.pick_lid !== undefined &&
       (obj.pick_lid = message.pick_lid ? Command_PickLid.toJSON(message.pick_lid) : undefined);
     message.place_lid !== undefined &&
       (obj.place_lid = message.place_lid ? Command_PlaceLid.toJSON(message.place_lid) : undefined);
-    message.get_current_location !== undefined &&
-      (obj.get_current_location = message.get_current_location
-        ? Command_GetCurrentLocation.toJSON(message.get_current_location)
-        : undefined);
-    message.jog !== undefined &&
-      (obj.jog = message.jog ? Command_Jog.toJSON(message.jog) : undefined);
+    message.get_current_location !== undefined && (obj.get_current_location = message.get_current_location
+      ? Command_GetCurrentLocation.toJSON(message.get_current_location)
+      : undefined);
+    message.jog !== undefined && (obj.jog = message.jog ? Command_Jog.toJSON(message.jog) : undefined);
     message.raw_command !== undefined &&
-      (obj.raw_command = message.raw_command
-        ? Command_RawCommand.toJSON(message.raw_command)
-        : undefined);
-    message.register_motion_profile !== undefined &&
-      (obj.register_motion_profile = message.register_motion_profile
-        ? Command_RegisterMotionProfile.toJSON(message.register_motion_profile)
-        : undefined);
+      (obj.raw_command = message.raw_command ? Command_RawCommand.toJSON(message.raw_command) : undefined);
+    message.register_motion_profile !== undefined && (obj.register_motion_profile = message.register_motion_profile
+      ? Command_RegisterMotionProfile.toJSON(message.register_motion_profile)
+      : undefined);
     message.load_waypoints !== undefined &&
-      (obj.load_waypoints = message.load_waypoints
-        ? Command_LoadWaypoints.toJSON(message.load_waypoints)
-        : undefined);
+      (obj.load_waypoints = message.load_waypoints ? Command_LoadWaypoints.toJSON(message.load_waypoints) : undefined);
     message.load_labware !== undefined &&
-      (obj.load_labware = message.load_labware
-        ? Command_LoadLabware.toJSON(message.load_labware)
-        : undefined);
+      (obj.load_labware = message.load_labware ? Command_LoadLabware.toJSON(message.load_labware) : undefined);
     return obj;
   },
 
@@ -487,82 +445,62 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.move =
-      object.move !== undefined && object.move !== null
-        ? Command_Move.fromPartial(object.move)
-        : undefined;
-    message.grasp_plate =
-      object.grasp_plate !== undefined && object.grasp_plate !== null
-        ? Command_GraspPlate.fromPartial(object.grasp_plate)
-        : undefined;
-    message.release_plate =
-      object.release_plate !== undefined && object.release_plate !== null
-        ? Command_ReleasePlate.fromPartial(object.release_plate)
-        : undefined;
-    message.transfer =
-      object.transfer !== undefined && object.transfer !== null
-        ? Command_Transfer.fromPartial(object.transfer)
-        : undefined;
-    message.wait =
-      object.wait !== undefined && object.wait !== null
-        ? Command_Wait.fromPartial(object.wait)
-        : undefined;
-    message.release =
-      object.release !== undefined && object.release !== null
-        ? Command_Release.fromPartial(object.release)
-        : undefined;
-    message.engage =
-      object.engage !== undefined && object.engage !== null
-        ? Command_Engage.fromPartial(object.engage)
-        : undefined;
-    message.retract =
-      object.retract !== undefined && object.retract !== null
-        ? Command_Retract.fromPartial(object.retract)
-        : undefined;
-    message.run_sequence =
-      object.run_sequence !== undefined && object.run_sequence !== null
-        ? Command_RunSequence.fromPartial(object.run_sequence)
-        : undefined;
-    message.retrieve_plate =
-      object.retrieve_plate !== undefined && object.retrieve_plate !== null
-        ? Command_RetrievePlate.fromPartial(object.retrieve_plate)
-        : undefined;
-    message.dropoff_plate =
-      object.dropoff_plate !== undefined && object.dropoff_plate !== null
-        ? Command_DropOffPlate.fromPartial(object.dropoff_plate)
-        : undefined;
-    message.pick_lid =
-      object.pick_lid !== undefined && object.pick_lid !== null
-        ? Command_PickLid.fromPartial(object.pick_lid)
-        : undefined;
-    message.place_lid =
-      object.place_lid !== undefined && object.place_lid !== null
-        ? Command_PlaceLid.fromPartial(object.place_lid)
-        : undefined;
-    message.get_current_location =
-      object.get_current_location !== undefined && object.get_current_location !== null
-        ? Command_GetCurrentLocation.fromPartial(object.get_current_location)
-        : undefined;
-    message.jog =
-      object.jog !== undefined && object.jog !== null
-        ? Command_Jog.fromPartial(object.jog)
-        : undefined;
-    message.raw_command =
-      object.raw_command !== undefined && object.raw_command !== null
-        ? Command_RawCommand.fromPartial(object.raw_command)
-        : undefined;
+    message.move = (object.move !== undefined && object.move !== null)
+      ? Command_Move.fromPartial(object.move)
+      : undefined;
+    message.grasp_plate = (object.grasp_plate !== undefined && object.grasp_plate !== null)
+      ? Command_GraspPlate.fromPartial(object.grasp_plate)
+      : undefined;
+    message.release_plate = (object.release_plate !== undefined && object.release_plate !== null)
+      ? Command_ReleasePlate.fromPartial(object.release_plate)
+      : undefined;
+    message.transfer = (object.transfer !== undefined && object.transfer !== null)
+      ? Command_Transfer.fromPartial(object.transfer)
+      : undefined;
+    message.wait = (object.wait !== undefined && object.wait !== null)
+      ? Command_Wait.fromPartial(object.wait)
+      : undefined;
+    message.release = (object.release !== undefined && object.release !== null)
+      ? Command_Release.fromPartial(object.release)
+      : undefined;
+    message.engage = (object.engage !== undefined && object.engage !== null)
+      ? Command_Engage.fromPartial(object.engage)
+      : undefined;
+    message.retract = (object.retract !== undefined && object.retract !== null)
+      ? Command_Retract.fromPartial(object.retract)
+      : undefined;
+    message.run_sequence = (object.run_sequence !== undefined && object.run_sequence !== null)
+      ? Command_RunSequence.fromPartial(object.run_sequence)
+      : undefined;
+    message.retrieve_plate = (object.retrieve_plate !== undefined && object.retrieve_plate !== null)
+      ? Command_RetrievePlate.fromPartial(object.retrieve_plate)
+      : undefined;
+    message.dropoff_plate = (object.dropoff_plate !== undefined && object.dropoff_plate !== null)
+      ? Command_DropOffPlate.fromPartial(object.dropoff_plate)
+      : undefined;
+    message.pick_lid = (object.pick_lid !== undefined && object.pick_lid !== null)
+      ? Command_PickLid.fromPartial(object.pick_lid)
+      : undefined;
+    message.place_lid = (object.place_lid !== undefined && object.place_lid !== null)
+      ? Command_PlaceLid.fromPartial(object.place_lid)
+      : undefined;
+    message.get_current_location = (object.get_current_location !== undefined && object.get_current_location !== null)
+      ? Command_GetCurrentLocation.fromPartial(object.get_current_location)
+      : undefined;
+    message.jog = (object.jog !== undefined && object.jog !== null) ? Command_Jog.fromPartial(object.jog) : undefined;
+    message.raw_command = (object.raw_command !== undefined && object.raw_command !== null)
+      ? Command_RawCommand.fromPartial(object.raw_command)
+      : undefined;
     message.register_motion_profile =
-      object.register_motion_profile !== undefined && object.register_motion_profile !== null
+      (object.register_motion_profile !== undefined && object.register_motion_profile !== null)
         ? Command_RegisterMotionProfile.fromPartial(object.register_motion_profile)
         : undefined;
-    message.load_waypoints =
-      object.load_waypoints !== undefined && object.load_waypoints !== null
-        ? Command_LoadWaypoints.fromPartial(object.load_waypoints)
-        : undefined;
-    message.load_labware =
-      object.load_labware !== undefined && object.load_labware !== null
-        ? Command_LoadLabware.fromPartial(object.load_labware)
-        : undefined;
+    message.load_waypoints = (object.load_waypoints !== undefined && object.load_waypoints !== null)
+      ? Command_LoadWaypoints.fromPartial(object.load_waypoints)
+      : undefined;
+    message.load_labware = (object.load_labware !== undefined && object.load_labware !== null)
+      ? Command_LoadLabware.fromPartial(object.load_labware)
+      : undefined;
     return message;
   },
 };
@@ -657,15 +595,11 @@ export const Command_GetCurrentLocation = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_GetCurrentLocation>, I>>(
-    base?: I,
-  ): Command_GetCurrentLocation {
+  create<I extends Exact<DeepPartial<Command_GetCurrentLocation>, I>>(base?: I): Command_GetCurrentLocation {
     return Command_GetCurrentLocation.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_GetCurrentLocation>, I>>(
-    _: I,
-  ): Command_GetCurrentLocation {
+  fromPartial<I extends Exact<DeepPartial<Command_GetCurrentLocation>, I>>(_: I): Command_GetCurrentLocation {
     const message = createBaseCommand_GetCurrentLocation();
     return message;
   },
@@ -811,9 +745,7 @@ export const Command_PickLid = {
     return {
       labware: isSet(object.labware) ? String(object.labware) : "",
       location: isSet(object.location) ? String(object.location) : "",
-      motion_profile_id: isSet(object.motion_profile_id)
-        ? Number(object.motion_profile_id)
-        : undefined,
+      motion_profile_id: isSet(object.motion_profile_id) ? Number(object.motion_profile_id) : undefined,
       pick_from_plate: isSet(object.pick_from_plate) ? Boolean(object.pick_from_plate) : undefined,
     };
   },
@@ -822,8 +754,7 @@ export const Command_PickLid = {
     const obj: any = {};
     message.labware !== undefined && (obj.labware = message.labware);
     message.location !== undefined && (obj.location = message.location);
-    message.motion_profile_id !== undefined &&
-      (obj.motion_profile_id = Math.round(message.motion_profile_id));
+    message.motion_profile_id !== undefined && (obj.motion_profile_id = Math.round(message.motion_profile_id));
     message.pick_from_plate !== undefined && (obj.pick_from_plate = message.pick_from_plate);
     return obj;
   },
@@ -911,9 +842,7 @@ export const Command_PlaceLid = {
     return {
       labware: isSet(object.labware) ? String(object.labware) : "",
       location: isSet(object.location) ? String(object.location) : "",
-      motion_profile_id: isSet(object.motion_profile_id)
-        ? Number(object.motion_profile_id)
-        : undefined,
+      motion_profile_id: isSet(object.motion_profile_id) ? Number(object.motion_profile_id) : undefined,
       place_on_plate: isSet(object.place_on_plate) ? Boolean(object.place_on_plate) : undefined,
     };
   },
@@ -922,8 +851,7 @@ export const Command_PlaceLid = {
     const obj: any = {};
     message.labware !== undefined && (obj.labware = message.labware);
     message.location !== undefined && (obj.location = message.location);
-    message.motion_profile_id !== undefined &&
-      (obj.motion_profile_id = Math.round(message.motion_profile_id));
+    message.motion_profile_id !== undefined && (obj.motion_profile_id = Math.round(message.motion_profile_id));
     message.place_on_plate !== undefined && (obj.place_on_plate = message.place_on_plate);
     return obj;
   },
@@ -1012,9 +940,7 @@ export const Command_RetrievePlate = {
       labware: isSet(object.labware) ? String(object.labware) : "",
       location: isSet(object.location) ? String(object.location) : "",
       z_offset: isSet(object.z_offset) ? Number(object.z_offset) : undefined,
-      motion_profile_id: isSet(object.motion_profile_id)
-        ? Number(object.motion_profile_id)
-        : undefined,
+      motion_profile_id: isSet(object.motion_profile_id) ? Number(object.motion_profile_id) : undefined,
     };
   },
 
@@ -1023,8 +949,7 @@ export const Command_RetrievePlate = {
     message.labware !== undefined && (obj.labware = message.labware);
     message.location !== undefined && (obj.location = message.location);
     message.z_offset !== undefined && (obj.z_offset = message.z_offset);
-    message.motion_profile_id !== undefined &&
-      (obj.motion_profile_id = Math.round(message.motion_profile_id));
+    message.motion_profile_id !== undefined && (obj.motion_profile_id = Math.round(message.motion_profile_id));
     return obj;
   },
 
@@ -1032,9 +957,7 @@ export const Command_RetrievePlate = {
     return Command_RetrievePlate.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_RetrievePlate>, I>>(
-    object: I,
-  ): Command_RetrievePlate {
+  fromPartial<I extends Exact<DeepPartial<Command_RetrievePlate>, I>>(object: I): Command_RetrievePlate {
     const message = createBaseCommand_RetrievePlate();
     message.labware = object.labware ?? "";
     message.location = object.location ?? "";
@@ -1114,9 +1037,7 @@ export const Command_DropOffPlate = {
       labware: isSet(object.labware) ? String(object.labware) : "",
       location: isSet(object.location) ? String(object.location) : "",
       z_offset: isSet(object.z_offset) ? Number(object.z_offset) : undefined,
-      motion_profile_id: isSet(object.motion_profile_id)
-        ? Number(object.motion_profile_id)
-        : undefined,
+      motion_profile_id: isSet(object.motion_profile_id) ? Number(object.motion_profile_id) : undefined,
     };
   },
 
@@ -1125,8 +1046,7 @@ export const Command_DropOffPlate = {
     message.labware !== undefined && (obj.labware = message.labware);
     message.location !== undefined && (obj.location = message.location);
     message.z_offset !== undefined && (obj.z_offset = message.z_offset);
-    message.motion_profile_id !== undefined &&
-      (obj.motion_profile_id = Math.round(message.motion_profile_id));
+    message.motion_profile_id !== undefined && (obj.motion_profile_id = Math.round(message.motion_profile_id));
     return obj;
   },
 
@@ -1134,9 +1054,7 @@ export const Command_DropOffPlate = {
     return Command_DropOffPlate.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_DropOffPlate>, I>>(
-    object: I,
-  ): Command_DropOffPlate {
+  fromPartial<I extends Exact<DeepPartial<Command_DropOffPlate>, I>>(object: I): Command_DropOffPlate {
     const message = createBaseCommand_DropOffPlate();
     message.labware = object.labware ?? "";
     message.location = object.location ?? "";
@@ -1209,9 +1127,7 @@ export const Command_RunSequence = {
     return Command_RunSequence.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_RunSequence>, I>>(
-    object: I,
-  ): Command_RunSequence {
+  fromPartial<I extends Exact<DeepPartial<Command_RunSequence>, I>>(object: I): Command_RunSequence {
     const message = createBaseCommand_RunSequence();
     message.sequence_name = object.sequence_name ?? "";
     message.labware = object.labware ?? "";
@@ -1409,9 +1325,7 @@ export const Command_Move = {
   fromJSON(object: any): Command_Move {
     return {
       name: isSet(object.name) ? String(object.name) : "",
-      motion_profile_id: isSet(object.motion_profile_id)
-        ? Number(object.motion_profile_id)
-        : undefined,
+      motion_profile_id: isSet(object.motion_profile_id) ? Number(object.motion_profile_id) : undefined,
       z_offset: isSet(object.z_offset) ? Number(object.z_offset) : undefined,
     };
   },
@@ -1419,8 +1333,7 @@ export const Command_Move = {
   toJSON(message: Command_Move): unknown {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
-    message.motion_profile_id !== undefined &&
-      (obj.motion_profile_id = Math.round(message.motion_profile_id));
+    message.motion_profile_id !== undefined && (obj.motion_profile_id = Math.round(message.motion_profile_id));
     message.z_offset !== undefined && (obj.z_offset = Math.round(message.z_offset));
     return obj;
   },
@@ -1585,9 +1498,7 @@ export const Command_ReleasePlate = {
     return Command_ReleasePlate.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_ReleasePlate>, I>>(
-    object: I,
-  ): Command_ReleasePlate {
+  fromPartial<I extends Exact<DeepPartial<Command_ReleasePlate>, I>>(object: I): Command_ReleasePlate {
     const message = createBaseCommand_ReleasePlate();
     message.width = object.width ?? 0;
     message.speed = object.speed ?? 0;
@@ -1665,9 +1576,7 @@ export const Command_Transfer = {
       source_nest: isSet(object.source_nest) ? String(object.source_nest) : "",
       destination_nest: isSet(object.destination_nest) ? String(object.destination_nest) : "",
       labware: isSet(object.labware) ? String(object.labware) : "",
-      motion_profile_id: isSet(object.motion_profile_id)
-        ? Number(object.motion_profile_id)
-        : undefined,
+      motion_profile_id: isSet(object.motion_profile_id) ? Number(object.motion_profile_id) : undefined,
     };
   },
 
@@ -1676,8 +1585,7 @@ export const Command_Transfer = {
     message.source_nest !== undefined && (obj.source_nest = message.source_nest);
     message.destination_nest !== undefined && (obj.destination_nest = message.destination_nest);
     message.labware !== undefined && (obj.labware = message.labware);
-    message.motion_profile_id !== undefined &&
-      (obj.motion_profile_id = Math.round(message.motion_profile_id));
+    message.motion_profile_id !== undefined && (obj.motion_profile_id = Math.round(message.motion_profile_id));
     return obj;
   },
 
@@ -1752,24 +1660,11 @@ export const Command_Wait = {
 };
 
 function createBaseCommand_RegisterMotionProfile(): Command_RegisterMotionProfile {
-  return {
-    id: 0,
-    speed: 0,
-    speed2: 0,
-    accel: 0,
-    decel: 0,
-    accel_ramp: 0,
-    decel_ramp: 0,
-    inrange: 0,
-    straight: 0,
-  };
+  return { id: 0, speed: 0, speed2: 0, accel: 0, decel: 0, accel_ramp: 0, decel_ramp: 0, inrange: 0, straight: 0 };
 }
 
 export const Command_RegisterMotionProfile = {
-  encode(
-    message: Command_RegisterMotionProfile,
-    writer: _m0.Writer = _m0.Writer.create(),
-  ): _m0.Writer {
+  encode(message: Command_RegisterMotionProfile, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.id !== 0) {
       writer.uint32(8).int32(message.id);
     }
@@ -1907,9 +1802,7 @@ export const Command_RegisterMotionProfile = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_RegisterMotionProfile>, I>>(
-    base?: I,
-  ): Command_RegisterMotionProfile {
+  create<I extends Exact<DeepPartial<Command_RegisterMotionProfile>, I>>(base?: I): Command_RegisterMotionProfile {
     return Command_RegisterMotionProfile.fromPartial(base ?? {});
   },
 
@@ -1979,9 +1872,7 @@ export const Command_LoadWaypoints = {
     return Command_LoadWaypoints.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_LoadWaypoints>, I>>(
-    object: I,
-  ): Command_LoadWaypoints {
+  fromPartial<I extends Exact<DeepPartial<Command_LoadWaypoints>, I>>(object: I): Command_LoadWaypoints {
     const message = createBaseCommand_LoadWaypoints();
     message.waypoints = object.waypoints ?? undefined;
     return message;
@@ -2037,9 +1928,7 @@ export const Command_LoadLabware = {
     return Command_LoadLabware.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_LoadLabware>, I>>(
-    object: I,
-  ): Command_LoadLabware {
+  fromPartial<I extends Exact<DeepPartial<Command_LoadLabware>, I>>(object: I): Command_LoadLabware {
     const message = createBaseCommand_LoadLabware();
     message.labwares = object.labwares ?? undefined;
     return message;
@@ -2047,7 +1936,7 @@ export const Command_LoadLabware = {
 };
 
 function createBaseConfig(): Config {
-  return { host: "", port: 0, joints: 0 };
+  return { host: "", port: 0, joints: 0, gpl_version: "" };
 }
 
 export const Config = {
@@ -2060,6 +1949,9 @@ export const Config = {
     }
     if (message.joints !== 0) {
       writer.uint32(24).int32(message.joints);
+    }
+    if (message.gpl_version !== "") {
+      writer.uint32(34).string(message.gpl_version);
     }
     return writer;
   },
@@ -2092,6 +1984,13 @@ export const Config = {
 
           message.joints = reader.int32();
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.gpl_version = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2106,6 +2005,7 @@ export const Config = {
       host: isSet(object.host) ? String(object.host) : "",
       port: isSet(object.port) ? Number(object.port) : 0,
       joints: isSet(object.joints) ? Number(object.joints) : 0,
+      gpl_version: isSet(object.gpl_version) ? String(object.gpl_version) : "",
     };
   },
 
@@ -2114,6 +2014,7 @@ export const Config = {
     message.host !== undefined && (obj.host = message.host);
     message.port !== undefined && (obj.port = Math.round(message.port));
     message.joints !== undefined && (obj.joints = Math.round(message.joints));
+    message.gpl_version !== undefined && (obj.gpl_version = message.gpl_version);
     return obj;
   },
 
@@ -2126,25 +2027,20 @@ export const Config = {
     message.host = object.host ?? "";
     message.port = object.port ?? 0;
     message.joints = object.joints ?? 0;
+    message.gpl_version = object.gpl_version ?? "";
     return message;
   },
 };
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-    ? Array<DeepPartial<U>>
-    : T extends ReadonlyArray<infer U>
-      ? ReadonlyArray<DeepPartial<U>>
-      : T extends {}
-        ? { [K in keyof T]?: DeepPartial<T[K]> }
-        : Partial<T>;
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
+export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isObject(value: any): boolean {

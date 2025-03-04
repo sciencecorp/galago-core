@@ -480,9 +480,7 @@ export const Command = {
       dataman70: isSet(object.dataman70) ? Command5.fromJSON(object.dataman70) : undefined,
       spectramax: isSet(object.spectramax) ? Command6.fromJSON(object.spectramax) : undefined,
       bioshake: isSet(object.bioshake) ? Command7.fromJSON(object.bioshake) : undefined,
-      hig_centrifuge: isSet(object.hig_centrifuge)
-        ? Command8.fromJSON(object.hig_centrifuge)
-        : undefined,
+      hig_centrifuge: isSet(object.hig_centrifuge) ? Command8.fromJSON(object.hig_centrifuge) : undefined,
       bravo: isSet(object.bravo) ? Command9.fromJSON(object.bravo) : undefined,
       multidrop: isSet(object.multidrop) ? Command10.fromJSON(object.multidrop) : undefined,
       vcode: isSet(object.vcode) ? Command11.fromJSON(object.vcode) : undefined,
@@ -496,38 +494,28 @@ export const Command = {
 
   toJSON(message: Command): unknown {
     const obj: any = {};
-    message.cytation !== undefined &&
-      (obj.cytation = message.cytation ? Command1.toJSON(message.cytation) : undefined);
+    message.cytation !== undefined && (obj.cytation = message.cytation ? Command1.toJSON(message.cytation) : undefined);
     message.opentrons2 !== undefined &&
       (obj.opentrons2 = message.opentrons2 ? Command2.toJSON(message.opentrons2) : undefined);
-    message.pf400 !== undefined &&
-      (obj.pf400 = message.pf400 ? Command3.toJSON(message.pf400) : undefined);
-    message.liconic !== undefined &&
-      (obj.liconic = message.liconic ? Command4.toJSON(message.liconic) : undefined);
+    message.pf400 !== undefined && (obj.pf400 = message.pf400 ? Command3.toJSON(message.pf400) : undefined);
+    message.liconic !== undefined && (obj.liconic = message.liconic ? Command4.toJSON(message.liconic) : undefined);
     message.dataman70 !== undefined &&
       (obj.dataman70 = message.dataman70 ? Command5.toJSON(message.dataman70) : undefined);
     message.spectramax !== undefined &&
       (obj.spectramax = message.spectramax ? Command6.toJSON(message.spectramax) : undefined);
-    message.bioshake !== undefined &&
-      (obj.bioshake = message.bioshake ? Command7.toJSON(message.bioshake) : undefined);
+    message.bioshake !== undefined && (obj.bioshake = message.bioshake ? Command7.toJSON(message.bioshake) : undefined);
     message.hig_centrifuge !== undefined &&
-      (obj.hig_centrifuge = message.hig_centrifuge
-        ? Command8.toJSON(message.hig_centrifuge)
-        : undefined);
-    message.bravo !== undefined &&
-      (obj.bravo = message.bravo ? Command9.toJSON(message.bravo) : undefined);
+      (obj.hig_centrifuge = message.hig_centrifuge ? Command8.toJSON(message.hig_centrifuge) : undefined);
+    message.bravo !== undefined && (obj.bravo = message.bravo ? Command9.toJSON(message.bravo) : undefined);
     message.multidrop !== undefined &&
       (obj.multidrop = message.multidrop ? Command10.toJSON(message.multidrop) : undefined);
-    message.vcode !== undefined &&
-      (obj.vcode = message.vcode ? Command11.toJSON(message.vcode) : undefined);
+    message.vcode !== undefined && (obj.vcode = message.vcode ? Command11.toJSON(message.vcode) : undefined);
     message.plateloc !== undefined &&
       (obj.plateloc = message.plateloc ? Command12.toJSON(message.plateloc) : undefined);
-    message.xpeel !== undefined &&
-      (obj.xpeel = message.xpeel ? Command13.toJSON(message.xpeel) : undefined);
+    message.xpeel !== undefined && (obj.xpeel = message.xpeel ? Command13.toJSON(message.xpeel) : undefined);
     message.alps3000 !== undefined &&
       (obj.alps3000 = message.alps3000 ? Command14.toJSON(message.alps3000) : undefined);
-    message.toolbox !== undefined &&
-      (obj.toolbox = message.toolbox ? Command15.toJSON(message.toolbox) : undefined);
+    message.toolbox !== undefined && (obj.toolbox = message.toolbox ? Command15.toJSON(message.toolbox) : undefined);
     message.hamilton !== undefined &&
       (obj.hamilton = message.hamilton ? Command16.toJSON(message.hamilton) : undefined);
     return obj;
@@ -539,70 +527,54 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.cytation =
-      object.cytation !== undefined && object.cytation !== null
-        ? Command1.fromPartial(object.cytation)
-        : undefined;
-    message.opentrons2 =
-      object.opentrons2 !== undefined && object.opentrons2 !== null
-        ? Command2.fromPartial(object.opentrons2)
-        : undefined;
-    message.pf400 =
-      object.pf400 !== undefined && object.pf400 !== null
-        ? Command3.fromPartial(object.pf400)
-        : undefined;
-    message.liconic =
-      object.liconic !== undefined && object.liconic !== null
-        ? Command4.fromPartial(object.liconic)
-        : undefined;
-    message.dataman70 =
-      object.dataman70 !== undefined && object.dataman70 !== null
-        ? Command5.fromPartial(object.dataman70)
-        : undefined;
-    message.spectramax =
-      object.spectramax !== undefined && object.spectramax !== null
-        ? Command6.fromPartial(object.spectramax)
-        : undefined;
-    message.bioshake =
-      object.bioshake !== undefined && object.bioshake !== null
-        ? Command7.fromPartial(object.bioshake)
-        : undefined;
-    message.hig_centrifuge =
-      object.hig_centrifuge !== undefined && object.hig_centrifuge !== null
-        ? Command8.fromPartial(object.hig_centrifuge)
-        : undefined;
-    message.bravo =
-      object.bravo !== undefined && object.bravo !== null
-        ? Command9.fromPartial(object.bravo)
-        : undefined;
-    message.multidrop =
-      object.multidrop !== undefined && object.multidrop !== null
-        ? Command10.fromPartial(object.multidrop)
-        : undefined;
-    message.vcode =
-      object.vcode !== undefined && object.vcode !== null
-        ? Command11.fromPartial(object.vcode)
-        : undefined;
-    message.plateloc =
-      object.plateloc !== undefined && object.plateloc !== null
-        ? Command12.fromPartial(object.plateloc)
-        : undefined;
-    message.xpeel =
-      object.xpeel !== undefined && object.xpeel !== null
-        ? Command13.fromPartial(object.xpeel)
-        : undefined;
-    message.alps3000 =
-      object.alps3000 !== undefined && object.alps3000 !== null
-        ? Command14.fromPartial(object.alps3000)
-        : undefined;
-    message.toolbox =
-      object.toolbox !== undefined && object.toolbox !== null
-        ? Command15.fromPartial(object.toolbox)
-        : undefined;
-    message.hamilton =
-      object.hamilton !== undefined && object.hamilton !== null
-        ? Command16.fromPartial(object.hamilton)
-        : undefined;
+    message.cytation = (object.cytation !== undefined && object.cytation !== null)
+      ? Command1.fromPartial(object.cytation)
+      : undefined;
+    message.opentrons2 = (object.opentrons2 !== undefined && object.opentrons2 !== null)
+      ? Command2.fromPartial(object.opentrons2)
+      : undefined;
+    message.pf400 = (object.pf400 !== undefined && object.pf400 !== null)
+      ? Command3.fromPartial(object.pf400)
+      : undefined;
+    message.liconic = (object.liconic !== undefined && object.liconic !== null)
+      ? Command4.fromPartial(object.liconic)
+      : undefined;
+    message.dataman70 = (object.dataman70 !== undefined && object.dataman70 !== null)
+      ? Command5.fromPartial(object.dataman70)
+      : undefined;
+    message.spectramax = (object.spectramax !== undefined && object.spectramax !== null)
+      ? Command6.fromPartial(object.spectramax)
+      : undefined;
+    message.bioshake = (object.bioshake !== undefined && object.bioshake !== null)
+      ? Command7.fromPartial(object.bioshake)
+      : undefined;
+    message.hig_centrifuge = (object.hig_centrifuge !== undefined && object.hig_centrifuge !== null)
+      ? Command8.fromPartial(object.hig_centrifuge)
+      : undefined;
+    message.bravo = (object.bravo !== undefined && object.bravo !== null)
+      ? Command9.fromPartial(object.bravo)
+      : undefined;
+    message.multidrop = (object.multidrop !== undefined && object.multidrop !== null)
+      ? Command10.fromPartial(object.multidrop)
+      : undefined;
+    message.vcode = (object.vcode !== undefined && object.vcode !== null)
+      ? Command11.fromPartial(object.vcode)
+      : undefined;
+    message.plateloc = (object.plateloc !== undefined && object.plateloc !== null)
+      ? Command12.fromPartial(object.plateloc)
+      : undefined;
+    message.xpeel = (object.xpeel !== undefined && object.xpeel !== null)
+      ? Command13.fromPartial(object.xpeel)
+      : undefined;
+    message.alps3000 = (object.alps3000 !== undefined && object.alps3000 !== null)
+      ? Command14.fromPartial(object.alps3000)
+      : undefined;
+    message.toolbox = (object.toolbox !== undefined && object.toolbox !== null)
+      ? Command15.fromPartial(object.toolbox)
+      : undefined;
+    message.hamilton = (object.hamilton !== undefined && object.hamilton !== null)
+      ? Command16.fromPartial(object.hamilton)
+      : undefined;
     return message;
   },
 };
@@ -830,9 +802,7 @@ export const Config = {
       dataman70: isSet(object.dataman70) ? Config21.fromJSON(object.dataman70) : undefined,
       spectramax: isSet(object.spectramax) ? Config22.fromJSON(object.spectramax) : undefined,
       bioshake: isSet(object.bioshake) ? Config23.fromJSON(object.bioshake) : undefined,
-      hig_centrifuge: isSet(object.hig_centrifuge)
-        ? Config24.fromJSON(object.hig_centrifuge)
-        : undefined,
+      hig_centrifuge: isSet(object.hig_centrifuge) ? Config24.fromJSON(object.hig_centrifuge) : undefined,
       bravo: isSet(object.bravo) ? Config25.fromJSON(object.bravo) : undefined,
       multidrop: isSet(object.multidrop) ? Config26.fromJSON(object.multidrop) : undefined,
       vcode: isSet(object.vcode) ? Config27.fromJSON(object.vcode) : undefined,
@@ -847,40 +817,27 @@ export const Config = {
   toJSON(message: Config): unknown {
     const obj: any = {};
     message.simulated !== undefined && (obj.simulated = message.simulated);
-    message.cytation !== undefined &&
-      (obj.cytation = message.cytation ? Config17.toJSON(message.cytation) : undefined);
+    message.cytation !== undefined && (obj.cytation = message.cytation ? Config17.toJSON(message.cytation) : undefined);
     message.opentrons2 !== undefined &&
       (obj.opentrons2 = message.opentrons2 ? Config18.toJSON(message.opentrons2) : undefined);
-    message.pf400 !== undefined &&
-      (obj.pf400 = message.pf400 ? Config19.toJSON(message.pf400) : undefined);
-    message.liconic !== undefined &&
-      (obj.liconic = message.liconic ? Config20.toJSON(message.liconic) : undefined);
+    message.pf400 !== undefined && (obj.pf400 = message.pf400 ? Config19.toJSON(message.pf400) : undefined);
+    message.liconic !== undefined && (obj.liconic = message.liconic ? Config20.toJSON(message.liconic) : undefined);
     message.dataman70 !== undefined &&
       (obj.dataman70 = message.dataman70 ? Config21.toJSON(message.dataman70) : undefined);
     message.spectramax !== undefined &&
       (obj.spectramax = message.spectramax ? Config22.toJSON(message.spectramax) : undefined);
-    message.bioshake !== undefined &&
-      (obj.bioshake = message.bioshake ? Config23.toJSON(message.bioshake) : undefined);
+    message.bioshake !== undefined && (obj.bioshake = message.bioshake ? Config23.toJSON(message.bioshake) : undefined);
     message.hig_centrifuge !== undefined &&
-      (obj.hig_centrifuge = message.hig_centrifuge
-        ? Config24.toJSON(message.hig_centrifuge)
-        : undefined);
-    message.bravo !== undefined &&
-      (obj.bravo = message.bravo ? Config25.toJSON(message.bravo) : undefined);
+      (obj.hig_centrifuge = message.hig_centrifuge ? Config24.toJSON(message.hig_centrifuge) : undefined);
+    message.bravo !== undefined && (obj.bravo = message.bravo ? Config25.toJSON(message.bravo) : undefined);
     message.multidrop !== undefined &&
       (obj.multidrop = message.multidrop ? Config26.toJSON(message.multidrop) : undefined);
-    message.vcode !== undefined &&
-      (obj.vcode = message.vcode ? Config27.toJSON(message.vcode) : undefined);
-    message.plateloc !== undefined &&
-      (obj.plateloc = message.plateloc ? Config28.toJSON(message.plateloc) : undefined);
-    message.xpeel !== undefined &&
-      (obj.xpeel = message.xpeel ? Config29.toJSON(message.xpeel) : undefined);
-    message.alps3000 !== undefined &&
-      (obj.alps3000 = message.alps3000 ? Config30.toJSON(message.alps3000) : undefined);
-    message.toolbox !== undefined &&
-      (obj.toolbox = message.toolbox ? Config31.toJSON(message.toolbox) : undefined);
-    message.hamilton !== undefined &&
-      (obj.hamilton = message.hamilton ? Config32.toJSON(message.hamilton) : undefined);
+    message.vcode !== undefined && (obj.vcode = message.vcode ? Config27.toJSON(message.vcode) : undefined);
+    message.plateloc !== undefined && (obj.plateloc = message.plateloc ? Config28.toJSON(message.plateloc) : undefined);
+    message.xpeel !== undefined && (obj.xpeel = message.xpeel ? Config29.toJSON(message.xpeel) : undefined);
+    message.alps3000 !== undefined && (obj.alps3000 = message.alps3000 ? Config30.toJSON(message.alps3000) : undefined);
+    message.toolbox !== undefined && (obj.toolbox = message.toolbox ? Config31.toJSON(message.toolbox) : undefined);
+    message.hamilton !== undefined && (obj.hamilton = message.hamilton ? Config32.toJSON(message.hamilton) : undefined);
     return obj;
   },
 
@@ -891,81 +848,60 @@ export const Config = {
   fromPartial<I extends Exact<DeepPartial<Config>, I>>(object: I): Config {
     const message = createBaseConfig();
     message.simulated = object.simulated ?? false;
-    message.cytation =
-      object.cytation !== undefined && object.cytation !== null
-        ? Config17.fromPartial(object.cytation)
-        : undefined;
-    message.opentrons2 =
-      object.opentrons2 !== undefined && object.opentrons2 !== null
-        ? Config18.fromPartial(object.opentrons2)
-        : undefined;
-    message.pf400 =
-      object.pf400 !== undefined && object.pf400 !== null
-        ? Config19.fromPartial(object.pf400)
-        : undefined;
-    message.liconic =
-      object.liconic !== undefined && object.liconic !== null
-        ? Config20.fromPartial(object.liconic)
-        : undefined;
-    message.dataman70 =
-      object.dataman70 !== undefined && object.dataman70 !== null
-        ? Config21.fromPartial(object.dataman70)
-        : undefined;
-    message.spectramax =
-      object.spectramax !== undefined && object.spectramax !== null
-        ? Config22.fromPartial(object.spectramax)
-        : undefined;
-    message.bioshake =
-      object.bioshake !== undefined && object.bioshake !== null
-        ? Config23.fromPartial(object.bioshake)
-        : undefined;
-    message.hig_centrifuge =
-      object.hig_centrifuge !== undefined && object.hig_centrifuge !== null
-        ? Config24.fromPartial(object.hig_centrifuge)
-        : undefined;
-    message.bravo =
-      object.bravo !== undefined && object.bravo !== null
-        ? Config25.fromPartial(object.bravo)
-        : undefined;
-    message.multidrop =
-      object.multidrop !== undefined && object.multidrop !== null
-        ? Config26.fromPartial(object.multidrop)
-        : undefined;
-    message.vcode =
-      object.vcode !== undefined && object.vcode !== null
-        ? Config27.fromPartial(object.vcode)
-        : undefined;
-    message.plateloc =
-      object.plateloc !== undefined && object.plateloc !== null
-        ? Config28.fromPartial(object.plateloc)
-        : undefined;
-    message.xpeel =
-      object.xpeel !== undefined && object.xpeel !== null
-        ? Config29.fromPartial(object.xpeel)
-        : undefined;
-    message.alps3000 =
-      object.alps3000 !== undefined && object.alps3000 !== null
-        ? Config30.fromPartial(object.alps3000)
-        : undefined;
-    message.toolbox =
-      object.toolbox !== undefined && object.toolbox !== null
-        ? Config31.fromPartial(object.toolbox)
-        : undefined;
-    message.hamilton =
-      object.hamilton !== undefined && object.hamilton !== null
-        ? Config32.fromPartial(object.hamilton)
-        : undefined;
+    message.cytation = (object.cytation !== undefined && object.cytation !== null)
+      ? Config17.fromPartial(object.cytation)
+      : undefined;
+    message.opentrons2 = (object.opentrons2 !== undefined && object.opentrons2 !== null)
+      ? Config18.fromPartial(object.opentrons2)
+      : undefined;
+    message.pf400 = (object.pf400 !== undefined && object.pf400 !== null)
+      ? Config19.fromPartial(object.pf400)
+      : undefined;
+    message.liconic = (object.liconic !== undefined && object.liconic !== null)
+      ? Config20.fromPartial(object.liconic)
+      : undefined;
+    message.dataman70 = (object.dataman70 !== undefined && object.dataman70 !== null)
+      ? Config21.fromPartial(object.dataman70)
+      : undefined;
+    message.spectramax = (object.spectramax !== undefined && object.spectramax !== null)
+      ? Config22.fromPartial(object.spectramax)
+      : undefined;
+    message.bioshake = (object.bioshake !== undefined && object.bioshake !== null)
+      ? Config23.fromPartial(object.bioshake)
+      : undefined;
+    message.hig_centrifuge = (object.hig_centrifuge !== undefined && object.hig_centrifuge !== null)
+      ? Config24.fromPartial(object.hig_centrifuge)
+      : undefined;
+    message.bravo = (object.bravo !== undefined && object.bravo !== null)
+      ? Config25.fromPartial(object.bravo)
+      : undefined;
+    message.multidrop = (object.multidrop !== undefined && object.multidrop !== null)
+      ? Config26.fromPartial(object.multidrop)
+      : undefined;
+    message.vcode = (object.vcode !== undefined && object.vcode !== null)
+      ? Config27.fromPartial(object.vcode)
+      : undefined;
+    message.plateloc = (object.plateloc !== undefined && object.plateloc !== null)
+      ? Config28.fromPartial(object.plateloc)
+      : undefined;
+    message.xpeel = (object.xpeel !== undefined && object.xpeel !== null)
+      ? Config29.fromPartial(object.xpeel)
+      : undefined;
+    message.alps3000 = (object.alps3000 !== undefined && object.alps3000 !== null)
+      ? Config30.fromPartial(object.alps3000)
+      : undefined;
+    message.toolbox = (object.toolbox !== undefined && object.toolbox !== null)
+      ? Config31.fromPartial(object.toolbox)
+      : undefined;
+    message.hamilton = (object.hamilton !== undefined && object.hamilton !== null)
+      ? Config32.fromPartial(object.hamilton)
+      : undefined;
     return message;
   },
 };
 
 function createBaseExecuteCommandReply(): ExecuteCommandReply {
-  return {
-    response: ResponseCode.UNKNOWN_RESPONSE,
-    error_message: "",
-    return_reply: false,
-    meta_data: undefined,
-  };
+  return { response: ResponseCode.UNKNOWN_RESPONSE, error_message: "", return_reply: false, meta_data: undefined };
 }
 
 export const ExecuteCommandReply = {
@@ -1031,9 +967,7 @@ export const ExecuteCommandReply = {
 
   fromJSON(object: any): ExecuteCommandReply {
     return {
-      response: isSet(object.response)
-        ? responseCodeFromJSON(object.response)
-        : ResponseCode.UNKNOWN_RESPONSE,
+      response: isSet(object.response) ? responseCodeFromJSON(object.response) : ResponseCode.UNKNOWN_RESPONSE,
       error_message: isSet(object.error_message) ? String(object.error_message) : "",
       return_reply: isSet(object.return_reply) ? Boolean(object.return_reply) : false,
       meta_data: isObject(object.meta_data) ? object.meta_data : undefined,
@@ -1053,9 +987,7 @@ export const ExecuteCommandReply = {
     return ExecuteCommandReply.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<ExecuteCommandReply>, I>>(
-    object: I,
-  ): ExecuteCommandReply {
+  fromPartial<I extends Exact<DeepPartial<ExecuteCommandReply>, I>>(object: I): ExecuteCommandReply {
     const message = createBaseExecuteCommandReply();
     message.response = object.response ?? ResponseCode.UNKNOWN_RESPONSE;
     message.error_message = object.error_message ?? "";
@@ -1066,11 +998,7 @@ export const ExecuteCommandReply = {
 };
 
 function createBaseEstimateDurationReply(): EstimateDurationReply {
-  return {
-    response: ResponseCode.UNKNOWN_RESPONSE,
-    estimated_duration_seconds: 0,
-    error_message: undefined,
-  };
+  return { response: ResponseCode.UNKNOWN_RESPONSE, estimated_duration_seconds: 0, error_message: undefined };
 }
 
 export const EstimateDurationReply = {
@@ -1126,9 +1054,7 @@ export const EstimateDurationReply = {
 
   fromJSON(object: any): EstimateDurationReply {
     return {
-      response: isSet(object.response)
-        ? responseCodeFromJSON(object.response)
-        : ResponseCode.UNKNOWN_RESPONSE,
+      response: isSet(object.response) ? responseCodeFromJSON(object.response) : ResponseCode.UNKNOWN_RESPONSE,
       estimated_duration_seconds: isSet(object.estimated_duration_seconds)
         ? Number(object.estimated_duration_seconds)
         : 0,
@@ -1149,9 +1075,7 @@ export const EstimateDurationReply = {
     return EstimateDurationReply.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<EstimateDurationReply>, I>>(
-    object: I,
-  ): EstimateDurationReply {
+  fromPartial<I extends Exact<DeepPartial<EstimateDurationReply>, I>>(object: I): EstimateDurationReply {
     const message = createBaseEstimateDurationReply();
     message.response = object.response ?? ResponseCode.UNKNOWN_RESPONSE;
     message.estimated_duration_seconds = object.estimated_duration_seconds ?? 0;
@@ -1207,9 +1131,7 @@ export const ConfigureReply = {
 
   fromJSON(object: any): ConfigureReply {
     return {
-      response: isSet(object.response)
-        ? responseCodeFromJSON(object.response)
-        : ResponseCode.UNKNOWN_RESPONSE,
+      response: isSet(object.response) ? responseCodeFromJSON(object.response) : ResponseCode.UNKNOWN_RESPONSE,
       error_message: isSet(object.error_message) ? String(object.error_message) : undefined,
     };
   },
@@ -1319,19 +1241,13 @@ export const StatusReply = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-    ? Array<DeepPartial<U>>
-    : T extends ReadonlyArray<infer U>
-      ? ReadonlyArray<DeepPartial<U>>
-      : T extends {}
-        ? { [K in keyof T]?: DeepPartial<T[K]> }
-        : Partial<T>;
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
+export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isObject(value: any): boolean {
