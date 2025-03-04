@@ -39,7 +39,7 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
   const { queueId, commandInfo, estimatedDuration, status } = command;
   let toolName = infoQuery.data?.name || "undefined";
   const [commandColor, setCommandColor] = useState<string>("White");
-  const bgColor = useColorModeValue("gray.100", "gray.700");
+  const bgColor = useColorModeValue("white", "gray.700");
   const errorColor = useColorModeValue("red.200", "red.800");
   const toolNameRef = useRef(toolName);
 

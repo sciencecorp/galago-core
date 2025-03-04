@@ -47,14 +47,21 @@ export const runRouter = router({
         workcellName: z.string(),
         protocolId: z.string(),
         params: z.record(z.any()),
+        numberOfRuns: z.number().optional(),
       }),
     )
     .mutation(async ({ input }) => {
       const { workcellName, protocolId, params } = input;
-
       try {
-        const run = await RunStore.global.createFromProtocol(workcellName, protocolId, params);
-        return run;
+        //Promise to create multiple runs
+        if (input.numberOfRuns) {
+          const runs = [];
+          for (let i = 0; i < input.numberOfRuns; i++) {
+            const run = await RunStore.global.createFromProtocol(workcellName, protocolId, params);
+            runs.push(run);
+          }
+          return runs;
+        }
       } catch (e) {
         if (e instanceof ProtocolNotFoundError) {
           throw new TRPCError({

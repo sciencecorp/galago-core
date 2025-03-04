@@ -64,12 +64,12 @@ export const RunsComponent: React.FC = () => {
     { limit: 1000, offset: 0 },
     { refetchInterval: 1000 },
   );
-  const commandBgColor = useColorModeValue("gray.50", "gray.700");
+  const commandBgColor = useColorModeValue("gray.50", "gray.800");
   const borderColor = useColorModeValue("gray.300", "gray.600");
   const hoverBgColor = useColorModeValue("gray.100", "gray.600");
   const textColor = useColorModeValue("gray.800", "gray.100");
   const cardBg = useColorModeValue("white", "gray.700");
-  const expandedRunBg = useColorModeValue("gray.100", "gray.800");
+  const expandedRunBg = useColorModeValue("gray.50", "gray.800");
   const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
   const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
   const groupedCommands = useMemo(
