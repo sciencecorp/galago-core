@@ -12,14 +12,7 @@ import {
   UntypedServiceImplementation,
 } from "@grpc/grpc-js";
 import { Empty } from "../../google/protobuf/empty";
-import {
-  Command,
-  Config,
-  ConfigureReply,
-  EstimateDurationReply,
-  ExecuteCommandReply,
-  StatusReply,
-} from "./tool_base";
+import { Command, Config, ConfigureReply, EstimateDurationReply, ExecuteCommandReply, StatusReply } from "./tool_base";
 
 export const protobufPackage = "com.science.foundry.tools.grpc_interfaces";
 
@@ -40,8 +33,7 @@ export const ToolDriverService = {
     responseStream: false,
     requestSerialize: (value: Command) => Buffer.from(Command.encode(value).finish()),
     requestDeserialize: (value: Buffer) => Command.decode(value),
-    responseSerialize: (value: ExecuteCommandReply) =>
-      Buffer.from(ExecuteCommandReply.encode(value).finish()),
+    responseSerialize: (value: ExecuteCommandReply) => Buffer.from(ExecuteCommandReply.encode(value).finish()),
     responseDeserialize: (value: Buffer) => ExecuteCommandReply.decode(value),
   },
   estimateDuration: {
@@ -50,8 +42,7 @@ export const ToolDriverService = {
     responseStream: false,
     requestSerialize: (value: Command) => Buffer.from(Command.encode(value).finish()),
     requestDeserialize: (value: Buffer) => Command.decode(value),
-    responseSerialize: (value: EstimateDurationReply) =>
-      Buffer.from(EstimateDurationReply.encode(value).finish()),
+    responseSerialize: (value: EstimateDurationReply) => Buffer.from(EstimateDurationReply.encode(value).finish()),
     responseDeserialize: (value: Buffer) => EstimateDurationReply.decode(value),
   },
   configure: {
@@ -60,8 +51,7 @@ export const ToolDriverService = {
     responseStream: false,
     requestSerialize: (value: Config) => Buffer.from(Config.encode(value).finish()),
     requestDeserialize: (value: Buffer) => Config.decode(value),
-    responseSerialize: (value: ConfigureReply) =>
-      Buffer.from(ConfigureReply.encode(value).finish()),
+    responseSerialize: (value: ConfigureReply) => Buffer.from(ConfigureReply.encode(value).finish()),
     responseDeserialize: (value: Buffer) => ConfigureReply.decode(value),
   },
 } as const;
@@ -74,10 +64,7 @@ export interface ToolDriverServer extends UntypedServiceImplementation {
 }
 
 export interface ToolDriverClient extends Client {
-  getStatus(
-    request: Empty,
-    callback: (error: ServiceError | null, response: StatusReply) => void,
-  ): ClientUnaryCall;
+  getStatus(request: Empty, callback: (error: ServiceError | null, response: StatusReply) => void): ClientUnaryCall;
   getStatus(
     request: Empty,
     metadata: Metadata,
@@ -119,10 +106,7 @@ export interface ToolDriverClient extends Client {
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: EstimateDurationReply) => void,
   ): ClientUnaryCall;
-  configure(
-    request: Config,
-    callback: (error: ServiceError | null, response: ConfigureReply) => void,
-  ): ClientUnaryCall;
+  configure(request: Config, callback: (error: ServiceError | null, response: ConfigureReply) => void): ClientUnaryCall;
   configure(
     request: Config,
     metadata: Metadata,
@@ -140,10 +124,6 @@ export const ToolDriverClient = makeGenericClientConstructor(
   ToolDriverService,
   "com.science.foundry.tools.grpc_interfaces.ToolDriver",
 ) as unknown as {
-  new (
-    address: string,
-    credentials: ChannelCredentials,
-    options?: Partial<ClientOptions>,
-  ): ToolDriverClient;
+  new (address: string, credentials: ChannelCredentials, options?: Partial<ClientOptions>): ToolDriverClient;
   service: typeof ToolDriverService;
 };

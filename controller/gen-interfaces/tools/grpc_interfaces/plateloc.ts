@@ -13,7 +13,8 @@ export interface Command {
   show_diagnostics?: Command_ShowDiagsDialog | undefined;
 }
 
-export interface Command_Seal {}
+export interface Command_Seal {
+}
 
 export interface Command_SetTemperature {
   temperature: number;
@@ -23,13 +24,17 @@ export interface Command_SetSealTime {
   time: number;
 }
 
-export interface Command_GetActualTemperature {}
+export interface Command_GetActualTemperature {
+}
 
-export interface Command_StageIn {}
+export interface Command_StageIn {
+}
 
-export interface Command_StageOut {}
+export interface Command_StageOut {
+}
 
-export interface Command_ShowDiagsDialog {}
+export interface Command_ShowDiagsDialog {
+}
 
 export interface Config {
   profile: string;
@@ -59,10 +64,7 @@ export const Command = {
       Command_SetSealTime.encode(message.set_seal_time, writer.uint32(26).fork()).ldelim();
     }
     if (message.get_actual_temperature !== undefined) {
-      Command_GetActualTemperature.encode(
-        message.get_actual_temperature,
-        writer.uint32(34).fork(),
-      ).ldelim();
+      Command_GetActualTemperature.encode(message.get_actual_temperature, writer.uint32(34).fork()).ldelim();
     }
     if (message.stage_in !== undefined) {
       Command_StageIn.encode(message.stage_in, writer.uint32(42).fork()).ldelim();
@@ -109,10 +111,7 @@ export const Command = {
             break;
           }
 
-          message.get_actual_temperature = Command_GetActualTemperature.decode(
-            reader,
-            reader.uint32(),
-          );
+          message.get_actual_temperature = Command_GetActualTemperature.decode(reader, reader.uint32());
           continue;
         case 5:
           if (tag !== 42) {
@@ -150,9 +149,7 @@ export const Command = {
       set_temperature: isSet(object.set_temperature)
         ? Command_SetTemperature.fromJSON(object.set_temperature)
         : undefined,
-      set_seal_time: isSet(object.set_seal_time)
-        ? Command_SetSealTime.fromJSON(object.set_seal_time)
-        : undefined,
+      set_seal_time: isSet(object.set_seal_time) ? Command_SetSealTime.fromJSON(object.set_seal_time) : undefined,
       get_actual_temperature: isSet(object.get_actual_temperature)
         ? Command_GetActualTemperature.fromJSON(object.get_actual_temperature)
         : undefined,
@@ -166,28 +163,22 @@ export const Command = {
 
   toJSON(message: Command): unknown {
     const obj: any = {};
-    message.seal !== undefined &&
-      (obj.seal = message.seal ? Command_Seal.toJSON(message.seal) : undefined);
-    message.set_temperature !== undefined &&
-      (obj.set_temperature = message.set_temperature
-        ? Command_SetTemperature.toJSON(message.set_temperature)
-        : undefined);
+    message.seal !== undefined && (obj.seal = message.seal ? Command_Seal.toJSON(message.seal) : undefined);
+    message.set_temperature !== undefined && (obj.set_temperature = message.set_temperature
+      ? Command_SetTemperature.toJSON(message.set_temperature)
+      : undefined);
     message.set_seal_time !== undefined &&
-      (obj.set_seal_time = message.set_seal_time
-        ? Command_SetSealTime.toJSON(message.set_seal_time)
-        : undefined);
-    message.get_actual_temperature !== undefined &&
-      (obj.get_actual_temperature = message.get_actual_temperature
-        ? Command_GetActualTemperature.toJSON(message.get_actual_temperature)
-        : undefined);
+      (obj.set_seal_time = message.set_seal_time ? Command_SetSealTime.toJSON(message.set_seal_time) : undefined);
+    message.get_actual_temperature !== undefined && (obj.get_actual_temperature = message.get_actual_temperature
+      ? Command_GetActualTemperature.toJSON(message.get_actual_temperature)
+      : undefined);
     message.stage_in !== undefined &&
       (obj.stage_in = message.stage_in ? Command_StageIn.toJSON(message.stage_in) : undefined);
     message.stage_out !== undefined &&
       (obj.stage_out = message.stage_out ? Command_StageOut.toJSON(message.stage_out) : undefined);
-    message.show_diagnostics !== undefined &&
-      (obj.show_diagnostics = message.show_diagnostics
-        ? Command_ShowDiagsDialog.toJSON(message.show_diagnostics)
-        : undefined);
+    message.show_diagnostics !== undefined && (obj.show_diagnostics = message.show_diagnostics
+      ? Command_ShowDiagsDialog.toJSON(message.show_diagnostics)
+      : undefined);
     return obj;
   },
 
@@ -197,34 +188,28 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.seal =
-      object.seal !== undefined && object.seal !== null
-        ? Command_Seal.fromPartial(object.seal)
-        : undefined;
-    message.set_temperature =
-      object.set_temperature !== undefined && object.set_temperature !== null
-        ? Command_SetTemperature.fromPartial(object.set_temperature)
-        : undefined;
-    message.set_seal_time =
-      object.set_seal_time !== undefined && object.set_seal_time !== null
-        ? Command_SetSealTime.fromPartial(object.set_seal_time)
-        : undefined;
+    message.seal = (object.seal !== undefined && object.seal !== null)
+      ? Command_Seal.fromPartial(object.seal)
+      : undefined;
+    message.set_temperature = (object.set_temperature !== undefined && object.set_temperature !== null)
+      ? Command_SetTemperature.fromPartial(object.set_temperature)
+      : undefined;
+    message.set_seal_time = (object.set_seal_time !== undefined && object.set_seal_time !== null)
+      ? Command_SetSealTime.fromPartial(object.set_seal_time)
+      : undefined;
     message.get_actual_temperature =
-      object.get_actual_temperature !== undefined && object.get_actual_temperature !== null
+      (object.get_actual_temperature !== undefined && object.get_actual_temperature !== null)
         ? Command_GetActualTemperature.fromPartial(object.get_actual_temperature)
         : undefined;
-    message.stage_in =
-      object.stage_in !== undefined && object.stage_in !== null
-        ? Command_StageIn.fromPartial(object.stage_in)
-        : undefined;
-    message.stage_out =
-      object.stage_out !== undefined && object.stage_out !== null
-        ? Command_StageOut.fromPartial(object.stage_out)
-        : undefined;
-    message.show_diagnostics =
-      object.show_diagnostics !== undefined && object.show_diagnostics !== null
-        ? Command_ShowDiagsDialog.fromPartial(object.show_diagnostics)
-        : undefined;
+    message.stage_in = (object.stage_in !== undefined && object.stage_in !== null)
+      ? Command_StageIn.fromPartial(object.stage_in)
+      : undefined;
+    message.stage_out = (object.stage_out !== undefined && object.stage_out !== null)
+      ? Command_StageOut.fromPartial(object.stage_out)
+      : undefined;
+    message.show_diagnostics = (object.show_diagnostics !== undefined && object.show_diagnostics !== null)
+      ? Command_ShowDiagsDialog.fromPartial(object.show_diagnostics)
+      : undefined;
     return message;
   },
 };
@@ -318,15 +303,11 @@ export const Command_SetTemperature = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_SetTemperature>, I>>(
-    base?: I,
-  ): Command_SetTemperature {
+  create<I extends Exact<DeepPartial<Command_SetTemperature>, I>>(base?: I): Command_SetTemperature {
     return Command_SetTemperature.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_SetTemperature>, I>>(
-    object: I,
-  ): Command_SetTemperature {
+  fromPartial<I extends Exact<DeepPartial<Command_SetTemperature>, I>>(object: I): Command_SetTemperature {
     const message = createBaseCommand_SetTemperature();
     message.temperature = object.temperature ?? 0;
     return message;
@@ -382,9 +363,7 @@ export const Command_SetSealTime = {
     return Command_SetSealTime.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_SetSealTime>, I>>(
-    object: I,
-  ): Command_SetSealTime {
+  fromPartial<I extends Exact<DeepPartial<Command_SetSealTime>, I>>(object: I): Command_SetSealTime {
     const message = createBaseCommand_SetSealTime();
     message.time = object.time ?? 0;
     return message;
@@ -425,15 +404,11 @@ export const Command_GetActualTemperature = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_GetActualTemperature>, I>>(
-    base?: I,
-  ): Command_GetActualTemperature {
+  create<I extends Exact<DeepPartial<Command_GetActualTemperature>, I>>(base?: I): Command_GetActualTemperature {
     return Command_GetActualTemperature.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_GetActualTemperature>, I>>(
-    _: I,
-  ): Command_GetActualTemperature {
+  fromPartial<I extends Exact<DeepPartial<Command_GetActualTemperature>, I>>(_: I): Command_GetActualTemperature {
     const message = createBaseCommand_GetActualTemperature();
     return message;
   },
@@ -561,15 +536,11 @@ export const Command_ShowDiagsDialog = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_ShowDiagsDialog>, I>>(
-    base?: I,
-  ): Command_ShowDiagsDialog {
+  create<I extends Exact<DeepPartial<Command_ShowDiagsDialog>, I>>(base?: I): Command_ShowDiagsDialog {
     return Command_ShowDiagsDialog.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_ShowDiagsDialog>, I>>(
-    _: I,
-  ): Command_ShowDiagsDialog {
+  fromPartial<I extends Exact<DeepPartial<Command_ShowDiagsDialog>, I>>(_: I): Command_ShowDiagsDialog {
     const message = createBaseCommand_ShowDiagsDialog();
     return message;
   },
@@ -633,19 +604,13 @@ export const Config = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-    ? Array<DeepPartial<U>>
-    : T extends ReadonlyArray<infer U>
-      ? ReadonlyArray<DeepPartial<U>>
-      : T extends {}
-        ? { [K in keyof T]?: DeepPartial<T[K]> }
-        : Partial<T>;
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
+export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
