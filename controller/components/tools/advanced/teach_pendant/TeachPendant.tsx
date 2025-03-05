@@ -149,7 +149,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     const defaultProfile = motionProfiles[0];
     if (defaultProfile) {
       const numJoints = (config.config as any)?.pf400?.joints || 6;
-      
+
       // Limit coordinates to the configured number of joints if using coordinates
       let limitedPoint = { ...point };
       if (!point.joints && point.coordinates) {
@@ -162,9 +162,10 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         const limitedCoords = paddedCoords.slice(0, parseInt(numJoints.toString())).join(" ");
         limitedPoint.coordinates = limitedCoords;
       }
-      
+
       const joints =
-        limitedPoint.joints || coordinateToJoints(limitedPoint.coordinates, parseInt(numJoints.toString()));
+        limitedPoint.joints ||
+        coordinateToJoints(limitedPoint.coordinates, parseInt(numJoints.toString()));
       handleMoveCommand(robotArmCommandMutation, { ...limitedPoint, joints }, defaultProfile);
     }
   };
@@ -193,16 +194,16 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
       if (response?.meta_data?.location) {
         const coordinates = response.meta_data.location.split(" ").slice(1);
         const numJoints = (config.config as any)?.pf400?.joints || 6;
-        
+
         // Ensure we have enough coordinates (pad with zeros if needed)
         const paddedCoordinates = [...coordinates];
         while (paddedCoordinates.length < parseInt(numJoints.toString())) {
           paddedCoordinates.push("0");
         }
-        
+
         // Limit coordinates to the configured number of joints
         const limitedCoordinates = paddedCoordinates.slice(0, parseInt(numJoints.toString()));
-        
+
         if (!validateJointCount(response.meta_data.location, parseInt(numJoints.toString()))) {
           toast({
             title: "Joint Count Mismatch",
@@ -502,64 +503,59 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
             </InputGroup>
 
             {/* Tabs Section */}
-            <Tabs 
-              index={activeTab} 
-              onChange={setActiveTab}
-              variant="enclosed"
-              colorScheme="blue"
-            >
+            <Tabs index={activeTab} onChange={setActiveTab} variant="enclosed" colorScheme="blue">
               <TabList>
-                <Tab 
-                  _selected={{ 
-                    color: useColorModeValue("blue.600", "blue.200"), 
+                <Tab
+                  _selected={{
+                    color: useColorModeValue("blue.600", "blue.200"),
                     bg: tabActiveBgColor,
                     borderColor: borderColor,
-                    borderBottomColor: tabActiveBgColor
+                    borderBottomColor: tabActiveBgColor,
                   }}
                   bg={tabBgColor}
-                  borderColor={borderColor}
-                >
+                  borderColor={borderColor}>
                   Teach Points
                 </Tab>
-                <Tab 
-                  _selected={{ 
-                    color: useColorModeValue("blue.600", "blue.200"), 
+                <Tab
+                  _selected={{
+                    color: useColorModeValue("blue.600", "blue.200"),
                     bg: tabActiveBgColor,
                     borderColor: borderColor,
-                    borderBottomColor: tabActiveBgColor
+                    borderBottomColor: tabActiveBgColor,
                   }}
                   bg={tabBgColor}
-                  borderColor={borderColor}
-                >
+                  borderColor={borderColor}>
                   Motion Profiles
                 </Tab>
-                <Tab 
-                  _selected={{ 
-                    color: useColorModeValue("blue.600", "blue.200"), 
+                <Tab
+                  _selected={{
+                    color: useColorModeValue("blue.600", "blue.200"),
                     bg: tabActiveBgColor,
                     borderColor: borderColor,
-                    borderBottomColor: tabActiveBgColor
+                    borderBottomColor: tabActiveBgColor,
                   }}
                   bg={tabBgColor}
-                  borderColor={borderColor}
-                >
+                  borderColor={borderColor}>
                   Grip Parameters
                 </Tab>
-                <Tab 
-                  _selected={{ 
-                    color: useColorModeValue("blue.600", "blue.200"), 
+                <Tab
+                  _selected={{
+                    color: useColorModeValue("blue.600", "blue.200"),
                     bg: tabActiveBgColor,
                     borderColor: borderColor,
-                    borderBottomColor: tabActiveBgColor
+                    borderBottomColor: tabActiveBgColor,
                   }}
                   bg={tabBgColor}
-                  borderColor={borderColor}
-                >
+                  borderColor={borderColor}>
                   Sequences
                 </Tab>
               </TabList>
 
-              <TabPanels borderWidth="1px" borderTop="0" borderColor={borderColor} borderRadius="0 0 md md">
+              <TabPanels
+                borderWidth="1px"
+                borderTop="0"
+                borderColor={borderColor}
+                borderRadius="0 0 md md">
                 <TabPanel>
                   <TeachPointsPanel
                     teachPoints={filteredItems as TeachPoint[]}

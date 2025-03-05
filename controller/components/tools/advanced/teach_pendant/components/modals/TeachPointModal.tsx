@@ -59,7 +59,7 @@ export const TeachPointModal: React.FC<TeachPointModalProps> = ({
 
     // Get the number of joints from config
     const numJoints = parseInt((config?.config as any)?.pf400?.joints || "6");
-    
+
     // Create default coordinates with zeros for all joints
     const defaultCoordinates = Array(numJoints).fill("0").join(" ");
 

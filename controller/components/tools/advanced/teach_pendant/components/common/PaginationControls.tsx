@@ -35,15 +35,16 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
   return (
     <HStack spacing={4} justify="space-between" w="100%" py={4}>
       <HStack spacing={2}>
-        <Text fontSize="sm" color={textColor}>Items per page:</Text>
+        <Text fontSize="sm" color={textColor}>
+          Items per page:
+        </Text>
         <Select
           size="sm"
           width="70px"
           value={itemsPerPage}
           onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
           borderColor={borderColor}
-          bg={bgColor}
-        >
+          bg={bgColor}>
           <option value={5}>5</option>
           <option value={10}>10</option>
           <option value={20}>20</option>
@@ -66,15 +67,16 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           variant="outline"
           borderColor={borderColor}
         />
-        <Text fontSize="sm" color={textColor}>Page</Text>
+        <Text fontSize="sm" color={textColor}>
+          Page
+        </Text>
         <Select
           value={currentPage}
           size="sm"
           onChange={(e) => onPageChange(Number(e.target.value))}
           borderColor={borderColor}
           bg={bgColor}
-          width="70px"
-        >
+          width="70px">
           {[...Array(totalPages).keys()].map((n) => (
             <option key={n} value={n + 1}>
               {n + 1}

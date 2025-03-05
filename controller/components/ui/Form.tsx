@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { ButtonGroup, Flex, HStack, IconButton, Input, Text, useColorModeValue } from "@chakra-ui/react";
+import {
+  ButtonGroup,
+  Flex,
+  HStack,
+  IconButton,
+  Input,
+  Text,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import { RiCheckFill, RiCloseFill, RiEdit2Line } from "react-icons/ri";
 
 export const inputStyles = {
@@ -54,10 +62,10 @@ export const Editable = (props: {
     <HStack minWidth={minWidth || 230}>
       {renderInput(value, setValue, submit)}
       <ButtonGroup justifyContent="center" ml={0} size="xs">
-        <IconButton 
-          icon={<RiCheckFill />} 
-          aria-label="Save Edits" 
-          onClick={() => submit()} 
+        <IconButton
+          icon={<RiCheckFill />}
+          aria-label="Save Edits"
+          onClick={() => submit()}
           colorScheme="blue"
         />
         <IconButton
@@ -107,7 +115,7 @@ export const EditableText = (props: {
   const textColor = useColorModeValue("gray.800", "gray.100");
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const inputBg = useColorModeValue("white", "gray.700");
-  
+
   return (
     <Editable
       onSubmit={props.onSubmit}

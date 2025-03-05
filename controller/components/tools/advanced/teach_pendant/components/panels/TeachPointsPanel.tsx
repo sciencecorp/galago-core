@@ -103,7 +103,9 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   // Generate joint column headers dynamically
   const jointHeaders = useMemo(() => {
     return Array.from({ length: numJoints }, (_, i) => (
-      <Th key={`joint-header-${i + 1}`} bg={headerBgColor} color={textColor}>Joint {i + 1}</Th>
+      <Th key={`joint-header-${i + 1}`} bg={headerBgColor} color={textColor}>
+        Joint {i + 1}
+      </Th>
     ));
   }, [numJoints, headerBgColor, textColor]);
 
@@ -126,28 +128,22 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
           <Heading size="md" paddingTop={12} color={textColor}>
             Teach Points
           </Heading>
-          <Button 
-            leftIcon={<AddIcon />} 
-            size="sm" 
-            onClick={onAdd}
-            colorScheme="blue"
-          >
+          <Button leftIcon={<AddIcon />} size="sm" onClick={onAdd} colorScheme="blue">
             New Teach Point
           </Button>
         </HStack>
         <Box width="100%" flex={1} overflow="hidden">
-          <Box 
-            ref={tableRef} 
-            height="100%" 
-            overflow="auto" 
-            borderWidth="1px" 
+          <Box
+            ref={tableRef}
+            height="100%"
+            overflow="auto"
+            borderWidth="1px"
             borderRadius="md"
             borderColor={borderColor}
             boxShadow={useColorModeValue(
               "0 1px 3px rgba(0, 0, 0, 0.1)",
-              "0 1px 3px rgba(0, 0, 0, 0.3)"
-            )}
-          >
+              "0 1px 3px rgba(0, 0, 0, 0.3)",
+            )}>
             <Table
               variant="simple"
               size="sm"
@@ -171,9 +167,13 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
               }}>
               <Thead position="sticky" top={0} zIndex={1}>
                 <Tr>
-                  <Th bg={headerBgColor} color={textColor}>Name</Th>
+                  <Th bg={headerBgColor} color={textColor}>
+                    Name
+                  </Th>
                   {jointHeaders}
-                  <Th bg={headerBgColor} color={textColor}>Orientation</Th>
+                  <Th bg={headerBgColor} color={textColor}>
+                    Orientation
+                  </Th>
                   <Th width="200px" textAlign="right" bg={headerBgColor} color={textColor}>
                     Actions
                   </Th>
@@ -181,10 +181,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
               </Thead>
               <Tbody>
                 {paginatedItems.map((point, index) => (
-                  <Tr 
-                    key={point.id} 
-                    bg={expandedRows[point.id] ? bgColorAlpha : undefined}
-                  >
+                  <Tr key={point.id} bg={expandedRows[point.id] ? bgColorAlpha : undefined}>
                     <Td width="200px">
                       <EditableText
                         defaultValue={point.name}
@@ -216,8 +213,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                         }}
                         size="sm"
                         borderColor={borderColor}
-                        bg={tableBgColor}
-                      >
+                        bg={tableBgColor}>
                         <option value="portrait">Portrait</option>
                         <option value="landscape">Landscape</option>
                       </Select>

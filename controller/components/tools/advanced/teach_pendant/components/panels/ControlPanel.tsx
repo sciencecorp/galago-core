@@ -114,12 +114,11 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </CardHeader>
         <CardBody>
           <VStack spacing={4}>
-            <Select 
-              value={jogAxis} 
-              onChange={(e) => setJogAxis(e.target.value)} 
+            <Select
+              value={jogAxis}
+              onChange={(e) => setJogAxis(e.target.value)}
               width="100%"
-              borderColor={borderColor}
-            >
+              borderColor={borderColor}>
               <option value="">Select Axis</option>
               <option value="x">X</option>
               <option value="y">Y</option>
@@ -132,8 +131,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               value={jogDistance}
               onChange={(valueString) => setJogDistance(parseFloat(valueString))}
               width="100%"
-              borderColor={borderColor}
-            >
+              borderColor={borderColor}>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
@@ -160,8 +158,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               value={selectedGripParamsId || ""}
               onChange={(e) => onGripParamsChange(e.target.value ? Number(e.target.value) : null)}
               placeholder="Use Default Parameters"
-              borderColor={borderColor}
-            >
+              borderColor={borderColor}>
               {gripParams.map((param, index) => (
                 <option key={param.id || `new-${index}`} value={param.id}>
                   {param.name}
