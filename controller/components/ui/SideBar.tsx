@@ -122,7 +122,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
               right="2"
               bg="transparent"
               color="white"
-              _hover={{ bg: 'teal.600' }}
+              _hover={{ bg: "teal.600" }}
             />
           )}
         </HStack>
