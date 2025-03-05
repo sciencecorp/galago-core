@@ -620,7 +620,7 @@ export default function Page() {
       <Head>
         <title>{config?.name ? `Tool: ${config.name}` : "Tool"}</title>
       </Head>
-      <Box p={12} maxWidth="1800px" margin="auto">
+      <Box maxWidth="1800px" margin="auto">
         <HStack spacing={4} align="start" width="100%">
           {config?.type !== ToolType.pf400 && (
             <VStack spacing={4} align="stretch" flex={1}>
