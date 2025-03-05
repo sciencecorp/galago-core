@@ -18,6 +18,7 @@ import {
   Tooltip,
 } from "@chakra-ui/react";
 import { FiMenu, FiHome } from "react-icons/fi";
+import { BsLayoutSidebarInset } from "react-icons/bs";
 import { IconType } from "react-icons";
 import { useRouter } from "next/router";
 import { MdOutlineTransitEnterexit } from "react-icons/md";
@@ -104,7 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
         width: isSidebarExpanded ? "230px" : "80px",
       }}>
       <VStack left={0} p={1} spacing={4} align="stretch" width="100%">
-        <HStack pb={10} pl={3} pt={2}>
+        <HStack pb={10} pl={3} pt={2} width="100%" position="relative">
           <Image
             onClick={toggleSidebar}
             width="60px"
@@ -112,6 +113,18 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             src="/site_logo.png"
             alt="logo"
             filter="invert(1)"></Image>
+          {isSidebarExpanded && (
+            <IconButton
+              icon={<BsLayoutSidebarInset />}
+              aria-label="Toggle Sidebar"
+              onClick={toggleSidebar}
+              position="absolute"
+              right="2"
+              bg="transparent"
+              color="white"
+              _hover={{ bg: 'teal.600' }}
+            />
+          )}
         </HStack>
 
         {sidebarItems.map((item) => (
