@@ -16,6 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { GripParams } from "../types";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
+import { FaRobot, FaArrowsAlt, FaHandPaper } from "react-icons/fa";
 
 interface ControlPanelProps {
   onFree: () => void;
@@ -37,6 +38,8 @@ interface ControlPanelProps {
   isFreeLoading?: boolean;
   isUnfreeLoading?: boolean;
   isUnwindLoading?: boolean;
+  bgColor?: string;
+  borderColor?: string;
 }
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
@@ -59,12 +62,19 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   isFreeLoading = false,
   isUnfreeLoading = false,
   isUnwindLoading = false,
+  bgColor,
+  borderColor,
 }) => {
   const isEnabled = toolState === ToolStatus.SIMULATED || toolState === ToolStatus.READY;
   return (
     <VStack spacing={4} width="100%" height="100%">
-      <Card width="100%">
-        <CardHeader>Robot Control</CardHeader>
+      <Card width="100%" borderColor={borderColor} bg={bgColor}>
+        <CardHeader fontWeight="semibold" fontSize="md">
+          <HStack>
+            <FaRobot />
+            <Box>State Control</Box>
+          </HStack>
+        </CardHeader>
         <CardBody>
           <HStack width="100%" spacing={2}>
             <Button
@@ -95,11 +105,20 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </CardBody>
       </Card>
 
-      <Card width="100%">
-        <CardHeader>Jog Control</CardHeader>
+      <Card width="100%" borderColor={borderColor} bg={bgColor}>
+        <CardHeader fontWeight="semibold" fontSize="md">
+          <HStack>
+            <FaArrowsAlt />
+            <Box>Jog Control</Box>
+          </HStack>
+        </CardHeader>
         <CardBody>
           <VStack spacing={4}>
-            <Select value={jogAxis} onChange={(e) => setJogAxis(e.target.value)} width="100%">
+            <Select
+              value={jogAxis}
+              onChange={(e) => setJogAxis(e.target.value)}
+              width="100%"
+              borderColor={borderColor}>
               <option value="">Select Axis</option>
               <option value="x">X</option>
               <option value="y">Y</option>
@@ -111,7 +130,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             <NumberInput
               value={jogDistance}
               onChange={(valueString) => setJogDistance(parseFloat(valueString))}
-              width="100%">
+              width="100%"
+              borderColor={borderColor}>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
@@ -125,14 +145,20 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </CardBody>
       </Card>
 
-      <Card width="100%">
-        <CardHeader>Gripper Control</CardHeader>
+      <Card width="100%" borderColor={borderColor} bg={bgColor}>
+        <CardHeader fontWeight="semibold" fontSize="md">
+          <HStack>
+            <FaHandPaper />
+            <Box>Gripper Control</Box>
+          </HStack>
+        </CardHeader>
         <CardBody>
           <VStack spacing={4} width="100%">
             <Select
               value={selectedGripParamsId || ""}
               onChange={(e) => onGripParamsChange(e.target.value ? Number(e.target.value) : null)}
-              placeholder="Use Default Parameters">
+              placeholder="Use Default Parameters"
+              borderColor={borderColor}>
               {gripParams.map((param, index) => (
                 <option key={param.id || `new-${index}`} value={param.id}>
                   {param.name}

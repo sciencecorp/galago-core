@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { ButtonGroup, Flex, HStack, IconButton, Input, Text } from "@chakra-ui/react";
+import {
+  ButtonGroup,
+  Flex,
+  HStack,
+  IconButton,
+  Input,
+  Text,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import { RiCheckFill, RiCloseFill, RiEdit2Line } from "react-icons/ri";
 
 export const inputStyles = {
@@ -54,7 +62,12 @@ export const Editable = (props: {
     <HStack minWidth={minWidth || 230}>
       {renderInput(value, setValue, submit)}
       <ButtonGroup justifyContent="center" ml={0} size="xs">
-        <IconButton icon={<RiCheckFill />} aria-label="Save Edits" onClick={() => submit()} />
+        <IconButton
+          icon={<RiCheckFill />}
+          aria-label="Save Edits"
+          onClick={() => submit()}
+          colorScheme="blue"
+        />
         <IconButton
           icon={<RiCloseFill />}
           aria-label="Cancel Edits"
@@ -62,6 +75,8 @@ export const Editable = (props: {
             e.preventDefault();
             doneEditing();
           }}
+          colorScheme="red"
+          variant="outline"
         />
       </ButtonGroup>
     </HStack>
@@ -80,6 +95,8 @@ export const Editable = (props: {
             aria-label="Start Editing"
             onClick={startEditing}
             disabled={disabled}
+            colorScheme="blue"
+            variant="ghost"
           />
         )}
       </Flex>
@@ -94,33 +111,42 @@ export const EditableText = (props: {
   preview?: JSX.Element;
   persistentEdit?: boolean;
   disabled?: boolean;
-}) => (
-  <Editable
-    onSubmit={props.onSubmit}
-    renderInput={(value, setValue, submit) => (
-      <Input
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        style={{ zIndex: 1, ...inputStyles }}
-        autoFocus
-        onKeyDown={(e) => {
-          if (e.key === "Enter") submit();
-        }}
-        onBlur={() => submit()}
-      />
-    )}
-    preview={
-      props.preview ? (
-        props.preview
-      ) : props.defaultValue ? (
-        <Text>{props.defaultValue}</Text>
-      ) : (
-        <Text></Text>
-      )
-    }
-    defaultValue={props.defaultValue}
-    minWidth={props.minWidth}
-    persistentEdit={props.persistentEdit}
-    disabled={props.disabled}
-  />
-);
+}) => {
+  const textColor = useColorModeValue("gray.800", "gray.100");
+  const borderColor = useColorModeValue("gray.200", "gray.600");
+  const inputBg = useColorModeValue("white", "gray.700");
+
+  return (
+    <Editable
+      onSubmit={props.onSubmit}
+      renderInput={(value, setValue, submit) => (
+        <Input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              submit();
+            }
+          }}
+          onBlur={() => submit()}
+          autoFocus
+          size="sm"
+          borderColor={borderColor}
+          bg={inputBg}
+          color={textColor}
+        />
+      )}
+      preview={
+        props.preview || (
+          <Text fontSize="sm" color={textColor}>
+            {props.defaultValue || ""}
+          </Text>
+        )
+      }
+      defaultValue={props.defaultValue}
+      minWidth={props.minWidth}
+      persistentEdit={props.persistentEdit}
+      disabled={props.disabled}
+    />
+  );
+};

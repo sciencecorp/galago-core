@@ -13,6 +13,7 @@ from sqlalchemy.orm import relationship
 from .db_session import Base
 from .utils import TimestampMixin
 
+
 class Workcell(Base, TimestampMixin):
     __tablename__ = "workcells"
     id = Column(Integer, primary_key=True)
@@ -163,8 +164,12 @@ class ScriptFolder(Base, TimestampMixin):
     description = Column(String, nullable=True)
 
     # Relationships
-    parent = relationship("ScriptFolder", remote_side=[id], backref="subfolders")  # type: Optional["ScriptFolder"]  # type: ignore
-    scripts = relationship("Script", back_populates="folder")  # type: List["Script"]  # type: ignore
+    parent = relationship(
+        "ScriptFolder", remote_side=[id], backref="subfolders"
+    )  # type: Optional["ScriptFolder"]  # type: ignore
+    scripts = relationship(
+        "Script", back_populates="folder"
+    )  # type: List["Script"]  # type: ignore
 
 
 class Script(Base, TimestampMixin):
@@ -178,7 +183,9 @@ class Script(Base, TimestampMixin):
     folder_id = Column(Integer, ForeignKey("script_folders.id"), nullable=True)
 
     # Relationships
-    folder = relationship("ScriptFolder", back_populates="scripts")  # type: Optional["ScriptFolder"]  # type: ignore
+    folder = relationship(
+        "ScriptFolder", back_populates="scripts"
+    )  # type: Optional["ScriptFolder"]  # type: ignore
 
 
 class AppSettings(Base, TimestampMixin):

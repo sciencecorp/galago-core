@@ -28,7 +28,8 @@ export function coordinateToJoints(coordinates: string, numJoints: number): Join
 
 export function validateJointCount(coordinates: string, expectedJoints: number): boolean {
   const values = coordinates.split(" ").slice(1);
-  return values.length === expectedJoints;
+  // Allow for more joints than expected, but ensure there are at least the expected number
+  return values.length >= expectedJoints;
 }
 
 export function filterItems<T extends { name: string; type?: string }>(

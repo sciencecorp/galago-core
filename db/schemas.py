@@ -416,10 +416,8 @@ class ScriptFolderUpdate(BaseModel):
 
 
 class ScriptFolder(ScriptFolderBase):
-    model_config = ConfigDict(
-        from_attributes=True
-    )
-    
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     created_at: datetime.datetime
     updated_at: datetime.datetime
