@@ -228,7 +228,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                           size="sm"
                           borderColor={borderColor}
                         />
-                        <MenuList borderColor={borderColor} bg={tableBgColor}>
+                        <MenuList >
                           <MenuItem icon={<FaPlay />} onClick={() => onMove(point)}>
                             Move to point
                           </MenuItem>
