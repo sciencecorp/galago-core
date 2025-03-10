@@ -127,13 +127,11 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
                   onChange={(e) => setLabware(e.target.value)}
                   placeholder="Select labware">
                   <option value="default">Default</option>
-                  {labwareList
-                    ?.filter((item) => item.name.toLowerCase() !== "default")
-                    .map((item) => (
-                      <option key={item.id} value={item.name}>
-                        {item.name}
-                      </option>
-                    ))}
+                  {labwareList?.filter(item => item.name.toLowerCase() !== "default").map((item) => (
+                    <option key={item.id} value={item.name}>
+                      {item.name}
+                    </option>
+                  ))}
                 </Select>
                 <Text fontSize="xs" color="gray.500" mt={1}>
                   Select the labware to use when running this sequence

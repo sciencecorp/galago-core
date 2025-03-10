@@ -565,13 +565,11 @@ export const CommandList: React.FC<CommandListProps> = ({
                     onChange={(e) => handleLabwareChange(e.target.value)}
                     size="sm">
                     <option value="default">Default</option>
-                    {labwareList
-                      ?.filter((item) => item.name.toLowerCase() !== "default")
-                      .map((item) => (
-                        <option key={item.id} value={item.name}>
-                          {item.name}
-                        </option>
-                      ))}
+                    {labwareList?.filter(item => item.name.toLowerCase() !== "default").map((item) => (
+                      <option key={item.id} value={item.name}>
+                        {item.name}
+                      </option>
+                    ))}
                   </Select>
                 </FormControl>
               </VStack>
@@ -579,10 +577,10 @@ export const CommandList: React.FC<CommandListProps> = ({
               <VStack align="start" spacing={1}>
                 <Text fontWeight="bold">{sequenceName}</Text>
                 <HStack>
-                  <Text fontSize="sm" color="gray.500">
-                    Labware:
-                  </Text>
-                  <Badge colorScheme={labware === "default" ? "gray" : "blue"}>{labware}</Badge>
+                  <Text fontSize="sm" color="gray.500">Labware:</Text>
+                  <Badge colorScheme={labware === "default" ? "gray" : "blue"}>
+                    {labware}
+                  </Badge>
                 </HStack>
               </VStack>
             )}

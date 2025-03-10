@@ -186,23 +186,10 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                   }}>
                   <Thead position="sticky" top={0} zIndex={1}>
                     <Tr>
-                      <Th bg={headerBgColor} color={textColor}>
-                        Name
-                      </Th>
-                      <Th bg={headerBgColor} color={textColor}>
-                        Commands
-                      </Th>
-                      <Th bg={headerBgColor} color={textColor}>
-                        Labware
-                      </Th>
-                      <Th
-                        textAlign="right"
-                        width="100px"
-                        minWidth="100px"
-                        bg={headerBgColor}
-                        color={textColor}>
-                        Actions
-                      </Th>
+                      <Th>Name</Th>
+                      <Th>Commands</Th>
+                      <Th>Labware</Th>
+                      <Th textAlign="right">Actions</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
