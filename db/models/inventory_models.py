@@ -240,6 +240,7 @@ class RobotArmSequence(Base, TimestampMixin):
     description = Column(String, nullable=True)
     commands = Column(JSON, nullable=False)
     tool_id = Column(Integer, ForeignKey("tools.id"))
+    labware = Column(String, nullable=True)
     tool = relationship(
         "Tool", back_populates="robot_arm_sequences"
     )  # type: Optional["Tool"]  # type: ignore

@@ -125,6 +125,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     isOpen: isSequenceModalOpen,
     onClose: onSequenceModalClose,
     selectedSequence: currentSequence,
+    labwareList,
   } = useSequenceHandler(config);
 
   const commandHandlers = useCommandHandlers(config);

@@ -18,11 +18,13 @@ import {
   IconButton,
   HStack,
   useToast,
+  Select,
 } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
 import { Tool } from "@/types/api";
 import { CommandModal } from "./CommandModal";
 import { Sequence, SequenceCommand, TeachPoint, MotionProfile, GripParams } from "../types";
+import { trpc } from "@/utils/trpc";
 
 interface SequenceModalProps {
   config: Tool;
@@ -48,14 +50,17 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
   const [name, setName] = useState(sequence?.name ?? "");
   const [description, setDescription] = useState(sequence?.description ?? "");
   const [commands, setCommands] = useState<SequenceCommand[]>(sequence?.commands ?? []);
+  const [labware, setLabware] = useState(sequence?.labware ?? "default");
   const [isCommandModalOpen, setIsCommandModalOpen] = useState(false);
   const toast = useToast();
+  const { data: labwareList } = trpc.labware.getAll.useQuery();
 
   useEffect(() => {
     if (isOpen) {
       setName(sequence?.name ?? "");
       setDescription(sequence?.description ?? "");
       setCommands(sequence?.commands ?? []);
+      setLabware(sequence?.labware ?? "default");
       setIsCommandModalOpen(false);
     }
   }, [isOpen, sequence]);
@@ -94,6 +99,7 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
       description,
       commands,
       tool_id: config.id,
+      labware,
     };
 
     onSave(sequenceData);
@@ -105,50 +111,75 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>{sequence ? "Edit Sequence" : "Create Sequence"}</ModalHeader>
+          <ModalHeader>{sequence ? "Edit Sequence" : "New Sequence"}</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <VStack spacing={4}>
+            <VStack spacing={4} align="stretch">
               <FormControl isRequired>
                 <FormLabel>Name</FormLabel>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter sequence name"
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Description</FormLabel>
-                <Input
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter sequence description (optional)"
-                />
+                <Input value={name} onChange={(e) => setName(e.target.value)} />
               </FormControl>
 
-              <Box w="100%">
-                <Heading size="sm" mb={2}>
-                  Commands
-                </Heading>
-                <VStack align="stretch" spacing={2}>
-                  {commands.map((cmd, index) => (
-                    <HStack key={index} justify="space-between">
-                      <Text>{cmd.command}</Text>
-                      <IconButton
-                        aria-label="Remove command"
-                        icon={<DeleteIcon />}
-                        size="sm"
-                        onClick={() => handleRemoveCommand(index)}
-                      />
-                    </HStack>
+              <FormControl>
+                <FormLabel>Labware</FormLabel>
+                <Select
+                  value={labware}
+                  onChange={(e) => setLabware(e.target.value)}
+                  placeholder="Select labware">
+                  <option value="default">Default</option>
+                  {labwareList?.filter(item => item.name.toLowerCase() !== "default").map((item) => (
+                    <option key={item.id} value={item.name}>
+                      {item.name}
+                    </option>
                   ))}
-                </VStack>
-                <Button mt={2} size="sm" onClick={() => setIsCommandModalOpen(true)}>
-                  Add Command
-                </Button>
+                </Select>
+                <Text fontSize="xs" color="gray.500" mt={1}>
+                  Select the labware to use when running this sequence
+                </Text>
+              </FormControl>
+
+              <FormControl>
+                <FormLabel>Description</FormLabel>
+                <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+              </FormControl>
+
+              <Box>
+                <HStack justify="space-between" mb={2}>
+                  <Heading size="sm">Commands</Heading>
+                  <Button size="sm" onClick={() => setIsCommandModalOpen(true)}>
+                    Add Command
+                  </Button>
+                </HStack>
+                {commands.length === 0 ? (
+                  <Text fontSize="sm" color="gray.500">
+                    No commands added yet
+                  </Text>
+                ) : (
+                  <VStack align="stretch" spacing={2}>
+                    {commands.map((cmd, index) => (
+                      <HStack key={index} p={2} borderWidth="1px" borderRadius="md">
+                        <Box flex={1}>
+                          <Text fontWeight="bold">{cmd.command}</Text>
+                          <Text fontSize="sm">
+                            {Object.entries(cmd.params)
+                              .map(([key, value]) => `${key}: ${value}`)
+                              .join(", ")}
+                          </Text>
+                        </Box>
+                        <IconButton
+                          aria-label="Remove command"
+                          icon={<DeleteIcon />}
+                          size="sm"
+                          onClick={() => handleRemoveCommand(index)}
+                        />
+                      </HStack>
+                    ))}
+                  </VStack>
+                )}
               </Box>
             </VStack>
           </ModalBody>
+
           <ModalFooter>
             <Button variant="ghost" mr={3} onClick={onClose}>
               Cancel

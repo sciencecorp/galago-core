@@ -61,6 +61,7 @@ export interface Sequence {
   description?: string;
   commands: SequenceCommand[];
   tool_id: number;
+  labware?: string;
 }
 
 export type SearchableItem = TeachPoint | MotionProfile | GripParams | Sequence;

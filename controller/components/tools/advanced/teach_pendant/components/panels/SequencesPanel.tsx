@@ -26,6 +26,7 @@ import {
   MenuList,
   MenuItem,
   MenuDivider,
+  Badge,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { FaPlay } from "react-icons/fa";
@@ -167,6 +168,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                     <Tr>
                       <Th>Name</Th>
                       <Th>Commands</Th>
+                      <Th>Labware</Th>
                       <Th textAlign="right">Actions</Th>
                     </Tr>
                   </Thead>
@@ -180,6 +182,11 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                         _hover={{ bg: bgColorAlpha }}>
                         <Td>{sequence.name}</Td>
                         <Td>{sequence.commands?.length || 0}</Td>
+                        <Td>
+                          <Badge colorScheme={sequence.labware === "default" ? "gray" : "blue"}>
+                            {sequence.labware || "default"}
+                          </Badge>
+                        </Td>
                         <Td textAlign="right">
                           <HStack spacing={2} justify="flex-end">
                             <Menu>
@@ -221,6 +228,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                 <CommandList
                   commands={selectedSequence.commands}
                   sequenceName={selectedSequence.name}
+                  labware={selectedSequence.labware || "default"}
                   teachPoints={teachPoints}
                   motionProfiles={motionProfiles}
                   gripParams={gripParams}
@@ -243,6 +251,16 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                       });
                     } catch (error) {
                       console.error("Failed to update sequence name:", error);
+                    }
+                  }}
+                  onLabwareChange={async (newLabware) => {
+                    try {
+                      await handleSequenceUpdate({
+                        ...selectedSequence,
+                        labware: newLabware,
+                      });
+                    } catch (error) {
+                      console.error("Failed to update sequence labware:", error);
                     }
                   }}
                   expandedCommandIndex={expandedCommandIndex}

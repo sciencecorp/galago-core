@@ -20,6 +20,8 @@ import {
   Td,
   NumberInput,
   NumberInputField,
+  Select,
+  Badge,
 } from "@chakra-ui/react";
 import {
   DeleteIcon,
@@ -33,10 +35,12 @@ import { SequenceCommand } from "../types";
 import { CommandModal } from "../modals/CommandModal";
 import { TeachPoint, MotionProfile, GripParams } from "../types";
 import { Tool } from "@/types/api";
+import { trpc } from "@/utils/trpc";
 
 interface CommandListProps {
   commands: SequenceCommand[];
   sequenceName: string;
+  labware?: string;
   teachPoints: TeachPoint[];
   motionProfiles: MotionProfile[];
   gripParams: GripParams[];
@@ -44,6 +48,7 @@ interface CommandListProps {
   onDelete?: () => void;
   onCommandsChange: (commands: SequenceCommand[]) => void;
   onSequenceNameChange?: (name: string) => void;
+  onLabwareChange?: (labware: string) => void;
   expandedCommandIndex?: number | null;
   onCommandClick?: (index: number) => void;
 }
@@ -51,6 +56,7 @@ interface CommandListProps {
 export const CommandList: React.FC<CommandListProps> = ({
   commands,
   sequenceName,
+  labware = "default",
   teachPoints,
   motionProfiles,
   gripParams,
@@ -58,15 +64,21 @@ export const CommandList: React.FC<CommandListProps> = ({
   onDelete,
   onCommandsChange,
   onSequenceNameChange,
+  onLabwareChange,
   expandedCommandIndex,
   onCommandClick,
 }) => {
+  const [localCommands, setLocalCommands] = useState<SequenceCommand[]>(commands);
   const [isEditing, setIsEditing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [insertIndex, setInsertIndex] = useState<number | null>(null);
   const [editedSequenceName, setEditedSequenceName] = useState(sequenceName);
-  const [localCommands, setLocalCommands] = useState(commands || []);
+  const [editedLabware, setEditedLabware] = useState(labware);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [insertIndex, setInsertIndex] = useState<number | null>(null);
+  const [expandedCommand, setExpandedCommand] = useState<number | null>(expandedCommandIndex || null);
+  const { data: labwareList } = trpc.labware.getAll.useQuery(undefined, {
+    enabled: isEditing,
+  });
 
   const bgColor = useColorModeValue("white", "gray.700");
   const borderColor = useColorModeValue("gray.200", "gray.600");
@@ -79,8 +91,9 @@ export const CommandList: React.FC<CommandListProps> = ({
       setLocalCommands(commands || []);
     }
     setEditedSequenceName(sequenceName);
+    setEditedLabware(labware);
     setHasUnsavedChanges(false);
-  }, [commands, sequenceName]);
+  }, [commands, sequenceName, labware]);
 
   const handleAddCommand = (index: number) => {
     setInsertIndex(index);
@@ -138,11 +151,19 @@ export const CommandList: React.FC<CommandListProps> = ({
     setHasUnsavedChanges(true);
   };
 
+  const handleLabwareChange = (newLabware: string) => {
+    setEditedLabware(newLabware);
+    setHasUnsavedChanges(true);
+  };
+
   const handleSave = () => {
     if (hasUnsavedChanges) {
       onCommandsChange(localCommands);
       if (editedSequenceName !== sequenceName) {
         onSequenceNameChange?.(editedSequenceName);
+      }
+      if (editedLabware !== labware) {
+        onLabwareChange?.(editedLabware);
       }
       setHasUnsavedChanges(false);
     }
@@ -203,16 +224,40 @@ export const CommandList: React.FC<CommandListProps> = ({
         <HStack width="100%" justify="space-between" align="start">
           <Box flex={1}>
             {isEditing ? (
-              <FormControl>
-                <FormLabel>Sequence Name</FormLabel>
-                <Input
-                  value={editedSequenceName}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  size="sm"
-                />
-              </FormControl>
+              <VStack spacing={4} align="stretch">
+                <FormControl>
+                  <FormLabel>Sequence Name</FormLabel>
+                  <Input
+                    value={editedSequenceName}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    size="sm"
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel>Labware</FormLabel>
+                  <Select
+                    value={editedLabware}
+                    onChange={(e) => handleLabwareChange(e.target.value)}
+                    size="sm">
+                    <option value="default">Default</option>
+                    {labwareList?.filter(item => item.name.toLowerCase() !== "default").map((item) => (
+                      <option key={item.id} value={item.name}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
+              </VStack>
             ) : (
-              <Text fontWeight="bold">{sequenceName}</Text>
+              <VStack align="start" spacing={1}>
+                <Text fontWeight="bold">{sequenceName}</Text>
+                <HStack>
+                  <Text fontSize="sm" color="gray.500">Labware:</Text>
+                  <Badge colorScheme={labware === "default" ? "gray" : "blue"}>
+                    {labware}
+                  </Badge>
+                </HStack>
+              </VStack>
             )}
           </Box>
           <HStack>
@@ -267,11 +312,11 @@ export const CommandList: React.FC<CommandListProps> = ({
                       borderRadius="md"
                       borderWidth="1px"
                       borderColor={borderColor}
-                      bg={expandedCommandIndex === index ? selectedBg : "transparent"}
+                      bg={expandedCommand === index ? selectedBg : "transparent"}
                       onClick={() => onCommandClick?.(index)}
                       width="100%"
                       transition="all 0.2s"
-                      opacity={expandedCommandIndex === index ? 1 : 0.8}
+                      opacity={expandedCommand === index ? 1 : 0.8}
                       _hover={{
                         transform: "scale(1.01)",
                         opacity: 1,
@@ -279,7 +324,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                       }}>
                       <HStack justify="space-between">
                         <HStack>
-                          <Text fontWeight={expandedCommandIndex === index ? "bold" : "normal"}>
+                          <Text fontWeight={expandedCommand === index ? "bold" : "normal"}>
                             {command.command}
                           </Text>
                           <Text color="gray.500" fontSize="sm">
@@ -301,9 +346,9 @@ export const CommandList: React.FC<CommandListProps> = ({
                             />
                           )}
                           <IconButton
-                            aria-label={expandedCommandIndex === index ? "Collapse" : "Expand"}
+                            aria-label={expandedCommand === index ? "Collapse" : "Expand"}
                             icon={
-                              expandedCommandIndex === index ? (
+                              expandedCommand === index ? (
                                 <ChevronUpIcon />
                               ) : (
                                 <ChevronDownIcon />
@@ -318,7 +363,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                           />
                         </HStack>
                       </HStack>
-                      <Collapse in={isEditing || expandedCommandIndex === index}>
+                      <Collapse in={isEditing || expandedCommand === index}>
                         <VStack align="start" mt={3} spacing={3} pl={2}>
                           {Object.entries(command.params)
                             .filter(([key]) => key !== "waypoint_id" && key !== "waypoint")
