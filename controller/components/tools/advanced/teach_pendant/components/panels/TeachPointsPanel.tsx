@@ -234,7 +234,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                           borderColor={borderColor}
                           minW="32px"
                         />
-                        <MenuList >
+                        <MenuList>
                           <MenuItem icon={<FaPlay />} onClick={() => onMove(point)}>
                             Move to point
                           </MenuItem>
