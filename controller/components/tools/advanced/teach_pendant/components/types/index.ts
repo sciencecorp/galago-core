@@ -75,7 +75,7 @@ export interface TeachPointsPanelProps {
   expandedRows: Set<number>;
   toggleRow: (id: number) => void;
   onImport: (data: any) => void;
-  onMove: (point: TeachPoint, action?: "approach" | "leave") => void;
+  onMove: (point: TeachPoint, action?: "move") => void;
   onEdit: (point: TeachPoint) => void;
   onDelete: (point: TeachPoint) => void;
   onAdd: () => void;

@@ -149,25 +149,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
 
     const defaultProfile = motionProfiles[0];
     if (defaultProfile) {
-      const numJoints = (config.config as any)?.pf400?.joints || 6;
-
-      // Limit coordinates to the configured number of joints if using coordinates
-      let limitedPoint = { ...point };
-      if (!point.joints && point.coordinates) {
-        const coords = point.coordinates.split(" ");
-        // Pad with zeros if needed
-        const paddedCoords = [...coords];
-        while (paddedCoords.length < parseInt(numJoints.toString())) {
-          paddedCoords.push("0");
-        }
-        const limitedCoords = paddedCoords.slice(0, parseInt(numJoints.toString())).join(" ");
-        limitedPoint.coordinates = limitedCoords;
-      }
-
-      const joints =
-        limitedPoint.joints ||
-        coordinateToJoints(limitedPoint.coordinates, parseInt(numJoints.toString()));
-      handleMoveCommand(robotArmCommandMutation, { ...limitedPoint, joints }, defaultProfile);
+      handleMoveCommand(robotArmCommandMutation, point.name, defaultProfile.profile_id);
     }
   };
 
