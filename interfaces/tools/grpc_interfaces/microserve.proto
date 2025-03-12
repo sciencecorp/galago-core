@@ -10,7 +10,7 @@ message Command {
     Abort abort = 4;
     Retract retract = 5;
     GoTo go_to =6;
-    SetPlateDimension set_plate_dimensions = 7;
+    SetPlateDimensions set_plate_dimensions = 7;
     SendRawCommand raw_command =8;
   }
 
@@ -28,13 +28,13 @@ message Command {
     message GoTo {
         int32 stack_id =1;
     }
-    message SetPlateDimension {
+    message SetPlateDimensions {
         float plate_height = 1;
         float stack_height = 2;
         float plate_thickness = 3;
     }
     message SendRawCommand {
-        string cmd = 1;
+        string command = 1;
     }
 }
 

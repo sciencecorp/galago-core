@@ -37,7 +37,6 @@ type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormVal
 export default function Page() {
   const router = useRouter();
   const [id, setId] = useState<string | null>(null);
-  const [isBannerVisible, setBannerVisible] = useState(true);
   const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
   const toolQuery = trpc.tool.get.useQuery(id || "");
   const config = infoQuery.data;
@@ -325,8 +324,8 @@ export default function Page() {
         <Box maxWidth="1800px" margin="auto">
         <HStack spacing={4} align="start" width="100%">
           {config?.type !== ToolType.pf400 && (
-            <VStack spacing={4} align="stretch" flex={1}>
-              {!toolCommandsDefined && isBannerVisible && (
+            <VStack spacing={4} width="100%">
+           {!toolCommandsDefined && (
               <>
                 <Alert status="error" variant="left-accent" mb={2}>
                 <AlertIcon />
@@ -335,7 +334,6 @@ export default function Page() {
                 <AlertDescription>Invalid Tool Type.</AlertDescription>
                 <AlertDescription>This tool has not been defined. Contact administrator.</AlertDescription>
                 </Box>
-                <CloseButton onClick={() => setBannerVisible(false)} />
                 </Alert>
               </>
               ) }

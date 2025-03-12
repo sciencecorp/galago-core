@@ -1,5 +1,3 @@
-
-
 export const commandFields: CommandFields = {
     toolbox: {
       run_python_script: [
@@ -256,4 +254,24 @@ export const commandFields: CommandFields = {
       release: [],
       retract: [],
     },
+    microserve: {
+        load:[
+            {name:"stack_id", type:"number"},
+        ],
+        unload:[
+            {name:"stack_id", type:"number"},
+        ],
+        home: [],
+        abort: [],
+        retract: [],
+        go_to: [],
+        set_plate_dimensions:[
+            {name:"plate_height", type:"number"},
+            {name:"stack_height", type:"number"},
+            {name:"plate_thickness", type:"number"},
+        ],
+        send_raw_command:[
+            {name:"command", type:"text"},
+        ]
+    }
   };
