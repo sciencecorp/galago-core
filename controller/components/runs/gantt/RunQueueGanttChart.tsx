@@ -25,6 +25,7 @@ import { ToolType } from "gen-interfaces/controller";
 import { RunCommand } from "@/types";
 import { PiToolbox } from "react-icons/pi";
 import { getToolColor } from "@/utils/colorUtils";
+import { palette, semantic } from "../../../themes/colors";
 
 interface GanttChartProps {
   onRunClick: (runId: string) => void;
@@ -48,13 +49,13 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
   const runsQuery = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
   const toolInfoQuery = trpc.tool.getAll.useQuery();
 
-  const borderColor = useColorModeValue("gray.300", "gray.700");
-  const borderColorAlpha = useColorModeValue("gray.300", "gray.600");
-  const mainBgColor = useColorModeValue("white", "gray.800");
-  const toolLabelsBgColor = useColorModeValue("gray.50", "gray.900");
-  const toolLabelHoverBg = useColorModeValue("gray.100", "gray.700");
-  const toolIconBg = useColorModeValue("white", "gray.800");
-  const commandBorderColor = useColorModeValue("gray.200", "gray.600");
+  const borderColor = useColorModeValue(semantic.border.secondary.light, semantic.border.primary.dark);
+  const borderColorAlpha = useColorModeValue(semantic.border.secondary.light, semantic.border.primary.dark);
+  const mainBgColor = useColorModeValue(semantic.background.primary.light, semantic.background.secondary.dark);
+  const toolLabelsBgColor = useColorModeValue(semantic.background.secondary.light, semantic.background.primary.dark);
+  const toolLabelHoverBg = useColorModeValue(semantic.background.hover.light, semantic.background.hover.dark);
+  const toolIconBg = useColorModeValue(semantic.background.primary.light, semantic.background.secondary.dark);
+  const commandBorderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -225,7 +226,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
         } else if (command.status === "SKIPPED") {
           opacity = 0.5;
           pattern =
-            "repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255,255,255,0.3) 5px, rgba(255,255,255,0.3) 10px)";
+            `repeating-linear-gradient(45deg, transparent, transparent 5px, ${palette.white}4D 5px, ${palette.white}4D 10px)`;
           borderStyle = "dashed";
         }
 
@@ -261,13 +262,13 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
               sx={{
                 "@keyframes pulse": {
                   "0%": {
-                    boxShadow: "0 0 0 0 rgba(49, 151, 149, 0.4)",
+                    boxShadow: `0 0 0 0 ${palette.teal[500]}66`,
                   },
                   "70%": {
-                    boxShadow: "0 0 0 10px rgba(49, 151, 149, 0)",
+                    boxShadow: `0 0 0 10px ${palette.teal[500]}00`,
                   },
                   "100%": {
-                    boxShadow: "0 0 0 0 rgba(49, 151, 149, 0)",
+                    boxShadow: `0 0 0 0 ${palette.teal[500]}00`,
                   },
                 },
               }}>
@@ -279,7 +280,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
                   width="8px"
                   height="8px"
                   borderRadius="full"
-                  bg="teal.400"
+                  bg={palette.teal[400]}
                   animation="blink 1s infinite"
                   sx={{
                     "@keyframes blink": {

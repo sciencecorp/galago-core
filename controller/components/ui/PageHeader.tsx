@@ -9,6 +9,7 @@ import {
   Text,
   Flex,
 } from "@chakra-ui/react";
+import { semantic } from "../../themes/colors";
 
 interface PageHeaderProps {
   title: string;
@@ -17,19 +18,20 @@ interface PageHeaderProps {
   titleIcon?: React.ReactNode;
   secondaryButton?: React.ReactNode;
   tertiaryButton?: React.ReactNode;
+  icon?: React.ReactNode;
 }
 
 export const PageHeader: React.FC<PageHeaderProps> = (props) => {
-  const { title, mainButton, secondaryButton, tertiaryButton, titleIcon, subTitle } = props;
+  const { title, mainButton, secondaryButton, tertiaryButton, titleIcon, subTitle, icon } = props;
   return (
     <Box width="100%">
       <Flex justify="space-between" align="center" width="100%">
         <HStack spacing={4}>
-          {titleIcon}
+          {titleIcon || icon}
           <VStack align="start" spacing={1}>
             <Heading size="lg">{title}</Heading>
             {subTitle && (
-              <Text color="gray.500" fontSize="sm">
+              <Text color={semantic.text.secondary.light} fontSize="sm">
                 {subTitle}
               </Text>
             )}

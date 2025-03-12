@@ -65,6 +65,7 @@ import { ParameterEditor } from "@/components/ui/ParameterEditor";
 import SwimLaneCommandComponent from "../runs/list/SwimLaneCommandComponent";
 import { capitalizeFirst } from "@/utils/parser";
 import { VscRunBelow } from "react-icons/vsc";
+import { palette, semantic } from "../../themes/colors";
 
 interface ParameterSchema {
   type: string;
@@ -313,13 +314,13 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const [localParams, setLocalParams] = useState<Record<string, ParameterSchema>>({});
   const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
   const execMutation = trpc.tool.runCommand.useMutation();
-  const bgColor = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
-  const tableBgColor = useColorModeValue("white", "gray.700");
-  const hoverBgColor = useColorModeValue("gray.50", "gray.600");
-  const tableBorderColor = useColorModeValue("gray.200", "gray.600");
-  const arrowColor = useColorModeValue("gray.500", "gray.400");
+  const bgColor = useColorModeValue(semantic.background.card.light, semantic.background.secondary.dark);
+  const borderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
+  const tableBgColor = useColorModeValue(semantic.background.card.light, semantic.background.card.dark);
+  const hoverBgColor = useColorModeValue(semantic.background.hover.light, semantic.background.hover.dark);
+  const tableBorderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
+  const arrowColor = useColorModeValue(semantic.text.secondary.light, semantic.text.secondary.dark);
   const {
     data: protocol,
     isLoading,
@@ -405,13 +406,13 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const getCategoryColor = (category: string): string => {
     switch (category.toLowerCase()) {
       case "development":
-        return "purple";
+        return palette.purple[500];
       case "qc":
-        return "blue";
+        return palette.blue[500];
       case "production":
-        return "green";
+        return palette.green[500];
       default:
-        return "gray";
+        return palette.gray[500];
     }
   };
 
@@ -502,46 +503,31 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   };
 
   return (
-    <Box
-      bg={bgColor}
-      borderRadius="lg"
-      p={6}
-      color={textColor}
-      borderColor={borderColor}
-      borderWidth="1px"
-      maxW="container.xl"
-      mx="auto"
-      overflow="hidden">
+    <Box bg={bgColor} p={6} borderRadius="md" boxShadow="sm" borderWidth="1px" borderColor={borderColor}>
       <VStack align="stretch" spacing={6}>
-        <HStack justify="space-between">
-          <VStack align="start" spacing={2}>
+        <HStack justifyContent="space-between">
+          <VStack align="start" spacing={1}>
             <Heading size="lg">{protocol.name}</Heading>
-            <HStack>
-              <Tag colorScheme={getCategoryColor(protocol.category)}>{protocol.category}</Tag>
-              <Text color="gray.500">{protocol.workcell}</Text>
-            </HStack>
+            <Text color={semantic.text.secondary.light}>{protocol.workcell}</Text>
           </VStack>
           <HStack>
             {isEditing ? (
-              <>
-                <Button colorScheme="green" onClick={handleSaveChanges}>
-                  Save Changes
-                </Button>
-                <Button variant="outline" onClick={() => setIsEditing(false)}>
-                  Cancel
-                </Button>
-              </>
+              <Button colorScheme="green" onClick={handleSaveChanges}>
+                Save Changes
+              </Button>
             ) : (
               <>
-                <Button
-                  leftIcon={<EditIcon />}
-                  colorScheme="teal"
-                  onClick={() => setIsEditing(true)}>
-                  Edit Protocol
-                </Button>
+                <Button onClick={() => setIsEditing(true)}>Edit</Button>
+                <DeleteWithConfirmation
+                  label="Protocol"
+                  customText="Are you sure you want to delete this protocol? This action cannot be undone."
+                  onDelete={handleDelete}
+                  variant="button"
+                />
                 <Button colorScheme="green" onClick={handleRunClick}>
-                  Run Protocol
+                  Run
                 </Button>
+                
               </>
             )}
           </HStack>
@@ -741,7 +727,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                   </Tbody>
                 </Table>
               ) : (
-                <Text color="gray.500">No parameters defined</Text>
+                <Text color={semantic.text.secondary.light}>No parameters defined</Text>
               )}
             </Box>
           )}

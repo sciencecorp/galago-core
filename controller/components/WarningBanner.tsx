@@ -1,4 +1,5 @@
 import React, { useState, FC } from "react";
+import { palette } from "../themes/colors";
 
 interface WarningBannerProps {
   message: string;
@@ -16,8 +17,8 @@ const WarningBanner: FC<WarningBannerProps> = ({ message }) => {
       {isVisible && (
         <div
           style={{
-            background: "#ffc107",
-            color: "#212529",
+            background: palette.custom.warningYellow,
+            color: palette.custom.warningText,
             padding: "8px",
             textAlign: "center",
             top: 0,

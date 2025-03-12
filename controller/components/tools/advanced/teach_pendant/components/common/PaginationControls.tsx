@@ -5,6 +5,7 @@ import {
   RiArrowRightSLine,
   RiArrowUpSLine,
 } from "react-icons/ri";
+import { palette, semantic } from "../../../../../../themes/colors";
 
 interface PaginationControlsProps {
   currentPage: number;
@@ -27,9 +28,9 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
   const end = Math.min(currentPage * itemsPerPage, totalItems);
   const total = totalItems;
 
-  const borderColor = useColorModeValue("gray.200", "gray.600");
-  const textColor = useColorModeValue("gray.600", "gray.300");
-  const bgColor = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
+  const textColor = useColorModeValue(semantic.text.secondary.light, semantic.text.secondary.dark);
+  const bgColor = useColorModeValue(semantic.background.primary.light, semantic.background.secondary.dark);
   const buttonColorScheme = "blue";
 
   return (

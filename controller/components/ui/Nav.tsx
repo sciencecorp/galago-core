@@ -24,6 +24,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useSidebar } from "@/components/SidebarContext";
+import { palette, semantic } from "../../themes/colors";
 
 const TabPages = [
   { href: "/inventory", title: "Inventory" },
@@ -35,8 +36,8 @@ const TabPages = [
 const styles = {
   section: {
     fontSize: "18px",
-    color: "#292b2c",
-    backgroundColor: "#fff",
+    color: palette.custom.navText,
+    backgroundColor: palette.white,
     padding: "0 20px",
   },
   wrapper: {
@@ -67,8 +68,8 @@ export default function Nav() {
     }
   }
 
-  const bgColor = useColorModeValue("white", "gray.800");
-  const textColor = useColorModeValue("gray.800", "white");
+  const bgColor = useColorModeValue(semantic.background.primary.light, semantic.background.secondary.dark);
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
 
   return (
     <>

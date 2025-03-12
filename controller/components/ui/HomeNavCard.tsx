@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { SystemStyleObject } from "@chakra-ui/react"; // Import this for the type
 import { useColorModeValue } from "@chakra-ui/react";
+import { palette, semantic } from "../../themes/colors";
 
 interface HomeNavCardProps {
   pageProps: PageProps;
@@ -14,7 +15,7 @@ interface HomeNavCardProps {
 export default function HomeNavCard({ pageProps, titleSx }: HomeNavCardProps): JSX.Element {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
-  const bgColor = useColorModeValue("", "gray.700"); // Adjust the dark mode color as needed
+  const bgColor = useColorModeValue("", semantic.background.card.dark); // Adjust the dark mode color as needed
   const handleClick = (route: string) => {
     router.push(`${route}`);
   };
@@ -33,7 +34,7 @@ export default function HomeNavCard({ pageProps, titleSx }: HomeNavCardProps): J
       boxShadow={isHovered ? "xl" : "sm"}
       transform={isHovered ? "translateY(-5px)" : "none"}
       transition="all 0.2s ease-in-out"
-      backgroundColor={isHovered ? "#cee0f0" : "gray.100"}
+      backgroundColor={isHovered ? palette.custom.lightBlue : palette.gray[100]}
       cursor="pointer"
       bg={bgColor}>
       <HStack>

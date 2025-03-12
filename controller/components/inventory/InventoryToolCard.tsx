@@ -27,6 +27,7 @@ import { PiToolbox } from "react-icons/pi";
 import { useColorModeValue } from "@chakra-ui/react";
 import { BsGrid3X3, BsBoxSeam } from "react-icons/bs";
 import { FaFlask } from "react-icons/fa";
+import { palette, semantic } from "../../themes/colors";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -34,7 +35,7 @@ const StyledCard = styled(Card)`
   height: 280px;
   width: 280px;
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px ${palette.black}1A;
   transition: 0.3s ease-out;
   margin: 0 15px;
   margin-top: 10px;
@@ -43,7 +44,7 @@ const StyledCard = styled(Card)`
 
   &:hover {
     transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 12px ${palette.black}26;
   }
 `;
 
@@ -77,10 +78,10 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   onDeleteNest,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const cardBg = useColorModeValue("white", "gray.900");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const iconColor = useColorModeValue("gray.600", "gray.400");
-  const statBg = useColorModeValue("gray.50", "gray.800");
+  const cardBg = useColorModeValue(semantic.background.card.light, semantic.background.primary.dark);
+  const borderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
+  const iconColor = useColorModeValue(semantic.text.secondary.light, semantic.text.secondary.dark);
+  const statBg = useColorModeValue(semantic.background.secondary.light, semantic.background.secondary.dark);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const workcells = trpc.workcell.getAll.useQuery();
@@ -158,7 +159,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
                 </Box>
                 <Box>
                   <Heading size="md">{name}</Heading>
-                  <Text fontSize="sm" color="gray.500">
+                  <Text fontSize="sm" color={semantic.text.secondary.light}>
                     Inventory
                   </Text>
                 </Box>
@@ -178,7 +179,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
                   <Text fontWeight="bold" fontSize="md">
                     {toolNests.length}
                   </Text>
-                  <Text fontSize="xs" color="gray.500">
+                  <Text fontSize="xs" color={semantic.text.secondary.light}>
                     Nests
                   </Text>
                 </Box>
@@ -190,7 +191,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
                   <Text fontWeight="bold" fontSize="md">
                     {toolPlates.length}
                   </Text>
-                  <Text fontSize="xs" color="gray.500">
+                  <Text fontSize="xs" color={semantic.text.secondary.light}>
                     Plates
                   </Text>
                 </Box>
@@ -202,7 +203,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
                   <Text fontWeight="bold" fontSize="md">
                     {reagentCount}
                   </Text>
-                  <Text fontSize="xs" color="gray.500">
+                  <Text fontSize="xs" color={semantic.text.secondary.light}>
                     Reagents
                   </Text>
                 </Box>

@@ -23,6 +23,7 @@ import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "./components/types";
 import { z } from "zod";
 import { ToolType } from "gen-interfaces/controller";
+import { palette, semantic } from "../../../../themes/colors";
 
 // Components
 import { TeachPendantActions } from "./components/actions/TeachPendantActions";
@@ -59,11 +60,11 @@ interface LocationUpdate {
 }
 
 export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
-  const bgColor = useColorModeValue("white", "gray.900");
-  const bgColorAlpha = useColorModeValue("blackAlpha.50", "whiteAlpha.100");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const tabBgColor = useColorModeValue("gray.50", "gray.800");
-  const tabActiveBgColor = useColorModeValue("white", "gray.700");
+  const bgColor = useColorModeValue(semantic.background.card.light, semantic.background.primary.dark);
+  const bgColorAlpha = useColorModeValue(palette.black + "0A", palette.white + "1A");
+  const borderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
+  const tabBgColor = useColorModeValue(semantic.background.secondary.light, semantic.background.secondary.dark);
+  const tabActiveBgColor = useColorModeValue(semantic.background.primary.light, semantic.background.card.dark);
   const toast = useToast();
 
   // Hooks
@@ -370,8 +371,8 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
       width="1500px"
       minW="1200px"
       boxShadow={useColorModeValue(
-        "0 4px 12px rgba(0, 0, 0, 0.1)",
-        "0 4px 16px rgba(0, 0, 0, 0.6)",
+        `0 4px 12px ${palette.black}1A`,
+        `0 4px 16px ${palette.black}99`,
       )}>
       <VStack p={4} spacing={4} align="stretch">
         {/* Main Content Area */}
@@ -504,50 +505,43 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
             </InputGroup>
 
             {/* Tabs Section */}
-            <Tabs index={activeTab} onChange={setActiveTab} variant="enclosed" colorScheme="blue">
-              <TabList>
+            <Tabs
+              variant="enclosed"
+              colorScheme="blue"
+              index={activeTab}
+              onChange={(index) => setActiveTab(index)}
+              isLazy>
+              <TabList bg={tabBgColor} px={4} pt={2}>
                 <Tab
                   _selected={{
-                    color: useColorModeValue("blue.600", "blue.200"),
                     bg: tabActiveBgColor,
                     borderColor: borderColor,
-                    borderBottomColor: tabActiveBgColor,
-                  }}
-                  bg={tabBgColor}
-                  borderColor={borderColor}>
+                    borderBottomColor: "transparent",
+                  }}>
                   Teach Points
                 </Tab>
                 <Tab
                   _selected={{
-                    color: useColorModeValue("blue.600", "blue.200"),
                     bg: tabActiveBgColor,
                     borderColor: borderColor,
-                    borderBottomColor: tabActiveBgColor,
-                  }}
-                  bg={tabBgColor}
-                  borderColor={borderColor}>
+                    borderBottomColor: "transparent",
+                  }}>
                   Motion Profiles
                 </Tab>
                 <Tab
                   _selected={{
-                    color: useColorModeValue("blue.600", "blue.200"),
                     bg: tabActiveBgColor,
                     borderColor: borderColor,
-                    borderBottomColor: tabActiveBgColor,
-                  }}
-                  bg={tabBgColor}
-                  borderColor={borderColor}>
+                    borderBottomColor: "transparent",
+                  }}>
                   Grip Parameters
                 </Tab>
                 <Tab
                   _selected={{
-                    color: useColorModeValue("blue.600", "blue.200"),
                     bg: tabActiveBgColor,
                     borderColor: borderColor,
-                    borderBottomColor: tabActiveBgColor,
-                  }}
-                  bg={tabBgColor}
-                  borderColor={borderColor}>
+                    borderBottomColor: "transparent",
+                  }}>
                   Sequences
                 </Tab>
               </TabList>

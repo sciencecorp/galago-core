@@ -15,6 +15,7 @@ import {
 } from "@chakra-ui/react";
 import { SearchIcon, CloseIcon } from "@chakra-ui/icons";
 import { Plate, Reagent } from "@/types/api";
+import { palette, semantic } from "../../themes/colors";
 
 type InventorySearchProps = {
   search: string;
@@ -52,7 +53,7 @@ const InventorySearch: React.FC<InventorySearchProps> = ({
       <HStack spacing={4} width="100%">
         <InputGroup>
           <InputLeftElement pointerEvents="none">
-            <SearchIcon color="gray.300" />
+            <SearchIcon color={semantic.text.secondary.light} />
           </InputLeftElement>
           <Input
             type="text"
@@ -61,7 +62,7 @@ const InventorySearch: React.FC<InventorySearchProps> = ({
             onChange={onSearchChange}
           />
           <InputRightElement>
-            <CloseIcon cursor="pointer" color="gray.300" onClick={onClearSearch} />
+            <CloseIcon cursor="pointer" color={semantic.text.secondary.light} onClick={onClearSearch} />
           </InputRightElement>
         </InputGroup>
       </HStack>
@@ -75,11 +76,11 @@ const InventorySearch: React.FC<InventorySearchProps> = ({
                 bg={
                   isDarkMode
                     ? index % 2 === 0
-                      ? "gray.800"
-                      : "gray.700"
+                      ? semantic.background.secondary.dark
+                      : semantic.background.card.dark
                     : index % 2 === 0
-                      ? "white"
-                      : "gray.100"
+                      ? semantic.background.primary.light
+                      : semantic.background.secondary.light
                 }>
                 {isPlate(result) && (
                   <Tooltip label="Click to find corresponding plate">

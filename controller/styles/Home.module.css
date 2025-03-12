@@ -126,7 +126,7 @@
   transform: translateZ(0);
   border-radius: var(--border-radius);
   overflow: hidden;
-  box-shadow: 0px 2px 8px -1px #0000001a;
+  box-shadow: 0px 2px 8px -1px rgba(0, 0, 0, 0.1);
 }
 
 .thirteen::before,
@@ -254,7 +254,7 @@
 
   .logo,
   .thirteen img {
-    filter: invert(1) drop-shadow(0 0 0.3rem #ffffff70);
+    filter: invert(1) drop-shadow(0 0 0.3rem rgba(255, 255, 255, 0.7));
   }
 }
 

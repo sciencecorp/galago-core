@@ -1,12 +1,13 @@
 import React from "react";
 import { Box, useColorModeValue } from "@chakra-ui/react";
+import { palette, semantic } from "../../../themes/colors";
 
 interface CurrentTimeLineProps {
   position: number;
 }
 
 export const CurrentTimeLine: React.FC<CurrentTimeLineProps> = ({ position }) => {
-  const circleBg = useColorModeValue("white", "gray.800");
+  const circleBg = useColorModeValue(semantic.background.primary.light, semantic.background.secondary.dark);
 
   return (
     <Box
@@ -15,7 +16,7 @@ export const CurrentTimeLine: React.FC<CurrentTimeLineProps> = ({ position }) =>
       top="0"
       bottom="0"
       width="2px"
-      bg="red.500"
+      bg={palette.red[500]}
       opacity={0.8}
       zIndex={4}
       pointerEvents="none"
@@ -29,7 +30,7 @@ export const CurrentTimeLine: React.FC<CurrentTimeLineProps> = ({ position }) =>
         width: "12px",
         height: "12px",
         borderRadius: "50%",
-        backgroundColor: "red.500",
+        backgroundColor: palette.red[500],
         boxShadow: `0 0 0 2px ${circleBg}`,
         transition: "left 0.1s linear",
         zIndex: 10,

@@ -33,6 +33,7 @@ import { renderDatetime } from "../ui/Time";
 import { FiInfo } from "react-icons/fi";
 import { FiBook } from "react-icons/fi";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { palette, semantic } from "../../themes/colors";
 
 interface LogViewProps {}
 
@@ -48,11 +49,11 @@ function getIconFromLogType(logType: string) {
 
   switch (logType) {
     case "error":
-      return <CloseIcon color="red" style={iconStyle} />;
+      return <CloseIcon color={palette.red[500]} style={iconStyle} />;
     case "warning":
-      return <WarningIcon color="orange" style={iconStyle} />;
+      return <WarningIcon color={palette.orange[500]} style={iconStyle} />;
     case "debug":
-      return <QuestionOutlineIcon color="yellow" style={iconStyle} />;
+      return <QuestionOutlineIcon color={palette.yellow[500]} style={iconStyle} />;
     case "info":
       return <FiInfo style={iconStyle} />;
   }
@@ -65,9 +66,9 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedLevel, setSelectedLevel] = useState<string>("");
 
-  const headerBg = useColorModeValue("white", "gray.700");
-  const tableBgColor = useColorModeValue("white", "gray.700");
-  const hoverBgColor = useColorModeValue("gray.50", "gray.600");
+  const headerBg = useColorModeValue(semantic.background.card.light, semantic.background.card.dark);
+  const tableBgColor = useColorModeValue(semantic.background.card.light, semantic.background.card.dark);
+  const hoverBgColor = useColorModeValue(semantic.background.hover.light, semantic.background.hover.dark);
 
   const hasPrevious = offset > 0;
   const hasNext = logs.length === limit || false;
@@ -124,18 +125,18 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                 </Stat>
                 <Stat>
                   <StatLabel>Errors</StatLabel>
-                  <StatNumber color="red.500">{errorCount}</StatNumber>
+                  <StatNumber color={palette.red[500]}>{errorCount}</StatNumber>
                 </Stat>
                 <Stat>
                   <StatLabel>Warnings</StatLabel>
-                  <StatNumber color="orange.500">{warningCount}</StatNumber>
+                  <StatNumber color={palette.orange[500]}>{warningCount}</StatNumber>
                 </Stat>
               </StatGroup>
               <Divider />
               <HStack spacing={4}>
                 <InputGroup maxW="400px">
                   <InputLeftElement pointerEvents="none">
-                    <SearchIcon color="gray.300" />
+                    <SearchIcon color={semantic.text.secondary.light} />
                   </InputLeftElement>
                   <Input
                     placeholder="Search logs..."
