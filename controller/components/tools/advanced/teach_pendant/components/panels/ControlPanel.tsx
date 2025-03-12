@@ -69,7 +69,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   const isEnabled = toolState === ToolStatus.SIMULATED || toolState === ToolStatus.READY;
   return (
     <VStack spacing={4} width="100%" height="100%">
-      <Card width="100%" borderColor={borderColor} bg={bgColor}>
+      <Card width="100%" borderColor={borderColor} borderWidth="1px" borderRadius="lg" bg={bgColor}>
         <CardHeader fontWeight="semibold" fontSize="md">
           <HStack>
             <BiUpArrow />
@@ -106,7 +106,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </CardBody>
       </Card>
 
-      <Card width="100%" borderColor={borderColor} bg={bgColor}>
+      <Card width="100%" borderColor={borderColor} borderWidth="1px" borderRadius="lg" bg={bgColor}>
         <CardHeader fontWeight="semibold" fontSize="md">
           <HStack>
             <FaArrowsAlt />
@@ -146,7 +146,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </CardBody>
       </Card>
 
-      <Card width="100%" borderColor={borderColor} bg={bgColor}>
+      <Card width="100%" borderColor={borderColor} borderWidth="1px" borderRadius="lg" bg={bgColor}>
         <CardHeader fontWeight="semibold" fontSize="md">
           <HStack>
             <FaHandPaper />
