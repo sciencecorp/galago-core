@@ -169,7 +169,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                       <Th>Name</Th>
                       <Th>Commands</Th>
                       <Th>Labware</Th>
-                      <Th textAlign="right">Actions</Th>
+                      <Th textAlign="right" width="100px" minWidth="100px">Actions</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -196,6 +196,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                                 icon={<HamburgerIcon />}
                                 size="sm"
                                 onClick={(e) => e.stopPropagation()}
+                                minW="32px"
                               />
                               <MenuList onClick={(e) => e.stopPropagation()}>
                                 <MenuItem icon={<FaPlay />} onClick={() => onRun(sequence)}>

@@ -406,7 +406,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                               </Text>
                             </VStack>
                           </HStack>
-                          <HStack spacing={1}>
+                          <HStack spacing={2} minW="70px" justifyContent="flex-end">
                             {isEditing && (
                               <IconButton
                                 aria-label="Delete command"
@@ -418,6 +418,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                                   e.stopPropagation();
                                   handleDeleteCommand(index);
                                 }}
+                                minW="32px"
                               />
                             )}
                             <IconButton
@@ -433,6 +434,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                                 setExpandedCommand(newExpandedIndex);
                                 onCommandClick?.(index);
                               }}
+                              minW="32px"
                             />
                           </HStack>
                         </HStack>
