@@ -17,6 +17,7 @@ import {
 import { ArrowLeftIcon, ArrowRightIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import { BiTime } from "react-icons/bi";
 import moment from "moment";
+import { palette, semantic } from "../../../themes/colors";
 // import { TimeScale } from '@/types';
 
 enum TimeScale {
@@ -44,14 +45,14 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
 }) => {
   const timeIntervals = 12;
   const totalDuration = endTime.diff(startTime, "seconds");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
-  const labelColor = useColorModeValue("gray.600", "gray.300");
-  const menuBg = useColorModeValue("white", "gray.700");
-  const menuHoverBg = useColorModeValue("gray.100", "gray.600");
-  const selectedBg = useColorModeValue("blue.50", "blue.900");
-  const textBg = useColorModeValue("gray.50", "gray.700");
-  const hoverBg = useColorModeValue("gray.50", "gray.700");
-  const hoverBorderColor = useColorModeValue("gray.300", "gray.500");
+  const borderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
+  const labelColor = useColorModeValue(semantic.text.secondary.light, semantic.text.secondary.dark);
+  const menuBg = useColorModeValue(semantic.background.primary.light, semantic.background.card.dark);
+  const menuHoverBg = useColorModeValue(semantic.background.hover.light, semantic.background.hover.dark);
+  const selectedBg = useColorModeValue(palette.blue[50], palette.blue[900]);
+  const textBg = useColorModeValue(semantic.background.secondary.light, semantic.background.card.dark);
+  const hoverBg = useColorModeValue(semantic.background.secondary.light, semantic.background.card.dark);
+  const hoverBorderColor = useColorModeValue(semantic.border.secondary.light, semantic.border.secondary.dark);
   const handleShift = (direction: "forward" | "backward") => {
     const shiftAmount = totalDuration / 4;
     const newStart =

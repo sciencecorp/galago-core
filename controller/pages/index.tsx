@@ -31,15 +31,16 @@ import { FaChartGantt } from "react-icons/fa6";
 import Link from "next/link";
 import { Plate } from "@/types/api";
 import { Calendar } from "@/components/calendar/Calendar";
+import { palette, semantic } from "../themes/colors";
 
 export default function Page() {
   useEffect(() => {
     document.title = "Home";
   }, []);
 
-  const headerBg = useColorModeValue("white", "gray.700");
-  const iconColor = "teal.500";
-  const hoverBg = useColorModeValue("gray.50", "gray.600");
+  const headerBg = useColorModeValue(semantic.background.card.light, semantic.background.card.dark);
+  const iconColor = palette.teal[500];
+  const hoverBg = useColorModeValue(semantic.background.hover.light, semantic.background.hover.dark);
 
   // Fetch data from different sections
   const { data: tools } = trpc.tool.availableIDs.useQuery();
@@ -92,7 +93,7 @@ export default function Page() {
                   <HStack justify="space-between">
                     <VStack align="start" spacing={0}>
                       <Heading size="md">Calendar</Heading>
-                      <Text color="gray.500">Schedule overview</Text>
+                      <Text color={semantic.text.secondary.light}>Schedule overview</Text>
                     </VStack>
                     <Icon as={BsCalendarWeek} boxSize={8} color={iconColor} />
                   </HStack>
@@ -121,7 +122,7 @@ export default function Page() {
                     <HStack justify="space-between">
                       <VStack align="start" spacing={0}>
                         <Heading size="md">Documentation</Heading>
-                        <Text color="gray.500">Learn more about Galago</Text>
+                        <Text color={semantic.text.secondary.light}>Learn more about Galago</Text>
                       </VStack>
                       <Icon as={FaBookOpen} boxSize={8} color={iconColor} />
                     </HStack>
@@ -151,7 +152,7 @@ export default function Page() {
                     <HStack justify="space-between">
                       <VStack align="start" spacing={0}>
                         <Heading size="md">Tools</Heading>
-                        <Text color="gray.500">Connected devices</Text>
+                        <Text color={semantic.text.secondary.light}>Connected devices</Text>
                       </VStack>
                       <Icon as={BsTools} boxSize={8} color={iconColor} />
                     </HStack>
@@ -179,7 +180,7 @@ export default function Page() {
                     <HStack justify="space-between">
                       <VStack align="start" spacing={0}>
                         <Heading size="md">Runs</Heading>
-                        <Text color="gray.500">Protocol executions</Text>
+                        <Text color={semantic.text.secondary.light}>Protocol executions</Text>
                       </VStack>
                       <Icon as={FaChartGantt} boxSize={8} color={iconColor} />
                     </HStack>
@@ -207,7 +208,7 @@ export default function Page() {
                     <HStack justify="space-between">
                       <VStack align="start" spacing={0}>
                         <Heading size="md">Scripts</Heading>
-                        <Text color="gray.500">Python automation</Text>
+                        <Text color={semantic.text.secondary.light}>Python automation</Text>
                       </VStack>
                       <Icon as={VscCode} boxSize={8} color={iconColor} />
                     </HStack>
@@ -235,7 +236,7 @@ export default function Page() {
                     <HStack justify="space-between">
                       <VStack align="start" spacing={0}>
                         <Heading size="md">Workcells</Heading>
-                        <Text color="gray.500">Automation cells</Text>
+                        <Text color={semantic.text.secondary.light}>Automation cells</Text>
                       </VStack>
                       <Icon as={GiChaingun} boxSize={8} color={iconColor} />
                     </HStack>
@@ -263,7 +264,7 @@ export default function Page() {
                     <HStack justify="space-between">
                       <VStack align="start" spacing={0}>
                         <Heading size="md">Protocols</Heading>
-                        <Text color="gray.500">Automation sequences</Text>
+                        <Text color={semantic.text.secondary.light}>Automation sequences</Text>
                       </VStack>
                       <Icon as={PiPathBold} boxSize={8} color={iconColor} />
                     </HStack>
@@ -291,7 +292,7 @@ export default function Page() {
                     <HStack justify="space-between">
                       <VStack align="start" spacing={0}>
                         <Heading size="md">Inventory</Heading>
-                        <Text color="gray.500">Lab materials</Text>
+                        <Text color={semantic.text.secondary.light}>Lab materials</Text>
                       </VStack>
                       <Icon as={BsBoxSeam} boxSize={8} color={iconColor} />
                     </HStack>
@@ -319,7 +320,7 @@ export default function Page() {
                     <HStack justify="space-between">
                       <VStack align="start" spacing={0}>
                         <Heading size="md">Labware</Heading>
-                        <Text color="gray.500">Lab equipment</Text>
+                        <Text color={semantic.text.secondary.light}>Lab equipment</Text>
                       </VStack>
                       <Icon as={HiOutlineRectangleStack} boxSize={8} color={iconColor} />
                     </HStack>
@@ -347,7 +348,7 @@ export default function Page() {
                     <HStack justify="space-between">
                       <VStack align="start" spacing={0}>
                         <Heading size="md">Variables</Heading>
-                        <Text color="gray.500">System configuration</Text>
+                        <Text color={semantic.text.secondary.light}>System configuration</Text>
                       </VStack>
                       <Icon as={TbVariable} boxSize={8} color={iconColor} />
                     </HStack>
@@ -375,7 +376,7 @@ export default function Page() {
                     <HStack justify="space-between">
                       <VStack align="start" spacing={0}>
                         <Heading size="md">Logs</Heading>
-                        <Text color="gray.500">System activity</Text>
+                        <Text color={semantic.text.secondary.light}>System activity</Text>
                       </VStack>
                       <Icon as={FiBook} boxSize={8} color={iconColor} />
                     </HStack>

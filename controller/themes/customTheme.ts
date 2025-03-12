@@ -1,4 +1,5 @@
 import { extendTheme } from "@chakra-ui/react";
+import { palette, semantic } from "./colors";
 
 // Define custom colors and styles
 const customTheme = extendTheme({
@@ -9,15 +10,15 @@ const customTheme = extendTheme({
   styles: {
     global: (props: { colorMode: string }) => ({
       body: {
-        bg: props.colorMode === "dark" ? "gray.900" : "white",
-        color: props.colorMode === "dark" ? "whiteAlpha.900" : "gray.800",
+        bg: props.colorMode === "dark" ? semantic.background.primary.dark : semantic.background.primary.light,
+        color: props.colorMode === "dark" ? semantic.text.primary.dark : semantic.text.primary.light,
       },
       table: {
         th: {
-          borderColor: props.colorMode === "dark" ? "gray.500" : "gray.200",
+          borderColor: props.colorMode === "dark" ? semantic.border.primary.dark : semantic.border.primary.light,
         },
         td: {
-          borderColor: props.colorMode === "dark" ? "gray.500" : "gray.200",
+          borderColor: props.colorMode === "dark" ? semantic.border.primary.dark : semantic.border.primary.light,
         },
       },
     }),
@@ -29,22 +30,22 @@ const customTheme = extendTheme({
       },
       variants: {
         solid: (props: { colorMode: string }) => ({
-          bg: props.colorMode === "dark" ? "blue.600" : "blue.500",
-          color: "white",
+          bg: props.colorMode === "dark" ? palette.blue[600] : palette.blue[500],
+          color: palette.white,
           _hover: {
-            bg: props.colorMode === "dark" ? "blue.500" : "blue.600",
+            bg: props.colorMode === "dark" ? palette.blue[500] : palette.blue[600],
           },
         }),
         outline: (props: { colorMode: string }) => ({
-          borderColor: props.colorMode === "dark" ? "blue.400" : "blue.500",
-          color: props.colorMode === "dark" ? "blue.400" : "blue.500",
+          borderColor: props.colorMode === "dark" ? palette.blue[400] : palette.blue[500],
+          color: props.colorMode === "dark" ? palette.blue[400] : palette.blue[500],
         }),
       },
     },
     Box: {
       baseStyle: (props: { colorMode: string }) => ({
-        bg: props.colorMode === "dark" ? "gray.800" : "gray.100",
-        color: props.colorMode === "dark" ? "whiteAlpha.900" : "gray.800",
+        bg: props.colorMode === "dark" ? semantic.background.secondary.dark : semantic.background.secondary.light,
+        color: props.colorMode === "dark" ? semantic.text.primary.dark : semantic.text.primary.light,
       }),
     },
     // Add more components here
@@ -52,13 +53,13 @@ const customTheme = extendTheme({
       variants: {
         outline: (props: { colorMode: string }) => ({
           field: {
-            borderColor: props.colorMode === "dark" ? "gray.600" : "gray.300",
+            borderColor: props.colorMode === "dark" ? semantic.border.primary.dark : semantic.border.primary.light,
             _hover: {
-              borderColor: props.colorMode === "dark" ? "gray.500" : "gray.400",
+              borderColor: props.colorMode === "dark" ? semantic.border.secondary.dark : semantic.border.secondary.light,
             },
             _focus: {
-              borderColor: props.colorMode === "dark" ? "blue.400" : "blue.500",
-              boxShadow: props.colorMode === "dark" ? "0 0 0 1px #4299E1" : "0 0 0 1px #3182CE",
+              borderColor: props.colorMode === "dark" ? semantic.border.focus.dark : semantic.border.focus.light,
+              boxShadow: props.colorMode === "dark" ? `0 0 0 1px ${palette.blue[400]}` : `0 0 0 1px ${palette.blue[500]}`,
             },
           },
         }),
@@ -66,17 +67,17 @@ const customTheme = extendTheme({
     },
     Text: {
       baseStyle: (props: { colorMode: string }) => ({
-        color: props.colorMode === "dark" ? "whiteAlpha.900" : "gray.800",
+        color: props.colorMode === "dark" ? semantic.text.primary.dark : semantic.text.primary.light,
       }),
     },
     Heading: {
       baseStyle: (props: { colorMode: string }) => ({
-        color: props.colorMode === "dark" ? "whiteAlpha.900" : "gray.800",
+        color: props.colorMode === "dark" ? semantic.text.primary.dark : semantic.text.primary.light,
       }),
     },
     Divider: {
       baseStyle: (props: { colorMode: string }) => ({
-        borderColor: props.colorMode === "dark" ? "gray.500" : "gray.200",
+        borderColor: props.colorMode === "dark" ? semantic.border.primary.dark : semantic.border.primary.light,
       }),
     },
   },

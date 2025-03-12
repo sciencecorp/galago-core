@@ -34,6 +34,7 @@ import { PiToolbox } from "react-icons/pi";
 import { EditMenu } from "@/components/ui/EditMenu";
 import { EditToolModal } from "./EditToolConfig";
 import { useRouter } from "next/router";
+import { palette, semantic } from "../../themes/colors";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -41,7 +42,7 @@ const StyledCard = styled(Card)`
   height: 280px;
   width: 280px;
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px ${palette.black}1A;
   transition: 0.3s ease-out;
   margin: 0 15px;
   margin-top: 10px;
@@ -49,7 +50,7 @@ const StyledCard = styled(Card)`
   overflow: hidden;
   &:hover {
     transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 12px ${palette.black}26;
   }
 `;
 
@@ -61,8 +62,8 @@ interface ToolStatusCardProps {
 export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardProps) {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
-  const cardBg = useColorModeValue("white", "gray.900");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const cardBg = useColorModeValue(semantic.background.card.light, semantic.background.primary.dark);
+  const borderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
 
   const infoQuery = trpc.tool.info.useQuery({ toolId: toolId || "" });
   const toolData = infoQuery.data;
@@ -110,7 +111,7 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
         <Box display="flex" justifyContent="center" alignItems="center">
           <IconButton
             aria-label="Tool Box"
-            icon={<PiToolbox style={{ width: "100%", height: "100%" }} />} // Ensure the icon fills the button
+            icon={<PiToolbox style={{ width: "100%", height: "100%" }} />}
             variant="ghost"
             colorScheme="teal"
             isRound

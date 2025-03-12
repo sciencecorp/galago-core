@@ -1,6 +1,7 @@
 // components/Barcode.js
 import { useEffect, useRef } from "react";
 import JsBarcode from "jsbarcode";
+import { palette } from "../themes/colors";
 
 const Barcode = ({ value }) => {
   const barcodeRef = useRef(null);
@@ -8,7 +9,7 @@ const Barcode = ({ value }) => {
   useEffect(() => {
     JsBarcode(barcodeRef.current, value, {
       format: "CODE128",
-      lineColor: "#000",
+      lineColor: palette.black,
       width: 1.5,
       height: 25,
       displayValue: true,

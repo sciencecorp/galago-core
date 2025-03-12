@@ -9,6 +9,7 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { RiCheckFill, RiCloseFill, RiEdit2Line } from "react-icons/ri";
+import { palette, semantic } from "../../themes/colors";
 
 export const inputStyles = {
   padding: 0,
@@ -18,8 +19,8 @@ export const inputStyles = {
   fontSize: 14,
   borderRadius: 6,
   height: "unset",
-  border: "1px solid var(--chakra-colors-gray-200)",
-  outlineColor: "var(--chakra-colors-blue-500)",
+  border: `1px solid ${palette.gray[200]}`,
+  outlineColor: palette.blue[500],
 };
 
 export const Editable = (props: {
@@ -112,9 +113,9 @@ export const EditableText = (props: {
   persistentEdit?: boolean;
   disabled?: boolean;
 }) => {
-  const textColor = useColorModeValue("gray.800", "gray.100");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
-  const inputBg = useColorModeValue("white", "gray.700");
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
+  const borderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
+  const inputBg = useColorModeValue(semantic.background.primary.light, semantic.background.card.dark);
 
   return (
     <Editable

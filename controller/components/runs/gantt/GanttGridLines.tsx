@@ -1,12 +1,13 @@
 import React from "react";
 import { Box, useColorModeValue } from "@chakra-ui/react";
+import { semantic } from "../../../themes/colors";
 
 interface GanttGridLinesProps {
   intervals: number;
 }
 
 export const GanttGridLines: React.FC<GanttGridLinesProps> = ({ intervals }) => {
-  const borderColorAlpha = useColorModeValue("gray.300", "gray.600");
+  const borderColorAlpha = useColorModeValue(semantic.border.secondary.light, semantic.border.primary.dark);
 
   const lines = [];
   for (let i = 1; i <= intervals; i++) {

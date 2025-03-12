@@ -29,6 +29,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { usePagination } from "../../hooks/usePagination";
 import { PaginationControls } from "../common/PaginationControls";
 import { EditableText } from "@/components/ui/Form";
+import { palette, semantic } from "../../../../../../themes/colors";
 
 interface EditablePoint {
   id: number;
@@ -68,11 +69,11 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   bgColorAlpha,
   config,
 }) => {
-  const borderColor = useColorModeValue("gray.200", "gray.600");
-  const tableBgColor = useColorModeValue("white", "gray.800");
-  const headerBgColor = useColorModeValue("gray.50", "gray.700");
-  const hoverBgColor = useColorModeValue("gray.50", "gray.700");
-  const textColor = useColorModeValue("gray.800", "gray.100");
+  const borderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
+  const tableBgColor = useColorModeValue(semantic.background.primary.light, semantic.background.secondary.dark);
+  const headerBgColor = useColorModeValue(semantic.background.secondary.light, semantic.background.card.dark);
+  const hoverBgColor = useColorModeValue(semantic.background.hover.light, semantic.background.hover.dark);
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
   const [editingPoint, setEditingPoint] = useState<EditablePoint | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
 
@@ -122,100 +123,88 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   };
 
   return (
-    <Box height="100%" overflow="hidden">
-      <VStack height="100%" spacing={4}>
-        <HStack width="100%" justify="space-between">
-          <Heading size="md" paddingTop={12} color={textColor}>
-            Teach Points
-          </Heading>
-          <Button leftIcon={<AddIcon />} size="sm" onClick={onAdd} colorScheme="blue">
-            New Teach Point
-          </Button>
+    <Box>
+      <VStack spacing={4} align="stretch">
+        <HStack justifyContent="space-between">
+          <Heading size="md">Teach Points</Heading>
+          <HStack>
+            <Button
+              leftIcon={<AddIcon />}
+              colorScheme="blue"
+              onClick={onAdd}
+              size="sm">
+              Add Point
+            </Button>
+          </HStack>
         </HStack>
-        <Box width="100%" flex={1} overflow="hidden">
-          <Box
-            ref={tableRef}
-            height="100%"
-            overflow="auto"
-            borderWidth="1px"
-            borderRadius="md"
-            borderColor={borderColor}
-            boxShadow={useColorModeValue(
-              "0 1px 3px rgba(0, 0, 0, 0.1)",
-              "0 1px 3px rgba(0, 0, 0, 0.3)",
-            )}>
-            <Table
-              variant="simple"
-              size="sm"
-              bg={tableBgColor}
-              css={{
-                tr: {
-                  borderColor: borderColor,
-                  transition: "background-color 0.2s",
-                  "&:hover": {
-                    backgroundColor: hoverBgColor,
-                  },
-                },
-                th: {
-                  borderColor: borderColor,
-                  color: textColor,
-                },
-                td: {
-                  borderColor: borderColor,
-                  color: textColor,
-                },
-              }}>
-              <Thead position="sticky" top={0} zIndex={1}>
-                <Tr>
-                  <Th bg={headerBgColor} color={textColor}>
-                    Name
-                  </Th>
-                  {jointHeaders}
-                  <Th bg={headerBgColor} color={textColor}>
-                    Orientation
-                  </Th>
-                  <Th
-                    width="120px"
-                    minWidth="120px"
-                    textAlign="right"
-                    bg={headerBgColor}
-                    color={textColor}>
-                    Actions
-                  </Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {paginatedItems.map((point, index) => (
-                  <Tr key={point.id} bg={expandedRows[point.id] ? bgColorAlpha : undefined}>
-                    <Td width="200px">
+
+        <Box
+          borderWidth="1px"
+          borderRadius="md"
+          borderColor={borderColor}
+          overflow="auto"
+          maxHeight="600px"
+          ref={tableRef}>
+          <Table variant="simple" size="sm">
+            <Thead position="sticky" top={0} zIndex={1} bg={headerBgColor}>
+              <Tr>
+                <Th width="30%">Name</Th>
+                <Th width="15%">Type</Th>
+                <Th width="15%">Orientation</Th>
+                <Th width="40%" textAlign="right">
+                  Actions
+                </Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {paginatedItems.map((point) => (
+                <Tr
+                  key={point.id}
+                  _hover={{ bg: hoverBgColor }}
+                  bg={expandedRows[point.id] ? bgColorAlpha : tableBgColor}>
+                  <Td width="200px">
+                    <EditableText
+                      defaultValue={point.name}
+                      onSubmit={(value) => {
+                        value && onEdit({ ...point, name: value });
+                      }}
+                    />
+                  </Td>
+                  {limitCoordinates(point?.coordinates || "").map((coord, index) => (
+                    <Td key={index}>
                       <EditableText
-                        defaultValue={point.name}
-                        onSubmit={(value) => {
-                          value && onEdit({ ...point, name: value });
+                        onSubmit={async (value) => {
+                          value && handleSaveCoordinates(point, Number(value), index);
                         }}
+                        defaultValue={coord}
                       />
                     </Td>
-                    {limitCoordinates(point?.coordinates || "").map((coord, index) => (
-                      <Td key={index}>
-                        <EditableText
-                          onSubmit={async (value) => {
-                            value && handleSaveCoordinates(point, Number(value), index);
-                          }}
-                          defaultValue={coord}
-                        />
-                      </Td>
-                    ))}
-                    <Td>
-                      <Select
-                        value={point.orientation}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          const orientation: "portrait" | "landscape" | undefined =
-                            value === "portrait" || value === "landscape" ? value : undefined;
-                          if (orientation !== undefined) {
-                            handleSaveOrientation(point, orientation);
-                          }
-                        }}
+                  ))}
+                  <Td>
+                    <Select
+                      value={point.orientation}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const orientation: "portrait" | "landscape" | undefined =
+                          value === "portrait" || value === "landscape" ? value : undefined;
+                        if (orientation !== undefined) {
+                          handleSaveOrientation(point, orientation);
+                        }
+                      }}
+                      size="sm"
+                      borderColor={borderColor}
+                      bg={tableBgColor}>
+                      <option value="portrait">Portrait</option>
+                      <option value="landscape">Landscape</option>
+                    </Select>
+                  </Td>
+                  <Td width="200px" textAlign="right">
+                    <Menu>
+                      <MenuButton
+                        as={IconButton}
+                        aria-label="Actions"
+                        icon={<HamburgerIcon />}
+                        variant="outline"
                         size="sm"
                         borderColor={borderColor}
                         bg={tableBgColor}>
@@ -238,34 +227,30 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                           <MenuItem icon={<FaPlay />} onClick={() => onMove(point)}>
                             Move to point
                           </MenuItem>
-                          {isConnected && (
-                            <MenuItem icon={<BsRecordCircle />} onClick={() => onTeach(point)}>
-                              Teach current position
-                            </MenuItem>
-                          )}
-                          <MenuDivider borderColor={borderColor} />
-                          <MenuItem
-                            icon={<DeleteIcon />}
-                            onClick={() => onDelete(point)}
-                            color="red.500">
-                            Delete point
-                          </MenuItem>
-                        </MenuList>
-                      </Menu>
-                    </Td>
-                  </Tr>
-                ))}
-              </Tbody>
-            </Table>
-          </Box>
+                        )}
+                        <MenuDivider borderColor={borderColor} />
+                        <MenuItem
+                          icon={<DeleteIcon />}
+                          onClick={() => onDelete(point)}
+                          color="red.500">
+                          Delete point
+                        </MenuItem>
+                      </MenuList>
+                    </Menu>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
         </Box>
+
         <PaginationControls
           currentPage={currentPage}
           totalPages={totalPages}
-          itemsPerPage={itemsPerPage}
-          totalItems={teachPoints.length}
           onPageChange={onPageChange}
+          itemsPerPage={itemsPerPage}
           onItemsPerPageChange={onItemsPerPageChange}
+          totalItems={teachPoints.length}
         />
       </VStack>
     </Box>

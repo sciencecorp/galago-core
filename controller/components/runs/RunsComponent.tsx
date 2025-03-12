@@ -34,6 +34,8 @@ import { getRunAttributes, groupCommandsByRun } from "@/utils/runUtils";
 import { SiGithubactions } from "react-icons/si";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { BsInbox } from "react-icons/bs";
+import { palette, semantic } from "../../themes/colors";
+
 const LastUpdatedTime = () => {
   const [time, setTime] = useState<string>("");
 
@@ -47,7 +49,7 @@ const LastUpdatedTime = () => {
   if (!time) return null;
 
   return (
-    <Text fontSize="sm" color="gray.500">
+    <Text fontSize="sm" color={semantic.text.secondary.light}>
       <TimeIcon mr={1} />
       Last updated: {time}
     </Text>
@@ -64,12 +66,12 @@ export const RunsComponent: React.FC = () => {
     { limit: 1000, offset: 0 },
     { refetchInterval: 1000 },
   );
-  const commandBgColor = useColorModeValue("gray.50", "gray.800");
-  const borderColor = useColorModeValue("gray.300", "gray.600");
-  const hoverBgColor = useColorModeValue("gray.100", "gray.600");
-  const textColor = useColorModeValue("gray.800", "gray.100");
-  const cardBg = useColorModeValue("white", "gray.700");
-  const expandedRunBg = useColorModeValue("gray.50", "gray.800");
+  const commandBgColor = useColorModeValue(semantic.background.secondary.light, semantic.background.secondary.dark);
+  const borderColor = useColorModeValue(semantic.border.secondary.light, semantic.border.primary.dark);
+  const hoverBgColor = useColorModeValue(semantic.background.hover.light, semantic.background.hover.dark);
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.secondary.light);
+  const cardBg = useColorModeValue(semantic.background.card.light, semantic.background.card.dark);
+  const expandedRunBg = useColorModeValue(semantic.background.secondary.light, semantic.background.secondary.dark);
   const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
   const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
   const groupedCommands = useMemo(
