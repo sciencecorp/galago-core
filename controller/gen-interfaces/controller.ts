@@ -21,6 +21,7 @@ export enum ToolType {
   alps3000 = "alps3000",
   toolbox = "toolbox",
   hamilton = "hamilton",
+  microserve = "microserve",
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
@@ -74,6 +75,9 @@ export function toolTypeFromJSON(object: any): ToolType {
     case 16:
     case "hamilton":
       return ToolType.hamilton;
+    case 17:
+    case "microserve":
+      return ToolType.microserve;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -115,6 +119,8 @@ export function toolTypeToJSON(object: ToolType): string {
       return "toolbox";
     case ToolType.hamilton:
       return "hamilton";
+    case ToolType.microserve:
+      return "microserve";
     case ToolType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -155,6 +161,8 @@ export function toolTypeToNumber(object: ToolType): number {
       return 15;
     case ToolType.hamilton:
       return 16;
+    case ToolType.microserve:
+      return 17;
     case ToolType.UNRECOGNIZED:
     default:
       return -1;

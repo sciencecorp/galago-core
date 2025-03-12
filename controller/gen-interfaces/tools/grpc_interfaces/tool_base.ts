@@ -1,22 +1,23 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
 import { Struct } from "../../google/protobuf/struct";
-import { Command as Command14, Config as Config30 } from "./alps3000";
-import { Command as Command7, Config as Config23 } from "./bioshake";
-import { Command as Command9, Config as Config25 } from "./bravo";
-import { Command as Command1, Config as Config17 } from "./cytation";
-import { Command as Command5, Config as Config21 } from "./dataman70";
-import { Command as Command16, Config as Config32 } from "./hamilton";
-import { Command as Command8, Config as Config24 } from "./hig_centrifuge";
-import { Command as Command4, Config as Config20 } from "./liconic";
-import { Command as Command10, Config as Config26 } from "./multidrop";
-import { Command as Command2, Config as Config18 } from "./opentrons2";
-import { Command as Command3, Config as Config19 } from "./pf400";
-import { Command as Command12, Config as Config28 } from "./plateloc";
-import { Command as Command6, Config as Config22 } from "./spectramax";
-import { Command as Command15, Config as Config31 } from "./toolbox";
-import { Command as Command11, Config as Config27 } from "./vcode";
-import { Command as Command13, Config as Config29 } from "./xpeel";
+import { Command as Command14, Config as Config31 } from "./alps3000";
+import { Command as Command7, Config as Config24 } from "./bioshake";
+import { Command as Command9, Config as Config26 } from "./bravo";
+import { Command as Command1, Config as Config18 } from "./cytation";
+import { Command as Command5, Config as Config22 } from "./dataman70";
+import { Command as Command16, Config as Config33 } from "./hamilton";
+import { Command as Command8, Config as Config25 } from "./hig_centrifuge";
+import { Command as Command4, Config as Config21 } from "./liconic";
+import { Command as Command17, Config as Config34 } from "./microserve";
+import { Command as Command10, Config as Config27 } from "./multidrop";
+import { Command as Command2, Config as Config19 } from "./opentrons2";
+import { Command as Command3, Config as Config20 } from "./pf400";
+import { Command as Command12, Config as Config29 } from "./plateloc";
+import { Command as Command6, Config as Config23 } from "./spectramax";
+import { Command as Command15, Config as Config32 } from "./toolbox";
+import { Command as Command11, Config as Config28 } from "./vcode";
+import { Command as Command13, Config as Config30 } from "./xpeel";
 
 export const protobufPackage = "com.science.foundry.tools.grpc_interfaces";
 
@@ -223,26 +224,28 @@ export interface Command {
   alps3000?: Command14 | undefined;
   toolbox?: Command15 | undefined;
   hamilton?: Command16 | undefined;
+  microserve?: Command17 | undefined;
 }
 
 export interface Config {
   simulated: boolean;
-  cytation?: Config17 | undefined;
-  opentrons2?: Config18 | undefined;
-  pf400?: Config19 | undefined;
-  liconic?: Config20 | undefined;
-  dataman70?: Config21 | undefined;
-  spectramax?: Config22 | undefined;
-  bioshake?: Config23 | undefined;
-  hig_centrifuge?: Config24 | undefined;
-  bravo?: Config25 | undefined;
-  multidrop?: Config26 | undefined;
-  vcode?: Config27 | undefined;
-  plateloc?: Config28 | undefined;
-  xpeel?: Config29 | undefined;
-  alps3000?: Config30 | undefined;
-  toolbox?: Config31 | undefined;
-  hamilton?: Config32 | undefined;
+  cytation?: Config18 | undefined;
+  opentrons2?: Config19 | undefined;
+  pf400?: Config20 | undefined;
+  liconic?: Config21 | undefined;
+  dataman70?: Config22 | undefined;
+  spectramax?: Config23 | undefined;
+  bioshake?: Config24 | undefined;
+  hig_centrifuge?: Config25 | undefined;
+  bravo?: Config26 | undefined;
+  multidrop?: Config27 | undefined;
+  vcode?: Config28 | undefined;
+  plateloc?: Config29 | undefined;
+  xpeel?: Config30 | undefined;
+  alps3000?: Config31 | undefined;
+  toolbox?: Config32 | undefined;
+  hamilton?: Config33 | undefined;
+  microserve?: Config34 | undefined;
 }
 
 export interface ExecuteCommandReply {
@@ -287,6 +290,7 @@ function createBaseCommand(): Command {
     alps3000: undefined,
     toolbox: undefined,
     hamilton: undefined,
+    microserve: undefined,
   };
 }
 
@@ -339,6 +343,9 @@ export const Command = {
     }
     if (message.hamilton !== undefined) {
       Command16.encode(message.hamilton, writer.uint32(130).fork()).ldelim();
+    }
+    if (message.microserve !== undefined) {
+      Command17.encode(message.microserve, writer.uint32(138).fork()).ldelim();
     }
     return writer;
   },
@@ -462,6 +469,13 @@ export const Command = {
 
           message.hamilton = Command16.decode(reader, reader.uint32());
           continue;
+        case 17:
+          if (tag !== 138) {
+            break;
+          }
+
+          message.microserve = Command17.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -489,6 +503,7 @@ export const Command = {
       alps3000: isSet(object.alps3000) ? Command14.fromJSON(object.alps3000) : undefined,
       toolbox: isSet(object.toolbox) ? Command15.fromJSON(object.toolbox) : undefined,
       hamilton: isSet(object.hamilton) ? Command16.fromJSON(object.hamilton) : undefined,
+      microserve: isSet(object.microserve) ? Command17.fromJSON(object.microserve) : undefined,
     };
   },
 
@@ -518,6 +533,8 @@ export const Command = {
     message.toolbox !== undefined && (obj.toolbox = message.toolbox ? Command15.toJSON(message.toolbox) : undefined);
     message.hamilton !== undefined &&
       (obj.hamilton = message.hamilton ? Command16.toJSON(message.hamilton) : undefined);
+    message.microserve !== undefined &&
+      (obj.microserve = message.microserve ? Command17.toJSON(message.microserve) : undefined);
     return obj;
   },
 
@@ -575,6 +592,9 @@ export const Command = {
     message.hamilton = (object.hamilton !== undefined && object.hamilton !== null)
       ? Command16.fromPartial(object.hamilton)
       : undefined;
+    message.microserve = (object.microserve !== undefined && object.microserve !== null)
+      ? Command17.fromPartial(object.microserve)
+      : undefined;
     return message;
   },
 };
@@ -598,6 +618,7 @@ function createBaseConfig(): Config {
     alps3000: undefined,
     toolbox: undefined,
     hamilton: undefined,
+    microserve: undefined,
   };
 }
 
@@ -607,52 +628,55 @@ export const Config = {
       writer.uint32(8).bool(message.simulated);
     }
     if (message.cytation !== undefined) {
-      Config17.encode(message.cytation, writer.uint32(162).fork()).ldelim();
+      Config18.encode(message.cytation, writer.uint32(162).fork()).ldelim();
     }
     if (message.opentrons2 !== undefined) {
-      Config18.encode(message.opentrons2, writer.uint32(170).fork()).ldelim();
+      Config19.encode(message.opentrons2, writer.uint32(170).fork()).ldelim();
     }
     if (message.pf400 !== undefined) {
-      Config19.encode(message.pf400, writer.uint32(178).fork()).ldelim();
+      Config20.encode(message.pf400, writer.uint32(178).fork()).ldelim();
     }
     if (message.liconic !== undefined) {
-      Config20.encode(message.liconic, writer.uint32(186).fork()).ldelim();
+      Config21.encode(message.liconic, writer.uint32(186).fork()).ldelim();
     }
     if (message.dataman70 !== undefined) {
-      Config21.encode(message.dataman70, writer.uint32(194).fork()).ldelim();
+      Config22.encode(message.dataman70, writer.uint32(194).fork()).ldelim();
     }
     if (message.spectramax !== undefined) {
-      Config22.encode(message.spectramax, writer.uint32(202).fork()).ldelim();
+      Config23.encode(message.spectramax, writer.uint32(202).fork()).ldelim();
     }
     if (message.bioshake !== undefined) {
-      Config23.encode(message.bioshake, writer.uint32(210).fork()).ldelim();
+      Config24.encode(message.bioshake, writer.uint32(210).fork()).ldelim();
     }
     if (message.hig_centrifuge !== undefined) {
-      Config24.encode(message.hig_centrifuge, writer.uint32(218).fork()).ldelim();
+      Config25.encode(message.hig_centrifuge, writer.uint32(218).fork()).ldelim();
     }
     if (message.bravo !== undefined) {
-      Config25.encode(message.bravo, writer.uint32(226).fork()).ldelim();
+      Config26.encode(message.bravo, writer.uint32(226).fork()).ldelim();
     }
     if (message.multidrop !== undefined) {
-      Config26.encode(message.multidrop, writer.uint32(234).fork()).ldelim();
+      Config27.encode(message.multidrop, writer.uint32(234).fork()).ldelim();
     }
     if (message.vcode !== undefined) {
-      Config27.encode(message.vcode, writer.uint32(242).fork()).ldelim();
+      Config28.encode(message.vcode, writer.uint32(242).fork()).ldelim();
     }
     if (message.plateloc !== undefined) {
-      Config28.encode(message.plateloc, writer.uint32(250).fork()).ldelim();
+      Config29.encode(message.plateloc, writer.uint32(250).fork()).ldelim();
     }
     if (message.xpeel !== undefined) {
-      Config29.encode(message.xpeel, writer.uint32(258).fork()).ldelim();
+      Config30.encode(message.xpeel, writer.uint32(258).fork()).ldelim();
     }
     if (message.alps3000 !== undefined) {
-      Config30.encode(message.alps3000, writer.uint32(266).fork()).ldelim();
+      Config31.encode(message.alps3000, writer.uint32(266).fork()).ldelim();
     }
     if (message.toolbox !== undefined) {
-      Config31.encode(message.toolbox, writer.uint32(274).fork()).ldelim();
+      Config32.encode(message.toolbox, writer.uint32(274).fork()).ldelim();
     }
     if (message.hamilton !== undefined) {
-      Config32.encode(message.hamilton, writer.uint32(282).fork()).ldelim();
+      Config33.encode(message.hamilton, writer.uint32(282).fork()).ldelim();
+    }
+    if (message.microserve !== undefined) {
+      Config34.encode(message.microserve, writer.uint32(290).fork()).ldelim();
     }
     return writer;
   },
@@ -676,112 +700,119 @@ export const Config = {
             break;
           }
 
-          message.cytation = Config17.decode(reader, reader.uint32());
+          message.cytation = Config18.decode(reader, reader.uint32());
           continue;
         case 21:
           if (tag !== 170) {
             break;
           }
 
-          message.opentrons2 = Config18.decode(reader, reader.uint32());
+          message.opentrons2 = Config19.decode(reader, reader.uint32());
           continue;
         case 22:
           if (tag !== 178) {
             break;
           }
 
-          message.pf400 = Config19.decode(reader, reader.uint32());
+          message.pf400 = Config20.decode(reader, reader.uint32());
           continue;
         case 23:
           if (tag !== 186) {
             break;
           }
 
-          message.liconic = Config20.decode(reader, reader.uint32());
+          message.liconic = Config21.decode(reader, reader.uint32());
           continue;
         case 24:
           if (tag !== 194) {
             break;
           }
 
-          message.dataman70 = Config21.decode(reader, reader.uint32());
+          message.dataman70 = Config22.decode(reader, reader.uint32());
           continue;
         case 25:
           if (tag !== 202) {
             break;
           }
 
-          message.spectramax = Config22.decode(reader, reader.uint32());
+          message.spectramax = Config23.decode(reader, reader.uint32());
           continue;
         case 26:
           if (tag !== 210) {
             break;
           }
 
-          message.bioshake = Config23.decode(reader, reader.uint32());
+          message.bioshake = Config24.decode(reader, reader.uint32());
           continue;
         case 27:
           if (tag !== 218) {
             break;
           }
 
-          message.hig_centrifuge = Config24.decode(reader, reader.uint32());
+          message.hig_centrifuge = Config25.decode(reader, reader.uint32());
           continue;
         case 28:
           if (tag !== 226) {
             break;
           }
 
-          message.bravo = Config25.decode(reader, reader.uint32());
+          message.bravo = Config26.decode(reader, reader.uint32());
           continue;
         case 29:
           if (tag !== 234) {
             break;
           }
 
-          message.multidrop = Config26.decode(reader, reader.uint32());
+          message.multidrop = Config27.decode(reader, reader.uint32());
           continue;
         case 30:
           if (tag !== 242) {
             break;
           }
 
-          message.vcode = Config27.decode(reader, reader.uint32());
+          message.vcode = Config28.decode(reader, reader.uint32());
           continue;
         case 31:
           if (tag !== 250) {
             break;
           }
 
-          message.plateloc = Config28.decode(reader, reader.uint32());
+          message.plateloc = Config29.decode(reader, reader.uint32());
           continue;
         case 32:
           if (tag !== 258) {
             break;
           }
 
-          message.xpeel = Config29.decode(reader, reader.uint32());
+          message.xpeel = Config30.decode(reader, reader.uint32());
           continue;
         case 33:
           if (tag !== 266) {
             break;
           }
 
-          message.alps3000 = Config30.decode(reader, reader.uint32());
+          message.alps3000 = Config31.decode(reader, reader.uint32());
           continue;
         case 34:
           if (tag !== 274) {
             break;
           }
 
-          message.toolbox = Config31.decode(reader, reader.uint32());
+          message.toolbox = Config32.decode(reader, reader.uint32());
           continue;
         case 35:
           if (tag !== 282) {
             break;
           }
 
-          message.hamilton = Config32.decode(reader, reader.uint32());
+          message.hamilton = Config33.decode(reader, reader.uint32());
+          continue;
+        case 36:
+          if (tag !== 290) {
+            break;
+          }
+
+          message.microserve = Config34.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -795,49 +826,52 @@ export const Config = {
   fromJSON(object: any): Config {
     return {
       simulated: isSet(object.simulated) ? Boolean(object.simulated) : false,
-      cytation: isSet(object.cytation) ? Config17.fromJSON(object.cytation) : undefined,
-      opentrons2: isSet(object.opentrons2) ? Config18.fromJSON(object.opentrons2) : undefined,
-      pf400: isSet(object.pf400) ? Config19.fromJSON(object.pf400) : undefined,
-      liconic: isSet(object.liconic) ? Config20.fromJSON(object.liconic) : undefined,
-      dataman70: isSet(object.dataman70) ? Config21.fromJSON(object.dataman70) : undefined,
-      spectramax: isSet(object.spectramax) ? Config22.fromJSON(object.spectramax) : undefined,
-      bioshake: isSet(object.bioshake) ? Config23.fromJSON(object.bioshake) : undefined,
-      hig_centrifuge: isSet(object.hig_centrifuge) ? Config24.fromJSON(object.hig_centrifuge) : undefined,
-      bravo: isSet(object.bravo) ? Config25.fromJSON(object.bravo) : undefined,
-      multidrop: isSet(object.multidrop) ? Config26.fromJSON(object.multidrop) : undefined,
-      vcode: isSet(object.vcode) ? Config27.fromJSON(object.vcode) : undefined,
-      plateloc: isSet(object.plateloc) ? Config28.fromJSON(object.plateloc) : undefined,
-      xpeel: isSet(object.xpeel) ? Config29.fromJSON(object.xpeel) : undefined,
-      alps3000: isSet(object.alps3000) ? Config30.fromJSON(object.alps3000) : undefined,
-      toolbox: isSet(object.toolbox) ? Config31.fromJSON(object.toolbox) : undefined,
-      hamilton: isSet(object.hamilton) ? Config32.fromJSON(object.hamilton) : undefined,
+      cytation: isSet(object.cytation) ? Config18.fromJSON(object.cytation) : undefined,
+      opentrons2: isSet(object.opentrons2) ? Config19.fromJSON(object.opentrons2) : undefined,
+      pf400: isSet(object.pf400) ? Config20.fromJSON(object.pf400) : undefined,
+      liconic: isSet(object.liconic) ? Config21.fromJSON(object.liconic) : undefined,
+      dataman70: isSet(object.dataman70) ? Config22.fromJSON(object.dataman70) : undefined,
+      spectramax: isSet(object.spectramax) ? Config23.fromJSON(object.spectramax) : undefined,
+      bioshake: isSet(object.bioshake) ? Config24.fromJSON(object.bioshake) : undefined,
+      hig_centrifuge: isSet(object.hig_centrifuge) ? Config25.fromJSON(object.hig_centrifuge) : undefined,
+      bravo: isSet(object.bravo) ? Config26.fromJSON(object.bravo) : undefined,
+      multidrop: isSet(object.multidrop) ? Config27.fromJSON(object.multidrop) : undefined,
+      vcode: isSet(object.vcode) ? Config28.fromJSON(object.vcode) : undefined,
+      plateloc: isSet(object.plateloc) ? Config29.fromJSON(object.plateloc) : undefined,
+      xpeel: isSet(object.xpeel) ? Config30.fromJSON(object.xpeel) : undefined,
+      alps3000: isSet(object.alps3000) ? Config31.fromJSON(object.alps3000) : undefined,
+      toolbox: isSet(object.toolbox) ? Config32.fromJSON(object.toolbox) : undefined,
+      hamilton: isSet(object.hamilton) ? Config33.fromJSON(object.hamilton) : undefined,
+      microserve: isSet(object.microserve) ? Config34.fromJSON(object.microserve) : undefined,
     };
   },
 
   toJSON(message: Config): unknown {
     const obj: any = {};
     message.simulated !== undefined && (obj.simulated = message.simulated);
-    message.cytation !== undefined && (obj.cytation = message.cytation ? Config17.toJSON(message.cytation) : undefined);
+    message.cytation !== undefined && (obj.cytation = message.cytation ? Config18.toJSON(message.cytation) : undefined);
     message.opentrons2 !== undefined &&
-      (obj.opentrons2 = message.opentrons2 ? Config18.toJSON(message.opentrons2) : undefined);
-    message.pf400 !== undefined && (obj.pf400 = message.pf400 ? Config19.toJSON(message.pf400) : undefined);
-    message.liconic !== undefined && (obj.liconic = message.liconic ? Config20.toJSON(message.liconic) : undefined);
+      (obj.opentrons2 = message.opentrons2 ? Config19.toJSON(message.opentrons2) : undefined);
+    message.pf400 !== undefined && (obj.pf400 = message.pf400 ? Config20.toJSON(message.pf400) : undefined);
+    message.liconic !== undefined && (obj.liconic = message.liconic ? Config21.toJSON(message.liconic) : undefined);
     message.dataman70 !== undefined &&
-      (obj.dataman70 = message.dataman70 ? Config21.toJSON(message.dataman70) : undefined);
+      (obj.dataman70 = message.dataman70 ? Config22.toJSON(message.dataman70) : undefined);
     message.spectramax !== undefined &&
-      (obj.spectramax = message.spectramax ? Config22.toJSON(message.spectramax) : undefined);
-    message.bioshake !== undefined && (obj.bioshake = message.bioshake ? Config23.toJSON(message.bioshake) : undefined);
+      (obj.spectramax = message.spectramax ? Config23.toJSON(message.spectramax) : undefined);
+    message.bioshake !== undefined && (obj.bioshake = message.bioshake ? Config24.toJSON(message.bioshake) : undefined);
     message.hig_centrifuge !== undefined &&
-      (obj.hig_centrifuge = message.hig_centrifuge ? Config24.toJSON(message.hig_centrifuge) : undefined);
-    message.bravo !== undefined && (obj.bravo = message.bravo ? Config25.toJSON(message.bravo) : undefined);
+      (obj.hig_centrifuge = message.hig_centrifuge ? Config25.toJSON(message.hig_centrifuge) : undefined);
+    message.bravo !== undefined && (obj.bravo = message.bravo ? Config26.toJSON(message.bravo) : undefined);
     message.multidrop !== undefined &&
-      (obj.multidrop = message.multidrop ? Config26.toJSON(message.multidrop) : undefined);
-    message.vcode !== undefined && (obj.vcode = message.vcode ? Config27.toJSON(message.vcode) : undefined);
-    message.plateloc !== undefined && (obj.plateloc = message.plateloc ? Config28.toJSON(message.plateloc) : undefined);
-    message.xpeel !== undefined && (obj.xpeel = message.xpeel ? Config29.toJSON(message.xpeel) : undefined);
-    message.alps3000 !== undefined && (obj.alps3000 = message.alps3000 ? Config30.toJSON(message.alps3000) : undefined);
-    message.toolbox !== undefined && (obj.toolbox = message.toolbox ? Config31.toJSON(message.toolbox) : undefined);
-    message.hamilton !== undefined && (obj.hamilton = message.hamilton ? Config32.toJSON(message.hamilton) : undefined);
+      (obj.multidrop = message.multidrop ? Config27.toJSON(message.multidrop) : undefined);
+    message.vcode !== undefined && (obj.vcode = message.vcode ? Config28.toJSON(message.vcode) : undefined);
+    message.plateloc !== undefined && (obj.plateloc = message.plateloc ? Config29.toJSON(message.plateloc) : undefined);
+    message.xpeel !== undefined && (obj.xpeel = message.xpeel ? Config30.toJSON(message.xpeel) : undefined);
+    message.alps3000 !== undefined && (obj.alps3000 = message.alps3000 ? Config31.toJSON(message.alps3000) : undefined);
+    message.toolbox !== undefined && (obj.toolbox = message.toolbox ? Config32.toJSON(message.toolbox) : undefined);
+    message.hamilton !== undefined && (obj.hamilton = message.hamilton ? Config33.toJSON(message.hamilton) : undefined);
+    message.microserve !== undefined &&
+      (obj.microserve = message.microserve ? Config34.toJSON(message.microserve) : undefined);
     return obj;
   },
 
@@ -849,52 +883,55 @@ export const Config = {
     const message = createBaseConfig();
     message.simulated = object.simulated ?? false;
     message.cytation = (object.cytation !== undefined && object.cytation !== null)
-      ? Config17.fromPartial(object.cytation)
+      ? Config18.fromPartial(object.cytation)
       : undefined;
     message.opentrons2 = (object.opentrons2 !== undefined && object.opentrons2 !== null)
-      ? Config18.fromPartial(object.opentrons2)
+      ? Config19.fromPartial(object.opentrons2)
       : undefined;
     message.pf400 = (object.pf400 !== undefined && object.pf400 !== null)
-      ? Config19.fromPartial(object.pf400)
+      ? Config20.fromPartial(object.pf400)
       : undefined;
     message.liconic = (object.liconic !== undefined && object.liconic !== null)
-      ? Config20.fromPartial(object.liconic)
+      ? Config21.fromPartial(object.liconic)
       : undefined;
     message.dataman70 = (object.dataman70 !== undefined && object.dataman70 !== null)
-      ? Config21.fromPartial(object.dataman70)
+      ? Config22.fromPartial(object.dataman70)
       : undefined;
     message.spectramax = (object.spectramax !== undefined && object.spectramax !== null)
-      ? Config22.fromPartial(object.spectramax)
+      ? Config23.fromPartial(object.spectramax)
       : undefined;
     message.bioshake = (object.bioshake !== undefined && object.bioshake !== null)
-      ? Config23.fromPartial(object.bioshake)
+      ? Config24.fromPartial(object.bioshake)
       : undefined;
     message.hig_centrifuge = (object.hig_centrifuge !== undefined && object.hig_centrifuge !== null)
-      ? Config24.fromPartial(object.hig_centrifuge)
+      ? Config25.fromPartial(object.hig_centrifuge)
       : undefined;
     message.bravo = (object.bravo !== undefined && object.bravo !== null)
-      ? Config25.fromPartial(object.bravo)
+      ? Config26.fromPartial(object.bravo)
       : undefined;
     message.multidrop = (object.multidrop !== undefined && object.multidrop !== null)
-      ? Config26.fromPartial(object.multidrop)
+      ? Config27.fromPartial(object.multidrop)
       : undefined;
     message.vcode = (object.vcode !== undefined && object.vcode !== null)
-      ? Config27.fromPartial(object.vcode)
+      ? Config28.fromPartial(object.vcode)
       : undefined;
     message.plateloc = (object.plateloc !== undefined && object.plateloc !== null)
-      ? Config28.fromPartial(object.plateloc)
+      ? Config29.fromPartial(object.plateloc)
       : undefined;
     message.xpeel = (object.xpeel !== undefined && object.xpeel !== null)
-      ? Config29.fromPartial(object.xpeel)
+      ? Config30.fromPartial(object.xpeel)
       : undefined;
     message.alps3000 = (object.alps3000 !== undefined && object.alps3000 !== null)
-      ? Config30.fromPartial(object.alps3000)
+      ? Config31.fromPartial(object.alps3000)
       : undefined;
     message.toolbox = (object.toolbox !== undefined && object.toolbox !== null)
-      ? Config31.fromPartial(object.toolbox)
+      ? Config32.fromPartial(object.toolbox)
       : undefined;
     message.hamilton = (object.hamilton !== undefined && object.hamilton !== null)
-      ? Config32.fromPartial(object.hamilton)
+      ? Config33.fromPartial(object.hamilton)
+      : undefined;
+    message.microserve = (object.microserve !== undefined && object.microserve !== null)
+      ? Config34.fromPartial(object.microserve)
       : undefined;
     return message;
   },
