@@ -129,8 +129,8 @@ export const CommandList: React.FC<CommandListProps> = ({
     enabled: isEditing,
   });
 
-  const bgColor = useColorModeValue("white", "gray.700");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
+  const bgColor = useColorModeValue("white", isEditing ? "gray.700" : "gray.900");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
   const arrowColor = useColorModeValue("gray.400", "gray.600");
 
   // Update local state when props change
