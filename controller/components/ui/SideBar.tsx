@@ -97,6 +97,9 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
     setIsSidebarExpanded((prev) => !prev); // Toggle the expanded state on larger screens
   };
 
+  // Move the hook outside of conditional rendering
+  const logoFilter = useColorModeValue("none", "invert(1)");
+
   const SidebarContent = (
     <Box
       p={0}
@@ -118,7 +121,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             paddingLeft="0"
             src="/site_logo.png"
             alt="logo"
-            filter={useColorModeValue("none", "invert(1)")}></Image>
+            filter={logoFilter}></Image>
           {isSidebarExpanded && (
             <IconButton
               icon={<BsLayoutSidebarInset />}
@@ -212,7 +215,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                 paddingLeft="0"
                 src="/site_logo.png"
                 alt="logo"
-                filter={useColorModeValue("none", "invert(1)")}></Image>
+                filter={logoFilter}></Image>
             </Box>
             <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
               <DrawerOverlay />
