@@ -18,6 +18,7 @@ import {
 import { TeachPoint, MotionProfile, GripParams } from "../types";
 import { trpc } from "@/utils/trpc";
 import { Labware } from "@/types/api";
+import { commandFields } from "@/pages/tools/[id]";
 
 interface CommandModalProps {
   isOpen: boolean;
@@ -33,59 +34,6 @@ interface CommandField {
   type: string;
   defaultValue?: any;
 }
-
-const release_plate = [
-  { name: "width", type: "number", defaultValue: 130 },
-  { name: "speed", type: "number", defaultValue: 10 },
-];
-
-const grasp_plate = [
-  { name: "width", type: "number", defaultValue: 122 },
-  { name: "speed", type: "number", defaultValue: 10 },
-  { name: "force", type: "number", defaultValue: 20 },
-];
-
-const availableCommands: Record<string, CommandField[]> = {
-  move: [
-    { name: "name", type: "string" },
-    { name: "motion_profile_id", type: "number", defaultValue: 1 },
-    { name: "z_offset", type: "number", defaultValue: 0 },
-  ],
-  // grasp_plate: [{ name: "grip_params", type: "grip_params" }],
-  // release_plate: [{ name: "grip_params", type: "grip_params" }],
-  release_plate: release_plate,
-  grasp_plate: grasp_plate,
-  approach: [
-    { name: "nest", type: "nest" },
-    { name: "x_offset", type: "number", defaultValue: 0 },
-    { name: "y_offset", type: "number", defaultValue: 0 },
-    { name: "z_offset", type: "number", defaultValue: 0 },
-    { name: "motion_profile_id", type: "number", defaultValue: 1 },
-    { name: "ignore_safepath", type: "boolean", defaultValue: false },
-  ],
-  leave: [
-    { name: "nest", type: "nest" },
-    { name: "x_offset", type: "number", defaultValue: 0 },
-    { name: "y_offset", type: "number", defaultValue: 0 },
-    { name: "z_offset", type: "number", defaultValue: 0 },
-    { name: "motion_profile_id", type: "number", defaultValue: 1 },
-  ],
-  retrieve_plate: [
-    { name: "labware", type: "string" },
-    { name: "location", type: "string" },
-    { name: "z_offset", type: "number", defaultValue: 0 },
-    { name: "motion_profile_id", type: "number", defaultValue: 1 },
-  ],
-  dropoff_plate: [
-    { name: "labware", type: "string" },
-    { name: "location", type: "string" },
-    { name: "motion_profile_id", type: "number", defaultValue: 1 },
-    { name: "z_offset", type: "number", defaultValue: 0 },
-  ],
-  engage: [],
-  release: [],
-  retract: [],
-};
 
 export const CommandModal: React.FC<CommandModalProps> = ({
   isOpen,
@@ -103,6 +51,9 @@ export const CommandModal: React.FC<CommandModalProps> = ({
     enabled: isOpen,
   });
 
+  // Get the available commands for PF400 from the commandFields
+  const availableCommands = commandFields.pf400;
+
   // Reset form when modal is opened/closed
   useEffect(() => {
     if (!isOpen) {
@@ -113,7 +64,8 @@ export const CommandModal: React.FC<CommandModalProps> = ({
 
   const handleCommandSelect = (command: string) => {
     setSelectedCommand(command);
-    const defaultParams = availableCommands[command as keyof typeof availableCommands].reduce(
+    const commandFields = availableCommands[command] || [];
+    const defaultParams = commandFields.reduce(
       (acc, field) => {
         acc[field.name] = field.defaultValue ?? "";
         return acc;
@@ -179,24 +131,56 @@ export const CommandModal: React.FC<CommandModalProps> = ({
   };
 
   const renderField = (field: { name: string; type: string; defaultValue?: any }) => {
-    switch (field.type) {
-      case "waypoint":
-      case "location":
-        return (
-          <Select
-            value={params[field.name]}
-            onChange={(e) => setParams({ ...params, [field.name]: e.target.value })}
-            placeholder={`Select ${field.type}`}>
-            {(teachPoints || [])
-              .filter((p) => (field.type === "waypoint" ? true : p.type === field.type))
-              .map((point) => (
-                <option key={point.id} value={point.id}>
-                  {point.name}
-                </option>
-              ))}
-          </Select>
-        );
+    // Special handling for field names regardless of type
+    if (field.name === "labware" && field.type === "text") {
+      return (
+        <Select
+          value={params[field.name]}
+          onChange={(e) => setParams({ ...params, [field.name]: e.target.value })}
+          placeholder="Select labware">
+          {(labwareList || []).map((labware) => (
+            <option key={labware.id} value={labware.id}>
+              {labware.name}
+            </option>
+          ))}
+        </Select>
+      );
+    } else if (field.name === "location" && field.type === "text") {
+      // For location fields, show a dropdown of teach points
+      return (
+        <Select
+          value={params[field.name]}
+          onChange={(e) => setParams({ ...params, [field.name]: e.target.value })}
+          placeholder="Select location">
+          {(teachPoints || [])
+            .filter((p) => p.type === "location")
+            .map((point) => (
+              <option key={point.id} value={point.id}>
+                {point.name}
+              </option>
+            ))}
+        </Select>
+      );
+    } else if (field.name === "name" && selectedCommand === "move" && field.type === "text") {
+      // For move command's name field, show a dropdown of waypoints
+      return (
+        <Select
+          value={params[field.name]}
+          onChange={(e) => setParams({ ...params, [field.name]: e.target.value })}
+          placeholder="Select waypoint">
+          {(teachPoints || [])
+            .filter((p) => p.type === "location")
+            .map((point) => (
+              <option key={point.id} value={point.id}>
+                {point.name}
+              </option>
+            ))}
+        </Select>
+      );
+    }
 
+    // Handle by type
+    switch (field.type) {
       case "nest":
         return (
           <Select
@@ -241,18 +225,12 @@ export const CommandModal: React.FC<CommandModalProps> = ({
           </Select>
         );
 
-      case "labware":
+      case "text":
         return (
-          <Select
+          <Input
             value={params[field.name]}
             onChange={(e) => setParams({ ...params, [field.name]: e.target.value })}
-            placeholder="Select labware">
-            {(labwareList || []).map((labware) => (
-              <option key={labware.id} value={labware.id}>
-                {labware.name}
-              </option>
-            ))}
-          </Select>
+          />
         );
 
       case "boolean":
@@ -272,6 +250,19 @@ export const CommandModal: React.FC<CommandModalProps> = ({
             onChange={(_, value) => setParams({ ...params, [field.name]: value })}>
             <NumberInputField />
           </NumberInput>
+        );
+
+      case "text_array":
+        return (
+          <Input
+            value={Array.isArray(params[field.name]) ? params[field.name].join(", ") : params[field.name]}
+            onChange={(e) => {
+              const value = e.target.value;
+              const arrayValue = value.split(",").map((item) => item.trim());
+              setParams({ ...params, [field.name]: arrayValue });
+            }}
+            placeholder="Enter comma-separated values"
+          />
         );
 
       default:
@@ -299,14 +290,14 @@ export const CommandModal: React.FC<CommandModalProps> = ({
                 onChange={(e) => handleCommandSelect(e.target.value)}>
                 {Object.keys(availableCommands).map((cmd) => (
                   <option key={cmd} value={cmd}>
-                    {cmd}
+                    {cmd.replace(/_/g, " ")}
                   </option>
                 ))}
               </Select>
             </FormControl>
 
             {selectedCommand &&
-              availableCommands[selectedCommand as keyof typeof availableCommands].map((field) => (
+              availableCommands[selectedCommand]?.map((field) => (
                 <FormControl key={field.name}>
                   <FormLabel>{field.name.replace(/_/g, " ")}</FormLabel>
                   {renderField(field)}

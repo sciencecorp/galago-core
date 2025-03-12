@@ -97,6 +97,13 @@ export const CommandList: React.FC<CommandListProps> = ({
     setHasUnsavedChanges(false);
   }, [commands, sequenceName, labware]);
 
+  // Update expandedCommand when expandedCommandIndex changes
+  useEffect(() => {
+    if (expandedCommandIndex !== undefined) {
+      setExpandedCommand(expandedCommandIndex);
+    }
+  }, [expandedCommandIndex]);
+
   const handleAddCommand = (index: number) => {
     setInsertIndex(index);
     setIsModalOpen(true);
@@ -317,7 +324,12 @@ export const CommandList: React.FC<CommandListProps> = ({
                       borderWidth="1px"
                       borderColor={borderColor}
                       bg={expandedCommand === index ? selectedBg : "transparent"}
-                      onClick={() => onCommandClick?.(index)}
+                      onClick={() => {
+                        // Update local state when a command is clicked
+                        const newExpandedIndex = expandedCommand === index ? null : index;
+                        setExpandedCommand(newExpandedIndex);
+                        onCommandClick?.(index);
+                      }}
                       width="100%"
                       transition="all 0.2s"
                       opacity={expandedCommand === index ? 1 : 0.8}
@@ -358,6 +370,9 @@ export const CommandList: React.FC<CommandListProps> = ({
                             variant="ghost"
                             onClick={(e) => {
                               e.stopPropagation();
+                              // Update local state when expand/collapse button is clicked
+                              const newExpandedIndex = expandedCommand === index ? null : index;
+                              setExpandedCommand(newExpandedIndex);
                               onCommandClick?.(index);
                             }}
                           />
