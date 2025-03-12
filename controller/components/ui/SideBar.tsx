@@ -154,13 +154,22 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             {!isSidebarExpanded ? (
               <Tooltip label={item.name} placement="right">
                 <Box>
-                  <item.icon size="26" color={router.pathname === item.path ? theme.activeIconColor : undefined} />
+                  <item.icon
+                    size="26"
+                    color={router.pathname === item.path ? theme.activeIconColor : undefined}
+                  />
                 </Box>
               </Tooltip>
             ) : (
               <>
-                <item.icon size="26" color={router.pathname === item.path ? theme.activeIconColor : undefined} />
-                <Text color={router.pathname === item.path ? theme.activeTextColor : theme.textColor} ml={4} fontSize="md">
+                <item.icon
+                  size="26"
+                  color={router.pathname === item.path ? theme.activeIconColor : undefined}
+                />
+                <Text
+                  color={router.pathname === item.path ? theme.activeTextColor : theme.textColor}
+                  ml={4}
+                  fontSize="md">
                   {item.name}
                 </Text>
               </>
