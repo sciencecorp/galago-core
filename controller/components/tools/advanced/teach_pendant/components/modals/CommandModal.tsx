@@ -171,7 +171,7 @@ export const CommandModal: React.FC<CommandModalProps> = ({
           {(teachPoints || [])
             .filter((p) => p.type === "location")
             .map((point) => (
-              <option key={point.id} value={point.id}>
+              <option key={point.id} value={point.name}>
                 {point.name}
               </option>
             ))}
