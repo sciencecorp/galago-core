@@ -55,14 +55,14 @@ export interface Command_PlaceLid {
 export interface Command_RetrievePlate {
   labware: string;
   location: string;
-  z_offset?: number | undefined;
+  approach_height?: number | undefined;
   motion_profile_id?: number | undefined;
 }
 
 export interface Command_DropOffPlate {
   labware: string;
   location: string;
-  z_offset?: number | undefined;
+  approach_height?: number | undefined;
   motion_profile_id?: number | undefined;
 }
 
@@ -83,7 +83,7 @@ export interface Command_Retract {
 export interface Command_Move {
   name: string;
   motion_profile_id?: number | undefined;
-  z_offset?: number | undefined;
+  approach_height?: number | undefined;
 }
 
 export interface Command_GraspPlate {
@@ -871,7 +871,7 @@ export const Command_PlaceLid = {
 };
 
 function createBaseCommand_RetrievePlate(): Command_RetrievePlate {
-  return { labware: "", location: "", z_offset: undefined, motion_profile_id: undefined };
+  return { labware: "", location: "", approach_height: undefined, motion_profile_id: undefined };
 }
 
 export const Command_RetrievePlate = {
@@ -882,8 +882,8 @@ export const Command_RetrievePlate = {
     if (message.location !== "") {
       writer.uint32(18).string(message.location);
     }
-    if (message.z_offset !== undefined) {
-      writer.uint32(29).float(message.z_offset);
+    if (message.approach_height !== undefined) {
+      writer.uint32(29).float(message.approach_height);
     }
     if (message.motion_profile_id !== undefined) {
       writer.uint32(32).int32(message.motion_profile_id);
@@ -917,7 +917,7 @@ export const Command_RetrievePlate = {
             break;
           }
 
-          message.z_offset = reader.float();
+          message.approach_height = reader.float();
           continue;
         case 4:
           if (tag !== 32) {
@@ -939,7 +939,7 @@ export const Command_RetrievePlate = {
     return {
       labware: isSet(object.labware) ? String(object.labware) : "",
       location: isSet(object.location) ? String(object.location) : "",
-      z_offset: isSet(object.z_offset) ? Number(object.z_offset) : undefined,
+      approach_height: isSet(object.approach_height) ? Number(object.approach_height) : undefined,
       motion_profile_id: isSet(object.motion_profile_id) ? Number(object.motion_profile_id) : undefined,
     };
   },
@@ -948,7 +948,7 @@ export const Command_RetrievePlate = {
     const obj: any = {};
     message.labware !== undefined && (obj.labware = message.labware);
     message.location !== undefined && (obj.location = message.location);
-    message.z_offset !== undefined && (obj.z_offset = message.z_offset);
+    message.approach_height !== undefined && (obj.approach_height = message.approach_height);
     message.motion_profile_id !== undefined && (obj.motion_profile_id = Math.round(message.motion_profile_id));
     return obj;
   },
@@ -961,14 +961,14 @@ export const Command_RetrievePlate = {
     const message = createBaseCommand_RetrievePlate();
     message.labware = object.labware ?? "";
     message.location = object.location ?? "";
-    message.z_offset = object.z_offset ?? undefined;
+    message.approach_height = object.approach_height ?? undefined;
     message.motion_profile_id = object.motion_profile_id ?? undefined;
     return message;
   },
 };
 
 function createBaseCommand_DropOffPlate(): Command_DropOffPlate {
-  return { labware: "", location: "", z_offset: undefined, motion_profile_id: undefined };
+  return { labware: "", location: "", approach_height: undefined, motion_profile_id: undefined };
 }
 
 export const Command_DropOffPlate = {
@@ -979,8 +979,8 @@ export const Command_DropOffPlate = {
     if (message.location !== "") {
       writer.uint32(18).string(message.location);
     }
-    if (message.z_offset !== undefined) {
-      writer.uint32(29).float(message.z_offset);
+    if (message.approach_height !== undefined) {
+      writer.uint32(29).float(message.approach_height);
     }
     if (message.motion_profile_id !== undefined) {
       writer.uint32(40).int32(message.motion_profile_id);
@@ -1014,7 +1014,7 @@ export const Command_DropOffPlate = {
             break;
           }
 
-          message.z_offset = reader.float();
+          message.approach_height = reader.float();
           continue;
         case 5:
           if (tag !== 40) {
@@ -1036,7 +1036,7 @@ export const Command_DropOffPlate = {
     return {
       labware: isSet(object.labware) ? String(object.labware) : "",
       location: isSet(object.location) ? String(object.location) : "",
-      z_offset: isSet(object.z_offset) ? Number(object.z_offset) : undefined,
+      approach_height: isSet(object.approach_height) ? Number(object.approach_height) : undefined,
       motion_profile_id: isSet(object.motion_profile_id) ? Number(object.motion_profile_id) : undefined,
     };
   },
@@ -1045,7 +1045,7 @@ export const Command_DropOffPlate = {
     const obj: any = {};
     message.labware !== undefined && (obj.labware = message.labware);
     message.location !== undefined && (obj.location = message.location);
-    message.z_offset !== undefined && (obj.z_offset = message.z_offset);
+    message.approach_height !== undefined && (obj.approach_height = message.approach_height);
     message.motion_profile_id !== undefined && (obj.motion_profile_id = Math.round(message.motion_profile_id));
     return obj;
   },
@@ -1058,7 +1058,7 @@ export const Command_DropOffPlate = {
     const message = createBaseCommand_DropOffPlate();
     message.labware = object.labware ?? "";
     message.location = object.location ?? "";
-    message.z_offset = object.z_offset ?? undefined;
+    message.approach_height = object.approach_height ?? undefined;
     message.motion_profile_id = object.motion_profile_id ?? undefined;
     return message;
   },
@@ -1268,7 +1268,7 @@ export const Command_Retract = {
 };
 
 function createBaseCommand_Move(): Command_Move {
-  return { name: "", motion_profile_id: undefined, z_offset: undefined };
+  return { name: "", motion_profile_id: undefined, approach_height: undefined };
 }
 
 export const Command_Move = {
@@ -1279,8 +1279,8 @@ export const Command_Move = {
     if (message.motion_profile_id !== undefined) {
       writer.uint32(16).int32(message.motion_profile_id);
     }
-    if (message.z_offset !== undefined) {
-      writer.uint32(24).int32(message.z_offset);
+    if (message.approach_height !== undefined) {
+      writer.uint32(24).int32(message.approach_height);
     }
     return writer;
   },
@@ -1311,7 +1311,7 @@ export const Command_Move = {
             break;
           }
 
-          message.z_offset = reader.int32();
+          message.approach_height = reader.int32();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -1326,7 +1326,7 @@ export const Command_Move = {
     return {
       name: isSet(object.name) ? String(object.name) : "",
       motion_profile_id: isSet(object.motion_profile_id) ? Number(object.motion_profile_id) : undefined,
-      z_offset: isSet(object.z_offset) ? Number(object.z_offset) : undefined,
+      approach_height: isSet(object.approach_height) ? Number(object.approach_height) : undefined,
     };
   },
 
@@ -1334,7 +1334,7 @@ export const Command_Move = {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
     message.motion_profile_id !== undefined && (obj.motion_profile_id = Math.round(message.motion_profile_id));
-    message.z_offset !== undefined && (obj.z_offset = Math.round(message.z_offset));
+    message.approach_height !== undefined && (obj.approach_height = Math.round(message.approach_height));
     return obj;
   },
 
@@ -1346,7 +1346,7 @@ export const Command_Move = {
     const message = createBaseCommand_Move();
     message.name = object.name ?? "";
     message.motion_profile_id = object.motion_profile_id ?? undefined;
-    message.z_offset = object.z_offset ?? undefined;
+    message.approach_height = object.approach_height ?? undefined;
     return message;
   },
 };
