@@ -1,5 +1,5 @@
 import CommandButton from "./commandButton";
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import {
   Select,
@@ -7,7 +7,6 @@ import {
   FormControl,
   FormLabel,
   Box,
-  Grid,
   VStack,
   Input,
   NumberInput,
@@ -15,6 +14,12 @@ import {
   Heading,
   HStack,
   useToast,
+  Center,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  CloseButton,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
@@ -32,7 +37,7 @@ type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormVal
 export default function Page() {
   const router = useRouter();
   const [id, setId] = useState<string | null>(null);
-
+  const [isBannerVisible, setBannerVisible] = useState(true);
   const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
   const toolQuery = trpc.tool.get.useQuery(id || "");
   const config = infoQuery.data;
@@ -45,6 +50,8 @@ export default function Page() {
     const fields = commandFields[config?.type][commandName];
     return fields && fields.length > 0;
   };
+  const toolCommandsDefined = Object.keys(commandFields).includes(String(config?.type));
+  console.log("Is tool command defined?", toolCommandsDefined);
   const commandOptions = config ? commandFields[config.type] : {};
 
   const toast = useToast();
@@ -315,35 +322,48 @@ export default function Page() {
       <Head>
         <title>{config?.name ? `Tool: ${config.name}` : "Tool"}</title>
       </Head>
-      <Box maxWidth="1800px" margin="auto">
+        <Box maxWidth="1800px" margin="auto">
         <HStack spacing={4} align="start" width="100%">
           {config?.type !== ToolType.pf400 && (
             <VStack spacing={4} align="stretch" flex={1}>
+              {!toolCommandsDefined && isBannerVisible && (
+              <>
+                <Alert status="error" variant="left-accent" mb={2}>
+                <AlertIcon />
+                <Box flex="1">
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>Invalid Tool Type.</AlertDescription>
+                <AlertDescription>This tool has not been defined. Contact administrator.</AlertDescription>
+                </Box>
+                <CloseButton onClick={() => setBannerVisible(false)} />
+                </Alert>
+              </>
+              ) }
               <ToolStatusCard toolId={id || ""} />
-              <FormControl>
-                <VStack width="100%" spacing={1}>
-                  <FormLabel>Select Command</FormLabel>
-                  <Select placeholder="Select command" onChange={handleChange}>
-                    {Object.keys(commandOptions).map((command) => (
-                      <option key={command} value={command}>
-                        {capitalizeFirst(command.replaceAll("_", " "))}
-                      </option>
-                    ))}
-                  </Select>
-                  {selectedCommand && (
-                    <>
-                      {renderFields(commandOptions[selectedCommand])}
-                      <Button width="100%" onClick={handleSubmit} colorScheme="teal">
-                        Send Command
-                      </Button>
-                    </>
-                  )}
-                </VStack>
-              </FormControl>
+              {toolCommandsDefined && (
+                <FormControl>
+                  <VStack width="100%" spacing={1}>
+                    <FormLabel>Select Command</FormLabel>
+                    <Select placeholder="Select command" onChange={handleChange}>
+                      {Object.keys(commandOptions).map((command) => (
+                        <option key={command} value={command}>
+                          {capitalizeFirst(command.replaceAll("_", " "))}
+                        </option>
+                      ))}
+                    </Select>
+                    {selectedCommand && (
+                      <>
+                        {renderFields(commandOptions[selectedCommand])}
+                        <Button width="100%" onClick={handleSubmit} colorScheme="teal">
+                          Send Command
+                        </Button>
+                      </>
+                    )}
+                  </VStack>
+                </FormControl>
+              )}
             </VStack>
           )}
-
-          {/* Right Side */}
           {config?.type === ToolType.pf400 && config && (
             <Box flex={1}>
               <TeachPendant
