@@ -174,7 +174,12 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                   <Th bg={headerBgColor} color={textColor}>
                     Orientation
                   </Th>
-                  <Th width="120px" minWidth="120px" textAlign="right" bg={headerBgColor} color={textColor}>
+                  <Th
+                    width="120px"
+                    minWidth="120px"
+                    textAlign="right"
+                    bg={headerBgColor}
+                    color={textColor}>
                     Actions
                   </Th>
                 </Tr>

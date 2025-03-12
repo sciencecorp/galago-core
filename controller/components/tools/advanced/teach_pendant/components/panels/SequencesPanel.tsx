@@ -130,15 +130,19 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
   };
 
   const borderColor = useColorModeValue("gray.200", "gray.600");
+  const tableBgColor = useColorModeValue("white", "gray.800");
+  const headerBgColor = useColorModeValue("gray.50", "gray.700");
+  const hoverBgColor = useColorModeValue("gray.50", "gray.700");
+  const textColor = useColorModeValue("gray.800", "gray.100");
 
   return (
     <Box height="100%" overflow="hidden">
       <VStack height="100%" spacing={4}>
         <HStack width="100%" justify="space-between">
-          <Heading size="md" paddingTop={12}>
+          <Heading size="md" paddingTop={12} color={textColor}>
             Sequences
           </Heading>
-          <Button leftIcon={<AddIcon />} size="sm" onClick={onCreateNew}>
+          <Button leftIcon={<AddIcon />} size="sm" onClick={onCreateNew} colorScheme="blue">
             New Sequence
           </Button>
         </HStack>
@@ -149,27 +153,56 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
             height="100%"
             transition="grid-template-columns 0.2s">
             <GridItem height="100%" overflow="hidden" minWidth={0}>
-              <Box height="100%" overflow="auto" borderWidth="1px" borderRadius="md">
+              <Box
+                height="100%"
+                overflow="auto"
+                borderWidth="1px"
+                borderRadius="md"
+                borderColor={borderColor}
+                boxShadow={useColorModeValue(
+                  "0 1px 3px rgba(0, 0, 0, 0.1)",
+                  "0 1px 3px rgba(0, 0, 0, 0.3)",
+                )}>
                 <Table
                   variant="simple"
                   size="sm"
+                  bg={tableBgColor}
                   css={{
                     tr: {
                       borderColor: borderColor,
+                      transition: "background-color 0.2s",
+                      "&:hover": {
+                        backgroundColor: hoverBgColor,
+                      },
                     },
                     th: {
                       borderColor: borderColor,
+                      color: textColor,
                     },
                     td: {
                       borderColor: borderColor,
+                      color: textColor,
                     },
                   }}>
-                  <Thead position="sticky" top={0} bg={bgColor} zIndex={1}>
+                  <Thead position="sticky" top={0} zIndex={1}>
                     <Tr>
-                      <Th>Name</Th>
-                      <Th>Commands</Th>
-                      <Th>Labware</Th>
-                      <Th textAlign="right" width="100px" minWidth="100px">Actions</Th>
+                      <Th bg={headerBgColor} color={textColor}>
+                        Name
+                      </Th>
+                      <Th bg={headerBgColor} color={textColor}>
+                        Commands
+                      </Th>
+                      <Th bg={headerBgColor} color={textColor}>
+                        Labware
+                      </Th>
+                      <Th
+                        textAlign="right"
+                        width="100px"
+                        minWidth="100px"
+                        bg={headerBgColor}
+                        color={textColor}>
+                        Actions
+                      </Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -179,7 +212,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                         onClick={() => handleSequenceClick(sequence)}
                         cursor="pointer"
                         bg={selectedSequence?.id === sequence.id ? bgColorAlpha : "transparent"}
-                        _hover={{ bg: bgColorAlpha }}>
+                        _hover={{ bg: hoverBgColor }}>
                         <Td>{sequence.name}</Td>
                         <Td>{sequence.commands?.length || 0}</Td>
                         <Td>
@@ -195,6 +228,8 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                                 aria-label="Sequence actions"
                                 icon={<HamburgerIcon />}
                                 size="sm"
+                                variant="outline"
+                                borderColor={borderColor}
                                 onClick={(e) => e.stopPropagation()}
                                 minW="32px"
                               />
