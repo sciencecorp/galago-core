@@ -69,3 +69,17 @@ export const commandColorHex = {
 export const getCommandColorHex = (commandName: string): string => {
   return commandColorHex[commandName as keyof typeof commandColorHex] || commandColorHex.default;
 };
+
+// Add sidebar theme configuration
+export const useSidebarTheme = () => {
+  return {
+    bg: useColorModeValue("white", "gray.900"),
+    textColor: useColorModeValue("gray.800", "white"),
+    hoverBg: useColorModeValue("gray.100", "gray.700"),
+    activeBg: useColorModeValue("teal.50", "gray.700"),
+    borderColor: useColorModeValue("gray.200", "gray.700"),
+    shadow: useColorModeValue("0 0 10px rgba(0, 0, 0, 0.1)", "none"),
+    activeTextColor: "teal.500",
+    activeIconColor: "teal",
+  };
+};

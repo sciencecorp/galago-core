@@ -16,6 +16,7 @@ import {
   useColorMode,
   DrawerOverlay,
   Tooltip,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { FiMenu, FiHome } from "react-icons/fi";
 import { BsLayoutSidebarInset } from "react-icons/bs";
@@ -35,6 +36,7 @@ import { capitalizeFirst } from "@/utils/parser";
 import { BsBoxSeam } from "react-icons/bs";
 import { HiOutlineRectangleStack } from "react-icons/hi2";
 import { GiChaingun } from "react-icons/gi";
+import { useSidebarTheme } from "./Theme";
 
 interface SidebarItem {
   name: string;
@@ -84,6 +86,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const isMobile = useBreakpointValue({ base: true, md: false });
   const router = useRouter();
+  const theme = useSidebarTheme();
 
   const toggleSidebar = () => {
     if (isMobile && !isSidebarExpanded) {
@@ -97,9 +100,12 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   const SidebarContent = (
     <Box
       p={0}
-      bg="teal.800"
-      color="white"
+      bg={theme.bg}
+      color={theme.textColor}
       minW={isSidebarExpanded ? "220px" : "80px"}
+      borderRight={isMobile ? "1px" : "none"}
+      borderColor={theme.borderColor}
+      height="100%"
       sx={{
         transition: "min-width 0.3s ease, width 0.3s ease",
         width: isSidebarExpanded ? "230px" : "80px",
@@ -112,7 +118,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             paddingLeft="0"
             src="/site_logo.png"
             alt="logo"
-            filter="invert(1)"></Image>
+            filter={useColorModeValue("none", "invert(1)")}></Image>
           {isSidebarExpanded && (
             <IconButton
               icon={<BsLayoutSidebarInset />}
@@ -121,8 +127,8 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
               position="absolute"
               right="2"
               bg="transparent"
-              color="white"
-              _hover={{ bg: "teal.600" }}
+              color={theme.textColor}
+              _hover={{ bg: theme.hoverBg }}
             />
           )}
         </HStack>
@@ -137,24 +143,24 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                   ? "Home"
                   : capitalizeFirst(`${item.path.replaceAll("/", "").replaceAll("_", " ")}`);
             }}
-            _hover={{ background: "teal.600" }}
+            _hover={{ background: theme.hoverBg }}
             borderRadius="md"
             p={2}
             display="flex"
             alignItems="center"
             justifyContent={isSidebarExpanded ? "start" : "center"}
-            bg={router.pathname === item.path ? "teal.600" : "transparent"}
+            bg={router.pathname === item.path ? theme.activeBg : "transparent"}
             width={isMobile ? "100%" : "auto"}>
             {!isSidebarExpanded ? (
               <Tooltip label={item.name} placement="right">
                 <Box>
-                  <item.icon size="26" />
+                  <item.icon size="26" color={router.pathname === item.path ? theme.activeIconColor : undefined} />
                 </Box>
               </Tooltip>
             ) : (
               <>
-                <item.icon size="26" />
-                <Text color="white" ml={4} fontSize="md">
+                <item.icon size="26" color={router.pathname === item.path ? theme.activeIconColor : undefined} />
+                <Text color={router.pathname === item.path ? theme.activeTextColor : theme.textColor} ml={4} fontSize="md">
                   {item.name}
                 </Text>
               </>
@@ -174,9 +180,13 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
           top="0"
           left="0"
           bottom="0"
-          bg="teal.800"
-          color="white"
+          bg={theme.bg}
+          color={theme.textColor}
           minW={isSidebarExpanded ? "230px" : "85px"}
+          borderRight="1px"
+          borderColor={theme.borderColor}
+          height="100vh"
+          boxShadow={theme.shadow}
           sx={{
             transition: "min-width 0.3s ease, width 0.3s ease",
             width: isSidebarExpanded ? "220px" : "85px",
@@ -193,7 +203,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                 paddingLeft="0"
                 src="/site_logo.png"
                 alt="logo"
-                filter="invert(1)"></Image>
+                filter={useColorModeValue("none", "invert(1)")}></Image>
             </Box>
             <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
               <DrawerOverlay />
@@ -201,8 +211,12 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                 maxW="220px"
                 overflow="hidden"
                 _focus={{ outline: "none" }}
-                bg="teal.800"
-                color="white">
+                bg={theme.bg}
+                color={theme.textColor}
+                borderRight="1px"
+                borderColor={theme.borderColor}
+                height="100%"
+                boxShadow={theme.shadow}>
                 {SidebarContent}
               </DrawerContent>
             </Drawer>
