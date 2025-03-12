@@ -177,8 +177,8 @@ export const commandFields: CommandFields = {
       home: [],
       reset: [],
       start_shake: [
-        { name: "speed", type: "number" },
-        { name: "duration", type: "number" },
+        { name: "speed", type: "number", defaultValue: 1000 },
+        { name: "duration", type: "number", defaultValue: 10 },
       ],
       stop_shake: [],
       wait_for_shake_to_finish: [{ name: "timeout", type: "number" }],
@@ -201,15 +201,15 @@ export const commandFields: CommandFields = {
     },
     liconic: {
       fetch_plate: [
-        { name: "cassette", type: "number" },
-        { name: "level", type: "number" },
+        { name: "cassette", type: "number", defaultValue: 1 },
+        { name: "level", type: "number" , defaultValue: 1},
       ],
       store_plate: [
-        { name: "cassette", type: "number" },
-        { name: "level", type: "number" },
+        { name: "cassette", type: "number", defaultValue: 1 },
+        { name: "level", type: "number", defaultValue: 1 },
       ],
       reset: [],
-      raw_command: [{ name: "cmd", type: "text" }],
+      raw_command: [{ name: "cmd", type: "text",  defaultValue: "ST 1900"}],
     },
     opentrons2: {
       run_program: [
@@ -256,19 +256,19 @@ export const commandFields: CommandFields = {
     },
     microserve: {
         load:[
-            {name:"stack_id", type:"number"},
+            {name:"stack_id", type:"number", defaultValue:1},
         ],
         unload:[
-            {name:"stack_id", type:"number"},
+            {name:"stack_id", type:"number", defaultValue:1},
         ],
         home: [],
         abort: [],
         retract: [],
         go_to: [],
         set_plate_dimensions:[
-            {name:"plate_height", type:"number"},
-            {name:"stack_height", type:"number"},
-            {name:"plate_thickness", type:"number"},
+            {name:"plate_height", type:"number", defaultValue:25},
+            {name:"stack_height", type:"number", defaultValue:0},
+            {name:"plate_thickness", type:"number", defaultValue:0},
         ],
         send_raw_command:[
             {name:"command", type:"text"},
