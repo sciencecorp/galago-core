@@ -59,7 +59,7 @@ export const commandColorHex = {
   release_plate: "#F56565", // red.400
   retrieve_plate: "#9F7AEA", // purple.400
   dropoff_plate: "#ED8936", // orange.400
-  engage:  "#F56565", // teal.400
+  engage: "#F56565", // teal.400
   release: "#38B2AC", // red.400
   retract: "#DD6B20", // orange.600
   default: "#718096", // gray.500

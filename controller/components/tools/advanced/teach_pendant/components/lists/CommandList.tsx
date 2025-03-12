@@ -44,22 +44,18 @@ const useCommandStyles = (commandName: string, isExpanded: boolean) => {
   const isDarkMode = useColorModeValue(false, true);
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const commandColor = getCommandColor(commandName);
-  
+
   return {
     container: {
-      borderColor: isExpanded 
-        ? `${commandColor}.${isDarkMode ? '500' : '300'}` 
-        : borderColor,
-      bg: isExpanded 
-        ? `${commandColor}.${isDarkMode ? '900' : '50'}` 
-        : "transparent",
+      borderColor: isExpanded ? `${commandColor}.${isDarkMode ? "500" : "300"}` : borderColor,
+      bg: isExpanded ? `${commandColor}.${isDarkMode ? "900" : "50"}` : "transparent",
       boxShadow: isExpanded ? "md" : "none",
       opacity: isExpanded ? 1 : 0.8,
       _hover: {
         transform: "scale(1.01)",
         opacity: 1,
         shadow: "sm",
-        borderColor: `${commandColor}.${isDarkMode ? '500' : '300'}`,
+        borderColor: `${commandColor}.${isDarkMode ? "500" : "300"}`,
       },
       _before: {
         content: '""',
@@ -68,19 +64,19 @@ const useCommandStyles = (commandName: string, isExpanded: boolean) => {
         top: 0,
         bottom: 0,
         width: "4px",
-        bg: `${commandColor}.${isDarkMode ? '600' : '400'}`,
+        bg: `${commandColor}.${isDarkMode ? "600" : "400"}`,
         borderTopLeftRadius: "md",
         borderBottomLeftRadius: "md",
-      }
+      },
     },
     iconContainer: {
-      bg: `${commandColor}.${isDarkMode ? '900' : '50'}`,
-      color: `${commandColor}.${isDarkMode ? '300' : '500'}`
+      bg: `${commandColor}.${isDarkMode ? "900" : "50"}`,
+      color: `${commandColor}.${isDarkMode ? "300" : "500"}`,
     },
     commandName: {
       fontWeight: isExpanded ? "bold" : "medium",
-      color: `${commandColor}.${isDarkMode ? '300' : '700'}`
-    }
+      color: `${commandColor}.${isDarkMode ? "300" : "700"}`,
+    },
   };
 };
 
@@ -374,7 +370,7 @@ export const CommandList: React.FC<CommandListProps> = ({
             {localCommands?.map((command, index) => {
               const isExpanded = expandedCommand === index;
               const styles = useCommandStyles(command.command, isExpanded);
-              
+
               return (
                 <SlideFade key={index} in={true} offsetY="20px">
                   <VStack width="100%" spacing={0} align="stretch" mb={3}>
@@ -398,16 +394,11 @@ export const CommandList: React.FC<CommandListProps> = ({
                         overflow="hidden">
                         <HStack justify="space-between">
                           <HStack spacing={3}>
-                            <Box
-                              p={2}
-                              borderRadius="md"
-                              {...styles.iconContainer}>
+                            <Box p={2} borderRadius="md" {...styles.iconContainer}>
                               {getCommandIcon(command.command)}
                             </Box>
                             <VStack align="start" spacing={0}>
-                              <Text
-                                fontSize="md"
-                                {...styles.commandName}>
+                              <Text fontSize="md" {...styles.commandName}>
                                 {command.command.replace(/_/g, " ")}
                               </Text>
                               <Text color="gray.500" fontSize="sm">
@@ -431,9 +422,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                             )}
                             <IconButton
                               aria-label={isExpanded ? "Collapse" : "Expand"}
-                              icon={
-                                isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />
-                              }
+                              icon={isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
                               size="sm"
                               variant="ghost"
                               colorScheme={getCommandColor(command.command)}
