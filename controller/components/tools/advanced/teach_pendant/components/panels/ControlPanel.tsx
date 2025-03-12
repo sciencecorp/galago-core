@@ -16,7 +16,8 @@ import {
 } from "@chakra-ui/react";
 import { GripParams } from "../types";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
-import { FaRobot, FaArrowsAlt, FaHandPaper } from "react-icons/fa";
+import { FaArrowsAlt, FaHandPaper } from "react-icons/fa";
+import { BiUpArrow } from "react-icons/bi";
 
 interface ControlPanelProps {
   onFree: () => void;
@@ -71,7 +72,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       <Card width="100%" borderColor={borderColor} bg={bgColor}>
         <CardHeader fontWeight="semibold" fontSize="md">
           <HStack>
-            <FaRobot />
+            <BiUpArrow />
             <Box>State Control</Box>
           </HStack>
         </CardHeader>

@@ -34,7 +34,9 @@ def create_default_labware(db: Session) -> None:
 def create_default_motion_profile(db: Session, tool_id: int) -> None:
     """Create default motion profile if it doesn't exist."""
     try:
-        default_profile = crud.robot_arm_motion_profile.get_by(db, obj_in={"name": "Default"})
+        default_profile = crud.robot_arm_motion_profile.get_by(
+            db, obj_in={"name": "Default"}
+        )
         if not default_profile:
             crud.robot_arm_motion_profile.create(
                 db,
@@ -62,7 +64,9 @@ def create_default_grip_params(db: Session, tool_id: int) -> None:
     """Create default grip parameters if they don't exist."""
     try:
         # Portrait grip parameters
-        portrait_params = crud.robot_arm_grip_params.get_by(db, obj_in={"name": "Portrait"})
+        portrait_params = crud.robot_arm_grip_params.get_by(
+            db, obj_in={"name": "Portrait"}
+        )
         if not portrait_params:
             crud.robot_arm_grip_params.create(
                 db,
@@ -77,7 +81,9 @@ def create_default_grip_params(db: Session, tool_id: int) -> None:
             logging.info("Created portrait grip parameters")
 
         # Landscape grip parameters
-        landscape_params = crud.robot_arm_grip_params.get_by(db, obj_in={"name": "Landscape"})
+        landscape_params = crud.robot_arm_grip_params.get_by(
+            db, obj_in={"name": "Landscape"}
+        )
         if not landscape_params:
             crud.robot_arm_grip_params.create(
                 db,
@@ -98,10 +104,10 @@ def create_default_grip_params(db: Session, tool_id: int) -> None:
 def initialize_database(db: Session) -> None:
     """Initialize database with default data."""
     create_default_labware(db)
-    
+
     # Get all PF400 tools
     pf400_tools = crud.tool.get_all_by(db, obj_in={"type": "pf400"})
-    
+
     # Create default profiles and parameters for each PF400
     for tool in pf400_tools:
         create_default_motion_profile(db, tool.id)

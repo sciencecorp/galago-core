@@ -255,7 +255,9 @@ export const CommandModal: React.FC<CommandModalProps> = ({
       case "text_array":
         return (
           <Input
-            value={Array.isArray(params[field.name]) ? params[field.name].join(", ") : params[field.name]}
+            value={
+              Array.isArray(params[field.name]) ? params[field.name].join(", ") : params[field.name]
+            }
             onChange={(e) => {
               const value = e.target.value;
               const arrayValue = value.split(",").map((item) => item.trim());
