@@ -18,7 +18,7 @@ import {
 import { TeachPoint, MotionProfile, GripParams } from "../types";
 import { trpc } from "@/utils/trpc";
 import { Labware } from "@/types/api";
-import { commandFields } from "@/pages/tools/[id]";
+import { commandFields } from "@/components/tools/constants";
 
 interface CommandModalProps {
   isOpen: boolean;
