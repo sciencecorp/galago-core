@@ -493,6 +493,7 @@ class RobotArmSequenceCreate(BaseModel):
     description: Optional[str] = None
     commands: List[Dict[str, Any]]
     tool_id: int
+    labware: Optional[str] = None
 
 
 class RobotArmSequenceUpdate(BaseModel):
@@ -500,6 +501,7 @@ class RobotArmSequenceUpdate(BaseModel):
     description: t.Optional[str] = None
     commands: t.Optional[List[Dict[str, Any]]] = None
     tool_id: t.Optional[int] = None
+    labware: t.Optional[str] = None
 
 
 class RobotArmSequence(RobotArmSequenceCreate):

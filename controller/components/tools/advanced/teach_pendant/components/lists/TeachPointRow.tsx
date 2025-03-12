@@ -74,7 +74,7 @@ export const TeachPointRow: React.FC<TeachPointRowProps> = ({
               variant="ghost"
               size="sm"
             />
-            <MenuList>
+            <MenuList bg={bgColorAlpha}>
               {point.type === "nest" ? (
                 <>
                   <MenuItem onClick={() => onMove(point, "approach")}>Approach</MenuItem>

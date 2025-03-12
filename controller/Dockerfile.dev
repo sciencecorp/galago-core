@@ -1,11 +1,17 @@
-
 FROM node:18-alpine
 
 WORKDIR /app
 
-COPY ./controller /app/
-COPY ./controller/package*.json /app
-RUN npm install --verbose
+# Install necessary utilities
+RUN apk add --no-cache curl unzip bash
+
+COPY ./controller/package*.json ./
+
+RUN npm ci
+
+RUN npm list -g next || npm install -g next
+
+RUN mkdir -p node_modules && chmod -R 777 node_modules
 
 EXPOSE 3010 9229
 
