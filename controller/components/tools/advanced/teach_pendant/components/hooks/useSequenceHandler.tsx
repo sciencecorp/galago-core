@@ -41,6 +41,7 @@ export interface Sequence {
   description?: string;
   commands: SequenceCommand[];
   tool_id: number;
+  labware?: string;
 }
 
 interface SequenceModalProps {
@@ -196,6 +197,10 @@ export function useSequenceHandler(config: Tool) {
     { toolId: config.id },
     { enabled: !!config.id && config.id !== 0 },
   );
+  const labwareQuery = trpc.labware.getAll.useQuery(undefined, {
+    staleTime: Infinity,
+    cacheTime: Infinity,
+  });
 
   const createSequenceMutation = trpc.robotArm.sequence.create.useMutation({
     onSuccess: () => {
@@ -286,7 +291,7 @@ export function useSequenceHandler(config: Tool) {
         command: "run_sequence",
         params: {
           sequence_name: sequence.name,
-          labware: "default",
+          labware: sequence.labware || "default",
         },
       });
     } catch (error) {
@@ -321,5 +326,6 @@ export function useSequenceHandler(config: Tool) {
     isOpen,
     onClose,
     selectedSequence,
+    labwareList: labwareQuery.data || [],
   };
 }

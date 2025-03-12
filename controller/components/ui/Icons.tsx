@@ -3,11 +3,30 @@ import { Box, Tooltip, Icon as ChakraIcon, IconProps as ChakraIconProps } from "
 import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { SiPython } from "react-icons/si";
 import { VscCode } from "react-icons/vsc";
-import { FaPlay, FaFolder, FaFolderOpen } from "react-icons/fa";
+import {
+  FaPlay,
+  FaFolder,
+  FaFolderOpen,
+  FaGripHorizontal,
+  FaArrowDown,
+  FaArrowUp,
+  FaHandPaper,
+  FaRobot,
+  FaCompressArrowsAlt,
+} from "react-icons/fa";
 import { IoIosSave } from "react-icons/io";
 import { FaFileCirclePlus } from "react-icons/fa6";
 import { TbFolderPlus } from "react-icons/tb";
-import { RiEdit2Line, RiDeleteBinLine, RiFolderAddLine } from "react-icons/ri";
+import {
+  RiEdit2Line,
+  RiDeleteBinLine,
+  RiFolderAddLine,
+  RiArrowTurnBackLine,
+  RiArrowTurnForwardLine,
+} from "react-icons/ri";
+import { MdArrowOutward, MdOutlineSwapHoriz } from "react-icons/md";
+import { IoLockClosedOutline, IoLockOpenOutline } from "react-icons/io5";
+import { HiArrowsPointingIn } from "react-icons/hi2";
 
 // Types
 interface IconBaseProps extends ChakraIconProps {
@@ -49,6 +68,18 @@ export const ActionIcons = {
   Menu: HamburgerIcon,
 } as const;
 
+// Robot Command Icons
+export const CommandIcons = {
+  Move: MdArrowOutward,
+  GraspPlate: FaGripHorizontal,
+  ReleasePlate: FaHandPaper,
+  RetrievePlate: RiArrowTurnBackLine,
+  DropoffPlate: RiArrowTurnForwardLine,
+  Engage: IoLockClosedOutline,
+  Release: IoLockOpenOutline,
+  Retract: HiArrowsPointingIn,
+} as const;
+
 // Individual Icon Exports with Consistent Naming
 export {
   SiPython as PythonIcon,
@@ -64,6 +95,13 @@ export {
   RiFolderAddLine as FolderAddLineIcon,
   HamburgerIcon as MenuIcon,
   FaFileCirclePlus as FileAddIcon,
+  // Robot Command Icons
+  MdArrowOutward as MoveIcon,
+  FaGripHorizontal as GraspPlateIcon,
+  FaHandPaper as ReleasePlateIcon,
+  RiArrowTurnBackLine as RetrievePlateIcon,
+  RiArrowTurnForwardLine as DropoffPlateIcon,
+  HiArrowsPointingIn as RetractIcon,
 };
 
 // Custom Icon Components

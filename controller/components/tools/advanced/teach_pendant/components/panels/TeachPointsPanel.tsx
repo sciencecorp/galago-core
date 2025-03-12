@@ -174,7 +174,12 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                   <Th bg={headerBgColor} color={textColor}>
                     Orientation
                   </Th>
-                  <Th width="200px" textAlign="right" bg={headerBgColor} color={textColor}>
+                  <Th
+                    width="120px"
+                    minWidth="120px"
+                    textAlign="right"
+                    bg={headerBgColor}
+                    color={textColor}>
                     Actions
                   </Th>
                 </Tr>
@@ -227,8 +232,9 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                           variant="outline"
                           size="sm"
                           borderColor={borderColor}
+                          minW="32px"
                         />
-                        <MenuList borderColor={borderColor} bg={tableBgColor}>
+                        <MenuList>
                           <MenuItem icon={<FaPlay />} onClick={() => onMove(point)}>
                             Move to point
                           </MenuItem>

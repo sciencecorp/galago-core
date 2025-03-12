@@ -288,11 +288,14 @@ export const commandFields: CommandFields = {
     toggle_light: [],
   },
   pf400: {
-    run_sequence: [{ name: "sequence_name", type: "text" }],
+    run_sequence: [
+      { name: "sequence_name", type: "text" },
+      { name: "labware", type: "text" },
+    ],
     move: [
       { name: "name", type: "text" },
       { name: "motion_profile_id", type: "number", defaultValue: 1 },
-      { name: "z_offset", type: "number", defaultValue: 0 },
+      { name: "approach_height", type: "number", defaultValue: 0 },
     ],
     grasp_plate: [
       { name: "width", type: "number", defaultValue: 122 },
@@ -306,14 +309,14 @@ export const commandFields: CommandFields = {
     retrieve_plate: [
       { name: "labware", type: "text" },
       { name: "location", type: "text" },
-      { name: "z_offset", type: "number", defaultValue: 0 },
+      { name: "approach_height", type: "number", defaultValue: 0 },
       { name: "motion_profile_id", type: "number", defaultValue: 1 },
     ],
     dropoff_plate: [
       { name: "labware", type: "text" },
       { name: "location", type: "text" },
       { name: "motion_profile_id", type: "number", defaultValue: 1 },
-      { name: "z_offset", type: "number", defaultValue: 0 },
+      { name: "approach_height", type: "number", defaultValue: 0 },
     ],
     engage: [],
     release: [],

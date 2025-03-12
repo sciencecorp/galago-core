@@ -16,7 +16,8 @@ import {
 } from "@chakra-ui/react";
 import { GripParams } from "../types";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
-import { FaRobot, FaArrowsAlt, FaHandPaper } from "react-icons/fa";
+import { FaArrowsAlt, FaHandPaper } from "react-icons/fa";
+import { BiUpArrow } from "react-icons/bi";
 
 interface ControlPanelProps {
   onFree: () => void;
@@ -68,10 +69,10 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   const isEnabled = toolState === ToolStatus.SIMULATED || toolState === ToolStatus.READY;
   return (
     <VStack spacing={4} width="100%" height="100%">
-      <Card width="100%" borderColor={borderColor} bg={bgColor}>
+      <Card width="100%" borderColor={borderColor} borderWidth="1px" borderRadius="lg" bg={bgColor}>
         <CardHeader fontWeight="semibold" fontSize="md">
           <HStack>
-            <FaRobot />
+            <BiUpArrow />
             <Box>State Control</Box>
           </HStack>
         </CardHeader>
@@ -105,7 +106,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </CardBody>
       </Card>
 
-      <Card width="100%" borderColor={borderColor} bg={bgColor}>
+      <Card width="100%" borderColor={borderColor} borderWidth="1px" borderRadius="lg" bg={bgColor}>
         <CardHeader fontWeight="semibold" fontSize="md">
           <HStack>
             <FaArrowsAlt />
@@ -145,7 +146,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </CardBody>
       </Card>
 
-      <Card width="100%" borderColor={borderColor} bg={bgColor}>
+      <Card width="100%" borderColor={borderColor} borderWidth="1px" borderRadius="lg" bg={bgColor}>
         <CardHeader fontWeight="semibold" fontSize="md">
           <HStack>
             <FaHandPaper />
