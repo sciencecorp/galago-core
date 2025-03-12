@@ -1,19 +1,19 @@
-type Field =  {
-    name: string;
-    type: "text" | "number" | "text_array" | "boolean";
-    defaultValue?: any;
-}
+type Field = {
+  name: string;
+  type: "text" | "number" | "text_array" | "boolean";
+  defaultValue?: any;
+};
 
-type Command =  {
-    [command: string]: Field[];
-}
-  
+type Command = {
+  [command: string]: Field[];
+};
+
 type CommandFields = {
-    [tool: string]: Command;
+  [tool: string]: Command;
 };
 
 type CommandStatus = {
-    [commandName: string]: "idle" | "success" | "error";
+  [commandName: string]: "idle" | "success" | "error";
 };
 
 type FieldType = "text" | "number" | "text_array" | "boolean" | Field[];

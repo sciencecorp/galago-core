@@ -321,22 +321,24 @@ export default function Page() {
       <Head>
         <title>{config?.name ? `Tool: ${config.name}` : "Tool"}</title>
       </Head>
-        <Box maxWidth="1800px" margin="auto">
+      <Box maxWidth="1800px" margin="auto">
         <HStack spacing={4} align="start" width="100%">
           {config?.type !== ToolType.pf400 && (
             <VStack spacing={4} width="100%">
-           {!toolCommandsDefined && (
-              <>
-                <Alert status="error" variant="left-accent" mb={2}>
-                <AlertIcon />
-                <Box flex="1">
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>Invalid Tool Type.</AlertDescription>
-                <AlertDescription>This tool has not been defined. Contact administrator.</AlertDescription>
-                </Box>
-                </Alert>
-              </>
-              ) }
+              {!toolCommandsDefined && (
+                <>
+                  <Alert status="error" variant="left-accent" mb={2}>
+                    <AlertIcon />
+                    <Box flex="1">
+                      <AlertTitle>Error</AlertTitle>
+                      <AlertDescription>Invalid Tool Type.</AlertDescription>
+                      <AlertDescription>
+                        This tool has not been defined. Contact administrator.
+                      </AlertDescription>
+                    </Box>
+                  </Alert>
+                </>
+              )}
               <ToolStatusCard toolId={id || ""} />
               {toolCommandsDefined && (
                 <FormControl>
