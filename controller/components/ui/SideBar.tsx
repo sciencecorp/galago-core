@@ -88,6 +88,9 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   const router = useRouter();
   const theme = useSidebarTheme();
 
+  const collapsedWidth = "80px";
+  const expandedWidth = "230px";
+
   const toggleSidebar = () => {
     if (isMobile && !isSidebarExpanded) {
       onOpen();
@@ -100,21 +103,22 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   // Move the hook outside of conditional rendering
   const logoFilter = useColorModeValue("none", "invert(1)");
 
+  const transitionProps = {
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  };
+
   const SidebarContent = (
     <Box
       p={0}
       bg={theme.bg}
       color={theme.textColor}
-      minW={isSidebarExpanded ? "220px" : "80px"}
+      width={isSidebarExpanded ? expandedWidth : collapsedWidth}
       borderRight={isMobile ? "1px" : "none"}
       borderColor={theme.borderColor}
       height="100%"
-      sx={{
-        transition: "min-width 0.3s ease, width 0.3s ease",
-        width: isSidebarExpanded ? "230px" : "80px",
-      }}>
+      {...transitionProps}>
       <VStack left={0} p={1} spacing={4} align="stretch" width="100%">
-        <HStack pb={10} pl={3} pt={2} width="100%" position="relative">
+        <HStack pb={10} pl={2} pt={2} width="100%" position="relative">
           <Image
             onClick={toggleSidebar}
             width="60px"
@@ -122,18 +126,6 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             src="/site_logo.png"
             alt="logo"
             filter={logoFilter}></Image>
-          {isSidebarExpanded && (
-            <IconButton
-              icon={<BsLayoutSidebarInset />}
-              aria-label="Toggle Sidebar"
-              onClick={toggleSidebar}
-              position="absolute"
-              right="2"
-              bg="transparent"
-              color={theme.textColor}
-              _hover={{ bg: theme.hoverBg }}
-            />
-          )}
         </HStack>
 
         {sidebarItems.map((item) => (
@@ -194,15 +186,12 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
           bottom="0"
           bg={theme.bg}
           color={theme.textColor}
-          minW={isSidebarExpanded ? "230px" : "85px"}
+          width={isSidebarExpanded ? expandedWidth : collapsedWidth}
           borderRight="1px"
           borderColor={theme.borderColor}
           height="100vh"
           boxShadow={theme.shadow}
-          sx={{
-            transition: "min-width 0.3s ease, width 0.3s ease",
-            width: isSidebarExpanded ? "220px" : "85px",
-          }}>
+          {...transitionProps}>
           {SidebarContent}
         </Box>
       ) : (
@@ -237,7 +226,11 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       )}
 
       {/* Content Area */}
-      <Box flex="1" p={4} ml={!isMobile && isSidebarExpanded ? "230px" : !isMobile ? "70px" : "0"}>
+      <Box
+        flex="1"
+        p={4}
+        ml={!isMobile ? (isSidebarExpanded ? expandedWidth : collapsedWidth) : "0"}
+        {...transitionProps}>
         {children}
       </Box>
     </Flex>
