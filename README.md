@@ -1,6 +1,7 @@
 # Galago
 
 Galago consists of several distinct modules:
+
 - Controller, a NEXT.js app which governs a defined set of devices (execution management and scheduling)
 - [Tool drivers](https://github.com/sciencecorp/galago-tools) which implement a gRPC interface and handle tool-specific control logic
 
@@ -9,6 +10,7 @@ To build the protobuf interfaces, simply run `bin/make proto`.
 ## Getting started
 
 ### Requirements
+
 1. Node 18.13
 2. Python 3.9
 3. Docker and Docker compose
@@ -55,12 +57,14 @@ source activate galago #windows
 ```
 
 ### Build dependencies
+
 ```
 bin/make deps
 bin/make proto
 ```
 
 ## Redis
+
 Local install (if not using docker)
 
 ### For Mac (zsh)
