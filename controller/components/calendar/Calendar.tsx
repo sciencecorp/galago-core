@@ -21,7 +21,7 @@ interface CalendarProps {
 }
 
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const paddingMap = { sm: 4, md: 4, lg: 4, xl: 5, "2xl": 7 };
+const paddingMap = { sm: 5, md: 5, lg: 5, xl: 5, "2xl": 7 };
 
 export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, size = "md" }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -31,6 +31,7 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
   const hoverColor = useColorModeValue("teal.300", "teal.100");
   const paddingSize = useBreakpointValue(paddingMap);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const fontColor = useColorModeValue("black", "white");
 
   const generateCalendarDays = useCallback(() => {
     const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -107,23 +108,18 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
   };
 
   return (
-    <VStack spacing={2} p={2} border="1px solid lightgray" borderRadius="15px" boxShadow="lg">
-      <Heading size="md">
-        {currentDate.toLocaleString("default", { month: "long" })} {currentDate.getFullYear()}
-      </Heading>
-      <Box display="flex" justifyContent="space-between" width="100%">
+    <VStack spacing={2} p={2}>
+      <HStack justifyContent="space-between" width="100%">
         <Button size="sm" color={bgColor} onClick={handlePrevMonth} variant="ghost">
-          <FiChevronLeft />
+          <FiChevronLeft color="gray" />
         </Button>
-        <Button
-          size="sm"
-          onClick={handleNextMonth}
-          colorScheme="teal"
-          color={bgColor}
-          variant="ghost">
-          <FiChevronRight />
+        <Heading size="sm">
+          {currentDate.toLocaleString("default", { month: "long" })} {currentDate.getFullYear()}
+        </Heading>
+        <Button size="sm" onClick={handleNextMonth} color={bgColor} variant="ghost">
+          <FiChevronRight color="gray" />
         </Button>
-      </Box>
+      </HStack>
       <Grid templateColumns="repeat(7, minmax(35px, 1fr))" gap={0.5} width="fit-content">
         {daysOfWeek.map((day) => (
           <Text key={day} fontWeight="bold" textAlign="center" fontSize="xs" p={0}>
@@ -139,20 +135,16 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
             justifyContent="center"
             key={index}
             textAlign="center"
-            color="teal.800"
+            color="blue.800"
             p={0}
             borderRadius="sm"
-            bg={
-              isCurrentDay(day)
-                ? "teal.300"
-                : selectedDate?.toDateString() === day.toDateString()
-                  ? "teal.400"
-                  : "gray.100"
-            }
+            bg={isCurrentDay(day) ? useColorModeValue("gray.100", "gray.800") : "transparent"}
             _hover={{ bg: hoverColor }}
             onClick={() => handleDateClick(day)}
             cursor="pointer">
-            <Text fontSize="xs">{day.getDate()}</Text>
+            <Text fontSize="xs" color={fontColor}>
+              {day.getDate()}
+            </Text>
           </Grid>
         ))}
       </Grid>
