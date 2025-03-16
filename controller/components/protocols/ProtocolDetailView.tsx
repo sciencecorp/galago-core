@@ -65,6 +65,7 @@ import { ParameterEditor } from "@/components/ui/ParameterEditor";
 import SwimLaneCommandComponent from "../runs/list/SwimLaneCommandComponent";
 import { capitalizeFirst } from "@/utils/parser";
 import { VscRunBelow } from "react-icons/vsc";
+import { ProtocolFormModal } from "./ProtocolFormModal"
 
 interface ParameterSchema {
   type: string;
@@ -102,117 +103,6 @@ const renderToolImage = (config: any) => {
   );
 };
 
-const CommandBox: React.FC<{
-  command: any;
-  isEditing: boolean;
-  onParamChange: (newParams: Record<string, any>) => void;
-  onDelete: () => void;
-  isLast: boolean;
-  position: number;
-  onAddCommand: (position: number) => void;
-}> = ({ command, isEditing, onParamChange, onDelete, isLast, position, onAddCommand }) => {
-  const boxBg = useColorModeValue("white", "gray.700");
-  const boxBorder = useColorModeValue("gray.200", "gray.600");
-  const arrowColor = useColorModeValue("gray.500", "gray.400");
-  const infoQuery = trpc.tool.info.useQuery(
-    { toolId: command.commandInfo.toolId },
-    { enabled: !command.commandInfo.tool_info },
-  );
-
-  const formatToolId = (toolId: string) => {
-    if (!toolId) return "";
-    return toolId
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(" ");
-  };
-
-  const renderToolIcon = () => {
-    if (command.commandInfo.tool_info?.image_url) {
-      return (
-        <Box position="absolute" bottom="4" right="4" opacity="0.9" zIndex="1">
-          <Image
-            src={command.commandInfo.tool_info.image_url}
-            alt={command.commandInfo.toolType}
-            boxSize="32px"
-            objectFit="contain"
-          />
-        </Box>
-      );
-    }
-    return (
-      <Box position="absolute" bottom="4" right="4" opacity="0.9" zIndex="1">
-        {renderToolImage(infoQuery.data)}
-      </Box>
-    );
-  };
-
-  return (
-    <HStack>
-      {isEditing && (
-        <IconButton
-          aria-label="Add command before"
-          icon={<AddIcon />}
-          size="sm"
-          colorScheme="blue"
-          variant="ghost"
-          onClick={() => onAddCommand?.(position)}
-          _hover={{ bg: "blue.100" }}
-        />
-      )}
-      <Box
-        borderWidth="1px"
-        borderRadius="lg"
-        p={6}
-        minW="250px"
-        maxW="250px"
-        bg={boxBg}
-        borderColor={boxBorder}
-        shadow="sm"
-        position="relative">
-        <VStack align="stretch" spacing={4}>
-          <Text fontWeight="bold" fontSize="md">
-            {formatToolId(command.commandInfo.toolType)}
-          </Text>
-          <Tag>{command.commandInfo.command}</Tag>
-          <ParameterEditor
-            params={command.commandInfo.params}
-            isEditing={isEditing}
-            onParamChange={onParamChange}
-          />
-          {isEditing && (
-            <Box position="absolute" top="1" right="3" zIndex="2">
-              <DeleteWithConfirmation
-                label="command"
-                onDelete={onDelete}
-                variant="icon"
-                size="md"
-              />
-            </Box>
-          )}
-        </VStack>
-        {renderToolIcon()}
-      </Box>
-      <VStack spacing={2} justify="center" height="100%">
-        {isLast && isEditing ? (
-          <IconButton
-            aria-label="Add command"
-            icon={<AddIcon />}
-            size="sm"
-            colorScheme="blue"
-            variant="ghost"
-            onClick={() => onAddCommand?.(position + 1)}
-            _hover={{ bg: "blue.100" }}
-          />
-        ) : !isLast && !isEditing ? (
-          <Box color={arrowColor}>
-            <ArrowForwardIcon boxSize={6} />
-          </Box>
-        ) : null}
-      </VStack>
-    </HStack>
-  );
-};
 
 const handleWheel = (e: WheelEvent) => {
   const container = e.currentTarget as HTMLElement;
@@ -533,6 +423,12 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
               </>
             ) : (
               <>
+                  <ProtocolFormModal
+                    isOpen={isParametersModalOpen}
+                    onClose={closeParametersModal}
+                    initialParams={protocol.params || {}}
+                    onSave={handleProtocolFormSave}
+                  />
                 <Button
                   leftIcon={<EditIcon />}
                   colorScheme="teal"
