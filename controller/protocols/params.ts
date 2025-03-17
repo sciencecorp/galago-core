@@ -5,14 +5,13 @@ export type ProtocolParamType =
   | "string"
   | "number"
   | "enum"
-  | "Barcode"
-  | "WellPlateWithWells";
-
+  | "Barcode";
+  
 export interface ProtocolParamInfo {
   type: ProtocolParamType;
   description: string;
   options: string[];
-  default?: string;
+  variable_name?: string;
 }
 
 export const index = z.number().positive().int();

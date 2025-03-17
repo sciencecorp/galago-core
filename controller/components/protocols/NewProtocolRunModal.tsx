@@ -33,7 +33,7 @@ import {
   HStack,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { capitalizeFirst } from "@/utils/parser";
 
@@ -124,6 +124,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   const toast = useToast();
   const workcellData = trpc.workcell.getSelectedWorkcell.useQuery();
   const workcellName = workcellData.data;
+  const editVariable = trpc.variable.edit.useMutation();
   const protocol = trpc.protocol.get.useQuery(
     {
       id: id,
@@ -146,6 +147,13 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
     },
   );
 
+  useEffect(() => {
+    if (protocol.data) {
+      console.log("Protocol data:");
+      console.log(protocol.data.params);
+    }
+  }, [protocol.data]);
+
   const uiParams = protocol.data?.params || {};
   const { isOpen, onOpen } = useDisclosure({ defaultIsOpen: true });
   const [userDefinedParams, setUserDefinedParams] = useState<Record<string, any>>({});
@@ -163,6 +171,8 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   const dec = getDecrementButtonProps();
   const numberOfRuns = getInputProps();
   const runCountBg = useColorModeValue("gray.50", "gray.800");
+
+
   const createRunMutation = trpc.run.create.useMutation({
     onSuccess: (data) => {
       router.push(`/runs`);
@@ -185,11 +195,6 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
 
   const handleClose = () => {
     onClose();
-  };
-
-  const handleSuccess = () => {
-    onClose();
-    router.push("/runs", undefined, { shallow: true });
   };
 
   return (
@@ -255,17 +260,19 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                     isDisabled={createRunMutation.isLoading}
                     colorScheme="teal"
                     onClick={async () => {
-                      await createRunMutation.mutate(
-                        {
-                          protocolId: id,
-                          workcellName: workcellName,
-                          params: userDefinedParams,
-                          numberOfRuns: Number(numberOfRuns.value),
-                        },
-                        {
-                          onSuccess: handleSuccess,
-                        },
-                      );
+                      console.log("QUEUing run");
+                      console.log(userDefinedParams);
+                      // await createRunMutation.mutate(
+                      //   {
+                      //     protocolId: id,
+                      //     workcellName: workcellName,
+                      //     params: userDefinedParams,
+                      //     numberOfRuns: Number(numberOfRuns.value),
+                      //   },
+                      //   {
+                      //     onSuccess: handleSuccess,
+                      //   },
+                      // );
                     }}>
                     Queue Run
                   </Button>

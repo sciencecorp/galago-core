@@ -149,10 +149,14 @@ export default class Tool {
 
   async executeCommand(command: ToolCommandInfo) {
     const params = command.params;
+    console.log("params", params);
     for (const key in params) {
+      console.warn("key", key);
+      console.warn("Null params", params[key]);
       if (params[key] == null) continue;
 
       const paramValue = String(params[key]);
+      console.log("paramValue", paramValue);
       if (paramValue.startsWith("{{") && paramValue.endsWith("}}")) {
         try {
           const varValue = await get<Variable>(`/variables/${paramValue.slice(2, -2)}`);

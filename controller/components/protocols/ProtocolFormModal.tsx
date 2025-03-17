@@ -36,7 +36,7 @@ import { trpc } from "@/utils/trpc";
 interface ParameterSchema {
   type: string;
   description?: string;
-  variable_name?: string; // Store variable name instead of ID
+  variable_name?: string;
 }
 
 interface ProtocolFormModalProps {
@@ -158,11 +158,9 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
       const { variable_name, ...rest } = newSchema[paramName];
       newSchema[paramName] = rest;
     } else if (variable) {
-      // Update the parameter schema with variable info
       newSchema[paramName] = {
         ...newSchema[paramName],
         type: variable.type,
-        default: variable.value,
         variable_name: variable.name,
       };
     }
@@ -241,7 +239,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size={previewMode ? "lg" : "2xl"}>
+    <Modal isOpen={isOpen} onClose={onClose} size={previewMode ? "xl" : "4xl"}>
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>

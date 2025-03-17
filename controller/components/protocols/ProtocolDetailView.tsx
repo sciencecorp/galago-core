@@ -6,29 +6,17 @@ import {
   VStack,
   Heading,
   Text,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
   Spinner,
   Alert,
   AlertIcon,
   AlertTitle,
   AlertDescription,
-  Th,
-  Td,
   Tag,
   useColorModeValue,
   IconButton,
   Image,
   useToast,
   Divider,
-  FormControl,
-  FormLabel,
-  NumberInput,
-  NumberInputField,
-  Switch,
-  Input,
   Drawer,
   DrawerOverlay,
   DrawerContent,
@@ -47,11 +35,8 @@ import {
 import {
   DeleteIcon,
   AddIcon,
-  DragHandleIcon,
   EditIcon,
   ArrowForwardIcon,
-  ChevronUpIcon,
-  ChevronDownIcon,
   HamburgerIcon,
 } from "@chakra-ui/icons";
 import { useRouter } from "next/router";
@@ -70,6 +55,8 @@ import { ProtocolFormModal } from "./ProtocolFormModal"
 import { MdOutlineFormatListBulleted } from "react-icons/md";
 import { FaPlay } from "react-icons/fa6";
 import { SaveIcon } from "@/components/ui/Icons";
+import { SiReacthookform } from "react-icons/si";
+import { SiPlatformdotsh } from "react-icons/si";
 
 interface ParameterSchema {
   type: string;
@@ -438,7 +425,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
             {isEditing ? (
               <>
                     <Button 
-                    leftIcon={<MdOutlineFormatListBulleted />}
+                    leftIcon={<SiPlatformdotsh />}
                     size="md" 
                     onClick={openParametersModal}>
                     Form 
