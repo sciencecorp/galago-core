@@ -27,6 +27,7 @@ import {
   MenuItem,
   MenuDivider,
   Badge,
+  Text
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { FaPlay } from "react-icons/fa";
@@ -67,8 +68,10 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
 }) => {
   const [selectedSequence, setSelectedSequence] = useState<Sequence | null>(null);
   const [sequenceToDelete, setSequenceToDelete] = useState<Sequence | null>(null);
+  const [sequenceToRun, setSequenceToRun] = useState<Sequence | null>(null);
   const [expandedCommandIndex, setExpandedCommandIndex] = useState<number | null>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const runConfirmRef = useRef<HTMLButtonElement>(null);
   const [isEditing, setIsEditing] = useState(false);
 
   const {
@@ -246,7 +249,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                                   minW="32px"
                                 />
                                 <MenuList onClick={(e) => e.stopPropagation()}>
-                                  <MenuItem icon={<FaPlay />} onClick={() => onRun(sequence)}>
+                                  <MenuItem icon={<FaPlay />} onClick={() => setSequenceToRun(sequence)}>
                                     Run Sequence
                                   </MenuItem>
                                   <MenuItem
@@ -369,6 +372,52 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
               </Button>
               <Button colorScheme="red" onClick={handleDeleteConfirm} ml={3}>
                 Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+
+      {/* Run Sequence Confirmation Dialog */}
+      <AlertDialog
+        isOpen={sequenceToRun !== null}
+        leastDestructiveRef={runConfirmRef}
+        onClose={() => setSequenceToRun(null)}>
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Run Sequence
+            </AlertDialogHeader>
+            <AlertDialogBody>
+              {sequenceToRun?.commands && sequenceToRun.commands.length > 0 ? (
+                <Box>
+                  <Text>
+                    Are you sure you want to run the sequence &quot;{sequenceToRun?.name}&quot;?
+                  </Text>
+                  This sequence contains {sequenceToRun.commands.length} command{sequenceToRun.commands.length !== 1 ? 's' : ''}.
+                </Box>
+              ) : (
+                <Box mt={2} color="yellow.500">
+                  Warning: This sequence contains no commands.
+                </Box>
+              )}
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <Button ref={runConfirmRef} onClick={() => setSequenceToRun(null)}>
+                Cancel
+              </Button>
+              <Button 
+                isDisabled={!sequenceToRun?.commands || sequenceToRun.commands.length === 0}
+                colorScheme="blue" 
+                onClick={() => {
+                  if (sequenceToRun) {
+                    onRun(sequenceToRun);
+                    setSequenceToRun(null);
+                  }
+                }} 
+                ml={3}
+              >
+                Run
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
