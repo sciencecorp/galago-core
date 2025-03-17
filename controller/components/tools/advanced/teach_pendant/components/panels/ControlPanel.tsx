@@ -84,7 +84,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               size="md"
               isLoading={isFreeLoading}
               isDisabled={!isEnabled}>
-              Release
+              Free
             </Button>
             <Button
               onClick={onUnfree}
@@ -92,7 +92,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               size="md"
               isLoading={isUnfreeLoading}
               isDisabled={!isEnabled}>
-              Engage
+              Unfree
             </Button>
             <Button
               onClick={onUnwind}
