@@ -159,7 +159,7 @@ class Labware(Base, TimestampMixin):
 class ScriptFolder(Base, TimestampMixin):
     __tablename__ = "script_folders"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=False, unique=True)
     parent_id = Column(Integer, ForeignKey("script_folders.id"), nullable=True)
     description = Column(String, nullable=True)
 
