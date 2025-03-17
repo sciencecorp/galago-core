@@ -253,6 +253,11 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     setIsAddCommandModalOpen(true);
   };
 
+  const handleFormSave = (newParams:any) => {
+    setLocalParams(newParams);
+    closeParametersModal();
+  }
+
   useEffect(() => {
     if (!protocol?.commands) return;
 
@@ -411,15 +416,22 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       maxW="container.xl"
       mx="auto"
       overflow="hidden">
-        <ProtocolFormModal
-          isOpen={isParametersModalOpen}
-          onClose={closeParametersModal}
-          initialParams={protocol.params || {}}
-          onSave={(newParams)=>{
-            setLocalParams(newParams);
-            closeParametersModal();
-          }}
-        />
+      <ProtocolFormModal
+        isOpen={isParametersModalOpen}
+        onClose={closeParametersModal}
+        initialParams={protocol.params || {}}
+        protocolId={protocol.id}
+        onSave={(newParams) => {
+          // We still handle the params update in local state to keep UI in sync
+          setLocalParams(newParams);
+          
+          // Refetch the protocol data to ensure we have the latest from the database
+          refetch();
+          
+          // Close the modal
+          closeParametersModal();
+        }}
+      />
       <VStack align="stretch" spacing={6} width="100%">
         <HStack justify="space-between">
           <VStack align="start" spacing={2}>

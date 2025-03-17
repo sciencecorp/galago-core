@@ -32,21 +32,10 @@ import { AiFillEdit } from "react-icons/ai";
 import { EditableText } from "@/components/ui/Form";
 import { trpc } from "@/utils/trpc";
 
-// Define the variable interface
-interface Variable {
-  id: number;
-  name: string;
-  value: string;
-  type: string;
-  created_at: string;
-  updated_at: string;
-}
 
-// Define the parameter schema interface with added variable support
 interface ParameterSchema {
   type: string;
   description?: string;
-  default?: any;
   variable_name?: string; // Store variable name instead of ID
 }
 
@@ -54,19 +43,46 @@ interface ProtocolFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialParams: Record<string, ParameterSchema>;
-  onSave: (params: Record<string, ParameterSchema>) => void;
+  protocolId: number; // Added protocol ID for database update
+  onSave?: (params: Record<string, ParameterSchema>) => void; // Made optional since we're saving directly
 }
 
 export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
   isOpen,
   onClose,
   initialParams,
+  protocolId,
   onSave,
 }) => {
   const [localParams, setLocalParams] = useState<Record<string, ParameterSchema>>({});
   const [previewMode, setPreviewMode] = useState(true);
   const toast = useToast();
-  const { data: fetchedVariables, refetch } = trpc.variable.getAll.useQuery();
+  const { data: fetchedVariables, refetch: refetchVariables } = trpc.variable.getAll.useQuery();
+  
+  // Add mutation for updating protocol
+  const { data: protocol, refetch: refetchProtocol } = trpc.protocol.getById.useQuery({ 
+    id: protocolId 
+  });
+  
+  const updateProtocolMutation = trpc.protocol.update.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Protocol parameters updated",
+        status: "success",
+        duration: 3000,
+      });
+      refetchProtocol();
+      onClose();
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to update protocol parameters",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+      });
+    }
+  });
 
   // Initialize local params when modal opens
   useEffect(() => {
@@ -81,7 +97,6 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
     newSchema[newParamName] = {
       type: "string",
       description: "",
-      default: "",
     };
     setLocalParams(newSchema);
   };
@@ -156,8 +171,33 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
   };
 
   const handleSave = () => {
-    onSave(localParams);
-    onClose();
+    // Only proceed if we have the protocol data
+    if (!protocol) {
+      toast({
+        title: "Cannot update protocol",
+        description: "Protocol data not available",
+        status: "error",
+        duration: 3000,
+      });
+      return;
+    }
+
+    // Update the protocol with new parameters
+    updateProtocolMutation.mutate({
+      id: protocolId,
+      data: {
+        name: protocol.name,
+        description: protocol.description,
+        params: localParams,
+        commands: protocol.commands,
+        icon: protocol.icon || "",
+      },
+    });
+
+    // Still call the onSave callback if provided (for compatibility)
+    if (onSave) {
+      onSave(localParams);
+    }
   };
 
   // Find the variable associated with a parameter
@@ -181,22 +221,12 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
             <FormControl key={param}>
               <FormLabel>
                 {capitalizeFirst(param.replaceAll("_", " "))}
-                {variable && (
-                  <Badge ml={2} colorScheme="green">
-                    Variable: {variable.name}
-                  </Badge>
-                )}
               </FormLabel>
-              {schema.type === "number" ? (
-                <Input type="number" defaultValue={schema.default} isReadOnly={!!variable} />
-              ) : schema.type === "boolean" ? (
-                <Select defaultValue={String(schema.default)} isDisabled={!!variable}>
-                  <option value="true">true</option>
-                  <option value="false">false</option>
-                </Select>
-              ) : (
-                <Input defaultValue={schema.default} isReadOnly={!!variable} />
-              )}
+              <Input
+                value={variable?.value || ""}
+                placeholder="Default value"
+                isReadOnly
+              />
               <Text fontSize="sm" color="gray.500" mt={1}>
                 {schema.description}
               </Text>
@@ -266,9 +296,9 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                             persistentEdit={!schema.description}
                           />
                         </Td>
-                        <Td>
+                        <Td minW="200px">
                           <Select
-                            size="sm"
+                            size="md"
                             value={schema.variable_name || ""}
                             onChange={(e) => handleVariableSelect(paramName, e.target.value)}
                           >
@@ -285,7 +315,6 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                             aria-label="Delete parameter"
                             icon={<CloseIcon />}
                             fontSize={10}
-                            colorScheme="red"
                             variant="ghost"
                             onClick={() => handleDeleteParameter(paramName)}
                           />
@@ -313,7 +342,11 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
           <Button variant="ghost" mr={3} onClick={onClose}>
             Cancel
           </Button>
-          <Button colorScheme="blue" onClick={handleSave}>
+          <Button 
+            colorScheme="blue" 
+            onClick={handleSave}
+            isLoading={updateProtocolMutation.isLoading}
+          >
             Save
           </Button>
         </ModalFooter>
