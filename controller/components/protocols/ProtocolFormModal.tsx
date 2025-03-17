@@ -332,7 +332,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                 alignSelf="flex-start"
                 mt={4}
               >
-                Add Parameter
+                Add
               </Button>
             </Box>
           )}

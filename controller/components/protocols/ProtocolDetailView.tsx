@@ -413,7 +413,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       color={textColor}
       borderColor={borderColor}
       borderWidth="1px"
-      maxW="container.xl"
       mx="auto"
       overflow="hidden">
       <ProtocolFormModal
