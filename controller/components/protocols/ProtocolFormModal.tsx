@@ -25,16 +25,29 @@ import {
   Th,
   Td,
   Tooltip,
+  Badge,
 } from "@chakra-ui/react";
 import { AddIcon, CloseIcon, ViewIcon } from "@chakra-ui/icons";
 import { AiFillEdit } from "react-icons/ai";
 import { EditableText } from "@/components/ui/Form";
+import { trpc } from "@/utils/trpc";
 
-// Define the parameter schema interface
+// Define the variable interface
+interface Variable {
+  id: number;
+  name: string;
+  value: string;
+  type: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Define the parameter schema interface with added variable support
 interface ParameterSchema {
   type: string;
   description?: string;
   default?: any;
+  variable_name?: string; // Store variable name instead of ID
 }
 
 interface ProtocolFormModalProps {
@@ -53,6 +66,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
   const [localParams, setLocalParams] = useState<Record<string, ParameterSchema>>({});
   const [previewMode, setPreviewMode] = useState(true);
   const toast = useToast();
+  const { data: fetchedVariables, refetch } = trpc.variable.getAll.useQuery();
 
   // Initialize local params when modal opens
   useEffect(() => {
@@ -119,49 +133,37 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
     setLocalParams(newSchema);
   };
 
-  const handleDefaultValueChange = (paramName: string, value: string) => {
-    try {
-      const schema = localParams[paramName];
-      let defaultValue;
-
-      // Type validation based on schema type
-      switch (schema.type) {
-        case "number":
-          defaultValue = Number(value);
-          if (isNaN(defaultValue)) {
-            throw new Error("Invalid number");
-          }
-          break;
-        case "string":
-          defaultValue = value;
-          break;
-        case "boolean":
-          defaultValue = value === "true";
-          break;
-        default:
-          throw new Error("Invalid type");
-      }
-
-      const newSchema = { ...localParams };
+  // Handle variable selection by name
+  const handleVariableSelect = (paramName: string, variableName: string) => {
+    const newSchema = { ...localParams };
+    const variable = fetchedVariables?.find(v => v.name === variableName);
+    
+    if (variableName === "") {
+      // If clearing the variable selection, remove variable_name but keep other properties
+      const { variable_name, ...rest } = newSchema[paramName];
+      newSchema[paramName] = rest;
+    } else if (variable) {
+      // Update the parameter schema with variable info
       newSchema[paramName] = {
-        ...schema,
-        default: defaultValue,
+        ...newSchema[paramName],
+        type: variable.type,
+        default: variable.value,
+        variable_name: variable.name,
       };
-      setLocalParams(newSchema);
-    } catch (error) {
-      // Handle invalid input
-      toast({
-        title: "Invalid default value",
-        description: `Please enter a valid ${localParams[paramName].type}`,
-        status: "error",
-        duration: 3000,
-      });
     }
+    
+    setLocalParams(newSchema);
   };
 
   const handleSave = () => {
     onSave(localParams);
     onClose();
+  };
+
+  // Find the variable associated with a parameter
+  const getVariableForParam = (paramSchema: ParameterSchema) => {
+    if (!paramSchema.variable_name || !fetchedVariables) return null;
+    return fetchedVariables.find(v => v.name === paramSchema.variable_name);
   };
 
   // This is the mock implementation of the NewProtocolRunModal preview
@@ -171,32 +173,42 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
     };
 
     return (
-      <VStack align="start" spacing={4}>
-        {Object.entries(localParams).map(([param, schema]) => (
-          <FormControl key={param}>
-            <FormLabel>{capitalizeFirst(param.replaceAll("_", " "))}</FormLabel>
-            {schema.type === "number" ? (
-              <Input type="number" defaultValue={schema.default} />
-            ) : schema.type === "boolean" ? (
-              <Select defaultValue={String(schema.default)}>
-                <option value="true">true</option>
-                <option value="false">false</option>
-              </Select>
-            ) : (
-              <Input defaultValue={schema.default} />
-            )}
-            <Text fontSize="sm" color="gray.500" mt={1}>
-              {schema.description}
-            </Text>
-          </FormControl>
-        ))}
+      <VStack align="start" spacing={4} width="100%">
+        {Object.entries(localParams).map(([param, schema]) => {
+          const variable = getVariableForParam(schema);
+          
+          return (
+            <FormControl key={param}>
+              <FormLabel>
+                {capitalizeFirst(param.replaceAll("_", " "))}
+                {variable && (
+                  <Badge ml={2} colorScheme="green">
+                    Variable: {variable.name}
+                  </Badge>
+                )}
+              </FormLabel>
+              {schema.type === "number" ? (
+                <Input type="number" defaultValue={schema.default} isReadOnly={!!variable} />
+              ) : schema.type === "boolean" ? (
+                <Select defaultValue={String(schema.default)} isDisabled={!!variable}>
+                  <option value="true">true</option>
+                  <option value="false">false</option>
+                </Select>
+              ) : (
+                <Input defaultValue={schema.default} isReadOnly={!!variable} />
+              )}
+              <Text fontSize="sm" color="gray.500" mt={1}>
+                {schema.description}
+              </Text>
+            </FormControl>
+          );
+        })}
       </VStack>
     );
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size={previewMode ?
-      "lg" : "2xl"}>
+    <Modal isOpen={isOpen} onClose={onClose} size={previewMode ? "lg" : "2xl"}>
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>
@@ -205,7 +217,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
             <Tooltip label={previewMode ? "Switch to Edit Mode" : "Preview Run Form"}>
               <IconButton
                 aria-label="Toggle preview mode"
-                icon={previewMode ? <AiFillEdit fontSize="18px"/>:<ViewIcon fontSize="18px"/>}
+                icon={previewMode ? <AiFillEdit fontSize="18px"/> : <ViewIcon fontSize="18px"/>}
                 size="sm"
                 onClick={() => setPreviewMode(!previewMode)}
                 variant="ghost"
@@ -216,10 +228,8 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
         <ModalCloseButton />
         <ModalBody>
           {previewMode ? (
-            // Preview Mode - similar to NewProtocolRunModal
             renderPreviewMode()
           ) : (
-            // Edit Mode with Table Layout
             <Box>
               <Table variant="simple" size="md">
                 <Thead>
@@ -231,40 +241,58 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {Object.entries(localParams).map(([paramName, schema]) => (
-                    <Tr key={paramName}>
-                      <Td>
-                      <EditableText
-                          onSubmit={async (value) => {
-                            if(value)
-                            handleRenameParameter(paramName, value)
-                          }}
-                          defaultValue={paramName || ""}
-                        />
-                      </Td>
-                      <Td>
-                      <EditableText
-                          onSubmit={async (value) => {
-                            handleUpdateParameterSchema(paramName, "description", value);
-                          }}
-                          defaultValue={schema.description || ""}
-                        />
-                      </Td>
-                      <Td>
-                        <Input/>
-                      </Td>
-                      <Td>
-                        <IconButton
-                          aria-label="Delete parameter"
-                          icon={<CloseIcon />}
-                          fontSize={10}
-                          colorScheme="red"
-                          variant="ghost"
-                          onClick={() => handleDeleteParameter(paramName)}
-                        />
-                      </Td>
-                    </Tr>
-                  ))}
+                  {Object.entries(localParams).map(([paramName, schema]) => {
+                    const paramVariable = getVariableForParam(schema);
+                    
+                    return (
+                      <Tr key={paramName}>
+                        <Td>
+                          <EditableText
+                            onSubmit={(value) => {
+                              if(value)
+                                handleRenameParameter(paramName, value);
+                            }}
+                            defaultValue={paramName || ""}
+                            placeholder="Parameter name"
+                          />
+                        </Td>
+                        <Td>
+                          <EditableText
+                            onSubmit={(value) => {
+                              handleUpdateParameterSchema(paramName, "description", value);
+                            }}
+                            defaultValue={schema.description || ""}
+                            placeholder="Add description..."
+                            persistentEdit={!schema.description}
+                          />
+                        </Td>
+                        <Td>
+                          <Select
+                            size="sm"
+                            value={schema.variable_name || ""}
+                            onChange={(e) => handleVariableSelect(paramName, e.target.value)}
+                          >
+                            <option value="">No Variable</option>
+                            {fetchedVariables?.map((variable) => (
+                              <option key={variable.id} value={variable.name}>
+                                {variable.name} ({variable.type})
+                              </option>
+                            ))}
+                          </Select>
+                        </Td>
+                        <Td>
+                          <IconButton
+                            aria-label="Delete parameter"
+                            icon={<CloseIcon />}
+                            fontSize={10}
+                            colorScheme="red"
+                            variant="ghost"
+                            onClick={() => handleDeleteParameter(paramName)}
+                          />
+                        </Td>
+                      </Tr>
+                    );
+                  })}
                 </Tbody>
               </Table>
               <Button
@@ -275,7 +303,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                 alignSelf="flex-start"
                 mt={4}
               >
-                Add
+                Add Parameter
               </Button>
             </Box>
           )}

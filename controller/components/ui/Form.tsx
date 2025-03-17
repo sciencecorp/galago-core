@@ -31,6 +31,7 @@ export const Editable = (props: {
   ) => JSX.Element;
   preview: JSX.Element;
   defaultValue?: string;
+  placeHolder?: string;
   disabled?: boolean;
   startInEditView?: boolean;
   minWidth?: number;
@@ -107,14 +108,23 @@ export const Editable = (props: {
 export const EditableText = (props: {
   onSubmit: (value?: string | null) => void;
   defaultValue?: string;
+  placeholder?: string;
   minWidth?: number;
   preview?: JSX.Element;
   persistentEdit?: boolean;
   disabled?: boolean;
 }) => {
   const textColor = useColorModeValue("gray.800", "gray.100");
+  const placeholderColor = useColorModeValue("gray.400", "gray.500");
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const inputBg = useColorModeValue("white", "gray.700");
+
+  // Create a custom preview that shows placeholder text when empty
+  const customPreview = props.preview || (
+    <Text fontSize="sm" color={props.defaultValue ? textColor : placeholderColor} fontStyle={props.defaultValue ? "normal" : "italic"}>
+      {props.defaultValue || props.placeholder || "Click to edit"}
+    </Text>
+  );
 
   return (
     <Editable
@@ -134,16 +144,12 @@ export const EditableText = (props: {
           borderColor={borderColor}
           bg={inputBg}
           color={textColor}
+          placeholder={props.placeholder}
         />
       )}
-      preview={
-        props.preview || (
-          <Text fontSize="sm" color={textColor}>
-            {props.defaultValue || ""}
-          </Text>
-        )
-      }
+      preview={customPreview}
       defaultValue={props.defaultValue}
+      placeHolder={props.placeholder}
       minWidth={props.minWidth}
       persistentEdit={props.persistentEdit}
       disabled={props.disabled}

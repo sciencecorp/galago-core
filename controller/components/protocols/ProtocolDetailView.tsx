@@ -42,6 +42,7 @@ import {
   MenuItem,
   Center,
   Select,
+  Icon
 } from "@chakra-ui/react";
 import {
   DeleteIcon,
@@ -66,11 +67,14 @@ import SwimLaneCommandComponent from "../runs/list/SwimLaneCommandComponent";
 import { capitalizeFirst } from "@/utils/parser";
 import { VscRunBelow } from "react-icons/vsc";
 import { ProtocolFormModal } from "./ProtocolFormModal"
+import { MdOutlineFormatListBulleted } from "react-icons/md";
+import { FaPlay } from "react-icons/fa6";
+import { SaveIcon } from "@/components/ui/Icons";
 
 interface ParameterSchema {
   type: string;
   description?: string;
-  default?: any;
+  variable?: string;
 }
 
 // Move renderToolImage to be accessible to all components
@@ -102,7 +106,6 @@ const renderToolImage = (config: any) => {
     />
   );
 };
-
 
 const handleWheel = (e: WheelEvent) => {
   const container = e.currentTarget as HTMLElement;
@@ -216,6 +219,12 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     error,
     refetch,
   } = trpc.protocol.getById.useQuery({ id: parseInt(id) });
+
+  const { 
+    isOpen: isParametersModalOpen, 
+    onOpen: openParametersModal, 
+    onClose: closeParametersModal 
+  } = useDisclosure();
 
   const updateProtocol = trpc.protocol.update.useMutation({
     onSuccess: () => {
@@ -402,7 +411,16 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       maxW="container.xl"
       mx="auto"
       overflow="hidden">
-      <VStack align="stretch" spacing={6}>
+        <ProtocolFormModal
+          isOpen={isParametersModalOpen}
+          onClose={closeParametersModal}
+          initialParams={protocol.params || {}}
+          onSave={(newParams)=>{
+            setLocalParams(newParams);
+            closeParametersModal();
+          }}
+        />
+      <VStack align="stretch" spacing={6} width="100%">
         <HStack justify="space-between">
           <VStack align="start" spacing={2}>
             <Heading size="lg">{protocol.name}</Heading>
@@ -414,29 +432,36 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
           <HStack>
             {isEditing ? (
               <>
-                <Button colorScheme="green" onClick={handleSaveChanges}>
-                  Save Changes
-                </Button>
-                <Button variant="outline" onClick={() => setIsEditing(false)}>
-                  Cancel
-                </Button>
-              </>
-            ) : (
-              <>
-                  <ProtocolFormModal
-                    isOpen={isParametersModalOpen}
-                    onClose={closeParametersModal}
-                    initialParams={protocol.params || {}}
-                    onSave={handleProtocolFormSave}
-                  />
+                    <Button 
+                    leftIcon={<MdOutlineFormatListBulleted />}
+                    size="md" 
+                    onClick={openParametersModal}>
+                    Form 
+                    </Button>
+                    <IconButton 
+                        aria-label="Save"
+                        colorScheme="gray"
+                        onClick={handleSaveChanges}>
+                        <Icon as={SaveIcon} boxSize={6} />
+                    </IconButton>
+                    <Button variant="outline" onClick={() => setIsEditing(false)}>
+                      Cancel
+                    </Button>
+                  </>
+                ) : (
+                  <>
+
                 <Button
                   leftIcon={<EditIcon />}
                   colorScheme="teal"
                   onClick={() => setIsEditing(true)}>
-                  Edit Protocol
+                  Edit
                 </Button>
-                <Button colorScheme="green" onClick={handleRunClick}>
-                  Run Protocol
+                <Button 
+                  leftIcon={<FaPlay />}
+                  colorScheme="green" 
+                  onClick={handleRunClick}>
+                  Run
                 </Button>
               </>
             )}
@@ -447,7 +472,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         <Divider />
 
         {/* Add Parameter Schema Editor Section */}
-        <VStack align="stretch" spacing={4}>
+        {/* <VStack align="stretch" spacing={4}>
           <Heading size="md">Protocol Parameters</Heading>
           {isEditing ? (
             <Box p={4} borderWidth="1px" borderRadius="lg" borderColor={borderColor} bg={bgColor}>
@@ -642,7 +667,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
             </Box>
           )}
         </VStack>
-        <Divider />
+        <Divider /> */}
 
         <Box
           overflowX="auto"
