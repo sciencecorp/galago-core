@@ -377,7 +377,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       },
     });
 
-    setIsEditing(false);
   };
 
   const handleDelete = () => {
@@ -421,13 +420,8 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         initialParams={protocol.params || {}}
         protocolId={protocol.id}
         onSave={(newParams) => {
-          // We still handle the params update in local state to keep UI in sync
           setLocalParams(newParams);
-          
-          // Refetch the protocol data to ensure we have the latest from the database
           refetch();
-          
-          // Close the modal
           closeParametersModal();
         }}
       />
