@@ -21,6 +21,8 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  Badge,
+  Text,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
@@ -49,6 +51,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
 
   const toolsQuery = trpc.tool.getAll.useQuery();
   const toolBoxQuery = trpc.tool.getToolBox.useQuery();
+  const { data: fetchedVariables } = trpc.variable.getAll.useQuery();
+  
   const selectedToolData =
     toolsQuery.data?.find((tool) => tool.type === selectedToolType) ||
     (toolBoxQuery.data?.type === selectedToolType ? toolBoxQuery.data : undefined);
@@ -97,65 +101,114 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     onClose();
   };
 
-  const renderField = (field: Field) => {
-    // Add parameter reference button
-    const ParameterReferenceButton = () => (
-      <Menu>
-        <MenuButton
-          as={IconButton}
-          aria-label="Insert parameter reference"
-          icon={<AddIcon />}
-          size="sm"
-          variant="ghost"
-        />
-        <MenuList>
-          {Object.entries(protocolParams).map(([paramName, schema]) => (
-            <MenuItem
-              key={paramName}
-              onClick={() => {
-                setCommandParams({
-                  ...commandParams,
-                  [field.name]: `\${${paramName}}`,
-                });
-              }}>
-              {paramName} ({schema.type})
-            </MenuItem>
-          ))}
-        </MenuList>
-      </Menu>
-    );
+  // Function to handle variable selection
+  const handleVariableSelect = (fieldName: string, variableName: string) => {
+    if (variableName === "") {
+      // If clearing the variable selection
+      const valueWithoutVariable = commandParams[fieldName];
+      if (typeof valueWithoutVariable === 'string' && valueWithoutVariable.startsWith("{{") && valueWithoutVariable.endsWith("}}")) {
+        // If it was a variable reference, clear it completely
+        const newParams = { ...commandParams };
+        delete newParams[fieldName];
+        setCommandParams(newParams);
+      }
+    } else {
+      // Set the parameter value to the variable reference format
+      setCommandParams({
+        ...commandParams,
+        [fieldName]: `{{${variableName}}}`,
+      });
+    }
+  };
 
+  // Check if a parameter value is a variable reference
+  const isVariableReference = (value: any): boolean => {
+    return typeof value === 'string' && value.startsWith("{{") && value.endsWith("}}");
+  };
+
+  // Extract variable name from variable reference
+  const getVariableNameFromReference = (value: string): string => {
+    if (isVariableReference(value)) {
+      return value.slice(2, -2); // Remove {{ and }}
+    }
+    return "";
+  };
+
+  const renderField = (field: Field) => {
+    // Get current value
+    const currentValue = commandParams[field.name];
+    const isVariable = isVariableReference(currentValue);
+    const variableName = isVariable ? getVariableNameFromReference(currentValue) : "";
+    
     // Special handling for PF400 location and sequence fields
     if (selectedToolType === "pf400") {
       // For move command's name parameter (locations)
       if (selectedCommand === "move" && field.name === "name") {
         return (
-          <Select
-            value={commandParams[field.name] || ""}
-            onChange={(e) => setCommandParams({ ...commandParams, [field.name]: e.target.value })}>
-            <option value="">Select location</option>
-            {waypointsQuery.data?.locations.map((loc) => (
-              <option key={loc.id} value={loc.name}>
-                {loc.name}
-              </option>
-            ))}
-          </Select>
+          <HStack width="100%">
+            <Select
+              flex={1}
+              value={isVariable ? "" : (currentValue || "")}
+              onChange={(e) => {
+                if (e.target.value) {
+                  setCommandParams({ ...commandParams, [field.name]: e.target.value });
+                }
+              }}
+              isDisabled={isVariable}>
+              <option value="">Select location</option>
+              {waypointsQuery.data?.locations.map((loc) => (
+                <option key={loc.id} value={loc.name}>
+                  {loc.name}
+                </option>
+              ))}
+            </Select>
+            <Select
+              width="180px"
+              value={variableName}
+              onChange={(e) => handleVariableSelect(field.name, e.target.value)}>
+              <option value="">No Variable</option>
+              {fetchedVariables?.map((variable) => (
+                <option key={variable.id} value={variable.name}>
+                  {variable.name}
+                </option>
+              ))}
+            </Select>
+          </HStack>
         );
       }
 
       // For run_sequence command's sequence_name parameter
       if (selectedCommand === "run_sequence" && field.name === "sequence_name") {
         return (
-          <Select
-            value={commandParams[field.name] || ""}
-            onChange={(e) => setCommandParams({ ...commandParams, [field.name]: e.target.value })}>
-            <option value="">Select sequence</option>
-            {waypointsQuery.data?.sequences.map((seq) => (
-              <option key={seq.id} value={seq.name}>
-                {seq.name}
-              </option>
-            ))}
-          </Select>
+          <HStack width="100%">
+            <Select
+              flex={1}
+              value={isVariable ? "" : (currentValue || "")}
+              onChange={(e) => {
+                if (e.target.value) {
+                  setCommandParams({ ...commandParams, [field.name]: e.target.value });
+                }
+              }}
+              isDisabled={isVariable}>
+              <option value="">Select sequence</option>
+              {waypointsQuery.data?.sequences.map((seq) => (
+                <option key={seq.id} value={seq.name}>
+                  {seq.name}
+                </option>
+              ))}
+            </Select>
+            <Select
+              width="180px"
+              value={variableName}
+              onChange={(e) => handleVariableSelect(field.name, e.target.value)}>
+              <option value="">No Variable</option>
+              {fetchedVariables?.map((variable) => (
+                <option key={variable.id} value={variable.name}>
+                  {variable.name}
+                </option>
+              ))}
+            </Select>
+          </HStack>
         );
       }
     }
@@ -164,70 +217,128 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     switch (field.type) {
       case "number":
         return (
-          <HStack>
+          <HStack width="100%">
             <NumberInput
               flex={1}
-              value={commandParams[field.name] || field.defaultValue || ""}
-              onChange={(value) =>
-                setCommandParams({ ...commandParams, [field.name]: parseFloat(value) })
-              }>
-              <NumberInputField />
+              value={isVariable ? "" : (currentValue || field.defaultValue || "")}
+              onChange={(value) => {
+                if (!isVariable) {
+                  setCommandParams({ ...commandParams, [field.name]: parseFloat(value) });
+                }
+              }}
+              isDisabled={isVariable}>
+              <NumberInputField placeholder={isVariable ? "Using variable" : "Enter value"} />
             </NumberInput>
-            <ParameterReferenceButton />
+            <Select
+              width="180px"
+              value={variableName}
+              onChange={(e) => handleVariableSelect(field.name, e.target.value)}>
+              <option value="">No Variable</option>
+              {fetchedVariables?.map((variable) => (
+                <option key={variable.id} value={variable.name}>
+                  {variable.name}
+                </option>
+              ))}
+            </Select>
           </HStack>
         );
       case "text_array":
         return (
-          <HStack>
+          <HStack width="100%">
             <Input
               flex={1}
               value={
-                commandParams[field.name]
-                  ? JSON.stringify(commandParams[field.name])
-                  : field.defaultValue
-                    ? JSON.stringify(field.defaultValue)
-                    : ""
+                isVariable 
+                  ? "" 
+                  : (currentValue 
+                      ? JSON.stringify(currentValue)
+                      : (field.defaultValue ? JSON.stringify(field.defaultValue) : ""))
               }
               onChange={(e) => {
-                try {
-                  const arrayValue = JSON.parse(e.target.value);
-                  setCommandParams({ ...commandParams, [field.name]: arrayValue });
-                } catch {
-                  // If parsing fails, store as string
-                  setCommandParams({ ...commandParams, [field.name]: e.target.value });
+                if (!isVariable) {
+                  try {
+                    const arrayValue = JSON.parse(e.target.value);
+                    setCommandParams({ ...commandParams, [field.name]: arrayValue });
+                  } catch {
+                    // If parsing fails, store as string
+                    setCommandParams({ ...commandParams, [field.name]: e.target.value });
+                  }
                 }
               }}
-              placeholder="Enter as JSON array: ['item1', 'item2']"
+              placeholder={isVariable ? "Using variable" : "Enter as JSON array: ['item1', 'item2']"}
+              isDisabled={isVariable}
             />
-            <ParameterReferenceButton />
+            <Select
+              width="180px"
+              value={variableName}
+              onChange={(e) => handleVariableSelect(field.name, e.target.value)}>
+              <option value="">No Variable</option>
+              {fetchedVariables?.map((variable) => (
+                <option key={variable.id} value={variable.name}>
+                  {variable.name}
+                </option>
+              ))}
+            </Select>
           </HStack>
         );
       case "boolean":
         return (
-          <HStack>
+          <HStack width="100%">
             <Select
               flex={1}
               value={
-                commandParams[field.name]?.toString() || field.defaultValue?.toString() || "false"
+                isVariable 
+                  ? "" 
+                  : (currentValue?.toString() || field.defaultValue?.toString() || "false")
               }
-              onChange={(e) =>
-                setCommandParams({ ...commandParams, [field.name]: e.target.value === "true" })
-              }>
+              onChange={(e) => {
+                if (!isVariable) {
+                  setCommandParams({ ...commandParams, [field.name]: e.target.value === "true" });
+                }
+              }}
+              isDisabled={isVariable}>
+              <option value="">Select value</option>
               <option value="true">True</option>
               <option value="false">False</option>
             </Select>
-            <ParameterReferenceButton />
+            <Select
+              width="180px"
+              value={variableName}
+              onChange={(e) => handleVariableSelect(field.name, e.target.value)}>
+              <option value="">No Variable</option>
+              {fetchedVariables?.map((variable) => (
+                <option key={variable.id} value={variable.name}>
+                  {variable.name}
+                </option>
+              ))}
+            </Select>
           </HStack>
         );
       default:
         return (
-          <HStack>
+          <HStack width="100%">
             <Input
               flex={1}
-              value={commandParams[field.name] || field.defaultValue || ""}
-              onChange={(e) => setCommandParams({ ...commandParams, [field.name]: e.target.value })}
+              value={isVariable ? "" : (currentValue || field.defaultValue || "")}
+              onChange={(e) => {
+                if (!isVariable) {
+                  setCommandParams({ ...commandParams, [field.name]: e.target.value });
+                }
+              }}
+              placeholder={isVariable ? "Using variable" : "Enter value"}
+              isDisabled={isVariable}
             />
-            <ParameterReferenceButton />
+            <Select
+              width="180px"
+              value={variableName}
+              onChange={(e) => handleVariableSelect(field.name, e.target.value)}>
+              <option value="">No Variable</option>
+              {fetchedVariables?.map((variable) => (
+                <option key={variable.id} value={variable.name}>
+                  {variable.name}
+                </option>
+              ))}
+            </Select>
           </HStack>
         );
     }
@@ -285,12 +396,24 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
 
             {fields.length > 0 && (
               <VStack spacing={4} align="stretch" width="100%">
-                {fields.map((field: Field) => (
-                  <FormControl key={field.name}>
-                    <FormLabel>{field.name}</FormLabel>
-                    {renderField(field)}
-                  </FormControl>
-                ))}
+                {fields.map((field: Field) => {
+                  const isVariable = isVariableReference(commandParams[field.name]);
+                  const variableName = isVariable ? getVariableNameFromReference(commandParams[field.name]) : "";
+                  
+                  return (
+                    <FormControl key={field.name}>
+                      <FormLabel>
+                        {field.name}
+                        {isVariable && (
+                          <Badge ml={2} colorScheme="green">
+                            Variable: {variableName}
+                          </Badge>
+                        )}
+                      </FormLabel>
+                      {renderField(field)}
+                    </FormControl>
+                  );
+                })}
               </VStack>
             )}
           </VStack>

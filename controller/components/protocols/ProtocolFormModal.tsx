@@ -221,6 +221,9 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
             <FormControl key={param}>
               <FormLabel>
                 {capitalizeFirst(param.replaceAll("_", " "))}
+                <Badge colorScheme="blue" ml={2}>
+                  {schema.type}
+                </Badge>
               </FormLabel>
               <Input
                 value={variable?.value || ""}
