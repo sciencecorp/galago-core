@@ -101,7 +101,7 @@ message Command {
   }
 
   message RunPythonScript {
-    string script_content = 1;
+    string name = 1;
     bool blocking = 2;
   }
 

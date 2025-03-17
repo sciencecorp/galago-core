@@ -175,7 +175,7 @@ class ScriptFolder(Base, TimestampMixin):
 class Script(Base, TimestampMixin):
     __tablename__ = "scripts"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=False, unique=True)
     description = Column(String, nullable=False)
     content = Column(String, nullable=False)
     language = Column(String, nullable=False)

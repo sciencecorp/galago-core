@@ -162,7 +162,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   const inc = getIncrementButtonProps();
   const dec = getDecrementButtonProps();
   const numberOfRuns = getInputProps();
-
+  const runCountBg = useColorModeValue("gray.50", "gray.800");
   const createRunMutation = trpc.run.create.useMutation({
     onSuccess: (data) => {
       router.push(`/runs`);
@@ -230,18 +230,20 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                         </FormControl>
                       );
                     })}
-                    <Divider borderColor={spacerColor} shadow="lg" />
-                    <FormControl>
-                      <FormLabel textAlign="center">No. Runs</FormLabel>
-                      <HStack justifyContent="center">
-                        <Button {...dec}>-</Button>
-                        <Input maxWidth="150px" {...numberOfRuns} textAlign="center" />
-                        <Button {...inc}>+</Button>
-                      </HStack>
-                    </FormControl>
+
                     {formErrors?._errors.map((key, error) => (
                       <FormErrorMessage key={key}>{error}</FormErrorMessage>
                     ))}
+                    <Box width="100%" borderRadius="md" p={4} bg={runCountBg} mt={4}>
+                    <FormControl>
+                      <FormLabel textAlign="center">Number of Runs</FormLabel>
+                      <HStack justifyContent="center">
+                        <Button {...dec}>-</Button>
+                        <Input maxWidth="250px" {...numberOfRuns} textAlign="center" />
+                        <Button {...inc}>+</Button>
+                      </HStack>
+                    </FormControl>
+                    </Box>
                   </>
                 </VStack>
               </ModalBody>

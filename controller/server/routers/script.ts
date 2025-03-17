@@ -17,7 +17,7 @@ export const zScript = z.object({
   content: z.string(),
   description: z.string().optional(),
   language: z.string(),
-  folder_id: z.number().optional(),
+  folder_id: z.number().nullable().optional(),
 });
 
 export const zScriptFolder = z.object({
@@ -64,8 +64,14 @@ export const scriptRouter = router({
   }),
 
   edit: procedure.input(zScript).mutation(async ({ input }) => {
-    const { id } = input;
-    const response = await put<Script>(`/scripts/${id}`, input);
+    // Ensure folder_id is handled properly - if it's null or undefined, we'll set it to null explicitly
+    const data = {
+      ...input,
+      folder_id: input.folder_id === undefined ? null : input.folder_id
+    };
+    
+    const { id } = data;
+    const response = await put<Script>(`/scripts/${id}`, data);
     logAction({
       level: "info",
       action: "Script Edited",
