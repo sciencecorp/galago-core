@@ -62,7 +62,7 @@ export function useCommandHandlers(config: Tool) {
     action: "open" | "close",
     params: GripParams,
   ) => {
-    const width = action === "open" ? (params.width + 10 ): params.width;
+    const width = action === "open" ? params.width + 10 : params.width;
     const gripperCommand: ToolCommandInfo = {
       toolId: config.name,
       toolType: config.type as ToolType,
