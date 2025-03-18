@@ -228,8 +228,8 @@ export const Labware: React.FC = () => {
                       <Th>Z-Off</Th>
                       <Th>W</Th>
                       <Th>H</Th>
-                      <Th>Lid Z</Th>
-                      <Th>Lid Off</Th>
+                      <Th>Lid On Offset</Th>
+                      <Th>Lid Nest Offset</Th>
                       <Th>Stack H</Th>
                       <Th>Lid</Th>
                       <Th>Actions</Th>

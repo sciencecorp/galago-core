@@ -82,7 +82,7 @@ export default class Tool {
 
   static async loadPF400Waypoints() {
     const waypointsReponse = await get<any>(`/robot-arm-waypoints?tool_id=1`);
-    if (Tool.forId("pf400").status !== ToolStatus.READY) return;
+    // if (Tool.forId("pf400").status !== ToolStatus.READY) return;
     await this.executeCommand({
       toolId: "pf400",
       toolType: ToolType.pf400,
@@ -95,7 +95,7 @@ export default class Tool {
 
   static async loadLabwareToPF400() {
     const labwareResponse = await get<Labware>(`/labware`);
-    if (Tool.forId("pf400").status !== ToolStatus.READY) return;
+    // if (Tool.forId("pf400").status !== ToolStatus.READY) return;
     await this.executeCommand({
       toolId: "pf400",
       toolType: ToolType.pf400,
@@ -113,8 +113,6 @@ export default class Tool {
       action: "Tool Configuration",
       details: `Configuring tool ${this.info.name} of type ${this.info.type} with config: ${JSON.stringify(config).replaceAll("{", "").replaceAll("}", "")}`,
     });
-    await Tool.loadLabwareToPF400();
-    await Tool.loadPF400Waypoints();
     this.config = config;
     const reply = await this.grpc.configure(config);
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
@@ -128,6 +126,8 @@ export default class Tool {
         reply.response,
       );
     }
+    await Tool.loadLabwareToPF400();
+    await Tool.loadPF400Waypoints();
   }
 
   _payloadForCommand(command: ToolCommandInfo): tool_base.Command {
