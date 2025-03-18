@@ -1,6 +1,5 @@
 import React from "react";
-import { VStack, useColorModeValue, Text } from "@chakra-ui/react";
-import { Search2Icon } from "@chakra-ui/icons";
+import { VStack, useColorModeValue, Text,Icon, Heading } from "@chakra-ui/react";
 import { BsInbox } from "react-icons/bs";
 
 export interface EmptyStateProps {
@@ -22,13 +21,13 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     bg={useColorModeValue("gray.50", "gray.700")}
     opacity="0.7"
     spacing={5}>
-    <BsInbox fontSize={20} />
-    <VStack spacing={0}>
-      <Text fontWeight="semibold" fontSize="sm">
+    <Icon as={BsInbox} boxSize={8} color="gray.400" />
+    <VStack spacing={3} textAlign="center">
+    <Heading size="md" color="gray.400" fontWeight="medium">
         {title}
-      </Text>
+    </Heading>
       {description && (
-        <Text fontWeight="medium" fontSize="xs">
+        <Text color="gray.500" fontSize="sm">
           {description}
         </Text>
       )}
