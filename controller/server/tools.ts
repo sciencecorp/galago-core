@@ -126,8 +126,8 @@ export default class Tool {
         reply.response,
       );
     }
-    await Tool.loadLabwareToPF400();
-    await Tool.loadPF400Waypoints();
+    // await Tool.loadLabwareToPF400();
+    // await Tool.loadPF400Waypoints();
   }
 
   _payloadForCommand(command: ToolCommandInfo): tool_base.Command {
