@@ -257,17 +257,15 @@ export const commandFields: CommandFields = {
       { name: "labware", type: "text" },
       { name: "location", type: "text" },
       { name: "motion_profile_id", type: "number", defaultValue: 1 },
-      { name: "pick_from_plate", type:"boolean", defaultValue:true},
+      { name: "pick_from_plate", type: "boolean", defaultValue: true },
       { name: "approach_height", type: "number", defaultValue: 10 },
-
     ],
     place_lid: [
       { name: "labware", type: "text" },
       { name: "location", type: "text" },
       { name: "motion_profile_id", type: "number", defaultValue: 1 },
-      { name: "place_on_plate", type:"boolean", defaultValue:true},
+      { name: "place_on_plate", type: "boolean", defaultValue: true },
       { name: "approach_height", type: "number", defaultValue: 10 },
-
     ],
     retract: [],
   },

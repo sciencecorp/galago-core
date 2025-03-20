@@ -27,7 +27,7 @@ import {
   MenuItem,
   MenuDivider,
   Badge,
-  Text
+  Text,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { FaPlay } from "react-icons/fa";
@@ -136,7 +136,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
       if (selectedSequence?.id === sequenceToDelete.id) {
         // Select another sequence if available after deletion
         if (sequences.length > 1) {
-          const nextSequence = sequences.find(seq => seq.id !== sequenceToDelete.id);
+          const nextSequence = sequences.find((seq) => seq.id !== sequenceToDelete.id);
           if (nextSequence) {
             setSelectedSequence(nextSequence);
           }
@@ -152,7 +152,10 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
   const headerBgColor = useColorModeValue("gray.50", "gray.700");
   const hoverBgColor = useColorModeValue("gray.50", "gray.700");
   const textColor = useColorModeValue("gray.800", "gray.100");
-
+  const panelShadowColor = useColorModeValue(
+    "0 1px 3px rgba(0, 0, 0, 0.1)",
+    "0 1px 3px rgba(0, 0, 0, 0.3)",
+  );
   return (
     <Box height="100%" overflow="hidden">
       <VStack height="100%" spacing={4}>
@@ -174,10 +177,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                   borderWidth="1px"
                   borderRadius="md"
                   borderColor={borderColor}
-                  boxShadow={useColorModeValue(
-                    "0 1px 3px rgba(0, 0, 0, 0.1)",
-                    "0 1px 3px rgba(0, 0, 0, 0.3)",
-                  )}>
+                  boxShadow={panelShadowColor}>
                   <Table
                     variant="simple"
                     size="sm"
@@ -249,7 +249,9 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                                   minW="32px"
                                 />
                                 <MenuList onClick={(e) => e.stopPropagation()}>
-                                  <MenuItem icon={<FaPlay />} onClick={() => setSequenceToRun(sequence)}>
+                                  <MenuItem
+                                    icon={<FaPlay />}
+                                    onClick={() => setSequenceToRun(sequence)}>
                                     Run Sequence
                                   </MenuItem>
                                   <MenuItem
@@ -323,8 +325,8 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                     config={config}
                   />
                 ) : (
-                  <EmptyState 
-                    title="No Sequence Selected" 
+                  <EmptyState
+                    title="No Sequence Selected"
                     description="Please select a sequence from the list to view and edit its commands."
                   />
                 )}
@@ -334,11 +336,6 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
             <EmptyState
               title="No Sequences Found"
               description="Create a new sequence to get started."
-              action={
-                <Button leftIcon={<AddIcon />} onClick={onCreateNew} colorScheme="blue">
-                  Create Sequence
-                </Button>
-              }
             />
           )}
         </Box>
@@ -394,7 +391,8 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                   <Text>
                     Are you sure you want to run the sequence &quot;{sequenceToRun?.name}&quot;?
                   </Text>
-                  This sequence contains {sequenceToRun.commands.length} command{sequenceToRun.commands.length !== 1 ? 's' : ''}.
+                  This sequence contains {sequenceToRun.commands.length} command
+                  {sequenceToRun.commands.length !== 1 ? "s" : ""}.
                 </Box>
               ) : (
                 <Box mt={2} color="yellow.500">
@@ -406,17 +404,16 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
               <Button ref={runConfirmRef} onClick={() => setSequenceToRun(null)}>
                 Cancel
               </Button>
-              <Button 
+              <Button
                 isDisabled={!sequenceToRun?.commands || sequenceToRun.commands.length === 0}
-                colorScheme="blue" 
+                colorScheme="blue"
                 onClick={() => {
                   if (sequenceToRun) {
                     onRun(sequenceToRun);
                     setSequenceToRun(null);
                   }
-                }} 
-                ml={3}
-              >
+                }}
+                ml={3}>
                 Run
               </Button>
             </AlertDialogFooter>

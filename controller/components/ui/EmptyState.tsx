@@ -1,14 +1,16 @@
 import React from "react";
-import { VStack, useColorModeValue, Text } from "@chakra-ui/react";
-import { Search2Icon } from "@chakra-ui/icons";
+import { VStack, useColorModeValue, Text, Icon, Heading } from "@chakra-ui/react";
+import { BsInbox } from "react-icons/bs";
 
 export interface EmptyStateProps {
   title?: string;
+  description?: string;
   size?: string;
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
-  title = "No results found",
+  title = "It's empty here",
+  description,
   size = "sm",
 }) => (
   <VStack
@@ -19,14 +21,16 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     bg={useColorModeValue("gray.50", "gray.700")}
     opacity="0.7"
     spacing={5}>
-    <Search2Icon boxSize={6} />
-    <VStack spacing={0}>
-      <Text fontWeight="semibold" fontSize="sm">
-        It's empty here.
-      </Text>
-      <Text fontWeight="medium" fontSize="xs">
+    <Icon as={BsInbox} boxSize={8} color="gray.400" />
+    <VStack spacing={3} textAlign="center">
+      <Heading size="md" color="gray.400" fontWeight="medium">
         {title}
-      </Text>
+      </Heading>
+      {description && (
+        <Text color="gray.500" fontSize="sm">
+          {description}
+        </Text>
+      )}
     </VStack>
   </VStack>
 );
