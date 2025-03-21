@@ -50,8 +50,8 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
   const toast = useToast();
   const addTool = trpc.tool.add.useMutation();
   const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery();
+  const selectedToolBg = useColorModeValue("teal.100", "teal.900");
 
-  // Filter out tools we don't want to show
   const availableTools = Object.values(ToolType)
     .filter(
       (tool) =>
@@ -152,7 +152,7 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
         p={2}
         borderRadius="lg"
         cursor="pointer"
-        bg={isSelected ? useColorModeValue("teal.100", "teal.900") : toolCardBg}
+        bg={isSelected ? selectedToolBg : toolCardBg}
         borderColor={isSelected ? "teal.500" : "gray.200"}
         boxShadow="md"
         _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
