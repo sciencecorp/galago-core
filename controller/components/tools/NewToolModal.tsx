@@ -217,7 +217,7 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
                 )}
               </Flex>
               <Box
-                maxH="calc(3 * 130px + 3 * 1rem)" // 3 rows of cards (approx 120px each) + spacing
+                maxH="calc(3 * 140px + 3 * 1rem)" // 3 rows of cards (approx 130px each) + spacing
                 overflowY="auto"
                 pr={2}
                 py={5}>
