@@ -11,7 +11,8 @@ export interface ProtocolParamInfo {
   type: ProtocolParamType;
   description: string;
   options: string[];
-  variable_name?: string;
+  variable_id?: number;
+  default?: string;
 }
 
 export const index = z.number().positive().int();

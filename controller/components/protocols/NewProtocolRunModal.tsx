@@ -50,7 +50,8 @@ function ParamInput({
     case "number":
       return (
         <NumberInput
-          value={value ?? paramInfo.default ?? ""}
+          defaultValue={value ?? paramInfo.default_value ?? paramInfo.description}
+          value={value ?? ""}
           onChange={(_stringValue, numberValue) => {
             // Ensure we pass a number, not a string
             setValue(typeof numberValue === "string" ? parseFloat(numberValue) : numberValue);
@@ -65,7 +66,8 @@ function ParamInput({
     case "enum":
       return (
         <Select
-          value={value ?? paramInfo.default ?? ""}
+          defaultValue={value ?? paramInfo.default_value ?? paramInfo.description}
+          value={value ?? ""}
           onChange={(e) => setValue(e.currentTarget.value)}>
           {paramInfo.options.map((value) => (
             <option key={value} value={value}>
@@ -78,40 +80,50 @@ function ParamInput({
       if (Array.isArray(paramInfo.default)) {
         return (
           <Input
-            value={value ?? paramInfo.default ?? ""}
+            value={value ?? paramInfo.default_value ?? paramInfo.default ?? ""}
             onChange={(e) => setValue(e.currentTarget.value.split(",").map((s) => s.trim()))}
           />
         );
       } else {
         return (
           <Input
-            value={value ?? paramInfo.default ?? ""}
+            value={value ?? paramInfo.default_value ?? paramInfo.default ?? ""}
             onChange={(e) => setValue(e.currentTarget.value)}
           />
         );
       }
     case "boolean":
+      // Handle different boolean representations
+      let isChecked = false;
+      if (value === true || value === "true" || value === "True") {
+        isChecked = true;
+      } else if (value === null || value === undefined) {
+        // Fall back to defaults if value not set
+        isChecked = paramInfo.default_value === true || 
+                   paramInfo.default_value === "true" || 
+                   paramInfo.default === true ||
+                   paramInfo.default === "true";
+      }
+      
       return (
         <Checkbox
-          isChecked={value ?? paramInfo.default ?? false}
-          onChange={(e) => setValue(e.currentTarget.checked)}
+          isChecked={isChecked}
+          onChange={(e) => setValue(e.target.checked)}
         />
       );
     case "Barcode":
       return (
         <Input
-          value={value ?? paramInfo.default ?? ""}
+          value={value ?? paramInfo.default_value ?? paramInfo.default ?? ""}
           onChange={(e) => setValue(e.currentTarget.value)}
         />
       );
-    case "WellPlateWithWells":
-      return <div>Insert cool well plate picker here</div>;
     default:
       return (
         <>
           <Text>Unknown param type: {paramInfo.type}</Text>
           <Input
-            value={value ?? paramInfo.default ?? ""}
+            value={value ?? paramInfo.default_value ?? paramInfo.default ?? ""}
             onChange={(e) => setValue(e.currentTarget.value)}
           />
         </>
@@ -125,6 +137,8 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   const workcellData = trpc.workcell.getSelectedWorkcell.useQuery();
   const workcellName = workcellData.data;
   const editVariable = trpc.variable.edit.useMutation();
+  const variablesQuery = trpc.variable.getAll.useQuery();
+
   const protocol = trpc.protocol.get.useQuery(
     {
       id: id,
@@ -151,6 +165,24 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
     if (protocol.data) {
       console.log("Protocol data:");
       console.log(protocol.data.params);
+
+      // Initialize user-defined params with default values
+      if (protocol.data.params) {
+        const initialParams: Record<string, any> = {};
+        Object.entries(protocol.data.params).forEach(([param, paramInfo]) => {
+          // @ts-ignore - We know this is ProtocolParamInfo
+          const paramSchema = paramInfo as any;
+          let defaultValue = paramSchema.default_value || paramSchema.default || null;
+          
+          // Special handling for boolean values
+          if (paramSchema.type === "boolean") {
+            defaultValue = defaultValue === true || defaultValue === "true";
+          }
+          
+          initialParams[param] = defaultValue;
+        });
+        setUserDefinedParams(initialParams);
+      }
     }
   }, [protocol.data]);
 
@@ -171,7 +203,6 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   const dec = getDecrementButtonProps();
   const numberOfRuns = getInputProps();
   const runCountBg = useColorModeValue("gray.50", "gray.800");
-
 
   const createRunMutation = trpc.run.create.useMutation({
     onSuccess: (data) => {
@@ -197,6 +228,84 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
     onClose();
   };
 
+  const handleSuccess = () => {
+    toast({
+      title: "Run queued successfully",
+      status: "success",
+      duration: 3000,
+    });
+    handleClose();
+  };
+
+  // Function to update all linked variables before queueing the run
+  const updateLinkedVariablesAndQueueRun = async () => {
+    try {
+      // Get all parameters with linked variables
+      const linkedParams = Object.entries(uiParams).filter(
+        ([_, paramInfo]) => (paramInfo as any).variable_id
+      );
+
+      // Update all linked variables with new values from the form
+      const updatePromises = linkedParams.map(async ([paramName, paramInfo]) => {
+        const variableId = (paramInfo as any).variable_id;
+        if (!variableId) return null;
+
+        // Get the variable from our query
+        const variable = variablesQuery.data?.find(v => v.id === variableId);
+        if (!variable) return null;
+
+        // Get the new value from the form
+        const newValue = userDefinedParams[paramName];
+        
+        // If value hasn't changed, don't update
+        if (newValue === variable.value) return null;
+
+        // Special handling for boolean values to ensure consistency
+        let valueToSave = newValue;
+        if (variable.type === "boolean") {
+          valueToSave = newValue === true || newValue === "true";
+        }
+        
+        // Update the variable
+        return editVariable.mutateAsync({
+          id: variableId,
+          value: valueToSave.toString(),
+          name: variable.name,
+          type: variable.type,
+        });
+      });
+
+      // Wait for all variable updates to complete
+      await Promise.all(updatePromises.filter(Boolean));
+
+      console.log("All linked variables updated");
+      console.log("QUEUing run");
+      console.log(userDefinedParams);
+
+      // Now queue the run
+      await createRunMutation.mutate(
+        {
+          protocolId: id,
+          workcellName: workcellName!,
+          params: userDefinedParams,
+          numberOfRuns: Number(numberOfRuns.value),
+        },
+        {
+          onSuccess: handleSuccess,
+        }
+      );
+    } catch (error) {
+      console.error("Error updating variables:", error);
+      toast({
+        title: "Error updating variables",
+        description: "Failed to update linked variables before queueing the run, Error: \n" + error,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
   return (
     <>
       {workcellName && uiParams && protocol && (
@@ -215,9 +324,22 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                 <VStack align="start" spacing={4}>
                   <>
                     {Object.entries(uiParams).map(([param, paramInfo]) => {
+                      // Find if this parameter has a linked variable
+                      const linkedVariableId = (paramInfo as any).variable_id;
+                      const linkedVariable = linkedVariableId && variablesQuery.data 
+                        ? variablesQuery.data.find(v => v.id === linkedVariableId)
+                        : null;
+                      
                       return (
                         <FormControl key={param} isInvalid={!!(formErrors && formErrors[param])}>
-                          <FormLabel>{capitalizeFirst(param.replaceAll("_", " "))}</FormLabel>
+                          <FormLabel>
+                            {capitalizeFirst(param.replaceAll("_", " "))}
+                            {linkedVariable && (
+                              <Text as="span" ml={2} fontSize="sm" color="blue.500">
+                                (Linked to variable: {linkedVariable.name})
+                              </Text>
+                            )}
+                          </FormLabel>
                           <ParamInput
                             paramInfo={paramInfo as ProtocolParamInfo}
                             value={userDefinedParams[param]}
@@ -256,24 +378,10 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                 <ButtonGroup>
                   <Button onClick={handleClose}>Cancel</Button>
                   <Button
-                    isLoading={createRunMutation.isLoading}
-                    isDisabled={createRunMutation.isLoading}
+                    isLoading={createRunMutation.isLoading || editVariable.isLoading}
+                    isDisabled={createRunMutation.isLoading || editVariable.isLoading}
                     colorScheme="teal"
-                    onClick={async () => {
-                      console.log("QUEUing run");
-                      console.log(userDefinedParams);
-                      // await createRunMutation.mutate(
-                      //   {
-                      //     protocolId: id,
-                      //     workcellName: workcellName,
-                      //     params: userDefinedParams,
-                      //     numberOfRuns: Number(numberOfRuns.value),
-                      //   },
-                      //   {
-                      //     onSuccess: handleSuccess,
-                      //   },
-                      // );
-                    }}>
+                    onClick={updateLinkedVariablesAndQueueRun}>
                     Queue Run
                   </Button>
                 </ButtonGroup>
