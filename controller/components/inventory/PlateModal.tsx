@@ -24,10 +24,14 @@ import {
   DrawerOverlay,
   DrawerContent,
   DrawerCloseButton,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { Plate, Well, Reagent } from "@/types/api";
 import { PlateGrid } from "@/components/ui/PlateGrid";
 import { trpc } from "@/utils/trpc";
+import { semantic } from "../../themes/colors";
+import tokens from "../../themes/tokens";
+import { Icon, FormIcons } from "../ui/Icons";
 
 interface PlateModalProps {
   isOpen: boolean;
@@ -46,6 +50,29 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
   });
 
   const toast = useToast();
+
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
+  const textSecondary = useColorModeValue(
+    semantic.text.secondary.light,
+    semantic.text.secondary.dark,
+  );
+  const borderColor = useColorModeValue(
+    semantic.border.secondary.light,
+    semantic.border.secondary.dark,
+  );
+  const modalBg = useColorModeValue(
+    semantic.background.primary.light,
+    semantic.background.primary.dark,
+  );
+  const accentColor = useColorModeValue(semantic.text.accent.light, semantic.text.accent.dark);
+  const buttonBg = useColorModeValue(
+    semantic.background.secondary.light,
+    semantic.background.secondary.dark,
+  );
+  const buttonHoverBg = useColorModeValue(
+    semantic.background.hover.light,
+    semantic.background.hover.dark,
+  );
 
   const { data: wells = [] } = trpc.inventory.getWells.useQuery(plate.id, {
     enabled: !!plate.id,
@@ -137,30 +164,47 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
     <>
       <Modal isOpen={isOpen} onClose={onClose} size={getModalSize()}>
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent
+          bg={modalBg}
+          borderColor={borderColor}
+          borderWidth={tokens.borders.widths.thin}
+          boxShadow={tokens.shadows.md}>
           <ModalHeader>
-            <Text>{plate.name}</Text>
-            <Text fontSize="sm" color="gray.500">
+            <Text color={textColor}>{plate.name}</Text>
+            <Text fontSize={tokens.typography.fontSizes.sm} color={textSecondary}>
               Type: {plate.plate_type}
             </Text>
           </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
+          <ModalCloseButton color={textColor} />
+          <ModalBody pb={tokens.spacing.md}>
             <Flex>
-              <VStack spacing={4} mr={4} minW="150px">
+              <VStack spacing={tokens.spacing.md} mr={tokens.spacing.md} minW="150px">
                 <Button
                   onClick={() => setSelectedWells((wells as Well[]).map((w: Well) => w.id))}
-                  width="100%">
+                  width="100%"
+                  bg={buttonBg}
+                  color={textColor}
+                  _hover={{ bg: buttonHoverBg }}
+                  borderRadius={tokens.borders.radii.md}>
                   Select All Wells
                 </Button>
-                <Button onClick={() => setSelectedWells([])} width="100%">
+                <Button
+                  onClick={() => setSelectedWells([])}
+                  width="100%"
+                  bg={buttonBg}
+                  color={textColor}
+                  _hover={{ bg: buttonHoverBg }}
+                  borderRadius={tokens.borders.radii.md}>
                   Clear Selection
                 </Button>
                 <Button
-                  colorScheme="blue"
+                  bg={accentColor}
+                  color="white"
+                  _hover={{ bg: `${accentColor}90` }}
                   isDisabled={selectedWells.length === 0}
                   onClick={handleAddReagents}
-                  width="100%">
+                  width="100%"
+                  borderRadius={tokens.borders.radii.md}>
                   Add Reagents
                 </Button>
               </VStack>
@@ -185,38 +229,55 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
         placement="right"
         onClose={() => setIsReagentDrawerOpen(false)}>
         <DrawerOverlay />
-        <DrawerContent>
-          <DrawerCloseButton />
-          <DrawerHeader>Add Reagents</DrawerHeader>
+        <DrawerContent
+          bg={modalBg}
+          borderColor={borderColor}
+          borderWidth={tokens.borders.widths.thin}
+          boxShadow={tokens.shadows.md}>
+          <DrawerCloseButton color={textColor} />
+          <DrawerHeader color={textColor}>Add Reagents</DrawerHeader>
           <DrawerBody>
-            <VStack spacing={4}>
+            <VStack spacing={tokens.spacing.md}>
               <FormControl>
-                <FormLabel>Reagent Name</FormLabel>
+                <FormLabel color={textColor}>Reagent Name</FormLabel>
                 <Input
                   value={reagentData.name}
                   onChange={(e) => setReagentData((prev) => ({ ...prev, name: e.target.value }))}
+                  borderColor={borderColor}
+                  _focus={{ borderColor: accentColor }}
                 />
               </FormControl>
               <FormControl>
-                <FormLabel>Expiration Date</FormLabel>
+                <FormLabel color={textColor}>Expiration Date</FormLabel>
                 <Input
                   type="date"
                   value={reagentData.expiration_date}
                   onChange={(e) =>
                     setReagentData((prev) => ({ ...prev, expiration_date: e.target.value }))
                   }
+                  borderColor={borderColor}
+                  _focus={{ borderColor: accentColor }}
                 />
               </FormControl>
               <FormControl>
-                <FormLabel>Volume (µL)</FormLabel>
+                <FormLabel color={textColor}>Volume (µL)</FormLabel>
                 <NumberInput
                   value={reagentData.volume}
                   onChange={(_, value) => setReagentData((prev) => ({ ...prev, volume: value }))}
                   min={0}>
-                  <NumberInputField />
+                  <NumberInputField
+                    borderColor={borderColor}
+                    _focus={{ borderColor: accentColor }}
+                  />
                 </NumberInput>
               </FormControl>
-              <Button colorScheme="blue" width="100%" onClick={handleReagentSubmit}>
+              <Button
+                bg={accentColor}
+                color="white"
+                _hover={{ bg: `${accentColor}90` }}
+                width="100%"
+                onClick={handleReagentSubmit}
+                borderRadius={tokens.borders.radii.md}>
                 Add to Selected Wells
               </Button>
             </VStack>

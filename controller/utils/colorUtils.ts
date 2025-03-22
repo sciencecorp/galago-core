@@ -1,9 +1,9 @@
 import { ToolType } from "gen-interfaces/controller";
-import { 
+import {
   getColorForRunType as getRunTypeColor,
   getColorForInstrument as getInstrumentColor,
   getToolColor as getToolColorFromPalette,
-  colorPalette
+  colorPalette,
 } from "../themes/colors";
 
 // Re-export the functions from the centralized color system

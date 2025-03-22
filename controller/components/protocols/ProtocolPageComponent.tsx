@@ -56,6 +56,15 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { PiPathBold } from "react-icons/pi";
 import { RiAddFill } from "react-icons/ri";
 import { EditableText } from "../ui/Form";
+import {
+  SearchIcon as SearchIconCentralized,
+  ArrowUpDownIcon as ArrowUpDownIconCentralized,
+  MenuIcon,
+  PathBoldIcon,
+  AddFillIcon,
+} from "../ui/Icons";
+import { palette, semantic } from "../../themes/colors";
+import tokens from "../../themes/tokens";
 
 type SortField = "name" | "category";
 type SortOrder = "asc" | "desc";
@@ -253,9 +262,12 @@ export const ProtocolPageComponent: React.FC = () => {
             <PageHeader
               title="Protocols"
               subTitle="Manage and run your automation protocols"
-              titleIcon={<Icon as={PiPathBold} boxSize={8} color="teal.500" />}
+              titleIcon={<Icon as={PathBoldIcon} boxSize={8} color={semantic.text.accent.light} />}
               mainButton={
-                <Button colorScheme="teal" leftIcon={<RiAddFill />} onClick={onNewProtocolOpen}>
+                <Button
+                  colorScheme="teal"
+                  leftIcon={<Icon as={AddFillIcon} />}
+                  onClick={onNewProtocolOpen}>
                   New Protocol
                 </Button>
               }
@@ -283,7 +295,7 @@ export const ProtocolPageComponent: React.FC = () => {
             <HStack spacing={4}>
               <InputGroup maxW="400px">
                 <InputLeftElement pointerEvents="none">
-                  <SearchIcon color="gray.300" />
+                  <Icon as={SearchIconCentralized} color={semantic.text.secondary.light} />
                 </InputLeftElement>
                 <Input
                   placeholder="Search protocols..."
@@ -457,16 +469,16 @@ export const ProtocolPageComponent: React.FC = () => {
                           <MenuList>
                             <MenuItem
                               onClick={() => handleRunClick(protocol.id.toString())}
-                              color="green.500">
+                              color={semantic.status.success.light}>
                               Run
                             </MenuItem>
                             <MenuItem
                               onClick={() => router.push(`/protocols/${protocol.id}/edit`)}
-                              color="blue.500">
+                              color={semantic.text.accent.light}>
                               Edit
                             </MenuItem>
                             <MenuItem
-                              color="red.500"
+                              color={semantic.status.error.light}
                               onClick={() => handleDelete(protocol.id.toString())}>
                               Delete
                             </MenuItem>

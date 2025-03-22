@@ -1,32 +1,97 @@
 import React from "react";
 import { Box, Tooltip, Icon as ChakraIcon, IconProps as ChakraIconProps } from "@chakra-ui/react";
-import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
-import { SiPython } from "react-icons/si";
-import { VscCode } from "react-icons/vsc";
+import {
+  CloseIcon,
+  HamburgerIcon,
+  SearchIcon,
+  AddIcon,
+  DeleteIcon,
+  EditIcon,
+  CheckIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+  WarningIcon,
+  QuestionOutlineIcon,
+  TimeIcon,
+  PlusSquareIcon,
+  ArrowForwardIcon,
+  MoonIcon,
+  SunIcon,
+  Search2Icon,
+  DownloadIcon,
+  ArrowUpDownIcon,
+} from "@chakra-ui/icons";
+
+// React Icons imports
+import { SiPython, SiGithubactions } from "react-icons/si";
+import { VscCode, VscSymbolString, VscSymbolBoolean, VscRunBelow } from "react-icons/vsc";
 import {
   FaPlay,
   FaFolder,
   FaFolderOpen,
-  FaGripHorizontal,
-  FaArrowDown,
-  FaArrowUp,
-  FaHandPaper,
+  FaPause,
+  FaStop,
+  FaTrash,
+  FaFlask,
+  FaToolbox,
+  FaArrowRight,
+  FaArrowLeft,
   FaRobot,
-  FaCompressArrowsAlt,
+  FaArrowsAlt,
+  FaHandPaper,
+  FaLocationArrow,
+  FaGripHorizontal,
 } from "react-icons/fa";
+import { FaFileCirclePlus, FaRegFileCode, FaBookOpen, FaChartGantt } from "react-icons/fa6";
 import { IoIosSave } from "react-icons/io";
-import { FaFileCirclePlus } from "react-icons/fa6";
-import { TbFolderPlus } from "react-icons/tb";
+import { IoPlaySkipForward, IoLockClosedOutline, IoLockOpenOutline } from "react-icons/io5";
+import { TbFolderPlus, TbVariable } from "react-icons/tb";
 import {
   RiEdit2Line,
   RiDeleteBinLine,
   RiFolderAddLine,
-  RiArrowTurnBackLine,
+  RiAddFill,
+  RiDeleteBin5Line,
+  RiCheckFill,
+  RiCloseFill,
   RiArrowTurnForwardLine,
+  RiArrowTurnBackLine,
+  RiCalendarCheckLine,
 } from "react-icons/ri";
-import { MdArrowOutward, MdOutlineSwapHoriz } from "react-icons/md";
-import { IoLockClosedOutline, IoLockOpenOutline } from "react-icons/io5";
+import {
+  BsTools,
+  BsSkipForwardFill,
+  BsBoxSeam,
+  BsInbox,
+  BsGrid3X3,
+  BsCalendarWeek,
+  BsRecordCircle,
+  BsLayoutSidebarInset,
+} from "react-icons/bs";
 import { HiArrowsPointingIn } from "react-icons/hi2";
+import { HiOutlineRectangleStack } from "react-icons/hi2";
+import { PiPathBold, PiToolbox } from "react-icons/pi";
+import { GiChaingun } from "react-icons/gi";
+import {
+  MdOutlineNumbers,
+  MdLocationOn,
+  MdOutlineTransitEnterexit,
+  MdOutlineIntegrationInstructions,
+  MdOutlineReplay,
+  MdArrowOutward,
+} from "react-icons/md";
+import {
+  FiBook,
+  FiInfo,
+  FiMenu,
+  FiHome,
+  FiChevronLeft,
+  FiChevronRight,
+  FiUpload,
+} from "react-icons/fi";
+import { BiTime } from "react-icons/bi";
 
 // Types
 interface IconBaseProps extends ChakraIconProps {
@@ -66,6 +131,115 @@ export const ActionIcons = {
   Edit: RiEdit2Line,
   Delete: RiDeleteBinLine,
   Menu: HamburgerIcon,
+  Add: AddIcon,
+  Check: CheckIcon,
+  Close: CloseIcon,
+  Play: FaPlay,
+  Pause: FaPause,
+  Stop: FaStop,
+  Trash: FaTrash,
+} as const;
+
+export const NavigationIcons = {
+  ArrowLeft: ArrowLeftIcon,
+  ArrowRight: ArrowRightIcon,
+  ChevronUp: ChevronUpIcon,
+  ChevronDown: ChevronDownIcon,
+  ArrowForward: ArrowForwardIcon,
+  ChevronLeft: FiChevronLeft,
+  ChevronRight: FiChevronRight,
+  Menu: FiMenu,
+  Home: FiHome,
+} as const;
+
+export const StatusIcons = {
+  Warning: WarningIcon,
+  Question: QuestionOutlineIcon,
+  Info: FiInfo,
+  Time: TimeIcon,
+  Plus: PlusSquareIcon,
+} as const;
+
+export const ThemeIcons = {
+  Moon: MoonIcon,
+  Sun: SunIcon,
+} as const;
+
+export const SearchIcons = {
+  Search: SearchIcon,
+  Search2: Search2Icon,
+} as const;
+
+export const ToolIcons = {
+  Tools: BsTools,
+  Toolbox: FaToolbox,
+  PiToolbox: PiToolbox,
+  Robot: FaRobot,
+  Arrows: FaArrowsAlt,
+  Hand: FaHandPaper,
+} as const;
+
+export const SectionIcons = {
+  Labware: HiOutlineRectangleStack,
+  Inventory: BsBoxSeam,
+  Protocol: PiPathBold,
+  Workcell: GiChaingun,
+  Variables: TbVariable,
+  Logs: FiBook,
+  Calendar: BsCalendarWeek,
+  Scripts: VscCode,
+  Runs: FaChartGantt,
+  Actions: SiGithubactions,
+} as const;
+
+export const RunIcons = {
+  PlaySkipForward: IoPlaySkipForward,
+  SkipForward: BsSkipForwardFill,
+  RunBelow: VscRunBelow,
+  FileCode: FaRegFileCode,
+} as const;
+
+export const InventoryIcons = {
+  Grid: BsGrid3X3,
+  Flask: FaFlask,
+  Location: MdLocationOn,
+} as const;
+
+export const TeachPendantIcons = {
+  Record: BsRecordCircle,
+  Replay: MdOutlineReplay,
+  ArrowRight: FaArrowRight,
+  ArrowLeft: FaArrowLeft,
+  LocationArrow: FaLocationArrow,
+  Upload: FiUpload,
+  Download: DownloadIcon,
+} as const;
+
+export const FormIcons = {
+  Check: RiCheckFill,
+  Close: RiCloseFill,
+  Edit: RiEdit2Line,
+  Add: RiAddFill,
+  Delete: RiDeleteBin5Line,
+} as const;
+
+export const VariableIcons = {
+  String: VscSymbolString,
+  Number: MdOutlineNumbers,
+  Boolean: VscSymbolBoolean,
+  Variable: TbVariable,
+} as const;
+
+export const SidebarIcons = {
+  Sidebar: BsLayoutSidebarInset,
+  Transit: MdOutlineTransitEnterexit,
+  Integration: MdOutlineIntegrationInstructions,
+  Calendar: RiCalendarCheckLine,
+} as const;
+
+export const TimeIcons = {
+  Time: BiTime,
+  Clock: TimeIcon,
 } as const;
 
 // Robot Command Icons
@@ -95,13 +269,73 @@ export {
   RiFolderAddLine as FolderAddLineIcon,
   HamburgerIcon as MenuIcon,
   FaFileCirclePlus as FileAddIcon,
-  // Robot Command Icons
-  MdArrowOutward as MoveIcon,
-  FaGripHorizontal as GraspPlateIcon,
-  FaHandPaper as ReleasePlateIcon,
-  RiArrowTurnBackLine as RetrievePlateIcon,
-  RiArrowTurnForwardLine as DropoffPlateIcon,
-  HiArrowsPointingIn as RetractIcon,
+  SearchIcon,
+  AddIcon,
+  CheckIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+  WarningIcon,
+  QuestionOutlineIcon,
+  TimeIcon,
+  PlusSquareIcon,
+  ArrowForwardIcon,
+  MoonIcon,
+  SunIcon,
+  Search2Icon,
+  DownloadIcon,
+  ArrowUpDownIcon,
+  SiGithubactions as GithubActionsIcon,
+  VscSymbolString as StringIcon,
+  VscSymbolBoolean as BooleanIcon,
+  VscRunBelow as RunBelowIcon,
+  FaPause as PauseIcon,
+  FaStop as StopIcon,
+  FaTrash as TrashIcon,
+  FaFlask as FlaskIcon,
+  FaToolbox as ToolboxIcon,
+  FaArrowRight as ArrowRightFaIcon,
+  FaArrowLeft as ArrowLeftFaIcon,
+  FaRobot as RobotIcon,
+  FaArrowsAlt as ArrowsIcon,
+  FaHandPaper as HandIcon,
+  FaLocationArrow as LocationArrowIcon,
+  FaRegFileCode as FileCodeIcon,
+  FaBookOpen as BookOpenIcon,
+  FaChartGantt as ChartGanttIcon,
+  IoPlaySkipForward as PlaySkipForwardIcon,
+  TbVariable as VariableIcon,
+  RiAddFill as AddFillIcon,
+  RiDeleteBin5Line as DeleteBin5LineIcon,
+  RiCheckFill as CheckFillIcon,
+  RiCloseFill as CloseFillIcon,
+  RiCalendarCheckLine as CalendarCheckLineIcon,
+  BsTools as ToolsIcon,
+  BsSkipForwardFill as SkipForwardFillIcon,
+  BsBoxSeam as BoxSeamIcon,
+  BsInbox as InboxIcon,
+  BsGrid3X3 as Grid3X3Icon,
+  BsCalendarWeek as CalendarWeekIcon,
+  BsRecordCircle as RecordCircleIcon,
+  BsLayoutSidebarInset as LayoutSidebarInsetIcon,
+  HiOutlineRectangleStack as RectangleStackIcon,
+  PiPathBold as PathBoldIcon,
+  PiToolbox as PiToolboxIcon,
+  GiChaingun as ChaingunIcon,
+  MdOutlineNumbers as NumbersIcon,
+  MdLocationOn as LocationOnIcon,
+  MdOutlineTransitEnterexit as TransitEnterexitIcon,
+  MdOutlineIntegrationInstructions as IntegrationInstructionsIcon,
+  MdOutlineReplay as ReplayIcon,
+  FiBook as BookIcon,
+  FiInfo as InfoIcon,
+  FiMenu as MenuFiIcon,
+  FiHome as HomeIcon,
+  FiChevronLeft as ChevronLeftIcon,
+  FiChevronRight as ChevronRightIcon,
+  FiUpload as UploadIcon,
+  BiTime as TimeIconBi,
 };
 
 // Custom Icon Components

@@ -15,23 +15,19 @@ import {
   useDisclosure,
   FormControl,
   FormLabel,
-  Grid,
-  GridItem,
+  Select,
+  useColorModeValue,
   Box,
   Text,
-  Flex,
   Image,
-  InputGroup,
-  InputLeftElement,
-  Tag,
-  SimpleGrid,
-  Divider,
-  useColorModeValue,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
-import { RiAddFill, RiSearchLine } from "react-icons/ri";
 import { ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
+import { Tool } from "@/types/api";
+import { Icon, FormIcons } from "../ui/Icons";
+import { semantic } from "../../themes/colors";
+import tokens from "../../themes/tokens";
 
 interface AddToolCommandModalProps {
   isDisabled?: boolean;
@@ -62,6 +58,21 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
   // Filter tools based on search query
   const filteredTools = availableTools.filter((tool) =>
     tool.toLowerCase().replace(/_/g, " ").includes(searchQuery.toLowerCase()),
+  );
+
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
+  const borderColor = useColorModeValue(
+    semantic.border.secondary.light,
+    semantic.border.secondary.dark,
+  );
+  const modalBg = useColorModeValue(
+    semantic.background.primary.light,
+    semantic.background.primary.dark,
+  );
+  const accentColor = useColorModeValue(semantic.text.accent.light, semantic.text.accent.dark);
+  const buttonHoverBg = useColorModeValue(
+    semantic.background.hover.light,
+    semantic.background.hover.dark,
   );
 
   const { data: configData, isFetching: isConfigLoading } =
@@ -178,124 +189,94 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
     <>
       <Button
         onClick={onSelectOpen}
-        colorScheme="teal"
-        leftIcon={<RiAddFill />}
-        isDisabled={isDisabled}>
+        bg={accentColor}
+        color="white"
+        _hover={{ bg: `${accentColor}90` }}
+        leftIcon={<Icon as={FormIcons.Add} />}
+        isDisabled={isDisabled}
+        borderRadius={tokens.borders.radii.md}>
         New Tool
       </Button>
 
       {/* Tool Selection Modal */}
       <Modal isOpen={isSelectOpen} onClose={onSelectClose} size="xl">
         <ModalOverlay />
-        <ModalContent maxW="900px">
-          <ModalHeader>Select a Tool</ModalHeader>
-          <ModalCloseButton />
+        <ModalContent
+          bg={modalBg}
+          borderColor={borderColor}
+          borderWidth={tokens.borders.widths.thin}
+          boxShadow={tokens.shadows.md}>
+          <ModalHeader color={textColor}>Add Tool</ModalHeader>
+          <ModalCloseButton color={textColor} />
           <ModalBody>
-            <VStack spacing={6} align="stretch">
-              <InputGroup>
-                <InputLeftElement pointerEvents="none">
-                  <RiSearchLine color="gray.300" />
-                </InputLeftElement>
+            <VStack spacing={tokens.spacing.md}>
+              <FormControl>
+                <FormLabel color={textColor}>Select Tool Type</FormLabel>
+                <Select
+                  value={selectedTool}
+                  onChange={(e) => {
+                    const enumValue = e.target.value as ToolType;
+                    setSelectedTool(enumValue); // This sets the actual enum value, not the string
+                  }}
+                  placeholder="Select Tool"
+                  borderColor={borderColor}
+                  color={textColor}
+                  _focus={{ borderColor: accentColor }}>
+                  {availableTools
+                    .filter(
+                      (x) =>
+                        x !== ToolType.UNRECOGNIZED &&
+                        x !== ToolType.unknown &&
+                        x !== ToolType.toolbox,
+                    )
+                    .sort()
+                    .map((tool) => (
+                      <option key={tool} value={tool}>
+                        {capitalizeFirst(tool.replaceAll("_", " "))}
+                      </option>
+                    ))}
+                </Select>
+              </FormControl>
+              <FormControl>
+                <FormLabel color={textColor}>Name</FormLabel>
                 <Input
-                  placeholder="Search for a tool..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={name}
+                  onChange={(e) => setName(e.target.value.toLocaleLowerCase().replaceAll(" ", "_"))}
+                  borderColor={borderColor}
+                  color={textColor}
+                  _focus={{ borderColor: accentColor }}
                 />
-              </InputGroup>
-
-              <Flex justify="space-between" align="center">
-                <Text fontSize="md" fontWeight="bold">
-                  Available Tools
-                </Text>
-                {selectedTool && (
-                  <HStack>
-                    <Text fontSize="sm">Selected:</Text>
-                    <Tag colorScheme="teal">
-                      {capitalizeFirst(selectedTool.replaceAll("_", " "))}
-                    </Tag>
-                  </HStack>
-                )}
-              </Flex>
-              <Box
-                maxH="calc(3 * 140px + 3 * 1rem)" // 3 rows of cards (approx 130px each) + spacing
-                overflowY="auto"
-                pr={2}
-                py={5}>
-                <SimpleGrid columns={[2, 3, 4, 5]} spacing={4}>
-                  {filteredTools.map((tool) => (
-                    <ToolCard key={tool} tool={tool} />
-                  ))}
-                </SimpleGrid>
-              </Box>
+              </FormControl>
+              <FormControl>
+                <FormLabel color={textColor}>Description</FormLabel>
+                <Input
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  borderColor={borderColor}
+                  color={textColor}
+                  _focus={{ borderColor: accentColor }}
+                />
+              </FormControl>
             </VStack>
-          </ModalBody>
-
-          <ModalFooter>
-            <Button variant="ghost" onClick={onSelectClose}>
-              Cancel
-            </Button>
-            <Button
-              colorScheme="teal"
-              ml={3}
-              onClick={handleConfirmSelection}
-              isDisabled={!selectedTool}>
-              Continue
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      {/* Tool Details Modal */}
-      <Modal isOpen={isDetailsOpen} onClose={onDetailsClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Configure Tool</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            {selectedTool && (
-              <VStack spacing={4}>
-                <Flex width="100%" align="center" mb={2}>
-                  <Image
-                    src={`/tool_icons/${selectedTool}.png`}
-                    alt={capitalizeFirst(selectedTool.replaceAll("_", " "))}
-                    fallbackSrc="https://via.placeholder.com/40"
-                    boxSize="40px"
-                    mr={3}
-                  />
-                  <Text fontWeight="bold">
-                    {capitalizeFirst(selectedTool.replaceAll("_", " "))}
-                  </Text>
-                </Flex>
-
-                <Divider />
-
-                <FormControl isRequired>
-                  <FormLabel>Name</FormLabel>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} />
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel>Description</FormLabel>
-                  <Input value={description} onChange={(e) => setDescription(e.target.value)} />
-                </FormControl>
-              </VStack>
-            )}
           </ModalBody>
 
           <ModalFooter>
             <Button
               variant="ghost"
-              onClick={() => {
-                onDetailsClose();
-                onSelectOpen();
-              }}>
-              Back
-            </Button>
-            <Button variant="ghost" ml={2} onClick={onDetailsClose}>
+              onClick={onSelectClose}
+              color={textColor}
+              _hover={{ bg: buttonHoverBg }}
+              mr={tokens.spacing.sm}>
               Cancel
             </Button>
-            <Button colorScheme="teal" ml={3} onClick={handleSave} isLoading={isLoading}>
-              Save
+            <Button
+              bg={accentColor}
+              color="white"
+              _hover={{ bg: `${accentColor}90` }}
+              onClick={handleSave}
+              isLoading={isLoading}
+              borderRadius={tokens.borders.radii.md}>
+              Submit
             </Button>
           </ModalFooter>
         </ModalContent>

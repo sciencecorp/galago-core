@@ -60,11 +60,23 @@ interface LocationUpdate {
 }
 
 export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
-  const bgColor = useColorModeValue(semantic.background.card.light, semantic.background.primary.dark);
+  const bgColor = useColorModeValue(
+    semantic.background.card.light,
+    semantic.background.primary.dark,
+  );
   const bgColorAlpha = useColorModeValue(palette.black + "0A", palette.white + "1A");
-  const borderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
-  const tabBgColor = useColorModeValue(semantic.background.secondary.light, semantic.background.secondary.dark);
-  const tabActiveBgColor = useColorModeValue(semantic.background.primary.light, semantic.background.card.dark);
+  const borderColor = useColorModeValue(
+    semantic.border.primary.light,
+    semantic.border.primary.dark,
+  );
+  const tabBgColor = useColorModeValue(
+    semantic.background.secondary.light,
+    semantic.background.secondary.dark,
+  );
+  const tabActiveBgColor = useColorModeValue(
+    semantic.background.primary.light,
+    semantic.background.card.dark,
+  );
   const toast = useToast();
 
   // Hooks

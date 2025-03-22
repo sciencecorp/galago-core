@@ -18,7 +18,6 @@ import {
   InputLeftElement,
   Card,
   CardBody,
-  Icon,
   Divider,
   StatGroup,
   Stat,
@@ -34,25 +33,43 @@ import { Labware as LabwareResponse } from "@/types/api";
 import { LabwareModal } from "./LabwareModal";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { EditableText } from "../ui/Form";
-import { WellPlateIcon } from "../ui/Icons";
-import { SearchIcon } from "@chakra-ui/icons";
+import { Icon, WellPlateIcon, SearchIcon, RectangleStackIcon } from "../ui/Icons";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { HiOutlineRectangleStack } from "react-icons/hi2";
+import { palette, semantic } from "../../themes/colors";
+import tokens from "../../themes/tokens";
 
 export const Labware: React.FC = () => {
   const [labware, setLabware] = useState<LabwareResponse[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const toast = useToast();
 
-  const headerBg = useColorModeValue("white", "gray.700");
-  const containerBg = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const tableBgColor = useColorModeValue("white", "gray.700");
-  const hoverBgColor = useColorModeValue("gray.50", "gray.600");
+  const headerBg = useColorModeValue(semantic.background.card.light, semantic.background.card.dark);
+  const containerBg = useColorModeValue(
+    semantic.background.card.light,
+    semantic.background.card.dark,
+  );
+  const borderColor = useColorModeValue(
+    semantic.border.secondary.light,
+    semantic.border.secondary.dark,
+  );
+  const tableBgColor = useColorModeValue(
+    semantic.background.card.light,
+    semantic.background.card.dark,
+  );
+  const hoverBgColor = useColorModeValue(
+    semantic.background.hover.light,
+    semantic.background.hover.dark,
+  );
+  const textSecondary = useColorModeValue(
+    semantic.text.secondary.light,
+    semantic.text.secondary.dark,
+  );
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
+  const accentColor = useColorModeValue(semantic.text.accent.light, semantic.text.accent.dark);
 
   const { data: fetchedLabware, refetch } = trpc.labware.getAll.useQuery();
-  const editLabware = trpc.labware.edit.useMutation();
   const deleteLabware = trpc.labware.delete.useMutation();
+  const editLabware = trpc.labware.edit.useMutation();
 
   useEffect(() => {
     if (fetchedLabware) {
@@ -84,10 +101,6 @@ export const Labware: React.FC = () => {
     }
   };
 
-  const filteredLabware = labware?.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-
   const handleLabwareUpdate = async (editedLabware: LabwareResponse) => {
     try {
       await editLabware.mutateAsync(editedLabware);
@@ -118,239 +131,131 @@ export const Labware: React.FC = () => {
 
   return (
     <Box maxW="100%">
-      <VStack spacing={4} align="stretch">
-        <Card bg={headerBg} shadow="md">
+      <VStack spacing={tokens.spacing.md} align="stretch">
+        <Card
+          bg={headerBg}
+          shadow={tokens.shadows.md}
+          borderColor={borderColor}
+          borderWidth={tokens.borders.widths.thin}>
           <CardBody>
-            <VStack spacing={4} align="stretch">
+            <VStack spacing={tokens.spacing.md} align="stretch">
               <PageHeader
                 title="Labware"
                 subTitle="Manage and configure your labware definitions"
-                titleIcon={<Icon as={HiOutlineRectangleStack} boxSize={8} color="teal.500" />}
+                titleIcon={<Icon as={RectangleStackIcon} boxSize={8} color={accentColor} />}
                 mainButton={<LabwareModal />}
               />
 
-              <Divider />
+              <Divider borderColor={borderColor} />
 
               <StatGroup>
                 <Stat>
-                  <StatLabel>Total Labware</StatLabel>
-                  <StatNumber>{totalLabware}</StatNumber>
+                  <StatLabel color={textSecondary}>Total Labware</StatLabel>
+                  <StatNumber color={textColor}>{totalLabware}</StatNumber>
                 </Stat>
                 <Stat>
-                  <StatLabel>With Lids</StatLabel>
-                  <StatNumber>{hasLidCount}</StatNumber>
+                  <StatLabel color={textSecondary}>With Lids</StatLabel>
+                  <StatNumber color={textColor}>{hasLidCount}</StatNumber>
                 </Stat>
                 <Stat>
-                  <StatLabel>Avg. Rows</StatLabel>
-                  <StatNumber>{avgRows}</StatNumber>
+                  <StatLabel color={textSecondary}>Avg. Rows</StatLabel>
+                  <StatNumber color={textColor}>{avgRows}</StatNumber>
                 </Stat>
               </StatGroup>
 
-              <Divider />
+              <Divider borderColor={borderColor} />
 
-              <HStack spacing={4} width="100%">
+              <HStack spacing={tokens.spacing.md}>
                 <InputGroup maxW="400px">
                   <InputLeftElement pointerEvents="none">
-                    <SearchIcon color="gray.300" />
+                    <Icon as={SearchIcon} color={textSecondary} />
                   </InputLeftElement>
                   <Input
                     placeholder="Search labware..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     bg={tableBgColor}
+                    borderColor={borderColor}
+                    _focus={{ borderColor: accentColor }}
                   />
                 </InputGroup>
-
-                <Select
-                  placeholder="Filter by Size"
-                  maxW="200px"
-                  bg={tableBgColor}
-                  onChange={(e) => {
-                    const [rows, cols] = e.target.value.split("x").map(Number);
-                    setLabware(
-                      fetchedLabware?.filter(
-                        (item) =>
-                          !e.target.value ||
-                          (item.number_of_rows === rows && item.number_of_columns === cols),
-                      ) as LabwareResponse[],
-                    );
-                  }}>
-                  <option value="2x3">6-well</option>
-                  <option value="3x4">12-well</option>
-                  <option value="4x6">24-well</option>
-                  <option value="8x12">96-well</option>
-                  <option value="16x24">384-well</option>
-                </Select>
-
-                <Select
-                  placeholder="Filter by Lid"
-                  maxW="200px"
-                  bg={tableBgColor}
-                  onChange={(e) => {
-                    const hasLid = e.target.value === "" ? null : e.target.value === "true";
-                    setLabware(
-                      fetchedLabware?.filter(
-                        (item) => hasLid === null || item.has_lid === hasLid,
-                      ) as LabwareResponse[],
-                    );
-                  }}>
-                  <option value="true">With Lid</option>
-                  <option value="false">Without Lid</option>
-                </Select>
-
                 <Spacer />
               </HStack>
             </VStack>
           </CardBody>
         </Card>
 
-        <Card bg={headerBg} shadow="md">
+        <Card
+          bg={headerBg}
+          shadow={tokens.shadows.md}
+          borderColor={borderColor}
+          borderWidth={tokens.borders.widths.thin}>
           <CardBody>
-            <VStack spacing={4} align="stretch">
-              <Box overflowX="auto">
-                <Table
-                  variant="simple"
-                  sx={{
-                    th: {
-                      borderColor: useColorModeValue("gray.200", "gray.600"),
-                    },
-                    td: {
-                      borderColor: useColorModeValue("gray.200", "gray.600"),
-                    },
-                  }}>
-                  <Thead>
-                    <Tr>
-                      <Th></Th>
-                      <Th>Name</Th>
-                      <Th>Desc</Th>
-                      <Th>Rows</Th>
-                      <Th>Cols</Th>
-                      <Th>Z-Off</Th>
-                      <Th>W</Th>
-                      <Th>H</Th>
-                      <Th>Lid Z</Th>
-                      <Th>Lid Off</Th>
-                      <Th>Stack H</Th>
-                      <Th>Lid</Th>
-                      <Th>Actions</Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {filteredLabware?.map((item) => (
+            <Box overflowX="auto">
+              <Table
+                variant="simple"
+                size="md"
+                sx={{
+                  th: {
+                    borderColor: borderColor,
+                    color: textSecondary,
+                    fontSize: tokens.typography.fontSizes.sm,
+                  },
+                  td: {
+                    borderColor: borderColor,
+                    color: textColor,
+                    fontSize: tokens.typography.fontSizes.sm,
+                  },
+                }}>
+                <Thead>
+                  <Tr>
+                    <Th>Name</Th>
+                    <Th>Description</Th>
+                    <Th>Rows</Th>
+                    <Th>Columns</Th>
+                    <Th>Has Lid</Th>
+                    <Th>Actions</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {labware
+                    .filter((item) => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                    .map((item) => (
                       <Tr key={item.id} _hover={{ bg: hoverBgColor }}>
-                        <Td width="50px">
-                          <WellPlateIcon
-                            rows={item.number_of_rows}
-                            columns={item.number_of_columns}
-                          />
-                        </Td>
                         <Td>
                           <EditableText
-                            onSubmit={async (value) => {
-                              value && (await handleLabwareUpdate({ ...item, name: value }));
-                            }}
                             defaultValue={item.name}
+                            onSubmit={(value) => {
+                              if (value && value !== item.name) {
+                                handleLabwareUpdate({ ...item, name: value });
+                              }
+                            }}
                           />
                         </Td>
                         <Td>
                           <EditableText
-                            onSubmit={async (value) => {
-                              value && (await handleLabwareUpdate({ ...item, description: value }));
+                            defaultValue={item.description || ""}
+                            onSubmit={(value) => {
+                              handleLabwareUpdate({ ...item, description: value || "" });
                             }}
-                            defaultValue={item.description}
                           />
                         </Td>
-                        <Td>
-                          <EditableText
-                            onSubmit={async (value) => {
-                              const numValue = Number(value);
-                              !isNaN(numValue) &&
-                                (await handleLabwareUpdate({ ...item, number_of_rows: numValue }));
-                            }}
-                            defaultValue={item.number_of_rows.toString()}
-                          />
-                        </Td>
-                        <Td>
-                          <EditableText
-                            onSubmit={async (value) => {
-                              const numValue = Number(value);
-                              !isNaN(numValue) &&
-                                (await handleLabwareUpdate({
-                                  ...item,
-                                  number_of_columns: numValue,
-                                }));
-                            }}
-                            defaultValue={item.number_of_columns.toString()}
-                          />
-                        </Td>
-                        <Td>
-                          <EditableText
-                            onSubmit={async (value) => {
-                              const numValue = Number(value);
-                              !isNaN(numValue) &&
-                                (await handleLabwareUpdate({ ...item, z_offset: numValue }));
-                            }}
-                            defaultValue={item.z_offset.toString()}
-                          />
-                        </Td>
-                        <Td>
-                          <EditableText
-                            onSubmit={async (value) => {
-                              const numValue = Number(value);
-                              !isNaN(numValue) &&
-                                (await handleLabwareUpdate({ ...item, width: numValue }));
-                            }}
-                            defaultValue={item.width.toString()}
-                          />
-                        </Td>
-                        <Td>
-                          <EditableText
-                            onSubmit={async (value) => {
-                              const numValue = Number(value);
-                              !isNaN(numValue) &&
-                                (await handleLabwareUpdate({ ...item, height: numValue }));
-                            }}
-                            defaultValue={item.height.toString()}
-                          />
-                        </Td>
-                        <Td>
-                          <EditableText
-                            onSubmit={async (value) => {
-                              const numValue = Number(value);
-                              !isNaN(numValue) &&
-                                (await handleLabwareUpdate({
-                                  ...item,
-                                  plate_lid_offset: numValue,
-                                }));
-                            }}
-                            defaultValue={item.plate_lid_offset.toString()}
-                          />
-                        </Td>
-                        <Td>
-                          <EditableText
-                            onSubmit={async (value) => {
-                              const numValue = Number(value);
-                              !isNaN(numValue) &&
-                                (await handleLabwareUpdate({ ...item, lid_offset: numValue }));
-                            }}
-                            defaultValue={item.lid_offset.toString()}
-                          />
-                        </Td>
-                        <Td>
-                          <EditableText
-                            onSubmit={async (value) => {
-                              const numValue = Number(value);
-                              !isNaN(numValue) &&
-                                (await handleLabwareUpdate({ ...item, stack_height: numValue }));
-                            }}
-                            defaultValue={item.stack_height.toString()}
-                          />
-                        </Td>
+                        <Td>{item.number_of_rows}</Td>
+                        <Td>{item.number_of_columns}</Td>
                         <Td>
                           <Switch
                             isChecked={item.has_lid}
-                            onChange={async (e) => {
-                              await handleLabwareUpdate({ ...item, has_lid: e.target.checked });
+                            onChange={(e) => {
+                              handleLabwareUpdate({
+                                ...item,
+                                has_lid: e.target.checked,
+                              });
+                            }}
+                            colorScheme="teal"
+                            sx={{
+                              "& .chakra-switch__track[data-checked]": {
+                                backgroundColor: accentColor,
+                              },
                             }}
                           />
                         </Td>
@@ -362,10 +267,9 @@ export const Labware: React.FC = () => {
                         </Td>
                       </Tr>
                     ))}
-                  </Tbody>
-                </Table>
-              </Box>
-            </VStack>
+                </Tbody>
+              </Table>
+            </Box>
           </CardBody>
         </Card>
       </VStack>

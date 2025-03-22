@@ -68,7 +68,10 @@ export default function Nav() {
     }
   }
 
-  const bgColor = useColorModeValue(semantic.background.primary.light, semantic.background.secondary.dark);
+  const bgColor = useColorModeValue(
+    semantic.background.primary.light,
+    semantic.background.secondary.dark,
+  );
   const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
 
   return (

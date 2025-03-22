@@ -18,7 +18,6 @@ import {
   Select,
   Card,
   CardBody,
-  Icon,
   Divider,
   StatGroup,
   Stat,
@@ -26,18 +25,19 @@ import {
   StatNumber,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { SearchIcon } from "@chakra-ui/icons";
 import { trpc } from "@/utils/trpc";
 import { Variable } from "@/types/api";
 import { VariableModal } from "./VariableModal";
 import { DeleteWithConfirmation } from "@/components/ui/Delete";
 import { renderDatetime } from "@/components/ui/Time";
 import { EditableText } from "../ui/Form";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Icon, SearchIcon, VariableIcon } from "../ui/Icons";
 import { VscSymbolString } from "react-icons/vsc";
 import { MdOutlineNumbers } from "react-icons/md";
 import { VscSymbolBoolean } from "react-icons/vsc";
-import { TbVariable } from "react-icons/tb";
-import { PageHeader } from "@/components/ui/PageHeader";
+import { palette, semantic } from "../../themes/colors";
+import tokens from "../../themes/tokens";
 
 export const Variables: React.FC = () => {
   const [variables, setVariables] = useState<Variable[]>([]);
@@ -45,13 +45,27 @@ export const Variables: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<string>("");
   const toast = useToast();
 
-  const headerBg = useColorModeValue("white", "gray.700");
-  const tableBgColor = useColorModeValue("white", "gray.700");
-  const hoverBgColor = useColorModeValue("gray.50", "gray.600");
+  const headerBg = useColorModeValue(semantic.background.card.light, semantic.background.card.dark);
+  const tableBgColor = useColorModeValue(
+    semantic.background.card.light,
+    semantic.background.card.dark,
+  );
+  const hoverBgColor = useColorModeValue(
+    semantic.background.hover.light,
+    semantic.background.hover.dark,
+  );
+  const borderColor = useColorModeValue(
+    semantic.border.secondary.light,
+    semantic.border.secondary.dark,
+  );
+  const textSecondary = useColorModeValue(
+    semantic.text.secondary.light,
+    semantic.text.secondary.dark,
+  );
 
   const { data: fetchedVariables, refetch } = trpc.variable.getAll.useQuery();
-  const editVariable = trpc.variable.edit.useMutation();
   const deleteVariable = trpc.variable.delete.useMutation();
+  const editVariable = trpc.variable.edit.useMutation();
 
   useEffect(() => {
     if (fetchedVariables) {
@@ -83,19 +97,17 @@ export const Variables: React.FC = () => {
     }
   };
 
-  // Calculate stats
-  const totalVariables = variables.length;
+  // Calculate statistics
+  const totalVariables = variables?.length || 0;
   const typeStats = useMemo(() => {
-    const stats = variables.reduce(
-      (acc, variable) => {
-        acc[variable.type] = (acc[variable.type] || 0) + 1;
-        return acc;
-      },
-      {} as Record<string, number>,
-    );
+    const stats: Record<string, number> = {};
+    variables?.forEach((variable) => {
+      stats[variable.type] = (stats[variable.type] || 0) + 1;
+    });
     return stats;
   }, [variables]);
 
+  // Filter variables based on search and type
   const filteredVariables = useMemo(() => {
     return variables?.filter(
       (variable) =>
@@ -140,14 +152,16 @@ export const Variables: React.FC = () => {
 
   return (
     <Box maxW="100%">
-      <VStack spacing={4} align="stretch">
-        <Card bg={headerBg} shadow="md">
+      <VStack spacing={tokens.spacing.md} align="stretch">
+        <Card bg={headerBg} shadow={tokens.shadows.md}>
           <CardBody>
-            <VStack spacing={4} align="stretch">
+            <VStack spacing={tokens.spacing.md} align="stretch">
               <PageHeader
                 title="Variables"
                 subTitle="Manage system-wide variables and configurations"
-                titleIcon={<Icon as={TbVariable} boxSize={8} color="teal.500" />}
+                titleIcon={
+                  <Icon as={VariableIcon} boxSize={8} color={semantic.text.accent.light} />
+                }
                 mainButton={<VariableModal />}
               />
 
@@ -182,10 +196,10 @@ export const Variables: React.FC = () => {
 
               <Divider />
 
-              <HStack spacing={4}>
+              <HStack spacing={tokens.spacing.md}>
                 <InputGroup maxW="400px">
                   <InputLeftElement pointerEvents="none">
-                    <SearchIcon color="gray.300" />
+                    <Icon as={SearchIcon} color={textSecondary} />
                   </InputLeftElement>
                   <Input
                     placeholder="Search variables..."
@@ -211,69 +225,60 @@ export const Variables: React.FC = () => {
           </CardBody>
         </Card>
 
-        <Card bg={headerBg} shadow="md">
+        <Card bg={headerBg} shadow={tokens.shadows.md}>
           <CardBody>
-            <VStack spacing={4} align="stretch">
-              <Box overflowX="auto">
-                <Table
-                  variant="simple"
-                  sx={{
-                    th: {
-                      borderColor: useColorModeValue("gray.200", "gray.600"),
-                    },
-                    td: {
-                      borderColor: useColorModeValue("gray.200", "gray.600"),
-                    },
-                  }}>
-                  <Thead>
-                    <Tr>
-                      <Th>Name</Th>
-                      <Th>Type</Th>
-                      <Th>Value</Th>
-                      <Th>Created On</Th>
-                      <Th>Updated On</Th>
-                      <Th>Actions</Th>
+            <Box overflowX="auto">
+              <Table variant="simple" size="md">
+                <Thead>
+                  <Tr>
+                    <Th>Type</Th>
+                    <Th>Name</Th>
+                    <Th>Value</Th>
+                    <Th>Created</Th>
+                    <Th>Actions</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {filteredVariables?.map((variable) => (
+                    <Tr key={variable.id} _hover={{ bg: hoverBgColor }}>
+                      <Td>
+                        <HStack spacing={tokens.spacing.xs}>
+                          {renderTypeIcon(variable.type)}
+                          <Text>{variable.type}</Text>
+                        </HStack>
+                      </Td>
+                      <Td>
+                        <EditableText
+                          defaultValue={variable.name}
+                          onSubmit={(value) => {
+                            if (value && value !== variable.name) {
+                              handleVariableUpdate({ ...variable, name: value });
+                            }
+                          }}
+                        />
+                      </Td>
+                      <Td>
+                        <EditableText
+                          defaultValue={variable.value}
+                          onSubmit={(value) => {
+                            if (value !== undefined && value !== variable.value) {
+                              handleVariableUpdate({ ...variable, value: value || "" });
+                            }
+                          }}
+                        />
+                      </Td>
+                      <Td>{renderDatetime(String(variable.created_at))}</Td>
+                      <Td>
+                        <DeleteWithConfirmation
+                          onDelete={() => handleDelete(variable)}
+                          label="variable"
+                        />
+                      </Td>
                     </Tr>
-                  </Thead>
-                  <Tbody>
-                    {filteredVariables.map((variable) => (
-                      <Tr key={variable.id} _hover={{ bg: hoverBgColor }}>
-                        <Td>
-                          <EditableText
-                            onSubmit={async (value) => {
-                              value && (await handleVariableUpdate({ ...variable, name: value }));
-                            }}
-                            defaultValue={variable.name}
-                          />
-                        </Td>
-                        <Td>
-                          <HStack>
-                            {renderTypeIcon(variable.type)}
-                            <Text>{variable.type}</Text>
-                          </HStack>
-                        </Td>
-                        <Td>
-                          <EditableText
-                            onSubmit={async (value) => {
-                              value && (await handleVariableUpdate({ ...variable, value: value }));
-                            }}
-                            defaultValue={variable.value}
-                          />
-                        </Td>
-                        <Td>{renderDatetime(String(variable.created_at))}</Td>
-                        <Td>{renderDatetime(String(variable.updated_at))}</Td>
-                        <Td>
-                          <DeleteWithConfirmation
-                            onDelete={() => handleDelete(variable)}
-                            label="variable"
-                          />
-                        </Td>
-                      </Tr>
-                    ))}
-                  </Tbody>
-                </Table>
-              </Box>
-            </VStack>
+                  ))}
+                </Tbody>
+              </Table>
+            </Box>
           </CardBody>
         </Card>
       </VStack>

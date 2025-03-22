@@ -19,6 +19,9 @@ import {
 import { trpc } from "@/utils/trpc";
 import { validateScriptName, addPythonExtension, showErrorToast, showSuccessToast } from "./utils";
 import { FileAddIcon } from "../ui/Icons";
+import { semantic } from "../../themes/colors";
+import tokens from "../../themes/tokens";
+
 interface NewScriptProps {
   isDisabled?: boolean;
   activeFolderId?: number;
@@ -88,8 +91,8 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
           <ModalHeader>Add Script</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <VStack spacing={4}>
-              <FormControl>
+            <VStack spacing={tokens.spacing.md} align="stretch">
+              <FormControl isRequired>
                 <FormLabel>Name</FormLabel>
                 <Input value={scriptName} onChange={(e) => setScriptName(e.target.value)} />
               </FormControl>
@@ -100,11 +103,11 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" onClick={onClose}>
+            <Button variant="ghost" onClick={onClose} mr={tokens.spacing.sm}>
               Cancel
             </Button>
-            <Button colorScheme="teal" onClick={handleSave} mr={3} isLoading={isLoading}>
-              Submit
+            <Button colorScheme={semantic.background.primary.light} onClick={handleSave} isLoading={isLoading}>
+              Create
             </Button>
           </ModalFooter>
         </ModalContent>

@@ -25,42 +25,50 @@ import { palette, semantic } from "../../themes/colors";
 #### Replace hex codes with palette references
 
 Before:
+
 ```tsx
 const styles = {
   header: {
     backgroundColor: "#fff",
     color: "#292b2c",
-  }
-}
+  },
+};
 ```
 
 After:
+
 ```tsx
 const styles = {
   header: {
     backgroundColor: palette.white,
     color: palette.custom.navText,
-  }
-}
+  },
+};
 ```
 
 #### Replace Chakra color strings with semantic references
 
 Before:
+
 ```tsx
 const bgColor = useColorModeValue("white", "gray.800");
 const textColor = useColorModeValue("gray.800", "white");
 ```
 
 After:
+
 ```tsx
-const bgColor = useColorModeValue(semantic.background.primary.light, semantic.background.secondary.dark);
+const bgColor = useColorModeValue(
+  semantic.background.primary.light,
+  semantic.background.secondary.dark,
+);
 const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
 ```
 
 ### Step 3: Use helper functions for specific cases
 
 For tool status colors:
+
 ```tsx
 import { getToolStatusColor } from "../../themes/colors";
 
@@ -68,6 +76,7 @@ const statusColor = getToolStatusColor(tool.status);
 ```
 
 For instrument colors:
+
 ```tsx
 import { getColorForInstrument } from "../../themes/colors";
 
@@ -75,6 +84,7 @@ const instrumentColor = getColorForInstrument(instrument.type);
 ```
 
 For run type colors:
+
 ```tsx
 import { getColorForRunType } from "../../themes/colors";
 
@@ -88,26 +98,26 @@ const runTypeColor = getColorForRunType(run.type);
 The `palette` object contains all raw color values:
 
 ```tsx
-palette.white // "#FFFFFF"
-palette.black // "#000000"
-palette.gray[500] // "#718096"
-palette.blue[500] // "#3182CE"
-palette.green[500] // "#38A169"
-palette.red[500] // "#E53E3E"
-palette.yellow[500] // "#D69E2E"
-palette.orange[500] // "#DD6B20"
-palette.purple[500] // "#805AD5"
-palette.teal[500] // "#319795"
+palette.white; // "#FFFFFF"
+palette.black; // "#000000"
+palette.gray[500]; // "#718096"
+palette.blue[500]; // "#3182CE"
+palette.green[500]; // "#38A169"
+palette.red[500]; // "#E53E3E"
+palette.yellow[500]; // "#D69E2E"
+palette.orange[500]; // "#DD6B20"
+palette.purple[500]; // "#805AD5"
+palette.teal[500]; // "#319795"
 ```
 
 Custom colors are available in `palette.custom`:
 
 ```tsx
-palette.custom.lightBlue // "#CEE0F0"
-palette.custom.consoleDark // "#222324"
-palette.custom.warningYellow // "#FFC107"
-palette.custom.warningText // "#212529"
-palette.custom.navText // "#292B2C"
+palette.custom.lightBlue; // "#CEE0F0"
+palette.custom.consoleDark; // "#222324"
+palette.custom.warningYellow; // "#FFC107"
+palette.custom.warningText; // "#212529"
+palette.custom.navText; // "#292B2C"
 ```
 
 ### Semantic Colors
@@ -116,24 +126,24 @@ The `semantic` object provides color tokens based on their usage:
 
 ```tsx
 // Text colors
-semantic.text.primary.light // Light mode primary text color
-semantic.text.primary.dark // Dark mode primary text color
-semantic.text.secondary.light // Light mode secondary text color
-semantic.text.accent.light // Light mode accent text color
+semantic.text.primary.light; // Light mode primary text color
+semantic.text.primary.dark; // Dark mode primary text color
+semantic.text.secondary.light; // Light mode secondary text color
+semantic.text.accent.light; // Light mode accent text color
 
 // Background colors
-semantic.background.primary.light // Light mode primary background
-semantic.background.card.light // Light mode card background
-semantic.background.hover.light // Light mode hover background
+semantic.background.primary.light; // Light mode primary background
+semantic.background.card.light; // Light mode card background
+semantic.background.hover.light; // Light mode hover background
 
 // Border colors
-semantic.border.primary.light // Light mode primary border color
-semantic.border.focus.light // Light mode focus border color
+semantic.border.primary.light; // Light mode primary border color
+semantic.border.focus.light; // Light mode focus border color
 
 // Status colors
-semantic.status.success.light // Light mode success color
-semantic.status.error.light // Light mode error color
-semantic.status.warning.light // Light mode warning color
+semantic.status.success.light; // Light mode success color
+semantic.status.error.light; // Light mode error color
+semantic.status.warning.light; // Light mode warning color
 ```
 
 ## Complex Color Schemes
@@ -170,4 +180,4 @@ If you need to add a new color:
 
 ## Questions?
 
-If you have questions about the color system, please contact the UI team. 
+If you have questions about the color system, please contact the UI team.

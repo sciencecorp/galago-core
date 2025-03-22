@@ -7,7 +7,10 @@ interface CurrentTimeLineProps {
 }
 
 export const CurrentTimeLine: React.FC<CurrentTimeLineProps> = ({ position }) => {
-  const circleBg = useColorModeValue(semantic.background.primary.light, semantic.background.secondary.dark);
+  const circleBg = useColorModeValue(
+    semantic.background.primary.light,
+    semantic.background.secondary.dark,
+  );
 
   return (
     <Box

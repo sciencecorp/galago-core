@@ -17,10 +17,13 @@ import {
   useToast,
   NumberInput,
   NumberInputField,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { Labware as LabwareResponse } from "@/types/api";
-import { RiAddFill } from "react-icons/ri";
+import { Icon, AddFillIcon, RectangleStackIcon } from "../ui/Icons";
+import { semantic } from "../../themes/colors";
+import tokens from "../../themes/tokens";
 
 export const LabwareModal: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -39,6 +42,21 @@ export const LabwareModal: React.FC = () => {
   const [stackHeight, setStackHeight] = useState(0);
   const [hasLid, setHasLid] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
+
+  const accentColor = useColorModeValue(semantic.text.accent.light, semantic.text.accent.dark);
+  const borderColor = useColorModeValue(
+    semantic.border.primary.light,
+    semantic.border.primary.dark,
+  );
+  const modalBg = useColorModeValue(
+    semantic.background.primary.light,
+    semantic.background.primary.dark,
+  );
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
+  const textSecondary = useColorModeValue(
+    semantic.text.secondary.light,
+    semantic.text.secondary.dark,
+  );
 
   const addLabware = trpc.labware.add.useMutation();
   const { refetch } = trpc.labware.getAll.useQuery();
@@ -87,7 +105,7 @@ export const LabwareModal: React.FC = () => {
       await refetch();
     } catch (error) {
       toast({
-        title: "Error saving labware",
+        title: "Error creating labware",
         description: `Please try again. ${error}`,
         status: "error",
         duration: 3000,
@@ -100,88 +118,173 @@ export const LabwareModal: React.FC = () => {
 
   return (
     <>
-      <Button onClick={onOpen} colorScheme="teal" leftIcon={<RiAddFill />}>
+      <Button
+        onClick={onOpen}
+        bg={accentColor}
+        color="white"
+        _hover={{ bg: `${accentColor}90` }}
+        leftIcon={<Icon as={AddFillIcon} />}>
         New Labware
       </Button>
       <Modal isOpen={isOpen} onClose={onClose} size="lg">
         <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Create Labware</ModalHeader>
-          <ModalCloseButton />
+        <ModalContent
+          bg={modalBg}
+          borderColor={borderColor}
+          borderWidth={tokens.borders.widths.thin}
+          boxShadow={tokens.shadows.md}>
+          <ModalHeader color={textColor}>Create Labware</ModalHeader>
+          <ModalCloseButton color={textColor} />
           <ModalBody>
-            <VStack spacing={4}>
-              <FormControl>
-                <FormLabel>Name</FormLabel>
-                <Input value={name} onChange={(e) => setName(e.target.value)} />
+            <VStack spacing={tokens.spacing.md} align="stretch">
+              <FormControl isRequired>
+                <FormLabel color={textColor}>Name</FormLabel>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  borderColor={borderColor}
+                  _focus={{ borderColor: accentColor }}
+                />
               </FormControl>
+
               <FormControl>
-                <FormLabel>Description</FormLabel>
-                <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+                <FormLabel color={textColor}>Description</FormLabel>
+                <Input
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  borderColor={borderColor}
+                  _focus={{ borderColor: accentColor }}
+                />
               </FormControl>
-              <FormControl>
-                <FormLabel>Number of Rows</FormLabel>
-                <NumberInput value={numberOfRows} onChange={(_, val) => setNumberOfRows(val)}>
-                  <NumberInputField />
+
+              <FormControl isRequired>
+                <FormLabel color={textColor}>Number of Rows</FormLabel>
+                <NumberInput
+                  min={1}
+                  value={numberOfRows}
+                  onChange={(_, val) => setNumberOfRows(val)}>
+                  <NumberInputField
+                    borderColor={borderColor}
+                    _focus={{ borderColor: accentColor }}
+                  />
                 </NumberInput>
               </FormControl>
-              <FormControl>
-                <FormLabel>Number of Columns</FormLabel>
-                <NumberInput value={numberOfColumns} onChange={(_, val) => setNumberOfColumns(val)}>
-                  <NumberInputField />
+
+              <FormControl isRequired>
+                <FormLabel color={textColor}>Number of Columns</FormLabel>
+                <NumberInput
+                  min={1}
+                  value={numberOfColumns}
+                  onChange={(_, val) => setNumberOfColumns(val)}>
+                  <NumberInputField
+                    borderColor={borderColor}
+                    _focus={{ borderColor: accentColor }}
+                  />
                 </NumberInput>
               </FormControl>
+
               <FormControl>
-                <FormLabel>Z Offset (mm)</FormLabel>
+                <FormLabel color={textColor}>Z Offset (mm)</FormLabel>
                 <NumberInput value={zOffset} onChange={(_, val) => setZOffset(val)}>
-                  <NumberInputField />
+                  <NumberInputField
+                    borderColor={borderColor}
+                    _focus={{ borderColor: accentColor }}
+                  />
                 </NumberInput>
               </FormControl>
+
               <FormControl>
-                <FormLabel>Width (mm)</FormLabel>
-                <NumberInput value={width} onChange={(_, val) => setWidth(val)}>
-                  <NumberInputField />
+                <FormLabel color={textColor}>Width (mm)</FormLabel>
+                <NumberInput min={0} value={width} onChange={(_, val) => setWidth(val)}>
+                  <NumberInputField
+                    borderColor={borderColor}
+                    _focus={{ borderColor: accentColor }}
+                  />
                 </NumberInput>
               </FormControl>
+
               <FormControl>
-                <FormLabel>Height (mm)</FormLabel>
-                <NumberInput value={height} onChange={(_, val) => setHeight(val)}>
-                  <NumberInputField />
+                <FormLabel color={textColor}>Height (mm)</FormLabel>
+                <NumberInput min={0} value={height} onChange={(_, val) => setHeight(val)}>
+                  <NumberInputField
+                    borderColor={borderColor}
+                    _focus={{ borderColor: accentColor }}
+                  />
                 </NumberInput>
               </FormControl>
+
               <FormControl>
-                <FormLabel>Plate Lid Offset (mm)</FormLabel>
+                <FormLabel color={textColor}>Plate Lid Offset (mm)</FormLabel>
                 <NumberInput value={plateLidOffset} onChange={(_, val) => setPlateLidOffset(val)}>
-                  <NumberInputField />
+                  <NumberInputField
+                    borderColor={borderColor}
+                    _focus={{ borderColor: accentColor }}
+                  />
                 </NumberInput>
               </FormControl>
+
               <FormControl>
-                <FormLabel>Lid Offset (mm)</FormLabel>
+                <FormLabel color={textColor}>Lid Offset (mm)</FormLabel>
                 <NumberInput value={lidOffset} onChange={(_, val) => setLidOffset(val)}>
-                  <NumberInputField />
+                  <NumberInputField
+                    borderColor={borderColor}
+                    _focus={{ borderColor: accentColor }}
+                  />
                 </NumberInput>
               </FormControl>
+
               <FormControl>
-                <FormLabel>Stack Height (mm)</FormLabel>
+                <FormLabel color={textColor}>Stack Height (mm)</FormLabel>
                 <NumberInput value={stackHeight} onChange={(_, val) => setStackHeight(val)}>
-                  <NumberInputField />
+                  <NumberInputField
+                    borderColor={borderColor}
+                    _focus={{ borderColor: accentColor }}
+                  />
                 </NumberInput>
               </FormControl>
+
               <FormControl display="flex" alignItems="center">
-                <FormLabel mb="0">Has Lid</FormLabel>
-                <Switch isChecked={hasLid} onChange={(e) => setHasLid(e.target.checked)} />
+                <FormLabel mb="0" color={textColor}>
+                  Has Lid
+                </FormLabel>
+                <Switch
+                  isChecked={hasLid}
+                  onChange={(e) => setHasLid(e.target.checked)}
+                  sx={{
+                    "& .chakra-switch__track[data-checked]": {
+                      backgroundColor: accentColor,
+                    },
+                  }}
+                />
               </FormControl>
+
               <FormControl>
-                <FormLabel>Image URL</FormLabel>
-                <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+                <FormLabel color={textColor}>Image URL</FormLabel>
+                <Input
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  borderColor={borderColor}
+                  _focus={{ borderColor: accentColor }}
+                />
               </FormControl>
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" onClick={onClose}>
+            <Button
+              variant="ghost"
+              onClick={onClose}
+              mr={tokens.spacing.sm}
+              color={textColor}
+              _hover={{ bg: `${semantic.background.hover.light}50` }}>
               Cancel
             </Button>
-            <Button colorScheme="teal" onClick={handleSave} mr={3} isLoading={isLoading}>
-              Submit
+            <Button
+              bg={accentColor}
+              color="white"
+              _hover={{ bg: `${accentColor}90` }}
+              onClick={handleSave}
+              isLoading={isLoading}>
+              Create
             </Button>
           </ModalFooter>
         </ModalContent>

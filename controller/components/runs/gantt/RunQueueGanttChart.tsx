@@ -49,13 +49,34 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
   const runsQuery = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
   const toolInfoQuery = trpc.tool.getAll.useQuery();
 
-  const borderColor = useColorModeValue(semantic.border.secondary.light, semantic.border.primary.dark);
-  const borderColorAlpha = useColorModeValue(semantic.border.secondary.light, semantic.border.primary.dark);
-  const mainBgColor = useColorModeValue(semantic.background.primary.light, semantic.background.secondary.dark);
-  const toolLabelsBgColor = useColorModeValue(semantic.background.secondary.light, semantic.background.primary.dark);
-  const toolLabelHoverBg = useColorModeValue(semantic.background.hover.light, semantic.background.hover.dark);
-  const toolIconBg = useColorModeValue(semantic.background.primary.light, semantic.background.secondary.dark);
-  const commandBorderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
+  const borderColor = useColorModeValue(
+    semantic.border.secondary.light,
+    semantic.border.primary.dark,
+  );
+  const borderColorAlpha = useColorModeValue(
+    semantic.border.secondary.light,
+    semantic.border.primary.dark,
+  );
+  const mainBgColor = useColorModeValue(
+    semantic.background.primary.light,
+    semantic.background.secondary.dark,
+  );
+  const toolLabelsBgColor = useColorModeValue(
+    semantic.background.secondary.light,
+    semantic.background.primary.dark,
+  );
+  const toolLabelHoverBg = useColorModeValue(
+    semantic.background.hover.light,
+    semantic.background.hover.dark,
+  );
+  const toolIconBg = useColorModeValue(
+    semantic.background.primary.light,
+    semantic.background.secondary.dark,
+  );
+  const commandBorderColor = useColorModeValue(
+    semantic.border.primary.light,
+    semantic.border.primary.dark,
+  );
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -225,8 +246,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
           opacity = 0.7;
         } else if (command.status === "SKIPPED") {
           opacity = 0.5;
-          pattern =
-            `repeating-linear-gradient(45deg, transparent, transparent 5px, ${palette.white}4D 5px, ${palette.white}4D 10px)`;
+          pattern = `repeating-linear-gradient(45deg, transparent, transparent 5px, ${palette.white}4D 5px, ${palette.white}4D 10px)`;
           borderStyle = "dashed";
         }
 

@@ -40,7 +40,10 @@ export default function Page() {
 
   const headerBg = useColorModeValue(semantic.background.card.light, semantic.background.card.dark);
   const iconColor = palette.teal[500];
-  const hoverBg = useColorModeValue(semantic.background.hover.light, semantic.background.hover.dark);
+  const hoverBg = useColorModeValue(
+    semantic.background.hover.light,
+    semantic.background.hover.dark,
+  );
 
   // Fetch data from different sections
   const { data: tools } = trpc.tool.availableIDs.useQuery();

@@ -114,8 +114,14 @@ export const EditableText = (props: {
   disabled?: boolean;
 }) => {
   const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
-  const borderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
-  const inputBg = useColorModeValue(semantic.background.primary.light, semantic.background.card.dark);
+  const borderColor = useColorModeValue(
+    semantic.border.primary.light,
+    semantic.border.primary.dark,
+  );
+  const inputBg = useColorModeValue(
+    semantic.background.primary.light,
+    semantic.background.card.dark,
+  );
 
   return (
     <Editable

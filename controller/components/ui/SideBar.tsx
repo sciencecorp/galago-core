@@ -18,29 +18,31 @@ import {
   Tooltip,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { FiMenu, FiHome } from "react-icons/fi";
-import { BsLayoutSidebarInset } from "react-icons/bs";
-import { IconType } from "react-icons";
 import { useRouter } from "next/router";
-import { MdOutlineTransitEnterexit } from "react-icons/md";
-import { FaToolbox } from "react-icons/fa";
-import { TbVariable } from "react-icons/tb";
-import { MdOutlineIntegrationInstructions } from "react-icons/md";
-import { RiCalendarCheckLine } from "react-icons/ri";
-import { PiPathBold } from "react-icons/pi";
-import { MoonIcon, SunIcon } from "@chakra-ui/icons";
-import { FiBook } from "react-icons/fi";
-import { BsTools } from "react-icons/bs";
-import { FaChartGantt } from "react-icons/fa6";
 import { capitalizeFirst } from "@/utils/parser";
-import { BsBoxSeam } from "react-icons/bs";
-import { HiOutlineRectangleStack } from "react-icons/hi2";
-import { GiChaingun } from "react-icons/gi";
+import { palette, semantic } from "../../themes/colors";
+import tokens from "../../themes/tokens";
+import {
+  Icon,
+  SidebarIcons,
+  SectionIcons,
+  ThemeIcons,
+  HomeIcon,
+  ChaingunIcon,
+  ToolsIcon,
+  PathBoldIcon,
+  BoxSeamIcon,
+  RectangleStackIcon,
+  BookIcon,
+  VariableIcon,
+  IntegrationInstructionsIcon,
+  ChartGanttIcon,
+} from "../ui/Icons";
 import { useSidebarTheme } from "./Theme";
 
 interface SidebarItem {
   name: string;
-  icon: IconType;
+  icon: React.ElementType;
   path: string;
 }
 
@@ -50,18 +52,18 @@ interface SidebarProps {
 
 // Sidebar menu items
 const sidebarItems: SidebarItem[] = [
-  { name: "Home", icon: FiHome, path: "/" },
-  { name: "Runs", icon: FaChartGantt, path: "/runs" },
-  { name: "Workcells", icon: GiChaingun, path: "/workcells" },
-  { name: "Tools", icon: BsTools, path: "/tools" },
-  { name: "Protocols", icon: PiPathBold, path: "/protocols" },
-  { name: "Inventory", icon: BsBoxSeam, path: "/inventory" },
-  // { name: "Schedule", icon: RiCalendarCheckLine, path: "/schedule" },
-  { name: "Labware", icon: HiOutlineRectangleStack, path: "/labware" },
+  { name: "Home", icon: HomeIcon, path: "/" },
+  { name: "Runs", icon: ChartGanttIcon, path: "/runs" },
+  { name: "Workcells", icon: ChaingunIcon, path: "/workcells" },
+  { name: "Tools", icon: ToolsIcon, path: "/tools" },
+  { name: "Protocols", icon: PathBoldIcon, path: "/protocols" },
+  { name: "Inventory", icon: BoxSeamIcon, path: "/inventory" },
+  // { name: "Schedule", icon: SidebarIcons.Calendar, path: "/schedule" },
+  { name: "Labware", icon: RectangleStackIcon, path: "/labware" },
   // { name: "Tables", icon: LuTableProperties, path: "/tables" }, //Will keep thinking about this one, not sure we want to give users so much complexity/abstraction
-  { name: "Logs", icon: FiBook, path: "/logs" },
-  { name: "Variables", icon: TbVariable, path: "/variables" },
-  { name: "Scripts", icon: MdOutlineIntegrationInstructions, path: "/scripts" },
+  { name: "Logs", icon: BookIcon, path: "/logs" },
+  { name: "Variables", icon: VariableIcon, path: "/variables" },
+  { name: "Scripts", icon: IntegrationInstructionsIcon, path: "/scripts" },
   // { name: "Settings", icon: FiSettings, path: "/settings" },
   // { name: "Logout", icon: FiLogOut, path: "/logout" },
 ];
@@ -71,11 +73,11 @@ function DarkModeToggle() {
   return (
     <IconButton
       onClick={toggleColorMode}
-      icon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
+      icon={colorMode === "light" ? <Icon as={ThemeIcons.Moon} /> : <Icon as={ThemeIcons.Sun} />}
       aria-label="Toggle dark mode"
       position="fixed"
-      bottom="20px"
-      left="20px"
+      bottom={tokens.spacing.md}
+      left={tokens.spacing.md}
       bg="transparent"
     />
   );
@@ -110,13 +112,13 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   const SidebarContent = (
     <Box
       p={0}
-      bg={theme.bg}
-      color={theme.textColor}
-      width={isSidebarExpanded ? expandedWidth : collapsedWidth}
-      borderRight={isMobile ? "1px" : "none"}
-      borderColor={theme.borderColor}
-      height="100%"
-      {...transitionProps}>
+      bg={semantic.background.accent.dark}
+      color={semantic.text.primary.dark}
+      minW={isSidebarExpanded ? "220px" : "80px"}
+      sx={{
+        transition: `min-width ${tokens.animation.durations.normal} ${tokens.animation.easings.easeInOut}, width ${tokens.animation.durations.normal} ${tokens.animation.easings.easeInOut}`,
+        width: isSidebarExpanded ? "230px" : "80px",
+      }}>
       <VStack left={0} p={1} spacing={4} align="stretch" width="100%">
         <HStack pb={10} pl={2} pt={2} width="100%" position="relative">
           <Image
@@ -125,7 +127,19 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             paddingLeft="0"
             src="/site_logo.png"
             alt="logo"
-            filter={logoFilter}></Image>
+            filter="invert(1)"></Image>
+          {isSidebarExpanded && (
+            <IconButton
+              icon={<Icon as={SidebarIcons.Sidebar} />}
+              aria-label="Toggle Sidebar"
+              onClick={toggleSidebar}
+              position="absolute"
+              right="2"
+              bg="transparent"
+              color={semantic.text.primary.dark}
+              _hover={{ bg: semantic.background.hover.dark }}
+            />
+          )}
         </HStack>
 
         {sidebarItems.map((item) => (
@@ -138,33 +152,27 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                   ? "Home"
                   : capitalizeFirst(`${item.path.replaceAll("/", "").replaceAll("_", " ")}`);
             }}
-            _hover={{ background: theme.hoverBg }}
-            borderRadius="md"
+            _hover={{ background: semantic.background.hover.dark }}
+            borderRadius={tokens.borders.radii.md}
             p={2}
             display="flex"
             alignItems="center"
             justifyContent={isSidebarExpanded ? "start" : "center"}
-            bg={router.pathname === item.path ? theme.activeBg : "transparent"}
+            bg={router.pathname === item.path ? semantic.background.hover.dark : "transparent"}
             width={isMobile ? "100%" : "auto"}>
             {!isSidebarExpanded ? (
               <Tooltip label={item.name} placement="right">
                 <Box>
-                  <item.icon
-                    size="26"
-                    color={router.pathname === item.path ? theme.activeIconColor : undefined}
-                  />
+                  <Icon as={item.icon} boxSize="26px" />
                 </Box>
               </Tooltip>
             ) : (
               <>
-                <item.icon
-                  size="26"
-                  color={router.pathname === item.path ? theme.activeIconColor : undefined}
-                />
+                <Icon as={item.icon} boxSize="26px" />
                 <Text
-                  color={router.pathname === item.path ? theme.activeTextColor : theme.textColor}
+                  color={semantic.text.primary.dark}
                   ml={4}
-                  fontSize="md">
+                  fontSize={tokens.typography.fontSizes.md}>
                   {item.name}
                 </Text>
               </>
@@ -184,14 +192,13 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
           top="0"
           left="0"
           bottom="0"
-          bg={theme.bg}
-          color={theme.textColor}
-          width={isSidebarExpanded ? expandedWidth : collapsedWidth}
-          borderRight="1px"
-          borderColor={theme.borderColor}
-          height="100vh"
-          boxShadow={theme.shadow}
-          {...transitionProps}>
+          bg={semantic.background.accent.dark}
+          color={semantic.text.primary.dark}
+          minW={isSidebarExpanded ? "230px" : "85px"}
+          sx={{
+            transition: `min-width ${tokens.animation.durations.normal} ${tokens.animation.easings.easeInOut}, width ${tokens.animation.durations.normal} ${tokens.animation.easings.easeInOut}`,
+            width: isSidebarExpanded ? "220px" : "85px",
+          }}>
           {SidebarContent}
         </Box>
       ) : (
@@ -212,12 +219,8 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                 maxW="220px"
                 overflow="hidden"
                 _focus={{ outline: "none" }}
-                bg={theme.bg}
-                color={theme.textColor}
-                borderRight="1px"
-                borderColor={theme.borderColor}
-                height="100%"
-                boxShadow={theme.shadow}>
+                bg={semantic.background.accent.dark}
+                color={semantic.text.primary.dark}>
                 {SidebarContent}
               </DrawerContent>
             </Drawer>

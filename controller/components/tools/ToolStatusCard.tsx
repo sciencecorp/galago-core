@@ -17,7 +17,6 @@ import {
   MenuItem,
   MenuList,
   IconButton,
-  Icon,
   useToast,
   useDisclosure,
   Modal,
@@ -27,32 +26,13 @@ import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import Link from "next/link";
 import { ToolConfigEditor } from "./ToolConfigEditor";
 import { ToolStatusTag } from "./ToolStatusTag";
-import { HamburgerIcon } from "@chakra-ui/icons";
-import styled from "@emotion/styled";
-import { useEffect, useState } from "react";
-import { PiToolbox } from "react-icons/pi";
 import { EditMenu } from "@/components/ui/EditMenu";
 import { EditToolModal } from "./EditToolConfig";
 import { useRouter } from "next/router";
-import { palette, semantic } from "../../themes/colors";
-
-const StyledCard = styled(Card)`
-  display: flex;
-  flex-direction: column;
-  height: 280px;
-  width: 280px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px ${palette.black}1A;
-  transition: 0.3s ease-out;
-  margin: 0 15px;
-  margin-top: 10px;
-  margin-bottom: 20px;
-  overflow: hidden;
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px ${palette.black}26;
-  }
-`;
+import { semantic } from "../../themes/colors";
+import tokens from "../../themes/tokens";
+import { Icon, ToolIcons } from "../ui/Icons";
+import { useEffect, useState } from "react";
 
 interface ToolStatusCardProps {
   toolId: string;
@@ -62,8 +42,25 @@ interface ToolStatusCardProps {
 export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardProps) {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
-  const cardBg = useColorModeValue(semantic.background.card.light, semantic.background.primary.dark);
-  const borderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
+
+  const cardBg = useColorModeValue(
+    semantic.background.card.light,
+    semantic.background.primary.dark,
+  );
+  const borderColor = useColorModeValue(
+    semantic.border.primary.light,
+    semantic.border.primary.dark,
+  );
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
+  const textSecondary = useColorModeValue(
+    semantic.text.secondary.light,
+    semantic.text.secondary.dark,
+  );
+  const accentColor = useColorModeValue(semantic.text.accent.light, semantic.text.accent.dark);
+  const shadowColor = useColorModeValue(
+    `${semantic.border.primary.light}40`,
+    `${semantic.border.primary.dark}40`,
+  );
 
   const infoQuery = trpc.tool.info.useQuery({ toolId: toolId || "" });
   const toolData = infoQuery.data;
@@ -75,7 +72,7 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
 
   const toast = useToast();
   if (infoQuery.isLoading) {
-    return <Spinner size="lg" />;
+    return <Spinner size="lg" color={accentColor} />;
   }
 
   if (infoQuery.isError || !toolData) {
@@ -109,14 +106,7 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
     } else if (config.name === "Tool Box") {
       return (
         <Box display="flex" justifyContent="center" alignItems="center">
-          <IconButton
-            aria-label="Tool Box"
-            icon={<PiToolbox style={{ width: "100%", height: "100%" }} />}
-            variant="ghost"
-            colorScheme="teal"
-            isRound
-            boxSize="100px"
-          />
+          <Icon as={ToolIcons.Toolbox} color={accentColor} boxSize="100px" />
         </Box>
       );
     } else {
@@ -138,25 +128,32 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
       <Card
         bg={cardBg}
         borderColor={borderColor}
-        borderWidth="1px"
+        borderWidth={tokens.borders.widths.thin}
         height="280px"
         width="280px"
-        borderRadius="lg"
-        boxShadow="md"
-        transition="0.3s ease-out"
+        borderRadius={tokens.borders.radii.lg}
+        boxShadow={`0 4px 8px ${shadowColor}`}
+        transition="all 0.2s"
         overflow="hidden"
-        _hover={{ transform: "translateY(-5px)", shadow: "lg" }}
-        p={2}
+        _hover={{
+          transform: "translateY(-5px)",
+          boxShadow: `0 6px 12px ${shadowColor}`,
+        }}
+        p={tokens.spacing.sm}
         style={{ ...style }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}>
-        <CardHeader pb="0px">
+        <CardHeader pb={0}>
           <Flex justifyContent="space-between" alignItems="center">
             <Box>
               <Link href={`/tools/${toolId}`} passHref>
-                <Heading size="md">{name}</Heading>
+                <Heading size="md" color={textColor}>
+                  {name}
+                </Heading>
               </Link>
-              <Text fontSize="sm">{description}</Text>
+              <Text fontSize={tokens.typography.fontSizes.sm} color={textSecondary}>
+                {description}
+              </Text>
             </Box>
             <Box top={-5} right={-5} position="relative">
               {toolId !== "Tool Box" && (
@@ -165,8 +162,8 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
             </Box>
           </Flex>
         </CardHeader>
-        <CardBody mt="0px">
-          <VStack align="stretch" spacing={4} mb={2}>
+        <CardBody mt={0}>
+          <VStack align="stretch" spacing={tokens.spacing.md} mb={tokens.spacing.sm}>
             <ToolStatusTag toolId={toolId} />
             <Flex
               justifyContent="center"

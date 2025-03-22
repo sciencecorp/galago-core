@@ -7,7 +7,10 @@ interface GanttGridLinesProps {
 }
 
 export const GanttGridLines: React.FC<GanttGridLinesProps> = ({ intervals }) => {
-  const borderColorAlpha = useColorModeValue(semantic.border.secondary.light, semantic.border.primary.dark);
+  const borderColorAlpha = useColorModeValue(
+    semantic.border.secondary.light,
+    semantic.border.primary.dark,
+  );
 
   const lines = [];
   for (let i = 1; i <= intervals; i++) {
