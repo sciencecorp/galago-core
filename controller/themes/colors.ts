@@ -8,7 +8,7 @@ export const palette = {
   // Neutrals
   white: "#FFFFFF",
   black: "#000000",
-  
+
   // Grays
   gray: {
     50: "#F7FAFC",
@@ -22,7 +22,7 @@ export const palette = {
     800: "#1A202C",
     900: "#171923",
   },
-  
+
   // Blues
   blue: {
     50: "#EBF8FF",
@@ -36,7 +36,7 @@ export const palette = {
     800: "#2A4365",
     900: "#1A365D",
   },
-  
+
   // Greens
   green: {
     50: "#F0FFF4",
@@ -50,7 +50,7 @@ export const palette = {
     800: "#22543D",
     900: "#1C4532",
   },
-  
+
   // Reds
   red: {
     50: "#FFF5F5",
@@ -64,7 +64,7 @@ export const palette = {
     800: "#822727",
     900: "#63171B",
   },
-  
+
   // Yellows
   yellow: {
     50: "#FFFFF0",
@@ -78,7 +78,7 @@ export const palette = {
     800: "#744210",
     900: "#5F370E",
   },
-  
+
   // Oranges
   orange: {
     50: "#FFFAF0",
@@ -92,7 +92,7 @@ export const palette = {
     800: "#7B341E",
     900: "#652B19",
   },
-  
+
   // Purples
   purple: {
     50: "#FAF5FF",
@@ -106,7 +106,7 @@ export const palette = {
     800: "#44337A",
     900: "#322659",
   },
-  
+
   // Teals
   teal: {
     50: "#E6FFFA",
@@ -120,7 +120,7 @@ export const palette = {
     800: "#234E52",
     900: "#1D4044",
   },
-  
+
   // Custom colors
   custom: {
     // Custom blue used in HomeNavCard hover state
@@ -140,7 +140,7 @@ export const palette = {
     gradientBlue4: "#0071FF33",
     // Pattern colors
     patternBlue: "#7B8AC8",
-  }
+  },
 };
 
 // Semantic color tokens
@@ -160,7 +160,7 @@ export const semantic = {
       dark: palette.teal[200],
     },
   },
-  
+
   // Background colors
   background: {
     primary: {
@@ -184,7 +184,7 @@ export const semantic = {
       dark: palette.gray[600],
     },
   },
-  
+
   // Border colors
   border: {
     primary: {
@@ -200,7 +200,7 @@ export const semantic = {
       dark: palette.blue[400],
     },
   },
-  
+
   // Status colors
   status: {
     success: {
@@ -224,7 +224,7 @@ export const semantic = {
       dark: palette.gray[400],
     },
   },
-  
+
   // Tool status colors
   toolStatus: {
     READY: palette.green[500],
@@ -237,7 +237,7 @@ export const semantic = {
     UNKNOWN_STATUS: palette.gray[500],
     UNRECOGNIZED: palette.gray[500],
   },
-  
+
   // Instrument colors
   instrument: {
     pf400: palette.purple[500],
@@ -250,7 +250,7 @@ export const semantic = {
     toolbox: palette.red[300], // FC8181
     default: palette.gray[400], // CBD5E0
   },
-  
+
   // Run type colors
   runType: {
     default: palette.green[500],
@@ -324,12 +324,12 @@ const hashString = (str: string): number => {
 
 export const getToolColor = (toolType: string): string => {
   if (!toolType) return palette.gray[300]; // Default gray
-  
+
   // Special case for toolbox
   if (toolType.toLowerCase() === "toolbox") {
     return palette.red[300]; // Keep the original toolbox color
   }
-  
+
   const index = hashString(toolType.toLowerCase()) % colorPalette.length;
   return colorPalette[index];
 };
@@ -382,4 +382,4 @@ export interface SemanticColors {
 export type Colors = {
   palette: ColorPalette;
   semantic: SemanticColors;
-}; 
+};

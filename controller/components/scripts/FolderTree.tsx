@@ -10,21 +10,25 @@ import {
   MenuItem,
   Input,
   VStack,
-  Icon,
   Tooltip,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { ScriptFolder, Script } from "@/types/api";
 import { validateFolderName, removeFileExtension, showErrorToast } from "./utils";
-import { useScriptColors } from "../ui/Theme";
 import {
+  Icon,
   MenuIcon,
   PythonIcon,
   EditIcon,
   DeleteIcon,
   FolderIcon,
   FolderOpenIcon,
+  ChevronRightIcon,
+  ChevronDownIcon,
 } from "../ui/Icons";
 import { InlineFolderCreation } from "./NewFolder";
+import { semantic } from "../../themes/colors";
+import tokens from "../../themes/tokens";
 
 interface FolderTreeProps {
   folders: ScriptFolder[];
@@ -63,10 +67,26 @@ const FolderNode: React.FC<FolderNodeProps> = ({
   onFolderRename,
   onFolderDelete,
   openFolders,
+  folders,
+  scripts,
 }): JSX.Element => {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(folder.name);
-  const { selectedBg, hoverBg, selectedColor } = useScriptColors();
+
+  const selectedBg = useColorModeValue(
+    `${semantic.text.accent.light}15`,
+    `${semantic.text.accent.dark}30`,
+  );
+  const hoverBg = useColorModeValue(
+    semantic.background.hover.light,
+    semantic.background.hover.dark,
+  );
+  const selectedColor = useColorModeValue(semantic.text.accent.light, semantic.text.accent.dark);
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
+  const textSecondary = useColorModeValue(
+    semantic.text.secondary.light,
+    semantic.text.secondary.dark,
+  );
 
   const handleRename = () => {
     const validationError = validateFolderName(newName);
@@ -84,22 +104,26 @@ const FolderNode: React.FC<FolderNodeProps> = ({
   const isActive = activeFolder?.id === folder.id;
   const isOpen = openFolders.has(folder.id);
 
+  const childFolders = folders.filter((f) => f.parent_id === folder.id);
+  const folderScripts = scripts.filter((s) => s.folder_id === folder.id);
+
   return (
     <Box>
       <HStack
-        spacing={1}
-        mb={1}
-        px={2}
-        py={1}
-        borderRadius="md"
+        spacing={tokens.spacing.xs}
+        mb={tokens.spacing.xs}
+        px={tokens.spacing.sm}
+        py={tokens.spacing.xs}
+        borderRadius={tokens.borders.radii.md}
         bg={isActive ? selectedBg : "transparent"}
         _hover={{ bg: isActive ? selectedBg : hoverBg }}
         onClick={() => onFolderClick?.(folder)}
         cursor="pointer"
         position="relative">
+        <Icon as={isOpen ? ChevronDownIcon : ChevronRightIcon} boxSize={3} color={textSecondary} />
         <Icon
           as={isOpen ? FolderOpenIcon : FolderIcon}
-          color={isActive ? selectedColor : "gray.500"}
+          color={isActive ? selectedColor : semantic.text.accent.light}
         />
         {isEditing ? (
           <Input
@@ -111,28 +135,31 @@ const FolderNode: React.FC<FolderNodeProps> = ({
               if (e.key === "Enter") handleRename();
               if (e.key === "Escape") setIsEditing(false);
             }}
-            onClick={(e) => e.stopPropagation()}
             autoFocus
+            onClick={(e) => e.stopPropagation()}
           />
         ) : (
-          <Text flex={1} color={isActive ? selectedColor : "inherit"}>
+          <Text
+            fontWeight={tokens.typography.fontWeights.medium}
+            color={isActive ? selectedColor : textColor}
+            fontSize={tokens.typography.fontSizes.sm}
+            isTruncated>
             {folder.name}
           </Text>
         )}
         <Menu>
           <MenuButton
             as={IconButton}
-            aria-label="Folder options"
-            icon={<MenuIcon />}
-            variant="unstyled"
-            size="sm"
+            icon={<Icon as={MenuIcon} />}
+            variant="ghost"
+            size="xs"
+            ml="auto"
             onClick={(e) => e.stopPropagation()}
-            position="absolute"
-            right={2}
+            aria-label="Folder options"
           />
-          <MenuList minW="auto">
+          <MenuList>
             <MenuItem
-              icon={<EditIcon />}
+              icon={<Icon as={EditIcon} />}
               onClick={(e) => {
                 e.stopPropagation();
                 setIsEditing(true);
@@ -140,16 +167,9 @@ const FolderNode: React.FC<FolderNodeProps> = ({
               Rename
             </MenuItem>
             <MenuItem
-              icon={<DeleteIcon />}
+              icon={<Icon as={DeleteIcon} />}
               onClick={(e) => {
                 e.stopPropagation();
-                if (folder.scripts.length > 0 || folder.subfolders.length > 0) {
-                  showErrorToast(
-                    "Cannot delete non-empty folder",
-                    "Please move or delete the contents of the folder first.",
-                  );
-                  return;
-                }
                 onFolderDelete(folder);
               }}>
               Delete
@@ -157,15 +177,14 @@ const FolderNode: React.FC<FolderNodeProps> = ({
           </MenuList>
         </Menu>
       </HStack>
+
       {isOpen && (
-        <Box ml={4}>
-          {folder.subfolders.map((subfolder) => (
+        <Box ml={tokens.spacing.md}>
+          {childFolders.map((childFolder) => (
             <FolderNode
-              key={subfolder.id}
-              folder={subfolder}
+              key={childFolder.id}
+              folder={childFolder}
               level={level + 1}
-              folders={[]}
-              scripts={[]}
               activeScript={activeScript}
               activeFolder={activeFolder}
               onScriptClick={onScriptClick}
@@ -176,13 +195,16 @@ const FolderNode: React.FC<FolderNodeProps> = ({
               onFolderRename={onFolderRename}
               onFolderDelete={onFolderDelete}
               openFolders={openFolders}
+              folders={folders}
+              scripts={scripts}
             />
           ))}
-          {folder.scripts.map((script) => (
+
+          {folderScripts.map((script) => (
             <ScriptNode
               key={script.id}
               script={script}
-              isActive={activeScript === script.name}
+              isActive={activeScript === script.id.toString()}
               onClick={() => onScriptClick(script)}
               onRename={onScriptRename}
               onDelete={onScriptDelete}
@@ -211,10 +233,20 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
 }): JSX.Element => {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(removeFileExtension(script.name));
-  const { selectedBg, hoverBg, selectedColor } = useScriptColors();
+
+  const selectedBg = useColorModeValue(
+    `${semantic.text.accent.light}15`,
+    `${semantic.text.accent.dark}30`,
+  );
+  const hoverBg = useColorModeValue(
+    semantic.background.hover.light,
+    semantic.background.hover.dark,
+  );
+  const selectedColor = useColorModeValue(semantic.text.accent.light, semantic.text.accent.dark);
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
 
   const handleRename = () => {
-    if (newName.trim() && newName !== script.name.replace(/\.py$/, "")) {
+    if (newName.trim() && newName !== removeFileExtension(script.name)) {
       onRename(script, newName);
     }
     setIsEditing(false);
@@ -222,17 +254,18 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
 
   return (
     <HStack
-      spacing={1}
-      mb={1}
-      px={2}
-      py={1}
-      borderRadius="md"
+      spacing={tokens.spacing.xs}
+      mb={tokens.spacing.xs}
+      px={tokens.spacing.sm}
+      py={tokens.spacing.xs}
+      borderRadius={tokens.borders.radii.md}
       bg={isActive ? selectedBg : "transparent"}
       _hover={{ bg: isActive ? selectedBg : hoverBg }}
       onClick={onClick}
       cursor="pointer"
       position="relative">
-      <PythonIcon color={isActive ? "teal" : "gray"} />
+      <Box width="3px" />
+      <Icon as={PythonIcon} color={semantic.text.accent.light} />
       {isEditing ? (
         <Input
           size="sm"
@@ -243,38 +276,31 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
             if (e.key === "Enter") handleRename();
             if (e.key === "Escape") setIsEditing(false);
           }}
-          onClick={(e) => e.stopPropagation()}
           autoFocus
+          onClick={(e) => e.stopPropagation()}
         />
       ) : (
-        <Tooltip
-          label={script.description || "No description available"}
-          openDelay={1000}
-          placement="right"
-          hasArrow>
-          <Text
-            flex={1}
-            fontSize="14px"
-            fontWeight={isActive ? "medium" : "normal"}
-            color={isActive ? selectedColor : "inherit"}>
-            {script.name.replace(/\.py$/, "")}
-          </Text>
-        </Tooltip>
+        <Text
+          fontWeight={tokens.typography.fontWeights.medium}
+          color={isActive ? selectedColor : textColor}
+          fontSize={tokens.typography.fontSizes.sm}
+          isTruncated>
+          {removeFileExtension(script.name)}
+        </Text>
       )}
       <Menu>
         <MenuButton
           as={IconButton}
-          aria-label="Script options"
-          icon={<MenuIcon />}
-          variant="unstyled"
-          size="sm"
+          icon={<Icon as={MenuIcon} />}
+          variant="ghost"
+          size="xs"
+          ml="auto"
           onClick={(e) => e.stopPropagation()}
-          position="absolute"
-          right={2}
+          aria-label="Script options"
         />
-        <MenuList minW="auto">
+        <MenuList>
           <MenuItem
-            icon={<EditIcon />}
+            icon={<Icon as={EditIcon} />}
             onClick={(e) => {
               e.stopPropagation();
               setIsEditing(true);
@@ -282,7 +308,7 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
             Rename
           </MenuItem>
           <MenuItem
-            icon={<DeleteIcon />}
+            icon={<Icon as={DeleteIcon} />}
             onClick={(e) => {
               e.stopPropagation();
               onDelete(script);
@@ -310,22 +336,29 @@ export const ScriptFolderTree: React.FC<FolderTreeProps> = ({
   openFolders,
   isCreatingRootFolder,
   onCancelRootFolderCreation,
+  children,
 }) => {
+  const rootFolders = folders.filter((folder) => !folder.parent_id);
+  const rootScripts = scripts.filter((script) => !script.folder_id);
+
   return (
-    <VStack align="stretch" width="100%" spacing={1}>
+    <VStack align="stretch" spacing={tokens.spacing.xs} width="100%">
+      {children}
+
       {isCreatingRootFolder && (
-        <InlineFolderCreation
-          onSubmit={(name) => onFolderCreate(name)}
-          onCancel={() => onCancelRootFolderCreation?.()}
-        />
+        <Box mb={tokens.spacing.xs}>
+          <InlineFolderCreation
+            onSubmit={(name) => onFolderCreate(name)}
+            onCancel={() => onCancelRootFolderCreation?.()}
+          />
+        </Box>
       )}
-      {folders.map((folder) => (
+
+      {rootFolders.map((folder) => (
         <FolderNode
           key={folder.id}
           folder={folder}
           level={0}
-          folders={folders}
-          scripts={scripts}
           activeScript={activeScript}
           activeFolder={activeFolder}
           onScriptClick={onScriptClick}
@@ -336,20 +369,21 @@ export const ScriptFolderTree: React.FC<FolderTreeProps> = ({
           onFolderRename={onFolderRename}
           onFolderDelete={onFolderDelete}
           openFolders={openFolders}
+          folders={folders}
+          scripts={scripts}
         />
       ))}
-      {scripts
-        .filter((script) => !script.folder_id)
-        .map((script) => (
-          <ScriptNode
-            key={script.id}
-            script={script}
-            isActive={activeScript === script.name}
-            onClick={() => onScriptClick(script)}
-            onRename={onScriptRename}
-            onDelete={onScriptDelete}
-          />
-        ))}
+
+      {rootScripts.map((script) => (
+        <ScriptNode
+          key={script.id}
+          script={script}
+          isActive={activeScript === script.id.toString()}
+          onClick={() => onScriptClick(script)}
+          onRename={onScriptRename}
+          onDelete={onScriptDelete}
+        />
+      ))}
     </VStack>
   );
 };

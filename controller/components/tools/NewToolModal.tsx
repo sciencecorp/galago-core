@@ -15,12 +15,15 @@ import {
   FormControl,
   FormLabel,
   Select,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
-import { RiAddFill } from "react-icons/ri";
 import { ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
 import { Tool } from "@/types/api";
+import { Icon, FormIcons } from "../ui/Icons";
+import { semantic } from "../../themes/colors";
+import tokens from "../../themes/tokens";
 
 interface NewToolModalProps {
   isDisabled?: boolean;
@@ -38,6 +41,21 @@ export const NewToolModal: React.FC<NewToolModalProps> = (props) => {
   const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery();
   const availableTools = Object.values(ToolType);
   const [defaultConfig, setDefaultConfig] = useState<any>(null);
+
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
+  const borderColor = useColorModeValue(
+    semantic.border.secondary.light,
+    semantic.border.secondary.dark,
+  );
+  const modalBg = useColorModeValue(
+    semantic.background.primary.light,
+    semantic.background.primary.dark,
+  );
+  const accentColor = useColorModeValue(semantic.text.accent.light, semantic.text.accent.dark);
+  const buttonHoverBg = useColorModeValue(
+    semantic.background.hover.light,
+    semantic.background.hover.dark,
+  );
 
   const { data: configData, isFetching: isConfigLoading } =
     trpc.tool.getProtoConfigDefinitions.useQuery(type as ToolType, {
@@ -103,25 +121,39 @@ export const NewToolModal: React.FC<NewToolModalProps> = (props) => {
 
   return (
     <>
-      <Button onClick={onOpen} colorScheme="teal" leftIcon={<RiAddFill />} isDisabled={isDisabled}>
+      <Button
+        onClick={onOpen}
+        bg={accentColor}
+        color="white"
+        _hover={{ bg: `${accentColor}90` }}
+        leftIcon={<Icon as={FormIcons.Add} />}
+        isDisabled={isDisabled}
+        borderRadius={tokens.borders.radii.md}>
         New Tool
       </Button>
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Add Tool</ModalHeader>
-          <ModalCloseButton />
+        <ModalContent
+          bg={modalBg}
+          borderColor={borderColor}
+          borderWidth={tokens.borders.widths.thin}
+          boxShadow={tokens.shadows.md}>
+          <ModalHeader color={textColor}>Add Tool</ModalHeader>
+          <ModalCloseButton color={textColor} />
           <ModalBody>
-            <VStack spacing={4}>
+            <VStack spacing={tokens.spacing.md}>
               <FormControl>
-                <FormLabel>Select Tool Type</FormLabel>
+                <FormLabel color={textColor}>Select Tool Type</FormLabel>
                 <Select
                   value={type}
                   onChange={(e) => {
                     const enumValue = e.target.value as ToolType;
                     setType(enumValue); // This sets the actual enum value, not the string
                   }}
-                  placeholder="Select Tool">
+                  placeholder="Select Tool"
+                  borderColor={borderColor}
+                  color={textColor}
+                  _focus={{ borderColor: accentColor }}>
                   {availableTools
                     .filter(
                       (x) =>
@@ -138,23 +170,43 @@ export const NewToolModal: React.FC<NewToolModalProps> = (props) => {
                 </Select>
               </FormControl>
               <FormControl>
-                <FormLabel>Name</FormLabel>
+                <FormLabel color={textColor}>Name</FormLabel>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value.toLocaleLowerCase().replaceAll(" ", "_"))}
+                  borderColor={borderColor}
+                  color={textColor}
+                  _focus={{ borderColor: accentColor }}
                 />
               </FormControl>
               <FormControl>
-                <FormLabel>Description</FormLabel>
-                <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+                <FormLabel color={textColor}>Description</FormLabel>
+                <Input
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  borderColor={borderColor}
+                  color={textColor}
+                  _focus={{ borderColor: accentColor }}
+                />
               </FormControl>
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" onClick={onClose}>
+            <Button
+              variant="ghost"
+              onClick={onClose}
+              color={textColor}
+              _hover={{ bg: buttonHoverBg }}
+              mr={tokens.spacing.sm}>
               Cancel
             </Button>
-            <Button colorScheme="teal" onClick={handleSave} mr={3} isLoading={isLoading}>
+            <Button
+              bg={accentColor}
+              color="white"
+              _hover={{ bg: `${accentColor}90` }}
+              onClick={handleSave}
+              isLoading={isLoading}
+              borderRadius={tokens.borders.radii.md}>
               Submit
             </Button>
           </ModalFooter>

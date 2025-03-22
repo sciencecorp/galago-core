@@ -4,10 +4,16 @@ import { palette, semantic } from "../../themes/colors";
 // Script editor colors
 export const useScriptColors = () => {
   return {
-    selectedBg: useColorModeValue(semantic.background.accent.light, semantic.background.accent.dark),
+    selectedBg: useColorModeValue(
+      semantic.background.accent.light,
+      semantic.background.accent.dark,
+    ),
     hoverBg: useColorModeValue(semantic.background.hover.light, semantic.background.hover.dark),
     selectedColor: useColorModeValue(semantic.text.accent.light, semantic.text.accent.dark),
-    bgColor: useColorModeValue(semantic.background.secondary.light, semantic.background.secondary.dark),
+    bgColor: useColorModeValue(
+      semantic.background.secondary.light,
+      semantic.background.secondary.dark,
+    ),
     borderColor: useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark),
     consoleHeaderBg: useColorModeValue(palette.gray[100], palette.gray[800]),
     consoleBg: useColorModeValue(palette.white, palette.custom.consoleDark),
@@ -19,8 +25,14 @@ export const useCommonColors = () => {
   return {
     cardBg: useColorModeValue(semantic.background.card.light, semantic.background.card.dark),
     headerBg: useColorModeValue(semantic.background.card.light, semantic.background.card.dark),
-    tabBg: useColorModeValue(semantic.background.secondary.light, semantic.background.secondary.dark),
-    activeTabBg: useColorModeValue(semantic.background.primary.light, semantic.background.secondary.dark),
+    tabBg: useColorModeValue(
+      semantic.background.secondary.light,
+      semantic.background.secondary.dark,
+    ),
+    activeTabBg: useColorModeValue(
+      semantic.background.primary.light,
+      semantic.background.secondary.dark,
+    ),
     hoverBg: useColorModeValue(semantic.background.hover.light, semantic.background.hover.dark),
     accentColor: useColorModeValue(semantic.text.accent.light, semantic.text.accent.dark),
   };

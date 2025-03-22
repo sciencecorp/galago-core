@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
-import { HStack, Input, Icon, IconButton, Tooltip } from "@chakra-ui/react";
+import { HStack, Input, IconButton, Tooltip, useColorModeValue } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { validateFolderName, showErrorToast } from "./utils";
-import { useScriptColors } from "../ui/Theme";
-import { FolderIcon, FolderAddIcon } from "../ui/Icons";
+import { Icon, FolderIcon, FolderAddIcon } from "../ui/Icons";
+import { semantic } from "../../themes/colors";
+import tokens from "../../themes/tokens";
 
 interface NewFolderProps {
   isDisabled?: boolean;
@@ -24,7 +25,10 @@ export const InlineFolderCreation: React.FC<InlineFolderCreationProps> = ({
 }): JSX.Element => {
   const [name, setName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const { hoverBg } = useScriptColors();
+  const hoverBg = useColorModeValue(
+    semantic.background.hover.light,
+    semantic.background.hover.dark,
+  );
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -45,8 +49,13 @@ export const InlineFolderCreation: React.FC<InlineFolderCreationProps> = ({
   };
 
   return (
-    <HStack spacing={1} px={2} py={1} borderRadius="md" bg={hoverBg}>
-      <Icon as={FolderIcon} color="teal.500" />
+    <HStack
+      spacing={tokens.spacing.xs}
+      px={tokens.spacing.sm}
+      py={tokens.spacing.xs}
+      borderRadius={tokens.borders.radii.md}
+      bg={hoverBg}>
+      <Icon as={FolderIcon} color={semantic.text.accent.light} />
       <Input
         ref={inputRef}
         size="sm"
@@ -93,6 +102,7 @@ export const NewFolder: React.FC<NewFolderProps> = ({
         icon={<Icon as={FolderAddIcon} />}
         colorScheme="teal"
         variant="ghost"
+        size="md"
         isDisabled={isDisabled}
         onClick={handleCreate}
       />

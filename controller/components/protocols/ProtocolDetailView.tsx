@@ -314,12 +314,27 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const [localParams, setLocalParams] = useState<Record<string, ParameterSchema>>({});
   const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
   const execMutation = trpc.tool.runCommand.useMutation();
-  const bgColor = useColorModeValue(semantic.background.card.light, semantic.background.secondary.dark);
-  const borderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
+  const bgColor = useColorModeValue(
+    semantic.background.card.light,
+    semantic.background.secondary.dark,
+  );
+  const borderColor = useColorModeValue(
+    semantic.border.primary.light,
+    semantic.border.primary.dark,
+  );
   const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
-  const tableBgColor = useColorModeValue(semantic.background.card.light, semantic.background.card.dark);
-  const hoverBgColor = useColorModeValue(semantic.background.hover.light, semantic.background.hover.dark);
-  const tableBorderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
+  const tableBgColor = useColorModeValue(
+    semantic.background.card.light,
+    semantic.background.card.dark,
+  );
+  const hoverBgColor = useColorModeValue(
+    semantic.background.hover.light,
+    semantic.background.hover.dark,
+  );
+  const tableBorderColor = useColorModeValue(
+    semantic.border.primary.light,
+    semantic.border.primary.dark,
+  );
   const arrowColor = useColorModeValue(semantic.text.secondary.light, semantic.text.secondary.dark);
   const {
     data: protocol,
@@ -503,7 +518,13 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   };
 
   return (
-    <Box bg={bgColor} p={6} borderRadius="md" boxShadow="sm" borderWidth="1px" borderColor={borderColor}>
+    <Box
+      bg={bgColor}
+      p={6}
+      borderRadius="md"
+      boxShadow="sm"
+      borderWidth="1px"
+      borderColor={borderColor}>
       <VStack align="stretch" spacing={6}>
         <HStack justifyContent="space-between">
           <VStack align="start" spacing={1}>
@@ -527,7 +548,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                 <Button colorScheme="green" onClick={handleRunClick}>
                   Run
                 </Button>
-                
               </>
             )}
           </HStack>

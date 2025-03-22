@@ -15,12 +15,15 @@ import {
   FormControl,
   FormLabel,
   Select,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
-import { RiAddFill } from "react-icons/ri";
 import { ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
 import { Tool, Workcell } from "@/types/api";
+import { Icon, FormIcons } from "../ui/Icons";
+import { semantic } from "../../themes/colors";
+import tokens from "../../themes/tokens";
 
 export const NewWorkcellModal: React.FC = () => {
   const [name, setName] = useState("");
@@ -33,6 +36,21 @@ export const NewWorkcellModal: React.FC = () => {
   const [type, setType] = useState<string>("");
   const createWorkcell = trpc.workcell.add.useMutation();
   const { data: fetchedWorkcells, refetch } = trpc.workcell.getAll.useQuery();
+
+  const accentColor = useColorModeValue(semantic.text.accent.light, semantic.text.accent.dark);
+  const borderColor = useColorModeValue(
+    semantic.border.secondary.light,
+    semantic.border.secondary.dark,
+  );
+  const modalBg = useColorModeValue(
+    semantic.background.primary.light,
+    semantic.background.primary.dark,
+  );
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
+  const buttonHoverBg = useColorModeValue(
+    semantic.background.hover.light,
+    semantic.background.hover.dark,
+  );
 
   const handleSave = async () => {
     const workcell = { name, description, location } as Workcell;
@@ -64,39 +82,80 @@ export const NewWorkcellModal: React.FC = () => {
     setName("");
     setValue("");
     setType("string");
+    setDescription("");
+    setLocation("");
   };
 
   return (
     <>
-      <Button onClick={onOpen} colorScheme="teal" leftIcon={<RiAddFill />}>
+      <Button
+        onClick={onOpen}
+        bg={accentColor}
+        color="white"
+        _hover={{ bg: `${accentColor}90` }}
+        leftIcon={<Icon as={FormIcons.Add} />}
+        borderRadius={tokens.borders.radii.md}>
         New Workcell
       </Button>
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Add Workcell</ModalHeader>
-          <ModalCloseButton />
+        <ModalContent
+          bg={modalBg}
+          borderColor={borderColor}
+          borderWidth={tokens.borders.widths.thin}
+          boxShadow={tokens.shadows.md}>
+          <ModalHeader color={textColor}>Add Workcell</ModalHeader>
+          <ModalCloseButton color={textColor} />
           <ModalBody>
-            <VStack spacing={4}>
+            <VStack spacing={tokens.spacing.md}>
               <FormControl>
-                <FormLabel>Name</FormLabel>
-                <Input value={name} onChange={(e) => setName(e.target.value)} />
+                <FormLabel color={textColor}>Name</FormLabel>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  borderColor={borderColor}
+                  color={textColor}
+                  _focus={{ borderColor: accentColor }}
+                />
               </FormControl>
               <FormControl>
-                <FormLabel>Description</FormLabel>
-                <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+                <FormLabel color={textColor}>Description</FormLabel>
+                <Input
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  borderColor={borderColor}
+                  color={textColor}
+                  _focus={{ borderColor: accentColor }}
+                />
               </FormControl>
               <FormControl>
-                <FormLabel>Location</FormLabel>
-                <Input value={location} onChange={(e) => setLocation(e.target.value)} />
+                <FormLabel color={textColor}>Location</FormLabel>
+                <Input
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  borderColor={borderColor}
+                  color={textColor}
+                  _focus={{ borderColor: accentColor }}
+                />
               </FormControl>
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" onClick={onClose}>
+            <Button
+              variant="ghost"
+              onClick={onClose}
+              color={textColor}
+              _hover={{ bg: buttonHoverBg }}
+              mr={tokens.spacing.sm}>
               Cancel
             </Button>
-            <Button colorScheme="teal" onClick={handleSave} mr={3} isLoading={isLoading}>
+            <Button
+              bg={accentColor}
+              color="white"
+              _hover={{ bg: `${accentColor}90` }}
+              onClick={handleSave}
+              isLoading={isLoading}
+              borderRadius={tokens.borders.radii.md}>
               Submit
             </Button>
           </ModalFooter>

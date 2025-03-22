@@ -28,9 +28,15 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
   const end = Math.min(currentPage * itemsPerPage, totalItems);
   const total = totalItems;
 
-  const borderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
+  const borderColor = useColorModeValue(
+    semantic.border.primary.light,
+    semantic.border.primary.dark,
+  );
   const textColor = useColorModeValue(semantic.text.secondary.light, semantic.text.secondary.dark);
-  const bgColor = useColorModeValue(semantic.background.primary.light, semantic.background.secondary.dark);
+  const bgColor = useColorModeValue(
+    semantic.background.primary.light,
+    semantic.background.secondary.dark,
+  );
   const buttonColorScheme = "blue";
 
   return (

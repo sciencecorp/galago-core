@@ -19,7 +19,6 @@ import {
   StatLabel,
   StatNumber,
   StatGroup,
-  Icon,
   Alert,
   AlertIcon,
   AlertTitle,
@@ -28,13 +27,19 @@ import {
   CloseButton,
 } from "@chakra-ui/react";
 import { DeleteWithConfirmation } from "../ui/Delete";
-import { PlusSquareIcon, ChevronUpIcon, TimeIcon } from "@chakra-ui/icons";
 import { QueueStatusComponent } from "./status/QueueStatuscomponent";
 import { getRunAttributes, groupCommandsByRun } from "@/utils/runUtils";
-import { SiGithubactions } from "react-icons/si";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
-import { BsInbox } from "react-icons/bs";
 import { palette, semantic } from "../../themes/colors";
+import tokens from "../../themes/tokens";
+import {
+  Icon,
+  GithubActionsIcon,
+  InboxIcon,
+  PlusSquareIcon,
+  ChevronUpIcon,
+  TimeIcon,
+} from "../ui/Icons";
 
 const LastUpdatedTime = () => {
   const [time, setTime] = useState<string>("");
@@ -49,8 +54,8 @@ const LastUpdatedTime = () => {
   if (!time) return null;
 
   return (
-    <Text fontSize="sm" color={semantic.text.secondary.light}>
-      <TimeIcon mr={1} />
+    <Text fontSize={tokens.typography.fontSizes.sm} color={semantic.text.secondary.light}>
+      <Icon as={TimeIcon} mr={1} />
       Last updated: {time}
     </Text>
   );
@@ -66,12 +71,24 @@ export const RunsComponent: React.FC = () => {
     { limit: 1000, offset: 0 },
     { refetchInterval: 1000 },
   );
-  const commandBgColor = useColorModeValue(semantic.background.secondary.light, semantic.background.secondary.dark);
-  const borderColor = useColorModeValue(semantic.border.secondary.light, semantic.border.primary.dark);
-  const hoverBgColor = useColorModeValue(semantic.background.hover.light, semantic.background.hover.dark);
+  const commandBgColor = useColorModeValue(
+    semantic.background.secondary.light,
+    semantic.background.secondary.dark,
+  );
+  const borderColor = useColorModeValue(
+    semantic.border.secondary.light,
+    semantic.border.primary.dark,
+  );
+  const hoverBgColor = useColorModeValue(
+    semantic.background.hover.light,
+    semantic.background.hover.dark,
+  );
   const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.secondary.light);
   const cardBg = useColorModeValue(semantic.background.card.light, semantic.background.card.dark);
-  const expandedRunBg = useColorModeValue(semantic.background.secondary.light, semantic.background.secondary.dark);
+  const expandedRunBg = useColorModeValue(
+    semantic.background.secondary.light,
+    semantic.background.secondary.dark,
+  );
   const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
   const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
   const groupedCommands = useMemo(
@@ -147,7 +164,7 @@ export const RunsComponent: React.FC = () => {
   }, [runsInfo.data, CommandInfo.data]);
 
   function expandButtonIcon(runId: string) {
-    return expandedRuns.has(runId) ? <ChevronUpIcon /> : <PlusSquareIcon />;
+    return expandedRuns.has(runId) ? <Icon as={ChevronUpIcon} /> : <Icon as={PlusSquareIcon} />;
   }
 
   const handleConfirmDelete = (runId: string) => {
@@ -199,15 +216,15 @@ export const RunsComponent: React.FC = () => {
               bg={commandBgColor}
               p={2}
               color={textColor}
-              borderWidth="1px"
+              borderWidth={tokens.borders.widths.thin}
               borderColor={borderColor}
-              borderRadius="md"
+              borderRadius={tokens.borders.radii.md}
               width="100%"
-              transition="all 0.2s"
+              transition={`all ${tokens.animation.durations.fast} ${tokens.animation.easings.easeInOut}`}
               _hover={{
                 bg: hoverBgColor,
                 transform: "translateY(-1px)",
-                boxShadow: "sm",
+                boxShadow: tokens.shadows.sm,
               }}>
               <VStack spacing="2">
                 {runAttributes.commandsCount - run.Commands.length > 0 && (
@@ -234,10 +251,14 @@ export const RunsComponent: React.FC = () => {
                     size="sm"
                     _hover={{ bg: "transparent" }}>
                     <HStack spacing={2}>
-                      <Text fontSize="sm" fontWeight="medium">
+                      <Text
+                        fontSize={tokens.typography.fontSizes.sm}
+                        fontWeight={tokens.typography.fontWeights.medium}>
                         {index + 1}.
                       </Text>
-                      <Text fontSize="sm" fontWeight="medium">
+                      <Text
+                        fontSize={tokens.typography.fontSizes.sm}
+                        fontWeight={tokens.typography.fontWeights.medium}>
                         {runAttributes.runName}
                       </Text>
                     </HStack>
@@ -251,14 +272,13 @@ export const RunsComponent: React.FC = () => {
             </Box>
             {expandedRuns.has(run.Id) && (
               <Box
-                maxWidth="100%"
-                overflowX="auto"
-                overflowY="hidden"
-                borderWidth="1px"
+                bg={expandedRunBg}
+                p={3}
+                borderWidth={tokens.borders.widths.thin}
                 borderColor={borderColor}
-                borderRadius="md"
-                mt={2}
-                bg={expandedRunBg}>
+                borderRadius={tokens.borders.radii.md}
+                mt={tokens.spacing.xs}
+                mb={tokens.spacing.md}>
                 <SwimLaneComponent runCommands={run.Commands} />
               </Box>
             )}
@@ -277,13 +297,13 @@ export const RunsComponent: React.FC = () => {
             <VStack spacing={6} align="stretch">
               <Flex justify="space-between" align="center">
                 <HStack spacing={4}>
-                  <Icon as={SiGithubactions} boxSize={8} color="teal.500" />
+                  <Icon as={GithubActionsIcon} boxSize={8} color={semantic.text.accent.light} />
                   <VStack align="start" spacing={1}>
                     <Heading size="lg">Run Queue</Heading>
                     <HStack>
                       <Badge
                         colorScheme={stateQuery.data === ToolStatus.BUSY ? "green" : "gray"}
-                        fontSize="sm">
+                        fontSize={tokens.typography.fontSizes.sm}>
                         {stateQuery.data === ToolStatus.BUSY ? "Running" : "Stopped"}
                       </Badge>
                       <LastUpdatedTime />
@@ -302,15 +322,15 @@ export const RunsComponent: React.FC = () => {
                 </Stat>
                 <Stat>
                   <StatLabel>Active</StatLabel>
-                  <StatNumber color="teal.500">{activeRuns}</StatNumber>
+                  <StatNumber color={semantic.text.accent.light}>{activeRuns}</StatNumber>
                 </Stat>
                 <Stat>
                   <StatLabel>Completed</StatLabel>
-                  <StatNumber color="green.500">{completedRuns}</StatNumber>
+                  <StatNumber color={semantic.status.success.light}>{completedRuns}</StatNumber>
                 </Stat>
                 <Stat>
                   <StatLabel>Pending</StatLabel>
-                  <StatNumber color="gray.500">{pendingRuns}</StatNumber>
+                  <StatNumber color={semantic.text.secondary.light}>{pendingRuns}</StatNumber>
                 </Stat>
               </StatGroup>
             </VStack>
@@ -335,11 +355,16 @@ export const RunsComponent: React.FC = () => {
                 renderRunsList()
               ) : (
                 <VStack spacing={3} py={4}>
-                  <Icon as={BsInbox} boxSize={8} color="gray.400" />
-                  <Heading size="md" color="gray.400" fontWeight="medium">
+                  <Icon as={InboxIcon} boxSize={8} color={semantic.text.secondary.light} />
+                  <Heading
+                    size="md"
+                    color={semantic.text.secondary.light}
+                    fontWeight={tokens.typography.fontWeights.medium}>
                     Queue is Empty
                   </Heading>
-                  <Text color="gray.500" fontSize="sm">
+                  <Text
+                    color={semantic.text.secondary.light}
+                    fontSize={tokens.typography.fontSizes.sm}>
                     No protocols are currently queued for execution
                   </Text>
                 </VStack>

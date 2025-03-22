@@ -45,14 +45,32 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
 }) => {
   const timeIntervals = 12;
   const totalDuration = endTime.diff(startTime, "seconds");
-  const borderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
+  const borderColor = useColorModeValue(
+    semantic.border.primary.light,
+    semantic.border.primary.dark,
+  );
   const labelColor = useColorModeValue(semantic.text.secondary.light, semantic.text.secondary.dark);
-  const menuBg = useColorModeValue(semantic.background.primary.light, semantic.background.card.dark);
-  const menuHoverBg = useColorModeValue(semantic.background.hover.light, semantic.background.hover.dark);
+  const menuBg = useColorModeValue(
+    semantic.background.primary.light,
+    semantic.background.card.dark,
+  );
+  const menuHoverBg = useColorModeValue(
+    semantic.background.hover.light,
+    semantic.background.hover.dark,
+  );
   const selectedBg = useColorModeValue(palette.blue[50], palette.blue[900]);
-  const textBg = useColorModeValue(semantic.background.secondary.light, semantic.background.card.dark);
-  const hoverBg = useColorModeValue(semantic.background.secondary.light, semantic.background.card.dark);
-  const hoverBorderColor = useColorModeValue(semantic.border.secondary.light, semantic.border.secondary.dark);
+  const textBg = useColorModeValue(
+    semantic.background.secondary.light,
+    semantic.background.card.dark,
+  );
+  const hoverBg = useColorModeValue(
+    semantic.background.secondary.light,
+    semantic.background.card.dark,
+  );
+  const hoverBorderColor = useColorModeValue(
+    semantic.border.secondary.light,
+    semantic.border.secondary.dark,
+  );
   const handleShift = (direction: "forward" | "backward") => {
     const shiftAmount = totalDuration / 4;
     const newStart =

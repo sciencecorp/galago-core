@@ -69,10 +69,22 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   bgColorAlpha,
   config,
 }) => {
-  const borderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
-  const tableBgColor = useColorModeValue(semantic.background.primary.light, semantic.background.secondary.dark);
-  const headerBgColor = useColorModeValue(semantic.background.secondary.light, semantic.background.card.dark);
-  const hoverBgColor = useColorModeValue(semantic.background.hover.light, semantic.background.hover.dark);
+  const borderColor = useColorModeValue(
+    semantic.border.primary.light,
+    semantic.border.primary.dark,
+  );
+  const tableBgColor = useColorModeValue(
+    semantic.background.primary.light,
+    semantic.background.secondary.dark,
+  );
+  const headerBgColor = useColorModeValue(
+    semantic.background.secondary.light,
+    semantic.background.card.dark,
+  );
+  const hoverBgColor = useColorModeValue(
+    semantic.background.hover.light,
+    semantic.background.hover.dark,
+  );
   const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
   const [editingPoint, setEditingPoint] = useState<EditablePoint | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
@@ -128,11 +140,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
         <HStack justifyContent="space-between">
           <Heading size="md">Teach Points</Heading>
           <HStack>
-            <Button
-              leftIcon={<AddIcon />}
-              colorScheme="blue"
-              onClick={onAdd}
-              size="sm">
+            <Button leftIcon={<AddIcon />} colorScheme="blue" onClick={onAdd} size="sm">
               Add Point
             </Button>
           </HStack>

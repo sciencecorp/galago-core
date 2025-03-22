@@ -16,37 +16,15 @@ import {
   HStack,
   Badge,
   Divider,
-  Icon,
   Tooltip,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { Nest, Plate, Reagent } from "@/types/api";
 import NestModal from "./NestModal";
-import styled from "@emotion/styled";
 import { trpc } from "@/utils/trpc";
-import { PiToolbox } from "react-icons/pi";
-import { useColorModeValue } from "@chakra-ui/react";
-import { BsGrid3X3, BsBoxSeam } from "react-icons/bs";
-import { FaFlask } from "react-icons/fa";
-import { palette, semantic } from "../../themes/colors";
-
-const StyledCard = styled(Card)`
-  display: flex;
-  flex-direction: column;
-  height: 280px;
-  width: 280px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px ${palette.black}1A;
-  transition: 0.3s ease-out;
-  margin: 0 15px;
-  margin-top: 10px;
-  margin-bottom: 20px;
-  overflow: hidden;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px ${palette.black}26;
-  }
-`;
+import { Icon as UIIcon, InventoryIcons, SectionIcons, ToolIcons } from "../ui/Icons";
+import { semantic } from "../../themes/colors";
+import tokens from "../../themes/tokens";
 
 interface InventoryToolCardProps {
   toolId: number;
@@ -78,10 +56,29 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   onDeleteNest,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const cardBg = useColorModeValue(semantic.background.card.light, semantic.background.primary.dark);
-  const borderColor = useColorModeValue(semantic.border.primary.light, semantic.border.primary.dark);
+  const cardBg = useColorModeValue(
+    semantic.background.card.light,
+    semantic.background.primary.dark,
+  );
+  const borderColor = useColorModeValue(
+    semantic.border.primary.light,
+    semantic.border.primary.dark,
+  );
   const iconColor = useColorModeValue(semantic.text.secondary.light, semantic.text.secondary.dark);
-  const statBg = useColorModeValue(semantic.background.secondary.light, semantic.background.secondary.dark);
+  const statBg = useColorModeValue(
+    semantic.background.secondary.light,
+    semantic.background.secondary.dark,
+  );
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
+  const textSecondary = useColorModeValue(
+    semantic.text.secondary.light,
+    semantic.text.secondary.dark,
+  );
+  const accentColor = useColorModeValue(semantic.text.accent.light, semantic.text.accent.dark);
+  const shadowColor = useColorModeValue(
+    `${semantic.border.primary.light}40`,
+    `${semantic.border.primary.dark}40`,
+  );
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const workcells = trpc.workcell.getAll.useQuery();
@@ -113,14 +110,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
     } else if (config.name === "Tool Box") {
       return (
         <Box display="flex" justifyContent="center" alignItems="center">
-          <IconButton
-            aria-label="Tool Box"
-            icon={<PiToolbox style={{ width: "100%", height: "100%" }} />}
-            variant="ghost"
-            colorScheme="teal"
-            isRound
-            boxSize="100px"
-          />
+          <UIIcon as={ToolIcons.Toolbox} boxSize="100px" color={accentColor} />
         </Box>
       );
     } else {
@@ -142,24 +132,30 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
       <Card
         bg={cardBg}
         borderColor={borderColor}
-        borderWidth="1px"
+        borderWidth={tokens.borders.widths.thin}
         height="280px"
         width="280px"
-        borderRadius="lg"
+        borderRadius={tokens.borders.radii.lg}
         onClick={onOpen}
         transition="all 0.2s"
         cursor="pointer"
-        _hover={{ transform: "translateY(-2px)", shadow: "lg" }}>
-        <CardHeader pb={4}>
-          <VStack align="stretch" spacing={2}>
+        _hover={{
+          transform: "translateY(-5px)",
+          boxShadow: `0 6px 12px ${shadowColor}`,
+        }}
+        boxShadow={`0 4px 8px ${shadowColor}`}>
+        <CardHeader pb={tokens.spacing.md}>
+          <VStack align="stretch" spacing={tokens.spacing.sm}>
             <Flex justify="space-between" align="center">
-              <HStack spacing={3}>
+              <HStack spacing={tokens.spacing.sm}>
                 <Box boxSize="50px" display="flex" alignItems="center" justifyContent="center">
-                  {toolData ? renderToolImage(toolData) : <Spinner size="md" />}
+                  {toolData ? renderToolImage(toolData) : <Spinner size="md" color={accentColor} />}
                 </Box>
                 <Box>
-                  <Heading size="md">{name}</Heading>
-                  <Text fontSize="sm" color={semantic.text.secondary.light}>
+                  <Heading size="md" color={textColor}>
+                    {name}
+                  </Heading>
+                  <Text fontSize={tokens.typography.fontSizes.sm} color={textSecondary}>
                     Inventory
                   </Text>
                 </Box>
@@ -168,42 +164,63 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
           </VStack>
         </CardHeader>
 
-        <Divider />
+        <Divider borderColor={borderColor} />
 
-        <CardBody pt={4}>
-          <VStack align="stretch" spacing={4}>
-            <SimpleGrid columns={3} spacing={2}>
+        <CardBody pt={tokens.spacing.md}>
+          <VStack align="stretch" spacing={tokens.spacing.md}>
+            <SimpleGrid columns={3} spacing={tokens.spacing.sm}>
               <Tooltip label="Total Nests" placement="top">
-                <Box p={2} bg={statBg} borderRadius="md" textAlign="center">
-                  <Icon as={BsGrid3X3} color={iconColor} mb={1} />
-                  <Text fontWeight="bold" fontSize="md">
+                <Box
+                  p={tokens.spacing.sm}
+                  bg={statBg}
+                  borderRadius={tokens.borders.radii.md}
+                  textAlign="center">
+                  <UIIcon as={InventoryIcons.Grid} color={iconColor} mb={1} />
+                  <Text
+                    fontWeight="bold"
+                    fontSize={tokens.typography.fontSizes.md}
+                    color={textColor}>
                     {toolNests.length}
                   </Text>
-                  <Text fontSize="xs" color={semantic.text.secondary.light}>
+                  <Text fontSize={tokens.typography.fontSizes.xs} color={textSecondary}>
                     Nests
                   </Text>
                 </Box>
               </Tooltip>
 
               <Tooltip label="Total Plates" placement="top">
-                <Box p={2} bg={statBg} borderRadius="md" textAlign="center">
-                  <Icon as={BsBoxSeam} color={iconColor} mb={1} />
-                  <Text fontWeight="bold" fontSize="md">
+                <Box
+                  p={tokens.spacing.sm}
+                  bg={statBg}
+                  borderRadius={tokens.borders.radii.md}
+                  textAlign="center">
+                  <UIIcon as={SectionIcons.Inventory} color={iconColor} mb={1} />
+                  <Text
+                    fontWeight="bold"
+                    fontSize={tokens.typography.fontSizes.md}
+                    color={textColor}>
                     {toolPlates.length}
                   </Text>
-                  <Text fontSize="xs" color={semantic.text.secondary.light}>
+                  <Text fontSize={tokens.typography.fontSizes.xs} color={textSecondary}>
                     Plates
                   </Text>
                 </Box>
               </Tooltip>
 
               <Tooltip label="Total Reagents" placement="top">
-                <Box p={2} bg={statBg} borderRadius="md" textAlign="center">
-                  <Icon as={FaFlask} color={iconColor} mb={1} />
-                  <Text fontWeight="bold" fontSize="md">
+                <Box
+                  p={tokens.spacing.sm}
+                  bg={statBg}
+                  borderRadius={tokens.borders.radii.md}
+                  textAlign="center">
+                  <UIIcon as={InventoryIcons.Flask} color={iconColor} mb={1} />
+                  <Text
+                    fontWeight="bold"
+                    fontSize={tokens.typography.fontSizes.md}
+                    color={textColor}>
                     {reagentCount}
                   </Text>
-                  <Text fontSize="xs" color={semantic.text.secondary.light}>
+                  <Text fontSize={tokens.typography.fontSizes.xs} color={textSecondary}>
                     Reagents
                   </Text>
                 </Box>

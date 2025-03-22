@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Box, HStack, Select, Text } from "@chakra-ui/react";
+import { Box, HStack, Select, Text, useColorModeValue } from "@chakra-ui/react";
+import { semantic } from "../../themes/colors";
+import tokens from "../../themes/tokens";
 
 interface CustomTimePickerProps {
   onTimeSelect?: (time: string) => void;
+  size?: "sm" | "md" | "lg";
 }
 
-export const TimePicker: React.FC<CustomTimePickerProps> = ({ onTimeSelect }) => {
+export const TimePicker: React.FC<CustomTimePickerProps> = ({ onTimeSelect, size = "md" }) => {
   const [hour, setHour] = useState<string>("12");
   const [minute, setMinute] = useState<string>("00");
   const [period, setPeriod] = useState<string>("AM");
@@ -13,6 +16,31 @@ export const TimePicker: React.FC<CustomTimePickerProps> = ({ onTimeSelect }) =>
   const hours = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
   const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
   const periods = ["AM", "PM"];
+
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
+  const borderColor = useColorModeValue(
+    semantic.border.primary.light,
+    semantic.border.primary.dark,
+  );
+
+  // Map size prop to component dimensions
+  const sizeMap = {
+    sm: {
+      fontSize: tokens.typography.fontSizes.sm,
+      height: "40px",
+      width: "80px",
+    },
+    md: {
+      fontSize: tokens.typography.fontSizes.md,
+      height: "50px",
+      width: "90px",
+    },
+    lg: {
+      fontSize: tokens.typography.fontSizes.lg,
+      height: "60px",
+      width: "100px",
+    },
+  };
 
   const handleTimeChange = () => {
     const selectedTime = `${hour}:${minute} ${period}`;
@@ -35,30 +63,36 @@ export const TimePicker: React.FC<CustomTimePickerProps> = ({ onTimeSelect }) =>
   };
 
   return (
-    <HStack spacing={2}>
+    <HStack spacing={tokens.spacing.sm}>
       <Select
         value={hour}
         onChange={handleHourChange}
-        fontSize="30px"
-        height="60px"
-        width="100px"
-        borderRadius="10px"
-        boxShadow="md">
+        fontSize={sizeMap[size].fontSize}
+        height={sizeMap[size].height}
+        width={sizeMap[size].width}
+        borderRadius={tokens.borders.radii.md}
+        boxShadow={tokens.shadows.sm}
+        borderColor={borderColor}
+        color={textColor}>
         {hours.map((h) => (
           <option key={h} value={h}>
             {h}
           </option>
         ))}
       </Select>
-      <Text fontSize="30px">:</Text>
+      <Text fontSize={sizeMap[size].fontSize} color={textColor}>
+        :
+      </Text>
       <Select
         value={minute}
         onChange={handleMinuteChange}
-        fontSize="30px"
-        height="60px"
-        width="100px"
-        borderRadius="10px"
-        boxShadow="md">
+        fontSize={sizeMap[size].fontSize}
+        height={sizeMap[size].height}
+        width={sizeMap[size].width}
+        borderRadius={tokens.borders.radii.md}
+        boxShadow={tokens.shadows.sm}
+        borderColor={borderColor}
+        color={textColor}>
         {minutes.map((m) => (
           <option key={m} value={m}>
             {m}
@@ -68,11 +102,13 @@ export const TimePicker: React.FC<CustomTimePickerProps> = ({ onTimeSelect }) =>
       <Select
         value={period}
         onChange={handlePeriodChange}
-        fontSize="30px"
-        height="60px"
-        width="100px"
-        borderRadius="10px"
-        boxShadow="md">
+        fontSize={sizeMap[size].fontSize}
+        height={sizeMap[size].height}
+        width={sizeMap[size].width}
+        borderRadius={tokens.borders.radii.md}
+        boxShadow={tokens.shadows.sm}
+        borderColor={borderColor}
+        color={textColor}>
         {periods.map((p) => (
           <option key={p} value={p}>
             {p}

@@ -14,12 +14,15 @@ import {
   Tag,
   Td,
   Tr,
+  useColorModeValue,
+  HStack,
+  Text,
 } from "@chakra-ui/react";
 import { ToolType } from "gen-interfaces/controller";
 import NextLink from "next/link";
-import { IoPlaySkipForward } from "react-icons/io5";
-import { BsSkipForwardFill } from "react-icons/bs";
-import { VscRunBelow } from "react-icons/vsc";
+import { Icon, FormIcons, RunIcons } from "../ui/Icons";
+import { semantic } from "../../themes/colors";
+import tokens from "../../themes/tokens";
 
 export default function CommandComponent({
   run,
@@ -34,6 +37,26 @@ export default function CommandComponent({
   const skipUntilMutation = trpc.commandQueue.skipCommandsUntil.useMutation();
   const execMutation = trpc.tool.runCommand.useMutation();
   const toolStatusQuery = trpc.tool.status.useQuery({ toolId: toolId.toString() });
+
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
+  const textSecondary = useColorModeValue(
+    semantic.text.secondary.light,
+    semantic.text.secondary.dark,
+  );
+  const borderColor = useColorModeValue(
+    semantic.border.secondary.light,
+    semantic.border.secondary.dark,
+  );
+  const accentColor = useColorModeValue(semantic.text.accent.light, semantic.text.accent.dark);
+  const tagBg = useColorModeValue(
+    semantic.background.secondary.light,
+    semantic.background.secondary.dark,
+  );
+  const codeBg = useColorModeValue(
+    `${semantic.background.secondary.light}80`,
+    `${semantic.background.secondary.dark}80`,
+  );
+
   const relevantTimestamp =
     status === "CREATED"
       ? runCommand.createdAt
@@ -52,18 +75,44 @@ export default function CommandComponent({
 
   // Truncate params message if too long
   const paramLines = JSON.stringify(params, null, 2).split("\n");
-  // const truncatedParams =
-  //   paramLines.length > 10
-  //     ? [...paramLines.slice(0, 10), "...[Text truncated for brevity]"]
-  //     : paramLines;
   const paramString = paramLines.join("\n");
+
+  const getStatusColor = () => {
+    switch (status) {
+      case "COMPLETED":
+        return semantic.status.success.light;
+      case "FAILED":
+        return semantic.status.error.light;
+      case "SKIPPED":
+        return semantic.status.warning.light;
+      case "STARTED":
+        return accentColor;
+      default:
+        return textSecondary;
+    }
+  };
+
   return (
     <Tr>
       <Td>
-        <Tag>{toolType}</Tag>
+        <Tag
+          bg={tagBg}
+          color={textColor}
+          borderRadius={tokens.borders.radii.md}
+          px={tokens.spacing.sm}
+          py={tokens.spacing.xs}>
+          {toolType}
+        </Tag>
       </Td>
       <Td>
-        <Tag>{command}</Tag>
+        <Tag
+          bg={tagBg}
+          color={textColor}
+          borderRadius={tokens.borders.radii.md}
+          px={tokens.spacing.sm}
+          py={tokens.spacing.xs}>
+          {command}
+        </Tag>
       </Td>
       <Td>
         <Box
@@ -71,71 +120,86 @@ export default function CommandComponent({
           style={{
             maxHeight: "200px",
             overflowY: "auto",
-            minWidth: "200px", // Increased width
-            maxWidth: "200px", // Increased max width
+            minWidth: "200px",
+            maxWidth: "200px",
             overflowX: "auto",
-            fontSize: "0.8em",
+            fontSize: tokens.typography.fontSizes.xs,
             whiteSpace: "pre-wrap",
             wordWrap: "break-word",
-            padding: "4px",
-            textAlign: "left", // Explicitly set left alignment
+            padding: tokens.spacing.xs,
+            textAlign: "left",
+            backgroundColor: codeBg,
+            borderRadius: tokens.borders.radii.sm,
+            color: textColor,
           }}>
           {paramString}
         </Box>
       </Td>
       <Td>
-        <Tag>{estimatedDuration}s</Tag>
+        <Tag
+          bg={tagBg}
+          color={textColor}
+          borderRadius={tokens.borders.radii.md}
+          px={tokens.spacing.sm}
+          py={tokens.spacing.xs}>
+          {estimatedDuration}s
+        </Tag>
       </Td>
       <Td minWidth="100px">
-        {" "}
-        {/* Increased width */}
-        <pre
-          style={{
-            fontSize: "0.8em",
-            whiteSpace: "pre-wrap",
-            textAlign: "left", // Explicitly set left alignment
-          }}>
-          {status === "CREATED" ? (
-            ""
-          ) : status === "STARTED" ? (
-            <Spinner size="sm" />
+        <HStack
+          spacing={tokens.spacing.xs}
+          fontSize={tokens.typography.fontSizes.xs}
+          color={getStatusColor()}>
+          {status === "CREATED" ? null : status === "STARTED" ? (
+            <Spinner size="sm" color={accentColor} />
           ) : status === "COMPLETED" ? (
-            "✅"
+            <Icon as={FormIcons.Check} color={semantic.status.success.light} />
           ) : status === "SKIPPED" ? (
-            <IoPlaySkipForward />
+            <Icon as={RunIcons.PlaySkipForward} color={semantic.status.warning.light} />
           ) : status === "FAILED" ? (
-            "❌"
+            <Icon as={FormIcons.Close} color={semantic.status.error.light} />
           ) : (
-            JSON.stringify(status, null, 2)
-          )}{" "}
-          {timeDescription}
-        </pre>
+            <Text>{JSON.stringify(status, null, 2)}</Text>
+          )}
+          <Text>{timeDescription}</Text>
+        </HStack>
       </Td>
       <Td>
         <Menu>
-          <MenuButton colorScheme="teal" as={Button}>
+          <MenuButton
+            as={Button}
+            bg={accentColor}
+            color="white"
+            _hover={{ bg: `${accentColor}90` }}
+            size="sm">
             Actions...
           </MenuButton>
-          <MenuList>
+          <MenuList borderColor={borderColor} boxShadow={tokens.shadows.md}>
             {queued ? (
-              <MenuItem onClick={() => skipMutation.mutate(queueId)}>
-                <IoPlaySkipForward />{" "}
-                <Box as="span" ml={2}>
+              <MenuItem
+                onClick={() => skipMutation.mutate(queueId)}
+                _hover={{ bg: `${semantic.background.hover.light}50` }}>
+                <Icon as={RunIcons.PlaySkipForward} color={textSecondary} />
+                <Box as="span" ml={tokens.spacing.sm}>
                   Skip
                 </Box>
               </MenuItem>
             ) : null}
             {queued ? (
-              <MenuItem onClick={() => skipUntilMutation.mutate(queueId)}>
-                <BsSkipForwardFill />{" "}
-                <Box as="span" ml={2}>
+              <MenuItem
+                onClick={() => skipUntilMutation.mutate(queueId)}
+                _hover={{ bg: `${semantic.background.hover.light}50` }}>
+                <Icon as={RunIcons.SkipForward} color={textSecondary} />
+                <Box as="span" ml={tokens.spacing.sm}>
                   Skip to this command
                 </Box>
               </MenuItem>
             ) : null}
-            <MenuItem onClick={() => execMutation.mutate(commandInfo)}>
-              <VscRunBelow />{" "}
-              <Box as="span" ml={2}>
+            <MenuItem
+              onClick={() => execMutation.mutate(commandInfo)}
+              _hover={{ bg: `${semantic.background.hover.light}50` }}>
+              <Icon as={RunIcons.RunBelow} color={textSecondary} />
+              <Box as="span" ml={tokens.spacing.sm}>
                 Send to Tool
               </Box>
             </MenuItem>

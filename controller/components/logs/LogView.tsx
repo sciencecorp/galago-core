@@ -26,14 +26,22 @@ import {
   InputLeftElement,
   Input,
 } from "@chakra-ui/react";
-import { CloseIcon, WarningIcon, QuestionOutlineIcon, SearchIcon } from "@chakra-ui/icons";
 import { useEffect, useState, useMemo } from "react";
 import { Log } from "@/types/api";
 import { renderDatetime } from "../ui/Time";
-import { FiInfo } from "react-icons/fi";
-import { FiBook } from "react-icons/fi";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { palette, semantic } from "../../themes/colors";
+import {
+  CloseIcon,
+  WarningIcon,
+  QuestionOutlineIcon,
+  SearchIcon,
+  InfoIcon,
+  BookIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "../ui/Icons";
+import tokens from "../../themes/tokens";
 
 interface LogViewProps {}
 
@@ -49,13 +57,13 @@ function getIconFromLogType(logType: string) {
 
   switch (logType) {
     case "error":
-      return <CloseIcon color={palette.red[500]} style={iconStyle} />;
+      return <Icon as={CloseIcon} color={semantic.status.error.light} style={iconStyle} />;
     case "warning":
-      return <WarningIcon color={palette.orange[500]} style={iconStyle} />;
+      return <Icon as={WarningIcon} color={semantic.status.warning.light} style={iconStyle} />;
     case "debug":
-      return <QuestionOutlineIcon color={palette.yellow[500]} style={iconStyle} />;
+      return <Icon as={QuestionOutlineIcon} color={semantic.status.info.light} style={iconStyle} />;
     case "info":
-      return <FiInfo style={iconStyle} />;
+      return <Icon as={InfoIcon} color={semantic.text.accent.light} style={iconStyle} />;
   }
 }
 
@@ -67,8 +75,24 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
   const [selectedLevel, setSelectedLevel] = useState<string>("");
 
   const headerBg = useColorModeValue(semantic.background.card.light, semantic.background.card.dark);
-  const tableBgColor = useColorModeValue(semantic.background.card.light, semantic.background.card.dark);
-  const hoverBgColor = useColorModeValue(semantic.background.hover.light, semantic.background.hover.dark);
+  const tableBgColor = useColorModeValue(
+    semantic.background.card.light,
+    semantic.background.card.dark,
+  );
+  const hoverBgColor = useColorModeValue(
+    semantic.background.hover.light,
+    semantic.background.hover.dark,
+  );
+  const borderColor = useColorModeValue(
+    semantic.border.secondary.light,
+    semantic.border.secondary.dark,
+  );
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
+  const textSecondary = useColorModeValue(
+    semantic.text.secondary.light,
+    semantic.text.secondary.dark,
+  );
+  const accentColor = useColorModeValue(semantic.text.accent.light, semantic.text.accent.dark);
 
   const hasPrevious = offset > 0;
   const hasNext = logs.length === limit || false;
@@ -108,47 +132,56 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
 
   return (
     <Box maxW="100%">
-      <VStack spacing={4} align="stretch">
-        <Card bg={headerBg} shadow="md">
+      <VStack spacing={tokens.spacing.md} align="stretch">
+        <Card
+          bg={headerBg}
+          shadow={tokens.shadows.md}
+          borderColor={borderColor}
+          borderWidth={tokens.borders.widths.thin}>
           <CardBody>
-            <VStack spacing={4} align="stretch">
+            <VStack spacing={tokens.spacing.md} align="stretch">
               <PageHeader
                 title="Logs"
                 subTitle="Monitor and analyze system logs"
-                titleIcon={<Icon as={FiBook} boxSize={8} color="teal.500" />}
+                titleIcon={<Icon as={BookIcon} boxSize={8} color={accentColor} />}
               />
-              <Divider />
+              <Divider borderColor={borderColor} />
               <StatGroup>
                 <Stat>
-                  <StatLabel>Total Logs</StatLabel>
-                  <StatNumber>{totalLogs}</StatNumber>
+                  <StatLabel color={textSecondary}>Total Logs</StatLabel>
+                  <StatNumber color={textColor}>{totalLogs}</StatNumber>
                 </Stat>
                 <Stat>
-                  <StatLabel>Errors</StatLabel>
-                  <StatNumber color={palette.red[500]}>{errorCount}</StatNumber>
+                  <StatLabel color={textSecondary}>Errors</StatLabel>
+                  <StatNumber color={semantic.status.error.light}>{errorCount}</StatNumber>
                 </Stat>
                 <Stat>
-                  <StatLabel>Warnings</StatLabel>
-                  <StatNumber color={palette.orange[500]}>{warningCount}</StatNumber>
+                  <StatLabel color={textSecondary}>Warnings</StatLabel>
+                  <StatNumber color={semantic.status.warning.light}>{warningCount}</StatNumber>
                 </Stat>
               </StatGroup>
-              <Divider />
-              <HStack spacing={4}>
+              <Divider borderColor={borderColor} />
+              <HStack spacing={tokens.spacing.md}>
                 <InputGroup maxW="400px">
                   <InputLeftElement pointerEvents="none">
-                    <SearchIcon color={semantic.text.secondary.light} />
+                    <Icon as={SearchIcon} color={textSecondary} />
                   </InputLeftElement>
                   <Input
                     placeholder="Search logs..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     bg={tableBgColor}
+                    borderColor={borderColor}
+                    _focus={{ borderColor: accentColor }}
                   />
                 </InputGroup>
                 <Select
                   value={selectedLevel}
                   onChange={(e) => setSelectedLevel(e.target.value)}
-                  maxW="200px">
+                  maxW="200px"
+                  borderColor={borderColor}
+                  _focus={{ borderColor: accentColor }}
+                  color={textColor}>
                   <option value="">All Levels</option>
                   <option value="error">Error</option>
                   <option value="warning">Warning</option>
@@ -160,50 +193,63 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
           </CardBody>
         </Card>
 
-        <Card bg={headerBg} shadow="md">
+        <Card
+          bg={headerBg}
+          shadow={tokens.shadows.md}
+          borderColor={borderColor}
+          borderWidth={tokens.borders.widths.thin}>
           <CardBody>
-            <VStack spacing={4} align="stretch">
+            <VStack spacing={tokens.spacing.md} align="stretch">
               <Box overflowX="auto">
                 <Table
                   variant="simple"
                   sx={{
                     th: {
-                      borderColor: useColorModeValue("gray.200", "gray.600"),
+                      borderColor: borderColor,
+                      color: textSecondary,
+                      fontSize: tokens.typography.fontSizes.sm,
                     },
                     td: {
-                      borderColor: useColorModeValue("gray.200", "gray.600"),
+                      borderColor: borderColor,
+                      color: textColor,
+                      fontSize: tokens.typography.fontSizes.sm,
                     },
                   }}>
                   <Thead>
                     <Tr>
-                      <Th p={1}></Th>
-                      <Th p={1}>Level</Th>
-                      <Th p={1}>Actions</Th>
-                      <Th p={1}>Details</Th>
-                      <Th p={1}>Created On</Th>
+                      <Th p={tokens.spacing.xs}></Th>
+                      <Th p={tokens.spacing.xs}>Level</Th>
+                      <Th p={tokens.spacing.xs}>Actions</Th>
+                      <Th p={tokens.spacing.xs}>Details</Th>
+                      <Th p={tokens.spacing.xs}>Created On</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
                     {filteredLogs.map((log, index) => (
                       <Tr key={index} _hover={{ bg: hoverBgColor }}>
-                        <Td p={1}>{getIconFromLogType(log.level)}</Td>
-                        <Td p={1}>{log.level}</Td>
-                        <Td p={1}>{log.action}</Td>
-                        <Td p={1}>{log.details}</Td>
-                        <Td p={1}>{renderDatetime(String(log.created_at))}</Td>
+                        <Td p={tokens.spacing.xs}>{getIconFromLogType(log.level)}</Td>
+                        <Td p={tokens.spacing.xs}>{log.level}</Td>
+                        <Td p={tokens.spacing.xs}>{log.action}</Td>
+                        <Td p={tokens.spacing.xs}>{log.details}</Td>
+                        <Td p={tokens.spacing.xs}>{renderDatetime(String(log.created_at))}</Td>
                       </Tr>
                     ))}
                   </Tbody>
                 </Table>
               </Box>
 
-              <HStack justify="flex-end" spacing={4}>
-                <Box>Per Page:</Box>
+              <HStack justify="flex-end" spacing={tokens.spacing.md}>
+                <Text color={textSecondary} fontSize={tokens.typography.fontSizes.sm}>
+                  Per Page:
+                </Text>
                 <Select
                   value={limit}
                   width="75px"
                   size="sm"
-                  onChange={(e) => setLimit(Number(e.target.value))}>
+                  onChange={(e) => setLimit(Number(e.target.value))}
+                  borderColor={borderColor}
+                  _focus={{ borderColor: accentColor }}
+                  color={textColor}>
                   <option value="25">25</option>
                   <option value="50">50</option>
                   <option value="100">100</option>
@@ -211,10 +257,29 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                 <Button
                   size="sm"
                   disabled={!hasPrevious}
-                  onClick={() => setOffset(Math.max(offset - limit, 0))}>
+                  onClick={() => setOffset(Math.max(offset - limit, 0))}
+                  leftIcon={<Icon as={ChevronLeftIcon} />}
+                  bg={hasPrevious ? accentColor : "transparent"}
+                  color={hasPrevious ? "white" : textSecondary}
+                  borderColor={borderColor}
+                  borderWidth={tokens.borders.widths.thin}
+                  _hover={{
+                    bg: hasPrevious ? `${accentColor}90` : `${semantic.background.hover.light}50`,
+                  }}>
                   Previous
                 </Button>
-                <Button size="sm" disabled={!hasNext} onClick={() => setOffset(offset + limit)}>
+                <Button
+                  size="sm"
+                  disabled={!hasNext}
+                  onClick={() => setOffset(offset + limit)}
+                  rightIcon={<Icon as={ChevronRightIcon} />}
+                  bg={hasNext ? accentColor : "transparent"}
+                  color={hasNext ? "white" : textSecondary}
+                  borderColor={borderColor}
+                  borderWidth={tokens.borders.widths.thin}
+                  _hover={{
+                    bg: hasNext ? `${accentColor}90` : `${semantic.background.hover.light}50`,
+                  }}>
                   Next
                 </Button>
               </HStack>

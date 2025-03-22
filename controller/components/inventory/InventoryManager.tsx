@@ -24,6 +24,9 @@ import AlertComponent from "@/components/ui/AlertComponent";
 import { useColorMode } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { BsBoxSeam } from "react-icons/bs";
+import { BoxSeamIcon } from "../ui/Icons";
+import { palette, semantic } from "../../themes/colors";
+import tokens from "../../themes/tokens";
 
 export const InventoryManager = () => {
   const [search, setSearch] = useState("");
@@ -36,7 +39,6 @@ export const InventoryManager = () => {
   const [alertDescription, setAlertDescription] = useState("");
 
   const { colorMode } = useColorMode();
-  const isDarkMode = colorMode === "dark";
   const toast = useToast();
 
   const workcells = trpc.workcell.getAll.useQuery();
@@ -211,7 +213,7 @@ export const InventoryManager = () => {
               <PageHeader
                 title="Inventory"
                 subTitle="Manage plates, reagents, and nests across your workcells"
-                titleIcon={<Icon as={BsBoxSeam} boxSize={8} color="teal.500" />}
+                titleIcon={<Icon as={BoxSeamIcon} boxSize={8} color={semantic.text.accent.light} />}
                 mainButton={null}
               />
 
@@ -231,7 +233,9 @@ export const InventoryManager = () => {
                   <StatNumber>
                     {occupiedNests} / {totalNests}
                   </StatNumber>
-                  <Text fontSize="sm" color="gray.500">
+                  <Text
+                    fontSize={tokens.typography.fontSizes.sm}
+                    color={semantic.text.secondary.light}>
                     Occupied
                   </Text>
                 </Stat>
@@ -240,7 +244,6 @@ export const InventoryManager = () => {
               <InventorySearch
                 search={search}
                 searchResults={searchResults}
-                isDarkMode={isDarkMode}
                 onSearchChange={handleSearch}
                 onClearSearch={() => {
                   setSearch("");

@@ -1,6 +1,7 @@
-import { Tag, TagProps } from "@chakra-ui/react";
+import { Tag, TagProps, useColorModeValue } from "@chakra-ui/react";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { getToolStatusColor } from "../../themes/colors";
+import tokens from "../../themes/tokens";
 
 type ColorScheme = TagProps["colorScheme"];
 
@@ -22,6 +23,11 @@ export default function StatusTag(
   const tagProps = {
     ...props,
     colorScheme: statusColor(props.status),
+    borderRadius: tokens.borders.radii.md,
+    fontWeight: "medium",
+    fontSize: tokens.typography.fontSizes.sm,
+    px: tokens.spacing.sm,
+    py: tokens.spacing.xs,
   };
   return <Tag {...tagProps}>{props.children ?? displayStatus(props.status)}</Tag>;
 }
