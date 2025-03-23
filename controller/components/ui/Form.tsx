@@ -121,7 +121,10 @@ export const EditableText = (props: {
 
   // Create a custom preview that shows placeholder text when empty
   const customPreview = props.preview || (
-    <Text fontSize="sm" color={props.defaultValue ? textColor : placeholderColor} fontStyle={props.defaultValue ? "normal" : "italic"}>
+    <Text
+      fontSize="sm"
+      color={props.defaultValue ? textColor : placeholderColor}
+      fontStyle={props.defaultValue ? "normal" : "italic"}>
       {props.defaultValue || props.placeholder || "Click to edit"}
     </Text>
   );

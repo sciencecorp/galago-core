@@ -30,15 +30,9 @@ import {
   MenuItem,
   Center,
   Select,
-  Icon
+  Icon,
 } from "@chakra-ui/react";
-import {
-  DeleteIcon,
-  AddIcon,
-  EditIcon,
-  ArrowForwardIcon,
-  HamburgerIcon,
-} from "@chakra-ui/icons";
+import { DeleteIcon, AddIcon, EditIcon, ArrowForwardIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { useRouter } from "next/router";
 import { useState, useEffect, useMemo } from "react";
 import { AddToolCommandModal } from "./AddToolCommandModal";
@@ -51,7 +45,7 @@ import { ParameterEditor } from "@/components/ui/ParameterEditor";
 import SwimLaneCommandComponent from "../runs/list/SwimLaneCommandComponent";
 import { capitalizeFirst } from "@/utils/parser";
 import { VscRunBelow } from "react-icons/vsc";
-import { ProtocolFormModal } from "./ProtocolFormModal"
+import { ProtocolFormModal } from "./ProtocolFormModal";
 import { MdOutlineFormatListBulleted } from "react-icons/md";
 import { FaPlay } from "react-icons/fa6";
 import { SaveIcon } from "@/components/ui/Icons";
@@ -207,10 +201,10 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     refetch,
   } = trpc.protocol.getById.useQuery({ id: parseInt(id) });
 
-  const { 
-    isOpen: isParametersModalOpen, 
-    onOpen: openParametersModal, 
-    onClose: closeParametersModal 
+  const {
+    isOpen: isParametersModalOpen,
+    onOpen: openParametersModal,
+    onClose: closeParametersModal,
   } = useDisclosure();
 
   const updateProtocol = trpc.protocol.update.useMutation({
@@ -240,10 +234,10 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     setIsAddCommandModalOpen(true);
   };
 
-  const handleFormSave = (newParams:any) => {
+  const handleFormSave = (newParams: any) => {
     setLocalParams(newParams);
     closeParametersModal();
-  }
+  };
 
   useEffect(() => {
     if (!protocol?.commands) return;
@@ -363,7 +357,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         icon: protocol.icon || "",
       },
     });
-
   };
 
   const handleDelete = () => {
@@ -424,35 +417,25 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
           <HStack>
             {isEditing ? (
               <>
-                    <Button 
-                    leftIcon={<SiPlatformdotsh />}
-                    size="md" 
-                    onClick={openParametersModal}>
-                    Form 
-                    </Button>
-                    <IconButton 
-                        aria-label="Save"
-                        colorScheme="gray"
-                        onClick={handleSaveChanges}>
-                        <Icon as={SaveIcon} boxSize={6} />
-                    </IconButton>
-                    <Button variant="outline" onClick={() => setIsEditing(false)}>
-                      Cancel
-                    </Button>
-                  </>
-                ) : (
-                  <>
-
+                <Button leftIcon={<SiPlatformdotsh />} size="md" onClick={openParametersModal}>
+                  Form
+                </Button>
+                <IconButton aria-label="Save" colorScheme="gray" onClick={handleSaveChanges}>
+                  <Icon as={SaveIcon} boxSize={6} />
+                </IconButton>
+                <Button variant="outline" onClick={() => setIsEditing(false)}>
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <>
                 <Button
                   leftIcon={<EditIcon />}
                   colorScheme="teal"
                   onClick={() => setIsEditing(true)}>
                   Edit
                 </Button>
-                <Button 
-                  leftIcon={<FaPlay />}
-                  colorScheme="green" 
-                  onClick={handleRunClick}>
+                <Button leftIcon={<FaPlay />} colorScheme="green" onClick={handleRunClick}>
                   Run
                 </Button>
               </>

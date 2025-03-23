@@ -10,13 +10,15 @@ import { ProtocolParamInfo } from "@/protocols/params";
  */
 export function useVariableUpdates(
   params: Record<string, ProtocolParamInfo>,
-  userDefinedParams: Record<string, any>
+  userDefinedParams: Record<string, any>,
 ) {
-  const [variablesToUpdate, setVariablesToUpdate] = useState<Array<{ name: string; value: string; type: string }>>([]);
-  
+  const [variablesToUpdate, setVariablesToUpdate] = useState<
+    Array<{ name: string; value: string; type: string }>
+  >([]);
+
   // Get all variables for reference
   const allVariables = trpc.variable.getAll.useQuery();
-  
+
   // Mutation to update variables
   const updateVariableMutation = trpc.variable.edit.useMutation();
   const createVariableMutation = trpc.variable.add.useMutation();
@@ -24,27 +26,24 @@ export function useVariableUpdates(
   // Track parameter changes
   useEffect(() => {
     if (!params) return;
-    
+
     const updatedVariables: Array<{ name: string; value: string; type: string }> = [];
-    
+
     // Loop through all parameters
     Object.entries(params).forEach(([paramName, paramInfo]) => {
       // If the parameter has a variable_name and a value is set
-      if (
-        paramInfo.variable_name && 
-        userDefinedParams[paramName] !== undefined
-      ) {
+      if (paramInfo.variable_name && userDefinedParams[paramName] !== undefined) {
         // Convert the value to string as required by the API
-        const value = 
-          typeof userDefinedParams[paramName] === "boolean" 
-            ? userDefinedParams[paramName].toString() 
+        const value =
+          typeof userDefinedParams[paramName] === "boolean"
+            ? userDefinedParams[paramName].toString()
             : Array.isArray(userDefinedParams[paramName])
               ? JSON.stringify(userDefinedParams[paramName])
               : String(userDefinedParams[paramName]);
-              
+
         // Determine the variable type based on parameter type
         let varType: "string" | "number" | "boolean" | "array" | "object" = "string";
-        
+
         switch (paramInfo.type) {
           case "number":
             varType = "number";
@@ -58,29 +57,29 @@ export function useVariableUpdates(
             varType = "string";
             break;
         }
-        
+
         // Add to variables queue
         updatedVariables.push({
           name: paramInfo.variable_name,
           value,
-          type: varType
+          type: varType,
         });
       }
     });
-    
+
     setVariablesToUpdate(updatedVariables);
   }, [params, userDefinedParams]);
 
   // Function to commit all variable updates
   const commitVariableUpdates = async () => {
     if (!allVariables.data) return;
-    
+
     const existingVariables = allVariables.data;
     const promises = [];
-    
+
     for (const variable of variablesToUpdate) {
-      const existingVar = existingVariables.find(v => v.name === variable.name);
-      
+      const existingVar = existingVariables.find((v) => v.name === variable.name);
+
       if (existingVar) {
         // Update existing variable
         promises.push(
@@ -88,8 +87,8 @@ export function useVariableUpdates(
             id: existingVar.id,
             name: variable.name,
             value: variable.value,
-            type: variable.type as any
-          })
+            type: variable.type as any,
+          }),
         );
       } else {
         // Create new variable
@@ -97,19 +96,19 @@ export function useVariableUpdates(
           createVariableMutation.mutateAsync({
             name: variable.name,
             value: variable.value,
-            type: variable.type as any
-          })
+            type: variable.type as any,
+          }),
         );
       }
     }
-    
+
     await Promise.all(promises);
     return true;
   };
-  
+
   return {
     variablesToUpdate,
     commitVariableUpdates,
-    isUpdating: updateVariableMutation.isLoading || createVariableMutation.isLoading
+    isUpdating: updateVariableMutation.isLoading || createVariableMutation.isLoading,
   };
 }

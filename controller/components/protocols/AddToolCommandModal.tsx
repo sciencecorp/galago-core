@@ -52,7 +52,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   const toolsQuery = trpc.tool.getAll.useQuery();
   const toolBoxQuery = trpc.tool.getToolBox.useQuery();
   const { data: fetchedVariables } = trpc.variable.getAll.useQuery();
-  
+
   const selectedToolData =
     toolsQuery.data?.find((tool) => tool.type === selectedToolType) ||
     (toolBoxQuery.data?.type === selectedToolType ? toolBoxQuery.data : undefined);
@@ -106,7 +106,11 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     if (variableName === "") {
       // If clearing the variable selection
       const valueWithoutVariable = commandParams[fieldName];
-      if (typeof valueWithoutVariable === 'string' && valueWithoutVariable.startsWith("{{") && valueWithoutVariable.endsWith("}}")) {
+      if (
+        typeof valueWithoutVariable === "string" &&
+        valueWithoutVariable.startsWith("{{") &&
+        valueWithoutVariable.endsWith("}}")
+      ) {
         // If it was a variable reference, clear it completely
         const newParams = { ...commandParams };
         delete newParams[fieldName];
@@ -123,7 +127,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
 
   // Check if a parameter value is a variable reference
   const isVariableReference = (value: any): boolean => {
-    return typeof value === 'string' && value.startsWith("{{") && value.endsWith("}}");
+    return typeof value === "string" && value.startsWith("{{") && value.endsWith("}}");
   };
 
   // Extract variable name from variable reference
@@ -139,7 +143,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     const currentValue = commandParams[field.name];
     const isVariable = isVariableReference(currentValue);
     const variableName = isVariable ? getVariableNameFromReference(currentValue) : "";
-    
+
     // Special handling for PF400 location and sequence fields
     if (selectedToolType === "pf400") {
       // For move command's name parameter (locations)
@@ -148,7 +152,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           <HStack width="100%">
             <Select
               flex={1}
-              value={isVariable ? "" : (currentValue || "")}
+              value={isVariable ? "" : currentValue || ""}
               onChange={(e) => {
                 if (e.target.value) {
                   setCommandParams({ ...commandParams, [field.name]: e.target.value });
@@ -183,7 +187,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           <HStack width="100%">
             <Select
               flex={1}
-              value={isVariable ? "" : (currentValue || "")}
+              value={isVariable ? "" : currentValue || ""}
               onChange={(e) => {
                 if (e.target.value) {
                   setCommandParams({ ...commandParams, [field.name]: e.target.value });
@@ -220,7 +224,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           <HStack width="100%">
             <NumberInput
               flex={1}
-              value={isVariable ? "" : (currentValue || field.defaultValue || "")}
+              value={isVariable ? "" : currentValue || field.defaultValue || ""}
               onChange={(value) => {
                 if (!isVariable) {
                   setCommandParams({ ...commandParams, [field.name]: parseFloat(value) });
@@ -248,11 +252,13 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
             <Input
               flex={1}
               value={
-                isVariable 
-                  ? "" 
-                  : (currentValue 
-                      ? JSON.stringify(currentValue)
-                      : (field.defaultValue ? JSON.stringify(field.defaultValue) : ""))
+                isVariable
+                  ? ""
+                  : currentValue
+                    ? JSON.stringify(currentValue)
+                    : field.defaultValue
+                      ? JSON.stringify(field.defaultValue)
+                      : ""
               }
               onChange={(e) => {
                 if (!isVariable) {
@@ -265,7 +271,9 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                   }
                 }
               }}
-              placeholder={isVariable ? "Using variable" : "Enter as JSON array: ['item1', 'item2']"}
+              placeholder={
+                isVariable ? "Using variable" : "Enter as JSON array: ['item1', 'item2']"
+              }
               isDisabled={isVariable}
             />
             <Select
@@ -287,9 +295,9 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
             <Select
               flex={1}
               value={
-                isVariable 
-                  ? "" 
-                  : (currentValue?.toString() || field.defaultValue?.toString() || "false")
+                isVariable
+                  ? ""
+                  : currentValue?.toString() || field.defaultValue?.toString() || "false"
               }
               onChange={(e) => {
                 if (!isVariable) {
@@ -319,7 +327,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           <HStack width="100%">
             <Input
               flex={1}
-              value={isVariable ? "" : (currentValue || field.defaultValue || "")}
+              value={isVariable ? "" : currentValue || field.defaultValue || ""}
               onChange={(e) => {
                 if (!isVariable) {
                   setCommandParams({ ...commandParams, [field.name]: e.target.value });
@@ -398,8 +406,10 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               <VStack spacing={4} align="stretch" width="100%">
                 {fields.map((field: Field) => {
                   const isVariable = isVariableReference(commandParams[field.name]);
-                  const variableName = isVariable ? getVariableNameFromReference(commandParams[field.name]) : "";
-                  
+                  const variableName = isVariable
+                    ? getVariableNameFromReference(commandParams[field.name])
+                    : "";
+
                   return (
                     <FormControl key={field.name}>
                       <FormLabel>

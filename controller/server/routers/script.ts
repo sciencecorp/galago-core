@@ -67,9 +67,9 @@ export const scriptRouter = router({
     // Ensure folder_id is handled properly - if it's null or undefined, we'll set it to null explicitly
     const data = {
       ...input,
-      folder_id: input.folder_id === undefined ? null : input.folder_id
+      folder_id: input.folder_id === undefined ? null : input.folder_id,
     };
-    
+
     const { id } = data;
     const response = await put<Script>(`/scripts/${id}`, data);
     logAction({

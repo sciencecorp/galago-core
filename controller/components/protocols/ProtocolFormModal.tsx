@@ -32,11 +32,9 @@ import { AiFillEdit } from "react-icons/ai";
 import { EditableText } from "@/components/ui/Form";
 import { trpc } from "@/utils/trpc";
 
-
 interface ParameterSchema {
   type: string;
-  description?: string;
-  default?: string;
+  placeHolder?: string;
   variable_id?: number; // Changed from variable_name to variable_id
 }
 
@@ -59,11 +57,11 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
   const [previewMode, setPreviewMode] = useState(true);
   const toast = useToast();
   const { data: fetchedVariables, refetch: refetchVariables } = trpc.variable.getAll.useQuery();
-  
-  const { data: protocol, refetch: refetchProtocol } = trpc.protocol.getById.useQuery({ 
-    id: protocolId 
+
+  const { data: protocol, refetch: refetchProtocol } = trpc.protocol.getById.useQuery({
+    id: protocolId,
   });
-  
+
   const updateProtocolMutation = trpc.protocol.update.useMutation({
     onSuccess: () => {
       toast({
@@ -81,7 +79,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
         status: "error",
         duration: 5000,
       });
-    }
+    },
   });
 
   // Initialize local params when modal opens with converted variable_name to variable_id if needed
@@ -89,23 +87,26 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
     if (isOpen) {
       if (initialParams && fetchedVariables) {
         // Convert any existing variable_name to variable_id
-        const convertedParams = Object.entries(initialParams).reduce((acc, [key, schema]) => {
-          const newSchema = { ...schema };
-          
-          // If we have a variable_name but not a variable_id, find the matching ID
-          if ('variable_name' in newSchema && !('variable_id' in newSchema)) {
-            const variable = fetchedVariables.find(v => v.name === newSchema.variable_name);
-            if (variable) {
-              newSchema.variable_id = variable.id;
+        const convertedParams = Object.entries(initialParams).reduce(
+          (acc, [key, schema]) => {
+            const newSchema = { ...schema };
+
+            // If we have a variable_name but not a variable_id, find the matching ID
+            if ("variable_name" in newSchema && !("variable_id" in newSchema)) {
+              const variable = fetchedVariables.find((v) => v.name === newSchema.variable_name);
+              if (variable) {
+                newSchema.variable_id = variable.id;
+              }
+              // Remove the old variable_name property
+              delete newSchema.variable_name;
             }
-            // Remove the old variable_name property
-            delete newSchema.variable_name;
-          }
-          
-          acc[key] = newSchema;
-          return acc;
-        }, {} as Record<string, ParameterSchema>);
-        
+
+            acc[key] = newSchema;
+            return acc;
+          },
+          {} as Record<string, ParameterSchema>,
+        );
+
         setLocalParams(convertedParams);
       } else {
         setLocalParams(initialParams || {});
@@ -118,8 +119,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
     const newParamName = `parameter_${Object.keys(newSchema).length + 1}`;
     newSchema[newParamName] = {
       type: "string",
-      description: "",
-      default: "",
+      placeHolder: "",
     };
     setLocalParams(newSchema);
   };
@@ -132,7 +132,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
 
   const handleRenameParameter = (oldName: string, newName: string) => {
     if (newName === oldName) return;
-    
+
     // Check if new name already exists
     if (newName !== oldName && localParams[newName]) {
       toast({
@@ -153,7 +153,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
         }
         return acc;
       },
-      {} as Record<string, ParameterSchema>
+      {} as Record<string, ParameterSchema>,
     );
     setLocalParams(newSchema);
   };
@@ -161,7 +161,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
   const handleUpdateParameterSchema = (
     paramName: string,
     field: keyof ParameterSchema,
-    value: any
+    value: any,
   ) => {
     const newSchema = { ...localParams };
     newSchema[paramName] = {
@@ -175,8 +175,8 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
   const handleVariableSelect = (paramName: string, variableId: string) => {
     const newSchema = { ...localParams };
     const numericVariableId = parseInt(variableId, 10);
-    const variable = fetchedVariables?.find(v => v.id === numericVariableId);
-    
+    const variable = fetchedVariables?.find((v) => v.id === numericVariableId);
+
     if (variableId === "") {
       // If clearing the variable selection, remove variable_id but keep other properties
       const { variable_id, ...rest } = newSchema[paramName];
@@ -188,7 +188,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
         variable_id: numericVariableId,
       };
     }
-    
+
     setLocalParams(newSchema);
   };
 
@@ -225,7 +225,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
   // Find the variable associated with a parameter
   const getVariableForParam = (paramSchema: ParameterSchema) => {
     if (!paramSchema.variable_id || !fetchedVariables) return null;
-    return fetchedVariables.find(v => v.id === paramSchema.variable_id);
+    return fetchedVariables.find((v) => v.id === paramSchema.variable_id);
   };
 
   // This is the mock implementation of the NewProtocolRunModal preview
@@ -238,7 +238,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
       <VStack align="start" spacing={4} width="100%">
         {Object.entries(localParams).map(([param, schema]) => {
           const variable = getVariableForParam(schema);
-          
+
           return (
             <FormControl key={param}>
               <FormLabel>
@@ -248,13 +248,10 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                 </Badge>
               </FormLabel>
               <Input
-                value={variable?.value || schema.default || ""}
+                value={variable?.value || schema.placeHolder || ""}
                 placeholder="Default value"
                 isReadOnly
               />
-              <Text fontSize="sm" color="gray.500" mt={1}>
-                {schema.description}
-              </Text>
             </FormControl>
           );
         })}
@@ -272,7 +269,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
             <Tooltip label={previewMode ? "Switch to Edit Mode" : "Preview Run Form"}>
               <IconButton
                 aria-label="Toggle preview mode"
-                icon={previewMode ? <AiFillEdit fontSize="18px"/> : <ViewIcon fontSize="18px"/>}
+                icon={previewMode ? <AiFillEdit fontSize="18px" /> : <ViewIcon fontSize="18px" />}
                 size="sm"
                 onClick={() => setPreviewMode(!previewMode)}
                 variant="ghost"
@@ -290,8 +287,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                 <Thead>
                   <Tr>
                     <Th>Label</Th>
-                    <Th>Description</Th>
-                    <Th>Default Value</Th>
+                    <Th>PlaceHolder</Th>
                     <Th>Variable</Th>
                     <Th></Th>
                   </Tr>
@@ -299,43 +295,33 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                 <Tbody>
                   {Object.entries(localParams).map(([paramName, schema]) => {
                     const paramVariable = getVariableForParam(schema);
-                    
+
                     return (
                       <Tr key={paramName}>
                         <Td>
                           <EditableText
                             onSubmit={(value) => {
-                              if(value)
-                                handleRenameParameter(paramName, value);
+                              if (value) handleRenameParameter(paramName, value);
                             }}
                             defaultValue={paramName || ""}
                             placeholder="Parameter name"
                           />
                         </Td>
                         <Td>
-                          <EditableText
-                            onSubmit={(value) => {
-                              handleUpdateParameterSchema(paramName, "description", value);
-                            }}
-                            defaultValue={schema.description || ""}
-                            placeholder="Add description..."
-                            persistentEdit={!schema.description}
-                          />
-                        </Td>
-                        <Td>
                           <Input
                             size="md"
-                            value={schema.default || ""}
-                            placeholder="Default value"
-                            onChange={(e) => handleUpdateParameterSchema(paramName, "default", e.target.value)}
+                            value={schema.placeHolder || ""}
+                            placeholder="Place Holder"
+                            onChange={(e) =>
+                              handleUpdateParameterSchema(paramName, "placeHolder", e.target.value)
+                            }
                           />
                         </Td>
                         <Td minW="200px">
                           <Select
                             size="md"
                             value={schema.variable_id ? schema.variable_id.toString() : ""}
-                            onChange={(e) => handleVariableSelect(paramName, e.target.value)}
-                          >
+                            onChange={(e) => handleVariableSelect(paramName, e.target.value)}>
                             <option value="">No Variable</option>
                             {fetchedVariables?.map((variable) => (
                               <option key={variable.id} value={variable.id.toString()}>
@@ -364,8 +350,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                 colorScheme="blue"
                 variant="ghost"
                 alignSelf="flex-start"
-                mt={4}
-              >
+                mt={4}>
                 Add
               </Button>
             </Box>
@@ -376,11 +361,10 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
           <Button variant="ghost" mr={3} onClick={onClose}>
             Cancel
           </Button>
-          <Button 
-            colorScheme="teal" 
+          <Button
+            colorScheme="teal"
             onClick={handleSave}
-            isLoading={updateProtocolMutation.isLoading}
-          >
+            isLoading={updateProtocolMutation.isLoading}>
             Save
           </Button>
         </ModalFooter>
