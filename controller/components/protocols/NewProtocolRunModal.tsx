@@ -75,11 +75,9 @@ function ParamInput({
     case "boolean":
       let isChecked = false;
       return <Checkbox isChecked={isChecked} onChange={(e) => setValue(e.target.checked)} />;
-    
+
     case "label":
-      return (
-        <Text>{paramInfo.placeHolder}</Text>
-      );
+      return <Text>{paramInfo.placeHolder}</Text>;
     default:
       return (
         <>
@@ -118,7 +116,6 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
       },
     },
   );
-
 
   const uiParams = protocol.data?.params || {};
   const { isOpen, onOpen } = useDisclosure({ defaultIsOpen: true });
@@ -286,12 +283,12 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                               setUserDefinedParams({ ...userDefinedParams, [param]: value })
                             }
                           />
-                          {paramInfo.type === "boolean"  || paramInfo.type === "number" && 
-                          (
-                            <FormHelperText>
-                              {(paramInfo as ProtocolParamInfo).placeHolder}
-                            </FormHelperText>
-                          )}
+                          {paramInfo.type === "boolean" ||
+                            (paramInfo.type === "number" && (
+                              <FormHelperText>
+                                {(paramInfo as ProtocolParamInfo).placeHolder}
+                              </FormHelperText>
+                            ))}
                           {formErrors &&
                             formErrors[param]?._errors.map((key, error) => (
                               <FormErrorMessage key={key}>{error}</FormErrorMessage>

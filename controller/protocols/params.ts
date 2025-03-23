@@ -21,5 +21,4 @@ function Param<T extends z.ZodTypeAny, B extends ProtocolParamType>(name: B, typ
   return branded;
 }
 
-
 export const params = z.object;
