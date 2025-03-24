@@ -52,7 +52,7 @@ import { SaveIcon } from "@/components/ui/Icons";
 import { SiReacthookform } from "react-icons/si";
 import { SiPlatformdotsh } from "react-icons/si";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
-import { on } from "events";
+import { MdOutlineExitToApp } from "react-icons/md";
 
 interface ParameterSchema {
   type: string;
@@ -465,11 +465,14 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                 <Button leftIcon={<SiPlatformdotsh />} size="md" onClick={openParametersModal}>
                   Form
                 </Button>
-                <IconButton aria-label="Save" colorScheme="gray" onClick={handleSaveChanges}>
-                  <Icon as={SaveIcon} boxSize={6} />
-                </IconButton>
-                <Button variant="outline" onClick={() => setIsEditing(false)}>
-                  Cancel
+                <Button leftIcon={<SaveIcon />} size="md" onClick={handleSaveChanges}>
+                  Save
+                </Button>
+                <Button 
+                  leftIcon={<MdOutlineExitToApp />}
+                  variant="outline" 
+                  onClick={() => setIsEditing(false)}>
+                  Exit
                 </Button>
               </>
             ) : (
