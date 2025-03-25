@@ -258,16 +258,23 @@ export const commandFields: CommandFields = {
     retract: [],
   },
   microserve: {
-    load: [{ name: "stack_id", type: "number", defaultValue: 1 }],
-    unload: [{ name: "stack_id", type: "number", defaultValue: 1 }],
+    load: [
+      { name: "stack_id", type: "number", defaultValue: 1 },
+      { name: "plate_height", type: "number", defaultValue: 14 },
+      { name: "stack_height", type: "number", defaultValue: 14 },
+      { name: "plate_thickness", type: "number", defaultValue: 12 },
+    ],
+    unload: [
+      { name: "stack_id", type: "number", defaultValue: 1 },
+      { name: "plate_height", type: "number", defaultValue: 14 },
+      { name: "stack_height", type: "number", defaultValue: 14 },
+      { name: "plate_thickness", type: "number", defaultValue: 12 },
+    ],
     home: [],
     abort: [],
     retract: [],
-    go_to: [],
-    set_plate_dimensions: [
-      { name: "plate_height", type: "number", defaultValue: 25 },
-      { name: "stack_height", type: "number", defaultValue: 0 },
-      { name: "plate_thickness", type: "number", defaultValue: 0 },
+    go_to: [
+      {name:"stack_id", type:"number", defaultValue:1}
     ],
     send_raw_command: [{ name: "command", type: "text" }],
   },
