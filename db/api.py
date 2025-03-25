@@ -203,7 +203,7 @@ def update_tool(
 ) -> t.Any:
     tool = (
         db.query(models.Tool)
-        .filter(func.lower(models.Tool.name) == tool_id.lower().replace(" ", "_"))
+        .filter(func.lower(models.Tool.name) == tool_id.lower().replace("_", " "))
         .first()
     )
     # tool = crud.tool.get(db, id=tool_id)
@@ -216,7 +216,7 @@ def update_tool(
 def delete_tool(tool_id: str, db: Session = Depends(get_db)) -> t.Any:
     tool = (
         db.query(models.Tool)
-        .filter(func.lower(models.Tool.name) == tool_id.lower().replace(" ", "_"))
+        .filter(func.lower(models.Tool.name) == tool_id.lower().replace("_", " "))
         .first()
     )
     if tool is None:

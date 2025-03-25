@@ -126,7 +126,7 @@ export default class Tool {
         reply.response,
       );
     }
-    if(config.pf400){
+    if (config.pf400) {
       await Tool.loadLabwareToPF400(Tool.normalizeToolId(this.info.name));
       await Tool.loadPF400Waypoints(Tool.normalizeToolId(this.info.name));
     }
