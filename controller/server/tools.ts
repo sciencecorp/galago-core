@@ -80,7 +80,7 @@ export default class Tool {
     return this.info.type;
   }
 
-  static async loadPF400Waypoints() {
+  static async loadPF400Waypoints(toolId: string) {
     const waypointsReponse = await get<any>(`/robot-arm-waypoints?tool_id=1`);
     // if (Tool.forId("pf400").status !== ToolStatus.READY) return;
     await this.executeCommand({
@@ -93,7 +93,7 @@ export default class Tool {
     });
   }
 
-  static async loadLabwareToPF400() {
+  static async loadLabwareToPF400(toolId: string) {
     const labwareResponse = await get<Labware>(`/labware`);
     // if (Tool.forId("pf400").status !== ToolStatus.READY) return;
     await this.executeCommand({
@@ -126,8 +126,10 @@ export default class Tool {
         reply.response,
       );
     }
-    // await Tool.loadLabwareToPF400();
-    // await Tool.loadPF400Waypoints();
+    if(config.pf400){
+      await Tool.loadLabwareToPF400(Tool.normalizeToolId(this.info.name));
+      await Tool.loadPF400Waypoints(Tool.normalizeToolId(this.info.name));
+    }
   }
 
   _payloadForCommand(command: ToolCommandInfo): tool_base.Command {
