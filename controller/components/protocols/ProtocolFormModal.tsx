@@ -249,9 +249,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                 </Badge>
               </FormLabel>
               {isBoolean ? (
-                <Select 
-                  defaultValue={variable?.value || schema.placeHolder || "false"}
-                >
+                <Select defaultValue={variable?.value || schema.placeHolder || "false"}>
                   <option value="true">True</option>
                   <option value="false">False</option>
                 </Select>

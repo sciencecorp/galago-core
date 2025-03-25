@@ -456,23 +456,23 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
           <HStack>
             {isEditing ? (
               <>
-                <Button 
-                  leftIcon={<SiPlatformdotsh fontSize="14px"/>}
-                  variant="outline" 
-                  size="md" 
+                <Button
+                  leftIcon={<SiPlatformdotsh fontSize="14px" />}
+                  variant="outline"
+                  size="md"
                   onClick={openParametersModal}>
                   Form
                 </Button>
-                <Button 
+                <Button
                   variant="outline"
-                  leftIcon={<SaveIcon />} 
-                  size="md" 
+                  leftIcon={<SaveIcon />}
+                  size="md"
                   onClick={handleSaveChanges}>
                   Save
                 </Button>
-                <Button 
+                <Button
                   leftIcon={<MdOutlineExitToApp />}
-                  variant="outline" 
+                  variant="outline"
                   onClick={() => setIsEditing(false)}>
                   Exit
                 </Button>
@@ -498,7 +498,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         <Box
           overflowX="auto"
           py={6}
-          maxW="100%"
+          maxW="90vw"
           onWheel={(e: any) => handleWheel(e)}
           css={{
             "&::-webkit-scrollbar": {
@@ -605,7 +605,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                 <Text as="b" fontSize="18px">
                   Parameters
                 </Text>
-                <VStack align="stretch" spacing={4} w="100%">
+                <VStack align="stretch" spacing={4} width="100%">
                   {Object.entries(selectedCommand.commandInfo.params).map(([key, value], index) => {
                     // Get current value (from editedParams if available, otherwise from command)
                     const currentValue =

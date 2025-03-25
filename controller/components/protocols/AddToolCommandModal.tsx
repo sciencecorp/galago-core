@@ -17,17 +17,35 @@ import {
   NumberInputField,
   HStack,
   IconButton,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
   Badge,
   Text,
+  Box,
+  SimpleGrid,
+  Image,
+  Flex,
+  InputGroup,
+  InputLeftElement,
+  Tag,
+  useColorModeValue,
+  useDisclosure,
+  useSteps,
+  Stepper,
+  Step,
+  StepIndicator,
+  StepStatus,
+  StepTitle,
+  StepDescription,
+  StepSeparator,
+  StepIcon,
+  StepNumber,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
 import { AddIcon } from "@chakra-ui/icons";
+import { RiSearchLine } from "react-icons/ri";
 import { commandFields } from "../tools/constants";
+import { capitalizeFirst } from "@/utils/parser";
+import { PiToolbox } from "react-icons/pi";
 
 interface AddToolCommandModalProps {
   isOpen: boolean;
@@ -48,6 +66,18 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   const [selectedToolType, setSelectedToolType] = useState("");
   const [selectedCommand, setSelectedCommand] = useState("");
   const [commandParams, setCommandParams] = useState<Record<string, any>>({});
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // For the stepper UI
+  const steps = [
+    { title: "Select Tool", description: "Choose a tool to use" },
+    { title: "Select Command", description: "Choose a command" },
+    { title: "Configure Parameters", description: "Command Inputs." },
+  ];
+  const { activeStep, setActiveStep } = useSteps({
+    index: 0,
+    count: steps.length,
+  });
 
   const toolsQuery = trpc.tool.getAll.useQuery();
   const toolBoxQuery = trpc.tool.getToolBox.useQuery();
@@ -68,7 +98,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     if (selectedToolType && selectedCommand) {
       const availableCommands = commandFields[selectedToolType] || {};
       const fields = availableCommands[selectedCommand] || [];
-      
+
       // Initialize params with default values
       const initialParams: Record<string, any> = {};
       fields.forEach((field: Field) => {
@@ -76,7 +106,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           initialParams[field.name] = field.defaultValue;
         }
       });
-      
+
       setCommandParams(initialParams);
     } else {
       setCommandParams({});
@@ -90,10 +120,53 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   const fields: Field[] =
     selectedToolType && selectedCommand ? availableCommands[selectedCommand] || [] : [];
 
+  // Get available tools
+  const availableTools = [...(toolsQuery.data || []).map((tool) => tool.type)];
+  if (toolBoxQuery.data) {
+    availableTools.push(toolBoxQuery.data.type);
+  }
+
+  // Filter tools based on search query
+  const filteredTools = availableTools.filter((tool) =>
+    tool.toLowerCase().replace(/_/g, " ").includes(searchQuery.toLowerCase()),
+  );
+
+  const handleToolSelect = (tool: string) => {
+    setSelectedToolType(tool);
+    setSelectedCommand("");
+    setCommandParams({});
+  };
+
+  const handleNextStep = () => {
+    if (activeStep === 0 && !selectedToolType) {
+      toast({
+        title: "No tool selected",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    if (activeStep === 1 && !selectedCommand) {
+      toast({
+        title: "No command selected",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    setActiveStep(activeStep + 1);
+  };
+
+  const handlePreviousStep = () => {
+    setActiveStep(activeStep - 1);
+  };
+
   const handleSubmit = () => {
     // Ensure all fields have values (default or entered)
     const finalParams = { ...commandParams };
-    
+
     // Add missing fields with empty strings to ensure they're saved
     fields.forEach((field: Field) => {
       if (finalParams[field.name] === undefined) {
@@ -132,9 +205,14 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     };
     onCommandAdded(newCommand);
     onClose();
+    // Reset state after closing
+    setActiveStep(0);
+    setSelectedToolType("");
+    setSelectedCommand("");
+    setCommandParams({});
+    setSearchQuery("");
   };
 
-  // Function to handle variable selection
   const handleVariableSelect = (fieldName: string, variableName: string) => {
     if (variableName === "") {
       // If clearing the variable selection
@@ -150,7 +228,6 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
         setCommandParams(newParams);
       }
     } else {
-      // Set the parameter value to the variable reference format
       setCommandParams({
         ...commandParams,
         [fieldName]: `{{${variableName}}}`,
@@ -158,15 +235,13 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     }
   };
 
-  // Check if a parameter value is a variable reference
   const isVariableReference = (value: any): boolean => {
     return typeof value === "string" && value.startsWith("{{") && value.endsWith("}}");
   };
 
-  // Extract variable name from variable reference
   const getVariableNameFromReference = (value: string): string => {
     if (isVariableReference(value)) {
-      return value.slice(2, -2); // Remove {{ and }}
+      return value.slice(2, -2);
     }
     return "";
   };
@@ -190,7 +265,6 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                 if (e.target.value) {
                   setCommandParams({ ...commandParams, [field.name]: e.target.value });
                 } else {
-                  // Ensure empty string is saved when nothing is selected
                   setCommandParams({ ...commandParams, [field.name]: "" });
                 }
               }}
@@ -263,7 +337,15 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           <HStack width="100%">
             <NumberInput
               flex={1}
-              value={isVariable ? "" : currentValue !== undefined ? currentValue : field.defaultValue !== undefined ? field.defaultValue : 0}
+              value={
+                isVariable
+                  ? ""
+                  : currentValue !== undefined
+                    ? currentValue
+                    : field.defaultValue !== undefined
+                      ? field.defaultValue
+                      : 0
+              }
               onChange={(value) => {
                 if (!isVariable) {
                   setCommandParams({ ...commandParams, [field.name]: parseFloat(value) || 0 });
@@ -294,10 +376,10 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                 isVariable
                   ? ""
                   : currentValue !== undefined
-                  ? JSON.stringify(currentValue)
-                  : field.defaultValue !== undefined
-                  ? JSON.stringify(field.defaultValue)
-                  : "[]"
+                    ? JSON.stringify(currentValue)
+                    : field.defaultValue !== undefined
+                      ? JSON.stringify(field.defaultValue)
+                      : "[]"
               }
               onChange={(e) => {
                 if (!isVariable) {
@@ -337,10 +419,10 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                 isVariable
                   ? ""
                   : currentValue !== undefined
-                  ? currentValue.toString()
-                  : field.defaultValue !== undefined
-                  ? field.defaultValue.toString()
-                  : "false"
+                    ? currentValue.toString()
+                    : field.defaultValue !== undefined
+                      ? field.defaultValue.toString()
+                      : "false"
               }
               onChange={(e) => {
                 if (!isVariable) {
@@ -369,7 +451,15 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           <HStack width="100%">
             <Input
               flex={1}
-              value={isVariable ? "" : currentValue !== undefined ? currentValue : field.defaultValue !== undefined ? field.defaultValue : ""}
+              value={
+                isVariable
+                  ? ""
+                  : currentValue !== undefined
+                    ? currentValue
+                    : field.defaultValue !== undefined
+                      ? field.defaultValue
+                      : ""
+              }
               onChange={(e) => {
                 if (!isVariable) {
                   setCommandParams({ ...commandParams, [field.name]: e.target.value });
@@ -394,57 +484,149 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     }
   };
 
-  return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>Add Tool Command</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <VStack spacing={4}>
-            <FormControl isRequired>
-              <FormLabel>Tool</FormLabel>
-              <Select
-                placeholder="Select tool"
-                value={selectedToolType}
-                onChange={(e) => {
-                  setSelectedToolType(e.target.value);
-                  setSelectedCommand("");
-                  setCommandParams({});
-                }}>
-                {toolsQuery.data?.map((tool) => (
-                  <option key={tool.type} value={tool.type}>
-                    {tool.type}
-                  </option>
+  // Tool card component
+  const toolCardBg = useColorModeValue("white", "gray.800");
+  const selectedToolBg = useColorModeValue("teal.100", "teal.900");
+
+  const ToolCard = ({ tool }: { tool: string }) => {
+    const isSelected = selectedToolType === tool;
+    const displayName = capitalizeFirst(tool.replaceAll("_", " "));
+
+    return (
+      <Box
+        p={2}
+        borderRadius="lg"
+        cursor="pointer"
+        bg={isSelected ? selectedToolBg : toolCardBg}
+        borderColor={isSelected ? "teal.500" : "gray.200"}
+        boxShadow="md"
+        _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
+        onClick={() => handleToolSelect(tool)}>
+        <VStack spacing={1} align="center">
+          {tool === "toolbox" ? (
+            <IconButton
+              aria-label="Tool Box"
+              icon={<PiToolbox style={{ width: "90px", height: "90px" }} />}
+              variant="ghost"
+              colorScheme="teal"
+              isRound
+              boxSize="85px"
+            />
+          ) : (
+            <Image
+              src={`/tool_icons/${tool}.png`}
+              alt={displayName}
+              objectFit="contain"
+              loading="lazy"
+              height={"85px"}
+            />
+          )}
+          <Text fontSize="sm" fontWeight={isSelected ? "bold" : "normal"}>
+            {displayName}
+          </Text>
+        </VStack>
+      </Box>
+    );
+  };
+
+  const CommandCard = ({ command }: { command: string }) => {
+    const isSelected = selectedCommand === command;
+
+    return (
+      <Box
+        p={3}
+        borderRadius="lg"
+        cursor="pointer"
+        bg={isSelected ? selectedToolBg : toolCardBg}
+        borderColor={isSelected ? "teal.500" : "gray.200"}
+        boxShadow="md"
+        _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
+        onClick={() => setSelectedCommand(command)}>
+        <Text fontSize="md" fontWeight={isSelected ? "bold" : "normal"}>
+          {command}
+        </Text>
+      </Box>
+    );
+  };
+
+  const renderStepContent = () => {
+    switch (activeStep) {
+      case 0:
+        return (
+          <VStack spacing={6} align="stretch">
+            <InputGroup>
+              <InputLeftElement pointerEvents="none">
+                <RiSearchLine color="gray.300" />
+              </InputLeftElement>
+              <Input
+                placeholder="Search for a tool..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </InputGroup>
+
+            <Flex justify="space-between" align="center">
+              <Text fontSize="md" fontWeight="bold">
+                Available Tools
+              </Text>
+              {selectedToolType && (
+                <HStack>
+                  <Text fontSize="sm">Selected:</Text>
+                  <Tag colorScheme="teal">
+                    {capitalizeFirst(selectedToolType.replaceAll("_", " "))}
+                  </Tag>
+                </HStack>
+              )}
+            </Flex>
+            <Box
+              maxH="calc(3 * 140px + 3 * 1rem)" // 3 rows of cards (approx 130px each) + spacing
+              overflowY="auto"
+              pr={2}
+              py={5}>
+              <SimpleGrid columns={[2, 3, 4, 5]} spacing={4}>
+                {filteredTools.map((tool) => (
+                  <ToolCard key={tool} tool={tool} />
                 ))}
-                {toolBoxQuery.data && (
-                  <option key={toolBoxQuery.data.type} value={toolBoxQuery.data.type}>
-                    {toolBoxQuery.data.type}
-                  </option>
-                )}
-              </Select>
-            </FormControl>
+              </SimpleGrid>
+            </Box>
+          </VStack>
+        );
+      case 1:
+        return (
+          <VStack spacing={6} align="stretch">
+            <Flex justify="space-between" align="center">
+              <Text fontSize="md" fontWeight="bold">
+                Available Commands for {capitalizeFirst(selectedToolType.replaceAll("_", " "))}
+              </Text>
+              {selectedCommand && (
+                <HStack>
+                  <Text fontSize="sm">Selected:</Text>
+                  <Tag colorScheme="teal">{selectedCommand}</Tag>
+                </HStack>
+              )}
+            </Flex>
+            <Box maxH="300px" overflowY="auto" pr={2} py={2}>
+              <SimpleGrid columns={[1, 2]} spacing={4}>
+                {Object.keys(availableCommands).map((command) => (
+                  <CommandCard key={command} command={command} />
+                ))}
+              </SimpleGrid>
+            </Box>
+          </VStack>
+        );
+      case 2:
+        return (
+          <VStack spacing={4} align="stretch" width="100%">
+            <HStack spacing={3}>
+              <Text fontSize="md" fontWeight="bold">
+                Configure Parameters
+              </Text>
+              <Tag colorScheme="teal">
+                {capitalizeFirst(selectedToolType.replaceAll("_", " "))} → {selectedCommand}
+              </Tag>
+            </HStack>
 
-            {selectedToolType && (
-              <FormControl isRequired>
-                <FormLabel>Command</FormLabel>
-                <Select
-                  placeholder="Select command"
-                  value={selectedCommand}
-                  onChange={(e) => {
-                    setSelectedCommand(e.target.value);
-                    setCommandParams({});
-                  }}>
-                  {Object.keys(availableCommands).map((command) => (
-                    <option key={command} value={command}>
-                      {command}
-                    </option>
-                  ))}
-                </Select>
-              </FormControl>
-            )}
-
-            {fields.length > 0 && (
+            {fields.length > 0 ? (
               <VStack spacing={4} align="stretch" width="100%">
                 {fields.map((field: Field) => {
                   const isVariable = isVariableReference(commandParams[field.name]);
@@ -467,22 +649,103 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                   );
                 })}
               </VStack>
+            ) : (
+              <Text>No parameters required for this command.</Text>
             )}
+          </VStack>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Determine modal footer buttons based on current step
+  const renderFooterButtons = () => {
+    switch (activeStep) {
+      case 0:
+        return (
+          <>
+            <Button variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              colorScheme="teal"
+              ml={3}
+              onClick={handleNextStep}
+              isDisabled={!selectedToolType}>
+              Next
+            </Button>
+          </>
+        );
+      case 1:
+        return (
+          <>
+            <Button variant="ghost" onClick={handlePreviousStep}>
+              Back
+            </Button>
+            <Button variant="ghost" ml={2} onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              colorScheme="teal"
+              ml={3}
+              onClick={handleNextStep}
+              isDisabled={!selectedCommand}>
+              Next
+            </Button>
+          </>
+        );
+      case 2:
+        return (
+          <>
+            <Button variant="ghost" onClick={handlePreviousStep}>
+              Back
+            </Button>
+            <Button variant="ghost" ml={2} onClick={onClose}>
+              Cancel
+            </Button>
+            <Button colorScheme="teal" ml={3} onClick={handleSubmit}>
+              Add Command
+            </Button>
+          </>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} size="xl">
+      <ModalOverlay />
+      <ModalContent maxW="900px">
+        <ModalHeader>Add Tool Command</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <VStack spacing={6} align="stretch">
+            <Stepper index={activeStep} colorScheme="teal" mb={4}>
+              {steps.map((step, index) => (
+                <Step key={index}>
+                  <StepIndicator>
+                    <StepStatus
+                      complete={<StepIcon />}
+                      incomplete={<StepNumber />}
+                      active={<StepNumber />}
+                    />
+                  </StepIndicator>
+                  <Box flexShrink="0">
+                    <StepTitle>{step.title}</StepTitle>
+                    <StepDescription>{step.description}</StepDescription>
+                  </Box>
+                  <StepSeparator />
+                </Step>
+              ))}
+            </Stepper>
+
+            {renderStepContent()}
           </VStack>
         </ModalBody>
 
-        <ModalFooter>
-          <Button variant="ghost" mr={3} onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            colorScheme="blue"
-            onClick={handleSubmit}
-            isLoading={false}
-            isDisabled={!selectedToolType || !selectedCommand}>
-            Add Command
-          </Button>
-        </ModalFooter>
+        <ModalFooter>{renderFooterButtons()}</ModalFooter>
       </ModalContent>
     </Modal>
   );

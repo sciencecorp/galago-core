@@ -29,10 +29,10 @@ import {
   useColorModeValue,
   useNumberInput,
   HStack,
-  Select
+  Select,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
-import {  useState } from "react";
+import { useState } from "react";
 import { z } from "zod";
 import { capitalizeFirst } from "@/utils/parser";
 
@@ -72,10 +72,11 @@ function ParamInput({
       );
     case "boolean":
       return (
-        <Select 
+        <Select
           defaultValue="true"
-          onChange={(e) => {setValue(e.target.value === "true" ? true : false)}}
-          >
+          onChange={(e) => {
+            setValue(e.target.value === "true" ? true : false);
+          }}>
           <option value="true">True</option>
           <option value="false">False</option>
         </Select>
@@ -267,7 +268,6 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                           <FormLabel>
                             <HStack spacing={1} alignItems="center">
                               <Text>{capitalizeFirst(param.replaceAll("_", " "))}</Text>
-
                             </HStack>
                           </FormLabel>
                           <ParamInput
@@ -277,11 +277,10 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                               setUserDefinedParams({ ...userDefinedParams, [param]: value })
                             }
                           />
-                          {(paramInfo.type === "boolean" || 
-                            paramInfo.type === "number") && (
-                              <FormHelperText>
-                                {(paramInfo as ProtocolParamInfo).placeHolder}
-                              </FormHelperText>
+                          {(paramInfo.type === "boolean" || paramInfo.type === "number") && (
+                            <FormHelperText>
+                              {(paramInfo as ProtocolParamInfo).placeHolder}
+                            </FormHelperText>
                           )}
                           {formErrors &&
                             formErrors[param]?._errors.map((key, error) => (
