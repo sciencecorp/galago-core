@@ -175,7 +175,7 @@ def get_tools(db: Session = Depends(get_db)) -> t.Any:
 @app.get("/tools/{tool_id}", response_model=schemas.Tool)
 def get_tool(tool_id: str, db: Session = Depends(get_db)) -> t.Any:
     # Get tool by lowercase name
-    tool = db.query(models.Tool).filter(func.lower(models.Tool.name) == tool_id).first()
+    tool = db.query(models.Tool).filter(func.lower(models.Tool.name) == tool_id.replace("_", " ")).first()
     if tool is None:
         raise HTTPException(status_code=404, detail="Tool not found")
     return tool
@@ -801,61 +801,10 @@ def update_robot_arm_location(
 )
 def delete_robot_arm_location(location_id: int, db: Session = Depends(get_db)) -> t.Any:
     # First check if this location is referenced as a safe location
-    dependent_nests = (
-        db.query(models.RobotArmNest).filter_by(safe_location_id=location_id).all()
-    )
-    if dependent_nests:
-        raise HTTPException(
-            status_code=400,
-            detail="Cannot delete location that is used " "as a safe location by nests",
-        )
-
     location = crud.robot_arm_location.get(db, id=location_id)
     if not location:
         raise HTTPException(status_code=404, detail="Location not found")
     return crud.robot_arm_location.remove(db, id=location_id)
-
-
-# RobotArm Nest endpoints
-@app.get("/robot-arm-nests", response_model=list[schemas.RobotArmNest])
-def get_robot_arm_nests(
-    db: Session = Depends(get_db), tool_id: Optional[int] = None
-) -> t.Any:
-    if tool_id:
-        return crud.robot_arm_nest.get_all_by(db, obj_in={"tool_id": tool_id})
-    return crud.robot_arm_nest.get_all(db)
-
-
-@app.post("/robot-arm-nests", response_model=schemas.RobotArmNest)
-def create_robot_arm_nest(
-    nest: schemas.RobotArmNestCreate, db: Session = Depends(get_db)
-) -> t.Any:
-    return crud.robot_arm_nest.create(db, obj_in=nest)
-
-
-@app.put("/robot-arm-nests/{nest_id}", response_model=schemas.RobotArmNest)
-def update_robot_arm_nest(
-    nest_id: int, nest: schemas.RobotArmNestUpdate, db: Session = Depends(get_db)
-) -> t.Any:
-    db_nest = crud.robot_arm_nest.get(db, id=nest_id)
-    if not db_nest:
-        raise HTTPException(status_code=404, detail="Nest not found")
-    return crud.robot_arm_nest.update(db, db_obj=db_nest, obj_in=nest)
-
-
-@app.delete("/robot-arm-nests/{nest_id}", response_model=schemas.RobotArmNest)
-def delete_robot_arm_nest(nest_id: int, db: Session = Depends(get_db)) -> t.Any:
-    nest = crud.robot_arm_nest.get(db, id=nest_id)
-    if not nest:
-        raise HTTPException(status_code=404, detail="Nest not found")
-
-    # Update the safe_location_id to None and commit
-    db.query(models.RobotArmNest).filter_by(id=nest_id).update(
-        {"safe_location_id": None}
-    )
-    db.commit()
-
-    return crud.robot_arm_nest.remove(db, id=nest_id)
 
 
 # RobotArm Sequence endpoints

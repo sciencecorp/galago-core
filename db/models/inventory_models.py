@@ -204,9 +204,6 @@ class RobotArmLocation(Base, TimestampMixin):
     tool = relationship(
         "Tool", back_populates="robot_arm_locations"
     )  # type: Optional["Tool"]  # type: ignore
-    dependent_nests = relationship(
-        "RobotArmNest", back_populates="safe_location", cascade="all, delete-orphan"
-    )  # type: List["RobotArmNest"]  # type: ignore
 
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
