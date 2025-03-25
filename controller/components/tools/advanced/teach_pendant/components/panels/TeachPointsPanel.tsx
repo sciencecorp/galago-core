@@ -25,7 +25,7 @@ import { TeachPoint, MotionProfile, GripParams, Sequence } from "../types";
 import { FaPlay, FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { MdOutlineReplay } from "react-icons/md";
 import { BsRecordCircle } from "react-icons/bs";
-import { useState, useRef, useEffect, use } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { usePagination } from "../../hooks/usePagination";
 import { PaginationControls } from "../common/PaginationControls";
 import { EditableText } from "@/components/ui/Form";
@@ -66,10 +66,20 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   isConnected,
   bgColor,
   bgColorAlpha,
+  config,
 }) => {
   const borderColor = useColorModeValue("gray.200", "gray.600");
+  const tableBgColor = useColorModeValue("white", "gray.800");
+  const headerBgColor = useColorModeValue("gray.50", "gray.700");
+  const hoverBgColor = useColorModeValue("gray.50", "gray.700");
+  const textColor = useColorModeValue("gray.800", "gray.100");
   const [editingPoint, setEditingPoint] = useState<EditablePoint | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
+
+  // Get the number of joints from the config
+  const numJoints = useMemo(() => {
+    return parseInt((config.config as any)?.pf400?.joints || "6");
+  }, [config]);
 
   const {
     currentPage,
@@ -90,46 +100,86 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
     onEdit({ ...teachpoint, orientation: newValue });
   };
 
-  useEffect(() => {}, [paginatedItems]);
+  // Generate joint column headers dynamically
+  const jointHeaders = useMemo(() => {
+    return Array.from({ length: numJoints }, (_, i) => (
+      <Th key={`joint-header-${i + 1}`} bg={headerBgColor} color={textColor}>
+        Joint {i + 1}
+      </Th>
+    ));
+  }, [numJoints, headerBgColor, textColor]);
+
+  // Function to limit coordinates to the configured number of joints
+  const limitCoordinates = (coordinates: string): string[] => {
+    const coords = coordinates.split(" ");
+    // Slice to the configured number of joints
+    const limitedCoords = coords.slice(0, numJoints);
+    // Pad with "0" for any missing joints
+    while (limitedCoords.length < numJoints) {
+      limitedCoords.push("0");
+    }
+    return limitedCoords;
+  };
 
   return (
     <Box height="100%" overflow="hidden">
       <VStack height="100%" spacing={4}>
         <HStack width="100%" justify="space-between">
-          <Heading size="md" paddingTop={12}>
+          <Heading size="md" paddingTop={12} color={textColor}>
             Teach Points
           </Heading>
-          <Button leftIcon={<AddIcon />} size="sm" onClick={onAdd}>
+          <Button leftIcon={<AddIcon />} size="sm" onClick={onAdd} colorScheme="blue">
             New Teach Point
           </Button>
         </HStack>
         <Box width="100%" flex={1} overflow="hidden">
-          <Box ref={tableRef} height="100%" overflow="auto" borderWidth="1px" borderRadius="md">
+          <Box
+            ref={tableRef}
+            height="100%"
+            overflow="auto"
+            borderWidth="1px"
+            borderRadius="md"
+            borderColor={borderColor}
+            boxShadow={useColorModeValue(
+              "0 1px 3px rgba(0, 0, 0, 0.1)",
+              "0 1px 3px rgba(0, 0, 0, 0.3)",
+            )}>
             <Table
               variant="simple"
               size="sm"
+              bg={tableBgColor}
               css={{
                 tr: {
                   borderColor: borderColor,
+                  transition: "background-color 0.2s",
+                  "&:hover": {
+                    backgroundColor: hoverBgColor,
+                  },
                 },
                 th: {
                   borderColor: borderColor,
+                  color: textColor,
                 },
                 td: {
                   borderColor: borderColor,
+                  color: textColor,
                 },
               }}>
-              <Thead position="sticky" top={0} bg={bgColor} zIndex={1}>
+              <Thead position="sticky" top={0} zIndex={1}>
                 <Tr>
-                  <Th>Name</Th>
-                  <Th>Joint 1</Th>
-                  <Th>Joint 2</Th>
-                  <Th>Joint 3</Th>
-                  <Th>Joint 4</Th>
-                  <Th>Joint 5</Th>
-                  <Th>Joint 6</Th>
-                  <Th>Orientation</Th>
-                  <Th width="200px" textAlign="right">
+                  <Th bg={headerBgColor} color={textColor}>
+                    Name
+                  </Th>
+                  {jointHeaders}
+                  <Th bg={headerBgColor} color={textColor}>
+                    Orientation
+                  </Th>
+                  <Th
+                    width="120px"
+                    minWidth="120px"
+                    textAlign="right"
+                    bg={headerBgColor}
+                    color={textColor}>
                     Actions
                   </Th>
                 </Tr>
@@ -145,7 +195,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                         }}
                       />
                     </Td>
-                    {point?.coordinates?.split(" ").map((coord, index) => (
+                    {limitCoordinates(point?.coordinates || "").map((coord, index) => (
                       <Td key={index}>
                         <EditableText
                           onSubmit={async (value) => {
@@ -165,7 +215,10 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                           if (orientation !== undefined) {
                             handleSaveOrientation(point, orientation);
                           }
-                        }}>
+                        }}
+                        size="sm"
+                        borderColor={borderColor}
+                        bg={tableBgColor}>
                         <option value="portrait">Portrait</option>
                         <option value="landscape">Landscape</option>
                       </Select>
@@ -178,6 +231,8 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                           icon={<HamburgerIcon />}
                           variant="outline"
                           size="sm"
+                          borderColor={borderColor}
+                          minW="32px"
                         />
                         <MenuList>
                           <MenuItem icon={<FaPlay />} onClick={() => onMove(point)}>
@@ -188,7 +243,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                               Teach current position
                             </MenuItem>
                           )}
-                          <MenuDivider />
+                          <MenuDivider borderColor={borderColor} />
                           <MenuItem
                             icon={<DeleteIcon />}
                             onClick={() => onDelete(point)}

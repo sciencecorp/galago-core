@@ -29,19 +29,7 @@ import { useState, useRef } from "react";
 import { useOutsideClick } from "@chakra-ui/react";
 import { usePagination } from "../../hooks/usePagination";
 import { PaginationControls } from "../common/PaginationControls";
-
-interface EditableProfile {
-  id: number;
-  name: string;
-  speed: number;
-  speed2: number;
-  acceleration: number;
-  deceleration: number;
-  accel_ramp: number;
-  decel_ramp: number;
-  inrange: number;
-  straight: number;
-}
+import { EditableText } from "@/components/ui/Form";
 
 export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
   profiles,
@@ -64,109 +52,112 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
   } = usePagination(profiles);
 
   const borderColor = useColorModeValue("gray.200", "gray.600");
-  const [editingProfile, setEditingProfile] = useState<EditableProfile | null>(null);
+  const tableBgColor = useColorModeValue("white", "gray.800");
+  const headerBgColor = useColorModeValue("gray.50", "gray.700");
+  const hoverBgColor = useColorModeValue("gray.50", "gray.700");
+  const textColor = useColorModeValue("gray.800", "gray.100");
   const tableRef = useRef<HTMLDivElement>(null);
 
-  useOutsideClick({
-    ref: tableRef,
-    handler: () => {
-      if (editingProfile) {
-        setEditingProfile(null);
-      }
-    },
-  });
-
-  const handleValueChange = (field: keyof EditableProfile, value: number | string) => {
-    if (editingProfile) {
-      setEditingProfile({
-        ...editingProfile,
-        [field]: field === "name" ? value : isNaN(value as number) ? 0 : value,
-      });
-    }
-  };
-
-  const handleSaveProfile = (profile: MotionProfile) => {
-    if (editingProfile) {
-      const updatedProfile = {
-        ...profile,
-        name: editingProfile.name,
-        speed: editingProfile.speed,
-        speed2: editingProfile.speed2,
-        acceleration: editingProfile.acceleration,
-        deceleration: editingProfile.deceleration,
-        accel_ramp: editingProfile.accel_ramp,
-        decel_ramp: editingProfile.decel_ramp,
-        inrange: editingProfile.inrange,
-        straight: editingProfile.straight,
-      };
-      onEdit(updatedProfile);
-      setEditingProfile(null);
-    }
-  };
-
-  const startEditing = (profile: MotionProfile) => {
-    setEditingProfile({
-      id: profile.id!,
-      name: profile.name,
-      speed: profile.speed,
-      speed2: profile.speed2,
-      acceleration: profile.acceleration,
-      deceleration: profile.deceleration,
-      accel_ramp: profile.accel_ramp,
-      decel_ramp: profile.decel_ramp,
-      inrange: profile.inrange,
-      straight: profile.straight,
-    });
+  const handleSaveValue = (profile: MotionProfile, field: keyof MotionProfile, value: any) => {
+    const updatedProfile = { ...profile, [field]: value };
+    onEdit(updatedProfile);
   };
 
   return (
     <Box height="100%" overflow="hidden">
       <VStack height="100%" spacing={4}>
         <HStack width="100%" justify="space-between">
-          <Heading size="md" paddingTop={12}>
+          <Heading size="md" paddingTop={12} color={textColor}>
             Motion Profiles
           </Heading>
-          <Button leftIcon={<AddIcon />} size="sm" onClick={onAdd}>
+          <Button leftIcon={<AddIcon />} size="sm" onClick={onAdd} colorScheme="blue">
             New Motion Profile
           </Button>
         </HStack>
         <Box width="100%" flex={1} overflow="hidden">
-          <Box ref={tableRef} height="100%" overflow="auto" borderWidth="1px" borderRadius="md">
+          <Box
+            ref={tableRef}
+            height="100%"
+            overflow="auto"
+            borderWidth="1px"
+            borderRadius="md"
+            borderColor={borderColor}
+            boxShadow={useColorModeValue(
+              "0 1px 3px rgba(0, 0, 0, 0.1)",
+              "0 1px 3px rgba(0, 0, 0, 0.3)",
+            )}>
             <Table
               variant="simple"
               size="sm"
+              bg={tableBgColor}
               css={{
                 tr: {
                   borderColor: borderColor,
+                  transition: "background-color 0.2s",
+                  "&:hover": {
+                    backgroundColor: hoverBgColor,
+                  },
                 },
                 th: {
                   borderColor: borderColor,
+                  color: textColor,
                 },
                 td: {
                   borderColor: borderColor,
+                  color: textColor,
                 },
               }}>
-              <Thead position="sticky" top={0} bg={bgColor} zIndex={1}>
+              <Thead position="sticky" top={0} zIndex={1}>
                 <Tr>
-                  <Th>Default</Th>
-                  <Th>Name</Th>
-                  <Th>ID</Th>
-                  <Th>Speed</Th>
-                  <Th>Speed2</Th>
-                  <Th>Accel</Th>
-                  <Th>Decel</Th>
-                  <Th>A Ramp</Th>
-                  <Th>D Ramp</Th>
-                  <Th>InRange</Th>
-                  <Th>Str</Th>
-                  <Th textAlign="right">Actions</Th>
+                  <Th bg={headerBgColor} color={textColor}>
+                    Default
+                  </Th>
+                  <Th bg={headerBgColor} color={textColor}>
+                    Name
+                  </Th>
+                  <Th bg={headerBgColor} color={textColor}>
+                    ID
+                  </Th>
+                  <Th bg={headerBgColor} color={textColor}>
+                    Speed
+                  </Th>
+                  <Th bg={headerBgColor} color={textColor}>
+                    Speed2
+                  </Th>
+                  <Th bg={headerBgColor} color={textColor}>
+                    Accel
+                  </Th>
+                  <Th bg={headerBgColor} color={textColor}>
+                    Decel
+                  </Th>
+                  <Th bg={headerBgColor} color={textColor}>
+                    Accel Ramp
+                  </Th>
+                  <Th bg={headerBgColor} color={textColor}>
+                    Decel Ramp
+                  </Th>
+                  <Th bg={headerBgColor} color={textColor}>
+                    In Range
+                  </Th>
+                  <Th bg={headerBgColor} color={textColor}>
+                    Straight
+                  </Th>
+                  <Th
+                    width="120px"
+                    minWidth="120px"
+                    textAlign="right"
+                    bg={headerBgColor}
+                    color={textColor}>
+                    Actions
+                  </Th>
                 </Tr>
               </Thead>
               <Tbody>
                 {paginatedItems.map((profile) => (
                   <Tr
                     key={profile.id || `new-${profile.name}`}
-                    bg={profile.id === defaultProfileId ? bgColorAlpha : undefined}>
+                    bg={profile.id === defaultProfileId ? bgColorAlpha : undefined}
+                    _hover={{ bg: hoverBgColor }}>
                     <Td>
                       <Switch
                         isChecked={profile.id === defaultProfileId}
@@ -177,158 +168,111 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                       />
                     </Td>
                     <Td>
-                      {editingProfile?.id === profile.id ? (
-                        <Input
-                          value={editingProfile.name}
-                          onChange={(e) => handleValueChange("name", e.target.value)}
-                          size="xs"
-                          width="120px"
-                        />
-                      ) : (
-                        profile.name
-                      )}
+                      <EditableText
+                        defaultValue={profile.name}
+                        onSubmit={(value) => {
+                          value && handleSaveValue(profile, "name", value);
+                        }}
+                      />
                     </Td>
                     <Td>{profile.profile_id}</Td>
-                    {editingProfile?.id === profile.id ? (
-                      <>
-                        <Td>
-                          <NumberInput
-                            value={editingProfile.speed}
-                            onChange={(_, value) => handleValueChange("speed", value)}
-                            step={1}
-                            precision={0}
-                            size="xs"
-                            min={0}
-                            max={100}>
-                            <NumberInputField width="65px" textAlign="left" />
-                          </NumberInput>
-                        </Td>
-                        <Td>
-                          <NumberInput
-                            value={editingProfile.speed2}
-                            onChange={(_, value) => handleValueChange("speed2", value)}
-                            step={1}
-                            precision={0}
-                            size="xs"
-                            min={0}
-                            max={100}>
-                            <NumberInputField width="65px" textAlign="left" />
-                          </NumberInput>
-                        </Td>
-                        <Td>
-                          <NumberInput
-                            value={editingProfile.acceleration}
-                            onChange={(_, value) => handleValueChange("acceleration", value)}
-                            step={1}
-                            precision={0}
-                            size="xs"
-                            min={0}
-                            max={100}>
-                            <NumberInputField width="65px" textAlign="left" />
-                          </NumberInput>
-                        </Td>
-                        <Td>
-                          <NumberInput
-                            value={editingProfile.deceleration}
-                            onChange={(_, value) => handleValueChange("deceleration", value)}
-                            step={1}
-                            precision={0}
-                            size="xs"
-                            min={0}
-                            max={100}>
-                            <NumberInputField width="65px" textAlign="left" />
-                          </NumberInput>
-                        </Td>
-                        <Td>
-                          <NumberInput
-                            value={editingProfile.accel_ramp}
-                            onChange={(_, value) => handleValueChange("accel_ramp", value)}
-                            step={0.1}
-                            precision={1}
-                            size="xs"
-                            min={0}
-                            max={100}>
-                            <NumberInputField width="65px" textAlign="left" />
-                          </NumberInput>
-                        </Td>
-                        <Td>
-                          <NumberInput
-                            value={editingProfile.decel_ramp}
-                            onChange={(_, value) => handleValueChange("decel_ramp", value)}
-                            step={0.1}
-                            precision={1}
-                            size="xs"
-                            min={0}
-                            max={100}>
-                            <NumberInputField width="65px" textAlign="left" />
-                          </NumberInput>
-                        </Td>
-                        <Td>
-                          <NumberInput
-                            value={editingProfile.inrange}
-                            onChange={(_, value) => handleValueChange("inrange", value)}
-                            step={1}
-                            precision={0}
-                            size="xs"
-                            min={0}>
-                            <NumberInputField width="65px" textAlign="left" />
-                          </NumberInput>
-                        </Td>
-                        <Td>
-                          <Switch
-                            isChecked={editingProfile.straight === 1}
-                            onChange={(e) =>
-                              handleValueChange("straight", e.target.checked ? 1 : 0)
-                            }
-                            size="sm"
-                          />
-                        </Td>
-                      </>
-                    ) : (
-                      <>
-                        <Td>{profile.speed}%</Td>
-                        <Td>{profile.speed2}%</Td>
-                        <Td>{profile.acceleration}%</Td>
-                        <Td>{profile.deceleration}%</Td>
-                        <Td>{profile.accel_ramp}%</Td>
-                        <Td>{profile.decel_ramp}%</Td>
-                        <Td>{profile.inrange}</Td>
-                        <Td>{profile.straight ? "Yes" : "No"}</Td>
-                      </>
-                    )}
+                    <Td>
+                      <EditableText
+                        defaultValue={(profile.speed ?? 0).toString()}
+                        onSubmit={(value) => {
+                          const numValue = Number(value);
+                          !isNaN(numValue) && handleSaveValue(profile, "speed", numValue);
+                        }}
+                      />
+                    </Td>
+                    <Td>
+                      <EditableText
+                        defaultValue={(profile.speed2 ?? 0).toString()}
+                        onSubmit={(value) => {
+                          const numValue = Number(value);
+                          !isNaN(numValue) && handleSaveValue(profile, "speed2", numValue);
+                        }}
+                      />
+                    </Td>
+                    <Td>
+                      <EditableText
+                        defaultValue={(profile.acceleration ?? 0).toString()}
+                        onSubmit={(value) => {
+                          const numValue = Number(value);
+                          !isNaN(numValue) && handleSaveValue(profile, "acceleration", numValue);
+                        }}
+                      />
+                    </Td>
+                    <Td>
+                      <EditableText
+                        defaultValue={(profile.deceleration ?? 0).toString()}
+                        onSubmit={(value) => {
+                          const numValue = Number(value);
+                          !isNaN(numValue) && handleSaveValue(profile, "deceleration", numValue);
+                        }}
+                      />
+                    </Td>
+                    <Td>
+                      <EditableText
+                        defaultValue={(profile.accel_ramp ?? 0).toString()}
+                        onSubmit={(value) => {
+                          const numValue = Number(value);
+                          !isNaN(numValue) && handleSaveValue(profile, "accel_ramp", numValue);
+                        }}
+                      />
+                    </Td>
+                    <Td>
+                      <EditableText
+                        defaultValue={(profile.decel_ramp ?? 0).toString()}
+                        onSubmit={(value) => {
+                          const numValue = Number(value);
+                          !isNaN(numValue) && handleSaveValue(profile, "decel_ramp", numValue);
+                        }}
+                      />
+                    </Td>
+                    <Td>
+                      <EditableText
+                        defaultValue={(profile.inrange ?? 0).toString()}
+                        onSubmit={(value) => {
+                          const numValue = Number(value);
+                          !isNaN(numValue) && handleSaveValue(profile, "inrange", numValue);
+                        }}
+                      />
+                    </Td>
+                    <Td>
+                      <Switch
+                        isChecked={profile.straight === 1}
+                        onChange={(e) =>
+                          handleSaveValue(profile, "straight", e.target.checked ? 1 : 0)
+                        }
+                        size="sm"
+                      />
+                    </Td>
                     <Td textAlign="right">
-                      {editingProfile?.id === profile.id ? (
-                        <Tooltip label="Save profile">
-                          <IconButton
-                            aria-label="Save profile"
-                            icon={<CheckIcon />}
-                            size="sm"
-                            colorScheme="blue"
-                            onClick={() => handleSaveProfile(profile)}
-                          />
-                        </Tooltip>
-                      ) : (
-                        <Menu>
-                          <MenuButton
-                            as={IconButton}
-                            aria-label="Motion profile actions"
-                            icon={<HamburgerIcon />}
-                            size="sm"
-                          />
-                          <MenuList>
-                            <MenuItem icon={<EditIcon />} onClick={() => startEditing(profile)}>
-                              Edit Profile
+                      <Menu>
+                        <MenuButton
+                          as={IconButton}
+                          aria-label="Motion profile actions"
+                          icon={<HamburgerIcon />}
+                          variant="outline"
+                          size="sm"
+                          borderColor={borderColor}
+                          minW="32px"
+                        />
+                        <MenuList>
+                          <MenuItem
+                            icon={<DeleteIcon />}
+                            onClick={() => onDelete(profile.id!)}
+                            color="red.500">
+                            Delete Profile
+                          </MenuItem>
+                          {profile.id && (
+                            <MenuItem onClick={() => onRegister(profile)}>
+                              Register with Robot
                             </MenuItem>
-                            <MenuDivider />
-                            <MenuItem
-                              icon={<DeleteIcon />}
-                              onClick={() => onDelete(profile.id!)}
-                              color="red.500">
-                              Delete Profile
-                            </MenuItem>
-                          </MenuList>
-                        </Menu>
-                      )}
+                          )}
+                        </MenuList>
+                      </Menu>
                     </Td>
                   </Tr>
                 ))}

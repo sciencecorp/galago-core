@@ -24,8 +24,8 @@ import {
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
-import { commandFields, Field, Command } from "@/pages/tools/[id]";
 import { AddIcon } from "@chakra-ui/icons";
+import { commandFields } from "../tools/constants";
 
 interface AddToolCommandModalProps {
   isOpen: boolean;

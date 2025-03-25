@@ -375,24 +375,73 @@ class AppSettings(TimestampMixin, AppSettingsCreate):
         from_attributes = True
 
 
-class ScriptCreate(BaseModel):
+class ScriptBase(BaseModel):
     name: str
-    description: str
-    content: t.Optional[str] = None
-    language: t.Optional[str] = None
+    description: t.Optional[str] = None
+    content: str = ""
+    language: str = "python"
     is_blocking: bool = True
+    folder_id: t.Optional[int] = None
+
+
+class ScriptCreate(ScriptBase):
+    pass
 
 
 class ScriptUpdate(BaseModel):
     name: t.Optional[str] = None
     description: t.Optional[str] = None
     content: t.Optional[str] = None
+    language: t.Optional[str] = None
     is_blocking: t.Optional[bool] = None
+    folder_id: t.Optional[int] = None
 
 
-class Script(ScriptCreate, TimestampMixin):
+class Script(ScriptBase):
     id: int
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+
+    class Config:
+        orm_mode = True
+
+
+class ScriptFolderBase(BaseModel):
+    name: str
+    description: t.Optional[str] = None
+    parent_id: t.Optional[int] = None
+
+
+class ScriptFolderCreate(ScriptFolderBase):
+    pass
+
+
+class ScriptFolderUpdate(BaseModel):
+    name: t.Optional[str] = None
+    description: t.Optional[str] = None
+    parent_id: t.Optional[int] = None
+
+
+class ScriptFolder(ScriptFolderBase):
     model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    subfolders: list["ScriptFolder"] = []
+    scripts: list["Script"] = []
+
+
+# Break the circular reference by using a simplified script model for folders
+class ScriptFolderResponse(ScriptFolderBase):
+    id: int
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    subfolders: list["ScriptFolderResponse"] = []
+    scripts: list["Script"] = []
+
+    class Config:
+        orm_mode = True
 
 
 # RobotArm Location Schemas
@@ -447,6 +496,7 @@ class RobotArmSequenceCreate(BaseModel):
     description: Optional[str] = None
     commands: List[Dict[str, Any]]
     tool_id: int
+    labware: Optional[str] = None
 
 
 class RobotArmSequenceUpdate(BaseModel):
@@ -454,6 +504,7 @@ class RobotArmSequenceUpdate(BaseModel):
     description: t.Optional[str] = None
     commands: t.Optional[List[Dict[str, Any]]] = None
     tool_id: t.Optional[int] = None
+    labware: t.Optional[str] = None
 
 
 class RobotArmSequence(RobotArmSequenceCreate):

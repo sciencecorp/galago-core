@@ -58,6 +58,7 @@ const zRobotArmSequence = z.object({
     }),
   ),
   tool_id: z.number(),
+  labware: z.string().optional(),
 });
 
 const zRobotArmWaypoints = z.object({

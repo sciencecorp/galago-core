@@ -15,6 +15,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { TeachPoint } from "../types";
+import { Tool } from "@/types/api";
 
 interface TeachPointModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ interface TeachPointModalProps {
   point?: TeachPoint;
   onSave: (point: TeachPoint) => void;
   toolId: number;
+  config?: Tool;
 }
 
 export const TeachPointModal: React.FC<TeachPointModalProps> = ({
@@ -30,6 +32,7 @@ export const TeachPointModal: React.FC<TeachPointModalProps> = ({
   point,
   onSave,
   toolId,
+  config,
 }) => {
   const [name, setName] = useState(point?.name ?? "");
   const toast = useToast();
@@ -54,13 +57,19 @@ export const TeachPointModal: React.FC<TeachPointModalProps> = ({
       return;
     }
 
-    // Create location object with empty coordinates
+    // Get the number of joints from config
+    const numJoints = parseInt((config?.config as any)?.pf400?.joints || "6");
+
+    // Create default coordinates with zeros for all joints
+    const defaultCoordinates = Array(numJoints).fill("0").join(" ");
+
+    // Create location object with default coordinates
     const location = {
       id: point?.id ?? 0,
       name,
       type: "location" as const,
       locType: "j" as const,
-      coordinates: "",
+      coordinates: point?.coordinates || defaultCoordinates,
       orientation: point?.orientation ?? ("portrait" as const),
     };
 

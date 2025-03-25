@@ -167,7 +167,6 @@ export interface Protocol {
   name: string;
   category: string;
   workcell_id: number;
-  workcell?: string;
   description?: string;
   icon?: string;
   params: Record<string, ParameterSchema>;
@@ -176,7 +175,6 @@ export interface Protocol {
   is_active?: boolean;
   created_at?: string;
   updated_at?: string;
-  number_of_commands?: number;
 }
 
 export interface ParameterSchema {
@@ -250,6 +248,17 @@ export interface AppSettings {
   updated_at: Date;
 }
 
+export interface ScriptFolder {
+  id: number;
+  name: string;
+  description?: string;
+  parent_id?: number;
+  subfolders: ScriptFolder[];
+  scripts: Script[];
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface Script {
   id: number;
   name: string;
@@ -257,6 +266,8 @@ export interface Script {
   description: string;
   is_blocking: boolean;
   language: string;
+  folder_id?: number;
+  folder?: ScriptFolder;
   created_at: Date;
   updated_at: Date;
 }

@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   VStack,
   Button,
   Input,
-  useToast,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -14,73 +13,52 @@ import {
   useDisclosure,
   FormControl,
   FormLabel,
-  Select,
+  IconButton,
+  Tooltip,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
-import { RiAddFill } from "react-icons/ri";
-import { ToolType } from "gen-interfaces/controller";
-import { capitalizeFirst } from "@/utils/parser";
-import { Script } from "@/types/api";
-
+import { validateScriptName, addPythonExtension, showErrorToast, showSuccessToast } from "./utils";
+import { FileAddIcon } from "../ui/Icons";
 interface NewScriptProps {
   isDisabled?: boolean;
+  activeFolderId?: number;
+  onScriptCreated?: () => void;
 }
 
 export const NewScript: React.FC<NewScriptProps> = (props) => {
-  const { isDisabled } = props;
+  const { isDisabled, activeFolderId, onScriptCreated } = props;
   const [scriptName, setScriptName] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(false);
-  const toast = useToast();
-  const addScript = trpc.script.add.useMutation();
   const [description, setDescription] = useState("");
+  const addScript = trpc.script.add.useMutation();
   const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
 
-  const validateScriptName = (name: string): string => {
-    if (!name) return "Name cannot be empty";
-    if (name.length > 25) return "Name cannot exceed 25 characters";
-    if (/[ .\\/]/.test(name)) return "Name cannot contain spaces, periods, or slashes";
-    return "";
-  };
-
   const handleSave = async () => {
-    let is_blocking = true;
-    let language = "python";
-    let content = "";
-    let isNotValid = validateScriptName(scriptName);
+    const isNotValid = validateScriptName(scriptName);
     if (isNotValid) {
-      toast({
-        title: "Error creating script",
-        description: isNotValid,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
+      showErrorToast("Error creating script", isNotValid);
       return;
     }
-    let name = `${scriptName}.py`;
-    const script = { name, description, content, language, is_blocking };
+
+    const script = {
+      name: addPythonExtension(scriptName),
+      description,
+      content: "",
+      language: "python",
+      is_blocking: true,
+      folder_id: activeFolderId,
+    };
+
     setIsLoading(true);
     try {
       await addScript.mutateAsync(script);
       await refetch();
-      toast({
-        title: `Script created successfully`,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
+      onScriptCreated?.();
+      showSuccessToast("Script created successfully");
       onClose();
     } catch (error) {
-      toast({
-        title: "Error creating script",
-        description: `Please try again. ${error}`,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      showErrorToast("Error creating script", `Please try again. ${error}`);
     }
     setIsLoading(false);
     clearForm();
@@ -93,9 +71,17 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
 
   return (
     <>
-      <Button onClick={onOpen} colorScheme="teal" leftIcon={<RiAddFill />} isDisabled={isDisabled}>
-        New Script
-      </Button>
+      <Tooltip label="Create New Script" placement="top">
+        <IconButton
+          aria-label="New Script"
+          icon={<FileAddIcon />}
+          colorScheme="teal"
+          variant="ghost"
+          size="md"
+          onClick={onOpen}
+          isDisabled={isDisabled}
+        />
+      </Tooltip>
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>

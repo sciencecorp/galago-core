@@ -11,6 +11,7 @@ __pycache__/
 controller/.next/
 controller/out/
 controller/build
+controller/gen-interfaces/
 controller/app.log
 stdout.txt 
 tmp_file.py 
@@ -72,5 +73,4 @@ next-env.d.ts
 app_config.json
 
 tools/build/*
-
 .cursor/rules/

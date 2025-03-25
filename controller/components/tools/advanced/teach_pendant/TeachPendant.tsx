@@ -59,8 +59,11 @@ interface LocationUpdate {
 }
 
 export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
-  const bgColor = useColorModeValue("white", "gray.800");
-  const bgColorAlpha = useColorModeValue("blackAlpha.50", "whiteAlpha.50");
+  const bgColor = useColorModeValue("white", "gray.900");
+  const bgColorAlpha = useColorModeValue("blackAlpha.50", "whiteAlpha.100");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const tabBgColor = useColorModeValue("gray.50", "gray.800");
+  const tabActiveBgColor = useColorModeValue("white", "gray.700");
   const toast = useToast();
 
   // Hooks
@@ -122,6 +125,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     isOpen: isSequenceModalOpen,
     onClose: onSequenceModalClose,
     selectedSequence: currentSequence,
+    labwareList,
   } = useSequenceHandler(config);
 
   const commandHandlers = useCommandHandlers(config);
@@ -145,10 +149,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
 
     const defaultProfile = motionProfiles[0];
     if (defaultProfile) {
-      const numJoints = (config.config as any)?.pf400?.joints || 6;
-      const joints =
-        point.joints || coordinateToJoints(point.coordinates, parseInt(numJoints.toString()));
-      handleMoveCommand(robotArmCommandMutation, { ...point, joints }, defaultProfile);
+      handleMoveCommand(robotArmCommandMutation, point.name, defaultProfile.profile_id);
     }
   };
 
@@ -176,10 +177,20 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
       if (response?.meta_data?.location) {
         const coordinates = response.meta_data.location.split(" ").slice(1);
         const numJoints = (config.config as any)?.pf400?.joints || 6;
+
+        // Ensure we have enough coordinates (pad with zeros if needed)
+        const paddedCoordinates = [...coordinates];
+        while (paddedCoordinates.length < parseInt(numJoints.toString())) {
+          paddedCoordinates.push("0");
+        }
+
+        // Limit coordinates to the configured number of joints
+        const limitedCoordinates = paddedCoordinates.slice(0, parseInt(numJoints.toString()));
+
         if (!validateJointCount(response.meta_data.location, parseInt(numJoints.toString()))) {
           toast({
             title: "Joint Count Mismatch",
-            description: `Robot returned ${coordinates.length} joints but tool is configured for ${numJoints} joints`,
+            description: `Robot returned ${coordinates.length} joints but at least ${numJoints} joints are required`,
             status: "error",
             duration: 5000,
             isClosable: true,
@@ -192,7 +203,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
           id: point.id,
           name: point.name,
           location_type: "j",
-          coordinates: coordinates.join(" "),
+          coordinates: limitedCoordinates.join(" "),
           tool_id: config.id,
           orientation: point.orientation,
         };
@@ -337,12 +348,12 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
       borderRadius="lg"
       overflow="hidden"
       bgColor={bgColor}
-      borderColor={bgColorAlpha}
+      borderColor={borderColor}
       width="1500px"
       minW="1200px"
       boxShadow={useColorModeValue(
         "0 4px 12px rgba(0, 0, 0, 0.1)",
-        "0 4px 12px rgba(0, 0, 0, 0.4)",
+        "0 4px 16px rgba(0, 0, 0, 0.6)",
       )}>
       <VStack p={4} spacing={4} align="stretch">
         {/* Main Content Area */}
@@ -423,6 +434,8 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 robotArmCommandMutation.variables?.command === "retract" &&
                 robotArmCommandMutation.isLoading
               }
+              bgColor={bgColor}
+              borderColor={borderColor}
             />
           </VStack>
 
@@ -461,25 +474,71 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
             </HStack>
             <InputGroup>
               <InputLeftElement pointerEvents="none">
-                <Search2Icon color="gray.300" />
+                <Search2Icon color="gray.400" />
               </InputLeftElement>
               <Input
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                bg={useColorModeValue("white", "gray.800")}
+                borderColor={useColorModeValue("gray.200", "gray.600")}
               />
             </InputGroup>
 
             {/* Tabs Section */}
-            <Tabs index={activeTab} onChange={setActiveTab}>
+            <Tabs index={activeTab} onChange={setActiveTab} variant="enclosed" colorScheme="blue">
               <TabList>
-                <Tab>Teach Points</Tab>
-                <Tab>Motion Profiles</Tab>
-                <Tab>Grip Parameters</Tab>
-                <Tab>Sequences</Tab>
+                <Tab
+                  _selected={{
+                    color: useColorModeValue("blue.600", "blue.200"),
+                    bg: tabActiveBgColor,
+                    borderColor: borderColor,
+                    borderBottomColor: tabActiveBgColor,
+                  }}
+                  bg={tabBgColor}
+                  borderColor={borderColor}>
+                  Teach Points
+                </Tab>
+                <Tab
+                  _selected={{
+                    color: useColorModeValue("blue.600", "blue.200"),
+                    bg: tabActiveBgColor,
+                    borderColor: borderColor,
+                    borderBottomColor: tabActiveBgColor,
+                  }}
+                  bg={tabBgColor}
+                  borderColor={borderColor}>
+                  Motion Profiles
+                </Tab>
+                <Tab
+                  _selected={{
+                    color: useColorModeValue("blue.600", "blue.200"),
+                    bg: tabActiveBgColor,
+                    borderColor: borderColor,
+                    borderBottomColor: tabActiveBgColor,
+                  }}
+                  bg={tabBgColor}
+                  borderColor={borderColor}>
+                  Grip Parameters
+                </Tab>
+                <Tab
+                  _selected={{
+                    color: useColorModeValue("blue.600", "blue.200"),
+                    bg: tabActiveBgColor,
+                    borderColor: borderColor,
+                    borderBottomColor: tabActiveBgColor,
+                  }}
+                  bg={tabBgColor}
+                  borderColor={borderColor}>
+                  Sequences
+                </Tab>
               </TabList>
 
-              <TabPanels>
+              <TabPanels
+                borderWidth="1px"
+                borderTop="0"
+                borderColor={borderColor}
+                borderRadius="0 0 md md">
                 <TabPanel>
                   <TeachPointsPanel
                     teachPoints={filteredItems as TeachPoint[]}
@@ -493,40 +552,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     onImport={async () => {}}
                     onMove={handleMove}
                     onEdit={(point) => {
-                      // if (point.coordinates !== undefined) {
-                      //   const newCoords = point.coordinates.split(" ").map(Number);
-                      //   const oldPoint = robotArmLocationsQuery.data?.find(
-                      //     (loc) => loc.id === point.id,
-                      //   );
-                      //   const numJoints = (config.config as any)?.pf400?.joints || 6;
-
-                      //   // Only update if point doesn't exist or coordinates have changed
-                      //   const hasChanged =
-                      //     !oldPoint ||
-                      //     Array.from({ length: parseInt(numJoints.toString()) }).some((_, i) => {
-                      //       const jointKey = `j${i + 1}` as keyof typeof oldPoint;
-                      //       return (
-                      //         Math.abs(newCoords[i] - ((oldPoint[jointKey] as number) ?? 0)) >=
-                      //         0.001
-                      //       );
-                      //     });
-
-                      //   if (hasChanged) {
-                      //     // Create base location object
-                      //     const location = {
-                      //       id: point.id,
-                      //       name: point.name,
-                      //       location_type: "j" as const,
-                      //       coordinates: point.coordinates,
-                      //       tool_id: config.id,
-                      //       orientation: point.orientation,
-                      //     };
-
-                      //     // Dynamically add joint values
-                      //     for (let i = 1; i <= parseInt(numJoints.toString()); i++) {
-                      //       (location as any)[`j${i}`] = newCoords[i - 1];
-                      //     }
-
                       const location = {
                         id: point.id,
                         name: point.name,
@@ -538,10 +563,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                       updateLocationMutation.mutateAsync(location).then(() => {
                         robotArmLocationsQuery.refetch();
                       });
-                      // }
-                      // } else {
-                      //   openTeachPointModal(point);
-                      // }
                     }}
                     onDelete={async (point: TeachPoint) => {
                       await deleteLocationMutation.mutateAsync({
@@ -716,10 +737,13 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
           const coords = point.coordinates.split(" ").map(Number);
           const numJoints = (config.config as any)?.pf400?.joints || 6;
 
+          // Limit coordinates to the configured number of joints
+          const limitedCoords = coords.slice(0, parseInt(numJoints.toString()));
+
           // Create dynamic joint object
           const joints: { [key: string]: number } = {};
           for (let i = 1; i <= parseInt(numJoints.toString()); i++) {
-            joints[`j${i}`] = coords[i - 1] || 0;
+            joints[`j${i}`] = limitedCoords[i - 1] || 0;
           }
 
           const orientation = !point.orientation ? "landscape" : point.orientation;
@@ -728,7 +752,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
             name: point.name,
             location_type: "j" as const,
             orientation: orientation,
-            coordinates: point.coordinates,
+            coordinates: limitedCoords.join(" "),
             tool_id: config.id,
             ...(selectedTeachPoint?.id ? { id: selectedTeachPoint.id } : {}),
           };
@@ -744,6 +768,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
           teachPointModal.onClose();
         }}
         toolId={config.id}
+        config={config}
       />
 
       <SequenceModal

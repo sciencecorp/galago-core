@@ -6,28 +6,13 @@ from sqlalchemy import (
     JSON,
     Boolean,
     Float,
-    DateTime,
     CheckConstraint,
     Enum,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from .db_session import Base
-from sqlalchemy.ext.declarative import declared_attr
-import datetime
-import enum
-
-
-class TimestampMixin:
-    @declared_attr
-    def created_at(cls) -> Column:
-        return Column(DateTime, default=datetime.datetime.now())
-
-    @declared_attr
-    def updated_at(cls) -> Column:
-        return Column(
-            DateTime, default=datetime.datetime.now(), onupdate=datetime.datetime.now()
-        )
+from .utils import TimestampMixin
 
 
 class Workcell(Base, TimestampMixin):
@@ -200,14 +185,36 @@ class Labware(Base, TimestampMixin):
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
 
+class ScriptFolder(Base, TimestampMixin):
+    __tablename__ = "script_folders"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    parent_id = Column(Integer, ForeignKey("script_folders.id"), nullable=True)
+    description = Column(String, nullable=True)
+
+    # Relationships
+    parent = relationship(
+        "ScriptFolder", remote_side=[id], backref="subfolders"
+    )  # type: Optional["ScriptFolder"]  # type: ignore
+    scripts = relationship(
+        "Script", back_populates="folder"
+    )  # type: List["Script"]  # type: ignore
+
+
 class Script(Base, TimestampMixin):
     __tablename__ = "scripts"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False)
     description = Column(String, nullable=False)
     content = Column(String, nullable=False)
     language = Column(String, nullable=False)
     is_blocking = Column(Boolean, nullable=False)
+    folder_id = Column(Integer, ForeignKey("script_folders.id"), nullable=True)
+
+    # Relationships
+    folder = relationship(
+        "ScriptFolder", back_populates="scripts"
+    )  # type: Optional["ScriptFolder"]  # type: ignore
 
 
 class AppSettings(Base, TimestampMixin):
@@ -262,6 +269,7 @@ class RobotArmSequence(Base, TimestampMixin):
     description = Column(String, nullable=True)
     commands = Column(JSON, nullable=False)
     tool_id = Column(Integer, ForeignKey("tools.id"))
+    labware = Column(String, nullable=True)
     tool = relationship(
         "Tool", back_populates="robot_arm_sequences"
     )  # type: Optional["Tool"]  # type: ignore

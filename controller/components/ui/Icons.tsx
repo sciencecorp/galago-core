@@ -1,5 +1,38 @@
 import React from "react";
-import { Box, Tooltip } from "@chakra-ui/react";
+import { Box, Tooltip, Icon as ChakraIcon, IconProps as ChakraIconProps } from "@chakra-ui/react";
+import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
+import { SiPython } from "react-icons/si";
+import { VscCode } from "react-icons/vsc";
+import {
+  FaPlay,
+  FaFolder,
+  FaFolderOpen,
+  FaGripHorizontal,
+  FaArrowDown,
+  FaArrowUp,
+  FaHandPaper,
+  FaRobot,
+  FaCompressArrowsAlt,
+} from "react-icons/fa";
+import { IoIosSave } from "react-icons/io";
+import { FaFileCirclePlus } from "react-icons/fa6";
+import { TbFolderPlus } from "react-icons/tb";
+import {
+  RiEdit2Line,
+  RiDeleteBinLine,
+  RiFolderAddLine,
+  RiArrowTurnBackLine,
+  RiArrowTurnForwardLine,
+} from "react-icons/ri";
+import { MdArrowOutward, MdOutlineSwapHoriz } from "react-icons/md";
+import { IoLockClosedOutline, IoLockOpenOutline } from "react-icons/io5";
+import { HiArrowsPointingIn } from "react-icons/hi2";
+
+// Types
+interface IconBaseProps extends ChakraIconProps {
+  color?: string;
+  size?: string | number;
+}
 
 interface WellPlateIconProps {
   rows: number;
@@ -7,6 +40,71 @@ interface WellPlateIconProps {
   size?: string;
 }
 
+// Custom Components
+export const Icon = ({ as, ...props }: IconBaseProps & { as: React.ElementType }) => {
+  return <ChakraIcon as={as} {...props} />;
+};
+
+// Categorized Icon Groups
+export const ScriptIcons = {
+  Python: SiPython,
+  Code: VscCode,
+  Play: FaPlay,
+  Save: IoIosSave,
+  Close: CloseIcon,
+  FileAdd: FaFileCirclePlus,
+} as const;
+
+export const FolderIcons = {
+  Folder: FaFolder,
+  FolderOpen: FaFolderOpen,
+  FolderAdd: TbFolderPlus,
+  FolderAddLine: RiFolderAddLine,
+} as const;
+
+export const ActionIcons = {
+  Edit: RiEdit2Line,
+  Delete: RiDeleteBinLine,
+  Menu: HamburgerIcon,
+} as const;
+
+// Robot Command Icons
+export const CommandIcons = {
+  Move: MdArrowOutward,
+  GraspPlate: FaGripHorizontal,
+  ReleasePlate: FaHandPaper,
+  RetrievePlate: RiArrowTurnBackLine,
+  DropoffPlate: RiArrowTurnForwardLine,
+  Engage: IoLockClosedOutline,
+  Release: IoLockOpenOutline,
+  Retract: HiArrowsPointingIn,
+} as const;
+
+// Individual Icon Exports with Consistent Naming
+export {
+  SiPython as PythonIcon,
+  VscCode as CodeIcon,
+  FaPlay as PlayIcon,
+  IoIosSave as SaveIcon,
+  CloseIcon,
+  FaFolder as FolderIcon,
+  FaFolderOpen as FolderOpenIcon,
+  TbFolderPlus as FolderAddIcon,
+  RiEdit2Line as EditIcon,
+  RiDeleteBinLine as DeleteIcon,
+  RiFolderAddLine as FolderAddLineIcon,
+  HamburgerIcon as MenuIcon,
+  FaFileCirclePlus as FileAddIcon,
+  // Robot Command Icons
+  MdArrowOutward as MoveIcon,
+  FaGripHorizontal as GraspPlateIcon,
+  FaHandPaper as ReleasePlateIcon,
+  RiArrowTurnBackLine as RetrievePlateIcon,
+  RiArrowTurnForwardLine as DropoffPlateIcon,
+  HiArrowsPointingIn as RetractIcon,
+};
+
+// Custom Icon Components
 export const WellPlateIcon: React.FC<WellPlateIconProps> = ({ rows, columns, size = "48px" }) => {
   // Determine if this matches a standard plate format
   const getStandardFormat = (r: number, c: number): string => {

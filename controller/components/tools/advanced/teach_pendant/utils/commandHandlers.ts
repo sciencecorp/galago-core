@@ -40,13 +40,13 @@ export function useCommandHandlers(config: Tool) {
 
   const handleMoveCommand = (
     mutation: UseMutationResult<any, unknown, any, unknown>,
-    point: TeachPoint,
-    motionProfile: MotionProfile,
+    name: string,
+    motion_profile_id: number,
   ) => {
     const command = "move";
     const params = {
-      name: point.name,
-      motion_profile_id: motionProfile.id,
+      name,
+      motion_profile_id,
     };
 
     mutation.mutate({

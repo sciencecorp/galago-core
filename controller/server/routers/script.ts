@@ -2,10 +2,12 @@ import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { get, post, put, del } from "../utils/api";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
-import { Script } from "@/types/api";
+import { Script, ScriptFolder } from "@/types/api";
 import { run } from "node:test";
 import Tool from "@/server/tools";
 import { ToolType } from "gen-interfaces/controller";
+import { logAction } from "@/server/logger";
+import { log } from "console";
 
 const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
 
@@ -15,6 +17,14 @@ export const zScript = z.object({
   content: z.string(),
   description: z.string().optional(),
   language: z.string(),
+  folder_id: z.number().optional(),
+});
+
+export const zScriptFolder = z.object({
+  id: z.number().optional(),
+  name: z.string(),
+  description: z.string().optional(),
+  parent_id: z.number().optional(),
 });
 
 export const scriptRouter = router({
@@ -32,6 +42,11 @@ export const scriptRouter = router({
     .input(zScript.omit({ id: true })) // Input does not require `id`
     .mutation(async ({ input }) => {
       const response = await post<Script>(`/scripts`, input);
+      logAction({
+        level: "info",
+        action: "New Script Added",
+        details: `Script ${input.name} added successfully.`,
+      });
       return response;
     }),
 
@@ -51,11 +66,42 @@ export const scriptRouter = router({
   edit: procedure.input(zScript).mutation(async ({ input }) => {
     const { id } = input;
     const response = await put<Script>(`/scripts/${id}`, input);
+    logAction({
+      level: "info",
+      action: "Script Edited",
+      details: `Script ${input.name} updated successfully.`,
+    });
     return response;
   }),
 
   delete: procedure.input(z.number()).mutation(async ({ input }) => {
     await del(`/scripts/${input}`);
-    return { message: "Variable deleted successfully" };
+    return { message: "Script deleted successfully" };
+  }),
+
+  getAllFolders: procedure.query(async () => {
+    const response = await get<ScriptFolder[]>(`/script-folders`);
+    return response;
+  }),
+
+  getFolder: procedure.input(z.number()).query(async ({ input }) => {
+    const response = await get<ScriptFolder>(`/script-folders/${input}`);
+    return response;
+  }),
+
+  addFolder: procedure.input(zScriptFolder.omit({ id: true })).mutation(async ({ input }) => {
+    const response = await post<ScriptFolder>(`/script-folders`, input);
+    return response;
+  }),
+
+  editFolder: procedure.input(zScriptFolder).mutation(async ({ input }) => {
+    const { id } = input;
+    const response = await put<ScriptFolder>(`/script-folders/${id}`, input);
+    return response;
+  }),
+
+  deleteFolder: procedure.input(z.number()).mutation(async ({ input }) => {
+    await del(`/script-folders/${input}`);
+    return { message: "Folder deleted successfully" };
   }),
 });

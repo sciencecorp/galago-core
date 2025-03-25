@@ -16,7 +16,8 @@ export interface Command_RotateStage {
   angle: number;
 }
 
-export interface Command_Home {}
+export interface Command_Home {
+}
 
 export interface Command_PrintAndApply {
   format_name: string;
@@ -44,9 +45,11 @@ export interface Command_Print {
   field_5: string;
 }
 
-export interface Command_Rotate180 {}
+export interface Command_Rotate180 {
+}
 
-export interface Command_ShowDiagsDialog {}
+export interface Command_ShowDiagsDialog {
+}
 
 export interface Config {
   profile: string;
@@ -151,12 +154,8 @@ export const Command = {
       print_and_apply: isSet(object.print_and_apply)
         ? Command_PrintAndApply.fromJSON(object.print_and_apply)
         : undefined,
-      rotate_180: isSet(object.rotate_180)
-        ? Command_Rotate180.fromJSON(object.rotate_180)
-        : undefined,
-      rotate_stage: isSet(object.rotate_stage)
-        ? Command_RotateStage.fromJSON(object.rotate_stage)
-        : undefined,
+      rotate_180: isSet(object.rotate_180) ? Command_Rotate180.fromJSON(object.rotate_180) : undefined,
+      rotate_stage: isSet(object.rotate_stage) ? Command_RotateStage.fromJSON(object.rotate_stage) : undefined,
       show_diagnostics: isSet(object.show_diagnostics)
         ? Command_ShowDiagsDialog.fromJSON(object.show_diagnostics)
         : undefined,
@@ -165,26 +164,19 @@ export const Command = {
 
   toJSON(message: Command): unknown {
     const obj: any = {};
-    message.home !== undefined &&
-      (obj.home = message.home ? Command_Home.toJSON(message.home) : undefined);
-    message.print !== undefined &&
-      (obj.print = message.print ? Command_Print.toJSON(message.print) : undefined);
+    message.home !== undefined && (obj.home = message.home ? Command_Home.toJSON(message.home) : undefined);
+    message.print !== undefined && (obj.print = message.print ? Command_Print.toJSON(message.print) : undefined);
     message.print_and_apply !== undefined &&
       (obj.print_and_apply = message.print_and_apply
         ? Command_PrintAndApply.toJSON(message.print_and_apply)
         : undefined);
     message.rotate_180 !== undefined &&
-      (obj.rotate_180 = message.rotate_180
-        ? Command_Rotate180.toJSON(message.rotate_180)
-        : undefined);
+      (obj.rotate_180 = message.rotate_180 ? Command_Rotate180.toJSON(message.rotate_180) : undefined);
     message.rotate_stage !== undefined &&
-      (obj.rotate_stage = message.rotate_stage
-        ? Command_RotateStage.toJSON(message.rotate_stage)
-        : undefined);
-    message.show_diagnostics !== undefined &&
-      (obj.show_diagnostics = message.show_diagnostics
-        ? Command_ShowDiagsDialog.toJSON(message.show_diagnostics)
-        : undefined);
+      (obj.rotate_stage = message.rotate_stage ? Command_RotateStage.toJSON(message.rotate_stage) : undefined);
+    message.show_diagnostics !== undefined && (obj.show_diagnostics = message.show_diagnostics
+      ? Command_ShowDiagsDialog.toJSON(message.show_diagnostics)
+      : undefined);
     return obj;
   },
 
@@ -194,30 +186,24 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.home =
-      object.home !== undefined && object.home !== null
-        ? Command_Home.fromPartial(object.home)
-        : undefined;
-    message.print =
-      object.print !== undefined && object.print !== null
-        ? Command_Print.fromPartial(object.print)
-        : undefined;
-    message.print_and_apply =
-      object.print_and_apply !== undefined && object.print_and_apply !== null
-        ? Command_PrintAndApply.fromPartial(object.print_and_apply)
-        : undefined;
-    message.rotate_180 =
-      object.rotate_180 !== undefined && object.rotate_180 !== null
-        ? Command_Rotate180.fromPartial(object.rotate_180)
-        : undefined;
-    message.rotate_stage =
-      object.rotate_stage !== undefined && object.rotate_stage !== null
-        ? Command_RotateStage.fromPartial(object.rotate_stage)
-        : undefined;
-    message.show_diagnostics =
-      object.show_diagnostics !== undefined && object.show_diagnostics !== null
-        ? Command_ShowDiagsDialog.fromPartial(object.show_diagnostics)
-        : undefined;
+    message.home = (object.home !== undefined && object.home !== null)
+      ? Command_Home.fromPartial(object.home)
+      : undefined;
+    message.print = (object.print !== undefined && object.print !== null)
+      ? Command_Print.fromPartial(object.print)
+      : undefined;
+    message.print_and_apply = (object.print_and_apply !== undefined && object.print_and_apply !== null)
+      ? Command_PrintAndApply.fromPartial(object.print_and_apply)
+      : undefined;
+    message.rotate_180 = (object.rotate_180 !== undefined && object.rotate_180 !== null)
+      ? Command_Rotate180.fromPartial(object.rotate_180)
+      : undefined;
+    message.rotate_stage = (object.rotate_stage !== undefined && object.rotate_stage !== null)
+      ? Command_RotateStage.fromPartial(object.rotate_stage)
+      : undefined;
+    message.show_diagnostics = (object.show_diagnostics !== undefined && object.show_diagnostics !== null)
+      ? Command_ShowDiagsDialog.fromPartial(object.show_diagnostics)
+      : undefined;
     return message;
   },
 };
@@ -271,9 +257,7 @@ export const Command_RotateStage = {
     return Command_RotateStage.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_RotateStage>, I>>(
-    object: I,
-  ): Command_RotateStage {
+  fromPartial<I extends Exact<DeepPartial<Command_RotateStage>, I>>(object: I): Command_RotateStage {
     const message = createBaseCommand_RotateStage();
     message.angle = object.angle ?? 0;
     return message;
@@ -481,9 +465,7 @@ export const Command_PrintAndApply = {
     return Command_PrintAndApply.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_PrintAndApply>, I>>(
-    object: I,
-  ): Command_PrintAndApply {
+  fromPartial<I extends Exact<DeepPartial<Command_PrintAndApply>, I>>(object: I): Command_PrintAndApply {
     const message = createBaseCommand_PrintAndApply();
     message.format_name = object.format_name ?? "";
     message.side = object.side ?? "";
@@ -555,15 +537,7 @@ export const Command_DropStage = {
 };
 
 function createBaseCommand_Print(): Command_Print {
-  return {
-    format_name: "",
-    field_0: "",
-    field_1: "",
-    field_2: "",
-    field_3: "",
-    field_4: "",
-    field_5: "",
-  };
+  return { format_name: "", field_0: "", field_1: "", field_2: "", field_3: "", field_4: "", field_5: "" };
 }
 
 export const Command_Print = {
@@ -776,15 +750,11 @@ export const Command_ShowDiagsDialog = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_ShowDiagsDialog>, I>>(
-    base?: I,
-  ): Command_ShowDiagsDialog {
+  create<I extends Exact<DeepPartial<Command_ShowDiagsDialog>, I>>(base?: I): Command_ShowDiagsDialog {
     return Command_ShowDiagsDialog.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_ShowDiagsDialog>, I>>(
-    _: I,
-  ): Command_ShowDiagsDialog {
+  fromPartial<I extends Exact<DeepPartial<Command_ShowDiagsDialog>, I>>(_: I): Command_ShowDiagsDialog {
     const message = createBaseCommand_ShowDiagsDialog();
     return message;
   },
@@ -848,19 +818,13 @@ export const Config = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-    ? Array<DeepPartial<U>>
-    : T extends ReadonlyArray<infer U>
-      ? ReadonlyArray<DeepPartial<U>>
-      : T extends {}
-        ? { [K in keyof T]?: DeepPartial<T[K]> }
-        : Partial<T>;
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
+export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {

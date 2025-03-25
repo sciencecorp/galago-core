@@ -1,19 +1,6 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String
 from .db_session import LogBase
-import datetime
-from sqlalchemy.ext.declarative import declared_attr
-
-
-class TimestampMixin:
-    @declared_attr
-    def created_at(cls) -> Column:
-        return Column(DateTime, default=datetime.datetime.now())
-
-    @declared_attr
-    def updated_at(cls) -> Column:
-        return Column(
-            DateTime, default=datetime.datetime.now(), onupdate=datetime.datetime.now()
-        )
+from .utils import TimestampMixin
 
 
 class Log(LogBase, TimestampMixin):
