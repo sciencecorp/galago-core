@@ -37,7 +37,7 @@ export function ToolConfigEditor({
     onSuccess: () => {
       statusQuery.refetch();
     },
-    onError: (data:any) => {
+    onError: (data: any) => {
       if (data.message) {
         error_description = data.message;
       }
