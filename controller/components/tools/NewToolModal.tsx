@@ -75,6 +75,21 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
     semantic.background.hover.dark,
   );
 
+  const textColor = useColorModeValue(semantic.text.primary.light, semantic.text.primary.dark);
+  const borderColor = useColorModeValue(
+    semantic.border.secondary.light,
+    semantic.border.secondary.dark,
+  );
+  const modalBg = useColorModeValue(
+    semantic.background.primary.light,
+    semantic.background.primary.dark,
+  );
+  const accentColor = useColorModeValue(semantic.text.accent.light, semantic.text.accent.dark);
+  const buttonHoverBg = useColorModeValue(
+    semantic.background.hover.light,
+    semantic.background.hover.dark,
+  );
+
   const { data: configData, isFetching: isConfigLoading } =
     trpc.tool.getProtoConfigDefinitions.useQuery(selectedTool as ToolType, {
       enabled: !!selectedTool, // Only fetch when type is set
