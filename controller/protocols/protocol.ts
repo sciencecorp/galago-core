@@ -167,9 +167,8 @@ export default class Protocol<
   paramInfo(param: z.ZodTypeAny): ProtocolParamInfo {
     return {
       type: zodSchemaToTypeName(param),
-      description: zodSchemaToDescription(param),
-      default: zodSchemaToDefault(param),
       options: zodSchemaToEnumValues(param),
+      placeHolder: zodSchemaToDefault(param),
     };
   }
 

@@ -1,4 +1,4 @@
-import { useDisclosure, IconButton, Text, Button } from "@chakra-ui/react";
+import { useDisclosure, IconButton, Text, Button, HStack } from "@chakra-ui/react";
 import React from "react";
 import { RiDeleteBin5Line } from "react-icons/ri";
 
@@ -22,26 +22,28 @@ export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
     <>
       {variant === "icon" && (
         <>
-          <IconButton
-            padding="2"
-            margin="0"
-            minWidth="0"
-            borderRadius="0"
-            aria-label={`Delete ${label}`}
-            disabled={!!disabled}
-            icon={<RiDeleteBin5Line />}
-            size={size}
-            bg="transparent"
-            onClick={onOpen}
-            _hover={{ bg: "transparent" }}
-            _focus={{ boxShadow: "none" }}
-            _active={{ bg: "transparent" }}
-          />
-          {showText && (
-            <Text px={2} fontSize="md" onClick={onOpen} width="100%">
-              Delete
-            </Text>
-          )}
+          <HStack>
+            <IconButton
+              padding="2"
+              margin="0"
+              minWidth="0"
+              borderRadius="0"
+              aria-label={`Delete ${label}`}
+              disabled={!!disabled}
+              icon={<RiDeleteBin5Line />}
+              size={size}
+              bg="transparent"
+              onClick={onOpen}
+              _hover={{ bg: "transparent" }}
+              _focus={{ boxShadow: "none" }}
+              _active={{ bg: "transparent" }}
+            />
+            {showText && (
+              <Text px={2} fontSize="md" onClick={onOpen} width="100%">
+                Delete
+              </Text>
+            )}
+          </HStack>
         </>
       )}
       {variant === "button" && (

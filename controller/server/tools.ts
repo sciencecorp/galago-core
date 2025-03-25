@@ -149,10 +149,14 @@ export default class Tool {
 
   async executeCommand(command: ToolCommandInfo) {
     const params = command.params;
+    console.log("params", params);
     for (const key in params) {
+      console.warn("key", key);
+      console.warn("Null params", params[key]);
       if (params[key] == null) continue;
 
       const paramValue = String(params[key]);
+      console.log("paramValue", paramValue);
       if (paramValue.startsWith("{{") && paramValue.endsWith("}}")) {
         try {
           const varValue = await get<Variable>(`/variables/${paramValue.slice(2, -2)}`);
@@ -170,14 +174,14 @@ export default class Tool {
 
     //Functionality to run python scripts store in db
     if (command.command === "run_python_script" && command.toolId === "tool_box") {
-      let scriptId = String(command.params.script_content);
+      let scriptId = String(command.params.name);
       if (!scriptId.endsWith(".py")) {
         scriptId = scriptId + ".py";
       }
       console.log("scriptId", scriptId);
       try {
         const script = await get<Script>(`/scripts/${scriptId}`);
-        command.params.script_content = script.content;
+        command.params.name = script.content;
       } catch (e: any) {
         console.warn("Error at fetching script", e);
         logAction({
