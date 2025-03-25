@@ -21,16 +21,15 @@ import {
   NumberInput,
   NumberInputField,
   NumberInputStepper,
-  Select,
   Text,
   useDisclosure,
   useToast,
   VStack,
   Box,
-  Divider,
   useColorModeValue,
   useNumberInput,
   HStack,
+  Select,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -50,7 +49,8 @@ function ParamInput({
     case "number":
       return (
         <NumberInput
-          value={value ?? paramInfo.default ?? ""}
+          placeholder={paramInfo.placeHolder}
+          value={value ?? 0}
           onChange={(_stringValue, numberValue) => {
             // Ensure we pass a number, not a string
             setValue(typeof numberValue === "string" ? parseFloat(numberValue) : numberValue);
@@ -62,58 +62,31 @@ function ParamInput({
           </NumberInputStepper>
         </NumberInput>
       );
-    case "enum":
-      return (
-        <Select
-          value={value ?? paramInfo.default ?? ""}
-          onChange={(e) => setValue(e.currentTarget.value)}>
-          {paramInfo.options.map((value) => (
-            <option key={value} value={value}>
-              {value}
-            </option>
-          ))}
-        </Select>
-      );
     case "string":
-      if (Array.isArray(paramInfo.default)) {
-        return (
-          <Input
-            value={value ?? paramInfo.default ?? ""}
-            onChange={(e) => setValue(e.currentTarget.value.split(",").map((s) => s.trim()))}
-          />
-        );
-      } else {
-        return (
-          <Input
-            value={value ?? paramInfo.default ?? ""}
-            onChange={(e) => setValue(e.currentTarget.value)}
-          />
-        );
-      }
-    case "boolean":
-      return (
-        <Checkbox
-          isChecked={value ?? paramInfo.default ?? false}
-          onChange={(e) => setValue(e.currentTarget.checked)}
-        />
-      );
-    case "Barcode":
       return (
         <Input
-          value={value ?? paramInfo.default ?? ""}
+          placeholder={paramInfo.placeHolder}
+          value={value ?? ""}
           onChange={(e) => setValue(e.currentTarget.value)}
         />
       );
-    case "WellPlateWithWells":
-      return <div>Insert cool well plate picker here</div>;
+    case "boolean":
+      return (
+        <Select
+          defaultValue="true"
+          onChange={(e) => {
+            setValue(e.target.value === "true" ? true : false);
+          }}>
+          <option value="true">True</option>
+          <option value="false">False</option>
+        </Select>
+      );
+    case "label":
+      return <Text>{paramInfo.placeHolder}</Text>;
     default:
       return (
         <>
           <Text>Unknown param type: {paramInfo.type}</Text>
-          <Input
-            value={value ?? paramInfo.default ?? ""}
-            onChange={(e) => setValue(e.currentTarget.value)}
-          />
         </>
       );
   }
@@ -124,6 +97,9 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   const toast = useToast();
   const workcellData = trpc.workcell.getSelectedWorkcell.useQuery();
   const workcellName = workcellData.data;
+  const editVariable = trpc.variable.edit.useMutation();
+  const variablesQuery = trpc.variable.getAll.useQuery();
+
   const protocol = trpc.protocol.get.useQuery(
     {
       id: id,
@@ -150,7 +126,6 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   const { isOpen, onOpen } = useDisclosure({ defaultIsOpen: true });
   const [userDefinedParams, setUserDefinedParams] = useState<Record<string, any>>({});
   const [formErrors, setFormErrors] = useState<z.inferFormattedError<z.AnyZodObject>>();
-  const spacerColor = useColorModeValue("gray.400", "gray.100");
   const { getInputProps, getIncrementButtonProps, getDecrementButtonProps } = useNumberInput({
     step: 1,
     defaultValue: 1,
@@ -188,8 +163,79 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   };
 
   const handleSuccess = () => {
-    onClose();
-    router.push("/runs", undefined, { shallow: true });
+    toast({
+      title: "Run queued successfully",
+      status: "success",
+      duration: 3000,
+    });
+    handleClose();
+  };
+
+  // Function to update all linked variables before queueing the run
+  const updateLinkedVariablesAndQueueRun = async () => {
+    try {
+      // Get all parameters with linked variables
+      const linkedParams = Object.entries(uiParams).filter(
+        ([_, paramInfo]) => (paramInfo as any).variable_id,
+      );
+
+      // Update all linked variables with new values from the form
+      const updatePromises = linkedParams.map(async ([paramName, paramInfo]) => {
+        const variableId = (paramInfo as any).variable_id;
+        if (!variableId) return null;
+
+        // Get the variable from our query
+        const variable = variablesQuery.data?.find((v) => v.id === variableId);
+        if (!variable) return null;
+
+        // Get the new value from the form
+        const newValue = userDefinedParams[paramName];
+
+        // If value hasn't changed, don't update
+        if (newValue === variable.value) return null;
+
+        // Special handling for boolean values to ensure consistency
+        let valueToSave = newValue;
+        if (variable.type === "boolean") {
+          valueToSave = newValue === true || newValue === "true";
+        }
+
+        // Update the variable
+        return editVariable.mutateAsync({
+          id: variableId,
+          value: valueToSave.toString(),
+          name: variable.name,
+          type: variable.type,
+        });
+      });
+
+      // Wait for all variable updates to complete
+      await Promise.all(updatePromises.filter(Boolean));
+
+      console.log(userDefinedParams);
+
+      // Now queue the run
+      await createRunMutation.mutate(
+        {
+          protocolId: id,
+          workcellName: workcellName!,
+          params: userDefinedParams,
+          numberOfRuns: Number(numberOfRuns.value),
+        },
+        {
+          onSuccess: handleSuccess,
+        },
+      );
+    } catch (error) {
+      console.error("Error updating variables:", error);
+      toast({
+        title: "Error updating variables",
+        description: "Failed to update linked variables before queueing the run, Error: \n" + error,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
 
   return (
@@ -210,9 +256,20 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                 <VStack align="start" spacing={4}>
                   <>
                     {Object.entries(uiParams).map(([param, paramInfo]) => {
+                      // Find if this parameter has a linked variable
+                      const linkedVariableId = (paramInfo as any).variable_id;
+                      const linkedVariable =
+                        linkedVariableId && variablesQuery.data
+                          ? variablesQuery.data.find((v) => v.id === linkedVariableId)
+                          : null;
+
                       return (
                         <FormControl key={param} isInvalid={!!(formErrors && formErrors[param])}>
-                          <FormLabel>{capitalizeFirst(param.replaceAll("_", " "))}</FormLabel>
+                          <FormLabel>
+                            <HStack spacing={1} alignItems="center">
+                              <Text>{capitalizeFirst(param.replaceAll("_", " "))}</Text>
+                            </HStack>
+                          </FormLabel>
                           <ParamInput
                             paramInfo={paramInfo as ProtocolParamInfo}
                             value={userDefinedParams[param]}
@@ -220,9 +277,11 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                               setUserDefinedParams({ ...userDefinedParams, [param]: value })
                             }
                           />
-                          <FormHelperText>
-                            {(paramInfo as ProtocolParamInfo).description}
-                          </FormHelperText>
+                          {(paramInfo.type === "boolean" || paramInfo.type === "number") && (
+                            <FormHelperText>
+                              {(paramInfo as ProtocolParamInfo).placeHolder}
+                            </FormHelperText>
+                          )}
                           {formErrors &&
                             formErrors[param]?._errors.map((key, error) => (
                               <FormErrorMessage key={key}>{error}</FormErrorMessage>
@@ -230,18 +289,20 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                         </FormControl>
                       );
                     })}
-                    <Divider borderColor={spacerColor} shadow="lg" />
-                    <FormControl>
-                      <FormLabel textAlign="center">No. Runs</FormLabel>
-                      <HStack justifyContent="center">
-                        <Button {...dec}>-</Button>
-                        <Input maxWidth="150px" {...numberOfRuns} textAlign="center" />
-                        <Button {...inc}>+</Button>
-                      </HStack>
-                    </FormControl>
+
                     {formErrors?._errors.map((key, error) => (
                       <FormErrorMessage key={key}>{error}</FormErrorMessage>
                     ))}
+                    <Box width="100%" borderRadius="md" p={4} mt={4}>
+                      <FormControl>
+                        <FormLabel textAlign="center">Number of Runs</FormLabel>
+                        <HStack justifyContent="center">
+                          <Button {...dec}>-</Button>
+                          <Input maxWidth="250px" {...numberOfRuns} textAlign="center" />
+                          <Button {...inc}>+</Button>
+                        </HStack>
+                      </FormControl>
+                    </Box>
                   </>
                 </VStack>
               </ModalBody>
@@ -249,22 +310,10 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                 <ButtonGroup>
                   <Button onClick={handleClose}>Cancel</Button>
                   <Button
-                    isLoading={createRunMutation.isLoading}
-                    isDisabled={createRunMutation.isLoading}
+                    isLoading={createRunMutation.isLoading || editVariable.isLoading}
+                    isDisabled={createRunMutation.isLoading || editVariable.isLoading}
                     colorScheme="teal"
-                    onClick={async () => {
-                      await createRunMutation.mutate(
-                        {
-                          protocolId: id,
-                          workcellName: workcellName,
-                          params: userDefinedParams,
-                          numberOfRuns: Number(numberOfRuns.value),
-                        },
-                        {
-                          onSuccess: handleSuccess,
-                        },
-                      );
-                    }}>
+                    onClick={updateLinkedVariablesAndQueueRun}>
                     Queue Run
                   </Button>
                 </ButtonGroup>
