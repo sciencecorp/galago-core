@@ -48,7 +48,7 @@ class Tool(Base, TimestampMixin):
         "RobotArmLocation", back_populates="tool"
     )  # type: List["RobotArmLocation"]  # type: ignore
     robot_arm_nests = relationship(
-        "RobotArmNest", back_populates="tool"
+        "RobotArmNest", back_populates="tool", cascade="all, delete-orphan"
     )  # type: List["RobotArmNest"]  # type: ignore
     robot_arm_sequences = relationship(
         "RobotArmSequence", back_populates="tool"
@@ -224,7 +224,7 @@ class RobotArmNest(Base, TimestampMixin):
     safe_location_id = Column(Integer, ForeignKey("robot_arm_locations.id"))
     tool_id = Column(Integer, ForeignKey("tools.id"))
     tool = relationship(
-        "Tool", back_populates="robot_arm_nests"
+        "Tool", back_populates="robot_arm_nests",
     )  # type: Optional["Tool"]  # type: ignore
     safe_location = relationship(
         "RobotArmLocation"
