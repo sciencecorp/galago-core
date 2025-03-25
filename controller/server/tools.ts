@@ -113,8 +113,8 @@ export default class Tool {
       action: "Tool Configuration",
       details: `Configuring tool ${this.info.name} of type ${this.info.type} with config: ${JSON.stringify(config).replaceAll("{", "").replaceAll("}", "")}`,
     });
-    await Tool.loadLabwareToPF400();
-    await Tool.loadPF400Waypoints();
+    // await Tool.loadLabwareToPF400();
+    // await Tool.loadPF400Waypoints();
     this.config = config;
     const reply = await this.grpc.configure(config);
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
