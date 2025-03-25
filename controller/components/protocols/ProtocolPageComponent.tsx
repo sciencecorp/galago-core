@@ -461,11 +461,6 @@ export const ProtocolPageComponent: React.FC = () => {
                               Run
                             </MenuItem>
                             <MenuItem
-                              onClick={() => router.push(`/protocols/${protocol.id}/edit`)}
-                              color="blue.500">
-                              Edit
-                            </MenuItem>
-                            <MenuItem
                               color="red.500"
                               onClick={() => handleDelete(protocol.id.toString())}>
                               Delete

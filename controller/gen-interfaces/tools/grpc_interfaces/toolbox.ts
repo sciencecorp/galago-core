@@ -102,7 +102,7 @@ export interface Command_GetOT2ImagePrediction {
 }
 
 export interface Command_RunPythonScript {
-  script_content: string;
+  name: string;
   blocking: boolean;
 }
 
@@ -1597,13 +1597,13 @@ export const Command_GetOT2ImagePrediction = {
 };
 
 function createBaseCommand_RunPythonScript(): Command_RunPythonScript {
-  return { script_content: "", blocking: false };
+  return { name: "", blocking: false };
 }
 
 export const Command_RunPythonScript = {
   encode(message: Command_RunPythonScript, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.script_content !== "") {
-      writer.uint32(10).string(message.script_content);
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
     }
     if (message.blocking === true) {
       writer.uint32(16).bool(message.blocking);
@@ -1623,7 +1623,7 @@ export const Command_RunPythonScript = {
             break;
           }
 
-          message.script_content = reader.string();
+          message.name = reader.string();
           continue;
         case 2:
           if (tag !== 16) {
@@ -1643,14 +1643,14 @@ export const Command_RunPythonScript = {
 
   fromJSON(object: any): Command_RunPythonScript {
     return {
-      script_content: isSet(object.script_content) ? String(object.script_content) : "",
+      name: isSet(object.name) ? String(object.name) : "",
       blocking: isSet(object.blocking) ? Boolean(object.blocking) : false,
     };
   },
 
   toJSON(message: Command_RunPythonScript): unknown {
     const obj: any = {};
-    message.script_content !== undefined && (obj.script_content = message.script_content);
+    message.name !== undefined && (obj.name = message.name);
     message.blocking !== undefined && (obj.blocking = message.blocking);
     return obj;
   },
@@ -1661,7 +1661,7 @@ export const Command_RunPythonScript = {
 
   fromPartial<I extends Exact<DeepPartial<Command_RunPythonScript>, I>>(object: I): Command_RunPythonScript {
     const message = createBaseCommand_RunPythonScript();
-    message.script_content = object.script_content ?? "";
+    message.name = object.name ?? "";
     message.blocking = object.blocking ?? false;
     return message;
   },
