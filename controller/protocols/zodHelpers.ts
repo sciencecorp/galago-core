@@ -44,8 +44,6 @@ export function zodSchemaToTypeName(schema: z.ZodTypeAny): ProtocolParamType {
       return "number";
     case "ZodBoolean":
       return "boolean";
-    case "ZodEnum":
-      return "enum";
     default:
       throw new Error(`Unknown zod type for schema ${util.inspect(schema, false, 10, false)}`);
   }
