@@ -63,9 +63,24 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     { enabled: !!selectedToolData?.id && selectedToolType === "pf400" },
   );
 
-  // Reset params when tool or command changes
+  // Reset params and initialize with default values when tool or command changes
   useEffect(() => {
-    setCommandParams({});
+    if (selectedToolType && selectedCommand) {
+      const availableCommands = commandFields[selectedToolType] || {};
+      const fields = availableCommands[selectedCommand] || [];
+      
+      // Initialize params with default values
+      const initialParams: Record<string, any> = {};
+      fields.forEach((field: Field) => {
+        if (field.defaultValue !== undefined) {
+          initialParams[field.name] = field.defaultValue;
+        }
+      });
+      
+      setCommandParams(initialParams);
+    } else {
+      setCommandParams({});
+    }
   }, [selectedToolType, selectedCommand]);
 
   // Get available commands for the selected tool
@@ -76,6 +91,24 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     selectedToolType && selectedCommand ? availableCommands[selectedCommand] || [] : [];
 
   const handleSubmit = () => {
+    // Ensure all fields have values (default or entered)
+    const finalParams = { ...commandParams };
+    
+    // Add missing fields with empty strings to ensure they're saved
+    fields.forEach((field: Field) => {
+      if (finalParams[field.name] === undefined) {
+        if (field.type === "number") {
+          finalParams[field.name] = 0;
+        } else if (field.type === "boolean") {
+          finalParams[field.name] = false;
+        } else if (field.type === "text_array") {
+          finalParams[field.name] = [];
+        } else {
+          finalParams[field.name] = "";
+        }
+      }
+    });
+
     const newCommand = {
       queueId: Date.now(),
       commandInfo: {
@@ -85,7 +118,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
             : selectedToolData?.name?.toLocaleLowerCase().replaceAll(" ", "_"),
         toolType: selectedToolType,
         command: selectedCommand,
-        params: commandParams,
+        params: finalParams, // Use the complete params
         label: "",
       },
       status: "CREATED",
@@ -156,6 +189,9 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               onChange={(e) => {
                 if (e.target.value) {
                   setCommandParams({ ...commandParams, [field.name]: e.target.value });
+                } else {
+                  // Ensure empty string is saved when nothing is selected
+                  setCommandParams({ ...commandParams, [field.name]: "" });
                 }
               }}
               isDisabled={isVariable}>
@@ -191,6 +227,9 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               onChange={(e) => {
                 if (e.target.value) {
                   setCommandParams({ ...commandParams, [field.name]: e.target.value });
+                } else {
+                  // Ensure empty string is saved when nothing is selected
+                  setCommandParams({ ...commandParams, [field.name]: "" });
                 }
               }}
               isDisabled={isVariable}>
@@ -224,10 +263,10 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           <HStack width="100%">
             <NumberInput
               flex={1}
-              value={isVariable ? "" : currentValue || field.defaultValue || ""}
+              value={isVariable ? "" : currentValue !== undefined ? currentValue : field.defaultValue !== undefined ? field.defaultValue : 0}
               onChange={(value) => {
                 if (!isVariable) {
-                  setCommandParams({ ...commandParams, [field.name]: parseFloat(value) });
+                  setCommandParams({ ...commandParams, [field.name]: parseFloat(value) || 0 });
                 }
               }}
               isDisabled={isVariable}>
@@ -254,11 +293,11 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               value={
                 isVariable
                   ? ""
-                  : currentValue
-                    ? JSON.stringify(currentValue)
-                    : field.defaultValue
-                      ? JSON.stringify(field.defaultValue)
-                      : ""
+                  : currentValue !== undefined
+                  ? JSON.stringify(currentValue)
+                  : field.defaultValue !== undefined
+                  ? JSON.stringify(field.defaultValue)
+                  : "[]"
               }
               onChange={(e) => {
                 if (!isVariable) {
@@ -266,8 +305,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                     const arrayValue = JSON.parse(e.target.value);
                     setCommandParams({ ...commandParams, [field.name]: arrayValue });
                   } catch {
-                    // If parsing fails, store as string
-                    setCommandParams({ ...commandParams, [field.name]: e.target.value });
+                    // If parsing fails, store as empty array
+                    setCommandParams({ ...commandParams, [field.name]: [] });
                   }
                 }
               }}
@@ -297,7 +336,11 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               value={
                 isVariable
                   ? ""
-                  : currentValue?.toString() || field.defaultValue?.toString() || "false"
+                  : currentValue !== undefined
+                  ? currentValue.toString()
+                  : field.defaultValue !== undefined
+                  ? field.defaultValue.toString()
+                  : "false"
               }
               onChange={(e) => {
                 if (!isVariable) {
@@ -305,7 +348,6 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                 }
               }}
               isDisabled={isVariable}>
-              <option value="">Select value</option>
               <option value="true">True</option>
               <option value="false">False</option>
             </Select>
@@ -327,7 +369,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           <HStack width="100%">
             <Input
               flex={1}
-              value={isVariable ? "" : currentValue || field.defaultValue || ""}
+              value={isVariable ? "" : currentValue !== undefined ? currentValue : field.defaultValue !== undefined ? field.defaultValue : ""}
               onChange={(e) => {
                 if (!isVariable) {
                   setCommandParams({ ...commandParams, [field.name]: e.target.value });

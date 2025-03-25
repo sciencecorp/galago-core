@@ -29,7 +29,6 @@ import {
   MenuItem,
   Center,
   Select,
-  Icon,
   Input,
   Badge,
 } from "@chakra-ui/react";
@@ -39,17 +38,12 @@ import { useState, useEffect, useMemo } from "react";
 import { AddToolCommandModal } from "./AddToolCommandModal";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
-import { DeleteWithConfirmation } from "@/components/ui/Delete";
 import { PiToolbox } from "react-icons/pi";
-import { ParameterEditor } from "@/components/ui/ParameterEditor";
-import SwimLaneCommandComponent from "../runs/list/SwimLaneCommandComponent";
 import { capitalizeFirst } from "@/utils/parser";
 import { VscRunBelow } from "react-icons/vsc";
 import { ProtocolFormModal } from "./ProtocolFormModal";
-import { MdOutlineFormatListBulleted } from "react-icons/md";
 import { FaPlay } from "react-icons/fa6";
 import { SaveIcon } from "@/components/ui/Icons";
-import { SiReacthookform } from "react-icons/si";
 import { SiPlatformdotsh } from "react-icons/si";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
 import { MdOutlineExitToApp } from "react-icons/md";
@@ -462,10 +456,18 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
           <HStack>
             {isEditing ? (
               <>
-                <Button leftIcon={<SiPlatformdotsh />} size="md" onClick={openParametersModal}>
+                <Button 
+                  leftIcon={<SiPlatformdotsh fontSize="14px"/>}
+                  variant="outline" 
+                  size="md" 
+                  onClick={openParametersModal}>
                   Form
                 </Button>
-                <Button leftIcon={<SaveIcon />} size="md" onClick={handleSaveChanges}>
+                <Button 
+                  variant="outline"
+                  leftIcon={<SaveIcon />} 
+                  size="md" 
+                  onClick={handleSaveChanges}>
                   Save
                 </Button>
                 <Button 

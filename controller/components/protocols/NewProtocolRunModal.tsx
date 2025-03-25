@@ -21,22 +21,20 @@ import {
   NumberInput,
   NumberInputField,
   NumberInputStepper,
-  Select,
   Text,
   useDisclosure,
   useToast,
   VStack,
   Box,
-  Divider,
   useColorModeValue,
   useNumberInput,
   HStack,
+  Select
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import { z } from "zod";
 import { capitalizeFirst } from "@/utils/parser";
-import { CiLink } from "react-icons/ci";
 
 function ParamInput({
   paramInfo,
@@ -73,9 +71,15 @@ function ParamInput({
         />
       );
     case "boolean":
-      let isChecked = false;
-      return <Checkbox isChecked={isChecked} onChange={(e) => setValue(e.target.checked)} />;
-
+      return (
+        <Select 
+          defaultValue="true"
+          onChange={(e) => {setValue(e.target.value === "true" ? true : false)}}
+          >
+          <option value="true">True</option>
+          <option value="false">False</option>
+        </Select>
+      );
     case "label":
       return <Text>{paramInfo.placeHolder}</Text>;
     default:
@@ -132,7 +136,6 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   const inc = getIncrementButtonProps();
   const dec = getDecrementButtonProps();
   const numberOfRuns = getInputProps();
-  const runCountBg = useColorModeValue("gray.50", "gray.800");
 
   const createRunMutation = trpc.run.create.useMutation({
     onSuccess: (data) => {
@@ -208,8 +211,6 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
       // Wait for all variable updates to complete
       await Promise.all(updatePromises.filter(Boolean));
 
-      console.log("All linked variables updated");
-      console.log("QUEUing run");
       console.log(userDefinedParams);
 
       // Now queue the run
@@ -266,14 +267,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                           <FormLabel>
                             <HStack spacing={1} alignItems="center">
                               <Text>{capitalizeFirst(param.replaceAll("_", " "))}</Text>
-                              {linkedVariable && (
-                                <>
-                                  <CiLink color="blue.500" />
-                                  <Text as="span" fontSize="sm" color="blue.500">
-                                    {linkedVariable.name}
-                                  </Text>
-                                </>
-                              )}
+
                             </HStack>
                           </FormLabel>
                           <ParamInput
@@ -283,12 +277,12 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                               setUserDefinedParams({ ...userDefinedParams, [param]: value })
                             }
                           />
-                          {paramInfo.type === "boolean" ||
-                            (paramInfo.type === "number" && (
+                          {(paramInfo.type === "boolean" || 
+                            paramInfo.type === "number") && (
                               <FormHelperText>
                                 {(paramInfo as ProtocolParamInfo).placeHolder}
                               </FormHelperText>
-                            ))}
+                          )}
                           {formErrors &&
                             formErrors[param]?._errors.map((key, error) => (
                               <FormErrorMessage key={key}>{error}</FormErrorMessage>

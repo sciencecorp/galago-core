@@ -238,6 +238,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
       <VStack align="start" spacing={4} width="100%">
         {Object.entries(localParams).map(([param, schema]) => {
           const variable = getVariableForParam(schema);
+          const isBoolean = schema.type.toLowerCase() === "boolean";
 
           return (
             <FormControl key={param}>
@@ -247,11 +248,20 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                   {schema.type}
                 </Badge>
               </FormLabel>
-              <Input
-                value={variable?.value || schema.placeHolder || ""}
-                placeholder="Default value"
-                isReadOnly
-              />
+              {isBoolean ? (
+                <Select 
+                  defaultValue={variable?.value || schema.placeHolder || "false"}
+                >
+                  <option value="true">True</option>
+                  <option value="false">False</option>
+                </Select>
+              ) : (
+                <Input
+                  value={variable?.value || schema.placeHolder || ""}
+                  placeholder="Default value"
+                  isReadOnly
+                />
+              )}
             </FormControl>
           );
         })}
