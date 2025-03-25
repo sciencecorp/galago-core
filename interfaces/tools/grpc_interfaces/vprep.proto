@@ -22,5 +22,4 @@ message Command {
 }
 
 message Config {
-  string device_file = 1;
 }
