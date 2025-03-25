@@ -72,3 +72,5 @@ next-env.d.ts
 app_config.json
 
 tools/build/*
+
+.cursor/rules/
