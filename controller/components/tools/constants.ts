@@ -273,9 +273,7 @@ export const commandFields: CommandFields = {
     home: [],
     abort: [],
     retract: [],
-    go_to: [
-      {name:"stack_id", type:"number", defaultValue:1}
-    ],
+    go_to: [{ name: "stack_id", type: "number", defaultValue: 1 }],
     send_raw_command: [{ name: "command", type: "text" }],
   },
 };
