@@ -10,16 +10,21 @@ export interface Command {
   abort?: Command_Abort | undefined;
   retract?: Command_Retract | undefined;
   go_to?: Command_GoTo | undefined;
-  set_plate_dimensions?: Command_SetPlateDimensions | undefined;
   raw_command?: Command_SendRawCommand | undefined;
 }
 
 export interface Command_Load {
   stack_id: number;
+  plate_height: number;
+  stack_height: number;
+  plate_thickness: number;
 }
 
 export interface Command_Unload {
   stack_id: number;
+  plate_height: number;
+  stack_height: number;
+  plate_thickness: number;
 }
 
 export interface Command_Home {
@@ -35,19 +40,13 @@ export interface Command_GoTo {
   stack_id: number;
 }
 
-export interface Command_SetPlateDimensions {
-  plate_height: number;
-  stack_height: number;
-  plate_thickness: number;
-}
-
 export interface Command_SendRawCommand {
   command: string;
 }
 
 export interface Config {
   ip: string;
-  port: number;
+  port?: number | undefined;
 }
 
 function createBaseCommand(): Command {
@@ -58,7 +57,6 @@ function createBaseCommand(): Command {
     abort: undefined,
     retract: undefined,
     go_to: undefined,
-    set_plate_dimensions: undefined,
     raw_command: undefined,
   };
 }
@@ -82,9 +80,6 @@ export const Command = {
     }
     if (message.go_to !== undefined) {
       Command_GoTo.encode(message.go_to, writer.uint32(50).fork()).ldelim();
-    }
-    if (message.set_plate_dimensions !== undefined) {
-      Command_SetPlateDimensions.encode(message.set_plate_dimensions, writer.uint32(58).fork()).ldelim();
     }
     if (message.raw_command !== undefined) {
       Command_SendRawCommand.encode(message.raw_command, writer.uint32(66).fork()).ldelim();
@@ -141,13 +136,6 @@ export const Command = {
 
           message.go_to = Command_GoTo.decode(reader, reader.uint32());
           continue;
-        case 7:
-          if (tag !== 58) {
-            break;
-          }
-
-          message.set_plate_dimensions = Command_SetPlateDimensions.decode(reader, reader.uint32());
-          continue;
         case 8:
           if (tag !== 66) {
             break;
@@ -172,9 +160,6 @@ export const Command = {
       abort: isSet(object.abort) ? Command_Abort.fromJSON(object.abort) : undefined,
       retract: isSet(object.retract) ? Command_Retract.fromJSON(object.retract) : undefined,
       go_to: isSet(object.go_to) ? Command_GoTo.fromJSON(object.go_to) : undefined,
-      set_plate_dimensions: isSet(object.set_plate_dimensions)
-        ? Command_SetPlateDimensions.fromJSON(object.set_plate_dimensions)
-        : undefined,
       raw_command: isSet(object.raw_command) ? Command_SendRawCommand.fromJSON(object.raw_command) : undefined,
     };
   },
@@ -188,9 +173,6 @@ export const Command = {
     message.retract !== undefined &&
       (obj.retract = message.retract ? Command_Retract.toJSON(message.retract) : undefined);
     message.go_to !== undefined && (obj.go_to = message.go_to ? Command_GoTo.toJSON(message.go_to) : undefined);
-    message.set_plate_dimensions !== undefined && (obj.set_plate_dimensions = message.set_plate_dimensions
-      ? Command_SetPlateDimensions.toJSON(message.set_plate_dimensions)
-      : undefined);
     message.raw_command !== undefined &&
       (obj.raw_command = message.raw_command ? Command_SendRawCommand.toJSON(message.raw_command) : undefined);
     return obj;
@@ -220,9 +202,6 @@ export const Command = {
     message.go_to = (object.go_to !== undefined && object.go_to !== null)
       ? Command_GoTo.fromPartial(object.go_to)
       : undefined;
-    message.set_plate_dimensions = (object.set_plate_dimensions !== undefined && object.set_plate_dimensions !== null)
-      ? Command_SetPlateDimensions.fromPartial(object.set_plate_dimensions)
-      : undefined;
     message.raw_command = (object.raw_command !== undefined && object.raw_command !== null)
       ? Command_SendRawCommand.fromPartial(object.raw_command)
       : undefined;
@@ -231,13 +210,22 @@ export const Command = {
 };
 
 function createBaseCommand_Load(): Command_Load {
-  return { stack_id: 0 };
+  return { stack_id: 0, plate_height: 0, stack_height: 0, plate_thickness: 0 };
 }
 
 export const Command_Load = {
   encode(message: Command_Load, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.stack_id !== 0) {
       writer.uint32(8).int32(message.stack_id);
+    }
+    if (message.plate_height !== 0) {
+      writer.uint32(21).float(message.plate_height);
+    }
+    if (message.stack_height !== 0) {
+      writer.uint32(29).float(message.stack_height);
+    }
+    if (message.plate_thickness !== 0) {
+      writer.uint32(37).float(message.plate_thickness);
     }
     return writer;
   },
@@ -256,6 +244,27 @@ export const Command_Load = {
 
           message.stack_id = reader.int32();
           continue;
+        case 2:
+          if (tag !== 21) {
+            break;
+          }
+
+          message.plate_height = reader.float();
+          continue;
+        case 3:
+          if (tag !== 29) {
+            break;
+          }
+
+          message.stack_height = reader.float();
+          continue;
+        case 4:
+          if (tag !== 37) {
+            break;
+          }
+
+          message.plate_thickness = reader.float();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -266,12 +275,20 @@ export const Command_Load = {
   },
 
   fromJSON(object: any): Command_Load {
-    return { stack_id: isSet(object.stack_id) ? Number(object.stack_id) : 0 };
+    return {
+      stack_id: isSet(object.stack_id) ? Number(object.stack_id) : 0,
+      plate_height: isSet(object.plate_height) ? Number(object.plate_height) : 0,
+      stack_height: isSet(object.stack_height) ? Number(object.stack_height) : 0,
+      plate_thickness: isSet(object.plate_thickness) ? Number(object.plate_thickness) : 0,
+    };
   },
 
   toJSON(message: Command_Load): unknown {
     const obj: any = {};
     message.stack_id !== undefined && (obj.stack_id = Math.round(message.stack_id));
+    message.plate_height !== undefined && (obj.plate_height = message.plate_height);
+    message.stack_height !== undefined && (obj.stack_height = message.stack_height);
+    message.plate_thickness !== undefined && (obj.plate_thickness = message.plate_thickness);
     return obj;
   },
 
@@ -282,18 +299,30 @@ export const Command_Load = {
   fromPartial<I extends Exact<DeepPartial<Command_Load>, I>>(object: I): Command_Load {
     const message = createBaseCommand_Load();
     message.stack_id = object.stack_id ?? 0;
+    message.plate_height = object.plate_height ?? 0;
+    message.stack_height = object.stack_height ?? 0;
+    message.plate_thickness = object.plate_thickness ?? 0;
     return message;
   },
 };
 
 function createBaseCommand_Unload(): Command_Unload {
-  return { stack_id: 0 };
+  return { stack_id: 0, plate_height: 0, stack_height: 0, plate_thickness: 0 };
 }
 
 export const Command_Unload = {
   encode(message: Command_Unload, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.stack_id !== 0) {
       writer.uint32(8).int32(message.stack_id);
+    }
+    if (message.plate_height !== 0) {
+      writer.uint32(21).float(message.plate_height);
+    }
+    if (message.stack_height !== 0) {
+      writer.uint32(29).float(message.stack_height);
+    }
+    if (message.plate_thickness !== 0) {
+      writer.uint32(37).float(message.plate_thickness);
     }
     return writer;
   },
@@ -312,6 +341,27 @@ export const Command_Unload = {
 
           message.stack_id = reader.int32();
           continue;
+        case 2:
+          if (tag !== 21) {
+            break;
+          }
+
+          message.plate_height = reader.float();
+          continue;
+        case 3:
+          if (tag !== 29) {
+            break;
+          }
+
+          message.stack_height = reader.float();
+          continue;
+        case 4:
+          if (tag !== 37) {
+            break;
+          }
+
+          message.plate_thickness = reader.float();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -322,12 +372,20 @@ export const Command_Unload = {
   },
 
   fromJSON(object: any): Command_Unload {
-    return { stack_id: isSet(object.stack_id) ? Number(object.stack_id) : 0 };
+    return {
+      stack_id: isSet(object.stack_id) ? Number(object.stack_id) : 0,
+      plate_height: isSet(object.plate_height) ? Number(object.plate_height) : 0,
+      stack_height: isSet(object.stack_height) ? Number(object.stack_height) : 0,
+      plate_thickness: isSet(object.plate_thickness) ? Number(object.plate_thickness) : 0,
+    };
   },
 
   toJSON(message: Command_Unload): unknown {
     const obj: any = {};
     message.stack_id !== undefined && (obj.stack_id = Math.round(message.stack_id));
+    message.plate_height !== undefined && (obj.plate_height = message.plate_height);
+    message.stack_height !== undefined && (obj.stack_height = message.stack_height);
+    message.plate_thickness !== undefined && (obj.plate_thickness = message.plate_thickness);
     return obj;
   },
 
@@ -338,6 +396,9 @@ export const Command_Unload = {
   fromPartial<I extends Exact<DeepPartial<Command_Unload>, I>>(object: I): Command_Unload {
     const message = createBaseCommand_Unload();
     message.stack_id = object.stack_id ?? 0;
+    message.plate_height = object.plate_height ?? 0;
+    message.stack_height = object.stack_height ?? 0;
+    message.plate_thickness = object.plate_thickness ?? 0;
     return message;
   },
 };
@@ -530,90 +591,6 @@ export const Command_GoTo = {
   },
 };
 
-function createBaseCommand_SetPlateDimensions(): Command_SetPlateDimensions {
-  return { plate_height: 0, stack_height: 0, plate_thickness: 0 };
-}
-
-export const Command_SetPlateDimensions = {
-  encode(message: Command_SetPlateDimensions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.plate_height !== 0) {
-      writer.uint32(13).float(message.plate_height);
-    }
-    if (message.stack_height !== 0) {
-      writer.uint32(21).float(message.stack_height);
-    }
-    if (message.plate_thickness !== 0) {
-      writer.uint32(29).float(message.plate_thickness);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Command_SetPlateDimensions {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCommand_SetPlateDimensions();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 13) {
-            break;
-          }
-
-          message.plate_height = reader.float();
-          continue;
-        case 2:
-          if (tag !== 21) {
-            break;
-          }
-
-          message.stack_height = reader.float();
-          continue;
-        case 3:
-          if (tag !== 29) {
-            break;
-          }
-
-          message.plate_thickness = reader.float();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Command_SetPlateDimensions {
-    return {
-      plate_height: isSet(object.plate_height) ? Number(object.plate_height) : 0,
-      stack_height: isSet(object.stack_height) ? Number(object.stack_height) : 0,
-      plate_thickness: isSet(object.plate_thickness) ? Number(object.plate_thickness) : 0,
-    };
-  },
-
-  toJSON(message: Command_SetPlateDimensions): unknown {
-    const obj: any = {};
-    message.plate_height !== undefined && (obj.plate_height = message.plate_height);
-    message.stack_height !== undefined && (obj.stack_height = message.stack_height);
-    message.plate_thickness !== undefined && (obj.plate_thickness = message.plate_thickness);
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<Command_SetPlateDimensions>, I>>(base?: I): Command_SetPlateDimensions {
-    return Command_SetPlateDimensions.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<Command_SetPlateDimensions>, I>>(object: I): Command_SetPlateDimensions {
-    const message = createBaseCommand_SetPlateDimensions();
-    message.plate_height = object.plate_height ?? 0;
-    message.stack_height = object.stack_height ?? 0;
-    message.plate_thickness = object.plate_thickness ?? 0;
-    return message;
-  },
-};
-
 function createBaseCommand_SendRawCommand(): Command_SendRawCommand {
   return { command: "" };
 }
@@ -671,7 +648,7 @@ export const Command_SendRawCommand = {
 };
 
 function createBaseConfig(): Config {
-  return { ip: "", port: 0 };
+  return { ip: "", port: undefined };
 }
 
 export const Config = {
@@ -679,7 +656,7 @@ export const Config = {
     if (message.ip !== "") {
       writer.uint32(10).string(message.ip);
     }
-    if (message.port !== 0) {
+    if (message.port !== undefined) {
       writer.uint32(16).int32(message.port);
     }
     return writer;
@@ -716,7 +693,10 @@ export const Config = {
   },
 
   fromJSON(object: any): Config {
-    return { ip: isSet(object.ip) ? String(object.ip) : "", port: isSet(object.port) ? Number(object.port) : 0 };
+    return {
+      ip: isSet(object.ip) ? String(object.ip) : "",
+      port: isSet(object.port) ? Number(object.port) : undefined,
+    };
   },
 
   toJSON(message: Config): unknown {
@@ -733,7 +713,7 @@ export const Config = {
   fromPartial<I extends Exact<DeepPartial<Config>, I>>(object: I): Config {
     const message = createBaseConfig();
     message.ip = object.ip ?? "";
-    message.port = object.port ?? 0;
+    message.port = object.port ?? undefined;
     return message;
   },
 };
