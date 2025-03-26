@@ -45,11 +45,8 @@ class Tool(Base, TimestampMixin):
         "Nest", back_populates="tool"
     )  # type: List["Nest"]  # type: ignore
     robot_arm_locations = relationship(
-        "RobotArmLocation", back_populates="tool"
+        "RobotArmLocation", back_populates="tool",  cascade="all, delete-orphan"
     )  # type: List["RobotArmLocation"]  # type: ignore
-    robot_arm_nests = relationship(
-        "RobotArmNest", back_populates="tool"
-    )  # type: List["RobotArmNest"]  # type: ignore
     robot_arm_sequences = relationship(
         "RobotArmSequence", back_populates="tool"
     )  # type: List["RobotArmSequence"]  # type: ignore
@@ -207,28 +204,6 @@ class RobotArmLocation(Base, TimestampMixin):
     tool = relationship(
         "Tool", back_populates="robot_arm_locations"
     )  # type: Optional["Tool"]  # type: ignore
-    dependent_nests = relationship(
-        "RobotArmNest", back_populates="safe_location", cascade="all, delete-orphan"
-    )  # type: List["RobotArmNest"]  # type: ignore
-
-    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
-
-
-class RobotArmNest(Base, TimestampMixin):
-    __tablename__ = "robot_arm_nests"
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
-    orientation = Column(String, nullable=False)
-    location_type = Column(String, nullable=False)
-    coordinates = Column(String, nullable=False)
-    safe_location_id = Column(Integer, ForeignKey("robot_arm_locations.id"))
-    tool_id = Column(Integer, ForeignKey("tools.id"))
-    tool = relationship(
-        "Tool", back_populates="robot_arm_nests"
-    )  # type: Optional["Tool"]  # type: ignore
-    safe_location = relationship(
-        "RobotArmLocation"
-    )  # type: Optional["RobotArmLocation"]  # type: ignore
 
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 

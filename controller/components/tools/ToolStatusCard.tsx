@@ -1,6 +1,5 @@
 import { trpc } from "@/utils/trpc";
 import {
-  Alert,
   Box,
   Card,
   CardBody,
@@ -22,6 +21,11 @@ import {
   useDisclosure,
   Modal,
   useColorModeValue,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Tag,
 } from "@chakra-ui/react";
 import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import Link from "next/link";
@@ -34,6 +38,8 @@ import { PiToolbox } from "react-icons/pi";
 import { EditMenu } from "@/components/ui/EditMenu";
 import { EditToolModal } from "./EditToolConfig";
 import { useRouter } from "next/router";
+import { ConfirmationModal } from "../ui/ConfirmationModal";
+import ToolLogs from "@/pages/advanced";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -71,6 +77,11 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
   const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery();
   const editTool = trpc.tool.edit.useMutation();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isDeleteConfirmOpen,
+    onOpen: openDeleteConfirm,
+    onClose: closeDeleteConfirm,
+  } = useDisclosure();
 
   const toast = useToast();
   if (infoQuery.isLoading) {
@@ -134,6 +145,22 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
 
   return (
     <>
+      <ConfirmationModal
+        colorScheme="red"
+        confirmText="Delete"
+        header={`Delete command?`}
+        isOpen={isDeleteConfirmOpen}
+        onClick={async () => handleDelete(toolId)}
+        onClose={closeDeleteConfirm}>
+        <>
+          {`Are you sure you want to delete this tool ${name}?`}
+          {toolData.type === ToolType.pf400 && (
+            <Tag colorScheme="orange" variant="solid" mt={4} p={2}>
+              This will also delete teachpoints for this robot. Backup your data before proceeding.
+            </Tag>
+          )}
+        </>
+      </ConfirmationModal>
       <Card
         bg={cardBg}
         borderColor={borderColor}
@@ -158,9 +185,7 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
               <Text fontSize="sm">{description}</Text>
             </Box>
             <Box top={-5} right={-5} position="relative">
-              {toolId !== "Tool Box" && (
-                <EditMenu onEdit={onOpen} onDelete={() => handleDelete(toolId)} />
-              )}
+              {toolId !== "Tool Box" && <EditMenu onEdit={onOpen} onDelete={openDeleteConfirm} />}
             </Box>
           </Flex>
         </CardHeader>

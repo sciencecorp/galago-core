@@ -88,19 +88,20 @@ export const robotArmRouter = router({
       ),
     create: procedure.input(zRobotArmLocation.omit({ id: true })).mutation(async ({ input }) => {
       const result = await post("/robot-arm-locations", input);
-      Tool.loadPF400Waypoints();
+      const tool = Tool.forId(input.name);
+      tool.loadPF400Waypoints();
       return result;
     }),
     update: procedure.input(zRobotArmLocation).mutation(async ({ input }) => {
       const result = await put(`/robot-arm-locations/${input.id}`, input);
-      await Tool.loadPF400Waypoints();
+      const tool = Tool.forId(input.name);
+      tool.loadPF400Waypoints();
       return result;
     }),
     delete: procedure
       .input(z.object({ id: z.number(), tool_id: z.number() }))
       .mutation(async ({ input }) => {
         const result = await del(`/robot-arm-locations/${input.id}`);
-        await Tool.loadPF400Waypoints();
         return result;
       }),
   }),
@@ -115,19 +116,20 @@ export const robotArmRouter = router({
       .input(zRobotArmMotionProfile.omit({ id: true }))
       .mutation(async ({ input }) => {
         const result = await post("/robot-arm-motion-profiles", input);
-        await Tool.loadPF400Waypoints();
+        const tool = Tool.forId(input.name);
+        tool.loadPF400Waypoints();
         return result;
       }),
     update: procedure.input(zRobotArmMotionProfile).mutation(async ({ input }) => {
       const result = await put(`/robot-arm-motion-profiles/${input.id}`, input);
-      await Tool.loadPF400Waypoints();
+      const tool = Tool.forId(input.name);
+      tool.loadPF400Waypoints();
       return result;
     }),
     delete: procedure
       .input(z.object({ id: z.number(), tool_id: z.number() }))
       .mutation(async ({ input }) => {
         const result = await del(`/robot-arm-motion-profiles/${input.id}`);
-        await Tool.loadPF400Waypoints();
         return result;
       }),
   }),
@@ -141,19 +143,20 @@ export const robotArmRouter = router({
       ),
     create: procedure.input(zRobotArmGripParams.omit({ id: true })).mutation(async ({ input }) => {
       const result = await post("/robot-arm-grip-params", input);
-      await Tool.loadPF400Waypoints();
+      const tool = Tool.forId(input.name);
+      tool.loadPF400Waypoints();
       return result;
     }),
     update: procedure.input(zRobotArmGripParams).mutation(async ({ input }) => {
       const result = await put(`/robot-arm-grip-params/${input.id}`, input);
-      await Tool.loadPF400Waypoints();
+      const tool = Tool.forId(input.name);
+      tool.loadPF400Waypoints();
       return result;
     }),
     delete: procedure
       .input(z.object({ id: z.number(), tool_id: z.number() }))
       .mutation(async ({ input }) => {
         const result = await del(`/robot-arm-grip-params/${input.id}`);
-        await Tool.loadPF400Waypoints();
         return result;
       }),
   }),
@@ -167,19 +170,23 @@ export const robotArmRouter = router({
       ),
     create: procedure.input(zRobotArmSequence.omit({ id: true })).mutation(async ({ input }) => {
       const result = await post("/robot-arm-sequences", input);
-      await Tool.loadPF400Waypoints();
+      const tool = Tool.forId(input.name);
+      tool.loadPF400Waypoints();
       return result;
     }),
     update: procedure.input(zRobotArmSequence).mutation(async ({ input }) => {
       const result = await put(`/robot-arm-sequences/${input.id}`, input);
-      Tool.loadPF400Waypoints();
+      const tool = Tool.forId(input.name);
+      tool.loadPF400Waypoints();
       return result;
     }),
+
     delete: procedure
       .input(z.object({ id: z.number(), tool_id: z.number() }))
       .mutation(async ({ input }) => {
         const result = await del(`/robot-arm-sequences/${input.id}`);
-        Tool.loadPF400Waypoints();
+        // const tool = Tool.forId(input.name);
+        // tool.loadPF400Waypoints();
         return result;
       }),
   }),

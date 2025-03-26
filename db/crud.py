@@ -234,9 +234,7 @@ robot_arm_location = CRUDBase[
     schemas.RobotArmLocationCreate,
     schemas.RobotArmLocationUpdate,
 ](models.RobotArmLocation)
-robot_arm_nest = CRUDBase[
-    models.RobotArmNest, schemas.RobotArmNestCreate, schemas.RobotArmNestUpdate
-](models.RobotArmNest)
+
 robot_arm_sequence = CRUDBase[
     models.RobotArmSequence,
     schemas.RobotArmSequenceCreate,

@@ -18,6 +18,7 @@ import { log } from "console";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<string, Tool> = new Map();
+const toolsWithLabware: string[] = ["pf400"];
 
 export default class Tool {
   // Controller config is "what does the controller need to know about the tool?"
@@ -80,11 +81,11 @@ export default class Tool {
     return this.info.type;
   }
 
-  static async loadPF400Waypoints() {
+  async loadPF400Waypoints() {
     const waypointsReponse = await get<any>(`/robot-arm-waypoints?tool_id=1`);
-    if (Tool.forId("pf400").status !== ToolStatus.READY) return;
+    // if (Tool.forId("pf400").status !== ToolStatus.READY) return;
     await this.executeCommand({
-      toolId: "pf400",
+      toolId: Tool.normalizeToolId(this.info.name),
       toolType: ToolType.pf400,
       command: "load_waypoints",
       params: {
@@ -93,11 +94,10 @@ export default class Tool {
     });
   }
 
-  static async loadLabwareToPF400() {
+  async loadLabwareToPF400() {
     const labwareResponse = await get<Labware>(`/labware`);
-    if (Tool.forId("pf400").status !== ToolStatus.READY) return;
     await this.executeCommand({
-      toolId: "pf400",
+      toolId: Tool.normalizeToolId(this.info.name),
       toolType: ToolType.pf400,
       command: "load_labware",
       params: {
@@ -113,8 +113,6 @@ export default class Tool {
       action: "Tool Configuration",
       details: `Configuring tool ${this.info.name} of type ${this.info.type} with config: ${JSON.stringify(config).replaceAll("{", "").replaceAll("}", "")}`,
     });
-    // await Tool.loadLabwareToPF400();
-    // await Tool.loadPF400Waypoints();
     this.config = config;
     const reply = await this.grpc.configure(config);
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
@@ -127,6 +125,10 @@ export default class Tool {
         reply.error_message ?? "Connect Command failed",
         reply.response,
       );
+    }
+    if (config.pf400) {
+      await this.loadLabwareToPF400();
+      await this.loadPF400Waypoints();
     }
   }
 
