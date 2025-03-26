@@ -18,6 +18,7 @@ import { log } from "console";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<string, Tool> = new Map();
+const toolsWithLabware: string[] = ["pf400"];
 
 export default class Tool {
   // Controller config is "what does the controller need to know about the tool?"
@@ -80,11 +81,11 @@ export default class Tool {
     return this.info.type;
   }
 
-  static async loadPF400Waypoints(toolId: string) {
+  async loadPF400Waypoints() {
     const waypointsReponse = await get<any>(`/robot-arm-waypoints?tool_id=1`);
     // if (Tool.forId("pf400").status !== ToolStatus.READY) return;
     await this.executeCommand({
-      toolId: "pf400",
+      toolId: Tool.normalizeToolId(this.info.name),
       toolType: ToolType.pf400,
       command: "load_waypoints",
       params: {
@@ -93,11 +94,10 @@ export default class Tool {
     });
   }
 
-  static async loadLabwareToPF400(toolId: string) {
+  async loadLabwareToPF400() {
     const labwareResponse = await get<Labware>(`/labware`);
-    // if (Tool.forId("pf400").status !== ToolStatus.READY) return;
     await this.executeCommand({
-      toolId: "pf400",
+      toolId: Tool.normalizeToolId(this.info.name),
       toolType: ToolType.pf400,
       command: "load_labware",
       params: {
@@ -127,8 +127,8 @@ export default class Tool {
       );
     }
     if (config.pf400) {
-      await Tool.loadLabwareToPF400(Tool.normalizeToolId(this.info.name));
-      await Tool.loadPF400Waypoints(Tool.normalizeToolId(this.info.name));
+      await this.loadLabwareToPF400();
+      await this.loadPF400Waypoints();
     }
   }
 
