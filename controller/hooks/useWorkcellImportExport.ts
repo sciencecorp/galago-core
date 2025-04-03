@@ -34,10 +34,24 @@ export const useWorkcellImportExport = (
     }
 
     try {
-      // Get the export URL and open it
-      const result = await exportConfigMutation.mutateAsync(selectedWorkcell.id);
-      window.open(result.url, "_blank");
-      successToast("Export Initiated", `Download started for ${selectedWorkcellName}.`);
+      // The exportConfig mutation now returns the workcell data directly
+      const workcellData = await exportConfigMutation.mutateAsync(selectedWorkcell.id);
+      
+      // Create a Blob from the workcell data and trigger download
+      const blob = new Blob([JSON.stringify(workcellData, null, 2)], { type: "application/json" });
+      const url = window.URL.createObjectURL(blob);
+      
+      const downloadLink = document.createElement('a');
+      downloadLink.href = url;
+      downloadLink.download = `${selectedWorkcellName}-config.json`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      // Clean up the URL object after download
+      window.URL.revokeObjectURL(url);
+      
+      successToast("Export Successful", `Configuration for ${selectedWorkcellName} downloaded.`);
     } catch (error) {
       console.error("Export failed:", error);
       errorToast("Export Failed", `${error instanceof Error ? error.message : String(error)}`);

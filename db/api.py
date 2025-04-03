@@ -196,9 +196,7 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
         path=temp_file_path,
         filename=filename,
         media_type="application/json",
-        background=BackgroundTask(
-            lambda: os.unlink(temp_file_path)
-        ),  # Delete the temp file after response is sent
+        background=BackgroundTask(lambda: os.unlink(temp_file_path))  # Delete the temp file after response is sent
     )
 
 
