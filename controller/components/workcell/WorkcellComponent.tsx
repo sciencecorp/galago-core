@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
-  useToast,
   Flex,
   Container,
   VStack,
@@ -27,9 +26,9 @@ import { WorkcellCard } from "./WorkcellCard";
 import { GiChaingun } from "react-icons/gi";
 import { FaFileImport, FaFileExport } from "react-icons/fa";
 import { useWorkcellImportExport } from "@/hooks/useWorkcellImportExport";
+import { successToast, warningToast, errorToast } from "@/components/ui/Toast";
 
 export const WorkcellComponent = () => {
-  const toast = useToast();
   const { data: fetchedWorkcells, refetch } = trpc.workcell.getAll.useQuery();
   const [workcells, setWorkcells] = useState<Workcell[]>([]);
   const { data: selectedWorkcellName, refetch: refetchSelected } =
@@ -48,6 +47,29 @@ export const WorkcellComponent = () => {
     isImporting,
     isExporting,
   } = useWorkcellImportExport(workcells, selectedWorkcellName, refetch, refetchSelected);
+
+  // Wrapped handlers to add toast notifications
+  const onExportConfig = async () => {
+    const result = await handleExportConfig();
+    if (result.success) {
+      successToast("Export Successful", result.message);
+    } else {
+      if (result.message.includes("Please select")) {
+        warningToast("No Workcell Selected", result.message);
+      } else {
+        errorToast("Export Failed", result.message);
+      }
+    }
+  };
+
+  const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const result = await handleFileChange(event);
+    if (result?.success) {
+      successToast("Import Successful", result.message);
+    } else if (result) {
+      errorToast("Import Failed", result.message);
+    }
+  };
 
   useEffect(() => {
     if (fetchedWorkcells) {
@@ -78,7 +100,7 @@ export const WorkcellComponent = () => {
       leftIcon={<FaFileExport />}
       colorScheme="green"
       variant="outline"
-      onClick={handleExportConfig}
+      onClick={onExportConfig}
       isDisabled={!selectedWorkcellName || isExporting}
       isLoading={isExporting}>
       Export
@@ -120,7 +142,7 @@ export const WorkcellComponent = () => {
         <Input
           type="file"
           ref={fileInputRef}
-          onChange={handleFileChange}
+          onChange={onFileChange}
           style={{ display: "none" }}
           accept=".json"
         />

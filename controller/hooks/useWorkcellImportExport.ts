@@ -1,7 +1,6 @@
 import { useRef } from "react";
 import { trpc } from "@/utils/trpc";
 import { Workcell } from "@/types/api";
-import { warningToast, errorToast, successToast } from "@/components/ui/Toast";
 
 /**
  * React hook for workcell import/export functionality
@@ -22,15 +21,13 @@ export const useWorkcellImportExport = (
   // Export logic
   const handleExportConfig = async () => {
     if (!selectedWorkcellName) {
-      warningToast("No Workcell Selected", "Please select a workcell to export its configuration.");
-      return;
+      return { success: false, message: "Please select a workcell to export its configuration." };
     }
 
     // Find the workcell ID from the name
     const selectedWorkcell = workcells.find((wc) => wc.name === selectedWorkcellName);
     if (!selectedWorkcell) {
-      errorToast("Error", `Could not find workcell named "${selectedWorkcellName}".`);
-      return;
+      return { success: false, message: `Could not find workcell named "${selectedWorkcellName}".` };
     }
 
     try {
@@ -51,10 +48,10 @@ export const useWorkcellImportExport = (
       // Clean up the URL object after download
       window.URL.revokeObjectURL(url);
       
-      successToast("Export Successful", `Configuration for ${selectedWorkcellName} downloaded.`);
+      return { success: true, message: `Configuration for ${selectedWorkcellName} downloaded.` };
     } catch (error) {
       console.error("Export failed:", error);
-      errorToast("Export Failed", `${error instanceof Error ? error.message : String(error)}`);
+      return { success: false, message: `${error instanceof Error ? error.message : String(error)}` };
     }
   };
 
@@ -65,7 +62,7 @@ export const useWorkcellImportExport = (
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) return { success: false, message: "No file selected." };
 
     try {
       const result = await importConfigMutation.mutateAsync({ file });
@@ -74,13 +71,13 @@ export const useWorkcellImportExport = (
       await refetch();
       await refetchSelected();
 
-      successToast(
-        "Import Successful",
-        `Workcell ${result?.name || "unknown"} imported successfully.`,
-      );
+      return {
+        success: true,
+        message: `Workcell ${result?.name || "unknown"} imported successfully.`,
+      };
     } catch (error) {
       console.error("Import failed:", error);
-      errorToast("Import Failed", `${error instanceof Error ? error.message : String(error)}`);
+      return { success: false, message: `${error instanceof Error ? error.message : String(error)}` };
     } finally {
       // Clear the file input
       if (fileInputRef.current) {
