@@ -402,9 +402,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     );
 
     await batchDeleteSequences(sequenceIds);
-
-    // Refetch to update UI
-    sequencesQuery.refetch();
   };
 
   // State for confirmation modal
