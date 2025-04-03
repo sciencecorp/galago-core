@@ -2,7 +2,7 @@ import { trpc } from "@/utils/trpc";
 import { Button, HStack, Spinner, Switch, Text, Tooltip, VStack, useToast } from "@chakra-ui/react";
 import { ToolConfig } from "gen-interfaces/controller";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function toolSpecificConfig(toolConfig: ToolConfig): Record<string, any> | undefined {
   const toolType = toolConfig.type;
@@ -15,9 +15,11 @@ function toolSpecificConfig(toolConfig: ToolConfig): Record<string, any> | undef
 export function ToolConfigEditor({
   toolId,
   defaultConfig,
+  onConnectionStatusChange,
 }: {
   toolId: string;
   defaultConfig: ToolConfig;
+  onConnectionStatusChange?: (connecting: boolean) => void;
 }): JSX.Element {
   const statusQuery = trpc.tool.status.useQuery(
     { toolId: toolId },
@@ -36,6 +38,7 @@ export function ToolConfigEditor({
   const configureMutation = trpc.tool.configure.useMutation({
     onSuccess: () => {
       statusQuery.refetch();
+      onConnectionStatusChange?.(false);
     },
     onError: (data: any) => {
       if (data.message) {
@@ -50,9 +53,15 @@ export function ToolConfigEditor({
           isClosable: true,
           position: "top",
         });
+      onConnectionStatusChange?.(false);
     },
   });
   const { isLoading } = configureMutation;
+
+  useEffect(() => {
+    onConnectionStatusChange?.(isLoading);
+  }, [isLoading, onConnectionStatusChange]);
+
   const [isSimulated, setSimulated] = useState(false);
   const isReachable =
     statusQuery.isSuccess &&
