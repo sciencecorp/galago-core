@@ -6,7 +6,7 @@ import { Workcell } from "@/types/api";
  * React hook for workcell import/export functionality
  * Provides an interface to the server-side import/export operations
  */
-export const useWorkcellImportExport = (
+export const useWorkcellIO = (
   workcells: Workcell[],
   selectedWorkcellName: string | undefined,
   refetch: () => Promise<unknown>,
@@ -27,31 +27,37 @@ export const useWorkcellImportExport = (
     // Find the workcell ID from the name
     const selectedWorkcell = workcells.find((wc) => wc.name === selectedWorkcellName);
     if (!selectedWorkcell) {
-      return { success: false, message: `Could not find workcell named "${selectedWorkcellName}".` };
+      return {
+        success: false,
+        message: `Could not find workcell named "${selectedWorkcellName}".`,
+      };
     }
 
     try {
       // The exportConfig mutation now returns the workcell data directly
       const workcellData = await exportConfigMutation.mutateAsync(selectedWorkcell.id);
-      
+
       // Create a Blob from the workcell data and trigger download
       const blob = new Blob([JSON.stringify(workcellData, null, 2)], { type: "application/json" });
       const url = window.URL.createObjectURL(blob);
-      
-      const downloadLink = document.createElement('a');
+
+      const downloadLink = document.createElement("a");
       downloadLink.href = url;
       downloadLink.download = `${selectedWorkcellName}-config.json`;
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
-      
+
       // Clean up the URL object after download
       window.URL.revokeObjectURL(url);
-      
+
       return { success: true, message: `Configuration for ${selectedWorkcellName} downloaded.` };
     } catch (error) {
       console.error("Export failed:", error);
-      return { success: false, message: `${error instanceof Error ? error.message : String(error)}` };
+      return {
+        success: false,
+        message: `${error instanceof Error ? error.message : String(error)}`,
+      };
     }
   };
 
@@ -77,7 +83,10 @@ export const useWorkcellImportExport = (
       };
     } catch (error) {
       console.error("Import failed:", error);
-      return { success: false, message: `${error instanceof Error ? error.message : String(error)}` };
+      return {
+        success: false,
+        message: `${error instanceof Error ? error.message : String(error)}`,
+      };
     } finally {
       // Clear the file input
       if (fileInputRef.current) {

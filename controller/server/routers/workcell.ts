@@ -57,7 +57,7 @@ export const workcellRouter = router({
   exportConfig: procedure.input(z.number()).mutation(async ({ input }) => {
     try {
       const workcellId = input;
-      const response = await get<Workcell>(`/workcells/${workcellId}/export`);  
+      const response = await get<Workcell>(`/workcells/${workcellId}/export`);
       return response;
     } catch (error) {
       console.error("Export failed:", error);

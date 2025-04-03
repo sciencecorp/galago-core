@@ -25,7 +25,7 @@ import { Workcell } from "@/types/api";
 import { WorkcellCard } from "./WorkcellCard";
 import { GiChaingun } from "react-icons/gi";
 import { FaFileImport, FaFileExport } from "react-icons/fa";
-import { useWorkcellImportExport } from "@/hooks/useWorkcellImportExport";
+import { useWorkcellIO } from "@/hooks/useWorkcellIO";
 import { successToast, warningToast, errorToast } from "@/components/ui/Toast";
 
 export const WorkcellComponent = () => {
@@ -46,7 +46,7 @@ export const WorkcellComponent = () => {
     handleFileChange,
     isImporting,
     isExporting,
-  } = useWorkcellImportExport(workcells, selectedWorkcellName, refetch, refetchSelected);
+  } = useWorkcellIO(workcells, selectedWorkcellName, refetch, refetchSelected);
 
   // Wrapped handlers to add toast notifications
   const onExportConfig = async () => {
