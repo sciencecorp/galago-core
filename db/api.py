@@ -167,6 +167,87 @@ def delete_workcell(workcell_id: int, db: Session = Depends(get_db)) -> t.Any:
     return deleted_workcell
 
 
+@app.get("/workcells/{workcell_id}/export", response_model=schemas.Workcell)
+def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t.Any:
+    """Export a workcell configuration including all related tools."""
+    workcell = crud.workcell.get(db, id=workcell_id)
+    if workcell is None:
+        raise HTTPException(status_code=404, detail="Workcell not found")
+    return workcell
+
+
+@app.post("/workcells/import", response_model=schemas.Workcell)
+def import_workcell_config(workcell_data: dict, db: Session = Depends(get_db)) -> t.Any:
+    """Import a workcell configuration.
+
+    If a workcell with the same name already exists, it will update that workcell.
+    Otherwise, it will create a new workcell.
+    """
+    # Check if basic required fields are present
+    if not isinstance(workcell_data, dict) or "name" not in workcell_data:
+        raise HTTPException(
+            status_code=400, detail="Invalid workcell configuration: Missing name field"
+        )
+
+    # Check if a workcell with this name already exists
+    existing_workcell = crud.workcell.get_by(db, obj_in={"name": workcell_data["name"]})
+
+    # Extract workcell fields
+    workcell_fields = {
+        "name": workcell_data["name"],
+        "description": workcell_data.get("description", ""),
+        "location": workcell_data.get("location", ""),
+    }
+
+    # Create or update the workcell
+    if existing_workcell:
+        # Update existing workcell
+        workcell = crud.workcell.update(
+            db,
+            db_obj=existing_workcell,
+            obj_in=schemas.WorkcellUpdate(**workcell_fields),
+        )
+    else:
+        # Create new workcell
+        workcell = crud.workcell.create(
+            db, obj_in=schemas.WorkcellCreate(**workcell_fields)
+        )
+
+    # Process and create/update tools if they exist in the import data
+    if "tools" in workcell_data and isinstance(workcell_data["tools"], list):
+        for tool_data in workcell_data["tools"]:
+            # Skip if essential tool data is missing
+            if (
+                not isinstance(tool_data, dict)
+                or "name" not in tool_data
+                or "type" not in tool_data
+            ):
+                continue
+
+            # Set the workcell_id for the tool
+            tool_data["workcell_id"] = workcell.id
+
+            # Check if this tool already exists in the workcell
+            existing_tool = None
+            for t in workcell.tools:
+                if t.name == tool_data["name"]:
+                    existing_tool = t
+                    break
+
+            if existing_tool:
+                # Update existing tool
+                tool_update = {k: v for k, v in tool_data.items() if k != "id"}
+                crud.tool.update(
+                    db, db_obj=existing_tool, obj_in=schemas.ToolUpdate(**tool_update)
+                )
+            else:
+                # Create new tool
+                crud.tool.create(db, obj_in=schemas.ToolCreate(**tool_data))
+
+    # Return the updated workcell with all tools
+    return crud.workcell.get(db, id=workcell.id)
+
+
 @app.get("/tools", response_model=list[schemas.Tool])
 def get_tools(db: Session = Depends(get_db)) -> t.Any:
     return crud.tool.get_all(db)
