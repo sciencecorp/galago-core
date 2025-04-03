@@ -19,7 +19,7 @@ from sqlalchemy import func
 from .models.inventory_models import Protocol
 import json
 from fastapi.encoders import jsonable_encoder
-from fastapi.background import BackgroundTask
+from starlette.background import BackgroundTask
 
 logging.basicConfig(
     level=logging.DEBUG,
