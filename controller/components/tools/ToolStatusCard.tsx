@@ -67,7 +67,6 @@ interface ToolStatusCardProps {
 export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardProps) {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
   const cardBg = useColorModeValue("white", "gray.900");
   const borderColor = useColorModeValue("gray.200", "gray.700");
 
@@ -114,12 +113,6 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
     }
   };
 
-  const handleConnectionStatus = (connecting: boolean) => {
-    setIsConnecting(connecting);
-  };
-
-  const shouldShowConfig = isHovered || isConnecting;
-
   function renderToolImage(config: any) {
     if (!config.image_url) {
       return <Box></Box>;
@@ -142,8 +135,8 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
           src={config.image_url}
           alt={config.name}
           objectFit="contain"
-          height={shouldShowConfig ? "120px" : "120px"}
-          width={shouldShowConfig ? "120px" : "120px"}
+          height={isHovered ? "120px" : "120px"}
+          width={isHovered ? "120px" : "120px"}
           transition="all 0.3s ease-in-out"
         />
       );
@@ -202,16 +195,12 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
             <Flex
               justifyContent="center"
               alignItems="center"
-              height={shouldShowConfig ? "auto" : "100%"}
+              height={isHovered ? "auto" : "100%"}
               transition="all 0.3s ease-in-out">
-              {shouldShowConfig ? (
+              {isHovered ? (
                 <Flex justifyContent="space-between" alignItems="center" width="100%">
-                  <Box flex="1" opacity={shouldShowConfig ? 1 : 0} transition="opacity 0.3s">
-                    <ToolConfigEditor
-                      toolId={toolId}
-                      defaultConfig={toolData as ToolConfig}
-                      onConnectionStatusChange={handleConnectionStatus}
-                    />
+                  <Box flex="1" opacity={isHovered ? 1 : 0} transition="opacity 0.3s">
+                    <ToolConfigEditor toolId={toolId} defaultConfig={toolData as ToolConfig} />
                   </Box>
                   <Box width="60px" height="60px">
                     {<Link href={`/tools/${toolId}`}>{renderToolImage(toolData)}</Link>}
