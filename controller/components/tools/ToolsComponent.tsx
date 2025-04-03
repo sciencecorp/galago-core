@@ -22,13 +22,11 @@ import {
   Button,
   useToast,
 } from "@chakra-ui/react";
-import styled from "@emotion/styled";
 import { NewToolModal } from "./NewToolModal";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { BsTools } from "react-icons/bs";
 import { SearchIcon } from "@chakra-ui/icons";
 import { FaPlugCircleCheck } from "react-icons/fa6";
-import { set } from "zod";
 
 interface ToolStatusCardsProps {
   showAsGrid?: boolean;
