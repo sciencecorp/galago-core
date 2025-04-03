@@ -181,6 +181,8 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
     if workcell is None:
         raise HTTPException(status_code=404, detail="Workcell not found")
 
+    # Explicitly load tools
+    _ = workcell.tools
     # Create a temporary file for the JSON content
     with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
         temp_file_path = temp_file.name

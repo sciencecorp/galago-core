@@ -71,7 +71,23 @@ export const useWorkcellIO = (
     if (!file) return { success: false, message: "No file selected." };
 
     try {
-      const result = await importConfigMutation.mutateAsync({ file });
+      // Create a FormData object to send the file
+      const formData = new FormData();
+      formData.append("file", file);
+
+      // Make a direct fetch call to the FastAPI endpoint instead of using tRPC
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/workcells/import`, {
+        method: 'POST',
+        body: formData,
+        // Don't set Content-Type header, the browser will set it with the boundary
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Import failed: ${errorData.detail || response.statusText}`);
+      }
+
+      const result = await response.json();
 
       // Refresh data
       await refetch();
