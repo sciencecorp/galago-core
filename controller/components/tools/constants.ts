@@ -121,6 +121,10 @@ export const commandFields: CommandFields = {
     run_protocol: [{ name: "protocol_file", type: "text" }],
     run_runset: [{ name: "runset_file", type: "text" }],
   },
+  vprep: {
+    run_protocol: [{ name: "protocol_file", type: "text" }],
+    run_runset: [{ name: "runset_file", type: "text" }],
+  },
   hamilton: {
     run_protocol: [{ name: "protocol", type: "text" }],
     load_protocol: [{ name: "runset_file", type: "text" }],
