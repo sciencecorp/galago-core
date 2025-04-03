@@ -135,8 +135,8 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
           src={config.image_url}
           alt={config.name}
           objectFit="contain"
-          height={isHovered ? "120px" : "120px"}
-          width={isHovered ? "120px" : "120px"}
+          height="120px"
+          width="120px"
           transition="all 0.3s ease-in-out"
         />
       );
@@ -185,30 +185,50 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
               <Text fontSize="sm">{description}</Text>
             </Box>
             <Box top={-5} right={-5} position="relative">
-              {toolId !== "Tool Box" && <EditMenu onEdit={onOpen} onDelete={openDeleteConfirm} />}
+              {toolId !== "tool_box" && <EditMenu onEdit={onOpen} onDelete={openDeleteConfirm} />}
             </Box>
           </Flex>
         </CardHeader>
         <CardBody mt="0px">
           <VStack align="stretch" spacing={4} mb={2}>
             <ToolStatusTag toolId={toolId} />
-            <Flex
-              justifyContent="center"
-              alignItems="center"
-              height={isHovered ? "auto" : "100%"}
-              transition="all 0.3s ease-in-out">
-              {isHovered ? (
-                <Flex justifyContent="space-between" alignItems="center" width="100%">
-                  <Box flex="1" opacity={isHovered ? 1 : 0} transition="opacity 0.3s">
-                    <ToolConfigEditor toolId={toolId} defaultConfig={toolData as ToolConfig} />
-                  </Box>
-                  <Box width="60px" height="60px">
-                    {<Link href={`/tools/${toolId}`}>{renderToolImage(toolData)}</Link>}
-                  </Box>
-                </Flex>
-              ) : (
-                <Box>{<Link href={`/tools/${toolId}`}>{renderToolImage(toolData)}</Link>}</Box>
-              )}
+
+            {/* Always render the ToolConfigEditor but manage its visibility with CSS */}
+            <Flex position="relative" width="100%" height="120px">
+              {/* Tool Config Editor */}
+              <Box
+                position="absolute"
+                top="0"
+                left="0"
+                width="100%"
+                opacity={isHovered ? 1 : 0}
+                pointerEvents={isHovered ? "auto" : "none"}
+                transition="opacity 0.3s ease-in-out"
+                display="flex"
+                alignItems="center">
+                <Box flex="1">
+                  <ToolConfigEditor toolId={toolId} defaultConfig={toolData as ToolConfig} />
+                </Box>
+                <Box width="60px" height="60px" ml={2}>
+                  <Link href={`/tools/${toolId}`}>{renderToolImage(toolData)}</Link>
+                </Box>
+              </Box>
+
+              {/* Image when not hovered */}
+              <Box
+                position="absolute"
+                top="0"
+                left="0"
+                width="100%"
+                height="100%"
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                opacity={isHovered ? 0 : 1}
+                pointerEvents={isHovered ? "none" : "auto"}
+                transition="opacity 0.3s ease-in-out">
+                <Link href={`/tools/${toolId}`}>{renderToolImage(toolData)}</Link>
+              </Box>
             </Flex>
           </VStack>
         </CardBody>
