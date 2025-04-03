@@ -209,10 +209,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
         });
       });
 
-      // Wait for all variable updates to complete
       await Promise.all(updatePromises.filter(Boolean));
-
-      console.log(userDefinedParams);
 
       // Now queue the run
       await createRunMutation.mutate(

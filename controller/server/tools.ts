@@ -106,6 +106,22 @@ export default class Tool {
     });
   }
 
+  static async configureAllTools() {
+    const allTools = Tool.allTools;
+    const errors = [];
+    for (const tool of allTools) {
+      try {
+        if (tool.name === "tool_box") continue;
+        if (!tool.config) continue;
+        const toolInstance = Tool.forId(tool.name);
+        await toolInstance.configure(tool.config);
+      } catch (error) {
+        const toolError = `Error configuring tool ${tool.name}: ${error}`;
+        errors.push(toolError);
+      }
+    }
+  }
+
   async configure(config: tool_base.Config) {
     //Log tool configuration
     logAction({
