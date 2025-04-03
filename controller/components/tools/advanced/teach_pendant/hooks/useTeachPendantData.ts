@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TeachPoint, MotionProfile, GripParams } from "../components/types";
+import { TeachPoint, MotionProfile, GripParams } from "../types/";
 
 export const useTeachPendantData = () => {
   // Data state

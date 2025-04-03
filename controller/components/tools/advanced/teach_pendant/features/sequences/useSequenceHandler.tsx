@@ -25,9 +25,12 @@ import { DeleteIcon } from "@chakra-ui/icons";
 import { RobotArmSequence } from "@/server/routers/robot-arm";
 import { ToolCommandInfo } from "@/types";
 import { Tool } from "@/types/api";
-import { CommandModal } from "../modals/CommandModal";
+import { CommandModal } from "./CommandModal";
 import { ToolType } from "gen-interfaces/controller";
-import { TeachPoint, MotionProfile, GripParams } from "../types";
+import { TeachPoint, MotionProfile, GripParams } from "../../types";
+import { successToast, warningToast, errorToast, batchOperationToast } from "@/components/ui/Toast";
+import { createBatchHandler, createBatchHandlerForIds } from "../../shared/utils/batchUtils";
+import { validateSequenceExists } from "../../shared/utils/commandValidation";
 
 export interface SequenceCommand {
   command: string;
@@ -88,13 +91,7 @@ const SequenceModal: React.FC<SequenceModalProps> = ({
 
   const handleSave = () => {
     if (!name.trim()) {
-      toast({
-        title: "Error",
-        description: "Name is required",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("Error", "Name is required");
       return;
     }
 
@@ -205,13 +202,7 @@ export function useSequenceHandler(config: Tool) {
   const createSequenceMutation = trpc.robotArm.sequence.create.useMutation({
     onSuccess: () => {
       sequencesQuery.refetch();
-      toast({
-        title: "Success",
-        description: "Sequence created successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      successToast("Success", "Sequence created successfully");
       onClose();
     },
   });
@@ -219,13 +210,7 @@ export function useSequenceHandler(config: Tool) {
   const updateSequenceMutation = trpc.robotArm.sequence.update.useMutation({
     onSuccess: () => {
       sequencesQuery.refetch();
-      toast({
-        title: "Success",
-        description: "Sequence updated successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      successToast("Success", "Sequence updated successfully");
       onClose();
     },
   });
@@ -233,26 +218,60 @@ export function useSequenceHandler(config: Tool) {
   const deleteSequenceMutation = trpc.robotArm.sequence.delete.useMutation({
     onSuccess: () => {
       sequencesQuery.refetch();
-      toast({
-        title: "Success",
-        description: "Sequence deleted successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      // Toast is handled in the handler function
     },
   });
+
+  /**
+   * Create multiple sequences in batch
+   * @param sequences Array of sequences to create
+   * @returns Object containing success and error counts
+   */
+  const handleBatchCreateSequence = async (sequences: Omit<RobotArmSequence, "id">[]) => {
+    const createSequence = async (sequence: Omit<RobotArmSequence, "id">) => {
+      await createSequenceMutation.mutateAsync(sequence);
+    };
+
+    const batchCreateSequences = createBatchHandler(createSequence, "create", "sequences");
+
+    return await batchCreateSequences(sequences);
+  };
+
+  /**
+   * Update multiple sequences in batch
+   * @param sequences Array of sequences to update
+   * @returns Object containing success and error counts
+   */
+  const handleBatchUpdateSequence = async (sequences: RobotArmSequence[]) => {
+    const updateSequence = async (sequence: RobotArmSequence) => {
+      await updateSequenceMutation.mutateAsync(sequence);
+    };
+
+    const batchUpdateSequences = createBatchHandler(updateSequence, "update", "sequences");
+
+    return await batchUpdateSequences(sequences);
+  };
+
+  /**
+   * Delete multiple sequences in batch
+   * @param ids Array of sequence IDs to delete
+   * @returns Object containing success and error counts
+   */
+  const handleBatchDeleteSequence = async (ids: number[]) => {
+    const deleteSequence = async (id: number) => {
+      await deleteSequenceMutation.mutateAsync({ id, tool_id: config.id });
+    };
+
+    const batchDeleteSequences = createBatchHandlerForIds(deleteSequence, "delete", "sequences");
+
+    return await batchDeleteSequences(ids);
+  };
 
   const handleCreateSequence = async (sequence: Omit<RobotArmSequence, "id">) => {
     try {
       await createSequenceMutation.mutateAsync(sequence);
     } catch (error) {
-      toast({
-        title: "Failed to create sequence",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("Failed to create sequence", "An error occurred while creating the sequence");
     }
   };
 
@@ -260,30 +279,31 @@ export function useSequenceHandler(config: Tool) {
     try {
       await updateSequenceMutation.mutateAsync(sequence);
     } catch (error) {
-      toast({
-        title: "Failed to update sequence",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("Failed to update sequence", "An error occurred while updating the sequence");
     }
   };
 
-  const handleDeleteSequence = async (id: number) => {
+  const handleDeleteSequence = async (id: number, silent: boolean = false) => {
     try {
       await deleteSequenceMutation.mutateAsync({ id, tool_id: config.id });
+      if (!silent) {
+        successToast("Success", "Sequence deleted successfully");
+      }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete sequence",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      if (!silent) {
+        errorToast("Error", "Failed to delete sequence");
+      }
+      throw error;
     }
   };
 
   const handleRunSequence = async (sequence: Sequence) => {
+    // Validate that sequences exist
+    const allSequences = sequencesQuery.data || [];
+    if (!validateSequenceExists(allSequences)) {
+      return;
+    }
+
     try {
       await commandMutation.mutateAsync({
         toolId: config.name,
@@ -295,14 +315,37 @@ export function useSequenceHandler(config: Tool) {
         },
       });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to run sequence",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("Error", "Failed to run sequence");
     }
+  };
+
+  /**
+   * Run multiple sequences in batch
+   * @param sequences Array of sequences to run
+   * @returns Object containing success and error counts
+   */
+  const handleBatchRunSequence = async (sequences: Sequence[]) => {
+    // Validate that sequences exist
+    const allSequences = sequencesQuery.data || [];
+    if (!validateSequenceExists(allSequences)) {
+      return { successCount: 0, errorCount: 0 };
+    }
+
+    const runSequence = async (sequence: Sequence) => {
+      await commandMutation.mutateAsync({
+        toolId: config.name,
+        toolType: config.type as ToolType,
+        command: "run_sequence",
+        params: {
+          sequence_name: sequence.name,
+          labware: sequence.labware || "default",
+        },
+      });
+    };
+
+    const batchRunSequences = createBatchHandler(runSequence, "run", "sequences");
+
+    return await batchRunSequences(sequences);
   };
 
   const handleEditSequence = (sequence: Sequence | null) => {
@@ -323,6 +366,11 @@ export function useSequenceHandler(config: Tool) {
     handleRunSequence,
     handleEditSequence,
     handleNewSequence,
+    // Add batch operation functions
+    handleBatchCreateSequence,
+    handleBatchUpdateSequence,
+    handleBatchDeleteSequence,
+    handleBatchRunSequence,
     isOpen,
     onClose,
     selectedSequence,

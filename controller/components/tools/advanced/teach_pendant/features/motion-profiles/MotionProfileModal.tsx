@@ -13,11 +13,11 @@ import {
   NumberInput,
   NumberInputField,
   VStack,
-  useToast,
   Switch,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
-import { MotionProfile } from "@/components/tools/advanced/teach_pendant/components/types";
+import { MotionProfile } from "../../types/";
+import { errorToast } from "@/components/ui/Toast";
 
 interface MotionProfileModalProps {
   isOpen: boolean;
@@ -46,7 +46,6 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
   const [decelRamp, setDecelRamp] = useState(0);
   const [inrange, setInrange] = useState(0);
   const [straight, setStraight] = useState(0);
-  const toast = useToast();
 
   useEffect(() => {
     if (isOpen && !profile) {
@@ -99,13 +98,7 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
     }
 
     if (errors.length > 0) {
-      toast({
-        title: "Validation Errors",
-        description: errors.join("\n"),
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
+      errorToast("Validation Errors", errors.join("\n"));
       return;
     }
 

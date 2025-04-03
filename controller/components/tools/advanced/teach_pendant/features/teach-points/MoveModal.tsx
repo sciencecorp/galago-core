@@ -13,7 +13,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { TeachPoint, MotionProfile } from "../types";
+import { TeachPoint, MotionProfile } from "../../types";
 
 interface MoveModalProps {
   isOpen: boolean;

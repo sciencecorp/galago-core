@@ -23,8 +23,9 @@ import {
 import { DeleteIcon } from "@chakra-ui/icons";
 import { Tool } from "@/types/api";
 import { CommandModal } from "./CommandModal";
-import { Sequence, SequenceCommand, TeachPoint, MotionProfile, GripParams } from "../types";
+import { Sequence, SequenceCommand, TeachPoint, MotionProfile, GripParams } from "../../types/";
 import { trpc } from "@/utils/trpc";
+import { errorToast } from "@/components/ui/Toast";
 
 interface SequenceModalProps {
   config: Tool;
@@ -84,13 +85,7 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
 
   const handleSave = () => {
     if (!name.trim()) {
-      toast({
-        title: "Error",
-        description: "Name is required",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("Error", "Name is required");
       return;
     }
 

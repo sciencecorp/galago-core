@@ -1,6 +1,10 @@
 import { Tool } from "@/types/api";
 import { ToolConfig } from "gen-interfaces/controller";
-import { JointConfig } from "../utils/robotArmUtils";
+import { JointConfig } from "../shared/utils/robotArmUtils";
+import { RobotArmSequence as RobotArmSequenceType } from "@/server/routers/robot-arm";
+
+// Export RobotArmSequence for use in other files
+export type RobotArmSequence = RobotArmSequenceType;
 
 export interface TeachPendantProps {
   toolId: string | undefined;
@@ -91,6 +95,7 @@ export interface MotionProfilesPanelProps {
   onEdit: (profile: MotionProfile) => void;
   onRegister: (profile: MotionProfile) => void;
   onDelete: (id: number) => void;
+  onDeleteAll: () => void;
   onAdd: () => void;
   bgColor: string;
   bgColorAlpha: string;
@@ -101,11 +106,12 @@ export interface MotionProfilesPanelProps {
 export interface GripParametersPanelProps {
   params: GripParams[];
   onEdit: (params: GripParams) => void;
+  onInlineEdit: (params: GripParams) => void;
   onDelete: (id: number) => void;
+  onDeleteAll: () => void;
   onAdd: () => void;
   bgColor: string;
   bgColorAlpha: string;
   defaultParamsId: number | null;
   onSetDefault: (id: number | null) => void;
-  onInlineEdit: (params: GripParams) => void;
 }

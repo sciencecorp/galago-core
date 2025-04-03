@@ -175,7 +175,11 @@ def get_tools(db: Session = Depends(get_db)) -> t.Any:
 @app.get("/tools/{tool_id}", response_model=schemas.Tool)
 def get_tool(tool_id: str, db: Session = Depends(get_db)) -> t.Any:
     # Get tool by lowercase name
-    tool = db.query(models.Tool).filter(func.lower(models.Tool.name) == tool_id.replace("_", " ")).first()
+    tool = (
+        db.query(models.Tool)
+        .filter(func.lower(models.Tool.name) == tool_id.replace("_", " "))
+        .first()
+    )
     if tool is None:
         raise HTTPException(status_code=404, detail="Tool not found")
     return tool

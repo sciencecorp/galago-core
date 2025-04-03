@@ -1,3 +1,4 @@
+import React from "react";
 import {
   HStack,
   Box,
@@ -18,30 +19,33 @@ import {
 import { Search2Icon } from "@chakra-ui/icons";
 import { Tool } from "@/types/api";
 import { useEffect, useState, useMemo } from "react";
-import { coordinateToJoints, validateJointCount } from "./components/utils/robotArmUtils";
+import { coordinateToJoints, validateJointCount } from "./shared/utils/robotArmUtils";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
-import { TeachPoint, MotionProfile, GripParams, Sequence } from "./components/types";
+import { TeachPoint, MotionProfile, GripParams, Sequence } from "./types";
 import { z } from "zod";
 import { ToolType } from "gen-interfaces/controller";
+import { successToast, warningToast, errorToast, batchOperationToast } from "@/components/ui/Toast";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { createBatchHandlerForIds } from "./shared/utils/batchUtils";
 
 // Components
-import { TeachPendantActions } from "./components/actions/TeachPendantActions";
-import { TeachPointsPanel } from "./components/panels/TeachPointsPanel";
-import { MotionProfilesPanel } from "./components/panels/MotionProfilesPanel";
-import { GripParametersPanel } from "./components/panels/GripParametersPanel";
-import { SequencesPanel } from "./components/panels/SequencesPanel";
-import { ControlPanel } from "./components/panels/ControlPanel";
-import { MotionProfileModal } from "./components/modals/MotionProfileModal";
-import { GripParamsModal } from "./components/modals/GripParamsModal";
-import { SequenceModal } from "./components/modals/SequenceModal";
-import { TeachPointModal } from "./components/modals/TeachPointModal";
+import { TeachPendantActions } from "./shared/ui/TeachPendantActions";
+import { TeachPointsPanel } from "./features/teach-points/TeachPointsPanel";
+import { MotionProfilesPanel } from "./features/motion-profiles/MotionProfilesPanel";
+import { GripParametersPanel } from "./features/grip-parameters/GripParametersPanel";
+import { SequencesPanel } from "./features/sequences/SequencesPanel";
+import { ControlPanel } from "./shared/ui/ControlPanel";
+import { MotionProfileModal } from "./features/motion-profiles/MotionProfileModal";
+import { GripParamsModal } from "./features/grip-parameters/GripParamsModal";
+import { SequenceModal } from "./features/sequences/SequenceModal";
+import { TeachPointModal } from "./features/teach-points/TeachPointModal";
 
 // Hooks
 import { useTeachPendantQueries } from "./hooks/useTeachPendantQueries";
 import { useTeachPendantUI } from "./hooks/useTeachPendantUI";
 import { useTeachPendantData } from "./hooks/useTeachPendantData";
-import { useCommandHandlers } from "./utils/commandHandlers";
-import { useSequenceHandler } from "./components/hooks/useSequenceHandler";
+import { useCommandHandlers } from "./shared/utils/commandHandlers";
+import { useSequenceHandler } from "./hooks/useSequenceHandler";
 
 interface TeachPendantProps {
   toolId: string | undefined;
@@ -131,38 +135,27 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
   const commandHandlers = useCommandHandlers(config);
 
   const handleJog = () => {
-    commandHandlers.handleJog(robotArmCommandMutation, jogAxis, jogDistance);
+    commandHandlers.handleJog(robotArmCommandMutation, jogAxis, jogDistance, motionProfiles);
   };
 
   const handleMoveCommand = commandHandlers.handleMoveCommand;
 
   const handleMove = (point: TeachPoint) => {
-    if (toolStatusQuery.data?.status === "SIMULATED") {
-      toast({
-        title: "Simulation Mode",
-        description: "Robot movement is simulated. No actual movement will occur.",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-
-    const defaultProfile = motionProfiles[0];
-    if (defaultProfile) {
-      handleMoveCommand(robotArmCommandMutation, point.name, defaultProfile.profile_id);
+    const motionProfile = motionProfiles.find((p) => p.id === selectedMotionProfile?.id);
+    if (motionProfile) {
+      commandHandlers.handleMoveCommand(
+        robotArmCommandMutation,
+        point.name,
+        motionProfile.id,
+        false,
+        motionProfiles,
+      );
     }
   };
 
   const handleTeach = async (point: TeachPoint) => {
     if (toolStatusQuery.data?.status === "SIMULATED") {
-      toast({
-        title: "Simulation Mode",
-        description: "Teaching points is not available in simulation mode.",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
+      warningToast("Simulation Mode", "Teaching points is not available in simulation mode.");
       return;
     }
 
@@ -188,14 +181,10 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         const limitedCoordinates = paddedCoordinates.slice(0, parseInt(numJoints.toString()));
 
         if (!validateJointCount(response.meta_data.location, parseInt(numJoints.toString()))) {
-          toast({
-            title: "Joint Count Mismatch",
-            description: `Robot returned ${coordinates.length} joints but at least ${numJoints} joints are required`,
-            status: "error",
-            duration: 5000,
-            isClosable: true,
-            position: "top",
-          });
+          errorToast(
+            "Joint Count Mismatch",
+            `Robot returned ${coordinates.length} joints but at least ${numJoints} joints are required`,
+          );
           return;
         }
 
@@ -212,27 +201,13 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         robotArmLocationsQuery.refetch();
 
         // Add success toast
-        toast({
-          title: "Point Updated",
-          description: `Successfully taught new position to point "${point.name}"`,
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-          position: "top",
-        });
+        successToast("Point Updated", `Successfully taught new position to point "${point.name}"`);
       } else {
         throw new Error("No location data received from robot");
       }
     } catch (error) {
       console.error("Failed to teach point:", error);
-      toast({
-        title: "Error",
-        description: "Failed to teach point. Please try again.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
+      errorToast("Error", "Failed to teach point. Please try again.");
     }
   };
 
@@ -342,6 +317,139 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     }
   }, [defaultProfileId]);
 
+  // Define single-item delete handlers to be used with batch utilities
+  const deleteTeachPoint = async (id: number) => {
+    await deleteLocationMutation.mutateAsync({
+      id,
+      tool_id: config.id,
+    });
+  };
+
+  const deleteMotionProfile = async (id: number) => {
+    await deleteMotionProfileMutation.mutateAsync({
+      id,
+      tool_id: config.id,
+    });
+  };
+
+  const deleteGripParam = async (id: number) => {
+    await deleteGripParamsMutation.mutateAsync({
+      id,
+      tool_id: config.id,
+    });
+  };
+
+  // Create batch handlers using our utility function
+  const handleDeleteAllTeachPoints = async () => {
+    const pointIds = teachPoints
+      .map((point) => point.id)
+      .filter((id): id is number => id !== undefined);
+    const batchDeleteTeachPoints = createBatchHandlerForIds(
+      deleteTeachPoint,
+      "delete",
+      "teach points",
+    );
+
+    await batchDeleteTeachPoints(pointIds);
+
+    // Refetch to update UI
+    robotArmLocationsQuery.refetch();
+  };
+
+  const handleDeleteAllMotionProfiles = async () => {
+    const profileIds = (motionProfilesQuery.data?.map((profile) => profile.id) || []).filter(
+      (id): id is number => id !== undefined,
+    );
+
+    const batchDeleteMotionProfiles = createBatchHandlerForIds(
+      deleteMotionProfile,
+      "delete",
+      "motion profiles",
+    );
+
+    await batchDeleteMotionProfiles(profileIds);
+
+    // Refetch to update UI
+    motionProfilesQuery.refetch();
+  };
+
+  const handleDeleteAllGripParams = async () => {
+    const paramIds = (gripParamsQuery.data?.map((param) => param.id) || []).filter(
+      (id): id is number => id !== undefined,
+    );
+
+    const batchDeleteGripParams = createBatchHandlerForIds(
+      deleteGripParam,
+      "delete",
+      "grip parameters",
+    );
+
+    await batchDeleteGripParams(paramIds);
+
+    // Refetch to update UI
+    gripParamsQuery.refetch();
+  };
+
+  const handleDeleteAllSequences = async () => {
+    const sequenceIds = (sequences || [])
+      .map((sequence) => sequence.id)
+      .filter((id): id is number => id !== undefined);
+
+    const batchDeleteSequences = createBatchHandlerForIds(
+      (id) => handleDeleteSequence(id, true),
+      "delete",
+      "sequences",
+    );
+
+    await batchDeleteSequences(sequenceIds);
+  };
+
+  // State for confirmation modal
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState("");
+  const [deleteHandler, setDeleteHandler] = useState<() => void>(() => {});
+
+  // Function to show delete confirmation modal
+  const showDeleteConfirm = (
+    type: "teachPoints" | "motionProfiles" | "gripParams" | "sequences",
+  ) => {
+    let message = "";
+    let count = 0;
+    let handler: () => void;
+
+    switch (type) {
+      case "teachPoints":
+        count = teachPoints.length;
+        message = `Are you sure you want to delete all ${count} teach points? This action cannot be undone.`;
+        handler = handleDeleteAllTeachPoints;
+        break;
+      case "motionProfiles":
+        count = motionProfilesQuery.data?.length || 0;
+        message = `Are you sure you want to delete all ${count} motion profiles? This action cannot be undone.`;
+        handler = handleDeleteAllMotionProfiles;
+        break;
+      case "gripParams":
+        count = gripParamsQuery.data?.length || 0;
+        message = `Are you sure you want to delete all ${count} grip parameters? This action cannot be undone.`;
+        handler = handleDeleteAllGripParams;
+        break;
+      case "sequences":
+        count = (sequences || []).length;
+        message = `Are you sure you want to delete all ${count} sequences? This action cannot be undone.`;
+        handler = handleDeleteAllSequences;
+        break;
+    }
+
+    if (count === 0) {
+      warningToast("Nothing to delete", "There are no items to delete in this section.");
+      return;
+    }
+
+    setConfirmMessage(message);
+    setDeleteHandler(() => handler);
+    setConfirmDeleteOpen(true);
+  };
+
   return (
     <Card
       borderWidth="1px"
@@ -378,17 +486,25 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     robotArmCommandMutation,
                     "open",
                     selectedParams,
+                    false,
+                    gripParams,
                   );
                 } else {
                   // Let server handle defaults
-                  commandHandlers.handleGripperCommand(robotArmCommandMutation, "open", {
-                    id: 0,
-                    name: "Default",
-                    tool_id: config.id,
-                    width: 0, // Server will override with its defaults
-                    speed: 0, // Server will override with its defaults
-                    force: 0, // Server will override with its defaults
-                  });
+                  commandHandlers.handleGripperCommand(
+                    robotArmCommandMutation,
+                    "open",
+                    {
+                      id: 0,
+                      name: "Default",
+                      tool_id: config.id,
+                      width: 0, // Server will override with its defaults
+                      speed: 0, // Server will override with its defaults
+                      force: 0, // Server will override with its defaults
+                    },
+                    false,
+                    gripParams,
+                  );
                 }
               }}
               onGripperClose={() => {
@@ -398,17 +514,25 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     robotArmCommandMutation,
                     "close",
                     selectedParams,
+                    false,
+                    gripParams,
                   );
                 } else {
                   // Let server handle defaults
-                  commandHandlers.handleGripperCommand(robotArmCommandMutation, "close", {
-                    id: 0,
-                    name: "Default",
-                    tool_id: config.id,
-                    width: 0, // Server will override with its defaults
-                    speed: 0, // Server will override with its defaults
-                    force: 0, // Server will override with its defaults
-                  });
+                  commandHandlers.handleGripperCommand(
+                    robotArmCommandMutation,
+                    "close",
+                    {
+                      id: 0,
+                      name: "Default",
+                      tool_id: config.id,
+                      width: 0, // Server will override with its defaults
+                      speed: 0, // Server will override with its defaults
+                      force: 0, // Server will override with its defaults
+                    },
+                    false,
+                    gripParams,
+                  );
                 }
               }}
               jogEnabled={jogEnabled}
@@ -460,6 +584,8 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     robotArmCommandMutation,
                     "open",
                     selectedGripParams!,
+                    false,
+                    gripParams,
                   )
                 }
                 onGripperClose={() =>
@@ -467,6 +593,8 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     robotArmCommandMutation,
                     "close",
                     selectedGripParams!,
+                    false,
+                    gripParams,
                   )
                 }
                 jogEnabled={jogEnabled}
@@ -571,6 +699,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                       });
                       robotArmLocationsQuery.refetch();
                     }}
+                    onDeleteAll={() => showDeleteConfirm("teachPoints")}
                     onAdd={() => {
                       openTeachPointModal();
                     }}
@@ -600,6 +729,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                       await deleteMotionProfileMutation.mutateAsync({ id, tool_id: config.id });
                       motionProfilesQuery.refetch();
                     }}
+                    onDeleteAll={() => showDeleteConfirm("motionProfiles")}
                     onAdd={() => {
                       setSelectedMotionProfile(null);
                       motionProfileModal.onOpen();
@@ -634,6 +764,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                       await deleteGripParamsMutation.mutateAsync({ id, tool_id: config.id });
                       gripParamsQuery.refetch();
                     }}
+                    onDeleteAll={() => showDeleteConfirm("gripParams")}
                     onAdd={() => {
                       setSelectedGripParams(null);
                       gripParamsModal.onOpen();
@@ -659,6 +790,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     gripParams={gripParams}
                     onRun={handleRunSequence}
                     onDelete={handleDeleteSequence}
+                    onDeleteAll={() => showDeleteConfirm("sequences")}
                     onCreateNew={handleNewSequence}
                     onUpdateSequence={handleUpdateSequence}
                     bgColor={bgColor}
@@ -791,6 +923,17 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         motionProfiles={motionProfiles}
         gripParams={gripParams}
       />
+
+      {/* Delete confirmation modal */}
+      <ConfirmationModal
+        isOpen={confirmDeleteOpen}
+        onClose={() => setConfirmDeleteOpen(false)}
+        onClick={deleteHandler}
+        header="Delete Confirmation"
+        colorScheme="red"
+        confirmText="Delete">
+        {confirmMessage}
+      </ConfirmationModal>
     </Card>
   );
 };

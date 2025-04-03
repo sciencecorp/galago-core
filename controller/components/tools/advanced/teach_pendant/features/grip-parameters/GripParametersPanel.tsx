@@ -24,22 +24,24 @@ import {
   Input,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon, CheckIcon } from "@chakra-ui/icons";
-import { MotionProfile, MotionProfilesPanelProps } from "../types";
+import { GripParams } from "../../types";
 import { useState, useRef } from "react";
 import { useOutsideClick } from "@chakra-ui/react";
 import { usePagination } from "../../hooks/usePagination";
-import { PaginationControls } from "../common/PaginationControls";
+import { PaginationControls } from "../../shared/ui/PaginationControls";
 import { EditableText } from "@/components/ui/Form";
+import { GripParametersPanelProps } from "../../types";
 
-export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
-  profiles,
+export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
+  params,
   onEdit,
+  onInlineEdit,
   onDelete,
+  onDeleteAll,
   onAdd,
-  onRegister,
   bgColor,
   bgColorAlpha,
-  defaultProfileId,
+  defaultParamsId,
   onSetDefault,
 }) => {
   const {
@@ -49,7 +51,7 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
     paginatedItems,
     onPageChange,
     onItemsPerPageChange,
-  } = usePagination(profiles);
+  } = usePagination(params);
 
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const tableBgColor = useColorModeValue("white", "gray.800");
@@ -58,9 +60,9 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
   const textColor = useColorModeValue("gray.800", "gray.100");
   const tableRef = useRef<HTMLDivElement>(null);
 
-  const handleSaveValue = (profile: MotionProfile, field: keyof MotionProfile, value: any) => {
-    const updatedProfile = { ...profile, [field]: value };
-    onEdit(updatedProfile);
+  const handleSaveValue = (param: GripParams, field: keyof GripParams, value: any) => {
+    const updatedParams = { ...param, [field]: value };
+    onInlineEdit(updatedParams);
   };
 
   return (
@@ -68,11 +70,21 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
       <VStack height="100%" spacing={4}>
         <HStack width="100%" justify="space-between">
           <Heading size="md" paddingTop={12} color={textColor}>
-            Motion Profiles
+            Grip Parameters
           </Heading>
-          <Button leftIcon={<AddIcon />} size="sm" onClick={onAdd} colorScheme="blue">
-            New Motion Profile
-          </Button>
+          <HStack>
+            <Button
+              leftIcon={<DeleteIcon />}
+              size="sm"
+              onClick={onDeleteAll}
+              colorScheme="red"
+              variant="outline">
+              Delete All
+            </Button>
+            <Button leftIcon={<AddIcon />} size="sm" onClick={onAdd} colorScheme="blue">
+              New Grip Parameters
+            </Button>
+          </HStack>
         </HStack>
         <Box width="100%" flex={1} overflow="hidden">
           <Box
@@ -116,31 +128,13 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                     Name
                   </Th>
                   <Th bg={headerBgColor} color={textColor}>
-                    ID
+                    Width
                   </Th>
                   <Th bg={headerBgColor} color={textColor}>
                     Speed
                   </Th>
                   <Th bg={headerBgColor} color={textColor}>
-                    Speed2
-                  </Th>
-                  <Th bg={headerBgColor} color={textColor}>
-                    Accel
-                  </Th>
-                  <Th bg={headerBgColor} color={textColor}>
-                    Decel
-                  </Th>
-                  <Th bg={headerBgColor} color={textColor}>
-                    Accel Ramp
-                  </Th>
-                  <Th bg={headerBgColor} color={textColor}>
-                    Decel Ramp
-                  </Th>
-                  <Th bg={headerBgColor} color={textColor}>
-                    In Range
-                  </Th>
-                  <Th bg={headerBgColor} color={textColor}>
-                    Straight
+                    Force
                   </Th>
                   <Th
                     width="120px"
@@ -153,106 +147,61 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                 </Tr>
               </Thead>
               <Tbody>
-                {paginatedItems.map((profile) => (
+                {paginatedItems.map((param) => (
                   <Tr
-                    key={profile.id || `new-${profile.name}`}
-                    bg={profile.id === defaultProfileId ? bgColorAlpha : undefined}
+                    key={param.id}
+                    bg={param.id === defaultParamsId ? bgColorAlpha : undefined}
                     _hover={{ bg: hoverBgColor }}>
                     <Td>
                       <Switch
-                        isChecked={profile.id === defaultProfileId}
+                        isChecked={param.id === defaultParamsId}
                         onChange={() =>
-                          onSetDefault(profile.id === defaultProfileId ? null : profile.id)
+                          onSetDefault(
+                            param.id ? (param.id === defaultParamsId ? null : param.id) : null,
+                          )
                         }
-                        isDisabled={!profile.id}
                       />
                     </Td>
                     <Td>
                       <EditableText
-                        defaultValue={profile.name}
+                        defaultValue={param.name}
                         onSubmit={(value) => {
-                          value && handleSaveValue(profile, "name", value);
+                          value && handleSaveValue(param, "name", value);
                         }}
                       />
                     </Td>
-                    <Td>{profile.profile_id}</Td>
                     <Td>
                       <EditableText
-                        defaultValue={(profile.speed ?? 0).toString()}
+                        defaultValue={(param.width ?? 0).toString()}
                         onSubmit={(value) => {
                           const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(profile, "speed", numValue);
+                          !isNaN(numValue) && handleSaveValue(param, "width", numValue);
                         }}
                       />
                     </Td>
                     <Td>
                       <EditableText
-                        defaultValue={(profile.speed2 ?? 0).toString()}
+                        defaultValue={(param.speed ?? 0).toString()}
                         onSubmit={(value) => {
                           const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(profile, "speed2", numValue);
+                          !isNaN(numValue) && handleSaveValue(param, "speed", numValue);
                         }}
                       />
                     </Td>
                     <Td>
                       <EditableText
-                        defaultValue={(profile.acceleration ?? 0).toString()}
+                        defaultValue={(param.force ?? 0).toString()}
                         onSubmit={(value) => {
                           const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(profile, "acceleration", numValue);
+                          !isNaN(numValue) && handleSaveValue(param, "force", numValue);
                         }}
-                      />
-                    </Td>
-                    <Td>
-                      <EditableText
-                        defaultValue={(profile.deceleration ?? 0).toString()}
-                        onSubmit={(value) => {
-                          const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(profile, "deceleration", numValue);
-                        }}
-                      />
-                    </Td>
-                    <Td>
-                      <EditableText
-                        defaultValue={(profile.accel_ramp ?? 0).toString()}
-                        onSubmit={(value) => {
-                          const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(profile, "accel_ramp", numValue);
-                        }}
-                      />
-                    </Td>
-                    <Td>
-                      <EditableText
-                        defaultValue={(profile.decel_ramp ?? 0).toString()}
-                        onSubmit={(value) => {
-                          const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(profile, "decel_ramp", numValue);
-                        }}
-                      />
-                    </Td>
-                    <Td>
-                      <EditableText
-                        defaultValue={(profile.inrange ?? 0).toString()}
-                        onSubmit={(value) => {
-                          const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(profile, "inrange", numValue);
-                        }}
-                      />
-                    </Td>
-                    <Td>
-                      <Switch
-                        isChecked={profile.straight === 1}
-                        onChange={(e) =>
-                          handleSaveValue(profile, "straight", e.target.checked ? 1 : 0)
-                        }
-                        size="sm"
                       />
                     </Td>
                     <Td textAlign="right">
                       <Menu>
                         <MenuButton
                           as={IconButton}
-                          aria-label="Motion profile actions"
+                          aria-label="Grip parameter actions"
                           icon={<HamburgerIcon />}
                           variant="outline"
                           size="sm"
@@ -262,15 +211,10 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                         <MenuList>
                           <MenuItem
                             icon={<DeleteIcon />}
-                            onClick={() => onDelete(profile.id!)}
+                            onClick={() => onDelete(param.id!)}
                             color="red.500">
-                            Delete Profile
+                            Delete Parameters
                           </MenuItem>
-                          {profile.id && (
-                            <MenuItem onClick={() => onRegister(profile)}>
-                              Register with Robot
-                            </MenuItem>
-                          )}
                         </MenuList>
                       </Menu>
                     </Td>
@@ -284,7 +228,7 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
           currentPage={currentPage}
           totalPages={totalPages}
           itemsPerPage={itemsPerPage}
-          totalItems={profiles.length}
+          totalItems={params.length}
           onPageChange={onPageChange}
           onItemsPerPageChange={onItemsPerPageChange}
         />

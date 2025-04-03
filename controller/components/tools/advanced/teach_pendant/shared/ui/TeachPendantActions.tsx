@@ -1,19 +1,18 @@
 import {
   Button,
   HStack,
-  useToast,
-  Input,
   Menu,
   MenuButton,
   MenuList,
   MenuItem,
+  useToast,
+  Input,
 } from "@chakra-ui/react";
-import { DownloadIcon, ChevronDownIcon } from "@chakra-ui/icons";
+import { ChevronDownIcon, DownloadIcon } from "@chakra-ui/icons";
 import { FiUpload } from "react-icons/fi";
-import { useRef } from "react";
-import { TeachPoint, MotionProfile, GripParams, Sequence } from "../types";
-import { FaLocationArrow } from "react-icons/fa";
-import { VStack } from "@chakra-ui/react";
+import React, { useRef } from "react";
+import { TeachPoint, MotionProfile, GripParams, Sequence } from "../../types";
+import { successToast, errorToast } from "@/components/ui/Toast";
 
 interface TeachPendantActionsProps {
   teachPoints: TeachPoint[];
@@ -95,13 +94,7 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    toast({
-      title: "Export Successful",
-      description: `Data has been exported as ${format.toUpperCase()}`,
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
+    successToast("Export Successful", `Data has been exported as ${format.toUpperCase()}`);
   };
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,25 +126,16 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
             .map(([type, count]) => `${count} ${type.replace(/_/g, " ")}`)
             .join(", ");
 
-          toast({
-            title: `Imported ${files[i].name}`,
-            description: summaryText ? `Imported ${summaryText}` : "File imported successfully",
-            status: "success",
-            duration: 5000,
-            isClosable: true,
-          });
+          successToast(
+            `Imported ${files[i].name}`,
+            summaryText ? `Imported ${summaryText}` : "File imported successfully",
+          );
         }
 
         await onImport(result.data);
       }
     } catch (error) {
-      toast({
-        title: "Import Failed",
-        description: error instanceof Error ? error.message : "Failed to import data",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
+      errorToast("Import Failed", error instanceof Error ? error.message : "Failed to import data");
     }
 
     if (fileInputRef.current) {
@@ -161,14 +145,7 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
 
   const handleTeach = () => {
     onTeach?.();
-    toast({
-      title: "Position Taught",
-      description: "Current position has been saved",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-      position: "top",
-    });
+    successToast("Position Taught", "Current position has been saved");
   };
 
   return (
