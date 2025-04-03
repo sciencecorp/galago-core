@@ -1,6 +1,6 @@
 import typing as t
 from fastapi import FastAPI, HTTPException, Depends, Request, UploadFile, File
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
