@@ -1,41 +1,12 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { trpc } from "@/utils/trpc";
 import { Workcell } from "@/types/api";
 import { warningToast, errorToast, successToast } from "@/components/ui/Toast";
 
-// Helper function to trigger download
-const downloadJson = (data: unknown, filename: string) => {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-};
-
-// Function to interact with backend API
-async function fetchApi<T = any>(endpoint: string, options?: RequestInit): Promise<T> {
-  const baseUrl = "http://localhost:8000/api";
-  const url = `${baseUrl}${endpoint}`;
-
-  const response = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-    },
-    ...options,
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`API error (${response.status}): ${errorText}`);
-  }
-
-  return response.json();
-}
-
+/**
+ * React hook for workcell import/export functionality
+ * Provides an interface to the server-side import/export operations
+ */
 export const useWorkcellImportExport = (
   workcells: Workcell[],
   selectedWorkcellName: string | undefined,
@@ -43,8 +14,10 @@ export const useWorkcellImportExport = (
   refetchSelected: () => Promise<unknown>,
 ) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isExporting, setIsExporting] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
+
+  // tRPC mutations
+  const exportConfigMutation = trpc.workcell.exportConfig.useMutation();
+  const importConfigMutation = trpc.workcell.importConfig.useMutation();
 
   // Export logic
   const handleExportConfig = async () => {
@@ -55,36 +28,19 @@ export const useWorkcellImportExport = (
 
     // Find the workcell ID from the name
     const selectedWorkcell = workcells.find((wc) => wc.name === selectedWorkcellName);
-
     if (!selectedWorkcell) {
-      errorToast(
-        "Error Finding Workcell",
-        `Could not find details for workcell named "${selectedWorkcellName}".`,
-      );
+      errorToast("Error", `Could not find workcell named "${selectedWorkcellName}".`);
       return;
     }
 
-    const workcellId = selectedWorkcell.id;
-
-    console.log(`Exporting config for: ${selectedWorkcellName} (ID: ${workcellId})...`);
-    setIsExporting(true);
-
     try {
-      // Use the new server-side export endpoint
-      const response = await fetchApi<Workcell>(`/workcells/${workcellId}/export`);
-
-      if (!response) {
-        throw new Error("No data returned from the server.");
-      }
-
-      downloadJson(response, `${selectedWorkcellName}-config.json`);
-      successToast("Export Successful", `Configuration for ${selectedWorkcellName} downloaded.`);
+      // Get the export URL and open it
+      const result = await exportConfigMutation.mutateAsync(selectedWorkcell.id);
+      window.open(result.url, "_blank");
+      successToast("Export Initiated", `Download started for ${selectedWorkcellName}.`);
     } catch (error) {
       console.error("Export failed:", error);
-      const errorDetails = error instanceof Error ? error.message : String(error);
-      errorToast("Export Failed", `Could not fetch or export configuration. ${errorDetails}`);
-    } finally {
-      setIsExporting(false);
+      errorToast("Export Failed", `${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -95,79 +51,28 @@ export const useWorkcellImportExport = (
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) {
-      return;
+    if (!file) return;
+
+    try {
+      const result = await importConfigMutation.mutateAsync({ file });
+
+      // Refresh data
+      await refetch();
+      await refetchSelected();
+
+      successToast(
+        "Import Successful",
+        `Workcell ${result?.name || "unknown"} imported successfully.`,
+      );
+    } catch (error) {
+      console.error("Import failed:", error);
+      errorToast("Import Failed", `${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
-
-    console.log("Attempting to import file:", file.name);
-    setIsImporting(true);
-
-    const reader = new FileReader();
-
-    reader.onload = async (e) => {
-      const text = e.target?.result;
-      if (typeof text !== "string") {
-        errorToast("Error Reading File", "Could not read file content.");
-        setIsImporting(false);
-        return;
-      }
-
-      try {
-        const importedConfig = JSON.parse(text);
-
-        // Basic Validation
-        if (
-          typeof importedConfig !== "object" ||
-          importedConfig === null ||
-          !("name" in importedConfig)
-        ) {
-          throw new Error("Invalid file format: Missing required fields (e.g., name).");
-        }
-
-        try {
-          // Use the new server-side import endpoint
-          const result = await fetchApi<Workcell>("/workcells/import", {
-            method: "POST",
-            body: JSON.stringify(importedConfig),
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-
-          // Refresh data
-          await refetch();
-          if (selectedWorkcellName === importedConfig.name) {
-            await refetchSelected();
-          }
-
-          successToast(
-            "Import Successful",
-            `Workcell ${result.name} ${selectedWorkcellName === importedConfig.name ? "updated" : "created"} successfully.`,
-          );
-        } catch (error) {
-          console.error("Import failed in API call:", error);
-          const errorDetails = error instanceof Error ? error.message : String(error);
-          errorToast("Import Failed", `Server error: ${errorDetails}`);
-        }
-      } catch (error) {
-        console.error("Import failed in parsing:", error);
-        const errorDetails = error instanceof Error ? error.message : String(error);
-        errorToast("Import Failed", errorDetails);
-      } finally {
-        setIsImporting(false);
-        // Clear the file input
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-      }
-    };
-
-    reader.onerror = () => {
-      errorToast("Error Reading File", "Failed to read the uploaded file.");
-      setIsImporting(false);
-    };
-
-    reader.readAsText(file);
   };
 
   return {
@@ -175,7 +80,7 @@ export const useWorkcellImportExport = (
     handleExportConfig,
     handleImportClick,
     handleFileChange,
-    isImporting,
-    isExporting,
+    isImporting: importConfigMutation.isLoading,
+    isExporting: exportConfigMutation.isLoading,
   };
 };
