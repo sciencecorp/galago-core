@@ -45,7 +45,7 @@ class Tool(Base, TimestampMixin):
         "Nest", back_populates="tool"
     )  # type: List["Nest"]  # type: ignore
     robot_arm_locations = relationship(
-        "RobotArmLocation", back_populates="tool",  cascade="all, delete-orphan"
+        "RobotArmLocation", back_populates="tool", cascade="all, delete-orphan"
     )  # type: List["RobotArmLocation"]  # type: ignore
     robot_arm_sequences = relationship(
         "RobotArmSequence", back_populates="tool"
