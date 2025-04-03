@@ -70,8 +70,6 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const activeTabBg = useColorModeValue("white", "gray.800");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [scriptToDelete, setScriptToDelete] = useState<Script | null>(null);
-  const [editingScriptName, setEditingScriptName] = useState<string | null>(null);
-  const [newScriptName, setNewScriptName] = useState<string>("");
 
   const [folderCreating, setFolderCreating] = useState(false);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
@@ -83,7 +81,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     });
 
     // Run script hotkey (F5)
-    editor.addCommand(monaco.KeyCode.F5, async () => {
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, async () => {
       await handleRunScript();
     });
   };
