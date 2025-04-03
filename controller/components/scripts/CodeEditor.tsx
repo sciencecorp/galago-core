@@ -70,7 +70,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const activeTabBg = useColorModeValue("white", "gray.800");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [scriptToDelete, setScriptToDelete] = useState<Script | null>(null);
-
+  const [editingScriptName, setEditingScriptName] = useState<Script | null>(null);
   const [folderCreating, setFolderCreating] = useState(false);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof monaco | null>(null);

@@ -102,7 +102,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
               title: `Failed to connect ${tool.name}`,
               description: errorMessage,
               status: "warning",
-              duration: 5000,
+              duration: 10000,
               isClosable: true,
               position: "bottom-right",
             });
@@ -133,14 +133,14 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
             status: "error",
             duration: 5000,
             isClosable: true,
-            position: "bottom-right",
+            position: "top",
           });
         } else if (results.success.length > 0) {
           toast({
             title: "Connection Process Successful",
             description: `Successfully connected all ${results.success.length} tools.`,
             status: "success",
-            duration: 3000,
+            duration: 5000,
             isClosable: true,
             position: "top",
           });
@@ -190,9 +190,6 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
                 title="Tools"
                 subTitle="Manage and monitor your connected tools"
                 mainButton={
-                  <NewToolModal isDisabled={selectedWorkcell === "" || selectedWorkcell === null} />
-                }
-                secondaryButton={
                   <Button
                     isLoading={connectingLoading}
                     disabled={toolIds.length === 0}
@@ -201,6 +198,9 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
                     leftIcon={<Icon as={FaPlugCircleCheck} />}>
                     Connect All
                   </Button>
+                }
+                secondaryButton={
+                  <NewToolModal isDisabled={selectedWorkcell === "" || selectedWorkcell === null} />
                 }
               />
               <Divider />
