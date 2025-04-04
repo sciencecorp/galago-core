@@ -23,7 +23,13 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <ChakraProvider>
       <Sidebar>
-        <VStack spacing={0} pt={5} pl={4} align="stretch">
+        <VStack 
+          spacing={0}
+          pt={5} 
+          pl={{base:4, sm:0}} 
+          mt={{base:0, sm:8}}
+          ml ={{sm:-10, large: 2, base:0 }}
+          align="stretch">
           <Component {...pageProps} />
         </VStack>
       </Sidebar>

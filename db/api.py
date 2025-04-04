@@ -906,13 +906,16 @@ def delete_script(script_id: int, db: Session = Depends(get_db)) -> t.Any:
     return crud.scripts.remove(db, id=script_id)
 
 
-# RobotArm Location endpoints
 @app.get("/robot-arm-locations", response_model=list[schemas.RobotArmLocation])
 def get_robot_arm_locations(
-    db: Session = Depends(get_db), tool_id: Optional[int] = None
+    db: Session = Depends(get_db), tool_id: Optional[t.Union[int,str]] = None
 ) -> t.Any:
     if tool_id:
-        return crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": tool_id})
+        tool = crud.tool.get(db, id=tool_id, normalize_name=True)
+        if not tool:
+            raise HTTPException(status_code=404, detail="Tool not found")
+        return crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": tool.id})
+
     return crud.robot_arm_location.get_all(db)
 
 
