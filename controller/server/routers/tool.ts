@@ -146,18 +146,6 @@ export const toolRouter = router({
       return resp;
     }),
 
-  configureAll: procedure.mutation(async () => {
-    const allTools = await get<ToolResponse[]>(`/tools`);
-    const toolConfigs = allTools.map((tool) => {
-      return {
-        id: tool.name,
-        config: tool.config,
-      };
-    });
-    const resp = await Tool.configureAllTools();
-    return resp;
-  }),
-
   runCommand: procedure
     .input(
       z.object({

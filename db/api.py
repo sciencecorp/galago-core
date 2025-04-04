@@ -308,13 +308,9 @@ def get_tools(db: Session = Depends(get_db)) -> t.Any:
 
 
 @app.get("/tools/{tool_id}", response_model=schemas.Tool)
-def get_tool(tool_id: str, db: Session = Depends(get_db)) -> t.Any:
+def get_tool(tool_id: t.Union[int,str], db: Session = Depends(get_db)) -> t.Any:
     # Get tool by lowercase name
-    tool = (
-        db.query(models.Tool)
-        .filter(func.lower(models.Tool.name) == tool_id.replace("_", " "))
-        .first()
-    )
+    tool = crud.tool.get(db, tool_id, True)
     if tool is None:
         raise HTTPException(status_code=404, detail="Tool not found")
     return tool
@@ -911,10 +907,11 @@ def get_robot_arm_locations(
     db: Session = Depends(get_db), tool_id: Optional[t.Union[int,str]] = None
 ) -> t.Any:
     if tool_id:
-        tool = crud.tool.get(db, id=tool_id, normalize_name=True)
+        tool = crud.tool.get(db, tool_id, True)
+        logging.info(f"Got tool: {tool}")
         if not tool:
             raise HTTPException(status_code=404, detail="Tool not found")
-        return crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": tool.id})
+        return crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": int(tool.id)})
 
     return crud.robot_arm_location.get_all(db)
 
@@ -1079,22 +1076,26 @@ def delete_robot_arm_grip_params(
 
 
 @app.get("/robot-arm-waypoints", response_model=schemas.RobotArmWaypoints)
-def get_robot_arm_waypoints(tool_id: int, db: Session = Depends(get_db)) -> t.Any:
+def get_robot_arm_waypoints(tool_id: t.Union[int,str], db: Session = Depends(get_db)) -> t.Any:
     # Get all related data for the tool
-    locations = crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": tool_id})
-    sequences = crud.robot_arm_sequence.get_all_by(db, obj_in={"tool_id": tool_id})
+    tool = crud.tool.get(db, tool_id, True)
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    
+    locations = crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": tool.id})
+    sequences = crud.robot_arm_sequence.get_all_by(db, obj_in={"tool_id": tool.id})
     motion_profiles = crud.robot_arm_motion_profile.get_all_by(
-        db, obj_in={"tool_id": tool_id}
+        db, obj_in={"tool_id": tool.id}
     )
-    grip_params = crud.robot_arm_grip_params.get_all_by(db, obj_in={"tool_id": tool_id})
+    grip_params = crud.robot_arm_grip_params.get_all_by(db, obj_in={"tool_id": tool.id})
     return {
-        "id": tool_id,
+        "id": tool.id,
         "name": f"Waypoints for Tool {tool_id}",
         "locations": locations,
         "sequences": sequences,
         "motion_profiles": motion_profiles,
         "grip_params": grip_params,
-        "tool_id": tool_id,
+        "tool_id": tool.id,
     }
 
 

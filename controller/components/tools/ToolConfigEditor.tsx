@@ -67,6 +67,7 @@ export function ToolConfigEditor({
   const saveConfig = async (simulated: boolean) => {
     setToolConfiguring(true);
     const config = {
+      toolId: toolId,
       simulated: simulated,
       [toolType]: JSON.parse(configString),
     };

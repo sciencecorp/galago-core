@@ -121,6 +121,8 @@ export const robotArmRouter = router({
       .mutation(async ({ input }) => {
         const result = await post("/robot-arm-motion-profiles", input);
         const tool = await get<ToolResponse>(`/tools/${input.tool_id}`);
+        console.log("Got tool ", tool);
+        console.log("Got tool name ", tool.name);
         await Tool.loadPF400Waypoints(tool.name);
         return result;
       }),
@@ -147,14 +149,14 @@ export const robotArmRouter = router({
         ({ input }): Promise<RobotArmGripParams[]> =>
           get(`/robot-arm-grip-params?tool_id=${input.toolId}`),
       ),
-    
+
     create: procedure.input(zRobotArmGripParams.omit({ id: true })).mutation(async ({ input }) => {
       const result = await post("/robot-arm-grip-params", input);
       const tool = await get<ToolResponse>(`/tools/${input.tool_id}`);
       await Tool.loadPF400Waypoints(tool.name);
       return result;
     }),
-    
+
     update: procedure.input(zRobotArmGripParams).mutation(async ({ input }) => {
       const result = await put(`/robot-arm-grip-params/${input.id}`, input);
       const tool = await get<ToolResponse>(`/tools/${input.tool_id}`);

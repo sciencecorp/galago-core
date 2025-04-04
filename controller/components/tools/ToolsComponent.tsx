@@ -74,6 +74,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
             await configureMutation.mutateAsync({
               toolId: toolId,
               config: {
+                toolId: toolId,
                 simulated: tool.config.simulated,
                 [tool.type]: tool.config,
               },

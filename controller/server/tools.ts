@@ -86,18 +86,21 @@ export default class Tool {
     return Tool.loadPF400Waypoints(this.info.name);
   }
 
+  async loadLabwareToPF400() {
+    return Tool.loadLabwareToPF400(this.info.name);
+  }
 
   static async getToolNameById(numericId: number): Promise<string> {
     try {
       // Get all tools from the API
       const allTools = await get<ToolResponse[]>(`/tools`);
-      
+
       // Find the tool with the matching numeric ID
-      const tool = allTools.find(t => t.id === numericId);
+      const tool = allTools.find((t) => t.id === numericId);
       if (!tool) {
         throw new Error(`No tool found with DB ID ${numericId}`);
       }
-      
+
       return Tool.normalizeToolId(tool.name);
     } catch (error) {
       console.error(`Error getting tool name for DB ID ${numericId}:`, error);
@@ -105,9 +108,12 @@ export default class Tool {
     }
   }
 
-  static async loadPF400Waypoints(toolId: number | string) {
-    const normalizedId = typeof toolId === 'string' ? Tool.normalizeToolId(toolId) : String(toolId);
+  static async loadPF400Waypoints(toolId: string) {
+    const normalizedId = Tool.normalizeToolId(toolId);
+
     const tool = Tool.forId(normalizedId);
+    console.log("Tool ID", toolId);
+    console.log("Tool Type is", tool.type);
     if (tool.type !== ToolType.pf400) {
       return; // Only proceed if the tool is of type PF400
     }
@@ -121,26 +127,26 @@ export default class Tool {
           waypoints: buildGoogleStructValue(waypointsResponse),
         },
       });
-      
+
       logAction({
         level: "info",
         action: "PF400 Configuration",
-        details: `Successfully loaded waypoints for PF400 tool: ${normalizedId}`,
+        details: `Successfully loaded waypoints for PF400 tool: ${toolId}`,
       });
     } catch (error) {
       logAction({
         level: "error",
         action: "PF400 Configuration Error",
-        details: `Failed to load waypoints for PF400 tool: ${normalizedId}. Error: ${error}`,
+        details: `Failed to load waypoints for PF400 tool: ${toolId}. Error: ${error}`,
       });
-      console.error(`Failed to load waypoints for PF400 tool: ${normalizedId}`, error);
+      console.error(`Failed to load waypoints for PF400 tool: ${toolId}`, error);
     }
   }
 
-  async loadLabwareToPF400() {
+  static async loadLabwareToPF400(toolId: string) {
     const labwareResponse = await get<Labware>(`/labware`);
     await this.executeCommand({
-      toolId: Tool.normalizeToolId(this.info.name),
+      toolId: Tool.normalizeToolId(Tool.normalizeToolId(toolId)),
       toolType: ToolType.pf400,
       command: "load_labware",
       params: {
@@ -150,8 +156,6 @@ export default class Tool {
   }
 
   async configure(config: tool_base.Config) {
-
-
     //Log tool configuration
     logAction({
       level: "info",
@@ -159,7 +163,9 @@ export default class Tool {
       details: `Configuring tool ${this.info.name} of type ${this.info.type} with config: ${JSON.stringify(config).replaceAll("{", "").replaceAll("}", "")}`,
     });
     this.config = config;
-    const reply = await this.grpc.configure(config);
+    this.config.toolId = this.info.name;
+    console.log("Configuring tool", this.config);
+    const reply = await this.grpc.configure(this.config);
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
       logAction({
         level: "error",
@@ -360,8 +366,12 @@ export default class Tool {
     this.allTools.push(tool);
   }
 
-  static forId(id: string): Tool {
+  static forId(toolId: string): Tool {
+    const id = Tool.normalizeToolId(toolId);
     const global_key = "__global_tool_store";
+    if (!id) {
+      throw new Error("Tool ID is required");
+    }
     const me = global as any;
     if (!me[global_key]) {
       me[global_key] = new Map();
@@ -386,7 +396,7 @@ export default class Tool {
         toolInfo = result;
       }
       tool = new Tool(toolInfo);
-      tool.startHeartbeat(3000);
+      tool.startHeartbeat(5000);
       store.set(id, tool);
     }
     return tool;
@@ -401,6 +411,7 @@ export default class Tool {
       ip: "host.docker.internal",
       port: 1010,
       config: {
+        toolId: "Tool Box",
         simulated: false,
         toolbox: {},
       },
