@@ -112,8 +112,6 @@ export default class Tool {
     const normalizedId = Tool.normalizeToolId(toolId);
 
     const tool = Tool.forId(normalizedId);
-    console.log("Tool ID", toolId);
-    console.log("Tool Type is", tool.type);
     if (tool.type !== ToolType.pf400) {
       return; // Only proceed if the tool is of type PF400
     }
@@ -164,7 +162,6 @@ export default class Tool {
     });
     this.config = config;
     this.config.toolId = this.info.name;
-    console.log("Configuring tool", this.config);
     const reply = await this.grpc.configure(this.config);
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
       logAction({
@@ -202,14 +199,12 @@ export default class Tool {
 
   async executeCommand(command: ToolCommandInfo) {
     const params = command.params;
-    console.log("params", params);
     for (const key in params) {
       console.warn("key", key);
       console.warn("Null params", params[key]);
       if (params[key] == null) continue;
 
       const paramValue = String(params[key]);
-      console.log("paramValue", paramValue);
       if (paramValue.startsWith("{{") && paramValue.endsWith("}}")) {
         try {
           const varValue = await get<Variable>(`/variables/${paramValue.slice(2, -2)}`);
@@ -231,7 +226,6 @@ export default class Tool {
       if (!scriptId.endsWith(".py")) {
         scriptId = scriptId + ".py";
       }
-      console.log("scriptId", scriptId);
       try {
         const script = await get<Script>(`/scripts/${scriptId}`);
         command.params.name = script.content;

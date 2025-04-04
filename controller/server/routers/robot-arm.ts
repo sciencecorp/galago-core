@@ -121,8 +121,6 @@ export const robotArmRouter = router({
       .mutation(async ({ input }) => {
         const result = await post("/robot-arm-motion-profiles", input);
         const tool = await get<ToolResponse>(`/tools/${input.tool_id}`);
-        console.log("Got tool ", tool);
-        console.log("Got tool name ", tool.name);
         await Tool.loadPF400Waypoints(tool.name);
         return result;
       }),
