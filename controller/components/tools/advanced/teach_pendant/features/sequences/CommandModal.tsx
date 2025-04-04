@@ -15,7 +15,7 @@ import {
   NumberInputField,
   VStack,
 } from "@chakra-ui/react";
-import { TeachPoint, MotionProfile, GripParams } from "../types";
+import { TeachPoint, MotionProfile, GripParams } from "../../types/";
 import { trpc } from "@/utils/trpc";
 import { Labware } from "@/types/api";
 import { commandFields } from "@/components/tools/constants";

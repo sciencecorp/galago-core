@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDisclosure } from "@chakra-ui/react";
-import { TeachPoint, MotionProfile, GripParams, ItemType } from "../components/types";
+import { TeachPoint, MotionProfile, GripParams, ItemType } from "../types/";
 
 export const useTeachPendantState = () => {
   // Modal states

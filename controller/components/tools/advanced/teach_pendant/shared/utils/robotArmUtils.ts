@@ -1,4 +1,4 @@
-import { TeachPoint } from "../types";
+import { TeachPoint } from "../../types";
 
 export interface JointConfig {
   [key: string]: number | undefined;
