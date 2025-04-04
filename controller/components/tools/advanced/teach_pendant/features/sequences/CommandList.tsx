@@ -31,9 +31,9 @@ import {
   ArrowDownIcon,
 } from "@chakra-ui/icons";
 import { useState, useEffect } from "react";
-import { SequenceCommand } from "../types";
-import { CommandModal } from "../modals/CommandModal";
-import { TeachPoint, MotionProfile, GripParams } from "../types";
+import { SequenceCommand } from "../../types/";
+import { CommandModal } from "./CommandModal";
+import { TeachPoint, MotionProfile, GripParams } from "../../types/";
 import { Tool } from "@/types/api";
 import { trpc } from "@/utils/trpc";
 import { CommandIcons } from "@/components/ui/Icons";

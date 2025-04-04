@@ -14,7 +14,7 @@ import {
   Box,
   Heading,
 } from "@chakra-ui/react";
-import { GripParams } from "../types";
+import { GripParams } from "../../types";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { FaArrowsAlt, FaHandPaper } from "react-icons/fa";
 import { BiUpArrow } from "react-icons/bi";

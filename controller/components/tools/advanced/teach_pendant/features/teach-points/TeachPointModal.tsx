@@ -12,10 +12,10 @@ import {
   FormLabel,
   Input,
   VStack,
-  useToast,
 } from "@chakra-ui/react";
-import { TeachPoint } from "../types";
+import { TeachPoint } from "../../types";
 import { Tool } from "@/types/api";
+import { errorToast } from "@/components/ui/Toast";
 
 interface TeachPointModalProps {
   isOpen: boolean;
@@ -35,7 +35,6 @@ export const TeachPointModal: React.FC<TeachPointModalProps> = ({
   config,
 }) => {
   const [name, setName] = useState(point?.name ?? "");
-  const toast = useToast();
 
   useEffect(() => {
     if (isOpen && point) {
@@ -47,13 +46,7 @@ export const TeachPointModal: React.FC<TeachPointModalProps> = ({
 
   const handleSave = () => {
     if (!name.trim()) {
-      toast({
-        title: "Error",
-        description: "Name is required",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("Error", "Name is required");
       return;
     }
 

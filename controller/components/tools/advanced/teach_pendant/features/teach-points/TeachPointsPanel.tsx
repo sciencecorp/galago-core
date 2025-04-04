@@ -21,13 +21,13 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, CheckIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { Tool } from "@/types/api";
-import { TeachPoint, MotionProfile, GripParams, Sequence } from "../types";
+import { TeachPoint, MotionProfile, GripParams, Sequence } from "../../types";
 import { FaPlay, FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { MdOutlineReplay } from "react-icons/md";
 import { BsRecordCircle } from "react-icons/bs";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { usePagination } from "../../hooks/usePagination";
-import { PaginationControls } from "../common/PaginationControls";
+import { PaginationControls } from "../../shared/ui/PaginationControls";
 import { EditableText } from "@/components/ui/Form";
 
 interface EditablePoint {
@@ -46,6 +46,7 @@ interface TeachPointsPanelProps {
   onMove: (point: TeachPoint) => void;
   onEdit: (point: TeachPoint) => void;
   onDelete: (point: TeachPoint) => void;
+  onDeleteAll: () => void;
   onAdd: () => void;
   onTeach: (point: TeachPoint) => void;
   isConnected: boolean;
@@ -61,6 +62,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   onMove,
   onEdit,
   onDelete,
+  onDeleteAll,
   onAdd,
   onTeach,
   isConnected,
@@ -128,9 +130,19 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
           <Heading size="md" paddingTop={12} color={textColor}>
             Teach Points
           </Heading>
-          <Button leftIcon={<AddIcon />} size="sm" onClick={onAdd} colorScheme="blue">
-            New Teach Point
-          </Button>
+          <HStack>
+            <Button
+              leftIcon={<DeleteIcon />}
+              size="sm"
+              onClick={onDeleteAll}
+              colorScheme="red"
+              variant="outline">
+              Delete All
+            </Button>
+            <Button leftIcon={<AddIcon />} size="sm" onClick={onAdd} colorScheme="blue">
+              New Teach Point
+            </Button>
+          </HStack>
         </HStack>
         <Box width="100%" flex={1} overflow="hidden">
           <Box

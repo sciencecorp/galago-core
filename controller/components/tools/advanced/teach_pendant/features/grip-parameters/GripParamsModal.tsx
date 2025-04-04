@@ -13,10 +13,10 @@ import {
   NumberInput,
   NumberInputField,
   VStack,
-  useToast,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
-import { GripParams } from "@/components/tools/advanced/teach_pendant/components/types";
+import { GripParams } from "../../types/";
+import { errorToast } from "@/components/ui/Toast";
 
 interface GripParamsModalProps {
   isOpen: boolean;
@@ -37,7 +37,6 @@ export const GripParamsModal: React.FC<GripParamsModalProps> = ({
   const [width, setWidth] = useState(122);
   const [speed, setSpeed] = useState(10);
   const [force, setForce] = useState(20);
-  const toast = useToast();
 
   useEffect(() => {
     if (isOpen) {
@@ -57,13 +56,7 @@ export const GripParamsModal: React.FC<GripParamsModalProps> = ({
 
   const handleSave = () => {
     if (!name.trim()) {
-      toast({
-        title: "Error",
-        description: "Name is required",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("Error", "Name is required");
       return;
     }
 

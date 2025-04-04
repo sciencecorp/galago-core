@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDisclosure } from "@chakra-ui/react";
-import { TeachPoint, MotionProfile, GripParams, Sequence } from "../components/types";
+import { TeachPoint, MotionProfile, GripParams, Sequence } from "../types/";
 import { Tool } from "@/types/api";
 
 export const useTeachPendantUI = (config: Tool) => {

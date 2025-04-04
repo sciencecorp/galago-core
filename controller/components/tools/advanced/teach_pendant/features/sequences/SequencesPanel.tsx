@@ -32,11 +32,11 @@ import {
 import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { FaPlay } from "react-icons/fa";
 import { Tool } from "@/types/api";
-import { CommandList } from "../lists/CommandList";
+import { CommandList } from "./CommandList";
 import { useState, useEffect, useRef } from "react";
 import { usePagination } from "../../hooks/usePagination";
-import { PaginationControls } from "../common/PaginationControls";
-import { Sequence, TeachPoint, MotionProfile, GripParams } from "../types";
+import { PaginationControls } from "../../shared/ui/PaginationControls";
+import { Sequence, TeachPoint, MotionProfile, GripParams } from "../../types/";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 interface SequencesPanelProps {
@@ -46,6 +46,7 @@ interface SequencesPanelProps {
   gripParams: GripParams[];
   onRun: (sequence: Sequence) => void;
   onDelete: (id: number) => void;
+  onDeleteAll: () => void;
   onCreateNew: () => void;
   onUpdateSequence: (sequence: Sequence) => void;
   bgColor: string;
@@ -60,6 +61,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
   gripParams,
   onRun,
   onDelete,
+  onDeleteAll,
   onCreateNew,
   onUpdateSequence,
   bgColor,
@@ -163,9 +165,19 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
           <Heading size="md" paddingTop={12} color={textColor}>
             Sequences
           </Heading>
-          <Button leftIcon={<AddIcon />} size="sm" onClick={onCreateNew} colorScheme="blue">
-            New Sequence
-          </Button>
+          <HStack>
+            <Button
+              leftIcon={<DeleteIcon />}
+              size="sm"
+              onClick={onDeleteAll}
+              colorScheme="red"
+              variant="outline">
+              Delete All
+            </Button>
+            <Button leftIcon={<AddIcon />} size="sm" onClick={onCreateNew} colorScheme="blue">
+              New Sequence
+            </Button>
+          </HStack>
         </HStack>
         <Box width="100%" flex={1} overflow="hidden">
           {sequences.length > 0 ? (
