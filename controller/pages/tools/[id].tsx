@@ -380,7 +380,11 @@ export default function Page() {
                   port: config.port,
                   description: config.description,
                   image_url: config.image_url,
-                  config: config.config || { simulated: false },
+                  config: {
+                    simulated: false,
+                    toolId: config.name,
+                    ...config.config,
+                  },
                 }}
               />
             </Box>

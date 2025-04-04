@@ -231,6 +231,7 @@ export interface Command {
 
 export interface Config {
   simulated: boolean;
+  toolId: string;
   cytation?: Config19 | undefined;
   opentrons2?: Config20 | undefined;
   pf400?: Config21 | undefined;
@@ -621,6 +622,7 @@ export const Command = {
 function createBaseConfig(): Config {
   return {
     simulated: false,
+    toolId: "",
     cytation: undefined,
     opentrons2: undefined,
     pf400: undefined,
@@ -646,6 +648,9 @@ export const Config = {
   encode(message: Config, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.simulated === true) {
       writer.uint32(8).bool(message.simulated);
+    }
+    if (message.toolId !== "") {
+      writer.uint32(18).string(message.toolId);
     }
     if (message.cytation !== undefined) {
       Config19.encode(message.cytation, writer.uint32(162).fork()).ldelim();
@@ -717,6 +722,13 @@ export const Config = {
           }
 
           message.simulated = reader.bool();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.toolId = reader.string();
           continue;
         case 20:
           if (tag !== 162) {
@@ -856,6 +868,7 @@ export const Config = {
   fromJSON(object: any): Config {
     return {
       simulated: isSet(object.simulated) ? Boolean(object.simulated) : false,
+      toolId: isSet(object.toolId) ? String(object.toolId) : "",
       cytation: isSet(object.cytation) ? Config19.fromJSON(object.cytation) : undefined,
       opentrons2: isSet(object.opentrons2) ? Config20.fromJSON(object.opentrons2) : undefined,
       pf400: isSet(object.pf400) ? Config21.fromJSON(object.pf400) : undefined,
@@ -880,6 +893,7 @@ export const Config = {
   toJSON(message: Config): unknown {
     const obj: any = {};
     message.simulated !== undefined && (obj.simulated = message.simulated);
+    message.toolId !== undefined && (obj.toolId = message.toolId);
     message.cytation !== undefined && (obj.cytation = message.cytation ? Config19.toJSON(message.cytation) : undefined);
     message.opentrons2 !== undefined &&
       (obj.opentrons2 = message.opentrons2 ? Config20.toJSON(message.opentrons2) : undefined);
@@ -914,6 +928,7 @@ export const Config = {
   fromPartial<I extends Exact<DeepPartial<Config>, I>>(object: I): Config {
     const message = createBaseConfig();
     message.simulated = object.simulated ?? false;
+    message.toolId = object.toolId ?? "";
     message.cytation = (object.cytation !== undefined && object.cytation !== null)
       ? Config19.fromPartial(object.cytation)
       : undefined;

@@ -45,10 +45,11 @@ export const labwareRouter = router({
     const allTools = await get<ToolResponse[]>(`/tools`);
     const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
     if (allToolswithLabware.length > 0) {
-      allToolswithLabware.forEach((tool) => {
-        const toolInstance = Tool.forId(tool.name);
-        toolInstance.loadPF400Waypoints();
-      });
+      await Promise.all(
+        allToolswithLabware.map(async (tool) => {
+          await Tool.loadLabwareToPF400(tool.name);
+        }),
+      );
     }
     return response;
   }),
@@ -65,10 +66,11 @@ export const labwareRouter = router({
     const allTools = await get<ToolResponse[]>(`/tools`);
     const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
     if (allToolswithLabware.length > 0) {
-      allToolswithLabware.forEach((tool) => {
-        const toolInstance = Tool.forId(tool.name);
-        toolInstance.loadPF400Waypoints();
-      });
+      await Promise.all(
+        allToolswithLabware.map(async (tool) => {
+          await Tool.loadLabwareToPF400(tool.name);
+        }),
+      );
     }
     return response;
   }),
@@ -76,6 +78,15 @@ export const labwareRouter = router({
   // Delete labware
   delete: procedure.input(z.number()).mutation(async ({ input }) => {
     await del(`/labware/${input}`);
+    const allTools = await get<ToolResponse[]>(`/tools`);
+    const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
+    if (allToolswithLabware.length > 0) {
+      await Promise.all(
+        allToolswithLabware.map(async (tool) => {
+          await Tool.loadLabwareToPF400(tool.name);
+        }),
+      );
+    }
     return { message: "Labware deleted successfully" };
   }),
 });
