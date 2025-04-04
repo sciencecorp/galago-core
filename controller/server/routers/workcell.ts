@@ -1,5 +1,5 @@
 import { procedure, router } from "@/server/trpc";
-import { get, post, put, del } from "@/server/utils/api";
+import { get, post, put, del, uploadFile } from "@/server/utils/api";
 import { Workcell, AppSettings } from "@/types/api";
 import { z } from "zod";
 
@@ -52,4 +52,35 @@ export const workcellRouter = router({
     const response = await get<AppSettings>(`/settings/workcell`);
     return response.value;
   }),
+
+  // Export workcell config - returns the URL for direct download
+  exportConfig: procedure.input(z.number()).mutation(async ({ input }) => {
+    try {
+      const workcellId = input;
+      const response = await get<Workcell>(`/workcells/${workcellId}/export`);
+      return response;
+    } catch (error) {
+      console.error("Export failed:", error);
+      throw error;
+    }
+  }),
+
+  // Import workcell config using file upload via api utility
+  importConfig: procedure
+    .input(
+      z.object({
+        file: z.any(), // File object from form data
+      }),
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const { file } = input;
+        // Use the uploadFile utility
+        const response = await uploadFile<Workcell>("/workcells/import", file);
+        return response;
+      } catch (error) {
+        console.error("Import failed:", error);
+        throw error;
+      }
+    }),
 });

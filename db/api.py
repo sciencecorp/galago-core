@@ -17,6 +17,9 @@ from pydantic import BaseModel
 from db.initializers import initialize_database
 from sqlalchemy import func
 from .models.inventory_models import Protocol
+import json
+from fastapi.encoders import jsonable_encoder
+from starlette.background import BackgroundTask
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -165,6 +168,138 @@ def delete_workcell(workcell_id: int, db: Session = Depends(get_db)) -> t.Any:
         raise HTTPException(status_code=404, detail="Workcell not found")
     deleted_workcell = crud.workcell.remove(db, id=workcell_id)
     return deleted_workcell
+
+
+@app.get("/workcells/{workcell_id}/export")
+def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t.Any:
+    """Export a workcell configuration including all related tools as a downloadable JSON file."""
+    from fastapi.responses import FileResponse
+    import tempfile
+    import os
+
+    workcell = crud.workcell.get(db, id=workcell_id)
+    if workcell is None:
+        raise HTTPException(status_code=404, detail="Workcell not found")
+
+    # Explicitly load tools
+    _ = workcell.tools
+    # Create a temporary file for the JSON content
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
+        temp_file_path = temp_file.name
+        # Serialize the workcell to JSON and write to the file
+        workcell_json = jsonable_encoder(workcell)
+        temp_file.write(json.dumps(workcell_json, indent=2).encode("utf-8"))
+
+    # Set the filename for download
+    filename = f"{workcell.name.replace(' ', '_')}-config.json"
+
+    # Return the file response which will trigger download in the browser
+    return FileResponse(
+        path=temp_file_path,
+        filename=filename,
+        media_type="application/json",
+        background=BackgroundTask(
+            lambda: os.unlink(temp_file_path)
+        ),  # Delete the temp file after response is sent
+    )
+
+
+@app.post("/workcells/import", response_model=schemas.Workcell)
+async def import_workcell_config(
+    file: UploadFile = File(...), db: Session = Depends(get_db)
+) -> t.Any:
+    """Import a workcell configuration from an uploaded JSON file.
+
+    If a workcell with the same name already exists, it will update that workcell.
+    Otherwise, it will create a new workcell.
+    """
+    try:
+        # Read the uploaded file content
+        file_content = await file.read()
+
+        # Parse the JSON content
+        try:
+            workcell_data = json.loads(file_content.decode("utf-8"))
+        except json.JSONDecodeError:
+            raise HTTPException(
+                status_code=400, detail="Invalid JSON format in uploaded file"
+            )
+
+        # Check if basic required fields are present
+        if not isinstance(workcell_data, dict) or "name" not in workcell_data:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid workcell configuration: Missing name field",
+            )
+
+        # Check if a workcell with this name already exists
+        existing_workcell = crud.workcell.get_by(
+            db, obj_in={"name": workcell_data["name"]}
+        )
+
+        # Extract workcell fields
+        workcell_fields = {
+            "name": workcell_data["name"],
+            "description": workcell_data.get("description", ""),
+            "location": workcell_data.get("location", ""),
+        }
+
+        # Create or update the workcell
+        if existing_workcell:
+            # Update existing workcell
+            workcell = crud.workcell.update(
+                db,
+                db_obj=existing_workcell,
+                obj_in=schemas.WorkcellUpdate(**workcell_fields),
+            )
+        else:
+            # Create new workcell
+            workcell = crud.workcell.create(
+                db, obj_in=schemas.WorkcellCreate(**workcell_fields)
+            )
+
+        # Process and create/update tools if they exist in the import data
+        if "tools" in workcell_data and isinstance(workcell_data["tools"], list):
+            for tool_data in workcell_data["tools"]:
+                # Skip if essential tool data is missing
+                if (
+                    not isinstance(tool_data, dict)
+                    or "name" not in tool_data
+                    or "type" not in tool_data
+                ):
+                    continue
+
+                # Set the workcell_id for the tool
+                tool_data["workcell_id"] = workcell.id
+
+                # Check if this tool already exists in the workcell
+                existing_tool = None
+                for t in workcell.tools:
+                    if t.name == tool_data["name"]:
+                        existing_tool = t
+                        break
+
+                if existing_tool:
+                    # Update existing tool
+                    tool_update = {k: v for k, v in tool_data.items() if k != "id"}
+                    crud.tool.update(
+                        db,
+                        db_obj=existing_tool,
+                        obj_in=schemas.ToolUpdate(**tool_update),
+                    )
+                else:
+                    # Create new tool
+                    crud.tool.create(db, obj_in=schemas.ToolCreate(**tool_data))
+
+        # Return the updated workcell with all tools
+        return crud.workcell.get(db, id=workcell.id)
+
+    except Exception as e:
+        # Log the error and provide a user-friendly message
+        logging.error(f"Error importing workcell configuration: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to import workcell configuration: {str(e)}"
+        )
 
 
 @app.get("/tools", response_model=list[schemas.Tool])

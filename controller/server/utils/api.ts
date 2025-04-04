@@ -95,3 +95,43 @@ export const del = async <T>(url: string): Promise<T> => {
     }
   }
 };
+
+/**
+ * Upload a file to the specified URL
+ */
+export const uploadFile = async <T>(
+  url: string,
+  file: File,
+  extraData?: Record<string, any>,
+): Promise<T> => {
+  try {
+    // Create FormData and append the file
+    const formData = new FormData();
+    formData.append("file", file);
+
+    // Append any extra data if provided
+    if (extraData) {
+      Object.entries(extraData).forEach(([key, value]) => {
+        formData.append(key, String(value));
+      });
+    }
+
+    // Use axios instance but override the Content-Type header
+    const response = await api.post<T>(url, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const errorMsg = unpackError(error);
+      console.error("File upload error:", errorMsg);
+      throw new Error(`Error: ${error.response?.status} - ${errorMsg}`);
+    } else {
+      console.error("Unexpected error:", error);
+      throw new Error("An unexpected error occurred during file upload");
+    }
+  }
+};
