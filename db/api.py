@@ -14,7 +14,11 @@ import uvicorn
 from contextlib import asynccontextmanager
 from db.waypoint_handler import handle_waypoint_upload
 from pydantic import BaseModel
-from db.initializers import initialize_database
+from db.initializers import (
+    initialize_database,
+    create_default_motion_profile,
+    create_default_grip_params,
+)
 from sqlalchemy import func
 from .models.inventory_models import Protocol
 import json
@@ -290,7 +294,16 @@ async def import_workcell_config(
                     )
                 else:
                     # Create new tool
-                    crud.tool.create(db, obj_in=schemas.ToolCreate(**tool_data))
+                    new_tool = crud.tool.create(
+                        db, obj_in=schemas.ToolCreate(**tool_data)
+                    )
+                    # Create default motion profile and grip params if it's a pf400
+                    if new_tool.type == "pf400":
+                        create_default_motion_profile(db, new_tool.id)
+                        create_default_grip_params(db, new_tool.id)
+                        logging.info(
+                            f"Created default profiles for imported PF400 tool: {new_tool.name}"
+                        )
 
         # Process and create/update protocols if they exist in the import data
         if "protocols" in workcell_data and isinstance(
@@ -426,7 +439,17 @@ def create_tool(tool: schemas.ToolCreate, db: Session = Depends(get_db)) -> t.An
         raise ValueError("No available ports in the range 4000-4050")
 
     tool.port = get_next_available_port(db)
-    return crud.tool.create(db, obj_in=tool)
+    created_tool = crud.tool.create(db, obj_in=tool)
+
+    # Create default motion profile and grip params if it's a pf400
+    if created_tool.type == "pf400":
+        create_default_motion_profile(db, created_tool.id)
+        create_default_grip_params(db, created_tool.id)
+        logging.info(
+            f"Created default profiles for new PF400 tool: {created_tool.name}"
+        )
+
+    return created_tool
 
 
 @app.put("/tools/{tool_id}", response_model=schemas.Tool)
