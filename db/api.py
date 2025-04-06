@@ -14,7 +14,11 @@ import uvicorn
 from contextlib import asynccontextmanager
 from db.waypoint_handler import handle_waypoint_upload
 from pydantic import BaseModel
-from db.initializers import initialize_database
+from db.initializers import (
+    initialize_database,
+    create_default_motion_profile,
+    create_default_grip_params,
+)
 from sqlalchemy import func
 from .models.inventory_models import Protocol
 import json
@@ -289,7 +293,16 @@ async def import_workcell_config(
                     )
                 else:
                     # Create new tool
-                    crud.tool.create(db, obj_in=schemas.ToolCreate(**tool_data))
+                    new_tool = crud.tool.create(
+                        db, obj_in=schemas.ToolCreate(**tool_data)
+                    )
+                    # Create default motion profile and grip params if it's a pf400
+                    if new_tool.type == "pf400":
+                        create_default_motion_profile(db, new_tool.id)
+                        create_default_grip_params(db, new_tool.id)
+                        logging.info(
+                            f"Created default profiles for imported PF400 tool: {new_tool.name}"
+                        )
 
         # Return the updated workcell with all tools
         return crud.workcell.get(db, id=workcell.id)
@@ -308,7 +321,7 @@ def get_tools(db: Session = Depends(get_db)) -> t.Any:
 
 
 @app.get("/tools/{tool_id}", response_model=schemas.Tool)
-def get_tool(tool_id: t.Union[int,str], db: Session = Depends(get_db)) -> t.Any:
+def get_tool(tool_id: t.Union[int, str], db: Session = Depends(get_db)) -> t.Any:
     # Get tool by lowercase name
     tool = crud.tool.get(db, tool_id, True)
     if tool is None:
@@ -329,7 +342,17 @@ def create_tool(tool: schemas.ToolCreate, db: Session = Depends(get_db)) -> t.An
         raise ValueError("No available ports in the range 4000-4050")
 
     tool.port = get_next_available_port(db)
-    return crud.tool.create(db, obj_in=tool)
+    created_tool = crud.tool.create(db, obj_in=tool)
+
+    # Create default motion profile and grip params if it's a pf400
+    if created_tool.type == "pf400":
+        create_default_motion_profile(db, created_tool.id)
+        create_default_grip_params(db, created_tool.id)
+        logging.info(
+            f"Created default profiles for new PF400 tool: {created_tool.name}"
+        )
+
+    return created_tool
 
 
 @app.put("/tools/{tool_id}", response_model=schemas.Tool)
@@ -904,7 +927,7 @@ def delete_script(script_id: int, db: Session = Depends(get_db)) -> t.Any:
 
 @app.get("/robot-arm-locations", response_model=list[schemas.RobotArmLocation])
 def get_robot_arm_locations(
-    db: Session = Depends(get_db), tool_id: Optional[t.Union[int,str]] = None
+    db: Session = Depends(get_db), tool_id: Optional[t.Union[int, str]] = None
 ) -> t.Any:
     if tool_id:
         tool = crud.tool.get(db, tool_id, True)
@@ -1076,12 +1099,14 @@ def delete_robot_arm_grip_params(
 
 
 @app.get("/robot-arm-waypoints", response_model=schemas.RobotArmWaypoints)
-def get_robot_arm_waypoints(tool_id: t.Union[int,str], db: Session = Depends(get_db)) -> t.Any:
+def get_robot_arm_waypoints(
+    tool_id: t.Union[int, str], db: Session = Depends(get_db)
+) -> t.Any:
     # Get all related data for the tool
     tool = crud.tool.get(db, tool_id, True)
     if not tool:
         raise HTTPException(status_code=404, detail="Tool not found")
-    
+
     locations = crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": tool.id})
     sequences = crud.robot_arm_sequence.get_all_by(db, obj_in={"tool_id": tool.id})
     motion_profiles = crud.robot_arm_motion_profile.get_all_by(
