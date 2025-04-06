@@ -105,11 +105,6 @@ def initialize_database(db: Session) -> None:
     """Initialize database with default data."""
     create_default_labware(db)
 
-    # Get all PF400 tools
-    pf400_tools = crud.tool.get_all_by(db, obj_in={"type": "pf400"})
-
-    # Create default profiles and parameters for each PF400
-    for tool in pf400_tools:
-        create_default_motion_profile(db, tool.id)
-        create_default_grip_params(db, tool.id)
-        logging.info(f"Created default profiles for PF400 tool: {tool.name}")
+    # Default motion profiles and grip parameters are now created
+    # when a pf400 tool is added via db/api.py
+    logging.info("Database initialization complete (excluding tool-specific defaults).")
