@@ -52,7 +52,8 @@ class WorkcellUpdate(BaseModel):
 
 class Workcell(WorkcellCreate, TimestampMixin):
     id: int
-    tools: t.List[Tool] = []
+    tools: t.List["Tool"] = []
+    protocols: t.List["Protocol"] = []
 
     class Config:
         from_attributes = True
@@ -325,6 +326,10 @@ class ProtocolCreate(ProtocolBase):
     workcell_id: int
     description: t.Optional[str] = None
     icon: t.Optional[str] = None
+    params: t.Dict[str, t.Any] = {}
+    commands: t.List[t.Dict[str, t.Any]] = []
+    version: t.Optional[int] = 1
+    is_active: t.Optional[bool] = True
 
 
 class ProtocolUpdate(BaseModel):

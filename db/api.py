@@ -185,8 +185,9 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
     if workcell is None:
         raise HTTPException(status_code=404, detail="Workcell not found")
 
-    # Explicitly load tools
+    # Explicitly load tools and protocols
     _ = workcell.tools
+    _ = workcell.protocols
     # Create a temporary file for the JSON content
     with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
         temp_file_path = temp_file.name
@@ -304,12 +305,108 @@ async def import_workcell_config(
                             f"Created default profiles for imported PF400 tool: {new_tool.name}"
                         )
 
-        # Return the updated workcell with all tools
+        # Process and create/update protocols if they exist in the import data
+        if "protocols" in workcell_data and isinstance(
+            workcell_data["protocols"], list
+        ):
+            # Ensure protocols relation is loaded if the workcell existed
+            if existing_workcell:
+                # Refresh to ensure relationships are loaded, needed if we are updating
+                db.refresh(workcell)
+                _ = workcell.protocols  # This ensures the collection is loaded
+
+            # Query existing protocols for this workcell once to avoid N+1 queries
+            current_protocols = (
+                db.query(models.Protocol)
+                .filter(models.Protocol.workcell_id == workcell.id)
+                .all()
+            )
+            existing_protocol_map = {p.name: p for p in current_protocols}
+
+            for protocol_data in workcell_data["protocols"]:
+                # Basic validation (add more checks if needed)
+                if not isinstance(protocol_data, dict) or "name" not in protocol_data:
+                    logging.warning(
+                        f"Skipping invalid protocol data (missing name): {protocol_data}"
+                    )
+                    continue
+
+                # Remove fields not part of the model before checking existence/updating/creating
+                protocol_data_cleaned = {
+                    k: v
+                    for k, v in protocol_data.items()
+                    if hasattr(models.Protocol, k)
+                    or k
+                    in [
+                        "name",
+                        "category",
+                        "workcell_id",
+                        "description",
+                        "icon",
+                        "params",
+                        "commands",
+                        "version",
+                        "is_active",
+                    ]
+                }
+                protocol_data_cleaned[
+                    "workcell_id"
+                ] = workcell.id  # Ensure correct workcell id
+
+                protocol_name = protocol_data_cleaned.get("name")
+                if protocol_name:
+                    existing_protocol = existing_protocol_map.get(protocol_name)
+
+                    if existing_protocol:
+                        # Update existing protocol
+                        update_payload = {k: v for k, v in protocol_data_cleaned.items() if k != "id"}
+
+                        try:
+                            # Validate payload against update schema
+                            protocol_update_schema = schemas.ProtocolUpdate(**update_payload)
+                            update_data = protocol_update_schema.dict(exclude_unset=True)
+                            for key, value in update_data.items():
+                                if hasattr(existing_protocol, key):
+                                    setattr(existing_protocol, key, value)
+                            # db.flush() # Flush is optional here, commit will handle it
+                        except Exception as e:
+                            logging.warning(f"Skipping protocol update for '{protocol_name}' due to error: {e}")
+                            logging.exception("Detailed error during protocol update preparation:")
+                            continue
+                    else:
+                        # Create new protocol
+                        create_payload = protocol_data_cleaned.copy()
+
+                        # Ensure required fields for creation are present
+                        if 'category' not in create_payload:
+                            logging.warning(f"Skipping protocol creation for '{protocol_name}' due to missing 'category'.")
+                            continue
+
+                        try:
+                            # Validate payload against create schema
+                            protocol_create_schema = schemas.ProtocolCreate(**create_payload)
+                            new_protocol = models.Protocol(**protocol_create_schema.dict())
+                            db.add(new_protocol)
+                            db.flush() # Flush to get potential ID and check constraints early
+                        except Exception as e:
+                            logging.warning(f"Skipping protocol creation for '{protocol_name}' due to error: {e}")
+                            logging.exception("Detailed error during protocol creation:")
+                            continue
+                else:
+                    logging.warning(f"Skipping protocol data because 'name' was missing or None: {protocol_data_cleaned}")
+
+        # Commit all changes made within the try block (workcell, tools, protocols)
+        db.commit()
+
+        # Return the updated workcell (re-query ensures relations are fresh)
         return crud.workcell.get(db, id=workcell.id)
 
     except Exception as e:
+        db.rollback()  # Rollback any changes if an error occurred
         # Log the error and provide a user-friendly message
         logging.error(f"Error importing workcell configuration: {str(e)}")
+        # Log detailed exception for debugging
+        logging.exception("Detailed error during import_workcell_config:")
         raise HTTPException(
             status_code=500, detail=f"Failed to import workcell configuration: {str(e)}"
         )
@@ -931,7 +1028,6 @@ def get_robot_arm_locations(
 ) -> t.Any:
     if tool_id:
         tool = crud.tool.get(db, tool_id, True)
-        logging.info(f"Got tool: {tool}")
         if not tool:
             raise HTTPException(status_code=404, detail="Tool not found")
         return crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": int(tool.id)})
@@ -1207,8 +1303,6 @@ class ProtocolUpdate(BaseModel):
 @app.post("/protocols", response_model=schemas.Protocol)
 async def create_protocol(protocol: ProtocolCreate, db: Session = Depends(get_db)):
     try:
-        logging.info(f"Creating protocol with data: {protocol.dict()}")
-
         # Check if workcell exists
         workcell = db.query(models.Workcell).get(protocol.workcell_id)
         if not workcell:
@@ -1234,16 +1328,10 @@ async def create_protocol(protocol: ProtocolCreate, db: Session = Depends(get_db
         try:
             db.add(db_protocol)
             db.flush()  # Flush to get the ID without committing
-            logging.info(f"Protocol object created with ID: {db_protocol.id}")
 
-            # Verify the protocol can be converted to dict
-            # (catches serialization issues)
-            protocol_dict = db_protocol
-            logging.info(f"Protocol successfully serialized: {protocol_dict}")
-
+            # Verify the protocol can be converted to dict (catches serialization issues)
             db.commit()
             db.refresh(db_protocol)
-            logging.info(f"Successfully created protocol: {db_protocol.id}")
             return db_protocol
 
         except Exception as e:
@@ -1274,7 +1362,6 @@ async def update_protocol(
 
     db.commit()
     db.refresh(db_protocol)
-    logging.info(f"Successfully updated protocol: {db_protocol.id}")
     return db_protocol
 
 
