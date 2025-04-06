@@ -1306,9 +1306,7 @@ async def create_protocol(protocol: ProtocolCreate, db: Session = Depends(get_db
             db.add(db_protocol)
             db.flush()  # Flush to get the ID without committing
 
-            # Verify the protocol can be converted to dict
-            # (catches serialization issues)
-            protocol_dict = db_protocol
+            # Verify the protocol can be converted to dict (catches serialization issues)
             db.commit()
             db.refresh(db_protocol)
             return db_protocol
