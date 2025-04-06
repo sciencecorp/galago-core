@@ -61,39 +61,37 @@ export const RunsComponent: React.FC = () => {
   const [expandedRuns, setExpandedRuns] = useState<Set<string>>(new Set());
   const [runAttributesMap, setRunAttributesMap] = useState<Record<string, any>>({});
   const [isErrorVisible, setIsErrorVisible] = useState(true);
-  
+
   // Unified message state
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [messageData, setMessageData] = useState({
-    type: 'pause' as 'pause' | 'message',
+    type: "pause" as "pause" | "message",
     message: "Run is paused. Click Continue to resume.",
     title: "Message",
-    pausedAt: Date.now() // Add default value for pausedAt
+    pausedAt: Date.now(), // Add default value for pausedAt
   });
 
   const skipRunMutation = trpc.commandQueue.clearByRunId.useMutation();
-  
+
   // Resume mutation
   const resumeMutation = trpc.commandQueue.resume.useMutation();
-  
+
   const commandsAll = trpc.commandQueue.commands.useQuery(
     { limit: 1000, offset: 0 },
     { refetchInterval: 1000 },
   );
-  
+
   // Query for waiting-for-input status
-  const isWaitingForInputQuery = trpc.commandQueue.isWaitingForInput.useQuery(
-    undefined,
-    { refetchInterval: 1000 }
-  );
-  
+  const isWaitingForInputQuery = trpc.commandQueue.isWaitingForInput.useQuery(undefined, {
+    refetchInterval: 1000,
+  });
+
   // Query for current message data
-  const currentMessageQuery = trpc.commandQueue.currentMessage.useQuery(
-    undefined,
-    { refetchInterval: 1000 }
-  );
-  
+  const currentMessageQuery = trpc.commandQueue.currentMessage.useQuery(undefined, {
+    refetchInterval: 1000,
+  });
+
   const commandBgColor = useColorModeValue("gray.50", "gray.800");
   const borderColor = useColorModeValue("gray.300", "gray.600");
   const hoverBgColor = useColorModeValue("gray.100", "gray.600");
@@ -119,12 +117,12 @@ export const RunsComponent: React.FC = () => {
     if (isWaitingForInputQuery.data !== undefined) {
       setIsModalOpen(isWaitingForInputQuery.data);
     }
-    
+
     if (currentMessageQuery.data) {
       setMessageData(currentMessageQuery.data);
     }
   }, [isWaitingForInputQuery.data, currentMessageQuery.data]);
-  
+
   // Handle resume button click
   const handleResume = () => {
     resumeMutation.mutate();
@@ -315,12 +313,8 @@ export const RunsComponent: React.FC = () => {
   return (
     <Box width="100%">
       {/* Unified Message Modal for both pause and show_message */}
-      <MessageModal 
-        isOpen={isModalOpen} 
-        messageData={messageData} 
-        onContinue={handleResume} 
-      />
-      
+      <MessageModal isOpen={isModalOpen} messageData={messageData} onContinue={handleResume} />
+
       <ErrorBanner />
       <VStack spacing={6} align="stretch">
         <Card bg={cardBg} shadow="md">
@@ -335,13 +329,21 @@ export const RunsComponent: React.FC = () => {
                       <Badge
                         colorScheme={
                           isModalOpen
-                            ? messageData.type === 'pause' ? "orange" : "blue"
-                            : stateQuery.data === ToolStatus.BUSY ? "green" : "gray"
+                            ? messageData.type === "pause"
+                              ? "orange"
+                              : "blue"
+                            : stateQuery.data === ToolStatus.BUSY
+                              ? "green"
+                              : "gray"
                         }
                         fontSize="sm">
                         {isModalOpen
-                          ? messageData.type === 'pause' ? "Paused" : "Waiting"
-                          : stateQuery.data === ToolStatus.BUSY ? "Running" : "Stopped"}
+                          ? messageData.type === "pause"
+                            ? "Paused"
+                            : "Waiting"
+                          : stateQuery.data === ToolStatus.BUSY
+                            ? "Running"
+                            : "Stopped"}
                       </Badge>
                       <LastUpdatedTime />
                     </HStack>

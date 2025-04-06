@@ -80,7 +80,7 @@ export const commandFields: CommandFields = {
         name: "message",
         type: "text",
       },
-    ]
+    ],
   },
   plateloc: {
     seal: [],

@@ -16,12 +16,12 @@ export type CommandQueueState = ToolStatus;
 
 export enum QueueState {
   PAUSED = "PAUSED",
-  MESSAGE = "MESSAGE"
+  MESSAGE = "MESSAGE",
 }
 
 // UI message type for differentiating between pause and show_message
 export interface UIMessage {
-  type: 'pause' | 'message';
+  type: "pause" | "message";
   message: string;
   title?: string;
   pausedAt?: number; // Timestamp when paused or message shown
@@ -31,13 +31,13 @@ export class CommandQueue {
   private _state: CommandQueueState = ToolStatus.OFFLINE;
   private _runningPromise?: Promise<any>;
   error?: Error;
-  
+
   // Message handling state variables
   private _isWaitingForInput: boolean = false;
-  private _currentMessage: UIMessage = { 
-    type: 'pause', 
+  private _currentMessage: UIMessage = {
+    type: "pause",
     message: "Run is paused. Click Continue to resume.",
-    pausedAt: undefined
+    pausedAt: undefined,
   };
   private _messageResolve?: () => void;
 
@@ -59,12 +59,12 @@ export class CommandQueue {
   get state(): CommandQueueState {
     return this._state;
   }
-  
+
   // Check if queue is waiting for user input (either pause or message)
   get isWaitingForInput(): boolean {
     return this._isWaitingForInput;
   }
-  
+
   // Get current message details
   get currentMessage(): UIMessage {
     return this._currentMessage;
@@ -79,70 +79,70 @@ export class CommandQueue {
   getError() {
     return this.error || null;
   }
-  
+
   // Show pause message and wait for user input
   async pause(message?: string) {
     this._isWaitingForInput = true;
-    this._currentMessage = { 
-      type: 'pause', 
+    this._currentMessage = {
+      type: "pause",
       message: message || "Run is paused. Click Continue to resume.",
-      pausedAt: Date.now() // Record the timestamp when paused
+      pausedAt: Date.now(), // Record the timestamp when paused
     };
-    
+
     logAction({
       level: "info",
       action: "Queue Paused",
       details: `Queue paused with message: ${this._currentMessage.message} at ${new Date(this._currentMessage.pausedAt).toISOString()}`,
     });
-    
+
     // Return a promise that resolves when resume is called
     return new Promise<void>((resolve) => {
       this._messageResolve = resolve;
     });
   }
-  
+
   // Show info message and wait for user acknowledgment
   async showMessage(message: string, title?: string) {
     this._isWaitingForInput = true;
-    this._currentMessage = { 
-      type: 'message', 
+    this._currentMessage = {
+      type: "message",
       message: message || "Please review and click Continue to proceed.",
       title: title || "Message",
-      pausedAt: Date.now() // Record the timestamp when message shown
+      pausedAt: Date.now(), // Record the timestamp when message shown
     };
-    
+
     logAction({
       level: "info",
       action: "Queue Showing Message",
-      details: `Queue showing message: ${this._currentMessage.message} at ${new Date(this._currentMessage.pausedAt).toISOString()}`,
+      details: `Queue showing message: ${this._currentMessage.message} at ${new Date().toISOString()}`,
     });
-    
+
     // Return a promise that resolves when resume is called
     return new Promise<void>((resolve) => {
       this._messageResolve = resolve;
     });
   }
-  
+
   // Resume execution after pause or message
   resume() {
     if (!this._isWaitingForInput) return;
-    
+
     const elapsedMs = Date.now() - (this._currentMessage.pausedAt || Date.now());
     const elapsedSec = Math.floor(elapsedMs / 1000);
-    
+
     this._isWaitingForInput = false;
     if (this._messageResolve) {
       this._messageResolve();
       this._messageResolve = undefined;
     }
-    
+
     logAction({
       level: "info",
       action: "Queue Resumed",
       details: `Queue execution resumed after ${elapsedSec} seconds of pause/message.`,
     });
   }
-  
+
   // Standard command queue methods
   async allCommands(): Promise<StoredRunCommand[]> {
     return this.commands.all();
@@ -222,7 +222,7 @@ export class CommandQueue {
         this.stop(); //stop the queue when there are no more commands available!!
         return;
       }
-      
+
       const dateString = String(nextCommand.createdAt);
       const dateObject = new Date(dateString);
 
@@ -239,38 +239,36 @@ export class CommandQueue {
 
       const formattedDateTime = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
         2,
-        "0"
+        "0",
       )} ${formattedHours.padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
-        seconds
+        seconds,
       ).padStart(2, "0")} ${amOrPm}`;
 
       try {
         logger.info("Executing command", nextCommand.commandInfo);
-        
-        // Check for special commands that we handle directly
+
         if (nextCommand.commandInfo.toolId === "tool_box") {
           if (nextCommand.commandInfo.command === "pause") {
-            // Handle pause command
-            const message = nextCommand.commandInfo.params?.message || 
-                           "Run is paused. Click Continue to resume.";
+            const message =
+              nextCommand.commandInfo.params?.message || "Run is paused. Click Continue to resume.";
             await this.commands.complete(nextCommand.queueId);
             await this.pause(message);
             continue;
-          } 
-          else if (nextCommand.commandInfo.command === "show_message") {
+          } else if (nextCommand.commandInfo.command === "show_message") {
             // Handle show_message command
-            const message = nextCommand.commandInfo.params?.message || 
-                           "Please review and click Continue to proceed.";
+            const message =
+              nextCommand.commandInfo.params?.message ||
+              "Please review and click Continue to proceed.";
             const title = nextCommand.commandInfo.params?.title || "Message";
             await this.commands.complete(nextCommand.queueId);
             await this.showMessage(message, title);
             continue;
           }
         }
-        
+
         // Regular command, send to Tool
         await this.executeCommand(nextCommand);
-        
+
         logAction({
           level: "info",
           action: "Command Executed",

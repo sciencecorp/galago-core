@@ -57,17 +57,17 @@ export const commandQueueRouter = router({
       return await CommandQueue.global.getPaginated(offset, limit);
       // const allCommands = await CommandQueue.global.allCommands();
     }),
-    
+
   // Unified waiting-for-input status query
   isWaitingForInput: procedure.query(async () => {
     return CommandQueue.global.isWaitingForInput;
   }),
-  
+
   // Get current message data (type, message text, title)
   currentMessage: procedure.query(async () => {
     return CommandQueue.global.currentMessage;
   }),
-  
+
   // Resume command (works for both pause and show_message)
   resume: procedure.mutation(() => {
     CommandQueue.global.resume();

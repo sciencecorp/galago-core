@@ -36,11 +36,12 @@ export const PauseModal: React.FC<PauseModalProps> = ({ isOpen, pauseMessage, on
           </VStack>
         </ModalBody>
         <ModalFooter justifyContent="center">
-          <Button 
+          <Button
             // variant="outline"
-            colorScheme="teal" 
+            colorScheme="teal"
             onClick={onContinue}
-            size="lg" minW="150px">
+            size="lg"
+            minW="150px">
             Continue
           </Button>
         </ModalFooter>
