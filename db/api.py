@@ -14,9 +14,16 @@ import uvicorn
 from contextlib import asynccontextmanager
 from db.waypoint_handler import handle_waypoint_upload
 from pydantic import BaseModel
-from db.initializers import initialize_database
+from db.initializers import (
+    initialize_database,
+    create_default_motion_profile,
+    create_default_grip_params,
+)
 from sqlalchemy import func
 from .models.inventory_models import Protocol
+import json
+from fastapi.encoders import jsonable_encoder
+from starlette.background import BackgroundTask
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -167,15 +174,253 @@ def delete_workcell(workcell_id: int, db: Session = Depends(get_db)) -> t.Any:
     return deleted_workcell
 
 
+@app.get("/workcells/{workcell_id}/export")
+def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t.Any:
+    """Export a workcell configuration including all related tools as a downloadable JSON file."""
+    from fastapi.responses import FileResponse
+    import tempfile
+    import os
+
+    workcell = crud.workcell.get(db, id=workcell_id)
+    if workcell is None:
+        raise HTTPException(status_code=404, detail="Workcell not found")
+
+    # Explicitly load tools and protocols
+    _ = workcell.tools
+    _ = workcell.protocols
+    # Create a temporary file for the JSON content
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
+        temp_file_path = temp_file.name
+        # Serialize the workcell to JSON and write to the file
+        workcell_json = jsonable_encoder(workcell)
+        temp_file.write(json.dumps(workcell_json, indent=2).encode("utf-8"))
+
+    # Set the filename for download
+    filename = f"{workcell.name.replace(' ', '_')}-config.json"
+
+    # Return the file response which will trigger download in the browser
+    return FileResponse(
+        path=temp_file_path,
+        filename=filename,
+        media_type="application/json",
+        background=BackgroundTask(
+            lambda: os.unlink(temp_file_path)
+        ),  # Delete the temp file after response is sent
+    )
+
+
+@app.post("/workcells/import", response_model=schemas.Workcell)
+async def import_workcell_config(
+    file: UploadFile = File(...), db: Session = Depends(get_db)
+) -> t.Any:
+    """Import a workcell configuration from an uploaded JSON file.
+
+    If a workcell with the same name already exists, it will update that workcell.
+    Otherwise, it will create a new workcell.
+    """
+    try:
+        # Read the uploaded file content
+        file_content = await file.read()
+
+        # Parse the JSON content
+        try:
+            workcell_data = json.loads(file_content.decode("utf-8"))
+        except json.JSONDecodeError:
+            raise HTTPException(
+                status_code=400, detail="Invalid JSON format in uploaded file"
+            )
+
+        # Check if basic required fields are present
+        if not isinstance(workcell_data, dict) or "name" not in workcell_data:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid workcell configuration: Missing name field",
+            )
+
+        # Check if a workcell with this name already exists
+        existing_workcell = crud.workcell.get_by(
+            db, obj_in={"name": workcell_data["name"]}
+        )
+
+        # Extract workcell fields
+        workcell_fields = {
+            "name": workcell_data["name"],
+            "description": workcell_data.get("description", ""),
+            "location": workcell_data.get("location", ""),
+        }
+
+        # Create or update the workcell
+        if existing_workcell:
+            # Update existing workcell
+            workcell = crud.workcell.update(
+                db,
+                db_obj=existing_workcell,
+                obj_in=schemas.WorkcellUpdate(**workcell_fields),
+            )
+        else:
+            # Create new workcell
+            workcell = crud.workcell.create(
+                db, obj_in=schemas.WorkcellCreate(**workcell_fields)
+            )
+
+        # Process and create/update tools if they exist in the import data
+        if "tools" in workcell_data and isinstance(workcell_data["tools"], list):
+            for tool_data in workcell_data["tools"]:
+                # Skip if essential tool data is missing
+                if (
+                    not isinstance(tool_data, dict)
+                    or "name" not in tool_data
+                    or "type" not in tool_data
+                ):
+                    continue
+
+                # Set the workcell_id for the tool
+                tool_data["workcell_id"] = workcell.id
+
+                # Check if this tool already exists in the workcell
+                existing_tool = None
+                for t in workcell.tools:
+                    if t.name == tool_data["name"]:
+                        existing_tool = t
+                        break
+
+                if existing_tool:
+                    # Update existing tool
+                    tool_update = {k: v for k, v in tool_data.items() if k != "id"}
+                    crud.tool.update(
+                        db,
+                        db_obj=existing_tool,
+                        obj_in=schemas.ToolUpdate(**tool_update),
+                    )
+                else:
+                    # Create new tool
+                    new_tool = crud.tool.create(
+                        db, obj_in=schemas.ToolCreate(**tool_data)
+                    )
+                    # Create default motion profile and grip params if it's a pf400
+                    if new_tool.type == "pf400":
+                        create_default_motion_profile(db, new_tool.id)
+                        create_default_grip_params(db, new_tool.id)
+                        logging.info(
+                            f"Created default profiles for imported PF400 tool: {new_tool.name}"
+                        )
+
+        # Process and create/update protocols if they exist in the import data
+        if "protocols" in workcell_data and isinstance(
+            workcell_data["protocols"], list
+        ):
+            # Ensure protocols relation is loaded if the workcell existed
+            if existing_workcell:
+                # Refresh to ensure relationships are loaded, needed if we are updating
+                db.refresh(workcell)
+                _ = workcell.protocols  # This ensures the collection is loaded
+
+            # Query existing protocols for this workcell once to avoid N+1 queries
+            current_protocols = (
+                db.query(models.Protocol)
+                .filter(models.Protocol.workcell_id == workcell.id)
+                .all()
+            )
+            existing_protocol_map = {p.name: p for p in current_protocols}
+
+            for protocol_data in workcell_data["protocols"]:
+                # Basic validation (add more checks if needed)
+                if not isinstance(protocol_data, dict) or "name" not in protocol_data:
+                    logging.warning(
+                        f"Skipping invalid protocol data (missing name): {protocol_data}"
+                    )
+                    continue
+
+                # Remove fields not part of the model before checking existence/updating/creating
+                protocol_data_cleaned = {
+                    k: v
+                    for k, v in protocol_data.items()
+                    if hasattr(models.Protocol, k)
+                    or k
+                    in [
+                        "name",
+                        "category",
+                        "workcell_id",
+                        "description",
+                        "icon",
+                        "params",
+                        "commands",
+                        "version",
+                        "is_active",
+                    ]
+                }
+                protocol_data_cleaned[
+                    "workcell_id"
+                ] = workcell.id  # Ensure correct workcell id
+
+                protocol_name = protocol_data_cleaned.get("name")
+                if protocol_name:
+                    existing_protocol = existing_protocol_map.get(protocol_name)
+
+                    if existing_protocol:
+                        # Update existing protocol
+                        update_payload = {k: v for k, v in protocol_data_cleaned.items() if k != "id"}
+
+                        try:
+                            # Validate payload against update schema
+                            protocol_update_schema = schemas.ProtocolUpdate(**update_payload)
+                            update_data = protocol_update_schema.dict(exclude_unset=True)
+                            for key, value in update_data.items():
+                                if hasattr(existing_protocol, key):
+                                    setattr(existing_protocol, key, value)
+                            # db.flush() # Flush is optional here, commit will handle it
+                        except Exception as e:
+                            logging.warning(f"Skipping protocol update for '{protocol_name}' due to error: {e}")
+                            logging.exception("Detailed error during protocol update preparation:")
+                            continue
+                    else:
+                        # Create new protocol
+                        create_payload = protocol_data_cleaned.copy()
+
+                        # Ensure required fields for creation are present
+                        if 'category' not in create_payload:
+                            logging.warning(f"Skipping protocol creation for '{protocol_name}' due to missing 'category'.")
+                            continue
+
+                        try:
+                            # Validate payload against create schema
+                            protocol_create_schema = schemas.ProtocolCreate(**create_payload)
+                            new_protocol = models.Protocol(**protocol_create_schema.dict())
+                            db.add(new_protocol)
+                            db.flush() # Flush to get potential ID and check constraints early
+                        except Exception as e:
+                            logging.warning(f"Skipping protocol creation for '{protocol_name}' due to error: {e}")
+                            logging.exception("Detailed error during protocol creation:")
+                            continue
+                else:
+                    logging.warning(f"Skipping protocol data because 'name' was missing or None: {protocol_data_cleaned}")
+
+        # Commit all changes made within the try block (workcell, tools, protocols)
+        db.commit()
+
+        # Return the updated workcell (re-query ensures relations are fresh)
+        return crud.workcell.get(db, id=workcell.id)
+
+    except Exception as e:
+        db.rollback()  # Rollback any changes if an error occurred
+        # Log the error and provide a user-friendly message
+        logging.error(f"Error importing workcell configuration: {str(e)}")
+        # Log detailed exception for debugging
+        logging.exception("Detailed error during import_workcell_config:")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to import workcell configuration: {str(e)}"
+        )
+
+
 @app.get("/tools", response_model=list[schemas.Tool])
 def get_tools(db: Session = Depends(get_db)) -> t.Any:
     return crud.tool.get_all(db)
 
 
 @app.get("/tools/{tool_id}", response_model=schemas.Tool)
-def get_tool(tool_id: str, db: Session = Depends(get_db)) -> t.Any:
+def get_tool(tool_id: t.Union[int, str], db: Session = Depends(get_db)) -> t.Any:
     # Get tool by lowercase name
-    tool = db.query(models.Tool).filter(func.lower(models.Tool.name) == tool_id).first()
+    tool = crud.tool.get(db, tool_id, True)
     if tool is None:
         raise HTTPException(status_code=404, detail="Tool not found")
     return tool
@@ -194,7 +439,17 @@ def create_tool(tool: schemas.ToolCreate, db: Session = Depends(get_db)) -> t.An
         raise ValueError("No available ports in the range 4000-4050")
 
     tool.port = get_next_available_port(db)
-    return crud.tool.create(db, obj_in=tool)
+    created_tool = crud.tool.create(db, obj_in=tool)
+
+    # Create default motion profile and grip params if it's a pf400
+    if created_tool.type == "pf400":
+        create_default_motion_profile(db, created_tool.id)
+        create_default_grip_params(db, created_tool.id)
+        logging.info(
+            f"Created default profiles for new PF400 tool: {created_tool.name}"
+        )
+
+    return created_tool
 
 
 @app.put("/tools/{tool_id}", response_model=schemas.Tool)
@@ -203,7 +458,7 @@ def update_tool(
 ) -> t.Any:
     tool = (
         db.query(models.Tool)
-        .filter(func.lower(models.Tool.name) == tool_id.lower().replace(" ", "_"))
+        .filter(func.lower(models.Tool.name) == tool_id.lower().replace("_", " "))
         .first()
     )
     # tool = crud.tool.get(db, id=tool_id)
@@ -216,7 +471,7 @@ def update_tool(
 def delete_tool(tool_id: str, db: Session = Depends(get_db)) -> t.Any:
     tool = (
         db.query(models.Tool)
-        .filter(func.lower(models.Tool.name) == tool_id.lower().replace(" ", "_"))
+        .filter(func.lower(models.Tool.name) == tool_id.lower().replace("_", " "))
         .first()
     )
     if tool is None:
@@ -767,13 +1022,16 @@ def delete_script(script_id: int, db: Session = Depends(get_db)) -> t.Any:
     return crud.scripts.remove(db, id=script_id)
 
 
-# RobotArm Location endpoints
 @app.get("/robot-arm-locations", response_model=list[schemas.RobotArmLocation])
 def get_robot_arm_locations(
-    db: Session = Depends(get_db), tool_id: Optional[int] = None
+    db: Session = Depends(get_db), tool_id: Optional[t.Union[int, str]] = None
 ) -> t.Any:
     if tool_id:
-        return crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": tool_id})
+        tool = crud.tool.get(db, tool_id, True)
+        if not tool:
+            raise HTTPException(status_code=404, detail="Tool not found")
+        return crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": int(tool.id)})
+
     return crud.robot_arm_location.get_all(db)
 
 
@@ -801,61 +1059,10 @@ def update_robot_arm_location(
 )
 def delete_robot_arm_location(location_id: int, db: Session = Depends(get_db)) -> t.Any:
     # First check if this location is referenced as a safe location
-    dependent_nests = (
-        db.query(models.RobotArmNest).filter_by(safe_location_id=location_id).all()
-    )
-    if dependent_nests:
-        raise HTTPException(
-            status_code=400,
-            detail="Cannot delete location that is used " "as a safe location by nests",
-        )
-
     location = crud.robot_arm_location.get(db, id=location_id)
     if not location:
         raise HTTPException(status_code=404, detail="Location not found")
     return crud.robot_arm_location.remove(db, id=location_id)
-
-
-# RobotArm Nest endpoints
-@app.get("/robot-arm-nests", response_model=list[schemas.RobotArmNest])
-def get_robot_arm_nests(
-    db: Session = Depends(get_db), tool_id: Optional[int] = None
-) -> t.Any:
-    if tool_id:
-        return crud.robot_arm_nest.get_all_by(db, obj_in={"tool_id": tool_id})
-    return crud.robot_arm_nest.get_all(db)
-
-
-@app.post("/robot-arm-nests", response_model=schemas.RobotArmNest)
-def create_robot_arm_nest(
-    nest: schemas.RobotArmNestCreate, db: Session = Depends(get_db)
-) -> t.Any:
-    return crud.robot_arm_nest.create(db, obj_in=nest)
-
-
-@app.put("/robot-arm-nests/{nest_id}", response_model=schemas.RobotArmNest)
-def update_robot_arm_nest(
-    nest_id: int, nest: schemas.RobotArmNestUpdate, db: Session = Depends(get_db)
-) -> t.Any:
-    db_nest = crud.robot_arm_nest.get(db, id=nest_id)
-    if not db_nest:
-        raise HTTPException(status_code=404, detail="Nest not found")
-    return crud.robot_arm_nest.update(db, db_obj=db_nest, obj_in=nest)
-
-
-@app.delete("/robot-arm-nests/{nest_id}", response_model=schemas.RobotArmNest)
-def delete_robot_arm_nest(nest_id: int, db: Session = Depends(get_db)) -> t.Any:
-    nest = crud.robot_arm_nest.get(db, id=nest_id)
-    if not nest:
-        raise HTTPException(status_code=404, detail="Nest not found")
-
-    # Update the safe_location_id to None and commit
-    db.query(models.RobotArmNest).filter_by(id=nest_id).update(
-        {"safe_location_id": None}
-    )
-    db.commit()
-
-    return crud.robot_arm_nest.remove(db, id=nest_id)
 
 
 # RobotArm Sequence endpoints
@@ -988,22 +1195,28 @@ def delete_robot_arm_grip_params(
 
 
 @app.get("/robot-arm-waypoints", response_model=schemas.RobotArmWaypoints)
-def get_robot_arm_waypoints(tool_id: int, db: Session = Depends(get_db)) -> t.Any:
+def get_robot_arm_waypoints(
+    tool_id: t.Union[int, str], db: Session = Depends(get_db)
+) -> t.Any:
     # Get all related data for the tool
-    locations = crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": tool_id})
-    sequences = crud.robot_arm_sequence.get_all_by(db, obj_in={"tool_id": tool_id})
+    tool = crud.tool.get(db, tool_id, True)
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool not found")
+
+    locations = crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": tool.id})
+    sequences = crud.robot_arm_sequence.get_all_by(db, obj_in={"tool_id": tool.id})
     motion_profiles = crud.robot_arm_motion_profile.get_all_by(
-        db, obj_in={"tool_id": tool_id}
+        db, obj_in={"tool_id": tool.id}
     )
-    grip_params = crud.robot_arm_grip_params.get_all_by(db, obj_in={"tool_id": tool_id})
+    grip_params = crud.robot_arm_grip_params.get_all_by(db, obj_in={"tool_id": tool.id})
     return {
-        "id": tool_id,
+        "id": tool.id,
         "name": f"Waypoints for Tool {tool_id}",
         "locations": locations,
         "sequences": sequences,
         "motion_profiles": motion_profiles,
         "grip_params": grip_params,
-        "tool_id": tool_id,
+        "tool_id": tool.id,
     }
 
 
@@ -1090,8 +1303,6 @@ class ProtocolUpdate(BaseModel):
 @app.post("/protocols", response_model=schemas.Protocol)
 async def create_protocol(protocol: ProtocolCreate, db: Session = Depends(get_db)):
     try:
-        logging.info(f"Creating protocol with data: {protocol.dict()}")
-
         # Check if workcell exists
         workcell = db.query(models.Workcell).get(protocol.workcell_id)
         if not workcell:
@@ -1117,16 +1328,10 @@ async def create_protocol(protocol: ProtocolCreate, db: Session = Depends(get_db
         try:
             db.add(db_protocol)
             db.flush()  # Flush to get the ID without committing
-            logging.info(f"Protocol object created with ID: {db_protocol.id}")
 
-            # Verify the protocol can be converted to dict
-            # (catches serialization issues)
-            protocol_dict = db_protocol
-            logging.info(f"Protocol successfully serialized: {protocol_dict}")
-
+            # Verify the protocol can be converted to dict (catches serialization issues)
             db.commit()
             db.refresh(db_protocol)
-            logging.info(f"Successfully created protocol: {db_protocol.id}")
             return db_protocol
 
         except Exception as e:
@@ -1157,7 +1362,6 @@ async def update_protocol(
 
     db.commit()
     db.refresh(db_protocol)
-    logging.info(f"Successfully updated protocol: {db_protocol.id}")
     return db_protocol
 
 

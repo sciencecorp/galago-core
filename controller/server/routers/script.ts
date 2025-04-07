@@ -56,7 +56,7 @@ export const scriptRouter = router({
       toolType: ToolType.toolbox,
       command: "run_python_script",
       params: {
-        script_content: input,
+        name: input,
         blocking: true,
       },
     };

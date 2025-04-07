@@ -37,7 +37,7 @@ export function ToolConfigEditor({
     onSuccess: () => {
       statusQuery.refetch();
     },
-    onError: (data) => {
+    onError: (data: any) => {
       if (data.message) {
         error_description = data.message;
       }
@@ -62,16 +62,20 @@ export function ToolConfigEditor({
   const toolType = defaultConfig.type;
   const config = toolSpecificConfig(defaultConfig);
   const [configString, setConfigString] = useState(JSON.stringify(config, null, 2));
+  const [toolConfiguring, setToolConfiguring] = useState(false);
 
   const saveConfig = async (simulated: boolean) => {
+    setToolConfiguring(true);
     const config = {
+      toolId: toolId,
       simulated: simulated,
       [toolType]: JSON.parse(configString),
     };
-    configureMutation.mutate({
+    await configureMutation.mutate({
       toolId: toolId,
       config: config,
     });
+    setToolConfiguring(false);
   };
 
   return (
@@ -90,10 +94,13 @@ export function ToolConfigEditor({
           }}
         />
       </HStack>
-      <Button onClick={async () => saveConfig(false)} isDisabled={!isReachable || isSimulated}>
+      <Button
+        isLoading={isLoading}
+        disabled={isLoading}
+        onClick={async () => saveConfig(false)}
+        isDisabled={!isReachable || isSimulated}>
         Connect
       </Button>
-      {isLoading && <Spinner ml={2} />} {/* Spinner appears next to the button when loading */}
     </VStack>
   );
 }

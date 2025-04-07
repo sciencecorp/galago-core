@@ -4,6 +4,7 @@ import { Labware } from "@/types/api";
 import { get, post, put, del } from "../utils/api";
 import Tool from "../tools";
 import { logAction } from "@/server/logger";
+import { Tool as ToolResponse } from "@/types/api";
 
 export const zLabware = z.object({
   id: z.number().optional(),
@@ -41,7 +42,15 @@ export const labwareRouter = router({
       action: "New Labware Added",
       details: `Labware ${input.name} added successfully.`,
     });
-    await Tool.loadLabwareToPF400();
+    const allTools = await get<ToolResponse[]>(`/tools`);
+    const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
+    if (allToolswithLabware.length > 0) {
+      await Promise.all(
+        allToolswithLabware.map(async (tool) => {
+          await Tool.loadLabwareToPF400(tool.name);
+        }),
+      );
+    }
     return response;
   }),
 
@@ -54,14 +63,30 @@ export const labwareRouter = router({
       action: "Labware Edited",
       details: `Labware ${input.name} updated successfully.`,
     });
-    await Tool.loadLabwareToPF400();
+    const allTools = await get<ToolResponse[]>(`/tools`);
+    const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
+    if (allToolswithLabware.length > 0) {
+      await Promise.all(
+        allToolswithLabware.map(async (tool) => {
+          await Tool.loadLabwareToPF400(tool.name);
+        }),
+      );
+    }
     return response;
   }),
 
   // Delete labware
   delete: procedure.input(z.number()).mutation(async ({ input }) => {
     await del(`/labware/${input}`);
-    await Tool.loadLabwareToPF400();
+    const allTools = await get<ToolResponse[]>(`/tools`);
+    const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
+    if (allToolswithLabware.length > 0) {
+      await Promise.all(
+        allToolswithLabware.map(async (tool) => {
+          await Tool.loadLabwareToPF400(tool.name);
+        }),
+      );
+    }
     return { message: "Labware deleted successfully" };
   }),
 });

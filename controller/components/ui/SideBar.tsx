@@ -123,7 +123,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             onClick={toggleSidebar}
             width="60px"
             paddingLeft="0"
-            src="/site_logo.png"
+            src="/site_logo.svg"
             alt="logo"
             filter={logoFilter}></Image>
         </HStack>
@@ -202,7 +202,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                 onClick={toggleSidebar}
                 width="55px"
                 paddingLeft="0"
-                src="/site_logo.png"
+                src="/site_logo.svg"
                 alt="logo"
                 filter={logoFilter}></Image>
             </Box>

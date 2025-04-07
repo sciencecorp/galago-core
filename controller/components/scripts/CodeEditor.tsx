@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
@@ -35,6 +35,8 @@ import {
 } from "../ui/Toast";
 import { useScriptColors } from "../ui/Theme";
 import { CloseIcon, PythonIcon, CodeIcon, PlayIcon, SaveIcon, FolderAddIcon } from "../ui/Icons";
+import * as monaco from "monaco-editor";
+import { editor } from "monaco-editor";
 
 export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
@@ -68,14 +70,27 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const activeTabBg = useColorModeValue("white", "gray.800");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [scriptToDelete, setScriptToDelete] = useState<Script | null>(null);
-  const [editingScriptName, setEditingScriptName] = useState<string | null>(null);
-  const [newScriptName, setNewScriptName] = useState<string>("");
-  const {
-    isOpen: isNewScriptOpen,
-    onOpen: onNewScriptOpen,
-    onClose: onNewScriptClose,
-  } = useDisclosure();
+  const [editingScriptName, setEditingScriptName] = useState<Script | null>(null);
   const [folderCreating, setFolderCreating] = useState(false);
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const monacoRef = useRef<typeof monaco | null>(null);
+
+  const registerCustomHotkeys = (editor: any, monaco: any) => {
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, async () => {
+      await handleSave();
+    });
+
+    // Run script hotkey (F5)
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, async () => {
+      await handleRunScript();
+    });
+  };
+
+  const handleEditorDidMount = (editor: any, monaco: any) => {
+    editorRef.current = editor;
+    monacoRef.current = monaco;
+    registerCustomHotkeys(editor, monaco);
+  };
 
   useEffect(() => {
     setCurrentContent(scripts.find((script) => script.name === activeTab)?.content || "");
@@ -133,15 +148,24 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       showErrorToast("No active tab", "Please select a script to save.");
       return;
     }
+    const editedContent = editorRef.current?.getValue();
+    const currentScript = scripts.find((script) => script.name === activeTab);
 
-    const script = scriptsEdited.find((script) => script.name === activeTab);
-    if (!script) {
+    if (!currentScript || !editedContent) {
+      warningToast("No script or content", "No script or content to save.");
+      return;
+    }
+
+    if (editedContent === currentScript.content) {
       warningToast("No changes detected", "No edits were made to the active script.");
       return;
     }
 
     try {
-      await editScript.mutateAsync(script);
+      await editScript.mutateAsync({
+        ...currentScript,
+        content: editedContent, // Always save the raw edited content
+      });
       refetch();
       showSuccessToast("Script updated successfully", "Your changes have been saved.");
     } catch (error) {
@@ -223,8 +247,6 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   };
 
   const handleFolderCreate = async (name: string, parentId?: number) => {
-    console.log("Parent ID", parentId);
-    console.log("Active open folder asdasd", activeOpenFolder);
     await addFolder.mutateAsync({
       name,
       parent_id: parentId,
@@ -359,7 +381,6 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
               setScriptToDelete(script);
             }}
             onFolderCreate={(name, parentId) => {
-              console.log("Active open folder", activeOpenFolder);
               handleFolderCreate(name, activeOpenFolder?.id || parentId);
               setFolderCreating(false);
             }}
@@ -535,6 +556,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                           wordWrap: "on",
                         }}
                         onChange={(value) => handleCodeChange(value)}
+                        onMount={handleEditorDidMount}
                       />
                     ) : (
                       <Box

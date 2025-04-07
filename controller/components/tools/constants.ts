@@ -28,7 +28,13 @@ export const commandFields: CommandFields = {
         type: "text",
       },
     ],
-
+    pause: [
+      {
+        name: "message",
+        type: "text",
+        defaultValue: "Run is paused. Click Continue to resume.",
+      },
+    ],
     timer: [
       {
         name: "time_seconds",
@@ -39,18 +45,16 @@ export const commandFields: CommandFields = {
         type: "text",
       },
     ],
-    user_message: [
-      {
-        name: "title",
-        type: "text",
-      },
+    show_message: [
       {
         name: "message",
         type: "text",
+        defaultValue: "Please review and click Continue to proceed.",
       },
       {
-        name: "message_type",
+        name: "title",
         type: "text",
+        defaultValue: "Message",
       },
     ],
     show_image: [
@@ -77,36 +81,6 @@ export const commandFields: CommandFields = {
         type: "text",
       },
     ],
-    log_media_exchange: [
-      {
-        name: "source_barcode",
-        type: "text",
-      },
-      {
-        name: "destination_name",
-        type: "text",
-      },
-      {
-        name: "destination_barcode",
-        type: "text",
-      },
-      {
-        name: "source_wells",
-        type: "text",
-      },
-      {
-        name: "destination_wells",
-        type: "text",
-      },
-      {
-        name: "percent_exchange",
-        type: "number",
-      },
-      {
-        name: "new_tips",
-        type: "boolean",
-      },
-    ],
   },
   plateloc: {
     seal: [],
@@ -118,6 +92,10 @@ export const commandFields: CommandFields = {
     show_diagnostics: [],
   },
   bravo: {
+    run_protocol: [{ name: "protocol_file", type: "text" }],
+    run_runset: [{ name: "runset_file", type: "text" }],
+  },
+  vprep: {
     run_protocol: [{ name: "protocol_file", type: "text" }],
     run_runset: [{ name: "runset_file", type: "text" }],
   },
@@ -253,22 +231,39 @@ export const commandFields: CommandFields = {
       { name: "motion_profile_id", type: "number", defaultValue: 1 },
       { name: "approach_height", type: "number", defaultValue: 0 },
     ],
-    engage: [],
-    release: [],
+    pick_lid: [
+      { name: "labware", type: "text" },
+      { name: "location", type: "text" },
+      { name: "motion_profile_id", type: "number", defaultValue: 1 },
+      { name: "pick_from_plate", type: "boolean", defaultValue: true },
+      { name: "approach_height", type: "number", defaultValue: 10 },
+    ],
+    place_lid: [
+      { name: "labware", type: "text" },
+      { name: "location", type: "text" },
+      { name: "motion_profile_id", type: "number", defaultValue: 1 },
+      { name: "place_on_plate", type: "boolean", defaultValue: true },
+      { name: "approach_height", type: "number", defaultValue: 10 },
+    ],
     retract: [],
   },
   microserve: {
-    load: [{ name: "stack_id", type: "number", defaultValue: 1 }],
-    unload: [{ name: "stack_id", type: "number", defaultValue: 1 }],
+    load: [
+      { name: "stack_id", type: "number", defaultValue: 1 },
+      { name: "plate_height", type: "number", defaultValue: 14 },
+      { name: "stack_height", type: "number", defaultValue: 14 },
+      { name: "plate_thickness", type: "number", defaultValue: 12 },
+    ],
+    unload: [
+      { name: "stack_id", type: "number", defaultValue: 1 },
+      { name: "plate_height", type: "number", defaultValue: 14 },
+      { name: "stack_height", type: "number", defaultValue: 14 },
+      { name: "plate_thickness", type: "number", defaultValue: 12 },
+    ],
     home: [],
     abort: [],
     retract: [],
-    go_to: [],
-    set_plate_dimensions: [
-      { name: "plate_height", type: "number", defaultValue: 25 },
-      { name: "stack_height", type: "number", defaultValue: 0 },
-      { name: "plate_thickness", type: "number", defaultValue: 0 },
-    ],
+    go_to: [{ name: "stack_id", type: "number", defaultValue: 1 }],
     send_raw_command: [{ name: "command", type: "text" }],
   },
 };

@@ -50,7 +50,6 @@ export default function Page() {
     return fields && fields.length > 0;
   };
   const toolCommandsDefined = Object.keys(commandFields).includes(String(config?.type));
-  console.log("Is tool command defined?", toolCommandsDefined);
   const commandOptions = config ? commandFields[config.type] : {};
 
   const toast = useToast();
@@ -381,7 +380,11 @@ export default function Page() {
                   port: config.port,
                   description: config.description,
                   image_url: config.image_url,
-                  config: config.config || { simulated: false },
+                  config: {
+                    simulated: false,
+                    toolId: config.name,
+                    ...config.config,
+                  },
                 }}
               />
             </Box>

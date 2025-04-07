@@ -15,9 +15,11 @@ import { buildGoogleStructValue } from "utils/struct";
 import { loggingRouter } from "./routers/logging";
 import { logAction } from "./logger";
 import { log } from "console";
+import { Tool as ToolResponse } from "@/types/api";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<string, Tool> = new Map();
+const toolsWithLabware: string[] = ["pf400"];
 
 export default class Tool {
   // Controller config is "what does the controller need to know about the tool?"
@@ -80,24 +82,69 @@ export default class Tool {
     return this.info.type;
   }
 
-  static async loadPF400Waypoints() {
-    const waypointsReponse = await get<any>(`/robot-arm-waypoints?tool_id=1`);
-    if (Tool.forId("pf400").status !== ToolStatus.READY) return;
-    await this.executeCommand({
-      toolId: "pf400",
-      toolType: ToolType.pf400,
-      command: "load_waypoints",
-      params: {
-        waypoints: buildGoogleStructValue(waypointsReponse),
-      },
-    });
+  async loadPF400Waypoints() {
+    return Tool.loadPF400Waypoints(this.info.name);
   }
 
-  static async loadLabwareToPF400() {
+  async loadLabwareToPF400() {
+    return Tool.loadLabwareToPF400(this.info.name);
+  }
+
+  static async getToolNameById(numericId: number): Promise<string> {
+    try {
+      // Get all tools from the API
+      const allTools = await get<ToolResponse[]>(`/tools`);
+
+      // Find the tool with the matching numeric ID
+      const tool = allTools.find((t) => t.id === numericId);
+      if (!tool) {
+        throw new Error(`No tool found with DB ID ${numericId}`);
+      }
+
+      return Tool.normalizeToolId(tool.name);
+    } catch (error) {
+      console.error(`Error getting tool name for DB ID ${numericId}:`, error);
+      throw error;
+    }
+  }
+
+  static async loadPF400Waypoints(toolId: string) {
+    const normalizedId = Tool.normalizeToolId(toolId);
+
+    const tool = Tool.forId(normalizedId);
+    if (tool.type !== ToolType.pf400) {
+      return; // Only proceed if the tool is of type PF400
+    }
+    try {
+      const waypointsResponse = await get<any>(`/robot-arm-waypoints?tool_id=${toolId}`);
+      await tool.executeCommand({
+        toolId: normalizedId,
+        toolType: ToolType.pf400,
+        command: "load_waypoints",
+        params: {
+          waypoints: buildGoogleStructValue(waypointsResponse),
+        },
+      });
+
+      logAction({
+        level: "info",
+        action: "PF400 Configuration",
+        details: `Successfully loaded waypoints for PF400 tool: ${toolId}`,
+      });
+    } catch (error) {
+      logAction({
+        level: "error",
+        action: "PF400 Configuration Error",
+        details: `Failed to load waypoints for PF400 tool: ${toolId}. Error: ${error}`,
+      });
+      console.error(`Failed to load waypoints for PF400 tool: ${toolId}`, error);
+    }
+  }
+
+  static async loadLabwareToPF400(toolId: string) {
     const labwareResponse = await get<Labware>(`/labware`);
-    if (Tool.forId("pf400").status !== ToolStatus.READY) return;
     await this.executeCommand({
-      toolId: "pf400",
+      toolId: Tool.normalizeToolId(Tool.normalizeToolId(toolId)),
       toolType: ToolType.pf400,
       command: "load_labware",
       params: {
@@ -113,10 +160,9 @@ export default class Tool {
       action: "Tool Configuration",
       details: `Configuring tool ${this.info.name} of type ${this.info.type} with config: ${JSON.stringify(config).replaceAll("{", "").replaceAll("}", "")}`,
     });
-    await Tool.loadLabwareToPF400();
-    await Tool.loadPF400Waypoints();
     this.config = config;
-    const reply = await this.grpc.configure(config);
+    this.config.toolId = this.info.name;
+    const reply = await this.grpc.configure(this.config);
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
       logAction({
         level: "error",
@@ -127,6 +173,10 @@ export default class Tool {
         reply.error_message ?? "Connect Command failed",
         reply.response,
       );
+    }
+    if (config.pf400) {
+      await this.loadLabwareToPF400();
+      await this.loadPF400Waypoints();
     }
   }
 
@@ -149,14 +199,12 @@ export default class Tool {
 
   async executeCommand(command: ToolCommandInfo) {
     const params = command.params;
-    console.log("params", params);
     for (const key in params) {
       console.warn("key", key);
       console.warn("Null params", params[key]);
       if (params[key] == null) continue;
 
       const paramValue = String(params[key]);
-      console.log("paramValue", paramValue);
       if (paramValue.startsWith("{{") && paramValue.endsWith("}}")) {
         try {
           const varValue = await get<Variable>(`/variables/${paramValue.slice(2, -2)}`);
@@ -178,7 +226,6 @@ export default class Tool {
       if (!scriptId.endsWith(".py")) {
         scriptId = scriptId + ".py";
       }
-      console.log("scriptId", scriptId);
       try {
         const script = await get<Script>(`/scripts/${scriptId}`);
         command.params.name = script.content;
@@ -313,8 +360,12 @@ export default class Tool {
     this.allTools.push(tool);
   }
 
-  static forId(id: string): Tool {
+  static forId(toolId: string): Tool {
+    const id = Tool.normalizeToolId(toolId);
     const global_key = "__global_tool_store";
+    if (!id) {
+      throw new Error("Tool ID is required");
+    }
     const me = global as any;
     if (!me[global_key]) {
       me[global_key] = new Map();
@@ -354,6 +405,7 @@ export default class Tool {
       ip: "host.docker.internal",
       port: 1010,
       config: {
+        toolId: "Tool Box",
         simulated: false,
         toolbox: {},
       },
