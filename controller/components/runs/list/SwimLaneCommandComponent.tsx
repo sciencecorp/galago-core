@@ -23,6 +23,10 @@ import { useRef } from "react";
 import { capitalizeFirst } from "@/utils/parser";
 import { FaRegFileCode } from "react-icons/fa6";
 import { RunCommand } from "@/types";
+import { HiMiniPause } from "react-icons/hi2";
+import { GiPauseButton } from "react-icons/gi";
+import { TbMessageReport } from "react-icons/tb";
+import { MdOutlinePauseCircleOutline } from "react-icons/md";
 
 interface LaneCommandComponentProps {
   command: RunCommand;
@@ -50,6 +54,8 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
   const ToolBoxCommandIconMap = (commandName: string) => {
     const commandIconMap = {
       run_python_script: <FaRegFileCode style={{ width: "100%", height: "50px" }} />,
+      show_message: <TbMessageReport style={{ width: "100%", height: "50px" }} />,
+      pause: <MdOutlinePauseCircleOutline style={{ width: "100%", height: "50px" }} />,
     } as Record<string, JSX.Element>;
 
     return commandIconMap[commandName] || <PiToolbox style={{ width: "100%", height: "65px" }} />;

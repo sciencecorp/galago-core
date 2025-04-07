@@ -28,7 +28,13 @@ export const commandFields: CommandFields = {
         type: "text",
       },
     ],
-
+    pause: [
+      {
+        name: "message",
+        type: "text",
+        defaultValue: "Run is paused. Click Continue to resume.",
+      },
+    ],
     timer: [
       {
         name: "time_seconds",
@@ -39,18 +45,16 @@ export const commandFields: CommandFields = {
         type: "text",
       },
     ],
-    user_message: [
-      {
-        name: "title",
-        type: "text",
-      },
+    show_message: [
       {
         name: "message",
         type: "text",
+        defaultValue: "Please review and click Continue to proceed.",
       },
       {
-        name: "message_type",
+        name: "title",
         type: "text",
+        defaultValue: "Message",
       },
     ],
     show_image: [
@@ -75,36 +79,6 @@ export const commandFields: CommandFields = {
       {
         name: "message",
         type: "text",
-      },
-    ],
-    log_media_exchange: [
-      {
-        name: "source_barcode",
-        type: "text",
-      },
-      {
-        name: "destination_name",
-        type: "text",
-      },
-      {
-        name: "destination_barcode",
-        type: "text",
-      },
-      {
-        name: "source_wells",
-        type: "text",
-      },
-      {
-        name: "destination_wells",
-        type: "text",
-      },
-      {
-        name: "percent_exchange",
-        type: "number",
-      },
-      {
-        name: "new_tips",
-        type: "boolean",
       },
     ],
   },
