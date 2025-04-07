@@ -359,41 +359,63 @@ async def import_workcell_config(
 
                     if existing_protocol:
                         # Update existing protocol
-                        update_payload = {k: v for k, v in protocol_data_cleaned.items() if k != "id"}
+                        update_payload = {
+                            k: v for k, v in protocol_data_cleaned.items() if k != "id"
+                        }
 
                         try:
                             # Validate payload against update schema
-                            protocol_update_schema = schemas.ProtocolUpdate(**update_payload)
-                            update_data = protocol_update_schema.dict(exclude_unset=True)
+                            protocol_update_schema = schemas.ProtocolUpdate(
+                                **update_payload
+                            )
+                            update_data = protocol_update_schema.dict(
+                                exclude_unset=True
+                            )
                             for key, value in update_data.items():
                                 if hasattr(existing_protocol, key):
                                     setattr(existing_protocol, key, value)
                             # db.flush() # Flush is optional here, commit will handle it
                         except Exception as e:
-                            logging.warning(f"Skipping protocol update for '{protocol_name}' due to error: {e}")
-                            logging.exception("Detailed error during protocol update preparation:")
+                            logging.warning(
+                                f"Skipping protocol update for '{protocol_name}' due to error: {e}"
+                            )
+                            logging.exception(
+                                "Detailed error during protocol update preparation:"
+                            )
                             continue
                     else:
                         # Create new protocol
                         create_payload = protocol_data_cleaned.copy()
 
                         # Ensure required fields for creation are present
-                        if 'category' not in create_payload:
-                            logging.warning(f"Skipping protocol creation for '{protocol_name}' due to missing 'category'.")
+                        if "category" not in create_payload:
+                            logging.warning(
+                                f"Skipping protocol creation for '{protocol_name}' due to missing 'category'."
+                            )
                             continue
 
                         try:
                             # Validate payload against create schema
-                            protocol_create_schema = schemas.ProtocolCreate(**create_payload)
-                            new_protocol = models.Protocol(**protocol_create_schema.dict())
+                            protocol_create_schema = schemas.ProtocolCreate(
+                                **create_payload
+                            )
+                            new_protocol = models.Protocol(
+                                **protocol_create_schema.dict()
+                            )
                             db.add(new_protocol)
-                            db.flush() # Flush to get potential ID and check constraints early
+                            db.flush()  # Flush to get potential ID and check constraints early
                         except Exception as e:
-                            logging.warning(f"Skipping protocol creation for '{protocol_name}' due to error: {e}")
-                            logging.exception("Detailed error during protocol creation:")
+                            logging.warning(
+                                f"Skipping protocol creation for '{protocol_name}' due to error: {e}"
+                            )
+                            logging.exception(
+                                "Detailed error during protocol creation:"
+                            )
                             continue
                 else:
-                    logging.warning(f"Skipping protocol data because 'name' was missing or None: {protocol_data_cleaned}")
+                    logging.warning(
+                        f"Skipping protocol data because 'name' was missing or None: {protocol_data_cleaned}"
+                    )
 
         # Commit all changes made within the try block (workcell, tools, protocols)
         db.commit()
