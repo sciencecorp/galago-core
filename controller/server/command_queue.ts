@@ -17,29 +17,33 @@ export type CommandQueueState = ToolStatus;
 export enum QueueState {
   PAUSED = "PAUSED",
   MESSAGE = "MESSAGE",
+  TIMER = "TIMER"
 }
 
-// UI message type for differentiating between pause and show_message
+// UI message type for differentiating between pause, message and timer
 export interface UIMessage {
-  type: "pause" | "message";
+  type: 'pause' | 'message' | 'timer';
   message: string;
   title?: string;
   pausedAt?: number; // Timestamp when paused or message shown
+  timerDuration?: number; // Total duration in milliseconds for timer
+  timerEndTime?: number; // When the timer should end (timestamp)
 }
 
 export class CommandQueue {
   private _state: CommandQueueState = ToolStatus.OFFLINE;
   private _runningPromise?: Promise<any>;
   error?: Error;
-
+  
   // Message handling state variables
   private _isWaitingForInput: boolean = false;
-  private _currentMessage: UIMessage = {
-    type: "pause",
+  private _currentMessage: UIMessage = { 
+    type: 'pause', 
     message: "Run is paused. Click Continue to resume.",
-    pausedAt: undefined,
+    pausedAt: undefined
   };
   private _messageResolve?: () => void;
+  private _timerTimeout?: NodeJS.Timeout;
 
   commands: RedisQueue;
 
@@ -59,12 +63,12 @@ export class CommandQueue {
   get state(): CommandQueueState {
     return this._state;
   }
-
+  
   // Check if queue is waiting for user input (either pause or message)
   get isWaitingForInput(): boolean {
     return this._isWaitingForInput;
   }
-
+  
   // Get current message details
   get currentMessage(): UIMessage {
     return this._currentMessage;
@@ -79,72 +83,125 @@ export class CommandQueue {
   getError() {
     return this.error || null;
   }
-
+  
   // Show pause message and wait for user input
   async pause(message?: string) {
     const pausedAt = Date.now();
+    
     this._isWaitingForInput = true;
-    this._currentMessage = {
-      type: "pause",
+    this._currentMessage = { 
+      type: 'pause', 
       message: message || "Run is paused. Click Continue to resume.",
-      pausedAt: pausedAt, // Record the timestamp when paused
+      pausedAt: pausedAt
     };
-
+    
     logAction({
       level: "info",
       action: "Queue Paused",
       details: `Queue paused with message: ${this._currentMessage.message} at ${new Date(pausedAt).toISOString()}`,
     });
-
+    
     // Return a promise that resolves when resume is called
     return new Promise<void>((resolve) => {
       this._messageResolve = resolve;
     });
   }
-
+  
   // Show info message and wait for user acknowledgment
   async showMessage(message: string, title?: string) {
     const pausedAt = Date.now();
+    
     this._isWaitingForInput = true;
-    this._currentMessage = {
-      type: "message",
+    this._currentMessage = { 
+      type: 'message', 
       message: message || "Please review and click Continue to proceed.",
       title: title || "Message",
-      pausedAt: pausedAt, // Record the timestamp when message shown
+      pausedAt: pausedAt
     };
-
+    
     logAction({
       level: "info",
       action: "Queue Showing Message",
       details: `Queue showing message: ${this._currentMessage.message} at ${new Date(pausedAt).toISOString()}`,
     });
-
+    
     // Return a promise that resolves when resume is called
     return new Promise<void>((resolve) => {
       this._messageResolve = resolve;
     });
   }
-
-  // Resume execution after pause or message
-  resume() {
+  
+  // Show a timer and continue after specified duration
+  async startTimer(minutes: number, seconds: number, message?: string) {
+    const pausedAt = Date.now();
+    const durationMs = (minutes * 60 + seconds) * 1000;
+    const endTime = pausedAt + durationMs;
+    
+    this._isWaitingForInput = true;
+    this._currentMessage = { 
+      type: 'timer', 
+      message: message || "Timer in progress...",
+      pausedAt: pausedAt,
+      timerDuration: durationMs,
+      timerEndTime: endTime
+    };
+    
+    logAction({
+      level: "info",
+      action: "Queue Timer Started",
+      details: `Queue timer started for ${minutes}m ${seconds}s with message: ${this._currentMessage.message}`,
+    });
+    
+    // Return a promise that resolves when timer ends or when skipped
+    return new Promise<void>((resolve) => {
+      this._messageResolve = resolve;
+      
+      // Auto-resolve when timer ends
+      this._timerTimeout = setTimeout(() => {
+        if (this._isWaitingForInput && this._currentMessage.type === 'timer') {
+          this.resume(true);
+        }
+      }, durationMs);
+    });
+  }
+  
+  // Resume execution after pause, message, or timer
+  resume(isAutoResume = false) {
     if (!this._isWaitingForInput) return;
-
-    const elapsedMs = Date.now() - (this._currentMessage.pausedAt || Date.now());
+    
+    // Clear any active timer
+    if (this._timerTimeout) {
+      clearTimeout(this._timerTimeout);
+      this._timerTimeout = undefined;
+    }
+    
+    const messageType = this._currentMessage.type;
+    const pausedAt = this._currentMessage.pausedAt || Date.now();
+    const elapsedMs = Date.now() - pausedAt;
     const elapsedSec = Math.floor(elapsedMs / 1000);
-
+    
     this._isWaitingForInput = false;
     if (this._messageResolve) {
       this._messageResolve();
       this._messageResolve = undefined;
     }
-
-    logAction({
-      level: "info",
-      action: "Queue Resumed",
-      details: `Queue execution resumed after ${elapsedSec} seconds of pause/message.`,
-    });
+    
+    if (isAutoResume) {
+      logAction({
+        level: "info",
+        action: "Queue Timer Completed",
+        details: `Queue timer automatically completed after ${elapsedSec} seconds.`,
+      });
+    } else {
+      const action = messageType === 'timer' ? 'Timer Skipped' : 'Queue Resumed';
+      logAction({
+        level: "info",
+        action,
+        details: `${messageType === 'timer' ? 'Timer skipped' : 'Queue execution resumed'} after ${elapsedSec} seconds.`,
+      });
+    }
   }
-
+  
   // Standard command queue methods
   async allCommands(): Promise<StoredRunCommand[]> {
     return this.commands.all();
@@ -204,6 +261,12 @@ export class CommandQueue {
   }
 
   async stop() {
+    // Clear any active timer
+    if (this._timerTimeout) {
+      clearTimeout(this._timerTimeout);
+      this._timerTimeout = undefined;
+    }
+    
     this._setState(ToolStatus.OFFLINE);
     logger.info("Command Queue stopped!");
     logAction({ level: "info", action: "Queue stopped", details: "Queue stopped." });
@@ -224,7 +287,7 @@ export class CommandQueue {
         this.stop(); //stop the queue when there are no more commands available!!
         return;
       }
-
+      
       const dateString = String(nextCommand.createdAt);
       const dateObject = new Date(dateString);
 
@@ -241,36 +304,48 @@ export class CommandQueue {
 
       const formattedDateTime = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
         2,
-        "0",
+        "0"
       )} ${formattedHours.padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
-        seconds,
+        seconds
       ).padStart(2, "0")} ${amOrPm}`;
 
       try {
         logger.info("Executing command", nextCommand.commandInfo);
-
+        
+        // Check for special commands that we handle directly
         if (nextCommand.commandInfo.toolId === "tool_box") {
           if (nextCommand.commandInfo.command === "pause") {
-            const message =
-              nextCommand.commandInfo.params?.message || "Run is paused. Click Continue to resume.";
+            // Handle pause command
+            const message = nextCommand.commandInfo.params?.message || 
+                           "Run is paused. Click Continue to resume.";
             await this.commands.complete(nextCommand.queueId);
             await this.pause(message);
             continue;
-          } else if (nextCommand.commandInfo.command === "show_message") {
+          } 
+          else if (nextCommand.commandInfo.command === "show_message") {
             // Handle show_message command
-            const message =
-              nextCommand.commandInfo.params?.message ||
-              "Please review and click Continue to proceed.";
+            const message = nextCommand.commandInfo.params?.message || 
+                           "Please review and click Continue to proceed.";
             const title = nextCommand.commandInfo.params?.title || "Message";
             await this.commands.complete(nextCommand.queueId);
             await this.showMessage(message, title);
             continue;
           }
+          else if (nextCommand.commandInfo.command === "timer") {
+            // Handle timer command
+            const minutes = Number(nextCommand.commandInfo.params?.minutes || 0);
+            const seconds = Number(nextCommand.commandInfo.params?.seconds || 30);
+            const message = nextCommand.commandInfo.params?.message || 
+                           "Timer in progress...";
+            await this.commands.complete(nextCommand.queueId);
+            await this.startTimer(minutes, seconds, message);
+            continue;
+          }
         }
-
+        
         // Regular command, send to Tool
         await this.executeCommand(nextCommand);
-
+        
         logAction({
           level: "info",
           action: "Command Executed",

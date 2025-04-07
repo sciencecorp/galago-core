@@ -35,16 +35,6 @@ export const commandFields: CommandFields = {
         defaultValue: "Run is paused. Click Continue to resume.",
       },
     ],
-    timer: [
-      {
-        name: "time_seconds",
-        type: "number",
-      },
-      {
-        name: "message",
-        type: "text",
-      },
-    ],
     show_message: [
       {
         name: "message",
@@ -55,6 +45,23 @@ export const commandFields: CommandFields = {
         name: "title",
         type: "text",
         defaultValue: "Message",
+      },
+    ],
+    timer: [
+      {
+        name: "minutes",
+        type: "number",
+        defaultValue: 0,
+      },
+      {
+        name: "seconds",
+        type: "number",
+        defaultValue: 30,
+      },
+      {
+        name: "message",
+        type: "text",
+        defaultValue: "Timer in progress...",
       },
     ],
     show_image: [
