@@ -12,28 +12,39 @@ import { ToolType } from "gen-interfaces/controller";
 import { unknown } from "zod";
 import { logAction } from "./logger";
 
-// Using protobufs for any enums that might be serialized, and using numeric
-// serialization, is one way to ensure that the enum values are stable across
-// versions.
-// Unfortunately we still have to use e.g. ToolStatus.OFFLINE for the values
 export type CommandQueueState = ToolStatus;
 
-// The CommandQueue is responsible for managing and running commands. This may
-// morph into a scheduler-executor in time, but keeping it simple and concrete
-// for now.
+export enum QueueState {
+  PAUSED = "PAUSED",
+  MESSAGE = "MESSAGE",
+}
+
+// UI message type for differentiating between pause and show_message
+export interface UIMessage {
+  type: "pause" | "message";
+  message: string;
+  title?: string;
+  pausedAt?: number; // Timestamp when paused or message shown
+}
 
 export class CommandQueue {
   private _state: CommandQueueState = ToolStatus.OFFLINE;
-  // There should only be one running promise to avoid race conditions
   private _runningPromise?: Promise<any>;
   error?: Error;
 
+  // Message handling state variables
+  private _isWaitingForInput: boolean = false;
+  private _currentMessage: UIMessage = {
+    type: "pause",
+    message: "Run is paused. Click Continue to resume.",
+    pausedAt: undefined,
+  };
+  private _messageResolve?: () => void;
+
   commands: RedisQueue;
-  //runRequest: RunStore;
 
   constructor(public runStore: RunStore) {
     this.commands = new RedisQueue(redis, "command_queue_2");
-    //this.run = runStore;
   }
 
   fail(error: any) {
@@ -49,7 +60,17 @@ export class CommandQueue {
     return this._state;
   }
 
-  // TODO: Use a proper state machine?
+  // Check if queue is waiting for user input (either pause or message)
+  get isWaitingForInput(): boolean {
+    return this._isWaitingForInput;
+  }
+
+  // Get current message details
+  get currentMessage(): UIMessage {
+    return this._currentMessage;
+  }
+
+  // State management
   private _setState(newState: CommandQueueState) {
     logger.info(`CommandQueue state: ${newState} (was ${this._state})`);
     this._state = newState;
@@ -58,8 +79,73 @@ export class CommandQueue {
   getError() {
     return this.error || null;
   }
-  // Used to start or restart the command queue from the main event loop.
-  // Idempotent if already running.
+
+  // Show pause message and wait for user input
+  async pause(message?: string) {
+    const pausedAt = Date.now();
+    this._isWaitingForInput = true;
+    this._currentMessage = {
+      type: "pause",
+      message: message || "Run is paused. Click Continue to resume.",
+      pausedAt: pausedAt, // Record the timestamp when paused
+    };
+
+    logAction({
+      level: "info",
+      action: "Queue Paused",
+      details: `Queue paused with message: ${this._currentMessage.message} at ${new Date(pausedAt).toISOString()}`,
+    });
+
+    // Return a promise that resolves when resume is called
+    return new Promise<void>((resolve) => {
+      this._messageResolve = resolve;
+    });
+  }
+
+  // Show info message and wait for user acknowledgment
+  async showMessage(message: string, title?: string) {
+    const pausedAt = Date.now();
+    this._isWaitingForInput = true;
+    this._currentMessage = {
+      type: "message",
+      message: message || "Please review and click Continue to proceed.",
+      title: title || "Message",
+      pausedAt: pausedAt, // Record the timestamp when message shown
+    };
+
+    logAction({
+      level: "info",
+      action: "Queue Showing Message",
+      details: `Queue showing message: ${this._currentMessage.message} at ${new Date(pausedAt).toISOString()}`,
+    });
+
+    // Return a promise that resolves when resume is called
+    return new Promise<void>((resolve) => {
+      this._messageResolve = resolve;
+    });
+  }
+
+  // Resume execution after pause or message
+  resume() {
+    if (!this._isWaitingForInput) return;
+
+    const elapsedMs = Date.now() - (this._currentMessage.pausedAt || Date.now());
+    const elapsedSec = Math.floor(elapsedMs / 1000);
+
+    this._isWaitingForInput = false;
+    if (this._messageResolve) {
+      this._messageResolve();
+      this._messageResolve = undefined;
+    }
+
+    logAction({
+      level: "info",
+      action: "Queue Resumed",
+      details: `Queue execution resumed after ${elapsedSec} seconds of pause/message.`,
+    });
+  }
+
+  // Standard command queue methods
   async allCommands(): Promise<StoredRunCommand[]> {
     return this.commands.all();
   }
@@ -90,7 +176,6 @@ export class CommandQueue {
 
   slackNotificationsEnabled: boolean = true;
 
-  // Initialize the run state and start the command queue
   async _start() {
     logAction({
       level: "info",
@@ -139,9 +224,11 @@ export class CommandQueue {
         this.stop(); //stop the queue when there are no more commands available!!
         return;
       }
+
       const dateString = String(nextCommand.createdAt);
       const dateObject = new Date(dateString);
 
+      // Format timestamp logic...
       const year = dateObject.getFullYear();
       const month = dateObject.getMonth() + 1;
       const day = dateObject.getDate();
@@ -150,7 +237,7 @@ export class CommandQueue {
       const seconds = dateObject.getSeconds();
 
       const amOrPm = hours >= 12 ? "PM" : "AM";
-      const formattedHours = (hours % 12 || 12).toString(); // Convert to 12-hour format
+      const formattedHours = (hours % 12 || 12).toString();
 
       const formattedDateTime = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
         2,
@@ -161,7 +248,29 @@ export class CommandQueue {
 
       try {
         logger.info("Executing command", nextCommand.commandInfo);
+
+        if (nextCommand.commandInfo.toolId === "tool_box") {
+          if (nextCommand.commandInfo.command === "pause") {
+            const message =
+              nextCommand.commandInfo.params?.message || "Run is paused. Click Continue to resume.";
+            await this.commands.complete(nextCommand.queueId);
+            await this.pause(message);
+            continue;
+          } else if (nextCommand.commandInfo.command === "show_message") {
+            // Handle show_message command
+            const message =
+              nextCommand.commandInfo.params?.message ||
+              "Please review and click Continue to proceed.";
+            const title = nextCommand.commandInfo.params?.title || "Message";
+            await this.commands.complete(nextCommand.queueId);
+            await this.showMessage(message, title);
+            continue;
+          }
+        }
+
+        // Regular command, send to Tool
         await this.executeCommand(nextCommand);
+
         logAction({
           level: "info",
           action: "Command Executed",
@@ -186,7 +295,6 @@ export class CommandQueue {
     }
   }
 
-  // Run a command immediately by sending it to the tool
   async executeCommand(command: StoredRunCommand) {
     await Tool.executeCommand(command.commandInfo);
     await this.commands.complete(command.queueId);
@@ -200,7 +308,6 @@ export class CommandQueue {
     await this.commands.skipUntil(commandId);
   }
 
-  //Queues all commands passed in run object
   async enqueueRun(run: Run) {
     try {
       const runQueue: RunQueue = {
@@ -223,9 +330,6 @@ export class CommandQueue {
     }
   }
 
-  // We use global singletons because next.js reloads script files, and we want
-  // to preserve the state between reloads. Once we have persistence, we can
-  // remove this.
   static get global(): CommandQueue {
     const global_key = "__global_command_queue_key";
     const me = global as any;
