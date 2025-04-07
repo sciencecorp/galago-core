@@ -82,17 +82,18 @@ export class CommandQueue {
 
   // Show pause message and wait for user input
   async pause(message?: string) {
+    const pausedAt = Date.now();
     this._isWaitingForInput = true;
     this._currentMessage = {
       type: "pause",
       message: message || "Run is paused. Click Continue to resume.",
-      pausedAt: Date.now(), // Record the timestamp when paused
+      pausedAt: pausedAt, // Record the timestamp when paused
     };
 
     logAction({
       level: "info",
       action: "Queue Paused",
-      details: `Queue paused with message: ${this._currentMessage.message} at ${new Date(this._currentMessage.pausedAt).toISOString()}`,
+      details: `Queue paused with message: ${this._currentMessage.message} at ${new Date(pausedAt).toISOString()}`,
     });
 
     // Return a promise that resolves when resume is called
@@ -103,18 +104,19 @@ export class CommandQueue {
 
   // Show info message and wait for user acknowledgment
   async showMessage(message: string, title?: string) {
+    const pausedAt = Date.now();
     this._isWaitingForInput = true;
     this._currentMessage = {
       type: "message",
       message: message || "Please review and click Continue to proceed.",
       title: title || "Message",
-      pausedAt: Date.now(), // Record the timestamp when message shown
+      pausedAt: pausedAt, // Record the timestamp when message shown
     };
 
     logAction({
       level: "info",
       action: "Queue Showing Message",
-      details: `Queue showing message: ${this._currentMessage.message} at ${new Date().toISOString()}`,
+      details: `Queue showing message: ${this._currentMessage.message} at ${new Date(pausedAt).toISOString()}`,
     });
 
     // Return a promise that resolves when resume is called

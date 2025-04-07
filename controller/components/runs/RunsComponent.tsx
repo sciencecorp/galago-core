@@ -65,13 +65,17 @@ export const RunsComponent: React.FC = () => {
   // Unified message state
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [messageData, setMessageData] = useState({
-    type: "pause" as "pause" | "message",
+  const [messageData, setMessageData] = useState<{
+    type: "pause" | "message";
+    message: string;
+    title?: string;
+    pausedAt?: number; // Make pausedAt optional to match UIMessage
+  }>({
+    type: "pause",
     message: "Run is paused. Click Continue to resume.",
     title: "Message",
-    pausedAt: Date.now(), // Add default value for pausedAt
+    pausedAt: undefined, // Can be undefined initially
   });
-
   const skipRunMutation = trpc.commandQueue.clearByRunId.useMutation();
 
   // Resume mutation
@@ -112,14 +116,24 @@ export const RunsComponent: React.FC = () => {
     retry: false,
   });
 
-  // Update message state when query results change
   useEffect(() => {
     if (isWaitingForInputQuery.data !== undefined) {
       setIsModalOpen(isWaitingForInputQuery.data);
     }
 
     if (currentMessageQuery.data) {
-      setMessageData(currentMessageQuery.data);
+      // Create a compatible object that TypeScript will accept
+      const newMessageData = {
+        type: currentMessageQuery.data.type,
+        message: currentMessageQuery.data.message,
+        // Only include these properties if they exist
+        ...(currentMessageQuery.data.title ? { title: currentMessageQuery.data.title } : {}),
+        ...(currentMessageQuery.data.pausedAt
+          ? { pausedAt: currentMessageQuery.data.pausedAt }
+          : {}),
+      };
+
+      setMessageData(newMessageData);
     }
   }, [isWaitingForInputQuery.data, currentMessageQuery.data]);
 
