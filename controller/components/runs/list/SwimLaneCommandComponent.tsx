@@ -29,7 +29,6 @@ import { TbMessageReport } from "react-icons/tb";
 import { MdOutlinePauseCircleOutline } from "react-icons/md";
 import { MdAlarm, MdTimer } from "react-icons/md";
 
-
 interface LaneCommandComponentProps {
   command: RunCommand;
   onCommandClick: (command: RunCommand) => void;

@@ -21,11 +21,11 @@ interface InfoModalProps {
   onContinue: () => void;
 }
 
-export const InfoModal: React.FC<InfoModalProps> = ({ 
-  isOpen, 
-  message, 
+export const InfoModal: React.FC<InfoModalProps> = ({
+  isOpen,
+  message,
   title = "Message",
-  onContinue 
+  onContinue,
 }) => {
   const bgColor = useColorModeValue("white", "gray.800");
   const messageIconColor = useColorModeValue("blue.500", "blue.300");
@@ -35,13 +35,10 @@ export const InfoModal: React.FC<InfoModalProps> = ({
 
   return (
     <Modal isOpen={true} onClose={() => {}} closeOnOverlayClick={false} isCentered>
-      <ModalOverlay
-        backdropFilter="blur(4px)"
-        bg="blackAlpha.300"
-      />
+      <ModalOverlay backdropFilter="blur(4px)" bg="blackAlpha.300" />
       <ModalContent bg={bgColor} maxW="md">
         <ModalHeader textAlign="center">{title}</ModalHeader>
-        
+
         <ModalBody>
           <VStack spacing={4} py={2}>
             <Icon as={MdInfo} boxSize={12} color={messageIconColor} />

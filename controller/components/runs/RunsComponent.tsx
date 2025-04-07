@@ -61,60 +61,58 @@ export const RunsComponent: React.FC = () => {
   const [expandedRuns, setExpandedRuns] = useState<Set<string>>(new Set());
   const [runAttributesMap, setRunAttributesMap] = useState<Record<string, any>>({});
   const [isErrorVisible, setIsErrorVisible] = useState(true);
-  
+
   // Unified message state with timer support
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [messageData, setMessageData] = useState<{
-    type: 'pause' | 'message' | 'timer';
+    type: "pause" | "message" | "timer";
     message: string;
     title?: string;
     pausedAt?: number;
     timerDuration?: number;
     timerEndTime?: number;
   }>({
-    type: 'pause',
+    type: "pause",
     message: "Run is paused. Click Continue to resume.",
-    title: "Message"
+    title: "Message",
   });
-  
+
   const skipRunMutation = trpc.commandQueue.clearByRunId.useMutation();
-  
+
   // Resume mutation
   const resumeMutation = trpc.commandQueue.resume.useMutation();
-  
+
   const commandsAll = trpc.commandQueue.commands.useQuery(
     { limit: 1000, offset: 0 },
-    { refetchInterval: 1000 },
+    { refetchInterval: 3000 },
   );
-  
+
   // Query for waiting-for-input status
-  const isWaitingForInputQuery = trpc.commandQueue.isWaitingForInput.useQuery(
-    undefined,
-    { refetchInterval: 1000 }
-  );
-  
+  const isWaitingForInputQuery = trpc.commandQueue.isWaitingForInput.useQuery(undefined, {
+    refetchInterval: 3000,
+  });
+
   // Query for current message data
-  const currentMessageQuery = trpc.commandQueue.currentMessage.useQuery(
-    undefined,
-    { refetchInterval: 1000 }
-  );
-  
+  const currentMessageQuery = trpc.commandQueue.currentMessage.useQuery(undefined, {
+    refetchInterval: 3000,
+  });
+
   const commandBgColor = useColorModeValue("gray.50", "gray.800");
   const borderColor = useColorModeValue("gray.300", "gray.600");
   const hoverBgColor = useColorModeValue("gray.100", "gray.600");
   const textColor = useColorModeValue("gray.800", "gray.100");
   const cardBg = useColorModeValue("white", "gray.700");
   const expandedRunBg = useColorModeValue("gray.50", "gray.800");
-  const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
-  const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
+  const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 3000 });
+  const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 3000 });
   const groupedCommands = useMemo(
     () => (commandsAll.data ? groupCommandsByRun(commandsAll.data) : []),
     [commandsAll.data],
   );
-  const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 1000 });
+  const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 3000 });
   const queue = trpc.commandQueue;
   const getError = queue.getError.useQuery(undefined, {
-    refetchInterval: 1500,
+    refetchInterval: 3000,
     select: (data) => data || null,
     retry: false,
   });
@@ -124,23 +122,29 @@ export const RunsComponent: React.FC = () => {
     if (isWaitingForInputQuery.data !== undefined) {
       setIsModalOpen(isWaitingForInputQuery.data);
     }
-    
+
     if (currentMessageQuery.data) {
       // Create a compatible object that TypeScript will accept
       const newMessageData = {
-        type: currentMessageQuery.data.type as 'pause' | 'message' | 'timer',
+        type: currentMessageQuery.data.type as "pause" | "message" | "timer",
         message: currentMessageQuery.data.message,
         // Include optional properties if they exist
         ...(currentMessageQuery.data.title ? { title: currentMessageQuery.data.title } : {}),
-        ...(currentMessageQuery.data.pausedAt ? { pausedAt: currentMessageQuery.data.pausedAt } : {}),
-        ...(currentMessageQuery.data.timerDuration ? { timerDuration: currentMessageQuery.data.timerDuration } : {}),
-        ...(currentMessageQuery.data.timerEndTime ? { timerEndTime: currentMessageQuery.data.timerEndTime } : {})
+        ...(currentMessageQuery.data.pausedAt
+          ? { pausedAt: currentMessageQuery.data.pausedAt }
+          : {}),
+        ...(currentMessageQuery.data.timerDuration
+          ? { timerDuration: currentMessageQuery.data.timerDuration }
+          : {}),
+        ...(currentMessageQuery.data.timerEndTime
+          ? { timerEndTime: currentMessageQuery.data.timerEndTime }
+          : {}),
       };
-      
+
       setMessageData(newMessageData);
     }
   }, [isWaitingForInputQuery.data, currentMessageQuery.data]);
-  
+
   // Handle resume/skip button click
   const handleResume = () => {
     resumeMutation.mutate();
@@ -332,18 +336,18 @@ export const RunsComponent: React.FC = () => {
   const getStatusInfo = () => {
     if (isModalOpen) {
       switch (messageData.type) {
-        case 'pause':
+        case "pause":
           return { color: "orange", text: "Paused" };
-        case 'message':
+        case "message":
           return { color: "blue", text: "Waiting" };
-        case 'timer':
+        case "timer":
           return { color: "purple", text: "Timer" };
         default:
           return { color: "gray", text: "Unknown" };
       }
     } else {
-      return stateQuery.data === ToolStatus.BUSY 
-        ? { color: "green", text: "Running" } 
+      return stateQuery.data === ToolStatus.BUSY
+        ? { color: "green", text: "Running" }
         : { color: "gray", text: "Stopped" };
     }
   };
@@ -353,12 +357,8 @@ export const RunsComponent: React.FC = () => {
   return (
     <Box width="100%">
       {/* Unified Message Modal for pause, message, and timer */}
-      <MessageModal 
-        isOpen={isModalOpen} 
-        messageData={messageData} 
-        onContinue={handleResume} 
-      />
-      
+      <MessageModal isOpen={isModalOpen} messageData={messageData} onContinue={handleResume} />
+
       <ErrorBanner />
       <VStack spacing={6} align="stretch">
         <Card bg={cardBg} shadow="md">
@@ -370,9 +370,7 @@ export const RunsComponent: React.FC = () => {
                   <VStack align="start" spacing={1}>
                     <Heading size="lg">Run Queue</Heading>
                     <HStack>
-                      <Badge
-                        colorScheme={statusInfo.color}
-                        fontSize="sm">
+                      <Badge colorScheme={statusInfo.color} fontSize="sm">
                         {statusInfo.text}
                       </Badge>
                       <LastUpdatedTime />
