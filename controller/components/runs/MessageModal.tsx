@@ -20,7 +20,10 @@ import { MdPause, MdInfo, MdAccessTime } from "react-icons/md";
 interface MessageProps {
   isOpen: boolean;
   messageData: {
-    type: "pause" | "message";
+    type: "pause" | "message" | "timer";
+    timerDuration?: number;
+    timerEndTime?: number;
+    timerStartTime?: number;
     message: string;
     title?: string;
     pausedAt?: number;
