@@ -23,6 +23,9 @@ class Workcell(Base, TimestampMixin):
     tools = relationship(
         "Tool", back_populates="workcell", cascade="all, delete-orphan"
     )  # type: List["Tool"]  # type: ignore
+    protocols = relationship(
+        "Protocol", back_populates="workcell", cascade="all, delete-orphan"
+    )  # type: List["Protocol"] # type: ignore
 
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
@@ -277,6 +280,8 @@ class Protocol(Base, TimestampMixin):
     version = Column(Integer, nullable=False, default=1)
     is_active = Column(Boolean, nullable=False, default=True)
 
-    workcell = relationship("Workcell")  # type: Optional["Workcell"]  # type: ignore
+    workcell = relationship(
+        "Workcell", back_populates="protocols"
+    )  # type: Optional["Workcell"]  # type: ignore
 
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)

@@ -112,6 +112,22 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                                     joint_val = "0"
                             joints.append(joint_val)
 
+                        # Check if all joint values represent zero
+                        all_zero = True
+                        for val in joints:
+                            try:
+                                if float(val) != 0.0:
+                                    all_zero = False
+                                    break
+                            except ValueError:
+                                # If conversion fails, it's not zero
+                                all_zero = False
+                                break
+
+                        # Skip this location if all joints are zero
+                        if all_zero:
+                            continue
+
                         data["teach_points"].append(
                             {
                                 "name": name,
