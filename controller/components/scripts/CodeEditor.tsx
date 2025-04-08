@@ -37,6 +37,8 @@ import { useScriptColors } from "../ui/Theme";
 import { CloseIcon, PythonIcon, CodeIcon, PlayIcon, SaveIcon, FolderAddIcon } from "../ui/Icons";
 import * as monaco from "monaco-editor";
 import { editor } from "monaco-editor";
+import { FaFileImport, FaFileExport } from "react-icons/fa";
+import { useScriptIO } from "@/hooks/useScriptIO";
 
 export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
@@ -74,6 +76,48 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [folderCreating, setFolderCreating] = useState(false);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof monaco | null>(null);
+
+  // Define refreshData function here
+  const refreshData = async () => {
+    await refetch();
+    await refetchFolders();
+  };
+
+  // Get active script ID based on activeTab name
+  const activeScriptId = scripts.find((s) => s.name === activeTab)?.id;
+
+  // Instantiate the useScriptIO hook
+  const {
+    fileInputRef,
+    handleExportConfig,
+    handleImportClick,
+    handleFileChange,
+    isImporting,
+    isExporting,
+  } = useScriptIO(scripts, activeScriptId, refetch, refetchFolders);
+
+  // Wrapped handlers to add toast notifications
+  const onExportConfig = async () => {
+    const result = await handleExportConfig();
+    if (result.success) {
+      showSuccessToast("Export Successful", result.message);
+    } else {
+      if (result.message.includes("Please select")) {
+        warningToast("No Script Selected", result.message);
+      } else {
+        showErrorToast("Export Failed", result.message);
+      }
+    }
+  };
+
+  const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const result = await handleFileChange(event);
+    if (result?.success) {
+      showSuccessToast("Import Successful", result.message);
+    } else if (result) {
+      showErrorToast("Import Failed", result.message);
+    }
+  };
 
   const registerCustomHotkeys = (editor: any, monaco: any) => {
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, async () => {
@@ -435,11 +479,34 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     setActiveTab(script);
   };
 
-  // Add a function to refresh scripts and folders
-  const refreshData = async () => {
-    await refetch();
-    await refetchFolders();
-  };
+  // Define Import and Export buttons
+  const importButton = (
+    <Button
+      leftIcon={<FaFileImport />}
+      colorScheme="blue"
+      variant="outline"
+      onClick={handleImportClick}
+      isLoading={isImporting}
+      isDisabled={isImporting}
+      size="sm" // Match other header buttons if necessary
+    >
+      Import
+    </Button>
+  );
+
+  const exportButton = (
+    <Button
+      leftIcon={<FaFileExport />}
+      colorScheme="green"
+      variant="outline"
+      onClick={onExportConfig}
+      isDisabled={!activeTab || isExporting}
+      isLoading={isExporting}
+      size="sm" // Match other header buttons if necessary
+    >
+      Export Active Script
+    </Button>
+  );
 
   return (
     <Box maxW="100%">
@@ -462,6 +529,8 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                 title="Scripts"
                 subTitle="Create and manage Python scripts"
                 titleIcon={<Icon as={CodeIcon} boxSize={8} color="teal.500" />}
+                mainButton={importButton}
+                secondaryButton={exportButton}
               />
 
               <Divider />
@@ -483,6 +552,15 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
             </VStack>
           </CardBody>
         </Card>
+
+        {/* Hidden file input for import - only accept .py */}
+        <Input
+          type="file"
+          ref={fileInputRef}
+          onChange={onFileChange}
+          style={{ display: "none" }}
+          accept=".py"
+        />
 
         <Card bg={headerBg} shadow="md">
           <CardBody>

@@ -110,4 +110,37 @@ export const scriptRouter = router({
     await del(`/script-folders/${input}`);
     return { message: "Folder deleted successfully" };
   }),
+
+  // Export script content
+  exportConfig: procedure.input(z.number()).mutation(async ({ input }) => {
+    try {
+      const scriptId = input;
+      // Directly fetch script content from the backend API (assuming an endpoint exists or will be created)
+      const response = await get<Script>(`/scripts/${scriptId}/export`); // Using GET for simplicity, adjust if needed
+      // Return the content or the whole script object as needed by the frontend hook
+      return response; // Assuming the backend returns { id, name, content, language, ... }
+    } catch (error) {
+      console.error("Export failed:", error);
+      throw error;
+    }
+  }),
+
+  // Import script (Placeholder - Needs backend implementation)
+  // The actual file upload is handled directly by the frontend to a specific API endpoint
+  // This mutation might be used for post-import processing or just kept for consistency
+  importConfig: procedure
+    .input(
+      z.object({
+        // Define expected input if any post-processing is needed after upload
+        // For now, it might not need input if the fetch call handles everything
+      }),
+    )
+    .mutation(async ({ input }) => {
+      // Placeholder: In a real scenario, this might trigger post-import actions
+      // or could be removed if the direct fetch call is sufficient.
+      console.log("Script import process initiated via API endpoint.", input);
+      // Typically, you might return the imported script details if available
+      // For now, returning a simple success message or placeholder
+      return { success: true, message: "Import handled by API endpoint." };
+    }),
 });
