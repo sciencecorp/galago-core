@@ -34,8 +34,9 @@ import { getRunAttributes, groupCommandsByRun } from "@/utils/runUtils";
 import { SiGithubactions } from "react-icons/si";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { BsInbox } from "react-icons/bs";
-import { MessageModal } from "./MessageModal"; // Import the MessageModal component
+import { MessageModal } from "./MessageModal";
 import { TimerModal } from "./TimerModal";
+import { StopRunModal } from "./StopRunModal";
 
 const LastUpdatedTime = () => {
   const [time, setTime] = useState<string>("");
@@ -67,20 +68,22 @@ export const RunsComponent: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [messageData, setMessageData] = useState<{
-    type: "pause" | "message" | "timer";
+    type: "pause" | "message" | "timer" | "stop_run";
     message: string;
     title?: string;
-    pausedAt?: number; // Make pausedAt optional to match UIMessage
-    timerDuration?: number; // Optional for timer
-    timerEndTime?: number; // Optional for timer
+    pausedAt?: number;
+    timerDuration?: number;
+    timerEndTime?: number;
   }>({
     type: "pause",
     message: "Run is paused. Click Continue to resume.",
     title: "Message",
-    pausedAt: undefined, // Can be undefined initially
+    pausedAt: undefined,
   });
-  const skipRunMutation = trpc.commandQueue.clearByRunId.useMutation();
 
+  const stopQueueMutation = trpc.commandQueue.stop.useMutation();
+  const clearAllMutation = trpc.commandQueue.clearAll.useMutation();
+  const skipRunMutation = trpc.commandQueue.clearByRunId.useMutation();
   // Resume mutation
   const resumeMutation = trpc.commandQueue.resume.useMutation();
 
@@ -149,6 +152,25 @@ export const RunsComponent: React.FC = () => {
   // Handle resume button click
   const handleResume = () => {
     resumeMutation.mutate();
+  };
+
+  const handleRunStop = () => {
+    // First stop the queue (which now also resets waiting state)
+    stopQueueMutation.mutate();
+
+    // Then clear all commands
+    clearAllMutation.mutate();
+
+    // Update local state
+    setIsModalOpen(false);
+
+    // Reset message data to default state
+    setMessageData({
+      type: "pause",
+      message: "Run is paused. Click Continue to resume.",
+      title: "Message",
+      pausedAt: undefined,
+    });
   };
 
   const ErrorBanner = () => {
@@ -351,6 +373,13 @@ export const RunsComponent: React.FC = () => {
         isOpen={isModalOpen && messageData.type != "timer"}
         messageData={messageData}
         onContinue={handleResume}
+      />
+
+      <StopRunModal
+        isOpen={isModalOpen && messageData.type === "stop_run"}
+        messageData={messageData}
+        onClose={handleResume}
+        onConfirm={handleRunStop}
       />
 
       <ErrorBanner />

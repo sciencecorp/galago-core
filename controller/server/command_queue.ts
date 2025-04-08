@@ -22,7 +22,7 @@ export enum QueueState {
 
 // UI message type for differentiating between pause and show_message
 export interface UIMessage {
-  type: "pause" | "message" | "timer";
+  type: "pause" | "message" | "timer" | "stop_run";
   message: string;
   title?: string;
   pausedAt?: number; // Timestamp when paused or message shown
@@ -121,6 +121,27 @@ export class CommandQueue {
       level: "info",
       action: "Queue Showing Message",
       details: `Queue showing message: ${this._currentMessage.message} at ${new Date(pausedAt).toISOString()}`,
+    });
+
+    // Return a promise that resolves when resume is called
+    return new Promise<void>((resolve) => {
+      this._messageResolve = resolve;
+    });
+  }
+
+  async stopRunRequest(message: string) {
+    const pausedAt = Date.now();
+    this._isWaitingForInput = true;
+    this._currentMessage = {
+      type: "stop_run",
+      message: message || "Stopping run...",
+      pausedAt: pausedAt,
+    };
+
+    logAction({
+      level: "info",
+      action: "Queue Stop Run Requested",
+      details: `Queue stop run requested with message: ${this._currentMessage.message} at ${new Date(pausedAt).toISOString()}`,
     });
 
     // Return a promise that resolves when resume is called
@@ -247,18 +268,34 @@ export class CommandQueue {
     }
   }
 
+  // Modify the stop method in CommandQueue.ts to reset _isWaitingForInput
   async stop() {
     // Clear any active timer
     if (this._timerTimeout) {
       clearTimeout(this._timerTimeout);
       this._timerTimeout = undefined;
     }
-    this._setState(ToolStatus.OFFLINE);
+
+    // Reset the waiting flag
+    this._isWaitingForInput = false;
+    this._currentMessage = {
+      type: "pause",
+      message: "Run is paused. Click Continue to resume.",
+      pausedAt: undefined,
+    };
+
+    // Clear any pending resolve function
+    if (this._messageResolve) {
+      this._messageResolve();
+      this._messageResolve = undefined;
+    }
     logger.info("Command Queue stopped!");
     logAction({ level: "info", action: "Queue stopped", details: "Queue stopped." });
+
     if (this._runningPromise) {
       await this._runningPromise;
     }
+
     this._setState(ToolStatus.OFFLINE);
   }
 
@@ -325,6 +362,18 @@ export class CommandQueue {
           } else if (nextCommand.commandInfo.command === "note") {
             await this.commands.complete(nextCommand.queueId); //This marks the command as complete
             continue;
+          } else if (nextCommand.commandInfo.command === "stop_run") {
+            const message = nextCommand.commandInfo.params?.message || "Stopping run...";
+            logAction({
+              level: "info",
+              action: "Run Stop Requested",
+              details: `Queue stop requested by command: ${message}`,
+            });
+
+            // Complete this command before stopping
+            await this.stopRunRequest(message);
+            await this.commands.complete(nextCommand.queueId);
+            return; // Exit the loop as we've stopped the queue
           }
         }
 
