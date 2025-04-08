@@ -37,12 +37,19 @@ export const commandFields: CommandFields = {
     ],
     timer: [
       {
-        name: "time_seconds",
+        name: "minutes",
         type: "number",
+        defaultValue: 0,
+      },
+      {
+        name: "seconds",
+        type: "number",
+        defaultValue: 30,
       },
       {
         name: "message",
         type: "text",
+        defaultValue: "Timer in progress...",
       },
     ],
     show_message: [

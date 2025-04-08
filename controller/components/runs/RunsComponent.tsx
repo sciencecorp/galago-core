@@ -35,6 +35,7 @@ import { SiGithubactions } from "react-icons/si";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { BsInbox } from "react-icons/bs";
 import { MessageModal } from "./MessageModal"; // Import the MessageModal component
+import { TimerModal } from "./TimerModal";
 
 const LastUpdatedTime = () => {
   const [time, setTime] = useState<string>("");
@@ -66,10 +67,12 @@ export const RunsComponent: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [messageData, setMessageData] = useState<{
-    type: "pause" | "message";
+    type: "pause" | "message" | "timer";
     message: string;
     title?: string;
     pausedAt?: number; // Make pausedAt optional to match UIMessage
+    timerDuration?: number; // Optional for timer
+    timerEndTime?: number; // Optional for timer
   }>({
     type: "pause",
     message: "Run is paused. Click Continue to resume.",
@@ -130,6 +133,12 @@ export const RunsComponent: React.FC = () => {
         ...(currentMessageQuery.data.title ? { title: currentMessageQuery.data.title } : {}),
         ...(currentMessageQuery.data.pausedAt
           ? { pausedAt: currentMessageQuery.data.pausedAt }
+          : {}),
+        ...(currentMessageQuery.data.timerDuration
+          ? { timerDuration: currentMessageQuery.data.timerDuration }
+          : {}),
+        ...(currentMessageQuery.data.timerEndTime
+          ? { timerEndTime: currentMessageQuery.data.timerEndTime }
           : {}),
       };
 
@@ -326,8 +335,23 @@ export const RunsComponent: React.FC = () => {
 
   return (
     <Box width="100%">
-      {/* Unified Message Modal for both pause and show_message */}
-      <MessageModal isOpen={isModalOpen} messageData={messageData} onContinue={handleResume} />
+      {messageData.type === "timer" && (
+        <TimerModal
+          isOpen={isModalOpen && messageData.type === "timer"}
+          messageData={{
+            message: messageData.message,
+            pausedAt: messageData.pausedAt,
+            timerDuration: messageData.timerDuration,
+            timerEndTime: messageData.timerEndTime,
+          }}
+          onSkip={handleResume}
+        />
+      )}
+      <MessageModal
+        isOpen={isModalOpen && messageData.type != "timer"}
+        messageData={messageData}
+        onContinue={handleResume}
+      />
 
       <ErrorBanner />
       <VStack spacing={6} align="stretch">
