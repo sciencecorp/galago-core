@@ -322,6 +322,9 @@ export class CommandQueue {
             await this.commands.complete(nextCommand.queueId);
             await this.startTimer(minutes, seconds, message);
             continue;
+          } else if (nextCommand.commandInfo.command === "note") {
+            await this.commands.complete(nextCommand.queueId); //This marks the command as complete
+            continue;
           }
         }
 
