@@ -248,11 +248,13 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
                           setSelectedNestIds([]);
                         }}
                         bg={inputBg}>
-                        {tools.map((tool) => (
-                          <option key={tool.id} value={tool.id}>
-                            {tool.name}
-                          </option>
-                        ))}
+                        {tools
+                          .filter((tool) => tool.type.toLowerCase() === "liconic")
+                          .map((tool) => (
+                            <option key={tool.id} value={tool.id}>
+                              {tool.name}
+                            </option>
+                          ))}
                       </Select>
                     </FormControl>
                   </Box>

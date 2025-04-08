@@ -152,11 +152,13 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
                           setSelectedNestId(null);
                         }}
                         bg={inputBg}>
-                        {tools.map((tool) => (
-                          <option key={tool.id} value={tool.id}>
-                            {tool.name}
-                          </option>
-                        ))}
+                        {tools
+                          .filter((tool) => tool.type.toLowerCase() === "liconic")
+                          .map((tool) => (
+                            <option key={tool.id} value={tool.id}>
+                              {tool.name}
+                            </option>
+                          ))}
                       </Select>
                     </FormControl>
                   </Box>
