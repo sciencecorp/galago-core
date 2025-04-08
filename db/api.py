@@ -1065,7 +1065,6 @@ async def import_script_config(
     db: Session = Depends(get_db),
 ) -> t.Any:
     """Import a script from an uploaded file."""
-    import os
     from pathlib import Path
 
     try:
