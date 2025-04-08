@@ -1,3 +1,4 @@
+import enum
 from sqlalchemy import (
     Column,
     ForeignKey,
@@ -7,7 +8,7 @@ from sqlalchemy import (
     Boolean,
     Float,
     CheckConstraint,
-    Enum,
+    Enum as SQLEnum,
     Date
 )
 from sqlalchemy.orm import relationship
@@ -92,7 +93,7 @@ class Nest(Base, TimestampMixin):
     row = Column(Integer)
     column = Column(Integer)
     tool_id = Column(Integer, ForeignKey("tools.id"))
-    status = Column(Enum(NestStatus), default=NestStatus.empty)
+    status = Column(SQLEnum(NestStatus), default=NestStatus.empty)
 
     # Relationships
     tool = relationship("Tool", back_populates="nests")
@@ -106,7 +107,7 @@ class Plate(Base, TimestampMixin):
     barcode = Column(String)
     plate_type = Column(String)
     nest_id = Column(Integer, ForeignKey("nests.id"), nullable=True)
-    status = Column(Enum(PlateStatus), default=PlateStatus.stored)
+    status = Column(SQLEnum(PlateStatus), default=PlateStatus.stored)
 
     # Relationships
     current_nest = relationship("Nest", foreign_keys=[nest_id], uselist=False)
@@ -119,7 +120,7 @@ class PlateNestHistory(Base, TimestampMixin):
     id = Column(Integer, primary_key=True)
     plate_id = Column(Integer, ForeignKey("plates.id"))
     nest_id = Column(Integer, ForeignKey("nests.id"))
-    action = Column(Enum(PlateNestAction))
+    action = Column(SQLEnum(PlateNestAction))
     timestamp = Column(Date(timezone=True), server_default=func.now())
 
     # Relationships
