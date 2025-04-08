@@ -406,8 +406,8 @@ class ScriptUpdate(BaseModel):
 
 class Script(ScriptBase):
     id: int
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         orm_mode = True
@@ -433,8 +433,8 @@ class ScriptFolder(ScriptFolderBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    created_at: datetime
+    updated_at: datetime
     subfolders: list["ScriptFolder"] = []
     scripts: list["Script"] = []
 
@@ -442,8 +442,8 @@ class ScriptFolder(ScriptFolderBase):
 # Break the circular reference by using a simplified script model for folders
 class ScriptFolderResponse(ScriptFolderBase):
     id: int
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    created_at: datetime
+    updated_at: datetime
     subfolders: list["ScriptFolderResponse"] = []
     scripts: list["Script"] = []
 

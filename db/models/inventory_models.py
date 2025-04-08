@@ -13,6 +13,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from typing import List, Optional  # noqa: F401
 from .db_session import Base
 from .utils import TimestampMixin
 
@@ -66,21 +67,21 @@ class Tool(Base, TimestampMixin):
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
 
-class NestStatus(enum.Enum):
+class NestStatus(str, enum.Enum):
     empty = "empty"
     occupied = "occupied"
     reserved = "reserved"
     error = "error"
 
 
-class PlateStatus(enum.Enum):
+class PlateStatus(str, enum.Enum):
     stored = "stored"
     in_use = "in_use"
     completed = "completed"
     disposed = "disposed"
 
 
-class PlateNestAction(enum.Enum):
+class PlateNestAction(str, enum.Enum):
     check_in = "check_in"
     check_out = "check_out"
     transfer = "transfer"
@@ -96,8 +97,10 @@ class Nest(Base, TimestampMixin):
     status = Column(SQLEnum(NestStatus), default=NestStatus.empty)
 
     # Relationships
-    tool = relationship("Tool", back_populates="nests")
-    plate_history = relationship("PlateNestHistory", back_populates="nest")
+    tool = relationship("Tool", back_populates="nests")  # type: "Tool"
+    plate_history = relationship(
+        "PlateNestHistory", back_populates="nest"
+    )  # type: List["PlateNestHistory"]
 
 
 class Plate(Base, TimestampMixin):
@@ -110,9 +113,13 @@ class Plate(Base, TimestampMixin):
     status = Column(SQLEnum(PlateStatus), default=PlateStatus.stored)
 
     # Relationships
-    current_nest = relationship("Nest", foreign_keys=[nest_id], uselist=False)
-    nest_history = relationship("PlateNestHistory", back_populates="plate")
-    wells = relationship("Well", back_populates="plate")
+    current_nest = relationship(
+        "Nest", foreign_keys=[nest_id], uselist=False
+    )  # type: Optional["Nest"]
+    nest_history = relationship(
+        "PlateNestHistory", back_populates="plate"
+    )  # type: List["PlateNestHistory"]
+    wells = relationship("Well", back_populates="plate")  # type: List["Well"]
 
 
 class PlateNestHistory(Base, TimestampMixin):
@@ -121,11 +128,11 @@ class PlateNestHistory(Base, TimestampMixin):
     plate_id = Column(Integer, ForeignKey("plates.id"))
     nest_id = Column(Integer, ForeignKey("nests.id"))
     action = Column(SQLEnum(PlateNestAction))
-    timestamp = Column(Date(timezone=True), server_default=func.now())
+    timestamp = Column(Date, server_default=func.now())
 
     # Relationships
-    plate = relationship("Plate", back_populates="nest_history")
-    nest = relationship("Nest", back_populates="plate_history")
+    plate = relationship("Plate", back_populates="nest_history")  # type: "Plate"
+    nest = relationship("Nest", back_populates="plate_history")  # type: "Nest"
 
 
 class Well(Base, TimestampMixin):
@@ -136,8 +143,8 @@ class Well(Base, TimestampMixin):
     plate_id = Column(Integer, ForeignKey("plates.id"))
 
     # Relationships
-    plate = relationship("Plate", back_populates="wells")
-    reagents = relationship("Reagent", back_populates="well")
+    plate = relationship("Plate", back_populates="wells")  # type: "Plate"
+    reagents = relationship("Reagent", back_populates="well")  # type: List["Reagent"]
 
 
 class Reagent(Base, TimestampMixin):
@@ -149,7 +156,7 @@ class Reagent(Base, TimestampMixin):
     well_id = Column(Integer, ForeignKey("wells.id"))
 
     # Relationships
-    well = relationship("Well", back_populates="reagents")
+    well = relationship("Well", back_populates="reagents")  # type: "Well"
 
 
 class VariableType(Base, TimestampMixin):

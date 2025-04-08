@@ -588,8 +588,10 @@ def get_plate_info(plate_id: int, db: Session = Depends(get_db)) -> t.Any:
         plate_type=plate.plate_type,
         barcode=plate.barcode,
         nest_id=plate.nest_id,
-        nest=schemas.Nest.from_orm(nest) if nest else None,
-        wells=[schemas.Well.from_orm(well) for well in wells],
+        nest=schemas.Nest.model_validate(nest) if nest else None,
+        wells=[schemas.Well.model_validate(well) for well in wells],
+        created_at=plate.created_at,
+        updated_at=plate.updated_at,
     )
 
 
