@@ -1,5 +1,5 @@
 import { trpc } from "@/utils/trpc";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   HStack,
@@ -23,12 +23,11 @@ import { useRef } from "react";
 import { capitalizeFirst } from "@/utils/parser";
 import { FaRegFileCode } from "react-icons/fa6";
 import { RunCommand } from "@/types";
-import { HiMiniPause } from "react-icons/hi2";
-import { GiPauseButton } from "react-icons/gi";
 import { TbMessageReport } from "react-icons/tb";
 import { MdOutlinePauseCircleOutline } from "react-icons/md";
-import { MdAlarm, MdTimer } from "react-icons/md";
+import { MdAlarm, MdStop } from "react-icons/md";
 import { FaRegStickyNote } from "react-icons/fa";
+import { GoStop } from "react-icons/go";
 
 interface LaneCommandComponentProps {
   command: RunCommand;
@@ -44,7 +43,6 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
   const execMutation = trpc.tool.runCommand.useMutation();
   const { queueId, commandInfo, estimatedDuration, status } = command;
   let toolName = infoQuery.data?.name || "undefined";
-  const [commandColor, setCommandColor] = useState<string>("White");
   const bgColor = useColorModeValue("white", "gray.700");
   const errorColor = useColorModeValue("red.200", "red.800");
   const toolNameRef = useRef(toolName);
@@ -60,6 +58,7 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
       pause: <MdOutlinePauseCircleOutline style={{ width: "100%", height: "50px" }} />,
       timer: <MdAlarm style={{ width: "100%", height: "50px" }} />,
       note: <FaRegStickyNote style={{ width: "100%", height: "50px" }} />,
+      stop_run: <GoStop style={{ width: "100%", height: "50px", color: "red" }} />,
     } as Record<string, JSX.Element>;
 
     return commandIconMap[commandName] || <PiToolbox style={{ width: "100%", height: "65px" }} />;
@@ -112,14 +111,6 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
         return bgColor;
     }
   }
-
-  infoQuery.data?.image_url;
-  useEffect(() => {
-    if (infoQuery.isLoading) {
-      setCommandColor("Blue");
-      toolName = "loading..";
-    }
-  }, [infoQuery.isLoading]);
 
   const queued =
     queueId &&

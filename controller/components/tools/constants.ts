@@ -71,22 +71,11 @@ export const commandFields: CommandFields = {
         defaultValue: "Message",
       },
     ],
-    show_image: [
+    stop_run: [
       {
-        name: "file",
+        name: "message",
         type: "text",
-      },
-      {
-        name: "title",
-        type: "text",
-      },
-      {
-        name: "width",
-        type: "number",
-      },
-      {
-        name: "height",
-        type: "number",
+        defaultValue: "Stopping run...",
       },
     ],
     slack_message: [
