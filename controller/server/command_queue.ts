@@ -17,14 +17,17 @@ export type CommandQueueState = ToolStatus;
 export enum QueueState {
   PAUSED = "PAUSED",
   MESSAGE = "MESSAGE",
+  TIMER = "TIMER",
 }
 
 // UI message type for differentiating between pause and show_message
 export interface UIMessage {
-  type: "pause" | "message";
+  type: "pause" | "message" | "timer";
   message: string;
   title?: string;
   pausedAt?: number; // Timestamp when paused or message shown
+  timerDuration?: number; //Total duration of the timer
+  timerEndTime?: number; // Timestamp when timer ends
 }
 
 export class CommandQueue {
@@ -40,6 +43,7 @@ export class CommandQueue {
     pausedAt: undefined,
   };
   private _messageResolve?: () => void;
+  private _timerTimeout?: NodeJS.Timeout;
 
   commands: RedisQueue;
 
@@ -125,10 +129,50 @@ export class CommandQueue {
     });
   }
 
+  async startTimer(minutes: number, seconds: number, message?: string) {
+    const pausedAt = Date.now();
+    const durationMs = (minutes * 60 + seconds) * 1000;
+    const endTime = pausedAt + durationMs;
+
+    this._isWaitingForInput = true;
+    this._currentMessage = {
+      type: "timer",
+      message: message || "Timer in progress...",
+      pausedAt: pausedAt,
+      timerDuration: durationMs,
+      timerEndTime: endTime,
+    };
+
+    logAction({
+      level: "info",
+      action: "Queue Timer Started",
+      details: `Queue timer started for ${minutes}m ${seconds}s with message: ${this._currentMessage.message}`,
+    });
+
+    // Return a promise that resolves when timer ends or when skipped
+    return new Promise<void>((resolve) => {
+      this._messageResolve = resolve;
+
+      // Auto-resolve when timer ends
+      this._timerTimeout = setTimeout(() => {
+        if (this._isWaitingForInput && this._currentMessage.type === "timer") {
+          this.resume(true);
+        }
+      }, durationMs);
+    });
+  }
+
   // Resume execution after pause or message
-  resume() {
+  resume(autoResume = false) {
     if (!this._isWaitingForInput) return;
 
+    if (this._timerTimeout) {
+      clearTimeout(this._timerTimeout);
+      this._timerTimeout = undefined;
+    }
+
+    const messageType = this._currentMessage.type;
+    const pausedAt = this._currentMessage.pausedAt || Date.now();
     const elapsedMs = Date.now() - (this._currentMessage.pausedAt || Date.now());
     const elapsedSec = Math.floor(elapsedMs / 1000);
 
@@ -204,6 +248,11 @@ export class CommandQueue {
   }
 
   async stop() {
+    // Clear any active timer
+    if (this._timerTimeout) {
+      clearTimeout(this._timerTimeout);
+      this._timerTimeout = undefined;
+    }
     this._setState(ToolStatus.OFFLINE);
     logger.info("Command Queue stopped!");
     logAction({ level: "info", action: "Queue stopped", details: "Queue stopped." });
@@ -264,6 +313,14 @@ export class CommandQueue {
             const title = nextCommand.commandInfo.params?.title || "Message";
             await this.commands.complete(nextCommand.queueId);
             await this.showMessage(message, title);
+            continue;
+          } else if (nextCommand.commandInfo.command === "timer") {
+            // Handle timer command
+            const minutes = Number(nextCommand.commandInfo.params?.minutes || 0);
+            const seconds = Number(nextCommand.commandInfo.params?.seconds || 30);
+            const message = nextCommand.commandInfo.params?.message || "Timer in progress...";
+            await this.commands.complete(nextCommand.queueId);
+            await this.startTimer(minutes, seconds, message);
             continue;
           }
         }
