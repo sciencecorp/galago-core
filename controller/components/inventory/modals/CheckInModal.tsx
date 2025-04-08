@@ -85,8 +85,6 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
   const filteredNests = availableNests.filter((nest) =>
     selectedToolId ? nest.tool_id === selectedToolId : true,
   );
-  console.log("Filtered Nests:", filteredNests);
-
   const bgColor = useColorModeValue("gray.50", "gray.700");
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const selectedBg = useColorModeValue("blue.50", "blue.900");
@@ -119,7 +117,6 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
       const hasPlate = plates.some((plate) => plate.nest_id === nest.id);
       return !hasPlate && nest.status === "empty";
     });
-    console.log("availableEmptyNests", availableEmptyNests);
 
     if (availableEmptyNests.length > 0) {
       // Sort by row and column to get the first available nest in reading order
@@ -592,10 +589,6 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
       {/* Nest Selection Modal */}
       {isNestModalOpen && (
         <>
-          {console.log("Selected Tool ID:", selectedToolId)}
-          {console.log("Filtered Nests:", filteredNests)}
-          {console.log("Available Nests:", availableNests)}
-          {console.log("Plates:", plates)}
           <NestModal
             isOpen={isNestModalOpen}
             onClose={() => setIsNestModalOpen(false)}
@@ -610,7 +603,6 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
             isMultiSelect={numberOfPlates > 1}
             maxSelections={numberOfPlates}
             onNestSelect={(nestIds) => {
-              console.log("Nests selected:", nestIds);
               const newSelectedNests = numberOfPlates === 1 ? nestIds.slice(0, 1) : nestIds;
               setSelectedNestIds(newSelectedNests);
             }}

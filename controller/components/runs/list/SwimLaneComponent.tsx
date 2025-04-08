@@ -69,7 +69,7 @@ export const SwimLaneComponent: React.FC<SwimLaneProps> = ({ runCommands }) => {
                             border: "1px solid lightgray",
                             borderRadius: "4px",
                           }}
-                          onChange={(e) => console.log(`Updated ${key}: ${e.target.value}`)}
+                          onChange={(e) => {}}
                         />
                       </Box>
                     </>
