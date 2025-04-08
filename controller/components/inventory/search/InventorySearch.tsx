@@ -76,8 +76,15 @@ const InventorySearch: React.FC<InventorySearchProps> = ({
             {searchResults.map((result, index) => (
               <ListItem
                 key={`${result.id}-${result.name}`}
-                bg={isDarkMode ? (index % 2 === 0 ? cardBg : alternateBg) : index % 2 === 0 ? cardBg : hoverBg}
-              >
+                bg={
+                  isDarkMode
+                    ? index % 2 === 0
+                      ? cardBg
+                      : alternateBg
+                    : index % 2 === 0
+                      ? cardBg
+                      : hoverBg
+                }>
                 {isPlate(result) && (
                   <Tooltip label="Click to find corresponding plate">
                     <Text onClick={() => onPlateSelect(result)} cursor="pointer">

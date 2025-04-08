@@ -9,7 +9,7 @@ from sqlalchemy import (
     Float,
     CheckConstraint,
     Enum as SQLEnum,
-    Date
+    Date,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func

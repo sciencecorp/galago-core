@@ -83,7 +83,10 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
       setReagentData({ name: "", expiration_date: "", volume: 0 });
       setSelectedWells([]); // Clear selection after successful creation
 
-      successToast("Reagents added successfully", "Reagents have been added to the selected wells.");
+      successToast(
+        "Reagents added successfully",
+        "Reagents have been added to the selected wells.",
+      );
     } catch (error: any) {
       errorToast("Error adding reagents", error.message);
     }

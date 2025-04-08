@@ -222,7 +222,10 @@ export const InventoryManager = () => {
       successToast("Check-in successful", `${newPlates.length} plate(s) checked in successfully`);
     } catch (error) {
       console.error("Error checking in plate(s):", error);
-      errorToast("Error checking in plate(s)", error instanceof Error ? error.message : "Unknown error");
+      errorToast(
+        "Error checking in plate(s)",
+        error instanceof Error ? error.message : "Unknown error",
+      );
     }
   };
 
@@ -275,7 +278,10 @@ export const InventoryManager = () => {
       );
     } catch (error) {
       console.error("Error checking out plate:", error);
-      errorToast("Error checking out plate", error instanceof Error ? error.message : "Unknown error");
+      errorToast(
+        "Error checking out plate",
+        error instanceof Error ? error.message : "Unknown error",
+      );
     }
   };
 
