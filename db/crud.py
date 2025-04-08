@@ -279,7 +279,7 @@ class CRUDNest(CRUDBase[models.Nest, schemas.NestCreate, schemas.NestUpdate]):
 
         # Update nest and plate
         nest.status = models.NestStatus.empty
-        plate.nest_id = None
+        plate.nest_id = None  # type: ignore
         plate.status = models.PlateStatus.in_use
 
         db.commit()

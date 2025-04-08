@@ -97,10 +97,10 @@ class Nest(Base, TimestampMixin):
     status = Column(SQLEnum(NestStatus), default=NestStatus.empty)
 
     # Relationships
-    tool = relationship("Tool", back_populates="nests")  # type: "Tool"
+    tool = relationship("Tool", back_populates="nests")  # type: "Tool"  # type: ignore
     plate_history = relationship(
         "PlateNestHistory", back_populates="nest"
-    )  # type: List["PlateNestHistory"]
+    )  # type: List["PlateNestHistory"]  # type: ignore
 
 
 class Plate(Base, TimestampMixin):
@@ -115,11 +115,11 @@ class Plate(Base, TimestampMixin):
     # Relationships
     current_nest = relationship(
         "Nest", foreign_keys=[nest_id], uselist=False
-    )  # type: Optional["Nest"]
+    )  # type: Optional["Nest"]  # type: ignore
     nest_history = relationship(
         "PlateNestHistory", back_populates="plate"
-    )  # type: List["PlateNestHistory"]
-    wells = relationship("Well", back_populates="plate")  # type: List["Well"]
+    )  # type: List["PlateNestHistory"]  # type: ignore
+    wells = relationship("Well", back_populates="plate")  # type: List["Well"]  # type: ignore
 
 
 class PlateNestHistory(Base, TimestampMixin):
@@ -131,8 +131,8 @@ class PlateNestHistory(Base, TimestampMixin):
     timestamp = Column(Date, server_default=func.now())
 
     # Relationships
-    plate = relationship("Plate", back_populates="nest_history")  # type: "Plate"
-    nest = relationship("Nest", back_populates="plate_history")  # type: "Nest"
+    plate = relationship("Plate", back_populates="nest_history")  # type: "Plate"  # type: ignore
+    nest = relationship("Nest", back_populates="plate_history")  # type: "Nest"  # type: ignore
 
 
 class Well(Base, TimestampMixin):
@@ -143,8 +143,8 @@ class Well(Base, TimestampMixin):
     plate_id = Column(Integer, ForeignKey("plates.id"))
 
     # Relationships
-    plate = relationship("Plate", back_populates="wells")  # type: "Plate"
-    reagents = relationship("Reagent", back_populates="well")  # type: List["Reagent"]
+    plate = relationship("Plate", back_populates="wells")  # type: "Plate"  # type: ignore
+    reagents = relationship("Reagent", back_populates="well")  # type: List["Reagent"]  # type: ignore
 
 
 class Reagent(Base, TimestampMixin):
@@ -156,7 +156,7 @@ class Reagent(Base, TimestampMixin):
     well_id = Column(Integer, ForeignKey("wells.id"))
 
     # Relationships
-    well = relationship("Well", back_populates="reagents")  # type: "Well"
+    well = relationship("Well", back_populates="reagents")  # type: "Well"  # type: ignore
 
 
 class VariableType(Base, TimestampMixin):
