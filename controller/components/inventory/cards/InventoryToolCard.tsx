@@ -16,7 +16,6 @@ import {
   HStack,
   Badge,
   Divider,
-  Icon,
   Tooltip,
 } from "@chakra-ui/react";
 import { Nest, Plate, Reagent } from "@/types/api";
@@ -27,6 +26,8 @@ import { PiToolbox } from "react-icons/pi";
 import { useColorModeValue } from "@chakra-ui/react";
 import { BsGrid3X3, BsBoxSeam } from "react-icons/bs";
 import { FaFlask } from "react-icons/fa";
+import { Icon } from "@/components/ui/Icons";
+import { useCommonColors, useTextColors } from "@/components/ui/Theme";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -79,9 +80,8 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   onPlateClick,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const cardBg = useColorModeValue("white", "gray.900");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const iconColor = useColorModeValue("gray.600", "gray.400");
+  const { cardBg, borderColor, hoverBg } = useCommonColors();
+  const { secondary: iconColor } = useTextColors();
   const statBg = useColorModeValue("gray.50", "gray.800");
 
   const { isOpen, onOpen, onClose } = useDisclosure();

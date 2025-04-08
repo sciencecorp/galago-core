@@ -5,7 +5,6 @@ import {
   useToast,
   Card,
   CardBody,
-  Icon,
   Divider,
   StatGroup,
   Stat,
@@ -17,18 +16,21 @@ import {
   SimpleGrid,
   Button,
   ButtonGroup,
+  useColorMode,
 } from "@chakra-ui/react";
 import { Inventory, Plate, Reagent, Nest, Tool } from "@/types/api";
 import { PageHeader } from "@/components/ui/PageHeader";
 import InventorySearch from "./search/InventorySearch";
 import { InventoryToolCard } from "./cards/InventoryToolCard";
 import AlertComponent from "@/components/ui/AlertComponent";
-import { useColorMode } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { BsBoxSeam } from "react-icons/bs";
 import CheckInModal from "./modals/CheckInModal";
 import CheckOutModal from "./modals/CheckOutModal";
 import PlateModal from "./modals/PlateModal";
+import { Icon } from "@/components/ui/Icons";
+import { successToast, errorToast } from "@/components/ui/Toast";
+import { useCommonColors } from "@/components/ui/Theme";
 
 export const InventoryManager = () => {
   const [search, setSearch] = useState("");
@@ -46,7 +48,6 @@ export const InventoryManager = () => {
 
   const { colorMode } = useColorMode();
   const isDarkMode = colorMode === "dark";
-  const toast = useToast();
 
   const workcells = trpc.workcell.getAll.useQuery();
   const SelectedWorkcellName = trpc.workcell.getSelectedWorkcell.useQuery();
@@ -79,9 +80,7 @@ export const InventoryManager = () => {
 
   const workcellTools = selectedWorkcell?.tools || [];
 
-  const headerBg = useColorModeValue("white", "gray.700");
-  const containerBg = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const { headerBg, borderColor } = useCommonColors();
 
   // Calculate stats with proper typing
   const typedNests = nests as Nest[];
@@ -131,13 +130,7 @@ export const InventoryManager = () => {
       refetchNests();
     } catch (error) {
       console.error("Error creating nest:", error);
-      toast({
-        title: "Error creating nest",
-        description: error instanceof Error ? error.message : "Unknown error",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("Error creating nest", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -147,13 +140,7 @@ export const InventoryManager = () => {
       refetchNests();
     } catch (error) {
       console.error("Error deleting nest:", error);
-      toast({
-        title: "Error deleting nest",
-        description: error instanceof Error ? error.message : "Unknown error",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("Error deleting nest", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -171,13 +158,7 @@ export const InventoryManager = () => {
       refetchPlates();
     } catch (error) {
       console.error("Error creating plate:", error);
-      toast({
-        title: "Error creating plate",
-        description: error instanceof Error ? error.message : "Unknown error",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("Error creating plate", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -231,35 +212,17 @@ export const InventoryManager = () => {
       if (triggerToolCommand && newPlates.length === 1) {
         // Here you would trigger the physical tool command
         // This is a placeholder for the actual implementation
-        toast({
-          title: "Tool command triggered",
-          description: "Physical check-in command sent to the tool",
-          status: "info",
-          duration: 3000,
-          isClosable: true,
-        });
+        successToast("Tool command triggered", "Physical check-in command sent to the tool");
       }
 
       refetchPlates();
       setSelectedPlate(null);
       setIsCheckInModalOpen(false);
 
-      toast({
-        title: "Check-in successful",
-        description: `${newPlates.length} plate(s) checked in successfully`,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      successToast("Check-in successful", `${newPlates.length} plate(s) checked in successfully`);
     } catch (error) {
       console.error("Error checking in plate(s):", error);
-      toast({
-        title: "Error checking in plate(s)",
-        description: error instanceof Error ? error.message : "Unknown error",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
+      errorToast("Error checking in plate(s)", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -299,35 +262,20 @@ export const InventoryManager = () => {
       if (triggerToolCommand) {
         // Here you would trigger the physical tool command
         // This is a placeholder for the actual implementation
-        toast({
-          title: "Tool command triggered",
-          description: "Physical check-out command sent to the tool",
-          status: "info",
-          duration: 3000,
-          isClosable: true,
-        });
+        successToast("Tool command triggered", "Physical check-out command sent to the tool");
       }
 
       refetchPlates();
       setSelectedPlate(null);
       setIsCheckOutModalOpen(false);
 
-      toast({
-        title: "Check-out successful",
-        description: `Plate ${plateToCheckOut.name || plateToCheckOut.barcode} checked out successfully`,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      successToast(
+        "Check-out successful",
+        `Plate ${plateToCheckOut.name || plateToCheckOut.barcode} checked out successfully`,
+      );
     } catch (error) {
       console.error("Error checking out plate:", error);
-      toast({
-        title: "Error checking out plate",
-        description: error instanceof Error ? error.message : "Unknown error",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
+      errorToast("Error checking out plate", error instanceof Error ? error.message : "Unknown error");
     }
   };
 

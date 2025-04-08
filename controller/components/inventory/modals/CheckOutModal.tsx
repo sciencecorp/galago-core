@@ -32,6 +32,8 @@ import {
 import { Nest, Plate, Tool } from "@/types/api";
 import { BsBoxSeam, BsGrid3X3, BsLightningCharge } from "react-icons/bs";
 import NestModal from "./NestModal";
+import { errorToast } from "@/components/ui/Toast";
+import { useCommonColors, useTextColors } from "@/components/ui/Theme";
 
 type CheckOutModalProps = {
   isOpen: boolean;
@@ -68,13 +70,8 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
   const [selectedNestId, setSelectedNestId] = useState<number | null>(null);
   const toast = useToast();
 
-  const bgColor = useColorModeValue("gray.50", "gray.700");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
-  const selectedBg = useColorModeValue("blue.50", "blue.900");
-  const inputBg = useColorModeValue("white", "gray.800");
-  const textColor = useColorModeValue("gray.600", "gray.200");
-  const labelColor = useColorModeValue("gray.700", "gray.200");
-  const sectionBg = useColorModeValue("gray.50", "whiteAlpha.50");
+  const { borderColor, inputBg, selectedBg, sectionBg } = useCommonColors();
+  const { secondary: textColor, primary: labelColor } = useTextColors();
 
   const filteredNests = availableNests.filter((nest) =>
     selectedToolId ? nest.tool_id === selectedToolId : true,
@@ -118,13 +115,7 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
       setSelectedNestId(null);
       onClose();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
+      errorToast("Error", error instanceof Error ? error.message : "An error occurred");
     } finally {
       setIsSubmitting(false);
     }

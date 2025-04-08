@@ -8,6 +8,7 @@ from sqlalchemy import (
     Float,
     CheckConstraint,
     Enum,
+    Date
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -119,7 +120,7 @@ class PlateNestHistory(Base, TimestampMixin):
     plate_id = Column(Integer, ForeignKey("plates.id"))
     nest_id = Column(Integer, ForeignKey("nests.id"))
     action = Column(Enum(PlateNestAction))
-    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    timestamp = Column(Date(timezone=True), server_default=func.now())
 
     # Relationships
     plate = relationship("Plate", back_populates="nest_history")
@@ -142,7 +143,7 @@ class Reagent(Base, TimestampMixin):
     __tablename__ = "reagents"
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    expiration_date = Column(DateTime)
+    expiration_date = Column(Date)
     volume = Column(Float)
     well_id = Column(Integer, ForeignKey("wells.id"))
 

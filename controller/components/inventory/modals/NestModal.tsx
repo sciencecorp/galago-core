@@ -25,9 +25,12 @@ import {
   Flex,
 } from "@chakra-ui/react";
 import { Nest, Plate, NestStatus, PlateStatus } from "@/types/api";
-import { HamburgerIcon, CheckIcon, AddIcon, MinusIcon } from "@chakra-ui/icons";
+import { AddIcon, MinusIcon } from "@chakra-ui/icons";
 import { WellPlateIcon } from "@/components/ui/Icons";
+import { RiCheckFill } from "react-icons/ri";
 import { BsGrid3X3 } from "react-icons/bs";
+import { warningToast, errorToast } from "@/components/ui/Toast";
+import { useCommonColors, useTextColors } from "@/components/ui/Theme";
 
 interface NestModalProps {
   isOpen: boolean;
@@ -60,19 +63,21 @@ const NestModal: React.FC<NestModalProps> = ({
 }) => {
   const [localSelectedNests, setLocalSelectedNests] = useState<number[]>(selectedNests || []);
   const [dimensionMode, setDimensionMode] = useState<"row" | "column">("column");
-  const toast = useToast();
 
   const maxRows = Math.max(...nests.map((nest) => nest.row), 1);
   const maxColumns = Math.max(...nests.map((nest) => nest.column), 1);
 
-  // Colors
-  const nestBg = useColorModeValue("white", "gray.700");
-  const nestBorderColor = useColorModeValue("gray.200", "gray.600");
-  const selectedNestBg = useColorModeValue("teal.50", "teal.900");
-  const selectedNestBorder = useColorModeValue("teal.500", "teal.400");
-  const ghostNestBg = useColorModeValue("gray.50", "gray.800");
+  // Use color hooks
+  const {
+    cardBg: nestBg,
+    borderColor: nestBorderColor,
+    selectedBg: selectedNestBg,
+    selectedBorder: selectedNestBorder,
+    sectionBg: ghostNestBg, // Use sectionBg for ghost
+  } = useCommonColors();
+  const { primary: textColor } = useTextColors();
+  // Specific overrides not in common theme
   const ghostNestBorder = useColorModeValue("gray.300", "gray.600");
-  const textColor = useColorModeValue("gray.700", "gray.200");
   const labelBg = useColorModeValue("gray.100", "gray.600");
 
   // Reset local selection when modal opens
@@ -90,13 +95,10 @@ const NestModal: React.FC<NestModalProps> = ({
       } else {
         // Check if we can add more selections
         if (maxSelections && localSelectedNests.length >= maxSelections) {
-          toast({
-            title: "Selection limit reached",
-            description: `You can only select up to ${maxSelections} nest${maxSelections > 1 ? "s" : ""}`,
-            status: "warning",
-            duration: 3000,
-            isClosable: true,
-          });
+          warningToast(
+            "Selection limit reached",
+            `You can only select up to ${maxSelections} nest${maxSelections > 1 ? "s" : ""}`,
+          );
           return;
         }
         newSelection = [...localSelectedNests, nest.id];
@@ -166,13 +168,7 @@ const NestModal: React.FC<NestModalProps> = ({
         }
       }
     } catch (error) {
-      toast({
-        title: "Error modifying grid",
-        description: "Failed to modify the grid dimensions",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("Error modifying grid", "Failed to modify the grid dimensions");
     }
   };
 
@@ -234,7 +230,7 @@ const NestModal: React.FC<NestModalProps> = ({
               nest.status === "empty" ? "gray" : nest.status === "reserved" ? "yellow" : "red"
             }
             borderRadius="full"
-            p="1"
+            px="1.5"
             fontSize="xs">
             {nest.status}
           </Badge>
@@ -246,9 +242,9 @@ const NestModal: React.FC<NestModalProps> = ({
             right="-2"
             colorScheme="teal"
             borderRadius="full"
-            p="1"
+            p="0.5"
             fontSize="xs">
-            <CheckIcon boxSize="2" />
+            <Icon as={RiCheckFill} boxSize={3} />
           </Badge>
         )}
       </Box>

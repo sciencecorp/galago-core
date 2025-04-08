@@ -25,9 +25,7 @@ import {
   IconButton,
   Box,
   Divider,
-  useColorModeValue,
   Badge,
-  Flex,
   Icon,
   NumberInput,
   NumberInputField,
@@ -38,9 +36,11 @@ import {
   RadioGroup,
 } from "@chakra-ui/react";
 import { Nest, Plate, Tool, PlateStatus } from "@/types/api";
-import { AttachmentIcon } from "@chakra-ui/icons";
 import { BsBoxSeam, BsGrid3X3, BsLightningCharge } from "react-icons/bs";
 import NestModal from "./NestModal";
+import { FileAddIcon } from "@/components/ui/Icons";
+import { errorToast } from "@/components/ui/Toast";
+import { useCommonColors, useTextColors } from "@/components/ui/Theme";
 
 type CheckInModalProps = {
   isOpen: boolean;
@@ -85,25 +85,15 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
   const filteredNests = availableNests.filter((nest) =>
     selectedToolId ? nest.tool_id === selectedToolId : true,
   );
-  const bgColor = useColorModeValue("gray.50", "gray.700");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
-  const selectedBg = useColorModeValue("blue.50", "blue.900");
-  const inputBg = useColorModeValue("white", "gray.800");
-  const textColor = useColorModeValue("gray.600", "gray.200");
-  const labelColor = useColorModeValue("gray.700", "gray.200");
-  const sectionBg = useColorModeValue("gray.50", "whiteAlpha.50");
+
+  const { borderColor, inputBg, selectedBg, sectionBg } = useCommonColors();
+  const { secondary: textColor, primary: labelColor } = useTextColors();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       if (file.type !== "text/csv" && !file.name.endsWith(".csv")) {
-        toast({
-          title: "Invalid file type",
-          description: "Please upload a CSV file",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
+        errorToast("Invalid file type", "Please upload a CSV file");
         return;
       }
       setUploadedFile(file);
@@ -221,13 +211,7 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
       setUseAutoBarcode(false);
       onClose();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
+      errorToast("Error", error instanceof Error ? error.message : "An error occurred");
     } finally {
       setIsSubmitting(false);
     }
@@ -497,7 +481,7 @@ const CheckInModal: React.FC<CheckInModalProps> = ({
                             />
                             <IconButton
                               aria-label="Upload file"
-                              icon={<AttachmentIcon />}
+                              icon={<FileAddIcon />}
                               onClick={() => fileInputRef.current?.click()}
                               colorScheme="teal"
                             />
