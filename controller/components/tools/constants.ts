@@ -52,6 +52,13 @@ export const commandFields: CommandFields = {
         defaultValue: "Timer in progress...",
       },
     ],
+    note: [
+      {
+        name: "message",
+        type: "text",
+        defaultValue: "Note: This is a note.",
+      },
+    ],
     show_message: [
       {
         name: "message",
