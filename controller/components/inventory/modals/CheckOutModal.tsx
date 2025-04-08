@@ -82,11 +82,13 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
 
   const handleNestSelection = (nestId: number) => {
     setSelectedNestId(nestId);
-    setIsNestModalOpen(false);
-    // Find the plate in the selected nest
-    const nest = availableNests.find((n) => n.id === nestId);
-    if (nest && nest.current_plate_id) {
-      setPlateId(String(nest.current_plate_id));
+    // Find the plate residing in the selected nest using the plates prop
+    const plateInNest = plates.find((p) => p.nest_id === nestId);
+    if (plateInNest) {
+      setPlateId(String(plateInNest.id));
+    } else {
+      // Clear plateId if the selected nest is empty or plate not found
+      setPlateId("");
     }
   };
 
@@ -94,8 +96,12 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
     try {
       setIsSubmitting(true);
 
-      if (!selectedPlate && !barcode && !plateId) {
-        throw new Error("Please provide a plate barcode or ID");
+      // Check if we have identified a plate either by pre-selection, barcode, or ID (from manual or nest selection)
+      const isPlateIdentified =
+        selectedPlate?.id || barcode || (plateId && !isNaN(Number(plateId)));
+      if (!isPlateIdentified) {
+        // Refined error message
+        throw new Error("Please select a plate via barcode, ID, or nest selection.");
       }
 
       await onSubmit({

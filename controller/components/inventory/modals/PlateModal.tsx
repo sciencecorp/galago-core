@@ -143,6 +143,9 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
             <Text fontSize="sm" color="gray.500">
               Type: {plate.plate_type}
             </Text>
+            <Text fontSize="sm" color="gray.500">
+              Barcode: {plate.barcode}
+            </Text>
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
