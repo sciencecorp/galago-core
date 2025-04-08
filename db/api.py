@@ -580,7 +580,12 @@ def get_plate_info(plate_id: int, db: Session = Depends(get_db)) -> t.Any:
     plate = crud.plate.get(db, id=plate_id)
     if plate is None:
         raise HTTPException(status_code=404, detail="Plate not found")
-    nest = crud.nest.get(db, id=plate.nest_id)
+
+    # Only get nest if nest_id is not None
+    nest = None
+    if plate.nest_id is not None:
+        nest = crud.nest.get(db, id=plate.nest_id)
+
     wells = crud.well.get_all_by(db, obj_in={"plate_id": plate.id})
     return schemas.PlateInfo(
         id=plate.id,
