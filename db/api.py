@@ -24,6 +24,7 @@ from .models.inventory_models import Protocol
 import json
 from fastapi.encoders import jsonable_encoder
 from starlette.background import BackgroundTask
+from pathlib import Path
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -1048,7 +1049,77 @@ def update_script(
 
 @app.delete("/scripts/{script_id}", response_model=schemas.Script)
 def delete_script(script_id: int, db: Session = Depends(get_db)) -> t.Any:
-    return crud.scripts.remove(db, id=script_id)
+    script = crud.scripts.get(db, id=script_id)
+    if script is None:
+        raise HTTPException(status_code=404, detail="Script not found")
+    deleted_script = crud.scripts.remove(db, id=script_id)
+    return deleted_script
+
+
+@app.get("/scripts/{script_id}/export", response_model=schemas.Script)
+def export_script_config(script_id: int, db: Session = Depends(get_db)) -> t.Any:
+    """Export a script configuration."""
+    script = crud.scripts.get(db, id=script_id)
+    if script is None:
+        raise HTTPException(status_code=404, detail="Script not found")
+    # The response model ensures the script object is returned
+    return script
+
+
+@app.post("/scripts/import", response_model=schemas.Script)
+async def import_script_config(
+    file: UploadFile = File(...),
+    folder_id: Optional[int] = File(None),  # Added folder_id for context
+    db: Session = Depends(get_db),
+) -> t.Any:
+    """Import a script from an uploaded file."""
+    try:
+        # Read the uploaded file content
+        file_content_bytes = await file.read()
+        file_content = file_content_bytes.decode("utf-8")
+
+        # Extract name and determine language from filename
+        file_name = (
+            Path(file.filename).stem if file.filename is not None else "imported_script"
+        )
+        language = "python"  # Default to python
+
+        # Prepare script data for creation
+        script_data = schemas.ScriptCreate(
+            name=file_name,
+            content=file_content,
+            language=language,
+            folder_id=folder_id,
+            description="Imported script",  # Add a default description
+        )
+
+        # Check if script with the same name exists in the same folder (or globally if no folder)
+        existing_script = crud.scripts.get_by(
+            db, obj_in={"name": script_data.name, "folder_id": script_data.folder_id}
+        )
+
+        if existing_script:
+            # Option 2: Update existing script (example)
+            updated_script = crud.scripts.update(
+                db, db_obj=existing_script, obj_in=dict(script_data)
+            )
+            db.commit()
+            db.refresh(updated_script)
+            return updated_script
+        else:
+            # Create new script
+            new_script = crud.scripts.create(db, obj_in=script_data)
+            db.commit()
+            db.refresh(new_script)
+            return new_script
+
+    except Exception as e:
+        db.rollback()
+        logging.error(f"Error importing script: {str(e)}")
+        logging.exception("Detailed error during import_script_config:")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to import script: {str(e)}"
+        )
 
 
 @app.get("/robot-arm-locations", response_model=list[schemas.RobotArmLocation])
