@@ -24,6 +24,7 @@ from .models.inventory_models import Protocol
 import json
 from fastapi.encoders import jsonable_encoder
 from starlette.background import BackgroundTask
+from pathlib import Path
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -1065,15 +1066,15 @@ async def import_script_config(
     db: Session = Depends(get_db),
 ) -> t.Any:
     """Import a script from an uploaded file."""
-    from pathlib import Path
-
     try:
         # Read the uploaded file content
         file_content_bytes = await file.read()
         file_content = file_content_bytes.decode("utf-8")
 
         # Extract name and determine language from filename
-        file_name = Path(file.filename).stem
+        file_name = (
+            Path(file.filename).stem if file.filename is not None else "imported_script"
+        )
         language = "python"  # Default to python
 
         # Prepare script data for creation
@@ -1091,15 +1092,9 @@ async def import_script_config(
         )
 
         if existing_script:
-            # Option 1: Raise error
-            # raise HTTPException(
-            #     status_code=409, # Conflict
-            #     detail=f"Script named '{script_data.name}' already exists in this location."
-            # )
             # Option 2: Update existing script (example)
-            logging.info(f"Updating existing script: {script_data.name}")
             updated_script = crud.scripts.update(
-                db, db_obj=existing_script, obj_in=script_data
+                db, db_obj=existing_script, obj_in=dict(script_data)
             )
             db.commit()
             db.refresh(updated_script)
