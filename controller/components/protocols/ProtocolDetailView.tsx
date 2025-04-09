@@ -13,32 +13,21 @@ import {
   Tag,
   useColorModeValue,
   IconButton,
-  Image,
   useToast,
   Divider,
-  Drawer,
-  DrawerOverlay,
-  DrawerContent,
-  DrawerHeader,
-  DrawerBody,
-  DrawerCloseButton,
   useDisclosure,
   Menu,
   MenuButton,
   MenuList,
   MenuItem,
   Center,
-  Select,
-  Input,
-  Badge,
 } from "@chakra-ui/react";
 import { DeleteIcon, AddIcon, EditIcon, ArrowForwardIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { useRouter } from "next/router";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { AddToolCommandModal } from "./AddToolCommandModal";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
-import { PiToolbox } from "react-icons/pi";
 import { capitalizeFirst } from "@/utils/parser";
 import { VscRunBelow } from "react-icons/vsc";
 import { ProtocolFormModal } from "./ProtocolFormModal";
@@ -47,42 +36,9 @@ import { SaveIcon } from "@/components/ui/Icons";
 import { SiPlatformdotsh } from "react-icons/si";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
 import { MdOutlineExitToApp } from "react-icons/md";
-
-interface ParameterSchema {
-  type: string;
-  description?: string;
-  variable?: string;
-}
-
-// Move renderToolImage to be accessible to all components
-const renderToolImage = (config: any) => {
-  if (!config) return null;
-  if (!config.image_url) return null;
-  if (config.name === "Tool Box") {
-    return (
-      <IconButton
-        aria-label="Tool Box"
-        icon={<PiToolbox style={{ width: "60px", height: "60px" }} />}
-        variant="ghost"
-        colorScheme="teal"
-        isRound
-        size="lg"
-      />
-    );
-  }
-  return (
-    <Image
-      src={config.image_url}
-      alt={config.name}
-      sizes="100vw"
-      style={{
-        width: "60px",
-        height: "60px",
-        objectFit: "contain",
-      }}
-    />
-  );
-};
+import { CommandDetailsDrawer } from "./CommandDetailsDrawer";
+import { ParameterSchema } from "@/types";
+import CommandImage from "@/components/tools/CommandImage";
 
 const handleWheel = (e: WheelEvent) => {
   const container = e.currentTarget as HTMLElement;
@@ -92,7 +48,8 @@ const handleWheel = (e: WheelEvent) => {
   }
 };
 
-// Create a custom version of SwimLaneCommandComponent for the protocol editor
+//TODO:
+//This should be reused by the runs component, (there is already one there.)
 const ProtocolSwimLaneCommandComponent: React.FC<{
   command: any;
   onCommandClick: (command: any) => void;
@@ -157,7 +114,11 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
           </Box>
           <Center p={0}>
             <VStack spacing={2}>
-              <Box>{renderToolImage(infoQuery.data)}</Box>
+              <CommandImage
+                config={infoQuery.data}
+                command={command}
+                onCommandClick={onCommandClick}
+              />
               <Box bottom={0} position="sticky">
                 <Text>{capitalizeFirst(command.commandInfo.command.replaceAll("_", " "))}</Text>
               </Box>
@@ -170,7 +131,6 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
 };
 
 export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
-  const router = useRouter();
   const toast = useToast();
   const [commands, setCommands] = useState<any[]>([]);
   const [isAddCommandModalOpen, setIsAddCommandModalOpen] = useState(false);
@@ -191,13 +151,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     error,
     refetch,
   } = trpc.protocol.getById.useQuery({ id: parseInt(id) });
-  const [editedParams, setEditedParams] = useState<Record<string, any>>({});
-  const { data: availableVariables } = trpc.variable.getAll.useQuery();
-  const {
-    isOpen: isParametersModalOpen,
-    onOpen: openParametersModal,
-    onClose: closeParametersModal,
-  } = useDisclosure();
+
   const [commandToDeleteIndex, setCommandToDeleteIndex] = useState<any | null>(null);
   const {
     isOpen: isDeleteConfirmOpen,
@@ -216,73 +170,22 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     },
   });
 
-  const deleteProtocol = trpc.protocol.delete.useMutation({
-    onSuccess: () => {
-      toast({
-        title: "Protocol deleted",
-        status: "success",
-        duration: 3000,
-      });
-      router.push("/protocols");
-    },
-  });
-
-  const isVariableReference = (value: any): boolean => {
-    return typeof value === "string" && value.startsWith("{{") && value.endsWith("}}");
-  };
-
-  const getVariableNameFromReference = (value: string): string => {
-    if (isVariableReference(value)) {
-      return value.slice(2, -2); // Remove {{ and }}
-    }
-    return "";
-  };
-
-  const handleVariableSelect = (fieldName: string, variableName: string) => {
-    if (variableName === "") {
-      // If clearing the variable selection
-      const valueWithoutVariable = editedParams[fieldName];
-      if (
-        typeof valueWithoutVariable === "string" &&
-        valueWithoutVariable.startsWith("{{") &&
-        valueWithoutVariable.endsWith("}}")
-      ) {
-        // If it was a variable reference, clear it completely
-        const newParams = { ...editedParams };
-        delete newParams[fieldName];
-        setEditedParams(newParams);
-      }
-    } else {
-      // Set the parameter value to the variable reference format
-      setEditedParams({
-        ...editedParams,
-        [fieldName]: `{{${variableName}}}`,
-      });
-    }
-  };
-
-  // Reset editedParams when a command is selected
-  useEffect(() => {
-    if (selectedCommand) {
-      setEditedParams({});
-    }
-  }, [selectedCommand]);
+  const {
+    isOpen: isParametersModalOpen,
+    onOpen: openParametersModal,
+    onClose: closeParametersModal,
+  } = useDisclosure();
 
   const handleAddCommandAtPosition = (position: number) => {
     setAddCommandPosition(position);
     setIsAddCommandModalOpen(true);
   };
 
-  const handleFormSave = (newParams: any) => {
-    setLocalParams(newParams);
-    closeParametersModal();
-  };
-
   useEffect(() => {
     if (!protocol?.commands) return;
 
-    const newCommands = protocol.commands.map((cmd: any) => ({
-      queueId: cmd.queueId || `${Date.now()}-${Math.random()}`,
+    const newCommands = protocol.commands.map((cmd: any, index: number) => ({
+      queueId: index, // Add a unique queueId for each command
       commandInfo: {
         toolId: cmd.toolId,
         toolType: cmd.toolType,
@@ -340,15 +243,21 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   };
 
   const handleCommandAdded = (newCommand: any) => {
+    const commandWithId = {
+      queueId: Date.now(), // Use timestamp as a temporary unique ID
+      ...newCommand,
+    };
+
     setCommands((prevCommands) => {
       const updatedCommands = [...prevCommands];
       if (addCommandPosition !== null) {
-        updatedCommands.splice(addCommandPosition, 0, newCommand);
+        updatedCommands.splice(addCommandPosition, 0, commandWithId);
       } else {
-        updatedCommands.push(newCommand);
+        updatedCommands.push(commandWithId);
       }
       return updatedCommands;
     });
+
     setAddCommandPosition(null);
     setIsAddCommandModalOpen(false);
   };
@@ -367,6 +276,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       updatedCommands.splice(commandToDeleteIndex, 1);
       return updatedCommands;
     });
+    closeDeleteConfirm();
   };
 
   const handleSaveChanges = () => {
@@ -398,11 +308,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     });
   };
 
-  const handleDelete = () => {
-    if (!protocol) return;
-    deleteProtocol.mutate({ id: protocol.id });
-  };
-
   const handleRunCommand = (command: any) => {
     execMutation.mutate(command.commandInfo, {
       onSuccess: () => {
@@ -421,6 +326,12 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         });
       },
     });
+  };
+
+  const handleUpdateCommand = (updatedCommand: any) => {
+    setCommands((prevCommands) =>
+      prevCommands.map((cmd) => (cmd.queueId === updatedCommand.queueId ? updatedCommand : cmd)),
+    );
   };
 
   return (
@@ -543,7 +454,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                     }}
                     onRunCommand={handleRunCommand}
                     onDeleteCommand={() => {
-                      setSelectedCommand(command);
                       setCommandToDeleteIndex(index);
                       openDeleteConfirm();
                     }}
@@ -573,147 +483,25 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         </Box>
       </VStack>
 
+      {/* Command Details Drawer */}
+      <CommandDetailsDrawer
+        isOpen={isDrawerOpen}
+        onClose={onDrawerClose}
+        selectedCommand={selectedCommand}
+        onSave={handleUpdateCommand}
+        isEditing={isEditing}
+      />
+
       <AddToolCommandModal
         isOpen={isAddCommandModalOpen}
         onClose={() => setIsAddCommandModalOpen(false)}
-        protocolId={id}
         onCommandAdded={handleCommandAdded}
-        protocolParams={protocol.params}
       />
 
       {isRunModalOpen && (
         <NewProtocolRunModal id={protocol.id.toString()} onClose={handleRunModalClose} />
       )}
 
-      <Drawer isOpen={isDrawerOpen} onClose={onDrawerClose} placement="right" size="md">
-        <DrawerOverlay />
-        <DrawerContent>
-          <DrawerCloseButton />
-          <DrawerHeader>Command Details</DrawerHeader>
-          <DrawerBody>
-            {selectedCommand ? (
-              <VStack spacing={4} align="self-start">
-                <Divider />
-                <Text as="b">Tool:</Text>
-                <Text>{capitalizeFirst(selectedCommand.commandInfo.toolType)}</Text>
-                <Divider />
-                <Text as="b">Name:</Text>
-                <Text>
-                  {capitalizeFirst(selectedCommand.commandInfo.command.replaceAll("_", " "))}
-                </Text>
-                <Divider />
-                <Text as="b" fontSize="18px">
-                  Parameters
-                </Text>
-                <VStack align="stretch" spacing={4} width="100%">
-                  {Object.entries(selectedCommand.commandInfo.params).map(([key, value], index) => {
-                    // Get current value (from editedParams if available, otherwise from command)
-                    const currentValue =
-                      editedParams[key] !== undefined ? editedParams[key] : value;
-
-                    // Check if it's a variable reference
-                    const isVariable = isVariableReference(currentValue);
-                    const variableName = isVariable
-                      ? getVariableNameFromReference(currentValue)
-                      : "";
-
-                    return (
-                      <Box key={index}>
-                        <Text as="b" flex="1" mb={1}>
-                          {capitalizeFirst(key).replaceAll("_", " ")}:
-                          {isVariable && (
-                            <Badge ml={2} colorScheme="green">
-                              Variable: {variableName}
-                            </Badge>
-                          )}
-                        </Text>
-                        <HStack width="100%" spacing={2}>
-                          <Input
-                            flex={1}
-                            value={isVariable ? "" : (currentValue as string) || ""}
-                            onChange={(e) => {
-                              if (!isVariable && isEditing) {
-                                setEditedParams({
-                                  ...editedParams,
-                                  [key]: e.target.value,
-                                });
-                              }
-                            }}
-                            placeholder={isVariable ? "Using variable" : "Enter value"}
-                            isDisabled={isVariable || !isEditing}
-                          />
-                          <Select
-                            width="180px"
-                            value={variableName}
-                            onChange={(e) => {
-                              if (isEditing) {
-                                handleVariableSelect(key, e.target.value);
-                              }
-                            }}
-                            isDisabled={!isEditing}>
-                            <option value="">No Variable</option>
-                            {availableVariables?.map((variable) => (
-                              <option key={variable.id} value={variable.name}>
-                                {variable.name}
-                              </option>
-                            ))}
-                          </Select>
-                        </HStack>
-                      </Box>
-                    );
-                  })}
-                  <Button
-                    colorScheme="teal"
-                    variant="outline"
-                    onClick={() => {
-                      if (isEditing && selectedCommand) {
-                        // Create updated params by merging original params with edited ones
-                        const updatedParams = {
-                          ...selectedCommand.commandInfo.params,
-                          ...editedParams,
-                        };
-
-                        // Update the commands array
-                        setCommands((prevCommands) =>
-                          prevCommands.map((cmd) =>
-                            cmd.queueId === selectedCommand.queueId
-                              ? {
-                                  ...cmd,
-                                  commandInfo: {
-                                    ...cmd.commandInfo,
-                                    params: updatedParams,
-                                  },
-                                }
-                              : cmd,
-                          ),
-                        );
-
-                        // Show success toast
-                        toast({
-                          title: "Parameters saved",
-                          description: "Command parameters have been updated",
-                          status: "success",
-                          duration: 3000,
-                        });
-
-                        // Clear edited params
-                        setEditedParams({});
-                      }
-
-                      // Close the drawer
-                      onDrawerClose();
-                    }}
-                    isDisabled={!isEditing}>
-                    Save Inputs
-                  </Button>
-                </VStack>
-              </VStack>
-            ) : (
-              <Text>No command selected.</Text>
-            )}
-          </DrawerBody>
-        </DrawerContent>
-      </Drawer>
       <ConfirmationModal
         colorScheme="red"
         confirmText="Delete"
@@ -721,7 +509,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         isOpen={isDeleteConfirmOpen}
         onClick={handleDeleteCommand}
         onClose={closeDeleteConfirm}>
-        {`Are you sure you want to delete this command "${selectedCommand?.commandInfo?.command || ""}"?`}
+        {`Are you sure you want to delete this command "${selectedCommand?.commandInfo?.command?.replaceAll("_", " ") || ""}"?`}
       </ConfirmationModal>
     </Box>
   );

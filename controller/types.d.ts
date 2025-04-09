@@ -6,6 +6,12 @@ declare module "*.svg";
 
 export type RunStatus = "CREATED" | "STARTED" | "FAILED" | "COMPLETED" | "SKIPPED";
 
+export interface ParameterSchema {
+  type: string;
+  description?: string;
+  variable?: string;
+}
+
 export interface AdvancedParameters {
   skipExecution?: boolean;
   runAsynchronously?: boolean;

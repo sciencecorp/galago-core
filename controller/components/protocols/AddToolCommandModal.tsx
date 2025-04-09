@@ -50,17 +50,13 @@ import { PiToolbox } from "react-icons/pi";
 interface AddToolCommandModalProps {
   isOpen: boolean;
   onClose: () => void;
-  protocolId: string;
   onCommandAdded: (newCommand: any) => void;
-  protocolParams?: Record<string, any>;
 }
 
 export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   isOpen,
   onClose,
-  protocolId,
   onCommandAdded,
-  protocolParams = {},
 }) => {
   const toast = useToast();
   const [selectedToolType, setSelectedToolType] = useState("");
@@ -183,7 +179,6 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     });
 
     const newCommand = {
-      // queueId: Date.now(),
       commandInfo: {
         toolId:
           selectedToolType === "toolbox"
@@ -193,16 +188,13 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
         command: selectedCommand,
         params: finalParams, // Use the complete params
         label: "",
+        advancedParameters: {
+          skipExecution: false,
+          runAsynchronously: false,
+        },
       },
-      // status: "CREATED",
-      // estimatedDuration: 0,
-      // createdAt: new Date(),
-      // startedAt: new Date(),
-      // completedAt: null,
-      // failedAt: null,
-      // skippedAt: null,
-      // runId: null,
     };
+
     onCommandAdded(newCommand);
     onClose();
     // Reset state after closing
