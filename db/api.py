@@ -1079,9 +1079,10 @@ async def import_script_config(
         file_content = file_content_bytes.decode("utf-8")
 
         # Extract name and determine language from filename
-        file_name = (
-            Path(file.filename).stem if file.filename is not None else "imported_script"
-        )
+        file_name = Path(file.filename).stem if file.filename is not None else "imported_script"
+        # Ensure the script name has .py extension
+        if not file_name.endswith('.py'):
+            file_name = f"{file_name}.py"
         language = "python"  # Default to python
 
         # Prepare script data for creation
