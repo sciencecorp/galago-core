@@ -6,12 +6,18 @@ declare module "*.svg";
 
 export type RunStatus = "CREATED" | "STARTED" | "FAILED" | "COMPLETED" | "SKIPPED";
 
+export interface AdvancedParameters {
+  skipExecution?: boolean;
+  runAsynchronously?: boolean;
+}
+
 export interface ToolCommandInfo {
   label?: string;
   toolId: string;
   toolType: ToolType;
   command: string;
   params: Record<string, any>;
+  advancedParameters?: AdvancedParameters;
 }
 
 export interface PageProps {

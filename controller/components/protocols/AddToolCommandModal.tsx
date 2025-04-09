@@ -183,7 +183,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     });
 
     const newCommand = {
-      queueId: Date.now(),
+      // queueId: Date.now(),
       commandInfo: {
         toolId:
           selectedToolType === "toolbox"
@@ -194,14 +194,14 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
         params: finalParams, // Use the complete params
         label: "",
       },
-      status: "CREATED",
-      estimatedDuration: 0,
-      createdAt: new Date(),
-      startedAt: new Date(),
-      completedAt: null,
-      failedAt: null,
-      skippedAt: null,
-      runId: null,
+      // status: "CREATED",
+      // estimatedDuration: 0,
+      // createdAt: new Date(),
+      // startedAt: new Date(),
+      // completedAt: null,
+      // failedAt: null,
+      // skippedAt: null,
+      // runId: null,
     };
     onCommandAdded(newCommand);
     onClose();
