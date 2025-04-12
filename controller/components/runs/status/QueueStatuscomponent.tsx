@@ -62,6 +62,7 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
   };
 
   const pause = async () => {
+    console.log("Pausing queue");
     stopMutation.mutate();
   };
 
