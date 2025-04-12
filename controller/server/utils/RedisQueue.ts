@@ -120,13 +120,10 @@ export default class RedisQueue {
         if (!itemJson) return;
 
         const item = await this._deserialize(itemJson);
-
         // If this command belongs to the run we're deleting, add it to our delete list
         if (item.runId === runId) {
           idsToDelete.push(id);
-
           // Also remove from queuedIds if it's still there
-          // This handles commands that haven't been completed yet
           await this.redis.lrem(this._key("queuedIds"), 0, id);
         }
       }),
@@ -137,24 +134,6 @@ export default class RedisQueue {
       await this.redis.hdel(this._key("itemJson"), ...idsToDelete);
     }
   }
-
-  // async clearByRunId(runId: string) {
-  //   if (!runId) return;
-  //   //Get all the commands with this run Id.
-  //   const runningIds = await this.redis.lrange(this._key("queuedIds"), 0, -1);
-  //   await this.redis.hdel(this._key("runs"), String(runId));
-  //   await Promise.all(
-  //     runningIds.map(async (id) => {
-  //       //Get json command
-  //       const item = await this.redis.hget(this._key("itemJson"), String(id));
-  //       const itemJson = await this._deserialize(String(item));
-  //       if (itemJson.runId === runId) {
-  //         await this.redis.hdel(this._key("itemJson"), String(id));
-  //         await this.redis.lrem(this._key("queuedIds"), 0, String(id));
-  //       }
-  //     }),
-  //   );
-  // }
 
   async complete(id: number) {
     await this._updateItem(id, { status: "COMPLETED" });
