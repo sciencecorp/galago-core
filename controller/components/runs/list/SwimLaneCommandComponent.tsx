@@ -40,10 +40,13 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
   const errorColor = useColorModeValue("red.200", "red.800");
   const toolNameRef = useRef(toolName);
 
-  const completedStyle = command.status === "COMPLETED" ? {
-    opacity: 0.6,
-    filter: "grayscale(70%)"
-  } : {};
+  const completedStyle =
+    command.status === "COMPLETED"
+      ? {
+          opacity: 0.6,
+          filter: "grayscale(70%)",
+        }
+      : {};
 
   useEffect(() => {
     toolNameRef.current = toolName;
@@ -68,12 +71,12 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
 
   return (
     <Box
-      style= {
+      style={
         command.status === "COMPLETED"
-        ? completedStyle
-        : {
-            cursor: "pointer",
-          }
+          ? completedStyle
+          : {
+              cursor: "pointer",
+            }
       }
       left="0px"
       right="0px"

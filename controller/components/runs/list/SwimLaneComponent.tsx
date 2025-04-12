@@ -32,21 +32,21 @@ export const SwimLaneComponent: React.FC<SwimLaneProps> = ({ runCommands }) => {
   let toolName = infoQuery.data?.name || "undefined";
 
   const [showAllCommands, setShowAllCommands] = useState(true);
-  
-  const displayedCommands = showAllCommands 
-    ? runCommands 
-    : runCommands.filter(cmd => cmd.status !== "COMPLETED");
-  
+
+  const displayedCommands = showAllCommands
+    ? runCommands
+    : runCommands.filter((cmd) => cmd.status !== "COMPLETED");
+
   return (
     <Box width="100%" overflowX="auto" whiteSpace="nowrap" p={2}>
       <HStack spacing={2} mb={2} justifyContent="flex-end">
         <Text fontSize="sm">Show completed commands</Text>
         <Box as="label" display="inline-flex" alignItems="center" cursor="pointer">
-          <input 
-            type="checkbox" 
-            checked={showAllCommands} 
+          <input
+            type="checkbox"
+            checked={showAllCommands}
             onChange={() => setShowAllCommands(!showAllCommands)}
-            style={{ marginRight: '8px' }}
+            style={{ marginRight: "8px" }}
           />
         </Box>
       </HStack>
