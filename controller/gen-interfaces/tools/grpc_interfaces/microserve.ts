@@ -46,7 +46,7 @@ export interface Command_SendRawCommand {
 
 export interface Config {
   ip: string;
-  port?: number | undefined;
+  port: number;
 }
 
 function createBaseCommand(): Command {
@@ -648,7 +648,7 @@ export const Command_SendRawCommand = {
 };
 
 function createBaseConfig(): Config {
-  return { ip: "", port: undefined };
+  return { ip: "", port: 0 };
 }
 
 export const Config = {
@@ -656,7 +656,7 @@ export const Config = {
     if (message.ip !== "") {
       writer.uint32(10).string(message.ip);
     }
-    if (message.port !== undefined) {
+    if (message.port !== 0) {
       writer.uint32(16).int32(message.port);
     }
     return writer;
@@ -693,10 +693,7 @@ export const Config = {
   },
 
   fromJSON(object: any): Config {
-    return {
-      ip: isSet(object.ip) ? String(object.ip) : "",
-      port: isSet(object.port) ? Number(object.port) : undefined,
-    };
+    return { ip: isSet(object.ip) ? String(object.ip) : "", port: isSet(object.port) ? Number(object.port) : 0 };
   },
 
   toJSON(message: Config): unknown {
@@ -713,7 +710,7 @@ export const Config = {
   fromPartial<I extends Exact<DeepPartial<Config>, I>>(object: I): Config {
     const message = createBaseConfig();
     message.ip = object.ip ?? "";
-    message.port = object.port ?? undefined;
+    message.port = object.port ?? 0;
     return message;
   },
 };
