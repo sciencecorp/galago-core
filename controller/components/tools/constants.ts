@@ -84,6 +84,13 @@ export const commandFields: CommandFields = {
         type: "text",
       },
     ],
+    goto: [
+      {
+        name: "targetIndex",
+        type: "number",
+        defaultValue: 0,
+      },
+    ],
   },
   plateloc: {
     seal: [],

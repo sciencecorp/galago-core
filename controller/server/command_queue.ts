@@ -183,6 +183,49 @@ export class CommandQueue {
     });
   }
 
+  async gotoCommand(commandId: number) {
+    try {
+      await this.commands.gotoCommand(commandId);
+
+      logAction({
+        level: "info",
+        action: "Queue Goto",
+        details: `Queue jumped to command ID: ${commandId}`,
+      });
+
+      return true;
+    } catch (error) {
+      logAction({
+        level: "error",
+        action: "Queue Goto Failed",
+        details: `Failed to goto command ID: ${commandId}. Error: ${error}`,
+      });
+      throw error;
+    }
+  }
+
+  // Add this method to CommandQueue class
+  async gotoCommandByRunIndex(runId: string, index: number): Promise<boolean> {
+    try {
+      await this.commands.gotoCommandByIndex(runId, index);
+
+      logAction({
+        level: "info",
+        action: "Queue Goto By Index",
+        details: `Queue jumped to index ${index} for run ${runId}`,
+      });
+
+      return true;
+    } catch (error) {
+      logAction({
+        level: "error",
+        action: "Queue Goto By Index Failed",
+        details: `Failed to goto index ${index} for run ${runId}. Error: ${error}`,
+      });
+      throw error;
+    }
+  }
+
   // Resume execution after pause or message
   resume(autoResume = false) {
     if (!this._isWaitingForInput) return;
@@ -376,6 +419,19 @@ export class CommandQueue {
             await this.stopRunRequest(message);
             await this.commands.complete(nextCommand.queueId);
             return; // Exit the loop as we've stopped the queue
+          } else if (nextCommand.commandInfo.command === "goto") {
+            const targetIndex = Number(nextCommand.commandInfo.params?.targetIndex);
+            const runId = nextCommand.commandInfo.params?.runId || nextCommand.runId;
+
+            await this.commands.complete(nextCommand.queueId);
+            if (targetIndex !== undefined && runId) {
+              await this.gotoCommandByRunIndex(runId, targetIndex);
+            } else {
+              throw new Error(
+                "Goto command requires either targetId or both targetIndex and runId",
+              );
+            }
+            continue;
           }
         }
 

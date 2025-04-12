@@ -13,7 +13,7 @@ export interface ParameterSchema {
 }
 
 export interface AdvancedParameters {
-  skipExecution?: boolean;
+  skipExecutionVariable: string | null;
   runAsynchronously?: boolean;
 }
 
