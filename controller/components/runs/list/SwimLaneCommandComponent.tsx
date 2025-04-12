@@ -13,7 +13,7 @@ import {
   useColorModeValue,
   Center,
 } from "@chakra-ui/react";
-import { HamburgerIcon } from "@chakra-ui/icons";
+import { HamburgerIcon, CheckIcon } from "@chakra-ui/icons";
 import { IoPlaySkipForward } from "react-icons/io5";
 import { BsSkipForwardFill } from "react-icons/bs";
 import { VscRunBelow } from "react-icons/vsc";
@@ -21,6 +21,7 @@ import { useRef } from "react";
 import { capitalizeFirst } from "@/utils/parser";
 import { RunCommand } from "@/types";
 import CommandImage from "@/components/tools/CommandImage";
+import { FaCheckCircle } from "react-icons/fa";
 
 interface LaneCommandComponentProps {
   command: RunCommand;
@@ -39,11 +40,13 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
   const bgColor = useColorModeValue("white", "gray.700");
   const errorColor = useColorModeValue("red.200", "red.800");
   const toolNameRef = useRef(toolName);
+  const completeColor = useColorModeValue("gray.200", "gray.600");
+  const runningBg = useColorModeValue("teal.200", "teal.800");
 
   const completedStyle =
     command.status === "COMPLETED"
       ? {
-          opacity: 0.6,
+          opacity: 0.7,
           filter: "grayscale(70%)",
         }
       : {};
@@ -52,10 +55,10 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
     toolNameRef.current = toolName;
   }, [toolName]);
 
-  const runningBg = useColorModeValue("teal.200", "teal.800");
-
   function setBackgroundColor(status: any) {
     switch (status) {
+      case "COMPLETED":
+        return completeColor;
       case "STARTED":
         return runningBg;
       case "FAILED":
@@ -96,44 +99,48 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
         <Box>
           <HStack spacing={2}>
             <Box width="90%">
-              <HStack></HStack>
-              <Text as="b">{toolName}</Text>
+              <HStack py={command.status === "COMPLETED" ? 1 : 0}>
+                {command.status === "COMPLETED" && <FaCheckCircle color="green.500" />}
+                <Text as="b">{toolName}</Text>
+              </HStack>
             </Box>
             <Box>
-              <Menu offset={[40, -40]}>
-                <MenuButton
-                  as={IconButton}
-                  aria-label="Options"
-                  border={0}
-                  bg="transparent"
-                  icon={<HamburgerIcon fontSize="lg" />}
-                  variant="outline"
-                />
-                <MenuList>
-                  {queued ? (
-                    <MenuItem onClick={() => skipMutation.mutate(queueId)}>
-                      <IoPlaySkipForward />{" "}
+              {command.status !== "COMPLETED" && (
+                <Menu offset={[40, -40]}>
+                  <MenuButton
+                    as={IconButton}
+                    aria-label="Options"
+                    border={0}
+                    bg="transparent"
+                    icon={<HamburgerIcon fontSize="lg" />}
+                    variant="outline"
+                  />
+                  <MenuList>
+                    {queued ? (
+                      <MenuItem onClick={() => skipMutation.mutate(queueId)}>
+                        <IoPlaySkipForward />{" "}
+                        <Box as="span" ml={2}>
+                          Skip
+                        </Box>
+                      </MenuItem>
+                    ) : null}
+                    {queued ? (
+                      <MenuItem onClick={() => skipUntilMutation.mutate(queueId)}>
+                        <BsSkipForwardFill />{" "}
+                        <Box as="span" ml={2}>
+                          Skip to this command
+                        </Box>
+                      </MenuItem>
+                    ) : null}
+                    <MenuItem onClick={() => execMutation.mutate(command.commandInfo)}>
+                      <VscRunBelow />{" "}
                       <Box as="span" ml={2}>
-                        Skip
+                        Send to Tool
                       </Box>
                     </MenuItem>
-                  ) : null}
-                  {queued ? (
-                    <MenuItem onClick={() => skipUntilMutation.mutate(queueId)}>
-                      <BsSkipForwardFill />{" "}
-                      <Box as="span" ml={2}>
-                        Skip to this command
-                      </Box>
-                    </MenuItem>
-                  ) : null}
-                  <MenuItem onClick={() => execMutation.mutate(command.commandInfo)}>
-                    <VscRunBelow />{" "}
-                    <Box as="span" ml={2}>
-                      Send to Tool
-                    </Box>
-                  </MenuItem>
-                </MenuList>
-              </Menu>
+                  </MenuList>
+                </Menu>
+              )}
             </Box>
           </HStack>
         </Box>
