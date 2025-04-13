@@ -86,6 +86,20 @@ export class CommandQueue {
 
   async evaluateExpression(expression: string): Promise<any> {
     // Regular expression to find variable references like {{varName}}
+    // Arithmetic with numbers
+    // ${counter} + 1            // Adds 1 to counter's value
+    // ${price} * ${quantity}    // Multiplies two variables
+    // (${num1} + ${num2}) / 2   // Average of two numbers
+
+    // // String operations
+    // "Hello, " + ${name}       // String concatenation 
+    // ${firstName} + " " + ${lastName}  // Multiple concatenation
+
+    // // Boolean values (direct assignment)
+    // ${isActive}               // Direct assignment for booleans
+
+    // // Mixed operations (with automatic type conversion)
+    // "Total: " + (${price} * ${quantity})  // Converts number result to string
     const variablePattern = /\${([^{}]+)}/g;
     let match;
     let resolvedExpression = expression;
@@ -514,10 +528,26 @@ export class CommandQueue {
             continue;
           } else if (nextCommand.commandInfo.command === "show_message") {
             // Handle show_message command
-            const message =
-              nextCommand.commandInfo.params?.message ||
+            let message = nextCommand.commandInfo.params?.message ||
               "Please review and click Continue to proceed.";
             const title = nextCommand.commandInfo.params?.title || "Message";
+            
+            // Check if message is a variable reference
+            if(message.startsWith("{{") && message.endsWith("}}")) {
+              try {
+                const variableResponse = await get<Variable>(`/variables/${message.slice(2, -2).trim()}`);
+                // Use just the value property of the variable
+                message = variableResponse.value;
+              } catch (e) {
+                logAction({
+                  level: "warning",
+                  action: "Variable Reference Error",
+                  details: `Failed to fetch variable for message: ${message}. Using raw message instead.`,
+                });
+                // Keep the original message if the variable fetch fails
+              }
+            }
+            
             await this.commands.complete(nextCommand.queueId);
             await this.showMessage(message, title);
             continue;
@@ -558,9 +588,18 @@ export class CommandQueue {
             }
             continue;
           } else if (nextCommand.commandInfo.command === "variable_assignment") {
-            const variableName = nextCommand.commandInfo.params?.name;
+            let variableName = nextCommand.commandInfo.params?.name;
             const expressionValue = nextCommand.commandInfo.params?.value;
 
+            //Check if the variable exists 
+            if (!variableName) {
+              throw new Error("Variable name is required for assignment");
+            }
+
+            console.log("Variable name", variableName);
+            if(variableName.startsWith("{{") && variableName.endsWith("}}")) {
+              variableName = variableName.slice(2, -2).trim();
+            }
             try {
               // First, fetch the target variable to get its type
               const targetVariable = await get<Variable>(`/variables/${variableName}`);
