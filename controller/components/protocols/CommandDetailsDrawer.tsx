@@ -22,7 +22,7 @@ import {
   AccordionItem,
   AccordionButton,
   AccordionPanel,
-  AccordionIcon
+  AccordionIcon,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
@@ -92,47 +92,47 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
     if (editedAdvancedParams !== null) {
       return editedAdvancedParams;
     }
-    
+
     if (selectedCommand?.commandInfo?.advancedParameters) {
       return selectedCommand.commandInfo.advancedParameters;
     }
-    
+
     return {
       skipExecutionVariable: { variable: null, value: "" },
-      runAsynchronously: false
+      runAsynchronously: false,
     };
   };
 
   const handleSkipVariableSelect = (variableName: string) => {
     const currentAdvParams = getAdvancedParameters();
-    
+
     setEditedAdvancedParams({
       ...currentAdvParams,
       skipExecutionVariable: {
         ...currentAdvParams.skipExecutionVariable,
-        variable: variableName === "" ? null : variableName
-      }
+        variable: variableName === "" ? null : variableName,
+      },
     });
   };
 
   const handleSkipValueChange = (value: string) => {
     const currentAdvParams = getAdvancedParameters();
-    
+
     setEditedAdvancedParams({
       ...currentAdvParams,
       skipExecutionVariable: {
         ...currentAdvParams.skipExecutionVariable,
-        value
-      }
+        value,
+      },
     });
   };
 
   const handleRunAsyncChange = (isChecked: boolean) => {
     const currentAdvParams = getAdvancedParameters();
-    
+
     setEditedAdvancedParams({
       ...currentAdvParams,
-      runAsynchronously: isChecked
+      runAsynchronously: isChecked,
     });
   };
 
@@ -153,7 +153,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
         commandInfo: {
           ...selectedCommand.commandInfo,
           params: updatedParams,
-          advancedParameters: advancedParams
+          advancedParameters: advancedParams,
         },
       };
 
@@ -256,14 +256,16 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
                     </Box>
                   );
                 })}
-                
+
                 {/* Advanced Parameters Section */}
                 <Accordion allowToggle width="100%" mt={4}>
                   <AccordionItem>
                     <h2>
                       <AccordionButton>
-                        <Box as="span" flex='1' textAlign='left'>
-                          <Text as="b" fontSize="16px">Advanced Parameters</Text>
+                        <Box as="span" flex="1" textAlign="left">
+                          <Text as="b" fontSize="16px">
+                            Advanced Parameters
+                          </Text>
                         </Box>
                         <AccordionIcon />
                       </AccordionButton>
@@ -271,7 +273,9 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
                     <AccordionPanel pb={4}>
                       <VStack align="stretch" spacing={4} width="100%">
                         {/* Skip Execution Variable */}
-                        <Text as="b" fontSize="15px">Skip Execution Condition</Text>
+                        <Text as="b" fontSize="15px">
+                          Skip Execution Condition
+                        </Text>
                         <FormControl>
                           <FormLabel>Variable</FormLabel>
                           <Select
@@ -286,8 +290,11 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
                             ))}
                           </Select>
                         </FormControl>
-                        
-                        <FormControl isDisabled={!advancedParams.skipExecutionVariable?.variable || !isEditing}>
+
+                        <FormControl
+                          isDisabled={
+                            !advancedParams.skipExecutionVariable?.variable || !isEditing
+                          }>
                           <FormLabel>Value to Match</FormLabel>
                           <Input
                             value={advancedParams.skipExecutionVariable?.value || ""}
@@ -295,29 +302,28 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
                             placeholder="Value that variable must match to skip"
                           />
                         </FormControl>
-                        
+
                         {/* Run Asynchronously */}
                         <FormControl display="flex" alignItems="center" mt={4}>
-                          <FormLabel mb="0">
-                            Run Asynchronously
-                          </FormLabel>
+                          <FormLabel mb="0">Run Asynchronously</FormLabel>
                           <Switch
                             isChecked={advancedParams.runAsynchronously || false}
                             onChange={(e) => handleRunAsyncChange(e.target.checked)}
                             isDisabled={!isEditing}
                           />
                         </FormControl>
-                        
+
                         <Text fontSize="sm" color="gray.500" mt={2}>
-                          When "Skip Execution" is configured, the command will be skipped if the selected variable 
-                          matches the specified value. Running asynchronously allows the workflow to continue 
-                          without waiting for this command to complete.
+                          When "Skip Execution" is configured, the command will be skipped if the
+                          selected variable matches the specified value. Running asynchronously
+                          allows the workflow to continue without waiting for this command to
+                          complete.
                         </Text>
                       </VStack>
                     </AccordionPanel>
                   </AccordionItem>
                 </Accordion>
-                
+
                 <Button
                   colorScheme="teal"
                   variant="outline"

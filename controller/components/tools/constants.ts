@@ -78,17 +78,21 @@ export const commandFields: CommandFields = {
         defaultValue: "Stopping run...",
       },
     ],
-    slack_message: [
-      {
-        name: "message",
-        type: "text",
-      },
-    ],
     goto: [
       {
         name: "targetIndex",
         type: "number",
         defaultValue: 0,
+      },
+    ],
+    variable_assignment: [
+      {
+        name: "name",
+        type: "text",
+      },
+      {
+        name: "value",
+        type: "text",
       },
     ],
   },

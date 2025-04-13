@@ -304,7 +304,9 @@ export const RunsComponent: React.FC = () => {
                     hasStripe
                     isAnimated
                     value={
-                      (run.Commands.filter((cmd) => cmd.status === "COMPLETED").length /
+                      (run.Commands.filter(
+                        (cmd) => cmd.status === "COMPLETED" || cmd.status === "SKIPPED",
+                      ).length /
                         runAttributes.commandsCount) *
                       100
                     }

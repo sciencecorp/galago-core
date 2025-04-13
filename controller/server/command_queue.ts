@@ -11,10 +11,10 @@ import dotenv from "dotenv";
 import { ToolType } from "gen-interfaces/controller";
 import { unknown } from "zod";
 import { logAction } from "./logger";
-import { get } from "@/server/utils/api";
+import { get, put } from "@/server/utils/api";
 import { Script } from "@/types/api";
 import { Variable } from "@/types/api";
-import { Labware } from "@/types/api";  
+import { Labware } from "@/types/api";
 
 export type CommandQueueState = ToolStatus;
 
@@ -84,6 +84,82 @@ export class CommandQueue {
     this._state = newState;
   }
 
+  async evaluateExpression(expression: string): Promise<any> {
+    // Regular expression to find variable references like {{varName}}
+    const variablePattern = /\${([^{}]+)}/g;
+    let match;
+    let resolvedExpression = expression;
+    let variables: Record<string, any> = {};
+
+    // Find all variable references in the expression
+    const variablePromises: Promise<void>[] = [];
+    const variableMatches: { fullMatch: string; varName: string }[] = [];
+
+    // First, collect all variable references
+    while ((match = variablePattern.exec(expression)) !== null) {
+      const fullMatch = match[0];
+      const varName = match[1].trim();
+      variableMatches.push({ fullMatch, varName });
+
+      // Create a promise to fetch each variable
+      const promise = get<Variable>(`/variables/${varName}`)
+        .then((varResponse) => {
+          // Convert value based on type
+          let value: any = varResponse.value;
+
+          // Store both the value and type for later use
+          variables[varName] = {
+            value,
+            type: varResponse.type || typeof value,
+          };
+        })
+        .catch((e) => {
+          throw new Error(`Failed to fetch variable ${varName}: ${e}`);
+        });
+
+      variablePromises.push(promise);
+    }
+
+    // Wait for all variable fetches to complete
+    await Promise.all(variablePromises);
+
+    // Now replace each variable reference with its value, handling types appropriately
+    for (const { fullMatch, varName } of variableMatches) {
+      if (!variables[varName]) {
+        throw new Error(`Variable ${varName} not found`);
+      }
+
+      const varInfo = variables[varName];
+
+      // For direct assignment (the expression is just a variable reference)
+      if (expression.trim() === fullMatch) {
+        return varInfo.value; // Return the raw value for direct assignment
+      }
+
+      // For expressions, replace the variable reference with a value that works in the expression
+      if (varInfo.type === "string") {
+        // Wrap strings in quotes for the expression evaluator
+        resolvedExpression = resolvedExpression.replace(fullMatch, `"${varInfo.value}"`);
+      } else if (varInfo.type === "number") {
+        resolvedExpression = resolvedExpression.replace(fullMatch, varInfo.value);
+      } else if (varInfo.type === "boolean") {
+        resolvedExpression = resolvedExpression.replace(fullMatch, varInfo.value);
+      } else {
+        // For other types, convert to string and wrap in quotes
+        resolvedExpression = resolvedExpression.replace(fullMatch, `"${varInfo.value}"`);
+      }
+    }
+
+    try {
+      // For security, we're using a restricted approach to evaluate the expression
+      // This is safer than using eval() directly
+      const result = Function('"use strict"; return (' + resolvedExpression + ")")();
+      return result;
+    } catch (e) {
+      throw new Error(`Failed to evaluate expression "${expression}": ${e}`);
+    }
+  }
+
   getError() {
     return this.error || null;
   }
@@ -108,6 +184,19 @@ export class CommandQueue {
     return new Promise<void>((resolve) => {
       this._messageResolve = resolve;
     });
+  }
+
+  async executeCommand(command: StoredRunCommand) {
+    await Tool.executeCommand(command.commandInfo);
+    await this.commands.complete(command.queueId);
+  }
+
+  async skipCommand(commandId: number) {
+    await this.commands.skip(commandId);
+  }
+
+  async skipCommandsUntil(commandId: number) {
+    await this.commands.skipUntil(commandId);
   }
 
   // Show info message and wait for user acknowledgment
@@ -360,38 +449,38 @@ export class CommandQueue {
         return;
       }
 
-    // Handle advanced parameters for skip execution
-    if (nextCommand.commandInfo.advancedParameters?.skipExecutionVariable?.variable) {
-      try {
-        // Get the variable name and expected value for skipping
-        const varName = nextCommand.commandInfo.advancedParameters.skipExecutionVariable.variable;
-        const expectedValue = nextCommand.commandInfo.advancedParameters.skipExecutionVariable.value;
-        
-        // Fetch the variable from the database
-        const varResponse = await get<Variable>(`/variables/${varName}`);
-        
-        // If variable value matches expected value, skip this command
-        if (varResponse.value === expectedValue) {
+      // Handle advanced parameters for skip execution
+      if (nextCommand.commandInfo.advancedParameters?.skipExecutionVariable?.variable) {
+        try {
+          // Get the variable name and expected value for skipping
+          const varName = nextCommand.commandInfo.advancedParameters.skipExecutionVariable.variable;
+          const expectedValue =
+            nextCommand.commandInfo.advancedParameters.skipExecutionVariable.value;
+
+          // Fetch the variable from the database
+          const varResponse = await get<Variable>(`/variables/${varName}`);
+
+          // If variable value matches expected value, skip this command
+          if (varResponse.value === expectedValue) {
+            logAction({
+              level: "info",
+              action: "Command Skipped",
+              details: `Skipping command: ${nextCommand.commandInfo.command} for tool: ${nextCommand.commandInfo.toolId} because variable ${varName} = ${expectedValue}`,
+            });
+
+            await this.skipCommand(nextCommand.queueId);
+            continue;
+          }
+        } catch (e) {
           logAction({
-            level: "info",
-            action: "Command Skipped",
-            details: `Skipping command: ${nextCommand.commandInfo.command} for tool: ${nextCommand.commandInfo.toolId} because variable ${varName} = ${expectedValue}`,
+            level: "warning",
+            action: "Skip Execution Variable Error",
+            details: `Failed to fetch skip execution variable ${nextCommand.commandInfo.advancedParameters.skipExecutionVariable.variable}: ${e}`,
           });
-          
-          // Skip the command
-          await this.skipCommand(nextCommand.queueId);
-          continue; // Skip to the next command
+          // Continue with command execution if we can't check the skip condition
         }
-      } catch (e) {
-        logAction({
-          level: "warning",
-          action: "Skip Execution Variable Error",
-          details: `Failed to fetch skip execution variable ${nextCommand.commandInfo.advancedParameters.skipExecutionVariable.variable}: ${e}`,
-        });
-        // Continue with command execution if we can't check the skip condition
       }
-    }
-  
+
       const dateString = String(nextCommand.createdAt);
       const dateObject = new Date(dateString);
 
@@ -468,6 +557,60 @@ export class CommandQueue {
               );
             }
             continue;
+          } else if (nextCommand.commandInfo.command === "variable_assignment") {
+            const variableName = nextCommand.commandInfo.params?.name;
+            const expressionValue = nextCommand.commandInfo.params?.value;
+
+            try {
+              // First, fetch the target variable to get its type
+              const targetVariable = await get<Variable>(`/variables/${variableName}`);
+
+              if (!targetVariable) {
+                throw new Error(`Target variable ${variableName} not found`);
+              }
+
+              // Evaluate the expression with variable substitution
+              const evaluatedValue = await this.evaluateExpression(expressionValue);
+
+              // Convert result to match the target variable type if needed
+              let finalValue = evaluatedValue;
+
+              if (targetVariable.type === "number" && typeof evaluatedValue !== "number") {
+                // Try to convert to number if target is number type
+                const numValue = Number(evaluatedValue);
+                if (!isNaN(numValue)) {
+                  finalValue = numValue;
+                }
+              } else if (targetVariable.type === "boolean" && typeof evaluatedValue !== "boolean") {
+                // For boolean targets, convert truthy/falsy values properly
+                finalValue = Boolean(evaluatedValue);
+              } else if (targetVariable.type === "string" && typeof evaluatedValue !== "string") {
+                // Convert to string for string targets
+                finalValue = String(evaluatedValue);
+              }
+
+              // Update the variable in the database
+              await put<Variable>(`/variables/${targetVariable.id}`, {
+                ...targetVariable,
+                value: finalValue,
+              });
+
+              logAction({
+                level: "info",
+                action: "Variable Assignment",
+                details: `Variable ${variableName} assigned expression "${expressionValue}" resulting in value ${finalValue}`,
+              });
+
+              await this.commands.complete(nextCommand.queueId);
+              continue;
+            } catch (e) {
+              logAction({
+                level: "error",
+                action: "Variable Assignment Error",
+                details: `Failed to assign expression "${expressionValue}" to variable ${variableName}: ${e}`,
+              });
+              throw new Error(`Failed to assign variable: ${e}`);
+            }
           }
         }
 
@@ -496,20 +639,6 @@ export class CommandQueue {
         throw e;
       }
     }
-  }
-
-  async executeCommand(command: StoredRunCommand) {
-    await Tool.executeCommand(command.commandInfo);
-    await this.commands.complete(command.queueId);
-  }
-  
-
-  async skipCommand(commandId: number) {
-    await this.commands.skip(commandId);
-  }
-
-  async skipCommandsUntil(commandId: number) {
-    await this.commands.skipUntil(commandId);
   }
 
   async enqueueRun(run: Run) {

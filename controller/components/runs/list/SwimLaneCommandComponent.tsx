@@ -24,7 +24,6 @@ import CommandImage from "@/components/tools/CommandImage";
 import { FaCheckCircle } from "react-icons/fa";
 import { GoSkip } from "react-icons/go";
 
-
 interface LaneCommandComponentProps {
   command: RunCommand;
   onCommandClick: (command: RunCommand) => void;
@@ -50,8 +49,7 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
       ? {
           opacity: 0.55,
         }
-      :
-      {};
+      : {};
 
   useEffect(() => {
     toolNameRef.current = toolName;
@@ -79,7 +77,7 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
   return (
     <Box
       style={
-        command.status === "COMPLETED"
+        command.status === "COMPLETED" || command.status === "SKIPPED"
           ? completedStyle
           : {
               cursor: "pointer",
@@ -103,9 +101,9 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
         <Box>
           <HStack spacing={2}>
             <Box width="90%">
-              <HStack py={(command.status === "COMPLETED" || command.status === "SKIPPED" )? 1 : 0}>
+              <HStack py={command.status === "COMPLETED" || command.status === "SKIPPED" ? 1 : 0}>
                 {command.status === "COMPLETED" && <FaCheckCircle color="green.500" />}
-                {command.status === "SKIPPED" && <GoSkip color="yellow.500" />}
+                {command.status === "SKIPPED" && <GoSkip color="orange" />}
                 <Text as="b">{toolName}</Text>
               </HStack>
             </Box>

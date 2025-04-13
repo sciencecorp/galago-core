@@ -1,11 +1,4 @@
-import {
-  VStack,
-  Box,
-  HStack,
-  useDisclosure,
-  Text,
-  Center,
-} from "@chakra-ui/react";
+import { VStack, Box, HStack, useDisclosure, Text, Center } from "@chakra-ui/react";
 import SwimLaneCommandComponent from "./SwimLaneCommandComponent";
 import { RunCommand } from "@/types";
 import React, { useEffect, useState } from "react";
@@ -20,7 +13,7 @@ interface SwimLaneProps {
 export const SwimLaneComponent: React.FC<SwimLaneProps> = ({ runCommands, showAllCommands }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedCommand, setSelectedCommand] = useState<RunCommand | null>(null);
-  
+
   const displayedCommands = showAllCommands
     ? runCommands
     : runCommands.filter((cmd) => cmd.status !== "COMPLETED");
