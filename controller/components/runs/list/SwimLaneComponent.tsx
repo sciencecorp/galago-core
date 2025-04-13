@@ -2,7 +2,6 @@ import { VStack, Box, HStack, useDisclosure, Text, Center } from "@chakra-ui/rea
 import SwimLaneCommandComponent from "./SwimLaneCommandComponent";
 import { RunCommand } from "@/types";
 import React, { useEffect, useState } from "react";
-import { trpc } from "@/utils/trpc";
 import { CommandDetailsDrawer } from "@/components/protocols/CommandDetailsDrawer"; // Import the CommandDetailsDrawer component
 
 interface SwimLaneProps {
@@ -18,9 +17,7 @@ export const SwimLaneComponent: React.FC<SwimLaneProps> = ({ runCommands, showAl
     ? runCommands
     : runCommands.filter((cmd) => cmd.status !== "COMPLETED");
 
-  // Dummy onSave function that does nothing (since we're disabling save functionality)
   const handleSave = (updatedCommand: any) => {
-    // This function is intentionally empty
     // Will be implemented later when save functionality is needed
   };
 

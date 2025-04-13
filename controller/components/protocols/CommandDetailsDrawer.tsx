@@ -313,10 +313,8 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
                         </FormControl>
 
                         <Text fontSize="sm" color="gray.500" mt={2}>
-                          When "Skip Execution" is configured, the command will be skipped if the
-                          selected variable matches the specified value. Running asynchronously
-                          allows the workflow to continue without waiting for this command to
-                          complete.
+                          The command will be skipped if the selected variable matches the specified
+                          value.
                         </Text>
                       </VStack>
                     </AccordionPanel>

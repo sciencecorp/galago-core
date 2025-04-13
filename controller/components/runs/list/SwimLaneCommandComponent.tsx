@@ -32,7 +32,6 @@ interface LaneCommandComponentProps {
 const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) => {
   const { command, onCommandClick } = props;
   const infoQuery = trpc.tool.info.useQuery({ toolId: command.commandInfo.toolId });
-  const toolStatusQuery = trpc.tool.status.useQuery({ toolId: command.commandInfo.toolId });
   const skipMutation = trpc.commandQueue.skipCommand.useMutation();
   const skipUntilMutation = trpc.commandQueue.skipCommandsUntil.useMutation();
   const execMutation = trpc.tool.runCommand.useMutation();
