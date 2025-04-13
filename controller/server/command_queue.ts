@@ -270,6 +270,12 @@ export class CommandQueue {
 
   // Modify the stop method in CommandQueue.ts to reset _isWaitingForInput
   async stop() {
+    this._setState(ToolStatus.OFFLINE);
+
+    if (this._runningPromise) {
+      await this._runningPromise;
+    }
+
     // Clear any active timer
     if (this._timerTimeout) {
       clearTimeout(this._timerTimeout);
@@ -291,10 +297,6 @@ export class CommandQueue {
     }
     logger.info("Command Queue stopped!");
     logAction({ level: "info", action: "Queue stopped", details: "Queue stopped." });
-
-    if (this._runningPromise) {
-      await this._runningPromise;
-    }
 
     this._setState(ToolStatus.OFFLINE);
   }
