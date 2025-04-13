@@ -87,7 +87,6 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
     return "";
   };
 
-  // Initialize advanced parameters from the selected command or create default values
   const getAdvancedParameters = (): AdvancedParameters => {
     if (editedAdvancedParams !== null) {
       return editedAdvancedParams;

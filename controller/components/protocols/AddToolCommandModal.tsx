@@ -89,13 +89,11 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     { enabled: !!selectedToolData?.id && selectedToolType === "pf400" },
   );
 
-  // Reset params and initialize with default values when tool or command changes
   useEffect(() => {
     if (selectedToolType && selectedCommand) {
       const availableCommands = commandFields[selectedToolType] || {};
       const fields = availableCommands[selectedCommand] || [];
 
-      // Initialize params with default values
       const initialParams: Record<string, any> = {};
       fields.forEach((field: Field) => {
         if (field.defaultValue !== undefined) {
