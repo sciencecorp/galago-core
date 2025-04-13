@@ -92,7 +92,7 @@ export class CommandQueue {
     // (${num1} + ${num2}) / 2   // Average of two numbers
 
     // // String operations
-    // "Hello, " + ${name}       // String concatenation 
+    // "Hello, " + ${name}       // String concatenation
     // ${firstName} + " " + ${lastName}  // Multiple concatenation
 
     // // Boolean values (direct assignment)
@@ -178,14 +178,41 @@ export class CommandQueue {
     return this.error || null;
   }
 
+  private async _ensureModalReady(): Promise<void> {
+    // If we're already waiting for input, resolve the previous promise
+    if (this._isWaitingForInput) {
+      console.log("Cleaning up previous modal operation before starting a new one");
+
+      // Clear any active timer
+      if (this._timerTimeout) {
+        clearTimeout(this._timerTimeout);
+        this._timerTimeout = undefined;
+      }
+
+      // If there's a pending promise, resolve it to prevent memory leaks
+      if (this._messageResolve) {
+        this._messageResolve();
+        this._messageResolve = undefined;
+      }
+
+      // Reset the state
+      this._isWaitingForInput = false;
+
+      // Add a small delay to ensure all state updates have propagated
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
+
   // Show pause message and wait for user input
   async pause(message?: string) {
+    await this._ensureModalReady();
+
     const pausedAt = Date.now();
     this._isWaitingForInput = true;
     this._currentMessage = {
       type: "pause",
       message: message || "Run is paused. Click Continue to resume.",
-      pausedAt: pausedAt, // Record the timestamp when paused
+      pausedAt: pausedAt,
     };
 
     logAction({
@@ -215,13 +242,15 @@ export class CommandQueue {
 
   // Show info message and wait for user acknowledgment
   async showMessage(message: string, title?: string) {
+    await this._ensureModalReady();
+
     const pausedAt = Date.now();
     this._isWaitingForInput = true;
     this._currentMessage = {
       type: "message",
       message: message || "Please review and click Continue to proceed.",
       title: title || "Message",
-      pausedAt: pausedAt, // Record the timestamp when message shown
+      pausedAt: pausedAt,
     };
 
     logAction({
@@ -237,6 +266,8 @@ export class CommandQueue {
   }
 
   async stopRunRequest(message: string) {
+    await this._ensureModalReady();
+
     const pausedAt = Date.now();
     this._isWaitingForInput = true;
     this._currentMessage = {
@@ -258,6 +289,8 @@ export class CommandQueue {
   }
 
   async startTimer(minutes: number, seconds: number, message?: string) {
+    await this._ensureModalReady();
+
     const pausedAt = Date.now();
     const durationMs = (minutes * 60 + seconds) * 1000;
     const endTime = pausedAt + durationMs;
@@ -335,8 +368,12 @@ export class CommandQueue {
 
   // Resume execution after pause or message
   resume(autoResume = false) {
-    if (!this._isWaitingForInput) return;
+    if (!this._isWaitingForInput) {
+      console.log("Resume called but queue is not waiting for input");
+      return;
+    }
 
+    // Clear any active timer
     if (this._timerTimeout) {
       clearTimeout(this._timerTimeout);
       this._timerTimeout = undefined;
@@ -344,20 +381,27 @@ export class CommandQueue {
 
     const messageType = this._currentMessage.type;
     const pausedAt = this._currentMessage.pausedAt || Date.now();
-    const elapsedMs = Date.now() - (this._currentMessage.pausedAt || Date.now());
+    const elapsedMs = Date.now() - pausedAt;
     const elapsedSec = Math.floor(elapsedMs / 1000);
 
+    // Store the resolver before resetting state
+    const resolver = this._messageResolve;
+
+    // Reset state first to prevent race conditions
     this._isWaitingForInput = false;
-    if (this._messageResolve) {
-      this._messageResolve();
-      this._messageResolve = undefined;
-    }
+    this._messageResolve = undefined;
 
     logAction({
       level: "info",
       action: "Queue Resumed",
-      details: `Queue execution resumed after ${elapsedSec} seconds of pause/message.`,
+      details: `Queue execution resumed after ${elapsedSec} seconds of ${messageType}`,
     });
+
+    // Now call the resolver after state is reset
+    if (resolver) {
+      // Slight delay to ensure UI updates
+      setTimeout(() => resolver(), 50);
+    }
   }
 
   // Standard command queue methods
@@ -457,6 +501,8 @@ export class CommandQueue {
     const startedAt = Date.now();
 
     while (this.state === ToolStatus.BUSY) {
+      // Small delay between processing commands to avoid race conditions
+      await new Promise((resolve) => setTimeout(resolve, 50));
       const nextCommand = await this.commands.startNext();
       if (!nextCommand) {
         this.stop(); //stop the queue when there are no more commands available!!
@@ -468,12 +514,19 @@ export class CommandQueue {
         try {
           // Get the variable name and expected value for skipping
           const varName = nextCommand.commandInfo.advancedParameters.skipExecutionVariable.variable;
-          const expectedValue =
+          let expectedValue =
             nextCommand.commandInfo.advancedParameters.skipExecutionVariable.value;
+          if (expectedValue.startsWith("{{") && expectedValue.endsWith("}}")) {
+            console.log("Expected value is a variable reference");
+            expectedValue = (await get<Variable>(`/variables/${expectedValue.slice(2, -2).trim()}`))
+              .value;
+            console.log("Expected value", expectedValue);
+          }
 
           // Fetch the variable from the database
           const varResponse = await get<Variable>(`/variables/${varName}`);
-
+          console.log("Variable response", varResponse);
+          console.log("VaR value", varResponse.value);
           // If variable value matches expected value, skip this command
           if (varResponse.value === expectedValue) {
             logAction({
@@ -528,14 +581,17 @@ export class CommandQueue {
             continue;
           } else if (nextCommand.commandInfo.command === "show_message") {
             // Handle show_message command
-            let message = nextCommand.commandInfo.params?.message ||
+            let message =
+              nextCommand.commandInfo.params?.message ||
               "Please review and click Continue to proceed.";
             const title = nextCommand.commandInfo.params?.title || "Message";
-            
+
             // Check if message is a variable reference
-            if(message.startsWith("{{") && message.endsWith("}}")) {
+            if (message.startsWith("{{") && message.endsWith("}}")) {
               try {
-                const variableResponse = await get<Variable>(`/variables/${message.slice(2, -2).trim()}`);
+                const variableResponse = await get<Variable>(
+                  `/variables/${message.slice(2, -2).trim()}`,
+                );
                 // Use just the value property of the variable
                 message = variableResponse.value;
               } catch (e) {
@@ -547,7 +603,7 @@ export class CommandQueue {
                 // Keep the original message if the variable fetch fails
               }
             }
-            
+
             await this.commands.complete(nextCommand.queueId);
             await this.showMessage(message, title);
             continue;
@@ -591,13 +647,13 @@ export class CommandQueue {
             let variableName = nextCommand.commandInfo.params?.name;
             const expressionValue = nextCommand.commandInfo.params?.value;
 
-            //Check if the variable exists 
+            //Check if the variable exists
             if (!variableName) {
               throw new Error("Variable name is required for assignment");
             }
 
             console.log("Variable name", variableName);
-            if(variableName.startsWith("{{") && variableName.endsWith("}}")) {
+            if (variableName.startsWith("{{") && variableName.endsWith("}}")) {
               variableName = variableName.slice(2, -2).trim();
             }
             try {

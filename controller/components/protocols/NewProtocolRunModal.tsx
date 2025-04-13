@@ -3,7 +3,6 @@ import { trpc } from "@/utils/trpc";
 import {
   Button,
   ButtonGroup,
-  Checkbox,
   FormControl,
   FormErrorMessage,
   FormHelperText,
@@ -26,7 +25,6 @@ import {
   useToast,
   VStack,
   Box,
-  useColorModeValue,
   useNumberInput,
   HStack,
   Select,
@@ -98,6 +96,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   const workcellData = trpc.workcell.getSelectedWorkcell.useQuery();
   const workcellName = workcellData.data;
   const editVariable = trpc.variable.edit.useMutation();
+  const createVariable = trpc.variable.add.useMutation();
   const variablesQuery = trpc.variable.getAll.useQuery();
 
   const protocol = trpc.protocol.get.useQuery(
@@ -176,20 +175,48 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
     try {
       // Get all parameters with linked variables
       const linkedParams = Object.entries(uiParams).filter(
-        ([_, paramInfo]) => (paramInfo as any).variable_id,
+        ([_, paramInfo]) => (paramInfo as any).variable_name,
       );
 
       // Update all linked variables with new values from the form
       const updatePromises = linkedParams.map(async ([paramName, paramInfo]) => {
-        const variableId = (paramInfo as any).variable_id;
-        if (!variableId) return null;
+        const variableName = (paramInfo as any).variable_name;
+        if (!variableName) return null;
 
         // Get the variable from our query
-        const variable = variablesQuery.data?.find((v) => v.id === variableId);
-        if (!variable) return null;
+        const variable = variablesQuery.data?.find((v) => v.name === variableName);
 
         // Get the new value from the form
         const newValue = userDefinedParams[paramName];
+
+        // Determine variable type based on parameter type
+        const determineType = () => {
+          const paramType = (paramInfo as ProtocolParamInfo).type;
+          if (paramType === "number") return "number";
+          if (paramType === "boolean") return "boolean";
+          return "string"; // Default to string
+        };
+
+        // If variable doesn't exist, create it
+        if (!variable) {
+          console.log(`Variable ${variableName} not found, creating it...`);
+
+          // Determine type based on parameter info
+          const variableType = determineType();
+
+          // Special handling for boolean values
+          let valueToSave = newValue;
+          if (variableType === "boolean") {
+            valueToSave = newValue === true || newValue === "true";
+          }
+
+          // Create the new variable
+          return createVariable.mutateAsync({
+            name: variableName,
+            type: variableType,
+            value: valueToSave !== undefined ? String(valueToSave) : "",
+          });
+        }
 
         // If value hasn't changed, don't update
         if (newValue === variable.value) return null;
@@ -200,10 +227,10 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
           valueToSave = newValue === true || newValue === "true";
         }
 
-        // Update the variable
+        // Update the existing variable
         return editVariable.mutateAsync({
-          id: variableId,
-          value: valueToSave.toString(),
+          id: variable.id,
+          value: valueToSave !== undefined ? String(valueToSave) : variable.value,
           name: variable.name,
           type: variable.type,
         });
@@ -254,10 +281,10 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                   <>
                     {Object.entries(uiParams).map(([param, paramInfo]) => {
                       // Find if this parameter has a linked variable
-                      const linkedVariableId = (paramInfo as any).variable_id;
+                      const linkedVariableName = (paramInfo as any).variable_name;
                       const linkedVariable =
-                        linkedVariableId && variablesQuery.data
-                          ? variablesQuery.data.find((v) => v.id === linkedVariableId)
+                        linkedVariableName && variablesQuery.data
+                          ? variablesQuery.data.find((v) => v.name === linkedVariableName)
                           : null;
 
                       return (

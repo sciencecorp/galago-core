@@ -35,7 +35,7 @@ import { trpc } from "@/utils/trpc";
 interface ParameterSchema {
   type: string;
   placeHolder?: string;
-  variable_id?: number; // Changed from variable_name to variable_id
+  variable_name?: string; // Changed from variable_id to variable_name
 }
 
 interface ProtocolFormModalProps {
@@ -82,23 +82,22 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
     },
   });
 
-  // Initialize local params when modal opens with converted variable_name to variable_id if needed
   useEffect(() => {
     if (isOpen) {
       if (initialParams && fetchedVariables) {
-        // Convert any existing variable_name to variable_id
+        // Convert any existing variable_id to variable_name
         const convertedParams = Object.entries(initialParams).reduce(
           (acc, [key, schema]) => {
             const newSchema = { ...schema };
 
-            // If we have a variable_name but not a variable_id, find the matching ID
-            if ("variable_name" in newSchema && !("variable_id" in newSchema)) {
-              const variable = fetchedVariables.find((v) => v.name === newSchema.variable_name);
+            // If we have a variable_id but not a variable_name, find the matching name
+            if ("variable_id" in newSchema && !("variable_name" in newSchema)) {
+              const variable = fetchedVariables.find((v) => v.id === newSchema.variable_id);
               if (variable) {
-                newSchema.variable_id = variable.id;
+                newSchema.variable_name = variable.name;
               }
-              // Remove the old variable_name property
-              delete newSchema.variable_name;
+              // Remove the old variable_id property
+              delete newSchema.variable_id;
             }
 
             acc[key] = newSchema;
@@ -171,21 +170,20 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
     setLocalParams(newSchema);
   };
 
-  // Handle variable selection by ID
-  const handleVariableSelect = (paramName: string, variableId: string) => {
+  // Handle variable selection by name
+  const handleVariableSelect = (paramName: string, variableName: string) => {
     const newSchema = { ...localParams };
-    const numericVariableId = parseInt(variableId, 10);
-    const variable = fetchedVariables?.find((v) => v.id === numericVariableId);
+    const variable = fetchedVariables?.find((v) => v.name === variableName);
 
-    if (variableId === "") {
-      // If clearing the variable selection, remove variable_id but keep other properties
-      const { variable_id, ...rest } = newSchema[paramName];
+    if (variableName === "") {
+      // If clearing the variable selection, remove variable_name but keep other properties
+      const { variable_name, ...rest } = newSchema[paramName];
       newSchema[paramName] = rest;
     } else if (variable) {
       newSchema[paramName] = {
         ...newSchema[paramName],
         type: variable.type,
-        variable_id: numericVariableId,
+        variable_name: variableName,
       };
     }
 
@@ -222,10 +220,10 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
     }
   };
 
-  // Find the variable associated with a parameter
+  // Find the variable associated with a parameter by name
   const getVariableForParam = (paramSchema: ParameterSchema) => {
-    if (!paramSchema.variable_id || !fetchedVariables) return null;
-    return fetchedVariables.find((v) => v.id === paramSchema.variable_id);
+    if (!paramSchema.variable_name || !fetchedVariables) return null;
+    return fetchedVariables.find((v) => v.name === paramSchema.variable_name);
   };
 
   // This is the mock implementation of the NewProtocolRunModal preview
@@ -247,6 +245,11 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                 <Badge colorScheme="blue" ml={2}>
                   {schema.type}
                 </Badge>
+                {schema.variable_name && (
+                  <Badge colorScheme="green" ml={2}>
+                    {schema.variable_name}
+                  </Badge>
+                )}
               </FormLabel>
               {isBoolean ? (
                 <Select defaultValue={variable?.value || schema.placeHolder || "false"}>
@@ -328,11 +331,11 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                         <Td minW="200px">
                           <Select
                             size="md"
-                            value={schema.variable_id ? schema.variable_id.toString() : ""}
+                            value={schema.variable_name || ""}
                             onChange={(e) => handleVariableSelect(paramName, e.target.value)}>
                             <option value="">No Variable</option>
                             {fetchedVariables?.map((variable) => (
-                              <option key={variable.id} value={variable.id.toString()}>
+                              <option key={variable.id} value={variable.name}>
                                 {variable.name} ({variable.type})
                               </option>
                             ))}
