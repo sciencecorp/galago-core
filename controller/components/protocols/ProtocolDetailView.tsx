@@ -197,7 +197,10 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
           image_url: cmd.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
         },
         advancedParameters: cmd.advancedParameters || {
-          skipExecutionVariable: null,
+          skipExecutionVariable: {
+            variable: null,
+            value: "",
+          },
           runAsynchronously: false,
         },
       },
@@ -300,7 +303,10 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       },
       //Add advanced parameters for UI
       advancedParameters: cmd.commandInfo.advancedParameters || {
-        skipExecutionVariable: null,
+        skipExecutionVariable: {
+          variable: null,
+          value: "",
+        },
         runAsynchronously: false,
       },
     }));

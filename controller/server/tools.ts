@@ -200,10 +200,7 @@ export default class Tool {
   async executeCommand(command: ToolCommandInfo) {
     const params = command.params;
     for (const key in params) {
-      console.warn("key", key);
-      console.warn("Null params", params[key]);
       if (params[key] == null) continue;
-
       const paramValue = String(params[key]);
       if (paramValue.startsWith("{{") && paramValue.endsWith("}}")) {
         try {

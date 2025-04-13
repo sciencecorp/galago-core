@@ -11,6 +11,10 @@ import dotenv from "dotenv";
 import { ToolType } from "gen-interfaces/controller";
 import { unknown } from "zod";
 import { logAction } from "./logger";
+import { get } from "@/server/utils/api";
+import { Script } from "@/types/api";
+import { Variable } from "@/types/api";
+import { Labware } from "@/types/api";  
 
 export type CommandQueueState = ToolStatus;
 
@@ -356,6 +360,38 @@ export class CommandQueue {
         return;
       }
 
+    // Handle advanced parameters for skip execution
+    if (nextCommand.commandInfo.advancedParameters?.skipExecutionVariable?.variable) {
+      try {
+        // Get the variable name and expected value for skipping
+        const varName = nextCommand.commandInfo.advancedParameters.skipExecutionVariable.variable;
+        const expectedValue = nextCommand.commandInfo.advancedParameters.skipExecutionVariable.value;
+        
+        // Fetch the variable from the database
+        const varResponse = await get<Variable>(`/variables/${varName}`);
+        
+        // If variable value matches expected value, skip this command
+        if (varResponse.value === expectedValue) {
+          logAction({
+            level: "info",
+            action: "Command Skipped",
+            details: `Skipping command: ${nextCommand.commandInfo.command} for tool: ${nextCommand.commandInfo.toolId} because variable ${varName} = ${expectedValue}`,
+          });
+          
+          // Skip the command
+          await this.skipCommand(nextCommand.queueId);
+          continue; // Skip to the next command
+        }
+      } catch (e) {
+        logAction({
+          level: "warning",
+          action: "Skip Execution Variable Error",
+          details: `Failed to fetch skip execution variable ${nextCommand.commandInfo.advancedParameters.skipExecutionVariable.variable}: ${e}`,
+        });
+        // Continue with command execution if we can't check the skip condition
+      }
+    }
+  
       const dateString = String(nextCommand.createdAt);
       const dateObject = new Date(dateString);
 
@@ -466,6 +502,7 @@ export class CommandQueue {
     await Tool.executeCommand(command.commandInfo);
     await this.commands.complete(command.queueId);
   }
+  
 
   async skipCommand(commandId: number) {
     await this.commands.skip(commandId);

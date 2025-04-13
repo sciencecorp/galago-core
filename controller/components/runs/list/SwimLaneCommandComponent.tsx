@@ -22,6 +22,8 @@ import { capitalizeFirst } from "@/utils/parser";
 import { RunCommand } from "@/types";
 import CommandImage from "@/components/tools/CommandImage";
 import { FaCheckCircle } from "react-icons/fa";
+import { GoSkip } from "react-icons/go";
+
 
 interface LaneCommandComponentProps {
   command: RunCommand;
@@ -44,12 +46,12 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
   const runningBg = useColorModeValue("teal.200", "teal.800");
 
   const completedStyle =
-    command.status === "COMPLETED"
+    command.status === "COMPLETED" || command.status === "SKIPPED"
       ? {
-          opacity: 0.7,
-          filter: "grayscale(70%)",
+          opacity: 0.55,
         }
-      : {};
+      :
+      {};
 
   useEffect(() => {
     toolNameRef.current = toolName;
@@ -58,6 +60,8 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
   function setBackgroundColor(status: any) {
     switch (status) {
       case "COMPLETED":
+        return completeColor;
+      case "SKIPPED":
         return completeColor;
       case "STARTED":
         return runningBg;
@@ -99,8 +103,9 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
         <Box>
           <HStack spacing={2}>
             <Box width="90%">
-              <HStack py={command.status === "COMPLETED" ? 1 : 0}>
+              <HStack py={(command.status === "COMPLETED" || command.status === "SKIPPED" )? 1 : 0}>
                 {command.status === "COMPLETED" && <FaCheckCircle color="green.500" />}
+                {command.status === "SKIPPED" && <GoSkip color="yellow.500" />}
                 <Text as="b">{toolName}</Text>
               </HStack>
             </Box>

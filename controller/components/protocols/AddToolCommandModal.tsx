@@ -189,7 +189,10 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
         params: finalParams, // Use the complete params
         label: "",
         advancedParameters: {
-          skipExecutionVariable: null,
+          skipExecutionVariable: {
+            variable: null,
+            value: null,
+          },
           runAsynchronously: false,
         },
       },

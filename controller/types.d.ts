@@ -12,8 +12,13 @@ export interface ParameterSchema {
   variable?: string;
 }
 
+export interface SkipExecution {
+  variable: string | null;
+  value: string;
+}
+
 export interface AdvancedParameters {
-  skipExecutionVariable: string | null;
+  skipExecutionVariable: SkipExecution;
   runAsynchronously?: boolean;
 }
 
