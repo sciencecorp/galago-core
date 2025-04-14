@@ -30,19 +30,73 @@ import {
   Select,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { z } from "zod";
 import { capitalizeFirst } from "@/utils/parser";
+
+// Enum for field types, matching the one in ProtocolFormModal
+enum FieldType {
+  USER_INPUT = "user_input",
+  FILE_INPUT = "file_input",
+}
+
+// Extended type to include fieldType
+interface ExtendedProtocolParamInfo extends ProtocolParamInfo {
+  fieldType?: FieldType;
+  variable_name?: string;
+}
 
 function ParamInput({
   paramInfo,
   value,
   setValue,
 }: {
-  paramInfo: ProtocolParamInfo;
+  paramInfo: ExtendedProtocolParamInfo;
   value: any;
   setValue: (value: any) => void;
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle file selection
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      // Read the file as text
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target?.result;
+        // Save the file content to the state
+        setValue(content);
+      };
+      reader.readAsText(file);
+    } catch (error) {
+      console.error("Error reading file:", error);
+    }
+  };
+
+  // Check if this is a file input field
+  if (paramInfo.fieldType === FieldType.FILE_INPUT) {
+    return (
+      <Box width="100%">
+        <Input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          pt={1}
+          placeholder={paramInfo.placeHolder || "Choose a file"}
+        />
+        {value && (
+          <Text mt={2} fontSize="sm" color="gray.500">
+            File content loaded ({(value as string).length} characters)
+          </Text>
+        )}
+      </Box>
+    );
+  }
+
+  // Handle other input types as before
   switch (paramInfo.type) {
     case "number":
       return (
@@ -189,9 +243,13 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
         // Get the new value from the form
         const newValue = userDefinedParams[paramName];
 
-        // Determine variable type based on parameter type
+        // Determine variable type based on parameter type and if it's a file input
         const determineType = () => {
           const paramType = (paramInfo as ProtocolParamInfo).type;
+          const isFileInput =
+            (paramInfo as ExtendedProtocolParamInfo).fieldType === FieldType.FILE_INPUT;
+
+          if (isFileInput) return "string"; // File contents are stored as strings
           if (paramType === "number") return "number";
           if (paramType === "boolean") return "boolean";
           return "string"; // Default to string
@@ -287,25 +345,40 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                           ? variablesQuery.data.find((v) => v.name === linkedVariableName)
                           : null;
 
+                      // Add badge for file input
+                      const isFileInput =
+                        (paramInfo as ExtendedProtocolParamInfo).fieldType === FieldType.FILE_INPUT;
+
                       return (
                         <FormControl key={param} isInvalid={!!(formErrors && formErrors[param])}>
                           <FormLabel>
                             <HStack spacing={1} alignItems="center">
                               <Text>{capitalizeFirst(param.replaceAll("_", " "))}</Text>
+                              {isFileInput && (
+                                <Text
+                                  as="span"
+                                  fontSize="xs"
+                                  color="purple.500"
+                                  fontWeight="bold"
+                                  ml={1}>
+                                  (File)
+                                </Text>
+                              )}
                             </HStack>
                           </FormLabel>
                           <ParamInput
-                            paramInfo={paramInfo as ProtocolParamInfo}
+                            paramInfo={paramInfo as ExtendedProtocolParamInfo}
                             value={userDefinedParams[param]}
                             setValue={(value) =>
                               setUserDefinedParams({ ...userDefinedParams, [param]: value })
                             }
                           />
-                          {(paramInfo.type === "boolean" || paramInfo.type === "number") && (
-                            <FormHelperText>
-                              {(paramInfo as ProtocolParamInfo).placeHolder}
-                            </FormHelperText>
-                          )}
+                          {!isFileInput &&
+                            (paramInfo.type === "boolean" || paramInfo.type === "number") && (
+                              <FormHelperText>
+                                {(paramInfo as ProtocolParamInfo).placeHolder}
+                              </FormHelperText>
+                            )}
                           {formErrors &&
                             formErrors[param]?._errors.map((key, error) => (
                               <FormErrorMessage key={key}>{error}</FormErrorMessage>

@@ -32,10 +32,17 @@ import { AiFillEdit } from "react-icons/ai";
 import { EditableText } from "@/components/ui/Form";
 import { trpc } from "@/utils/trpc";
 
+// Add a new enum for field types
+enum FieldType {
+  USER_INPUT = "user_input",
+  FILE_INPUT = "file_input",
+}
+
 interface ParameterSchema {
   type: string;
   placeHolder?: string;
-  variable_name?: string; // Changed from variable_id to variable_name
+  variable_name?: string;
+  fieldType?: FieldType; // New property to determine input type
 }
 
 interface ProtocolFormModalProps {
@@ -85,7 +92,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       if (initialParams && fetchedVariables) {
-        // Convert any existing variable_id to variable_name
+        // Convert any existing variable_id to variable_name and ensure fieldType is set
         const convertedParams = Object.entries(initialParams).reduce(
           (acc, [key, schema]) => {
             const newSchema = { ...schema };
@@ -100,6 +107,11 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
               delete newSchema.variable_id;
             }
 
+            // Set default fieldType if not present
+            if (!newSchema.fieldType) {
+              newSchema.fieldType = FieldType.USER_INPUT;
+            }
+
             acc[key] = newSchema;
             return acc;
           },
@@ -108,7 +120,14 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
 
         setLocalParams(convertedParams);
       } else {
-        setLocalParams(initialParams || {});
+        // Ensure all params have a fieldType
+        const paramsWithFieldType = { ...initialParams };
+        Object.keys(paramsWithFieldType).forEach((key) => {
+          if (!paramsWithFieldType[key].fieldType) {
+            paramsWithFieldType[key].fieldType = FieldType.USER_INPUT;
+          }
+        });
+        setLocalParams(paramsWithFieldType || {});
       }
     }
   }, [isOpen, initialParams, fetchedVariables]);
@@ -119,6 +138,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
     newSchema[newParamName] = {
       type: "string",
       placeHolder: "",
+      fieldType: FieldType.USER_INPUT, // Default to user input
     };
     setLocalParams(newSchema);
   };
@@ -237,6 +257,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
         {Object.entries(localParams).map(([param, schema]) => {
           const variable = getVariableForParam(schema);
           const isBoolean = schema.type.toLowerCase() === "boolean";
+          const isFileInput = schema.fieldType === FieldType.FILE_INPUT;
 
           return (
             <FormControl key={param}>
@@ -250,8 +271,15 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                     {schema.variable_name}
                   </Badge>
                 )}
+                {isFileInput && (
+                  <Badge colorScheme="purple" ml={2}>
+                    File
+                  </Badge>
+                )}
               </FormLabel>
-              {isBoolean ? (
+              {isFileInput ? (
+                <Input type="file" pt={1} placeholder={schema.placeHolder || "Choose a file"} />
+              ) : isBoolean ? (
                 <Select defaultValue={variable?.value || schema.placeHolder || "false"}>
                   <option value="true">True</option>
                   <option value="false">False</option>
@@ -298,6 +326,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                 <Thead>
                   <Tr>
                     <Th>Label</Th>
+                    <Th>Field Type</Th>
                     <Th>PlaceHolder</Th>
                     <Th>Variable</Th>
                     <Th></Th>
@@ -317,6 +346,21 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                             defaultValue={paramName || ""}
                             placeholder="Parameter name"
                           />
+                        </Td>
+                        <Td>
+                          <Select
+                            size="md"
+                            value={schema.fieldType || FieldType.USER_INPUT}
+                            onChange={(e) =>
+                              handleUpdateParameterSchema(
+                                paramName,
+                                "fieldType",
+                                e.target.value as FieldType,
+                              )
+                            }>
+                            <option value={FieldType.USER_INPUT}>User Input</option>
+                            <option value={FieldType.FILE_INPUT}>File Input</option>
+                          </Select>
                         </Td>
                         <Td>
                           <Input

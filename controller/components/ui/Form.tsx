@@ -7,6 +7,7 @@ import {
   Input,
   Text,
   useColorModeValue,
+  Tooltip,
 } from "@chakra-ui/react";
 import { RiCheckFill, RiCloseFill, RiEdit2Line } from "react-icons/ri";
 
@@ -108,26 +109,49 @@ export const Editable = (props: {
 export const EditableText = (props: {
   onSubmit: (value?: string | null) => void;
   defaultValue?: string;
+  displayValue?: string; // New prop for displaying truncated text
   placeholder?: string;
   minWidth?: number;
   preview?: JSX.Element;
   persistentEdit?: boolean;
   disabled?: boolean;
+  showTooltip?: boolean; // Optional prop to control tooltip display
 }) => {
   const textColor = useColorModeValue("gray.800", "gray.100");
   const placeholderColor = useColorModeValue("gray.400", "gray.500");
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const inputBg = useColorModeValue("white", "gray.700");
 
+  // If displayValue is provided, use it for display but keep defaultValue for editing
+  const displayText = props.displayValue !== undefined ? props.displayValue : props.defaultValue;
+
+  // Check if we need to show a tooltip (when displayValue is different from defaultValue)
+  const shouldShowTooltip =
+    props.showTooltip !== false &&
+    props.defaultValue !== undefined &&
+    props.displayValue !== undefined &&
+    props.defaultValue !== props.displayValue;
+
   // Create a custom preview that shows placeholder text when empty
-  const customPreview = props.preview || (
+  const textPreview = (
     <Text
       fontSize="sm"
-      color={props.defaultValue ? textColor : placeholderColor}
-      fontStyle={props.defaultValue ? "normal" : "italic"}>
-      {props.defaultValue || props.placeholder || "Click to edit"}
+      color={displayText ? textColor : placeholderColor}
+      fontStyle={displayText ? "normal" : "italic"}>
+      {displayText || props.placeholder || "Click to edit"}
     </Text>
   );
+
+  // Add tooltip if needed
+  const customPreview =
+    props.preview ||
+    (shouldShowTooltip ? (
+      <Tooltip label={props.defaultValue} placement="top" hasArrow>
+        {textPreview}
+      </Tooltip>
+    ) : (
+      textPreview
+    ));
 
   return (
     <Editable
