@@ -56,7 +56,6 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
   const { data: workcells } = trpc.workcell.getAll.useQuery();
 
   const workcellId = workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id;
-  console.log("Workcell ID:", workcellId);
   const availableTools = Object.values(ToolType)
     .filter(
       (tool) =>
