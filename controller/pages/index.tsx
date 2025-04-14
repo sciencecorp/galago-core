@@ -42,7 +42,7 @@ export default function Page() {
   const hoverBg = useColorModeValue("gray.50", "gray.600");
 
   // Fetch data from different sections
-  const { data: tools } = trpc.tool.availableIDs.useQuery();
+  const { data: tools } = trpc.tool.getAll.useQuery();
   const { data: workcells } = trpc.workcell.getAll.useQuery();
   const { data: protocols } = trpc.protocol.allNames.useQuery({ workcellName: "" });
   const { data: labware } = trpc.labware.getAll.useQuery();

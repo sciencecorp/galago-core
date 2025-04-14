@@ -34,7 +34,6 @@ interface ToolStatusCardsProps {
 }
 
 export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) => {
-
   const [toolIds, setToolIds] = useState<string[]>([]);
   const { data: selectedWorkcellData, refetch: refetchWorkcell } =
     trpc.workcell.getSelectedWorkcell.useQuery();
@@ -49,7 +48,9 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
   const [thisWorkcellTools, setThisWorkcellTools] = useState<Tool[]>([]);
   const toast = useToast();
 
-  const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({workcellId: workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id});
+  const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({
+    workcellId: workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id,
+  });
 
   const connectAllTools = async () => {
     setConnectingLoading(true);
@@ -201,9 +202,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
                     Connect All
                   </Button>
                 }
-                secondaryButton={
-                  <NewToolModal isDisabled={!selectedWorkcell} />
-                }
+                secondaryButton={<NewToolModal isDisabled={!selectedWorkcell} />}
               />
               <Divider />
               <StatGroup>

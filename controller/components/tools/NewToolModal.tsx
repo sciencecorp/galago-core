@@ -49,13 +49,14 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
   const addTool = trpc.tool.add.useMutation();
-  const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery();
   const selectedToolBg = useColorModeValue("teal.100", "teal.900");
   const { data: selectedWorkcellData } = trpc.workcell.getSelectedWorkcell.useQuery();
-  const [selectedWorkcellId, setSelectedWorkcellId] = useState<number | null>(null);
   const { data: workcells } = trpc.workcell.getAll.useQuery();
-
+  const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({
+    workcellId: workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id,
+  });
   const workcellId = workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id;
+
   const availableTools = Object.values(ToolType)
     .filter(
       (tool) =>
@@ -112,7 +113,6 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
       description,
       config: { [selectedTool]: configData || {} },
     };
-
 
     console.log("Saving the tool:", tool);
     setIsLoading(true);

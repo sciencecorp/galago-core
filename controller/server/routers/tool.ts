@@ -97,18 +97,22 @@ export const toolRouter = router({
     return configDefinition;
   }),
 
-  availableIDs: procedure.input( z.object({
-    workcellId: z.number().optional( ),
-  })).query(async ({input}) => {
-    let allTools = await get<ToolResponse[]>(`/tools`);
-    if (input.workcellId) {
-      allTools = allTools.filter((tool) => tool.workcell_id === input.workcellId);
-    }
-    Tool.reloadWorkcellConfig(allTools as controller_protos.ToolConfig[]);
-    const toolIds = allTools.map((tool) => tool.name.toLocaleLowerCase().replaceAll(" ", "_"));
-    toolIds.push("tool_box");
-    return toolIds;
-  }),
+  availableIDs: procedure
+    .input(
+      z.object({
+        workcellId: z.number().optional(),
+      }),
+    )
+    .query(async ({ input }) => {
+      let allTools = await get<ToolResponse[]>(`/tools`);
+      if (input.workcellId) {
+        allTools = allTools.filter((tool) => tool.workcell_id === input.workcellId);
+      }
+      Tool.reloadWorkcellConfig(allTools as controller_protos.ToolConfig[]);
+      const toolIds = allTools.map((tool) => tool.name.toLocaleLowerCase().replaceAll(" ", "_"));
+      toolIds.push("tool_box");
+      return toolIds;
+    }),
 
   status: procedure
     .input(
