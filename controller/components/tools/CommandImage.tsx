@@ -73,4 +73,4 @@ const CommandImage: React.FC<CommandImageProps> = (props) => {
   return <>{renderToolImage(config)}</>;
 };
 
-export default memo(CommandImage);
+export default CommandImage;

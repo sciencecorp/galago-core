@@ -264,7 +264,7 @@ export const Variables: React.FC = () => {
                               value && (await handleVariableUpdate({ ...variable, value: value }));
                             }}
                             defaultValue={variable.value}
-                            displayValue={truncateText(variable.value, 200)}
+                            displayValue={truncateText(variable.value, 60)}
                           />
                         </Td>
                         <Td>{renderDatetime(String(variable.created_at))}</Td>

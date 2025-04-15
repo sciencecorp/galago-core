@@ -369,6 +369,8 @@ export default class Tool {
     }
     const store: Map<string, Tool> = me[global_key];
     let tool = store.get(id);
+    console.log(`Tool for ID ${id}: `, tool);
+
     //If the tool does not exist in the store, create a new tool object
     if (!tool) {
       let toolInfo = {} as controller_protos.ToolConfig;
@@ -382,6 +384,7 @@ export default class Tool {
             id.toLocaleLowerCase().replaceAll(" ", "_"),
         );
         if (!result) {
+          console.log(`Failed to find tool ${id} in allTools list: `, this.allTools);
           throw new Error(`Tool with id ${id} not found in in database'`);
         }
         toolInfo = result;

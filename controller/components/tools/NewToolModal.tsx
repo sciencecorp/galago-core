@@ -114,7 +114,6 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
       config: { [selectedTool]: configData || {} },
     };
 
-    console.log("Saving the tool:", tool);
     setIsLoading(true);
     try {
       await addTool.mutateAsync(tool);
