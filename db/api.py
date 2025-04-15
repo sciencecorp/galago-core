@@ -1,5 +1,5 @@
 import typing as t
-from fastapi import FastAPI, HTTPException, Depends, Request, UploadFile, File
+from fastapi import FastAPI, HTTPException, Depends, Request, UploadFile, File, Form 
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -1366,10 +1366,9 @@ class WaypointData(BaseModel):
 
 @app.post("/waypoints/upload")
 async def upload_waypoints(
-    file: UploadFile = File(...), tool_id: int = 1, db: Session = Depends(get_db)
+    file: UploadFile = File(...),  tool_id: int = Form(...), db: Session = Depends(get_db)
 ):
     return await handle_waypoint_upload(file, tool_id, db)
-
 
 class ProtocolCreate(BaseModel):
     name: str

@@ -13,6 +13,7 @@ import {
   useColorModeValue,
   HStack,
   Badge,
+  Box,
 } from "@chakra-ui/react";
 import { MdPause, MdInfo, MdAccessTime } from "react-icons/md";
 
@@ -44,6 +45,40 @@ const formatElapsedTime = (elapsedMs: number): string => {
   } else {
     return `${seconds}s`;
   }
+};
+
+// Function to format message text with simple markup
+const FormatText = ({ text }: { text: string }) => {
+  if (!text) return null;
+  
+  // Process the text in two steps:
+  // 1. Handle newlines first
+  const lines = text.split('\\n');
+  
+  // 2. Process each line for bold formatting
+  const processedLines = lines.map((line, lineIndex) => {
+    // Split by * for bold formatting
+    const parts = line.split(/(\*[^*]+\*)/g);
+    
+    const formattedParts = parts.map((part, partIndex) => {
+      // Check if this part is a bold section (surrounded by *)
+      if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+        // Remove the * characters and make it bold
+        return <Text as="span" fontWeight="bold" key={`part-${lineIndex}-${partIndex}`}>{part.slice(1, -1)}</Text>;
+      }
+      return <React.Fragment key={`part-${lineIndex}-${partIndex}`}>{part}</React.Fragment>;
+    });
+    
+    // Return the formatted line
+    return (
+      <React.Fragment key={`line-${lineIndex}`}>
+        {lineIndex > 0 && <br />}
+        {formattedParts}
+      </React.Fragment>
+    );
+  });
+
+  return <>{processedLines}</>;
 };
 
 export const MessageModal: React.FC<MessageProps> = ({ isOpen, messageData, onContinue }) => {
@@ -82,7 +117,6 @@ export const MessageModal: React.FC<MessageProps> = ({ isOpen, messageData, onCo
         <ModalHeader textAlign="center">
           {messageData.type === "pause" ? "Run Paused" : messageData.title || "Message"}
         </ModalHeader>
-
         {messageData.type === "pause" && messageData.pausedAt && (
           <HStack px={4} py={2} justify="center" spacing={2}>
             <Icon as={MdAccessTime} color={pauseIconColor} />
@@ -94,7 +128,6 @@ export const MessageModal: React.FC<MessageProps> = ({ isOpen, messageData, onCo
             </Text>
           </HStack>
         )}
-
         <ModalBody>
           <VStack spacing={4} py={2}>
             {/* Only show icon for pause type */}
@@ -103,7 +136,9 @@ export const MessageModal: React.FC<MessageProps> = ({ isOpen, messageData, onCo
             ) : (
               <Icon as={MdInfo} boxSize={12} color={messageIconColor} />
             )}
-            <Text textAlign="center">{messageData.message}</Text>
+            <Box textAlign="center">
+              <FormatText text={messageData.message} />
+            </Box>
           </VStack>
         </ModalBody>
         <ModalFooter justifyContent="center">
