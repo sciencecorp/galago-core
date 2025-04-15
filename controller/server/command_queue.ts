@@ -502,7 +502,7 @@ export class CommandQueue {
 
     while (this.state === ToolStatus.BUSY) {
       // Small delay between processing commands to avoid race conditions
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       const nextCommand = await this.commands.startNext();
       if (!nextCommand) {
         this.stop(); //stop the queue when there are no more commands available!!

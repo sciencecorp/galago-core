@@ -107,7 +107,6 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
         formData.append("file", files[i]);
         formData.append("tool_id", String(toolId));
 
-
         const response = await fetch("http://localhost:8000/waypoints/upload", {
           method: "POST",
           body: formData,

@@ -123,7 +123,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
       name: tool.name || capitalizeFirst(tool.type.replaceAll("_", " ")),
     })),
   ];
-  
+
   if (toolBoxQuery.data) {
     availableTools.push({
       id: toolBoxQuery.data.id,
@@ -133,12 +133,13 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   }
 
   // Filter tools based on search query (now searching by name, not just type)
-  const filteredTools = availableTools.filter((tool) =>
-    tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    tool.type.toLowerCase().replace(/_/g, " ").includes(searchQuery.toLowerCase())
+  const filteredTools = availableTools.filter(
+    (tool) =>
+      tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tool.type.toLowerCase().replace(/_/g, " ").includes(searchQuery.toLowerCase()),
   );
 
-  const handleToolSelect = (tool: { id: number | string, type: string, name: string }) => {
+  const handleToolSelect = (tool: { id: number | string; type: string; name: string }) => {
     setSelectedToolId(tool.id);
     setSelectedToolType(tool.type);
     setSelectedCommand("");
@@ -496,7 +497,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   const toolCardBg = useColorModeValue("white", "gray.800");
   const selectedToolBg = useColorModeValue("teal.100", "teal.900");
 
-  const ToolCard = ({ tool }: { tool: { id: number | string, type: string, name: string } }) => {
+  const ToolCard = ({ tool }: { tool: { id: number | string; type: string; name: string } }) => {
     const isSelected = selectedToolId === tool.id;
 
     return (
@@ -580,7 +581,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                 <HStack>
                   <Text fontSize="sm">Selected:</Text>
                   <Tag colorScheme="teal">
-                    {selectedToolData.name || capitalizeFirst(selectedToolType.replaceAll("_", " "))}
+                    {selectedToolData.name ||
+                      capitalizeFirst(selectedToolType.replaceAll("_", " "))}
                   </Tag>
                 </HStack>
               )}
@@ -592,10 +594,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               py={5}>
               <SimpleGrid columns={[2, 3, 4, 5]} spacing={4}>
                 {filteredTools.map((tool) => (
-                  <ToolCard 
-                    key={typeof tool.id === 'number' ? tool.id : tool.id.toString()} 
-                    tool={tool} 
-                  />
+                  <ToolCard key={tool.id} tool={tool} />
                 ))}
               </SimpleGrid>
             </Box>
@@ -606,7 +605,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           <VStack spacing={6} align="stretch">
             <Flex justify="space-between" align="center">
               <Text fontSize="md" fontWeight="bold">
-                Available Commands for {selectedToolData?.name || capitalizeFirst(selectedToolType.replaceAll("_", " "))}
+                Available Commands for{" "}
+                {selectedToolData?.name || capitalizeFirst(selectedToolType.replaceAll("_", " "))}
               </Text>
               {selectedCommand && (
                 <HStack>
@@ -632,7 +632,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                 Configure Parameters
               </Text>
               <Tag colorScheme="teal">
-                {selectedToolData?.name || capitalizeFirst(selectedToolType.replaceAll("_", " "))} → {selectedCommand}
+                {selectedToolData?.name || capitalizeFirst(selectedToolType.replaceAll("_", " "))} →{" "}
+                {selectedCommand}
               </Tag>
             </HStack>
 

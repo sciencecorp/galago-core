@@ -50,25 +50,29 @@ const formatElapsedTime = (elapsedMs: number): string => {
 // Function to format message text with simple markup
 const FormatText = ({ text }: { text: string }) => {
   if (!text) return null;
-  
+
   // Process the text in two steps:
   // 1. Handle newlines first
-  const lines = text.split('\\n');
-  
+  const lines = text.split("\\n");
+
   // 2. Process each line for bold formatting
   const processedLines = lines.map((line, lineIndex) => {
     // Split by * for bold formatting
     const parts = line.split(/(\*[^*]+\*)/g);
-    
+
     const formattedParts = parts.map((part, partIndex) => {
       // Check if this part is a bold section (surrounded by *)
-      if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+      if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
         // Remove the * characters and make it bold
-        return <Text as="span" fontWeight="bold" key={`part-${lineIndex}-${partIndex}`}>{part.slice(1, -1)}</Text>;
+        return (
+          <Text as="span" fontWeight="bold" key={`part-${lineIndex}-${partIndex}`}>
+            {part.slice(1, -1)}
+          </Text>
+        );
       }
       return <React.Fragment key={`part-${lineIndex}-${partIndex}`}>{part}</React.Fragment>;
     });
-    
+
     // Return the formatted line
     return (
       <React.Fragment key={`line-${lineIndex}`}>

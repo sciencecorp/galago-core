@@ -233,7 +233,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
                             }
                           }}
                           placeholder={isVariable ? "Using variable" : "Enter value"}
-                          isDisabled={isVariable || !isEditing}
+                          isDisabled={isVariable}
                         />
                         <Select
                           width="180px"
@@ -321,14 +321,16 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
                   </AccordionItem>
                 </Accordion>
 
-                <Button
-                  colorScheme="teal"
-                  variant="outline"
-                  onClick={handleSaveInputs}
-                  isDisabled={!isEditing}
-                  mt={4}>
-                  Save Inputs
-                </Button>
+                {isEditing && (
+                  <Button
+                    colorScheme="teal"
+                    variant="outline"
+                    onClick={handleSaveInputs}
+                    isDisabled={!isEditing}
+                    mt={4}>
+                    Save Inputs
+                  </Button>
+                )}
               </VStack>
             </VStack>
           ) : (
