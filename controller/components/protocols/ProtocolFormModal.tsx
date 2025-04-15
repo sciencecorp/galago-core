@@ -32,10 +32,17 @@ import { AiFillEdit } from "react-icons/ai";
 import { EditableText } from "@/components/ui/Form";
 import { trpc } from "@/utils/trpc";
 
+// Add a new enum for field types
+enum FieldType {
+  USER_INPUT = "user_input",
+  FILE_INPUT = "file_input",
+}
+
 interface ParameterSchema {
   type: string;
   placeHolder?: string;
-  variable_id?: number; // Changed from variable_name to variable_id
+  variable_name?: string;
+  fieldType?: FieldType; // New property to determine input type
 }
 
 interface ProtocolFormModalProps {
@@ -82,23 +89,27 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
     },
   });
 
-  // Initialize local params when modal opens with converted variable_name to variable_id if needed
   useEffect(() => {
     if (isOpen) {
       if (initialParams && fetchedVariables) {
-        // Convert any existing variable_name to variable_id
+        // Convert any existing variable_id to variable_name and ensure fieldType is set
         const convertedParams = Object.entries(initialParams).reduce(
           (acc, [key, schema]) => {
             const newSchema = { ...schema };
 
-            // If we have a variable_name but not a variable_id, find the matching ID
-            if ("variable_name" in newSchema && !("variable_id" in newSchema)) {
-              const variable = fetchedVariables.find((v) => v.name === newSchema.variable_name);
+            // If we have a variable_id but not a variable_name, find the matching name
+            if ("variable_id" in newSchema && !("variable_name" in newSchema)) {
+              const variable = fetchedVariables.find((v) => v.id === newSchema.variable_id);
               if (variable) {
-                newSchema.variable_id = variable.id;
+                newSchema.variable_name = variable.name;
               }
-              // Remove the old variable_name property
-              delete newSchema.variable_name;
+              // Remove the old variable_id property
+              delete newSchema.variable_id;
+            }
+
+            // Set default fieldType if not present
+            if (!newSchema.fieldType) {
+              newSchema.fieldType = FieldType.USER_INPUT;
             }
 
             acc[key] = newSchema;
@@ -109,7 +120,14 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
 
         setLocalParams(convertedParams);
       } else {
-        setLocalParams(initialParams || {});
+        // Ensure all params have a fieldType
+        const paramsWithFieldType = { ...initialParams };
+        Object.keys(paramsWithFieldType).forEach((key) => {
+          if (!paramsWithFieldType[key].fieldType) {
+            paramsWithFieldType[key].fieldType = FieldType.USER_INPUT;
+          }
+        });
+        setLocalParams(paramsWithFieldType || {});
       }
     }
   }, [isOpen, initialParams, fetchedVariables]);
@@ -120,6 +138,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
     newSchema[newParamName] = {
       type: "string",
       placeHolder: "",
+      fieldType: FieldType.USER_INPUT, // Default to user input
     };
     setLocalParams(newSchema);
   };
@@ -171,21 +190,20 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
     setLocalParams(newSchema);
   };
 
-  // Handle variable selection by ID
-  const handleVariableSelect = (paramName: string, variableId: string) => {
+  // Handle variable selection by name
+  const handleVariableSelect = (paramName: string, variableName: string) => {
     const newSchema = { ...localParams };
-    const numericVariableId = parseInt(variableId, 10);
-    const variable = fetchedVariables?.find((v) => v.id === numericVariableId);
+    const variable = fetchedVariables?.find((v) => v.name === variableName);
 
-    if (variableId === "") {
-      // If clearing the variable selection, remove variable_id but keep other properties
-      const { variable_id, ...rest } = newSchema[paramName];
+    if (variableName === "") {
+      // If clearing the variable selection, remove variable_name but keep other properties
+      const { variable_name, ...rest } = newSchema[paramName];
       newSchema[paramName] = rest;
     } else if (variable) {
       newSchema[paramName] = {
         ...newSchema[paramName],
         type: variable.type,
-        variable_id: numericVariableId,
+        variable_name: variableName,
       };
     }
 
@@ -222,10 +240,10 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
     }
   };
 
-  // Find the variable associated with a parameter
+  // Find the variable associated with a parameter by name
   const getVariableForParam = (paramSchema: ParameterSchema) => {
-    if (!paramSchema.variable_id || !fetchedVariables) return null;
-    return fetchedVariables.find((v) => v.id === paramSchema.variable_id);
+    if (!paramSchema.variable_name || !fetchedVariables) return null;
+    return fetchedVariables.find((v) => v.name === paramSchema.variable_name);
   };
 
   // This is the mock implementation of the NewProtocolRunModal preview
@@ -239,6 +257,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
         {Object.entries(localParams).map(([param, schema]) => {
           const variable = getVariableForParam(schema);
           const isBoolean = schema.type.toLowerCase() === "boolean";
+          const isFileInput = schema.fieldType === FieldType.FILE_INPUT;
 
           return (
             <FormControl key={param}>
@@ -247,8 +266,20 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                 <Badge colorScheme="blue" ml={2}>
                   {schema.type}
                 </Badge>
+                {schema.variable_name && (
+                  <Badge colorScheme="green" ml={2}>
+                    {schema.variable_name}
+                  </Badge>
+                )}
+                {isFileInput && (
+                  <Badge colorScheme="purple" ml={2}>
+                    File
+                  </Badge>
+                )}
               </FormLabel>
-              {isBoolean ? (
+              {isFileInput ? (
+                <Input type="file" pt={1} placeholder={schema.placeHolder || "Choose a file"} />
+              ) : isBoolean ? (
                 <Select defaultValue={variable?.value || schema.placeHolder || "false"}>
                   <option value="true">True</option>
                   <option value="false">False</option>
@@ -295,6 +326,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                 <Thead>
                   <Tr>
                     <Th>Label</Th>
+                    <Th>Field Type</Th>
                     <Th>PlaceHolder</Th>
                     <Th>Variable</Th>
                     <Th></Th>
@@ -316,6 +348,21 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                           />
                         </Td>
                         <Td>
+                          <Select
+                            size="md"
+                            value={schema.fieldType || FieldType.USER_INPUT}
+                            onChange={(e) =>
+                              handleUpdateParameterSchema(
+                                paramName,
+                                "fieldType",
+                                e.target.value as FieldType,
+                              )
+                            }>
+                            <option value={FieldType.USER_INPUT}>User Input</option>
+                            <option value={FieldType.FILE_INPUT}>File Input</option>
+                          </Select>
+                        </Td>
+                        <Td>
                           <Input
                             size="md"
                             value={schema.placeHolder || ""}
@@ -328,11 +375,11 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                         <Td minW="200px">
                           <Select
                             size="md"
-                            value={schema.variable_id ? schema.variable_id.toString() : ""}
+                            value={schema.variable_name || ""}
                             onChange={(e) => handleVariableSelect(paramName, e.target.value)}>
                             <option value="">No Variable</option>
                             {fetchedVariables?.map((variable) => (
-                              <option key={variable.id} value={variable.id.toString()}>
+                              <option key={variable.id} value={variable.name}>
                                 {variable.name} ({variable.type})
                               </option>
                             ))}

@@ -70,6 +70,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
   const tabActiveBgColor = useColorModeValue("white", "gray.700");
   const toast = useToast();
 
+  console.log("TeachPendant render", toolId, config);
   // Hooks
   const {
     toolStatusQuery,

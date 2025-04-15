@@ -63,6 +63,21 @@ export const commandQueueRouter = router({
     return CommandQueue.global.isWaitingForInput;
   }),
 
+  gotoCommandByRunIndex: procedure
+    .input(
+      z.object({
+        runId: z.string(),
+        index: z.number(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      return CommandQueue.global.gotoCommandByRunIndex(input.runId, input.index);
+    }),
+
+  gotoCommand: procedure.input(z.number()).mutation(async ({ input }) => {
+    return CommandQueue.global.gotoCommand(input);
+  }),
+
   // Get current message data (type, message text, title)
   currentMessage: procedure.query(async () => {
     return CommandQueue.global.currentMessage;

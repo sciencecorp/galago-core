@@ -22,6 +22,7 @@ import { capitalizeFirst } from "@/utils/parser";
 import { RunCommand } from "@/types";
 import CommandImage from "@/components/tools/CommandImage";
 import { FaCheckCircle } from "react-icons/fa";
+import { GoSkip } from "react-icons/go";
 
 interface LaneCommandComponentProps {
   command: RunCommand;
@@ -31,7 +32,6 @@ interface LaneCommandComponentProps {
 const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) => {
   const { command, onCommandClick } = props;
   const infoQuery = trpc.tool.info.useQuery({ toolId: command.commandInfo.toolId });
-  const toolStatusQuery = trpc.tool.status.useQuery({ toolId: command.commandInfo.toolId });
   const skipMutation = trpc.commandQueue.skipCommand.useMutation();
   const skipUntilMutation = trpc.commandQueue.skipCommandsUntil.useMutation();
   const execMutation = trpc.tool.runCommand.useMutation();
@@ -44,10 +44,9 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
   const runningBg = useColorModeValue("teal.200", "teal.800");
 
   const completedStyle =
-    command.status === "COMPLETED"
+    command.status === "COMPLETED" || command.status === "SKIPPED"
       ? {
-          opacity: 0.7,
-          filter: "grayscale(70%)",
+          opacity: 0.55,
         }
       : {};
 
@@ -58,6 +57,8 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
   function setBackgroundColor(status: any) {
     switch (status) {
       case "COMPLETED":
+        return completeColor;
+      case "SKIPPED":
         return completeColor;
       case "STARTED":
         return runningBg;
@@ -75,7 +76,7 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
   return (
     <Box
       style={
-        command.status === "COMPLETED"
+        command.status === "COMPLETED" || command.status === "SKIPPED"
           ? completedStyle
           : {
               cursor: "pointer",
@@ -99,8 +100,9 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
         <Box>
           <HStack spacing={2}>
             <Box width="90%">
-              <HStack py={command.status === "COMPLETED" ? 1 : 0}>
+              <HStack py={command.status === "COMPLETED" || command.status === "SKIPPED" ? 1 : 0}>
                 {command.status === "COMPLETED" && <FaCheckCircle color="green.500" />}
+                {command.status === "SKIPPED" && <GoSkip color="orange" />}
                 <Text as="b">{toolName}</Text>
               </HStack>
             </Box>

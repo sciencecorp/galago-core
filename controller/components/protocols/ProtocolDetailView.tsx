@@ -151,7 +151,11 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     error,
     refetch,
   } = trpc.protocol.getById.useQuery({ id: parseInt(id) });
-
+  const { data: selectedWorkcellData } = trpc.workcell.getSelectedWorkcell.useQuery();
+  const { data: workcells } = trpc.workcell.getAll.useQuery();
+  const { data: fetchedIds } = trpc.tool.availableIDs.useQuery({
+    workcellId: workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id,
+  });
   const [commandToDeleteIndex, setCommandToDeleteIndex] = useState<any | null>(null);
   const {
     isOpen: isDeleteConfirmOpen,
@@ -195,6 +199,13 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         tool_info: cmd.tool_info || {
           type: cmd.toolType,
           image_url: cmd.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
+        },
+        advancedParameters: cmd.advancedParameters || {
+          skipExecutionVariable: {
+            variable: null,
+            value: "",
+          },
+          runAsynchronously: false,
         },
       },
     }));
@@ -293,6 +304,14 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       tool_info: {
         type: cmd.commandInfo.toolType,
         image_url: cmd.commandInfo.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
+      },
+      //Add advanced parameters for UI
+      advancedParameters: cmd.commandInfo.advancedParameters || {
+        skipExecutionVariable: {
+          variable: null,
+          value: "",
+        },
+        runAsynchronously: false,
       },
     }));
 
