@@ -16,6 +16,7 @@ import { loggingRouter } from "./routers/logging";
 import { logAction } from "./logger";
 import { log } from "console";
 import { Tool as ToolResponse } from "@/types/api";
+import { JavaScriptExecutor } from "./javascript-executor";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<string, Tool> = new Map();
@@ -188,6 +189,11 @@ export default class Tool {
     };
   }
 
+
+  static async executeJavaScript(script:string){
+
+  }
+
   static async executeCommand(command: ToolCommandInfo) {
     logAction({
       level: "info",
@@ -216,43 +222,50 @@ export default class Tool {
         }
       }
     }
-
-    //Functionality to run python scripts store in db
     if (command.command === "run_python_script" && command.toolId === "tool_box") {
-      let scriptId = String(command.params.name);
-      if (!scriptId.endsWith(".py")) {
-        scriptId = scriptId + ".py";
-      }
-      try {
-        const script = await get<Script>(`/scripts/${scriptId}`);
-        command.params.name = script.content;
-      } catch (e: any) {
-        console.warn("Error at fetching script", e);
-        logAction({
-          level: "error",
-          action: "Script Error",
-          details: `Failed to fetch ${scriptId}. ${e}`,
-        });
-        if (e.status === 404) {
-          throw new Error(`Script ${scriptId} not found`);
+        const scriptName = command.params.name.replaceAll(".js", "").replaceAll(".py", "");
+        
+        const script = await get<Script>(`/scripts/${scriptName}`);
+        try {
+          if(script.language === "javascript") {
+            const result = await JavaScriptExecutor.executeScript(script.content);
+  
+            return {
+              response: tool_base.ResponseCode.SUCCESS,
+              return_reply: true,
+              meta_data: { response: result.output } as any,
+            } as tool_base.ExecuteCommandReply;
+         } 
+         else if(script.language === "python") {
+          command.params.name = script.content;
+          const reply = await this.grpc.executeCommand(this._payloadForCommand(command));
+          if (reply.return_reply) {
+            return reply;
+          }
+          if (reply.response !== tool_base.ResponseCode.SUCCESS) {
+            logAction({
+              level: "error",
+              action: "Run Script Error",
+              details: `Failed to execute ${scriptName}. ${reply.error_message}`,
+            });
+            throw new ToolCommandExecutionError(
+              reply.error_message ?? "Tool command failed",
+              reply.response,
+            );
+          }
         }
-        throw new Error(`Failed to fetch ${scriptId}. ${e}`);
-      }
-    }
-    const reply = await this.grpc.executeCommand(this._payloadForCommand(command));
-    if (reply.return_reply) {
-      return reply;
-    }
-    if (reply.response !== tool_base.ResponseCode.SUCCESS) {
-      logAction({
-        level: "error",
-        action: "Tool Command Execution Error",
-        details: `Failed to execute command: ${command.command}, Tool: ${command.toolId}. Error: ${reply.error_message}`,
-      });
-      throw new ToolCommandExecutionError(
-        reply.error_message ?? "Tool command failed",
-        reply.response,
-      );
+        } catch (e: any) {
+          console.warn("Error executing script", e);
+          logAction({
+            level: "error",
+            action: "Run Script Error",
+            details: `Failed to execute ${scriptName}. ${e}`
+          });
+          if (e.status === 404) {
+            throw new Error(`Script ${scriptName} not found`);
+          }
+          throw new Error(`Failed to execute ${scriptName}. ${e}`);
+        }
     }
   }
 
@@ -369,7 +382,6 @@ export default class Tool {
     }
     const store: Map<string, Tool> = me[global_key];
     let tool = store.get(id);
-    console.log(`Tool for ID ${id}: `, tool);
 
     //If the tool does not exist in the store, create a new tool object
     if (!tool) {
@@ -384,7 +396,7 @@ export default class Tool {
             id.toLocaleLowerCase().replaceAll(" ", "_"),
         );
         if (!result) {
-          console.log(`Failed to find tool ${id} in allTools list: `, this.allTools);
+          console.warn(`Failed to find tool ${id} in allTools list: `, this.allTools);
           throw new Error(`Tool with id ${id} not found in in database'`);
         }
         toolInfo = result;

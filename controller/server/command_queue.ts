@@ -181,8 +181,6 @@ export class CommandQueue {
   private async _ensureModalReady(): Promise<void> {
     // If we're already waiting for input, resolve the previous promise
     if (this._isWaitingForInput) {
-      console.log("Cleaning up previous modal operation before starting a new one");
-
       // Clear any active timer
       if (this._timerTimeout) {
         clearTimeout(this._timerTimeout);
@@ -369,7 +367,6 @@ export class CommandQueue {
   // Resume execution after pause or message
   resume(autoResume = false) {
     if (!this._isWaitingForInput) {
-      console.log("Resume called but queue is not waiting for input");
       return;
     }
 
@@ -502,7 +499,7 @@ export class CommandQueue {
 
     while (this.state === ToolStatus.BUSY) {
       // Small delay between processing commands to avoid race conditions
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 750));
       const nextCommand = await this.commands.startNext();
       if (!nextCommand) {
         this.stop(); //stop the queue when there are no more commands available!!
@@ -517,16 +514,12 @@ export class CommandQueue {
           let expectedValue =
             nextCommand.commandInfo.advancedParameters.skipExecutionVariable.value;
           if (expectedValue.startsWith("{{") && expectedValue.endsWith("}}")) {
-            console.log("Expected value is a variable reference");
             expectedValue = (await get<Variable>(`/variables/${expectedValue.slice(2, -2).trim()}`))
               .value;
-            console.log("Expected value", expectedValue);
           }
 
           // Fetch the variable from the database
           const varResponse = await get<Variable>(`/variables/${varName}`);
-          console.log("Variable response", varResponse);
-          console.log("VaR value", varResponse.value);
           // If variable value matches expected value, skip this command
           if (varResponse.value === expectedValue) {
             logAction({
@@ -652,7 +645,6 @@ export class CommandQueue {
               throw new Error("Variable name is required for assignment");
             }
 
-            console.log("Variable name", variableName);
             if (variableName.startsWith("{{") && variableName.endsWith("}}")) {
               variableName = variableName.slice(2, -2).trim();
             }
