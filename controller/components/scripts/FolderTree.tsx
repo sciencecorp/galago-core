@@ -264,7 +264,9 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
             fontSize="14px"
             fontWeight={isActive ? "medium" : "normal"}
             color={isActive ? selectedColor : "inherit"}>
-            {`${script.name}.${fileTypeToExtensionMap[script.language]}`}
+            {`${script.name}.${fileTypeToExtensionMap[script.language]}`.length > 15
+              ? `${`${script.name}.${fileTypeToExtensionMap[script.language]}`.substring(0, 15)}...`
+              : `${script.name}.${fileTypeToExtensionMap[script.language]}`}
           </Text>
         </Tooltip>
       )}

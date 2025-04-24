@@ -24,7 +24,6 @@ from .models.inventory_models import Protocol
 import json
 from fastapi.encoders import jsonable_encoder
 from starlette.background import BackgroundTask
-from pathlib import Path
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -1062,7 +1061,7 @@ def export_script_config(script_id: int, db: Session = Depends(get_db)) -> t.Any
 @app.post("/scripts/import", response_model=schemas.Script)
 async def import_script_config(
     file: UploadFile = File(...),
-    folder_id: Optional[int] = File(None),  # Added folder_id for context
+    folder_id: Optional[int] = File(None), 
     db: Session = Depends(get_db),
 ) -> t.Any:
     """Import a script from an uploaded file."""
@@ -1071,6 +1070,8 @@ async def import_script_config(
         file_content_bytes = await file.read()
         file_content = file_content_bytes.decode("utf-8")
         file_name = file.filename
+        if not file_name:
+            raise HTTPException(status_code=400, detail="File name is required")
         if file_name.endswith('.py'):
             language = "python"
         elif file_name.endswith('.js'):
@@ -1095,13 +1096,10 @@ async def import_script_config(
         )
 
         if existing_script:
-            # Option 2: Update existing script (example)
-            updated_script = crud.scripts.update(
-                db, db_obj=existing_script, obj_in=dict(script_data)
+            raise HTTPException(
+                status_code=400,
+                detail=f"Script with name '{script_data.name}' already exists",
             )
-            db.commit()
-            db.refresh(updated_script)
-            return updated_script
         else:
             # Create new script
             new_script = crud.scripts.create(db, obj_in=script_data)
