@@ -7,17 +7,11 @@ import {
   Input,
   VStack,
   useColorModeValue,
-  Flex,
   useToast,
   Tooltip,
   Card,
   CardBody,
   Icon,
-  Divider,
-  StatGroup,
-  Stat,
-  StatLabel,
-  StatNumber,
   useDisclosure,
   IconButton,
 } from "@chakra-ui/react";
@@ -44,7 +38,6 @@ import { MdDownload } from "react-icons/md";
 import { AiOutlineJavaScript } from "react-icons/ai";
 import { fileTypeToExtensionMap } from "./utils";
 import { set } from "zod";
-// Import the new DraggableConsole component
 import { Console } from "./Console";
 
 export const ScriptsEditor: React.FC = (): JSX.Element => {
@@ -67,7 +60,6 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const codeTheme = useColorModeValue("vs-light", "vs-dark");
   const toast = useToast();
   const [scriptsEdited, setScriptsEdited] = useState<Script[]>([]);
-  const [isEditing, setIsEditing] = useState(false);
   const [currentContent, setCurrentContent] = useState<string>("");
   const [consoleText, setConsoleText] = useState<string>("");
   const activeTabFontColor = useColorModeValue("teal.600", "teal.200");
@@ -83,6 +75,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof monaco | null>(null);
   const [editorLanguage, setEditorLanguage] = useState<string>("python");
+  const jsIconColor = useColorModeValue("orange", "yellow");
 
   // Define refreshData function here
   const refreshData = async () => {
@@ -173,7 +166,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       isClosable: false,
       position: "bottom-left",
     });
-    
+
     try {
       const response = await runScript.mutateAsync(activeTab, {
         onSuccess: () => {
@@ -187,14 +180,14 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
           showErrorToast("Failed to run script", `Error= ${error.message}`);
         },
       });
-      
+
       // Check if response has meta_data with response property
       if (response?.meta_data?.response) {
         setConsoleText(response.meta_data.response);
       } else {
         setConsoleText("");
       }
-      
+
       toast.closeAll();
       showSuccessToast("Script Completed!", "The script execution finished successfully.");
     } catch (error) {
@@ -379,10 +372,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     const extension = tabName.split(".").pop();
     if (extension === "js") {
       return (
-        <AiOutlineJavaScript
-          fontSize="13px"
-          color={activeTab === tabName ? useColorModeValue("orange", "yellow") : "gray"}
-        />
+        <AiOutlineJavaScript fontSize="13px" color={activeTab === tabName ? jsIconColor : "gray"} />
       );
     }
     return <PythonIcon fontSize="13px" color={activeTab === tabName ? "teal" : "gray"} />;
@@ -660,7 +650,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                   <Box width="100%" overflow="hidden">
                     {activeTab && openTabs.length > 0 ? (
                       <Editor
-                        height="80vh"
+                        height="90vh"
                         language={editorLanguage}
                         value={currentContent}
                         theme={codeTheme}
@@ -674,7 +664,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                     ) : (
                       <Box
                         width="100%"
-                        height="70vh"
+                        height="90vh"
                         display="flex"
                         justifyContent="center"
                         alignItems="flex-start"
@@ -702,7 +692,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                   </Box>
                 </Box>
 
-                <Console 
+                <Console
                   consoleText={consoleText}
                   runError={runError}
                   consoleHeaderBg={consoleHeaderBg}

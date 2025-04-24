@@ -1070,17 +1070,19 @@ async def import_script_config(
         # Read the uploaded file content
         file_content_bytes = await file.read()
         file_content = file_content_bytes.decode("utf-8")
-
-        # Extract name and determine language from filename
-        file_name = Path(file.filename).stem if file.filename is not None else "imported_script"
-        # Ensure the script name has .py extension
-        if not file_name.endswith('.py'):
-            file_name = f"{file_name}.py"
-        language = "python"  # Default to python
-
+        file_name = file.filename
+        if file_name.endswith('.py'):
+            language = "python"
+        elif file_name.endswith('.js'):
+            language = "javascript"
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Unsupported file type. Only .py and .js files are allowed.",
+            )
         # Prepare script data for creation
         script_data = schemas.ScriptCreate(
-            name=file_name,
+            name=file_name.replace(".py", "").replace(".js", ""),
             content=file_content,
             language=language,
             folder_id=folder_id,

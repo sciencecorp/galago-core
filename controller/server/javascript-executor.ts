@@ -1,7 +1,6 @@
-import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { logAction } from "./logger";
 import * as vm from "vm";
-import axios from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse, AxiosInstance } from "axios";
 
 export class JavaScriptExecutor {
   /**
@@ -21,49 +20,70 @@ export class JavaScriptExecutor {
       action: "JavaScript Execution",
       details: `Executing JavaScript script with ${Object.keys(context).length} context variables`,
     });
-  
+
     // Create an array to capture all console logs
     const logCapture: string[] = [];
-  
+
     try {
       // Check for import statements and provide appropriate error or transform
-      if (script.includes('import ')) {
+      if (script.includes("import ")) {
         // For now, we'll just provide a clear error message
-        logCapture.push("ERROR: Import statements are not supported in this JavaScript environment. Please use require() instead.");
+        logCapture.push(
+          "ERROR: Import statements are not supported in this JavaScript environment. Please use require() instead.",
+        );
         return {
           output: logCapture.join("\n"),
-          success: false
+          success: false,
         };
       }
-      
+
       // Create a list to track pending promises
       const pendingPromises: Promise<any>[] = [];
-      
+
       // Create a function that will track promises
       const trackPromise = (promise: Promise<any>) => {
         pendingPromises.push(promise);
         return promise;
       };
-      
-      // Preserve the function call capability of axios while adding tracking to all methods
-      const wrappedAxios = function(...args: any[]) {
-        const promise = axios.apply(this, args);
-        return trackPromise(promise);
-      };
-      
-      // Copy all properties from the original axios
-      Object.assign(wrappedAxios, axios);
-      
-      // Wrap all methods that return promises
-      const methodsToWrap = ['request', 'get', 'delete', 'head', 'options', 'post', 'put', 'patch'];
-      
-      methodsToWrap.forEach(method => {
-        wrappedAxios[method] = function(...args: any[]) {
-          const promise = axios[method].apply(axios, args);
+
+      // Create a properly typed wrapper for axios
+      const wrappedAxios = (function () {
+        // Define the main axios function with proper typing
+        const axiosFn = function (
+          url: string,
+          config?: AxiosRequestConfig,
+        ): Promise<AxiosResponse> {
+          const promise = axios(url, config);
           return trackPromise(promise);
-        };
-      });
-  
+        } as AxiosInstance;
+
+        // Copy all properties from the original axios
+        Object.assign(axiosFn, axios);
+
+        // Wrap all methods that return promises with proper typing
+        const methodsToWrap = [
+          "request",
+          "get",
+          "delete",
+          "head",
+          "options",
+          "post",
+          "put",
+          "patch",
+        ];
+
+        methodsToWrap.forEach((method) => {
+          // Use type assertion to ensure TypeScript understands this is a valid property
+          (axiosFn as any)[method] = function (...args: any[]): Promise<AxiosResponse> {
+            // Use type assertion here as well for the method access
+            const promise = (axios as any)[method].apply(axios, args);
+            return trackPromise(promise);
+          };
+        });
+
+        return axiosFn;
+      })();
+
       // Create a sandbox with the provided context
       const sandbox = {
         axios: wrappedAxios,
@@ -112,10 +132,10 @@ export class JavaScriptExecutor {
         // Add context variables to the sandbox
         ...context,
       };
-  
+
       // Create a context for VM execution
       const vmContext = vm.createContext(sandbox);
-  
+
       // Wrap the script in an async function to allow await
       const wrappedScript = `
         (async function() {
@@ -127,13 +147,13 @@ export class JavaScriptExecutor {
           }
         })();
       `;
-  
+
       // Execute the script
       await vm.runInContext(wrappedScript, vmContext, {
         timeout,
         displayErrors: true,
       });
-      
+
       // If there are pending promises, wait for them to resolve
       if (pendingPromises.length > 0) {
         logAction({
@@ -141,48 +161,49 @@ export class JavaScriptExecutor {
           action: "JavaScript Execution",
           details: `Waiting for ${pendingPromises.length} pending promises to complete...`,
         });
-        
+
         // Create a timeout promise
         const timeoutPromise = new Promise((_, reject) => {
           setTimeout(() => {
-            reject(new Error(`Timed out waiting for ${pendingPromises.length} promises to complete after ${timeout}ms`));
+            reject(
+              new Error(
+                `Timed out waiting for ${pendingPromises.length} promises to complete after ${timeout}ms`,
+              ),
+            );
           }, timeout);
         });
-        
+
         // Wait for either all promises to complete or timeout
-        await Promise.race([
-          Promise.allSettled(pendingPromises),
-          timeoutPromise
-        ]);
+        await Promise.race([Promise.allSettled(pendingPromises), timeoutPromise]);
       }
-  
+
       logAction({
         level: "info",
         action: "JavaScript Execution Completed",
         details: `Script executed successfully`,
       });
-  
+
       // Only return the console output
       return {
         output: logCapture.join("\n"),
-        success: true
+        success: true,
       };
     } catch (error) {
       // If execution fails, return an error result with any logs that were captured before the error
       const errorMessage = error instanceof Error ? error.message : String(error);
-  
+
       logAction({
         level: "error",
         action: "JavaScript Execution Failed",
         details: `Script execution failed: ${errorMessage}`,
       });
-  
+
       // Add the error to the log capture
       logCapture.push(`ERROR: ${errorMessage}`);
-  
+
       return {
         output: logCapture.join("\n"),
-        success: false
+        success: false,
       };
     }
   }

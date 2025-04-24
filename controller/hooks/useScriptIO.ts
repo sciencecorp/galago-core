@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { trpc } from "@/utils/trpc";
 import { Script } from "@/types/api"; // Assuming Script type exists or will be created
-
+import { fileTypeToExtensionMap } from "@/components/scripts/utils"; // Assuming this is the correct path
 /**
  * React hook for script import/export functionality
  * Provides an interface to the server-side import/export operations
@@ -31,22 +31,17 @@ export const useScriptIO = (
         message: `Could not find script with ID "${selectedScriptId}".`,
       };
     }
-    // Correct filename handling: remove existing extension before adding the correct one
-    const baseName = selectedScript.name.replace(/\.py$/i, ""); // Remove only .py
-    const scriptNameForDisplay = selectedScript.name; // Keep original name for messages
 
     try {
       const scriptData = await exportConfigMutation.mutateAsync(selectedScriptId);
 
-      // Always use .py extension
-      const fileExtension = "py";
       const blob = new Blob([scriptData.content], { type: "text/plain" });
       const url = window.URL.createObjectURL(blob);
 
       const downloadLink = document.createElement("a");
       downloadLink.href = url;
       // Use the corrected baseName + extension for the download filename
-      downloadLink.download = `${baseName}.${fileExtension}`;
+      downloadLink.download = `${selectedScript.name}.${fileTypeToExtensionMap[selectedScript.language]}`;
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
@@ -54,7 +49,7 @@ export const useScriptIO = (
       window.URL.revokeObjectURL(url);
 
       // Use original name in success message
-      return { success: true, message: `Script ${scriptNameForDisplay} downloaded.` };
+      return { success: true, message: `Script ${selectedScript.name} downloaded.` };
     } catch (error) {
       console.error("Export failed:", error);
       return {

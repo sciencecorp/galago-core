@@ -189,10 +189,7 @@ export default class Tool {
     };
   }
 
-
-  static async executeJavaScript(script:string){
-
-  }
+  static async executeJavaScript(script: string) {}
 
   static async executeCommand(command: ToolCommandInfo) {
     logAction({
@@ -223,20 +220,19 @@ export default class Tool {
       }
     }
     if (command.command === "run_python_script" && command.toolId === "tool_box") {
-        const scriptName = command.params.name.replaceAll(".js", "").replaceAll(".py", "");
-        
-        const script = await get<Script>(`/scripts/${scriptName}`);
-        try {
-          if(script.language === "javascript") {
-            const result = await JavaScriptExecutor.executeScript(script.content);
-  
-            return {
-              response: tool_base.ResponseCode.SUCCESS,
-              return_reply: true,
-              meta_data: { response: result.output } as any,
-            } as tool_base.ExecuteCommandReply;
-         } 
-         else if(script.language === "python") {
+      const scriptName = command.params.name.replaceAll(".js", "").replaceAll(".py", "");
+
+      const script = await get<Script>(`/scripts/${scriptName}`);
+      try {
+        if (script.language === "javascript") {
+          const result = await JavaScriptExecutor.executeScript(script.content);
+
+          return {
+            response: tool_base.ResponseCode.SUCCESS,
+            return_reply: true,
+            meta_data: { response: result.output } as any,
+          } as tool_base.ExecuteCommandReply;
+        } else if (script.language === "python") {
           command.params.name = script.content;
           const reply = await this.grpc.executeCommand(this._payloadForCommand(command));
           if (reply.return_reply) {
@@ -254,18 +250,18 @@ export default class Tool {
             );
           }
         }
-        } catch (e: any) {
-          console.warn("Error executing script", e);
-          logAction({
-            level: "error",
-            action: "Run Script Error",
-            details: `Failed to execute ${scriptName}. ${e}`
-          });
-          if (e.status === 404) {
-            throw new Error(`Script ${scriptName} not found`);
-          }
-          throw new Error(`Failed to execute ${scriptName}. ${e}`);
+      } catch (e: any) {
+        console.warn("Error executing script", e);
+        logAction({
+          level: "error",
+          action: "Run Script Error",
+          details: `Failed to execute ${scriptName}. ${e}`,
+        });
+        if (e.status === 404) {
+          throw new Error(`Script ${scriptName} not found`);
         }
+        throw new Error(`Failed to execute ${scriptName}. ${e}`);
+      }
     }
   }
 

@@ -215,7 +215,7 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(removeFileExtension(script.name));
   const { selectedBg, hoverBg, selectedColor } = useScriptColors();
-
+  const jsIconColor = useColorModeValue("orange", "yellow");
   const handleRename = () => {
     if (newName.trim() && newName !== script.name.replace(/\.py$/, "")) {
       onRename(script, newName);
@@ -236,7 +236,7 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
       cursor="pointer"
       position="relative">
       {script.language === "javascript" ? (
-        <AiOutlineJavaScript color={isActive ? "teal" : useColorModeValue("orange", "yellow")} />
+        <AiOutlineJavaScript color={isActive ? "teal" : jsIconColor} />
       ) : (
         <PythonIcon color={isActive ? "teal" : "lightblue"} />
       )}
