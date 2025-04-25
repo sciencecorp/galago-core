@@ -202,6 +202,8 @@ export default class Tool {
 
   async executeCommand(command: ToolCommandInfo) {
     const params = command.params;
+
+    // Substitute params with variables
     for (const key in params) {
       if (params[key] == null) continue;
       const paramValue = String(params[key]);
@@ -219,14 +221,29 @@ export default class Tool {
         }
       }
     }
-    if (command.command === "run_python_script" && command.toolId === "tool_box") {
-      const scriptName = command.params.name.replaceAll(".js", "").replaceAll(".py", "");
 
-      const script = await get<Script>(`/scripts/${scriptName}`);
+    //Handle script execution
+    if (command.command === "run_script" && command.toolId === "tool_box") {
+      const scriptName = command.params.name.replaceAll(".js", "").replaceAll(".py", "");
       try {
+        const script = await get<Script>(`/scripts/${scriptName}`);
+        command.params.name = script.content;
         if (script.language === "javascript") {
           const result = await JavaScriptExecutor.executeScript(script.content);
+          if (!result.success) {
+            const errorMessage = result.output;
+            logAction({
+              level: "error",
+              action: "JavaScript Execution Error",
+              details: `JavaScript execution failed: ${errorMessage}`,
+            });
 
+            // Throw a ToolCommandExecutionError to ensure proper error propagation
+            throw new ToolCommandExecutionError(
+              errorMessage || "JavaScript execution failed",
+              tool_base.ResponseCode.ERROR_FROM_TOOL,
+            );
+          }
           return {
             response: tool_base.ResponseCode.SUCCESS,
             return_reply: true,
@@ -234,34 +251,44 @@ export default class Tool {
           } as tool_base.ExecuteCommandReply;
         } else if (script.language === "python") {
           command.params.name = script.content;
-          const reply = await this.grpc.executeCommand(this._payloadForCommand(command));
-          if (reply.return_reply) {
-            return reply;
-          }
-          if (reply.response !== tool_base.ResponseCode.SUCCESS) {
-            logAction({
-              level: "error",
-              action: "Run Script Error",
-              details: `Failed to execute ${scriptName}. ${reply.error_message}`,
-            });
-            throw new ToolCommandExecutionError(
-              reply.error_message ?? "Tool command failed",
-              reply.response,
-            );
-          }
         }
       } catch (e: any) {
-        console.warn("Error executing script", e);
+        console.warn("Error at fetching script", e);
         logAction({
           level: "error",
-          action: "Run Script Error",
-          details: `Failed to execute ${scriptName}. ${e}`,
+          action: "Script Error",
+          details: `Failed to fetch ${scriptName}. ${e}`,
         });
         if (e.status === 404) {
           throw new Error(`Script ${scriptName} not found`);
         }
-        throw new Error(`Failed to execute ${scriptName}. ${e}`);
+        throw new Error(`Failed to fetch ${scriptName}. ${e}`);
       }
+    }
+    const reply = await this.grpc.executeCommand(this._payloadForCommand(command));
+    console.log("Reply from tool command", reply);
+    if (reply.response !== tool_base.ResponseCode.SUCCESS) {
+      logAction({
+        level: "error",
+        action: "Tool Command Execution Error",
+        details: `Failed to execute command: ${command.command}, Tool: ${command.toolId}. Error: ${reply.error_message}`,
+      });
+      throw new ToolCommandExecutionError(
+        reply.error_message ?? "Tool command failed",
+        reply.response,
+      );
+    } else if (reply.return_reply && !reply?.error_message) {
+      return reply;
+    } else if (reply?.error_message) {
+      logAction({
+        level: "error",
+        action: "Tool Command Execution Error",
+        details: `Failed to execute command: ${command.command}, Tool: ${command.toolId}. Error: ${reply.error_message}`,
+      });
+      throw new ToolCommandExecutionError(
+        reply.error_message ?? "Tool command failed",
+        reply.response,
+      );
     }
   }
 

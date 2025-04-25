@@ -37,7 +37,6 @@ import { useScriptIO } from "@/hooks/useScriptIO";
 import { MdDownload } from "react-icons/md";
 import { AiOutlineJavaScript } from "react-icons/ai";
 import { fileTypeToExtensionMap } from "./utils";
-import { set } from "zod";
 import { Console } from "./Console";
 
 export const ScriptsEditor: React.FC = (): JSX.Element => {
@@ -184,7 +183,11 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       // Check if response has meta_data with response property
       if (response?.meta_data?.response) {
         setConsoleText(response.meta_data.response);
+      } else if (response?.error_message) {
+        setRunError(true);
+        setConsoleText(response.error_message);
       } else {
+        setRunError(false);
         setConsoleText("");
       }
 

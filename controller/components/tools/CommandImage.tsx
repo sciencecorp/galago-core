@@ -23,7 +23,7 @@ const CommandImage: React.FC<CommandImageProps> = (props) => {
 
   const ToolBoxCommandIconMap = (commandName: string) => {
     const commandIconMap = {
-      run_python_script: <FaRegFileCode style={{ width: "100%", height: "50px" }} />,
+      run_script: <FaRegFileCode style={{ width: "100%", height: "50px" }} />,
       show_message: <TbMessageReport style={{ width: "100%", height: "50px" }} />,
       pause: <MdOutlinePauseCircleOutline style={{ width: "100%", height: "50px" }} />,
       timer: <MdAlarm style={{ width: "100%", height: "50px" }} />,

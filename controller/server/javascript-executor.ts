@@ -2,6 +2,78 @@ import { logAction } from "./logger";
 import * as vm from "vm";
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosInstance } from "axios";
 
+/**
+ * A wrapper class that provides methods for managing variables through API calls
+ */
+class VariablesWrapper {
+  private axios: AxiosInstance;
+  private API_URL: string;
+
+  constructor(axiosInstance: AxiosInstance) {
+    this.axios = axiosInstance;
+    this.API_URL = "http://db:8000"; // Using the docker container hostname
+  }
+
+  /**
+   * Get a variable by name
+   * @param {string} name - The name of the variable to retrieve
+   * @returns {Promise<any>} - The retrieved variable data
+   */
+  async get_variable(name: string): Promise<any> {
+    try {
+      const response = await this.axios.get(`${this.API_URL}/variables/${name}`);
+      return response.data;
+    } catch (error: any) {
+      if (error.response && error.response.status === 404) {
+        console.warn(`Resource with name ${name} not found in variables.`);
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Get all variables
+   * @returns {Promise<any>} - All variables data
+   */
+  async get_all_variables(): Promise<any> {
+    const response = await this.axios.get(`${this.API_URL}/variables`);
+    return response.data;
+  }
+
+  /**
+   * Create a new variable
+   * @param {object} data - The variable data to create
+   * @returns {Promise<any>} - The created variable data
+   */
+  async create_variable(data: Record<string, any>): Promise<any> {
+    const response = await this.axios.post(`${this.API_URL}/variables`, data);
+    return response.data;
+  }
+
+  /**
+   * Update a variable by name
+   * @param {string} name - The name of the variable to update
+   * @param {string|number|boolean} new_value - The new value for the variable
+   * @returns {Promise<any>} - The updated variable data
+   */
+  async update_variable(name: string, new_value: string | number | boolean): Promise<any> {
+    const variable = { value: new_value };
+    const response = await this.axios.put(`${this.API_URL}/variables/${name}`, variable);
+    return response.data;
+  }
+
+  /**
+   * Delete a variable by name
+   * @param {string} name - The name of the variable to delete
+   * @returns {Promise<any>} - The response from the delete operation
+   */
+  async delete_variable(name: string): Promise<any> {
+    const response = await this.axios.delete(`${this.API_URL}/variables/${name}`);
+    return response.data;
+  }
+}
+
 export class JavaScriptExecutor {
   /**
    * Executes a JavaScript script in a sandboxed context
@@ -23,6 +95,7 @@ export class JavaScriptExecutor {
 
     // Create an array to capture all console logs
     const logCapture: string[] = [];
+    let hasError = false;
 
     try {
       // Check for import statements and provide appropriate error or transform
@@ -84,9 +157,13 @@ export class JavaScriptExecutor {
         return axiosFn;
       })();
 
+      // Create Variables Wrapper instance
+      const variables = new VariablesWrapper(wrappedAxios);
+
       // Create a sandbox with the provided context
       const sandbox = {
         axios: wrappedAxios,
+        variables: variables, // Add the variables wrapper to the sandbox
         console: {
           log: (...args: any[]) => {
             const logMessage = args
@@ -111,6 +188,7 @@ export class JavaScriptExecutor {
               action: "Script Error",
               details: errorMessage,
             });
+            hasError = true;
           },
           warn: (...args: any[]) => {
             const warnMessage = args
@@ -175,6 +253,20 @@ export class JavaScriptExecutor {
 
         // Wait for either all promises to complete or timeout
         await Promise.race([Promise.allSettled(pendingPromises), timeoutPromise]);
+      }
+      // Check if any errors were logged before returning success
+      if (hasError || logCapture.some((msg) => msg.startsWith("ERROR:"))) {
+        // If errors were detected, return success: false
+        logAction({
+          level: "error",
+          action: "JavaScript Execution Failed",
+          details: `Script execution encountered errors during runtime`,
+        });
+
+        return {
+          output: logCapture.join("\n"),
+          success: false,
+        };
       }
 
       logAction({

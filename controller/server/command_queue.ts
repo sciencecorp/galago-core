@@ -1,20 +1,15 @@
-import { Run, RunCommand, RunQueue, RunStatus, ToolCommandInfo } from "@/types";
+import { Run, RunQueue } from "@/types";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import RunStore from "./runs";
 import Tool from "./tools";
 import redis from "./utils/redis";
 import RedisQueue, { StoredRunCommand } from "./utils/RedisQueue";
-import { WebClient, WebAPICallResult } from "@slack/web-api";
-import { Console } from "console";
+import { Console, log } from "console";
 import { logger } from "@/logger"; // our logger import
-import dotenv from "dotenv";
 import { ToolType } from "gen-interfaces/controller";
-import { unknown } from "zod";
 import { logAction } from "./logger";
 import { get, put } from "@/server/utils/api";
-import { Script } from "@/types/api";
 import { Variable } from "@/types/api";
-import { Labware } from "@/types/api";
 
 export type CommandQueueState = ToolStatus;
 
@@ -417,6 +412,13 @@ export class CommandQueue {
   }
   async clearAll() {
     await this.commands.clearAll();
+    this.error = undefined;
+    this._setState(ToolStatus.OFFLINE);
+    logAction({
+      level: "info",
+      action: "Queue Cleared",
+      details: "Command Queue cleared by user.",
+    });
   }
   async clearByRunId(runId: string) {
     await this.commands.clearByRunId(runId);
