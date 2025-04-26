@@ -1,6 +1,6 @@
 export const commandFields: CommandFields = {
   toolbox: {
-    run_python_script: [
+    run_script: [
       {
         name: "name",
         type: "text",

@@ -1,20 +1,15 @@
-import { Run, RunCommand, RunQueue, RunStatus, ToolCommandInfo } from "@/types";
+import { Run, RunQueue } from "@/types";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import RunStore from "./runs";
 import Tool from "./tools";
 import redis from "./utils/redis";
 import RedisQueue, { StoredRunCommand } from "./utils/RedisQueue";
-import { WebClient, WebAPICallResult } from "@slack/web-api";
-import { Console } from "console";
+import { Console, log } from "console";
 import { logger } from "@/logger"; // our logger import
-import dotenv from "dotenv";
 import { ToolType } from "gen-interfaces/controller";
-import { unknown } from "zod";
 import { logAction } from "./logger";
 import { get, put } from "@/server/utils/api";
-import { Script } from "@/types/api";
 import { Variable } from "@/types/api";
-import { Labware } from "@/types/api";
 
 export type CommandQueueState = ToolStatus;
 
@@ -181,8 +176,6 @@ export class CommandQueue {
   private async _ensureModalReady(): Promise<void> {
     // If we're already waiting for input, resolve the previous promise
     if (this._isWaitingForInput) {
-      console.log("Cleaning up previous modal operation before starting a new one");
-
       // Clear any active timer
       if (this._timerTimeout) {
         clearTimeout(this._timerTimeout);
@@ -369,7 +362,6 @@ export class CommandQueue {
   // Resume execution after pause or message
   resume(autoResume = false) {
     if (!this._isWaitingForInput) {
-      console.log("Resume called but queue is not waiting for input");
       return;
     }
 
@@ -420,6 +412,13 @@ export class CommandQueue {
   }
   async clearAll() {
     await this.commands.clearAll();
+    this.error = undefined;
+    this._setState(ToolStatus.OFFLINE);
+    logAction({
+      level: "info",
+      action: "Queue Cleared",
+      details: "Command Queue cleared by user.",
+    });
   }
   async clearByRunId(runId: string) {
     await this.commands.clearByRunId(runId);
@@ -502,7 +501,7 @@ export class CommandQueue {
 
     while (this.state === ToolStatus.BUSY) {
       // Small delay between processing commands to avoid race conditions
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 750));
       const nextCommand = await this.commands.startNext();
       if (!nextCommand) {
         this.stop(); //stop the queue when there are no more commands available!!
@@ -517,16 +516,12 @@ export class CommandQueue {
           let expectedValue =
             nextCommand.commandInfo.advancedParameters.skipExecutionVariable.value;
           if (expectedValue.startsWith("{{") && expectedValue.endsWith("}}")) {
-            console.log("Expected value is a variable reference");
             expectedValue = (await get<Variable>(`/variables/${expectedValue.slice(2, -2).trim()}`))
               .value;
-            console.log("Expected value", expectedValue);
           }
 
           // Fetch the variable from the database
           const varResponse = await get<Variable>(`/variables/${varName}`);
-          console.log("Variable response", varResponse);
-          console.log("VaR value", varResponse.value);
           // If variable value matches expected value, skip this command
           if (varResponse.value === expectedValue) {
             logAction({
@@ -652,7 +647,6 @@ export class CommandQueue {
               throw new Error("Variable name is required for assignment");
             }
 
-            console.log("Variable name", variableName);
             if (variableName.startsWith("{{") && variableName.endsWith("}}")) {
               variableName = variableName.slice(2, -2).trim();
             }

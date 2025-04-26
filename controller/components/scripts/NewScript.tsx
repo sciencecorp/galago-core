@@ -15,9 +15,10 @@ import {
   FormLabel,
   IconButton,
   Tooltip,
+  ButtonGroup,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
-import { validateScriptName, addPythonExtension, showErrorToast, showSuccessToast } from "./utils";
+import { validateScriptName, showErrorToast, showSuccessToast } from "./utils";
 import { FileAddIcon } from "../ui/Icons";
 interface NewScriptProps {
   isDisabled?: boolean;
@@ -33,6 +34,7 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
   const [description, setDescription] = useState("");
   const addScript = trpc.script.add.useMutation();
   const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("python"); // This can be dynamic based on user selection
 
   const handleSave = async () => {
     const isNotValid = validateScriptName(scriptName);
@@ -42,10 +44,10 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
     }
 
     const script = {
-      name: addPythonExtension(scriptName),
+      name: scriptName,
       description,
       content: "",
-      language: "python",
+      language: selectedLanguage,
       is_blocking: true,
       folder_id: activeFolderId,
     };
@@ -92,6 +94,22 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
               <FormControl>
                 <FormLabel>Name</FormLabel>
                 <Input value={scriptName} onChange={(e) => setScriptName(e.target.value)} />
+              </FormControl>
+              <FormControl>
+                <ButtonGroup>
+                  <Button
+                    size="sm"
+                    colorScheme={selectedLanguage === "python" ? "teal" : "gray"}
+                    onClick={() => setSelectedLanguage("python")}>
+                    Python
+                  </Button>
+                  <Button
+                    size="sm"
+                    colorScheme={selectedLanguage === "javascript" ? "teal" : "gray"}
+                    onClick={() => setSelectedLanguage("javascript")}>
+                    JavaScript
+                  </Button>
+                </ButtonGroup>
               </FormControl>
               <FormControl>
                 <FormLabel>Description</FormLabel>

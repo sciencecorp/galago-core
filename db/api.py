@@ -24,7 +24,6 @@ from .models.inventory_models import Protocol
 import json
 from fastapi.encoders import jsonable_encoder
 from starlette.background import BackgroundTask
-from pathlib import Path
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -1062,7 +1061,7 @@ def export_script_config(script_id: int, db: Session = Depends(get_db)) -> t.Any
 @app.post("/scripts/import", response_model=schemas.Script)
 async def import_script_config(
     file: UploadFile = File(...),
-    folder_id: Optional[int] = File(None),  # Added folder_id for context
+    folder_id: Optional[int] = File(None), 
     db: Session = Depends(get_db),
 ) -> t.Any:
     """Import a script from an uploaded file."""
@@ -1070,17 +1069,21 @@ async def import_script_config(
         # Read the uploaded file content
         file_content_bytes = await file.read()
         file_content = file_content_bytes.decode("utf-8")
-
-        # Extract name and determine language from filename
-        file_name = Path(file.filename).stem if file.filename is not None else "imported_script"
-        # Ensure the script name has .py extension
-        if not file_name.endswith('.py'):
-            file_name = f"{file_name}.py"
-        language = "python"  # Default to python
-
+        file_name = file.filename
+        if not file_name:
+            raise HTTPException(status_code=400, detail="File name is required")
+        if file_name.endswith('.py'):
+            language = "python"
+        elif file_name.endswith('.js'):
+            language = "javascript"
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Unsupported file type. Only .py and .js files are allowed.",
+            )
         # Prepare script data for creation
         script_data = schemas.ScriptCreate(
-            name=file_name,
+            name=file_name.replace(".py", "").replace(".js", ""),
             content=file_content,
             language=language,
             folder_id=folder_id,
@@ -1093,13 +1096,10 @@ async def import_script_config(
         )
 
         if existing_script:
-            # Option 2: Update existing script (example)
-            updated_script = crud.scripts.update(
-                db, db_obj=existing_script, obj_in=dict(script_data)
+            raise HTTPException(
+                status_code=400,
+                detail=f"Script with name '{script_data.name}' already exists",
             )
-            db.commit()
-            db.refresh(updated_script)
-            return updated_script
         else:
             # Create new script
             new_script = crud.scripts.create(db, obj_in=script_data)

@@ -112,9 +112,7 @@ export default class RedisQueue {
   async gotoCommand(targetId: number) {
     // First, check if the target command exists
     try {
-      console.log("Target id is", targetId);
       const targetCommand = await this.find(targetId);
-      console.log("Target command is", targetCommand);
       // Get all queued IDs
       const queuedIds = await this.redis.lrange(this._key("queuedIds"), 0, -1);
 

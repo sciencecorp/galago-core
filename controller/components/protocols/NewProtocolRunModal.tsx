@@ -232,18 +232,13 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
         ([_, paramInfo]) => (paramInfo as any).variable_name,
       );
 
-      // Update all linked variables with new values from the form
       const updatePromises = linkedParams.map(async ([paramName, paramInfo]) => {
         const variableName = (paramInfo as any).variable_name;
         if (!variableName) return null;
 
-        // Get the variable from our query
         const variable = variablesQuery.data?.find((v) => v.name === variableName);
-
-        // Get the new value from the form
         const newValue = userDefinedParams[paramName];
 
-        // Determine variable type based on parameter type and if it's a file input
         const determineType = () => {
           const paramType = (paramInfo as ProtocolParamInfo).type;
           const isFileInput =
@@ -255,13 +250,8 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
           return "string"; // Default to string
         };
 
-        // If variable doesn't exist, create it
         if (!variable) {
-          console.log(`Variable ${variableName} not found, creating it...`);
-
-          // Determine type based on parameter info
           const variableType = determineType();
-
           // Special handling for boolean values
           let valueToSave = newValue;
           if (variableType === "boolean") {

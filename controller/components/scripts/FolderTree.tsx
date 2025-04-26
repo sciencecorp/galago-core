@@ -12,6 +12,7 @@ import {
   VStack,
   Icon,
   Tooltip,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { ScriptFolder, Script } from "@/types/api";
 import { validateFolderName, removeFileExtension, showErrorToast } from "./utils";
@@ -25,6 +26,8 @@ import {
   FolderOpenIcon,
 } from "../ui/Icons";
 import { InlineFolderCreation } from "./NewFolder";
+import { fileTypeToExtensionMap } from "./utils";
+import { AiOutlineJavaScript } from "react-icons/ai";
 
 interface FolderTreeProps {
   folders: ScriptFolder[];
@@ -212,7 +215,7 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(removeFileExtension(script.name));
   const { selectedBg, hoverBg, selectedColor } = useScriptColors();
-
+  const jsIconColor = useColorModeValue("orange", "yellow");
   const handleRename = () => {
     if (newName.trim() && newName !== script.name.replace(/\.py$/, "")) {
       onRename(script, newName);
@@ -232,7 +235,11 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
       onClick={onClick}
       cursor="pointer"
       position="relative">
-      <PythonIcon color={isActive ? "teal" : "gray"} />
+      {script.language === "javascript" ? (
+        <AiOutlineJavaScript color={isActive ? "teal" : jsIconColor} />
+      ) : (
+        <PythonIcon color={isActive ? "teal" : "lightblue"} />
+      )}
       {isEditing ? (
         <Input
           size="sm"
@@ -257,7 +264,9 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
             fontSize="14px"
             fontWeight={isActive ? "medium" : "normal"}
             color={isActive ? selectedColor : "inherit"}>
-            {script.name.replace(/\.py$/, "")}
+            {`${script.name}.${fileTypeToExtensionMap[script.language]}`.length > 15
+              ? `${`${script.name}.${fileTypeToExtensionMap[script.language]}`.substring(0, 15)}...`
+              : `${script.name}.${fileTypeToExtensionMap[script.language]}`}
           </Text>
         </Tooltip>
       )}
