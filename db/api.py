@@ -140,7 +140,7 @@ def get_inventory(workcell_name: str, db: Session = Depends(get_db)) -> t.Any:
 
     return schemas.Inventory(
         workcell=workcell,
-        tools=[tool for tool in tools],
+        instruments=[tool for tool in tools],
         hotels=[hotel for hotel in hotels],
         nests=[nest for nest in nests],
         plates=[plate for plate in plates],

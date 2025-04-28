@@ -179,7 +179,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         elif self.model == models.Nest:
             # Special handling for Nest - can be associated with either Tool or Hotel
             # both of which are associated with Workcell
-            return self.get_all_nests_by_workcell_id(db, workcell_id=workcell_id)
+            return self.get_all_by_workcell_id(db, workcell_id=workcell_id)
         elif self.model == models.Plate:
             query = (
                 query.join(models.Nest)
