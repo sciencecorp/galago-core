@@ -1,13 +1,4 @@
-import {
-  Button,
-  HStack,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  useToast,
-  Input,
-} from "@chakra-ui/react";
+import { Button, HStack, Menu, MenuButton, MenuList, MenuItem, Input } from "@chakra-ui/react";
 import { ChevronDownIcon, DownloadIcon } from "@chakra-ui/icons";
 import { FiUpload } from "react-icons/fi";
 import React, { useRef } from "react";
@@ -43,7 +34,6 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
   onGripperClose,
   jogEnabled,
 }) => {
-  const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleExport = (

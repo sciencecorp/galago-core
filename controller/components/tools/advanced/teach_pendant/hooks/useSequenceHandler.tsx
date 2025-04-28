@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
 import {
-  useToast,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -57,7 +56,6 @@ const SequenceModal: React.FC<SequenceModalProps> = ({
   const [description, setDescription] = useState(sequence?.description ?? "");
   const [commands, setCommands] = useState(sequence?.commands ?? []);
   const [isCommandModalOpen, setIsCommandModalOpen] = useState(false);
-  const toast = useToast();
   const { handleUpdateSequence, handleCreateSequence } = useSequenceHandler(config);
 
   // Reset form when sequence changes
@@ -171,7 +169,6 @@ const SequenceModal: React.FC<SequenceModalProps> = ({
 };
 
 export function useSequenceHandler(config: Tool) {
-  const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedSequence, setSelectedSequence] = useState<Sequence | null>(null);
   const commandMutation = trpc.tool.runCommand.useMutation();

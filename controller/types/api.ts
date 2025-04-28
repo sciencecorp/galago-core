@@ -7,6 +7,7 @@ export interface Workcell {
   location: string;
   description: string;
   tools: Tool[];
+  hotels?: Hotel[];
   last_updated: Date;
   created_at: Date;
 }
@@ -45,7 +46,8 @@ export interface NestCreate {
   name: string;
   row: number;
   column: number;
-  tool_id: number;
+  tool_id?: number;
+  hotel_id?: number;
   status?: NestStatus;
   current_plate_id?: number | null;
 }
@@ -55,12 +57,15 @@ export interface NestUpdate {
   row?: number;
   column?: number;
   tool_id?: number;
+  hotel_id?: number;
   status?: NestStatus;
   current_plate_id?: number | null;
 }
 
-export interface Nest extends NestCreate {
+export interface Nest extends Omit<NestCreate, "tool_id" | "hotel_id"> {
   id: number;
+  tool_id?: number;
+  hotel_id?: number;
   status: NestStatus;
   current_plate_id: number | null;
   created_at: string;
@@ -143,9 +148,11 @@ export interface PlateInfo extends Plate {
   nest: Nest | null;
   wells: Well[];
 }
+
 export interface Inventory {
   workcell: Workcell;
   instruments: Instrument[];
+  hotels?: Hotel[];
   nests: Nest[];
   plates: Plate[];
   wells: Well[];
@@ -288,4 +295,28 @@ export interface Labware {
   image_url: string;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface HotelCreate {
+  name: string;
+  description?: string;
+  image_url?: string;
+  workcell_id: number;
+  rows: number;
+  columns: number;
+}
+
+export interface HotelUpdate {
+  name?: string;
+  description?: string;
+  image_url?: string;
+  rows?: number;
+  columns?: number;
+}
+
+export interface Hotel extends HotelCreate {
+  id: number;
+  nests?: Nest[];
+  created_at: string;
+  updated_at: string;
 }

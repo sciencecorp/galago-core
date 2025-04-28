@@ -6,13 +6,6 @@ import {
   HStack,
   Heading,
   Input,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  useToast,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -28,6 +21,7 @@ import {
 import { trpc } from "@/utils/trpc";
 import { Variable } from "./types";
 import { RiAddFill } from "react-icons/ri";
+import { successToast, errorToast } from "../ui/Toast";
 
 export const VariableModal: React.FC = () => {
   const [name, setName] = useState("");
@@ -36,7 +30,6 @@ export const VariableModal: React.FC = () => {
   const [type, setType] = useState("string" as Variable["type"]);
   const [isLoading, setIsLoading] = useState(false);
   const addVariable = trpc.variable.add.useMutation();
-  const toast = useToast();
 
   const { data: fetchedVariables, refetch } = trpc.variable.getAll.useQuery();
 
@@ -51,22 +44,11 @@ export const VariableModal: React.FC = () => {
     setIsLoading(true);
     try {
       await addVariable.mutateAsync(variable);
-      toast({
-        title: `Variable created successfully`,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      successToast("Variable created successfully", "");
       onClose();
       await refetch();
     } catch (error) {
-      toast({
-        title: "Error saving variable",
-        description: `Please try again. ${error}`,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("Error saving variable", `Please try again. ${error}`);
     }
     setIsLoading(false);
     clearForm();

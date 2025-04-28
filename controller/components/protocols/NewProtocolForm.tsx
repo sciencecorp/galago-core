@@ -8,7 +8,6 @@ import {
   Select,
   Textarea,
   VStack,
-  useToast,
   FormErrorMessage,
   FormHelperText,
   Alert,
@@ -19,12 +18,12 @@ import {
 import { trpc } from "@/utils/trpc";
 import { useRouter } from "next/router";
 import { Protocol } from "@/types/api";
+import { successToast, errorToast } from "../ui/Toast";
 
 type ProtocolFormData = Omit<Protocol, "id" | "created_at" | "updated_at" | "number_of_commands">;
 
 export const NewProtocolForm = () => {
   const router = useRouter();
-  const toast = useToast();
   const [isCheckingId, setIsCheckingId] = useState(false);
 
   // Get selected workcell
@@ -62,12 +61,7 @@ export const NewProtocolForm = () => {
   const createProtocol = trpc.protocol.create.useMutation({
     onSuccess: (data) => {
       if (data) {
-        toast({
-          title: "Protocol created",
-          description: "Successfully created new protocol",
-          status: "success",
-          duration: 3000,
-        });
+        successToast("Protocol created", "");
         router.push(`/protocols/${data.id}`);
       }
     },
@@ -86,13 +80,7 @@ export const NewProtocolForm = () => {
         errorMessage = "Server error while creating protocol";
       }
 
-      toast({
-        title: "Error creating protocol",
-        description: errorMessage,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
+      errorToast("Error creating protocol", errorMessage);
     },
   });
 
@@ -119,12 +107,7 @@ export const NewProtocolForm = () => {
     e.preventDefault();
 
     if (!validateForm()) {
-      toast({
-        title: "Validation Error",
-        description: "Please check the form for errors",
-        status: "error",
-        duration: 3000,
-      });
+      errorToast("Validation Error", "Please check the form for errors");
       return;
     }
 

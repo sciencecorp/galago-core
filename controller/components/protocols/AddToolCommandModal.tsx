@@ -12,7 +12,6 @@ import {
   Select,
   VStack,
   Input,
-  useToast,
   NumberInput,
   NumberInputField,
   HStack,
@@ -27,7 +26,6 @@ import {
   InputLeftElement,
   Tag,
   useColorModeValue,
-  useDisclosure,
   useSteps,
   Stepper,
   Step,
@@ -41,11 +39,11 @@ import {
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
-import { AddIcon } from "@chakra-ui/icons";
 import { RiSearchLine } from "react-icons/ri";
 import { commandFields } from "../tools/constants";
 import { capitalizeFirst } from "@/utils/parser";
 import { PiToolbox } from "react-icons/pi";
+import { warningToast } from "../ui/Toast";
 
 interface AddToolCommandModalProps {
   isOpen: boolean;
@@ -58,7 +56,6 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   onClose,
   onCommandAdded,
 }) => {
-  const toast = useToast();
   const [selectedToolType, setSelectedToolType] = useState("");
   const [selectedCommand, setSelectedCommand] = useState("");
   const [commandParams, setCommandParams] = useState<Record<string, any>>({});
@@ -135,21 +132,11 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
 
   const handleNextStep = () => {
     if (activeStep === 0 && !selectedToolType) {
-      toast({
-        title: "No tool selected",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
+      warningToast("Warning", "No tool selected");
       return;
     }
     if (activeStep === 1 && !selectedCommand) {
-      toast({
-        title: "No command selected",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
+      warningToast("Warning", "No command selected");
       return;
     }
     setActiveStep(activeStep + 1);

@@ -12,7 +12,6 @@ import {
   Button,
   VStack,
   Switch,
-  useToast,
   Text,
   Tabs,
   TabList,
@@ -28,6 +27,7 @@ import {
   Radio,
   RadioGroup,
   Divider,
+  FormHelperText,
 } from "@chakra-ui/react";
 import { Nest, Plate, Tool } from "@/types/api";
 import { BsBoxSeam, BsGrid3X3, BsLightningCharge } from "react-icons/bs";
@@ -35,17 +35,21 @@ import NestModal from "./NestModal";
 import { errorToast } from "@/components/ui/Toast";
 import { useCommonColors, useTextColors } from "@/components/ui/Theme";
 
+type StorageContainer = Tool | { id: number; name: string; type: string };
+
 type CheckOutModalProps = {
   isOpen: boolean;
   onClose: () => void;
   selectedPlate: Plate | null;
   tools: Tool[];
+  staticHotels?: Array<{ id: number; name: string }>;
   availableNests: Nest[];
   plates: Plate[];
   onSubmit: (params: {
     plateId?: number;
     barcode?: string;
     triggerToolCommand: boolean;
+    isStatic?: boolean;
   }) => Promise<void>;
   onPlateClick?: (plate: Plate) => void;
 };
@@ -55,12 +59,14 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
   onClose,
   selectedPlate,
   tools,
+  staticHotels = [],
   availableNests,
   plates,
   onSubmit,
   onPlateClick,
 }) => {
-  const [selectedToolId, setSelectedToolId] = useState<number | "">("");
+  const [selectedContainerId, setSelectedContainerId] = useState<number | "">("");
+  const [selectedContainerType, setSelectedContainerType] = useState<"tool" | "hotel" | "">("");
   const [barcode, setBarcode] = useState("");
   const [plateId, setPlateId] = useState("");
   const [triggerToolCommand, setTriggerToolCommand] = useState(false);
@@ -68,14 +74,58 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
   const [selectionMode, setSelectionMode] = useState<"manual" | "nest">("manual");
   const [isNestModalOpen, setIsNestModalOpen] = useState(false);
   const [selectedNestId, setSelectedNestId] = useState<number | null>(null);
-  const toast = useToast();
-
   const { borderColor, inputBg, selectedBg, sectionBg } = useCommonColors();
   const { secondary: textColor, primary: labelColor } = useTextColors();
 
-  const filteredNests = availableNests.filter((nest) =>
-    selectedToolId ? nest.tool_id === selectedToolId : true,
-  );
+  const isSelectedContainerStatic = selectedContainerType === "hotel";
+
+  // Combine tools and hotels into a single list of containers
+  const storageContainers: StorageContainer[] = [
+    ...tools
+      .filter((tool) => tool.type.toLowerCase() === "liconic")
+      .map((tool) => ({
+        ...tool,
+        type: "tool",
+      })),
+    ...staticHotels.map((hotel) => ({
+      id: hotel.id,
+      name: hotel.name,
+      type: "hotel",
+    })),
+  ];
+
+  const filteredNests = availableNests.filter((nest) => {
+    if (selectedContainerId === "") return false;
+
+    // Use tool_id for tools and hotel_id for hotels
+    if (selectedContainerType === "tool") {
+      return nest.tool_id === selectedContainerId;
+    } else if (selectedContainerType === "hotel") {
+      return nest.hotel_id === selectedContainerId;
+    }
+    return false;
+  });
+
+  const handleContainerSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+
+    if (value === "") {
+      setSelectedContainerId("");
+      setSelectedContainerType("");
+      setSelectedNestId(null);
+      return;
+    }
+
+    const [type, id] = value.split(":");
+    setSelectedContainerId(Number(id));
+    setSelectedContainerType(type as "tool" | "hotel");
+    setSelectedNestId(null);
+
+    // Disable tool command for hotels
+    if (type === "hotel") {
+      setTriggerToolCommand(false);
+    }
+  };
 
   const handleNestSelection = (nestId: number) => {
     setSelectedNestId(nestId);
@@ -93,28 +143,40 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
     try {
       setIsSubmitting(true);
 
-      // Check if we have identified a plate either by pre-selection, barcode, or ID (from manual or nest selection)
-      const isPlateIdentified =
-        selectedPlate?.id || barcode || (plateId && !isNaN(Number(plateId)));
-      if (!isPlateIdentified) {
-        // Refined error message
-        throw new Error("Please select a plate via barcode, ID, or nest selection.");
+      if (selectionMode === "manual") {
+        // Use barcode for manual mode
+        if (!barcode && (!selectedPlate || !selectedPlate.barcode)) {
+          throw new Error("Please enter a barcode or select a plate");
+        }
+
+        await onSubmit({
+          barcode: barcode || selectedPlate?.barcode,
+          triggerToolCommand: !isSelectedContainerStatic && triggerToolCommand,
+          isStatic: isSelectedContainerStatic,
+        });
+      } else if (selectionMode === "nest") {
+        // Use plateId for nest mode
+        if (!plateId) {
+          throw new Error("Please select a plate from a nest");
+        }
+
+        await onSubmit({
+          plateId: Number(plateId),
+          triggerToolCommand: !isSelectedContainerStatic && triggerToolCommand,
+          isStatic: isSelectedContainerStatic,
+        });
       }
 
-      await onSubmit({
-        plateId: selectedPlate?.id || (plateId ? Number(plateId) : undefined),
-        barcode: barcode || undefined,
-        triggerToolCommand,
-      });
-
-      // Reset form
+      // Reset state
       setBarcode("");
       setPlateId("");
-      setTriggerToolCommand(false);
-      setSelectedToolId("");
+      setSelectedContainerId("");
+      setSelectedContainerType("");
       setSelectedNestId(null);
+      setTriggerToolCommand(false);
       onClose();
     } catch (error) {
+      console.error("Error checking out plate:", error);
       errorToast("Error", error instanceof Error ? error.message : "An error occurred");
     } finally {
       setIsSubmitting(false);
@@ -135,31 +197,46 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
           <ModalCloseButton />
           <ModalBody py={6}>
             <VStack spacing={4} align="stretch">
-              {/* Tool Selection and Options Section */}
+              {/* Storage Selection and Options Section */}
               <HStack spacing={4} align="start">
                 <Box flex="2">
                   <Text fontWeight="medium" mb={3} color={textColor}>
-                    1. Select Tool
+                    1. Select Storage
                   </Text>
                   <Box bg={sectionBg} p={4} borderRadius="md">
                     <FormControl isRequired>
-                      <FormLabel color={labelColor}>Tool</FormLabel>
+                      <FormLabel color={labelColor}>Storage Location</FormLabel>
                       <Select
-                        placeholder="Select tool"
-                        value={selectedToolId}
-                        onChange={(e) => {
-                          setSelectedToolId(Number(e.target.value));
-                          setSelectedNestId(null);
-                        }}
+                        placeholder="Select storage location"
+                        value={
+                          selectedContainerType && selectedContainerId
+                            ? `${selectedContainerType}:${selectedContainerId}`
+                            : ""
+                        }
+                        onChange={handleContainerSelect}
                         bg={inputBg}>
                         {tools
                           .filter((tool) => tool.type.toLowerCase() === "liconic")
                           .map((tool) => (
-                            <option key={tool.id} value={tool.id}>
-                              {tool.name}
+                            <option key={`tool:${tool.id}`} value={`tool:${tool.id}`}>
+                              {tool.name} (Automated Storage)
                             </option>
                           ))}
+                        {staticHotels && staticHotels.length > 0 && (
+                          <>
+                            {staticHotels.map((hotel) => (
+                              <option key={`hotel:${hotel.id}`} value={`hotel:${hotel.id}`}>
+                                {hotel.name} (Hotel)
+                              </option>
+                            ))}
+                          </>
+                        )}
                       </Select>
+                      {(!staticHotels || staticHotels.length === 0) && (
+                        <FormHelperText color="orange.300">
+                          No static hotels available. Create hotels to see them here.
+                        </FormHelperText>
+                      )}
                     </FormControl>
                   </Box>
                 </Box>
@@ -169,21 +246,37 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
                   <Text fontWeight="medium" mb={3} color={textColor}>
                     Options
                   </Text>
-                  <Box bg={sectionBg} p={4} borderRadius="md" h="100%">
-                    <FormControl display="flex" alignItems="center" justifyContent="space-between">
-                      <HStack spacing={2}>
-                        <Icon as={BsLightningCharge} color="orange.400" />
-                        <FormLabel mb="0" color={labelColor}>
-                          Tool Command
-                        </FormLabel>
-                      </HStack>
-                      <Switch
-                        isChecked={triggerToolCommand}
-                        onChange={(e) => setTriggerToolCommand(e.target.checked)}
-                        colorScheme="teal"
-                        size="md"
-                      />
-                    </FormControl>
+                  <Box
+                    bg={sectionBg}
+                    p={4}
+                    borderRadius="md"
+                    minHeight="100px"
+                    display="flex"
+                    flexDirection="column"
+                    justifyContent="center">
+                    {!isSelectedContainerStatic ? (
+                      <FormControl
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="space-between">
+                        <HStack spacing={2}>
+                          <Icon as={BsLightningCharge} color="orange.400" />
+                          <FormLabel mb="0" color={labelColor}>
+                            Trigger Tool Command
+                          </FormLabel>
+                        </HStack>
+                        <Switch
+                          isChecked={triggerToolCommand}
+                          onChange={(e) => setTriggerToolCommand(e.target.checked)}
+                          colorScheme="teal"
+                          size="md"
+                        />
+                      </FormControl>
+                    ) : (
+                      <Text fontSize="sm" color={textColor}>
+                        No additional options available for static storage.
+                      </Text>
+                    )}
                   </Box>
                 </Box>
               </HStack>
@@ -225,81 +318,55 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
                       </FormControl>
                     </VStack>
                   ) : (
-                    <>
-                      <FormControl mb={4}>
-                        <FormLabel color={labelColor}>Selection Mode</FormLabel>
-                        <RadioGroup
-                          value={selectionMode}
-                          onChange={(value: "manual" | "nest") => setSelectionMode(value)}>
-                          <VStack align="start" spacing={2}>
-                            <Radio value="manual">
-                              <HStack>
-                                <Text>Manual Entry</Text>
-                                <Badge colorScheme="blue">ID/Barcode</Badge>
-                              </HStack>
-                            </Radio>
-                            <Radio value="nest">
-                              <HStack>
-                                <Text>From Nest</Text>
-                                <Badge colorScheme="green">Visual Selection</Badge>
-                              </HStack>
-                            </Radio>
+                    <Tabs isFitted variant="enclosed">
+                      <TabList mb="1em">
+                        <Tab
+                          onClick={() => setSelectionMode("manual")}
+                          _selected={{ bg: selectedBg, borderColor: borderColor }}>
+                          Barcode Entry
+                        </Tab>
+                        <Tab
+                          onClick={() => setSelectionMode("nest")}
+                          _selected={{ bg: selectedBg, borderColor: borderColor }}>
+                          Nest Selection
+                        </Tab>
+                      </TabList>
+                      <TabPanels>
+                        <TabPanel p={0}>
+                          <FormControl isRequired>
+                            <FormLabel color={labelColor}>Plate Barcode</FormLabel>
+                            <Input
+                              value={barcode}
+                              onChange={(e) => setBarcode(e.target.value)}
+                              placeholder="Enter plate barcode"
+                              bg={inputBg}
+                            />
+                          </FormControl>
+                        </TabPanel>
+                        <TabPanel p={0}>
+                          <VStack spacing={4}>
+                            <FormControl isRequired>
+                              <FormLabel color={labelColor}>Select from Inventory</FormLabel>
+                              <Button
+                                leftIcon={<Icon as={BsGrid3X3} />}
+                                isDisabled={!selectedContainerId}
+                                colorScheme="teal"
+                                variant="outline"
+                                size="md"
+                                onClick={() => setIsNestModalOpen(true)}>
+                                Open Inventory
+                              </Button>
+                            </FormControl>
+                            {selectedNestId && (
+                              <FormControl>
+                                <FormLabel color={labelColor}>Selected Nest</FormLabel>
+                                <Input value={selectedNestId || "None"} isReadOnly bg={inputBg} />
+                              </FormControl>
+                            )}
                           </VStack>
-                        </RadioGroup>
-                      </FormControl>
-
-                      {selectionMode === "manual" ? (
-                        <Tabs isFitted variant="enclosed" borderColor={borderColor}>
-                          <TabList mb="1em">
-                            <Tab
-                              _selected={{ bg: selectedBg, borderColor: borderColor }}
-                              color={textColor}>
-                              By Barcode
-                            </Tab>
-                            <Tab
-                              _selected={{ bg: selectedBg, borderColor: borderColor }}
-                              color={textColor}>
-                              By Plate ID
-                            </Tab>
-                          </TabList>
-                          <TabPanels>
-                            <TabPanel p={0}>
-                              <FormControl isRequired>
-                                <FormLabel color={labelColor}>Barcode</FormLabel>
-                                <Input
-                                  value={barcode}
-                                  onChange={(e) => setBarcode(e.target.value)}
-                                  placeholder="Enter plate barcode"
-                                  bg={inputBg}
-                                />
-                              </FormControl>
-                            </TabPanel>
-                            <TabPanel p={0}>
-                              <FormControl isRequired>
-                                <FormLabel color={labelColor}>Plate ID</FormLabel>
-                                <Input
-                                  value={plateId}
-                                  onChange={(e) => setPlateId(e.target.value)}
-                                  placeholder="Enter plate ID"
-                                  type="number"
-                                  bg={inputBg}
-                                />
-                              </FormControl>
-                            </TabPanel>
-                          </TabPanels>
-                        </Tabs>
-                      ) : (
-                        <Button
-                          onClick={() => setIsNestModalOpen(true)}
-                          colorScheme="teal"
-                          variant="outline"
-                          isDisabled={!selectedToolId}
-                          leftIcon={<Icon as={BsGrid3X3} />}
-                          width="100%">
-                          Open Nest Selection Grid
-                        </Button>
-                      )}
-                    </>
+                        </TabPanel>
+                      </TabPanels>
+                    </Tabs>
                   )}
                 </Box>
               </Box>
@@ -311,9 +378,12 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
                 onClick={handleSubmit}
                 isLoading={isSubmitting}
                 loadingText="Checking Out..."
-                size="lg"
                 isDisabled={
-                  !selectedToolId || (!selectedPlate && !barcode && !plateId && !selectedNestId)
+                  !selectedContainerId ||
+                  (selectionMode === "manual" &&
+                    !barcode &&
+                    (!selectedPlate || !selectedPlate.barcode)) ||
+                  (selectionMode === "nest" && !plateId)
                 }>
                 Check Out
               </Button>
@@ -327,12 +397,29 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
         <NestModal
           isOpen={isNestModalOpen}
           onClose={() => setIsNestModalOpen(false)}
-          toolName={tools.find((t) => t.id === selectedToolId)?.name || ""}
+          toolName={
+            selectedContainerType === "tool"
+              ? tools.find((t) => t.id === selectedContainerId)?.name || ""
+              : staticHotels.find((h) => h.id === selectedContainerId)?.name || ""
+          }
           nests={filteredNests}
-          plates={plates.filter((plate) => filteredNests.some((n) => plate.nest_id === n.id))}
+          plates={plates.filter((plate) =>
+            availableNests.some((n) => {
+              if (selectedContainerType === "tool") {
+                return n.tool_id === selectedContainerId && plate.nest_id === n.id;
+              } else if (selectedContainerType === "hotel") {
+                return n.hotel_id === selectedContainerId && plate.nest_id === n.id;
+              }
+              return false;
+            }),
+          )}
           selectedNests={selectedNestId ? [selectedNestId] : []}
           isMultiSelect={false}
-          onNestSelect={(nestIds) => handleNestSelection(nestIds[0])}
+          onNestSelect={(nestIds) => {
+            if (nestIds.length > 0) {
+              handleNestSelection(nestIds[0]);
+            }
+          }}
           onCreateNest={async () => {}}
           onDeleteNest={async () => {}}
           onPlateClick={onPlateClick}

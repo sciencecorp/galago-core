@@ -4,7 +4,6 @@ import {
   HStack,
   Button,
   Input,
-  useToast,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -32,6 +31,8 @@ import { trpc } from "@/utils/trpc";
 import { RiAddFill, RiSearchLine } from "react-icons/ri";
 import { ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
+import { errorToast, warningToast } from "../ui/Toast";
+import { successToast } from "../ui/Toast";
 
 interface AddToolCommandModalProps {
   isDisabled?: boolean;
@@ -47,7 +48,6 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const toast = useToast();
   const addTool = trpc.tool.add.useMutation();
   const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery();
   const selectedToolBg = useColorModeValue("teal.100", "teal.900");
@@ -81,12 +81,7 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
 
   const handleConfirmSelection = () => {
     if (!selectedTool) {
-      toast({
-        title: "No tool selected",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
+      warningToast("No tool selected", "");
       return;
     }
     onSelectClose();
@@ -114,22 +109,11 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
     try {
       await addTool.mutateAsync(tool);
       await refetch();
-      toast({
-        title: `Tool added successfully`,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      successToast(`Tool added successfully`, "");
       onDetailsClose();
       clearForm();
     } catch (error) {
-      toast({
-        title: "Error creating tool",
-        description: `Please try again. ${error}`,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("Error creating tool", `Please try again. ${error}`);
     }
     setIsLoading(false);
   };

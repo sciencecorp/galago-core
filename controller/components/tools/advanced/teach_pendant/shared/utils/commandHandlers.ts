@@ -1,4 +1,3 @@
-import { useToast } from "@chakra-ui/react";
 import { TeachPoint, MotionProfile, GripParams } from "../../types/";
 import { ToolCommandInfo } from "@/types";
 import { ToolType } from "gen-interfaces/controller";
@@ -23,8 +22,6 @@ interface RobotMotionProfile {
 }
 
 export function useCommandHandlers(config: Tool) {
-  const toast = useToast();
-
   const handleJog = (
     mutation: UseMutationResult<any, unknown, any, unknown>,
     axis: string,

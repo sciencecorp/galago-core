@@ -177,11 +177,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
                 models.Workcell.id == workcell_id
             )
         elif self.model == models.Nest:
-            query = (
-                query.join(models.Tool)
-                .join(models.Workcell)
-                .filter(models.Workcell.id == workcell_id)
-            )
+            # Special handling for Nest - can be associated with either Tool or Hotel
+            # both of which are associated with Workcell
+            return self.get_all_nests_by_workcell_id(db, workcell_id=workcell_id)
         elif self.model == models.Plate:
             query = (
                 query.join(models.Nest)
@@ -329,6 +327,28 @@ class CRUDNest(CRUDBase[models.Nest, schemas.NestCreate, schemas.NestUpdate]):
         db.refresh(plate)
         return plate
 
+    def get_all_nests_by_workcell_id(
+        self, db: Session, *, workcell_id: int
+    ) -> List[models.Nest]:
+        """
+        Get all nests for a workcell by joining through either the tool or hotel.
+        """
+        tool_nests = (
+            db.query(models.Nest)
+            .join(models.Tool)
+            .filter(models.Tool.workcell_id == workcell_id)
+            .all()
+        )
+
+        hotel_nests = (
+            db.query(models.Nest)
+            .join(models.Hotel)
+            .filter(models.Hotel.workcell_id == workcell_id)
+            .all()
+        )
+
+        return tool_nests + hotel_nests
+
 
 workcell = CRUDBase[models.Workcell, schemas.WorkcellCreate, schemas.WorkcellUpdate](
     models.Workcell
@@ -378,3 +398,10 @@ robot_arm_grip_params = CRUDBase[
     schemas.RobotArmGripParamsCreate,
     schemas.RobotArmGripParamsUpdate,
 ](models.RobotArmGripParams)
+
+
+class CRUDHotel(CRUDBase[models.Hotel, schemas.HotelCreate, schemas.HotelUpdate]):
+    pass
+
+
+hotel = CRUDHotel(models.Hotel)

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   Box,
   VStack,
-  useToast,
   Card,
   CardBody,
   Divider,
@@ -17,11 +16,30 @@ import {
   Button,
   ButtonGroup,
   useColorMode,
+  CardHeader,
+  Flex,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  FormControl,
+  FormLabel,
+  Input,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
+  Heading,
 } from "@chakra-ui/react";
-import { Inventory, Plate, Reagent, Nest, Tool } from "@/types/api";
+import { Inventory, Plate, Reagent, Nest, Tool, NestStatus, Hotel } from "@/types/api";
 import { PageHeader } from "@/components/ui/PageHeader";
 import InventorySearch from "./search/InventorySearch";
 import { InventoryToolCard } from "./cards/InventoryToolCard";
+import { InventoryHotelCard } from "./cards/InventoryHotelCard";
 import AlertComponent from "@/components/ui/AlertComponent";
 import { trpc } from "@/utils/trpc";
 import { BsBoxSeam } from "react-icons/bs";
@@ -29,8 +47,19 @@ import CheckInModal from "./modals/CheckInModal";
 import CheckOutModal from "./modals/CheckOutModal";
 import PlateModal from "./modals/PlateModal";
 import { Icon } from "@/components/ui/Icons";
-import { successToast, errorToast } from "@/components/ui/Toast";
+import {
+  successToast,
+  errorToast,
+  infoToast,
+  loadingToast,
+  warningToast,
+  progressToast,
+} from "@/components/ui/Toast";
 import { useCommonColors } from "@/components/ui/Theme";
+import { AddIcon } from "@chakra-ui/icons";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { ToolType } from "gen-interfaces/controller";
+import { actionToast } from "@/components/ui/Toast";
 
 export const InventoryManager = () => {
   const [search, setSearch] = useState("");
@@ -38,13 +67,17 @@ export const InventoryManager = () => {
   const [selectedPlate, setSelectedPlate] = useState<Plate | null>(null);
   const [selectedReagent, setSelectedReagent] = useState<Reagent | null>(null);
   const [selectedNest, setSelectedNest] = useState<Nest | null>(null);
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertStatus, setAlertStatus] = useState<"success" | "error" | "warning" | "info">("info");
-  const [alertDescription, setAlertDescription] = useState("");
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
   const [isCheckOutModalOpen, setIsCheckOutModalOpen] = useState(false);
   const [isPlateModalOpen, setIsPlateModalOpen] = useState(false);
   const [plateForModal, setPlateForModal] = useState<Plate | null>(null);
+  const [showAddHotelModal, setShowAddHotelModal] = useState(false);
+  const [newHotelName, setNewHotelName] = useState("");
+  const [newHotelDescription, setNewHotelDescription] = useState("");
+  const [newHotelRows, setNewHotelRows] = useState(8);
+  const [newHotelColumns, setNewHotelColumns] = useState(12);
+  const [showDeleteHotelModal, setShowDeleteHotelModal] = useState(false);
+  const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null);
 
   const { colorMode } = useColorMode();
   const isDarkMode = colorMode === "dark";
@@ -55,9 +88,30 @@ export const InventoryManager = () => {
     (workcell) => workcell.name === SelectedWorkcellName.data,
   );
 
+  // Add a specific query for hotels
+  const { data: hotels = [], refetch: refetchHotels } = trpc.inventory.getHotels.useQuery(
+    selectedWorkcell?.name || "",
+    {
+      enabled: !!selectedWorkcell?.name,
+    },
+  );
+
   const { data: nests = [], refetch: refetchNests } = trpc.inventory.getNests.useQuery<Nest[]>(
     SelectedWorkcellName.data ?? "",
+    {
+      refetchOnMount: true,
+      refetchOnWindowFocus: true,
+      staleTime: 0, // Always refetch data
+      cacheTime: 0, // Don't cache results
+    },
   );
+
+  // Force an initial fetch to make sure we have the latest data
+  useEffect(() => {
+    if (selectedWorkcell?.name) {
+      refetchNests();
+    }
+  }, [selectedWorkcell?.name, refetchNests]);
 
   const { data: plates = [], refetch: refetchPlates } = trpc.inventory.getPlates.useQuery<Plate[]>(
     selectedWorkcell?.name || "",
@@ -77,6 +131,9 @@ export const InventoryManager = () => {
   const createPlateMutation = trpc.inventory.createPlate.useMutation();
   const updatePlateMutation = trpc.inventory.updatePlate.useMutation();
   const createReagentMutation = trpc.inventory.createReagent.useMutation();
+  const createHotelMutation = trpc.inventory.createHotel.useMutation();
+  const deleteHotelMutation = trpc.inventory.deleteHotel.useMutation();
+  const updateHotelMutation = trpc.inventory.updateHotel.useMutation();
 
   const workcellTools = selectedWorkcell?.tools || [];
 
@@ -102,8 +159,62 @@ export const InventoryManager = () => {
   };
 
   const handlePlateClick = (plate: Plate) => {
-    setPlateForModal(plate);
-    setIsPlateModalOpen(true);
+    // Check if the plate is already in a nest
+    if (plate.nest_id) {
+      // Get the nest
+      const nest = typedNests.find((n) => n.id === plate.nest_id);
+      const nestName = nest ? nest.name : "Unknown location";
+
+      // Use action toast to provide quick actions for the selected plate
+      actionToast(
+        `Plate: ${plate.name || plate.barcode}`,
+        `Currently in ${nestName}`,
+        [
+          {
+            label: "View Details",
+            onClick: () => {
+              setPlateForModal(plate);
+              setIsPlateModalOpen(true);
+            },
+            colorScheme: "blue",
+          },
+          {
+            label: "Check Out",
+            onClick: () => {
+              setSelectedPlate(plate);
+              setIsCheckOutModalOpen(true);
+            },
+            colorScheme: "orange",
+          },
+        ],
+        "info",
+      );
+    } else {
+      // Plate not in any nest, offer different actions
+      actionToast(
+        `Plate: ${plate.name || plate.barcode}`,
+        "Not currently checked in",
+        [
+          {
+            label: "View Details",
+            onClick: () => {
+              setPlateForModal(plate);
+              setIsPlateModalOpen(true);
+            },
+            colorScheme: "blue",
+          },
+          {
+            label: "Check In",
+            onClick: () => {
+              setSelectedPlate(plate);
+              setIsCheckInModalOpen(true);
+            },
+            colorScheme: "green",
+          },
+        ],
+        "info",
+      );
+    }
   };
 
   const handleReagentSelect = (reagent: Reagent) => {
@@ -115,21 +226,49 @@ export const InventoryManager = () => {
   };
 
   const handleCreateNest = async (
-    toolId: number,
+    parentId: number,
     nestName: string,
     nestRow: number,
     nestColumn: number,
+    isHotel: boolean = false,
   ) => {
     try {
+      // Use tRPC for all nest creation
       await createNestMutation.mutateAsync({
         name: nestName,
         row: nestRow,
         column: nestColumn,
-        tool_id: toolId,
+        // If it's a hotel, use hotel_id instead of tool_id
+        ...(isHotel ? { hotel_id: parentId } : { tool_id: parentId }),
       });
-      refetchNests();
+
+      // If this is a hotel nest, immediately update hotel dimensions if needed
+      if (isHotel) {
+        // Find the hotel
+        const hotel = hotels.find((h) => h.id === parentId);
+        if (hotel) {
+          const needsUpdate = nestRow + 1 > hotel.rows || nestColumn + 1 > hotel.columns;
+          if (needsUpdate) {
+            // Update hotel dimensions
+            await updateHotelMutation.mutateAsync({
+              id: parentId,
+              name: hotel.name,
+              description: hotel.description || "",
+              workcell_id: hotel.workcell_id,
+              rows: Math.max(hotel.rows, nestRow + 1),
+              columns: Math.max(hotel.columns, nestColumn + 1),
+              image_url: hotel.image_url,
+            });
+          }
+        }
+        // Refresh hotels
+        await refetchHotels();
+      }
+
+      // Refresh nest data
+      await refetchNests();
     } catch (error) {
-      console.error("Error creating nest:", error);
+      console.error("Failed to create nest:", error);
       errorToast("Error creating nest", error instanceof Error ? error.message : "Unknown error");
     }
   };
@@ -140,7 +279,6 @@ export const InventoryManager = () => {
       refetchNests();
     } catch (error) {
       console.error("Error deleting nest:", error);
-      errorToast("Error deleting nest", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -182,10 +320,12 @@ export const InventoryManager = () => {
     nestId,
     plates: newPlates,
     triggerToolCommand,
+    isStatic,
   }: {
     nestId: number;
     plates: Array<{ barcode: string; name: string; plate_type: string }>;
     triggerToolCommand: boolean;
+    isStatic?: boolean;
   }) => {
     try {
       // Get the nest to check capacity
@@ -200,19 +340,75 @@ export const InventoryManager = () => {
         throw new Error("Selected nest is already occupied");
       }
 
-      // Create all plates
+      // Create all plates, checking for existing plates by name
       for (const plateData of newPlates) {
-        await createPlateMutation.mutateAsync({
-          ...plateData,
-          nest_id: nestId,
-        });
+        // Check if a plate with this name already exists
+        const plateWithSameName = typedPlates.find((p) => p.name === plateData.name);
+        if (plateWithSameName) {
+          // Append a unique identifier if name already exists
+          const timestamp = Date.now().toString().slice(-4);
+          plateData.name = `${plateData.name}-${timestamp}`;
+        }
+
+        try {
+          await createPlateMutation.mutateAsync({
+            ...plateData,
+            nest_id: nestId,
+          });
+        } catch (error) {
+          // If a specific error about duplicate barcode happens, try to generate a new one
+          if (
+            error instanceof Error &&
+            error.message.includes("barcode") &&
+            error.message.includes("already exists")
+          ) {
+            const newBarcode = `${plateData.barcode}-${Date.now().toString().slice(-6)}`;
+            await createPlateMutation.mutateAsync({
+              ...plateData,
+              barcode: newBarcode,
+              nest_id: nestId,
+            });
+          } else {
+            // Re-throw other errors
+            throw error;
+          }
+        }
       }
 
-      // If tool command is requested and it's a single plate
-      if (triggerToolCommand && newPlates.length === 1) {
-        // Here you would trigger the physical tool command
-        // This is a placeholder for the actual implementation
-        successToast("Tool command triggered", "Physical check-in command sent to the tool");
+      // If tool command is requested and it's a single plate for a Liconic tool
+      if (triggerToolCommand && newPlates.length === 1 && !isStatic) {
+        // Find the tool associated with this nest
+        const tool = workcellTools.find((t) => t.id === targetNest.tool_id);
+
+        if (tool && tool.type.toLowerCase() === "liconic") {
+          try {
+            // Extract row and column (level) information from the nest
+            const { row, column } = targetNest;
+
+            // Call your tool API here
+            const commandMutation = trpc.tool.runCommand.useMutation();
+
+            await commandMutation.mutateAsync({
+              toolId: tool.id.toString(),
+              toolType: "liconic" as ToolType,
+              command: "store_plate",
+              params: {
+                cassette: 1,
+                level: row + 1,
+              },
+            });
+            successToast(
+              "Tool command triggered",
+              `Physical check-in command sent to ${tool.name} for position R${row + 1}C${column + 1}`,
+            );
+          } catch (cmdError) {
+            console.error("Error triggering tool command:", cmdError);
+            errorToast(
+              "Warning: Plate stored but tool command failed",
+              cmdError instanceof Error ? cmdError.message : "Unknown error",
+            );
+          }
+        }
       }
 
       refetchPlates();
@@ -233,10 +429,12 @@ export const InventoryManager = () => {
     plateId,
     barcode,
     triggerToolCommand,
+    isStatic,
   }: {
     plateId?: number;
     barcode?: string;
     triggerToolCommand: boolean;
+    isStatic?: boolean;
   }) => {
     try {
       let plateToCheckOut: Plate | undefined;
@@ -255,17 +453,55 @@ export const InventoryManager = () => {
         throw new Error("Plate is not checked into any nest");
       }
 
+      // Get the nest to determine if this is a tool or hotel
+      const nest = typedNests.find((n) => n.id === plateToCheckOut?.nest_id);
+      if (!nest) {
+        throw new Error("Nest not found for this plate");
+      }
+
       // Update the plate to remove it from the nest
       await updatePlateMutation.mutateAsync({
         ...plateToCheckOut,
         nest_id: null,
       });
 
-      // If tool command is requested
-      if (triggerToolCommand) {
-        // Here you would trigger the physical tool command
-        // This is a placeholder for the actual implementation
-        successToast("Tool command triggered", "Physical check-out command sent to the tool");
+      // If tool command is requested and it's not a static hotel
+      if (triggerToolCommand && !isStatic) {
+        // Find the tool associated with this nest
+        const tool = workcellTools.find((t) => t.id === nest.tool_id);
+
+        if (tool && tool.type.toLowerCase() === "liconic") {
+          try {
+            // Extract row and column information from the nest
+            const { row, column } = nest;
+
+            // Prepare a fetch plate command with the appropriate parameters
+            const fetchCommand = {
+              toolId: tool.id.toString(),
+              toolType: "liconic" as ToolType,
+              command: "fetch_plate",
+              params: {
+                cassette: 1,
+                level: row + 1, // Convert to 1-indexed
+              },
+            };
+
+            // Send command to the tool API
+            const commandMutation = trpc.tool.runCommand.useMutation();
+            await commandMutation.mutateAsync(fetchCommand);
+
+            successToast(
+              "Tool command triggered",
+              `Physical check-out command sent to ${tool.name} for position R${row + 1}C${column + 1}`,
+            );
+          } catch (cmdError) {
+            console.error("Error triggering tool command:", cmdError);
+            errorToast(
+              "Warning: Plate checked out but tool command failed",
+              cmdError instanceof Error ? cmdError.message : "Unknown error",
+            );
+          }
+        }
       }
 
       refetchPlates();
@@ -282,6 +518,156 @@ export const InventoryManager = () => {
         "Error checking out plate",
         error instanceof Error ? error.message : "Unknown error",
       );
+    }
+  };
+
+  const handleCreateHotel = async (hotelData: {
+    name: string;
+    description?: string;
+    rows: number;
+    columns: number;
+  }) => {
+    try {
+      if (!selectedWorkcell?.id) {
+        throw new Error("No workcell selected");
+      }
+
+      // Step 1: Create the hotel first
+      const result = (await createHotelMutation.mutateAsync({
+        ...hotelData,
+        workcell_id: selectedWorkcell.id,
+        description: hotelData.description || "",
+        image_url: null,
+      })) as Hotel;
+
+      // Get the hotel ID from the response
+      const hotelId = result.id;
+
+      // Step 2: Generate all nests for the hotel using loadingToast with promise
+      const nestCreationPromise = (async () => {
+        const totalNests = hotelData.rows * hotelData.columns;
+        let createdNests = 0;
+
+        // Create nests sequentially to avoid race conditions
+        for (let row = 0; row < hotelData.rows; row++) {
+          for (let col = 0; col < hotelData.columns; col++) {
+            try {
+              await createNestMutation.mutateAsync({
+                name: `${hotelData.name}-R${row + 1}C${col + 1}`,
+                row: row,
+                column: col,
+                // Only include hotel_id
+                hotel_id: hotelId,
+              });
+              createdNests++;
+            } catch (nestError) {
+              console.error(`Failed to create nest at R${row + 1}C${col + 1}:`, nestError);
+              // Continue with other nests even if one fails
+            }
+          }
+        }
+
+        // Return success data that includes counts
+        return {
+          successCount: createdNests,
+          errorCount: totalNests - createdNests,
+          totalCount: totalNests,
+        };
+      })();
+
+      // Use loadingToast to show progress and handle success/error
+      loadingToast(
+        "Creating Hotel",
+        `Creating ${hotelData.rows * hotelData.columns} nests for ${hotelData.name}...`,
+        nestCreationPromise,
+        {
+          successTitle: "Hotel Created Successfully",
+          successDescription: (result) =>
+            `Created ${result.successCount} of ${result.totalCount} nests for hotel "${hotelData.name}"`,
+          errorTitle: "Hotel Creation Issue",
+          errorDescription: (error) =>
+            `Some nests could not be created: ${error.message || "Unknown error"}`,
+        },
+      );
+
+      // Wait for all nests to be created
+      await nestCreationPromise;
+
+      // Step 3: Refresh the data
+      await refetchHotels();
+      await refetchNests();
+    } catch (error) {
+      console.error("Failed to create hotel:", error);
+      errorToast("Error creating hotel", error instanceof Error ? error.message : "Unknown error");
+    }
+  };
+
+  const handleDeleteHotel = async (hotelId: number) => {
+    try {
+      // First, get all nests associated with this hotel
+      const hotelNests = typedNests.filter((nest) => nest.hotel_id === hotelId);
+      const totalNests = hotelNests.length;
+
+      // Create a progress toast to show deletion progress
+      const progress = progressToast(`Deleting Hotel (0/${totalNests} nests)`, 0);
+
+      // Delete all nests first
+      let deletedCount = 0;
+      for (const nest of hotelNests) {
+        try {
+          await deleteNestMutation.mutateAsync(nest.id);
+          deletedCount++;
+
+          // Update progress
+          const percent = Math.round((deletedCount / totalNests) * 100);
+          progress.updateProgress(percent, `Deleting nests (${deletedCount}/${totalNests})`);
+        } catch (nestError) {
+          console.error(`Error deleting nest ${nest.id}:`, nestError);
+          // Continue with other nests even if one fails
+        }
+      }
+
+      // Final step: delete the hotel itself
+      progress.updateProgress(95, "Deleting hotel...");
+
+      // Now try to delete the hotel
+      try {
+        await deleteHotelMutation.mutateAsync(hotelId);
+
+        // Complete the progress
+        progress.complete("Hotel Deleted", `Successfully deleted hotel and ${deletedCount} nests`);
+      } catch (hotelError) {
+        console.error("Error deleting hotel:", hotelError);
+
+        // Show warning if hotel deletion failed but nests were deleted
+        if (deletedCount > 0) {
+          progress.updateProgress(
+            100,
+            `Deleted ${deletedCount}/${totalNests} nests, but hotel deletion failed`,
+          );
+
+          warningToast(
+            "Partial deletion",
+            `Deleted ${deletedCount}/${totalNests} nests, but hotel record deletion failed`,
+          );
+        } else {
+          progress.error(
+            "Deletion Failed",
+            `Failed to delete hotel: ${hotelError instanceof Error ? hotelError.message : "Unknown error"}`,
+          );
+        }
+      }
+
+      // Always refresh the data regardless of errors
+      await refetchHotels();
+      await refetchNests();
+    } catch (error) {
+      console.error("Failed to delete hotel:", error);
+      errorToast("Error deleting hotel", error instanceof Error ? error.message : "Unknown error");
+
+      // Still refresh data even after errors
+      await refetchHotels();
+      await refetchNests();
     }
   };
 
@@ -350,6 +736,9 @@ export const InventoryManager = () => {
         </Card>
 
         <Card bg={headerBg} shadow="md">
+          <CardHeader pb={0}>
+            <Heading size="md">Tools</Heading>
+          </CardHeader>
           <CardBody>
             <SimpleGrid
               columns={{ base: 1, sm: 2, md: 3, lg: 4, xl: 4 }}
@@ -364,7 +753,9 @@ export const InventoryManager = () => {
                     toolId={tool.id}
                     nests={typedNests.filter((n: Nest) => n.tool_id === tool.id)}
                     plates={typedPlates}
-                    onCreateNest={handleCreateNest}
+                    onCreateNest={(toolId, name, row, col) =>
+                      handleCreateNest(toolId, name, row, col, false)
+                    }
                     onDeleteNest={handleDeleteNest}
                     onCreatePlate={handleCreatePlate}
                     onCreateReagent={handleCreateReagent}
@@ -376,22 +767,68 @@ export const InventoryManager = () => {
             </SimpleGrid>
           </CardBody>
         </Card>
-      </VStack>
 
-      {showAlert && (
-        <AlertComponent
-          showAlert={showAlert}
-          status={alertStatus}
-          title={alertStatus.charAt(0).toUpperCase() + alertStatus.slice(1)}
-          description={alertDescription}
-          onClose={() => setShowAlert(false)}
-        />
-      )}
+        <Card bg={headerBg} shadow="md">
+          <CardHeader pb={0}>
+            <Flex justifyContent="space-between" alignItems="center">
+              <Heading size="md">Hotels</Heading>
+              <Button
+                leftIcon={<AddIcon />}
+                colorScheme="teal"
+                size="sm"
+                onClick={() => setShowAddHotelModal(true)}>
+                Add Hotel
+              </Button>
+            </Flex>
+          </CardHeader>
+          <CardBody>
+            <SimpleGrid
+              columns={{ base: 1, sm: 2, md: 3, lg: 4, xl: 4 }}
+              spacing={6}
+              w="100%"
+              alignItems="start"
+              px={2}
+              py={2}>
+              {hotels.length > 0 ? (
+                hotels.map((hotel) => {
+                  // Debug hotel's nests
+                  const hotelNests = typedNests.filter((n: Nest) => n.hotel_id === hotel.id);
+
+                  return (
+                    <Box key={hotel.id}>
+                      <InventoryHotelCard
+                        hotelId={hotel.id}
+                        nests={typedNests}
+                        plates={typedPlates}
+                        onCreateNest={(hotelId, name, row, col) =>
+                          handleCreateNest(hotelId, name, row, col, true)
+                        }
+                        onDeleteNest={handleDeleteNest}
+                        onCreatePlate={handleCreatePlate}
+                        onCreateReagent={handleCreateReagent}
+                        onNestClick={handleNestSelect}
+                        onPlateClick={handlePlateClick}
+                        onDeleteHotel={() => {
+                          setSelectedHotelId(hotel.id);
+                          setShowDeleteHotelModal(true);
+                        }}
+                      />
+                    </Box>
+                  );
+                })
+              ) : (
+                <Text>No hotels found. Add a hotel to get started.</Text>
+              )}
+            </SimpleGrid>
+          </CardBody>
+        </Card>
+      </VStack>
 
       <CheckInModal
         isOpen={isCheckInModalOpen}
         onClose={() => setIsCheckInModalOpen(false)}
         tools={workcellTools}
+        staticHotels={hotels}
         availableNests={typedNests}
         selectedPlate={selectedPlate}
         plates={typedPlates}
@@ -404,11 +841,87 @@ export const InventoryManager = () => {
         onClose={() => setIsCheckOutModalOpen(false)}
         selectedPlate={selectedPlate}
         tools={workcellTools}
+        staticHotels={hotels}
         availableNests={typedNests}
         plates={typedPlates}
         onSubmit={handleCheckOut}
         onPlateClick={handlePlateClick}
       />
+
+      <Modal isOpen={showAddHotelModal} onClose={() => setShowAddHotelModal(false)}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Add New Hotel</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <FormControl isRequired>
+              <FormLabel>Hotel Name</FormLabel>
+              <Input
+                placeholder="Hotel name"
+                value={newHotelName}
+                onChange={(e) => setNewHotelName(e.target.value)}
+              />
+            </FormControl>
+            <FormControl mt={4}>
+              <FormLabel>Description</FormLabel>
+              <Input
+                placeholder="Hotel description"
+                value={newHotelDescription}
+                onChange={(e) => setNewHotelDescription(e.target.value)}
+              />
+            </FormControl>
+            <HStack mt={4} spacing={4}>
+              <FormControl isRequired>
+                <FormLabel>Rows</FormLabel>
+                <NumberInput
+                  min={1}
+                  value={newHotelRows}
+                  onChange={(value) => setNewHotelRows(Number(value))}>
+                  <NumberInputField />
+                  <NumberInputStepper>
+                    <NumberIncrementStepper />
+                    <NumberDecrementStepper />
+                  </NumberInputStepper>
+                </NumberInput>
+              </FormControl>
+              <FormControl isRequired>
+                <FormLabel>Columns</FormLabel>
+                <NumberInput
+                  min={1}
+                  value={newHotelColumns}
+                  onChange={(value) => setNewHotelColumns(Number(value))}>
+                  <NumberInputField />
+                  <NumberInputStepper>
+                    <NumberIncrementStepper />
+                    <NumberDecrementStepper />
+                  </NumberInputStepper>
+                </NumberInput>
+              </FormControl>
+            </HStack>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              colorScheme="teal"
+              mr={3}
+              onClick={() => {
+                handleCreateHotel({
+                  name: newHotelName,
+                  description: newHotelDescription,
+                  rows: newHotelRows,
+                  columns: newHotelColumns,
+                });
+                setShowAddHotelModal(false);
+                setNewHotelName("");
+                setNewHotelDescription("");
+                setNewHotelRows(8);
+                setNewHotelColumns(12);
+              }}>
+              Create
+            </Button>
+            <Button onClick={() => setShowAddHotelModal(false)}>Cancel</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
       {plateForModal && (
         <PlateModal
@@ -421,6 +934,23 @@ export const InventoryManager = () => {
           onCreateReagent={handleCreateReagent}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={showDeleteHotelModal}
+        onClose={() => setShowDeleteHotelModal(false)}
+        onClick={() => {
+          if (selectedHotelId !== null) {
+            handleDeleteHotel(selectedHotelId);
+          }
+          setShowDeleteHotelModal(false);
+          setSelectedHotelId(null);
+        }}
+        header="Delete Hotel"
+        confirmText="Delete"
+        colorScheme="red">
+        Are you sure you want to delete this hotel? This will also delete all nests associated with
+        this hotel. This action cannot be undone.
+      </ConfirmationModal>
     </Box>
   );
 };

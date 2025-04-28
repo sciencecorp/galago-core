@@ -1,3 +1,4 @@
+from __future__ import annotations
 import enum
 from sqlalchemy import (
     Column,
@@ -29,6 +30,9 @@ class Workcell(Base, TimestampMixin):
     )
     protocols: RelationshipProperty[List["Protocol"]] = relationship(
         "Protocol", back_populates="workcell", cascade="all, delete-orphan"
+    )
+    hotels: RelationshipProperty[List["Hotel"]] = relationship(
+        "Hotel", back_populates="workcell", cascade="all, delete-orphan"
     )
 
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
@@ -67,6 +71,27 @@ class Tool(Base, TimestampMixin):
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
 
+class Hotel(Base, TimestampMixin):
+    __tablename__ = "hotels"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+    description = Column(String, nullable=True)
+    image_url = Column(String, nullable=True)
+    rows = Column(Integer, nullable=False)
+    columns = Column(Integer, nullable=False)
+    workcell_id = Column(Integer, ForeignKey("workcells.id"))
+
+    # Relationships
+    workcell: RelationshipProperty[Optional["Workcell"]] = relationship(
+        "Workcell", back_populates="hotels"
+    )
+    nests: RelationshipProperty[List["Nest"]] = relationship(
+        "Nest", back_populates="hotel"
+    )
+
+    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+
+
 class NestStatus(str, enum.Enum):
     empty = "empty"
     occupied = "occupied"
@@ -93,11 +118,17 @@ class Nest(Base, TimestampMixin):
     name = Column(String)
     row = Column(Integer)
     column = Column(Integer)
-    tool_id = Column(Integer, ForeignKey("tools.id"))
+    tool_id = Column(Integer, ForeignKey("tools.id"), nullable=True)
+    hotel_id = Column(Integer, ForeignKey("hotels.id"), nullable=True)
     status = Column(SQLEnum(NestStatus), default=NestStatus.empty)
 
     # Relationships
-    tool: RelationshipProperty["Tool"] = relationship("Tool", back_populates="nests")
+    tool: RelationshipProperty[Optional["Tool"]] = relationship(
+        "Tool", back_populates="nests"
+    )
+    hotel: RelationshipProperty[Optional["Hotel"]] = relationship(
+        "Hotel", back_populates="nests"
+    )
     plate_history: RelationshipProperty[List["PlateNestHistory"]] = relationship(
         "PlateNestHistory", back_populates="nest"
     )

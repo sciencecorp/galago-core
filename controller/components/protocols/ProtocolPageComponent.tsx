@@ -13,7 +13,6 @@ import {
   Thead,
   Tr,
   VStack,
-  useToast,
   Tag,
   Select,
   useColorModeValue,
@@ -56,6 +55,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { PiPathBold } from "react-icons/pi";
 import { RiAddFill } from "react-icons/ri";
 import { EditableText } from "../ui/Form";
+import { errorToast, successToast } from "../ui/Toast";
 
 type SortField = "name" | "category";
 type SortOrder = "asc" | "desc";
@@ -78,7 +78,6 @@ export const ProtocolPageComponent: React.FC = () => {
   const hoverBgColor = useColorModeValue("gray.50", "gray.600");
 
   const router = useRouter();
-  const toast = useToast();
   const { data: workcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
   const {
     data: protocols,
@@ -89,42 +88,21 @@ export const ProtocolPageComponent: React.FC = () => {
   const { data: workcells } = trpc.workcell.getAll.useQuery();
   const deleteMutation = trpc.protocol.delete.useMutation({
     onSuccess: () => {
-      toast({
-        title: "Protocol deleted",
-        description: "The protocol has been successfully deleted",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      successToast("Protocol deleted", "");
       refetch(); // Refresh the protocols list
     },
     onError: (error) => {
-      toast({
-        title: "Error deleting protocol",
-        description: error.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
+      errorToast("Error deleting protocol", error.message);
     },
   });
 
   const updateProtocol = trpc.protocol.update.useMutation({
     onSuccess: () => {
-      toast({
-        title: "Protocol updated",
-        status: "success",
-        duration: 3000,
-      });
+      successToast("Protocol updated", "");
       refetch();
     },
     onError: (error) => {
-      toast({
-        title: "Error updating protocol",
-        description: error.message,
-        status: "error",
-        duration: 5000,
-      });
+      errorToast("Error updating protocol", error.message);
     },
   });
 
@@ -215,14 +193,10 @@ export const ProtocolPageComponent: React.FC = () => {
   const handleDelete = async (protocolId: string) => {
     // Check if it's a TypeScript protocol (non-numeric ID)
     if (isNaN(parseInt(protocolId))) {
-      toast({
-        title: "Cannot Delete",
-        description:
-          "TypeScript-based protocols cannot be deleted as they are part of the codebase. Only database protocols can be deleted.",
-        status: "warning",
-        duration: 5000,
-        isClosable: true,
-      });
+      errorToast(
+        "Cannot Delete",
+        "TypeScript-based protocols cannot be deleted as they are part of the codebase. Only database protocols can be deleted.",
+      );
       return;
     }
 

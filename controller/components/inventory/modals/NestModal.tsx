@@ -11,11 +11,6 @@ import {
   Button,
   IconButton,
   Text,
-  useToast,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
   VStack,
   HStack,
   useColorModeValue,
@@ -64,8 +59,16 @@ const NestModal: React.FC<NestModalProps> = ({
   const [localSelectedNests, setLocalSelectedNests] = useState<number[]>(selectedNests || []);
   const [dimensionMode, setDimensionMode] = useState<"row" | "column">("column");
 
-  const maxRows = Math.max(...nests.map((nest) => nest.row), 1);
-  const maxColumns = Math.max(...nests.map((nest) => nest.column), 1);
+  // Calculate max dimensions properly, ensuring we count from 1 for hotels
+  const maxRows =
+    nests.length > 0
+      ? Math.max(...nests.map((nest) => nest.row)) + 1 // +1 because we need to count row 0 as row 1
+      : 1;
+
+  const maxColumns =
+    nests.length > 0
+      ? Math.max(...nests.map((nest) => nest.column)) + 1 // +1 because we need to count column 0 as column 1
+      : 1;
 
   // Use color hooks
   const {
@@ -136,34 +139,46 @@ const NestModal: React.FC<NestModalProps> = ({
 
   const handleDimensionChange = async (type: "row" | "column", operation: "add" | "remove") => {
     try {
+      // Get current max dimensions (these are 1-based for UI display)
       const currentMax = type === "row" ? maxRows : maxColumns;
-      const newValue = operation === "add" ? currentMax + 1 : Math.max(1, currentMax - 1);
+
+      // For adding, we want the new index to be equal to currentMax (which is the next 0-based index)
+      // For removing, we want the last index (currentMax - 1)
+      const targetIndex = operation === "add" ? currentMax : currentMax - 1;
 
       if (operation === "remove" && onDeleteNest) {
-        // Delete nests in the last row/column
+        // Log existing nests for debugging
+        // Find nests to delete at the last row/column
+        // Since targetIndex is already currentMax - 1, we don't need to subtract 1 again
         const nestsToDelete = nests.filter((nest) =>
-          type === "row" ? nest.row === currentMax : nest.column === currentMax,
+          type === "row" ? nest.row === targetIndex : nest.column === targetIndex,
         );
+
+        if (nestsToDelete.length === 0) {
+          warningToast("No nests to remove", `No nests found in the last ${type}`);
+          return;
+        }
 
         for (const nest of nestsToDelete) {
           await onDeleteNest(nest.id);
         }
       } else if (operation === "add" && onCreateNest) {
-        // If inventory is empty, create first nest at (1,1)
+        // If inventory is empty, create first nest at (0,0)
         if (nests.length === 0) {
-          await onCreateNest(1, 1);
+          await onCreateNest(0, 0);
+          return;
         }
 
         // Add new nests in the new row/column
         if (type === "row") {
-          for (let col = 1; col <= maxColumns; col++) {
-            if (nests.length === 0 && col === 1) continue; // Skip (1,1) if we just created it
-            await onCreateNest(newValue, col);
+          // Add a new row - create a nest at the new row for each existing column
+          for (let col = 0; col < maxColumns; col++) {
+            await onCreateNest(targetIndex, col);
           }
         } else {
-          for (let row = 1; row <= maxRows; row++) {
-            if (nests.length === 0 && row === 1) continue; // Skip (1,1) if we just created it
-            await onCreateNest(row, newValue);
+          // Add a new column - create a nest at the new column for each existing row
+          for (let row = 0; row < maxRows; row++) {
+            await onCreateNest(row, targetIndex);
           }
         }
       }
@@ -282,7 +297,7 @@ const NestModal: React.FC<NestModalProps> = ({
                   onClick={() => setDimensionMode((prev) => (prev === "column" ? "row" : "column"))}
                   color={textColor}
                   fontWeight="medium">
-                  {dimensionMode === "column" ? "Columns" : "Rows"}
+                  {dimensionMode === "column" ? "Adding Columns" : "Adding Rows"}
                 </Button>
                 <Tooltip label={`Add ${dimensionMode}`}>
                   <IconButton
@@ -357,14 +372,16 @@ const NestModal: React.FC<NestModalProps> = ({
                 gap={3}
                 p={4}
                 bg={ghostNestBg}
-                borderRadius="lg">
+                borderRadius="lg"
+                key={`grid-${maxRows}-${maxColumns}`}>
                 {Array.from({ length: maxRows }, (_, rowIndex) =>
                   Array.from({ length: maxColumns }, (_, colIndex) => {
-                    const nest = nests.find(
-                      (n) => n.row === rowIndex + 1 && n.column === colIndex + 1,
-                    );
+                    // For UI we're using 1-based indexing (rowIndex and colIndex are 0-based)
+                    // But database stores 0-based indexes, so look for nests at rowIndex and colIndex
+                    const nest = nests.find((n) => n.row === rowIndex && n.column === colIndex);
 
                     if (!nest) {
+                      // No longer render ghost nests
                       return (
                         <Box
                           key={`empty-${rowIndex}-${colIndex}`}

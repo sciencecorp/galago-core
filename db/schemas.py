@@ -100,8 +100,17 @@ class NestBase(BaseModel):
     name: str
     row: int
     column: int
-    tool_id: int
+    tool_id: t.Optional[int] = None
+    hotel_id: t.Optional[int] = None
     status: NestStatus = NestStatus.empty
+
+    @model_validator(mode="after")
+    def validate_parent(self) -> "NestBase":
+        if self.tool_id is None and self.hotel_id is None:
+            raise ValueError("A nest must be associated with either a tool or a hotel")
+        if self.tool_id is not None and self.hotel_id is not None:
+            raise ValueError("A nest cannot be associated with both a tool and a hotel")
+        return self
 
 
 class NestCreate(NestBase):
@@ -182,9 +191,34 @@ class Reagent(ReagentCreate):
     model_config = ConfigDict(from_attributes=True)
 
 
+# Hotel Schemas
+class HotelCreate(BaseModel):
+    name: str
+    description: t.Optional[str] = None
+    image_url: t.Optional[str] = None
+    workcell_id: int
+    rows: int
+    columns: int
+
+
+class HotelUpdate(BaseModel):
+    name: t.Optional[str] = None
+    description: t.Optional[str] = None
+    image_url: t.Optional[str] = None
+    rows: t.Optional[int] = None
+    columns: t.Optional[int] = None
+
+
+class Hotel(HotelCreate, TimestampMixin):
+    id: int
+    nests: t.List[Nest] = []
+    model_config = ConfigDict(from_attributes=True)
+
+
 class Inventory(BaseModel):
     workcell: Workcell
     instruments: t.List[Instrument]
+    hotels: t.List[Hotel] = []
     nests: t.List[Nest]
     plates: t.List[Plate]
     wells: t.List[Well]
@@ -410,7 +444,7 @@ class Script(ScriptBase):
     updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ScriptFolderBase(BaseModel):
@@ -448,7 +482,7 @@ class ScriptFolderResponse(ScriptFolderBase):
     scripts: list["Script"] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # RobotArm Location Schemas
