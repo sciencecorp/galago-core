@@ -43,6 +43,162 @@ export default class RedisQueue {
     return item;
   }
 
+  async gotoCommandByIndex(runId: string, targetIndex: number): Promise<boolean> {
+    try {
+      if (!runId) {
+        throw new Error("runId is required for gotoCommandByIndex");
+      }
+
+      // Get all commands for this run (both in queue and already completed)
+      const allCommandIds = await this.redis.hkeys(this._key("itemJson"));
+      const allCommands: StoredRunCommand[] = [];
+
+      // Get all command objects for this run
+      await Promise.all(
+        allCommandIds.map(async (id) => {
+          const itemJson = await this.redis.hget(this._key("itemJson"), id);
+          if (!itemJson) return;
+
+          const item = await this._deserialize(itemJson);
+          if (item.runId === runId) {
+            allCommands.push(item);
+          }
+        }),
+      );
+
+      // Sort commands by queueId to ensure they're in order
+      allCommands.sort((a, b) => a.queueId - b.queueId);
+
+      // Check if index is valid
+      if (targetIndex < 0 || targetIndex >= allCommands.length) {
+        throw new Error(
+          `Invalid index ${targetIndex} for run ${runId}. Run has ${allCommands.length} commands.`,
+        );
+      }
+
+      // Get all commands from index onward
+      const commandsToRequeue = allCommands.slice(targetIndex);
+
+      // Get current queue state
+      const queuedIds = await this.redis.lrange(this._key("queuedIds"), 0, -1);
+
+      // Remove any of these commands that are already in the queue
+      for (const cmd of commandsToRequeue) {
+        const cmdIdStr = String(cmd.queueId);
+        if (queuedIds.includes(cmdIdStr)) {
+          await this.redis.lrem(this._key("queuedIds"), 0, cmdIdStr);
+        }
+      }
+
+      // Add all commands back to the front of the queue in reverse order
+      // (so they end up in the correct order)
+      for (let i = commandsToRequeue.length - 1; i >= 0; i--) {
+        const cmd = commandsToRequeue[i];
+
+        // Set status to CREATED
+        await this._updateItem(cmd.queueId, { status: "CREATED" });
+
+        // Add to front of queue
+        await this.redis.lpush(this._key("queuedIds"), String(cmd.queueId));
+      }
+
+      return true;
+    } catch (error) {
+      console.error(`Failed to goto index ${targetIndex} in run ${runId}:`, error);
+      throw error;
+    }
+  }
+
+  async gotoCommand(targetId: number) {
+    // First, check if the target command exists
+    try {
+      const targetCommand = await this.find(targetId);
+      // Get all queued IDs
+      const queuedIds = await this.redis.lrange(this._key("queuedIds"), 0, -1);
+
+      if (!queuedIds.includes(String(targetId))) {
+        // Target ID is not in the queue, it was likely already executed
+        // We need to requeue it and all subsequent commands from the same run
+
+        // Get the runId of the target command to find related commands
+        const targetRunId = targetCommand.runId;
+        if (!targetRunId) {
+          throw new Error(`Target command ${targetId} has no runId`);
+        }
+
+        // Get all commands for this run (executed and queued)
+        const allCommandIds = await this.redis.hkeys(this._key("itemJson"));
+        const commandsToCheck = allCommandIds.filter((id) => !queuedIds.includes(id));
+
+        // Commands to requeue (will be in reverse order to maintain correct sequence)
+        const commandsToRequeue: number[] = [];
+
+        // Process each command to find those in the same run
+        await Promise.all(
+          commandsToCheck.map(async (id) => {
+            const itemJson = await this.redis.hget(this._key("itemJson"), id);
+            if (!itemJson) return;
+
+            const item = await this._deserialize(itemJson);
+
+            // If this command belongs to the same run and has been executed
+            if (item.runId === targetRunId) {
+              const cmdId = this._parseId(id);
+
+              // If command ID is less than or equal to our target, we want to requeue it
+              if (cmdId <= targetId) {
+                commandsToRequeue.push(cmdId);
+              }
+            }
+          }),
+        );
+
+        // Sort commands by ID (ascending) to maintain execution order
+        commandsToRequeue.sort((a, b) => a - b);
+
+        // Push these commands to the front of the queue in correct order
+        if (commandsToRequeue.length > 0) {
+          // We need to prepend in reverse order to maintain sequence
+          for (let i = commandsToRequeue.length - 1; i >= 0; i--) {
+            const cmdId = commandsToRequeue[i];
+
+            // Update command status back to 'CREATED'
+            await this._updateItem(cmdId, { status: "CREATED" });
+
+            // Push to the front of the queue
+            await this.redis.lpush(this._key("queuedIds"), String(cmdId));
+          }
+        }
+
+        return true;
+      } else {
+        // Target is already in the queue, just need to rearrange
+        // Get current position of targetId in the queue
+        const targetIndex = queuedIds.indexOf(String(targetId));
+
+        if (targetIndex > 0) {
+          // Get all IDs before the target
+          const idsToMove = queuedIds.slice(0, targetIndex);
+
+          // Remove them from the queue
+          for (const id of idsToMove) {
+            await this.redis.lrem(this._key("queuedIds"), 1, id);
+          }
+
+          // Add them back to the end of the queue
+          for (const id of idsToMove) {
+            await this.redis.rpush(this._key("queuedIds"), id);
+          }
+        }
+
+        return true;
+      }
+    } catch (error) {
+      console.error(`Failed to goto command ${targetId}:`, error);
+      throw error;
+    }
+  }
+
   async clearCompleted() {
     // This is super inefficient, and will almost certainly change
     //Well todate 04/15/24 it still hasn't changed. For sake of time will continue building on top of it.
@@ -103,20 +259,36 @@ export default class RedisQueue {
 
   async clearByRunId(runId: string) {
     if (!runId) return;
-    //Get all the commands with this run Id.
-    const runningIds = await this.redis.lrange(this._key("queuedIds"), 0, -1);
+
+    // Delete the run from the runs hash
     await this.redis.hdel(this._key("runs"), String(runId));
+
+    // Get ALL commands from itemJson
+    const allIds = await this.redis.hkeys(this._key("itemJson"));
+
+    // Process each command to find those with matching runId
+    const idsToDelete: string[] = [];
+
     await Promise.all(
-      runningIds.map(async (id) => {
-        //Get json command
-        const item = await this.redis.hget(this._key("itemJson"), String(id));
-        const itemJson = await this._deserialize(String(item));
-        if (itemJson.runId === runId) {
-          await this.redis.hdel(this._key("itemJson"), String(id));
-          await this.redis.lrem(this._key("queuedIds"), 0, String(id));
+      allIds.map(async (id) => {
+        // Get and parse the command
+        const itemJson = await this.redis.hget(this._key("itemJson"), id);
+        if (!itemJson) return;
+
+        const item = await this._deserialize(itemJson);
+        // If this command belongs to the run we're deleting, add it to our delete list
+        if (item.runId === runId) {
+          idsToDelete.push(id);
+          // Also remove from queuedIds if it's still there
+          await this.redis.lrem(this._key("queuedIds"), 0, id);
         }
       }),
     );
+
+    // Delete all matching commands from itemJson
+    if (idsToDelete.length > 0) {
+      await this.redis.hdel(this._key("itemJson"), ...idsToDelete);
+    }
   }
 
   async complete(id: number) {

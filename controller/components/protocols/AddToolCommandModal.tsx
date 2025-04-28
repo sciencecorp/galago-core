@@ -56,6 +56,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   onClose,
   onCommandAdded,
 }) => {
+  const [selectedToolId, setSelectedToolId] = useState<number | string>("");
   const [selectedToolType, setSelectedToolType] = useState("");
   const [selectedCommand, setSelectedCommand] = useState("");
   const [commandParams, setCommandParams] = useState<Record<string, any>>({});
@@ -77,8 +78,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   const { data: fetchedVariables } = trpc.variable.getAll.useQuery();
 
   const selectedToolData =
-    toolsQuery.data?.find((tool) => tool.type === selectedToolType) ||
-    (toolBoxQuery.data?.type === selectedToolType ? toolBoxQuery.data : undefined);
+    toolsQuery.data?.find((tool) => tool.id === selectedToolId) ||
+    (toolBoxQuery.data?.id === selectedToolId ? toolBoxQuery.data : undefined);
 
   // Query for PF400 locations and sequences when needed
   const waypointsQuery = trpc.robotArm.waypoints.getAll.useQuery(
@@ -86,13 +87,11 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     { enabled: !!selectedToolData?.id && selectedToolType === "pf400" },
   );
 
-  // Reset params and initialize with default values when tool or command changes
   useEffect(() => {
     if (selectedToolType && selectedCommand) {
       const availableCommands = commandFields[selectedToolType] || {};
       const fields = availableCommands[selectedCommand] || [];
 
-      // Initialize params with default values
       const initialParams: Record<string, any> = {};
       fields.forEach((field: Field) => {
         if (field.defaultValue !== undefined) {
@@ -113,19 +112,33 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   const fields: Field[] =
     selectedToolType && selectedCommand ? availableCommands[selectedCommand] || [] : [];
 
-  // Get available tools
-  const availableTools = [...(toolsQuery.data || []).map((tool) => tool.type)];
+  // Get available tools with their IDs and names
+  const availableTools = [
+    ...(toolsQuery.data || []).map((tool) => ({
+      id: tool.id,
+      type: tool.type,
+      name: tool.name || capitalizeFirst(tool.type.replaceAll("_", " ")),
+    })),
+  ];
+
   if (toolBoxQuery.data) {
-    availableTools.push(toolBoxQuery.data.type);
+    availableTools.push({
+      id: toolBoxQuery.data.id,
+      type: toolBoxQuery.data.type,
+      name: "Tool Box",
+    });
   }
 
-  // Filter tools based on search query
-  const filteredTools = availableTools.filter((tool) =>
-    tool.toLowerCase().replace(/_/g, " ").includes(searchQuery.toLowerCase()),
+  // Filter tools based on search query (now searching by name, not just type)
+  const filteredTools = availableTools.filter(
+    (tool) =>
+      tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tool.type.toLowerCase().replace(/_/g, " ").includes(searchQuery.toLowerCase()),
   );
 
-  const handleToolSelect = (tool: string) => {
-    setSelectedToolType(tool);
+  const handleToolSelect = (tool: { id: number | string; type: string; name: string }) => {
+    setSelectedToolId(tool.id);
+    setSelectedToolType(tool.type);
     setSelectedCommand("");
     setCommandParams({});
   };
@@ -176,7 +189,10 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
         params: finalParams, // Use the complete params
         label: "",
         advancedParameters: {
-          skipExecution: false,
+          skipExecutionVariable: {
+            variable: null,
+            value: null,
+          },
           runAsynchronously: false,
         },
       },
@@ -186,6 +202,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     onClose();
     // Reset state after closing
     setActiveStep(0);
+    setSelectedToolId("");
     setSelectedToolType("");
     setSelectedCommand("");
     setCommandParams({});
@@ -467,9 +484,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   const toolCardBg = useColorModeValue("white", "gray.800");
   const selectedToolBg = useColorModeValue("teal.100", "teal.900");
 
-  const ToolCard = ({ tool }: { tool: string }) => {
-    const isSelected = selectedToolType === tool;
-    const displayName = capitalizeFirst(tool.replaceAll("_", " "));
+  const ToolCard = ({ tool }: { tool: { id: number | string; type: string; name: string } }) => {
+    const isSelected = selectedToolId === tool.id;
 
     return (
       <Box
@@ -482,7 +498,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
         _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
         onClick={() => handleToolSelect(tool)}>
         <VStack spacing={1} align="center">
-          {tool === "toolbox" ? (
+          {tool.type === "toolbox" ? (
             <IconButton
               aria-label="Tool Box"
               icon={<PiToolbox style={{ width: "90px", height: "90px" }} />}
@@ -493,15 +509,15 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
             />
           ) : (
             <Image
-              src={`/tool_icons/${tool}.png`}
-              alt={displayName}
+              src={`/tool_icons/${tool.type}.png`}
+              alt={tool.name}
               objectFit="contain"
               loading="lazy"
               height={"85px"}
             />
           )}
           <Text fontSize="sm" fontWeight={isSelected ? "bold" : "normal"}>
-            {displayName}
+            {tool.name}
           </Text>
         </VStack>
       </Box>
@@ -548,11 +564,12 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               <Text fontSize="md" fontWeight="bold">
                 Available Tools
               </Text>
-              {selectedToolType && (
+              {selectedToolId && selectedToolData && (
                 <HStack>
                   <Text fontSize="sm">Selected:</Text>
                   <Tag colorScheme="teal">
-                    {capitalizeFirst(selectedToolType.replaceAll("_", " "))}
+                    {selectedToolData.name ||
+                      capitalizeFirst(selectedToolType.replaceAll("_", " "))}
                   </Tag>
                 </HStack>
               )}
@@ -564,7 +581,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               py={5}>
               <SimpleGrid columns={[2, 3, 4, 5]} spacing={4}>
                 {filteredTools.map((tool) => (
-                  <ToolCard key={tool} tool={tool} />
+                  <ToolCard key={tool.id} tool={tool} />
                 ))}
               </SimpleGrid>
             </Box>
@@ -575,7 +592,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           <VStack spacing={6} align="stretch">
             <Flex justify="space-between" align="center">
               <Text fontSize="md" fontWeight="bold">
-                Available Commands for {capitalizeFirst(selectedToolType.replaceAll("_", " "))}
+                Available Commands for{" "}
+                {selectedToolData?.name || capitalizeFirst(selectedToolType.replaceAll("_", " "))}
               </Text>
               {selectedCommand && (
                 <HStack>
@@ -601,7 +619,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                 Configure Parameters
               </Text>
               <Tag colorScheme="teal">
-                {capitalizeFirst(selectedToolType.replaceAll("_", " "))} → {selectedCommand}
+                {selectedToolData?.name || capitalizeFirst(selectedToolType.replaceAll("_", " "))} →{" "}
+                {selectedCommand}
               </Tag>
             </HStack>
 

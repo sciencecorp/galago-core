@@ -27,12 +27,13 @@ import { BsTools } from "react-icons/bs";
 import { SearchIcon } from "@chakra-ui/icons";
 import { FaPlugCircleCheck } from "react-icons/fa6";
 import { successToast, errorToast, infoToast } from "../ui/Toast";
+import { Tool } from "@/types/api";
+
 interface ToolStatusCardsProps {
   showAsGrid?: boolean;
 }
 
 export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) => {
-  const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery();
   const [toolIds, setToolIds] = useState<string[]>([]);
   const { data: selectedWorkcellData, refetch: refetchWorkcell } =
     trpc.workcell.getSelectedWorkcell.useQuery();
@@ -42,11 +43,15 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
   const tableBgColor = useColorModeValue("white", "gray.700");
   const { data: allTools, refetch: refetchAllTools } = trpc.tool.getAll.useQuery();
   const configureMutation = trpc.tool.configure.useMutation();
+  const { data: workcells } = trpc.workcell.getAll.useQuery();
+
+  const [thisWorkcellTools, setThisWorkcellTools] = useState<Tool[]>([]);
+  const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({
+    workcellId: workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id,
+  });
 
   const connectAllTools = async () => {
     setConnectingLoading(true);
-
-    // Track results for reporting
     const results: {
       success: string[];
       failed: Array<{ toolId: string; error: string }>;
@@ -172,9 +177,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
                     Connect All
                   </Button>
                 }
-                secondaryButton={
-                  <NewToolModal isDisabled={selectedWorkcell === "" || selectedWorkcell === null} />
-                }
+                secondaryButton={<NewToolModal isDisabled={!selectedWorkcell} />}
               />
               <Divider />
               <StatGroup>

@@ -26,6 +26,8 @@ import {
   AlertDescription,
   Box,
   CloseButton,
+  Spacer,
+  Switch,
 } from "@chakra-ui/react";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { PlusSquareIcon, ChevronUpIcon, TimeIcon } from "@chakra-ui/icons";
@@ -37,6 +39,7 @@ import { BsInbox } from "react-icons/bs";
 import { MessageModal } from "./MessageModal";
 import { TimerModal } from "./TimerModal";
 import { StopRunModal } from "./StopRunModal";
+import { ErrorModal } from "./ErrorModal";
 
 const LastUpdatedTime = () => {
   const [time, setTime] = useState<string>("");
@@ -63,6 +66,7 @@ export const RunsComponent: React.FC = () => {
   const [expandedRuns, setExpandedRuns] = useState<Set<string>>(new Set());
   const [runAttributesMap, setRunAttributesMap] = useState<Record<string, any>>({});
   const [isErrorVisible, setIsErrorVisible] = useState(true);
+  const [showAllCommands, setShowAllCommands] = useState(true);
 
   // Unified message state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -87,11 +91,7 @@ export const RunsComponent: React.FC = () => {
   // Resume mutation
   const resumeMutation = trpc.commandQueue.resume.useMutation();
 
-  const commandsAll = trpc.commandQueue.commands.useQuery(
-    { limit: 1000, offset: 0 },
-    { refetchInterval: 1000 },
-  );
-
+  const commandsAll = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 2000 });
   // Query for waiting-for-input status
   const isWaitingForInputQuery = trpc.commandQueue.isWaitingForInput.useQuery(undefined, {
     refetchInterval: 1000,
@@ -110,10 +110,12 @@ export const RunsComponent: React.FC = () => {
   const expandedRunBg = useColorModeValue("gray.50", "gray.800");
   const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
   const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
+
   const groupedCommands = useMemo(
     () => (commandsAll.data ? groupCommandsByRun(commandsAll.data) : []),
     [commandsAll.data],
   );
+
   const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 1000 });
   const queue = trpc.commandQueue;
   const getError = queue.getError.useQuery(undefined, {
@@ -128,11 +130,9 @@ export const RunsComponent: React.FC = () => {
     }
 
     if (currentMessageQuery.data) {
-      // Create a compatible object that TypeScript will accept
       const newMessageData = {
         type: currentMessageQuery.data.type,
         message: currentMessageQuery.data.message,
-        // Only include these properties if they exist
         ...(currentMessageQuery.data.title ? { title: currentMessageQuery.data.title } : {}),
         ...(currentMessageQuery.data.pausedAt
           ? { pausedAt: currentMessageQuery.data.pausedAt }
@@ -149,22 +149,14 @@ export const RunsComponent: React.FC = () => {
     }
   }, [isWaitingForInputQuery.data, currentMessageQuery.data]);
 
-  // Handle resume button click
   const handleResume = () => {
     resumeMutation.mutate();
   };
 
   const handleRunStop = () => {
-    // First stop the queue (which now also resets waiting state)
     stopQueueMutation.mutate();
-
-    // Then clear all commands
     clearAllMutation.mutate();
-
-    // Update local state
     setIsModalOpen(false);
-
-    // Reset message data to default state
     setMessageData({
       type: "pause",
       message: "Run is paused. Click Continue to resume.",
@@ -297,17 +289,19 @@ export const RunsComponent: React.FC = () => {
                 boxShadow: "sm",
               }}>
               <VStack spacing="2">
-                {runAttributes.commandsCount - run.Commands.length > 0 && (
+                {runAttributes.commandsCount > 0 && (
                   <Progress
                     width="100%"
                     hasStripe
                     isAnimated
                     value={
-                      ((runAttributes.commandsCount - run.Commands.length) /
+                      (run.Commands.filter(
+                        (cmd) => cmd.status === "COMPLETED" || cmd.status === "SKIPPED",
+                      ).length /
                         runAttributes.commandsCount) *
                       100
                     }
-                    colorScheme="blue"
+                    colorScheme="teal"
                     size="xs"
                     borderRadius="full"
                   />
@@ -346,7 +340,7 @@ export const RunsComponent: React.FC = () => {
                 borderRadius="md"
                 mt={2}
                 bg={expandedRunBg}>
-                <SwimLaneComponent runCommands={run.Commands} />
+                <SwimLaneComponent runCommands={run.Commands} showAllCommands={showAllCommands} />
               </Box>
             )}
           </Box>
@@ -456,7 +450,17 @@ export const RunsComponent: React.FC = () => {
         <Card bg={cardBg} shadow="md">
           <CardBody>
             <VStack spacing={4} align="stretch">
-              <Heading size="lg">Runs List</Heading>
+              <HStack justify="space-between" width="100%">
+                <Heading size="lg">Runs List</Heading>
+                <Spacer />
+                <Text color="GrayText">Show Completed:</Text>
+                <Switch
+                  isChecked={showAllCommands}
+                  onChange={() => setShowAllCommands(!showAllCommands)}
+                  colorScheme="teal"
+                  size="md"
+                />
+              </HStack>
               {commandsAll.data && commandsAll.data.length > 0 ? (
                 renderRunsList()
               ) : (

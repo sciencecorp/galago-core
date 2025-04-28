@@ -39,6 +39,12 @@ import { TbVariable } from "react-icons/tb";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { successToast, errorToast } from "../ui/Toast";
 
+// Function to truncate text to a maximum length
+const truncateText = (text: string, maxLength: number = 50) => {
+  if (!text || text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + "...";
+};
+
 export const Variables: React.FC = () => {
   const [variables, setVariables] = useState<Variable[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -229,12 +235,13 @@ export const Variables: React.FC = () => {
                             <Text>{variable.type}</Text>
                           </HStack>
                         </Td>
-                        <Td>
+                        <Td maxWidth="300px">
                           <EditableText
                             onSubmit={async (value) => {
                               value && (await handleVariableUpdate({ ...variable, value: value }));
                             }}
                             defaultValue={variable.value}
+                            displayValue={truncateText(variable.value, 60)}
                           />
                         </Td>
                         <Td>{renderDatetime(String(variable.created_at))}</Td>

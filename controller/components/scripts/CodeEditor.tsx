@@ -12,12 +12,8 @@ import {
   Card,
   CardBody,
   Icon,
-  Divider,
-  StatGroup,
-  Stat,
-  StatLabel,
-  StatNumber,
   useDisclosure,
+  IconButton,
 } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import { trpc } from "@/utils/trpc";
@@ -39,6 +35,10 @@ import { editor } from "monaco-editor";
 import { FaFileImport, FaFileExport } from "react-icons/fa";
 import { useScriptIO } from "@/hooks/useScriptIO";
 import { infoToast, errorToast } from "../ui/Toast";
+import { MdDownload } from "react-icons/md";
+import { AiOutlineJavaScript } from "react-icons/ai";
+import { fileTypeToExtensionMap } from "./utils";
+import { Console } from "./Console";
 
 export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
@@ -47,8 +47,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [openFolders, setOpenFolders] = useState<Set<number>>(new Set());
   const [activeOpenFolder, setActiveOpenFolder] = useState<ScriptFolder | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const { selectedBg, hoverBg, selectedColor, bgColor, borderColor, consoleHeaderBg, consoleBg } =
-    useScriptColors();
+  const { hoverBg, bgColor, borderColor, consoleHeaderBg, consoleBg } = useScriptColors();
   const [scripts, setScripts] = useState<Script[]>([]);
   const [folders, setFolders] = useState<ScriptFolder[]>([]);
   const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
@@ -60,7 +59,6 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const deleteFolder = trpc.script.deleteFolder.useMutation();
   const codeTheme = useColorModeValue("vs-light", "vs-dark");
   const [scriptsEdited, setScriptsEdited] = useState<Script[]>([]);
-  const [isEditing, setIsEditing] = useState(false);
   const [currentContent, setCurrentContent] = useState<string>("");
   const [consoleText, setConsoleText] = useState<string>("");
   const activeTabFontColor = useColorModeValue("teal.600", "teal.200");
@@ -75,6 +73,8 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [folderCreating, setFolderCreating] = useState(false);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof monaco | null>(null);
+  const [editorLanguage, setEditorLanguage] = useState<string>("python");
+  const jsIconColor = useColorModeValue("orange", "yellow");
 
   // Define refreshData function here
   const refreshData = async () => {
@@ -82,8 +82,14 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     await refetchFolders();
   };
 
+  // Get active script based on activeTab name
+  const getActiveScript = () => {
+    if (!activeTab) return null;
+    return scripts.find((s) => `${s.name}.${fileTypeToExtensionMap[s.language]}` === activeTab);
+  };
+
   // Get active script ID based on activeTab name
-  const activeScriptId = scripts.find((s) => s.name === activeTab)?.id;
+  const activeScriptId = getActiveScript()?.id;
 
   // Instantiate the useScriptIO hook
   const {
@@ -136,7 +142,9 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   };
 
   useEffect(() => {
-    setCurrentContent(scripts.find((script) => script.name === activeTab)?.content || "");
+    const activeScript = getActiveScript();
+    setEditorLanguage(activeScript?.language || "python");
+    setCurrentContent(activeScript?.content || "");
   }, [activeTab, scripts]);
 
   useEffect(() => {
@@ -164,15 +172,24 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
         },
       });
 
-      if (response?.error_message) {
+      // Check if response has meta_data with response property
+      if (response?.meta_data?.response) {
+        setConsoleText(response.meta_data.response);
+      } else if (response?.error_message) {
         setRunError(true);
         setConsoleText(response.error_message);
-        showErrorToast("Failed to run script", `Error= ${response.error_message}`);
-        return;
+      } else {
+        setRunError(false);
+        setConsoleText("");
       }
-      setConsoleText(response?.meta_data?.response || "");
+
+      showSuccessToast("Script Completed!", "The script execution finished successfully.");
     } catch (error) {
-      //setConsoleText(error);
+      if (error instanceof Error) {
+        setRunError(true);
+        setConsoleText(error.message);
+        showErrorToast("Failed to run script", `Error= ${error.message}`);
+      }
     }
   };
 
@@ -181,22 +198,27 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       showErrorToast("No active tab", "Please select a script to save.");
       return;
     }
-    const editedContent = editorRef.current?.getValue();
-    const currentScript = scripts.find((script) => script.name === activeTab);
 
-    if (!currentScript || !editedContent) {
-      warningToast("No script or content", "No script or content to save.");
+    const activeScript = getActiveScript();
+    if (!activeScript) {
+      warningToast("Script not found", "Could not find the active script.");
       return;
     }
 
-    if (editedContent === currentScript.content) {
+    const editedContent = editorRef.current?.getValue();
+    if (!editedContent) {
+      warningToast("No content", "No content to save.");
+      return;
+    }
+
+    if (editedContent === activeScript.content) {
       warningToast("No changes detected", "No edits were made to the active script.");
       return;
     }
 
     try {
       await editScript.mutateAsync({
-        ...currentScript,
+        ...activeScript,
         content: editedContent, // Always save the raw edited content
       });
       refetch();
@@ -213,12 +235,15 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     if (!scriptToDelete) return;
     try {
       await deleteScript.mutateAsync(scriptToDelete.id);
-      if (openTabs.includes(scriptToDelete.name)) {
-        removeTab(scriptToDelete.name);
-        if (activeTab === scriptToDelete.name) {
+
+      const tabName = `${scriptToDelete.name}.${fileTypeToExtensionMap[scriptToDelete.language]}`;
+      if (openTabs.includes(tabName)) {
+        removeTab(tabName);
+        if (activeTab === tabName) {
           setActiveTab(openTabs[0] || null);
         }
       }
+
       await refreshData();
       onClose();
       setScriptToDelete(null);
@@ -244,26 +269,22 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   }, [fetchedScript, searchQuery]);
 
   const handleRename = async (script: Script, newName: string) => {
-    // Remove .py from the new name if user added it
-    const cleanNewName = newName.replace(/\.py$/, "");
-
-    if (!cleanNewName.trim() || script.name.replace(/\.py$/, "") === cleanNewName) {
-      setEditingScriptName(null);
-      return;
-    }
-
+    const cleanNewName = newName.trim();
     try {
       await editScript.mutateAsync({
         ...script,
-        name: `${cleanNewName}.py`,
+        name: cleanNewName,
       });
 
       // Update tabs if the renamed script was open
-      if (openTabs.includes(script.name)) {
-        setOpenTabs(openTabs.map((tab) => (tab === script.name ? `${cleanNewName}.py` : tab)));
+      const oldTabName = `${script.name}.${fileTypeToExtensionMap[script.language]}`;
+      const newTabName = `${cleanNewName}.${fileTypeToExtensionMap[script.language]}`;
+
+      if (openTabs.includes(oldTabName)) {
+        setOpenTabs(openTabs.map((tab) => (tab === oldTabName ? newTabName : tab)));
       }
-      if (activeTab === script.name) {
-        setActiveTab(`${cleanNewName}.py`);
+      if (activeTab === oldTabName) {
+        setActiveTab(newTabName);
       }
       await refreshData();
     } catch (error) {
@@ -303,7 +324,8 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
 
   const handleScriptClick = (script: Script) => {
     setActiveFolder(null);
-    handleScriptClicked(script.name);
+    const fullName = `${script.name}.${fileTypeToExtensionMap[script.language]}`;
+    handleScriptClicked(fullName, script);
   };
 
   const handleFolderClick = (folder: ScriptFolder) => {
@@ -320,6 +342,16 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       }
       return next;
     });
+  };
+
+  const getTabIcon = (tabName: string) => {
+    const extension = tabName.split(".").pop();
+    if (extension === "js") {
+      return (
+        <AiOutlineJavaScript fontSize="13px" color={activeTab === tabName ? jsIconColor : "gray"} />
+      );
+    }
+    return <PythonIcon fontSize="13px" color={activeTab === tabName ? "teal" : "gray"} />;
   };
 
   const Tabs = () => {
@@ -346,7 +378,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
             overflow="hidden"
             px={3}>
             <HStack spacing={2} flex={1}>
-              <PythonIcon fontSize="12px" color={activeTab === tab ? "teal" : "gray"} />
+              {getTabIcon(tab)}
               <Text color={activeTab === tab ? activeTabFontColor : ""} fontSize="sm" isTruncated>
                 {tab}
               </Text>
@@ -411,16 +443,6 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     );
   };
 
-  const OutputConsole = () => {
-    return (
-      <Flex width="100%" bg={consoleBg}>
-        <Box borderBottom="1px solid gray" width="100%" bg={consoleHeaderBg} p={1}>
-          <Text>Output Console</Text>
-        </Box>
-      </Flex>
-    );
-  };
-
   const removeTab = (tab: string) => {
     setOpenTabs(openTabs.filter((t) => t !== tab));
   };
@@ -428,27 +450,26 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const handleCodeChange = (value?: string) => {
     if (!activeTab) return;
     setScriptsEdited((prev) => {
-      const existingScript = prev.find((script) => script.name === activeTab);
-      if (existingScript) {
-        return prev.map((script) =>
-          script.name === activeTab ? { ...script, content: value || "" } : script,
+      const activeScript = getActiveScript();
+      if (!activeScript) return prev;
+
+      const existingScriptIndex = prev.findIndex((script) => script.id === activeScript.id);
+      if (existingScriptIndex >= 0) {
+        return prev.map((script, index) =>
+          index === existingScriptIndex ? { ...script, content: value || "" } : script,
         );
       } else {
-        const script = scripts.find((script) => script.name === activeTab);
-        if (script) {
-          return [...prev, { ...script, content: value || "" }];
-        }
+        return [...prev, { ...activeScript, content: value || "" }];
       }
-      return prev;
     });
   };
 
-  const handleScriptClicked = (script: string) => {
+  const handleScriptClicked = (fullName: string, script?: Script) => {
     setActiveFolder(null);
-    if (!openTabs.includes(script)) {
-      setOpenTabs([...openTabs, script]);
+    if (!openTabs.includes(fullName)) {
+      setOpenTabs([...openTabs, fullName]);
     }
-    setActiveTab(script);
+    setActiveTab(fullName);
   };
 
   // Define Import and Export buttons
@@ -499,39 +520,22 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
             <VStack spacing={4} align="stretch">
               <PageHeader
                 title="Scripts"
-                subTitle="Create and manage Python scripts"
+                subTitle="Create and manage Python and JavaScript scripts"
                 titleIcon={<Icon as={CodeIcon} boxSize={8} color="teal.500" />}
                 mainButton={importButton}
-                secondaryButton={exportButton}
+                // secondaryButton={exportButton}
               />
-
-              <Divider />
-
-              <StatGroup>
-                <Stat>
-                  <StatLabel>Total Scripts</StatLabel>
-                  <StatNumber>{scripts.length}</StatNumber>
-                </Stat>
-                <Stat>
-                  <StatLabel>Open Scripts</StatLabel>
-                  <StatNumber>{openTabs.length}</StatNumber>
-                </Stat>
-                <Stat>
-                  <StatLabel>Active Script</StatLabel>
-                  <StatNumber fontSize="lg">{activeTab?.replace(".py", "") || "None"}</StatNumber>
-                </Stat>
-              </StatGroup>
             </VStack>
           </CardBody>
         </Card>
 
-        {/* Hidden file input for import - only accept .py */}
+        {/* Hidden file input for import - accept .py and .js files */}
         <Input
           type="file"
           ref={fileInputRef}
           onChange={onFileChange}
           style={{ display: "none" }}
-          accept=".py"
+          accept=".py,.js"
         />
 
         <Card bg={headerBg} shadow="md">
@@ -540,11 +544,13 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
               width="100%"
               alignItems="stretch"
               spacing={4}
-              height="calc(100vh - 300px)"
+              height="calc(100vh - 100px)"
               minH="500px">
               <VStack width="200px" minW="200px" alignItems="flex-start" spacing={4} height="100%">
                 <HStack width="100%" spacing={2}>
                   <Input
+                    size="sm"
+                    fontSize="xs"
                     placeholder="Search scripts..."
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -582,27 +588,50 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                       <Tabs />
                     </Box>
                     <HStack spacing={2} flexShrink={0}>
-                      <Tooltip label="Save script" openDelay={1000} hasArrow>
-                        <Button colorScheme="gray" onClick={handleSave}>
-                          <Icon as={SaveIcon} boxSize={6} />
-                        </Button>
+                      <Tooltip label="Download Script" openDelay={1000} hasArrow>
+                        <IconButton
+                          aria-label="Download Script"
+                          icon={<MdDownload />}
+                          colorScheme="gray"
+                          variant="outline"
+                          onClick={onExportConfig}
+                          isDisabled={!activeTab || isExporting}
+                          isLoading={isExporting}
+                          size="sm"
+                        />
                       </Tooltip>
-                      <Tooltip label="Run script" openDelay={1000} hasArrow>
-                        <Button colorScheme="gray" onClick={handleRunScript}>
-                          <Icon as={PlayIcon} boxSize={4} />
-                        </Button>
+                      <Tooltip label="Save script" openDelay={1000} hasArrow>
+                        <IconButton
+                          aria-label="Save Script"
+                          icon={<SaveIcon />}
+                          colorScheme="gray"
+                          variant="outline"
+                          onClick={handleSave}
+                          size="sm"
+                        />
+                      </Tooltip>
+                      <Tooltip label="Run Script" openDelay={1000} hasArrow>
+                        <IconButton
+                          aria-label="Run Script"
+                          icon={<PlayIcon />}
+                          variant="outline"
+                          onClick={() => {
+                            handleRunScript();
+                          }}
+                          size="sm"
+                        />
                       </Tooltip>
                     </HStack>
                   </HStack>
                   <Box width="100%" overflow="hidden">
                     {activeTab && openTabs.length > 0 ? (
                       <Editor
-                        height="55vh"
-                        defaultLanguage="python"
+                        height="90vh"
+                        language={editorLanguage}
                         value={currentContent}
                         theme={codeTheme}
                         options={{
-                          fontSize: 20,
+                          fontSize: 14,
                           wordWrap: "on",
                         }}
                         onChange={(value) => handleCodeChange(value)}
@@ -611,7 +640,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                     ) : (
                       <Box
                         width="100%"
-                        height="55vh"
+                        height="90vh"
                         display="flex"
                         justifyContent="center"
                         alignItems="flex-start"
@@ -639,24 +668,13 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                   </Box>
                 </Box>
 
-                <Box
-                  width="100%"
-                  height="20vh"
-                  bg={consoleBg}
-                  borderRadius="md"
-                  borderWidth="1px"
+                <Console
+                  consoleText={consoleText}
+                  runError={runError}
+                  consoleHeaderBg={consoleHeaderBg}
+                  consoleBg={consoleBg}
                   borderColor={borderColor}
-                  overflow="hidden">
-                  <OutputConsole />
-                  <Box width="100%" height="80%" p={2} overflowY="auto">
-                    <Text
-                      whiteSpace="pre-wrap"
-                      fontFamily="monospace"
-                      textColor={runError ? "red" : ""}>
-                      {consoleText}
-                    </Text>
-                  </Box>
-                </Box>
+                />
               </VStack>
             </HStack>
           </CardBody>

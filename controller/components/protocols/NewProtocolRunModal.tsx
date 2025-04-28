@@ -3,7 +3,6 @@ import { trpc } from "@/utils/trpc";
 import {
   Button,
   ButtonGroup,
-  Checkbox,
   FormControl,
   FormErrorMessage,
   FormHelperText,
@@ -25,25 +24,79 @@ import {
   useDisclosure,
   VStack,
   Box,
-  useColorModeValue,
   useNumberInput,
   HStack,
   Select,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { z } from "zod";
 import { capitalizeFirst } from "@/utils/parser";
 import { successToast, errorToast } from "../ui/Toast";
+
+// Enum for field types, matching the one in ProtocolFormModal
+enum FieldType {
+  USER_INPUT = "user_input",
+  FILE_INPUT = "file_input",
+}
+
+// Extended type to include fieldType
+interface ExtendedProtocolParamInfo extends ProtocolParamInfo {
+  fieldType?: FieldType;
+  variable_name?: string;
+}
+
 function ParamInput({
   paramInfo,
   value,
   setValue,
 }: {
-  paramInfo: ProtocolParamInfo;
+  paramInfo: ExtendedProtocolParamInfo;
   value: any;
   setValue: (value: any) => void;
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle file selection
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      // Read the file as text
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target?.result;
+        // Save the file content to the state
+        setValue(content);
+      };
+      reader.readAsText(file);
+    } catch (error) {
+      console.error("Error reading file:", error);
+    }
+  };
+
+  // Check if this is a file input field
+  if (paramInfo.fieldType === FieldType.FILE_INPUT) {
+    return (
+      <Box width="100%">
+        <Input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          pt={1}
+          placeholder={paramInfo.placeHolder || "Choose a file"}
+        />
+        {value && (
+          <Text mt={2} fontSize="sm" color="gray.500">
+            File content loaded ({(value as string).length} characters)
+          </Text>
+        )}
+      </Box>
+    );
+  }
+
+  // Handle other input types as before
   switch (paramInfo.type) {
     case "number":
       return (
@@ -96,6 +149,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   const workcellData = trpc.workcell.getSelectedWorkcell.useQuery();
   const workcellName = workcellData.data;
   const editVariable = trpc.variable.edit.useMutation();
+  const createVariable = trpc.variable.add.useMutation();
   const variablesQuery = trpc.variable.getAll.useQuery();
 
   const protocol = trpc.protocol.get.useQuery(
@@ -158,20 +212,42 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
     try {
       // Get all parameters with linked variables
       const linkedParams = Object.entries(uiParams).filter(
-        ([_, paramInfo]) => (paramInfo as any).variable_id,
+        ([_, paramInfo]) => (paramInfo as any).variable_name,
       );
 
-      // Update all linked variables with new values from the form
       const updatePromises = linkedParams.map(async ([paramName, paramInfo]) => {
-        const variableId = (paramInfo as any).variable_id;
-        if (!variableId) return null;
+        const variableName = (paramInfo as any).variable_name;
+        if (!variableName) return null;
 
-        // Get the variable from our query
-        const variable = variablesQuery.data?.find((v) => v.id === variableId);
-        if (!variable) return null;
-
-        // Get the new value from the form
+        const variable = variablesQuery.data?.find((v) => v.name === variableName);
         const newValue = userDefinedParams[paramName];
+
+        const determineType = () => {
+          const paramType = (paramInfo as ProtocolParamInfo).type;
+          const isFileInput =
+            (paramInfo as ExtendedProtocolParamInfo).fieldType === FieldType.FILE_INPUT;
+
+          if (isFileInput) return "string"; // File contents are stored as strings
+          if (paramType === "number") return "number";
+          if (paramType === "boolean") return "boolean";
+          return "string"; // Default to string
+        };
+
+        if (!variable) {
+          const variableType = determineType();
+          // Special handling for boolean values
+          let valueToSave = newValue;
+          if (variableType === "boolean") {
+            valueToSave = newValue === true || newValue === "true";
+          }
+
+          // Create the new variable
+          return createVariable.mutateAsync({
+            name: variableName,
+            type: variableType,
+            value: valueToSave !== undefined ? String(valueToSave) : "",
+          });
+        }
 
         // If value hasn't changed, don't update
         if (newValue === variable.value) return null;
@@ -182,10 +258,10 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
           valueToSave = newValue === true || newValue === "true";
         }
 
-        // Update the variable
+        // Update the existing variable
         return editVariable.mutateAsync({
-          id: variableId,
-          value: valueToSave.toString(),
+          id: variable.id,
+          value: valueToSave !== undefined ? String(valueToSave) : variable.value,
           name: variable.name,
           type: variable.type,
         });
@@ -233,31 +309,46 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                   <>
                     {Object.entries(uiParams).map(([param, paramInfo]) => {
                       // Find if this parameter has a linked variable
-                      const linkedVariableId = (paramInfo as any).variable_id;
+                      const linkedVariableName = (paramInfo as any).variable_name;
                       const linkedVariable =
-                        linkedVariableId && variablesQuery.data
-                          ? variablesQuery.data.find((v) => v.id === linkedVariableId)
+                        linkedVariableName && variablesQuery.data
+                          ? variablesQuery.data.find((v) => v.name === linkedVariableName)
                           : null;
+
+                      // Add badge for file input
+                      const isFileInput =
+                        (paramInfo as ExtendedProtocolParamInfo).fieldType === FieldType.FILE_INPUT;
 
                       return (
                         <FormControl key={param} isInvalid={!!(formErrors && formErrors[param])}>
                           <FormLabel>
                             <HStack spacing={1} alignItems="center">
                               <Text>{capitalizeFirst(param.replaceAll("_", " "))}</Text>
+                              {isFileInput && (
+                                <Text
+                                  as="span"
+                                  fontSize="xs"
+                                  color="purple.500"
+                                  fontWeight="bold"
+                                  ml={1}>
+                                  (File)
+                                </Text>
+                              )}
                             </HStack>
                           </FormLabel>
                           <ParamInput
-                            paramInfo={paramInfo as ProtocolParamInfo}
+                            paramInfo={paramInfo as ExtendedProtocolParamInfo}
                             value={userDefinedParams[param]}
                             setValue={(value) =>
                               setUserDefinedParams({ ...userDefinedParams, [param]: value })
                             }
                           />
-                          {(paramInfo.type === "boolean" || paramInfo.type === "number") && (
-                            <FormHelperText>
-                              {(paramInfo as ProtocolParamInfo).placeHolder}
-                            </FormHelperText>
-                          )}
+                          {!isFileInput &&
+                            (paramInfo.type === "boolean" || paramInfo.type === "number") && (
+                              <FormHelperText>
+                                {(paramInfo as ProtocolParamInfo).placeHolder}
+                              </FormHelperText>
+                            )}
                           {formErrors &&
                             formErrors[param]?._errors.map((key, error) => (
                               <FormErrorMessage key={key}>{error}</FormErrorMessage>

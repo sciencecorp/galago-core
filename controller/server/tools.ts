@@ -11,11 +11,9 @@ import { get } from "@/server/utils/api";
 import { Script } from "@/types/api";
 import { Variable } from "@/types/api";
 import { Labware } from "@/types/api";
-import { buildGoogleStructValue } from "utils/struct";
-import { loggingRouter } from "./routers/logging";
 import { logAction } from "./logger";
-import { log } from "console";
 import { Tool as ToolResponse } from "@/types/api";
+import { JavaScriptExecutor } from "./javascript-executor";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<string, Tool> = new Map();
@@ -117,12 +115,13 @@ export default class Tool {
     }
     try {
       const waypointsResponse = await get<any>(`/robot-arm-waypoints?tool_id=${toolId}`);
+
       await tool.executeCommand({
         toolId: normalizedId,
         toolType: ToolType.pf400,
         command: "load_waypoints",
         params: {
-          waypoints: buildGoogleStructValue(waypointsResponse),
+          waypoints: waypointsResponse,
         },
       });
 
@@ -188,6 +187,8 @@ export default class Tool {
     };
   }
 
+  static async executeJavaScript(script: string) {}
+
   static async executeCommand(command: ToolCommandInfo) {
     logAction({
       level: "info",
@@ -199,11 +200,10 @@ export default class Tool {
 
   async executeCommand(command: ToolCommandInfo) {
     const params = command.params;
-    for (const key in params) {
-      console.warn("key", key);
-      console.warn("Null params", params[key]);
-      if (params[key] == null) continue;
 
+    // Substitute params with variables
+    for (const key in params) {
+      if (params[key] == null) continue;
       const paramValue = String(params[key]);
       if (paramValue.startsWith("{{") && paramValue.endsWith("}}")) {
         try {
@@ -220,33 +220,64 @@ export default class Tool {
       }
     }
 
-    //Functionality to run python scripts store in db
-    if (command.command === "run_python_script" && command.toolId === "tool_box") {
-      let scriptId = String(command.params.name);
-      if (!scriptId.endsWith(".py")) {
-        scriptId = scriptId + ".py";
-      }
+    //Handle script execution
+    if (command.command === "run_script" && command.toolId === "tool_box") {
+      const scriptName = command.params.name.replaceAll(".js", "").replaceAll(".py", "");
       try {
-        const script = await get<Script>(`/scripts/${scriptId}`);
+        const script = await get<Script>(`/scripts/${scriptName}`);
         command.params.name = script.content;
+        if (script.language === "javascript") {
+          const result = await JavaScriptExecutor.executeScript(script.content);
+          if (!result.success) {
+            const errorMessage = result.output;
+            logAction({
+              level: "error",
+              action: "JavaScript Execution Error",
+              details: `JavaScript execution failed: ${errorMessage}`,
+            });
+
+            // Throw a ToolCommandExecutionError to ensure proper error propagation
+            throw new ToolCommandExecutionError(
+              errorMessage || "JavaScript execution failed",
+              tool_base.ResponseCode.ERROR_FROM_TOOL,
+            );
+          }
+          return {
+            response: tool_base.ResponseCode.SUCCESS,
+            return_reply: true,
+            meta_data: { response: result.output } as any,
+          } as tool_base.ExecuteCommandReply;
+        } else if (script.language === "python") {
+          command.params.name = script.content;
+        }
       } catch (e: any) {
         console.warn("Error at fetching script", e);
         logAction({
           level: "error",
           action: "Script Error",
-          details: `Failed to fetch ${scriptId}. ${e}`,
+          details: `Failed to fetch ${scriptName}. ${e}`,
         });
         if (e.status === 404) {
-          throw new Error(`Script ${scriptId} not found`);
+          throw new Error(`Script ${scriptName} not found`);
         }
-        throw new Error(`Failed to fetch ${scriptId}. ${e}`);
+        throw new Error(`Failed to fetch ${scriptName}. ${e}`);
       }
     }
     const reply = await this.grpc.executeCommand(this._payloadForCommand(command));
-    if (reply.return_reply) {
-      return reply;
-    }
+    console.log("Reply from tool command", reply);
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
+      logAction({
+        level: "error",
+        action: "Tool Command Execution Error",
+        details: `Failed to execute command: ${command.command}, Tool: ${command.toolId}. Error: ${reply.error_message}`,
+      });
+      throw new ToolCommandExecutionError(
+        reply.error_message ?? "Tool command failed",
+        reply.response,
+      );
+    } else if (reply.return_reply && !reply?.error_message) {
+      return reply;
+    } else if (reply?.error_message) {
       logAction({
         level: "error",
         action: "Tool Command Execution Error",
@@ -372,6 +403,7 @@ export default class Tool {
     }
     const store: Map<string, Tool> = me[global_key];
     let tool = store.get(id);
+
     //If the tool does not exist in the store, create a new tool object
     if (!tool) {
       let toolInfo = {} as controller_protos.ToolConfig;
@@ -385,6 +417,7 @@ export default class Tool {
             id.toLocaleLowerCase().replaceAll(" ", "_"),
         );
         if (!result) {
+          console.warn(`Failed to find tool ${id} in allTools list: `, this.allTools);
           throw new Error(`Tool with id ${id} not found in in database'`);
         }
         toolInfo = result;

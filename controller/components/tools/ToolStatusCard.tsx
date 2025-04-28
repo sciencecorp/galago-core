@@ -73,7 +73,11 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
   const toolData = infoQuery.data;
   const { description, name } = infoQuery.data || {};
   const deleteTool = trpc.tool.delete.useMutation();
-  const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery();
+  const { data: selectedWorkcellData } = trpc.workcell.getSelectedWorkcell.useQuery();
+  const { data: workcells } = trpc.workcell.getAll.useQuery();
+  const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({
+    workcellId: workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id,
+  });
   const editTool = trpc.tool.edit.useMutation();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
@@ -93,7 +97,7 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
   const handleDelete = async (toolId: string) => {
     try {
       await deleteTool.mutateAsync(toolId);
-      refetch();
+      await refetch();
       successToast("Tool deleted successfully", "");
     } catch (error) {
       errorToast("Error deleting tool", `Please try again. ${error}`);

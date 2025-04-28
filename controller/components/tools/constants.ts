@@ -1,6 +1,6 @@
 export const commandFields: CommandFields = {
   toolbox: {
-    run_python_script: [
+    run_script: [
       {
         name: "name",
         type: "text",
@@ -78,9 +78,20 @@ export const commandFields: CommandFields = {
         defaultValue: "Stopping run...",
       },
     ],
-    slack_message: [
+    goto: [
       {
-        name: "message",
+        name: "targetIndex",
+        type: "number",
+        defaultValue: 0,
+      },
+    ],
+    variable_assignment: [
+      {
+        name: "name",
+        type: "text",
+      },
+      {
+        name: "value",
         type: "text",
       },
     ],

@@ -107,7 +107,7 @@ export const StopRunModal: React.FC<StopRunModalProps> = ({
                 onClose();
               }}
               isDisabled={countdown !== null}>
-              Cancel
+              Continue
             </Button>
             <Button
               colorScheme="red"
