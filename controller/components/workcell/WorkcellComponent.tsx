@@ -150,10 +150,10 @@ export const WorkcellComponent = () => {
         <Card bg={headerBg} shadow="md">
           <CardBody>
             <SimpleGrid
-              columns={{ base: 1, md: 2, lg: 3, xl: 4 }}
-              spacing={6}
+              columns={{ base: 1, md: 1, lg: 2, xl: 3 }}
+              spacing={10}
               w="100%"
-              alignItems="start">
+              alignItems="stretch">
               {workcells.map((workcell) => (
                 <WorkcellCard key={workcell.id} onChange={refetch} workcell={workcell} />
               ))}

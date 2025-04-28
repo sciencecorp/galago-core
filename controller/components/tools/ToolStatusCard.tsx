@@ -17,7 +17,6 @@ import {
   MenuList,
   IconButton,
   Icon,
-  useToast,
   useDisclosure,
   Modal,
   useColorModeValue,
@@ -40,7 +39,7 @@ import { EditToolModal } from "./EditToolConfig";
 import { useRouter } from "next/router";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
 import ToolLogs from "@/pages/advanced";
-
+import { successToast, errorToast } from "../ui/Toast";
 const StyledCard = styled(Card)`
   display: flex;
   flex-direction: column;
@@ -87,7 +86,6 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
     onClose: closeDeleteConfirm,
   } = useDisclosure();
 
-  const toast = useToast();
   if (infoQuery.isLoading) {
     return <Spinner size="lg" />;
   }
@@ -100,20 +98,9 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
     try {
       await deleteTool.mutateAsync(toolId);
       await refetch();
-      toast({
-        title: "Tool deleted successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      successToast("Tool deleted successfully", "");
     } catch (error) {
-      toast({
-        title: "Error deleting tool",
-        description: `Please try again. ${error}`,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("Error deleting tool", `Please try again. ${error}`);
     }
   };
 

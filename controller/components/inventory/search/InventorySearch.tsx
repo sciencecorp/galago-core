@@ -13,8 +13,10 @@ import {
   VStack,
   HStack,
 } from "@chakra-ui/react";
-import { SearchIcon, CloseIcon } from "@chakra-ui/icons";
+import { SearchIcon } from "@chakra-ui/icons";
 import { Plate, Reagent } from "@/types/api";
+import { Icon, CloseIcon } from "@/components/ui/Icons";
+import { useCommonColors } from "@/components/ui/Theme";
 
 type InventorySearchProps = {
   search: string;
@@ -35,6 +37,8 @@ const InventorySearch: React.FC<InventorySearchProps> = ({
   onPlateSelect,
   onReagentSelect,
 }) => {
+  const { cardBg, hoverBg, alternateBg } = useCommonColors();
+
   const isPlate = (element: Plate | Reagent): element is Plate => {
     return (element as Plate).plate_type !== undefined;
   };
@@ -75,11 +79,11 @@ const InventorySearch: React.FC<InventorySearchProps> = ({
                 bg={
                   isDarkMode
                     ? index % 2 === 0
-                      ? "gray.800"
-                      : "gray.700"
+                      ? cardBg
+                      : alternateBg
                     : index % 2 === 0
-                      ? "white"
-                      : "gray.100"
+                      ? cardBg
+                      : hoverBg
                 }>
                 {isPlate(result) && (
                   <Tooltip label="Click to find corresponding plate">

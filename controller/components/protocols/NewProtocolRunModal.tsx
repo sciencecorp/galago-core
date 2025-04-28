@@ -22,7 +22,6 @@ import {
   NumberInputStepper,
   Text,
   useDisclosure,
-  useToast,
   VStack,
   Box,
   useNumberInput,
@@ -33,6 +32,7 @@ import { useRouter } from "next/router";
 import { useState, useRef } from "react";
 import { z } from "zod";
 import { capitalizeFirst } from "@/utils/parser";
+import { successToast, errorToast } from "../ui/Toast";
 
 // Enum for field types, matching the one in ProtocolFormModal
 enum FieldType {
@@ -146,7 +146,6 @@ function ParamInput({
 
 export default function NewProtocolRunModal({ id, onClose }: { id: string; onClose: () => void }) {
   const router = useRouter();
-  const toast = useToast();
   const workcellData = trpc.workcell.getSelectedWorkcell.useQuery();
   const workcellName = workcellData.data;
   const editVariable = trpc.variable.edit.useMutation();
@@ -164,13 +163,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
           message: error.message,
           data: error.data,
         });
-        toast({
-          title: "Error loading protocol",
-          description: error.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
+        errorToast("Error loading protocol", error.message);
       },
     },
   );
@@ -200,13 +193,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
         setFormErrors(error.data.zodError as any);
       } else {
         setFormErrors(undefined);
-        toast({
-          title: "Error creating run",
-          description: error.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
+        errorToast("Error creating run", error.message);
       }
     },
   });
@@ -216,11 +203,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   };
 
   const handleSuccess = () => {
-    toast({
-      title: "Run queued successfully",
-      status: "success",
-      duration: 3000,
-    });
+    successToast("Run queued successfully", "");
     handleClose();
   };
 
@@ -300,13 +283,10 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
       );
     } catch (error) {
       console.error("Error updating variables:", error);
-      toast({
-        title: "Error updating variables",
-        description: "Failed to update linked variables before queueing the run, Error: \n" + error,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
+      errorToast(
+        "Error updating variables",
+        "Failed to update linked variables before queueing the run, Error: \n" + error,
+      );
     }
   };
 

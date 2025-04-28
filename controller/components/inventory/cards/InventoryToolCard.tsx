@@ -16,17 +16,18 @@ import {
   HStack,
   Badge,
   Divider,
-  Icon,
   Tooltip,
 } from "@chakra-ui/react";
 import { Nest, Plate, Reagent } from "@/types/api";
-import NestModal from "./NestModal";
+import NestModal from "../modals/NestModal";
 import styled from "@emotion/styled";
 import { trpc } from "@/utils/trpc";
 import { PiToolbox } from "react-icons/pi";
 import { useColorModeValue } from "@chakra-ui/react";
 import { BsGrid3X3, BsBoxSeam } from "react-icons/bs";
 import { FaFlask } from "react-icons/fa";
+import { Icon } from "@/components/ui/Icons";
+import { useCommonColors, useTextColors } from "@/components/ui/Theme";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -64,6 +65,7 @@ interface InventoryToolCardProps {
   onCreateReagent: (nestId: number, reagentData: Omit<Reagent, "id" | "well_id">) => void;
   onNestClick: (nest: Nest) => void;
   onDeleteNest: (nestId: number) => Promise<void>;
+  onPlateClick?: (plate: Plate) => void;
 }
 
 export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
@@ -75,11 +77,11 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   onCreateReagent,
   onNestClick,
   onDeleteNest,
+  onPlateClick,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const cardBg = useColorModeValue("white", "gray.900");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const iconColor = useColorModeValue("gray.600", "gray.400");
+  const { cardBg, borderColor, hoverBg } = useCommonColors();
+  const { secondary: iconColor } = useTextColors();
   const statBg = useColorModeValue("gray.50", "gray.800");
 
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -142,8 +144,6 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
         bg={cardBg}
         borderColor={borderColor}
         borderWidth="1px"
-        height="280px"
-        width="280px"
         borderRadius="lg"
         onClick={onOpen}
         transition="all 0.2s"
@@ -218,16 +218,17 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
         toolName={name || ""}
         nests={toolNests}
         plates={plates}
-        onCreatePlate={(nestId, plateData) =>
-          onCreatePlate(nestId, {
-            ...plateData,
-            plate_type: plateData.plateType,
-          })
-        }
-        onDeleteNest={onDeleteNest}
-        onCreateReagent={onCreateReagent}
-        onNestClick={onNestClick}
+        selectedNests={[]}
+        isMultiSelect={true}
+        onNestSelect={(nestIds) => {
+          nestIds.forEach((id) => {
+            const nest = nests.find((n) => n.id === id);
+            if (nest) onNestClick(nest);
+          });
+        }}
         onCreateNest={(row, column) => onCreateNest(toolId, `${name}`, row, column)}
+        onDeleteNest={onDeleteNest}
+        onPlateClick={onPlateClick}
       />
     </>
   );

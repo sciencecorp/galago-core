@@ -1,9 +1,9 @@
 import { trpc } from "@/utils/trpc";
-import { Button, HStack, Spinner, Switch, Text, Tooltip, VStack, useToast } from "@chakra-ui/react";
+import { Button, HStack, Switch, Text, Tooltip, VStack } from "@chakra-ui/react";
 import { ToolConfig } from "gen-interfaces/controller";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { useState } from "react";
-
+import { successToast, errorToast, infoToast } from "../ui/Toast";
 function toolSpecificConfig(toolConfig: ToolConfig): Record<string, any> | undefined {
   const toolType = toolConfig.type;
   const config = toolConfig.config;
@@ -31,7 +31,6 @@ export function ToolConfigEditor({
     },
   );
 
-  const toast = useToast();
   var error_description = "Error connecting to instrument";
   const configureMutation = trpc.tool.configure.useMutation({
     onSuccess: () => {
@@ -41,15 +40,7 @@ export function ToolConfigEditor({
       if (data.message) {
         error_description = data.message;
       }
-      toast.closeAll(),
-        toast({
-          title: "Failed to connect to instrument",
-          description: `${error_description}`,
-          status: "error",
-          duration: 10000,
-          isClosable: true,
-          position: "top",
-        });
+      errorToast("Failed to connect to instrument", `${error_description}`);
     },
   });
   const { isLoading } = configureMutation;

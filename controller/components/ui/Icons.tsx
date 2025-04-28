@@ -143,7 +143,7 @@ export const WellPlateIcon: React.FC<WellPlateIconProps> = ({ rows, columns, siz
   }
 
   return (
-    <Tooltip label={`${format} plate (${rows}×${columns})`} hasArrow placement="top">
+    <Tooltip hasArrow placement="top">
       <Box width={size} height={`calc(${size} * 0.7)`}>
         <svg
           width="100%"

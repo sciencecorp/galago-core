@@ -17,7 +17,6 @@ import {
   Text,
   IconButton,
   HStack,
-  useToast,
   Select,
 } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
@@ -53,7 +52,6 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
   const [commands, setCommands] = useState<SequenceCommand[]>(sequence?.commands ?? []);
   const [labware, setLabware] = useState(sequence?.labware ?? "default");
   const [isCommandModalOpen, setIsCommandModalOpen] = useState(false);
-  const toast = useToast();
   const { data: labwareList } = trpc.labware.getAll.useQuery();
 
   useEffect(() => {

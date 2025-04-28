@@ -13,7 +13,6 @@ import {
   Tag,
   useColorModeValue,
   IconButton,
-  useToast,
   Divider,
   useDisclosure,
   Menu,
@@ -39,6 +38,7 @@ import { MdOutlineExitToApp } from "react-icons/md";
 import { CommandDetailsDrawer } from "./CommandDetailsDrawer";
 import { ParameterSchema } from "@/types";
 import CommandImage from "@/components/tools/CommandImage";
+import { successToast, errorToast } from "../ui/Toast";
 
 const handleWheel = (e: WheelEvent) => {
   const container = e.currentTarget as HTMLElement;
@@ -131,7 +131,6 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
 };
 
 export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
-  const toast = useToast();
   const [commands, setCommands] = useState<any[]>([]);
   const [isAddCommandModalOpen, setIsAddCommandModalOpen] = useState(false);
   const [isRunModalOpen, setIsRunModalOpen] = useState(false);
@@ -165,11 +164,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
 
   const updateProtocol = trpc.protocol.update.useMutation({
     onSuccess: () => {
-      toast({
-        title: "Protocol updated",
-        status: "success",
-        duration: 3000,
-      });
+      successToast("Protocol updated", "");
       refetch();
     },
   });
@@ -330,19 +325,10 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const handleRunCommand = (command: any) => {
     execMutation.mutate(command.commandInfo, {
       onSuccess: () => {
-        toast({
-          title: "Command executed",
-          status: "success",
-          duration: 3000,
-        });
+        successToast("Command executed", "");
       },
       onError: (error) => {
-        toast({
-          title: "Failed to execute command",
-          description: error.message,
-          status: "error",
-          duration: 5000,
-        });
+        errorToast("Failed to execute command", error.message);
       },
     });
   };

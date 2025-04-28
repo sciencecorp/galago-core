@@ -14,7 +14,6 @@ import {
   Input,
   Divider,
   Card,
-  useToast,
 } from "@chakra-ui/react";
 import { Search2Icon } from "@chakra-ui/icons";
 import { Tool } from "@/types/api";
@@ -24,7 +23,7 @@ import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "./types";
 import { z } from "zod";
 import { ToolType } from "gen-interfaces/controller";
-import { successToast, warningToast, errorToast, batchOperationToast } from "@/components/ui/Toast";
+import { successToast, warningToast, errorToast } from "@/components/ui/Toast";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { createBatchHandlerForIds } from "./shared/utils/batchUtils";
 
@@ -68,7 +67,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const tabBgColor = useColorModeValue("gray.50", "gray.800");
   const tabActiveBgColor = useColorModeValue("white", "gray.700");
-  const toast = useToast();
 
   // Hooks
   const {

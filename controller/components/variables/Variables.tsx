@@ -11,7 +11,6 @@ import {
   Tr,
   Th,
   Td,
-  useToast,
   InputGroup,
   InputLeftElement,
   Text,
@@ -38,6 +37,7 @@ import { MdOutlineNumbers } from "react-icons/md";
 import { VscSymbolBoolean } from "react-icons/vsc";
 import { TbVariable } from "react-icons/tb";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { successToast, errorToast } from "../ui/Toast";
 
 // Function to truncate text to a maximum length
 const truncateText = (text: string, maxLength: number = 50) => {
@@ -49,7 +49,6 @@ export const Variables: React.FC = () => {
   const [variables, setVariables] = useState<Variable[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("");
-  const toast = useToast();
 
   const headerBg = useColorModeValue("white", "gray.700");
   const tableBgColor = useColorModeValue("white", "gray.700");
@@ -72,20 +71,9 @@ export const Variables: React.FC = () => {
       }
       await deleteVariable.mutateAsync(variable.id);
       refetch();
-      toast({
-        title: "Variable deleted successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      successToast("Variable deleted successfully", "");
     } catch (error) {
-      toast({
-        title: "Error deleting variable",
-        description: `Please try again. ${error}`,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("Error deleting variable", `Please try again. ${error}`);
     }
   };
 
@@ -127,20 +115,9 @@ export const Variables: React.FC = () => {
     try {
       await editVariable.mutateAsync(editedVariable);
       refetch();
-      toast({
-        title: "Variable updated successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      successToast("Variable updated successfully", "");
     } catch (error) {
-      toast({
-        title: "Error updating variable",
-        description: `Please try again. ${error}`,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("Error updating variable", `Please try again. ${error}`);
     }
   };
 

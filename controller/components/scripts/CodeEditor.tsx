@@ -7,7 +7,7 @@ import {
   Input,
   VStack,
   useColorModeValue,
-  useToast,
+  Flex,
   Tooltip,
   Card,
   CardBody,
@@ -34,6 +34,7 @@ import * as monaco from "monaco-editor";
 import { editor } from "monaco-editor";
 import { FaFileImport, FaFileExport } from "react-icons/fa";
 import { useScriptIO } from "@/hooks/useScriptIO";
+import { infoToast, errorToast } from "../ui/Toast";
 import { MdDownload } from "react-icons/md";
 import { AiOutlineJavaScript } from "react-icons/ai";
 import { fileTypeToExtensionMap } from "./utils";
@@ -57,7 +58,6 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const editFolder = trpc.script.editFolder.useMutation();
   const deleteFolder = trpc.script.deleteFolder.useMutation();
   const codeTheme = useColorModeValue("vs-light", "vs-dark");
-  const toast = useToast();
   const [scriptsEdited, setScriptsEdited] = useState<Script[]>([]);
   const [currentContent, setCurrentContent] = useState<string>("");
   const [consoleText, setConsoleText] = useState<string>("");
@@ -157,25 +157,17 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     setRunError(false);
     setConsoleText("");
     if (!activeTab) return;
-    toast({
-      title: `Executing ${activeTab}...`,
-      description: "Please wait.",
-      status: "loading",
-      duration: null,
-      isClosable: false,
-      position: "bottom-left",
-    });
+
+    infoToast(`Executing ${activeTab}...`, "");
 
     try {
       const response = await runScript.mutateAsync(activeTab, {
         onSuccess: () => {
-          toast.closeAll();
           showSuccessToast("Script Completed!", "The script execution finished successfully.");
         },
         onError: (error) => {
           setRunError(true);
           setConsoleText(error.message);
-          toast.closeAll();
           showErrorToast("Failed to run script", `Error= ${error.message}`);
         },
       });
@@ -191,13 +183,11 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
         setConsoleText("");
       }
 
-      toast.closeAll();
       showSuccessToast("Script Completed!", "The script execution finished successfully.");
     } catch (error) {
       if (error instanceof Error) {
         setRunError(true);
         setConsoleText(error.message);
-        toast.closeAll();
         showErrorToast("Failed to run script", `Error= ${error.message}`);
       }
     }
@@ -298,14 +288,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       }
       await refreshData();
     } catch (error) {
-      toast({
-        title: "Error renaming script",
-        description: `Please try again. ${error}`,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
+      errorToast("Error renaming script", `Please try again. ${error}`);
     }
     setEditingScriptName(null);
   };
@@ -326,12 +309,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       });
       await refetchFolders();
     } catch (error) {
-      toast({
-        title: "Error renaming folder",
-        description: String(error),
-        status: "error",
-        duration: 3000,
-      });
+      errorToast("Error renaming folder", String(error));
     }
   };
 
@@ -340,12 +318,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       await deleteFolder.mutateAsync(folder.id);
       await refreshData();
     } catch (error) {
-      toast({
-        title: "Error deleting folder",
-        description: String(error),
-        status: "error",
-        duration: 3000,
-      });
+      errorToast("Error deleting folder", String(error));
     }
   };
 

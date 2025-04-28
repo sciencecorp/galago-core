@@ -20,13 +20,13 @@ import {
   Input,
   Spacer,
   Button,
-  useToast,
 } from "@chakra-ui/react";
 import { NewToolModal } from "./NewToolModal";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { BsTools } from "react-icons/bs";
 import { SearchIcon } from "@chakra-ui/icons";
 import { FaPlugCircleCheck } from "react-icons/fa6";
+import { successToast, errorToast, infoToast } from "../ui/Toast";
 import { Tool } from "@/types/api";
 
 interface ToolStatusCardsProps {
@@ -46,8 +46,6 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
   const { data: workcells } = trpc.workcell.getAll.useQuery();
 
   const [thisWorkcellTools, setThisWorkcellTools] = useState<Tool[]>([]);
-  const toast = useToast();
-
   const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({
     workcellId: workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id,
   });
@@ -101,14 +99,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
             results.failed.push({ toolId, error: errorMessage });
 
             // Show individual error toast for each failed tool
-            toast({
-              title: `Failed to connect ${tool.name}`,
-              description: errorMessage,
-              status: "warning",
-              duration: 10000,
-              isClosable: true,
-              position: "bottom-right",
-            });
+            errorToast(`Failed to connect ${tool.name}`, errorMessage);
 
             return { status: "rejected", toolId, error: errorMessage };
           }
@@ -121,32 +112,20 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
 
         // Show summary toast when complete
         if (results.failed.length > 0 && results.success.length > 0) {
-          toast({
-            title: "Connection Process Complete",
-            description: `Connected ${results.success.length} tools, failed to connect ${results.failed.length} tools.`,
-            status: "warning",
-            duration: 5000,
-            isClosable: true,
-            position: "top",
-          });
+          infoToast(
+            "Connection Process Complete",
+            `Connected ${results.success.length} tools, failed to connect ${results.failed.length} tools.`,
+          );
         } else if (results.failed.length > 0) {
-          toast({
-            title: "Connection Process Failed",
-            description: `Failed to connect any tools. Check individual error messages.`,
-            status: "error",
-            duration: 5000,
-            isClosable: true,
-            position: "top",
-          });
+          errorToast(
+            "Connection Process Failed",
+            `Failed to connect any tools. Check individual error messages.`,
+          );
         } else if (results.success.length > 0) {
-          toast({
-            title: "Connection Process Successful",
-            description: `Successfully connected all ${results.success.length} tools.`,
-            status: "success",
-            duration: 5000,
-            isClosable: true,
-            position: "top",
-          });
+          successToast(
+            "Connection Process Successful",
+            `Successfully connected all ${results.success.length} tools.`,
+          );
         }
 
         // Refresh all data
@@ -157,14 +136,10 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
     } catch (error) {
       console.error("Unexpected error in connect all process:", error);
 
-      toast({
-        title: "Connection Process Error",
-        description: "An unexpected error occurred during the connection process.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-        position: "top",
-      });
+      errorToast(
+        "Connection Process Error",
+        "An unexpected error occurred during the connection process.",
+      );
     } finally {
       setConnectingLoading(false);
     }

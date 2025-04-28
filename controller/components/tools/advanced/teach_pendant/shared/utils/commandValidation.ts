@@ -1,4 +1,3 @@
-import { useToast } from "@chakra-ui/react";
 import { GripParams, MotionProfile, Sequence } from "../../types";
 import { errorToast } from "@/components/ui/Toast";
 

@@ -13,8 +13,6 @@ import {
   NumberInputField,
   Heading,
   HStack,
-  useToast,
-  Center,
   Alert,
   AlertIcon,
   AlertTitle,
@@ -29,7 +27,7 @@ import { capitalizeFirst } from "@/utils/parser";
 import Head from "next/head";
 import { TeachPendant } from "@/components/tools/advanced/teach_pendant/TeachPendant";
 import { commandFields } from "@/components/tools/constants";
-
+import { errorToast, infoToast, successToast } from "@/components/ui/Toast";
 // Inside your component
 type AtomicFormValues = string | number | boolean | string[];
 type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormValues>>;
@@ -52,7 +50,6 @@ export default function Page() {
   const toolCommandsDefined = Object.keys(commandFields).includes(String(config?.type));
   const commandOptions = config ? commandFields[config.type] : {};
 
-  const toast = useToast();
   useEffect(() => {
     // Wait for the router to be ready and then extract the query parameter
     if (router.isReady) {
@@ -101,14 +98,7 @@ export default function Page() {
   const handleSubmit = () => {
     if (!selectedCommand) return;
     if (!config) return;
-    toast({
-      title: `Executing ${selectedCommand}..`,
-      description: `Please wait.`,
-      status: "loading",
-      duration: null,
-      isClosable: false,
-      position: "top", // or "bottom"
-    });
+    infoToast(`Executing ${selectedCommand}..`, "Please wait.");
 
     const toolCommand: ToolCommandInfo = {
       toolId: config.name,
@@ -118,14 +108,7 @@ export default function Page() {
     };
     commandMutation.mutate(toolCommand, {
       onSuccess: () => {
-        toast.closeAll();
-        toast({
-          title: `Command ${selectedCommand} completed!`,
-          status: "success",
-          duration: 2000,
-          isClosable: true,
-          position: "top",
-        });
+        successToast(`Command ${selectedCommand} completed!`, "Command completed successfully");
         setCommandExecutionStatus((prevStatus) => ({
           ...prevStatus,
           [selectedCommand]: "success",
@@ -133,15 +116,7 @@ export default function Page() {
       },
       onError: (data) => {
         // Set the command status to 'error' on failure
-        toast.closeAll(),
-          toast({
-            title: "Failed to execute command",
-            description: `Error= ${data.message}`,
-            status: "error",
-            duration: 10000,
-            isClosable: true,
-            position: "top",
-          });
+        errorToast("Failed to execute command", `Error= ${data.message}`);
         setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [selectedCommand]: "error" }));
       },
     });
@@ -180,14 +155,7 @@ export default function Page() {
 
   const executeCommand = (commandName: string, params: FormValues) => {
     if (!config) return;
-    toast({
-      title: `Executing ${commandName}..`,
-      description: `Please wait.`,
-      status: "loading",
-      duration: null,
-      isClosable: false,
-      position: "top", // or "bottom"
-    });
+    infoToast(`Executing ${commandName}..`, "Please wait.");
 
     setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "idle" }));
 
@@ -200,27 +168,12 @@ export default function Page() {
 
     commandMutation.mutate(toolCommand, {
       onSuccess: () => {
-        toast.closeAll();
-        toast({
-          title: `Command ${commandName} completed!`,
-          status: "success",
-          duration: 2000,
-          isClosable: true,
-          position: "top",
-        });
+        successToast(`Command ${commandName} completed!`, "Command completed successfully");
         setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "success" }));
       },
       onError: (data) => {
         // Set the command status to 'error' on failure
-        toast.closeAll(),
-          toast({
-            title: "Failed to execute command",
-            description: `Error= ${data.message}`,
-            status: "error",
-            duration: 10000,
-            isClosable: true,
-            position: "top",
-          });
+        errorToast("Failed to execute command", `Error= ${data.message}`);
         setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "error" }));
       },
     });

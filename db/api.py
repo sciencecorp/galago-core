@@ -1,5 +1,5 @@
 import typing as t
-from fastapi import FastAPI, HTTPException, Depends, Request, UploadFile, File, Form 
+from fastapi import FastAPI, HTTPException, Depends, Request, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -100,28 +100,53 @@ def health_check() -> t.Dict[str, str]:
 
 @app.get("/inventory", response_model=schemas.Inventory)
 def get_inventory(workcell_name: str, db: Session = Depends(get_db)) -> t.Any:
-    workcell = crud.workcell.get_by(db=db, obj_in={"name": workcell_name})
-    if not workcell:
+    # Get workcell by name
+    workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
+    if workcell is None:
         raise HTTPException(status_code=404, detail="Workcell not found")
-    tools = crud.tool.get_all_by(db=db, obj_in={"workcell_id": workcell.id})
-    nests = crud.nest.get_all_by_workcell_id(db=db, workcell_id=workcell.id)
 
-    all_plates = crud.plate.get_all(db)
-    plates = [
-        plate
-        for plate in all_plates
-        if (plate.nest_id is None) or (plate.nest.tool.workcell_id == workcell.id)
-    ]
-    wells = crud.well.get_all_by_workcell_id(db, workcell_id=workcell.id)
-    reagents = crud.reagent.get_all_by_workcell_id(db, workcell_id=workcell.id)
-    return {
-        "workcell": workcell,
-        "tools": [tool for tool in tools],
-        "nests": [nest for nest in nests],
-        "plates": [plate for plate in plates],
-        "wells": [well for well in wells],
-        "reagents": [reagent for reagent in reagents],
-    }
+    # Get all tools for the workcell
+    tools = crud.tool.get_all_by(db, obj_in={"workcell_id": workcell.id})
+
+    # Get all hotels for the workcell
+    hotels = crud.hotel.get_all_by(db, obj_in={"workcell_id": workcell.id})
+
+    # Get all nests for the tools in the workcell
+    nests = []
+    for tool in tools:
+        nests.extend(crud.nest.get_all_by(db, obj_in={"tool_id": tool.id}))
+
+    # Get all nests for the hotels in the workcell
+    for hotel in hotels:
+        nests.extend(crud.nest.get_all_by(db, obj_in={"hotel_id": hotel.id}))
+
+    # Get all plates in nests
+    plates = []
+    for nest in nests:
+        if nest.status == schemas.NestStatus.occupied:
+            plate = crud.plate.get_by(db, obj_in={"nest_id": nest.id})
+            if plate:
+                plates.append(plate)
+
+    # Get all wells for all plates
+    wells = []
+    for plate in plates:
+        wells.extend(crud.well.get_all_by(db, obj_in={"plate_id": plate.id}))
+
+    # Get all reagents for all wells
+    reagents = []
+    for well in wells:
+        reagents.extend(crud.reagent.get_all_by(db, obj_in={"well_id": well.id}))
+
+    return schemas.Inventory(
+        workcell=workcell,
+        instruments=[tool for tool in tools],
+        hotels=[hotel for hotel in hotels],
+        nests=[nest for nest in nests],
+        plates=[plate for plate in plates],
+        wells=[well for well in wells],
+        reagents=[reagent for reagent in reagents],
+    )
 
 
 @app.get("/test")
@@ -510,7 +535,13 @@ def get_nests(
         workcell = crud.workcell.get_by(db=db, obj_in={"name": workcell_name})
         if not workcell:
             raise HTTPException(status_code=404, detail="Workcell not found")
-        return crud.nest.get_all_by_workcell_id(db=db, workcell_id=workcell.id)
+
+        # Use the specialized method that gets both tool and hotel nests
+        nests = crud.nest.get_all_nests_by_workcell_id(db=db, workcell_id=workcell.id)
+        print(
+            f"Retrieved {len(nests)} nests for workcell {workcell_name} (id: {workcell.id})"
+        )
+        return nests
     else:
         return crud.nest.get_all(db)
 
@@ -580,7 +611,12 @@ def get_plate_info(plate_id: int, db: Session = Depends(get_db)) -> t.Any:
     plate = crud.plate.get(db, id=plate_id)
     if plate is None:
         raise HTTPException(status_code=404, detail="Plate not found")
-    nest = crud.nest.get(db, id=plate.nest_id)
+
+    # Only get nest if nest_id is not None
+    nest = None
+    if plate.nest_id is not None:
+        nest = crud.nest.get(db, id=plate.nest_id)
+
     wells = crud.well.get_all_by(db, obj_in={"plate_id": plate.id})
     return schemas.PlateInfo(
         id=plate.id,
@@ -588,8 +624,10 @@ def get_plate_info(plate_id: int, db: Session = Depends(get_db)) -> t.Any:
         plate_type=plate.plate_type,
         barcode=plate.barcode,
         nest_id=plate.nest_id,
-        nest=schemas.Nest.from_orm(nest) if nest else None,
-        wells=[schemas.Well.from_orm(well) for well in wells],
+        nest=schemas.Nest.model_validate(nest) if nest else None,
+        wells=[schemas.Well.model_validate(well) for well in wells],
+        created_at=plate.created_at,
+        updated_at=plate.updated_at,
     )
 
 
@@ -1061,7 +1099,7 @@ def export_script_config(script_id: int, db: Session = Depends(get_db)) -> t.Any
 @app.post("/scripts/import", response_model=schemas.Script)
 async def import_script_config(
     file: UploadFile = File(...),
-    folder_id: Optional[int] = File(None), 
+    folder_id: Optional[int] = File(None),
     db: Session = Depends(get_db),
 ) -> t.Any:
     """Import a script from an uploaded file."""
@@ -1072,9 +1110,9 @@ async def import_script_config(
         file_name = file.filename
         if not file_name:
             raise HTTPException(status_code=400, detail="File name is required")
-        if file_name.endswith('.py'):
+        if file_name.endswith(".py"):
             language = "python"
-        elif file_name.endswith('.js'):
+        elif file_name.endswith(".js"):
             language = "javascript"
         else:
             raise HTTPException(
@@ -1366,9 +1404,12 @@ class WaypointData(BaseModel):
 
 @app.post("/waypoints/upload")
 async def upload_waypoints(
-    file: UploadFile = File(...),  tool_id: int = Form(...), db: Session = Depends(get_db)
+    file: UploadFile = File(...),
+    tool_id: int = Form(...),
+    db: Session = Depends(get_db),
 ):
     return await handle_waypoint_upload(file, tool_id, db)
+
 
 class ProtocolCreate(BaseModel):
     name: str
@@ -1506,3 +1547,47 @@ async def get_protocols(
 
     protocols = query.all()
     return [protocol for protocol in protocols]
+
+
+# Hotel endpoints
+@app.get("/hotels", response_model=list[schemas.Hotel])
+def get_hotels(
+    db: Session = Depends(get_db), workcell_name: Optional[str] = None
+) -> t.Any:
+    if workcell_name:
+        workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
+        if not workcell:
+            raise HTTPException(status_code=404, detail="Workcell not found")
+        return crud.hotel.get_all_by(db, obj_in={"workcell_id": workcell.id})
+    return crud.hotel.get_all(db)
+
+
+@app.get("/hotels/{hotel_id}", response_model=schemas.Hotel)
+def get_hotel(hotel_id: int, db: Session = Depends(get_db)) -> t.Any:
+    hotel = crud.hotel.get(db, id=hotel_id)
+    if not hotel:
+        raise HTTPException(status_code=404, detail="Hotel not found")
+    return hotel
+
+
+@app.post("/hotels", response_model=schemas.Hotel)
+def create_hotel(hotel: schemas.HotelCreate, db: Session = Depends(get_db)) -> t.Any:
+    return crud.hotel.create(db, obj_in=hotel)
+
+
+@app.put("/hotels/{hotel_id}", response_model=schemas.Hotel)
+def update_hotel(
+    hotel_id: int, hotel_update: schemas.HotelUpdate, db: Session = Depends(get_db)
+) -> t.Any:
+    hotel = crud.hotel.get(db, id=hotel_id)
+    if not hotel:
+        raise HTTPException(status_code=404, detail="Hotel not found")
+    return crud.hotel.update(db, db_obj=hotel, obj_in=hotel_update)
+
+
+@app.delete("/hotels/{hotel_id}", response_model=schemas.Hotel)
+def delete_hotel(hotel_id: int, db: Session = Depends(get_db)) -> t.Any:
+    hotel = crud.hotel.get(db, id=hotel_id)
+    if not hotel:
+        raise HTTPException(status_code=404, detail="Hotel not found")
+    return crud.hotel.remove(db, id=hotel_id)

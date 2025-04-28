@@ -14,18 +14,17 @@ import {
   Input,
   VStack,
   Switch,
-  useToast,
   NumberInput,
   NumberInputField,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { Labware as LabwareResponse } from "@/types/api";
 import { RiAddFill } from "react-icons/ri";
+import { successToast, errorToast } from "../ui/Toast";
 
 export const LabwareModal: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(false);
-  const toast = useToast();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -77,22 +76,14 @@ export const LabwareModal: React.FC = () => {
     setIsLoading(true);
     try {
       await addLabware.mutateAsync(labware);
-      toast({
-        title: "Labware created successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      successToast("Success", "Labware created successfully");
       onClose();
       await refetch();
     } catch (error) {
-      toast({
-        title: "Error saving labware",
-        description: `Please try again. ${error}`,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast(
+        "Error saving labware",
+        error instanceof Error ? error.message : "An error occurred",
+      );
     }
     setIsLoading(false);
     clearForm();
