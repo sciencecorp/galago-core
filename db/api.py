@@ -1,5 +1,5 @@
 import typing as t
-from fastapi import FastAPI, HTTPException, Depends, Request, UploadFile, File, Form 
+from fastapi import FastAPI, HTTPException, Depends, Request, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -1099,7 +1099,7 @@ def export_script_config(script_id: int, db: Session = Depends(get_db)) -> t.Any
 @app.post("/scripts/import", response_model=schemas.Script)
 async def import_script_config(
     file: UploadFile = File(...),
-    folder_id: Optional[int] = File(None), 
+    folder_id: Optional[int] = File(None),
     db: Session = Depends(get_db),
 ) -> t.Any:
     """Import a script from an uploaded file."""
@@ -1110,9 +1110,9 @@ async def import_script_config(
         file_name = file.filename
         if not file_name:
             raise HTTPException(status_code=400, detail="File name is required")
-        if file_name.endswith('.py'):
+        if file_name.endswith(".py"):
             language = "python"
-        elif file_name.endswith('.js'):
+        elif file_name.endswith(".js"):
             language = "javascript"
         else:
             raise HTTPException(
@@ -1404,9 +1404,12 @@ class WaypointData(BaseModel):
 
 @app.post("/waypoints/upload")
 async def upload_waypoints(
-    file: UploadFile = File(...),  tool_id: int = Form(...), db: Session = Depends(get_db)
+    file: UploadFile = File(...),
+    tool_id: int = Form(...),
+    db: Session = Depends(get_db),
 ):
     return await handle_waypoint_upload(file, tool_id, db)
+
 
 class ProtocolCreate(BaseModel):
     name: str
