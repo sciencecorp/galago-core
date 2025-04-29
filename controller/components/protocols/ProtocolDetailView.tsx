@@ -24,6 +24,7 @@ import {
 import { DeleteIcon, AddIcon, EditIcon, ArrowForwardIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
+import { DragDropContext, Droppable, Draggable, DropResult, DroppableProvided, DraggableProvided, DraggableStateSnapshot, DroppableStateSnapshot } from "react-beautiful-dnd";
 import { AddToolCommandModal } from "./AddToolCommandModal";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
@@ -339,6 +340,101 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     );
   };
 
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+
+    const items = Array.from(commands);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setCommands(items);
+  };
+
+  const renderDraggableCommands = (provided: DroppableProvided, snapshot: DroppableStateSnapshot) => {
+    if (commands.length === 0 && isEditing) {
+      return (
+        <Button
+          leftIcon={<AddIcon />}
+          colorScheme="blue"
+          variant="outline"
+          onClick={() => handleAddCommandAtPosition(0)}>
+          Add First Command
+        </Button>
+      );
+    }
+
+    return (
+      <HStack
+        spacing={4}
+        align="flex-start"
+        minW="min-content"
+        ref={provided.innerRef}
+        {...provided.droppableProps}>
+        {commands.map((command: any, index: number) => (
+          <Draggable
+            key={command.queueId}
+            draggableId={command.queueId.toString()}
+            index={index}
+            isDragDisabled={!isEditing}>
+            {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
+              <HStack
+                ref={provided.innerRef}
+                {...provided.draggableProps}
+                {...provided.dragHandleProps}
+                style={{
+                  ...provided.draggableProps.style,
+                  opacity: snapshot.isDragging ? 0.8 : 1,
+                }}>
+                {isEditing && index === 0 && (
+                  <IconButton
+                    aria-label="Add command before"
+                    icon={<AddIcon />}
+                    size="sm"
+                    colorScheme="blue"
+                    variant="ghost"
+                    onClick={() => handleAddCommandAtPosition(index)}
+                    _hover={{ bg: "blue.100" }}
+                  />
+                )}
+                <ProtocolSwimLaneCommandComponent
+                  command={command}
+                  onCommandClick={(cmd) => {
+                    setSelectedCommand(cmd);
+                    onDrawerOpen();
+                  }}
+                  onRunCommand={handleRunCommand}
+                  onDeleteCommand={() => {
+                    setCommandToDeleteIndex(index);
+                    openDeleteConfirm();
+                  }}
+                  isEditing={isEditing}
+                />
+                {isEditing ? (
+                  <IconButton
+                    aria-label="Add command after"
+                    icon={<AddIcon />}
+                    size="sm"
+                    colorScheme="blue"
+                    variant="ghost"
+                    onClick={() => handleAddCommandAtPosition(index + 1)}
+                    _hover={{ bg: "blue.100" }}
+                  />
+                ) : (
+                  index < commands.length - 1 && (
+                    <Box color={arrowColor}>
+                      <ArrowForwardIcon boxSize={6} />
+                    </Box>
+                  )
+                )}
+              </HStack>
+            )}
+          </Draggable>
+        ))}
+        {provided.placeholder}
+      </HStack>
+    );
+  };
+
   return (
     <Box
       bg={bgColor}
@@ -428,63 +524,11 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
               "&:hover": {},
             },
           }}>
-          <HStack spacing={4} align="flex-start" minW="min-content">
-            {commands.length === 0 && isEditing ? (
-              <Button
-                leftIcon={<AddIcon />}
-                colorScheme="blue"
-                variant="outline"
-                onClick={() => handleAddCommandAtPosition(0)}>
-                Add First Command
-              </Button>
-            ) : (
-              commands.map((command: any, index: number) => (
-                <HStack key={command.queueId}>
-                  {isEditing && index === 0 && (
-                    <IconButton
-                      aria-label="Add command before"
-                      icon={<AddIcon />}
-                      size="sm"
-                      colorScheme="blue"
-                      variant="ghost"
-                      onClick={() => handleAddCommandAtPosition(index)}
-                      _hover={{ bg: "blue.100" }}
-                    />
-                  )}
-                  <ProtocolSwimLaneCommandComponent
-                    command={command}
-                    onCommandClick={(cmd) => {
-                      setSelectedCommand(cmd);
-                      onDrawerOpen();
-                    }}
-                    onRunCommand={handleRunCommand}
-                    onDeleteCommand={() => {
-                      setCommandToDeleteIndex(index);
-                      openDeleteConfirm();
-                    }}
-                    isEditing={isEditing}
-                  />
-                  {isEditing ? (
-                    <IconButton
-                      aria-label="Add command after"
-                      icon={<AddIcon />}
-                      size="sm"
-                      colorScheme="blue"
-                      variant="ghost"
-                      onClick={() => handleAddCommandAtPosition(index + 1)}
-                      _hover={{ bg: "blue.100" }}
-                    />
-                  ) : (
-                    index < commands.length - 1 && (
-                      <Box color={arrowColor}>
-                        <ArrowForwardIcon boxSize={6} />
-                      </Box>
-                    )
-                  )}
-                </HStack>
-              ))
-            )}
-          </HStack>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="commands" direction="horizontal">
+              {renderDraggableCommands}
+            </Droppable>
+          </DragDropContext>
         </Box>
       </VStack>
 
