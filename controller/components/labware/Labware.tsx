@@ -27,6 +27,7 @@ import {
   Text,
   Select,
   Spacer,
+  Button,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { Labware as LabwareResponse } from "@/types/api";
@@ -37,10 +38,14 @@ import { WellPlateIcon } from "../ui/Icons";
 import { SearchIcon } from "@chakra-ui/icons";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { HiOutlineRectangleStack } from "react-icons/hi2";
-import { successToast, errorToast } from "@/components/ui/Toast";
+import { FaFileImport, FaFileExport } from "react-icons/fa";
+import { successToast, errorToast, warningToast } from "@/components/ui/Toast";
+import { useLabwareIO } from "@/hooks/useLabwareIO";
+
 export const Labware: React.FC = () => {
   const [labware, setLabware] = useState<LabwareResponse[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLabwareId, setSelectedLabwareId] = useState<number | null>(null);
   const headerBg = useColorModeValue("white", "gray.700");
   const containerBg = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
@@ -50,6 +55,16 @@ export const Labware: React.FC = () => {
   const { data: fetchedLabware, refetch } = trpc.labware.getAll.useQuery();
   const editLabware = trpc.labware.edit.useMutation();
   const deleteLabware = trpc.labware.delete.useMutation();
+
+  // Use the custom hook for import/export
+  const {
+    fileInputRef,
+    handleExportConfig,
+    handleImportClick,
+    handleFileChange,
+    isImporting,
+    isExporting,
+  } = useLabwareIO(labware, refetch);
 
   useEffect(() => {
     if (fetchedLabware) {
@@ -89,11 +104,70 @@ export const Labware: React.FC = () => {
     }
   };
 
+  // Wrapped handlers to add toast notifications for import/export
+  const onExportConfig = async () => {
+    if (!selectedLabwareId) {
+      warningToast("No Labware Selected", "Please select a labware to export");
+      return;
+    }
+
+    const result = await handleExportConfig(selectedLabwareId);
+    if (result.success) {
+      successToast("Export Successful", result.message);
+    } else {
+      errorToast("Export Failed", result.message);
+    }
+  };
+
+  const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const result = await handleFileChange(event);
+    if (result?.success) {
+      successToast("Import Successful", result.message);
+    } else if (result) {
+      errorToast("Import Failed", result.message);
+    }
+  };
+
+  // Handle row click to select labware
+  const handleRowClick = (labware: LabwareResponse) => {
+    if (selectedLabwareId === labware.id) {
+      setSelectedLabwareId(null);
+    } else {
+      setSelectedLabwareId(labware.id || null);
+    }
+  };
+
   // Calculate stats
   const totalLabware = labware.length;
   const hasLidCount = labware.filter((item) => item.has_lid).length;
   const avgRows = Math.round(
     labware.reduce((sum, item) => sum + item.number_of_rows, 0) / (labware.length || 1),
+  );
+
+  // Create the Import button (regular size to match LabwareModal button)
+  const importButton = (
+    <Button
+      leftIcon={<FaFileImport />}
+      colorScheme="blue"
+      variant="outline"
+      onClick={handleImportClick}
+      isLoading={isImporting}
+      isDisabled={isImporting}>
+      Import
+    </Button>
+  );
+
+  // Create the Export button (regular size to match LabwareModal button)
+  const exportButton = (
+    <Button
+      leftIcon={<FaFileExport />}
+      colorScheme="green"
+      variant="outline"
+      onClick={onExportConfig}
+      isDisabled={!selectedLabwareId || isExporting}
+      isLoading={isExporting}>
+      Export
+    </Button>
   );
 
   return (
@@ -106,7 +180,18 @@ export const Labware: React.FC = () => {
                 title="Labware"
                 subTitle="Manage and configure your labware definitions"
                 titleIcon={<Icon as={HiOutlineRectangleStack} boxSize={8} color="teal.500" />}
-                mainButton={<LabwareModal />}
+                mainButton={importButton}
+                secondaryButton={exportButton}
+                tertiaryButton={<LabwareModal />}
+              />
+
+              {/* Hidden file input for import */}
+              <Input
+                type="file"
+                ref={fileInputRef}
+                onChange={onFileChange}
+                style={{ display: "none" }}
+                accept=".json"
               />
 
               <Divider />
@@ -124,6 +209,14 @@ export const Labware: React.FC = () => {
                   <StatLabel>Avg. Rows</StatLabel>
                   <StatNumber>{avgRows}</StatNumber>
                 </Stat>
+                {selectedLabwareId && (
+                  <Stat>
+                    <StatLabel>Selected</StatLabel>
+                    <StatNumber fontSize="lg">
+                      {labware.find(item => item.id === selectedLabwareId)?.name || 'None'}
+                    </StatNumber>
+                  </Stat>
+                )}
               </StatGroup>
 
               <Divider />
@@ -217,7 +310,13 @@ export const Labware: React.FC = () => {
                   </Thead>
                   <Tbody>
                     {filteredLabware?.map((item) => (
-                      <Tr key={item.id} _hover={{ bg: hoverBgColor }}>
+                      <Tr 
+                        key={item.id} 
+                        _hover={{ bg: hoverBgColor }}
+                        onClick={() => handleRowClick(item)}
+                        cursor="pointer"
+                        bg={selectedLabwareId === item.id ? hoverBgColor : undefined}
+                      >
                         <Td width="50px">
                           <WellPlateIcon
                             rows={item.number_of_rows}

@@ -80,7 +80,7 @@ export const inventoryRouter = router({
   // Plate endpoints
   getPlates: procedure.input(z.string()).query(async ({ input: workcellName }) => {
     const encodedName = encodeURIComponent(workcellName);
-    const response = await get(`/plates?workcell=${encodedName}`);
+    const response = await get(`/plates?workcell_name=${encodedName}`);
     return response;
   }),
 
