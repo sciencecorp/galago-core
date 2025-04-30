@@ -58,6 +58,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const editFolder = trpc.script.editFolder.useMutation();
   const deleteFolder = trpc.script.deleteFolder.useMutation();
   const codeTheme = useColorModeValue("vs-light", "vs-dark");
+  const [editedContents, setEditedContents] = useState<Record<string, string>>({});
   const [scriptsEdited, setScriptsEdited] = useState<Script[]>([]);
   const [currentContent, setCurrentContent] = useState<string>("");
   const [consoleText, setConsoleText] = useState<string>("");
@@ -143,9 +144,18 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
 
   useEffect(() => {
     const activeScript = getActiveScript();
-    setEditorLanguage(activeScript?.language || "python");
-    setCurrentContent(activeScript?.content || "");
-  }, [activeTab, scripts]);
+    if (activeScript) {
+      setEditorLanguage(activeScript.language || "python");
+      
+      // If we have edited content for this script, use that
+      if (activeScript.id && editedContents[activeScript.id]) {
+        setCurrentContent(editedContents[activeScript.id]);
+      } else {
+        // Otherwise use the original content
+        setCurrentContent(activeScript.content || "");
+      }
+    }
+  }, [activeTab, scripts, editedContents]);
 
   useEffect(() => {
     if (fetchedFolders) {
@@ -161,35 +171,26 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     infoToast(`Executing ${activeTab}...`, "");
 
     try {
-      const response = await runScript.mutateAsync(activeTab, {
-        onSuccess: () => {
-          showSuccessToast("Script Completed!", "The script execution finished successfully.");
-        },
-        onError: (error) => {
-          setRunError(true);
-          setConsoleText(error.message);
-          showErrorToast("Failed to run script", `Error= ${error.message}`);
-        },
-      });
+      const response = await runScript.mutateAsync(activeTab);
 
       // Check if response has meta_data with response property
       if (response?.meta_data?.response) {
         setConsoleText(response.meta_data.response);
+        showSuccessToast("Script Completed!", "The script execution finished successfully.");
       } else if (response?.error_message) {
         setRunError(true);
         setConsoleText(response.error_message);
+        showErrorToast("Failed to run script", `Error= ${response.error_message}`);
       } else {
         setRunError(false);
         setConsoleText("");
+        showSuccessToast("Script Completed!", "The script execution finished successfully.");
       }
-
-      showSuccessToast("Script Completed!", "The script execution finished successfully.");
     } catch (error) {
-      if (error instanceof Error) {
-        setRunError(true);
-        setConsoleText(error.message);
-        showErrorToast("Failed to run script", `Error= ${error.message}`);
-      }
+      setRunError(true);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setConsoleText(errorMessage);
+      showErrorToast("Failed to run script", `Error= ${errorMessage}`);
     }
   };
 
@@ -221,6 +222,16 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
         ...activeScript,
         content: editedContent, // Always save the raw edited content
       });
+      
+      // Clear the edited content after saving
+      if (activeScript.id) {
+        setEditedContents(prev => {
+          const newState = {...prev};
+          delete newState[activeScript.id];
+          return newState;
+        });
+      }
+      
       refetch();
       showSuccessToast("Script updated successfully", "Your changes have been saved.");
     } catch (error) {
@@ -243,6 +254,15 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
           setActiveTab(openTabs[0] || null);
         }
       }
+      
+      // Clear any edited content for this script
+      if (scriptToDelete.id) {
+        setEditedContents(prev => {
+          const newState = {...prev};
+          delete newState[scriptToDelete.id];
+          return newState;
+        });
+      }
 
       await refreshData();
       onClose();
@@ -253,10 +273,10 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   };
 
   useEffect(() => {
-    if (openTabs.length > 0) {
+    if (openTabs.length > 0 && !activeTab) {
       setActiveTab(openTabs[openTabs.length - 1]);
     }
-  }, [openTabs]);
+  }, [openTabs, activeTab]);
 
   useEffect(() => {
     if (fetchedScript) {
@@ -444,28 +464,74 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   };
 
   const removeTab = (tab: string) => {
-    setOpenTabs(openTabs.filter((t) => t !== tab));
+    // If active tab is being removed, capture its content first
+    if (activeTab === tab) {
+      const activeScript = getActiveScript();
+      if (activeScript?.id && editorRef.current) {
+        const currentValue = editorRef.current.getValue();
+        // Store current edits in case the tab is reopened
+        if (currentValue !== activeScript.content) {
+          setEditedContents(prev => ({
+            ...prev,
+            [activeScript.id]: currentValue
+          }));
+        }
+      }
+    }
+    
+    // Remove the tab
+    const newTabs = openTabs.filter((t) => t !== tab);
+    setOpenTabs(newTabs);
+    
+    // If we're removing the active tab, set a new active tab
+    if (activeTab === tab && newTabs.length > 0) {
+      setActiveTab(newTabs[newTabs.length - 1]);
+    } else if (newTabs.length === 0) {
+      setActiveTab(null);
+    }
   };
 
   const handleCodeChange = (value?: string) => {
-    if (!activeTab) return;
+    if (!activeTab || !value) return;
+    
+    const activeScript = getActiveScript();
+    if (!activeScript || !activeScript.id) return;
+    
+    // Store edited content by script id to prevent content mixing
+    setEditedContents(prev => ({
+      ...prev,
+      [activeScript.id]: value
+    }));
+    
     setScriptsEdited((prev) => {
-      const activeScript = getActiveScript();
-      if (!activeScript) return prev;
-
       const existingScriptIndex = prev.findIndex((script) => script.id === activeScript.id);
       if (existingScriptIndex >= 0) {
         return prev.map((script, index) =>
-          index === existingScriptIndex ? { ...script, content: value || "" } : script,
+          index === existingScriptIndex ? { ...script, content: value } : script,
         );
       } else {
-        return [...prev, { ...activeScript, content: value || "" }];
+        return [...prev, { ...activeScript, content: value }];
       }
     });
   };
 
   const handleScriptClicked = (fullName: string, script?: Script) => {
     setActiveFolder(null);
+    
+    // If opening a new tab, make sure we sync any unsaved changes first
+    if (activeTab && !openTabs.includes(fullName)) {
+      const currentScript = getActiveScript();
+      if (currentScript?.id && editorRef.current) {
+        const currentValue = editorRef.current.getValue();
+        if (currentValue !== currentScript.content) {
+          setEditedContents(prev => ({
+            ...prev,
+            [currentScript.id]: currentValue
+          }));
+        }
+      }
+    }
+    
     if (!openTabs.includes(fullName)) {
       setOpenTabs([...openTabs, fullName]);
     }
@@ -636,6 +702,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                         }}
                         onChange={(value) => handleCodeChange(value)}
                         onMount={handleEditorDidMount}
+                        key={activeTab}
                       />
                     ) : (
                       <Box
