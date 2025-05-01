@@ -146,7 +146,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     const activeScript = getActiveScript();
     if (activeScript) {
       setEditorLanguage(activeScript.language || "python");
-      
+
       // If we have edited content for this script, use that
       if (activeScript.id && editedContents[activeScript.id]) {
         setCurrentContent(editedContents[activeScript.id]);
@@ -222,16 +222,16 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
         ...activeScript,
         content: editedContent, // Always save the raw edited content
       });
-      
+
       // Clear the edited content after saving
       if (activeScript.id) {
-        setEditedContents(prev => {
-          const newState = {...prev};
+        setEditedContents((prev) => {
+          const newState = { ...prev };
           delete newState[activeScript.id];
           return newState;
         });
       }
-      
+
       refetch();
       showSuccessToast("Script updated successfully", "Your changes have been saved.");
     } catch (error) {
@@ -254,11 +254,11 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
           setActiveTab(openTabs[0] || null);
         }
       }
-      
+
       // Clear any edited content for this script
       if (scriptToDelete.id) {
-        setEditedContents(prev => {
-          const newState = {...prev};
+        setEditedContents((prev) => {
+          const newState = { ...prev };
           delete newState[scriptToDelete.id];
           return newState;
         });
@@ -471,18 +471,18 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
         const currentValue = editorRef.current.getValue();
         // Store current edits in case the tab is reopened
         if (currentValue !== activeScript.content) {
-          setEditedContents(prev => ({
+          setEditedContents((prev) => ({
             ...prev,
-            [activeScript.id]: currentValue
+            [activeScript.id]: currentValue,
           }));
         }
       }
     }
-    
+
     // Remove the tab
     const newTabs = openTabs.filter((t) => t !== tab);
     setOpenTabs(newTabs);
-    
+
     // If we're removing the active tab, set a new active tab
     if (activeTab === tab && newTabs.length > 0) {
       setActiveTab(newTabs[newTabs.length - 1]);
@@ -493,16 +493,16 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
 
   const handleCodeChange = (value?: string) => {
     if (!activeTab || !value) return;
-    
+
     const activeScript = getActiveScript();
     if (!activeScript || !activeScript.id) return;
-    
+
     // Store edited content by script id to prevent content mixing
-    setEditedContents(prev => ({
+    setEditedContents((prev) => ({
       ...prev,
-      [activeScript.id]: value
+      [activeScript.id]: value,
     }));
-    
+
     setScriptsEdited((prev) => {
       const existingScriptIndex = prev.findIndex((script) => script.id === activeScript.id);
       if (existingScriptIndex >= 0) {
@@ -517,21 +517,21 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
 
   const handleScriptClicked = (fullName: string, script?: Script) => {
     setActiveFolder(null);
-    
+
     // If opening a new tab, make sure we sync any unsaved changes first
     if (activeTab && !openTabs.includes(fullName)) {
       const currentScript = getActiveScript();
       if (currentScript?.id && editorRef.current) {
         const currentValue = editorRef.current.getValue();
         if (currentValue !== currentScript.content) {
-          setEditedContents(prev => ({
+          setEditedContents((prev) => ({
             ...prev,
-            [currentScript.id]: currentValue
+            [currentScript.id]: currentValue,
           }));
         }
       }
     }
-    
+
     if (!openTabs.includes(fullName)) {
       setOpenTabs([...openTabs, fullName]);
     }

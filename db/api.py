@@ -214,13 +214,13 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
     # Explicitly load tools and protocols
     _ = workcell.tools
     _ = workcell.protocols
-    
+
     # Explicitly load hotels
     _ = workcell.hotels
-    
+
     # Get all nests for the workcell (from both tools and hotels)
     nests = crud.nest.get_all_nests_by_workcell_id(db=db, workcell_id=workcell.id)
-    
+
     # Get all plates in nests
     plates = []
     for nest in nests:
@@ -228,33 +228,33 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
             plate = crud.plate.get_by(db, obj_in={"nest_id": nest.id})
             if plate:
                 plates.append(plate)
-    
+
     # Get all wells for all plates
     wells = []
     for plate in plates:
         wells.extend(crud.well.get_all_by(db, obj_in={"plate_id": plate.id}))
-    
+
     # Get all reagents for all wells
     reagents = []
     for well in wells:
         reagents.extend(crud.reagent.get_all_by(db, obj_in={"well_id": well.id}))
-    
+
     # Get all labware definitions
     labware = crud.labware.get_all(db)
-    
+
     # Create a temporary file for the JSON content
     with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
         temp_file_path = temp_file.name
         # Serialize the workcell to JSON and write to the file
         workcell_json = jsonable_encoder(workcell)
-        
+
         # Add the inventory data to the export
         workcell_json["nests"] = jsonable_encoder(nests)
         workcell_json["plates"] = jsonable_encoder(plates)
         workcell_json["wells"] = jsonable_encoder(wells)
         workcell_json["reagents"] = jsonable_encoder(reagents)
         workcell_json["labware"] = jsonable_encoder(labware)
-        
+
         temp_file.write(json.dumps(workcell_json, indent=2).encode("utf-8"))
 
     # Set the filename for download
@@ -477,7 +477,9 @@ async def import_workcell_config(
                     existing_plate = crud.plate.get(db, id=plate_data.get("id"))
                 except:
                     # Try to find by barcode
-                    existing_plate = crud.plate.get_by(db, obj_in={"barcode": plate_data["barcode"]})
+                    existing_plate = crud.plate.get_by(
+                        db, obj_in={"barcode": plate_data["barcode"]}
+                    )
 
                 if existing_plate:
                     # Update existing plate
@@ -507,12 +509,12 @@ async def import_workcell_config(
                     # Try to find by plate_id, row and column
                     if "row" in well_data and "column" in well_data:
                         existing_well = crud.well.get_by(
-                            db, 
+                            db,
                             obj_in={
                                 "plate_id": well_data["plate_id"],
                                 "row": well_data["row"],
-                                "column": well_data["column"]
-                            }
+                                "column": well_data["column"],
+                            },
                         )
 
                 if existing_well:
@@ -532,7 +534,11 @@ async def import_workcell_config(
         if "reagents" in workcell_data and isinstance(workcell_data["reagents"], list):
             for reagent_data in workcell_data["reagents"]:
                 # Skip if essential reagent data is missing
-                if not isinstance(reagent_data, dict) or "well_id" not in reagent_data or "name" not in reagent_data:
+                if (
+                    not isinstance(reagent_data, dict)
+                    or "well_id" not in reagent_data
+                    or "name" not in reagent_data
+                ):
                     continue
 
                 # Check if this reagent already exists
@@ -542,16 +548,18 @@ async def import_workcell_config(
                 except:
                     # Try to find by well_id and name
                     existing_reagent = crud.reagent.get_by(
-                        db, 
+                        db,
                         obj_in={
                             "well_id": reagent_data["well_id"],
-                            "name": reagent_data["name"]
-                        }
+                            "name": reagent_data["name"],
+                        },
                     )
 
                 if existing_reagent:
                     # Update existing reagent
-                    reagent_update = {k: v for k, v in reagent_data.items() if k != "id"}
+                    reagent_update = {
+                        k: v for k, v in reagent_data.items() if k != "id"
+                    }
                     crud.reagent.update(
                         db,
                         db_obj=existing_reagent,
@@ -559,8 +567,12 @@ async def import_workcell_config(
                     )
                 else:
                     # Create new reagent
-                    reagent_create = {k: v for k, v in reagent_data.items() if k != "id"}
-                    crud.reagent.create(db, obj_in=schemas.ReagentCreate(**reagent_create))
+                    reagent_create = {
+                        k: v for k, v in reagent_data.items() if k != "id"
+                    }
+                    crud.reagent.create(
+                        db, obj_in=schemas.ReagentCreate(**reagent_create)
+                    )
 
         # Process and create/update protocols if they exist in the import data
         if "protocols" in workcell_data and isinstance(

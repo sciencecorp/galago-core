@@ -89,7 +89,7 @@ export const labwareRouter = router({
     }
     return { message: "Labware deleted successfully" };
   }),
-  
+
   // Export labware config - returns the labware data for download
   exportConfig: procedure.input(z.number()).mutation(async ({ input }) => {
     try {
@@ -114,7 +114,7 @@ export const labwareRouter = router({
         const { file } = input;
         // Use the uploadFile utility
         const response = await uploadFile<Labware>("/labware/import", file);
-        
+
         // Reload labware in all PF400 tools
         const allTools = await get<ToolResponse[]>(`/tools`);
         const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
@@ -125,7 +125,7 @@ export const labwareRouter = router({
             }),
           );
         }
-        
+
         return response;
       } catch (error) {
         console.error("Import failed:", error);

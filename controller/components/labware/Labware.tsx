@@ -213,7 +213,7 @@ export const Labware: React.FC = () => {
                   <Stat>
                     <StatLabel>Selected</StatLabel>
                     <StatNumber fontSize="lg">
-                      {labware.find(item => item.id === selectedLabwareId)?.name || 'None'}
+                      {labware.find((item) => item.id === selectedLabwareId)?.name || "None"}
                     </StatNumber>
                   </Stat>
                 )}
@@ -310,13 +310,12 @@ export const Labware: React.FC = () => {
                   </Thead>
                   <Tbody>
                     {filteredLabware?.map((item) => (
-                      <Tr 
-                        key={item.id} 
+                      <Tr
+                        key={item.id}
                         _hover={{ bg: hoverBgColor }}
                         onClick={() => handleRowClick(item)}
                         cursor="pointer"
-                        bg={selectedLabwareId === item.id ? hoverBgColor : undefined}
-                      >
+                        bg={selectedLabwareId === item.id ? hoverBgColor : undefined}>
                         <Td width="50px">
                           <WellPlateIcon
                             rows={item.number_of_rows}

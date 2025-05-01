@@ -6,10 +6,7 @@ import { Labware } from "@/types/api";
  * React hook for labware import/export functionality
  * Provides an interface to the server-side import/export operations
  */
-export const useLabwareIO = (
-  labware: Labware[],
-  refetch: () => Promise<unknown>,
-) => {
+export const useLabwareIO = (labware: Labware[], refetch: () => Promise<unknown>) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // tRPC mutations
@@ -41,7 +38,7 @@ export const useLabwareIO = (
 
       const downloadLink = document.createElement("a");
       downloadLink.href = url;
-      downloadLink.download = `${selectedLabware.name.replace(/ /g, '_')}-config.json`;
+      downloadLink.download = `${selectedLabware.name.replace(/ /g, "_")}-config.json`;
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
@@ -119,4 +116,4 @@ export const useLabwareIO = (
     isImporting: importConfigMutation.isLoading,
     isExporting: exportConfigMutation.isLoading,
   };
-}; 
+};

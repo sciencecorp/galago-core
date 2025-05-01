@@ -24,7 +24,16 @@ import {
 import { DeleteIcon, AddIcon, EditIcon, ArrowForwardIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
-import { DragDropContext, Droppable, Draggable, DropResult, DroppableProvided, DraggableProvided, DraggableStateSnapshot, DroppableStateSnapshot } from "react-beautiful-dnd";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+  DroppableProvided,
+  DraggableProvided,
+  DraggableStateSnapshot,
+  DroppableStateSnapshot,
+} from "react-beautiful-dnd";
 import { AddToolCommandModal } from "./AddToolCommandModal";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
@@ -350,7 +359,10 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     setCommands(items);
   };
 
-  const renderDraggableCommands = (provided: DroppableProvided, snapshot: DroppableStateSnapshot) => {
+  const renderDraggableCommands = (
+    provided: DroppableProvided,
+    snapshot: DroppableStateSnapshot,
+  ) => {
     if (commands.length === 0 && isEditing) {
       return (
         <Button
