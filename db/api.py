@@ -24,8 +24,6 @@ from .models.inventory_models import Protocol
 import json
 from fastapi.encoders import jsonable_encoder
 from starlette.background import BackgroundTask
-from .schemas import NestStatus, PlateStatus, PlateNestAction
-
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s | %(levelname)s | %(message)s",
@@ -447,9 +445,11 @@ async def import_workcell_config(
                 # Check if this nest already exists
                 existing_nest = None
                 try:
-                    existing_nest = crud.nest.get(db, id=nest_data.get("id"))
-                except:
-                    pass
+                    nest_id = nest_data.get("id")
+                    if nest_id is not None:
+                        existing_nest = crud.nest.get(db, id=int(nest_id))
+                except Exception as e:
+                    logging.error(f"Nest {nest_data.get('name')} not found: {e}")
 
                 if existing_nest:
                     # Update existing nest
@@ -474,9 +474,12 @@ async def import_workcell_config(
                 # Check if this plate already exists
                 existing_plate = None
                 try:
-                    existing_plate = crud.plate.get(db, id=plate_data.get("id"))
-                except:
+                    plate_id = plate_data.get("id")
+                    if plate_id is not None:
+                        existing_plate = crud.plate.get(db, id=int(plate_id))
+                except Exception as e:
                     # Try to find by barcode
+                    logging.error(f"Plate {plate_data.get('name')} not found: {e}")
                     existing_plate = crud.plate.get_by(
                         db, obj_in={"barcode": plate_data["barcode"]}
                     )
@@ -504,9 +507,12 @@ async def import_workcell_config(
                 # Check if this well already exists
                 existing_well = None
                 try:
-                    existing_well = crud.well.get(db, id=well_data.get("id"))
-                except:
+                    well_id = well_data.get("id")
+                    if well_id is not None:
+                        existing_well = crud.well.get(db, id=int(well_id))
+                except Exception as e:
                     # Try to find by plate_id, row and column
+                    logging.error(f"Well {well_data.get('name')} not found: {e}")
                     if "row" in well_data and "column" in well_data:
                         existing_well = crud.well.get_by(
                             db,
@@ -544,8 +550,11 @@ async def import_workcell_config(
                 # Check if this reagent already exists
                 existing_reagent = None
                 try:
-                    existing_reagent = crud.reagent.get(db, id=reagent_data.get("id"))
-                except:
+                    reagent_id = reagent_data.get("id")
+                    if reagent_id is not None:
+                        existing_reagent = crud.reagent.get(db, id=int(reagent_id))
+                except Exception as e:
+                    logging.error(f"Reagent {reagent_data.get('name')} not found: {e}")
                     # Try to find by well_id and name
                     existing_reagent = crud.reagent.get_by(
                         db,
