@@ -109,9 +109,9 @@ export const PlateGrid: React.FC<PlateGridProps> = ({
     return (
       <Tooltip key={well.id} label={tooltipLabel}>
         <Box
-          bg={hasReagent ? "green.200" : isSelected ? styles.selectedColor : "transparent"}
+          bg={isSelected ? styles.selectedColor : hasReagent ? "green.200" : "transparent"}
           border="1px solid"
-          borderColor={borderColor}
+          borderColor={isSelected ? "blue.400" : borderColor}
           borderRadius={styles.shape === "circle" ? "full" : "md"}
           cursor="pointer"
           onClick={() => onWellClick?.(well.id)}
@@ -120,7 +120,7 @@ export const PlateGrid: React.FC<PlateGridProps> = ({
           display="flex"
           alignItems="center"
           justifyContent="center"
-          _hover={{ bg: hasReagent ? "green.300" : styles.hoverColor }}
+          _hover={{ bg: isSelected ? styles.selectedColor : hasReagent ? "green.300" : styles.hoverColor }}
           transition="all 0.2s"
         />
       </Tooltip>

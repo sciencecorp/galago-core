@@ -84,7 +84,7 @@ class NestStatus(str, PyEnum):
 
 class PlateStatus(str, PyEnum):
     stored = "stored"
-    in_use = "in_use"
+    checked_out = "checked_out"
     completed = "completed"
     disposed = "disposed"
 

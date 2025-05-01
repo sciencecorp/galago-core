@@ -17,6 +17,7 @@ export const useScriptColors = () => {
 export const useCommonColors = () => {
   return {
     cardBg: useColorModeValue("white", "gray.900"),
+    textColor: useColorModeValue("gray.800", "white"),
     bgColor: useColorModeValue("gray.50", "gray.900"),
     selectedBg: useColorModeValue("teal.50", "teal.900"),
     headerBg: useColorModeValue("white", "gray.700"),
@@ -29,6 +30,7 @@ export const useCommonColors = () => {
     sectionBg: useColorModeValue("gray.50", "gray.800"),
     alternateBg: useColorModeValue("gray.100", "gray.800"),
     selectedBorder: useColorModeValue("teal.500", "teal.400"),
+    arrowColor: useColorModeValue("gray.500", "gray.400"),
   };
 };
 

@@ -103,11 +103,11 @@ export const RunsComponent: React.FC = () => {
   });
 
   const commandBgColor = useColorModeValue("gray.50", "gray.800");
-  const borderColor = useColorModeValue("gray.300", "gray.600");
+  const borderColor = useColorModeValue("gray.200", "gray.600");
   const hoverBgColor = useColorModeValue("gray.100", "gray.600");
   const textColor = useColorModeValue("gray.800", "gray.100");
   const cardBg = useColorModeValue("white", "gray.700");
-  const expandedRunBg = useColorModeValue("gray.50", "gray.800");
+  const expandedRunBg = useColorModeValue("white", "gray.800");
   const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
   const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
 
@@ -282,11 +282,12 @@ export const RunsComponent: React.FC = () => {
               borderColor={borderColor}
               borderRadius="md"
               width="100%"
+              boxShadow={useColorModeValue("md", "none")}
               transition="all 0.2s"
               _hover={{
                 bg: hoverBgColor,
                 transform: "translateY(-1px)",
-                boxShadow: "sm",
+                boxShadow: "md",
               }}>
               <VStack spacing="2">
                 {runAttributes.commandsCount > 0 && (

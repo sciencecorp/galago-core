@@ -49,6 +49,7 @@ import { CommandDetailsDrawer } from "./CommandDetailsDrawer";
 import { ParameterSchema } from "@/types";
 import CommandImage from "@/components/tools/CommandImage";
 import { successToast, errorToast } from "../ui/Toast";
+import { useCommonColors } from "@/components/ui/Theme";
 
 const handleWheel = (e: WheelEvent) => {
   const container = e.currentTarget as HTMLElement;
@@ -89,9 +90,10 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
         borderLeftRadius="15"
         borderRightRadius="15"
         padding="6px"
-        background={useColorModeValue("gray.100", "gray.700")}
+        background={useColorModeValue("gray.50", "gray.700")}
         border="1px"
-        borderColor="black">
+        borderColor={useColorModeValue("gray.200", "gray.600")}
+        boxShadow={useColorModeValue("md", "none")}>
         <VStack alignItems="stretch">
           <Box>
             <HStack spacing={2}>

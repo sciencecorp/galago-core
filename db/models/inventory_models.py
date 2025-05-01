@@ -101,7 +101,7 @@ class NestStatus(str, enum.Enum):
 
 class PlateStatus(str, enum.Enum):
     stored = "stored"
-    in_use = "in_use"
+    checked_out = "checked_out"
     completed = "completed"
     disposed = "disposed"
 

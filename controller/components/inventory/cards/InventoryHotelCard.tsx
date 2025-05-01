@@ -47,6 +47,7 @@ interface InventoryHotelCardProps {
   onDeleteNest: (nestId: number) => Promise<void>;
   onPlateClick?: (plate: Plate) => void;
   onDeleteHotel?: () => void;
+  onCheckIn?: (nestId: number, triggerToolCommand?: boolean) => void;
 }
 
 export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
@@ -60,61 +61,51 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
   onDeleteNest,
   onPlateClick,
   onDeleteHotel,
+  onCheckIn,
 }) => {
   const { cardBg, borderColor } = useCommonColors();
   const { secondary: iconColor } = useTextColors();
   const statBg = useColorModeValue("gray.50", "gray.800");
 
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { data: hotel } = trpc.inventory.getHotelById.useQuery(hotelId);
 
-  // Get hotel data directly from the API and type it correctly
-  const { data, isLoading, refetch } = trpc.inventory.getHotelById.useQuery(hotelId, {
-    enabled: hotelId > 0,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-  });
+  const hotelNests = nests.filter((nest) => nest.hotel_id === hotelId);
+  const hotelPlates = plates.filter((plate) => hotelNests.some((nest) => nest.id === plate.nest_id));
 
-  // Cast data to Hotel type
-  const hotel = data as Hotel | undefined;
-
-  // Filter nests that belong to this hotel
-  const hotelNests = nests.filter((nest) => {
-    return nest.hotel_id === hotelId;
-  });
-
-  // Also try to get nests from the hotel data if available
-  const nestedHotelNests = hotel?.nests || [];
-
-  // Use either the filtered nests or the nested nests from the hotel data, whichever has more
-  const combinedNests =
-    hotelNests.length >= nestedHotelNests.length ? hotelNests : nestedHotelNests;
-
-  const hotelPlates = plates.filter((plate) =>
-    combinedNests.some((nest) => nest.id === plate.nest_id),
-  );
-
-  // Calculate actual dimensions from existing nests
-  const actualRows =
-    combinedNests.length > 0 ? Math.max(...combinedNests.map((n) => n.row)) + 1 : 0;
-  const actualColumns =
-    combinedNests.length > 0 ? Math.max(...combinedNests.map((n) => n.column)) + 1 : 0;
-
-  // Use either the hotel dimensions or calculated dimensions, whichever is larger
-  const displayRows = Math.max(hotel?.rows || 0, actualRows);
-  const displayColumns = Math.max(hotel?.columns || 0, actualColumns);
-
-  // Refetch data when modal opens
-  const handleOpen = () => {
-    refetch();
-    onOpen();
-  };
-
-  // Refetch when modal is closed
   useEffect(() => {
-    if (!isOpen && hotel) {
-      refetch();
+    // This is to handle the case when the hotel has been deleted
+    if (hotel === null) {
+      onClose();
     }
-  }, [isOpen, hotelId, refetch]);
+  }, [hotel, onClose]);
+
+  // Generate the combined nests - actually present plus placeholders for empty spaces
+  const combinedNests: Nest[] = [...hotelNests];
+
+  // Add missing nests if needed (this helps render the grid properly)
+  for (let row = 0; row < (hotel?.rows || 0); row++) {
+    for (let col = 0; col < (hotel?.columns || 0); col++) {
+      // Check if this position already has a nest
+      const existingNest = hotelNests.find((n) => n.row === row && n.column === col);
+      if (!existingNest) {
+        // Create a placeholder nest for this position
+        const placeholderNest: Nest = {
+          id: -1 * (row * 100 + col), // Negative ID to indicate it's a placeholder
+          name: `${hotel?.name || "Hotel"} R${row + 1}C${col + 1}`,
+          row: row,
+          column: col,
+          hotel_id: hotelId,
+          tool_id: undefined,
+          status: "empty",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          current_plate_id: null,
+        };
+        combinedNests.push(placeholderNest);
+      }
+    }
+  }
 
   return (
     <>
@@ -123,50 +114,37 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
         borderColor={borderColor}
         borderWidth="1px"
         borderRadius="lg"
-        onClick={handleOpen}
         transition="all 0.2s"
         cursor="pointer"
+        onClick={onOpen}
         _hover={{ transform: "translateY(-2px)", shadow: "lg" }}>
-        <CardHeader pb={4}>
+        <CardHeader pb={3}>
           <VStack align="stretch" spacing={2}>
-            <Flex justify="space-between" align="center">
+            <HStack spacing={3} justify="space-between">
               <HStack spacing={3}>
-                <Box boxSize="50px" display="flex" alignItems="center" justifyContent="center">
-                  {!isLoading ? (
-                    <Icon as={BiBuilding} boxSize="30px" color="teal.500" />
-                  ) : (
-                    <Spinner size="md" />
-                  )}
-                </Box>
+                <Icon as={BiBuilding} boxSize={6} color="orange.400" />
                 <Box>
-                  <Heading size="md">{hotel?.name || "Hotel"}</Heading>
+                  <Heading size="md">{hotel?.name}</Heading>
+                  <Text fontSize="sm" color="gray.500">
+                    Static Storage
+                  </Text>
                 </Box>
               </HStack>
-              <HStack>
+
+              {onDeleteHotel && (
                 <IconButton
-                  icon={<RepeatIcon />}
-                  aria-label="Refresh Hotel"
-                  variant="ghost"
-                  colorScheme="blue"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    refetch();
-                  }}
-                />
-                <IconButton
+                  aria-label="Delete hotel"
                   icon={<DeleteIcon />}
-                  aria-label="Delete Hotel"
-                  variant="ghost"
-                  colorScheme="red"
                   size="sm"
+                  colorScheme="red"
+                  variant="ghost"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onDeleteHotel?.();
+                    if (onDeleteHotel) onDeleteHotel();
                   }}
                 />
-              </HStack>
-            </Flex>
+              )}
+            </HStack>
           </VStack>
         </CardHeader>
 
@@ -232,6 +210,9 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
         onCreateNest={(row, column) => onCreateNest(hotelId, hotel?.name || "Hotel", row, column)}
         onDeleteNest={onDeleteNest}
         onPlateClick={onPlateClick}
+        onCheckIn={onCheckIn}
+        containerType="hotel"
+        containerId={hotelId}
       />
     </>
   );

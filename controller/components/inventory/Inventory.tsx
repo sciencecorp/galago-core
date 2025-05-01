@@ -43,8 +43,7 @@ import { InventoryHotelCard } from "./cards/InventoryHotelCard";
 import AlertComponent from "@/components/ui/AlertComponent";
 import { trpc } from "@/utils/trpc";
 import { BsBoxSeam } from "react-icons/bs";
-import CheckInModal from "./modals/CheckInModal";
-import CheckOutModal from "./modals/CheckOutModal";
+import InventoryModal from "./modals/InventoryModal";
 import PlateModal from "./modals/PlateModal";
 import { Icon } from "@/components/ui/Icons";
 import {
@@ -67,6 +66,9 @@ export const InventoryManager = () => {
   const [selectedPlate, setSelectedPlate] = useState<Plate | null>(null);
   const [selectedReagent, setSelectedReagent] = useState<Reagent | null>(null);
   const [selectedNest, setSelectedNest] = useState<Nest | null>(null);
+  const [selectedNestIds, setSelectedNestIds] = useState<number[]>([]);
+  const [selectedContainerId, setSelectedContainerId] = useState<number | null>(null);
+  const [selectedContainerType, setSelectedContainerType] = useState<"tool" | "hotel" | "">("");
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
   const [isCheckOutModalOpen, setIsCheckOutModalOpen] = useState(false);
   const [isPlateModalOpen, setIsPlateModalOpen] = useState(false);
@@ -78,6 +80,7 @@ export const InventoryManager = () => {
   const [newHotelColumns, setNewHotelColumns] = useState(12);
   const [showDeleteHotelModal, setShowDeleteHotelModal] = useState(false);
   const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null);
+  const [nestTriggerToolCommand, setNestTriggerToolCommand] = useState(false);
 
   const { colorMode } = useColorMode();
   const isDarkMode = colorMode === "dark";
@@ -134,6 +137,7 @@ export const InventoryManager = () => {
   const createHotelMutation = trpc.inventory.createHotel.useMutation();
   const deleteHotelMutation = trpc.inventory.deleteHotel.useMutation();
   const updateHotelMutation = trpc.inventory.updateHotel.useMutation();
+  const updateNestMutation = trpc.inventory.updateNest.useMutation();
 
   const workcellTools = selectedWorkcell?.tools || [];
 
@@ -321,13 +325,80 @@ export const InventoryManager = () => {
     plates: newPlates,
     triggerToolCommand,
     isStatic,
+    containerId,
+    containerType
   }: {
     nestId: number;
     plates: Array<{ barcode: string; name: string; plate_type: string }>;
     triggerToolCommand: boolean;
     isStatic?: boolean;
+    containerId?: number;
+    containerType?: "tool" | "hotel" | "";
   }) => {
     try {
+      // Debug log all incoming parameters
+      console.log("handleCheckIn parameters:", { 
+        nestId, 
+        plateCount: newPlates.length, 
+        triggerToolCommand, 
+        isStatic, 
+        containerId, 
+        containerType 
+      });
+      
+      // Handle automatic placement (nestId = -1)
+      if (nestId === -1) {
+        console.log(`Auto-placement requested with container type: "${containerType}" and ID: ${containerId || 'none'}`);
+        
+        // Find available empty nests for the selected container
+        const emptyNests = typedNests.filter((nest) => {
+          // Log to help debug the filter conditions
+          const isToolMatch = containerType === "tool" && containerId && nest.tool_id === containerId;
+          const isHotelMatch = containerType === "hotel" && containerId && nest.hotel_id === containerId;
+          const hasPlate = typedPlates.some((p) => p.nest_id === nest.id);
+          const isEmpty = !hasPlate && nest.status === "empty";
+          
+          // First filter by container type and ID if specified
+          if (containerType === "tool" && containerId) {
+            if (nest.tool_id !== containerId) return false;
+          } else if (containerType === "hotel" && containerId) {
+            if (nest.hotel_id !== containerId) return false;
+          } else if (!containerType) {
+            // If no container type specified, just find any empty nest
+            // This is a fallback, but shouldn't normally happen with the UI
+            console.log("No container type specified for automatic placement");
+          } 
+          
+          // Then check if the nest is empty
+          return isEmpty;
+        });
+
+        if (emptyNests.length === 0) {
+          console.error("No matching empty nests found:", {
+            containerType,
+            containerId,
+            totalNests: typedNests.length,
+            emptyNestCount: typedNests.filter(n => !typedPlates.some(p => p.nest_id === n.id)).length
+          });
+          throw new Error(`No empty nests available for automatic placement${containerType ? ` in the selected ${containerType}` : ""}`);
+        }
+
+        // Debug log to see what we're selecting from
+        console.log(`Found ${emptyNests.length} empty nests for ${containerType || "unspecified"} container`, emptyNests);
+
+        // Sort by row and column to get the first available nest in reading order
+        const sortedNests = [...emptyNests].sort((a, b) => {
+          if (a.row === b.row) {
+            return a.column - b.column;
+          }
+          return a.row - b.row;
+        });
+
+        // Use the first available nest
+        nestId = sortedNests[0].id;
+        console.log(`Selected nest ID ${nestId} for automatic placement`);
+      }
+
       // Get the nest to check capacity
       const targetNest = typedNests.find((n: Nest) => n.id === nestId);
       if (!targetNest) {
@@ -454,12 +525,27 @@ export const InventoryManager = () => {
       }
 
       // Get the nest to determine if this is a tool or hotel
-      const nest = typedNests.find((n) => n.id === plateToCheckOut?.nest_id);
+      const nestId = plateToCheckOut.nest_id;
+      const nest = typedNests.find((n) => n.id === nestId);
       if (!nest) {
         throw new Error("Nest not found for this plate");
       }
 
-      // Update the plate to remove it from the nest
+      // First update the nest status to empty
+      // This ensures the UI shows the correct status right away
+      const updatedNest = { 
+        id: nest.id,
+        name: nest.name,
+        row: nest.row,
+        column: nest.column,
+        status: "empty" as NestStatus, 
+        // Only include non-null IDs
+        ...(nest.tool_id ? { tool_id: nest.tool_id } : {}),
+        ...(nest.hotel_id ? { hotel_id: nest.hotel_id } : {})
+      };
+      await updateNestMutation.mutateAsync(updatedNest);
+
+      // Then update the plate to remove it from the nest
       await updatePlateMutation.mutateAsync({
         ...plateToCheckOut,
         nest_id: null,
@@ -504,6 +590,8 @@ export const InventoryManager = () => {
         }
       }
 
+      // Refresh the data
+      refetchNests();
       refetchPlates();
       setSelectedPlate(null);
       setIsCheckOutModalOpen(false);
@@ -684,17 +772,6 @@ export const InventoryManager = () => {
                   titleIcon={<Icon as={BsBoxSeam} boxSize={8} color="teal.500" />}
                   mainButton={null}
                 />
-                <ButtonGroup>
-                  <Button colorScheme="teal" onClick={() => setIsCheckInModalOpen(true)}>
-                    Check In
-                  </Button>
-                  <Button
-                    colorScheme="teal"
-                    variant="outline"
-                    onClick={() => setIsCheckOutModalOpen(true)}>
-                    Check Out
-                  </Button>
-                </ButtonGroup>
               </HStack>
 
               <Divider />
@@ -761,6 +838,16 @@ export const InventoryManager = () => {
                     onCreateReagent={handleCreateReagent}
                     onNestClick={handleNestSelect}
                     onPlateClick={handlePlateClick}
+                    onCheckIn={(nestId, triggerCmd) => {
+                      const nestToUse = typedNests.find((n: Nest) => n.id === nestId) || null;
+                      console.log(`Tool card clicked for check-in: nest ${nestId}, tool ${tool.id}, name ${tool.name}`);
+                      setSelectedNest(nestToUse);
+                      setSelectedNestIds([nestId]);
+                      setNestTriggerToolCommand(triggerCmd || false);
+                      setSelectedContainerId(tool.id);
+                      setSelectedContainerType("tool");
+                      setIsCheckInModalOpen(true);
+                    }}
                   />
                 </Box>
               ))}
@@ -798,7 +885,7 @@ export const InventoryManager = () => {
                     <Box key={hotel.id}>
                       <InventoryHotelCard
                         hotelId={hotel.id}
-                        nests={typedNests}
+                        nests={typedNests.filter((n: Nest) => n.hotel_id === hotel.id)}
                         plates={typedPlates}
                         onCreateNest={(hotelId, name, row, col) =>
                           handleCreateNest(hotelId, name, row, col, true)
@@ -812,6 +899,16 @@ export const InventoryManager = () => {
                           setSelectedHotelId(hotel.id);
                           setShowDeleteHotelModal(true);
                         }}
+                        onCheckIn={(nestId, triggerCmd) => {
+                          const nestToUse = typedNests.find((n: Nest) => n.id === nestId) || null;
+                          console.log(`Hotel card clicked for check-in: nest ${nestId}, hotel ${hotel.id}, name ${hotel.name}`);
+                          setSelectedNest(nestToUse);
+                          setSelectedNestIds([nestId]);
+                          setNestTriggerToolCommand(triggerCmd || false);
+                          setSelectedContainerId(hotel.id);
+                          setSelectedContainerType("hotel");
+                          setIsCheckInModalOpen(true);
+                        }}
                       />
                     </Box>
                   );
@@ -824,28 +921,48 @@ export const InventoryManager = () => {
         </Card>
       </VStack>
 
-      <CheckInModal
+      <InventoryModal
+        mode="check-in"
         isOpen={isCheckInModalOpen}
-        onClose={() => setIsCheckInModalOpen(false)}
+        onClose={() => {
+          setIsCheckInModalOpen(false);
+          setSelectedNestIds([]);
+          setSelectedContainerId(null);
+          setSelectedContainerType("");
+        }}
         tools={workcellTools}
         staticHotels={hotels}
         availableNests={typedNests}
         selectedPlate={selectedPlate}
         plates={typedPlates}
-        onSubmit={handleCheckIn}
+        triggerToolCommand={nestTriggerToolCommand}
+        onCheckIn={handleCheckIn}
         onPlateClick={handlePlateClick}
+        initialSelectedNestIds={selectedNestIds}
+        initialContainerId={selectedContainerId}
+        initialContainerType={selectedContainerType}
       />
 
-      <CheckOutModal
+      <InventoryModal
+        mode="check-out"
         isOpen={isCheckOutModalOpen}
-        onClose={() => setIsCheckOutModalOpen(false)}
+        onClose={() => {
+          setIsCheckOutModalOpen(false);
+          setSelectedNestIds([]);
+          setSelectedContainerId(null);
+          setSelectedContainerType("");
+        }}
         selectedPlate={selectedPlate}
         tools={workcellTools}
         staticHotels={hotels}
         availableNests={typedNests}
         plates={typedPlates}
-        onSubmit={handleCheckOut}
+        triggerToolCommand={nestTriggerToolCommand}
+        onCheckOut={handleCheckOut}
         onPlateClick={handlePlateClick}
+        initialSelectedNestIds={selectedNestIds}
+        initialContainerId={selectedContainerId}
+        initialContainerType={selectedContainerType}
       />
 
       <Modal isOpen={showAddHotelModal} onClose={() => setShowAddHotelModal(false)}>
