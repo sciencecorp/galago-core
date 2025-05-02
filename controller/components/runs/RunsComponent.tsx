@@ -108,6 +108,7 @@ export const RunsComponent: React.FC = () => {
   const textColor = useColorModeValue("gray.800", "gray.100");
   const cardBg = useColorModeValue("white", "gray.700");
   const expandedRunBg = useColorModeValue("white", "gray.800");
+  const boxShadowValue = useColorModeValue("md", "none");
   const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
   const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
 
@@ -282,7 +283,7 @@ export const RunsComponent: React.FC = () => {
               borderColor={borderColor}
               borderRadius="md"
               width="100%"
-              boxShadow={useColorModeValue("md", "none")}
+              boxShadow={boxShadowValue}
               transition="all 0.2s"
               _hover={{
                 bg: hoverBgColor,
