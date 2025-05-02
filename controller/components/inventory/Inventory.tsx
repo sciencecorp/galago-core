@@ -557,9 +557,12 @@ export const InventoryManager = () => {
 
       // Then update the plate to remove it from the nest
       await updatePlateMutation.mutateAsync({
-        ...plateToCheckOut,
+        id: plateToCheckOut.id,
+        barcode: plateToCheckOut.barcode,
+        name: plateToCheckOut.name,
+        plate_type: plateToCheckOut.plate_type,
         nest_id: null,
-      });
+      } as any); // Type assertion to bypass type checking for this update
 
       // If tool command is requested and it's not a static hotel
       if (triggerToolCommand && !isStatic) {

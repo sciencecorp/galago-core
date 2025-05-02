@@ -397,14 +397,14 @@ async def import_workcell_config(
                 # Create or update the labware
                 if existing_labware:
                     # Update existing labware
-                    labware = crud.labware.update(
+                    _ = crud.labware.update(
                         db,
                         db_obj=existing_labware,
                         obj_in=schemas.LabwareUpdate(**labware_fields),
                     )
                 else:
                     # Create new labware
-                    labware = crud.labware.create(
+                    _ = crud.labware.create(
                         db, obj_in=schemas.LabwareCreate(**labware_fields)
                     )
 
@@ -1008,25 +1008,28 @@ def update_plate(
     if is_checkin:
         try:
             # First check if the nest is available
-            nest = crud.nest.get(db, id=plate_update.nest_id)
-            if not nest:
-                raise ValueError("Nest not found")
-            if nest.status != schemas.NestStatus.empty:
-                raise ValueError("Nest is already occupied")
+            if plate_update.nest_id is not None:
+                nest = crud.nest.get(db, id=plate_update.nest_id)
+                if not nest:
+                    raise ValueError("Nest not found")
+                if nest.status != schemas.NestStatus.empty:
+                    raise ValueError("Nest is already occupied")
 
-            # Update plate status to stored for check-in
-            plate_update.status = schemas.PlateStatus.stored
+                # Update plate status to stored for check-in
+                plate_update.status = schemas.PlateStatus.stored
 
-            # Update nest status to occupied
-            nest.status = schemas.NestStatus.occupied
+                # Update nest status to occupied
+                nest.status = schemas.NestStatus.occupied
 
-            # Record history
-            history = models.PlateNestHistory(
-                plate_id=plate.id,
-                nest_id=nest.id,
-                action=models.PlateNestAction.check_in,
-            )
-            db.add(history)
+                # Record history
+                history = models.PlateNestHistory(
+                    plate_id=plate.id,
+                    nest_id=nest.id,
+                    action=models.PlateNestAction.check_in,
+                )
+                db.add(history)
+            else:
+                raise ValueError("Nest ID cannot be None for check-in operation")
 
             # Perform the update using the base update method
             updated_plate = crud.plate.update(db, db_obj=plate, obj_in=plate_update)
