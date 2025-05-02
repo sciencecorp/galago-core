@@ -45,23 +45,20 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
   const context = trpc.useContext();
   // Default common COM ports
   const defaultComPorts = ["COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8"];
-  
+
   // Get COM ports list if available
-  const comPortsQuery = trpc.tool.listComPorts.useQuery(
-    undefined, 
-    {
-      onError: (error) => {
-        console.error("Error fetching COM ports:", error);
-      },
-      retry: 1,
-      retryDelay: 1000,
-      refetchOnWindowFocus: false,
-      staleTime: Infinity // Don't refetch once we have data
-    }
-  );
-  
+  const comPortsQuery = trpc.tool.listComPorts.useQuery(undefined, {
+    onError: (error) => {
+      console.error("Error fetching COM ports:", error);
+    },
+    retry: 1,
+    retryDelay: 1000,
+    refetchOnWindowFocus: false,
+    staleTime: Infinity, // Don't refetch once we have data
+  });
+
   // Combine default ports with any unique ports from the query
-  const comPorts = comPortsQuery.data 
+  const comPorts = comPortsQuery.data
     ? Array.from(new Set([...defaultComPorts, ...comPortsQuery.data]))
     : defaultComPorts;
 
@@ -80,7 +77,10 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
     }
   }, [isOpen, config, type]);
 
-  const handleConfigChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, key: string) => {
+  const handleConfigChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    key: string,
+  ) => {
     const { value } = e.target;
     if (!type) return;
     if (type !== ToolType.unknown && type !== ToolType.UNRECOGNIZED) {
@@ -116,13 +116,13 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       // Get the directory path from the selected file(s)
-      const path = files[0].webkitRelativePath.split('/')[0];
-      
+      const path = files[0].webkitRelativePath.split("/")[0];
+
       // Create a synthetic event to update the input value
       const syntheticEvent = {
-        target: { value: path }
+        target: { value: path },
       } as React.ChangeEvent<HTMLInputElement>;
-      
+
       handleConfigChange(syntheticEvent, key);
     }
   };
@@ -130,8 +130,9 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
   // Helper function to validate IP addresses
   const isValidIP = (ip: string): boolean => {
     // Simple IP address validation regex
-    const ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-    return ipRegex.test(ip) || ip === 'localhost';
+    const ipRegex =
+      /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    return ipRegex.test(ip) || ip === "localhost";
   };
 
   // Helper function to determine what type of input to render
@@ -139,25 +140,28 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
     // For COM port fields, render a dropdown
     if (key.toLowerCase().includes("com_port")) {
       return (
-        <Select 
-          value={newConfig[type!]?.[key] || value} 
+        <Select
+          value={newConfig[type!]?.[key] || value}
           onChange={(e) => handleConfigChange(e, key)}
-          placeholder="Select COM port"
-        >
-          {comPorts.map(port => (
-            <option key={port} value={port}>{port}</option>
+          placeholder="Select COM port">
+          {comPorts.map((port) => (
+            <option key={port} value={port}>
+              {port}
+            </option>
           ))}
         </Select>
       );
     }
-    
+
     // For IP address fields
-    if (key.toLowerCase().includes("ip") || 
-        key.toLowerCase().includes("host") || 
-        key.toLowerCase().includes("address")) {
+    if (
+      key.toLowerCase().includes("ip") ||
+      key.toLowerCase().includes("host") ||
+      key.toLowerCase().includes("address")
+    ) {
       const currentValue = newConfig[type!]?.[key] || value || "";
       const isValid = currentValue === "" || isValidIP(currentValue);
-      
+
       return (
         <InputGroup>
           <Input
@@ -176,12 +180,14 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
                 variant="outline"
                 onClick={() => {
                   if (!isValid) {
-                    errorToast("Invalid IP Address", "Please enter a valid IP address (e.g., 192.168.1.1) or 'localhost'");
+                    errorToast(
+                      "Invalid IP Address",
+                      "Please enter a valid IP address (e.g., 192.168.1.1) or 'localhost'",
+                    );
                   } else {
                     successToast("Valid IP Address", "IP address format is valid");
                   }
-                }}
-              >
+                }}>
                 {isValid ? "✓" : "✗"}
               </Button>
             </Tooltip>
@@ -189,11 +195,13 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
         </InputGroup>
       );
     }
-    
+
     // For directory path fields, render with a browse button
-    if (key.toLowerCase().includes("dir") || 
-        key.toLowerCase().includes("path") || 
-        key.toLowerCase().includes("directory")) {
+    if (
+      key.toLowerCase().includes("dir") ||
+      key.toLowerCase().includes("path") ||
+      key.toLowerCase().includes("directory")
+    ) {
       return (
         <InputGroup>
           <Input
@@ -208,54 +216,62 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
               colorScheme="teal"
               onClick={async () => {
                 // Try to use the File System Access API
-                if ('showDirectoryPicker' in window) {
+                if ("showDirectoryPicker" in window) {
                   try {
                     // @ts-ignore - showDirectoryPicker is not yet in standard lib.dom.d.ts
                     const dirHandle = await window.showDirectoryPicker();
                     // Extract the directory name (full path is usually not available for security)
-                    const dirName = dirHandle.name; 
-                    
+                    const dirName = dirHandle.name;
+
                     // Create a synthetic event to update the input value
                     const syntheticEvent = {
-                      target: { value: dirName } // Use dirName here
+                      target: { value: dirName }, // Use dirName here
                     } as React.ChangeEvent<HTMLInputElement>;
-                    
+
                     handleConfigChange(syntheticEvent, key);
                     successToast("Directory Selected", `Selected directory: ${dirName}`);
-
                   } catch (err) {
                     // Handle errors, e.g., user cancellation
-                    if (err instanceof Error && err.name !== 'AbortError') {
-                       errorToast("Error Selecting Directory", "Could not select directory. Please check permissions or try again.");
-                       console.error("Error using showDirectoryPicker:", err);
+                    if (err instanceof Error && err.name !== "AbortError") {
+                      errorToast(
+                        "Error Selecting Directory",
+                        "Could not select directory. Please check permissions or try again.",
+                      );
+                      console.error("Error using showDirectoryPicker:", err);
                     } else {
                       console.log("Directory selection cancelled by user.");
                     }
                   }
                 } else {
                   // Fallback if API is not available
-                  errorToast("Browser Not Supported", "Directory picker API is not available in this browser. Please enter the path manually.");
-                  successToast("Directory Format", "Enter a valid directory path like C:\\Program Files or /home/user/data");
+                  errorToast(
+                    "Browser Not Supported",
+                    "Directory picker API is not available in this browser. Please enter the path manually.",
+                  );
+                  successToast(
+                    "Directory Format",
+                    "Enter a valid directory path like C:\\Program Files or /home/user/data",
+                  );
                 }
-              }}
-            >
+              }}>
               <RiFolderOpenLine />
             </Button>
           </InputRightElement>
         </InputGroup>
       );
     }
-    
+
     // For PF400 GPL version
     if (type === ToolType.pf400 && key.toLowerCase().includes("gpl_version")) {
       return (
-        <Select 
-          value={newConfig[type!]?.[key] || value} 
+        <Select
+          value={newConfig[type!]?.[key] || value}
           onChange={(e) => handleConfigChange(e, key)}
-          placeholder="Select GPL version"
-        >
-          {gplVersions.map(version => (
-            <option key={version} value={version}>{version}</option>
+          placeholder="Select GPL version">
+          {gplVersions.map((version) => (
+            <option key={version} value={version}>
+              {version}
+            </option>
           ))}
         </Select>
       );
@@ -266,9 +282,10 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
       const currentValue = newConfig[type!]?.[key] || value || "";
       // Parse as number and validate port range (0-65535)
       const numValue = Number(currentValue);
-      const isValid = currentValue === "" || 
+      const isValid =
+        currentValue === "" ||
         (!isNaN(numValue) && Number.isInteger(numValue) && numValue >= 0 && numValue <= 65535);
-      
+
       return (
         <InputGroup>
           <Input
@@ -288,11 +305,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
           {!isValid && (
             <InputRightElement>
               <Tooltip label="Port must be a number between 0-65535">
-                <Button
-                  size="sm"
-                  colorScheme="red"
-                  variant="ghost"
-                >
+                <Button size="sm" colorScheme="red" variant="ghost">
                   !
                 </Button>
               </Tooltip>
@@ -301,19 +314,19 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
         </InputGroup>
       );
     }
-    
+
     // For other numeric fields
     if (
-      key.toLowerCase().includes("speed") || 
-      key.toLowerCase().includes("timeout") || 
-      key.toLowerCase().includes("count") || 
+      key.toLowerCase().includes("speed") ||
+      key.toLowerCase().includes("timeout") ||
+      key.toLowerCase().includes("count") ||
       key.toLowerCase().includes("duration") ||
       key.toLowerCase().includes("interval")
     ) {
       const currentValue = newConfig[type!]?.[key] || value || "";
       const numValue = Number(currentValue);
       const isValid = currentValue === "" || (!isNaN(numValue) && Number.isInteger(numValue));
-      
+
       return (
         <Input
           value={currentValue}

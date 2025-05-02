@@ -24,6 +24,7 @@ from .models.inventory_models import Protocol
 import json
 from fastapi.encoders import jsonable_encoder
 from starlette.background import BackgroundTask
+
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s | %(levelname)s | %(message)s",
@@ -846,26 +847,26 @@ def get_plates(
     """
     if not workcell_name:
         return crud.plate.get_all(db)
-        
+
     # If workcell name is provided, filter plates belonging to that workcell
     workcell = crud.workcell.get_by(db=db, obj_in={"name": workcell_name})
     if not workcell:
         raise HTTPException(status_code=404, detail="Workcell not found")
-    
+
     # Get all nests for this workcell (both in tools and hotels)
     nests = crud.nest.get_all_nests_by_workcell_id(db=db, workcell_id=workcell.id)
     nest_ids = [nest.id for nest in nests]
-    
+
     # Find plates in these nests
-    workcell_plates = db.query(models.Plate).filter(
-        models.Plate.nest_id.in_(nest_ids)
-    ).all()
-    
+    workcell_plates = (
+        db.query(models.Plate).filter(models.Plate.nest_id.in_(nest_ids)).all()
+    )
+
     # Also include plates not in any nest
-    unassigned_plates = db.query(models.Plate).filter(
-        models.Plate.nest_id.is_(None)
-    ).all()
-    
+    unassigned_plates = (
+        db.query(models.Plate).filter(models.Plate.nest_id.is_(None)).all()
+    )
+
     return workcell_plates + unassigned_plates
 
 
@@ -911,23 +912,23 @@ def create_plate(plate: schemas.PlateCreate, db: Session = Depends(get_db)) -> t
             status_code=400, detail="Plate with that name already exists"
         )
     new_plate = crud.plate.create(db, obj_in=plate)
-    
+
     # If the plate is assigned to a nest, update the nest status to occupied
     if new_plate.nest_id is not None:
         nest = crud.nest.get(db, id=new_plate.nest_id)
         if nest:
             nest.status = schemas.NestStatus.occupied
             db.commit()
-            
+
             # Create plate nest history record
             history = models.PlateNestHistory(
                 plate_id=new_plate.id,
                 nest_id=nest.id,
-                action=models.PlateNestAction.check_in
+                action=models.PlateNestAction.check_in,
             )
             db.add(history)
             db.commit()
-    
+
     # Depending on plate type, automatically create wells for plate
     # Use case switch statement
     columns = []
@@ -989,20 +990,20 @@ def update_plate(
     plate = crud.plate.get(db, id=plate_id)
     if plate is None:
         raise HTTPException(status_code=404, detail="Plate not found")
-    
+
     # Check if this is a checkout operation (nest_id being set to None)
     is_checkout = plate.nest_id is not None and plate_update.nest_id is None
-    
+
     # Check if this is a check-in operation (nest_id being set from None to a value)
     is_checkin = plate.nest_id is None and plate_update.nest_id is not None
-    
+
     # If this is a checkout, use the specialized method
     if is_checkout:
         try:
             return crud.nest.check_out_plate(db, plate_id=plate_id)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
-    
+
     # If this is a check-in, ensure the nest is available and update statuses
     if is_checkin:
         try:
@@ -1012,31 +1013,31 @@ def update_plate(
                 raise ValueError("Nest not found")
             if nest.status != schemas.NestStatus.empty:
                 raise ValueError("Nest is already occupied")
-            
+
             # Update plate status to stored for check-in
             plate_update.status = schemas.PlateStatus.stored
-            
+
             # Update nest status to occupied
             nest.status = schemas.NestStatus.occupied
-            
+
             # Record history
             history = models.PlateNestHistory(
                 plate_id=plate.id,
                 nest_id=nest.id,
-                action=models.PlateNestAction.check_in
+                action=models.PlateNestAction.check_in,
             )
             db.add(history)
-            
+
             # Perform the update using the base update method
             updated_plate = crud.plate.update(db, db_obj=plate, obj_in=plate_update)
-            
+
             # Commit the transaction to save nest status change and history
             db.commit()
-            
+
             return updated_plate
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
-    
+
     # Regular update for non-checkout operations
     return crud.plate.update(db, db_obj=plate, obj_in=plate_update)
 

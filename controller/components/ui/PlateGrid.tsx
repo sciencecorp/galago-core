@@ -120,7 +120,9 @@ export const PlateGrid: React.FC<PlateGridProps> = ({
           display="flex"
           alignItems="center"
           justifyContent="center"
-          _hover={{ bg: isSelected ? styles.selectedColor : hasReagent ? "green.300" : styles.hoverColor }}
+          _hover={{
+            bg: isSelected ? styles.selectedColor : hasReagent ? "green.300" : styles.hoverColor,
+          }}
           transition="all 0.2s"
         />
       </Tooltip>

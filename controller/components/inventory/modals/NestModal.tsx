@@ -111,7 +111,7 @@ const NestModal: React.FC<NestModalProps> = ({
         toolName,
         toolType,
         nestCount: nests.length,
-        selectedNests
+        selectedNests,
       });
     }
   }, [isOpen, containerType, containerId, toolName, toolType, nests.length, selectedNests]);
@@ -318,12 +318,12 @@ const NestModal: React.FC<NestModalProps> = ({
                   </Text>
                 </VStack>
               </HStack>
-              
+
               {/* Check-in button in the top right */}
               {onCheckIn && (
-                <Button 
-                  leftIcon={<Icon as={BsBoxSeam} />} 
-                  colorScheme="teal" 
+                <Button
+                  leftIcon={<Icon as={BsBoxSeam} />}
+                  colorScheme="teal"
                   size="sm"
                   onClick={() => {
                     if (localSelectedNests.length > 0) {
@@ -339,7 +339,7 @@ const NestModal: React.FC<NestModalProps> = ({
                 </Button>
               )}
             </HStack>
-            
+
             {/* Grid dimension controls */}
             {onCreateNest && onDeleteNest && (
               <HStack spacing={2} justify="flex-end">
@@ -380,7 +380,7 @@ const NestModal: React.FC<NestModalProps> = ({
                 )}
               </HStack>
             )}
-            
+
             {/* Only show the trigger tool command option for Liconic tools */}
             {isLiconic && containerType === "tool" && (
               <HStack spacing={2} justify="flex-end">

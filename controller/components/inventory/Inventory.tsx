@@ -326,7 +326,7 @@ export const InventoryManager = () => {
     triggerToolCommand,
     isStatic,
     containerId,
-    containerType
+    containerType,
   }: {
     nestId: number;
     plates: Array<{ barcode: string; name: string; plate_type: string }>;
@@ -337,27 +337,31 @@ export const InventoryManager = () => {
   }) => {
     try {
       // Debug log all incoming parameters
-      console.log("handleCheckIn parameters:", { 
-        nestId, 
-        plateCount: newPlates.length, 
-        triggerToolCommand, 
-        isStatic, 
-        containerId, 
-        containerType 
+      console.log("handleCheckIn parameters:", {
+        nestId,
+        plateCount: newPlates.length,
+        triggerToolCommand,
+        isStatic,
+        containerId,
+        containerType,
       });
-      
+
       // Handle automatic placement (nestId = -1)
       if (nestId === -1) {
-        console.log(`Auto-placement requested with container type: "${containerType}" and ID: ${containerId || 'none'}`);
-        
+        console.log(
+          `Auto-placement requested with container type: "${containerType}" and ID: ${containerId || "none"}`,
+        );
+
         // Find available empty nests for the selected container
         const emptyNests = typedNests.filter((nest) => {
           // Log to help debug the filter conditions
-          const isToolMatch = containerType === "tool" && containerId && nest.tool_id === containerId;
-          const isHotelMatch = containerType === "hotel" && containerId && nest.hotel_id === containerId;
+          const isToolMatch =
+            containerType === "tool" && containerId && nest.tool_id === containerId;
+          const isHotelMatch =
+            containerType === "hotel" && containerId && nest.hotel_id === containerId;
           const hasPlate = typedPlates.some((p) => p.nest_id === nest.id);
           const isEmpty = !hasPlate && nest.status === "empty";
-          
+
           // First filter by container type and ID if specified
           if (containerType === "tool" && containerId) {
             if (nest.tool_id !== containerId) return false;
@@ -367,8 +371,8 @@ export const InventoryManager = () => {
             // If no container type specified, just find any empty nest
             // This is a fallback, but shouldn't normally happen with the UI
             console.log("No container type specified for automatic placement");
-          } 
-          
+          }
+
           // Then check if the nest is empty
           return isEmpty;
         });
@@ -378,13 +382,19 @@ export const InventoryManager = () => {
             containerType,
             containerId,
             totalNests: typedNests.length,
-            emptyNestCount: typedNests.filter(n => !typedPlates.some(p => p.nest_id === n.id)).length
+            emptyNestCount: typedNests.filter((n) => !typedPlates.some((p) => p.nest_id === n.id))
+              .length,
           });
-          throw new Error(`No empty nests available for automatic placement${containerType ? ` in the selected ${containerType}` : ""}`);
+          throw new Error(
+            `No empty nests available for automatic placement${containerType ? ` in the selected ${containerType}` : ""}`,
+          );
         }
 
         // Debug log to see what we're selecting from
-        console.log(`Found ${emptyNests.length} empty nests for ${containerType || "unspecified"} container`, emptyNests);
+        console.log(
+          `Found ${emptyNests.length} empty nests for ${containerType || "unspecified"} container`,
+          emptyNests,
+        );
 
         // Sort by row and column to get the first available nest in reading order
         const sortedNests = [...emptyNests].sort((a, b) => {
@@ -533,15 +543,15 @@ export const InventoryManager = () => {
 
       // First update the nest status to empty
       // This ensures the UI shows the correct status right away
-      const updatedNest = { 
+      const updatedNest = {
         id: nest.id,
         name: nest.name,
         row: nest.row,
         column: nest.column,
-        status: "empty" as NestStatus, 
+        status: "empty" as NestStatus,
         // Only include non-null IDs
         ...(nest.tool_id ? { tool_id: nest.tool_id } : {}),
-        ...(nest.hotel_id ? { hotel_id: nest.hotel_id } : {})
+        ...(nest.hotel_id ? { hotel_id: nest.hotel_id } : {}),
       };
       await updateNestMutation.mutateAsync(updatedNest);
 
@@ -840,7 +850,9 @@ export const InventoryManager = () => {
                     onPlateClick={handlePlateClick}
                     onCheckIn={(nestId, triggerCmd) => {
                       const nestToUse = typedNests.find((n: Nest) => n.id === nestId) || null;
-                      console.log(`Tool card clicked for check-in: nest ${nestId}, tool ${tool.id}, name ${tool.name}`);
+                      console.log(
+                        `Tool card clicked for check-in: nest ${nestId}, tool ${tool.id}, name ${tool.name}`,
+                      );
                       setSelectedNest(nestToUse);
                       setSelectedNestIds([nestId]);
                       setNestTriggerToolCommand(triggerCmd || false);
@@ -901,7 +913,9 @@ export const InventoryManager = () => {
                         }}
                         onCheckIn={(nestId, triggerCmd) => {
                           const nestToUse = typedNests.find((n: Nest) => n.id === nestId) || null;
-                          console.log(`Hotel card clicked for check-in: nest ${nestId}, hotel ${hotel.id}, name ${hotel.name}`);
+                          console.log(
+                            `Hotel card clicked for check-in: nest ${nestId}, hotel ${hotel.id}, name ${hotel.name}`,
+                          );
                           setSelectedNest(nestToUse);
                           setSelectedNestIds([nestId]);
                           setNestTriggerToolCommand(triggerCmd || false);

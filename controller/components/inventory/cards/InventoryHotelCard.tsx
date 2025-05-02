@@ -71,7 +71,9 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
   const { data: hotel } = trpc.inventory.getHotelById.useQuery(hotelId);
 
   const hotelNests = nests.filter((nest) => nest.hotel_id === hotelId);
-  const hotelPlates = plates.filter((plate) => hotelNests.some((nest) => nest.id === plate.nest_id));
+  const hotelPlates = plates.filter((plate) =>
+    hotelNests.some((nest) => nest.id === plate.nest_id),
+  );
 
   useEffect(() => {
     // This is to handle the case when the hotel has been deleted

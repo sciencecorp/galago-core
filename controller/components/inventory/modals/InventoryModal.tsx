@@ -116,9 +116,9 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
   const [initialSettings, setInitialSettings] = useState<{
     containerId: number | null;
     containerType: "tool" | "hotel" | "";
-  }>({ 
-    containerId: null, 
-    containerType: "" 
+  }>({
+    containerId: null,
+    containerType: "",
   });
 
   // Update triggerToolCommand when nestTriggerToolCommand changes
@@ -130,36 +130,40 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       // Log container info at beginning of modal opening
-      console.log(`InventoryModal opening with container settings (before): containerId=${selectedContainerId}, containerType=${selectedContainerType}`);
-      
+      console.log(
+        `InventoryModal opening with container settings (before): containerId=${selectedContainerId}, containerType=${selectedContainerType}`,
+      );
+
       // Initialize the nest selections from props if available
       setNestSelections(initialSelectedNestIds);
-      
+
       // Initialize container selection from props if available
       if (initialContainerId && initialContainerType) {
-        console.log(`Initializing container selection: ${initialContainerType} with ID ${initialContainerId}`);
+        console.log(
+          `Initializing container selection: ${initialContainerType} with ID ${initialContainerId}`,
+        );
         setSelectedContainerId(initialContainerId);
         setSelectedContainerType(initialContainerType);
-        
+
         // Save initial settings for later reference
         setInitialSettings({
           containerId: initialContainerId,
-          containerType: initialContainerType
+          containerType: initialContainerType,
         });
-        
+
         // Log the actual container we're selecting
         if (initialContainerType === "tool") {
-          const tool = tools.find(t => t.id === initialContainerId);
+          const tool = tools.find((t) => t.id === initialContainerId);
           console.log(`Selected tool: ${tool?.name || "not found"} (ID: ${initialContainerId})`);
         } else if (initialContainerType === "hotel") {
-          const hotel = staticHotels.find(h => h.id === initialContainerId);
+          const hotel = staticHotels.find((h) => h.id === initialContainerId);
           console.log(`Selected hotel: ${hotel?.name || "not found"} (ID: ${initialContainerId})`);
         }
       }
-      
+
       // If there are initial nests, get container info from them, but don't override explicit container settings
       if (initialSelectedNestIds.length > 0 && (!initialContainerId || !initialContainerType)) {
-        const selectedNest = availableNests.find(n => n.id === initialSelectedNestIds[0]);
+        const selectedNest = availableNests.find((n) => n.id === initialSelectedNestIds[0]);
         if (selectedNest) {
           if (selectedNest.tool_id) {
             setSelectedContainerId(selectedNest.tool_id);
@@ -170,7 +174,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
           }
         }
       }
-      
+
       // If a plate is selected, populate form with its data
       if (selectedPlate) {
         if (mode === "check-in") {
@@ -187,10 +191,14 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
             setSelectionMode("manual");
           }
         }
-        
+
         // For check-out mode, also check if the plate is in a nest and no container is explicitly set
-        if (mode === "check-out" && selectedPlate?.nest_id && (!initialContainerId || !initialContainerType)) {
-          const plateNest = availableNests.find(n => n.id === selectedPlate.nest_id);
+        if (
+          mode === "check-out" &&
+          selectedPlate?.nest_id &&
+          (!initialContainerId || !initialContainerType)
+        ) {
+          const plateNest = availableNests.find((n) => n.id === selectedPlate.nest_id);
           if (plateNest) {
             if (plateNest.tool_id) {
               setSelectedContainerType("tool");
@@ -203,11 +211,23 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
           }
         }
       }
-      
+
       // Log container info at end of modal opening
-      console.log(`InventoryModal opening with container settings (after): containerId=${selectedContainerId}, containerType=${selectedContainerType}`);
+      console.log(
+        `InventoryModal opening with container settings (after): containerId=${selectedContainerId}, containerType=${selectedContainerType}`,
+      );
     }
-  }, [isOpen, selectedPlate, initialSelectedNestIds, initialContainerId, initialContainerType, availableNests, mode, tools, staticHotels]);
+  }, [
+    isOpen,
+    selectedPlate,
+    initialSelectedNestIds,
+    initialContainerId,
+    initialContainerType,
+    availableNests,
+    mode,
+    tools,
+    staticHotels,
+  ]);
 
   // Combine tools and hotels into a single list of containers
   const storageContainers: StorageContainer[] = [
@@ -237,7 +257,9 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
   // Log any changes to container selection
   useEffect(() => {
     if (selectedContainerId && selectedContainerType) {
-      console.log(`Container selection changed: ${selectedContainerType} with ID ${selectedContainerId}`);
+      console.log(
+        `Container selection changed: ${selectedContainerType} with ID ${selectedContainerId}`,
+      );
     }
   }, [selectedContainerId, selectedContainerType]);
 
@@ -312,39 +334,41 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
 
   const handleCheckIn = async () => {
     if (!onCheckIn) return;
-    
+
     try {
       setIsSubmitting(true);
 
       // Determine container type and ID before processing
       let containerInfo = {
         containerId: selectedContainerId !== "" ? Number(selectedContainerId) : undefined,
-        containerType: selectedContainerType || undefined
+        containerType: selectedContainerType || undefined,
       };
-      
+
       // If initial settings were saved, use those for container info
       if (initialSettings.containerId && initialSettings.containerType) {
         containerInfo = {
           containerId: initialSettings.containerId,
-          containerType: initialSettings.containerType
+          containerType: initialSettings.containerType,
         };
         console.log("Using initial container settings:", containerInfo);
       }
-      
+
       // Add more information for debugging purposes
       let containerDetails = "unknown";
       if (containerInfo.containerType === "tool") {
-        const tool = tools.find(t => t.id === containerInfo.containerId);
+        const tool = tools.find((t) => t.id === containerInfo.containerId);
         containerDetails = tool?.name || "unknown tool";
       } else if (containerInfo.containerType === "hotel") {
-        const hotel = staticHotels.find(h => h.id === containerInfo.containerId);
+        const hotel = staticHotels.find((h) => h.id === containerInfo.containerId);
         containerDetails = hotel?.name || "unknown hotel";
       }
-        
+
       console.log("Container info for check-in:", {
         ...containerInfo,
         containerName: containerDetails,
-        containerSource: initialSettings.containerType ? "saved initial settings" : "selected in modal"
+        containerSource: initialSettings.containerType
+          ? "saved initial settings"
+          : "selected in modal",
       });
 
       // For batch check-in with multiple plates
@@ -390,7 +414,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
             plates: platesToCheckIn,
             triggerToolCommand: false, // Never trigger commands for batch operations
             isStatic: selectedContainerType === "hotel",
-            ...containerInfo
+            ...containerInfo,
           });
         } else if (nestSelections.length < numberOfPlates) {
           // For manual selection, we need enough nests selected
@@ -434,19 +458,22 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
 
       // Debug log for automatic placement
       if (targetNestId === -1) {
-        console.log(`Auto placing plate in ${selectedContainerType} with ID ${selectedContainerId}`);
+        console.log(
+          `Auto placing plate in ${selectedContainerType} with ID ${selectedContainerId}`,
+        );
       }
 
       // Submit for single plate
       await onCheckIn({
         nestId: Number(targetNestId),
         plates: [singlePlate],
-        triggerToolCommand: selectedContainerType === "tool" && 
-          tools.find(t => t.id === selectedContainerId)?.type?.toLowerCase() === "liconic" && 
+        triggerToolCommand:
+          selectedContainerType === "tool" &&
+          tools.find((t) => t.id === selectedContainerId)?.type?.toLowerCase() === "liconic" &&
           triggerToolCommand,
         isStatic: selectedContainerType === "hotel",
         containerId: Number(selectedContainerId),
-        containerType: selectedContainerType
+        containerType: selectedContainerType,
       });
 
       // Reset form
@@ -461,7 +488,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
 
   const handleCheckOut = async () => {
     if (!onCheckOut) return;
-    
+
     try {
       setIsSubmitting(true);
 
@@ -473,8 +500,9 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
 
         await onCheckOut({
           barcode: barcode || selectedPlate?.barcode,
-          triggerToolCommand: selectedContainerType === "tool" && 
-            tools.find(t => t.id === selectedContainerId)?.type?.toLowerCase() === "liconic" && 
+          triggerToolCommand:
+            selectedContainerType === "tool" &&
+            tools.find((t) => t.id === selectedContainerId)?.type?.toLowerCase() === "liconic" &&
             triggerToolCommand,
           isStatic: selectedContainerType === "hotel",
         });
@@ -486,8 +514,9 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
 
         await onCheckOut({
           plateId: Number(plateId),
-          triggerToolCommand: selectedContainerType === "tool" && 
-            tools.find(t => t.id === selectedContainerId)?.type?.toLowerCase() === "liconic" && 
+          triggerToolCommand:
+            selectedContainerType === "tool" &&
+            tools.find((t) => t.id === selectedContainerId)?.type?.toLowerCase() === "liconic" &&
             triggerToolCommand,
           isStatic: selectedContainerType === "hotel",
         });
@@ -509,7 +538,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
     setSelectedContainerType("");
     setNestSelections([]);
     setTriggerToolCommand(false);
-    
+
     // Reset check-in specific state
     setManualBarcode("");
     setManualPlateName("");
@@ -517,7 +546,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
     setUploadedFile(null);
     setNumberOfPlates(1);
     setUseAutoBarcode(true);
-    
+
     // Reset check-out specific state
     setBarcode("");
     setPlateId("");
@@ -685,9 +714,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
                       isDisabled={useAutoBarcode}
                     />
                     <FormHelperText color={textColor}>
-                      {useAutoBarcode
-                        ? "Auto-generate barcodes"
-                        : "Enter base barcode manually"}
+                      {useAutoBarcode ? "Auto-generate barcodes" : "Enter base barcode manually"}
                     </FormHelperText>
                   </FormControl>
                   <FormControl isRequired flex="1">
@@ -744,10 +771,9 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
         </Text>
         <Box bg={sectionBg} p={4} borderRadius="md">
           <Text>
-            {selectedContainerType === "tool" ? 
-              `Selected Tool: ${tools.find(t => t.id === Number(selectedContainerId))?.name || "Unknown"}` :
-              `Selected Hotel: ${staticHotels.find(h => h.id === Number(selectedContainerId))?.name || "Unknown"}`
-            }
+            {selectedContainerType === "tool"
+              ? `Selected Tool: ${tools.find((t) => t.id === Number(selectedContainerId))?.name || "Unknown"}`
+              : `Selected Hotel: ${staticHotels.find((h) => h.id === Number(selectedContainerId))?.name || "Unknown"}`}
           </Text>
         </Box>
       </Box>
@@ -762,8 +788,8 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
         size="lg"
         mt={2}
         isDisabled={
-          (!uploadedFile &&
-            ((!useAutoBarcode && !manualBarcode) || !manualPlateName || !manualPlateType))
+          !uploadedFile &&
+          ((!useAutoBarcode && !manualBarcode) || !manualPlateName || !manualPlateType)
         }>
         Auto Check In
       </Button>
@@ -789,7 +815,8 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
                 <Input
                   value={
                     selectedPlate?.nest_id
-                      ? availableNests.find(n => n.id === selectedPlate.nest_id)?.name || selectedPlate.nest_id
+                      ? availableNests.find((n) => n.id === selectedPlate.nest_id)?.name ||
+                        selectedPlate.nest_id
                       : "Not checked in"
                   }
                   isReadOnly
@@ -854,14 +881,15 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
                     {nestSelections.length > 0 && (
                       <FormControl>
                         <FormLabel color={labelColor}>Selected Nest</FormLabel>
-                        <Input 
+                        <Input
                           value={
                             nestSelections[0]
-                              ? availableNests.find(n => n.id === nestSelections[0])?.name || nestSelections[0]
+                              ? availableNests.find((n) => n.id === nestSelections[0])?.name ||
+                                nestSelections[0]
                               : "None"
-                          } 
-                          isReadOnly 
-                          bg={inputBg} 
+                          }
+                          isReadOnly
+                          bg={inputBg}
                         />
                       </FormControl>
                     )}
@@ -883,9 +911,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
         size="lg"
         mt={2}
         isDisabled={
-          (selectionMode === "manual" &&
-            !barcode &&
-            (!selectedPlate || !selectedPlate.barcode)) ||
+          (selectionMode === "manual" && !barcode && (!selectedPlate || !selectedPlate.barcode)) ||
           (selectionMode === "nest" && !plateId && nestSelections.length === 0)
         }>
         Check Out
@@ -937,9 +963,13 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
               return false;
             }),
           )}
-          selectedNests={mode === "check-in" 
-            ? (numberOfPlates === 1 ? nestSelections.slice(0, 1) : nestSelections)
-            : nestSelections}
+          selectedNests={
+            mode === "check-in"
+              ? numberOfPlates === 1
+                ? nestSelections.slice(0, 1)
+                : nestSelections
+              : nestSelections
+          }
           isMultiSelect={mode === "check-in" && numberOfPlates > 1}
           maxSelections={mode === "check-in" ? numberOfPlates : undefined}
           onNestSelect={(nestIds) => {
@@ -953,12 +983,14 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
           onCreateNest={async () => {}}
           onDeleteNest={async () => {}}
           onPlateClick={onPlateClick}
-          onCheckIn={mode === "check-in" 
-            ? (nestId, triggerCmd) => {
-                setNestSelections([nestId]);
-                setTriggerToolCommand(triggerCmd || false);
-              } 
-            : undefined}
+          onCheckIn={
+            mode === "check-in"
+              ? (nestId, triggerCmd) => {
+                  setNestSelections([nestId]);
+                  setTriggerToolCommand(triggerCmd || false);
+                }
+              : undefined
+          }
           containerType={selectedContainerType as "tool" | "hotel"}
           containerId={Number(selectedContainerId)}
         />
@@ -967,4 +999,4 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
   );
 };
 
-export default InventoryModal; 
+export default InventoryModal;

@@ -38,14 +38,14 @@ interface PlateModalProps {
 const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreateReagent }) => {
   const [selectedWells, setSelectedWells] = useState<number[]>([]);
   const [isReagentDrawerOpen, setIsReagentDrawerOpen] = useState(false);
-  
+
   // Calculate a date one month from today for the default expiration
   const getDefaultExpirationDate = () => {
     const date = new Date();
     date.setMonth(date.getMonth() + 1);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   };
-  
+
   const [reagentData, setReagentData] = useState({
     name: "",
     expiration_date: getDefaultExpirationDate(),
@@ -61,7 +61,7 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
   const { data: reagents = [] } = trpc.inventory.getReagents.useQuery(plate.id, {
     enabled: !!plate.id,
   });
-  
+
   // Mutation for deleting reagents
   const deleteReagentMutation = trpc.inventory.deleteReagent.useMutation({
     onSuccess: () => {
@@ -70,7 +70,7 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
     },
     onError: (error: any) => {
       errorToast("Error clearing reagents", error.message);
-    }
+    },
   });
 
   const handleWellClick = (wellId: number) => {
@@ -111,7 +111,7 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
       errorToast("Error adding reagents", error.message);
     }
   };
-  
+
   const handleClearReagents = async () => {
     if (selectedWells.length === 0) {
       warningToast("No wells selected", "Please select at least one well to clear reagents from.");
@@ -120,21 +120,19 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
 
     try {
       // Get reagents for the selected wells
-      const wellReagents = (reagents as Reagent[]).filter(r => 
-        selectedWells.includes(r.well_id)
-      );
-      
+      const wellReagents = (reagents as Reagent[]).filter((r) => selectedWells.includes(r.well_id));
+
       // Delete each reagent
       for (const reagent of wellReagents) {
         await deleteReagentMutation.mutateAsync(reagent.id);
       }
-      
+
       // Clear selection after successful deletion
       setSelectedWells([]);
-      
+
       successToast(
         "Reagents cleared successfully",
-        "Reagents have been removed from the selected wells."
+        "Reagents have been removed from the selected wells.",
       );
     } catch (error: any) {
       errorToast("Error clearing reagents", error.message);
@@ -144,10 +142,13 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
   const getWellTooltip = (wellId: number): string => {
     const wellReagents = (reagents as Reagent[]).filter((r: Reagent) => r.well_id === wellId);
     if (wellReagents.length === 0) return "Empty";
-    
-    return wellReagents.map((r: Reagent) => 
-      `${r.name} - ${r.volume}µL - Expires: ${new Date(r.expiration_date).toLocaleDateString()}`
-    ).join("\n");
+
+    return wellReagents
+      .map(
+        (r: Reagent) =>
+          `${r.name} - ${r.volume}µL - Expires: ${new Date(r.expiration_date).toLocaleDateString()}`,
+      )
+      .join("\n");
   };
 
   const getWellContent = (wellId: number): React.ReactNode => {
@@ -222,7 +223,7 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
                   wellStyles={{
                     defaultColor: "transparent",
                     selectedColor: "blue.200",
-                    hoverColor: "blue.100"
+                    hoverColor: "blue.100",
                   }}
                 />
               </Box>

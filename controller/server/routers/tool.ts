@@ -6,7 +6,7 @@ import { procedure, router } from "@/server/trpc";
 import { ToolType } from "gen-interfaces/controller";
 import { get, post, put, del } from "@/server/utils/api";
 import * as controller_protos from "gen-interfaces/controller";
-import { SerialPort } from 'serialport';
+import { SerialPort } from "serialport";
 
 const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
 
@@ -177,7 +177,7 @@ export const toolRouter = router({
         return ports.map((port: { path: string }) => port.path);
       } catch (serialPortError) {
         console.error("SerialPort library error:", serialPortError);
-        
+
         // Fall back to a list of common COM ports if SerialPort fails
         console.log("Falling back to mock COM ports");
         const mockPorts = ["COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8"];

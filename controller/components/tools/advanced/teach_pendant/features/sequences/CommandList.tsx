@@ -237,10 +237,16 @@ const CommandItem: React.FC<CommandItemProps> = ({
                                     <Tr>
                                       {Array.from(
                                         {
-                                          length: parseInt((config.config as any)?.pf400?.joints || "5"),
+                                          length: parseInt(
+                                            (config.config as any)?.pf400?.joints || "5",
+                                          ),
                                         },
                                         (_, i) => (
-                                          <Th key={`j${i + 1}`} fontSize="xs" textAlign="center" px={1}>
+                                          <Th
+                                            key={`j${i + 1}`}
+                                            fontSize="xs"
+                                            textAlign="center"
+                                            px={1}>
                                             J{i + 1}
                                           </Th>
                                         ),
@@ -304,10 +310,16 @@ const CommandItem: React.FC<CommandItemProps> = ({
                                     <Tr>
                                       {Array.from(
                                         {
-                                          length: parseInt((config.config as any)?.pf400?.joints || "5"),
+                                          length: parseInt(
+                                            (config.config as any)?.pf400?.joints || "5",
+                                          ),
                                         },
                                         (_, i) => (
-                                          <Th key={`j${i + 1}`} fontSize="xs" textAlign="center" px={1}>
+                                          <Th
+                                            key={`j${i + 1}`}
+                                            fontSize="xs"
+                                            textAlign="center"
+                                            px={1}>
                                             J{i + 1}
                                           </Th>
                                         ),
