@@ -8,7 +8,7 @@ message Command {
     Unload unload = 2;
     Home home = 3;
     Abort abort = 4;
-    Unwind unwind = 5;
+    Retract retract = 5;
     GoTo go_to =6;
     SendRawCommand raw_command =8;
   }
@@ -29,7 +29,7 @@ message Command {
 
     message Home {}
     message Abort {}
-    message Unwind {}
+    message Retract {}
     message GoTo {
         int32 stack_id =1;
     }
