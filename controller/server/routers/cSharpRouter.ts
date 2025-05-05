@@ -31,7 +31,7 @@ export const csharpRouter = router({
         const result = await CSharpExecutor.executeScript(
           input.script,
           input.context,
-          input.timeout
+          input.timeout,
         );
 
         return result;
@@ -52,7 +52,7 @@ export const csharpRouter = router({
   // Get a template for C# scripts
   getTemplate: procedure.query(() => {
     return {
-        template: `// C# Code Example
+      template: `// C# Code Example
             // This is a simple C# program that demonstrates basic functionality
 
             // Example of using variables and output

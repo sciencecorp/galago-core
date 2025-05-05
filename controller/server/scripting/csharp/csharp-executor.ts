@@ -37,40 +37,42 @@ export class CSharpExecutor {
       // Create a unique ID for this execution to prevent file conflicts
       const executionId = crypto.randomBytes(8).toString("hex");
       const tempDir = path.join("/tmp", "csharp-execution", executionId);
-      
+
       // Create the temporary directory
       await fs.promises.mkdir(tempDir, { recursive: true });
-      
+
       // Prepare the C# program template
       const programTemplate = this.generateCSharpProgram(script, context);
       const programPath = path.join(tempDir, "Program.cs");
       const projectPath = path.join(tempDir, "project.csproj");
-      
+
       // Write the C# program and project file
       await fs.promises.writeFile(programPath, programTemplate);
       await fs.promises.writeFile(projectPath, this.generateProjectFile());
-      
+
       // Compile the C# program
       logCapture.push("Compiling C# program...");
       const compileCommand = `cd ${tempDir} && dotnet build -c Release -o ./bin`;
-      
+
       try {
-        const { stdout: compileStdout, stderr: compileStderr } = await execPromise(compileCommand, { timeout });
-        
+        const { stdout: compileStdout, stderr: compileStderr } = await execPromise(compileCommand, {
+          timeout,
+        });
+
         if (compileStderr) {
           logCapture.push(`Compilation warnings: ${compileStderr}`);
         }
-        
+
         // Run the compiled program
         logCapture.push("Running C# program...");
         const runCommand = `cd ${tempDir} && dotnet ./bin/project.dll`;
-        
+
         const { stdout: runStdout, stderr: runStderr } = await execPromise(runCommand, { timeout });
-        
+
         if (runStdout) {
           logCapture.push(runStdout);
         }
-        
+
         if (runStderr) {
           logCapture.push(`ERROR: ${runStderr}`);
           hasError = true;
@@ -85,7 +87,7 @@ export class CSharpExecutor {
         }
         hasError = true;
       }
-      
+
       // Clean up the temporary directory
       try {
         await fs.promises.rm(tempDir, { recursive: true, force: true });
@@ -96,27 +98,27 @@ export class CSharpExecutor {
           details: `Failed to clean up temporary directory: ${cleanupError}`,
         });
       }
-      
+
       // Check if any errors were logged before returning success
-      if (hasError || logCapture.some(msg => msg.startsWith("ERROR:"))) {
+      if (hasError || logCapture.some((msg) => msg.startsWith("ERROR:"))) {
         logAction({
           level: "error",
           action: "C# Execution Failed",
           details: `Script execution encountered errors during runtime`,
         });
-        
+
         return {
           output: logCapture.join("\n"),
           success: false,
         };
       }
-      
+
       logAction({
         level: "info",
         action: "C# Execution Completed",
         details: `Script executed successfully`,
       });
-      
+
       // Return the console output
       return {
         output: logCapture.join("\n"),
@@ -125,23 +127,23 @@ export class CSharpExecutor {
     } catch (error) {
       // If execution fails, return an error result
       const errorMessage = error instanceof Error ? error.message : String(error);
-      
+
       logAction({
         level: "error",
         action: "C# Execution Failed",
         details: `Script execution failed: ${errorMessage}`,
       });
-      
+
       // Add the error to the log capture
       logCapture.push(`ERROR: ${errorMessage}`);
-      
+
       return {
         output: logCapture.join("\n"),
         success: false,
       };
     }
   }
-  
+
   /**
    * Generates a C# program with the provided script and context
    * @param script The C# script to execute
@@ -151,7 +153,7 @@ export class CSharpExecutor {
   private static generateCSharpProgram(script: string, context: Record<string, any>): string {
     // Create JSON string representation of the context
     const contextJson = JSON.stringify(context);
-    
+
     return `using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -294,7 +296,7 @@ public class VariablesWrapper
     }
 }`;
   }
-  
+
   /**
    * Generates a .NET project file for the C# program
    * @returns A .NET project file as a string

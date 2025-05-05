@@ -13,7 +13,6 @@ import { inventoryRouter } from "./inventory";
 import { robotArmRouter } from "./robot-arm";
 import { csharpRouter } from "./cSharpRouter";
 
-
 export const appRouter = router({
   inventory: inventoryRouter,
   tool: toolRouter,

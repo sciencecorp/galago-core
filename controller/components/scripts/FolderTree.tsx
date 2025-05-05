@@ -13,7 +13,7 @@ import {
   Icon,
   Tooltip,
   useColorModeValue,
-  Image
+  Image,
 } from "@chakra-ui/react";
 import { ScriptFolder, Script } from "@/types/api";
 import { validateFolderName, removeFileExtension, showErrorToast } from "./utils";
@@ -231,7 +231,6 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
       px={2}
       py={1}
       borderRadius="md"
-      
       border={isActive ? "1px solid teal" : "none"}
       bg={isActive ? selectedBg : "transparent"}
       _hover={{ bg: isActive ? selectedBg : hoverBg }}
@@ -240,14 +239,8 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
       position="relative">
       {script.language === "javascript" ? (
         <AiOutlineJavaScript color={isActive ? "teal" : jsIconColor} />
-      ) : 
-      script.language === "csharp" ? (
-        <Image
-        src="/tool_icons/csharp.svg"
-        alt="C# Icon"
-        height="18px"
-        width="18px"
-      />
+      ) : script.language === "csharp" ? (
+        <Image src="/tool_icons/csharp.svg" alt="C# Icon" height="18px" width="18px" />
       ) : (
         <PythonIcon color={isActive ? "teal" : "lightblue"} />
       )}

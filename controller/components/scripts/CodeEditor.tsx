@@ -14,7 +14,7 @@ import {
   Icon,
   useDisclosure,
   IconButton,
-  Image
+  Image,
 } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import { trpc } from "@/utils/trpc";
@@ -30,7 +30,7 @@ import {
   errorToast as showErrorToast,
 } from "../ui/Toast";
 import { useScriptColors } from "../ui/Theme";
-import { CloseIcon, PythonIcon, CodeIcon, PlayIcon, SaveIcon, FolderAddIcon } from "../ui/Icons";
+import { CloseIcon, PythonIcon, CodeIcon, PlayIcon, SaveIcon } from "../ui/Icons";
 import * as monaco from "monaco-editor";
 import { editor } from "monaco-editor";
 import { FaFileImport, FaFileExport } from "react-icons/fa";
@@ -353,22 +353,19 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       return (
         <AiOutlineJavaScript fontSize="13px" color={activeTab === tabName ? jsIconColor : "gray"} />
       );
-    }
-    else if (extension === "cs" || extension === "csharp") {
+    } else if (extension === "cs" || extension === "csharp") {
       return (
         <Image
           src="/tool_icons/csharp.svg" // Make sure this path is correct
           alt="C# Icon"
           height={"20px"}
-          style={{ 
-            filter: activeTab === tabName ? 'none' : 'grayscale(100%)' 
+          style={{
+            filter: activeTab === tabName ? "none" : "grayscale(100%)",
           }}
         />
       );
-    }
-    else{
+    } else {
       return <PythonIcon fontSize="13px" color={activeTab === tabName ? "teal" : "gray"} />;
-
     }
   };
 
