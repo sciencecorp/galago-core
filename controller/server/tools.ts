@@ -14,6 +14,7 @@ import { Labware } from "@/types/api";
 import { logAction } from "./logger";
 import { Tool as ToolResponse } from "@/types/api";
 import { JavaScriptExecutor } from "./javascript-executor";
+import  {CSharpExecutor}  from "@/server/scripting/csharp/csharp-executor";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 const toolStore: Map<string, Tool> = new Map();
@@ -86,6 +87,14 @@ export default class Tool {
 
   async loadLabwareToPF400() {
     return Tool.loadLabwareToPF400(this.info.name);
+  }
+
+  static async executeJavaScript(script: string) {
+    return await JavaScriptExecutor.executeScript(script);
+  }
+
+  static async executeCSharp(script: string) {
+    return await CSharpExecutor.executeScript(script);
   }
 
   static async getToolNameById(numericId: number): Promise<string> {
@@ -187,8 +196,6 @@ export default class Tool {
     };
   }
 
-  static async executeJavaScript(script: string) {}
-
   static async executeCommand(command: ToolCommandInfo) {
     logAction({
       level: "info",
@@ -222,7 +229,10 @@ export default class Tool {
 
     //Handle script execution
     if (command.command === "run_script" && command.toolId === "tool_box") {
-      const scriptName = command.params.name.replaceAll(".js", "").replaceAll(".py", "");
+      const scriptName = command.params.name
+                          .replaceAll(".js", "")
+                          .replaceAll(".py", "")
+                          .replaceAll(".cs", "");
       try {
         const script = await get<Script>(`/scripts/${scriptName}`);
         command.params.name = script.content;
@@ -247,7 +257,31 @@ export default class Tool {
             return_reply: true,
             meta_data: { response: result.output } as any,
           } as tool_base.ExecuteCommandReply;
-        } else if (script.language === "python") {
+        } 
+        else if (script.language === "csharp") {
+          // Execute C# script
+          const result = await CSharpExecutor.executeScript(script.content);
+          if (!result.success) {
+            const errorMessage = result.output;
+            logAction({
+              level: "error",
+              action: "C# Execution Error",
+              details: `C# execution failed: ${errorMessage}`,
+            });
+
+            // Throw a ToolCommandExecutionError to ensure proper error propagation
+            throw new ToolCommandExecutionError(
+              errorMessage || "C# execution failed",
+              tool_base.ResponseCode.ERROR_FROM_TOOL,
+            );
+          }
+          return {
+            response: tool_base.ResponseCode.SUCCESS,
+            return_reply: true,
+            meta_data: { response: result.output } as any,
+          } as tool_base.ExecuteCommandReply;
+        } 
+        else if (script.language === "python") {
           command.params.name = script.content;
         }
       } catch (e: any) {

@@ -13,6 +13,7 @@ import {
   Icon,
   Tooltip,
   useColorModeValue,
+  Image
 } from "@chakra-ui/react";
 import { ScriptFolder, Script } from "@/types/api";
 import { validateFolderName, removeFileExtension, showErrorToast } from "./utils";
@@ -230,6 +231,8 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
       px={2}
       py={1}
       borderRadius="md"
+      
+      border={isActive ? "1px solid teal" : "none"}
       bg={isActive ? selectedBg : "transparent"}
       _hover={{ bg: isActive ? selectedBg : hoverBg }}
       onClick={onClick}
@@ -237,6 +240,14 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
       position="relative">
       {script.language === "javascript" ? (
         <AiOutlineJavaScript color={isActive ? "teal" : jsIconColor} />
+      ) : 
+      script.language === "csharp" ? (
+        <Image
+        src="/tool_icons/csharp.svg"
+        alt="C# Icon"
+        height="18px"
+        width="18px"
+      />
       ) : (
         <PythonIcon color={isActive ? "teal" : "lightblue"} />
       )}
@@ -353,7 +364,7 @@ export const ScriptFolderTree: React.FC<FolderTreeProps> = ({
           <ScriptNode
             key={script.id}
             script={script}
-            isActive={activeScript === script.name}
+            isActive={activeScript?.split(".")[0] === script.name}
             onClick={() => onScriptClick(script)}
             onRename={onScriptRename}
             onDelete={onScriptDelete}

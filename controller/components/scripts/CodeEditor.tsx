@@ -14,6 +14,7 @@ import {
   Icon,
   useDisclosure,
   IconButton,
+  Image
 } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import { trpc } from "@/utils/trpc";
@@ -346,12 +347,29 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
 
   const getTabIcon = (tabName: string) => {
     const extension = tabName.split(".").pop();
+    console.log("Tab name:", tabName);
+    console.log("Extension:", extension);
     if (extension === "js") {
       return (
         <AiOutlineJavaScript fontSize="13px" color={activeTab === tabName ? jsIconColor : "gray"} />
       );
     }
-    return <PythonIcon fontSize="13px" color={activeTab === tabName ? "teal" : "gray"} />;
+    else if (extension === "cs" || extension === "csharp") {
+      return (
+        <Image
+          src="/tool_icons/csharp.svg" // Make sure this path is correct
+          alt="C# Icon"
+          height={"20px"}
+          style={{ 
+            filter: activeTab === tabName ? 'none' : 'grayscale(100%)' 
+          }}
+        />
+      );
+    }
+    else{
+      return <PythonIcon fontSize="13px" color={activeTab === tabName ? "teal" : "gray"} />;
+
+    }
   };
 
   const Tabs = () => {
@@ -449,6 +467,8 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
 
   const handleCodeChange = (value?: string) => {
     if (!activeTab) return;
+    console.log("Active Tab:", activeTab);
+    console.log("Value:", value);
     setScriptsEdited((prev) => {
       const activeScript = getActiveScript();
       if (!activeScript) return prev;

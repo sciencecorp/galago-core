@@ -11,6 +11,8 @@ import { labwareRouter } from "./labware";
 import { scriptRouter } from "./script";
 import { inventoryRouter } from "./inventory";
 import { robotArmRouter } from "./robot-arm";
+import { csharpRouter } from "./cSharpRouter";
+
 
 export const appRouter = router({
   inventory: inventoryRouter,
@@ -24,6 +26,7 @@ export const appRouter = router({
   labware: labwareRouter,
   script: scriptRouter,
   robotArm: robotArmRouter,
+  cSharp: csharpRouter,
 });
 
 export type AppRouter = typeof appRouter;
