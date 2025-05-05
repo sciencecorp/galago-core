@@ -188,7 +188,9 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                         <Td p={1}>{getIconFromLogType(log.level)}</Td>
                         <Td p={1}>{log.level}</Td>
                         <Td p={1}>{log.action}</Td>
-                        <Td p={1}>{log.details}</Td>
+                        <Td 
+                          maxWidth={"900px"}
+                          p={1}>{log.details}</Td>
                         <Td p={1}>{renderDatetime(String(log.created_at))}</Td>
                       </Tr>
                     ))}

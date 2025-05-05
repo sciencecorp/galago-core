@@ -13,7 +13,7 @@ import { Variable } from "@/types/api";
 import { Labware } from "@/types/api";
 import { logAction } from "./logger";
 import { Tool as ToolResponse } from "@/types/api";
-import { JavaScriptExecutor } from "./javascript-executor";
+import { JavaScriptExecutor } from "@/server/scripting/javascript/javascript-executor";
 import { CSharpExecutor } from "@/server/scripting/csharp/csharp-executor";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
