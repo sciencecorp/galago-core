@@ -15,7 +15,7 @@ import {
   useDisclosure,
   IconButton,
   Image,
-  useToast
+  useToast,
 } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import { trpc } from "@/utils/trpc";
@@ -171,7 +171,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
           showSuccessToast("Script Completed!", "The script execution finished successfully.");
         },
         onError: (error) => {
-          toast.closeAll()
+          toast.closeAll();
           setRunError(true);
           setConsoleText(error.message);
           showErrorToast("Failed to run script", `Error= ${error.message}`);
@@ -496,8 +496,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       onClick={handleImportClick}
       isLoading={isImporting}
       isDisabled={isImporting}
-      size="sm"
-    >
+      size="sm">
       Import
     </Button>
   );
@@ -510,8 +509,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       onClick={onExportConfig}
       isDisabled={!activeTab || isExporting}
       isLoading={isExporting}
-      size="sm"
-    >
+      size="sm">
       Export Active Script
     </Button>
   );
@@ -553,10 +551,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
           accept=".py,.js"
         />
 
-        <Card 
-          borderRadius="lg"
-          bg={headerBg} 
-          shadow="md">
+        <Card borderRadius="lg" bg={headerBg} shadow="md">
           <CardBody>
             <HStack
               width="100%"
@@ -568,8 +563,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                 initialWidth="200px"
                 minWidth="100px"
                 maxWidth="30%"
-                borderColor={borderColor}
-              >
+                borderColor={borderColor}>
                 <VStack alignItems="flex-start" spacing={4} height="100%">
                   <HStack width="100%" spacing={2}>
                     <Input
@@ -594,7 +588,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
                   </Box>
                 </VStack>
               </ResizablePanel>
-              
+
               <VStack flex={1} spacing={0} height="100%">
                 <Box
                   width="100%"

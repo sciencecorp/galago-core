@@ -61,7 +61,7 @@ USER nextjs
 
 # Expose the port
 EXPOSE 3010
-ENV PORT 3010
+ENV PORT=3010
 
 # Start the app
 CMD ["npm", "run", "start"]
