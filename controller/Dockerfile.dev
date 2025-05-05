@@ -1,18 +1,35 @@
-FROM node:18-alpine
+# Multi-stage build for faster development
+# Stage 1: .NET SDK for C# compilation only
+FROM mcr.microsoft.com/dotnet/sdk:7.0-alpine AS dotnet-compiler
 
+# Stage 2: Node.js application with minimal .NET runtime dependencies
+FROM node:18-alpine
 WORKDIR /app
 
-# Install necessary utilities
-RUN apk add --no-cache curl unzip bash
+# Install minimal dependencies for .NET runtime
+# Updated packages for Alpine 3.21
+RUN apk add --no-cache \
+    libstdc++ \
+    libintl \
+    icu-libs \
+    krb5-libs \
+    libgcc \
+    openssl \
+    libssl3 \
+    zlib
 
+# Set .NET runtime environment variables
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+
+# Copy the .NET compiler from the SDK stage
+COPY --from=dotnet-compiler /usr/share/dotnet /usr/share/dotnet
+RUN ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
+
+# Install Node.js dependencies
 COPY ./controller/package*.json ./
-
 RUN npm ci
-
 RUN npm list -g next || npm install -g next
-
 RUN mkdir -p node_modules && chmod -R 777 node_modules
 
 EXPOSE 3010 9229
-
 CMD ["npm", "run", "dev"]
