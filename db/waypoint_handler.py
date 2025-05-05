@@ -35,7 +35,6 @@ class RobotSequence(BaseModel):
 
 class MotionProfile(BaseModel):
     name: str
-    profile_id: int
     speed: float = 100
     speed2: float = 100
     acceleration: float = 100
@@ -160,7 +159,7 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                                             "command": "move",
                                             "params": {
                                                 "waypoint": loc_name,
-                                                "motion_profile_id": 1,
+                                                "motion_profile": "Default",
                                             },
                                             "order": len(commands),
                                         }

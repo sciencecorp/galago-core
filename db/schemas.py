@@ -556,7 +556,6 @@ class RobotArmSequence(RobotArmSequenceCreate):
 # Motion Profile Schemas
 class RobotArmMotionProfileCreate(BaseModel):
     name: str
-    profile_id: t.Annotated[int, Field(ge=1, le=14)]
     speed: float
     speed2: float
     acceleration: float
@@ -570,7 +569,6 @@ class RobotArmMotionProfileCreate(BaseModel):
 
 class RobotArmMotionProfileUpdate(BaseModel):
     name: t.Optional[str] = None
-    profile_id: t.Optional[int] = None
     speed: t.Optional[float] = None
     speed2: t.Optional[float] = None
     acceleration: t.Optional[float] = None

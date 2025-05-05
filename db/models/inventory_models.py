@@ -307,7 +307,6 @@ class RobotArmMotionProfile(Base, TimestampMixin):
     __tablename__ = "robot_arm_motion_profiles"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
-    profile_id = Column(Integer, nullable=False)
     speed = Column(Float, nullable=False)
     speed2 = Column(Float, nullable=False)
     acceleration = Column(Float, nullable=False)
@@ -322,10 +321,7 @@ class RobotArmMotionProfile(Base, TimestampMixin):
     )
 
     __table_args__ = (
-        CheckConstraint("name <> ''", name="check_non_empty_name"),
-        CheckConstraint(
-            "profile_id >= 1 AND profile_id <= 14", name="check_profile_id_range"
-        ),
+        CheckConstraint("name <> ''", name="check_non_empty_name")
     )
 
 

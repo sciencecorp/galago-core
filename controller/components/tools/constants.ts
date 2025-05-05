@@ -221,7 +221,7 @@ export const commandFields: CommandFields = {
     ],
     move: [
       { name: "name", type: "text" },
-      { name: "motion_profile_id", type: "number", defaultValue: 1 },
+      { name: "motion_profile", type: "number", defaultValue: 1 },
       { name: "approach_height", type: "number", defaultValue: 0 },
     ],
     grasp_plate: [
@@ -237,25 +237,25 @@ export const commandFields: CommandFields = {
       { name: "labware", type: "text" },
       { name: "location", type: "text" },
       { name: "approach_height", type: "number", defaultValue: 0 },
-      { name: "motion_profile_id", type: "number", defaultValue: 1 },
+      { name: "motion_profile", type: "number", defaultValue: 1 },
     ],
     dropoff_plate: [
       { name: "labware", type: "text" },
       { name: "location", type: "text" },
-      { name: "motion_profile_id", type: "number", defaultValue: 1 },
+      { name: "motion_profile", type: "number", defaultValue: 1 },
       { name: "approach_height", type: "number", defaultValue: 0 },
     ],
     pick_lid: [
       { name: "labware", type: "text" },
       { name: "location", type: "text" },
-      { name: "motion_profile_id", type: "number", defaultValue: 1 },
+      { name: "motion_profile", type: "number", defaultValue: 1 },
       { name: "pick_from_plate", type: "boolean", defaultValue: true },
       { name: "approach_height", type: "number", defaultValue: 10 },
     ],
     place_lid: [
       { name: "labware", type: "text" },
       { name: "location", type: "text" },
-      { name: "motion_profile_id", type: "number", defaultValue: 1 },
+      { name: "motion_profile", type: "number", defaultValue: 1 },
       { name: "place_on_plate", type: "boolean", defaultValue: true },
       { name: "approach_height", type: "number", defaultValue: 10 },
     ],
