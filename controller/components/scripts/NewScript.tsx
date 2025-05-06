@@ -109,6 +109,12 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
                     onClick={() => setSelectedLanguage("javascript")}>
                     JavaScript
                   </Button>
+                  <Button
+                    size="sm"
+                    colorScheme={selectedLanguage === "csharp" ? "teal" : "gray"}
+                    onClick={() => setSelectedLanguage("csharp")}>
+                    C#
+                  </Button>
                 </ButtonGroup>
               </FormControl>
               <FormControl>

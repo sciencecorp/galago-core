@@ -1,4 +1,4 @@
-import { logAction } from "./logger";
+import { logAction } from "@/server/logger";
 import * as vm from "vm";
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosInstance } from "axios";
 
