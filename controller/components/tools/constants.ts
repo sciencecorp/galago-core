@@ -259,7 +259,7 @@ export const commandFields: CommandFields = {
       { name: "place_on_plate", type: "boolean", defaultValue: true },
       { name: "approach_height", type: "number", defaultValue: 10 },
     ],
-    retract: [],
+    unwind: [],
   },
   microserve: {
     load: [
@@ -276,7 +276,7 @@ export const commandFields: CommandFields = {
     ],
     home: [],
     abort: [],
-    retract: [],
+    unwind: [],
     go_to: [{ name: "stack_id", type: "number", defaultValue: 1 }],
     send_raw_command: [{ name: "command", type: "text" }],
   },
