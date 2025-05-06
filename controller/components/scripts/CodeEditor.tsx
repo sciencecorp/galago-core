@@ -14,6 +14,8 @@ import {
   Icon,
   useDisclosure,
   IconButton,
+  Image,
+  useToast,
 } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import { trpc } from "@/utils/trpc";
@@ -29,7 +31,7 @@ import {
   errorToast as showErrorToast,
 } from "../ui/Toast";
 import { useScriptColors } from "../ui/Theme";
-import { CloseIcon, PythonIcon, CodeIcon, PlayIcon, SaveIcon, FolderAddIcon } from "../ui/Icons";
+import { CloseIcon, PythonIcon, CodeIcon, PlayIcon, SaveIcon } from "../ui/Icons";
 import * as monaco from "monaco-editor";
 import { editor } from "monaco-editor";
 import { FaFileImport, FaFileExport } from "react-icons/fa";
@@ -39,6 +41,7 @@ import { MdDownload } from "react-icons/md";
 import { AiOutlineJavaScript } from "react-icons/ai";
 import { fileTypeToExtensionMap } from "./utils";
 import { Console } from "./Console";
+import { ResizablePanel } from "./ResizablePanel";
 
 export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
@@ -75,6 +78,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const monacoRef = useRef<typeof monaco | null>(null);
   const [editorLanguage, setEditorLanguage] = useState<string>("python");
   const jsIconColor = useColorModeValue("orange", "yellow");
+  const toast = useToast();
 
   // Define refreshData function here
   const refreshData = async () => {
@@ -163,16 +167,17 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     try {
       const response = await runScript.mutateAsync(activeTab, {
         onSuccess: () => {
+          toast.closeAll();
           showSuccessToast("Script Completed!", "The script execution finished successfully.");
         },
         onError: (error) => {
+          toast.closeAll();
           setRunError(true);
           setConsoleText(error.message);
           showErrorToast("Failed to run script", `Error= ${error.message}`);
         },
       });
 
-      // Check if response has meta_data with response property
       if (response?.meta_data?.response) {
         setConsoleText(response.meta_data.response);
       } else if (response?.error_message) {
@@ -182,8 +187,6 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
         setRunError(false);
         setConsoleText("");
       }
-
-      showSuccessToast("Script Completed!", "The script execution finished successfully.");
     } catch (error) {
       if (error instanceof Error) {
         setRunError(true);
@@ -350,8 +353,20 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       return (
         <AiOutlineJavaScript fontSize="13px" color={activeTab === tabName ? jsIconColor : "gray"} />
       );
+    } else if (extension === "cs" || extension === "csharp") {
+      return (
+        <Image
+          src="/tool_icons/csharp.svg"
+          alt="C# Icon"
+          height={"20px"}
+          style={{
+            filter: activeTab === tabName ? "none" : "grayscale(100%)",
+          }}
+        />
+      );
+    } else {
+      return <PythonIcon fontSize="13px" color={activeTab === tabName ? "teal" : "gray"} />;
     }
-    return <PythonIcon fontSize="13px" color={activeTab === tabName ? "teal" : "gray"} />;
   };
 
   const Tabs = () => {
@@ -481,8 +496,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       onClick={handleImportClick}
       isLoading={isImporting}
       isDisabled={isImporting}
-      size="sm" // Match other header buttons if necessary
-    >
+      size="sm">
       Import
     </Button>
   );
@@ -495,8 +509,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       onClick={onExportConfig}
       isDisabled={!activeTab || isExporting}
       isLoading={isExporting}
-      size="sm" // Match other header buttons if necessary
-    >
+      size="sm">
       Export Active Script
     </Button>
   );
@@ -538,39 +551,45 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
           accept=".py,.js"
         />
 
-        <Card bg={headerBg} shadow="md">
+        <Card borderRadius="lg" bg={headerBg} shadow="md">
           <CardBody>
             <HStack
               width="100%"
               alignItems="stretch"
-              spacing={4}
+              spacing={1}
               height="calc(100vh - 100px)"
               minH="500px">
-              <VStack width="200px" minW="200px" alignItems="flex-start" spacing={4} height="100%">
-                <HStack width="100%" spacing={2}>
-                  <Input
-                    size="sm"
-                    fontSize="xs"
-                    placeholder="Search scripts..."
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  <NewScript
-                    activeFolderId={openFolders.size > 0 ? activeFolder?.id : undefined}
-                    onScriptCreated={refreshData}
-                  />
-                  <NewFolder
-                    isCreatingRoot={folderCreating}
-                    onCancel={() => setFolderCreating(false)}
-                    onFolderCreated={refreshData}
-                    parentId={activeOpenFolder?.id}
-                  />
-                </HStack>
-                <Box width="100%" flex={1} overflowY="auto" position="relative">
-                  <Scripts />
-                </Box>
-              </VStack>
+              <ResizablePanel
+                initialWidth="200px"
+                minWidth="100px"
+                maxWidth="30%"
+                borderColor={borderColor}>
+                <VStack alignItems="flex-start" spacing={4} height="100%">
+                  <HStack width="100%" spacing={2}>
+                    <Input
+                      size="sm"
+                      fontSize="xs"
+                      placeholder="Search scripts..."
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    <NewScript
+                      activeFolderId={openFolders.size > 0 ? activeFolder?.id : undefined}
+                      onScriptCreated={refreshData}
+                    />
+                    <NewFolder
+                      isCreatingRoot={folderCreating}
+                      onCancel={() => setFolderCreating(false)}
+                      onFolderCreated={refreshData}
+                      parentId={activeOpenFolder?.id}
+                    />
+                  </HStack>
+                  <Box width="100%" flex={1} overflowY="auto" position="relative">
+                    <Scripts />
+                  </Box>
+                </VStack>
+              </ResizablePanel>
 
-              <VStack flex={1} spacing={4} height="100%">
+              <VStack flex={1} spacing={0} height="100%">
                 <Box
                   width="100%"
                   borderRadius="md"
