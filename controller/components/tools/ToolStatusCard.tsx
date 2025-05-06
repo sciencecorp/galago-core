@@ -176,17 +176,18 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
               <Text fontSize="sm">{description}</Text>
             </Box>
             <Box top={-5} right={-5} position="relative">
-              {toolId !== "tool_box" && <EditMenu onEdit={onOpen} onDelete={openDeleteConfirm} />}
+              {toolId !== "tool_box" && 
+              <EditMenu 
+                  onEdit={onOpen} 
+                  onDelete={openDeleteConfirm} 
+              />}
             </Box>
           </Flex>
         </CardHeader>
         <CardBody mt="0px">
           <VStack align="stretch" spacing={4} mb={2}>
             <ToolStatusTag toolId={toolId} />
-
-            {/* Always render the ToolConfigEditor but manage its visibility with CSS */}
             <Flex position="relative" width="100%" height="120px">
-              {/* Tool Config Editor */}
               <Box
                 position="absolute"
                 top="0"
@@ -205,7 +206,6 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
                 </Box>
               </Box>
 
-              {/* Image when not hovered */}
               <Box
                 position="absolute"
                 top="0"
@@ -224,12 +224,12 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
           </VStack>
         </CardBody>
       </Card>
-      <EditToolModal
-        toolId={toolId}
-        toolInfo={toolData as ToolConfig}
-        isOpen={isOpen}
-        onClose={onClose}
-      />
+        <EditToolModal
+          toolId={toolId}
+          toolInfo={toolData as ToolConfig}
+          isOpen={isOpen}
+          onClose={onClose}
+        />
     </>
   );
 }

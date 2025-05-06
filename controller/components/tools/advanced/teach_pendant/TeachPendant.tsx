@@ -645,7 +645,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                   }}
                   bg={tabBgColor}
                   borderColor={borderColor}>
-                  Grip Parameters
+                  Grip Settings
                 </Tab>
                 <Tab
                   _selected={{
@@ -731,19 +731,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     onAdd={() => {
                       setSelectedMotionProfile(null);
                       motionProfileModal.onOpen();
-                    }}
-                    onRegister={(profile: MotionProfile) => {
-                      commandHandlers.handleRegisterMotionProfile(robotArmCommandMutation, {
-                        id: profile.profile_id,
-                        speed: profile.speed,
-                        speed2: profile.speed2,
-                        acceleration: profile.acceleration,
-                        deceleration: profile.deceleration,
-                        accel_ramp: profile.accel_ramp,
-                        decel_ramp: profile.decel_ramp,
-                        inrange: profile.inrange,
-                        straight: profile.straight,
-                      });
                     }}
                     bgColor={bgColor}
                     bgColorAlpha={bgColorAlpha}

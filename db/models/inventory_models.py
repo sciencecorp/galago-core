@@ -321,7 +321,7 @@ class RobotArmMotionProfile(Base, TimestampMixin):
     )
 
     __table_args__ = (
-        CheckConstraint("name <> ''", name="check_non_empty_name")
+        CheckConstraint("name <> ''", name="check_non_empty_name"), 
     )
 
 

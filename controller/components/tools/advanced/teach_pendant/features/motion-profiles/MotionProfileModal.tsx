@@ -84,10 +84,6 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
       errors.push("Name is required");
     }
 
-    if (profileId < 1 || profileId > 14) {
-      errors.push("Profile ID must be between 1 and 14");
-    }
-
     const duplicateProfile = existingProfiles.find(
       (p) => p.profile_id === profileId && (!profile || p.id !== profile.id),
     );
@@ -131,16 +127,6 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
             <FormControl isRequired>
               <FormLabel>Name</FormLabel>
               <Input value={name} onChange={(e) => setName(e.target.value)} />
-            </FormControl>
-            <FormControl>
-              <FormLabel>Profile ID (1-14)</FormLabel>
-              <NumberInput
-                value={profileId}
-                onChange={(_, value) => setProfileId(value)}
-                min={1}
-                max={14}>
-                <NumberInputField />
-              </NumberInput>
             </FormControl>
             <FormControl>
               <FormLabel>Speed (%)</FormLabel>

@@ -10,7 +10,6 @@ import {
   IconButton,
   HStack,
   Switch,
-  Tooltip,
   useColorModeValue,
   VStack,
   Heading,
@@ -18,10 +17,8 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
-  MenuDivider,
-  NumberInput,
-  NumberInputField,
-  Input,
+
+  Text
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon, CheckIcon } from "@chakra-ui/icons";
 import { MotionProfile, MotionProfilesPanelProps } from "../../types/";
@@ -37,7 +34,6 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
   onDelete,
   onDeleteAll,
   onAdd,
-  onRegister,
   bgColor,
   bgColorAlpha,
   defaultProfileId,
@@ -73,6 +69,7 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
           </Heading>
           <HStack>
             <Button
+              isDisabled={profiles.length === 0}
               leftIcon={<DeleteIcon />}
               size="sm"
               onClick={onDeleteAll}
@@ -125,9 +122,6 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                   </Th>
                   <Th bg={headerBgColor} color={textColor}>
                     Name
-                  </Th>
-                  <Th bg={headerBgColor} color={textColor}>
-                    ID
                   </Th>
                   <Th bg={headerBgColor} color={textColor}>
                     Speed
@@ -186,7 +180,6 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                         }}
                       />
                     </Td>
-                    <Td>{profile.profile_id}</Td>
                     <Td>
                       <EditableText
                         defaultValue={(profile.speed ?? 0).toString()}
@@ -275,13 +268,8 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                             icon={<DeleteIcon />}
                             onClick={() => onDelete(profile.id!)}
                             color="red.500">
-                            Delete Profile
+                            <Text fontWeight="bold">Delete</Text>
                           </MenuItem>
-                          {profile.id && (
-                            <MenuItem onClick={() => onRegister(profile)}>
-                              Register with Robot
-                            </MenuItem>
-                          )}
                         </MenuList>
                       </Menu>
                     </Td>
