@@ -70,7 +70,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
   const tabActiveBgColor = useColorModeValue("white", "gray.700");
   const toast = useToast();
 
-  console.log("TeachPendant render", toolId, config);
   // Hooks
   const {
     toolStatusQuery,
@@ -139,10 +138,12 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     commandHandlers.handleJog(robotArmCommandMutation, jogAxis, jogDistance, motionProfiles);
   };
 
-  const handleMoveCommand = commandHandlers.handleMoveCommand;
 
   const handleMove = (point: TeachPoint) => {
     const motionProfile = motionProfiles.find((p) => p.id === selectedMotionProfile?.id);
+    console.log("Motion profile is")
+    console.log("Selected profile is" + selectedMotionProfile);
+    console.log(motionProfile)
     if (motionProfile) {
       commandHandlers.handleMoveCommand(
         robotArmCommandMutation,

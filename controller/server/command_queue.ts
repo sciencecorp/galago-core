@@ -420,6 +420,7 @@ export class CommandQueue {
   }
   async clearAll() {
     await this.commands.clearAll();
+    await this.clearError();
   }
   async clearByRunId(runId: string) {
     await this.commands.clearByRunId(runId);
@@ -431,6 +432,11 @@ export class CommandQueue {
 
   async clearCompleted() {
     await this.commands.clearCompleted();
+  }
+
+  async clearError() {
+    this.error = undefined;
+    this._setState(ToolStatus.READY);
   }
 
   slackNotificationsEnabled: boolean = true;
