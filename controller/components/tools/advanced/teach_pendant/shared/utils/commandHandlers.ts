@@ -7,6 +7,7 @@ import { coordinateToJoints } from "./robotArmUtils";
 import { successToast, errorToast } from "@/components/ui/Toast";
 import { createBatchHandler } from "./batchUtils";
 import { validateMotionProfileExists, validateGripParamsExists } from "./commandValidation";
+import { motion } from "framer-motion";
 
 // Add a new interface for the robot motion profile format
 interface RobotMotionProfile {
@@ -47,8 +48,7 @@ export function useCommandHandlers(config: Tool) {
   const handleMoveCommand = (
     mutation: UseMutationResult<any, unknown, any, unknown>,
     name: string,
-    motion_profile_id: number,
-    silent: boolean = false,
+    motion_profile: string,
     motionProfiles: MotionProfile[] = [],
   ) => {
     // Validate that motion profiles exist
@@ -59,7 +59,7 @@ export function useCommandHandlers(config: Tool) {
     const command = "move";
     const params = {
       name,
-      motion_profile_id,
+      motion_profile,
     };
 
     mutation.mutate({
@@ -74,13 +74,13 @@ export function useCommandHandlers(config: Tool) {
    * Moves robot to multiple teach points in batch
    * @param commandMutation The command mutation to use
    * @param points Array of teach points to move to
-   * @param motion_profile_id Motion profile ID to use
+   * @param motion_profile Motion profile name to use
    * @returns Object containing success and error counts
    */
   const handleBatchMoveCommand = async (
     commandMutation: UseMutationResult<any, unknown, ToolCommandInfo>,
     points: TeachPoint[],
-    motion_profile_id: number,
+    motion_profile: string,
     motionProfiles: MotionProfile[] = [],
   ) => {
     // Validate that motion profiles exist
@@ -95,7 +95,7 @@ export function useCommandHandlers(config: Tool) {
         command: "move",
         params: {
           name: point.name,
-          motion_profile_id,
+          motion_profile: motion_profile,
         },
       });
     };
