@@ -1340,15 +1340,18 @@ def get_robot_arm_waypoints(
     motion_profiles = crud.robot_arm_motion_profile.get_all_by(
         db, obj_in={"tool_id": tool.id}
     )
+    for profile in motion_profiles:
+        if hasattr(profile, "tool_id"):
+            profile.tool_id = None
+    
     grip_params = crud.robot_arm_grip_params.get_all_by(db, obj_in={"tool_id": tool.id})
     return {
-        "id": tool.id,
+        "tool_name": tool.name,
         "name": f"Waypoints for Tool {tool_id}",
         "locations": locations,
         "sequences": sequences,
         "motion_profiles": motion_profiles,
         "grip_params": grip_params,
-        "tool_id": tool.id,
     }
 
 
