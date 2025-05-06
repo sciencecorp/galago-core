@@ -80,7 +80,7 @@ export const CommandModal: React.FC<CommandModalProps> = ({
     const motionProfile = motionProfiles.find(
       (profile) => profile.name === processedParams.motion_profile,
     );
-      
+
     if (processedParams.grip_params) {
       const grip = gripParams.find((g) => g.id === Number(processedParams.grip_params));
       if (grip) {

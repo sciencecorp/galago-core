@@ -25,21 +25,17 @@ export const EditMenu: React.FC<EditMenuProps> = (props) => {
       <MenuButton as={IconButton} aria-label="Options" icon={<HamburgerIcon />} variant="ghost" />
       <MenuList>
         {customMenuItems.map((item, index) => (
-          <MenuItem 
-            key={`custom-item-${index}`} 
-            icon={item.icon} 
-            onClick={item.onClick}
-          >
+          <MenuItem key={`custom-item-${index}`} icon={item.icon} onClick={item.onClick}>
             {item.label}
           </MenuItem>
         ))}
-        
+
         {onEdit && (
-        <MenuItem icon={<RiEdit2Line />} onClick={onEdit}>
-          Edit
-        </MenuItem>
+          <MenuItem icon={<RiEdit2Line />} onClick={onEdit}>
+            Edit
+          </MenuItem>
         )}
-        
+
         {/* Conditionally render the delete option */}
         {onDelete && (
           <MenuItem icon={<RiDeleteBin5Line />} onClick={onDelete}>

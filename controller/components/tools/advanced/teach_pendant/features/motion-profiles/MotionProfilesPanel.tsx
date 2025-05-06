@@ -17,8 +17,7 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
-
-  Text
+  Text,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon, CheckIcon } from "@chakra-ui/icons";
 import { MotionProfile, MotionProfilesPanelProps } from "../../types/";

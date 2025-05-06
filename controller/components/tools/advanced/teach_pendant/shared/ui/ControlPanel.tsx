@@ -100,7 +100,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               size="md"
               isLoading={isUnwindLoading}
               isDisabled={!isEnabled}>
-              Retract
+              Unwind
             </Button>
           </HStack>
         </CardBody>

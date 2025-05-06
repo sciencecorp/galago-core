@@ -176,11 +176,7 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
               <Text fontSize="sm">{description}</Text>
             </Box>
             <Box top={-5} right={-5} position="relative">
-              {toolId !== "tool_box" && 
-              <EditMenu 
-                  onEdit={onOpen} 
-                  onDelete={openDeleteConfirm} 
-              />}
+              {toolId !== "tool_box" && <EditMenu onEdit={onOpen} onDelete={openDeleteConfirm} />}
             </Box>
           </Flex>
         </CardHeader>
@@ -224,12 +220,12 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
           </VStack>
         </CardBody>
       </Card>
-        <EditToolModal
-          toolId={toolId}
-          toolInfo={toolData as ToolConfig}
-          isOpen={isOpen}
-          onClose={onClose}
-        />
+      <EditToolModal
+        toolId={toolId}
+        toolInfo={toolData as ToolConfig}
+        isOpen={isOpen}
+        onClose={onClose}
+      />
     </>
   );
 }

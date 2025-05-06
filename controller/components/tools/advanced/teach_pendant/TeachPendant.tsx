@@ -136,19 +136,8 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     commandHandlers.handleJog(robotArmCommandMutation, jogAxis, jogDistance, motionProfiles);
   };
 
-  const handleMoveCommand = commandHandlers.handleMoveCommand;
-
   const handleMove = (point: TeachPoint) => {
-    const motionProfile = motionProfiles.find((p) => p.id === selectedMotionProfile?.id);
-    if (motionProfile) {
-      commandHandlers.handleMoveCommand(
-        robotArmCommandMutation,
-        point.name,
-        motionProfile.id,
-        false,
-        motionProfiles,
-      );
-    }
+    commandHandlers.handleMoveCommand(robotArmCommandMutation, point.name, "default");
   };
 
   const handleTeach = async (point: TeachPoint) => {
