@@ -412,13 +412,7 @@ export class CommandQueue {
   }
   async clearAll() {
     await this.commands.clearAll();
-    this.error = undefined;
-    this._setState(ToolStatus.OFFLINE);
-    logAction({
-      level: "info",
-      action: "Queue Cleared",
-      details: "Command Queue cleared by user.",
-    });
+    await this.clearError();
   }
   async clearByRunId(runId: string) {
     await this.commands.clearByRunId(runId);
@@ -430,6 +424,11 @@ export class CommandQueue {
 
   async clearCompleted() {
     await this.commands.clearCompleted();
+  }
+
+  async clearError() {
+    this.error = undefined;
+    this._setState(ToolStatus.READY);
   }
 
   slackNotificationsEnabled: boolean = true;
