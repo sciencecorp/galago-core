@@ -7,7 +7,6 @@ import {
   useColorModeValue,
   Collapse,
   Input,
-  Button,
   FormControl,
   FormLabel,
   Center,
@@ -22,14 +21,10 @@ import {
   NumberInputField,
   Select,
   Badge,
+  Button,
+  ButtonGroup,
 } from "@chakra-ui/react";
-import {
-  DeleteIcon,
-  AddIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  ArrowDownIcon,
-} from "@chakra-ui/icons";
+import { DeleteIcon, AddIcon, ArrowDownIcon } from "@chakra-ui/icons";
 import { useState, useEffect } from "react";
 import { SequenceCommand } from "../../types/";
 import { CommandModal } from "./CommandModal";
@@ -38,7 +33,8 @@ import { Tool } from "@/types/api";
 import { trpc } from "@/utils/trpc";
 import { CommandIcons } from "@/components/ui/Icons";
 import { getCommandColor, getCommandColorHex } from "@/components/ui/Theme";
-
+import { SaveIcon, EditIcon } from "@/components/ui/Icons";
+import { ArrowForwardIcon } from "@chakra-ui/icons";
 // Centralized command styling hook
 const useCommandStyles = (commandName: string, isExpanded: boolean) => {
   const isDarkMode = useColorModeValue(false, true);
@@ -146,17 +142,18 @@ const CommandItem: React.FC<CommandItemProps> = ({
             borderRadius="md"
             borderWidth="1px"
             {...styles.container}
-            onClick={() => {
-              // Update local state when a command is clicked
-              const newExpandedIndex = expandedCommand === index ? null : index;
-              setExpandedCommand(newExpandedIndex);
-              onCommandClick?.(index);
-            }}
             width="100%"
             transition="all 0.2s"
             position="relative"
             overflow="hidden">
-            <HStack justify="space-between">
+            <HStack
+              width="100%"
+              onClick={() => {
+                const newExpandedIndex = expandedCommand === index ? null : index;
+                setExpandedCommand(newExpandedIndex);
+                onCommandClick?.(index);
+              }}
+              justify="space-between">
               <HStack spacing={2}>
                 <Box p={2} borderRadius="md" {...styles.iconContainer}>
                   {getCommandIcon(command.command)}
@@ -185,7 +182,6 @@ const CommandItem: React.FC<CommandItemProps> = ({
                     minW="32px"
                   />
                 )}
-
               </HStack>
             </HStack>
             <Collapse in={isExpanded}>
@@ -444,16 +440,6 @@ export const CommandList: React.FC<CommandListProps> = ({
     setInsertIndex(null);
   };
 
-  const handleNameChange = (newName: string) => {
-    setEditedSequenceName(newName);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleLabwareChange = (newLabware: string) => {
-    setEditedLabware(newLabware);
-    setHasUnsavedChanges(true);
-  };
-
   const handleSave = () => {
     if (hasUnsavedChanges) {
       onCommandsChange(localCommands);
@@ -465,7 +451,6 @@ export const CommandList: React.FC<CommandListProps> = ({
       }
       setHasUnsavedChanges(false);
     }
-    setIsEditing(false);
   };
 
   const getDisplayValue = (command: SequenceCommand) => {
@@ -533,72 +518,47 @@ export const CommandList: React.FC<CommandListProps> = ({
       overflow="hidden">
       <VStack spacing={2} height="100%" width="100%">
         <HStack width="100%" justify="space-between" align="start">
-          <Box flex={1}>
-            {isEditing ? (
-              <VStack spacing={4} align="stretch">
-                <FormControl>
-                  <FormLabel>Sequence Name</FormLabel>
-                  <Input
-                    value={editedSequenceName}
-                    onChange={(e) => handleNameChange(e.target.value)}
-                    size="sm"
-                  />
-                </FormControl>
-                <FormControl>
-                  <FormLabel>Labware</FormLabel>
-                  <Select
-                    value={editedLabware}
-                    onChange={(e) => handleLabwareChange(e.target.value)}
-                    size="sm">
-                    <option value="default">Default</option>
-                    {labwareList
-                      ?.filter((item) => item.name.toLowerCase() !== "default")
-                      .map((item) => (
-                        <option key={item.id} value={item.name}>
-                          {item.name}
-                        </option>
-                      ))}
-                  </Select>
-                </FormControl>
-              </VStack>
-            ) : (
-              <VStack align="start" spacing={1}>
-                <Text fontWeight="bold">{sequenceName}</Text>
-                <HStack>
-                  <Text fontSize="sm" color="gray.500">
-                    Labware:
-                  </Text>
-                  <Badge colorScheme={labware === "default" ? "gray" : "blue"}>{labware}</Badge>
-                </HStack>
-              </VStack>
-            )}
-          </Box>
-          <HStack>
-            <Button
-              size="sm"
-              colorScheme={isEditing ? (hasUnsavedChanges ? "blue" : "gray") : "gray"}
-              onClick={() => {
-                if (isEditing) {
-                  handleSave();
-                } else {
-                  setIsEditing(true);
-                }
-              }}>
-              {isEditing ? (hasUnsavedChanges ? "Save" : "Done") : "Edit"}
-            </Button>
-            {isEditing && (
+          <VStack align="start" spacing={1}>
+            <Text fontWeight="bold">{sequenceName}</Text>
+            <HStack>
+              <Text fontSize="sm" color="gray.500">
+                Labware:
+              </Text>
+              <Badge colorScheme={labware === "default" ? "teal" : "blue"}>{labware}</Badge>
+            </HStack>
+          </VStack>
+          <ButtonGroup>
+            {!isEditing ? (
               <IconButton
-                aria-label="Delete sequence"
-                icon={<DeleteIcon />}
-                size="sm"
-                colorScheme="red"
+                aria-label="Edit Sequence"
+                icon={<EditIcon />}
+                colorScheme="blue"
                 variant="ghost"
-                onClick={onDelete}
+                onClick={() => setIsEditing(!isEditing)}
               />
+            ) : (
+              <HStack>
+                <IconButton
+                  isDisabled={!hasUnsavedChanges}
+                  aria-label="Save Script"
+                  icon={<SaveIcon />}
+                  colorScheme="gray"
+                  variant="ghost"
+                  onClick={handleSave}
+                />
+                <IconButton
+                  aria-label="Exit Edit Mode"
+                  icon={<ArrowForwardIcon />}
+                  colorScheme="red"
+                  variant="ghost"
+                  onClick={() => {
+                    setIsEditing(false);
+                  }}
+                />
+              </HStack>
             )}
-          </HStack>
+          </ButtonGroup>
         </HStack>
-
         <Box width="100%" flex={1} overflowY="auto" px={2}>
           <VStack spacing={0} width="100%" align="stretch">
             {isEditing && (
@@ -613,7 +573,6 @@ export const CommandList: React.FC<CommandListProps> = ({
                 />
               </SlideFade>
             )}
-
             {localCommands?.map((command, index) => (
               <CommandItem
                 key={index}
