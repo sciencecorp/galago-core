@@ -18,6 +18,7 @@ import {
   AlertTitle,
   AlertDescription,
   CloseButton,
+  useToast
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
@@ -27,7 +28,7 @@ import { capitalizeFirst } from "@/utils/parser";
 import Head from "next/head";
 import { TeachPendant } from "@/components/tools/advanced/teach_pendant/TeachPendant";
 import { commandFields } from "@/components/tools/constants";
-import { errorToast, infoToast, successToast } from "@/components/ui/Toast";
+import { errorToast, infoToast, loadingToast, successToast } from "@/components/ui/Toast";
 // Inside your component
 type AtomicFormValues = string | number | boolean | string[];
 type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormValues>>;
@@ -41,7 +42,7 @@ export default function Page() {
   const [commandExecutionStatus, setCommandExecutionStatus] = useState<CommandStatus>({});
   const [selectedCommand, setSelectedCommand] = useState<string | undefined>();
   const [formValues, setFormValues] = useState<FormValues>({});
-
+  const toast = useToast();
   const doesCommandHaveParameters = (commandName: string) => {
     if (!config) return false;
     const fields = commandFields[config?.type][commandName];
@@ -98,15 +99,23 @@ export default function Page() {
   const handleSubmit = () => {
     if (!selectedCommand) return;
     if (!config) return;
-    infoToast(`Executing ${selectedCommand}..`, "Please wait.");
-
+      toast({
+        title: `Executing ${selectedCommand}..`,
+        description: `Please wait.`,
+        status: "loading",
+        variant: "left-accent",
+        duration: null,
+        isClosable: false,
+        position: "top", // or "bottom"
+      });
+  
     const toolCommand: ToolCommandInfo = {
       toolId: config.name,
       toolType: config.type,
       command: selectedCommand,
       params: formValues,
     };
-    commandMutation.mutate(toolCommand, {
+  commandMutation.mutate(toolCommand, {
       onSuccess: () => {
         successToast(`Command ${selectedCommand} completed!`, "Command completed successfully");
         setCommandExecutionStatus((prevStatus) => ({
