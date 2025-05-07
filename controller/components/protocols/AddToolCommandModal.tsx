@@ -76,6 +76,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   const toolsQuery = trpc.tool.getAll.useQuery();
   const toolBoxQuery = trpc.tool.getToolBox.useQuery();
   const { data: fetchedVariables } = trpc.variable.getAll.useQuery();
+  const { data: labwareData } = trpc.labware.getAll.useQuery();
 
   const selectedToolData =
     toolsQuery.data?.find((tool) => tool.id === selectedToolId) ||
@@ -96,6 +97,16 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
       fields.forEach((field: Field) => {
         if (field.defaultValue !== undefined) {
           initialParams[field.name] = field.defaultValue;
+        } else if (field.name === "labware") {
+          // Check if there's a labware named "default" in the database first
+          if (labwareData?.some(labware => labware.name.toLowerCase() === "default")) {
+            // If it exists in labwareData, use the exact case that exists in the database
+            const defaultLabware = labwareData.find(labware => labware.name.toLowerCase() === "default");
+            initialParams[field.name] = defaultLabware?.name || "default";
+          } else {
+            // Otherwise use the lowercase "default"
+            initialParams[field.name] = "default";
+          }
         }
       });
 
@@ -103,7 +114,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     } else {
       setCommandParams({});
     }
-  }, [selectedToolType, selectedCommand]);
+  }, [selectedToolType, selectedCommand, labwareData]);
 
   // Get available commands for the selected tool
   const availableCommands: Command = selectedToolType ? commandFields[selectedToolType] || {} : {};
@@ -248,6 +259,43 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     const isVariable = isVariableReference(currentValue);
     const variableName = isVariable ? getVariableNameFromReference(currentValue) : "";
 
+    // For labware fields, use a dropdown with available labware
+    if (field.name === "labware") {
+      return (
+        <HStack width="100%">
+          <Select
+            flex={1}
+            value={isVariable ? "" : currentValue || "default"}
+            onChange={(e) => {
+              if (!isVariable) {
+                setCommandParams({ ...commandParams, [field.name]: e.target.value });
+              }
+            }}
+            isDisabled={isVariable}>
+            {labwareData?.map((labware) => (
+              <option key={labware.id} value={labware.name}>
+                {labware.name}
+              </option>
+            ))}
+            {!labwareData?.some(labware => labware.name.toLowerCase() === "default") && (
+              <option value="default">default</option>
+            )}
+          </Select>
+          <Select
+            width="180px"
+            value={variableName}
+            onChange={(e) => handleVariableSelect(field.name, e.target.value)}>
+            <option value="">No Variable</option>
+            {fetchedVariables?.map((variable) => (
+              <option key={variable.id} value={variable.name}>
+                {variable.name}
+              </option>
+            ))}
+          </Select>
+        </HStack>
+      );
+    }
+
     // Special handling for PF400 location and sequence fields
     if (selectedToolType === "pf400") {
       // For move command's name parameter (locations)
@@ -264,13 +312,19 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                   setCommandParams({ ...commandParams, [field.name]: "" });
                 }
               }}
-              isDisabled={isVariable}>
-              <option value="">Select location</option>
-              {waypointsQuery.data?.locations.map((loc) => (
-                <option key={loc.id} value={loc.name}>
-                  {loc.name}
+              isDisabled={isVariable}
+              placeholder="Select a location">
+              {waypointsQuery.data?.locations && waypointsQuery.data.locations.length > 0 ? (
+                waypointsQuery.data.locations.map((loc) => (
+                  <option key={loc.id} value={loc.name}>
+                    {loc.name}
+                  </option>
+                ))
+              ) : (
+                <option value="" disabled>
+                  No locations available
                 </option>
-              ))}
+              )}
             </Select>
             <Select
               width="180px"
@@ -302,13 +356,19 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                   setCommandParams({ ...commandParams, [field.name]: "" });
                 }
               }}
-              isDisabled={isVariable}>
-              <option value="">Select sequence</option>
-              {waypointsQuery.data?.sequences.map((seq) => (
-                <option key={seq.id} value={seq.name}>
-                  {seq.name}
+              isDisabled={isVariable}
+              placeholder="Select a sequence">
+              {waypointsQuery.data?.sequences && waypointsQuery.data.sequences.length > 0 ? (
+                waypointsQuery.data.sequences.map((seq) => (
+                  <option key={seq.id} value={seq.name}>
+                    {seq.name}
+                  </option>
+                ))
+              ) : (
+                <option value="" disabled>
+                  No sequences available
                 </option>
-              ))}
+              )}
             </Select>
             <Select
               width="180px"

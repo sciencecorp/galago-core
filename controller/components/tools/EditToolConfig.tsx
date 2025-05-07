@@ -202,62 +202,21 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
       key.toLowerCase().includes("path") ||
       key.toLowerCase().includes("directory")
     ) {
+      // Special placeholder for Cytation directories
+      const isCytationConfig = type === ToolType.cytation && (
+        key === 'protocol_dir' || key === 'experiment_dir'
+      );
+      
+      const placeholder = isCytationConfig 
+        ? `Enter full absolute path (e.g., C:\\cytation_${key.includes('protocol') ? 'protocols' : 'experiments'})`
+        : `Enter full path for ${key.replaceAll("_", " ")}`;
+
       return (
-        <InputGroup>
-          <Input
-            value={newConfig[type!]?.[key] || value}
-            onChange={(e) => handleConfigChange(e, key)}
-            placeholder={`Enter ${key.replaceAll("_", " ")}`}
-          />
-          <InputRightElement width="4rem">
-            <Button
-              h="1.75rem"
-              size="sm"
-              colorScheme="teal"
-              onClick={async () => {
-                // Try to use the File System Access API
-                if ("showDirectoryPicker" in window) {
-                  try {
-                    // @ts-ignore - showDirectoryPicker is not yet in standard lib.dom.d.ts
-                    const dirHandle = await window.showDirectoryPicker();
-                    // Extract the directory name (full path is usually not available for security)
-                    const dirName = dirHandle.name;
-
-                    // Create a synthetic event to update the input value
-                    const syntheticEvent = {
-                      target: { value: dirName }, // Use dirName here
-                    } as React.ChangeEvent<HTMLInputElement>;
-
-                    handleConfigChange(syntheticEvent, key);
-                    successToast("Directory Selected", `Selected directory: ${dirName}`);
-                  } catch (err) {
-                    // Handle errors, e.g., user cancellation
-                    if (err instanceof Error && err.name !== "AbortError") {
-                      errorToast(
-                        "Error Selecting Directory",
-                        "Could not select directory. Please check permissions or try again.",
-                      );
-                      console.error("Error using showDirectoryPicker:", err);
-                    } else {
-                      console.log("Directory selection cancelled by user.");
-                    }
-                  }
-                } else {
-                  // Fallback if API is not available
-                  errorToast(
-                    "Browser Not Supported",
-                    "Directory picker API is not available in this browser. Please enter the path manually.",
-                  );
-                  successToast(
-                    "Directory Format",
-                    "Enter a valid directory path like C:\\Program Files or /home/user/data",
-                  );
-                }
-              }}>
-              <RiFolderOpenLine />
-            </Button>
-          </InputRightElement>
-        </InputGroup>
+        <Input
+          value={newConfig[type!]?.[key] || value}
+          onChange={(e) => handleConfigChange(e, key)}
+          placeholder={placeholder}
+        />
       );
     }
 

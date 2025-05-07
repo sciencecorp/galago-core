@@ -220,6 +220,19 @@ export default class Tool {
       }
     }
 
+    // For pf400 run_sequence commands, ensure labware parameter is never empty
+    if (command.toolType === ToolType.pf400 && command.command === "run_sequence") {
+      // If labware is undefined, null, or empty string, set it to "default"
+      if (!params.labware) {
+        logAction({
+          level: "warning",
+          action: "Parameter Validation",
+          details: `Adding missing labware parameter to run_sequence command for ${command.toolId}`,
+        });
+        params.labware = "default";
+      }
+    }
+
     //Handle script execution
     if (command.command === "run_script" && command.toolId === "tool_box") {
       const scriptName = command.params.name.replaceAll(".js", "").replaceAll(".py", "");
