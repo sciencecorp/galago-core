@@ -157,7 +157,7 @@ const CommandItem: React.FC<CommandItemProps> = ({
             position="relative"
             overflow="hidden">
             <HStack justify="space-between">
-              <HStack spacing={3}>
+              <HStack spacing={2}>
                 <Box p={2} borderRadius="md" {...styles.iconContainer}>
                   {getCommandIcon(command.command)}
                 </Box>
@@ -185,21 +185,7 @@ const CommandItem: React.FC<CommandItemProps> = ({
                     minW="32px"
                   />
                 )}
-                <IconButton
-                  aria-label={isExpanded ? "Collapse" : "Expand"}
-                  icon={isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
-                  size="sm"
-                  variant="ghost"
-                  colorScheme={getCommandColor(command.command)}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // Update local state when expand/collapse button is clicked
-                    const newExpandedIndex = expandedCommand === index ? null : index;
-                    setExpandedCommand(newExpandedIndex);
-                    onCommandClick?.(index);
-                  }}
-                  minW="32px"
-                />
+
               </HStack>
             </HStack>
             <Collapse in={isExpanded}>
