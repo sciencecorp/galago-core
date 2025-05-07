@@ -104,7 +104,7 @@ export function useCommandHandlers(config: Tool) {
 
   const handleSimpleCommand = async (
     commandMutation: UseMutationResult<any, unknown, ToolCommandInfo>,
-    command: "release" | "engage" | "retract",
+    command: "release" | "engage" | "unwind",
     silent: boolean = false,
   ) => {
     const simpleCommand: ToolCommandInfo = {

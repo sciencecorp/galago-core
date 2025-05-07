@@ -77,7 +77,7 @@ export const CommandIcons = {
   DropoffPlate: RiArrowTurnForwardLine,
   Engage: IoLockClosedOutline,
   Release: IoLockOpenOutline,
-  Retract: HiArrowsPointingIn,
+  Unwind: HiArrowsPointingIn,
 } as const;
 
 // Individual Icon Exports with Consistent Naming
@@ -101,7 +101,7 @@ export {
   FaHandPaper as ReleasePlateIcon,
   RiArrowTurnBackLine as RetrievePlateIcon,
   RiArrowTurnForwardLine as DropoffPlateIcon,
-  HiArrowsPointingIn as RetractIcon,
+  HiArrowsPointingIn as UnwindIcon,
 };
 
 // Custom Icon Components

@@ -275,7 +275,7 @@ export const commandFields: CommandFields = {
     ],
     home: [],
     abort: [],
-    retract: [],
+    unwind: [],
     go_to: [{ name: "stack_id", type: "number", defaultValue: 1 }],
     send_raw_command: [{ name: "command", type: "text" }],
   },
