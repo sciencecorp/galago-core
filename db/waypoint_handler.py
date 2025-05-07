@@ -405,7 +405,6 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                         obj_in=schemas.RobotArmMotionProfileCreate(
                             name=profile.name,
                             tool_id=tool_id,
-                            profile_id=profile.profile_id,
                             speed=profile.speed,
                             speed2=profile.speed2,
                             acceleration=profile.acceleration,
