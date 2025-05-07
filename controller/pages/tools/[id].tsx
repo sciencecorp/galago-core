@@ -97,38 +97,6 @@ export default function Page() {
   };
 
   const handleSubmit = () => {
-    if (!selectedCommand) return;
-    if (!config) return;
-    toast({
-      title: `Executing ${selectedCommand}..`,
-      description: `Please wait.`,
-      status: "loading",
-      variant: "left-accent",
-      duration: null,
-      isClosable: false,
-      position: "top", // or "bottom"
-    });
-
-    const toolCommand: ToolCommandInfo = {
-      toolId: config.name,
-      toolType: config.type,
-      command: selectedCommand,
-      params: formValues,
-    };
-    commandMutation.mutate(toolCommand, {
-      onSuccess: () => {
-        successToast(`Command ${selectedCommand} completed!`, "Command completed successfully");
-        setCommandExecutionStatus((prevStatus) => ({
-          ...prevStatus,
-          [selectedCommand]: "success",
-        }));
-      },
-      onError: (data) => {
-        // Set the command status to 'error' on failure
-        errorToast("Failed to execute command", `Error= ${data.message}`);
-        setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [selectedCommand]: "error" }));
-      },
-    });
   };
 
   const handleInputChange = (
