@@ -4,11 +4,11 @@ import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import moment from "moment-timezone";
 import StatusTag from "./StatusTag";
 
-export function ToolStatusTag({ 
-  toolId, 
-  isConfiguring = false 
-}: { 
-  toolId: string; 
+export function ToolStatusTag({
+  toolId,
+  isConfiguring = false,
+}: {
+  toolId: string;
   isConfiguring?: boolean;
 }): JSX.Element {
   const statusQuery = trpc.tool.status.useQuery({ toolId: toolId });
@@ -19,7 +19,7 @@ export function ToolStatusTag({
     return <Spinner />;
   }
   const { status, uptime } = statusQuery.data;
-  
+
   return (
     <Box>
       {isConfiguring ? (

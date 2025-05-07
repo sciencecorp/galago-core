@@ -203,12 +203,11 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
       key.toLowerCase().includes("directory")
     ) {
       // Special placeholder for Cytation directories
-      const isCytationConfig = type === ToolType.cytation && (
-        key === 'protocol_dir' || key === 'experiment_dir'
-      );
-      
-      const placeholder = isCytationConfig 
-        ? `Enter full absolute path (e.g., C:\\cytation_${key.includes('protocol') ? 'protocols' : 'experiments'})`
+      const isCytationConfig =
+        type === ToolType.cytation && (key === "protocol_dir" || key === "experiment_dir");
+
+      const placeholder = isCytationConfig
+        ? `Enter full absolute path (e.g., C:\\cytation_${key.includes("protocol") ? "protocols" : "experiments"})`
         : `Enter full path for ${key.replaceAll("_", " ")}`;
 
       return (

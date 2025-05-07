@@ -99,9 +99,11 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           initialParams[field.name] = field.defaultValue;
         } else if (field.name === "labware") {
           // Check if there's a labware named "default" in the database first
-          if (labwareData?.some(labware => labware.name.toLowerCase() === "default")) {
+          if (labwareData?.some((labware) => labware.name.toLowerCase() === "default")) {
             // If it exists in labwareData, use the exact case that exists in the database
-            const defaultLabware = labwareData.find(labware => labware.name.toLowerCase() === "default");
+            const defaultLabware = labwareData.find(
+              (labware) => labware.name.toLowerCase() === "default",
+            );
             initialParams[field.name] = defaultLabware?.name || "default";
           } else {
             // Otherwise use the lowercase "default"
@@ -277,7 +279,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                 {labware.name}
               </option>
             ))}
-            {!labwareData?.some(labware => labware.name.toLowerCase() === "default") && (
+            {!labwareData?.some((labware) => labware.name.toLowerCase() === "default") && (
               <option value="default">default</option>
             )}
           </Select>

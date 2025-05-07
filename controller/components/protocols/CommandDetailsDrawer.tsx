@@ -46,23 +46,25 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
   const { data: availableVariables } = trpc.variable.getAll.useQuery();
   const { data: labwareData } = trpc.labware.getAll.useQuery();
   const { data: toolsData } = trpc.tool.getAll.useQuery();
-  
+
   // Get the numeric tool ID from the tool name when a PF400 command is selected
-  const toolId = selectedCommand?.commandInfo?.toolType === "pf400" 
-    ? toolsData?.find(t => 
-        // Try to match by toolId (which might be the tool name) or by name
-        t.name?.toLowerCase() === selectedCommand?.commandInfo?.toolId?.toLowerCase() ||
-        // Also try with underscores replaced by spaces
-        t.name?.toLowerCase() === selectedCommand?.commandInfo?.toolId?.replaceAll("_", " ")?.toLowerCase()
-      )?.id || 0
-    : 0;
+  const toolId =
+    selectedCommand?.commandInfo?.toolType === "pf400"
+      ? toolsData?.find(
+          (t) =>
+            // Try to match by toolId (which might be the tool name) or by name
+            t.name?.toLowerCase() === selectedCommand?.commandInfo?.toolId?.toLowerCase() ||
+            // Also try with underscores replaced by spaces
+            t.name?.toLowerCase() ===
+              selectedCommand?.commandInfo?.toolId?.replaceAll("_", " ")?.toLowerCase(),
+        )?.id || 0
+      : 0;
 
   // Query for PF400 locations and sequences when needed
   const waypointsQuery = trpc.robotArm.waypoints.getAll.useQuery(
     { toolId },
-    { 
-      enabled: !!toolId && 
-               selectedCommand?.commandInfo?.toolType === "pf400" 
+    {
+      enabled: !!toolId && selectedCommand?.commandInfo?.toolType === "pf400",
     },
   );
 
@@ -73,17 +75,19 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
     if (selectedCommand) {
       setEditedParams({});
       setEditedAdvancedParams(null);
-      
+
       // If we have labware data and there's a labware parameter using "default"
       if (labwareData && selectedCommand?.commandInfo?.params?.labware === "default") {
         // Check if a labware with the name "default" (case insensitive) exists in the database
-        if (labwareData.some(labware => labware.name.toLowerCase() === "default")) {
+        if (labwareData.some((labware) => labware.name.toLowerCase() === "default")) {
           // Find the exact case of the default labware in the database
-          const defaultLabware = labwareData.find(labware => labware.name.toLowerCase() === "default");
+          const defaultLabware = labwareData.find(
+            (labware) => labware.name.toLowerCase() === "default",
+          );
           if (defaultLabware && defaultLabware.name !== "default") {
             // Update the labware parameter to match the case in the database
             setEditedParams({
-              labware: defaultLabware.name
+              labware: defaultLabware.name,
             });
           }
         }
@@ -240,7 +244,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
                 {labware.name}
               </option>
             ))}
-            {!labwareData?.some(labware => labware.name.toLowerCase() === "default") && (
+            {!labwareData?.some((labware) => labware.name.toLowerCase() === "default") && (
               <option value="default">default</option>
             )}
           </Select>
@@ -282,7 +286,9 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
             isDisabled={isVariable || !isEditing || waypointsQuery.isLoading}
             placeholder={waypointsQuery.isLoading ? "Loading sequences..." : "Select a sequence"}>
             {waypointsQuery.isLoading ? (
-              <option value="" disabled>Loading...</option>
+              <option value="" disabled>
+                Loading...
+              </option>
             ) : waypointsQuery.data?.sequences && waypointsQuery.data.sequences.length > 0 ? (
               waypointsQuery.data.sequences.map((seq) => (
                 <option key={seq.id} value={seq.name}>
@@ -316,9 +322,11 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
     }
 
     // For location fields in various PF400 commands
-    if (key === "name" && 
-        selectedCommand?.commandInfo?.command === "move" && 
-        selectedCommand?.commandInfo?.toolType === "pf400") {
+    if (
+      key === "name" &&
+      selectedCommand?.commandInfo?.command === "move" &&
+      selectedCommand?.commandInfo?.toolType === "pf400"
+    ) {
       return (
         <HStack width="100%" spacing={2}>
           <Select
@@ -335,7 +343,9 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
             isDisabled={isVariable || !isEditing || waypointsQuery.isLoading}
             placeholder={waypointsQuery.isLoading ? "Loading locations..." : "Select a location"}>
             {waypointsQuery.isLoading ? (
-              <option value="" disabled>Loading...</option>
+              <option value="" disabled>
+                Loading...
+              </option>
             ) : waypointsQuery.data?.locations && waypointsQuery.data.locations.length > 0 ? (
               waypointsQuery.data.locations.map((loc) => (
                 <option key={loc.id} value={loc.name}>

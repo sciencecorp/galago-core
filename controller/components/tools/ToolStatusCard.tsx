@@ -199,10 +199,10 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
                 display="flex"
                 alignItems="center">
                 <Box flex="1">
-                  <ToolConfigEditor 
-                    toolId={toolId} 
+                  <ToolConfigEditor
+                    toolId={toolId}
                     defaultConfig={toolData as ToolConfig}
-                    onConfiguring={setIsConfiguring} 
+                    onConfiguring={setIsConfiguring}
                   />
                 </Box>
                 <Box width="60px" height="60px" ml={2}>
