@@ -222,7 +222,6 @@ export const commandFields: CommandFields = {
     move: [
       { name: "name", type: "text" },
       { name: "motion_profile", type: "text", defaultValue: "Default" },
-      { name: "approach_height", type: "number", defaultValue: 0 },
     ],
     grasp_plate: [
       { name: "width", type: "number", defaultValue: 122 },

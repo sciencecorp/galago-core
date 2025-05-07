@@ -18,7 +18,7 @@ import {
   AlertTitle,
   AlertDescription,
   CloseButton,
-  useToast
+  useToast,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
@@ -99,23 +99,23 @@ export default function Page() {
   const handleSubmit = () => {
     if (!selectedCommand) return;
     if (!config) return;
-      toast({
-        title: `Executing ${selectedCommand}..`,
-        description: `Please wait.`,
-        status: "loading",
-        variant: "left-accent",
-        duration: null,
-        isClosable: false,
-        position: "top", // or "bottom"
-      });
-  
+    toast({
+      title: `Executing ${selectedCommand}..`,
+      description: `Please wait.`,
+      status: "loading",
+      variant: "left-accent",
+      duration: null,
+      isClosable: false,
+      position: "top", // or "bottom"
+    });
+
     const toolCommand: ToolCommandInfo = {
       toolId: config.name,
       toolType: config.type,
       command: selectedCommand,
       params: formValues,
     };
-  commandMutation.mutate(toolCommand, {
+    commandMutation.mutate(toolCommand, {
       onSuccess: () => {
         successToast(`Command ${selectedCommand} completed!`, "Command completed successfully");
         setCommandExecutionStatus((prevStatus) => ({
