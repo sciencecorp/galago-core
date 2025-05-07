@@ -221,7 +221,7 @@ export const commandFields: CommandFields = {
     ],
     move: [
       { name: "name", type: "text" },
-      { name: "motion_profile", type: "text", defaultValue: "Default"},
+      { name: "motion_profile", type: "text", defaultValue: "Default" },
       { name: "approach_height", type: "number", defaultValue: 0 },
     ],
     grasp_plate: [
@@ -259,7 +259,7 @@ export const commandFields: CommandFields = {
       { name: "place_on_plate", type: "boolean", defaultValue: true },
       { name: "approach_height", type: "number", defaultValue: 10 },
     ],
-    retract: [],
+    unwind: [],
   },
   microserve: {
     load: [
