@@ -202,7 +202,7 @@ const CommandItem: React.FC<CommandItemProps> = ({
                 />
               </HStack>
             </HStack>
-            <Collapse in={isEditing || isExpanded}>
+            <Collapse in={isExpanded}>
               <VStack
                 align="start"
                 mt={4}
