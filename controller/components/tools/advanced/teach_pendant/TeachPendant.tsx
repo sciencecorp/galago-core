@@ -475,7 +475,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 commandHandlers.handleSimpleCommand(robotArmCommandMutation, "engage")
               }
               onUnwind={() =>
-                commandHandlers.handleSimpleCommand(robotArmCommandMutation, "retract")
+                commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")
               }
               onGripperOpen={() => {
                 const selectedParams = gripParams.find((p) => p.id === defaultParamsId);
@@ -553,7 +553,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 robotArmCommandMutation.isLoading
               }
               isUnwindLoading={
-                robotArmCommandMutation.variables?.command === "retract" &&
+                robotArmCommandMutation.variables?.command === "unwind" &&
                 robotArmCommandMutation.isLoading
               }
               bgColor={bgColor}
@@ -575,7 +575,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 onTeach={() => handleTeach(selectedTeachPoint!)}
                 onMove={handleMove}
                 onUnwind={() =>
-                  commandHandlers.handleSimpleCommand(robotArmCommandMutation, "retract")
+                  commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")
                 }
                 onGripperOpen={() =>
                   commandHandlers.handleGripperCommand(

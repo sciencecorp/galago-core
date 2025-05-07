@@ -16,7 +16,7 @@ export const validateFolderName = validateScriptName; // Same rules apply for bo
 export const fileTypeToExtensionMap: Record<string, string> = {
   python: "py",
   javascript: "js",
-  typescript: "ts",
+  csharp: "cs",
 };
 
 // Shared file operations

@@ -12,7 +12,7 @@ export interface Command {
   wait?: Command_Wait | undefined;
   release?: Command_Release | undefined;
   engage?: Command_Engage | undefined;
-  retract?: Command_Retract | undefined;
+  unwind?: Command_Unwind | undefined;
   run_sequence?: Command_RunSequence | undefined;
   retrieve_plate?: Command_RetrievePlate | undefined;
   dropoff_plate?: Command_DropOffPlate | undefined;
@@ -79,7 +79,7 @@ export interface Command_Engage {
 export interface Command_Release {
 }
 
-export interface Command_Retract {
+export interface Command_Unwind {
 }
 
 export interface Command_Move {
@@ -146,7 +146,7 @@ function createBaseCommand(): Command {
     wait: undefined,
     release: undefined,
     engage: undefined,
-    retract: undefined,
+    unwind: undefined,
     run_sequence: undefined,
     retrieve_plate: undefined,
     dropoff_plate: undefined,
@@ -184,8 +184,8 @@ export const Command = {
     if (message.engage !== undefined) {
       Command_Engage.encode(message.engage, writer.uint32(58).fork()).ldelim();
     }
-    if (message.retract !== undefined) {
-      Command_Retract.encode(message.retract, writer.uint32(66).fork()).ldelim();
+    if (message.unwind !== undefined) {
+      Command_Unwind.encode(message.unwind, writer.uint32(66).fork()).ldelim();
     }
     if (message.run_sequence !== undefined) {
       Command_RunSequence.encode(message.run_sequence, writer.uint32(74).fork()).ldelim();
@@ -284,7 +284,7 @@ export const Command = {
             break;
           }
 
-          message.retract = Command_Retract.decode(reader, reader.uint32());
+          message.unwind = Command_Unwind.decode(reader, reader.uint32());
           continue;
         case 9:
           if (tag !== 74) {
@@ -381,7 +381,7 @@ export const Command = {
       wait: isSet(object.wait) ? Command_Wait.fromJSON(object.wait) : undefined,
       release: isSet(object.release) ? Command_Release.fromJSON(object.release) : undefined,
       engage: isSet(object.engage) ? Command_Engage.fromJSON(object.engage) : undefined,
-      retract: isSet(object.retract) ? Command_Retract.fromJSON(object.retract) : undefined,
+      unwind: isSet(object.unwind) ? Command_Unwind.fromJSON(object.unwind) : undefined,
       run_sequence: isSet(object.run_sequence) ? Command_RunSequence.fromJSON(object.run_sequence) : undefined,
       retrieve_plate: isSet(object.retrieve_plate) ? Command_RetrievePlate.fromJSON(object.retrieve_plate) : undefined,
       dropoff_plate: isSet(object.dropoff_plate) ? Command_DropOffPlate.fromJSON(object.dropoff_plate) : undefined,
@@ -413,8 +413,7 @@ export const Command = {
     message.release !== undefined &&
       (obj.release = message.release ? Command_Release.toJSON(message.release) : undefined);
     message.engage !== undefined && (obj.engage = message.engage ? Command_Engage.toJSON(message.engage) : undefined);
-    message.retract !== undefined &&
-      (obj.retract = message.retract ? Command_Retract.toJSON(message.retract) : undefined);
+    message.unwind !== undefined && (obj.unwind = message.unwind ? Command_Unwind.toJSON(message.unwind) : undefined);
     message.run_sequence !== undefined &&
       (obj.run_sequence = message.run_sequence ? Command_RunSequence.toJSON(message.run_sequence) : undefined);
     message.retrieve_plate !== undefined &&
@@ -468,8 +467,8 @@ export const Command = {
     message.engage = (object.engage !== undefined && object.engage !== null)
       ? Command_Engage.fromPartial(object.engage)
       : undefined;
-    message.retract = (object.retract !== undefined && object.retract !== null)
-      ? Command_Retract.fromPartial(object.retract)
+    message.unwind = (object.unwind !== undefined && object.unwind !== null)
+      ? Command_Unwind.fromPartial(object.unwind)
       : undefined;
     message.run_sequence = (object.run_sequence !== undefined && object.run_sequence !== null)
       ? Command_RunSequence.fromPartial(object.run_sequence)
@@ -1263,19 +1262,19 @@ export const Command_Release = {
   },
 };
 
-function createBaseCommand_Retract(): Command_Retract {
+function createBaseCommand_Unwind(): Command_Unwind {
   return {};
 }
 
-export const Command_Retract = {
-  encode(_: Command_Retract, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const Command_Unwind = {
+  encode(_: Command_Unwind, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): Command_Retract {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Command_Unwind {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCommand_Retract();
+    const message = createBaseCommand_Unwind();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1288,21 +1287,21 @@ export const Command_Retract = {
     return message;
   },
 
-  fromJSON(_: any): Command_Retract {
+  fromJSON(_: any): Command_Unwind {
     return {};
   },
 
-  toJSON(_: Command_Retract): unknown {
+  toJSON(_: Command_Unwind): unknown {
     const obj: any = {};
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_Retract>, I>>(base?: I): Command_Retract {
-    return Command_Retract.fromPartial(base ?? {});
+  create<I extends Exact<DeepPartial<Command_Unwind>, I>>(base?: I): Command_Unwind {
+    return Command_Unwind.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_Retract>, I>>(_: I): Command_Retract {
-    const message = createBaseCommand_Retract();
+  fromPartial<I extends Exact<DeepPartial<Command_Unwind>, I>>(_: I): Command_Unwind {
+    const message = createBaseCommand_Unwind();
     return message;
   },
 };

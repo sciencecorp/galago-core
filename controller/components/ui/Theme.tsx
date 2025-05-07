@@ -52,7 +52,7 @@ export const commandColors = {
   dropoff_plate: "orange",
   engage: "red",
   release: "teal",
-  retract: "pink",
+  unwind: "pink",
   default: "gray",
 };
 
@@ -70,7 +70,7 @@ export const commandColorHex = {
   dropoff_plate: "#ED8936", // orange.400
   engage: "#F56565", // teal.400
   release: "#38B2AC", // red.400
-  retract: "#F55656", // pink.400
+  unwind: "#F55656", // pink.400
   default: "#718096", // gray.500
 };
 
