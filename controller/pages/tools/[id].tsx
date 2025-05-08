@@ -95,9 +95,42 @@ export default function Page() {
     setFormValues({});
   };
 
+  const commandMutation = trpc.tool.runCommand.useMutation();
+
+  const executeCommandWithToast = (commandName: string, toolCommand: ToolCommandInfo) => {
+    setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "idle" }));
+
+    // Create a promise from the mutation
+    const commandPromise = new Promise((resolve, reject) => {
+      commandMutation.mutate(toolCommand, {
+        onSuccess: (data) => {
+          setCommandExecutionStatus((prevStatus) => ({
+            ...prevStatus,
+            [commandName]: "success",
+          }));
+          resolve(data);
+        },
+        onError: (error) => {
+          setCommandExecutionStatus((prevStatus) => ({
+            ...prevStatus,
+            [commandName]: "error",
+          }));
+          reject(error);
+        },
+      });
+    });
+
+    // Use the loadingToast with the promise
+    loadingToast(`Executing ${commandName}..`, "Please wait.", commandPromise, {
+      successTitle: `Command ${commandName} completed!`,
+      successDescription: () => "Command completed successfully",
+      errorTitle: "Failed to execute command",
+      errorDescription: (error) => `Error= ${error.message}`,
+    });
+  };
+
   const handleSubmit = () => {
-    if (!selectedCommand) return;
-    if (!config) return;
+    if (!selectedCommand || !config) return;
 
     const toolCommand: ToolCommandInfo = {
       toolId: config.name,
@@ -106,33 +139,20 @@ export default function Page() {
       params: formValues,
     };
 
-    // Create a promise from the mutation
-    const commandPromise = new Promise((resolve, reject) => {
-      commandMutation.mutate(toolCommand, {
-        onSuccess: (data) => {
-          setCommandExecutionStatus((prevStatus) => ({
-            ...prevStatus,
-            [selectedCommand]: "success",
-          }));
-          resolve(data);
-        },
-        onError: (error) => {
-          setCommandExecutionStatus((prevStatus) => ({
-            ...prevStatus,
-            [selectedCommand]: "error",
-          }));
-          reject(error);
-        },
-      });
-    });
+    executeCommandWithToast(selectedCommand, toolCommand);
+  };
 
-    // Use the loadingToast with the promise
-    loadingToast(`Executing ${selectedCommand}..`, "Please wait.", commandPromise, {
-      successTitle: `Command ${selectedCommand} completed!`,
-      successDescription: () => "Command completed successfully",
-      errorTitle: "Failed to execute command",
-      errorDescription: (error) => `Error= ${error.message}`,
-    });
+  const executeCommand = (commandName: string, params: FormValues) => {
+    if (!config) return;
+
+    const toolCommand: ToolCommandInfo = {
+      toolId: config.name,
+      toolType: config.type,
+      command: commandName,
+      params: params,
+    };
+
+    executeCommandWithToast(commandName, toolCommand);
   };
 
   const handleInputChange = (
@@ -161,49 +181,6 @@ export default function Page() {
         newValues[fieldName] = updatedValue;
       }
       return newValues;
-    });
-  };
-
-  const commandMutation = trpc.tool.runCommand.useMutation();
-
-  const executeCommand = (commandName: string, params: FormValues) => {
-    if (!config) return;
-
-    setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "idle" }));
-
-    const toolCommand: ToolCommandInfo = {
-      toolId: config.name,
-      toolType: config.type,
-      command: commandName,
-      params: params,
-    };
-
-    // Create a promise from the mutation
-    const commandPromise = new Promise((resolve, reject) => {
-      commandMutation.mutate(toolCommand, {
-        onSuccess: (data) => {
-          setCommandExecutionStatus((prevStatus) => ({
-            ...prevStatus,
-            [commandName]: "success",
-          }));
-          resolve(data);
-        },
-        onError: (error) => {
-          setCommandExecutionStatus((prevStatus) => ({
-            ...prevStatus,
-            [commandName]: "error",
-          }));
-          reject(error);
-        },
-      });
-    });
-
-    // Use the loadingToast with the promise
-    loadingToast(`Executing ${commandName}..`, "Please wait.", commandPromise, {
-      successTitle: `Command ${commandName} completed!`,
-      successDescription: () => "Command completed successfully",
-      errorTitle: "Failed to execute command",
-      errorDescription: (error) => `Error= ${error.message}`,
     });
   };
 
