@@ -29,13 +29,6 @@ export const LabwareModal: React.FC = () => {
   const [description, setDescription] = useState("");
   const [numberOfRows, setNumberOfRows] = useState(0);
   const [numberOfColumns, setNumberOfColumns] = useState(0);
-  const [zOffset, setZOffset] = useState(0);
-  const [width, setWidth] = useState(0);
-  const [height, setHeight] = useState(0);
-  const [plateLidOffset, setPlateLidOffset] = useState(0);
-  const [lidOffset, setLidOffset] = useState(0);
-  const [stackHeight, setStackHeight] = useState(0);
-  const [hasLid, setHasLid] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
 
   const addLabware = trpc.labware.add.useMutation();
@@ -46,13 +39,6 @@ export const LabwareModal: React.FC = () => {
     setDescription("");
     setNumberOfRows(0);
     setNumberOfColumns(0);
-    setZOffset(0);
-    setWidth(0);
-    setHeight(0);
-    setPlateLidOffset(0);
-    setLidOffset(0);
-    setStackHeight(0);
-    setHasLid(false);
     setImageUrl("");
   };
 
@@ -62,13 +48,6 @@ export const LabwareModal: React.FC = () => {
       description,
       number_of_rows: numberOfRows,
       number_of_columns: numberOfColumns,
-      // z_offset: zOffset,
-      // width,
-      // height,
-      // plate_lid_offset: plateLidOffset,
-      // lid_offset: lidOffset,
-      // stack_height: stackHeight,
-      // has_lid: hasLid,
       image_url: imageUrl,
     } as LabwareResponse;
 

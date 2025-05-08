@@ -280,7 +280,7 @@ export const Labware: React.FC = () => {
                               !isNaN(numValue) &&
                                 (await handleLabwareUpdate({ ...item, width: numValue }));
                             }}
-                            defaultValue={item.width ? item.width.toString(): ""}
+                            defaultValue={item.width ? item.width.toString() : ""}
                           />
                         </Td>
                         <Td>
@@ -303,7 +303,9 @@ export const Labware: React.FC = () => {
                                   plate_lid_offset: numValue,
                                 }));
                             }}
-                            defaultValue={item.plate_lid_offset ? item.plate_lid_offset.toString() : ""}
+                            defaultValue={
+                              item.plate_lid_offset ? item.plate_lid_offset.toString() : ""
+                            }
                           />
                         </Td>
                         <Td>
