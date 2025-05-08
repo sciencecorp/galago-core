@@ -1,4 +1,3 @@
-import CommandButton from "./commandButton";
 import { ChangeEvent, useEffect, useState } from "react";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import {
@@ -45,7 +44,6 @@ export default function Page() {
   const commandOptions = config ? commandFields[config.type] : {};
 
   useEffect(() => {
-    // Wait for the router to be ready and then extract the query parameter
     if (router.isReady) {
       const queryId = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
       setId(queryId || null); // Ensure a null fallback if the ID is not available
