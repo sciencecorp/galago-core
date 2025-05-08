@@ -61,12 +61,12 @@ class Tool(Base, TimestampMixin):
     robot_arm_sequences: RelationshipProperty[List["RobotArmSequence"]] = relationship(
         "RobotArmSequence", back_populates="tool"
     )
-    robot_arm_motion_profiles: RelationshipProperty[
-        List["RobotArmMotionProfile"]
-    ] = relationship("RobotArmMotionProfile", back_populates="tool")
-    robot_arm_grip_params: RelationshipProperty[
-        List["RobotArmGripParams"]
-    ] = relationship("RobotArmGripParams", back_populates="tool")
+    robot_arm_motion_profiles: RelationshipProperty[List["RobotArmMotionProfile"]] = (
+        relationship("RobotArmMotionProfile", back_populates="tool")
+    )
+    robot_arm_grip_params: RelationshipProperty[List["RobotArmGripParams"]] = (
+        relationship("RobotArmGripParams", back_populates="tool")
+    )
 
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
