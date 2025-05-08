@@ -27,7 +27,7 @@ import Head from "next/head";
 import { TeachPendant } from "@/components/tools/advanced/teach_pendant/TeachPendant";
 import { commandFields } from "@/components/tools/constants";
 import { errorToast, positionedToast, successToast } from "@/components/ui/Toast";
-// Inside your component
+// Inside your component toat
 type AtomicFormValues = string | number | boolean | string[];
 type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormValues>>;
 
@@ -41,11 +41,6 @@ export default function Page() {
   const [selectedCommand, setSelectedCommand] = useState<string | undefined>();
   const [formValues, setFormValues] = useState<FormValues>({});
 
-  const doesCommandHaveParameters = (commandName: string) => {
-    if (!config) return false;
-    const fields = commandFields[config?.type][commandName];
-    return fields && fields.length > 0;
-  };
   const toolCommandsDefined = Object.keys(commandFields).includes(String(config?.type));
   const commandOptions = config ? commandFields[config.type] : {};
 
@@ -108,15 +103,9 @@ export default function Page() {
     commandMutation.mutate(toolCommand, {
       onSuccess: () => {
         successToast(`Command ${selectedCommand} completed!`, "Command completed successfully");
-        setCommandExecutionStatus((prevStatus) => ({
-          ...prevStatus,
-          [selectedCommand]: "success",
-        }));
       },
       onError: (data) => {
-        // Set the command status to 'error' on failure
         errorToast("Failed to execute command", `Error= ${data.message}`);
-        setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [selectedCommand]: "error" }));
       },
     });
   };
@@ -151,32 +140,6 @@ export default function Page() {
   };
 
   const commandMutation = trpc.tool.runCommand.useMutation();
-
-  const executeCommand = (commandName: string, params: FormValues) => {
-    if (!config) return;
-    positionedToast("top", `Executing ${commandName}..`, "Please wait.", "loading");
-
-    setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "idle" }));
-
-    const toolCommand: ToolCommandInfo = {
-      toolId: config.name,
-      toolType: config.type,
-      command: commandName,
-      params: params,
-    };
-
-    commandMutation.mutate(toolCommand, {
-      onSuccess: () => {
-        successToast(`Command ${commandName} completed!`, "Command completed successfully");
-        setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "success" }));
-      },
-      onError: (data) => {
-        // Set the command status to 'error' on failure
-        errorToast("Failed to execute command", `Error= ${data.message}`);
-        setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "error" }));
-      },
-    });
-  };
 
   const renderFields = (fields: Field[], parentField?: string) => {
     return fields.map((field) => {
