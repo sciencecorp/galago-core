@@ -7,7 +7,6 @@ import {
   useColorModeValue,
   Collapse,
   Input,
-  Button,
   FormControl,
   FormLabel,
   Center,
@@ -22,6 +21,9 @@ import {
   NumberInputField,
   Select,
   Badge,
+  Button,
+  ButtonGroup,
+  Tooltip,
 } from "@chakra-ui/react";
 import {
   DeleteIcon,
@@ -40,6 +42,8 @@ import { trpc } from "@/utils/trpc";
 import { CommandIcons } from "@/components/ui/Icons";
 import { getCommandColor, getCommandColorHex } from "@/components/ui/Theme";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
+import { SaveIcon, EditIcon } from "@/components/ui/Icons";
+import { ArrowForwardIcon } from "@chakra-ui/icons";
 
 // Centralized command styling hook
 const useCommandStyles = (commandName: string, isExpanded: boolean) => {
@@ -140,7 +144,7 @@ const CommandItem: React.FC<CommandItemProps> = ({
   return (
     <Draggable draggableId={`command-${index}`} index={index} isDragDisabled={!isEditing}>
       {(provided, snapshot) => (
-        <div
+        <Box
           ref={provided.innerRef}
           {...provided.draggableProps}
           style={provided.draggableProps.style}>
@@ -378,7 +382,7 @@ const CommandItem: React.FC<CommandItemProps> = ({
               )}
             </VStack>
           </SlideFade>
-        </div>
+        </Box>
       )}
     </Draggable>
   );
@@ -485,16 +489,6 @@ export const CommandList: React.FC<CommandListProps> = ({
     setInsertIndex(null);
   };
 
-  const handleNameChange = (newName: string) => {
-    setEditedSequenceName(newName);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleLabwareChange = (newLabware: string) => {
-    setEditedLabware(newLabware);
-    setHasUnsavedChanges(true);
-  };
-
   const handleSave = () => {
     if (hasUnsavedChanges) {
       onCommandsChange(localCommands);
@@ -506,7 +500,6 @@ export const CommandList: React.FC<CommandListProps> = ({
       }
       setHasUnsavedChanges(false);
     }
-    setIsEditing(false);
   };
 
   const getDisplayValue = (command: SequenceCommand) => {
@@ -596,70 +589,52 @@ export const CommandList: React.FC<CommandListProps> = ({
       overflow="hidden">
       <VStack spacing={2} height="100%" width="100%">
         <HStack width="100%" justify="space-between" align="start">
-          <Box flex={1}>
-            {isEditing ? (
-              <VStack spacing={4} align="stretch">
-                <FormControl>
-                  <FormLabel>Sequence Name</FormLabel>
-                  <Input
-                    value={editedSequenceName}
-                    onChange={(e) => handleNameChange(e.target.value)}
-                    size="sm"
-                  />
-                </FormControl>
-                <FormControl>
-                  <FormLabel>Labware</FormLabel>
-                  <Select
-                    value={editedLabware}
-                    onChange={(e) => handleLabwareChange(e.target.value)}
-                    size="sm">
-                    <option value="default">Default</option>
-                    {labwareList
-                      ?.filter((item) => item.name.toLowerCase() !== "default")
-                      .map((item) => (
-                        <option key={item.id} value={item.name}>
-                          {item.name}
-                        </option>
-                      ))}
-                  </Select>
-                </FormControl>
-              </VStack>
+          <VStack align="start" spacing={1}>
+            <Text fontWeight="bold">{sequenceName}</Text>
+            <HStack>
+              <Text fontSize="sm" color="gray.500">
+                Labware:
+              </Text>
+              <Badge colorScheme={labware === "default" ? "teal" : "blue"}>{labware}</Badge>
+            </HStack>
+          </VStack>
+          <ButtonGroup>
+            {!isEditing ? (
+              <Tooltip label="Edit Sequence" placement="top" hasArrow>
+                <IconButton
+                  aria-label="Edit Sequence"
+                  icon={<EditIcon />}
+                  colorScheme="blue"
+                  variant="ghost"
+                  onClick={() => setIsEditing(!isEditing)}
+                />
+              </Tooltip>
             ) : (
-              <VStack align="start" spacing={1}>
-                <Text fontWeight="bold">{sequenceName}</Text>
-                <HStack>
-                  <Text fontSize="sm" color="gray.500">
-                    Labware:
-                  </Text>
-                  <Badge colorScheme={labware === "default" ? "gray" : "blue"}>{labware}</Badge>
-                </HStack>
-              </VStack>
+              <HStack>
+                <Tooltip label="Save Changes" placement="top" hasArrow>
+                  <IconButton
+                    isDisabled={!hasUnsavedChanges}
+                    aria-label="Save Changes"
+                    icon={<SaveIcon />}
+                    colorScheme="blue"
+                    variant="ghost"
+                    onClick={handleSave}
+                  />
+                </Tooltip>
+                <Tooltip label="Exit Edit Mode" placement="top" hasArrow>
+                  <IconButton
+                    aria-label="Exit Edit Mode"
+                    icon={<ArrowForwardIcon />}
+                    colorScheme="red"
+                    variant="ghost"
+                    onClick={() => {
+                      setIsEditing(false);
+                    }}
+                  />
+                </Tooltip>
+              </HStack>
             )}
-          </Box>
-          <HStack>
-            <Button
-              size="sm"
-              colorScheme={isEditing ? (hasUnsavedChanges ? "blue" : "gray") : "gray"}
-              onClick={() => {
-                if (isEditing) {
-                  handleSave();
-                } else {
-                  setIsEditing(true);
-                }
-              }}>
-              {isEditing ? (hasUnsavedChanges ? "Save" : "Done") : "Edit"}
-            </Button>
-            {isEditing && (
-              <IconButton
-                aria-label="Delete sequence"
-                icon={<DeleteIcon />}
-                size="sm"
-                colorScheme="red"
-                variant="ghost"
-                onClick={onDelete}
-              />
-            )}
-          </HStack>
+          </ButtonGroup>
         </HStack>
 
         <Box width="100%" flex={1} overflowY="auto" overflowX="hidden" px={2}>

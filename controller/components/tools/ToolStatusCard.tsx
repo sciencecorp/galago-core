@@ -187,7 +187,6 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
 
             {/* Always render the ToolConfigEditor but manage its visibility with CSS */}
             <Flex position="relative" width="100%" height="120px">
-              {/* Tool Config Editor */}
               <Box
                 position="absolute"
                 top="0"
@@ -210,7 +209,6 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
                 </Box>
               </Box>
 
-              {/* Image when not hovered */}
               <Box
                 position="absolute"
                 top="0"

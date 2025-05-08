@@ -8,8 +8,17 @@ import {
   Text,
   useColorModeValue,
   Tooltip,
+  VStack,
 } from "@chakra-ui/react";
 import { RiCheckFill, RiCloseFill, RiEdit2Line } from "react-icons/ri";
+import {
+  AutoComplete,
+  AutoCompleteCreatable,
+  AutoCompleteInput,
+  AutoCompleteItem,
+  AutoCompleteList,
+  Item,
+} from "@choc-ui/chakra-autocomplete";
 
 export const inputStyles = {
   padding: 0,
@@ -167,7 +176,7 @@ export const EditableText = (props: {
           }}
           onBlur={() => submit()}
           autoFocus
-          size="sm"
+          size="xs"
           borderColor={borderColor}
           bg={inputBg}
           color={textColor}
@@ -183,3 +192,49 @@ export const EditableText = (props: {
     />
   );
 };
+
+export const EditableSelect = (props: {
+  onSubmit: (value?: string | null) => void;
+  options: { label: string; value: string | number }[];
+  preview: JSX.Element;
+  persistentEdit?: boolean;
+  disabled?: boolean;
+  dropDownWidth?: number | string;
+}) => (
+  <Editable
+    onSubmit={props.onSubmit}
+    renderInput={(value, setValue, submit) => (
+      <VStack align="start" width="100%">
+        <AutoComplete
+          openOnFocus
+          filter={(query, _, optionLabel) => {
+            return optionLabel.toLowerCase().includes(query.toLowerCase());
+          }}
+          defaultValue={value}
+          onSelectOption={(params) => {
+            submit(params?.item?.value);
+          }}>
+          <AutoCompleteInput
+            width={props.dropDownWidth ? props.dropDownWidth : 230}
+            autoFocus
+            onChange={(event) => setValue(event.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submit();
+            }}
+            style={inputStyles}
+          />
+          <AutoCompleteList width={props.dropDownWidth ? props.dropDownWidth : 230}>
+            {props.options.map((option, i) => (
+              <AutoCompleteItem key={`${i}`} value={`${option.value}`} label={option.label}>
+                {option.label}
+              </AutoCompleteItem>
+            ))}
+          </AutoCompleteList>
+        </AutoComplete>
+      </VStack>
+    )}
+    preview={props.preview}
+    persistentEdit={props.persistentEdit}
+    disabled={props.disabled}
+  />
+);
