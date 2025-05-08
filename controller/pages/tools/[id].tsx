@@ -127,17 +127,12 @@ export default function Page() {
     });
 
     // Use the loadingToast with the promise
-    loadingToast(
-      `Executing ${selectedCommand}..`,
-      "Please wait.",
-      commandPromise,
-      {
-        successTitle: `Command ${selectedCommand} completed!`,
-        successDescription: () => "Command completed successfully",
-        errorTitle: "Failed to execute command",
-        errorDescription: (error) => `Error= ${error.message}`
-      }
-    );
+    loadingToast(`Executing ${selectedCommand}..`, "Please wait.", commandPromise, {
+      successTitle: `Command ${selectedCommand} completed!`,
+      successDescription: () => "Command completed successfully",
+      errorTitle: "Failed to execute command",
+      errorDescription: (error) => `Error= ${error.message}`,
+    });
   };
 
   const handleInputChange = (
@@ -204,17 +199,12 @@ export default function Page() {
     });
 
     // Use the loadingToast with the promise
-    loadingToast(
-      `Executing ${commandName}..`,
-      "Please wait.",
-      commandPromise,
-      {
-        successTitle: `Command ${commandName} completed!`,
-        successDescription: () => "Command completed successfully",
-        errorTitle: "Failed to execute command",
-        errorDescription: (error) => `Error= ${error.message}`
-      }
-    );
+    loadingToast(`Executing ${commandName}..`, "Please wait.", commandPromise, {
+      successTitle: `Command ${commandName} completed!`,
+      successDescription: () => "Command completed successfully",
+      errorTitle: "Failed to execute command",
+      errorDescription: (error) => `Error= ${error.message}`,
+    });
   };
 
   const handleSelectCommand = (commandName: string) => {
