@@ -596,8 +596,9 @@ class RobotArmMotionProfileResponse(BaseModel):
     inrange: float
     straight: int
     id: int
-    
+
     model_config = ConfigDict(from_attributes=True)
+
 
 # Grip Params Schemas
 class RobotArmGripParamsCreate(BaseModel):
@@ -622,7 +623,7 @@ class RobotArmGripParams(RobotArmGripParamsCreate):
 
 
 class RobotArmWaypoints(BaseModel):
-    tool_name : str
+    tool_name: str
     name: str
     locations: list[RobotArmLocation]  # Full location objects
     motion_profiles: list[RobotArmMotionProfileResponse]  # Full motion profile objects

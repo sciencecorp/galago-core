@@ -320,9 +320,7 @@ class RobotArmMotionProfile(Base, TimestampMixin):
         "Tool", back_populates="robot_arm_motion_profiles"
     )
 
-    __table_args__ = (
-        CheckConstraint("name <> ''", name="check_non_empty_name"), 
-    )
+    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
 
 class RobotArmGripParams(Base, TimestampMixin):
