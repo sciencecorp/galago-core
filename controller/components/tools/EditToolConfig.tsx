@@ -18,13 +18,20 @@ import {
   InputGroup,
   InputRightElement,
   Tooltip,
+  Box,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
-import { RiAddFill, RiFolderOpenLine } from "react-icons/ri";
+import { RiAddFill, RiFolderOpenLine, RiArrowDownSLine } from "react-icons/ri";
 import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
 import { Tool } from "@/types/api";
 import { successToast, errorToast } from "../ui/Toast";
+import { InputWithDropdown } from "../ui/InputWithDropdown";
 
 interface EditToolModalProps {
   toolId: string;
@@ -121,19 +128,29 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
 
   // Helper function to determine what type of input to render
   const renderInputForKey = (key: string, value: any) => {
-    // For COM port fields, render a dropdown
+    // For COM port fields, use the InputWithDropdown component
     if (key.toLowerCase().includes("com_port")) {
+      const currentValue = type && newConfig[type] && key in newConfig[type]
+        ? newConfig[type][key]
+        : value || "";
+        
+      // Create options array with all COM ports
+      const comPortOptions = comPorts.map(port => ({ value: port }));
+      
       return (
-        <Select
-          value={newConfig[type!]?.[key] || value}
-          onChange={(e) => handleConfigChange(e, key)}
-          placeholder="Select COM port">
-          {comPorts.map((port) => (
-            <option key={port} value={port}>
-              {port}
-            </option>
-          ))}
-        </Select>
+        <InputWithDropdown
+          value={currentValue}
+          options={comPortOptions}
+          onChange={(newValue) => {
+            handleConfigChange(
+              { target: { value: newValue } } as React.ChangeEvent<HTMLInputElement>,
+              key
+            );
+          }}
+          placeholder="Enter COM port (e.g., COM1)"
+          menuPlacement="right"
+          zIndex={2000}
+        />
       );
     }
 
@@ -143,7 +160,9 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
       key.toLowerCase().includes("host") ||
       key.toLowerCase().includes("address")
     ) {
-      const currentValue = newConfig[type!]?.[key] || value || "";
+      const currentValue = type && newConfig[type] && key in newConfig[type] 
+        ? newConfig[type][key] 
+        : value || "";
       const isValid = currentValue === "" || isValidIP(currentValue);
 
       return (
