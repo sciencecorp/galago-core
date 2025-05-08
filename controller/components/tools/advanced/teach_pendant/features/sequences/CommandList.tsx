@@ -23,6 +23,7 @@ import {
   Badge,
   Button,
   ButtonGroup,
+  Tooltip
 } from "@chakra-ui/react";
 import { DeleteIcon, AddIcon, ArrowDownIcon } from "@chakra-ui/icons";
 import { useState, useEffect } from "react";
@@ -35,6 +36,7 @@ import { CommandIcons } from "@/components/ui/Icons";
 import { getCommandColor, getCommandColorHex } from "@/components/ui/Theme";
 import { SaveIcon, EditIcon } from "@/components/ui/Icons";
 import { ArrowForwardIcon } from "@chakra-ui/icons";
+
 // Centralized command styling hook
 const useCommandStyles = (commandName: string, isExpanded: boolean) => {
   const isDarkMode = useColorModeValue(false, true);
@@ -529,23 +531,40 @@ export const CommandList: React.FC<CommandListProps> = ({
           </VStack>
           <ButtonGroup>
             {!isEditing ? (
-              <IconButton
-                aria-label="Edit Sequence"
-                icon={<EditIcon />}
-                colorScheme="blue"
-                variant="ghost"
-                onClick={() => setIsEditing(!isEditing)}
-              />
+              <Tooltip
+                label="Edit Sequence"
+                placement="top"
+                hasArrow
+                >
+                <IconButton
+                  aria-label="Edit Sequence"
+                  icon={<EditIcon />}
+                  colorScheme="blue"
+                  variant="ghost"
+                  onClick={() => setIsEditing(!isEditing)}
+                />
+              </Tooltip>
             ) : (
               <HStack>
-                <IconButton
-                  isDisabled={!hasUnsavedChanges}
-                  aria-label="Save Script"
-                  icon={<SaveIcon />}
-                  colorScheme="gray"
-                  variant="ghost"
-                  onClick={handleSave}
-                />
+                <Tooltip
+                  label="Save Changes"
+                  placement="top"
+                  hasArrow
+                  >
+                  <IconButton
+                    isDisabled={!hasUnsavedChanges}
+                    aria-label="Save Changes"
+                    icon={<SaveIcon />}
+                    colorScheme="blue"
+                    variant="ghost"
+                    onClick={handleSave}
+                  />
+                </Tooltip>
+                <Tooltip
+                  label="Exit Edit Mode"
+                  placement="top"
+                  hasArrow
+                  >
                 <IconButton
                   aria-label="Exit Edit Mode"
                   icon={<ArrowForwardIcon />}
@@ -555,6 +574,7 @@ export const CommandList: React.FC<CommandListProps> = ({
                     setIsEditing(false);
                   }}
                 />
+                </Tooltip>
               </HStack>
             )}
           </ButtonGroup>
