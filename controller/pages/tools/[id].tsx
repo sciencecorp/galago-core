@@ -17,6 +17,7 @@ import {
   AlertIcon,
   AlertTitle,
   AlertDescription,
+  useToast,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
@@ -26,8 +27,8 @@ import { capitalizeFirst } from "@/utils/parser";
 import Head from "next/head";
 import { TeachPendant } from "@/components/tools/advanced/teach_pendant/TeachPendant";
 import { commandFields } from "@/components/tools/constants";
-import { errorToast, positionedToast, successToast } from "@/components/ui/Toast";
-// Inside your component toat
+
+// Inside your component
 type AtomicFormValues = string | number | boolean | string[];
 type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormValues>>;
 
@@ -37,10 +38,9 @@ export default function Page() {
   const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
   const toolQuery = trpc.tool.get.useQuery(id || "");
   const config = infoQuery.data;
-  const [commandExecutionStatus, setCommandExecutionStatus] = useState<CommandStatus>({});
   const [selectedCommand, setSelectedCommand] = useState<string | undefined>();
   const [formValues, setFormValues] = useState<FormValues>({});
-
+  const toast = useToast();
   const toolCommandsDefined = Object.keys(commandFields).includes(String(config?.type));
   const commandOptions = config ? commandFields[config.type] : {};
 
@@ -92,7 +92,14 @@ export default function Page() {
   const handleSubmit = () => {
     if (!selectedCommand) return;
     if (!config) return;
-    positionedToast("top", `Executing ${selectedCommand}...  `, "Please wait.", "loading", null);
+    toast({
+      title: `Executing ${selectedCommand}..`,
+      description: `Please wait.`,
+      status: "loading",
+      duration: null,
+      isClosable: false,
+      position: "top", // or "bottom"
+    });
 
     const toolCommand: ToolCommandInfo = {
       toolId: config.name,
@@ -102,10 +109,26 @@ export default function Page() {
     };
     commandMutation.mutate(toolCommand, {
       onSuccess: () => {
-        successToast(`Command ${selectedCommand} completed!`, "Command completed successfully");
+        toast.closeAll();
+        toast({
+          title: `Command ${selectedCommand} completed!`,
+          status: "success",
+          duration: 2000,
+          isClosable: true,
+          position: "top",
+        });
       },
       onError: (data) => {
-        errorToast("Failed to execute command", `Error= ${data.message}`);
+        // Set the command status to 'error' on failure
+        toast.closeAll(),
+          toast({
+            title: "Failed to execute command",
+            description: `Error= ${data.message}`,
+            status: "error",
+            duration: 10000,
+            isClosable: true,
+            position: "top",
+          });
       },
     });
   };
