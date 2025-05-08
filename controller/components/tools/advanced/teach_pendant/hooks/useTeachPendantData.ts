@@ -27,12 +27,12 @@ export const useTeachPendantData = () => {
 
   const updateMotionProfile = (profile: MotionProfile) => {
     setMotionProfiles((prev) =>
-      prev.map((p) => (p.profile_id === profile.profile_id ? profile : p)),
+      prev.map((p) => (p.id === profile.id ? profile : p)),
     );
   };
 
   const deleteMotionProfile = (id: number) => {
-    setMotionProfiles((prev) => prev.filter((p) => p.profile_id !== id));
+    setMotionProfiles((prev) => prev.filter((p) => p.id !== id));
   };
 
   const addGripParams = (params: GripParams) => {

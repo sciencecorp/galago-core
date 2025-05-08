@@ -24,7 +24,6 @@ export interface TeachPoint {
 export interface MotionProfile {
   id: number;
   name: string;
-  profile_id: number;
   speed: number;
   speed2: number;
   acceleration: number;
