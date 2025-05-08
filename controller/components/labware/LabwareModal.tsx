@@ -13,7 +13,6 @@ import {
   FormLabel,
   Input,
   VStack,
-  Switch,
   NumberInput,
   NumberInputField,
 } from "@chakra-ui/react";
@@ -63,13 +62,13 @@ export const LabwareModal: React.FC = () => {
       description,
       number_of_rows: numberOfRows,
       number_of_columns: numberOfColumns,
-      z_offset: zOffset,
-      width,
-      height,
-      plate_lid_offset: plateLidOffset,
-      lid_offset: lidOffset,
-      stack_height: stackHeight,
-      has_lid: hasLid,
+      // z_offset: zOffset,
+      // width,
+      // height,
+      // plate_lid_offset: plateLidOffset,
+      // lid_offset: lidOffset,
+      // stack_height: stackHeight,
+      // has_lid: hasLid,
       image_url: imageUrl,
     } as LabwareResponse;
 
@@ -110,56 +109,16 @@ export const LabwareModal: React.FC = () => {
                 <Input value={description} onChange={(e) => setDescription(e.target.value)} />
               </FormControl>
               <FormControl>
-                <FormLabel>Number of Rows</FormLabel>
+                <FormLabel>Rows</FormLabel>
                 <NumberInput value={numberOfRows} onChange={(_, val) => setNumberOfRows(val)}>
                   <NumberInputField />
                 </NumberInput>
               </FormControl>
               <FormControl>
-                <FormLabel>Number of Columns</FormLabel>
+                <FormLabel>Columns</FormLabel>
                 <NumberInput value={numberOfColumns} onChange={(_, val) => setNumberOfColumns(val)}>
                   <NumberInputField />
                 </NumberInput>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Z Offset (mm)</FormLabel>
-                <NumberInput value={zOffset} onChange={(_, val) => setZOffset(val)}>
-                  <NumberInputField />
-                </NumberInput>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Width (mm)</FormLabel>
-                <NumberInput value={width} onChange={(_, val) => setWidth(val)}>
-                  <NumberInputField />
-                </NumberInput>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Height (mm)</FormLabel>
-                <NumberInput value={height} onChange={(_, val) => setHeight(val)}>
-                  <NumberInputField />
-                </NumberInput>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Plate Lid Offset (mm)</FormLabel>
-                <NumberInput value={plateLidOffset} onChange={(_, val) => setPlateLidOffset(val)}>
-                  <NumberInputField />
-                </NumberInput>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Lid Offset (mm)</FormLabel>
-                <NumberInput value={lidOffset} onChange={(_, val) => setLidOffset(val)}>
-                  <NumberInputField />
-                </NumberInput>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Stack Height (mm)</FormLabel>
-                <NumberInput value={stackHeight} onChange={(_, val) => setStackHeight(val)}>
-                  <NumberInputField />
-                </NumberInput>
-              </FormControl>
-              <FormControl display="flex" alignItems="center">
-                <FormLabel mb="0">Has Lid</FormLabel>
-                <Switch isChecked={hasLid} onChange={(e) => setHasLid(e.target.checked)} />
               </FormControl>
               <FormControl>
                 <FormLabel>Image URL</FormLabel>
