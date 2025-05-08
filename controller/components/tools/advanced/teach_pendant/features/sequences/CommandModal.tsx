@@ -17,7 +17,6 @@ import {
 } from "@chakra-ui/react";
 import { TeachPoint, MotionProfile, GripParams } from "../../types/";
 import { trpc } from "@/utils/trpc";
-import { Labware } from "@/types/api";
 import { commandFields } from "@/components/tools/constants";
 
 interface CommandModalProps {
@@ -78,15 +77,9 @@ export const CommandModal: React.FC<CommandModalProps> = ({
   const handleSubmit = () => {
     const processedParams = { ...params };
 
-    // Convert selected objects to their required format
-    if (processedParams.motion_profile_id) {
-      const profile = motionProfiles.find(
-        (p) => p.id === Number(processedParams.motion_profile_id),
-      );
-      if (profile) {
-        processedParams.motion_profile_id = profile.profile_id;
-      }
-    }
+    const motionProfile = motionProfiles.find(
+      (profile) => profile.name === processedParams.motion_profile,
+    );
 
     if (processedParams.grip_params) {
       const grip = gripParams.find((g) => g.id === Number(processedParams.grip_params));

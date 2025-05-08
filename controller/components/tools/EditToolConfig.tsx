@@ -3,7 +3,6 @@ import {
   VStack,
   Button,
   Input,
-  useToast,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -22,7 +21,7 @@ import { RiAddFill } from "react-icons/ri";
 import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
 import { Tool } from "@/types/api";
-
+import { successToast, errorToast } from "../ui/Toast";
 interface EditToolModalProps {
   toolId: string;
   toolInfo: ToolConfig;
@@ -32,7 +31,6 @@ interface EditToolModalProps {
 
 export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
   const { toolId, isOpen, onClose } = props;
-  const toast = useToast();
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [newConfig, setNewConfig] = useState<Record<string, Record<string, any>>>({});
@@ -77,22 +75,11 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
         config: newConfig || config,
       };
       await editTool.mutateAsync({ id: id, config: editedTool });
-      toast({
-        title: "Tool updated successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      successToast("Tool updated successfully", "");
       onClose();
       context.tool.info.invalidate({ toolId });
     } catch (error) {
-      toast({
-        title: "Error updating tool",
-        description: `Please try again. ${error}`,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("Error updating tool", `Please try again. ${error}`);
     }
   };
 

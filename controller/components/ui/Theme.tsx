@@ -16,12 +16,19 @@ export const useScriptColors = () => {
 // Common UI colors
 export const useCommonColors = () => {
   return {
-    cardBg: useColorModeValue("white", "gray.700"),
+    cardBg: useColorModeValue("white", "gray.900"),
+    bgColor: useColorModeValue("gray.50", "gray.900"),
+    selectedBg: useColorModeValue("teal.50", "teal.900"),
     headerBg: useColorModeValue("white", "gray.700"),
     tabBg: useColorModeValue("gray.50", "gray.700"),
     activeTabBg: useColorModeValue("white", "gray.800"),
     hoverBg: useColorModeValue("gray.100", "gray.600"),
     accentColor: useColorModeValue("teal.600", "teal.200"),
+    borderColor: useColorModeValue("gray.200", "gray.900"),
+    inputBg: useColorModeValue("white", "gray.800"),
+    sectionBg: useColorModeValue("gray.50", "gray.800"),
+    alternateBg: useColorModeValue("gray.100", "gray.800"),
+    selectedBorder: useColorModeValue("teal.500", "teal.400"),
   };
 };
 
@@ -43,7 +50,7 @@ export const commandColors = {
   dropoff_plate: "orange",
   engage: "red",
   release: "teal",
-  retract: "pink",
+  unwind: "pink",
   default: "gray",
 };
 
@@ -61,7 +68,7 @@ export const commandColorHex = {
   dropoff_plate: "#ED8936", // orange.400
   engage: "#F56565", // teal.400
   release: "#38B2AC", // red.400
-  retract: "#F55656", // pink.400
+  unwind: "#F55656", // pink.400
   default: "#718096", // gray.500
 };
 

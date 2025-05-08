@@ -11,7 +11,6 @@ import {
   Tr,
   Th,
   Td,
-  useToast,
   Switch,
   InputRightElement,
   InputGroup,
@@ -38,12 +37,10 @@ import { WellPlateIcon } from "../ui/Icons";
 import { SearchIcon } from "@chakra-ui/icons";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { HiOutlineRectangleStack } from "react-icons/hi2";
-
+import { successToast, errorToast } from "@/components/ui/Toast";
 export const Labware: React.FC = () => {
   const [labware, setLabware] = useState<LabwareResponse[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const toast = useToast();
-
   const headerBg = useColorModeValue("white", "gray.700");
   const containerBg = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
@@ -67,20 +64,12 @@ export const Labware: React.FC = () => {
       }
       await deleteLabware.mutateAsync(labware.id);
       refetch();
-      toast({
-        title: "Labware deleted successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      successToast("Success", "Labware deleted successfully");
     } catch (error) {
-      toast({
-        title: "Error deleting labware",
-        description: `Please try again. ${error}`,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast(
+        "Error deleting labware",
+        error instanceof Error ? error.message : "An error occurred",
+      );
     }
   };
 
@@ -92,20 +81,11 @@ export const Labware: React.FC = () => {
     try {
       await editLabware.mutateAsync(editedLabware);
       refetch();
-      toast({
-        title: "Labware updated successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
     } catch (error) {
-      toast({
-        title: "Error updating labware",
-        description: `Please try again. ${error}`,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast(
+        "Error updating labware",
+        error instanceof Error ? error.message : "An error occurred",
+      );
     }
   };
 

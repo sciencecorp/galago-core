@@ -10,7 +10,6 @@ import {
   CardFooter,
   Button,
   useColorModeValue,
-  useToast,
   Badge,
   Avatar,
   AvatarGroup,
@@ -22,7 +21,8 @@ import { Workcell } from "@/types/api";
 import { EditableText } from "../ui/Form";
 import { BsTools } from "react-icons/bs";
 import { MdLocationOn } from "react-icons/md";
-
+import Avvvatars from "avvvatars-react";
+import { errorToast } from "../ui/Toast";
 interface WorkcellCardProps {
   workcell: Workcell;
   onChange?: () => void;
@@ -43,7 +43,6 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
   });
   const [selectedWorkcell, setSelectedWorkcell] = useState<string | null>(null);
   const { data: selectedWorkcellData, refetch } = trpc.workcell.getSelectedWorkcell.useQuery();
-  const toast = useToast();
 
   const handleSelect = async () => {
     await setWorkcell.mutate(workcell.name);
@@ -69,13 +68,10 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
       await clearToolStore.mutate();
       props.onChange && props.onChange();
     } catch (error) {
-      toast({
-        title: "Error deleting workcell",
-        description: `Can't delete a workcell with active protocols. ${error}. `,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast(
+        "Error deleting workcell",
+        `Can't delete a workcell with active protocols. ${error}. `,
+      );
     }
   };
 
@@ -84,13 +80,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
       await editWorkcell.mutateAsync(editedWorkcell);
       props.onChange && props.onChange();
     } catch (error) {
-      toast({
-        title: "Error updating workcell",
-        description: `Please try again. ${error}`,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("Error updating workcell", `Please try again. ${error}`);
     }
   };
 
@@ -112,17 +102,14 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
       transition="all 0.2s"
       _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
       overflow="hidden"
-      minWidth="375px">
+      height="100%"
+      margin="2px"
+      width="100%">
       <CardBody p={4}>
         <VStack align="stretch" spacing={4}>
           <HStack justify="space-between">
             <HStack spacing={3}>
-              <Avatar
-                size="md"
-                name={workcell.name}
-                bg={`${getWorkcellColor(workcell.name)}.500`}
-                color="white"
-              />
+              <Avvvatars value={workcell.name} style="shape" size={48} />
               <VStack align="start" spacing={0}>
                 <EditableText
                   defaultValue={workcell.name}
@@ -189,8 +176,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
           )}
         </VStack>
       </CardBody>
-
-      <CardFooter pt={0} pb={4} px={4} borderTop="1px" borderColor={borderColor}>
+      <CardFooter pt={4} pb={4} px={4} borderTop="1px" borderColor={borderColor}>
         <Button
           width="full"
           colorScheme={isSelected ? "teal" : "gray"}

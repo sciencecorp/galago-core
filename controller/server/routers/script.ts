@@ -54,7 +54,7 @@ export const scriptRouter = router({
     const commandInfo = {
       toolId: "tool_box",
       toolType: ToolType.toolbox,
-      command: "run_python_script",
+      command: "run_script",
       params: {
         name: input,
         blocking: true,
@@ -138,7 +138,6 @@ export const scriptRouter = router({
     .mutation(async ({ input }) => {
       // Placeholder: In a real scenario, this might trigger post-import actions
       // or could be removed if the direct fetch call is sufficient.
-      console.log("Script import process initiated via API endpoint.", input);
       // Typically, you might return the imported script details if available
       // For now, returning a simple success message or placeholder
       return { success: true, message: "Import handled by API endpoint." };

@@ -42,7 +42,6 @@ def create_default_motion_profile(db: Session, tool_id: int) -> None:
                 db,
                 obj_in=schemas.RobotArmMotionProfileCreate(
                     name="Default",
-                    profile_id=1,
                     speed=50,
                     speed2=50,
                     acceleration=50,

@@ -77,7 +77,7 @@ export const CommandIcons = {
   DropoffPlate: RiArrowTurnForwardLine,
   Engage: IoLockClosedOutline,
   Release: IoLockOpenOutline,
-  Retract: HiArrowsPointingIn,
+  Unwind: HiArrowsPointingIn,
 } as const;
 
 // Individual Icon Exports with Consistent Naming
@@ -101,7 +101,7 @@ export {
   FaHandPaper as ReleasePlateIcon,
   RiArrowTurnBackLine as RetrievePlateIcon,
   RiArrowTurnForwardLine as DropoffPlateIcon,
-  HiArrowsPointingIn as RetractIcon,
+  HiArrowsPointingIn as UnwindIcon,
 };
 
 // Custom Icon Components
@@ -143,7 +143,7 @@ export const WellPlateIcon: React.FC<WellPlateIconProps> = ({ rows, columns, siz
   }
 
   return (
-    <Tooltip label={`${format} plate (${rows}×${columns})`} hasArrow placement="top">
+    <Tooltip hasArrow placement="top">
       <Box width={size} height={`calc(${size} * 0.7)`}>
         <svg
           width="100%"

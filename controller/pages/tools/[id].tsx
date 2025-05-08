@@ -1,4 +1,3 @@
-import CommandButton from "./commandButton";
 import { ChangeEvent, useEffect, useState } from "react";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import {
@@ -13,13 +12,11 @@ import {
   NumberInputField,
   Heading,
   HStack,
-  useToast,
-  Center,
   Alert,
   AlertIcon,
   AlertTitle,
   AlertDescription,
-  CloseButton,
+  useToast,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
@@ -40,21 +37,13 @@ export default function Page() {
   const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
   const toolQuery = trpc.tool.get.useQuery(id || "");
   const config = infoQuery.data;
-  const [commandExecutionStatus, setCommandExecutionStatus] = useState<CommandStatus>({});
   const [selectedCommand, setSelectedCommand] = useState<string | undefined>();
   const [formValues, setFormValues] = useState<FormValues>({});
-
-  const doesCommandHaveParameters = (commandName: string) => {
-    if (!config) return false;
-    const fields = commandFields[config?.type][commandName];
-    return fields && fields.length > 0;
-  };
+  const toast = useToast();
   const toolCommandsDefined = Object.keys(commandFields).includes(String(config?.type));
   const commandOptions = config ? commandFields[config.type] : {};
 
-  const toast = useToast();
   useEffect(() => {
-    // Wait for the router to be ready and then extract the query parameter
     if (router.isReady) {
       const queryId = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
       setId(queryId || null); // Ensure a null fallback if the ID is not available
@@ -126,10 +115,6 @@ export default function Page() {
           isClosable: true,
           position: "top",
         });
-        setCommandExecutionStatus((prevStatus) => ({
-          ...prevStatus,
-          [selectedCommand]: "success",
-        }));
       },
       onError: (data) => {
         // Set the command status to 'error' on failure
@@ -142,7 +127,6 @@ export default function Page() {
             isClosable: true,
             position: "top",
           });
-        setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [selectedCommand]: "error" }));
       },
     });
   };
@@ -178,64 +162,6 @@ export default function Page() {
 
   const commandMutation = trpc.tool.runCommand.useMutation();
 
-  const executeCommand = (commandName: string, params: FormValues) => {
-    if (!config) return;
-    toast({
-      title: `Executing ${commandName}..`,
-      description: `Please wait.`,
-      status: "loading",
-      duration: null,
-      isClosable: false,
-      position: "top", // or "bottom"
-    });
-
-    setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "idle" }));
-
-    const toolCommand: ToolCommandInfo = {
-      toolId: config.name,
-      toolType: config.type,
-      command: commandName,
-      params: params,
-    };
-
-    commandMutation.mutate(toolCommand, {
-      onSuccess: () => {
-        toast.closeAll();
-        toast({
-          title: `Command ${commandName} completed!`,
-          status: "success",
-          duration: 2000,
-          isClosable: true,
-          position: "top",
-        });
-        setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "success" }));
-      },
-      onError: (data) => {
-        // Set the command status to 'error' on failure
-        toast.closeAll(),
-          toast({
-            title: "Failed to execute command",
-            description: `Error= ${data.message}`,
-            status: "error",
-            duration: 10000,
-            isClosable: true,
-            position: "top",
-          });
-        setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "error" }));
-      },
-    });
-  };
-
-  const handleSelectCommand = (commandName: string) => {
-    // Check if the command has parameters
-    if (doesCommandHaveParameters(commandName)) {
-      // If it has parameters, set up for additional input
-      setSelectedCommand(commandName);
-    } else {
-      // If it doesn't have parameters, execute it immediately
-      executeCommand(commandName, {});
-    }
-  };
   const renderFields = (fields: Field[], parentField?: string) => {
     return fields.map((field) => {
       if (Array.isArray(field.type)) {

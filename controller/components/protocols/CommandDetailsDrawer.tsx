@@ -4,7 +4,6 @@ import {
   HStack,
   VStack,
   Text,
-  useToast,
   Divider,
   Drawer,
   DrawerOverlay,
@@ -28,6 +27,7 @@ import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
 import { capitalizeFirst } from "@/utils/parser";
+import { successToast } from "../ui/Toast";
 import { ParameterSchema, AdvancedParameters, SkipExecution } from "@/types";
 
 interface CommandDetailsDrawerProps {
@@ -40,7 +40,6 @@ interface CommandDetailsDrawerProps {
 
 export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props) => {
   const { isOpen, onClose, selectedCommand, onSave, isEditing } = props;
-  const toast = useToast();
   const router = useRouter();
   const [editedParams, setEditedParams] = useState<Record<string, any>>({});
   const [editedAdvancedParams, setEditedAdvancedParams] = useState<AdvancedParameters | null>(null);
@@ -160,12 +159,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
       onSave(updatedCommand);
 
       // Show success toast
-      toast({
-        title: "Parameters saved",
-        description: "Command parameters have been updated",
-        status: "success",
-        duration: 3000,
-      });
+      successToast("Success", "Command parameters have been updated");
 
       // Clear edited params
       setEditedParams({});

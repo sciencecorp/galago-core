@@ -1,13 +1,14 @@
 import typing as t
-from pydantic import BaseModel, model_validator, Field
-import datetime
+from pydantic import BaseModel, model_validator, ConfigDict
+from datetime import datetime, date
 from typing import Optional, List, Dict, Any
-from pydantic import ConfigDict
+from enum import Enum as PyEnum
 
 
 class TimestampMixin(BaseModel):
-    created_at: t.Optional[datetime.datetime] = None
-    updated_at: t.Optional[datetime.datetime] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ToolCreate(BaseModel):
@@ -32,9 +33,7 @@ class ToolUpdate(BaseModel):
 
 class Tool(ToolCreate, TimestampMixin):
     id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Workcell Schemas
@@ -72,55 +71,85 @@ class InstrumentUpdate(BaseModel):
 
 class Instrument(InstrumentCreate):
     id: int
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True
+
+# Enum schemas
+class NestStatus(str, PyEnum):
+    empty = "empty"
+    occupied = "occupied"
+    reserved = "reserved"
+    error = "error"
+
+
+class PlateStatus(str, PyEnum):
+    stored = "stored"
+    in_use = "in_use"
+    completed = "completed"
+    disposed = "disposed"
+
+
+class PlateNestAction(str, PyEnum):
+    check_in = "check_in"
+    check_out = "check_out"
+    transfer = "transfer"
 
 
 # Nest Schemas
-class NestCreate(BaseModel):
+class NestBase(BaseModel):
     name: str
     row: int
     column: int
-    tool_id: int
-
-
-class NestUpdate(BaseModel):
-    name: t.Optional[str] = None
-    row: t.Optional[int] = None
-    column: t.Optional[int] = None
     tool_id: t.Optional[int] = None
+    hotel_id: t.Optional[int] = None
+    status: NestStatus = NestStatus.empty
+
+    @model_validator(mode="after")
+    def validate_parent(self) -> "NestBase":
+        if self.tool_id is None and self.hotel_id is None:
+            raise ValueError("A nest must be associated with either a tool or a hotel")
+        if self.tool_id is not None and self.hotel_id is not None:
+            raise ValueError("A nest cannot be associated with both a tool and a hotel")
+        return self
 
 
-class Nest(NestCreate):
+class NestCreate(NestBase):
+    pass
+
+
+class NestUpdate(NestBase):
+    pass
+
+
+class Nest(NestBase):
     id: int
-
-    class Config:
-        from_attributes = True
-        # orm_mode = True
+    created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Plate Schemas
-class PlateCreate(BaseModel):
+class PlateBase(BaseModel):
     name: t.Optional[str] = None
     barcode: str
     plate_type: str
     nest_id: t.Optional[int] = None
+    status: PlateStatus = PlateStatus.stored
 
 
-class PlateUpdate(BaseModel):
-    name: t.Optional[str] = None
-    barcode: t.Optional[str] = None
-    plate_type: t.Optional[str] = None
-    nest_id: t.Optional[int] = None
+class PlateCreate(PlateBase):
+    pass
 
 
-class Plate(PlateCreate):
+class PlateUpdate(PlateBase):
+    pass
+
+
+class Plate(PlateBase):
     id: int
-
-    class Config:
-        from_attributes = True
-        # orm_mode = True
+    created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Well Schemas
@@ -138,38 +167,58 @@ class WellUpdate(BaseModel):
 
 class Well(WellCreate):
     id: int
-
-    class Config:
-        from_attributes = True
-        # orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Reagent Schemas
 class ReagentCreate(BaseModel):
     name: str
-    expiration_date: datetime.date
+    expiration_date: date
     volume: float
     well_id: int
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ReagentUpdate(BaseModel):
     name: t.Optional[str] = None
-    expiration_date: t.Optional[datetime.date] = None
+    expiration_date: t.Optional[date] = None
     volume: t.Optional[float] = None
     well_id: t.Optional[int] = None
 
 
 class Reagent(ReagentCreate):
     id: int
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True
-        # orm_mode = True
+
+# Hotel Schemas
+class HotelCreate(BaseModel):
+    name: str
+    description: t.Optional[str] = None
+    image_url: t.Optional[str] = None
+    workcell_id: int
+    rows: int
+    columns: int
+
+
+class HotelUpdate(BaseModel):
+    name: t.Optional[str] = None
+    description: t.Optional[str] = None
+    image_url: t.Optional[str] = None
+    rows: t.Optional[int] = None
+    columns: t.Optional[int] = None
+
+
+class Hotel(HotelCreate, TimestampMixin):
+    id: int
+    nests: t.List[Nest] = []
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Inventory(BaseModel):
     workcell: Workcell
     instruments: t.List[Instrument]
+    hotels: t.List[Hotel] = []
     nests: t.List[Nest]
     plates: t.List[Plate]
     wells: t.List[Well]
@@ -195,9 +244,7 @@ class LogUpdate(BaseModel):
 
 class Log(TimestampMixin, LogCreate):
     id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class VariableBase(BaseModel):
@@ -255,9 +302,7 @@ class VariableCreate(VariableBase):
 
 class Variable(TimestampMixin, VariableCreate):
     id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class VariableUpdate(BaseModel):
@@ -288,9 +333,7 @@ class LabwareCreate(BaseModel):
 
 class Labware(TimestampMixin, LabwareCreate):
     id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class LabwareUpdate(BaseModel):
@@ -345,12 +388,12 @@ class ProtocolUpdate(BaseModel):
 
 class Protocol(ProtocolBase):
     id: int
-    created_at: t.Optional[datetime.datetime] = None
-    updated_at: t.Optional[datetime.datetime] = None
+    created_at: t.Optional[datetime] = None
+    updated_at: t.Optional[datetime] = None
 
     model_config = ConfigDict(
         from_attributes=True,
-        json_encoders={datetime.datetime: lambda dt: dt.isoformat()},
+        json_encoders={datetime: lambda dt: dt.isoformat()},
     )
 
 
@@ -397,11 +440,11 @@ class ScriptUpdate(BaseModel):
 
 class Script(ScriptBase):
     id: int
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ScriptFolderBase(BaseModel):
@@ -424,8 +467,8 @@ class ScriptFolder(ScriptFolderBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    created_at: datetime
+    updated_at: datetime
     subfolders: list["ScriptFolder"] = []
     scripts: list["Script"] = []
 
@@ -433,13 +476,13 @@ class ScriptFolder(ScriptFolderBase):
 # Break the circular reference by using a simplified script model for folders
 class ScriptFolderResponse(ScriptFolderBase):
     id: int
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    created_at: datetime
+    updated_at: datetime
     subfolders: list["ScriptFolderResponse"] = []
     scripts: list["Script"] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # RobotArm Location Schemas
@@ -461,9 +504,7 @@ class RobotArmLocationUpdate(BaseModel):
 
 class RobotArmLocation(RobotArmLocationCreate):
     id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # RobotArm Nest Schemas
@@ -487,9 +528,7 @@ class RobotArmNestUpdate(BaseModel):
 
 class RobotArmNest(RobotArmNestCreate):
     id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # RobotArm Sequence Schemas
@@ -511,15 +550,12 @@ class RobotArmSequenceUpdate(BaseModel):
 
 class RobotArmSequence(RobotArmSequenceCreate):
     id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Motion Profile Schemas
 class RobotArmMotionProfileCreate(BaseModel):
     name: str
-    profile_id: t.Annotated[int, Field(ge=1, le=14)]
     speed: float
     speed2: float
     acceleration: float
@@ -533,7 +569,6 @@ class RobotArmMotionProfileCreate(BaseModel):
 
 class RobotArmMotionProfileUpdate(BaseModel):
     name: t.Optional[str] = None
-    profile_id: t.Optional[int] = None
     speed: t.Optional[float] = None
     speed2: t.Optional[float] = None
     acceleration: t.Optional[float] = None
@@ -547,10 +582,22 @@ class RobotArmMotionProfileUpdate(BaseModel):
 
 class RobotArmMotionProfile(RobotArmMotionProfileCreate):
     id: int
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True
 
+class RobotArmMotionProfileResponse(BaseModel):
+    name: str
+    speed: float
+    speed2: float
+    acceleration: float
+    deceleration: float
+    accel_ramp: float
+    decel_ramp: float
+    inrange: float
+    straight: int
+    id: int
+    
+    model_config = ConfigDict(from_attributes=True)
 
 # Grip Params Schemas
 class RobotArmGripParamsCreate(BaseModel):
@@ -571,19 +618,49 @@ class RobotArmGripParamsUpdate(BaseModel):
 
 class RobotArmGripParams(RobotArmGripParamsCreate):
     id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RobotArmWaypoints(BaseModel):
-    id: int
+    tool_name : str
     name: str
     locations: list[RobotArmLocation]  # Full location objects
-    motion_profiles: list[RobotArmMotionProfile]  # Full motion profile objects
+    motion_profiles: list[RobotArmMotionProfileResponse]  # Full motion profile objects
     grip_params: list[RobotArmGripParams]  # Full grip parameter objects
     sequences: list[RobotArmSequence]  # Full sequence objects
-    tool_id: int
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True
+
+# PlateNestHistory Schemas
+class PlateNestHistoryBase(BaseModel):
+    plate_id: int
+    nest_id: int
+    action: PlateNestAction
+    timestamp: datetime
+
+
+class PlateNestHistoryCreate(PlateNestHistoryBase):
+    pass
+
+
+class PlateNestHistoryUpdate(PlateNestHistoryBase):
+    pass
+
+
+class PlateNestHistory(PlateNestHistoryBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+# Extended schemas for relationships
+class NestWithRelations(Nest):
+    current_plate: t.Optional[Plate] = None
+    plate_history: t.List[PlateNestHistory] = []
+
+
+class PlateWithRelations(Plate):
+    current_nest: t.Optional[Nest] = None
+    nest_history: t.List[PlateNestHistory] = []
+    wells: t.List["Well"] = []

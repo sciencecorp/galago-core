@@ -14,7 +14,6 @@ import {
   Input,
   Divider,
   Card,
-  useToast,
 } from "@chakra-ui/react";
 import { Search2Icon } from "@chakra-ui/icons";
 import { Tool } from "@/types/api";
@@ -24,7 +23,7 @@ import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "./types";
 import { z } from "zod";
 import { ToolType } from "gen-interfaces/controller";
-import { successToast, warningToast, errorToast, batchOperationToast } from "@/components/ui/Toast";
+import { successToast, warningToast, errorToast } from "@/components/ui/Toast";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { createBatchHandlerForIds } from "./shared/utils/batchUtils";
 
@@ -68,7 +67,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const tabBgColor = useColorModeValue("gray.50", "gray.800");
   const tabActiveBgColor = useColorModeValue("white", "gray.700");
-  const toast = useToast();
 
   // Hooks
   const {
@@ -138,21 +136,8 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     commandHandlers.handleJog(robotArmCommandMutation, jogAxis, jogDistance, motionProfiles);
   };
 
-
   const handleMove = (point: TeachPoint) => {
-    const motionProfile = motionProfiles.find((p) => p.id === selectedMotionProfile?.id);
-    console.log("Motion profile is")
-    console.log("Selected profile is" + selectedMotionProfile);
-    console.log(motionProfile)
-    if (motionProfile) {
-      commandHandlers.handleMoveCommand(
-        robotArmCommandMutation,
-        point.name,
-        motionProfile.id,
-        false,
-        motionProfiles,
-      );
-    }
+    commandHandlers.handleMoveCommand(robotArmCommandMutation, point.name, "default");
   };
 
   const handleTeach = async (point: TeachPoint) => {
@@ -479,7 +464,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 commandHandlers.handleSimpleCommand(robotArmCommandMutation, "engage")
               }
               onUnwind={() =>
-                commandHandlers.handleSimpleCommand(robotArmCommandMutation, "retract")
+                commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")
               }
               onGripperOpen={() => {
                 const selectedParams = gripParams.find((p) => p.id === defaultParamsId);
@@ -557,7 +542,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 robotArmCommandMutation.isLoading
               }
               isUnwindLoading={
-                robotArmCommandMutation.variables?.command === "retract" &&
+                robotArmCommandMutation.variables?.command === "unwind" &&
                 robotArmCommandMutation.isLoading
               }
               bgColor={bgColor}
@@ -579,7 +564,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 onTeach={() => handleTeach(selectedTeachPoint!)}
                 onMove={handleMove}
                 onUnwind={() =>
-                  commandHandlers.handleSimpleCommand(robotArmCommandMutation, "retract")
+                  commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")
                 }
                 onGripperOpen={() =>
                   commandHandlers.handleGripperCommand(
@@ -649,7 +634,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                   }}
                   bg={tabBgColor}
                   borderColor={borderColor}>
-                  Grip Parameters
+                  Grip Settings
                 </Tab>
                 <Tab
                   _selected={{
@@ -735,19 +720,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     onAdd={() => {
                       setSelectedMotionProfile(null);
                       motionProfileModal.onOpen();
-                    }}
-                    onRegister={(profile: MotionProfile) => {
-                      commandHandlers.handleRegisterMotionProfile(robotArmCommandMutation, {
-                        id: profile.profile_id,
-                        speed: profile.speed,
-                        speed2: profile.speed2,
-                        acceleration: profile.acceleration,
-                        deceleration: profile.deceleration,
-                        accel_ramp: profile.accel_ramp,
-                        decel_ramp: profile.decel_ramp,
-                        inrange: profile.inrange,
-                        straight: profile.straight,
-                      });
                     }}
                     bgColor={bgColor}
                     bgColorAlpha={bgColorAlpha}

@@ -1,10 +1,7 @@
 import { trpc } from "@/utils/trpc";
-import { useToast } from "@chakra-ui/react";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "../types/";
 
 export const useTeachPendantQueries = (toolId: string | undefined, configId: number) => {
-  const toast = useToast();
-
   // Queries
   const toolStatusQuery = trpc.tool.status.useQuery(
     { toolId: toolId || "" },

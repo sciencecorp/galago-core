@@ -17,7 +17,6 @@ import {
   IconButton,
   Box,
   Text,
-  useToast,
   Table,
   Thead,
   Tbody,
@@ -31,6 +30,7 @@ import { AddIcon, CloseIcon, ViewIcon } from "@chakra-ui/icons";
 import { AiFillEdit } from "react-icons/ai";
 import { EditableText } from "@/components/ui/Form";
 import { trpc } from "@/utils/trpc";
+import { errorToast, successToast } from "../ui/Toast";
 
 // Add a new enum for field types
 enum FieldType {
@@ -62,7 +62,6 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
 }) => {
   const [localParams, setLocalParams] = useState<Record<string, ParameterSchema>>({});
   const [previewMode, setPreviewMode] = useState(true);
-  const toast = useToast();
   const { data: fetchedVariables, refetch: refetchVariables } = trpc.variable.getAll.useQuery();
 
   const { data: protocol, refetch: refetchProtocol } = trpc.protocol.getById.useQuery({
@@ -71,21 +70,12 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
 
   const updateProtocolMutation = trpc.protocol.update.useMutation({
     onSuccess: () => {
-      toast({
-        title: "Protocol parameters updated",
-        status: "success",
-        duration: 3000,
-      });
+      successToast("Protocol parameters updated", "");
       refetchProtocol();
       onClose();
     },
     onError: (error) => {
-      toast({
-        title: "Failed to update protocol parameters",
-        description: error.message,
-        status: "error",
-        duration: 5000,
-      });
+      errorToast("Failed to update protocol parameters", error.message);
     },
   });
 
@@ -154,11 +144,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
 
     // Check if new name already exists
     if (newName !== oldName && localParams[newName]) {
-      toast({
-        title: "Parameter name already exists",
-        status: "error",
-        duration: 3000,
-      });
+      errorToast("Parameter name already exists", "");
       return;
     }
 
@@ -213,12 +199,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
   const handleSave = () => {
     // Only proceed if we have the protocol data
     if (!protocol) {
-      toast({
-        title: "Cannot update protocol",
-        description: "Protocol data not available",
-        status: "error",
-        duration: 3000,
-      });
+      errorToast("Cannot update protocol", "Protocol data not available");
       return;
     }
 

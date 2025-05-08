@@ -8,7 +8,6 @@ import {
   ModalCloseButton,
   HStack,
   Text,
-  useToast,
   VStack,
   Button,
   Flex,
@@ -28,6 +27,7 @@ import {
 import { Plate, Well, Reagent } from "@/types/api";
 import { PlateGrid } from "@/components/ui/PlateGrid";
 import { trpc } from "@/utils/trpc";
+import { successToast, errorToast, warningToast } from "@/components/ui/Toast";
 
 interface PlateModalProps {
   isOpen: boolean;
@@ -45,8 +45,6 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
     volume: 0,
   });
 
-  const toast = useToast();
-
   const { data: wells = [] } = trpc.inventory.getWells.useQuery(plate.id, {
     enabled: !!plate.id,
   });
@@ -63,11 +61,7 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
 
   const handleAddReagents = () => {
     if (selectedWells.length === 0) {
-      toast({
-        title: "No wells selected",
-        status: "warning",
-        duration: 3000,
-      });
+      warningToast("No wells selected", "Please select at least one well to add reagents to.");
       return;
     }
     setIsReagentDrawerOpen(true);
@@ -75,12 +69,7 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
 
   const handleReagentSubmit = async () => {
     if (!reagentData.name || !reagentData.expiration_date || reagentData.volume <= 0) {
-      toast({
-        title: "Invalid reagent data",
-        description: "Please fill in all fields",
-        status: "error",
-        duration: 3000,
-      });
+      errorToast("Invalid reagent data", "Please fill in all fields");
       return;
     }
 
@@ -94,18 +83,12 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
       setReagentData({ name: "", expiration_date: "", volume: 0 });
       setSelectedWells([]); // Clear selection after successful creation
 
-      toast({
-        title: "Reagents added successfully",
-        status: "success",
-        duration: 3000,
-      });
+      successToast(
+        "Reagents added successfully",
+        "Reagents have been added to the selected wells.",
+      );
     } catch (error: any) {
-      toast({
-        title: "Error adding reagents",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
+      errorToast("Error adding reagents", error.message);
     }
   };
 
@@ -142,6 +125,9 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
             <Text>{plate.name}</Text>
             <Text fontSize="sm" color="gray.500">
               Type: {plate.plate_type}
+            </Text>
+            <Text fontSize="sm" color="gray.500">
+              Barcode: {plate.barcode}
             </Text>
           </ModalHeader>
           <ModalCloseButton />

@@ -1,6 +1,6 @@
 export const commandFields: CommandFields = {
   toolbox: {
-    run_python_script: [
+    run_script: [
       {
         name: "name",
         type: "text",
@@ -221,8 +221,7 @@ export const commandFields: CommandFields = {
     ],
     move: [
       { name: "name", type: "text" },
-      { name: "motion_profile_id", type: "number", defaultValue: 1 },
-      { name: "approach_height", type: "number", defaultValue: 0 },
+      { name: "motion_profile", type: "text", defaultValue: "Default" },
     ],
     grasp_plate: [
       { name: "width", type: "number", defaultValue: 122 },
@@ -237,29 +236,29 @@ export const commandFields: CommandFields = {
       { name: "labware", type: "text" },
       { name: "location", type: "text" },
       { name: "approach_height", type: "number", defaultValue: 0 },
-      { name: "motion_profile_id", type: "number", defaultValue: 1 },
+      { name: "motion_profile", type: "text", defaultValue: "Default" },
     ],
     dropoff_plate: [
       { name: "labware", type: "text" },
       { name: "location", type: "text" },
-      { name: "motion_profile_id", type: "number", defaultValue: 1 },
+      { name: "motion_profile", type: "text", defaultValue: "Default" },
       { name: "approach_height", type: "number", defaultValue: 0 },
     ],
     pick_lid: [
       { name: "labware", type: "text" },
       { name: "location", type: "text" },
-      { name: "motion_profile_id", type: "number", defaultValue: 1 },
+      { name: "motion_profile", type: "text", defaultValue: "Default" },
       { name: "pick_from_plate", type: "boolean", defaultValue: true },
       { name: "approach_height", type: "number", defaultValue: 10 },
     ],
     place_lid: [
       { name: "labware", type: "text" },
       { name: "location", type: "text" },
-      { name: "motion_profile_id", type: "number", defaultValue: 1 },
+      { name: "motion_profile", type: "text", defaultValue: "Default" },
       { name: "place_on_plate", type: "boolean", defaultValue: true },
       { name: "approach_height", type: "number", defaultValue: 10 },
     ],
-    retract: [],
+    unwind: [],
   },
   microserve: {
     load: [
@@ -276,7 +275,7 @@ export const commandFields: CommandFields = {
     ],
     home: [],
     abort: [],
-    retract: [],
+    unwind: [],
     go_to: [{ name: "stack_id", type: "number", defaultValue: 1 }],
     send_raw_command: [{ name: "command", type: "text" }],
   },

@@ -17,7 +17,7 @@ export interface Command {
   get_ot2_images_by_date?: Command_GetOT2ImagesByDate | undefined;
   get_ot2_image_bytes?: Command_GetOT2ImageBytes | undefined;
   get_ot2_image_prediction?: Command_GetOT2ImagePrediction | undefined;
-  run_python_script?: Command_RunPythonScript | undefined;
+  run_script?: Command_RunScript | undefined;
   send_slack_alert?: Command_SendSlackAlert | undefined;
   clear_last_slack_alert?: Command_ClearLastSlackAlert | undefined;
   get_log_media_exchange_by_date?: Command_GetLogMediaExchangeByDate | undefined;
@@ -101,7 +101,7 @@ export interface Command_GetOT2ImagePrediction {
   image_file: string;
 }
 
-export interface Command_RunPythonScript {
+export interface Command_RunScript {
   name: string;
   blocking: boolean;
 }
@@ -137,7 +137,7 @@ function createBaseCommand(): Command {
     get_ot2_images_by_date: undefined,
     get_ot2_image_bytes: undefined,
     get_ot2_image_prediction: undefined,
-    run_python_script: undefined,
+    run_script: undefined,
     send_slack_alert: undefined,
     clear_last_slack_alert: undefined,
     get_log_media_exchange_by_date: undefined,
@@ -184,8 +184,8 @@ export const Command = {
     if (message.get_ot2_image_prediction !== undefined) {
       Command_GetOT2ImagePrediction.encode(message.get_ot2_image_prediction, writer.uint32(98).fork()).ldelim();
     }
-    if (message.run_python_script !== undefined) {
-      Command_RunPythonScript.encode(message.run_python_script, writer.uint32(106).fork()).ldelim();
+    if (message.run_script !== undefined) {
+      Command_RunScript.encode(message.run_script, writer.uint32(106).fork()).ldelim();
     }
     if (message.send_slack_alert !== undefined) {
       Command_SendSlackAlert.encode(message.send_slack_alert, writer.uint32(114).fork()).ldelim();
@@ -302,7 +302,7 @@ export const Command = {
             break;
           }
 
-          message.run_python_script = Command_RunPythonScript.decode(reader, reader.uint32());
+          message.run_script = Command_RunScript.decode(reader, reader.uint32());
           continue;
         case 14:
           if (tag !== 114) {
@@ -372,9 +372,7 @@ export const Command = {
       get_ot2_image_prediction: isSet(object.get_ot2_image_prediction)
         ? Command_GetOT2ImagePrediction.fromJSON(object.get_ot2_image_prediction)
         : undefined,
-      run_python_script: isSet(object.run_python_script)
-        ? Command_RunPythonScript.fromJSON(object.run_python_script)
-        : undefined,
+      run_script: isSet(object.run_script) ? Command_RunScript.fromJSON(object.run_script) : undefined,
       send_slack_alert: isSet(object.send_slack_alert)
         ? Command_SendSlackAlert.fromJSON(object.send_slack_alert)
         : undefined,
@@ -421,9 +419,8 @@ export const Command = {
     message.get_ot2_image_prediction !== undefined && (obj.get_ot2_image_prediction = message.get_ot2_image_prediction
       ? Command_GetOT2ImagePrediction.toJSON(message.get_ot2_image_prediction)
       : undefined);
-    message.run_python_script !== undefined && (obj.run_python_script = message.run_python_script
-      ? Command_RunPythonScript.toJSON(message.run_python_script)
-      : undefined);
+    message.run_script !== undefined &&
+      (obj.run_script = message.run_script ? Command_RunScript.toJSON(message.run_script) : undefined);
     message.send_slack_alert !== undefined && (obj.send_slack_alert = message.send_slack_alert
       ? Command_SendSlackAlert.toJSON(message.send_slack_alert)
       : undefined);
@@ -487,8 +484,8 @@ export const Command = {
       (object.get_ot2_image_prediction !== undefined && object.get_ot2_image_prediction !== null)
         ? Command_GetOT2ImagePrediction.fromPartial(object.get_ot2_image_prediction)
         : undefined;
-    message.run_python_script = (object.run_python_script !== undefined && object.run_python_script !== null)
-      ? Command_RunPythonScript.fromPartial(object.run_python_script)
+    message.run_script = (object.run_script !== undefined && object.run_script !== null)
+      ? Command_RunScript.fromPartial(object.run_script)
       : undefined;
     message.send_slack_alert = (object.send_slack_alert !== undefined && object.send_slack_alert !== null)
       ? Command_SendSlackAlert.fromPartial(object.send_slack_alert)
@@ -1596,12 +1593,12 @@ export const Command_GetOT2ImagePrediction = {
   },
 };
 
-function createBaseCommand_RunPythonScript(): Command_RunPythonScript {
+function createBaseCommand_RunScript(): Command_RunScript {
   return { name: "", blocking: false };
 }
 
-export const Command_RunPythonScript = {
-  encode(message: Command_RunPythonScript, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const Command_RunScript = {
+  encode(message: Command_RunScript, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
@@ -1611,10 +1608,10 @@ export const Command_RunPythonScript = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): Command_RunPythonScript {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Command_RunScript {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCommand_RunPythonScript();
+    const message = createBaseCommand_RunScript();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1641,26 +1638,26 @@ export const Command_RunPythonScript = {
     return message;
   },
 
-  fromJSON(object: any): Command_RunPythonScript {
+  fromJSON(object: any): Command_RunScript {
     return {
       name: isSet(object.name) ? String(object.name) : "",
       blocking: isSet(object.blocking) ? Boolean(object.blocking) : false,
     };
   },
 
-  toJSON(message: Command_RunPythonScript): unknown {
+  toJSON(message: Command_RunScript): unknown {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
     message.blocking !== undefined && (obj.blocking = message.blocking);
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_RunPythonScript>, I>>(base?: I): Command_RunPythonScript {
-    return Command_RunPythonScript.fromPartial(base ?? {});
+  create<I extends Exact<DeepPartial<Command_RunScript>, I>>(base?: I): Command_RunScript {
+    return Command_RunScript.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_RunPythonScript>, I>>(object: I): Command_RunPythonScript {
-    const message = createBaseCommand_RunPythonScript();
+  fromPartial<I extends Exact<DeepPartial<Command_RunScript>, I>>(object: I): Command_RunScript {
+    const message = createBaseCommand_RunScript();
     message.name = object.name ?? "";
     message.blocking = object.blocking ?? false;
     return message;

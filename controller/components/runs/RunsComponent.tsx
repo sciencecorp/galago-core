@@ -39,6 +39,7 @@ import { BsInbox } from "react-icons/bs";
 import { MessageModal } from "./MessageModal";
 import { TimerModal } from "./TimerModal";
 import { StopRunModal } from "./StopRunModal";
+import { ErrorModal } from "./ErrorModal";
 
 const LastUpdatedTime = () => {
   const [time, setTime] = useState<string>("");
@@ -129,11 +130,9 @@ export const RunsComponent: React.FC = () => {
     }
 
     if (currentMessageQuery.data) {
-      // Create a compatible object that TypeScript will accept
       const newMessageData = {
         type: currentMessageQuery.data.type,
         message: currentMessageQuery.data.message,
-        // Only include these properties if they exist
         ...(currentMessageQuery.data.title ? { title: currentMessageQuery.data.title } : {}),
         ...(currentMessageQuery.data.pausedAt
           ? { pausedAt: currentMessageQuery.data.pausedAt }
@@ -150,22 +149,14 @@ export const RunsComponent: React.FC = () => {
     }
   }, [isWaitingForInputQuery.data, currentMessageQuery.data]);
 
-  // Handle resume button click
   const handleResume = () => {
     resumeMutation.mutate();
   };
 
   const handleRunStop = () => {
-    // First stop the queue (which now also resets waiting state)
     stopQueueMutation.mutate();
-
-    // Then clear all commands
     clearAllMutation.mutate();
-
-    // Update local state
     setIsModalOpen(false);
-
-    // Reset message data to default state
     setMessageData({
       type: "pause",
       message: "Run is paused. Click Continue to resume.",

@@ -3,7 +3,6 @@ import {
   VStack,
   Button,
   Input,
-  useToast,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -21,6 +20,7 @@ import { RiAddFill } from "react-icons/ri";
 import { ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
 import { Tool, Workcell } from "@/types/api";
+import { successToast, errorToast } from "../ui/Toast";
 
 export const NewWorkcellModal: React.FC = () => {
   const [name, setName] = useState("");
@@ -29,7 +29,6 @@ export const NewWorkcellModal: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [value, setValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const toast = useToast();
   const [type, setType] = useState<string>("");
   const createWorkcell = trpc.workcell.add.useMutation();
   const { data: fetchedWorkcells, refetch } = trpc.workcell.getAll.useQuery();
@@ -39,22 +38,11 @@ export const NewWorkcellModal: React.FC = () => {
     setIsLoading(true);
     try {
       await createWorkcell.mutateAsync(workcell);
-      toast({
-        title: `Workcell created successfully`,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      successToast("", "Workcell created successfully");
       onClose();
       await refetch();
     } catch (error) {
-      toast({
-        title: "Error creating workcell",
-        description: `Please try again. ${error}`,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      errorToast("", "Error creating workcell");
     }
     setIsLoading(false);
     clearForm();
