@@ -37,13 +37,14 @@ export const positionedToast = (
   position: "top" | "top-right" | "top-left" | "bottom" | "bottom-right" | "bottom-left",
   title: string,
   description: string,
-  status: "info" | "warning" | "success" | "error" = "info",
+  status: "info" | "warning" | "success" | "error" | "loading" = "info",
+  duration?: number | null,
 ) => {
   return toast({
     title,
     description,
     status,
-    duration: defaultToastOptions.duration,
+    duration: duration || defaultToastOptions.duration,
     variant: defaultToastOptions.variant,
     position,
     isClosable: defaultToastOptions.isClosable,
@@ -68,6 +69,13 @@ export const loadingToast = <T,>(
     errorTitle?: string;
     errorDescription?: (error: any) => string;
   } = {},
+  position:
+    | "top"
+    | "top-right"
+    | "top-left"
+    | "bottom"
+    | "bottom-right"
+    | "bottom-left" = "bottom-right",
 ) => {
   const toastId = toast({
     title: loadingTitle,
@@ -75,7 +83,7 @@ export const loadingToast = <T,>(
     status: "loading",
     duration: null, // Don't auto-close while loading
     variant: "left-accent",
-    position: "bottom-right",
+    position: position,
     isClosable: true,
   });
 

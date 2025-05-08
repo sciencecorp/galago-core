@@ -23,7 +23,7 @@ import {
   Badge,
   Button,
   ButtonGroup,
-  Tooltip
+  Tooltip,
 } from "@chakra-ui/react";
 import { DeleteIcon, AddIcon, ArrowDownIcon } from "@chakra-ui/icons";
 import { useState, useEffect } from "react";
@@ -531,11 +531,7 @@ export const CommandList: React.FC<CommandListProps> = ({
           </VStack>
           <ButtonGroup>
             {!isEditing ? (
-              <Tooltip
-                label="Edit Sequence"
-                placement="top"
-                hasArrow
-                >
+              <Tooltip label="Edit Sequence" placement="top" hasArrow>
                 <IconButton
                   aria-label="Edit Sequence"
                   icon={<EditIcon />}
@@ -546,11 +542,7 @@ export const CommandList: React.FC<CommandListProps> = ({
               </Tooltip>
             ) : (
               <HStack>
-                <Tooltip
-                  label="Save Changes"
-                  placement="top"
-                  hasArrow
-                  >
+                <Tooltip label="Save Changes" placement="top" hasArrow>
                   <IconButton
                     isDisabled={!hasUnsavedChanges}
                     aria-label="Save Changes"
@@ -560,20 +552,16 @@ export const CommandList: React.FC<CommandListProps> = ({
                     onClick={handleSave}
                   />
                 </Tooltip>
-                <Tooltip
-                  label="Exit Edit Mode"
-                  placement="top"
-                  hasArrow
-                  >
-                <IconButton
-                  aria-label="Exit Edit Mode"
-                  icon={<ArrowForwardIcon />}
-                  colorScheme="red"
-                  variant="ghost"
-                  onClick={() => {
-                    setIsEditing(false);
-                  }}
-                />
+                <Tooltip label="Exit Edit Mode" placement="top" hasArrow>
+                  <IconButton
+                    aria-label="Exit Edit Mode"
+                    icon={<ArrowForwardIcon />}
+                    colorScheme="red"
+                    variant="ghost"
+                    onClick={() => {
+                      setIsEditing(false);
+                    }}
+                  />
                 </Tooltip>
               </HStack>
             )}

@@ -17,8 +17,6 @@ import {
   AlertIcon,
   AlertTitle,
   AlertDescription,
-  CloseButton,
-  useToast,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
@@ -28,7 +26,7 @@ import { capitalizeFirst } from "@/utils/parser";
 import Head from "next/head";
 import { TeachPendant } from "@/components/tools/advanced/teach_pendant/TeachPendant";
 import { commandFields } from "@/components/tools/constants";
-import { errorToast, infoToast, loadingToast, successToast } from "@/components/ui/Toast";
+import { errorToast, positionedToast, successToast } from "@/components/ui/Toast";
 // Inside your component
 type AtomicFormValues = string | number | boolean | string[];
 type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormValues>>;
@@ -42,7 +40,7 @@ export default function Page() {
   const [commandExecutionStatus, setCommandExecutionStatus] = useState<CommandStatus>({});
   const [selectedCommand, setSelectedCommand] = useState<string | undefined>();
   const [formValues, setFormValues] = useState<FormValues>({});
-  const toast = useToast();
+
   const doesCommandHaveParameters = (commandName: string) => {
     if (!config) return false;
     const fields = commandFields[config?.type][commandName];
@@ -99,14 +97,7 @@ export default function Page() {
   const handleSubmit = () => {
     if (!selectedCommand) return;
     if (!config) return;
-    toast({
-      title: `Executing ${selectedCommand}..`,
-      description: `Please wait.`,
-      status: "loading",
-      duration: null,
-      isClosable: false,
-      position: "top", // or "bottom"
-    });
+    positionedToast("top", `Executing ${selectedCommand}...  `, "Please wait.", "loading", null);
 
     const toolCommand: ToolCommandInfo = {
       toolId: config.name,
@@ -116,14 +107,7 @@ export default function Page() {
     };
     commandMutation.mutate(toolCommand, {
       onSuccess: () => {
-        toast.closeAll();
-        toast({
-          title: `Command ${selectedCommand} completed!`,
-          status: "success",
-          duration: 2000,
-          isClosable: true,
-          position: "top",
-        });
+        successToast(`Command ${selectedCommand} completed!`, "Command completed successfully");
         setCommandExecutionStatus((prevStatus) => ({
           ...prevStatus,
           [selectedCommand]: "success",
@@ -131,15 +115,7 @@ export default function Page() {
       },
       onError: (data) => {
         // Set the command status to 'error' on failure
-        toast.closeAll(),
-          toast({
-            title: "Failed to execute command",
-            description: `Error= ${data.message}`,
-            status: "error",
-            duration: 10000,
-            isClosable: true,
-            position: "top",
-          });
+        errorToast("Failed to execute command", `Error= ${data.message}`);
         setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [selectedCommand]: "error" }));
       },
     });
@@ -178,7 +154,7 @@ export default function Page() {
 
   const executeCommand = (commandName: string, params: FormValues) => {
     if (!config) return;
-    infoToast(`Executing ${commandName}..`, "Please wait.");
+    positionedToast("top", `Executing ${commandName}..`, "Please wait.", "loading");
 
     setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "idle" }));
 
@@ -202,16 +178,6 @@ export default function Page() {
     });
   };
 
-  const handleSelectCommand = (commandName: string) => {
-    // Check if the command has parameters
-    if (doesCommandHaveParameters(commandName)) {
-      // If it has parameters, set up for additional input
-      setSelectedCommand(commandName);
-    } else {
-      // If it doesn't have parameters, execute it immediately
-      executeCommand(commandName, {});
-    }
-  };
   const renderFields = (fields: Field[], parentField?: string) => {
     return fields.map((field) => {
       if (Array.isArray(field.type)) {
