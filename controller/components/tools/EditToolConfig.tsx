@@ -130,13 +130,12 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
   const renderInputForKey = (key: string, value: any) => {
     // For COM port fields, use the InputWithDropdown component
     if (key.toLowerCase().includes("com_port")) {
-      const currentValue = type && newConfig[type] && key in newConfig[type]
-        ? newConfig[type][key]
-        : value || "";
-        
+      const currentValue =
+        type && newConfig[type] && key in newConfig[type] ? newConfig[type][key] : value || "";
+
       // Create options array with all COM ports
-      const comPortOptions = comPorts.map(port => ({ value: port }));
-      
+      const comPortOptions = comPorts.map((port) => ({ value: port }));
+
       return (
         <InputWithDropdown
           value={currentValue}
@@ -144,7 +143,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
           onChange={(newValue) => {
             handleConfigChange(
               { target: { value: newValue } } as React.ChangeEvent<HTMLInputElement>,
-              key
+              key,
             );
           }}
           placeholder="Enter COM port (e.g., COM1)"
@@ -160,9 +159,8 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
       key.toLowerCase().includes("host") ||
       key.toLowerCase().includes("address")
     ) {
-      const currentValue = type && newConfig[type] && key in newConfig[type] 
-        ? newConfig[type][key] 
-        : value || "";
+      const currentValue =
+        type && newConfig[type] && key in newConfig[type] ? newConfig[type][key] : value || "";
       const isValid = currentValue === "" || isValidIP(currentValue);
 
       return (

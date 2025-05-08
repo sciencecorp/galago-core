@@ -629,9 +629,9 @@ async def import_workcell_config(
                         "is_active",
                     ]
                 }
-                protocol_data_cleaned["workcell_id"] = (
-                    workcell.id
-                )  # Ensure correct workcell id
+                protocol_data_cleaned[
+                    "workcell_id"
+                ] = workcell.id  # Ensure correct workcell id
 
                 protocol_name = protocol_data_cleaned.get("name")
                 if protocol_name:

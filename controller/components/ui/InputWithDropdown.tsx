@@ -25,25 +25,25 @@ interface Option {
 interface ValidationConfig {
   isValid: boolean;
   tooltipLabel?: string;
-  validIcon?: React.ReactNode; 
+  validIcon?: React.ReactNode;
   invalidIcon?: React.ReactNode;
   onValidationClick?: () => void;
 }
 
 /**
  * InputWithDropdown - A reusable component that combines a text input with a dropdown menu
- * 
+ *
  * Features:
  * - Text input field for free-form entry
  * - Dropdown menu of pre-defined options
  * - Optional validation with visual indicator
  * - Customizable placement and styling
- * 
+ *
  * Common use cases:
  * - Selecting from common values while allowing custom input
  * - Fields with validation that also need quick selection (IPs, ports, etc.)
  * - Any input that benefits from both typing and selection
- * 
+ *
  * @example
  * // Basic usage
  * <InputWithDropdown
@@ -51,7 +51,7 @@ interface ValidationConfig {
  *   options={[{ value: 'option1' }, { value: 'option2', label: 'Option 2' }]}
  *   onChange={(newValue) => setMyValue(newValue)}
  * />
- * 
+ *
  * // With validation
  * <InputWithDropdown
  *   value={ipAddress}
@@ -100,12 +100,7 @@ export const InputWithDropdown: React.FC<InputWithDropdownProps> = ({
 
   return (
     <InputGroup>
-      <Input
-        value={value}
-        onChange={handleInputChange}
-        placeholder={placeholder}
-        {...inputProps}
-      />
+      <Input value={value} onChange={handleInputChange} placeholder={placeholder} {...inputProps} />
       <InputRightElement width={validation ? "8rem" : "2.5rem"}>
         {validation && (
           <Box mr={2}>
@@ -115,11 +110,8 @@ export const InputWithDropdown: React.FC<InputWithDropdownProps> = ({
                 size="sm"
                 colorScheme={validation.isValid ? "teal" : "red"}
                 variant="outline"
-                onClick={validation.onValidationClick}
-              >
-                {validation.isValid 
-                  ? (validation.validIcon || "✓") 
-                  : (validation.invalidIcon || "✗")}
+                onClick={validation.onValidationClick}>
+                {validation.isValid ? validation.validIcon || "✓" : validation.invalidIcon || "✗"}
               </Button>
             </Tooltip>
           </Box>
@@ -127,7 +119,8 @@ export const InputWithDropdown: React.FC<InputWithDropdownProps> = ({
         <Menu placement={menuPlacement} closeOnSelect={true} strategy="fixed">
           {buttonTooltip ? (
             <Tooltip label={buttonTooltip}>
-              <MenuButton as={IconButton}
+              <MenuButton
+                as={IconButton}
                 size="sm"
                 aria-label="Select option"
                 icon={customIcon || <RiArrowDownSLine />}
@@ -135,7 +128,8 @@ export const InputWithDropdown: React.FC<InputWithDropdownProps> = ({
               />
             </Tooltip>
           ) : (
-            <MenuButton as={IconButton}
+            <MenuButton
+              as={IconButton}
               size="sm"
               aria-label="Select option"
               icon={customIcon || <RiArrowDownSLine />}
@@ -145,10 +139,7 @@ export const InputWithDropdown: React.FC<InputWithDropdownProps> = ({
           <Portal>
             <MenuList maxHeight={menuMaxHeight} overflowY="auto" zIndex={2000}>
               {options.map((option) => (
-                <MenuItem
-                  key={option.value}
-                  onClick={() => handleOptionSelect(option.value)}
-                >
+                <MenuItem key={option.value} onClick={() => handleOptionSelect(option.value)}>
                   {option.label || option.value}
                 </MenuItem>
               ))}
@@ -158,4 +149,4 @@ export const InputWithDropdown: React.FC<InputWithDropdownProps> = ({
       </InputRightElement>
     </InputGroup>
   );
-}; 
+};
