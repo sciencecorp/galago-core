@@ -165,28 +165,4 @@ export const toolRouter = router({
     .mutation(async ({ input }) => {
       return await Tool.executeCommand(input);
     }),
-
-  listComPorts: procedure.query(async () => {
-    try {
-      console.log("Providing COM ports list...");
-
-      // Check if SerialPort library is available and working
-      try {
-        const ports = await SerialPort.list();
-        console.log("Found actual COM ports via SerialPort:", ports);
-        return ports.map((port: { path: string }) => port.path);
-      } catch (serialPortError) {
-        console.error("SerialPort library error:", serialPortError);
-
-        // Fall back to a list of common COM ports if SerialPort fails
-        console.log("Falling back to mock COM ports");
-        const mockPorts = ["COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8"];
-        return mockPorts;
-      }
-    } catch (err: unknown) {
-      console.error("Unexpected error in listComPorts:", err);
-      // Final fallback for any unexpected errors
-      return ["COM1", "COM2", "COM3", "COM4"];
-    }
-  }),
 });

@@ -80,7 +80,6 @@
     "react-markdown": "^9.0.1",
     "react-modal": "^3.16.1",
     "react-router-dom": "^6.27.0",
-    "serialport": "^13.0.0",
     "snowflake-uuid": "^1.0.0",
     "styled-components": "^6.1.12",
     "superjson": "^1.12.2",

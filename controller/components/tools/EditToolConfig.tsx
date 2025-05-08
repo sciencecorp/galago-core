@@ -43,24 +43,8 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
   const { description, name, config, type } = getTool.data || {};
   // const { name, description, config, type } = toolInfo;
   const context = trpc.useContext();
-  // Default common COM ports
-  const defaultComPorts = ["COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8"];
 
-  // Get COM ports list if available
-  const comPortsQuery = trpc.tool.listComPorts.useQuery(undefined, {
-    onError: (error) => {
-      console.error("Error fetching COM ports:", error);
-    },
-    retry: 1,
-    retryDelay: 1000,
-    refetchOnWindowFocus: false,
-    staleTime: Infinity, // Don't refetch once we have data
-  });
-
-  // Combine default ports with any unique ports from the query
-  const comPorts = comPortsQuery.data
-    ? Array.from(new Set([...defaultComPorts, ...comPortsQuery.data]))
-    : defaultComPorts;
+  const comPorts = Array.from({ length: 20 }, (_, i) => `COM${i + 1}`);
 
   // Supported GPL versions for PF400
   const gplVersions = ["v1", "v2"];
