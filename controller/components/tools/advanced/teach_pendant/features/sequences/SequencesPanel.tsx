@@ -28,6 +28,7 @@ import {
   MenuDivider,
   Badge,
   Text,
+  Select,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { FaPlay } from "react-icons/fa";
@@ -38,6 +39,8 @@ import { usePagination } from "../../hooks/usePagination";
 import { PaginationControls } from "../../shared/ui/PaginationControls";
 import { Sequence, TeachPoint, MotionProfile, GripParams } from "../../types/";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { trpc } from "@/utils/trpc";
+import { EditableText, EditableSelect } from "@/components/ui/Form";
 
 interface SequencesPanelProps {
   sequences: Sequence[];
@@ -75,6 +78,9 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
   const cancelRef = useRef<HTMLButtonElement>(null);
   const runConfirmRef = useRef<HTMLButtonElement>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const { data: labwareList } = trpc.labware.getAll.useQuery(undefined, {
+    enabled: isEditing,
+  });
 
   const {
     currentPage,
@@ -217,17 +223,9 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                           Name
                         </Th>
                         <Th bg={headerBgColor} color={textColor}>
-                          Commands
-                        </Th>
-                        <Th bg={headerBgColor} color={textColor}>
                           Labware
                         </Th>
-                        <Th
-                          textAlign="right"
-                          width="100px"
-                          minWidth="100px"
-                          bg={headerBgColor}
-                          color={textColor}>
+                        <Th textAlign="right" width="80px" bg={headerBgColor} color={textColor}>
                           Actions
                         </Th>
                       </Tr>
@@ -240,36 +238,50 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                           cursor="pointer"
                           bg={selectedSequence?.id === sequence.id ? bgColorAlpha : "transparent"}
                           _hover={{ bg: hoverBgColor }}>
-                          <Td>{sequence.name}</Td>
-                          <Td>{sequence.commands?.length || 0}</Td>
                           <Td>
-                            <Badge colorScheme={sequence.labware === "default" ? "gray" : "blue"}>
-                              {sequence.labware || "default"}
-                            </Badge>
+                            <EditableText
+                              defaultValue={sequence.name}
+                              preview={<Text fontSize="xs">{sequence.name}</Text>}
+                              onSubmit={(value) => {
+                                if (value) {
+                                  handleSequenceUpdate({ ...sequence, name: value });
+                                }
+                              }}
+                            />
                           </Td>
-                          <Td textAlign="right">
+                          <Td maxW="280px">
+                            <EditableSelect
+                              options={
+                                labwareList?.map((item) => ({
+                                  label: item.name,
+                                  value: item.name,
+                                })) || []
+                              }
+                              preview={<Text fontSize="xs">{sequence.labware || "default"}</Text>}
+                              onSubmit={async (value) => {
+                                if (value) {
+                                  handleSequenceUpdate({ ...sequence, labware: value });
+                                }
+                              }}
+                            />
+                          </Td>
+                          <Td maxW="60px" textAlign="right">
                             <HStack spacing={2} justify="flex-end">
                               <Menu>
                                 <MenuButton
                                   as={IconButton}
                                   aria-label="Sequence actions"
                                   icon={<HamburgerIcon />}
-                                  size="sm"
+                                  size="xs"
                                   variant="outline"
                                   borderColor={borderColor}
                                   onClick={(e) => e.stopPropagation()}
-                                  minW="32px"
                                 />
                                 <MenuList onClick={(e) => e.stopPropagation()}>
                                   <MenuItem
                                     icon={<FaPlay />}
                                     onClick={() => setSequenceToRun(sequence)}>
                                     Run Sequence
-                                  </MenuItem>
-                                  <MenuItem
-                                    icon={<EditIcon />}
-                                    onClick={() => handleSequenceClick(sequence)}>
-                                    Edit Sequence
                                   </MenuItem>
                                   <MenuDivider />
                                   <MenuItem

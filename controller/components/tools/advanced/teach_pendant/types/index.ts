@@ -1,5 +1,4 @@
 import { Tool } from "@/types/api";
-import { ToolConfig } from "gen-interfaces/controller";
 import { JointConfig } from "../shared/utils/robotArmUtils";
 import { RobotArmSequence as RobotArmSequenceType } from "@/server/routers/robot-arm";
 
@@ -93,7 +92,6 @@ export interface TeachPointsPanelProps {
 export interface MotionProfilesPanelProps {
   profiles: MotionProfile[];
   onEdit: (profile: MotionProfile) => void;
-  onRegister: (profile: MotionProfile) => void;
   onDelete: (id: number) => void;
   onDeleteAll: () => void;
   onAdd: () => void;

@@ -41,7 +41,7 @@ export interface Command_Jog {
 export interface Command_PickLid {
   labware: string;
   location: string;
-  motion_profile_id?: number | undefined;
+  motion_profile?: string | undefined;
   pick_from_plate?: boolean | undefined;
   approach_height?: number | undefined;
 }
@@ -49,7 +49,7 @@ export interface Command_PickLid {
 export interface Command_PlaceLid {
   labware: string;
   location: string;
-  motion_profile_id?: number | undefined;
+  motion_profile?: string | undefined;
   place_on_plate?: boolean | undefined;
   approach_height?: number | undefined;
 }
@@ -58,14 +58,14 @@ export interface Command_RetrievePlate {
   labware: string;
   location: string;
   approach_height?: number | undefined;
-  motion_profile_id?: number | undefined;
+  motion_profile?: string | undefined;
 }
 
 export interface Command_DropOffPlate {
   labware: string;
   location: string;
   approach_height?: number | undefined;
-  motion_profile_id?: number | undefined;
+  motion_profile?: string | undefined;
 }
 
 export interface Command_RunSequence {
@@ -84,7 +84,7 @@ export interface Command_Unwind {
 
 export interface Command_Move {
   name: string;
-  motion_profile_id?: number | undefined;
+  motion_profile?: string | undefined;
   approach_height?: number | undefined;
 }
 
@@ -103,7 +103,7 @@ export interface Command_Transfer {
   source_nest: string;
   destination_nest: string;
   labware: string;
-  motion_profile_id?: number | undefined;
+  motion_profile?: string | undefined;
 }
 
 export interface Command_Wait {
@@ -681,7 +681,7 @@ function createBaseCommand_PickLid(): Command_PickLid {
   return {
     labware: "",
     location: "",
-    motion_profile_id: undefined,
+    motion_profile: undefined,
     pick_from_plate: undefined,
     approach_height: undefined,
   };
@@ -695,8 +695,8 @@ export const Command_PickLid = {
     if (message.location !== "") {
       writer.uint32(18).string(message.location);
     }
-    if (message.motion_profile_id !== undefined) {
-      writer.uint32(24).int32(message.motion_profile_id);
+    if (message.motion_profile !== undefined) {
+      writer.uint32(26).string(message.motion_profile);
     }
     if (message.pick_from_plate !== undefined) {
       writer.uint32(32).bool(message.pick_from_plate);
@@ -729,11 +729,11 @@ export const Command_PickLid = {
           message.location = reader.string();
           continue;
         case 3:
-          if (tag !== 24) {
+          if (tag !== 26) {
             break;
           }
 
-          message.motion_profile_id = reader.int32();
+          message.motion_profile = reader.string();
           continue;
         case 4:
           if (tag !== 32) {
@@ -762,7 +762,7 @@ export const Command_PickLid = {
     return {
       labware: isSet(object.labware) ? String(object.labware) : "",
       location: isSet(object.location) ? String(object.location) : "",
-      motion_profile_id: isSet(object.motion_profile_id) ? Number(object.motion_profile_id) : undefined,
+      motion_profile: isSet(object.motion_profile) ? String(object.motion_profile) : undefined,
       pick_from_plate: isSet(object.pick_from_plate) ? Boolean(object.pick_from_plate) : undefined,
       approach_height: isSet(object.approach_height) ? Number(object.approach_height) : undefined,
     };
@@ -772,7 +772,7 @@ export const Command_PickLid = {
     const obj: any = {};
     message.labware !== undefined && (obj.labware = message.labware);
     message.location !== undefined && (obj.location = message.location);
-    message.motion_profile_id !== undefined && (obj.motion_profile_id = Math.round(message.motion_profile_id));
+    message.motion_profile !== undefined && (obj.motion_profile = message.motion_profile);
     message.pick_from_plate !== undefined && (obj.pick_from_plate = message.pick_from_plate);
     message.approach_height !== undefined && (obj.approach_height = message.approach_height);
     return obj;
@@ -786,7 +786,7 @@ export const Command_PickLid = {
     const message = createBaseCommand_PickLid();
     message.labware = object.labware ?? "";
     message.location = object.location ?? "";
-    message.motion_profile_id = object.motion_profile_id ?? undefined;
+    message.motion_profile = object.motion_profile ?? undefined;
     message.pick_from_plate = object.pick_from_plate ?? undefined;
     message.approach_height = object.approach_height ?? undefined;
     return message;
@@ -797,7 +797,7 @@ function createBaseCommand_PlaceLid(): Command_PlaceLid {
   return {
     labware: "",
     location: "",
-    motion_profile_id: undefined,
+    motion_profile: undefined,
     place_on_plate: undefined,
     approach_height: undefined,
   };
@@ -811,8 +811,8 @@ export const Command_PlaceLid = {
     if (message.location !== "") {
       writer.uint32(18).string(message.location);
     }
-    if (message.motion_profile_id !== undefined) {
-      writer.uint32(24).int32(message.motion_profile_id);
+    if (message.motion_profile !== undefined) {
+      writer.uint32(26).string(message.motion_profile);
     }
     if (message.place_on_plate !== undefined) {
       writer.uint32(32).bool(message.place_on_plate);
@@ -845,11 +845,11 @@ export const Command_PlaceLid = {
           message.location = reader.string();
           continue;
         case 3:
-          if (tag !== 24) {
+          if (tag !== 26) {
             break;
           }
 
-          message.motion_profile_id = reader.int32();
+          message.motion_profile = reader.string();
           continue;
         case 4:
           if (tag !== 32) {
@@ -878,7 +878,7 @@ export const Command_PlaceLid = {
     return {
       labware: isSet(object.labware) ? String(object.labware) : "",
       location: isSet(object.location) ? String(object.location) : "",
-      motion_profile_id: isSet(object.motion_profile_id) ? Number(object.motion_profile_id) : undefined,
+      motion_profile: isSet(object.motion_profile) ? String(object.motion_profile) : undefined,
       place_on_plate: isSet(object.place_on_plate) ? Boolean(object.place_on_plate) : undefined,
       approach_height: isSet(object.approach_height) ? Number(object.approach_height) : undefined,
     };
@@ -888,7 +888,7 @@ export const Command_PlaceLid = {
     const obj: any = {};
     message.labware !== undefined && (obj.labware = message.labware);
     message.location !== undefined && (obj.location = message.location);
-    message.motion_profile_id !== undefined && (obj.motion_profile_id = Math.round(message.motion_profile_id));
+    message.motion_profile !== undefined && (obj.motion_profile = message.motion_profile);
     message.place_on_plate !== undefined && (obj.place_on_plate = message.place_on_plate);
     message.approach_height !== undefined && (obj.approach_height = message.approach_height);
     return obj;
@@ -902,7 +902,7 @@ export const Command_PlaceLid = {
     const message = createBaseCommand_PlaceLid();
     message.labware = object.labware ?? "";
     message.location = object.location ?? "";
-    message.motion_profile_id = object.motion_profile_id ?? undefined;
+    message.motion_profile = object.motion_profile ?? undefined;
     message.place_on_plate = object.place_on_plate ?? undefined;
     message.approach_height = object.approach_height ?? undefined;
     return message;
@@ -910,7 +910,7 @@ export const Command_PlaceLid = {
 };
 
 function createBaseCommand_RetrievePlate(): Command_RetrievePlate {
-  return { labware: "", location: "", approach_height: undefined, motion_profile_id: undefined };
+  return { labware: "", location: "", approach_height: undefined, motion_profile: undefined };
 }
 
 export const Command_RetrievePlate = {
@@ -924,8 +924,8 @@ export const Command_RetrievePlate = {
     if (message.approach_height !== undefined) {
       writer.uint32(29).float(message.approach_height);
     }
-    if (message.motion_profile_id !== undefined) {
-      writer.uint32(32).int32(message.motion_profile_id);
+    if (message.motion_profile !== undefined) {
+      writer.uint32(34).string(message.motion_profile);
     }
     return writer;
   },
@@ -959,11 +959,11 @@ export const Command_RetrievePlate = {
           message.approach_height = reader.float();
           continue;
         case 4:
-          if (tag !== 32) {
+          if (tag !== 34) {
             break;
           }
 
-          message.motion_profile_id = reader.int32();
+          message.motion_profile = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -979,7 +979,7 @@ export const Command_RetrievePlate = {
       labware: isSet(object.labware) ? String(object.labware) : "",
       location: isSet(object.location) ? String(object.location) : "",
       approach_height: isSet(object.approach_height) ? Number(object.approach_height) : undefined,
-      motion_profile_id: isSet(object.motion_profile_id) ? Number(object.motion_profile_id) : undefined,
+      motion_profile: isSet(object.motion_profile) ? String(object.motion_profile) : undefined,
     };
   },
 
@@ -988,7 +988,7 @@ export const Command_RetrievePlate = {
     message.labware !== undefined && (obj.labware = message.labware);
     message.location !== undefined && (obj.location = message.location);
     message.approach_height !== undefined && (obj.approach_height = message.approach_height);
-    message.motion_profile_id !== undefined && (obj.motion_profile_id = Math.round(message.motion_profile_id));
+    message.motion_profile !== undefined && (obj.motion_profile = message.motion_profile);
     return obj;
   },
 
@@ -1001,13 +1001,13 @@ export const Command_RetrievePlate = {
     message.labware = object.labware ?? "";
     message.location = object.location ?? "";
     message.approach_height = object.approach_height ?? undefined;
-    message.motion_profile_id = object.motion_profile_id ?? undefined;
+    message.motion_profile = object.motion_profile ?? undefined;
     return message;
   },
 };
 
 function createBaseCommand_DropOffPlate(): Command_DropOffPlate {
-  return { labware: "", location: "", approach_height: undefined, motion_profile_id: undefined };
+  return { labware: "", location: "", approach_height: undefined, motion_profile: undefined };
 }
 
 export const Command_DropOffPlate = {
@@ -1021,8 +1021,8 @@ export const Command_DropOffPlate = {
     if (message.approach_height !== undefined) {
       writer.uint32(29).float(message.approach_height);
     }
-    if (message.motion_profile_id !== undefined) {
-      writer.uint32(40).int32(message.motion_profile_id);
+    if (message.motion_profile !== undefined) {
+      writer.uint32(42).string(message.motion_profile);
     }
     return writer;
   },
@@ -1056,11 +1056,11 @@ export const Command_DropOffPlate = {
           message.approach_height = reader.float();
           continue;
         case 5:
-          if (tag !== 40) {
+          if (tag !== 42) {
             break;
           }
 
-          message.motion_profile_id = reader.int32();
+          message.motion_profile = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -1076,7 +1076,7 @@ export const Command_DropOffPlate = {
       labware: isSet(object.labware) ? String(object.labware) : "",
       location: isSet(object.location) ? String(object.location) : "",
       approach_height: isSet(object.approach_height) ? Number(object.approach_height) : undefined,
-      motion_profile_id: isSet(object.motion_profile_id) ? Number(object.motion_profile_id) : undefined,
+      motion_profile: isSet(object.motion_profile) ? String(object.motion_profile) : undefined,
     };
   },
 
@@ -1085,7 +1085,7 @@ export const Command_DropOffPlate = {
     message.labware !== undefined && (obj.labware = message.labware);
     message.location !== undefined && (obj.location = message.location);
     message.approach_height !== undefined && (obj.approach_height = message.approach_height);
-    message.motion_profile_id !== undefined && (obj.motion_profile_id = Math.round(message.motion_profile_id));
+    message.motion_profile !== undefined && (obj.motion_profile = message.motion_profile);
     return obj;
   },
 
@@ -1098,7 +1098,7 @@ export const Command_DropOffPlate = {
     message.labware = object.labware ?? "";
     message.location = object.location ?? "";
     message.approach_height = object.approach_height ?? undefined;
-    message.motion_profile_id = object.motion_profile_id ?? undefined;
+    message.motion_profile = object.motion_profile ?? undefined;
     return message;
   },
 };
@@ -1307,7 +1307,7 @@ export const Command_Unwind = {
 };
 
 function createBaseCommand_Move(): Command_Move {
-  return { name: "", motion_profile_id: undefined, approach_height: undefined };
+  return { name: "", motion_profile: undefined, approach_height: undefined };
 }
 
 export const Command_Move = {
@@ -1315,8 +1315,8 @@ export const Command_Move = {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-    if (message.motion_profile_id !== undefined) {
-      writer.uint32(16).int32(message.motion_profile_id);
+    if (message.motion_profile !== undefined) {
+      writer.uint32(18).string(message.motion_profile);
     }
     if (message.approach_height !== undefined) {
       writer.uint32(24).int32(message.approach_height);
@@ -1339,11 +1339,11 @@ export const Command_Move = {
           message.name = reader.string();
           continue;
         case 2:
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.motion_profile_id = reader.int32();
+          message.motion_profile = reader.string();
           continue;
         case 3:
           if (tag !== 24) {
@@ -1364,7 +1364,7 @@ export const Command_Move = {
   fromJSON(object: any): Command_Move {
     return {
       name: isSet(object.name) ? String(object.name) : "",
-      motion_profile_id: isSet(object.motion_profile_id) ? Number(object.motion_profile_id) : undefined,
+      motion_profile: isSet(object.motion_profile) ? String(object.motion_profile) : undefined,
       approach_height: isSet(object.approach_height) ? Number(object.approach_height) : undefined,
     };
   },
@@ -1372,7 +1372,7 @@ export const Command_Move = {
   toJSON(message: Command_Move): unknown {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
-    message.motion_profile_id !== undefined && (obj.motion_profile_id = Math.round(message.motion_profile_id));
+    message.motion_profile !== undefined && (obj.motion_profile = message.motion_profile);
     message.approach_height !== undefined && (obj.approach_height = Math.round(message.approach_height));
     return obj;
   },
@@ -1384,7 +1384,7 @@ export const Command_Move = {
   fromPartial<I extends Exact<DeepPartial<Command_Move>, I>>(object: I): Command_Move {
     const message = createBaseCommand_Move();
     message.name = object.name ?? "";
-    message.motion_profile_id = object.motion_profile_id ?? undefined;
+    message.motion_profile = object.motion_profile ?? undefined;
     message.approach_height = object.approach_height ?? undefined;
     return message;
   },
@@ -1546,7 +1546,7 @@ export const Command_ReleasePlate = {
 };
 
 function createBaseCommand_Transfer(): Command_Transfer {
-  return { source_nest: "", destination_nest: "", labware: "", motion_profile_id: undefined };
+  return { source_nest: "", destination_nest: "", labware: "", motion_profile: undefined };
 }
 
 export const Command_Transfer = {
@@ -1560,8 +1560,8 @@ export const Command_Transfer = {
     if (message.labware !== "") {
       writer.uint32(26).string(message.labware);
     }
-    if (message.motion_profile_id !== undefined) {
-      writer.uint32(32).int32(message.motion_profile_id);
+    if (message.motion_profile !== undefined) {
+      writer.uint32(34).string(message.motion_profile);
     }
     return writer;
   },
@@ -1595,11 +1595,11 @@ export const Command_Transfer = {
           message.labware = reader.string();
           continue;
         case 4:
-          if (tag !== 32) {
+          if (tag !== 34) {
             break;
           }
 
-          message.motion_profile_id = reader.int32();
+          message.motion_profile = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -1615,7 +1615,7 @@ export const Command_Transfer = {
       source_nest: isSet(object.source_nest) ? String(object.source_nest) : "",
       destination_nest: isSet(object.destination_nest) ? String(object.destination_nest) : "",
       labware: isSet(object.labware) ? String(object.labware) : "",
-      motion_profile_id: isSet(object.motion_profile_id) ? Number(object.motion_profile_id) : undefined,
+      motion_profile: isSet(object.motion_profile) ? String(object.motion_profile) : undefined,
     };
   },
 
@@ -1624,7 +1624,7 @@ export const Command_Transfer = {
     message.source_nest !== undefined && (obj.source_nest = message.source_nest);
     message.destination_nest !== undefined && (obj.destination_nest = message.destination_nest);
     message.labware !== undefined && (obj.labware = message.labware);
-    message.motion_profile_id !== undefined && (obj.motion_profile_id = Math.round(message.motion_profile_id));
+    message.motion_profile !== undefined && (obj.motion_profile = message.motion_profile);
     return obj;
   },
 
@@ -1637,7 +1637,7 @@ export const Command_Transfer = {
     message.source_nest = object.source_nest ?? "";
     message.destination_nest = object.destination_nest ?? "";
     message.labware = object.labware ?? "";
-    message.motion_profile_id = object.motion_profile_id ?? undefined;
+    message.motion_profile = object.motion_profile ?? undefined;
     return message;
   },
 };

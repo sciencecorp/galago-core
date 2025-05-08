@@ -1,5 +1,5 @@
 import typing as t
-from pydantic import BaseModel, model_validator, Field, ConfigDict
+from pydantic import BaseModel, model_validator, ConfigDict
 from datetime import datetime, date
 from typing import Optional, List, Dict, Any
 from enum import Enum as PyEnum
@@ -556,7 +556,6 @@ class RobotArmSequence(RobotArmSequenceCreate):
 # Motion Profile Schemas
 class RobotArmMotionProfileCreate(BaseModel):
     name: str
-    profile_id: t.Annotated[int, Field(ge=1, le=14)]
     speed: float
     speed2: float
     acceleration: float
@@ -570,7 +569,6 @@ class RobotArmMotionProfileCreate(BaseModel):
 
 class RobotArmMotionProfileUpdate(BaseModel):
     name: t.Optional[str] = None
-    profile_id: t.Optional[int] = None
     speed: t.Optional[float] = None
     speed2: t.Optional[float] = None
     acceleration: t.Optional[float] = None
@@ -586,6 +584,20 @@ class RobotArmMotionProfile(RobotArmMotionProfileCreate):
     id: int
     model_config = ConfigDict(from_attributes=True)
 
+
+class RobotArmMotionProfileResponse(BaseModel):
+    name: str
+    speed: float
+    speed2: float
+    acceleration: float
+    deceleration: float
+    accel_ramp: float
+    decel_ramp: float
+    inrange: float
+    straight: int
+    id: int
+    
+    model_config = ConfigDict(from_attributes=True)
 
 # Grip Params Schemas
 class RobotArmGripParamsCreate(BaseModel):
@@ -610,13 +622,12 @@ class RobotArmGripParams(RobotArmGripParamsCreate):
 
 
 class RobotArmWaypoints(BaseModel):
-    id: int
+    tool_name : str
     name: str
     locations: list[RobotArmLocation]  # Full location objects
-    motion_profiles: list[RobotArmMotionProfile]  # Full motion profile objects
+    motion_profiles: list[RobotArmMotionProfileResponse]  # Full motion profile objects
     grip_params: list[RobotArmGripParams]  # Full grip parameter objects
     sequences: list[RobotArmSequence]  # Full sequence objects
-    tool_id: int
     model_config = ConfigDict(from_attributes=True)
 
 
