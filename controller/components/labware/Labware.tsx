@@ -41,20 +41,18 @@ import { HiOutlineRectangleStack } from "react-icons/hi2";
 import { FaFileImport, FaFileExport } from "react-icons/fa";
 import { successToast, errorToast, warningToast } from "@/components/ui/Toast";
 import { useLabwareIO } from "@/hooks/useLabwareIO";
+import { useCommonColors } from "@/components/ui/Theme";
 
 export const Labware: React.FC = () => {
   const [labware, setLabware] = useState<LabwareResponse[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLabwareId, setSelectedLabwareId] = useState<number | null>(null);
-  const headerBg = useColorModeValue("white", "gray.700");
-  const containerBg = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const tableBgColor = useColorModeValue("white", "gray.700");
-  const hoverBgColor = useColorModeValue("gray.50", "gray.600");
+  const colors = useCommonColors();
 
   const { data: fetchedLabware, refetch } = trpc.labware.getAll.useQuery();
   const editLabware = trpc.labware.edit.useMutation();
   const deleteLabware = trpc.labware.delete.useMutation();
+  const exportAllLabware = trpc.labware.exportAllConfig.useMutation();
 
   // Use the custom hook for import/export
   const {
@@ -107,7 +105,28 @@ export const Labware: React.FC = () => {
   // Wrapped handlers to add toast notifications for import/export
   const onExportConfig = async () => {
     if (!selectedLabwareId) {
-      warningToast("No Labware Selected", "Please select a labware to export");
+      // Export all labware when no specific labware is selected
+      try {
+        const allLabware = await exportAllLabware.mutateAsync();
+        if (allLabware) {
+          // Create a download with a filename that indicates this is all labware
+          const dataStr = JSON.stringify(allLabware, null, 2);
+          const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
+
+          const exportFileDefaultName = `all-labware-${new Date().toISOString().split("T")[0]}.json`;
+          const linkElement = document.createElement("a");
+          linkElement.setAttribute("href", dataUri);
+          linkElement.setAttribute("download", exportFileDefaultName);
+          linkElement.click();
+
+          successToast("Export Successful", "All labware configurations exported");
+        }
+      } catch (error) {
+        errorToast(
+          "Export Failed",
+          error instanceof Error ? error.message : "Failed to export all labware",
+        );
+      }
       return;
     }
 
@@ -164,16 +183,16 @@ export const Labware: React.FC = () => {
       colorScheme="green"
       variant="outline"
       onClick={onExportConfig}
-      isDisabled={!selectedLabwareId || isExporting}
+      isDisabled={isExporting}
       isLoading={isExporting}>
-      Export
+      {selectedLabwareId ? "Export Selected" : "Export All"}
     </Button>
   );
 
   return (
     <Box maxW="100%">
       <VStack spacing={4} align="stretch">
-        <Card bg={headerBg} shadow="md">
+        <Card bg={colors.headerBg} shadow="md">
           <CardBody>
             <VStack spacing={4} align="stretch">
               <PageHeader
@@ -230,14 +249,14 @@ export const Labware: React.FC = () => {
                     placeholder="Search labware..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    bg={tableBgColor}
+                    bg={colors.inputBg}
                   />
                 </InputGroup>
 
                 <Select
                   placeholder="Filter by Size"
                   maxW="200px"
-                  bg={tableBgColor}
+                  bg={colors.inputBg}
                   onChange={(e) => {
                     const [rows, cols] = e.target.value.split("x").map(Number);
                     setLabware(
@@ -258,7 +277,7 @@ export const Labware: React.FC = () => {
                 <Select
                   placeholder="Filter by Lid"
                   maxW="200px"
-                  bg={tableBgColor}
+                  bg={colors.inputBg}
                   onChange={(e) => {
                     const hasLid = e.target.value === "" ? null : e.target.value === "true";
                     setLabware(
@@ -277,7 +296,7 @@ export const Labware: React.FC = () => {
           </CardBody>
         </Card>
 
-        <Card bg={headerBg} shadow="md">
+        <Card bg={colors.headerBg} shadow="md">
           <CardBody>
             <VStack spacing={4} align="stretch">
               <Box overflowX="auto">
@@ -285,10 +304,10 @@ export const Labware: React.FC = () => {
                   variant="simple"
                   sx={{
                     th: {
-                      borderColor: useColorModeValue("gray.200", "gray.600"),
+                      borderColor: colors.borderColor,
                     },
                     td: {
-                      borderColor: useColorModeValue("gray.200", "gray.600"),
+                      borderColor: colors.borderColor,
                     },
                   }}>
                   <Thead>
@@ -312,10 +331,10 @@ export const Labware: React.FC = () => {
                     {filteredLabware?.map((item) => (
                       <Tr
                         key={item.id}
-                        _hover={{ bg: hoverBgColor }}
+                        _hover={{ bg: colors.hoverBg }}
                         onClick={() => handleRowClick(item)}
                         cursor="pointer"
-                        bg={selectedLabwareId === item.id ? hoverBgColor : undefined}>
+                        bg={selectedLabwareId === item.id ? colors.selectedBg : undefined}>
                         <Td width="50px">
                           <WellPlateIcon
                             rows={item.number_of_rows}

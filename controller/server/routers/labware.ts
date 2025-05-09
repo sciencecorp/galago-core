@@ -102,6 +102,17 @@ export const labwareRouter = router({
     }
   }),
 
+  // Export all labware configs
+  exportAllConfig: procedure.mutation(async () => {
+    try {
+      const response = await get<Labware[]>(`/labware/export-all`);
+      return response;
+    } catch (error) {
+      console.error("Export all failed:", error);
+      throw error;
+    }
+  }),
+
   // Import labware config using file upload via api utility
   importConfig: procedure
     .input(
