@@ -197,8 +197,8 @@ export const CommandModal: React.FC<CommandModalProps> = ({
             onChange={(e) => setParams({ ...params, [field.name]: e.target.value })}
             placeholder="Select motion profile">
             {(motionProfiles || []).map((profile) => (
-              <option key={profile.id} value={profile.profile_id}>
-                {profile.name} (Profile {profile.profile_id})
+              <option key={profile.id} value={profile.id}>
+                {profile.name}
               </option>
             ))}
           </Select>

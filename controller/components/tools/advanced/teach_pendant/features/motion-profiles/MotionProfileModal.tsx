@@ -65,7 +65,6 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
   useEffect(() => {
     if (isOpen && profile) {
       setName(profile.name);
-      setProfileId(profile.profile_id);
       setSpeed(profile.speed);
       setSpeed2(profile.speed2);
       setAcceleration(profile.acceleration);
@@ -84,15 +83,6 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
       errors.push("Name is required");
     }
 
-    const duplicateProfile = existingProfiles.find(
-      (p) => p.profile_id === profileId && (!profile || p.id !== profile.id),
-    );
-    if (duplicateProfile) {
-      errors.push(
-        `Profile ID ${profileId} is already in use by profile "${duplicateProfile.name}"`,
-      );
-    }
-
     if (errors.length > 0) {
       errorToast("Validation Errors", errors.join("\n"));
       return;
@@ -101,7 +91,6 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
     if (onSave) {
       onSave({
         name: name.trim(),
-        profile_id: profileId,
         speed,
         speed2,
         acceleration,
