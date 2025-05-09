@@ -15,9 +15,11 @@ function toolSpecificConfig(toolConfig: ToolConfig): Record<string, any> | undef
 export function ToolConfigEditor({
   toolId,
   defaultConfig,
+  onConfiguring,
 }: {
   toolId: string;
   defaultConfig: ToolConfig;
+  onConfiguring?: (isConfiguring: boolean) => void;
 }): JSX.Element {
   const statusQuery = trpc.tool.status.useQuery(
     { toolId: toolId },
@@ -35,12 +37,14 @@ export function ToolConfigEditor({
   const configureMutation = trpc.tool.configure.useMutation({
     onSuccess: () => {
       statusQuery.refetch();
+      if (onConfiguring) onConfiguring(false);
     },
     onError: (data: any) => {
       if (data.message) {
         error_description = data.message;
       }
       errorToast("Failed to connect to instrument", `${error_description}`);
+      if (onConfiguring) onConfiguring(false);
     },
   });
   const { isLoading } = configureMutation;
@@ -57,6 +61,7 @@ export function ToolConfigEditor({
 
   const saveConfig = async (simulated: boolean) => {
     setToolConfiguring(true);
+    if (onConfiguring) onConfiguring(true);
     const config = {
       toolId: toolId,
       simulated: simulated,
@@ -86,7 +91,6 @@ export function ToolConfigEditor({
         />
       </HStack>
       <Button
-        isLoading={isLoading}
         disabled={isLoading}
         onClick={async () => saveConfig(false)}
         isDisabled={!isReachable || isSimulated}>

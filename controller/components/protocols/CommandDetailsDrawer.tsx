@@ -44,14 +44,54 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
   const [editedParams, setEditedParams] = useState<Record<string, any>>({});
   const [editedAdvancedParams, setEditedAdvancedParams] = useState<AdvancedParameters | null>(null);
   const { data: availableVariables } = trpc.variable.getAll.useQuery();
+  const { data: labwareData } = trpc.labware.getAll.useQuery();
+  const { data: toolsData } = trpc.tool.getAll.useQuery();
+
+  // Get the numeric tool ID from the tool name when a PF400 command is selected
+  const toolId =
+    selectedCommand?.commandInfo?.toolType === "pf400"
+      ? toolsData?.find(
+          (t) =>
+            // Try to match by toolId (which might be the tool name) or by name
+            t.name?.toLowerCase() === selectedCommand?.commandInfo?.toolId?.toLowerCase() ||
+            // Also try with underscores replaced by spaces
+            t.name?.toLowerCase() ===
+              selectedCommand?.commandInfo?.toolId?.replaceAll("_", " ")?.toLowerCase(),
+        )?.id || 0
+      : 0;
+
+  // Query for PF400 locations and sequences when needed
+  const waypointsQuery = trpc.robotArm.waypoints.getAll.useQuery(
+    { toolId },
+    {
+      enabled: !!toolId && selectedCommand?.commandInfo?.toolType === "pf400",
+    },
+  );
 
   // Reset editedParams when a command is selected
   useEffect(() => {
     if (selectedCommand) {
       setEditedParams({});
       setEditedAdvancedParams(null);
+
+      // If we have labware data and there's a labware parameter using "default"
+      if (labwareData && selectedCommand?.commandInfo?.params?.labware === "default") {
+        // Check if a labware with the name "default" (case insensitive) exists in the database
+        if (labwareData.some((labware) => labware.name.toLowerCase() === "default")) {
+          // Find the exact case of the default labware in the database
+          const defaultLabware = labwareData.find(
+            (labware) => labware.name.toLowerCase() === "default",
+          );
+          if (defaultLabware && defaultLabware.name !== "default") {
+            // Update the labware parameter to match the case in the database
+            setEditedParams({
+              labware: defaultLabware.name,
+            });
+          }
+        }
+      }
     }
-  }, [selectedCommand]);
+  }, [selectedCommand, labwareData]);
 
   const handleVariableSelect = (fieldName: string, variableName: string) => {
     if (variableName === "") {
@@ -172,6 +212,207 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
 
   const advancedParams = getAdvancedParameters();
 
+  // Render the appropriate input field based on parameter type and name
+  const renderParameterInput = (key: string, value: any) => {
+    // Get current value (from editedParams if available, otherwise from command)
+    const currentValue = editedParams[key] !== undefined ? editedParams[key] : value;
+
+    // Check if it's a variable reference
+    const isVariable = isVariableReference(currentValue);
+    const variableName = isVariable ? getVariableNameFromReference(currentValue as string) : "";
+
+    // For labware parameters, render a dropdown
+    if (key === "labware") {
+      return (
+        <HStack width="100%" spacing={2}>
+          <Select
+            flex={1}
+            value={isVariable ? "" : (currentValue as string) || "default"}
+            onChange={(e) => {
+              if (!isVariable && isEditing) {
+                setEditedParams({
+                  ...editedParams,
+                  [key]: e.target.value,
+                });
+              }
+            }}
+            isDisabled={isVariable || !isEditing}>
+            {labwareData?.map((labware) => (
+              <option key={labware.id} value={labware.name}>
+                {labware.name}
+              </option>
+            ))}
+            {!labwareData?.some((labware) => labware.name.toLowerCase() === "default") && (
+              <option value="default">default</option>
+            )}
+          </Select>
+          <Select
+            width="180px"
+            value={variableName}
+            onChange={(e) => {
+              if (isEditing) {
+                handleVariableSelect(key, e.target.value);
+              }
+            }}
+            isDisabled={!isEditing}>
+            <option value="">No Variable</option>
+            {availableVariables?.map((variable) => (
+              <option key={variable.id} value={variable.name}>
+                {variable.name}
+              </option>
+            ))}
+          </Select>
+        </HStack>
+      );
+    }
+
+    // For sequence_name in run_sequence command, render a dropdown
+    if (key === "sequence_name" && selectedCommand?.commandInfo?.command === "run_sequence") {
+      return (
+        <HStack width="100%" spacing={2}>
+          <Select
+            flex={1}
+            value={isVariable ? "" : (currentValue as string) || ""}
+            onChange={(e) => {
+              if (!isVariable && isEditing) {
+                setEditedParams({
+                  ...editedParams,
+                  [key]: e.target.value,
+                });
+              }
+            }}
+            isDisabled={isVariable || !isEditing || waypointsQuery.isLoading}
+            placeholder={waypointsQuery.isLoading ? "Loading sequences..." : "Select a sequence"}>
+            {waypointsQuery.isLoading ? (
+              <option value="" disabled>
+                Loading...
+              </option>
+            ) : waypointsQuery.data?.sequences && waypointsQuery.data.sequences.length > 0 ? (
+              waypointsQuery.data.sequences.map((seq) => (
+                <option key={seq.id} value={seq.name}>
+                  {seq.name}
+                </option>
+              ))
+            ) : (
+              <option value="" disabled>
+                {waypointsQuery.isError ? "Error loading sequences" : "No sequences available"}
+              </option>
+            )}
+          </Select>
+          <Select
+            width="180px"
+            value={variableName}
+            onChange={(e) => {
+              if (isEditing) {
+                handleVariableSelect(key, e.target.value);
+              }
+            }}
+            isDisabled={!isEditing}>
+            <option value="">No Variable</option>
+            {availableVariables?.map((variable) => (
+              <option key={variable.id} value={variable.name}>
+                {variable.name}
+              </option>
+            ))}
+          </Select>
+        </HStack>
+      );
+    }
+
+    // For location fields in various PF400 commands
+    if (
+      key === "name" &&
+      selectedCommand?.commandInfo?.command === "move" &&
+      selectedCommand?.commandInfo?.toolType === "pf400"
+    ) {
+      return (
+        <HStack width="100%" spacing={2}>
+          <Select
+            flex={1}
+            value={isVariable ? "" : (currentValue as string) || ""}
+            onChange={(e) => {
+              if (!isVariable && isEditing) {
+                setEditedParams({
+                  ...editedParams,
+                  [key]: e.target.value,
+                });
+              }
+            }}
+            isDisabled={isVariable || !isEditing || waypointsQuery.isLoading}
+            placeholder={waypointsQuery.isLoading ? "Loading locations..." : "Select a location"}>
+            {waypointsQuery.isLoading ? (
+              <option value="" disabled>
+                Loading...
+              </option>
+            ) : waypointsQuery.data?.locations && waypointsQuery.data.locations.length > 0 ? (
+              waypointsQuery.data.locations.map((loc) => (
+                <option key={loc.id} value={loc.name}>
+                  {loc.name}
+                </option>
+              ))
+            ) : (
+              <option value="" disabled>
+                {waypointsQuery.isError ? "Error loading locations" : "No locations available"}
+              </option>
+            )}
+          </Select>
+          <Select
+            width="180px"
+            value={variableName}
+            onChange={(e) => {
+              if (isEditing) {
+                handleVariableSelect(key, e.target.value);
+              }
+            }}
+            isDisabled={!isEditing}>
+            <option value="">No Variable</option>
+            {availableVariables?.map((variable) => (
+              <option key={variable.id} value={variable.name}>
+                {variable.name}
+              </option>
+            ))}
+          </Select>
+        </HStack>
+      );
+    }
+
+    // Default rendering for all other parameters (unchanged)
+    return (
+      <HStack width="100%" spacing={2}>
+        <Input
+          flex={1}
+          value={isVariable ? "" : (currentValue as string) || ""}
+          onChange={(e) => {
+            if (!isVariable && isEditing) {
+              setEditedParams({
+                ...editedParams,
+                [key]: e.target.value,
+              });
+            }
+          }}
+          placeholder={isVariable ? "Using variable" : "Enter value"}
+          isDisabled={isVariable || !isEditing}
+        />
+        <Select
+          width="180px"
+          value={variableName}
+          onChange={(e) => {
+            if (isEditing) {
+              handleVariableSelect(key, e.target.value);
+            }
+          }}
+          isDisabled={!isEditing}>
+          <option value="">No Variable</option>
+          {availableVariables?.map((variable) => (
+            <option key={variable.id} value={variable.name}>
+              {variable.name}
+            </option>
+          ))}
+        </Select>
+      </HStack>
+    );
+  };
+
   return (
     <Drawer isOpen={isOpen} onClose={onClose} placement="right" size="md">
       <DrawerOverlay />
@@ -214,38 +455,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
                           </Badge>
                         )}
                       </Text>
-                      <HStack width="100%" spacing={2}>
-                        <Input
-                          flex={1}
-                          value={isVariable ? "" : (currentValue as string) || ""}
-                          onChange={(e) => {
-                            if (!isVariable && isEditing) {
-                              setEditedParams({
-                                ...editedParams,
-                                [key]: e.target.value,
-                              });
-                            }
-                          }}
-                          placeholder={isVariable ? "Using variable" : "Enter value"}
-                          isDisabled={isVariable}
-                        />
-                        <Select
-                          width="180px"
-                          value={variableName}
-                          onChange={(e) => {
-                            if (isEditing) {
-                              handleVariableSelect(key, e.target.value);
-                            }
-                          }}
-                          isDisabled={!isEditing}>
-                          <option value="">No Variable</option>
-                          {availableVariables?.map((variable) => (
-                            <option key={variable.id} value={variable.name}>
-                              {variable.name}
-                            </option>
-                          ))}
-                        </Select>
-                      </HStack>
+                      {renderParameterInput(key, value)}
                     </Box>
                   );
                 })}

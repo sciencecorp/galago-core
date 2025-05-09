@@ -101,7 +101,7 @@ class NestStatus(str, enum.Enum):
 
 class PlateStatus(str, enum.Enum):
     stored = "stored"
-    in_use = "in_use"
+    checked_out = "checked_out"
     completed = "completed"
     disposed = "disposed"
 
@@ -320,9 +320,7 @@ class RobotArmMotionProfile(Base, TimestampMixin):
         "Tool", back_populates="robot_arm_motion_profiles"
     )
 
-    __table_args__ = (
-        CheckConstraint("name <> ''", name="check_non_empty_name"), 
-    )
+    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
 
 class RobotArmGripParams(Base, TimestampMixin):

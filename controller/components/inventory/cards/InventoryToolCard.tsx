@@ -66,6 +66,7 @@ interface InventoryToolCardProps {
   onNestClick: (nest: Nest) => void;
   onDeleteNest: (nestId: number) => Promise<void>;
   onPlateClick?: (plate: Plate) => void;
+  onCheckIn?: (nestId: number, triggerToolCommand?: boolean) => void;
 }
 
 export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
@@ -78,6 +79,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   onNestClick,
   onDeleteNest,
   onPlateClick,
+  onCheckIn,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const { cardBg, borderColor, hoverBg } = useCommonColors();
@@ -92,7 +94,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   );
   const workcellTools = selectedWorkcell?.tools;
   const toolData = workcellTools?.find((tool) => tool.id === toolId);
-  const { name } = toolData || {};
+  const { name, type } = toolData || {};
 
   const toolNests = nests.filter((nest) => nest.name?.toString() === name?.toString());
   const toolPlates = plates.filter((plate) => toolNests.some((nest) => nest.id === plate.nest_id));
@@ -216,6 +218,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
         isOpen={isOpen}
         onClose={onClose}
         toolName={name || ""}
+        toolType={type}
         nests={toolNests}
         plates={plates}
         selectedNests={[]}
@@ -229,6 +232,9 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
         onCreateNest={(row, column) => onCreateNest(toolId, `${name}`, row, column)}
         onDeleteNest={onDeleteNest}
         onPlateClick={onPlateClick}
+        onCheckIn={onCheckIn}
+        containerType="tool"
+        containerId={toolId}
       />
     </>
   );

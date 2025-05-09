@@ -197,10 +197,18 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
 
         // Calculate start and end times
         const startMoment = moment.max(moment(command.createdAt), lastEndTime);
-        const endMoment = moment(
-          command.completedAt ||
-            startMoment.clone().add(command.estimatedDuration || 600, "seconds"),
-        );
+        let endMoment;
+
+        // For skipped commands, truncate at current time
+        if (command.status === "SKIPPED") {
+          endMoment = command.completedAt ? moment(command.completedAt) : startMoment.clone(); // End right where it started if no completedAt time
+        } else {
+          endMoment = moment(
+            command.completedAt ||
+              startMoment.clone().add(command.estimatedDuration || 600, "seconds"),
+          );
+        }
+
         lastEndTime = endMoment.clone().add(2, "seconds");
 
         // Skip if outside visible window

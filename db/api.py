@@ -213,11 +213,47 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
     # Explicitly load tools and protocols
     _ = workcell.tools
     _ = workcell.protocols
+
+    # Explicitly load hotels
+    _ = workcell.hotels
+
+    # Get all nests for the workcell (from both tools and hotels)
+    nests = crud.nest.get_all_nests_by_workcell_id(db=db, workcell_id=workcell.id)
+
+    # Get all plates in nests
+    plates = []
+    for nest in nests:
+        if nest.status == schemas.NestStatus.occupied:
+            plate = crud.plate.get_by(db, obj_in={"nest_id": nest.id})
+            if plate:
+                plates.append(plate)
+
+    # Get all wells for all plates
+    wells = []
+    for plate in plates:
+        wells.extend(crud.well.get_all_by(db, obj_in={"plate_id": plate.id}))
+
+    # Get all reagents for all wells
+    reagents = []
+    for well in wells:
+        reagents.extend(crud.reagent.get_all_by(db, obj_in={"well_id": well.id}))
+
+    # Get all labware definitions
+    labware = crud.labware.get_all(db)
+
     # Create a temporary file for the JSON content
     with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
         temp_file_path = temp_file.name
         # Serialize the workcell to JSON and write to the file
         workcell_json = jsonable_encoder(workcell)
+
+        # Add the inventory data to the export
+        workcell_json["nests"] = jsonable_encoder(nests)
+        workcell_json["plates"] = jsonable_encoder(plates)
+        workcell_json["wells"] = jsonable_encoder(wells)
+        workcell_json["reagents"] = jsonable_encoder(reagents)
+        workcell_json["labware"] = jsonable_encoder(labware)
+
         temp_file.write(json.dumps(workcell_json, indent=2).encode("utf-8"))
 
     # Set the filename for download
@@ -329,6 +365,225 @@ async def import_workcell_config(
                         logging.info(
                             f"Created default profiles for imported PF400 tool: {new_tool.name}"
                         )
+
+        # Process and create/update labware if they exist in the import data
+        if "labware" in workcell_data and isinstance(workcell_data["labware"], list):
+            for labware_data in workcell_data["labware"]:
+                # Skip if essential labware data is missing
+                if not isinstance(labware_data, dict) or "name" not in labware_data:
+                    continue
+
+                # Check if this labware already exists
+                existing_labware = crud.labware.get_by(
+                    db, obj_in={"name": labware_data["name"]}
+                )
+
+                # Extract labware fields
+                labware_fields = {
+                    "name": labware_data["name"],
+                    "description": labware_data.get("description", ""),
+                    "number_of_rows": labware_data.get("number_of_rows", 8),
+                    "number_of_columns": labware_data.get("number_of_columns", 12),
+                    "z_offset": labware_data.get("z_offset", 0.0),
+                    "width": labware_data.get("width", 0.0),
+                    "height": labware_data.get("height", 0.0),
+                    "plate_lid_offset": labware_data.get("plate_lid_offset", 0.0),
+                    "lid_offset": labware_data.get("lid_offset", 0.0),
+                    "stack_height": labware_data.get("stack_height", 0.0),
+                    "has_lid": labware_data.get("has_lid", False),
+                    "image_url": labware_data.get("image_url", ""),
+                }
+
+                # Create or update the labware
+                if existing_labware:
+                    # Update existing labware
+                    _ = crud.labware.update(
+                        db,
+                        db_obj=existing_labware,
+                        obj_in=schemas.LabwareUpdate(**labware_fields),
+                    )
+                else:
+                    # Create new labware
+                    _ = crud.labware.create(
+                        db, obj_in=schemas.LabwareCreate(**labware_fields)
+                    )
+
+        # Process and create/update hotels if they exist in the import data
+        if "hotels" in workcell_data and isinstance(workcell_data["hotels"], list):
+            for hotel_data in workcell_data["hotels"]:
+                # Skip if essential hotel data is missing
+                if not isinstance(hotel_data, dict) or "name" not in hotel_data:
+                    continue
+
+                # Set the workcell_id for the hotel
+                hotel_data["workcell_id"] = workcell.id
+
+                # Check if this hotel already exists in the workcell
+                existing_hotel = None
+                for h in workcell.hotels:
+                    if h.name == hotel_data["name"]:
+                        existing_hotel = h
+                        break
+
+                if existing_hotel:
+                    # Update existing hotel
+                    hotel_update = {k: v for k, v in hotel_data.items() if k != "id"}
+                    crud.hotel.update(
+                        db,
+                        db_obj=existing_hotel,
+                        obj_in=schemas.HotelUpdate(**hotel_update),
+                    )
+                else:
+                    # Create new hotel
+                    crud.hotel.create(db, obj_in=schemas.HotelCreate(**hotel_data))
+
+        # Process and create/update nests if they exist in the import data
+        if "nests" in workcell_data and isinstance(workcell_data["nests"], list):
+            for nest_data in workcell_data["nests"]:
+                # Skip if essential nest data is missing
+                if not isinstance(nest_data, dict) or "name" not in nest_data:
+                    continue
+
+                # Check if this nest already exists
+                existing_nest = None
+                try:
+                    nest_id = nest_data.get("id")
+                    if nest_id is not None:
+                        existing_nest = crud.nest.get(db, id=int(nest_id))
+                except Exception as e:
+                    logging.error(f"Nest {nest_data.get('name')} not found: {e}")
+
+                if existing_nest:
+                    # Update existing nest
+                    nest_update = {k: v for k, v in nest_data.items() if k != "id"}
+                    crud.nest.update(
+                        db,
+                        db_obj=existing_nest,
+                        obj_in=schemas.NestUpdate(**nest_update),
+                    )
+                else:
+                    # Create new nest
+                    nest_create = {k: v for k, v in nest_data.items() if k != "id"}
+                    crud.nest.create(db, obj_in=schemas.NestCreate(**nest_create))
+
+        # Process and create/update plates if they exist in the import data
+        if "plates" in workcell_data and isinstance(workcell_data["plates"], list):
+            for plate_data in workcell_data["plates"]:
+                # Skip if essential plate data is missing
+                if not isinstance(plate_data, dict) or "barcode" not in plate_data:
+                    continue
+
+                # Check if this plate already exists
+                existing_plate = None
+                try:
+                    plate_id = plate_data.get("id")
+                    if plate_id is not None:
+                        existing_plate = crud.plate.get(db, id=int(plate_id))
+                except Exception as e:
+                    # Try to find by barcode
+                    logging.error(f"Plate {plate_data.get('name')} not found: {e}")
+                    existing_plate = crud.plate.get_by(
+                        db, obj_in={"barcode": plate_data["barcode"]}
+                    )
+
+                if existing_plate:
+                    # Update existing plate
+                    plate_update = {k: v for k, v in plate_data.items() if k != "id"}
+                    crud.plate.update(
+                        db,
+                        db_obj=existing_plate,
+                        obj_in=schemas.PlateUpdate(**plate_update),
+                    )
+                else:
+                    # Create new plate
+                    plate_create = {k: v for k, v in plate_data.items() if k != "id"}
+                    crud.plate.create(db, obj_in=schemas.PlateCreate(**plate_create))
+
+        # Process and create/update wells if they exist in the import data
+        if "wells" in workcell_data and isinstance(workcell_data["wells"], list):
+            for well_data in workcell_data["wells"]:
+                # Skip if essential well data is missing
+                if not isinstance(well_data, dict) or "plate_id" not in well_data:
+                    continue
+
+                # Check if this well already exists
+                existing_well = None
+                try:
+                    well_id = well_data.get("id")
+                    if well_id is not None:
+                        existing_well = crud.well.get(db, id=int(well_id))
+                except Exception as e:
+                    # Try to find by plate_id, row and column
+                    logging.error(f"Well {well_data.get('name')} not found: {e}")
+                    if "row" in well_data and "column" in well_data:
+                        existing_well = crud.well.get_by(
+                            db,
+                            obj_in={
+                                "plate_id": well_data["plate_id"],
+                                "row": well_data["row"],
+                                "column": well_data["column"],
+                            },
+                        )
+
+                if existing_well:
+                    # Update existing well
+                    well_update = {k: v for k, v in well_data.items() if k != "id"}
+                    crud.well.update(
+                        db,
+                        db_obj=existing_well,
+                        obj_in=schemas.WellUpdate(**well_update),
+                    )
+                else:
+                    # Create new well
+                    well_create = {k: v for k, v in well_data.items() if k != "id"}
+                    crud.well.create(db, obj_in=schemas.WellCreate(**well_create))
+
+        # Process and create/update reagents if they exist in the import data
+        if "reagents" in workcell_data and isinstance(workcell_data["reagents"], list):
+            for reagent_data in workcell_data["reagents"]:
+                # Skip if essential reagent data is missing
+                if (
+                    not isinstance(reagent_data, dict)
+                    or "well_id" not in reagent_data
+                    or "name" not in reagent_data
+                ):
+                    continue
+
+                # Check if this reagent already exists
+                existing_reagent = None
+                try:
+                    reagent_id = reagent_data.get("id")
+                    if reagent_id is not None:
+                        existing_reagent = crud.reagent.get(db, id=int(reagent_id))
+                except Exception as e:
+                    logging.error(f"Reagent {reagent_data.get('name')} not found: {e}")
+                    # Try to find by well_id and name
+                    existing_reagent = crud.reagent.get_by(
+                        db,
+                        obj_in={
+                            "well_id": reagent_data["well_id"],
+                            "name": reagent_data["name"],
+                        },
+                    )
+
+                if existing_reagent:
+                    # Update existing reagent
+                    reagent_update = {
+                        k: v for k, v in reagent_data.items() if k != "id"
+                    }
+                    crud.reagent.update(
+                        db,
+                        db_obj=existing_reagent,
+                        obj_in=schemas.ReagentUpdate(**reagent_update),
+                    )
+                else:
+                    # Create new reagent
+                    reagent_create = {
+                        k: v for k, v in reagent_data.items() if k != "id"
+                    }
+                    crud.reagent.create(
+                        db, obj_in=schemas.ReagentCreate(**reagent_create)
+                    )
 
         # Process and create/update protocols if they exist in the import data
         if "protocols" in workcell_data and isinstance(
@@ -442,7 +697,7 @@ async def import_workcell_config(
                         f"Skipping protocol data because 'name' was missing or None: {protocol_data_cleaned}"
                     )
 
-        # Commit all changes made within the try block (workcell, tools, protocols)
+        # Commit all changes made within the try block (workcell, tools, protocols, etc.)
         db.commit()
 
         # Return the updated workcell (re-query ensures relations are fresh)
@@ -585,17 +840,34 @@ def delete_nest(nest_id: int, db: Session = Depends(get_db)) -> t.Any:
 def get_plates(
     db: Session = Depends(get_db), workcell_name: Optional[str] = None
 ) -> t.Any:
-    all_plates = crud.plate.get_all(db)
-    if workcell_name:
-        workcell = crud.workcell.get_by(db=db, obj_in={"name": workcell_name})
-        if not workcell:
-            raise HTTPException(status_code=404, detail="Workcell not found")
-        return [
-            plate
-            for plate in all_plates
-            if (plate.nest_id is None) or (plate.nest.tool.workcell_id == workcell.id)
-        ]
-    return all_plates
+    """
+    Get all plates, optionally filtered by workcell.
+    This function retrieves plates either directly from the database (no filter)
+    or filtered by workcell name.
+    """
+    if not workcell_name:
+        return crud.plate.get_all(db)
+
+    # If workcell name is provided, filter plates belonging to that workcell
+    workcell = crud.workcell.get_by(db=db, obj_in={"name": workcell_name})
+    if not workcell:
+        raise HTTPException(status_code=404, detail="Workcell not found")
+
+    # Get all nests for this workcell (both in tools and hotels)
+    nests = crud.nest.get_all_nests_by_workcell_id(db=db, workcell_id=workcell.id)
+    nest_ids = [nest.id for nest in nests]
+
+    # Find plates in these nests
+    workcell_plates = (
+        db.query(models.Plate).filter(models.Plate.nest_id.in_(nest_ids)).all()
+    )
+
+    # Also include plates not in any nest
+    unassigned_plates = (
+        db.query(models.Plate).filter(models.Plate.nest_id.is_(None)).all()
+    )
+
+    return workcell_plates + unassigned_plates
 
 
 @app.get("/plates/{plate_id}", response_model=schemas.Plate)
@@ -640,6 +912,23 @@ def create_plate(plate: schemas.PlateCreate, db: Session = Depends(get_db)) -> t
             status_code=400, detail="Plate with that name already exists"
         )
     new_plate = crud.plate.create(db, obj_in=plate)
+
+    # If the plate is assigned to a nest, update the nest status to occupied
+    if new_plate.nest_id is not None:
+        nest = crud.nest.get(db, id=new_plate.nest_id)
+        if nest:
+            nest.status = schemas.NestStatus.occupied
+            db.commit()
+
+            # Create plate nest history record
+            history = models.PlateNestHistory(
+                plate_id=new_plate.id,
+                nest_id=nest.id,
+                action=models.PlateNestAction.check_in,
+            )
+            db.add(history)
+            db.commit()
+
     # Depending on plate type, automatically create wells for plate
     # Use case switch statement
     columns = []
@@ -701,6 +990,58 @@ def update_plate(
     plate = crud.plate.get(db, id=plate_id)
     if plate is None:
         raise HTTPException(status_code=404, detail="Plate not found")
+
+    # Check if this is a checkout operation (nest_id being set to None)
+    is_checkout = plate.nest_id is not None and plate_update.nest_id is None
+
+    # Check if this is a check-in operation (nest_id being set from None to a value)
+    is_checkin = plate.nest_id is None and plate_update.nest_id is not None
+
+    # If this is a checkout, use the specialized method
+    if is_checkout:
+        try:
+            return crud.nest.check_out_plate(db, plate_id=plate_id)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+    # If this is a check-in, ensure the nest is available and update statuses
+    if is_checkin:
+        try:
+            # First check if the nest is available
+            if plate_update.nest_id is not None:
+                nest = crud.nest.get(db, id=plate_update.nest_id)
+                if not nest:
+                    raise ValueError("Nest not found")
+                if nest.status != schemas.NestStatus.empty:
+                    raise ValueError("Nest is already occupied")
+
+                # Update plate status to stored for check-in
+                plate_update.status = schemas.PlateStatus.stored
+
+                # Update nest status to occupied
+                nest.status = schemas.NestStatus.occupied
+
+                # Record history
+                history = models.PlateNestHistory(
+                    plate_id=plate.id,
+                    nest_id=nest.id,
+                    action=models.PlateNestAction.check_in,
+                )
+                db.add(history)
+            else:
+                raise ValueError("Nest ID cannot be None for check-in operation")
+
+            # Perform the update using the base update method
+            updated_plate = crud.plate.update(db, db_obj=plate, obj_in=plate_update)
+
+            # Commit the transaction to save nest status change and history
+            db.commit()
+
+            return updated_plate
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+    # Regular update for non-checkout operations
     return crud.plate.update(db, db_obj=plate, obj_in=plate_update)
 
 
@@ -962,6 +1303,118 @@ def update_labware(
 @app.delete("/labware/{labware_id}", response_model=schemas.LabwareCreate)
 def delete_labware(labware_id: int, db: Session = Depends(get_db)) -> t.Any:
     return crud.labware.remove(db, id=labware_id)
+
+
+@app.get("/labware/{labware_id}/export")
+def export_labware_config(labware_id: int, db: Session = Depends(get_db)) -> t.Any:
+    """Export a labware configuration as a downloadable JSON file."""
+    from fastapi.responses import FileResponse
+    import tempfile
+    import os
+
+    labware = crud.labware.get(db, id=labware_id)
+    if labware is None:
+        raise HTTPException(status_code=404, detail="Labware not found")
+
+    # Create a temporary file for the JSON content
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
+        temp_file_path = temp_file.name
+        # Serialize the labware to JSON and write to the file
+        labware_json = jsonable_encoder(labware)
+        temp_file.write(json.dumps(labware_json, indent=2).encode("utf-8"))
+
+    # Set the filename for download
+    filename = f"{labware.name.replace(' ', '_')}-config.json"
+
+    # Return the file response which will trigger download in the browser
+    return FileResponse(
+        path=temp_file_path,
+        filename=filename,
+        media_type="application/json",
+        background=BackgroundTask(
+            lambda: os.unlink(temp_file_path)
+        ),  # Delete the temp file after response is sent
+    )
+
+
+@app.post("/labware/import", response_model=schemas.Labware)
+async def import_labware_config(
+    file: UploadFile = File(...), db: Session = Depends(get_db)
+) -> t.Any:
+    """Import a labware configuration from an uploaded JSON file.
+
+    If a labware with the same name already exists, it will update that labware.
+    Otherwise, it will create a new labware.
+    """
+    try:
+        # Read the uploaded file content
+        file_content = await file.read()
+
+        # Parse the JSON content
+        try:
+            labware_data = json.loads(file_content.decode("utf-8"))
+        except json.JSONDecodeError:
+            raise HTTPException(
+                status_code=400, detail="Invalid JSON format in uploaded file"
+            )
+
+        # Check if basic required fields are present
+        if not isinstance(labware_data, dict) or "name" not in labware_data:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid labware configuration: Missing name field",
+            )
+
+        # Check if a labware with this name already exists
+        existing_labware = crud.labware.get_by(
+            db, obj_in={"name": labware_data["name"]}
+        )
+
+        # Extract labware fields
+        labware_fields = {
+            "name": labware_data["name"],
+            "description": labware_data.get("description", ""),
+            "number_of_rows": labware_data.get("number_of_rows", 8),
+            "number_of_columns": labware_data.get("number_of_columns", 12),
+            "z_offset": labware_data.get("z_offset", 0.0),
+            "width": labware_data.get("width", 0.0),
+            "height": labware_data.get("height", 0.0),
+            "plate_lid_offset": labware_data.get("plate_lid_offset", 0.0),
+            "lid_offset": labware_data.get("lid_offset", 0.0),
+            "stack_height": labware_data.get("stack_height", 0.0),
+            "has_lid": labware_data.get("has_lid", False),
+            "image_url": labware_data.get("image_url", ""),
+        }
+
+        # Create or update the labware
+        if existing_labware:
+            # Update existing labware
+            labware = crud.labware.update(
+                db,
+                db_obj=existing_labware,
+                obj_in=schemas.LabwareUpdate(**labware_fields),
+            )
+        else:
+            # Create new labware
+            labware = crud.labware.create(
+                db, obj_in=schemas.LabwareCreate(**labware_fields)
+            )
+
+        # Commit all changes
+        db.commit()
+
+        # Return the updated labware
+        return labware
+
+    except Exception as e:
+        db.rollback()  # Rollback any changes if an error occurred
+        # Log the error and provide a user-friendly message
+        logging.error(f"Error importing labware configuration: {str(e)}")
+        # Log detailed exception for debugging
+        logging.exception("Detailed error during import_labware_config:")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to import labware configuration: {str(e)}"
+        )
 
 
 @app.get("/settings", response_model=list[schemas.AppSettings])
