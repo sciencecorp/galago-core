@@ -68,8 +68,6 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
     },
   );
 
-  console.log("waypointsQuery.data", waypointsQuery.data);
-
   // Reset editedParams when a command is selected
   useEffect(() => {
     if (selectedCommand) {

@@ -309,7 +309,6 @@ export default class Tool {
       }
     }
     const reply = await this.grpc.executeCommand(this._payloadForCommand(command));
-    console.log("Reply from tool command", reply);
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
       logAction({
         level: "error",

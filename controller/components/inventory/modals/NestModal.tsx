@@ -102,20 +102,6 @@ const NestModal: React.FC<NestModalProps> = ({
     setLocalSelectedNests(selectedNests || []);
   }, [isOpen]);
 
-  // Add logging to help with debugging
-  useEffect(() => {
-    if (isOpen) {
-      console.log("NestModal opened with:", {
-        containerType,
-        containerId,
-        toolName,
-        toolType,
-        nestCount: nests.length,
-        selectedNests,
-      });
-    }
-  }, [isOpen, containerType, containerId, toolName, toolType, nests.length, selectedNests]);
-
   const handleNestClick = (nest: Nest) => {
     let newSelection: number[];
 
@@ -134,10 +120,8 @@ const NestModal: React.FC<NestModalProps> = ({
         }
         newSelection = [...localSelectedNests, nest.id];
       }
-      console.log(`Multi-select nest selection: ${newSelection.join(", ")}`);
     } else {
       newSelection = [nest.id];
-      console.log(`Single nest selected: ${nest.id}, container: ${containerType} ${containerId}`);
     }
 
     setLocalSelectedNests(newSelection);
@@ -177,7 +161,6 @@ const NestModal: React.FC<NestModalProps> = ({
       const targetIndex = operation === "add" ? currentMax : currentMax - 1;
 
       if (operation === "remove" && onDeleteNest) {
-        // Log existing nests for debugging
         // Find nests to delete at the last row/column
         // Since targetIndex is already currentMax - 1, we don't need to subtract 1 again
         const nestsToDelete = nests.filter((nest) =>

@@ -129,19 +129,11 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
   // Reset state when modal opens or mode changes
   useEffect(() => {
     if (isOpen) {
-      // Log container info at beginning of modal opening
-      console.log(
-        `InventoryModal opening with container settings (before): containerId=${selectedContainerId}, containerType=${selectedContainerType}`,
-      );
-
       // Initialize the nest selections from props if available
       setNestSelections(initialSelectedNestIds);
 
       // Initialize container selection from props if available
       if (initialContainerId && initialContainerType) {
-        console.log(
-          `Initializing container selection: ${initialContainerType} with ID ${initialContainerId}`,
-        );
         setSelectedContainerId(initialContainerId);
         setSelectedContainerType(initialContainerType);
 
@@ -150,15 +142,6 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
           containerId: initialContainerId,
           containerType: initialContainerType,
         });
-
-        // Log the actual container we're selecting
-        if (initialContainerType === "tool") {
-          const tool = tools.find((t) => t.id === initialContainerId);
-          console.log(`Selected tool: ${tool?.name || "not found"} (ID: ${initialContainerId})`);
-        } else if (initialContainerType === "hotel") {
-          const hotel = staticHotels.find((h) => h.id === initialContainerId);
-          console.log(`Selected hotel: ${hotel?.name || "not found"} (ID: ${initialContainerId})`);
-        }
       }
 
       // If there are initial nests, get container info from them, but don't override explicit container settings
@@ -211,11 +194,6 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
           }
         }
       }
-
-      // Log container info at end of modal opening
-      console.log(
-        `InventoryModal opening with container settings (after): containerId=${selectedContainerId}, containerType=${selectedContainerType}`,
-      );
     }
   }, [
     isOpen,
@@ -247,21 +225,11 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
   // Auto-select first available container when none is selected (but don't override explicit settings)
   useEffect(() => {
     if (isOpen && !selectedContainerId && storageContainers.length > 0 && !initialContainerId) {
-      console.log("No container selected, auto-selecting first available container");
       const firstContainer = storageContainers[0];
       setSelectedContainerId(firstContainer.id);
       setSelectedContainerType(firstContainer.type as "tool" | "hotel");
     }
   }, [isOpen, selectedContainerId, storageContainers, initialContainerId]);
-
-  // Log any changes to container selection
-  useEffect(() => {
-    if (selectedContainerId && selectedContainerType) {
-      console.log(
-        `Container selection changed: ${selectedContainerType} with ID ${selectedContainerId}`,
-      );
-    }
-  }, [selectedContainerId, selectedContainerType]);
 
   const isSelectedContainerStatic = selectedContainerType === "hotel";
 
@@ -350,7 +318,6 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
           containerId: initialSettings.containerId,
           containerType: initialSettings.containerType,
         };
-        console.log("Using initial container settings:", containerInfo);
       }
 
       // Add more information for debugging purposes
@@ -362,14 +329,6 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
         const hotel = staticHotels.find((h) => h.id === containerInfo.containerId);
         containerDetails = hotel?.name || "unknown hotel";
       }
-
-      console.log("Container info for check-in:", {
-        ...containerInfo,
-        containerName: containerDetails,
-        containerSource: initialSettings.containerType
-          ? "saved initial settings"
-          : "selected in modal",
-      });
 
       // For batch check-in with multiple plates
       if (numberOfPlates > 1 || uploadedFile) {
@@ -455,13 +414,6 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
         plate_type: manualPlateType,
         status: "stored" as PlateStatus,
       };
-
-      // Debug log for automatic placement
-      if (targetNestId === -1) {
-        console.log(
-          `Auto placing plate in ${selectedContainerType} with ID ${selectedContainerId}`,
-        );
-      }
 
       // Submit for single plate
       await onCheckIn({

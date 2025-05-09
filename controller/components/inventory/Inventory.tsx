@@ -272,7 +272,6 @@ export const InventoryManager = () => {
       // Refresh nest data
       await refetchNests();
     } catch (error) {
-      console.error("Failed to create nest:", error);
       errorToast("Error creating nest", error instanceof Error ? error.message : "Unknown error");
     }
   };
@@ -282,7 +281,7 @@ export const InventoryManager = () => {
       await deleteNestMutation.mutateAsync(nestId);
       refetchNests();
     } catch (error) {
-      console.error("Error deleting nest:", error);
+      errorToast("Error deleting nest", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -299,7 +298,6 @@ export const InventoryManager = () => {
       });
       refetchPlates();
     } catch (error) {
-      console.error("Error creating plate:", error);
       errorToast("Error creating plate", error instanceof Error ? error.message : "Unknown error");
     }
   };
@@ -315,7 +313,7 @@ export const InventoryManager = () => {
       });
       refetchReagents();
     } catch (error) {
-      console.error("Error creating reagent:", error);
+      errorToast("Error creating reagent", error instanceof Error ? error.message : "Unknown error");
       throw error;
     }
   };
@@ -336,65 +334,26 @@ export const InventoryManager = () => {
     containerType?: "tool" | "hotel" | "";
   }) => {
     try {
-      // Debug log all incoming parameters
-      console.log("handleCheckIn parameters:", {
-        nestId,
-        plateCount: newPlates.length,
-        triggerToolCommand,
-        isStatic,
-        containerId,
-        containerType,
-      });
-
       // Handle automatic placement (nestId = -1)
       if (nestId === -1) {
-        console.log(
-          `Auto-placement requested with container type: "${containerType}" and ID: ${containerId || "none"}`,
-        );
-
         // Find available empty nests for the selected container
         const emptyNests = typedNests.filter((nest) => {
-          // Log to help debug the filter conditions
-          const isToolMatch =
-            containerType === "tool" && containerId && nest.tool_id === containerId;
-          const isHotelMatch =
-            containerType === "hotel" && containerId && nest.hotel_id === containerId;
-          const hasPlate = typedPlates.some((p) => p.nest_id === nest.id);
-          const isEmpty = !hasPlate && nest.status === "empty";
-
           // First filter by container type and ID if specified
           if (containerType === "tool" && containerId) {
             if (nest.tool_id !== containerId) return false;
           } else if (containerType === "hotel" && containerId) {
             if (nest.hotel_id !== containerId) return false;
-          } else if (!containerType) {
-            // If no container type specified, just find any empty nest
-            // This is a fallback, but shouldn't normally happen with the UI
-            console.log("No container type specified for automatic placement");
           }
 
           // Then check if the nest is empty
-          return isEmpty;
+          return !typedPlates.some((p) => p.nest_id === nest.id) && nest.status === "empty";
         });
 
         if (emptyNests.length === 0) {
-          console.error("No matching empty nests found:", {
-            containerType,
-            containerId,
-            totalNests: typedNests.length,
-            emptyNestCount: typedNests.filter((n) => !typedPlates.some((p) => p.nest_id === n.id))
-              .length,
-          });
           throw new Error(
             `No empty nests available for automatic placement${containerType ? ` in the selected ${containerType}` : ""}`,
           );
         }
-
-        // Debug log to see what we're selecting from
-        console.log(
-          `Found ${emptyNests.length} empty nests for ${containerType || "unspecified"} container`,
-          emptyNests,
-        );
 
         // Sort by row and column to get the first available nest in reading order
         const sortedNests = [...emptyNests].sort((a, b) => {
@@ -406,7 +365,6 @@ export const InventoryManager = () => {
 
         // Use the first available nest
         nestId = sortedNests[0].id;
-        console.log(`Selected nest ID ${nestId} for automatic placement`);
       }
 
       // Get the nest to check capacity
@@ -483,7 +441,6 @@ export const InventoryManager = () => {
               `Physical check-in command sent to ${tool.name} for position R${row + 1}C${column + 1}`,
             );
           } catch (cmdError) {
-            console.error("Error triggering tool command:", cmdError);
             errorToast(
               "Warning: Plate stored but tool command failed",
               cmdError instanceof Error ? cmdError.message : "Unknown error",
@@ -498,7 +455,6 @@ export const InventoryManager = () => {
 
       successToast("Check-in successful", `${newPlates.length} plate(s) checked in successfully`);
     } catch (error) {
-      console.error("Error checking in plate(s):", error);
       errorToast(
         "Error checking in plate(s)",
         error instanceof Error ? error.message : "Unknown error",
@@ -594,7 +550,6 @@ export const InventoryManager = () => {
               `Physical check-out command sent to ${tool.name} for position R${row + 1}C${column + 1}`,
             );
           } catch (cmdError) {
-            console.error("Error triggering tool command:", cmdError);
             errorToast(
               "Warning: Plate checked out but tool command failed",
               cmdError instanceof Error ? cmdError.message : "Unknown error",
@@ -614,7 +569,6 @@ export const InventoryManager = () => {
         `Plate ${plateToCheckOut.name || plateToCheckOut.barcode} checked out successfully`,
       );
     } catch (error) {
-      console.error("Error checking out plate:", error);
       errorToast(
         "Error checking out plate",
         error instanceof Error ? error.message : "Unknown error",
@@ -662,7 +616,6 @@ export const InventoryManager = () => {
               });
               createdNests++;
             } catch (nestError) {
-              console.error(`Failed to create nest at R${row + 1}C${col + 1}:`, nestError);
               // Continue with other nests even if one fails
             }
           }
@@ -698,7 +651,6 @@ export const InventoryManager = () => {
       await refetchHotels();
       await refetchNests();
     } catch (error) {
-      console.error("Failed to create hotel:", error);
       errorToast("Error creating hotel", error instanceof Error ? error.message : "Unknown error");
     }
   };
@@ -723,7 +675,6 @@ export const InventoryManager = () => {
           const percent = Math.round((deletedCount / totalNests) * 100);
           progress.updateProgress(percent, `Deleting nests (${deletedCount}/${totalNests})`);
         } catch (nestError) {
-          console.error(`Error deleting nest ${nest.id}:`, nestError);
           // Continue with other nests even if one fails
         }
       }
@@ -738,8 +689,6 @@ export const InventoryManager = () => {
         // Complete the progress
         progress.complete("Hotel Deleted", `Successfully deleted hotel and ${deletedCount} nests`);
       } catch (hotelError) {
-        console.error("Error deleting hotel:", hotelError);
-
         // Show warning if hotel deletion failed but nests were deleted
         if (deletedCount > 0) {
           progress.updateProgress(
@@ -763,7 +712,6 @@ export const InventoryManager = () => {
       await refetchHotels();
       await refetchNests();
     } catch (error) {
-      console.error("Failed to delete hotel:", error);
       errorToast("Error deleting hotel", error instanceof Error ? error.message : "Unknown error");
 
       // Still refresh data even after errors
@@ -853,9 +801,6 @@ export const InventoryManager = () => {
                     onPlateClick={handlePlateClick}
                     onCheckIn={(nestId, triggerCmd) => {
                       const nestToUse = typedNests.find((n: Nest) => n.id === nestId) || null;
-                      console.log(
-                        `Tool card clicked for check-in: nest ${nestId}, tool ${tool.id}, name ${tool.name}`,
-                      );
                       setSelectedNest(nestToUse);
                       setSelectedNestIds([nestId]);
                       setNestTriggerToolCommand(triggerCmd || false);
@@ -892,44 +837,36 @@ export const InventoryManager = () => {
               px={2}
               py={2}>
               {hotels.length > 0 ? (
-                hotels.map((hotel) => {
-                  // Debug hotel's nests
-                  const hotelNests = typedNests.filter((n: Nest) => n.hotel_id === hotel.id);
-
-                  return (
-                    <Box key={hotel.id}>
-                      <InventoryHotelCard
-                        hotelId={hotel.id}
-                        nests={typedNests.filter((n: Nest) => n.hotel_id === hotel.id)}
-                        plates={typedPlates}
-                        onCreateNest={(hotelId, name, row, col) =>
-                          handleCreateNest(hotelId, name, row, col, true)
-                        }
-                        onDeleteNest={handleDeleteNest}
-                        onCreatePlate={handleCreatePlate}
-                        onCreateReagent={handleCreateReagent}
-                        onNestClick={handleNestSelect}
-                        onPlateClick={handlePlateClick}
-                        onDeleteHotel={() => {
-                          setSelectedHotelId(hotel.id);
-                          setShowDeleteHotelModal(true);
-                        }}
-                        onCheckIn={(nestId, triggerCmd) => {
-                          const nestToUse = typedNests.find((n: Nest) => n.id === nestId) || null;
-                          console.log(
-                            `Hotel card clicked for check-in: nest ${nestId}, hotel ${hotel.id}, name ${hotel.name}`,
-                          );
-                          setSelectedNest(nestToUse);
-                          setSelectedNestIds([nestId]);
-                          setNestTriggerToolCommand(triggerCmd || false);
-                          setSelectedContainerId(hotel.id);
-                          setSelectedContainerType("hotel");
-                          setIsCheckInModalOpen(true);
-                        }}
-                      />
-                    </Box>
-                  );
-                })
+                hotels.map((hotel) => (
+                  <Box key={hotel.id}>
+                    <InventoryHotelCard
+                      hotelId={hotel.id}
+                      nests={typedNests.filter((n: Nest) => n.hotel_id === hotel.id)}
+                      plates={typedPlates}
+                      onCreateNest={(hotelId, name, row, col) =>
+                        handleCreateNest(hotelId, name, row, col, true)
+                      }
+                      onDeleteNest={handleDeleteNest}
+                      onCreatePlate={handleCreatePlate}
+                      onCreateReagent={handleCreateReagent}
+                      onNestClick={handleNestSelect}
+                      onPlateClick={handlePlateClick}
+                      onDeleteHotel={() => {
+                        setSelectedHotelId(hotel.id);
+                        setShowDeleteHotelModal(true);
+                      }}
+                      onCheckIn={(nestId, triggerCmd) => {
+                        const nestToUse = typedNests.find((n: Nest) => n.id === nestId) || null;
+                        setSelectedNest(nestToUse);
+                        setSelectedNestIds([nestId]);
+                        setNestTriggerToolCommand(triggerCmd || false);
+                        setSelectedContainerId(hotel.id);
+                        setSelectedContainerType("hotel");
+                        setIsCheckInModalOpen(true);
+                      }}
+                    />
+                  </Box>
+                ))
               ) : (
                 <Text>No hotels found. Add a hotel to get started.</Text>
               )}
