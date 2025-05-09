@@ -313,7 +313,10 @@ export const InventoryManager = () => {
       });
       refetchReagents();
     } catch (error) {
-      errorToast("Error creating reagent", error instanceof Error ? error.message : "Unknown error");
+      errorToast(
+        "Error creating reagent",
+        error instanceof Error ? error.message : "Unknown error",
+      );
       throw error;
     }
   };
