@@ -665,3 +665,72 @@ class PlateWithRelations(Plate):
     current_nest: t.Optional[Nest] = None
     nest_history: t.List[PlateNestHistory] = []
     wells: t.List["Well"] = []
+
+
+# API Keys schemas
+class ApiKeyBase(BaseModel):
+    service: str
+    key_name: str
+    description: Optional[str] = None
+
+
+class ApiKeyCreate(ApiKeyBase):
+    key_value: str
+
+
+class ApiKeyUpdate(BaseModel):
+    service: Optional[str] = None
+    key_name: Optional[str] = None
+    key_value: Optional[str] = None
+    is_active: Optional[bool] = None
+    description: Optional[str] = None
+
+
+class ApiKey(ApiKeyBase):
+    id: int
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+# User authentication schemas
+class UserBase(BaseModel):
+    username: str
+    email: str
+
+
+class UserCreate(UserBase):
+    password: str
+    is_admin: Optional[bool] = False
+
+
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    email: Optional[str] = None
+    password: Optional[str] = None
+    is_admin: Optional[bool] = None
+    is_active: Optional[bool] = None
+
+
+class User(UserBase):
+    id: int
+    is_admin: bool
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+    is_admin: Optional[bool] = False

@@ -1,5 +1,5 @@
 import typing as t
-from fastapi import FastAPI, HTTPException, Depends, Request, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Depends, Request, UploadFile, File, Form, status
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -24,6 +24,15 @@ from .models.inventory_models import Protocol
 import json
 from fastapi.encoders import jsonable_encoder
 from starlette.background import BackgroundTask
+from datetime import timedelta
+from fastapi.security import OAuth2PasswordRequestForm
+from db.auth import (
+    verify_password, 
+    create_access_token, 
+    get_current_active_user, 
+    get_current_admin_user,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+)
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -2044,3 +2053,195 @@ def delete_hotel(hotel_id: int, db: Session = Depends(get_db)) -> t.Any:
     if not hotel:
         raise HTTPException(status_code=404, detail="Hotel not found")
     return crud.hotel.remove(db, id=hotel_id)
+
+
+# Authentication routes
+@app.post("/token", response_model=schemas.Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = crud.get_user_by_username(db, form_data.username)
+    if not user or not verify_password(form_data.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username, "is_admin": user.is_admin},
+        expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.get("/users/me", response_model=schemas.User)
+async def read_users_me(current_user = Depends(get_current_active_user)):
+    return current_user
+
+# User management routes (admin only for listing/modifying, but public for creation)
+@app.post("/users", response_model=schemas.User)
+async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    # Check if user with the same username or email already exists
+    db_user_by_username = crud.get_user_by_username(db, username=user.username)
+    if db_user_by_username:
+        raise HTTPException(status_code=400, detail="Username already registered")
+    
+    db_user_by_email = crud.get_user_by_email(db, email=user.email)
+    if db_user_by_email:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Only allow setting is_admin to True if the request comes from an admin
+    # For regular self-registration, force is_admin to False
+    try:
+        current_user = await get_current_active_user(Depends(get_current_user))
+        if not current_user.is_admin:
+            # Non-admin users cannot create admin accounts
+            user.is_admin = False
+    except:
+        # If no authenticated user (public registration), force is_admin to False
+        user.is_admin = False
+    
+    return crud.create_user(db=db, user=user)
+
+@app.get("/users", response_model=List[schemas.User])
+async def read_users(skip: int = 0, limit: int = 100, current_user = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    users = crud.get_users(db, skip=skip, limit=limit)
+    return users
+
+@app.get("/users/{user_id}", response_model=schemas.User)
+async def read_user(user_id: int, current_user = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    db_user = crud.get_user(db, user_id=user_id)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return db_user
+
+@app.put("/users/{user_id}", response_model=schemas.User)
+async def update_user(user_id: int, user: schemas.UserUpdate, current_user = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    db_user = crud.update_user(db, user_id=user_id, user_update=user)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return db_user
+
+@app.delete("/users/{user_id}", response_model=bool)
+async def delete_user(user_id: int, current_user = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    result = crud.delete_user(db, user_id=user_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="User not found")
+    return result
+
+# API Key management routes (admin only)
+@app.post("/api-keys", response_model=schemas.ApiKey)
+async def create_api_key(api_key: schemas.ApiKeyCreate, current_user = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    return crud.create_api_key(db=db, api_key=api_key)
+
+@app.get("/api-keys", response_model=List[schemas.ApiKey])
+async def read_api_keys(
+    skip: int = 0, 
+    limit: int = 100, 
+    service: Optional[str] = None,
+    current_user = Depends(get_current_admin_user), 
+    db: Session = Depends(get_db)
+):
+    api_keys = crud.get_api_keys(db, skip=skip, limit=limit, service=service)
+    return api_keys
+
+@app.get("/api-keys/{api_key_id}", response_model=schemas.ApiKey)
+async def read_api_key(api_key_id: int, current_user = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    db_api_key = crud.get_api_key(db, api_key_id=api_key_id)
+    if db_api_key is None:
+        raise HTTPException(status_code=404, detail="API key not found")
+    return db_api_key
+
+@app.put("/api-keys/{api_key_id}", response_model=schemas.ApiKey)
+async def update_api_key(api_key_id: int, api_key: schemas.ApiKeyUpdate, current_user = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    db_api_key = crud.update_api_key(db, api_key_id=api_key_id, api_key_update=api_key)
+    if db_api_key is None:
+        raise HTTPException(status_code=404, detail="API key not found")
+    return db_api_key
+
+@app.delete("/api-keys/{api_key_id}", response_model=bool)
+async def delete_api_key(api_key_id: int, current_user = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    result = crud.delete_api_key(db, api_key_id=api_key_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="API key not found")
+    return result
+
+# External Auth Provider Registration endpoint
+class ExternalAuthRequest(BaseModel):
+    email: str
+    name: Optional[str] = None
+    provider: str  # 'google', 'github', or 'email'
+    provider_user_id: Optional[str] = None
+    profile_image: Optional[str] = None
+
+@app.post("/external-auth", response_model=schemas.User)
+async def external_auth_register(
+    auth_data: ExternalAuthRequest, 
+    db: Session = Depends(get_db)
+) -> t.Any:
+    """
+    Register or authenticate a user from an external auth provider (Google, GitHub, Email)
+    """
+    # Check if user exists with this email
+    existing_user = crud.get_user_by_email(db, email=auth_data.email)
+    
+    if existing_user:
+        # User exists - update their details if needed
+        update_data = {}
+        
+        # If the user doesn't have a username yet and we have a name, update it
+        if not existing_user.username and auth_data.name:
+            # Create a username from the email or name (avoid duplicates)
+            base_username = auth_data.name.lower().replace(' ', '_') or auth_data.email.split('@')[0]
+            username = base_username
+            
+            # Check if username exists and generate a unique one if needed
+            count = 1
+            while crud.get_user_by_username(db, username=username) and username != existing_user.username:
+                username = f"{base_username}_{count}"
+                count += 1
+                
+            update_data["username"] = username
+        
+        # If any update needed, apply it
+        if update_data:
+            for key, value in update_data.items():
+                setattr(existing_user, key, value)
+            db.commit()
+            db.refresh(existing_user)
+        
+        return existing_user
+    else:
+        # Create a new user
+        username = auth_data.name.lower().replace(' ', '_') if auth_data.name else auth_data.email.split('@')[0]
+        
+        # Make sure username is unique
+        base_username = username
+        count = 1
+        while crud.get_user_by_username(db, username=username):
+            username = f"{base_username}_{count}"
+            count += 1
+        
+        # Generate a random secure password since they'll sign in via OAuth or Email
+        import secrets
+        import string
+        random_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(24))
+        
+        try:
+            # Create the user with defaults (not admin)
+            user_create = schemas.UserCreate(
+                username=username,
+                email=auth_data.email,
+                password=random_password,  # They'll never use this password
+                is_admin=False
+            )
+            
+            new_user = crud.create_user(db=db, user=user_create)
+            logging.info(f"Created new user from {auth_data.provider} auth: {auth_data.email}")
+            return new_user
+            
+        except Exception as e:
+            logging.error(f"Error creating user from external auth: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error creating user account: {str(e)}"
+            )

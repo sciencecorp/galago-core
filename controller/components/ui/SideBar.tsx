@@ -37,6 +37,7 @@ import { BsBoxSeam } from "react-icons/bs";
 import { HiOutlineRectangleStack } from "react-icons/hi2";
 import { GiChaingun } from "react-icons/gi";
 import { useSidebarTheme } from "./Theme";
+import Nav from "./Nav";
 
 interface SidebarItem {
   name: string;
@@ -65,21 +66,6 @@ const sidebarItems: SidebarItem[] = [
   // { name: "Settings", icon: FiSettings, path: "/settings" },
   // { name: "Logout", icon: FiLogOut, path: "/logout" },
 ];
-
-function DarkModeToggle() {
-  const { colorMode, toggleColorMode } = useColorMode();
-  return (
-    <IconButton
-      onClick={toggleColorMode}
-      icon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
-      aria-label="Toggle dark mode"
-      position="fixed"
-      bottom="20px"
-      left="20px"
-      bg="transparent"
-    />
-  );
-}
 
 const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(false);
@@ -171,13 +157,12 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             )}
           </Link>
         ))}
-        <DarkModeToggle />
       </VStack>
     </Box>
   );
 
   return (
-    <Flex>
+    <Flex flexDirection="column">
       {!isMobile ? (
         <Box
           position="fixed"
@@ -228,10 +213,12 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       {/* Content Area */}
       <Box
         flex="1"
-        p={4}
         ml={!isMobile ? (isSidebarExpanded ? expandedWidth : collapsedWidth) : "0"}
         {...transitionProps}>
-        {children}
+        <Nav />
+        <Box p={4}>
+          {children}
+        </Box>
       </Box>
     </Flex>
   );
