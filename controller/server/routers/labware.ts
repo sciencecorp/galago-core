@@ -12,14 +12,14 @@ export const zLabware = z.object({
   description: z.string(),
   number_of_rows: z.number(),
   number_of_columns: z.number(),
-  z_offset: z.number(),
-  width: z.number(),
-  height: z.number(),
-  plate_lid_offset: z.number(),
-  lid_offset: z.number(),
-  stack_height: z.number(),
-  has_lid: z.boolean(),
-  image_url: z.string(),
+  z_offset: z.number().optional(),
+  width: z.number().optional(),
+  height: z.number().optional(),
+  plate_lid_offset: z.number().optional(),
+  lid_offset: z.number().optional(),
+  stack_height: z.number().optional(),
+  has_lid: z.boolean().optional(),
+  image_url: z.string().optional(),
 });
 
 export const labwareRouter = router({

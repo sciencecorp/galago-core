@@ -322,13 +322,13 @@ class LabwareCreate(BaseModel):
     number_of_rows: int
     number_of_columns: int
     z_offset: float = 0
-    width: int
-    height: int
-    plate_lid_offset: t.Optional[int] = None
-    lid_offset: t.Optional[int] = None
-    stack_height: t.Optional[int] = None
+    width: t.Optional[float] = 127.8
+    height: t.Optional[float] = 14.5
+    plate_lid_offset: t.Optional[float] = 0
+    lid_offset: t.Optional[float] = 0
+    stack_height: t.Optional[float] = 0
     has_lid: t.Optional[bool] = False
-    image_url: t.Optional[str] = None
+    image_url: t.Optional[str] = ""
 
 
 class Labware(TimestampMixin, LabwareCreate):
@@ -342,11 +342,11 @@ class LabwareUpdate(BaseModel):
     number_of_rows: t.Optional[int] = None
     number_of_columns: t.Optional[int] = None
     z_offset: t.Optional[float] = None
-    width: t.Optional[int] = None
-    height: t.Optional[int] = None
-    plate_lid_offset: t.Optional[int] = None
-    lid_offset: t.Optional[int] = None
-    stack_height: t.Optional[int] = None
+    width: t.Optional[float] = None
+    height: t.Optional[float] = None
+    plate_lid_offset: t.Optional[float] = None
+    lid_offset: t.Optional[float] = None
+    stack_height: t.Optional[float] = None
     has_lid: t.Optional[bool] = None
     image_url: t.Optional[str] = None
 
