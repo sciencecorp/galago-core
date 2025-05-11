@@ -1,3 +1,4 @@
+import CommandButton from "./commandButton";
 import { ChangeEvent, useEffect, useState } from "react";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import {
@@ -16,7 +17,7 @@ import {
   AlertIcon,
   AlertTitle,
   AlertDescription,
-  useToast,
+  CloseButton,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
@@ -26,7 +27,7 @@ import { capitalizeFirst } from "@/utils/parser";
 import Head from "next/head";
 import { TeachPendant } from "@/components/tools/advanced/teach_pendant/TeachPendant";
 import { commandFields } from "@/components/tools/constants";
-
+import { errorToast, loadingToast, successToast } from "@/components/ui/Toast";
 // Inside your component
 type AtomicFormValues = string | number | boolean | string[];
 type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormValues>>;
@@ -37,13 +38,20 @@ export default function Page() {
   const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
   const toolQuery = trpc.tool.get.useQuery(id || "");
   const config = infoQuery.data;
+  const [commandExecutionStatus, setCommandExecutionStatus] = useState<CommandStatus>({});
   const [selectedCommand, setSelectedCommand] = useState<string | undefined>();
   const [formValues, setFormValues] = useState<FormValues>({});
-  const toast = useToast();
+
+  const doesCommandHaveParameters = (commandName: string) => {
+    if (!config) return false;
+    const fields = commandFields[config?.type][commandName];
+    return fields && fields.length > 0;
+  };
   const toolCommandsDefined = Object.keys(commandFields).includes(String(config?.type));
   const commandOptions = config ? commandFields[config.type] : {};
 
   useEffect(() => {
+    // Wait for the router to be ready and then extract the query parameter
     if (router.isReady) {
       const queryId = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
       setId(queryId || null); // Ensure a null fallback if the ID is not available
@@ -87,17 +95,42 @@ export default function Page() {
     setFormValues({});
   };
 
-  const handleSubmit = () => {
-    if (!selectedCommand) return;
-    if (!config) return;
-    toast({
-      title: `Executing ${selectedCommand}..`,
-      description: `Please wait.`,
-      status: "loading",
-      duration: null,
-      isClosable: false,
-      position: "top", // or "bottom"
+  const commandMutation = trpc.tool.runCommand.useMutation();
+
+  const executeCommandWithToast = (commandName: string, toolCommand: ToolCommandInfo) => {
+    setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "idle" }));
+
+    // Create a promise from the mutation
+    const commandPromise = new Promise((resolve, reject) => {
+      commandMutation.mutate(toolCommand, {
+        onSuccess: (data) => {
+          setCommandExecutionStatus((prevStatus) => ({
+            ...prevStatus,
+            [commandName]: "success",
+          }));
+          resolve(data);
+        },
+        onError: (error) => {
+          setCommandExecutionStatus((prevStatus) => ({
+            ...prevStatus,
+            [commandName]: "error",
+          }));
+          reject(error);
+        },
+      });
     });
+
+    // Use the loadingToast with the promise
+    loadingToast(`Executing ${commandName}..`, "Please wait.", commandPromise, {
+      successTitle: `Command ${commandName} completed!`,
+      successDescription: () => "Command completed successfully",
+      errorTitle: "Failed to execute command",
+      errorDescription: (error) => `Error= ${error.message}`,
+    });
+  };
+
+  const handleSubmit = () => {
+    if (!selectedCommand || !config) return;
 
     const toolCommand: ToolCommandInfo = {
       toolId: config.name,
@@ -105,30 +138,21 @@ export default function Page() {
       command: selectedCommand,
       params: formValues,
     };
-    commandMutation.mutate(toolCommand, {
-      onSuccess: () => {
-        toast.closeAll();
-        toast({
-          title: `Command ${selectedCommand} completed!`,
-          status: "success",
-          duration: 2000,
-          isClosable: true,
-          position: "top",
-        });
-      },
-      onError: (data) => {
-        // Set the command status to 'error' on failure
-        toast.closeAll(),
-          toast({
-            title: "Failed to execute command",
-            description: `Error= ${data.message}`,
-            status: "error",
-            duration: 10000,
-            isClosable: true,
-            position: "top",
-          });
-      },
-    });
+
+    executeCommandWithToast(selectedCommand, toolCommand);
+  };
+
+  const executeCommand = (commandName: string, params: FormValues) => {
+    if (!config) return;
+
+    const toolCommand: ToolCommandInfo = {
+      toolId: config.name,
+      toolType: config.type,
+      command: commandName,
+      params: params,
+    };
+
+    executeCommandWithToast(commandName, toolCommand);
   };
 
   const handleInputChange = (
@@ -160,8 +184,16 @@ export default function Page() {
     });
   };
 
-  const commandMutation = trpc.tool.runCommand.useMutation();
-
+  const handleSelectCommand = (commandName: string) => {
+    // Check if the command has parameters
+    if (doesCommandHaveParameters(commandName)) {
+      // If it has parameters, set up for additional input
+      setSelectedCommand(commandName);
+    } else {
+      // If it doesn't have parameters, execute it immediately
+      executeCommand(commandName, {});
+    }
+  };
   const renderFields = (fields: Field[], parentField?: string) => {
     return fields.map((field) => {
       if (Array.isArray(field.type)) {

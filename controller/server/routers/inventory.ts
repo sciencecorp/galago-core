@@ -21,7 +21,7 @@ const zPlate = z.object({
   barcode: z.string(),
   plate_type: z.string(),
   nest_id: z.number().nullable(),
-  status: z.enum(["stored", "in_use", "completed", "disposed"]).optional(),
+  status: z.enum(["stored", "checked_out", "completed", "disposed"]).optional(),
 });
 
 const zReagent = z.object({
@@ -80,7 +80,7 @@ export const inventoryRouter = router({
   // Plate endpoints
   getPlates: procedure.input(z.string()).query(async ({ input: workcellName }) => {
     const encodedName = encodeURIComponent(workcellName);
-    const response = await get(`/plates?workcell=${encodedName}`);
+    const response = await get(`/plates?workcell_name=${encodedName}`);
     return response;
   }),
 

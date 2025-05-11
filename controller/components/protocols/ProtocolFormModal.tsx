@@ -259,9 +259,16 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                 )}
               </FormLabel>
               {isFileInput ? (
-                <Input type="file" pt={1} placeholder={schema.placeHolder || "Choose a file"} />
+                <Input
+                  type="file"
+                  pt={1}
+                  placeholder={schema.placeHolder || "Choose a file"}
+                  bg="gray.100"
+                />
               ) : isBoolean ? (
-                <Select defaultValue={variable?.value || schema.placeHolder || "false"}>
+                <Select
+                  defaultValue={variable?.value || schema.placeHolder || "false"}
+                  bg="gray.100">
                   <option value="true">True</option>
                   <option value="false">False</option>
                 </Select>
@@ -270,6 +277,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                   value={variable?.value || schema.placeHolder || ""}
                   placeholder="Default value"
                   isReadOnly
+                  bg="gray.100"
                 />
               )}
             </FormControl>
@@ -286,7 +294,10 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
         <ModalHeader>
           <HStack>
             <Text>Protocol Parameters</Text>
-            <Tooltip label={previewMode ? "Switch to Edit Mode" : "Preview Run Form"}>
+            <Tooltip
+              label={previewMode ? "Switch to Edit Mode" : "Preview Run Form"}
+              placement="right"
+              hasArrow>
               <IconButton
                 aria-label="Toggle preview mode"
                 icon={previewMode ? <AiFillEdit fontSize="18px" /> : <ViewIcon fontSize="18px" />}
@@ -338,7 +349,8 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                                 "fieldType",
                                 e.target.value as FieldType,
                               )
-                            }>
+                            }
+                            minWidth="150px">
                             <option value={FieldType.USER_INPUT}>User Input</option>
                             <option value={FieldType.FILE_INPUT}>File Input</option>
                           </Select>

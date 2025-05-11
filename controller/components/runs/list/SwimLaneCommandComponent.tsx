@@ -37,11 +37,12 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
   const execMutation = trpc.tool.runCommand.useMutation();
   const { queueId, commandInfo, estimatedDuration, status } = command;
   let toolName = infoQuery.data?.name || "undefined";
-  const bgColor = useColorModeValue("white", "gray.700");
+  const bgColor = useColorModeValue("gray.50", "gray.700");
   const errorColor = useColorModeValue("red.200", "red.800");
   const toolNameRef = useRef(toolName);
   const completeColor = useColorModeValue("gray.200", "gray.600");
   const runningBg = useColorModeValue("teal.200", "teal.800");
+  const borderColorStyle = useColorModeValue("gray.200", "gray.600");
 
   const completedStyle =
     command.status === "COMPLETED" || command.status === "SKIPPED"
@@ -95,7 +96,8 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
       padding="6px"
       background={setBackgroundColor(command.status)}
       border={command.status === "STARTED" ? "2px" : "1px"}
-      borderColor={command.status === "STARTED" ? "teal" : "black"}>
+      borderColor={command.status === "STARTED" ? "teal" : borderColorStyle}
+      boxShadow={useColorModeValue("md", "none")}>
       <VStack alignItems="stretch">
         <Box>
           <HStack spacing={2}>
