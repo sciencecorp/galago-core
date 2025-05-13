@@ -65,9 +65,8 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       },
     }),
   );
-  console.log("Google provider added");
 } else {
-  console.log("Google provider not configured");
+  // Google provider not configured
 }
 
 // Only add GitHub provider if configured
@@ -78,9 +77,8 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
     }),
   );
-  console.log("GitHub provider added");
 } else {
-  console.log("GitHub provider not configured");
+  // GitHub provider not configured
 }
 
 // Always add credentials provider
@@ -124,14 +122,11 @@ providers.push(
         }
         return null;
       } catch (error) {
-        console.error("Auth error:", error);
         return null;
       }
     },
   }),
 );
-
-console.log(`Total providers configured: ${providers.length}`);
 
 export const authOptions: NextAuthOptions = {
   providers,
@@ -174,15 +169,9 @@ export const authOptions: NextAuthOptions = {
 
             // This is important - store the user ID from our database
             token.dbUserId = response.data.id;
-
-            console.log("Social login token set:", {
-              provider: account.provider,
-              hasAccessToken: !!token.accessToken,
-              isAdmin: token.isAdmin,
-            });
           }
         } catch (error) {
-          console.error("Error registering with external provider:", error);
+          // Error registering with external provider
         }
       }
 
@@ -202,9 +191,6 @@ export const authOptions: NextAuthOptions = {
 
         (session as any).accessToken = token.accessToken;
         (session as any).isAdmin = token.isAdmin;
-
-        // Debug for troubleshooting
-        console.log("Session callback: token accessToken present:", !!token.accessToken);
       }
       return session;
     },

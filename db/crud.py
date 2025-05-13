@@ -525,9 +525,7 @@ def delete_api_key(db, api_key_id: int):
 def get_decrypted_api_key(db, service: str):
     """Get a decrypted API key for a specific service"""
     db_api_key = (
-        db.query(ApiKey)
-        .filter(ApiKey.service == service, ApiKey.is_active)
-        .first()
+        db.query(ApiKey).filter(ApiKey.service == service, ApiKey.is_active).first()
     )
     if not db_api_key:
         return None

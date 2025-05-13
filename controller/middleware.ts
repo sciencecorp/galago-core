@@ -21,8 +21,6 @@ export async function middleware(request: NextRequest) {
     // Try NextAuth JWT token first
     const token = await getToken({ req: request });
 
-    console.log("NextAuth token check:", token ? "Found" : "Not found");
-
     if (token) {
       // NextAuth token exists - check admin status for protected routes
       const isAdminRoute = pathname.startsWith("/settings");
@@ -39,19 +37,16 @@ export async function middleware(request: NextRequest) {
     const customToken = request.cookies.get("token")?.value;
 
     if (customToken) {
-      console.log("Custom token found in cookies");
       // We have a custom token, allow the request to continue
       // The client-side useAuth hook will verify its validity
       return NextResponse.next();
     }
 
     // No authentication found - redirect to login
-    console.log("No authentication found, redirecting to login");
     const url = new URL("/auth/signin", request.url);
     url.searchParams.set("callbackUrl", encodeURI(request.url));
     return NextResponse.redirect(url);
   } catch (error) {
-    console.error("Auth middleware error:", error);
     // In case of any errors, redirect to login
     const url = new URL("/auth/signin", request.url);
     return NextResponse.redirect(url);

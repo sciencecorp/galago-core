@@ -58,15 +58,9 @@ export default function SignIn({ providers, csrfToken }: { providers: any; csrfT
   useEffect(() => {
     if (isAuthenticated && !loading) {
       const redirectUrl = callbackUrl ? (callbackUrl as string) : "/";
-      console.log(`Already authenticated, redirecting to ${redirectUrl}`);
       router.replace(redirectUrl);
     }
   }, [isAuthenticated, loading, router, callbackUrl]);
-
-  // Debug providers
-  useEffect(() => {
-    console.log("Available providers:", providers ? Object.keys(providers).join(", ") : "none");
-  }, [providers]);
 
   // Handle error messages with more specific details
   useEffect(() => {
@@ -158,10 +152,8 @@ export default function SignIn({ providers, csrfToken }: { providers: any; csrfT
 
       // If login succeeds, redirect to callback URL or home
       const redirectUrl = callbackUrl ? (callbackUrl as string) : "/";
-      console.log(`Login successful, redirecting to ${redirectUrl}`);
       router.push(redirectUrl);
     } catch (error) {
-      console.error("Login error:", error);
       setErrorMessage("Authentication failed. Please check your credentials.");
     } finally {
       setIsSubmitting(false);
@@ -170,10 +162,8 @@ export default function SignIn({ providers, csrfToken }: { providers: any; csrfT
 
   const handleSocialSignIn = async (provider: string) => {
     try {
-      console.log(`Starting social login with ${provider}`);
       await socialLogin(provider);
     } catch (error) {
-      console.error(`Error during ${provider} login:`, error);
       setErrorMessage(`Could not sign in with ${provider}. Please try again later.`);
     }
   };
@@ -406,26 +396,17 @@ export default function SignIn({ providers, csrfToken }: { providers: any; csrfT
 // Server-side rendering to get available providers
 export async function getServerSideProps(context: any) {
   try {
-    console.log("Fetching providers for signin page...");
-
     let providers;
     try {
       providers = await getProviders();
-      console.log(
-        "Providers loaded:",
-        providers ? Object.keys(providers || {}).join(", ") : "none",
-      );
     } catch (providerError) {
-      console.error("Error fetching providers:", providerError);
       providers = {};
     }
 
     let csrfToken;
     try {
       csrfToken = await getCsrfToken(context);
-      console.log("CSRF token fetched:", csrfToken ? "success" : "null");
     } catch (csrfError) {
-      console.error("Error fetching CSRF token:", csrfError);
       csrfToken = null;
     }
 
@@ -436,7 +417,6 @@ export async function getServerSideProps(context: any) {
       },
     };
   } catch (error) {
-    console.error("Error in getServerSideProps:", error);
     return {
       props: { providers: {}, csrfToken: "" },
     };
