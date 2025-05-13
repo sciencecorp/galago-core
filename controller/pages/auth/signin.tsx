@@ -220,7 +220,7 @@ export default function SignIn({ providers, csrfToken }: { providers: any; csrfT
                   <Text
                     style={{ fontSize: "1.5rem", fontWeight: "bold" }}
                     color={textColors.secondary}>
-                    Connect to your Instruments
+                    Connect your tools
                   </Text>
                   <Text
                     style={{ fontSize: "1.5rem", fontWeight: "bold" }}
