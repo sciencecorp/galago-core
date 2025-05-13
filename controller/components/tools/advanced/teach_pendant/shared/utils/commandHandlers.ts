@@ -52,8 +52,8 @@ export function useCommandHandlers(config: Tool) {
   ) => {
     const command = "move";
     const params = {
-      name,
-      motion_profile,
+      location:name,
+      motion_profile: motion_profile,
     };
 
     mutation.mutate({

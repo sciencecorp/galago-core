@@ -14,7 +14,7 @@ export interface TeachPoint {
   id: number;
   name: string;
   coordinates: string;
-  type: "location" | "nest";
+  type: "location";
   locType: "j";
   joints?: JointConfig;
   orientation: "portrait" | "landscape";
