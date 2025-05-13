@@ -52,7 +52,7 @@ export function useCommandHandlers(config: Tool) {
   ) => {
     const command = "move";
     const params = {
-      location:name,
+      location: name,
       motion_profile: motion_profile,
     };
 

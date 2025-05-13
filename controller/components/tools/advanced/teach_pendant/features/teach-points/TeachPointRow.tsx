@@ -75,14 +75,7 @@ export const TeachPointRow: React.FC<TeachPointRowProps> = ({
               size="sm"
             />
             <MenuList bg={bgColorAlpha}>
-              {point.type === "nest" ? (
-                <>
-                  <MenuItem onClick={() => onMove(point, "approach")}>Approach</MenuItem>
-                  <MenuItem onClick={() => onMove(point, "leave")}>Leave</MenuItem>
-                </>
-              ) : (
-                <MenuItem onClick={() => onMove(point)}>Move To</MenuItem>
-              )}
+              <MenuItem onClick={() => onMove(point)}>Move To</MenuItem>
               <MenuItem onClick={() => onEdit(point)}>Edit</MenuItem>
               <MenuItem color="red.500" onClick={() => onDelete(point)}>
                 Delete
@@ -130,21 +123,6 @@ export const TeachPointRow: React.FC<TeachPointRowProps> = ({
                   </Tr>
                 </Tbody>
               </Table>
-              {point.type === "nest" && (
-                <>
-                  <Text fontWeight="bold" mt={2}>
-                    Additional Properties
-                  </Text>
-                  <HStack spacing={4}>
-                    {point.orientation && (
-                      <Badge colorScheme="purple">Orientation: {point.orientation}</Badge>
-                    )}
-                    {point.safe_loc && (
-                      <Badge colorScheme="orange">Safe Location Name: {point.safe_loc}</Badge>
-                    )}
-                  </HStack>
-                </>
-              )}
             </VStack>
           </Td>
         </Tr>

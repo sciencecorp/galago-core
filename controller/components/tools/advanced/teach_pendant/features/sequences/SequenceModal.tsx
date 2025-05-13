@@ -16,7 +16,7 @@ import {
   HStack,
   Select,
   ButtonGroup,
-  Switch
+  Switch,
 } from "@chakra-ui/react";
 import { Tool } from "@/types/api";
 import { Sequence, SequenceCommand, TeachPoint, MotionProfile, GripParams } from "../../types/";
@@ -49,7 +49,6 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
   const { data: labwareList } = trpc.labware.getAll.useQuery();
   const [createFromTemplate, setCreateFromTemplate] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState("");
-
 
   useEffect(() => {
     if (isOpen) {
@@ -128,56 +127,50 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
               <VStack spacing={4} align="stretch">
                 <HStack justify="space-between" mb={2}>
                   <HStack>
-                    <Switch 
+                    <Switch
                       isChecked={createFromTemplate}
                       onChange={(e) => {
                         setCreateFromTemplate(e.target.checked);
                       }}
                     />
-                    <Text>
-                      Create From Template
-                    </Text>
+                    <Text>Create From Template</Text>
                     <Text color="GrayText">(optional)</Text>
                   </HStack>
                 </HStack>
                 {createFromTemplate && (
                   <ButtonGroup size="sm" variant="outline">
-                      <Button
-                        colorScheme={selectedTemplate === "pick_plate" ? "blue" : "gray"}
-                        onClick={() => {
-                          setSelectedTemplate("pick_plate");
-                          setIsTemplateModalOpen(true);
-                        }}
-                      >
-                        Pick Plate
-                      </Button>
-                      <Button
-                        colorScheme={selectedTemplate === "place_plate" ? "blue" : "gray"}
-                        onClick={() => {
-                          setSelectedTemplate("place_plate");
-                          setIsTemplateModalOpen(true); 
-                        }}
-                      >
-                        Place Plate
-                      </Button>
-                      <Button
-                        colorScheme={selectedTemplate === "pick_lid" ? "blue" : "gray"}
-                        onClick={() => {
-                          setSelectedTemplate("pick_lid");
-                          setIsTemplateModalOpen(true);
-                        }}
-                      >
-                        Pick Lid
-                      </Button>
-                      <Button
-                        colorScheme={selectedTemplate === "place_lid" ? "blue" : "gray"}
-                        onClick={() => {
-                          setSelectedTemplate("place_lid");
-                          setIsTemplateModalOpen(true);
-                        }}
-                      >
-                        Place Lid
-                      </Button>
+                    <Button
+                      colorScheme={selectedTemplate === "pick_plate" ? "blue" : "gray"}
+                      onClick={() => {
+                        setSelectedTemplate("pick_plate");
+                        setIsTemplateModalOpen(true);
+                      }}>
+                      Pick Plate
+                    </Button>
+                    <Button
+                      colorScheme={selectedTemplate === "place_plate" ? "blue" : "gray"}
+                      onClick={() => {
+                        setSelectedTemplate("place_plate");
+                        setIsTemplateModalOpen(true);
+                      }}>
+                      Place Plate
+                    </Button>
+                    <Button
+                      colorScheme={selectedTemplate === "pick_lid" ? "blue" : "gray"}
+                      onClick={() => {
+                        setSelectedTemplate("pick_lid");
+                        setIsTemplateModalOpen(true);
+                      }}>
+                      Pick Lid
+                    </Button>
+                    <Button
+                      colorScheme={selectedTemplate === "place_lid" ? "blue" : "gray"}
+                      onClick={() => {
+                        setSelectedTemplate("place_lid");
+                        setIsTemplateModalOpen(true);
+                      }}>
+                      Place Lid
+                    </Button>
                   </ButtonGroup>
                 )}
               </VStack>
@@ -188,10 +181,7 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
             <Button variant="ghost" mr={3} onClick={onClose}>
               Cancel
             </Button>
-            <Button
-              isDisabled={name.trim() === ""}
-              colorScheme="blue"
-              onClick={handleSave}>
+            <Button isDisabled={name.trim() === ""} colorScheme="blue" onClick={handleSave}>
               Save
             </Button>
           </ModalFooter>
@@ -199,7 +189,9 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
       </Modal>
 
       <TemplateSelectionModal
-        selectedTemplate ={selectedTemplate as "pick_plate" | "place_plate" | "pick_lid" | "place_lid"}
+        selectedTemplate={
+          selectedTemplate as "pick_plate" | "place_plate" | "pick_lid" | "place_lid"
+        }
         isOpen={isTemplateModalOpen}
         onClose={() => setIsTemplateModalOpen(false)}
         onTemplateSelect={handleTemplateSelect}

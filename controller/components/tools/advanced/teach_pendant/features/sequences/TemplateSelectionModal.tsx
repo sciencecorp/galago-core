@@ -18,7 +18,7 @@ import { DefaultSequences, generateSequenceFromTemplate } from "./DefaultSequenc
 import { SequenceCommand } from "../../types/";
 
 interface TemplateModalProps {
-  selectedTemplate: "pick_plate" | "place_plate" | "pick_lid" |"place_lid";
+  selectedTemplate: "pick_plate" | "place_plate" | "pick_lid" | "place_lid";
   isOpen: boolean;
   onClose: () => void;
   onTemplateSelect: (commands: SequenceCommand[]) => void;
@@ -44,12 +44,11 @@ export const TemplateSelectionModal: React.FC<TemplateModalProps> = ({
       selectedTemplate,
       safeLocation,
       nestLocation,
-      labware
+      labware,
     );
     onTemplateSelect(commands);
     onClose();
   };
-
 
   const handleCancel = () => {
     setSafeLocation("");
@@ -57,8 +56,6 @@ export const TemplateSelectionModal: React.FC<TemplateModalProps> = ({
     setLabware("default");
     onClose();
   };
-
-
 
   return (
     <Modal isOpen={isOpen} onClose={handleCancel}>
@@ -75,8 +72,7 @@ export const TemplateSelectionModal: React.FC<TemplateModalProps> = ({
                   <Select
                     placeholder="Select nest location"
                     value={nestLocation}
-                    onChange={(e) => setNestLocation(e.target.value)}
-                  >
+                    onChange={(e) => setNestLocation(e.target.value)}>
                     {teachPoints
                       .filter((p) => !p.name.includes("safe") && !p.name.includes("Safe"))
                       .map((point) => (
@@ -92,8 +88,7 @@ export const TemplateSelectionModal: React.FC<TemplateModalProps> = ({
                   <Select
                     placeholder="Select safe location"
                     value={safeLocation}
-                    onChange={(e) => setSafeLocation(e.target.value)}
-                  >
+                    onChange={(e) => setSafeLocation(e.target.value)}>
                     {teachPoints
                       .filter((p) => p.name.includes("safe") || p.name.includes("Safe"))
                       .map((point) => (
@@ -103,21 +98,18 @@ export const TemplateSelectionModal: React.FC<TemplateModalProps> = ({
                       ))}
                   </Select>
                 </FormControl>
-
               </>
             )}
           </VStack>
         </ModalBody>
         <ModalFooter>
-          <Button 
-            variant="ghost" mr={3} onClick={handleCancel}>
+          <Button variant="ghost" mr={3} onClick={handleCancel}>
             Cancel
           </Button>
           <Button
             isDisabled={!selectedTemplate || !safeLocation || !nestLocation}
             colorScheme="blue"
-            onClick={handleSubmit}
-          >
+            onClick={handleSubmit}>
             Use Template
           </Button>
         </ModalFooter>

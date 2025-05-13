@@ -140,20 +140,19 @@ export const DefaultSequences: DefaultSequenceTemplate[] = [
   },
 ];
 
-
 export const generateSequenceFromTemplate = (
   id: string,
   safeLocation: string,
   nestLocation: string,
-  labwareId: string = "default"
+  labwareId: string = "default",
 ): SequenceCommand[] => {
-  const template = DefaultSequences.find(seq => seq.id === id);
+  const template = DefaultSequences.find((seq) => seq.id === id);
   if (!template) {
     console.error(`Template "${id}" not found.`);
     return [];
   }
   const commands = JSON.parse(JSON.stringify(template.commands)) as SequenceCommand[];
-  commands.forEach(cmd => {
+  commands.forEach((cmd) => {
     if (cmd.command === "move") {
       cmd.params.location = safeLocation;
     }
