@@ -105,7 +105,7 @@ export default function Page() {
             </Card>
 
             {/* Documentation Card */}
-            <Link href="https://sciencecorp.github.io/galago-docs/" target="_blank">
+            <Link href="https://galago.bio" target="_blank">
               <Card
                 bg={headerBg}
                 shadow="md"
