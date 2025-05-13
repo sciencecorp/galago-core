@@ -32,7 +32,10 @@ from db.auth import (
     get_current_active_user, 
     get_current_admin_user,
     ACCESS_TOKEN_EXPIRE_MINUTES,
+    create_refresh_token,
+    verify_refresh_token,
 )
+import os
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -2071,7 +2074,55 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         data={"sub": user.username, "is_admin": user.is_admin},
         expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    
+    # Create a refresh token
+    refresh_token = create_refresh_token(
+        data={"sub": user.username}
+    )
+    
+    return {
+        "access_token": access_token, 
+        "refresh_token": refresh_token,
+        "token_type": "bearer"
+    }
+
+@app.post("/refresh-token", response_model=schemas.Token)
+async def refresh_access_token(refresh_token: str, db: Session = Depends(get_db)):
+    """Endpoint to get a new access token using a refresh token"""
+    username = verify_refresh_token(refresh_token)
+    if not username:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Get user to verify they still exist and are active
+    user = crud.get_user_by_username(db, username)
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User inactive or deleted",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Create new access token
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username, "is_admin": user.is_admin},
+        expires_delta=access_token_expires
+    )
+    
+    # Create new refresh token (rotate refresh tokens for security)
+    new_refresh_token = create_refresh_token(
+        data={"sub": user.username}
+    )
+    
+    return {
+        "access_token": access_token,
+        "refresh_token": new_refresh_token,
+        "token_type": "bearer"
+    }
 
 @app.get("/users/me", response_model=schemas.User)
 async def read_users_me(current_user = Depends(get_current_active_user)):
@@ -2179,37 +2230,39 @@ async def external_auth_register(
     db: Session = Depends(get_db)
 ) -> t.Any:
     """
-    Register or authenticate a user from an external auth provider (Google, GitHub, Email)
-    """
-    # Check if user exists with this email
-    existing_user = crud.get_user_by_email(db, email=auth_data.email)
+    Register or authenticate a user coming from an external OAuth provider.
+    This is used by NextAuth.js when a user signs in with Google, GitHub, etc.
     
-    if existing_user:
-        # User exists - update their details if needed
-        update_data = {}
+    Returns the user information along with an access token.
+    """
+    logging.info(f"External auth request from {auth_data.provider} for {auth_data.email}")
+    
+    # Validate required fields
+    if not auth_data.email:
+        raise HTTPException(status_code=400, detail="Email is required")
+    
+    # Check if we already have a user with this email
+    db_user = crud.get_user_by_email(db, email=auth_data.email)
+    
+    if db_user:
+        # User exists - generate token and return user
+        logging.info(f"Existing user found for {auth_data.email}")
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": db_user.username, "is_admin": db_user.is_admin},
+            expires_delta=access_token_expires
+        )
         
-        # If the user doesn't have a username yet and we have a name, update it
-        if not existing_user.username and auth_data.name:
-            # Create a username from the email or name (avoid duplicates)
-            base_username = auth_data.name.lower().replace(' ', '_') or auth_data.email.split('@')[0]
-            username = base_username
-            
-            # Check if username exists and generate a unique one if needed
-            count = 1
-            while crud.get_user_by_username(db, username=username) and username != existing_user.username:
-                username = f"{base_username}_{count}"
-                count += 1
-                
-            update_data["username"] = username
-        
-        # If any update needed, apply it
-        if update_data:
-            for key, value in update_data.items():
-                setattr(existing_user, key, value)
-            db.commit()
-            db.refresh(existing_user)
-        
-        return existing_user
+        # Return the user with access token
+        user_dict = {
+            "id": db_user.id,
+            "username": db_user.username,
+            "email": db_user.email,
+            "is_admin": db_user.is_admin,
+            "access_token": access_token
+        }
+        return user_dict
+    
     else:
         # Create a new user
         username = auth_data.name.lower().replace(' ', '_') if auth_data.name else auth_data.email.split('@')[0]
@@ -2237,7 +2290,23 @@ async def external_auth_register(
             
             new_user = crud.create_user(db=db, user=user_create)
             logging.info(f"Created new user from {auth_data.provider} auth: {auth_data.email}")
-            return new_user
+            
+            # Generate token for the new user
+            access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            access_token = create_access_token(
+                data={"sub": new_user.username, "is_admin": new_user.is_admin},
+                expires_delta=access_token_expires
+            )
+            
+            # Return user with access token
+            user_dict = {
+                "id": new_user.id,
+                "username": new_user.username,
+                "email": new_user.email,
+                "is_admin": new_user.is_admin,
+                "access_token": access_token
+            }
+            return user_dict
             
         except Exception as e:
             logging.error(f"Error creating user from external auth: {str(e)}")
@@ -2245,3 +2314,30 @@ async def external_auth_register(
                 status_code=500,
                 detail=f"Error creating user account: {str(e)}"
             )
+
+# Cookie management for secure token storage
+class TokenModel(BaseModel):
+    token: str
+
+@app.post("/set-cookie")
+async def set_secure_cookie(token_data: TokenModel):
+    """Set a secure httpOnly cookie with the JWT token"""
+    response = JSONResponse(content={"status": "success"})
+    # Set a secure httpOnly cookie
+    response.set_cookie(
+        key="token",
+        value=token_data.token,
+        httponly=True,
+        secure=os.environ.get("ENVIRONMENT", "development") == "production",
+        samesite="lax",
+        max_age=60 * 60 * 24,  # 24 hours
+        path="/"
+    )
+    return response
+
+@app.post("/clear-cookie")
+async def clear_secure_cookie():
+    """Clear the secure httpOnly cookie"""
+    response = JSONResponse(content={"status": "success"})
+    response.delete_cookie(key="token", path="/")
+    return response

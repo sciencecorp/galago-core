@@ -3,26 +3,35 @@ import {
   Box,
   ChakraProvider,
   VStack,
-  extendTheme,
-  useColorMode,
-  Button,
-  IconButton,
 } from "@chakra-ui/react";
 
 import { trpc } from "../utils/trpc";
 import Nav from "@/components/ui/Nav";
-import type { AppType } from "next/app";
 import type { AppProps } from "next/app";
-import WarningBanner from "@/components/WarningBanner";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Sidebar from "@/components/ui/SideBar";
-import { AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider, storeToken } from "@/hooks/useAuth";
 import { useRouter } from "next/router";
 import { useRouteGuard } from "@/hooks/useRouteGuard";
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider, useSession } from "next-auth/react";
 import { Session } from "next-auth";
+import theme from '../theme';
+import { useEffect } from "react";
 
 require("log-timestamp");
+
+// Component to handle session changes and sync tokens
+const SessionSync: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { data: session } = useSession();
+  
+  useEffect(() => {
+    // When NextAuth session changes, sync token to localStorage
+    if (session?.accessToken) {
+      storeToken(session.accessToken as string);
+    }
+  }, [session]);
+  
+  return <>{children}</>;
+};
 
 interface AppContentProps {
   Component: AppProps['Component'];
@@ -37,8 +46,7 @@ const AppContent: React.FC<AppContentProps> = ({ Component, pageProps }) => {
   const isPublicPage = router.pathname === "/login" || router.pathname.startsWith("/auth/");
 
   if (isLoading) {
-    // You could add a loading spinner here
-    return <Box p={8}>Loading...</Box>;
+    return null; // Show nothing while loading
   }
 
   return isPublicPage ? (
@@ -64,11 +72,13 @@ const MyApp = ({ Component, pageProps }: CustomAppProps) => {
   
   return (
     <SessionProvider session={session}>
-      <ChakraProvider>
-        <AuthProvider>
-          <AppContent Component={Component} pageProps={restPageProps} />
-        </AuthProvider>
-      </ChakraProvider>
+      <AuthProvider>
+        <ChakraProvider theme={theme}>
+          <SessionSync>
+            <AppContent Component={Component} pageProps={restPageProps} />
+          </SessionSync>
+        </ChakraProvider>
+      </AuthProvider>
     </SessionProvider>
   );
 };

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import {
   Box,
@@ -14,56 +15,80 @@ import {
   Container,
   InputGroup,
   InputRightElement,
+  Divider,
+  Spinner,
 } from '@chakra-ui/react';
-import { useAuth } from '@/hooks/useAuth';
+import { FaGoogle, FaGithub } from 'react-icons/fa';
+import { useAuth } from '../hooks/useAuth';
 
-export default function Login() {
+export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const toast = useToast();
-  const { login, error, isAuthenticated, loading } = useAuth();
-
+  const { login, isAuthenticated, loading } = useAuth();
+  
+  // Redirect if already authenticated
   useEffect(() => {
-    // If user is already authenticated, redirect to the home page
-    if (isAuthenticated) {
-      router.push('/');
+    if (isAuthenticated && !loading) {
+      console.log('Already authenticated, redirecting to home');
+      router.replace('/');
     }
+  }, [isAuthenticated, loading, router]);
 
-    document.title = "Login";
-  }, [isAuthenticated, router]);
-
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: 'Error',
-        description: error,
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-  }, [error, toast]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleCredentialsSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
-    if (!username || !password) {
+    try {
+      // Use the custom login hook
+      await login(username, password);
+      
+      // If login succeeds, redirect to home
+      router.push('/');
+    } catch (error) {
       toast({
         title: 'Error',
-        description: 'Please enter both username and password',
+        description: 'Invalid username or password',
         status: 'error',
         duration: 3000,
         isClosable: true,
       });
-      return;
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    await login(username, password);
+  };
+
+  const handleSocialSignIn = async (provider: string) => {
+    try {
+      console.log(`Initiating ${provider} login`);
+      await signIn(provider, { callbackUrl: '/' });
+    } catch (error) {
+      console.error(`Error during ${provider} login:`, error);
+      toast({
+        title: 'Authentication Error',
+        description: `Error signing in with ${provider}`,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   const toggleShowPassword = () => setShowPassword(!showPassword);
+
+  // If already loading auth state or authenticated, show minimal UI
+  if (loading || isAuthenticated) {
+    return (
+      <Container maxW="lg">
+        <Center minH="100vh">
+          <Spinner size="xl" />
+        </Center>
+      </Container>
+    );
+  }
 
   return (
     <Container maxW="lg">
@@ -74,7 +99,7 @@ export default function Login() {
               <Heading mb={6}>Galago Login</Heading>
             </Center>
             
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleCredentialsSignIn}>
               <VStack spacing={4}>
                 <FormControl id="username" isRequired>
                   <FormLabel>Username</FormLabel>
@@ -108,19 +133,39 @@ export default function Login() {
                   width="100%" 
                   mt={4} 
                   type="submit" 
-                  isLoading={loading}
-                  loadingText="Logging in"
+                  isLoading={isSubmitting}
+                  loadingText="Signing in"
                 >
-                  Login
+                  Sign In
                 </Button>
               </VStack>
             </form>
             
+            <Divider my={4} />
+            
             <Center>
-              <Text fontSize="sm" color="gray.500">
-                Contact your administrator if you need an account
-              </Text>
+              <Text mb={2}>Or continue with</Text>
             </Center>
+            
+            <VStack spacing={4}>
+              <Button 
+                width="100%" 
+                colorScheme="red" 
+                leftIcon={<FaGoogle />}
+                onClick={() => handleSocialSignIn('google')}
+              >
+                Sign in with Google
+              </Button>
+              
+              <Button 
+                width="100%" 
+                colorScheme="gray" 
+                leftIcon={<FaGithub />}
+                onClick={() => handleSocialSignIn('github')}
+              >
+                Sign in with GitHub
+              </Button>
+            </VStack>
           </VStack>
         </Box>
       </Center>

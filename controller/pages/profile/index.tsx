@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import {
@@ -17,41 +17,90 @@ import {
   Stack,
   Badge,
   Flex,
-  SimpleGrid
+  SimpleGrid,
+  Skeleton
 } from '@chakra-ui/react';
 import { FaKey, FaUser, FaEnvelope, FaSignInAlt } from 'react-icons/fa';
 import { DarkModeToggle } from '@/components/ui/ProfileMenu';
 import { useCommonColors } from '@/components/ui/Theme';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession();
+  const { data: nextAuthSession, status: nextAuthStatus } = useSession();
+  const { user: customAuthUser, loading: customAuthLoading } = useAuth();
   const router = useRouter();
   const colors = useCommonColors();
   
+  // Determine the active authentication system
+  const isNextAuthActive = nextAuthStatus === 'authenticated' && !!nextAuthSession?.user;
+  const isCustomAuthActive = !!customAuthUser;
+  const isAuthenticated = isNextAuthActive || isCustomAuthActive;
+  const isLoading = (nextAuthStatus === 'loading' || customAuthLoading) && !isAuthenticated;
+  
   useEffect(() => {
-    // If not authenticated, redirect to login
-    if (status === 'unauthenticated') {
+    // If definitely not authenticated (both systems checked), redirect to login
+    if (!isLoading && !isAuthenticated) {
       router.push('/auth/signin');
     }
-  }, [status, router]);
+  }, [isAuthenticated, isLoading, router]);
+
+  // Extract user information from active auth system
+  const userName = isNextAuthActive 
+    ? (nextAuthSession?.user?.name || nextAuthSession?.user?.email?.split('@')[0] || 'User')
+    : (customAuthUser?.username || customAuthUser?.email?.split('@')[0] || 'User');
+    
+  const userEmail = isNextAuthActive 
+    ? nextAuthSession?.user?.email 
+    : customAuthUser?.email;
+    
+  const userImage = isNextAuthActive ? nextAuthSession?.user?.image : undefined;
+  
+  const isAdmin = isNextAuthActive 
+    ? !!nextAuthSession?.isAdmin 
+    : !!customAuthUser?.is_admin;
+    
+  const authProvider = isNextAuthActive 
+    ? (nextAuthSession?.provider || 'NextAuth') 
+    : 'Username/Password';
 
   // Loading state while checking session
-  if (status === 'loading') {
+  if (isLoading) {
     return (
       <Container maxW="container.md" mt={10}>
-        <Text>Loading profile...</Text>
+        <VStack spacing={8} align="stretch">
+          <Flex justifyContent="space-between" alignItems="center">
+            <Heading as="h1" size="xl">User Profile</Heading>
+            <DarkModeToggle />
+          </Flex>
+          
+          <Card bg={colors.cardBg} shadow="md">
+            <CardHeader>
+              <HStack spacing={6}>
+                <Skeleton height="96px" width="96px" borderRadius="full" />
+                <VStack align="start" spacing={2} width="100%">
+                  <Skeleton height="32px" width="200px" />
+                  <Skeleton height="20px" width="120px" />
+                </VStack>
+              </HStack>
+            </CardHeader>
+            <Divider />
+            <CardBody>
+              <VStack spacing={4} align="stretch">
+                <Skeleton height="24px" />
+                <Skeleton height="24px" />
+                <Skeleton height="24px" />
+              </VStack>
+            </CardBody>
+          </Card>
+        </VStack>
       </Container>
     );
   }
 
-  // If no session, don't render anything (will redirect in useEffect)
-  if (!session?.user) {
+  // If no authenticated user, don't render anything (will redirect in useEffect)
+  if (!isAuthenticated) {
     return null;
   }
-  
-  const userName = session.user.name || session.user.email?.split('@')[0] || 'User';
-  const userImage = session.user.image;
-  const provider = session.provider || 'Username/Password';
   
   return (
     <Container maxW="container.md" mt={10}>
@@ -73,11 +122,11 @@ export default function ProfilePage() {
               <VStack align="start" spacing={2}>
                 <Heading size="lg">{userName}</Heading>
                 <HStack>
-                  <Badge colorScheme={session.isAdmin ? 'purple' : 'teal'}>
-                    {session.isAdmin ? 'Admin' : 'User'}
+                  <Badge colorScheme={isAdmin ? 'purple' : 'teal'}>
+                    {isAdmin ? 'Admin' : 'User'}
                   </Badge>
                   <Badge colorScheme="blue">
-                    {provider}
+                    {authProvider}
                   </Badge>
                 </HStack>
               </VStack>
@@ -85,53 +134,27 @@ export default function ProfilePage() {
           </CardHeader>
           <Divider />
           <CardBody>
-            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-              <Box>
-                <Text fontWeight="bold" mb={2}>Basic Information</Text>
-                <VStack align="start" spacing={2}>
-                  <HStack>
-                    <Box as={FaUser} color="gray.500" />
-                    <Text>Username: {userName}</Text>
-                  </HStack>
-                  <HStack>
-                    <Box as={FaEnvelope} color="gray.500" />
-                    <Text>Email: {session.user.email}</Text>
-                  </HStack>
-                  <HStack>
-                    <Box as={FaSignInAlt} color="gray.500" />
-                    <Text>Login Method: {provider}</Text>
-                  </HStack>
-                </VStack>
-              </Box>
+            <VStack spacing={4} align="stretch">
+              <HStack>
+                <Box as={FaUser} color="gray.500" />
+                <Text fontWeight="bold" width="100px">Username:</Text>
+                <Text>{userName}</Text>
+              </HStack>
               
-              <Box>
-                <Text fontWeight="bold" mb={2}>Account Options</Text>
-                <VStack align="start" spacing={4}>
-                  {provider === 'Username/Password' && (
-                    <Button colorScheme="teal" size="sm" leftIcon={<FaKey />}>
-                      Change Password
-                    </Button>
-                  )}
-                  <Button colorScheme="blue" size="sm">
-                    Edit Profile
-                  </Button>
-                </VStack>
-              </Box>
-            </SimpleGrid>
+              <HStack>
+                <Box as={FaEnvelope} color="gray.500" />
+                <Text fontWeight="bold" width="100px">Email:</Text>
+                <Text>{userEmail}</Text>
+              </HStack>
+              
+              <HStack>
+                <Box as={FaKey} color="gray.500" />
+                <Text fontWeight="bold" width="100px">Role:</Text>
+                <Text>{isAdmin ? 'Administrator' : 'Regular User'}</Text>
+              </HStack>
+            </VStack>
           </CardBody>
         </Card>
-        
-        {session.isAdmin && (
-          <Box mt={6}>
-            <Heading size="md" mb={4}>Admin Options</Heading>
-            <Button 
-              colorScheme="purple" 
-              onClick={() => router.push('/settings')}
-            >
-              Go to Admin Settings
-            </Button>
-          </Box>
-        )}
       </VStack>
     </Container>
   );

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Avatar, 
   Menu, 
@@ -17,6 +17,7 @@ import { useRouter } from 'next/router';
 import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useCommonColors } from './Theme';
+import { useAuth } from '../../hooks/useAuth';
 
 // Dark mode toggle component to be used in the profile page
 export const DarkModeToggle: React.FC = () => {
@@ -33,7 +34,8 @@ export const DarkModeToggle: React.FC = () => {
 };
 
 export const ProfileMenu: React.FC = () => {
-  const { data: session, status } = useSession();
+  const { data: nextAuthSession, status: nextAuthStatus } = useSession();
+  const { user: customAuthUser, logout: customAuthLogout, loading: customAuthLoading } = useAuth();
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { colorMode, toggleColorMode } = useColorMode();
@@ -41,11 +43,32 @@ export const ProfileMenu: React.FC = () => {
   
   const colors = useCommonColors();
 
+  // Determine which auth system is being used
+  const isNextAuthActive = nextAuthStatus === 'authenticated' && !!nextAuthSession?.user;
+  const isCustomAuthActive = !!customAuthUser;
+  const isAuthenticated = isNextAuthActive || isCustomAuthActive;
+  
+  // Extract user information from active auth system
+  const userName = isNextAuthActive 
+    ? (nextAuthSession?.user?.name || nextAuthSession?.user?.email?.split('@')[0] || 'User')
+    : (customAuthUser?.username || customAuthUser?.email?.split('@')[0] || 'User');
+    
+  const userEmail = isNextAuthActive 
+    ? nextAuthSession?.user?.email 
+    : customAuthUser?.email;
+    
+  const userImage = isNextAuthActive ? nextAuthSession?.user?.image : undefined;
+  
+  const isAdmin = isNextAuthActive 
+    ? !!nextAuthSession?.isAdmin 
+    : !!customAuthUser?.is_admin;
+
   const handleShowModal = () => {
     setShowSettingsModal(!showSettingsModal);
   };
 
-  if (!session?.user) {
+  // If not authenticated, show sign-in button
+  if (!isAuthenticated && !customAuthLoading && nextAuthStatus !== 'loading') {
     return (
       <HStack spacing={2}>
         <IconButton
@@ -66,14 +89,35 @@ export const ProfileMenu: React.FC = () => {
     );
   }
 
+  // If still loading auth state, show minimal UI
+  if ((nextAuthStatus === 'loading' || customAuthLoading) && !isAuthenticated) {
+    return (
+      <HStack spacing={2}>
+        <IconButton
+          size="sm"
+          variant="ghost"
+          aria-label="Toggle dark mode"
+          icon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
+          onClick={toggleColorMode}
+        />
+      </HStack>
+    );
+  }
+
   const handleSignOut = async () => {
     setIsLoggingOut(true);
-    await signOut({ redirect: false });
+    
+    // Sign out from both auth systems
+    if (isNextAuthActive) {
+      await signOut({ redirect: false });
+    }
+    
+    if (isCustomAuthActive) {
+      customAuthLogout();
+    }
+    
     router.push('/auth/signin');
   };
-
-  const userName = session.user.name || session.user.email?.split('@')[0] || 'User';
-  const userImage = session.user.image;
 
   return (
     <HStack spacing={2} data-testid="profile-menu">
@@ -110,7 +154,7 @@ export const ProfileMenu: React.FC = () => {
           <MenuItem icon={<FaUser />} as={Link} href="/profile">
             Profile
           </MenuItem>
-          {session.isAdmin && (
+          {isAdmin && (
             <MenuItem icon={<FaCog />} as={Link} href="/settings">
               Admin Settings
             </MenuItem>

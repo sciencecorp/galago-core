@@ -9,17 +9,22 @@ import os
 from db import crud, schemas
 from db.models.db_session import SessionLocal
 
-# Generate a secure secret key for JWT
-# In production, this should be an environment variable
-SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "supersecretkey")
+# Get JWT secret key from environment variables
+SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("JWT_SECRET_KEY environment variable is not set. This is required for secure authentication.")
+
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30 * 24 * 60  # 30 days
+ACCESS_TOKEN_EXPIRE_MINUTES = 24 * 60  # 24 hours (reduced from 30 days)
+REFRESH_TOKEN_EXPIRE_MINUTES = 7 * 24 * 60  # 7 days
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # Use this for encryption/decryption of API keys
-API_KEY_SECRET = os.environ.get("API_KEY_SECRET", "apisecretkey")
+API_KEY_SECRET = os.environ.get("API_KEY_SECRET")
+if not API_KEY_SECRET:
+    raise RuntimeError("API_KEY_SECRET environment variable is not set. This is required for API key encryption.")
 
 def get_db():
     db = SessionLocal()
@@ -43,6 +48,29 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
+    """Create a refresh token with a longer expiration time"""
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire, "type": "refresh"})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def verify_refresh_token(token: str):
+    """Verify a refresh token and return the username if valid"""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        token_type: str = payload.get("type")
+        if username is None or token_type != "refresh":
+            return None
+        return username
+    except JWTError:
+        return None
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(

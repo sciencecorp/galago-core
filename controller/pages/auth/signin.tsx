@@ -18,8 +18,10 @@ import {
   Divider,
   HStack,
   Link,
+  Spinner,
 } from '@chakra-ui/react';
 import { FaGoogle, FaGithub, FaUser } from 'react-icons/fa';
+import { useAuth } from '../../hooks/useAuth';
 
 // Sign in component supporting multiple authentication methods
 export default function SignIn({ providers, csrfToken }: { providers: any, csrfToken: string }) {
@@ -30,6 +32,21 @@ export default function SignIn({ providers, csrfToken }: { providers: any, csrfT
   const router = useRouter();
   const toast = useToast();
   const { callbackUrl, error } = router.query;
+  const { login, socialLogin, isAuthenticated, loading } = useAuth();
+
+  // If already authenticated, redirect to home
+  useEffect(() => {
+    if (isAuthenticated && !loading) {
+      const redirectUrl = callbackUrl ? (callbackUrl as string) : '/';
+      console.log(`Already authenticated, redirecting to ${redirectUrl}`);
+      router.replace(redirectUrl);
+    }
+  }, [isAuthenticated, loading, router, callbackUrl]);
+
+  // Debug providers
+  useEffect(() => {
+    console.log("Available providers:", providers ? Object.keys(providers).join(', ') : 'none');
+  }, [providers]);
 
   useEffect(() => {
     if (error) {
@@ -50,28 +67,17 @@ export default function SignIn({ providers, csrfToken }: { providers: any, csrfT
     setIsSubmitting(true);
     
     try {
-      const result = await signIn('credentials', {
-        username,
-        password,
-        redirect: false,
-        callbackUrl: callbackUrl as string || '/'
-      });
+      // Use the custom login hook which supports both auth systems
+      await login(username, password);
       
-      if (result?.error) {
-        toast({
-          title: 'Error',
-          description: 'Invalid username or password',
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-        });
-      } else if (result?.url) {
-        router.push(result.url);
-      }
+      // If login succeeds, redirect to callback URL or home
+      const redirectUrl = callbackUrl ? (callbackUrl as string) : '/';
+      console.log(`Login successful, redirecting to ${redirectUrl}`);
+      router.push(redirectUrl);
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'An error occurred during sign-in',
+        description: 'Invalid username or password',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -81,7 +87,34 @@ export default function SignIn({ providers, csrfToken }: { providers: any, csrfT
     }
   };
 
+  const handleSocialSignIn = async (provider: string) => {
+    try {
+      console.log(`Starting social login with ${provider}`);
+      await socialLogin(provider);
+    } catch (error) {
+      console.error(`Error during ${provider} login:`, error);
+      toast({
+        title: 'Authentication Error',
+        description: `Could not sign in with ${provider}`,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
   const toggleShowPassword = () => setShowPassword(!showPassword);
+
+  // If already loading auth state or authenticated, show minimal UI
+  if (loading || isAuthenticated) {
+    return (
+      <Container maxW="lg">
+        <Center minH="100vh">
+          <Spinner size="xl" />
+        </Center>
+      </Container>
+    );
+  }
 
   return (
     <Container maxW="lg">
@@ -141,26 +174,34 @@ export default function SignIn({ providers, csrfToken }: { providers: any, csrfT
             </Center>
             
             <VStack spacing={4}>
-              {providers?.google && (
-                <Button 
-                  width="100%" 
-                  colorScheme="red" 
-                  leftIcon={<FaGoogle />}
-                  onClick={() => signIn('google', { callbackUrl: callbackUrl as string || '/' })}
-                >
-                  Sign in with Google
-                </Button>
-              )}
-              
-              {providers?.github && (
-                <Button 
-                  width="100%" 
-                  colorScheme="gray" 
-                  leftIcon={<FaGithub />}
-                  onClick={() => signIn('github', { callbackUrl: callbackUrl as string || '/' })}
-                >
-                  Sign in with GitHub
-                </Button>
+              {!providers || Object.keys(providers).length === 0 ? (
+                <Text fontSize="sm" color="gray.500" textAlign="center">
+                  Social login options are currently unavailable
+                </Text>
+              ) : (
+                <>
+                  {providers?.google && (
+                    <Button 
+                      width="100%" 
+                      colorScheme="red" 
+                      leftIcon={<FaGoogle />}
+                      onClick={() => handleSocialSignIn('google')}
+                    >
+                      Sign in with Google
+                    </Button>
+                  )}
+                  
+                  {providers?.github && (
+                    <Button 
+                      width="100%" 
+                      colorScheme="gray" 
+                      leftIcon={<FaGithub />}
+                      onClick={() => handleSocialSignIn('github')}
+                    >
+                      Sign in with GitHub
+                    </Button>
+                  )}
+                </>
               )}
             </VStack>
             
@@ -194,6 +235,8 @@ export async function getServerSideProps(context: any) {
     try {
       providers = await getProviders();
       console.log("Providers loaded:", providers ? Object.keys(providers || {}).join(", ") : "none");
+      // Log full provider details for debugging
+      console.log("Full provider details:", JSON.stringify(providers, null, 2));
     } catch (providerError) {
       console.error("Error fetching providers:", providerError);
       providers = {};

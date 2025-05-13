@@ -43,9 +43,13 @@ services:
       - "8000:8000"
       - "5678:5678" # Python debug port
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       - ENVIRONMENT=development
       - DEBUG=0
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - API_KEY_SECRET=${API_KEY_SECRET}
     networks:
       - app-network
     volumes:

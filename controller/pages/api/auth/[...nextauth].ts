@@ -5,9 +5,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import axios from "axios";
 import { JWT } from "next-auth/jwt";
 import { Session } from "next-auth";
+import Cookies from 'js-cookie';
 
-// Debug initialization
-console.log("Initializing NextAuth...");
 
 // Extend NextAuth types
 declare module "next-auth" {
@@ -33,12 +32,31 @@ declare module "next-auth/jwt" {
   }
 }
 
-export const authOptions: NextAuthOptions = {
-  providers: [
-    // Google OAuth Provider
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+// Helper function to synchronize token with client side storage
+// This is called from the client side
+export const syncTokenToStorage = (token: string) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('token', token);
+    Cookies.set('token', token, { 
+      expires: 30,
+      path: '/',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax'
+    });
+  }
+};
+
+// Define providers based on available config
+const providers = [];
+
+// Only add Google provider if configured
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  providers.push(
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       authorization: {
         params: {
           prompt: "consent",
@@ -46,66 +64,84 @@ export const authOptions: NextAuthOptions = {
           response_type: "code"
         }
       }
-    }),
-    
-    // GitHub OAuth Provider
+    })
+  );
+  console.log("Google provider added");
+} else {
+  console.log("Google provider not configured");
+}
+
+// Only add GitHub provider if configured
+if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+  providers.push(
     GitHubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID || "",
-      clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
-    }),
-    
-    // Custom Credentials Provider for existing username/password auth
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        username: { label: "Username", type: "text" },
-        password: { label: "Password", type: "password" }
-      },
-      async authorize(credentials) {
-        try {
-          if (!credentials?.username || !credentials?.password) {
-            return null;
-          }
-          
-          // Create form data for token endpoint
-          const formData = new FormData();
-          formData.append('username', credentials.username);
-          formData.append('password', credentials.password);
-          
-          // Call existing token endpoint
-          const response = await axios.post(
-            `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/token`,
-            formData
-          );
-          
-          if (response.data && response.data.access_token) {
-            // Get user info
-            const userResponse = await axios.get(
-              `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/users/me`,
-              {
-                headers: { Authorization: `Bearer ${response.data.access_token}` }
-              }
-            );
-            
-            if (userResponse.data) {
-              // Return user with the token
-              return {
-                id: userResponse.data.id.toString(),
-                name: userResponse.data.username,
-                email: userResponse.data.email,
-                isAdmin: userResponse.data.is_admin,
-                accessToken: response.data.access_token
-              };
-            }
-          }
-          return null;
-        } catch (error) {
-          console.error("Auth error:", error);
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    })
+  );
+  console.log("GitHub provider added");
+} else {
+  console.log("GitHub provider not configured");
+}
+
+// Always add credentials provider
+providers.push(
+  CredentialsProvider({
+    name: "Credentials",
+    credentials: {
+      username: { label: "Username", type: "text" },
+      password: { label: "Password", type: "password" }
+    },
+    async authorize(credentials) {
+      try {
+        if (!credentials?.username || !credentials?.password) {
           return null;
         }
+        
+        // Create form data for token endpoint
+        const formData = new FormData();
+        formData.append('username', credentials.username);
+        formData.append('password', credentials.password);
+        
+        // Call existing token endpoint
+        const response = await axios.post(
+          `${API_URL}/token`,
+          formData
+        );
+        
+        if (response.data && response.data.access_token) {
+          // Get user info
+          const userResponse = await axios.get(
+            `${API_URL}/users/me`,
+            {
+              headers: { Authorization: `Bearer ${response.data.access_token}` }
+            }
+          );
+          
+          if (userResponse.data) {
+            // Return user with the token
+            return {
+              id: userResponse.data.id.toString(),
+              name: userResponse.data.username,
+              email: userResponse.data.email,
+              isAdmin: userResponse.data.is_admin,
+              accessToken: response.data.access_token
+            };
+          }
+        }
+        return null;
+      } catch (error) {
+        console.error("Auth error:", error);
+        return null;
       }
-    })
-  ],
+    }
+  })
+);
+
+console.log(`Total providers configured: ${providers.length}`);
+
+export const authOptions: NextAuthOptions = {
+  providers,
   
   session: {
     strategy: "jwt",
@@ -130,7 +166,7 @@ export const authOptions: NextAuthOptions = {
         try {
           // Call our API to register/link the user
           const response = await axios.post(
-            `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/external-auth`,
+            `${API_URL}/external-auth`,
             {
               email: user.email,
               name: user.name,
@@ -141,12 +177,19 @@ export const authOptions: NextAuthOptions = {
           );
           
           if (response.data) {
-            // Set token data from our database user
+            // Store the backend JWT token in the NextAuth token
+            token.accessToken = response.data.access_token;
             token.isAdmin = response.data.is_admin;
             token.provider = account.provider;
             
             // This is important - store the user ID from our database
             token.dbUserId = response.data.id;
+            
+            console.log("Social login token set:", {
+              provider: account.provider,
+              hasAccessToken: !!token.accessToken,
+              isAdmin: token.isAdmin
+            });
           }
         } catch (error) {
           console.error("Error registering with external provider:", error);
@@ -169,9 +212,40 @@ export const authOptions: NextAuthOptions = {
         
         (session as any).accessToken = token.accessToken;
         (session as any).isAdmin = token.isAdmin;
+        
+        // Debug for troubleshooting
+        console.log("Session callback: token accessToken present:", !!token.accessToken);
       }
       return session;
     },
+    
+    async signIn({ user, account }) {
+      if (account?.provider === 'credentials') {
+        return true;
+      }
+      
+      // For social logins, ensure we have a user
+      return !!user;
+    }
+  },
+  
+  events: {
+    async signIn({ user, account }) {
+      // When a user signs in successfully, ensure the token is stored in client-side storage
+      if (account?.provider === 'credentials' && (user as any).accessToken) {
+        if (typeof window !== 'undefined') {
+          syncTokenToStorage((user as any).accessToken);
+        }
+      }
+    },
+    
+    async signOut() {
+      // On sign out, clear tokens from localStorage and cookies
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        Cookies.remove('token', { path: '/' });
+      }
+    }
   },
   
   debug: process.env.NODE_ENV === "development",

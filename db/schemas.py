@@ -54,8 +54,7 @@ class Workcell(WorkcellCreate, TimestampMixin):
     tools: t.List["Tool"] = []
     protocols: t.List["Protocol"] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Instrument Schemas
@@ -412,8 +411,7 @@ class AppSettingsUpdate(BaseModel):
 class AppSettings(TimestampMixin, AppSettingsCreate):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ScriptBase(BaseModel):
@@ -443,8 +441,7 @@ class Script(ScriptBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ScriptFolderBase(BaseModel):
@@ -481,8 +478,7 @@ class ScriptFolderResponse(ScriptFolderBase):
     subfolders: list["ScriptFolderResponse"] = []
     scripts: list["Script"] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # RobotArm Location Schemas
@@ -692,8 +688,7 @@ class ApiKey(ApiKeyBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # User authentication schemas
@@ -722,12 +717,12 @@ class User(UserBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Token(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
 
 
