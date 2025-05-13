@@ -111,27 +111,29 @@ export const Settings: React.FC = () => {
   });
 
   // Modal states
-  const { 
-    isOpen: isApiKeyModalOpen, 
-    onOpen: onApiKeyModalOpen, 
-    onClose: onApiKeyModalClose 
+  const {
+    isOpen: isApiKeyModalOpen,
+    onOpen: onApiKeyModalOpen,
+    onClose: onApiKeyModalClose,
   } = useDisclosure();
-  
-  const { 
-    isOpen: isUserModalOpen, 
-    onOpen: onUserModalOpen, 
-    onClose: onUserModalClose 
+
+  const {
+    isOpen: isUserModalOpen,
+    onOpen: onUserModalOpen,
+    onClose: onUserModalClose,
   } = useDisclosure();
 
   // Delete confirmation dialog
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<{ type: 'apiKey' | 'user', id: number } | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<{ type: "apiKey" | "user"; id: number } | null>(
+    null,
+  );
   const cancelDeleteRef = React.useRef<HTMLButtonElement>(null);
 
   // Check authentication and admin status
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push('/login');
+      router.push("/login");
     } else if (!isAdmin) {
       toast({
         title: "Access denied",
@@ -140,17 +142,17 @@ export const Settings: React.FC = () => {
         duration: 5000,
         isClosable: true,
       });
-      router.push('/');
+      router.push("/");
     }
   }, [isAuthenticated, isAdmin, router, toast]);
 
   // Fetch API keys
   const fetchApiKeys = async () => {
     try {
-      const response = await authAxios.get('/api-keys');
+      const response = await authAxios.get("/api-keys");
       setApiKeys(response.data);
     } catch (error) {
-      console.error('Error fetching API keys:', error);
+      console.error("Error fetching API keys:", error);
       toast({
         title: "Error",
         description: "Failed to fetch API keys",
@@ -164,10 +166,10 @@ export const Settings: React.FC = () => {
   // Fetch users
   const fetchUsers = async () => {
     try {
-      const response = await authAxios.get('/users');
+      const response = await authAxios.get("/users");
       setUsers(response.data);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error("Error fetching users:", error);
       toast({
         title: "Error",
         description: "Failed to fetch users",
@@ -227,7 +229,7 @@ export const Settings: React.FC = () => {
         if (!payload.key_value) {
           delete payload.key_value; // Don't update key if not changed
         }
-        
+
         await authAxios.put(`/api-keys/${selectedApiKey.id}`, payload);
         toast({
           title: "Success",
@@ -238,7 +240,7 @@ export const Settings: React.FC = () => {
         });
       } else {
         // Create new API key
-        await authAxios.post('/api-keys', apiKeyFormData);
+        await authAxios.post("/api-keys", apiKeyFormData);
         toast({
           title: "Success",
           description: "API key created successfully",
@@ -247,11 +249,11 @@ export const Settings: React.FC = () => {
           isClosable: true,
         });
       }
-      
+
       onApiKeyModalClose();
       fetchApiKeys();
     } catch (error) {
-      console.error('Error saving API key:', error);
+      console.error("Error saving API key:", error);
       toast({
         title: "Error",
         description: "Failed to save API key",
@@ -262,16 +264,16 @@ export const Settings: React.FC = () => {
     }
   };
 
-  const openDeleteConfirmation = (type: 'apiKey' | 'user', id: number) => {
+  const openDeleteConfirmation = (type: "apiKey" | "user", id: number) => {
     setItemToDelete({ type, id });
     setIsDeleteDialogOpen(true);
   };
 
   const handleDelete = async () => {
     if (!itemToDelete) return;
-    
+
     try {
-      if (itemToDelete.type === 'apiKey') {
+      if (itemToDelete.type === "apiKey") {
         await authAxios.delete(`/api-keys/${itemToDelete.id}`);
         toast({
           title: "Success",
@@ -281,7 +283,7 @@ export const Settings: React.FC = () => {
           isClosable: true,
         });
         fetchApiKeys();
-      } else if (itemToDelete.type === 'user') {
+      } else if (itemToDelete.type === "user") {
         // Don't allow deleting yourself
         if (user && user.id === itemToDelete.id) {
           toast({
@@ -294,7 +296,7 @@ export const Settings: React.FC = () => {
           setIsDeleteDialogOpen(false);
           return;
         }
-        
+
         await authAxios.delete(`/users/${itemToDelete.id}`);
         toast({
           title: "Success",
@@ -306,7 +308,7 @@ export const Settings: React.FC = () => {
         fetchUsers();
       }
     } catch (error) {
-      console.error('Error deleting item:', error);
+      console.error("Error deleting item:", error);
       toast({
         title: "Error",
         description: `Failed to delete ${itemToDelete.type}`,
@@ -315,7 +317,7 @@ export const Settings: React.FC = () => {
         isClosable: true,
       });
     }
-    
+
     setIsDeleteDialogOpen(false);
   };
 
@@ -326,16 +328,16 @@ export const Settings: React.FC = () => {
   // User handlers
   const handleUserInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
+
     // Handle checkbox for is_admin
-    if (name === 'is_admin') {
+    if (name === "is_admin") {
       setUserFormData({
         ...userFormData,
-        is_admin: (e.target as HTMLInputElement).checked
+        is_admin: (e.target as HTMLInputElement).checked,
       });
       return;
     }
-    
+
     setUserFormData({
       ...userFormData,
       [name]: value,
@@ -372,7 +374,7 @@ export const Settings: React.FC = () => {
         if (!payload.password) {
           delete payload.password; // Don't update password if not changed
         }
-        
+
         await authAxios.put(`/users/${selectedUser.id}`, payload);
         toast({
           title: "Success",
@@ -383,7 +385,7 @@ export const Settings: React.FC = () => {
         });
       } else {
         // Create new user
-        await authAxios.post('/users', userFormData);
+        await authAxios.post("/users", userFormData);
         toast({
           title: "Success",
           description: "User created successfully",
@@ -392,11 +394,11 @@ export const Settings: React.FC = () => {
           isClosable: true,
         });
       }
-      
+
       onUserModalClose();
       fetchUsers();
     } catch (error) {
-      console.error('Error saving user:', error);
+      console.error("Error saving user:", error);
       toast({
         title: "Error",
         description: "Failed to save user",
@@ -414,30 +416,32 @@ export const Settings: React.FC = () => {
   return (
     <Box mt={12} p={8}>
       <Heading mb={6}>Settings</Heading>
-      
+
       <Tabs variant="enclosed" colorScheme="teal">
         <TabList>
           <Tab>API Keys</Tab>
           <Tab>User Management</Tab>
           <Tab>General Settings</Tab>
         </TabList>
-        
+
         <TabPanels>
           {/* API Keys Panel */}
           <TabPanel>
             <Box mb={4}>
               <HStack justifyContent="space-between">
-                <Heading size="md" mb={4}>API Keys</Heading>
+                <Heading size="md" mb={4}>
+                  API Keys
+                </Heading>
                 <Button leftIcon={<AddIcon />} colorScheme="teal" onClick={openAddApiKeyModal}>
                   Add New API Key
                 </Button>
               </HStack>
               <Text mb={4}>
-                Manage API keys for integrations with external services like Slack, Microsoft Teams, and email providers.
-                All keys are stored encrypted for security.
+                Manage API keys for integrations with external services like Slack, Microsoft Teams,
+                and email providers. All keys are stored encrypted for security.
               </Text>
             </Box>
-            
+
             <Table variant="simple">
               <Thead>
                 <Tr>
@@ -473,7 +477,7 @@ export const Settings: React.FC = () => {
                           icon={<DeleteIcon />}
                           size="sm"
                           colorScheme="red"
-                          onClick={() => openDeleteConfirmation('apiKey', apiKey.id)}
+                          onClick={() => openDeleteConfirmation("apiKey", apiKey.id)}
                         />
                       </HStack>
                     </Td>
@@ -481,27 +485,32 @@ export const Settings: React.FC = () => {
                 ))}
                 {apiKeys.length === 0 && (
                   <Tr>
-                    <Td colSpan={5} textAlign="center">No API keys found</Td>
+                    <Td colSpan={5} textAlign="center">
+                      No API keys found
+                    </Td>
                   </Tr>
                 )}
               </Tbody>
             </Table>
           </TabPanel>
-          
+
           {/* User Management Panel */}
           <TabPanel>
             <Box mb={4}>
               <HStack justifyContent="space-between">
-                <Heading size="md" mb={4}>User Management</Heading>
+                <Heading size="md" mb={4}>
+                  User Management
+                </Heading>
                 <Button leftIcon={<AddIcon />} colorScheme="teal" onClick={openAddUserModal}>
                   Add New User
                 </Button>
               </HStack>
               <Text mb={4}>
-                Manage user accounts and their permissions. Admin users have access to settings and can manage other users.
+                Manage user accounts and their permissions. Admin users have access to settings and
+                can manage other users.
               </Text>
             </Box>
-            
+
             <Table variant="simple">
               <Thead>
                 <Tr>
@@ -541,7 +550,7 @@ export const Settings: React.FC = () => {
                           icon={<DeleteIcon />}
                           size="sm"
                           colorScheme="red"
-                          onClick={() => openDeleteConfirmation('user', user.id)}
+                          onClick={() => openDeleteConfirmation("user", user.id)}
                           isDisabled={user.id === (user && user.id)}
                         />
                       </HStack>
@@ -550,16 +559,20 @@ export const Settings: React.FC = () => {
                 ))}
                 {users.length === 0 && (
                   <Tr>
-                    <Td colSpan={5} textAlign="center">No users found</Td>
+                    <Td colSpan={5} textAlign="center">
+                      No users found
+                    </Td>
                   </Tr>
                 )}
               </Tbody>
             </Table>
           </TabPanel>
-          
+
           {/* General Settings Panel */}
           <TabPanel>
-            <Heading size="md" mb={4}>General Settings</Heading>
+            <Heading size="md" mb={4}>
+              General Settings
+            </Heading>
             <VStack width="100%" spacing={5} align="self-start">
               <HStack width="80%">
                 <Text fontSize="md" width="20%">
@@ -579,56 +592,53 @@ export const Settings: React.FC = () => {
                 </Text>
                 <Input />
               </HStack>
-              <Button colorScheme="teal">
-                Save
-              </Button>
+              <Button colorScheme="teal">Save</Button>
             </VStack>
           </TabPanel>
         </TabPanels>
       </Tabs>
-      
+
       {/* API Key Modal */}
       <Modal isOpen={isApiKeyModalOpen} onClose={onApiKeyModalClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>
-            {selectedApiKey ? 'Edit API Key' : 'Add New API Key'}
-          </ModalHeader>
+          <ModalHeader>{selectedApiKey ? "Edit API Key" : "Add New API Key"}</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4}>
               <FormControl isRequired>
                 <FormLabel>Service</FormLabel>
-                <Select 
-                  name="service" 
+                <Select
+                  name="service"
                   value={apiKeyFormData.service}
-                  onChange={handleApiKeyInputChange}
-                >
+                  onChange={handleApiKeyInputChange}>
                   <option value="slack">Slack</option>
                   <option value="teams">Microsoft Teams</option>
                   <option value="email">Email</option>
                   <option value="other">Other</option>
                 </Select>
               </FormControl>
-              
+
               <FormControl isRequired>
                 <FormLabel>Key Name</FormLabel>
-                <Input 
+                <Input
                   name="key_name"
                   value={apiKeyFormData.key_name}
                   onChange={handleApiKeyInputChange}
                   placeholder="e.g. API Token, Bot Token"
                 />
               </FormControl>
-              
+
               <FormControl isRequired>
                 <FormLabel>Key Value</FormLabel>
                 <InputGroup>
-                  <Input 
+                  <Input
                     name="key_value"
                     value={apiKeyFormData.key_value}
                     onChange={handleApiKeyInputChange}
-                    placeholder={selectedApiKey ? "Enter new key value or leave blank" : "Enter key value"}
+                    placeholder={
+                      selectedApiKey ? "Enter new key value or leave blank" : "Enter key value"
+                    }
                     type={showApiKey ? "text" : "password"}
                     autoComplete="new-password"
                     required={!selectedApiKey}
@@ -644,10 +654,10 @@ export const Settings: React.FC = () => {
                   </InputRightElement>
                 </InputGroup>
               </FormControl>
-              
+
               <FormControl>
                 <FormLabel>Description</FormLabel>
-                <Input 
+                <Input
                   name="description"
                   value={apiKeyFormData.description}
                   onChange={handleApiKeyInputChange}
@@ -661,35 +671,33 @@ export const Settings: React.FC = () => {
               Cancel
             </Button>
             <Button colorScheme="teal" onClick={handleApiKeySubmit}>
-              {selectedApiKey ? 'Update' : 'Save'}
+              {selectedApiKey ? "Update" : "Save"}
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
-      
+
       {/* User Modal */}
       <Modal isOpen={isUserModalOpen} onClose={onUserModalClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>
-            {selectedUser ? 'Edit User' : 'Add New User'}
-          </ModalHeader>
+          <ModalHeader>{selectedUser ? "Edit User" : "Add New User"}</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4}>
               <FormControl isRequired>
                 <FormLabel>Username</FormLabel>
-                <Input 
+                <Input
                   name="username"
                   value={userFormData.username}
                   onChange={handleUserInputChange}
                   placeholder="Enter username"
                 />
               </FormControl>
-              
+
               <FormControl isRequired>
                 <FormLabel>Email</FormLabel>
-                <Input 
+                <Input
                   name="email"
                   type="email"
                   value={userFormData.email}
@@ -697,19 +705,23 @@ export const Settings: React.FC = () => {
                   placeholder="Enter email"
                 />
               </FormControl>
-              
+
               <FormControl isRequired={!selectedUser}>
-                <FormLabel>{selectedUser ? 'New Password (leave blank to keep current)' : 'Password'}</FormLabel>
-                <Input 
+                <FormLabel>
+                  {selectedUser ? "New Password (leave blank to keep current)" : "Password"}
+                </FormLabel>
+                <Input
                   name="password"
                   type="password"
                   value={userFormData.password}
                   onChange={handleUserInputChange}
-                  placeholder={selectedUser ? "Enter new password or leave blank" : "Enter password"}
+                  placeholder={
+                    selectedUser ? "Enter new password or leave blank" : "Enter password"
+                  }
                   autoComplete="new-password"
                 />
               </FormControl>
-              
+
               <FormControl>
                 <FormLabel>Admin Privileges</FormLabel>
                 <input
@@ -729,27 +741,24 @@ export const Settings: React.FC = () => {
               Cancel
             </Button>
             <Button colorScheme="teal" onClick={handleUserSubmit}>
-              {selectedUser ? 'Update' : 'Save'}
+              {selectedUser ? "Update" : "Save"}
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
-      
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog
         isOpen={isDeleteDialogOpen}
         leastDestructiveRef={cancelDeleteRef}
-        onClose={() => setIsDeleteDialogOpen(false)}
-      >
+        onClose={() => setIsDeleteDialogOpen(false)}>
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete {itemToDelete?.type === 'apiKey' ? 'API Key' : 'User'}
+              Delete {itemToDelete?.type === "apiKey" ? "API Key" : "User"}
             </AlertDialogHeader>
 
-            <AlertDialogBody>
-              Are you sure? This action cannot be undone.
-            </AlertDialogBody>
+            <AlertDialogBody>Are you sure? This action cannot be undone.</AlertDialogBody>
 
             <AlertDialogFooter>
               <Button ref={cancelDeleteRef} onClick={() => setIsDeleteDialogOpen(false)}>

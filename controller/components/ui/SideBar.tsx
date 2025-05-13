@@ -216,9 +216,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
         ml={!isMobile ? (isSidebarExpanded ? expandedWidth : collapsedWidth) : "0"}
         {...transitionProps}>
         <Nav />
-        <Box p={4}>
-          {children}
-        </Box>
+        <Box p={4}>{children}</Box>
       </Box>
     </Flex>
   );

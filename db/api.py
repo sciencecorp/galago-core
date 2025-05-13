@@ -1,5 +1,14 @@
 import typing as t
-from fastapi import FastAPI, HTTPException, Depends, Request, UploadFile, File, Form, status
+from fastapi import (
+    FastAPI,
+    HTTPException,
+    Depends,
+    Request,
+    UploadFile,
+    File,
+    Form,
+    status,
+)
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -27,10 +36,11 @@ from starlette.background import BackgroundTask
 from datetime import timedelta
 from fastapi.security import OAuth2PasswordRequestForm
 from db.auth import (
-    verify_password, 
-    create_access_token, 
-    get_current_active_user, 
+    verify_password,
+    create_access_token,
+    get_current_active_user,
     get_current_admin_user,
+    get_current_user,
     ACCESS_TOKEN_EXPIRE_MINUTES,
     create_refresh_token,
     verify_refresh_token,
@@ -2060,7 +2070,9 @@ def delete_hotel(hotel_id: int, db: Session = Depends(get_db)) -> t.Any:
 
 # Authentication routes
 @app.post("/token", response_model=schemas.Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+):
     user = crud.get_user_by_username(db, form_data.username)
     if not user or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(
@@ -2068,23 +2080,22 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username, "is_admin": user.is_admin},
-        expires_delta=access_token_expires
+        expires_delta=access_token_expires,
     )
-    
+
     # Create a refresh token
-    refresh_token = create_refresh_token(
-        data={"sub": user.username}
-    )
-    
+    refresh_token = create_refresh_token(data={"sub": user.username})
+
     return {
-        "access_token": access_token, 
+        "access_token": access_token,
         "refresh_token": refresh_token,
-        "token_type": "bearer"
+        "token_type": "bearer",
     }
+
 
 @app.post("/refresh-token", response_model=schemas.Token)
 async def refresh_access_token(refresh_token: str, db: Session = Depends(get_db)):
@@ -2096,7 +2107,7 @@ async def refresh_access_token(refresh_token: str, db: Session = Depends(get_db)
             detail="Invalid refresh token",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     # Get user to verify they still exist and are active
     user = crud.get_user_by_username(db, username)
     if not user or not user.is_active:
@@ -2105,28 +2116,28 @@ async def refresh_access_token(refresh_token: str, db: Session = Depends(get_db)
             detail="User inactive or deleted",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     # Create new access token
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username, "is_admin": user.is_admin},
-        expires_delta=access_token_expires
+        expires_delta=access_token_expires,
     )
-    
+
     # Create new refresh token (rotate refresh tokens for security)
-    new_refresh_token = create_refresh_token(
-        data={"sub": user.username}
-    )
-    
+    new_refresh_token = create_refresh_token(data={"sub": user.username})
+
     return {
         "access_token": access_token,
         "refresh_token": new_refresh_token,
-        "token_type": "bearer"
+        "token_type": "bearer",
     }
 
+
 @app.get("/users/me", response_model=schemas.User)
-async def read_users_me(current_user = Depends(get_current_active_user)):
+async def read_users_me(current_user=Depends(get_current_active_user)):
     return current_user
+
 
 # User management routes (admin only for listing/modifying, but public for creation)
 @app.post("/users", response_model=schemas.User)
@@ -2135,11 +2146,11 @@ async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user_by_username = crud.get_user_by_username(db, username=user.username)
     if db_user_by_username:
         raise HTTPException(status_code=400, detail="Username already registered")
-    
+
     db_user_by_email = crud.get_user_by_email(db, email=user.email)
     if db_user_by_email:
         raise HTTPException(status_code=400, detail="Email already registered")
-    
+
     # Only allow setting is_admin to True if the request comes from an admin
     # For regular self-registration, force is_admin to False
     try:
@@ -2147,74 +2158,119 @@ async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         if not current_user.is_admin:
             # Non-admin users cannot create admin accounts
             user.is_admin = False
-    except:
+    except HTTPException:
         # If no authenticated user (public registration), force is_admin to False
         user.is_admin = False
-    
+
     return crud.create_user(db=db, user=user)
 
+
 @app.get("/users", response_model=List[schemas.User])
-async def read_users(skip: int = 0, limit: int = 100, current_user = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+async def read_users(
+    skip: int = 0,
+    limit: int = 100,
+    current_user=Depends(get_current_admin_user),
+    db: Session = Depends(get_db),
+):
     users = crud.get_users(db, skip=skip, limit=limit)
     return users
 
+
 @app.get("/users/{user_id}", response_model=schemas.User)
-async def read_user(user_id: int, current_user = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+async def read_user(
+    user_id: int,
+    current_user=Depends(get_current_admin_user),
+    db: Session = Depends(get_db),
+):
     db_user = crud.get_user(db, user_id=user_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
+
 @app.put("/users/{user_id}", response_model=schemas.User)
-async def update_user(user_id: int, user: schemas.UserUpdate, current_user = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+async def update_user(
+    user_id: int,
+    user: schemas.UserUpdate,
+    current_user=Depends(get_current_admin_user),
+    db: Session = Depends(get_db),
+):
     db_user = crud.update_user(db, user_id=user_id, user_update=user)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
+
 @app.delete("/users/{user_id}", response_model=bool)
-async def delete_user(user_id: int, current_user = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+async def delete_user(
+    user_id: int,
+    current_user=Depends(get_current_admin_user),
+    db: Session = Depends(get_db),
+):
     result = crud.delete_user(db, user_id=user_id)
     if not result:
         raise HTTPException(status_code=404, detail="User not found")
     return result
 
+
 # API Key management routes (admin only)
 @app.post("/api-keys", response_model=schemas.ApiKey)
-async def create_api_key(api_key: schemas.ApiKeyCreate, current_user = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+async def create_api_key(
+    api_key: schemas.ApiKeyCreate,
+    current_user=Depends(get_current_admin_user),
+    db: Session = Depends(get_db),
+):
     return crud.create_api_key(db=db, api_key=api_key)
+
 
 @app.get("/api-keys", response_model=List[schemas.ApiKey])
 async def read_api_keys(
-    skip: int = 0, 
-    limit: int = 100, 
+    skip: int = 0,
+    limit: int = 100,
     service: Optional[str] = None,
-    current_user = Depends(get_current_admin_user), 
-    db: Session = Depends(get_db)
+    current_user=Depends(get_current_admin_user),
+    db: Session = Depends(get_db),
 ):
     api_keys = crud.get_api_keys(db, skip=skip, limit=limit, service=service)
     return api_keys
 
+
 @app.get("/api-keys/{api_key_id}", response_model=schemas.ApiKey)
-async def read_api_key(api_key_id: int, current_user = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+async def read_api_key(
+    api_key_id: int,
+    current_user=Depends(get_current_admin_user),
+    db: Session = Depends(get_db),
+):
     db_api_key = crud.get_api_key(db, api_key_id=api_key_id)
     if db_api_key is None:
         raise HTTPException(status_code=404, detail="API key not found")
     return db_api_key
 
+
 @app.put("/api-keys/{api_key_id}", response_model=schemas.ApiKey)
-async def update_api_key(api_key_id: int, api_key: schemas.ApiKeyUpdate, current_user = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+async def update_api_key(
+    api_key_id: int,
+    api_key: schemas.ApiKeyUpdate,
+    current_user=Depends(get_current_admin_user),
+    db: Session = Depends(get_db),
+):
     db_api_key = crud.update_api_key(db, api_key_id=api_key_id, api_key_update=api_key)
     if db_api_key is None:
         raise HTTPException(status_code=404, detail="API key not found")
     return db_api_key
 
+
 @app.delete("/api-keys/{api_key_id}", response_model=bool)
-async def delete_api_key(api_key_id: int, current_user = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+async def delete_api_key(
+    api_key_id: int,
+    current_user=Depends(get_current_admin_user),
+    db: Session = Depends(get_db),
+):
     result = crud.delete_api_key(db, api_key_id=api_key_id)
     if not result:
         raise HTTPException(status_code=404, detail="API key not found")
     return result
+
 
 # External Auth Provider Registration endpoint
 class ExternalAuthRequest(BaseModel):
@@ -2224,100 +2280,112 @@ class ExternalAuthRequest(BaseModel):
     provider_user_id: Optional[str] = None
     profile_image: Optional[str] = None
 
+
 @app.post("/external-auth", response_model=schemas.User)
 async def external_auth_register(
-    auth_data: ExternalAuthRequest, 
-    db: Session = Depends(get_db)
+    auth_data: ExternalAuthRequest, db: Session = Depends(get_db)
 ) -> t.Any:
     """
     Register or authenticate a user coming from an external OAuth provider.
     This is used by NextAuth.js when a user signs in with Google, GitHub, etc.
-    
+
     Returns the user information along with an access token.
     """
-    logging.info(f"External auth request from {auth_data.provider} for {auth_data.email}")
-    
+    logging.info(
+        f"External auth request from {auth_data.provider} for {auth_data.email}"
+    )
+
     # Validate required fields
     if not auth_data.email:
         raise HTTPException(status_code=400, detail="Email is required")
-    
+
     # Check if we already have a user with this email
     db_user = crud.get_user_by_email(db, email=auth_data.email)
-    
+
     if db_user:
         # User exists - generate token and return user
         logging.info(f"Existing user found for {auth_data.email}")
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
             data={"sub": db_user.username, "is_admin": db_user.is_admin},
-            expires_delta=access_token_expires
+            expires_delta=access_token_expires,
         )
-        
+
         # Return the user with access token
         user_dict = {
             "id": db_user.id,
             "username": db_user.username,
             "email": db_user.email,
             "is_admin": db_user.is_admin,
-            "access_token": access_token
+            "access_token": access_token,
         }
         return user_dict
-    
+
     else:
         # Create a new user
-        username = auth_data.name.lower().replace(' ', '_') if auth_data.name else auth_data.email.split('@')[0]
-        
+        username = (
+            auth_data.name.lower().replace(" ", "_")
+            if auth_data.name
+            else auth_data.email.split("@")[0]
+        )
+
         # Make sure username is unique
         base_username = username
         count = 1
         while crud.get_user_by_username(db, username=username):
             username = f"{base_username}_{count}"
             count += 1
-        
+
         # Generate a random secure password since they'll sign in via OAuth or Email
         import secrets
         import string
-        random_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(24))
-        
+
+        random_password = "".join(
+            secrets.choice(string.ascii_letters + string.digits) for _ in range(24)
+        )
+
         try:
             # Create the user with defaults (not admin)
             user_create = schemas.UserCreate(
                 username=username,
                 email=auth_data.email,
                 password=random_password,  # They'll never use this password
-                is_admin=False
+                is_admin=False,
             )
-            
+
             new_user = crud.create_user(db=db, user=user_create)
-            logging.info(f"Created new user from {auth_data.provider} auth: {auth_data.email}")
-            
+            logging.info(
+                f"Created new user from {auth_data.provider} auth: {auth_data.email}"
+            )
+
             # Generate token for the new user
             access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
             access_token = create_access_token(
                 data={"sub": new_user.username, "is_admin": new_user.is_admin},
-                expires_delta=access_token_expires
+                expires_delta=access_token_expires,
             )
-            
+
             # Return user with access token
             user_dict = {
                 "id": new_user.id,
                 "username": new_user.username,
                 "email": new_user.email,
                 "is_admin": new_user.is_admin,
-                "access_token": access_token
+                "access_token": access_token,
             }
             return user_dict
-            
+
         except Exception as e:
             logging.error(f"Error creating user from external auth: {str(e)}")
             raise HTTPException(
-                status_code=500,
-                detail=f"Error creating user account: {str(e)}"
+                status_code=500, detail=f"Error creating user account: {str(e)}"
             )
+
 
 # Cookie management for secure token storage
 class TokenModel(BaseModel):
     token: str
+
 
 @app.post("/set-cookie")
 async def set_secure_cookie(token_data: TokenModel):
@@ -2331,9 +2399,10 @@ async def set_secure_cookie(token_data: TokenModel):
         secure=os.environ.get("ENVIRONMENT", "development") == "production",
         samesite="lax",
         max_age=60 * 60 * 24,  # 24 hours
-        path="/"
+        path="/",
     )
     return response
+
 
 @app.post("/clear-cookie")
 async def clear_secure_cookie():

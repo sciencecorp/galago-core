@@ -409,18 +409,23 @@ class CRUDHotel(CRUDBase[models.Hotel, schemas.HotelCreate, schemas.HotelUpdate]
 
 hotel = CRUDHotel(models.Hotel)
 
+
 # User CRUD operations
 def get_user(db, user_id: int):
     return db.query(User).filter(User.id == user_id).first()
 
+
 def get_user_by_username(db, username: str):
     return db.query(User).filter(User.username == username).first()
+
 
 def get_user_by_email(db, email: str):
     return db.query(User).filter(User.email == email).first()
 
+
 def get_users(db, skip: int = 0, limit: int = 100):
     return db.query(User).offset(skip).limit(limit).all()
+
 
 def create_user(db, user):
     hashed_password = get_password_hash(user.password)
@@ -428,29 +433,31 @@ def create_user(db, user):
         username=user.username,
         email=user.email,
         password_hash=hashed_password,
-        is_admin=user.is_admin
+        is_admin=user.is_admin,
     )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
 
+
 def update_user(db, user_id: int, user_update):
     db_user = db.query(User).filter(User.id == user_id).first()
     if not db_user:
         return None
-    
+
     update_data = user_update.dict(exclude_unset=True)
-    
+
     if "password" in update_data and update_data["password"]:
         update_data["password_hash"] = get_password_hash(update_data.pop("password"))
-    
+
     for key, value in update_data.items():
         setattr(db_user, key, value)
-    
+
     db.commit()
     db.refresh(db_user)
     return db_user
+
 
 def delete_user(db, user_id: int):
     db_user = db.query(User).filter(User.id == user_id).first()
@@ -460,15 +467,18 @@ def delete_user(db, user_id: int):
         return True
     return False
 
+
 # API Key CRUD operations
 def get_api_key(db, api_key_id: int):
     return db.query(ApiKey).filter(ApiKey.id == api_key_id).first()
 
-def get_api_keys(db, skip: int = 0, limit: int = 100, service: str = None):
+
+def get_api_keys(db, skip: int = 0, limit: int = 100, service: Optional[str] = None):
     query = db.query(ApiKey)
     if service:
         query = query.filter(ApiKey.service == service)
     return query.offset(skip).limit(limit).all()
+
 
 def create_api_key(db, api_key):
     # Encrypt the API key before storing
@@ -477,29 +487,31 @@ def create_api_key(db, api_key):
         service=api_key.service,
         key_name=api_key.key_name,
         key_value=encrypted_key,
-        description=api_key.description
+        description=api_key.description,
     )
     db.add(db_api_key)
     db.commit()
     db.refresh(db_api_key)
     return db_api_key
 
+
 def update_api_key(db, api_key_id: int, api_key_update):
     db_api_key = db.query(ApiKey).filter(ApiKey.id == api_key_id).first()
     if not db_api_key:
         return None
-    
+
     update_data = api_key_update.dict(exclude_unset=True)
-    
+
     if "key_value" in update_data and update_data["key_value"]:
         update_data["key_value"] = encrypt_api_key(update_data["key_value"])
-    
+
     for key, value in update_data.items():
         setattr(db_api_key, key, value)
-    
+
     db.commit()
     db.refresh(db_api_key)
     return db_api_key
+
 
 def delete_api_key(db, api_key_id: int):
     db_api_key = db.query(ApiKey).filter(ApiKey.id == api_key_id).first()
@@ -509,11 +521,16 @@ def delete_api_key(db, api_key_id: int):
         return True
     return False
 
+
 def get_decrypted_api_key(db, service: str):
     """Get a decrypted API key for a specific service"""
-    db_api_key = db.query(ApiKey).filter(ApiKey.service == service, ApiKey.is_active == True).first()
+    db_api_key = (
+        db.query(ApiKey)
+        .filter(ApiKey.service == service, ApiKey.is_active)
+        .first()
+    )
     if not db_api_key:
         return None
-    
+
     # Decrypt the API key before returning
     return decrypt_api_key(db_api_key.key_value)

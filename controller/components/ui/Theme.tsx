@@ -40,6 +40,7 @@ export const useTextColors = () => {
     primary: useColorModeValue("gray.800", "white"),
     secondary: useColorModeValue("gray.600", "gray.400"),
     accent: useColorModeValue("teal.600", "teal.200"),
+    headingColor: useColorModeValue("teal.600", "teal.300"),
   };
 };
 

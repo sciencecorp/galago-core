@@ -1,7 +1,4 @@
-import {
-  Divider,
-  HStack,
-} from "@chakra-ui/react";
+import { Divider, HStack } from "@chakra-ui/react";
 
 import { ProfileMenu } from "./ProfileMenu";
 import { useCommonColors } from "./Theme";
@@ -20,9 +17,7 @@ export default function Nav() {
         color={colors.textColor}
         px={4}
         justifyContent="flex-end">
-        
         <ProfileMenu />
-        
       </HStack>
       <Divider />
     </>
