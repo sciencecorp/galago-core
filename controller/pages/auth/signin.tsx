@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { signIn, getProviders, getCsrfToken } from 'next-auth/react';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 import {
   Box,
   Button,
@@ -25,6 +26,10 @@ import {
   CloseButton,
   Checkbox,
   FormErrorMessage,
+  Grid,
+  GridItem,
+  Flex,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { FaGoogle, FaGithub, FaUser } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth';
@@ -42,6 +47,7 @@ export default function SignIn({ providers, csrfToken }: { providers: any, csrfT
   const toast = useToast();
   const { callbackUrl, error } = router.query;
   const { login, socialLogin, isAuthenticated, loading } = useAuth();
+  const logoFilter = useColorModeValue("none", "invert(1)");
 
   // If already authenticated, redirect to home
   useEffect(() => {
@@ -185,165 +191,203 @@ export default function SignIn({ providers, csrfToken }: { providers: any, csrfT
   }
 
   return (
-    <Container maxW="lg">
-      <Center minH="100vh">
-        <Box p={8} borderWidth={1} borderRadius={8} boxShadow="lg" width="100%">
-          <VStack spacing={6} align="stretch">
-            <Center>
-              <Heading mb={6}>Galago Sign In</Heading>
-            </Center>
-            
-            {errorMessage && (
-              <Alert status="error" mb={4} borderRadius="md">
-                <AlertIcon />
-                <AlertDescription>{errorMessage}</AlertDescription>
-                <CloseButton 
-                  position="absolute" 
-                  right="8px" 
-                  top="8px" 
-                  onClick={() => setErrorMessage('')}
-                />
-              </Alert>
-            )}
-            
-            <form onSubmit={handleCredentialsSignIn}>
-              <input name="csrfToken" type="hidden" defaultValue={csrfToken} />
-              <VStack spacing={4}>
-                <FormControl id="username" isRequired isInvalid={!!formErrors.username}>
-                  <FormLabel>Username</FormLabel>
-                  <Input 
-                    type="text" 
-                    value={username} 
-                    onChange={(e) => setUsername(e.target.value)} 
-                    placeholder="Enter your username"
-                    aria-label="Username"
-                    onBlur={() => validateForm()}
-                  />
-                  {formErrors.username && (
-                    <FormErrorMessage>{formErrors.username}</FormErrorMessage>
-                  )}
-                </FormControl>
-                
-                <FormControl id="password" isRequired isInvalid={!!formErrors.password}>
-                  <FormLabel>Password</FormLabel>
-                  <InputGroup>
-                    <Input 
-                      type={showPassword ? 'text' : 'password'} 
-                      value={password} 
-                      onChange={(e) => setPassword(e.target.value)} 
-                      placeholder="Enter your password"
-                      aria-label="Password"
-                      onBlur={() => validateForm()}
-                    />
-                    <InputRightElement width="4.5rem">
-                      <Button 
-                        h="1.75rem" 
-                        size="sm" 
-                        onClick={toggleShowPassword}
-                        aria-label={showPassword ? "Hide password" : "Show password"}
-                      >
-                        {showPassword ? 'Hide' : 'Show'}
-                      </Button>
-                    </InputRightElement>
-                  </InputGroup>
-                  {formErrors.password && (
-                    <FormErrorMessage>{formErrors.password}</FormErrorMessage>
-                  )}
-                </FormControl>
-
-                <FormControl>
-                  <HStack justifyContent="space-between" width="100%">
-                    <Checkbox 
-                      isChecked={rememberMe} 
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      aria-label="Remember me"
-                    >
-                      Remember me
-                    </Checkbox>
-                    {/* <Button 
-                      variant="link" 
-                      colorScheme="teal" 
-                      size="sm"
-                      onClick={handleForgotPassword}
-                      aria-label="Forgot password"
-                    >
-                      Forgot password?
-                    </Button> */}
-                  </HStack>
-                </FormControl>
-                
-                <Button 
-                  colorScheme="teal" 
-                  width="100%" 
-                  mt={4} 
-                  type="submit" 
-                  isLoading={isSubmitting}
-                  loadingText="Signing in"
-                  aria-label="Sign in"
+    <Box bg={useColorModeValue('gray.50', 'gray.900')} minH="100vh">
+      <Container maxW="6xl" pt={10}>
+        <Grid templateColumns={{ base: "1fr", md: "1fr 1.5fr" }} gap={10}>
+          <GridItem display="flex" flexDirection="column" justifyContent="center" alignItems={{ base: "center", md: "flex-start" }}>
+            <VStack spacing={6} align={{ base: "center", md: "flex-start" }} mb={8}>
+              <Flex direction="column" align={{ base: "center", md: "flex-start" }}>
+                <Heading 
+                  size="4xl" 
+                  mt={6} 
+                  color={useColorModeValue('teal.600', 'teal.300')}
+                  lineHeight="1.1"
+                  fontWeight="extrabold"
+                  fontFamily="'Inter', 'Montserrat', sans-serif"
+                  letterSpacing="-0.05em"
                 >
-                  Sign In
-                </Button>
-              </VStack>
-            </form>
-            
-            <Divider my={4} />
-            
-            <Center>
-              <Text mb={2}>Or continue with</Text>
-            </Center>
-            
-            <VStack spacing={4}>
-              {!providers || Object.keys(providers).length === 0 ? (
-                <Text fontSize="sm" color="gray.500" textAlign="center">
-                  Social login options are currently unavailable
-                </Text>
-              ) : (
-                <>
-                  {providers?.google && (
-                    <Button 
-                      width="100%" 
-                      colorScheme="red" 
-                      leftIcon={<FaGoogle />}
-                      onClick={() => handleSocialSignIn('google')}
-                      aria-label="Sign in with Google"
-                    >
-                      Sign in with Google
-                    </Button>
-                  )}
-                  
-                  {providers?.github && (
-                    <Button 
-                      width="100%" 
-                      colorScheme="gray" 
-                      leftIcon={<FaGithub />}
-                      onClick={() => handleSocialSignIn('github')}
-                      aria-label="Sign in with GitHub"
-                    >
-                      Sign in with GitHub
-                    </Button>
-                  )}
-                </>
-              )}
+                  Galago
+                </Heading>
+                <VStack mt={4} spacing={1} align={{ base: "center", md: "flex-start" }}>
+                  <Text style={{ fontSize: '1.5rem', fontWeight: 'bold' }} color={useColorModeValue('gray.600', 'gray.300')}>
+                    Access your workcells
+                  </Text>
+                  <Text style={{ fontSize: '1.5rem', fontWeight: 'bold' }} color={useColorModeValue('gray.600', 'gray.300')}>
+                    and start automating
+                  </Text>
+                </VStack>
+              </Flex>
             </VStack>
-            
-            <Center>
-              <Text fontSize="sm" color="gray.500">
-                Contact your administrator if you need an account
-              </Text>
-            </Center>
-            
-            <Center mt={4}>
-              <Text>
-                Don't have an account?{' '}
-                <Link color="teal.500" onClick={() => router.push('/auth/signup')}>
-                  Sign Up
-                </Link>
-              </Text>
-            </Center>
-          </VStack>
-        </Box>
-      </Center>
-    </Container>
+          </GridItem>
+          
+          <GridItem display="flex" justifyContent="flex-end" alignItems="center" pt={{ base: 6, md: 10 }}>
+            <Box 
+              p={4} 
+              borderWidth={1} 
+              borderRadius="xl" 
+              boxShadow="xl" 
+              bg={useColorModeValue('white', 'gray.800')}
+              borderColor={useColorModeValue('gray.200', 'gray.700')}
+              width="100%"
+              maxW="500px"
+              mt={{ base: 4, md: 100 }}
+              mr={{ base: 0, md: 6 }}
+            >
+              <VStack spacing={3} align="stretch">
+                {errorMessage && (
+                  <Alert status="error" mb={2} borderRadius="md" size="sm">
+                    <AlertIcon />
+                    <AlertDescription fontSize="sm">{errorMessage}</AlertDescription>
+                    <CloseButton 
+                      position="absolute" 
+                      right="8px" 
+                      top="8px" 
+                      onClick={() => setErrorMessage('')}
+                    />
+                  </Alert>
+                )}
+                
+                <form onSubmit={handleCredentialsSignIn}>
+                  <input name="csrfToken" type="hidden" defaultValue={csrfToken} />
+                  <VStack spacing={2}>
+                    <FormControl id="username" isRequired isInvalid={!!formErrors.username}>
+                      <FormLabel fontSize="sm">Username</FormLabel>
+                      <Input 
+                        type="text" 
+                        value={username} 
+                        onChange={(e) => setUsername(e.target.value)} 
+                        placeholder="Enter your username"
+                        aria-label="Username"
+                        onBlur={() => validateForm()}
+                        size="md"
+                        _focus={{ borderColor: 'teal.400', boxShadow: '0 0 0 1px teal.400' }}
+                      />
+                      {formErrors.username && (
+                        <FormErrorMessage fontSize="xs">{formErrors.username}</FormErrorMessage>
+                      )}
+                    </FormControl>
+                    
+                    <FormControl id="password" isRequired isInvalid={!!formErrors.password}>
+                      <FormLabel fontSize="sm">Password</FormLabel>
+                      <InputGroup size="md">
+                        <Input 
+                          type={showPassword ? 'text' : 'password'} 
+                          value={password} 
+                          onChange={(e) => setPassword(e.target.value)} 
+                          placeholder="Enter your password"
+                          aria-label="Password"
+                          onBlur={() => validateForm()}
+                          _focus={{ borderColor: 'teal.400', boxShadow: '0 0 0 1px teal.400' }}
+                        />
+                        <InputRightElement width="4.5rem">
+                          <Button 
+                            h="1.5rem" 
+                            size="xs" 
+                            onClick={toggleShowPassword}
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                          >
+                            {showPassword ? 'Hide' : 'Show'}
+                          </Button>
+                        </InputRightElement>
+                      </InputGroup>
+                      {formErrors.password && (
+                        <FormErrorMessage fontSize="xs">{formErrors.password}</FormErrorMessage>
+                      )}
+                    </FormControl>
+
+                    <FormControl>
+                      <HStack justifyContent="space-between" width="100%" mt={1}>
+                        <Checkbox 
+                          isChecked={rememberMe} 
+                          onChange={(e) => setRememberMe(e.target.checked)}
+                          aria-label="Remember me"
+                          colorScheme="teal"
+                          size="sm"
+                        >
+                          <Text fontSize="sm">Remember me</Text>
+                        </Checkbox>
+                      </HStack>
+                    </FormControl>
+                    
+                    <Button 
+                      colorScheme="teal" 
+                      width="100%" 
+                      mt={3} 
+                      type="submit" 
+                      isLoading={isSubmitting}
+                      loadingText="Signing in"
+                      aria-label="Sign in"
+                      size="md"
+                      _hover={{ bg: 'teal.500' }}
+                      _active={{ bg: 'teal.600' }}
+                    >
+                      Sign In
+                    </Button>
+                  </VStack>
+                </form>
+                
+                <Divider my={3} />
+                
+                <Center>
+                  <Text mb={1} fontSize="sm">Or continue with</Text>
+                </Center>
+                
+                <VStack spacing={2}>
+                  {!providers || Object.keys(providers).length === 0 ? (
+                    <Text fontSize="xs" color="gray.500" textAlign="center">
+                      Social login options are currently unavailable
+                    </Text>
+                  ) : (
+                    <>
+                      {providers?.google && (
+                        <Button 
+                          width="100%" 
+                          colorScheme="red" 
+                          leftIcon={<FaGoogle />}
+                          onClick={() => handleSocialSignIn('google')}
+                          aria-label="Sign in with Google"
+                          size="md"
+                        >
+                          Sign in with Google
+                        </Button>
+                      )}
+                      
+                      {providers?.github && (
+                        <Button 
+                          width="100%" 
+                          colorScheme="gray" 
+                          leftIcon={<FaGithub />}
+                          onClick={() => handleSocialSignIn('github')}
+                          aria-label="Sign in with GitHub"
+                          size="md"
+                        >
+                          Sign in with GitHub
+                        </Button>
+                      )}
+                    </>
+                  )}
+                </VStack>
+                
+                <Center mt={1}>
+                  <Text fontSize="xs" color="gray.500">
+                    Contact your administrator if you need an account
+                  </Text>
+                </Center>
+                
+                <Center mt={1}>
+                  <Text fontSize="sm">
+                    Don't have an account?{' '}
+                    <Link color="teal.500" onClick={() => router.push('/auth/signup')}>
+                      Sign Up
+                    </Link>
+                  </Text>
+                </Center>
+              </VStack>
+            </Box>
+          </GridItem>
+        </Grid>
+      </Container>
+    </Box>
   );
 }
 

@@ -159,23 +159,6 @@ export const ProfileMenu: React.FC = () => {
               Admin Settings
             </MenuItem>
           )}
-          
-          {/* General items */}
-          <MenuItem icon={<FaCog />} onClick={handleShowModal}>
-            Settings
-          </MenuItem>
-          <MenuItem icon={<FaBook />} as={Link} href="/logs">
-            Logs
-          </MenuItem>
-          
-          {/* Help items */}
-          <MenuItem icon={<FaInfoCircle />}>
-            About
-          </MenuItem>
-          <MenuItem icon={<FaHistory />} as={Link} href="/docs/changelog">
-            Change Log
-          </MenuItem>
-          
           <MenuItem 
             icon={<FaSignOutAlt />} 
             onClick={handleSignOut}

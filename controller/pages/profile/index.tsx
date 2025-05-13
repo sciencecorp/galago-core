@@ -21,7 +21,6 @@ import {
   Skeleton
 } from '@chakra-ui/react';
 import { FaKey, FaUser, FaEnvelope, FaSignInAlt } from 'react-icons/fa';
-import { DarkModeToggle } from '@/components/ui/ProfileMenu';
 import { useCommonColors } from '@/components/ui/Theme';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -70,7 +69,6 @@ export default function ProfilePage() {
         <VStack spacing={8} align="stretch">
           <Flex justifyContent="space-between" alignItems="center">
             <Heading as="h1" size="xl">User Profile</Heading>
-            <DarkModeToggle />
           </Flex>
           
           <Card bg={colors.cardBg} shadow="md">
@@ -107,7 +105,6 @@ export default function ProfilePage() {
       <VStack spacing={8} align="stretch">
         <Flex justifyContent="space-between" alignItems="center">
           <Heading as="h1" size="xl">User Profile</Heading>
-          <DarkModeToggle />
         </Flex>
         
         <Card bg={colors.cardBg} shadow="md">
@@ -124,9 +121,6 @@ export default function ProfilePage() {
                 <HStack>
                   <Badge colorScheme={isAdmin ? 'purple' : 'teal'}>
                     {isAdmin ? 'Admin' : 'User'}
-                  </Badge>
-                  <Badge colorScheme="blue">
-                    {authProvider}
                   </Badge>
                 </HStack>
               </VStack>
@@ -150,7 +144,7 @@ export default function ProfilePage() {
               <HStack>
                 <Box as={FaKey} color="gray.500" />
                 <Text fontWeight="bold" width="100px">Role:</Text>
-                <Text>{isAdmin ? 'Administrator' : 'Regular User'}</Text>
+                <Text>{isAdmin ? 'Administrator' : 'User'}</Text>
               </HStack>
             </VStack>
           </CardBody>
