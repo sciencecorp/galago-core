@@ -11,11 +11,17 @@ interface User {
   is_admin: boolean;
 }
 
+interface LoginResult {
+  success: boolean;
+  error?: string;
+  message?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string, csrfToken?: string, rememberMe?: boolean) => Promise<LoginResult>;
   socialLogin: (provider: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -137,7 +143,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(false);
   };
 
-  const login = async (username: string, password: string) => {
+  const login = async (username: string, password: string, csrfToken?: string, rememberMe?: boolean): Promise<LoginResult> => {
     setLoading(true);
     setError(null);
     
@@ -145,6 +151,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const formData = new FormData();
       formData.append('username', username);
       formData.append('password', password);
+      
+      // Add CSRF token if provided
+      if (csrfToken) {
+        formData.append('csrfToken', csrfToken);
+      }
+      
+      // Add remember me preference
+      if (rememberMe !== undefined) {
+        formData.append('remember_me', rememberMe ? 'true' : 'false');
+      }
       
       const response = await axios.post(`${API_URL}/token`, formData);
       
@@ -157,11 +173,48 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
       
       setUser(userResponse.data);
-      router.push('/');
-    } catch (err) {
+      return { success: true };
+    } catch (err: any) {
       console.error('Login failed:', err);
-      setError('Login failed. Please check your credentials.');
-      throw err;
+      
+      // Extract more detailed error information if available
+      let errorType = 'unknown';
+      let errorMsg = 'Login failed. Please check your credentials.';
+      
+      if (err.response) {
+        const status = err.response.status;
+        const errorData = err.response.data;
+        
+        // Handle different error scenarios based on status code and response data
+        if (status === 401) {
+          if (errorData?.detail === 'Account locked') {
+            errorType = 'locked';
+            errorMsg = 'Your account has been locked due to too many failed attempts';
+          } else if (errorData?.detail === 'Inactive account') {
+            errorType = 'inactive';
+            errorMsg = 'Your account is inactive. Please contact an administrator';
+          } else if (errorData?.detail === 'Credentials expired') {
+            errorType = 'expired';
+            errorMsg = 'Your credentials have expired. Please reset your password';
+          } else {
+            errorType = 'credentials';
+            errorMsg = errorData?.detail || 'Invalid username or password';
+          }
+        } else if (status === 403) {
+          errorType = 'forbidden';
+          errorMsg = 'Access denied. You do not have permission to access this resource';
+        } else if (status === 429) {
+          errorType = 'rate_limited';
+          errorMsg = 'Too many login attempts. Please try again later';
+        }
+      }
+      
+      setError(errorMsg);
+      return { 
+        success: false, 
+        error: errorType, 
+        message: errorMsg 
+      };
     } finally {
       setLoading(false);
     }
