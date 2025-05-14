@@ -347,7 +347,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
                     <VStack spacing={4} align="stretch">
                       {/* IP Address field */}
                       <FormControl>
-                        <FormLabel>IP Address</FormLabel>
+                        <FormLabel>Tool Server IP</FormLabel>
                         <InputGroup>
                           <Input
                             value={newIp}
@@ -387,7 +387,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
 
                       {/* Port field */}
                       <FormControl>
-                        <FormLabel>Port</FormLabel>
+                        <FormLabel>Tool Server Port</FormLabel>
                         <InputGroup>
                           <Input
                             value={newPort}
