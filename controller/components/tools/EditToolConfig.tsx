@@ -24,6 +24,11 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { RiAddFill, RiFolderOpenLine, RiArrowDownSLine } from "react-icons/ri";
@@ -44,11 +49,12 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
   const { toolId, isOpen, onClose } = props;
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
+  const [newIp, setNewIp] = useState("");
+  const [newPort, setNewPort] = useState<number | string>("");
   const [newConfig, setNewConfig] = useState<Record<string, Record<string, any>>>({});
   const editTool = trpc.tool.edit.useMutation();
   const getTool = trpc.tool.info.useQuery({ toolId: toolId });
-  const { description, name, config, type } = getTool.data || {};
-  // const { name, description, config, type } = toolInfo;
+  const { description, name, config, type, ip, port } = getTool.data || {};
   const context = trpc.useContext();
 
   const comPorts = Array.from({ length: 20 }, (_, i) => `COM${i + 1}`);
@@ -57,16 +63,21 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
   const gplVersions = ["v1", "v2"];
 
   useEffect(() => {
-    if (
-      isOpen &&
-      config &&
-      type !== ToolType.unknown &&
-      type !== ToolType.UNRECOGNIZED &&
-      type != undefined
-    ) {
-      setNewConfig({ [type]: { ...config[type] } });
+    if (isOpen) {
+      setNewDescription(description || "");
+      setNewIp(ip || "");
+      setNewPort(port || "");
+
+      if (
+        config &&
+        type !== ToolType.unknown &&
+        type !== ToolType.UNRECOGNIZED &&
+        type != undefined
+      ) {
+        setNewConfig({ [type]: { ...config[type] } });
+      }
     }
-  }, [isOpen, config, type]);
+  }, [isOpen, description, ip, port, config, type]);
 
   const handleConfigChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -89,8 +100,9 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
     try {
       let id = toolId;
       const editedTool = {
-        name: newName || name,
         description: newDescription || description,
+        ip: newIp || ip,
+        port: typeof newPort === "string" && newPort !== "" ? parseInt(newPort) : port,
         config: newConfig || config,
       };
       await editTool.mutateAsync({ id: id, config: editedTool });
@@ -99,22 +111,6 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
       context.tool.info.invalidate({ toolId });
     } catch (error) {
       errorToast("Error updating tool", `Please try again. ${error}`);
-    }
-  };
-
-  // Helper function to handle the directory selection
-  const handleDirectorySelect = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      // Get the directory path from the selected file(s)
-      const path = files[0].webkitRelativePath.split("/")[0];
-
-      // Create a synthetic event to update the input value
-      const syntheticEvent = {
-        target: { value: path },
-      } as React.ChangeEvent<HTMLInputElement>;
-
-      handleConfigChange(syntheticEvent, key);
     }
   };
 
@@ -333,6 +329,105 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
                     {renderInputForKey(key, value)}
                   </FormControl>
                 ))}
+
+              <Divider my={2} />
+
+              {/* Advanced Parameters Accordion */}
+              <Accordion allowToggle width="100%">
+                <AccordionItem>
+                  <h2>
+                    <AccordionButton>
+                      <Box as="span" flex="1" textAlign="left" fontWeight="bold">
+                        Advanced Parameters
+                      </Box>
+                      <AccordionIcon />
+                    </AccordionButton>
+                  </h2>
+                  <AccordionPanel pb={4}>
+                    <VStack spacing={4} align="stretch">
+                      {/* IP Address field */}
+                      <FormControl>
+                        <FormLabel>IP Address</FormLabel>
+                        <InputGroup>
+                          <Input
+                            value={newIp}
+                            onChange={(e) => setNewIp(e.target.value)}
+                            placeholder="Enter IP address (e.g., 192.168.1.1 or localhost)"
+                            isInvalid={newIp !== "" && !isValidIP(newIp)}
+                            borderColor={newIp === "" || isValidIP(newIp) ? undefined : "red.300"}
+                          />
+                          <InputRightElement width="4.5rem">
+                            <Tooltip
+                              label={
+                                newIp === "" || isValidIP(newIp)
+                                  ? "Valid IP format"
+                                  : "Invalid IP format"
+                              }>
+                              <Button
+                                h="1.75rem"
+                                size="sm"
+                                colorScheme={newIp === "" || isValidIP(newIp) ? "teal" : "red"}
+                                variant="outline"
+                                onClick={() => {
+                                  if (newIp !== "" && !isValidIP(newIp)) {
+                                    errorToast(
+                                      "Invalid IP Address",
+                                      "Please enter a valid IP address (e.g., 192.168.1.1) or 'localhost'",
+                                    );
+                                  } else if (newIp !== "") {
+                                    successToast("Valid IP Address", "IP address format is valid");
+                                  }
+                                }}>
+                                {newIp === "" || isValidIP(newIp) ? "✓" : "✗"}
+                              </Button>
+                            </Tooltip>
+                          </InputRightElement>
+                        </InputGroup>
+                      </FormControl>
+
+                      {/* Port field */}
+                      <FormControl>
+                        <FormLabel>Port</FormLabel>
+                        <InputGroup>
+                          <Input
+                            value={newPort}
+                            onChange={(e) => {
+                              // Only allow numbers
+                              if (e.target.value === "" || /^\d+$/.test(e.target.value)) {
+                                setNewPort(e.target.value);
+                              }
+                            }}
+                            placeholder="Enter port number (0-65535)"
+                            isInvalid={
+                              newPort !== "" &&
+                              (isNaN(Number(newPort)) ||
+                                !Number.isInteger(Number(newPort)) ||
+                                Number(newPort) < 0 ||
+                                Number(newPort) > 65535)
+                            }
+                            type="number"
+                            min={0}
+                            max={65535}
+                          />
+                          {newPort !== "" &&
+                            (isNaN(Number(newPort)) ||
+                              !Number.isInteger(Number(newPort)) ||
+                              Number(newPort) < 0 ||
+                              Number(newPort) > 65535) && (
+                              <InputRightElement>
+                                <Tooltip label="Port must be a number between 0-65535">
+                                  <Button size="sm" colorScheme="red" variant="ghost">
+                                    !
+                                  </Button>
+                                </Tooltip>
+                              </InputRightElement>
+                            )}
+                        </InputGroup>
+                      </FormControl>
+                    </VStack>
+                  </AccordionPanel>
+                </AccordionItem>
+              </Accordion>
             </VStack>
           </ModalBody>
           <ModalFooter>
