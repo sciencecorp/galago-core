@@ -73,16 +73,21 @@ export const toolRouter = router({
     .mutation(async ({ input }) => {
       const { id, config } = input;
       const response = await put<ToolResponse>(`/tools/${id}`, config);
-      const tool = await Tool.forId(response.name);
-
-      tool.info = {
-        ...tool.info,
-        name: config.name ?? tool.info.name,
-        description: config.description ?? tool.info.description,
-        config: (config.config as Config) ?? tool.info.config,
+      await Tool.removeTool(response.name);
+      const updatedToolConfig: controller_protos.ToolConfig = {
+        name: response.name,
+        type: response.type as ToolType,
+        description: response.description || "",
+        image_url: response.image_url || "",
+        ip: response.ip || "localhost",
+        port: response.port || 0,
+        config: (response.config as Config) || {},
       };
 
-      await Tool.reloadSingleToolConfig(tool.info);
+      // Reload the tool config with ALL properties
+      await Tool.reloadSingleToolConfig(updatedToolConfig);
+
+      // Return the updated tool
       return response;
     }),
 
