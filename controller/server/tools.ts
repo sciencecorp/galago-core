@@ -21,13 +21,9 @@ const toolStore: Map<string, Tool> = new Map();
 const toolsWithLabware: string[] = ["pf400"];
 
 export default class Tool {
-  // Controller config is "what does the controller need to know about the tool?"
   info: controller_protos.ToolConfig;
   static allTools: controller_protos.ToolConfig[] = [Tool.toolBoxConfig()];
-
-  // Tool config is "what configuration is the tool currently using?"
   config?: tool_base.Config;
-
   grpc: ToolDriverClient;
   status: ToolStatus = ToolStatus.UNKNOWN_STATUS;
   uptime?: number;
@@ -37,7 +33,7 @@ export default class Tool {
   constructor(info: controller_protos.ToolConfig) {
     this.info = info;
     this.config = info.config;
-    const grpcServerIp = "host.docker.internal";
+    const grpcServerIp = info.ip === "localhost" ? "host.docker.internal" : info.ip;
     const target = `${grpcServerIp}:${info.port}`;
 
     this.grpc = promisifyGrpcClient(
@@ -95,24 +91,6 @@ export default class Tool {
 
   static async executeCSharp(script: string) {
     return await CSharpExecutor.executeScript(script);
-  }
-
-  static async getToolNameById(numericId: number): Promise<string> {
-    try {
-      // Get all tools from the API
-      const allTools = await get<ToolResponse[]>(`/tools`);
-
-      // Find the tool with the matching numeric ID
-      const tool = allTools.find((t) => t.id === numericId);
-      if (!tool) {
-        throw new Error(`No tool found with DB ID ${numericId}`);
-      }
-
-      return Tool.normalizeToolId(tool.name);
-    } catch (error) {
-      console.error(`Error getting tool name for DB ID ${numericId}:`, error);
-      throw error;
-    }
   }
 
   static async loadPF400Waypoints(toolId: string) {
