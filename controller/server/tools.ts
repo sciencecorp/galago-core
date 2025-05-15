@@ -12,13 +12,10 @@ import { Script } from "@/types/api";
 import { Variable } from "@/types/api";
 import { Labware } from "@/types/api";
 import { logAction } from "./logger";
-import { Tool as ToolResponse } from "@/types/api";
 import { JavaScriptExecutor } from "@/server/scripting/javascript/javascript-executor";
 import { CSharpExecutor } from "@/server/scripting/csharp/csharp-executor";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
-const toolStore: Map<string, Tool> = new Map();
-const toolsWithLabware: string[] = ["pf400"];
 
 export default class Tool {
   info: controller_protos.ToolConfig;
@@ -407,10 +404,23 @@ export default class Tool {
 
   static async reloadSingleToolConfig(tool: controller_protos.ToolConfig) {
     const normalizedName = Tool.normalizeToolId(tool.name);
+    
+    // Remove from tool store
     await this.removeTool(tool.name);
-    // Replace or update the tool config in allTools
+    
+    // Update allTools list
     this.allTools = this.allTools.filter((t) => Tool.normalizeToolId(t.name) !== normalizedName);
     this.allTools.push(tool);
+    
+    // Update or recreate the tool in the global store
+    const global_key = "__global_tool_store";
+    const me = global as any;
+    if (me[global_key]) {
+      const store: Map<string, Tool> = me[global_key];
+      const newTool = new Tool(tool);
+      newTool.startHeartbeat(5000);
+      store.set(normalizedName, newTool);
+    }
   }
 
   static forId(toolId: string): Tool {

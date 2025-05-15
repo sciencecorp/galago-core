@@ -63,33 +63,36 @@ export const toolRouter = router({
   }),
 
   //Edit an existing tool
-  edit: procedure
-    .input(
-      z.object({
-        id: z.string(),
-        config: zTool,
-      }),
-    )
-    .mutation(async ({ input }) => {
-      const { id, config } = input;
-      const response = await put<ToolResponse>(`/tools/${id}`, config);
-      await Tool.removeTool(response.name);
-      const updatedToolConfig: controller_protos.ToolConfig = {
-        name: response.name,
-        type: response.type as ToolType,
-        description: response.description || "",
-        image_url: response.image_url || "",
-        ip: response.ip || "localhost",
-        port: response.port || 0,
-        config: (response.config as Config) || {},
-      };
-
-      // Reload the tool config with ALL properties
-      await Tool.reloadSingleToolConfig(updatedToolConfig);
-
-      // Return the updated tool
-      return response;
+edit: procedure
+  .input(
+    z.object({
+      id: z.string(),
+      config: zTool,
     }),
+  )
+  .mutation(async ({ input }) => {
+    const { id, config } = input;
+    const response = await put<ToolResponse>(`/tools/${id}`, config);
+    await Tool.removeTool(id);
+    const updatedToolConfig: controller_protos.ToolConfig = {
+      name: response.name,
+      type: response.type as ToolType,
+      description: response.description || "",
+      image_url: response.image_url || "",
+      ip: response.ip || "localhost",
+      port: response.port || 0,
+      config: (response.config as Config) || {},
+    };
+
+    // Ensure these async operations complete
+    await Tool.reloadSingleToolConfig(updatedToolConfig);
+    await Tool.clearToolStore();
+    
+    // Explicitly create the tool again to ensure it's in the store with new config
+    Tool.forId(Tool.normalizeToolId(response.name));
+    
+    return response;
+  }),
 
   delete: procedure.input(z.string()).mutation(async ({ input }) => {
     await del(`/tools/${input}`);

@@ -40,21 +40,19 @@ import { InputWithDropdown } from "../ui/InputWithDropdown";
 
 interface EditToolModalProps {
   toolId: string;
-  toolInfo: ToolConfig;
   isOpen: boolean;
   onClose: () => void;
 }
 
 export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
   const { toolId, isOpen, onClose } = props;
-  const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [newIp, setNewIp] = useState("");
   const [newPort, setNewPort] = useState<number | string>("");
   const [newConfig, setNewConfig] = useState<Record<string, Record<string, any>>>({});
   const editTool = trpc.tool.edit.useMutation();
   const getTool = trpc.tool.info.useQuery({ toolId: toolId });
-  const { description, name, config, type, ip, port } = getTool.data || {};
+  const { description, config, type, ip, port } = getTool.data || {};
   const context = trpc.useContext();
 
   const comPorts = Array.from({ length: 20 }, (_, i) => `COM${i + 1}`);
@@ -108,7 +106,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
       await editTool.mutateAsync({ id: id, config: editedTool });
       successToast("Tool updated successfully", "");
       onClose();
-      context.tool.info.invalidate({ toolId });
+      // context.tool.info.invalidate({ toolId });
     } catch (error) {
       errorToast("Error updating tool", `Please try again. ${error}`);
     }
@@ -387,7 +385,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
 
                       {/* Port field */}
                       <FormControl>
-                        <FormLabel>Tool Server Port</FormLabel>
+                        <FormLabel>Tool Server</FormLabel>
                         <InputGroup>
                           <Input
                             value={newPort}
