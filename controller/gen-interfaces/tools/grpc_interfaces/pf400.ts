@@ -83,7 +83,7 @@ export interface Command_Unwind {
 }
 
 export interface Command_Move {
-  name: string;
+  location: string;
   motion_profile?: string | undefined;
   approach_height?: number | undefined;
 }
@@ -1307,13 +1307,13 @@ export const Command_Unwind = {
 };
 
 function createBaseCommand_Move(): Command_Move {
-  return { name: "", motion_profile: undefined, approach_height: undefined };
+  return { location: "", motion_profile: undefined, approach_height: undefined };
 }
 
 export const Command_Move = {
   encode(message: Command_Move, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.name !== "") {
-      writer.uint32(10).string(message.name);
+    if (message.location !== "") {
+      writer.uint32(10).string(message.location);
     }
     if (message.motion_profile !== undefined) {
       writer.uint32(18).string(message.motion_profile);
@@ -1336,7 +1336,7 @@ export const Command_Move = {
             break;
           }
 
-          message.name = reader.string();
+          message.location = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
@@ -1363,7 +1363,7 @@ export const Command_Move = {
 
   fromJSON(object: any): Command_Move {
     return {
-      name: isSet(object.name) ? String(object.name) : "",
+      location: isSet(object.location) ? String(object.location) : "",
       motion_profile: isSet(object.motion_profile) ? String(object.motion_profile) : undefined,
       approach_height: isSet(object.approach_height) ? Number(object.approach_height) : undefined,
     };
@@ -1371,7 +1371,7 @@ export const Command_Move = {
 
   toJSON(message: Command_Move): unknown {
     const obj: any = {};
-    message.name !== undefined && (obj.name = message.name);
+    message.location !== undefined && (obj.location = message.location);
     message.motion_profile !== undefined && (obj.motion_profile = message.motion_profile);
     message.approach_height !== undefined && (obj.approach_height = Math.round(message.approach_height));
     return obj;
@@ -1383,7 +1383,7 @@ export const Command_Move = {
 
   fromPartial<I extends Exact<DeepPartial<Command_Move>, I>>(object: I): Command_Move {
     const message = createBaseCommand_Move();
-    message.name = object.name ?? "";
+    message.location = object.location ?? "";
     message.motion_profile = object.motion_profile ?? undefined;
     message.approach_height = object.approach_height ?? undefined;
     return message;

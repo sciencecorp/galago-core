@@ -227,12 +227,7 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
           </VStack>
         </CardBody>
       </Card>
-      <EditToolModal
-        toolId={toolId}
-        toolInfo={toolData as ToolConfig}
-        isOpen={isOpen}
-        onClose={onClose}
-      />
+      <EditToolModal toolId={toolId} isOpen={isOpen} onClose={onClose} />
     </>
   );
 }

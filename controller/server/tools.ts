@@ -404,14 +404,14 @@ export default class Tool {
 
   static async reloadSingleToolConfig(tool: controller_protos.ToolConfig) {
     const normalizedName = Tool.normalizeToolId(tool.name);
-    
+
     // Remove from tool store
     await this.removeTool(tool.name);
-    
+
     // Update allTools list
     this.allTools = this.allTools.filter((t) => Tool.normalizeToolId(t.name) !== normalizedName);
     this.allTools.push(tool);
-    
+
     // Update or recreate the tool in the global store
     const global_key = "__global_tool_store";
     const me = global as any;

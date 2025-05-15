@@ -220,7 +220,7 @@ export const commandFields: CommandFields = {
       { name: "labware", type: "text" },
     ],
     move: [
-      { name: "name", type: "text" },
+      { name: "location", type: "text" },
       { name: "motion_profile", type: "text", defaultValue: "Default" },
     ],
     grasp_plate: [

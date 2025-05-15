@@ -27,10 +27,10 @@ export function ToolConfigEditor({
     { toolId: toolId },
     {
       refetchInterval: 2000, // Refetch every 2 seconds
-      staleTime: 0,          // Consider data stale immediately
-    }
+      staleTime: 0, // Consider data stale immediately
+    },
   );
-  
+
   const statusQuery = trpc.tool.status.useQuery(
     { toolId: toolId },
     {
@@ -42,14 +42,14 @@ export function ToolConfigEditor({
       },
     },
   );
-  
+
   var error_description = "Error connecting to instrument";
   const configureMutation = trpc.tool.configure.useMutation({
     onSuccess: () => {
       statusQuery.refetch();
       toolInfoQuery.refetch(); // Also refetch the tool info
       if (onConfiguring) onConfiguring(false);
-      
+
       // Force invalidate all related queries
       const context = trpc.useContext();
       context.tool.info.invalidate();
@@ -64,33 +64,33 @@ export function ToolConfigEditor({
       if (onConfiguring) onConfiguring(false);
     },
   });
-  
+
   const { isLoading } = configureMutation;
   const [isSimulated, setSimulated] = useState(false);
-  
+
   // Get the latest config from the query instead of defaultConfig
   const latestConfig = toolInfoQuery.data || defaultConfig;
-  
+
   // Get tool type and config from the latest data
   const toolType = latestConfig.type;
   const config = toolSpecificConfig(latestConfig);
-  
+
   const [configString, setConfigString] = useState("");
   const [toolConfiguring, setToolConfiguring] = useState(false);
-  
+
   // Update configString whenever config changes
   useEffect(() => {
     if (config) {
       setConfigString(JSON.stringify(config, null, 2));
     }
   }, [config]);
-  
+
   const isReachable =
     statusQuery.isSuccess &&
     statusQuery.data &&
     statusQuery.data.status !== ToolStatus.OFFLINE &&
     toolId != "tool_box";
-  
+
   const saveConfig = async (simulated: boolean) => {
     setToolConfiguring(true);
     if (onConfiguring) onConfiguring(true);
@@ -99,31 +99,30 @@ export function ToolConfigEditor({
       simulated: simulated,
       [toolType]: JSON.parse(configString),
     };
-    
+
     try {
       await configureMutation.mutateAsync({
         toolId: toolId,
         config: config,
       });
-      
+
       // Show success toast
       successToast("Tool configuration updated", "");
-      
+
       // Force refetch all related queries
       toolInfoQuery.refetch();
       statusQuery.refetch();
-      
+
       // Force invalidate tool info cache
       const context = trpc.useContext();
       context.tool.info.invalidate();
-      
     } catch (error) {
       // Error is handled by onError in mutation
     } finally {
       setToolConfiguring(false);
     }
   };
-  
+
   return (
     <VStack spacing={2} align="start">
       <HStack spacing={2}>
@@ -144,8 +143,7 @@ export function ToolConfigEditor({
         disabled={isLoading || toolConfiguring}
         onClick={async () => saveConfig(false)}
         isDisabled={!isReachable || isSimulated}
-        isLoading={toolConfiguring}
-      >
+        isLoading={toolConfiguring}>
         Connect
       </Button>
     </VStack>
