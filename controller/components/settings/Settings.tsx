@@ -47,6 +47,7 @@ import { EditIcon, DeleteIcon, AddIcon, ViewIcon, ViewOffIcon } from "@chakra-ui
 import { authAxios } from "@/hooks/useAuth";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/router";
+import { useCommonColors } from "@/components/ui/Theme";
 
 // API Key types
 interface ApiKey {
@@ -85,9 +86,10 @@ interface UserFormData {
 }
 
 export const Settings: React.FC = () => {
-  const { isAuthenticated, isAdmin, user } = useAuth();
+  const { isAuthenticated, isAdmin, user, loading } = useAuth();
   const router = useRouter();
   const toast = useToast();
+  const colors = useCommonColors();
 
   // State for API keys
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
@@ -109,6 +111,9 @@ export const Settings: React.FC = () => {
     password: "",
     is_admin: false,
   });
+
+  // Add error state
+  const [adminError, setAdminError] = useState<string | null>(null);
 
   // Modal states
   const {
@@ -135,31 +140,46 @@ export const Settings: React.FC = () => {
     if (!isAuthenticated) {
       router.push("/login");
     } else if (!isAdmin) {
-      toast({
-        title: "Access denied",
-        description: "You need admin privileges to access settings",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-      router.push("/");
+      // Only redirect if we're sure the user is not admin
+      if (!loading) {
+        setAdminError("You need admin privileges to access settings");
+        toast({
+          title: "Access denied",
+          description: "You need admin privileges to access settings",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+        // Don't redirect immediately - give a chance to show the error
+        setTimeout(() => {
+          router.push("/");
+        }, 2000);
+      }
+    } else {
+      // Clear any previous admin errors when admin status is confirmed
+      setAdminError(null);
     }
-  }, [isAuthenticated, isAdmin, router, toast]);
+  }, [isAuthenticated, isAdmin, router, toast, loading]);
 
   // Fetch API keys
   const fetchApiKeys = async () => {
     try {
       const response = await authAxios.get("/api-keys");
       setApiKeys(response.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching API keys:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch API keys",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      // Don't show toast for auth errors - they're handled separately
+      if (error?.response?.status !== 401 && error?.response?.status !== 403) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch API keys",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        setApiKeys([]); // Set empty array for auth errors
+      }
     }
   };
 
@@ -168,25 +188,30 @@ export const Settings: React.FC = () => {
     try {
       const response = await authAxios.get("/users");
       setUsers(response.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching users:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch users",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      // Don't show toast for auth errors - they're handled separately
+      if (error?.response?.status !== 401 && error?.response?.status !== 403) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch users",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        setUsers([]); // Set empty array for auth errors
+      }
     }
   };
 
   // Load data when component mounts
   useEffect(() => {
-    if (isAdmin) {
+    if (isAdmin && !adminError) {
       fetchApiKeys();
       fetchUsers();
     }
-  }, [isAdmin]);
+  }, [isAdmin, adminError]);
 
   // API Key handlers
   const handleApiKeyInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -414,10 +439,21 @@ export const Settings: React.FC = () => {
   }
 
   return (
-    <Box mt={12} p={8}>
-      <Heading mb={6}>Settings</Heading>
+    <Box p={6}>
+      <Heading as="h1" mb={6}>
+        Settings
+      </Heading>
 
-      <Tabs variant="enclosed" colorScheme="teal">
+      {adminError && (
+        <Box mb={6} p={4} bg="red.100" color="red.800" borderRadius="md">
+          <Heading size="md" mb={2}>
+            Access Error
+          </Heading>
+          <Text>{adminError}</Text>
+        </Box>
+      )}
+
+      <Tabs isLazy variant="enclosed">
         <TabList>
           <Tab>API Keys</Tab>
           <Tab>User Management</Tab>
@@ -522,18 +558,20 @@ export const Settings: React.FC = () => {
                 </Tr>
               </Thead>
               <Tbody>
-                {users.map((user) => (
-                  <Tr key={user.id}>
-                    <Td>{user.username}</Td>
-                    <Td>{user.email}</Td>
+                {users.map((userInList) => (
+                  <Tr
+                    key={userInList.id}
+                    bg={user?.id === userInList.id ? colors.selectedBg : undefined}>
+                    <Td>{userInList.username}</Td>
+                    <Td>{userInList.email}</Td>
                     <Td>
-                      <Badge colorScheme={user.is_admin ? "purple" : "gray"}>
-                        {user.is_admin ? "Admin" : "User"}
+                      <Badge colorScheme={userInList.is_admin ? "purple" : "gray"}>
+                        {userInList.is_admin ? "Admin" : "User"}
                       </Badge>
                     </Td>
                     <Td>
-                      <Badge colorScheme={user.is_active ? "green" : "red"}>
-                        {user.is_active ? "Active" : "Inactive"}
+                      <Badge colorScheme={userInList.is_active ? "green" : "red"}>
+                        {userInList.is_active ? "Active" : "Inactive"}
                       </Badge>
                     </Td>
                     <Td>
@@ -543,15 +581,15 @@ export const Settings: React.FC = () => {
                           icon={<EditIcon />}
                           size="sm"
                           colorScheme="blue"
-                          onClick={() => openEditUserModal(user)}
+                          onClick={() => openEditUserModal(userInList)}
                         />
                         <IconButton
                           aria-label="Delete User"
                           icon={<DeleteIcon />}
                           size="sm"
                           colorScheme="red"
-                          onClick={() => openDeleteConfirmation("user", user.id)}
-                          isDisabled={user.id === (user && user.id)}
+                          onClick={() => openDeleteConfirmation("user", userInList.id)}
+                          isDisabled={user?.id === userInList.id}
                         />
                       </HStack>
                     </Td>

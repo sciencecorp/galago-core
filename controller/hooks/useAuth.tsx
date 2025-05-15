@@ -38,19 +38,30 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 // Helper function to store token in cookies only
-export const storeToken = (token: string) => {
+export const storeToken = (token: string, refreshToken?: string) => {
   if (typeof window !== "undefined") {
-    // Set cookie with httpOnly:true to prevent JavaScript access, and secure if in production
+    // 1. Set HttpOnly cookie via API for security
     fetch(`${API_URL}/set-cookie`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ token }),
-      credentials: "include", // Important for cookies
+      credentials: "include", // Important for HttpOnly cookies
     }).catch((err) => {
-      console.error("Failed to set secure cookie:", err);
+      console.error("Failed to set secure HttpOnly cookie:", err);
     });
+
+    // 2. Set in localStorage for client-side accessibility (needed for Authorization header)
+    localStorage.setItem("token", token);
+
+    // 3. Store refresh token if provided
+    if (refreshToken) {
+      localStorage.setItem("refreshToken", refreshToken);
+    }
+
+    // Removed: The redundant non-HttpOnly Cookies.set call since we have the HttpOnly cookie
+    // and localStorage for Authorization header
   }
 };
 
@@ -67,6 +78,10 @@ export const removeToken = () => {
 
     // Also remove non-httpOnly cookie if it exists
     Cookies.remove("token", { path: "/" });
+
+    // Ensure localStorage is also cleared
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken"); // Also clear refresh token
   }
 };
 
@@ -85,7 +100,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (session?.accessToken) {
         // Store the token from NextAuth in our local storage/cookies
         const token = session.accessToken as string;
-        storeToken(token);
+        // The refresh token might not always be available from NextAuth
+        const refreshToken = (session as any).refreshToken as string;
+        storeToken(token, refreshToken);
 
         // Fetch user data with the token to keep systems in sync
         const fetchUserWithToken = async () => {
@@ -178,8 +195,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       const response = await axios.post(`${API_URL}/token`, formData);
 
-      const { access_token } = response.data;
-      storeToken(access_token);
+      const { access_token, refresh_token } = response.data;
+      storeToken(access_token, refresh_token);
 
       // Get the user data
       const userResponse = await axios.get(`${API_URL}/users/me`, {
@@ -293,6 +310,10 @@ export const authAxios = axios.create({
 // Add a request interceptor to add the token to all requests
 authAxios.interceptors.request.use(
   (config) => {
+    const token = localStorage.getItem("token") || Cookies.get("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     // With httpOnly cookies, we don't need to manually add the token
     // The browser will automatically send the cookie with requests
     // Just make sure credentials are included
@@ -305,11 +326,61 @@ authAxios.interceptors.request.use(
 // Add a response interceptor to handle authentication errors
 authAxios.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    console.error("API error:", error.config?.url, error.response?.status, error.response?.data);
+
+    const originalRequest = error.config;
+
+    // If it's an authentication error (401) and not already retried
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      // Don't attempt to refresh for specific endpoints
+      const url = originalRequest?.url || "";
+      const skipRefreshEndpoints = ["/token", "/refresh-token", "/external-auth"];
+
+      if (!skipRefreshEndpoints.some((endpoint) => url.includes(endpoint))) {
+        // Mark the request as retried to prevent infinite loops
+        originalRequest._retry = true;
+
+        try {
+          // Get refresh token
+          const refreshToken = localStorage.getItem("refreshToken");
+
+          if (refreshToken) {
+            // Attempt to refresh the token
+            const response = await axios.post(`${API_URL}/refresh-token`, {
+              refresh_token: refreshToken,
+            });
+
+            if (response.data.access_token) {
+              // Update tokens in storage
+              storeToken(response.data.access_token, response.data.refresh_token);
+
+              // Update the authorization header
+              originalRequest.headers.Authorization = `Bearer ${response.data.access_token}`;
+
+              // Retry the original request
+              return axios(originalRequest);
+            }
+          }
+        } catch (refreshError) {
+          // Refresh token failed, force logout
+          console.error("Token refresh failed:", refreshError);
+          removeToken();
+          window.location.href = "/auth/signin";
+          return Promise.reject(refreshError);
+        }
+      }
+    }
+
+    // Only redirect for authentication errors not from admin-specific endpoints
+    // and if refreshing wasn't attempted or failed
     if (error.response && error.response.status === 401) {
-      // If we get a 401 Unauthorized, redirect to login
-      removeToken();
-      window.location.href = "/auth/signin";
+      const url = error.config?.url || "";
+      // Don't immediately redirect for admin endpoints - let the components handle these errors
+      if (!url.includes("/api-keys") && !url.includes("/users")) {
+        removeToken();
+        window.location.href = "/auth/signin";
+      }
     }
     return Promise.reject(error);
   },

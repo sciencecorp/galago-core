@@ -44,8 +44,12 @@ from db.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     create_refresh_token,
     verify_refresh_token,
+    SECRET_KEY,
+    ALGORITHM,
 )
 import os
+from jose import jwt
+from datetime import datetime
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -2391,6 +2395,32 @@ class TokenModel(BaseModel):
 async def set_secure_cookie(token_data: TokenModel):
     """Set a secure httpOnly cookie with the JWT token"""
     response = JSONResponse(content={"status": "success"})
+
+    try:
+        # Decode the JWT to extract its expiration time
+        payload = jwt.decode(token_data.token, SECRET_KEY, algorithms=[ALGORITHM])
+
+        # Get the expiration timestamp from the token
+        exp_timestamp = payload.get("exp")
+
+        if exp_timestamp:
+            # Calculate remaining time in seconds until token expiration
+            current_timestamp = datetime.utcnow().timestamp()
+            remaining_seconds = int(exp_timestamp - current_timestamp)
+
+            # Use the remaining time as max_age, with a minimum of 1 second
+            # and a fallback to 24 hours if something is wrong with the token
+            max_age = (
+                max(remaining_seconds, 1) if remaining_seconds > 0 else 60 * 60 * 24
+            )
+        else:
+            # Fallback to 24 hours if no expiration in the token
+            max_age = 60 * 60 * 24
+    except Exception as e:
+        # If any error occurs during token decoding, fallback to 24 hours
+        print(f"Error extracting token expiration: {str(e)}")
+        max_age = 60 * 60 * 24
+
     # Set a secure httpOnly cookie
     response.set_cookie(
         key="token",
@@ -2398,7 +2428,7 @@ async def set_secure_cookie(token_data: TokenModel):
         httponly=True,
         secure=os.environ.get("ENVIRONMENT", "development") == "production",
         samesite="lax",
-        max_age=60 * 60 * 24,  # 24 hours
+        max_age=max_age,  # Dynamic expiration based on token's expiry
         path="/",
     )
     return response

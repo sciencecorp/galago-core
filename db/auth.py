@@ -119,9 +119,16 @@ async def get_current_active_user(current_user=Depends(get_current_user)):
 
 
 async def get_current_admin_user(current_user=Depends(get_current_active_user)):
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     if not current_user.is_admin:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions - admin access required",
         )
     return current_user
 
