@@ -13,9 +13,7 @@ class SnowflakeIdGenerator {
 
   public nextId(): string {
     const id: bigint = this.worker.nextId();
-    const buffer = Buffer.alloc(8);
-    buffer.writeBigUInt64BE(id);
-    return encode(buffer);
+    return id.toString(16);
   }
 }
 
