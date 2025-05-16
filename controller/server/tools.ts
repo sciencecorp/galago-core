@@ -298,11 +298,12 @@ export default class Tool {
         case tool_base.ResponseCode.INVALID_ARGUMENTS:
           userFriendlyErrorMessage = `Invalid arguments provided for command "${command.command}". Check the parameters and try again.`;
           break;
-        case tool_base.ResponseCode.TOOL_BUSY:
-          userFriendlyErrorMessage = `The tool "${command.toolId}" is currently busy. Please wait and try again.`;
+        case tool_base.ResponseCode.NOT_READY:
+          userFriendlyErrorMessage = `The tool "${command.toolId}" is currently not ready. Please wait and try again.`;
           break;
-        case tool_base.ResponseCode.TOOL_DISCONNECTED:
-          userFriendlyErrorMessage = `The tool "${command.toolId}" is disconnected. Please check its connection and try again.`;
+        case tool_base.ResponseCode.WRONG_TOOL:
+          userFriendlyErrorMessage =
+            "The command was sent to the wrong tool type. Please check that you're using the correct tool for this operation.";
           break;
         case tool_base.ResponseCode.ERROR_FROM_TOOL:
           userFriendlyErrorMessage = reply.error_message
