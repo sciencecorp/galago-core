@@ -70,6 +70,14 @@ export const RunsComponent: React.FC = () => {
 
   // Unified message state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorModalData, setErrorModalData] = useState<{
+    message: string;
+    code?: string;
+    details?: string;
+  }>({
+    message: "An error occurred",
+  });
 
   const [messageData, setMessageData] = useState<{
     type: "pause" | "message" | "timer" | "stop_run";
@@ -168,16 +176,69 @@ export const RunsComponent: React.FC = () => {
 
   const ErrorBanner = () => {
     if (!getError.data && !getError.error) return null;
+
     if (stateQuery.data === ToolStatus.FAILED && isErrorVisible) {
+      // Extract error information
+      let errorMessage = "An error occurred while executing the command";
+      let errorCode = "";
+      let errorDetails = "";
+
+      if (getError.data) {
+        // Check if error is a ToolCommandExecutionError
+        if (typeof getError.data === "object" && getError.data !== null) {
+          // Handle ToolCommandExecutionError with our enhanced properties
+          if ("userFriendlyMessage" in getError.data) {
+            errorMessage = getError.data.userFriendlyMessage;
+          } else if ("message" in getError.data) {
+            errorMessage = getError.data.message;
+          }
+
+          if ("codeString" in getError.data) {
+            errorCode = getError.data.codeString;
+          } else if ("code" in getError.data) {
+            // Convert numeric code to string if possible
+            const code = getError.data.code;
+            errorCode = typeof code === "number" ? `Code ${code}` : String(code);
+          }
+
+          errorDetails = JSON.stringify(getError.data, null, 2);
+        } else {
+          // Handle plain error message
+          errorMessage = String(getError.data);
+        }
+      }
+
       return (
         <Alert status="error" variant="left-accent" mb={2}>
           <AlertIcon />
           <Box flex="1">
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>An error occurred while executing the command.</AlertDescription>
-            {getError.data && <AlertDescription>{getError.data.toString()}</AlertDescription>}
+            <AlertTitle display="flex" alignItems="center">
+              Error
+              {errorCode && (
+                <Badge ml={2} colorScheme="red">
+                  {errorCode}
+                </Badge>
+              )}
+            </AlertTitle>
+            <AlertDescription fontWeight="medium">{errorMessage}</AlertDescription>
           </Box>
-          <CloseButton onClick={() => setIsErrorVisible(false)} />
+          <HStack>
+            <Button
+              size="sm"
+              colorScheme="red"
+              variant="outline"
+              onClick={() => {
+                setIsErrorModalOpen(true);
+                setErrorModalData({
+                  message: errorMessage,
+                  code: errorCode,
+                  details: errorDetails,
+                });
+              }}>
+              Details
+            </Button>
+            <CloseButton onClick={() => setIsErrorVisible(false)} />
+          </HStack>
         </Alert>
       );
     } else {
@@ -370,7 +431,11 @@ export const RunsComponent: React.FC = () => {
         messageData={messageData}
         onContinue={handleResume}
       />
-
+      <ErrorModal
+        isOpen={isErrorModalOpen}
+        onClose={() => setIsErrorModalOpen(false)}
+        errorData={errorModalData}
+      />
       <StopRunModal
         isOpen={isModalOpen && messageData.type === "stop_run"}
         messageData={messageData}

@@ -283,17 +283,45 @@ export default class Tool {
         throw new Error(`Failed to fetch ${scriptName}. ${e}`);
       }
     }
+
     const reply = await this.grpc.executeCommand(this._payloadForCommand(command));
+
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
+      // Generate a more user-friendly error message based on the error code
+      let userFriendlyErrorMessage: string;
+
+      // Handle specific error codes
+      switch (reply.response) {
+        case tool_base.ResponseCode.UNRECOGNIZED_COMMAND:
+          userFriendlyErrorMessage = `The command "${command.command}" is not recognized by the tool "${command.toolId}". Please verify that this command is supported by this tool.`;
+          break;
+        case tool_base.ResponseCode.INVALID_ARGUMENTS:
+          userFriendlyErrorMessage = `Invalid arguments provided for command "${command.command}". Check the parameters and try again.`;
+          break;
+        case tool_base.ResponseCode.TOOL_BUSY:
+          userFriendlyErrorMessage = `The tool "${command.toolId}" is currently busy. Please wait and try again.`;
+          break;
+        case tool_base.ResponseCode.TOOL_DISCONNECTED:
+          userFriendlyErrorMessage = `The tool "${command.toolId}" is disconnected. Please check its connection and try again.`;
+          break;
+        case tool_base.ResponseCode.ERROR_FROM_TOOL:
+          userFriendlyErrorMessage = reply.error_message
+            ? `Error from tool "${command.toolId}": ${reply.error_message}`
+            : `An error occurred while executing the command "${command.command}" on tool "${command.toolId}".`;
+          break;
+        default:
+          userFriendlyErrorMessage =
+            reply.error_message ||
+            `Failed to execute command "${command.command}" on tool "${command.toolId}"`;
+      }
+
       logAction({
         level: "error",
         action: "Tool Command Execution Error",
-        details: `Failed to execute command: ${command.command}, Tool: ${command.toolId}. Error: ${reply.error_message}`,
+        details: `Failed to execute command: ${command.command}, Tool: ${command.toolId}. Error: ${userFriendlyErrorMessage} (Code: ${reply.response})`,
       });
-      throw new ToolCommandExecutionError(
-        reply.error_message ?? "Tool command failed",
-        reply.response,
-      );
+
+      throw new ToolCommandExecutionError(userFriendlyErrorMessage, reply.response);
     } else if (reply.return_reply && !reply?.error_message) {
       return reply;
     } else if (reply?.error_message) {
@@ -308,7 +336,6 @@ export default class Tool {
       );
     }
   }
-
   async estimateDuration(command: ToolCommandInfo) {
     const reply = await this.grpc.estimateDuration(this._payloadForCommand(command));
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
@@ -485,5 +512,26 @@ export class ToolCommandExecutionError extends Error {
   ) {
     super(message);
     this.name = "ToolCommandExecutionError";
+
+    // Add some helpful properties to make error handling easier
+    this.codeString = this.getResponseCodeString(code);
+    this.userFriendlyMessage = message;
+  }
+
+  // Add a property to get the string representation of the response code
+  public codeString: string;
+
+  // Add a property to store user-friendly message
+  public userFriendlyMessage: string;
+
+  // Helper method to get string representation of ResponseCode
+  private getResponseCodeString(code: tool_base.ResponseCode): string {
+    // Convert the numeric code to its string name
+    const codeNames =
+      Object.entries(tool_base.ResponseCode)
+        .filter(([_, value]) => typeof value === "number")
+        .find(([_, value]) => value === code)?.[0] || "UNKNOWN";
+
+    return codeNames;
   }
 }

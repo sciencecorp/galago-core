@@ -1,6 +1,8 @@
 import { z } from "zod";
 import CommandQueue from "../command_queue";
 import { procedure, router } from "@/server/trpc";
+import { ToolCommandExecutionError } from "../tools";
+import { ResponseCode } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 // type NonEmptyArray<T> = [T, ...T[]];
 // const zToolStatus = z.enum(Object.values(ToolStatus) as NonEmptyArray<ToolStatus>);
 
@@ -15,7 +17,41 @@ export const commandQueueRouter = router({
     CommandQueue.global.stop();
   }),
   getError: procedure.query(async () => {
-    return CommandQueue.global.getError();
+    const error = CommandQueue.global.getError();
+    if (!error) return null;
+
+    // If the error is a ToolCommandExecutionError, enhance it with a user-friendly message
+    if (error instanceof ToolCommandExecutionError) {
+      // Get a user-friendly message based on the error code
+      let userFriendlyMessage = error.message;
+
+      // Add specific messages for different error codes
+      if (error.code === ResponseCode.UNRECOGNIZED_COMMAND) {
+        userFriendlyMessage =
+          "This command is not recognized by the tool. Please verify that the command is supported.";
+      } else if (error.code === ResponseCode.INVALID_ARGUMENTS) {
+        userFriendlyMessage =
+          "Invalid arguments provided for this command. Please check the parameters.";
+      } else if (error.code === ResponseCode.WRONG_TOOL) {
+        userFriendlyMessage =
+          "The command was sent to the wrong tool type. Please check that you're using the correct tool for this operation.";
+      } else if (error.code === ResponseCode.NOT_READY) {
+        userFriendlyMessage = "The tool is not ready. Please check its status and try again.";
+      }
+
+      // Return enhanced error information
+      return {
+        message: error.message,
+        userFriendlyMessage,
+        code: error.code,
+        codeString: error.code.toString(),
+        name: error.name,
+        stack: error.stack,
+      };
+    }
+
+    // For other types of errors, return as is
+    return error;
   }),
   skipCommand: procedure.input(z.number()).mutation(async ({ input }) => {
     CommandQueue.global.skipCommand(input);
@@ -57,12 +93,10 @@ export const commandQueueRouter = router({
       return await CommandQueue.global.getPaginated(offset, limit);
       // const allCommands = await CommandQueue.global.allCommands();
     }),
-
   // Unified waiting-for-input status query
   isWaitingForInput: procedure.query(async () => {
     return CommandQueue.global.isWaitingForInput;
   }),
-
   gotoCommandByRunIndex: procedure
     .input(
       z.object({
@@ -73,16 +107,13 @@ export const commandQueueRouter = router({
     .mutation(async ({ input }) => {
       return CommandQueue.global.gotoCommandByRunIndex(input.runId, input.index);
     }),
-
   gotoCommand: procedure.input(z.number()).mutation(async ({ input }) => {
     return CommandQueue.global.gotoCommand(input);
   }),
-
   // Get current message data (type, message text, title)
   currentMessage: procedure.query(async () => {
     return CommandQueue.global.currentMessage;
   }),
-
   // Resume command (works for both pause and show_message)
   resume: procedure.mutation(() => {
     CommandQueue.global.resume();
