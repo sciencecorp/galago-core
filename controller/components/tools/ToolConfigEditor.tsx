@@ -2,7 +2,7 @@ import { trpc } from "@/utils/trpc";
 import { Button, HStack, Switch, Text, Tooltip, VStack } from "@chakra-ui/react";
 import { ToolConfig } from "gen-interfaces/controller";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
-import { useState, useEffect } from "react"; // Added useEffect
+import { useState, useEffect } from "react";
 import { successToast, errorToast, infoToast } from "../ui/Toast";
 
 function toolSpecificConfig(toolConfig: ToolConfig): Record<string, any> | undefined {
@@ -22,6 +22,9 @@ export function ToolConfigEditor({
   defaultConfig: ToolConfig;
   onConfiguring?: (isConfiguring: boolean) => void;
 }): JSX.Element {
+  // Get the tRPC context once at component level
+  const context = trpc.useContext();
+
   // Force refresh tool info on each render
   const toolInfoQuery = trpc.tool.info.useQuery(
     { toolId: toolId },
@@ -51,7 +54,6 @@ export function ToolConfigEditor({
       if (onConfiguring) onConfiguring(false);
 
       // Force invalidate all related queries
-      const context = trpc.useContext();
       context.tool.info.invalidate();
       context.tool.status.invalidate();
       context.tool.availableIDs.invalidate();
@@ -113,8 +115,7 @@ export function ToolConfigEditor({
       toolInfoQuery.refetch();
       statusQuery.refetch();
 
-      // Force invalidate tool info cache
-      const context = trpc.useContext();
+      // Force invalidate tool info cache - use the context from component level
       context.tool.info.invalidate();
     } catch (error) {
       // Error is handled by onError in mutation
