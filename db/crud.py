@@ -399,6 +399,17 @@ robot_arm_grip_params = CRUDBase[
     schemas.RobotArmGripParamsUpdate,
 ](models.RobotArmGripParams)
 
+protocol_process = CRUDBase[
+    models.ProtocolProcess, 
+    schemas.ProtocolProcessCreate, 
+    schemas.ProtocolProcessUpdate
+](models.ProtocolProcess)
+
+protocol_command = CRUDBase[
+    models.ProtocolCommand, 
+    schemas.ProtocolCommandCreate, 
+    schemas.ProtocolCommandUpdate
+](models.ProtocolCommand)
 
 class CRUDHotel(CRUDBase[models.Hotel, schemas.HotelCreate, schemas.HotelUpdate]):
     pass

@@ -350,6 +350,50 @@ class LabwareUpdate(BaseModel):
     has_lid: t.Optional[bool] = None
     image_url: t.Optional[str] = None
 
+# ProtocolProcess Schemas
+class ProtocolProcessBase(BaseModel):
+    name: str
+    description: t.Optional[str] = None
+    order: int
+    advanced_parameters: t.Optional[dict] = None
+    protocol_id: int
+
+class ProtocolProcessCreate(ProtocolProcessBase):
+    pass
+
+class ProtocolProcessUpdate(BaseModel):
+    name: t.Optional[str] = None
+    description: t.Optional[str] = None
+    order: t.Optional[int] = None
+    advanced_parameters: t.Optional[dict] = None
+    protocol_id: t.Optional[int] = None
+
+class ProtocolProcess(ProtocolProcessBase, TimestampMixin):
+    id: int
+    commands: t.List["ProtocolCommand"] = []
+    model_config = ConfigDict(from_attributes=True)
+
+# ProtocolCommand Schemas
+class ProtocolCommandBase(BaseModel):
+    name: str
+    label: str
+    command: str
+    params: t.Dict[str, t.Any]
+    process_id: int
+
+class ProtocolCommandCreate(ProtocolCommandBase):
+    pass
+
+class ProtocolCommandUpdate(BaseModel):
+    name: t.Optional[str] = None
+    label: t.Optional[str] = None
+    command: t.Optional[str] = None
+    params: t.Optional[t.Dict[str, t.Any]] = None
+    process_id: t.Optional[int] = None
+
+class ProtocolCommand(ProtocolCommandBase, TimestampMixin):
+    id: int
+    model_config = ConfigDict(from_attributes=True)
 
 class ProtocolBase(BaseModel):
     name: str
@@ -358,7 +402,6 @@ class ProtocolBase(BaseModel):
     description: t.Optional[str] = None
     icon: t.Optional[str] = None
     params: t.Dict[str, t.Any]
-    commands: t.List[t.Dict[str, t.Any]]
     version: t.Optional[int] = 1
     is_active: t.Optional[bool] = True
 
@@ -370,7 +413,6 @@ class ProtocolCreate(ProtocolBase):
     description: t.Optional[str] = None
     icon: t.Optional[str] = None
     params: t.Dict[str, t.Any] = {}
-    commands: t.List[t.Dict[str, t.Any]] = []
     version: t.Optional[int] = 1
     is_active: t.Optional[bool] = True
 
@@ -381,13 +423,13 @@ class ProtocolUpdate(BaseModel):
     description: t.Optional[str] = None
     icon: t.Optional[str] = None
     params: t.Optional[t.Dict[str, t.Any]] = None
-    commands: t.Optional[t.List[t.Dict[str, t.Any]]] = None
     version: t.Optional[int] = None
     is_active: t.Optional[bool] = None
 
 
 class Protocol(ProtocolBase):
     id: int
+    processes: t.List["ProtocolProcess"] = []
     created_at: t.Optional[datetime] = None
     updated_at: t.Optional[datetime] = None
 

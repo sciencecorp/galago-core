@@ -338,21 +338,60 @@ class RobotArmGripParams(Base, TimestampMixin):
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
 
+class ProtocolCommand(Base, TimestampMixin):
+    __tablename__ = "protocol_commands"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    label = Column(String, nullable=False)
+    command = Column(String, nullable=False)
+    params = Column(JSON, nullable=False)
+    protocol_id = Column(Integer, ForeignKey("protocols.id"))
+    process_id = Column(Integer, ForeignKey("protocol_processes.id"), nullable=True)
+    
+    # Update this relationship to remove back_populates
+    protocol: RelationshipProperty[Optional["Protocol"]] = relationship("Protocol")
+    process: RelationshipProperty[Optional["ProtocolProcess"]] = relationship(
+        "ProtocolProcess", back_populates="commands"
+    )
+
+    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+
+class ProtocolProcess(Base, TimestampMixin):
+    __tablename__ = "protocol_processes"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    order = Column(Integer, nullable=False)
+    advanced_parameters = Column(JSON, nullable=True)
+    protocol_id = Column(Integer, ForeignKey("protocols.id"))
+    
+    # Relationships
+    protocol: RelationshipProperty[Optional["Protocol"]] = relationship(
+        "Protocol", back_populates="processes"
+    )
+    commands: RelationshipProperty[List["ProtocolCommand"]] = relationship(
+        "ProtocolCommand", back_populates="process", cascade="all, delete-orphan"
+    )
+    
+    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+
 class Protocol(Base, TimestampMixin):
     __tablename__ = "protocols"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=False, unique=True)
     category = Column(String, nullable=False)
     workcell_id = Column(Integer, ForeignKey("workcells.id"))
     description = Column(String, nullable=True)
     icon = Column(String, nullable=True)
     params = Column(JSON, nullable=False)  # Zod schema for parameters
-    commands = Column(JSON, nullable=False)  # Template for generating commands
     version = Column(Integer, nullable=False, default=1)
     is_active = Column(Boolean, nullable=False, default=True)
 
     workcell: RelationshipProperty[Optional["Workcell"]] = relationship(
         "Workcell", back_populates="protocols"
     )
-
+    # Add this relationship
+    processes: RelationshipProperty[List["ProtocolProcess"]] = relationship(
+        "ProtocolProcess", back_populates="protocol", cascade="all, delete-orphan"
+    )
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)

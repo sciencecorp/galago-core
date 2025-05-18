@@ -1864,17 +1864,6 @@ async def upload_waypoints(
     return await handle_waypoint_upload(file, tool_id, db)
 
 
-class ProtocolCreate(BaseModel):
-    name: str
-    category: str
-    workcell_id: int
-    description: Optional[str] = None
-    icon: Optional[str] = None
-    params: Dict[str, Any]
-    commands: List[Dict[str, Any]]
-    version: Optional[int] = 1
-    is_active: Optional[bool] = True
-
 
 class ProtocolUpdate(BaseModel):
     name: Optional[str] = None
@@ -1888,7 +1877,7 @@ class ProtocolUpdate(BaseModel):
 
 
 @app.post("/protocols", response_model=schemas.Protocol)
-async def create_protocol(protocol: ProtocolCreate, db: Session = Depends(get_db)):
+async def create_protocol(protocol: schemas.ProtocolCreate, db: Session = Depends(get_db)):
     try:
         # Check if workcell exists
         workcell = db.query(models.Workcell).get(protocol.workcell_id)
@@ -1907,7 +1896,6 @@ async def create_protocol(protocol: ProtocolCreate, db: Session = Depends(get_db
             description=protocol.description,
             icon=protocol.icon,
             params=protocol.params or {},
-            commands=protocol.commands or [],
             version=protocol.version or 1,
             is_active=protocol.is_active if protocol.is_active is not None else True,
         )
@@ -1968,6 +1956,9 @@ async def get_protocol(id: int, db: Session = Depends(get_db)):
     db_protocol = db.query(Protocol).get(id)
     if not db_protocol:
         raise HTTPException(status_code=404, detail="Protocol not found")
+        # Explicitly load the processes relationship
+    _ = db_protocol.processes
+    
     return db_protocol
 
 
@@ -2044,3 +2035,91 @@ def delete_hotel(hotel_id: int, db: Session = Depends(get_db)) -> t.Any:
     if not hotel:
         raise HTTPException(status_code=404, detail="Hotel not found")
     return crud.hotel.remove(db, id=hotel_id)
+
+# Protocol Process endpoints
+@app.get("/protocol-processes", response_model=list[schemas.ProtocolProcess])
+def get_protocol_processes(
+    db: Session = Depends(get_db), protocol_id: Optional[int] = None
+) -> t.Any:
+    if protocol_id:
+        return crud.protocol_process.get_all_by(db, obj_in={"protocol_id": protocol_id})
+    return crud.protocol_process.get_all(db)
+
+@app.get("/protocol-processes/{process_id}", response_model=schemas.ProtocolProcess)
+def get_protocol_process(process_id: int, db: Session = Depends(get_db)) -> t.Any:
+    process = crud.protocol_process.get(db, id=process_id)
+    if not process:
+        raise HTTPException(status_code=404, detail="Protocol process not found")
+    return process
+
+@app.post("/protocol-processes", response_model=schemas.ProtocolProcess)
+def create_protocol_process(
+    process: schemas.ProtocolProcessCreate, db: Session = Depends(get_db)
+) -> t.Any:
+    return crud.protocol_process.create(db, obj_in=process)
+
+@app.put("/protocol-processes/{process_id}", response_model=schemas.ProtocolProcess)
+def update_protocol_process(
+    process_id: int,
+    process_update: schemas.ProtocolProcessUpdate,
+    db: Session = Depends(get_db),
+) -> t.Any:
+    process = crud.protocol_process.get(db, id=process_id)
+    if not process:
+        raise HTTPException(status_code=404, detail="Protocol process not found")
+    return crud.protocol_process.update(db, db_obj=process, obj_in=process_update)
+
+@app.delete("/protocol-processes/{process_id}", response_model=schemas.ProtocolProcess)
+def delete_protocol_process(process_id: int, db: Session = Depends(get_db)) -> t.Any:
+    process = crud.protocol_process.get(db, id=process_id)
+    if not process:
+        raise HTTPException(status_code=404, detail="Protocol process not found")
+    return crud.protocol_process.remove(db, id=process_id)
+
+# Protocol Command endpoints
+@app.get("/protocol-commands", response_model=list[schemas.ProtocolCommand])
+def get_protocol_commands(
+    db: Session = Depends(get_db), 
+    process_id: Optional[int] = None,
+    protocol_id: Optional[int] = None
+) -> t.Any:
+    filters = {}
+    if process_id:
+        filters["process_id"] = process_id
+    if protocol_id:
+        filters["protocol_id"] = protocol_id
+    
+    if filters:
+        return crud.protocol_command.get_all_by(db, obj_in=filters)
+    return crud.protocol_command.get_all(db)
+
+@app.get("/protocol-commands/{command_id}", response_model=schemas.ProtocolCommand)
+def get_protocol_command(command_id: int, db: Session = Depends(get_db)) -> t.Any:
+    command = crud.protocol_command.get(db, id=command_id)
+    if not command:
+        raise HTTPException(status_code=404, detail="Protocol command not found")
+    return command
+
+@app.post("/protocol-commands", response_model=schemas.ProtocolCommand)
+def create_protocol_command(
+    command: schemas.ProtocolCommandCreate, db: Session = Depends(get_db)
+) -> t.Any:
+    return crud.protocol_command.create(db, obj_in=command)
+
+@app.put("/protocol-commands/{command_id}", response_model=schemas.ProtocolCommand)
+def update_protocol_command(
+    command_id: int,
+    command_update: schemas.ProtocolCommandUpdate,
+    db: Session = Depends(get_db),
+) -> t.Any:
+    command = crud.protocol_command.get(db, id=command_id)
+    if not command:
+        raise HTTPException(status_code=404, detail="Protocol command not found")
+    return crud.protocol_command.update(db, db_obj=command, obj_in=command_update)
+
+@app.delete("/protocol-commands/{command_id}", response_model=schemas.ProtocolCommand)
+def delete_protocol_command(command_id: int, db: Session = Depends(get_db)) -> t.Any:
+    command = crud.protocol_command.get(db, id=command_id)
+    if not command:
+        raise HTTPException(status_code=404, detail="Protocol command not found")
+    return crud.protocol_command.remove(db, id=command_id)
