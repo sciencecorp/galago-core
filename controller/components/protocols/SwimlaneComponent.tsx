@@ -3,15 +3,14 @@ import {
   Button,
   HStack,
   VStack,
-  Heading,
   Text,
   useColorModeValue,
   IconButton,
-  Input,
   Tooltip,
+  Flex,
 } from "@chakra-ui/react";
-import { DeleteIcon, AddIcon, EditIcon, ArrowForwardIcon, HamburgerIcon } from "@chakra-ui/icons";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { DeleteIcon, AddIcon, ArrowForwardIcon } from "@chakra-ui/icons";
+import { useState } from "react";
 import {
   Droppable,
   Draggable,
@@ -24,7 +23,6 @@ import { CommandComponent } from "./CommandComponent";
 import { Swimlane } from "@/types/api";
 import { EditableText } from "../ui/Form";
 
-
 const handleWheel = (e: WheelEvent) => {
   const container = e.currentTarget as HTMLElement;
   if (e.deltaY !== 0) {
@@ -33,8 +31,6 @@ const handleWheel = (e: WheelEvent) => {
   }
 };
 
-
-// Swimlane Component for multiple processes
 export const SwimlaneComponent: React.FC<{
   swimlane: Swimlane;
   isEditing: boolean;
@@ -64,131 +60,103 @@ export const SwimlaneComponent: React.FC<{
   const highlightColor = useColorModeValue("blue.50", "blue.900");
   const arrowColor = useColorModeValue("gray.500", "gray.400");
 
-  const handleNameChange = () => {
-    onEditSwimlane(swimlane.id, nameValue, descriptionValue);
-    setIsEditingName(false);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleNameChange();
-    }
-  };
-
   return (
     <Box
-      p={4}
+      p={3}
       borderWidth="1px"
       borderRadius="md"
       mb={4}
       bg={isSelected ? highlightColor : bgColor}
       borderColor={borderColor}
       className="swimlane-container">
-      <VStack align="stretch" spacing={2}>
+      <VStack align="stretch" spacing={0}>
         <HStack justifyContent="space-between" alignItems="center">
-          <HStack spacing={2}>
+          <VStack spacing={0} align="flex-start">
             <EditableText
-              defaultValue={nameValue}
+              defaultValue={swimlane.name}
+              preview={<Text fontSize="md" fontWeight="bold">{swimlane.name}</Text>}
               onSubmit={(value)=>{
                 if(value){
-                  setNameValue(value);
-                  handleNameChange();
+                  onEditSwimlane(swimlane.id, value, descriptionValue);
                 }
               }}
             />
-          </HStack>
-          {isEditingName ? (
-            <VStack align="start" w="100%">
-              <Input
-                value={nameValue}
-                onChange={(e) => setNameValue(e.target.value)}
-                onBlur={handleNameChange}
-                onKeyDown={handleKeyDown}
-                placeholder="Process name"
-                autoFocus
-              />
-              <Input
-                value={descriptionValue}
-                onChange={(e) => setDescriptionValue(e.target.value)}
-                onBlur={handleNameChange}
-                onKeyDown={handleKeyDown}
-                placeholder="Process description (optional)"
-              />
-            </VStack>
-          ) : (
-            <VStack align="start" spacing={1}>
-              <Heading size="md">{swimlane.name}</Heading>
-              {swimlane.description && (
-                <Text fontSize="sm" color="gray.500">
-                  {swimlane.description}
-                </Text>
-              )}
-            </VStack>
-          )}
-          <HStack>
-            {isEditing && (
-              <>
-                <Tooltip label="Edit process">
-                  <IconButton
-                    aria-label="Edit process"
-                    icon={<EditIcon />}
-                    size="sm"
-                    onClick={() => setIsEditingName(true)}
-                  />
-                </Tooltip>
-                <Tooltip label="Delete process">
-                  <IconButton
-                    aria-label="Delete process"
-                    icon={<DeleteIcon />}
-                    size="sm"
-                    colorScheme="red"
-                    onClick={() => onRemoveSwimlane(swimlane.id)}
-                  />
-                </Tooltip>
-              </>
-            )}
-          </HStack>
+            <EditableText 
+              defaultValue={swimlane.description}
+              placeholder="Description"
+              preview={<Text color="GrayText" fontSize="sm">{swimlane.description || "Enter Description"}</Text>}
+              onSubmit={(value)=>{
+                if(value){
+                  onEditSwimlane(swimlane.id, nameValue, value);
+                }
+              }}
+            />
+          </VStack>
+          <Tooltip label="Delete process">
+            <IconButton
+              aria-label="Delete process"
+              icon={<DeleteIcon />}
+              size="xs"
+              variant="ghost"
+              colorScheme="red"
+              onClick={() => onRemoveSwimlane(swimlane.id)}
+            />
+          </Tooltip>
         </HStack>
         <Box
           overflowX="auto"
           py={2}
-          maxW="90vw"
+          maxW="85vw"
           onWheel={(e: any) => handleWheel(e)}
-          css={{
+          sx={{
             "&::-webkit-scrollbar": {
-              height: "8px",
-            },
-            "&::-webkit-scrollbar-track": {
-              borderRadius: "4px",
+              width: "10px",
+              height: "10px",
+              backgroundColor: "transparent",
             },
             "&::-webkit-scrollbar-thumb": {
-              borderRadius: "4px",
-              "&:hover": {},
+              backgroundColor: "transparent",
             },
+            "&:hover::-webkit-scrollbar-thumb": {
+              backgroundColor: "rgba(0, 0, 0, 0.2)",
+              borderRadius: "8px",
+            },
+            "&": {
+              scrollbarWidth: "thin",
+              scrollbarColor: "transparent transparent",
+            },
+            "&:hover": {
+              scrollbarColor: "rgba(0, 0, 0, 0.2) transparent",
+            },
+            msOverflowStyle: "none" /* IE and Edge */,
           }}>
           <Droppable droppableId={swimlane.id} direction="horizontal">
             {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
-              <HStack
+              <Flex
                 ref={provided.innerRef}
-                {...provided.droppableProps}>
+                {...provided.droppableProps}
+                alignItems="center"
+                flexWrap="nowrap">
                 {swimlane.commands.length === 0 && isEditing ? (
                   <Button
                     leftIcon={<AddIcon />}
-                    colorScheme="blue"
+                    colorScheme="gray"
                     variant="outline"
                     onClick={() => onAddCommandAtPosition(swimlane.id, 0)}>
-                    Add First Command
+                    Add Command
                   </Button>
                 ) : (
                   swimlane.commands.map((command: any, index: number) => (
                     <Draggable
+
                       key={`${swimlane.id}-${command.queueId}`}
                       draggableId={`${swimlane.id}-${command.queueId}`}
                       index={index}
                       isDragDisabled={!isEditing}>
                       {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
-                        <HStack
-                          spacing={0}
+                        <Flex
+                          alignItems="center"
+                          justifyContent="start"
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
@@ -200,11 +168,12 @@ export const SwimlaneComponent: React.FC<{
                             <IconButton
                               aria-label="Add command before"
                               icon={<AddIcon />}
-                              size="sm"
-                              colorScheme="blue"
+                              size="xs"
+                              color="gray.500"
                               variant="ghost"
                               onClick={() => onAddCommandAtPosition(swimlane.id, index)}
                               _hover={{ bg: "blue.100" }}
+                              mr={1}
                             />
                           )}
                           <CommandComponent
@@ -215,35 +184,34 @@ export const SwimlaneComponent: React.FC<{
                             isEditing={isEditing}
                           />
                           {isEditing ? (
-                            <Box
-                              position="relative"
-                              right={2}
-                            >
                             <IconButton
                               aria-label="Add command after"
                               icon={<AddIcon />}
                               size="sm"
-                              colorScheme="blue"
+                              color="gray.500"
                               variant="ghost"
                               onClick={() => onAddCommandAtPosition(swimlane.id, index + 1)}
                               _hover={{ bg: "blue.100" }}
+                              ml={-2}
+                              mr={2}
                             />
-                            </Box>
-
                           ) : (
                             index < swimlane.commands.length - 1 && (
-                              <Box color={arrowColor}>
+                              <Box 
+                                ml={-2}
+                                mr={2}
+                                color={arrowColor} >
                                 <ArrowForwardIcon />
                               </Box>
                             )
                           )}
-                        </HStack>
+                        </Flex>
                       )}
                     </Draggable>
                   ))
                 )}
                 {provided.placeholder}
-              </HStack>
+              </Flex>
             )}
           </Droppable>
         </Box>

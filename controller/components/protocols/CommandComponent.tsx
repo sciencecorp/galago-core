@@ -1,67 +1,22 @@
 import {
   Box,
-  Button,
   HStack,
   VStack,
-  Heading,
   Text,
-  Spinner,
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
-  Tag,
   useColorModeValue,
   IconButton,
-  Divider,
-  useDisclosure,
   Menu,
   MenuButton,
   MenuList,
   MenuItem,
   Center,
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatGroup,
-  Grid,
-  GridItem,
-  Input,
-  Tooltip,
+  Flex
 } from "@chakra-ui/react";
-import { DeleteIcon, AddIcon, EditIcon, ArrowForwardIcon, HamburgerIcon } from "@chakra-ui/icons";
-import { useRouter } from "next/router";
-import { useState, useEffect, useCallback, useRef } from "react";
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DropResult,
-  DroppableProvided,
-  DraggableProvided,
-  DraggableStateSnapshot,
-  DroppableStateSnapshot,
-} from "react-beautiful-dnd";
-import { AddToolCommandModal } from "./AddToolCommandModal";
-import NewProtocolRunModal from "./NewProtocolRunModal";
+import { DeleteIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { trpc } from "@/utils/trpc";
-import { capitalizeFirst } from "@/utils/parser";
+import { capitalizeAll, capitalizeFirst } from "@/utils/parser";
 import { VscRunBelow } from "react-icons/vsc";
-import { ProtocolFormModal } from "./ProtocolFormModal";
-import { FaPlay } from "react-icons/fa6";
-import { SaveIcon } from "@/components/ui/Icons";
-import { SiPlatformdotsh } from "react-icons/si";
-import { ConfirmationModal } from "../ui/ConfirmationModal";
-import { MdOutlineExitToApp, MdOutlineFormatListBulleted } from "react-icons/md";
-import { CommandDetailsDrawer } from "./CommandDetailsDrawer";
-import { ParameterSchema } from "@/types";
 import CommandImage from "@/components/tools/CommandImage";
-import { successToast, errorToast } from "../ui/Toast";
-import { useCommonColors } from "@/components/ui/Theme";
-import { PiPathBold } from "react-icons/pi";
-
-
-
 
 export const CommandComponent: React.FC<{
   command: any;
@@ -71,7 +26,7 @@ export const CommandComponent: React.FC<{
   isEditing?: boolean;
 }> = ({ command, onCommandClick, onRunCommand, onDeleteCommand, isEditing = false }) => {
   const infoQuery = trpc.tool.info.useQuery({ toolId: command.commandInfo.toolId });
-
+  
   return (
     <Box
       onClick={(e) => {
@@ -83,10 +38,10 @@ export const CommandComponent: React.FC<{
       <Box
         left="0px"
         right="0px"
-        minW="200px"
-        maxW="220px"
-        height="150px"
-        overflowY="auto"
+        minW="190px"
+        maxW="210px"
+        height="140px"
+        overflow="hidden"
         mr="4"
         fontSize="18px"
         borderLeftRadius="10"
@@ -95,47 +50,95 @@ export const CommandComponent: React.FC<{
         background={useColorModeValue("gray.50", "gray.700")}
         border="1px"
         borderColor={useColorModeValue("gray.200", "gray.600")}
-        boxShadow={useColorModeValue("md", "none")}>
-        <VStack alignItems="stretch">
-          <Box>
-            <HStack spacing={2}>
-              <Box width="90%">
-                <Text fontSize="16px" as="b">{capitalizeFirst(command.commandInfo.toolType)}</Text>
-              </Box>
-              <Box className="command-menu">
-                <Menu>
-                  <MenuButton
-                    size="xs"
-                    as={IconButton}
-                    aria-label="Options"
-                    border={0}
-                    bg="transparent"
-                    icon={<HamburgerIcon fontSize="sm" />}
-                    variant="outline"
-                  />
-                  <MenuList>
-                    <MenuItem onClick={() => onRunCommand(command)} icon={<VscRunBelow />}>
-                      Run Command
+        boxShadow={useColorModeValue("md", "none")}
+        sx={{
+            "&::-webkit-scrollbar": {
+              width: "10px",
+              height: "10px",
+              backgroundColor: "transparent",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: "transparent",
+            },
+            "&:hover::-webkit-scrollbar-thumb": {
+              backgroundColor: "rgba(0, 0, 0, 0.2)",
+              borderRadius: "8px",
+            },
+            "&": {
+              scrollbarWidth: "thin",
+              scrollbarColor: "transparent transparent",
+            },
+            "&:hover": {
+              scrollbarColor: "rgba(0, 0, 0, 0.2) transparent",
+            },
+            msOverflowStyle: "none",
+          }}>
+        <VStack alignItems="stretch" height="100%" spacing="0">
+          <Flex position="relative" alignItems="center" justifyContent="center" pb="1" width="100%">
+            <Box 
+              className="command-menu" 
+              position="absolute" 
+              right="0" 
+              top="0"
+              zIndex="1">
+              <Menu 
+              >
+                <MenuButton
+                  size="xs"
+                  as={IconButton}
+                  aria-label="Options"
+                  border={0}
+                  bg="transparent"
+                  icon={<HamburgerIcon fontSize="sm" />}
+                  variant="outline"
+                />
+                <MenuList
+                  minW="120px"
+                  maxW="150px"
+                >
+                  <MenuItem
+                    onClick={() => onRunCommand(command)} icon={<VscRunBelow fontSize="xs" />}>
+                    <Text fontSize="xs">Run Command</Text>
+                  </MenuItem>
+                  {isEditing && (
+                    <MenuItem onClick={onDeleteCommand} icon={<DeleteIcon fontSize="xs" />}>
+                      <Text fontSize="xs">Delete Command</Text>
                     </MenuItem>
-                    {isEditing && (
-                      <MenuItem onClick={onDeleteCommand} icon={<DeleteIcon />}>
-                        Delete Command
-                      </MenuItem>
-                    )}
-                  </MenuList>
-                </Menu>
+                  )}
+                </MenuList>
+              </Menu>
+            </Box>
+            
+            <Box textAlign="center" width="80%" mx="auto">
+              <Text 
+                fontSize="14px" 
+                as="b" 
+                isTruncated
+                title={capitalizeAll(command.commandInfo.toolId.replace("_", " "))}
+              >
+                {capitalizeAll(command.commandInfo.toolId.replace("_", " "))}
+              </Text>
+            </Box>
+          </Flex>
+          
+          <Center p={0} flex="1" overflow="hidden">
+            <VStack spacing={2} justifyContent="center" maxW="100%">
+              <Box maxW="100%">
+                <CommandImage
+                  config={infoQuery.data}
+                  command={command}
+                  onCommandClick={onCommandClick}
+                />
               </Box>
-            </HStack>
-          </Box>
-          <Center p={0}>
-            <VStack spacing={2}>
-              <CommandImage
-                config={infoQuery.data}
-                command={command}
-                onCommandClick={onCommandClick}
-              />
-              <Box bottom={0} position="sticky">
-                <Text>{capitalizeFirst(command.commandInfo.command.replaceAll("_", " "))}</Text>
+              <Box position="sticky" bottom={0} maxW="100%">
+                <Text 
+                  fontSize="sm" 
+                  textAlign="center"
+                  isTruncated
+                  title={capitalizeFirst(command.commandInfo.command.replaceAll("_", " "))}
+                >
+                  {capitalizeFirst(command.commandInfo.command.replaceAll("_", " "))}
+                </Text>
               </Box>
             </VStack>
           </Center>

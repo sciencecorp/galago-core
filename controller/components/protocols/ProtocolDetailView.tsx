@@ -179,7 +179,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     }
   });
 
-  // Process reordering mutation
   const reorderProcessesMutation = trpc.protocol.reorderProcesses.useMutation({
     onSuccess: () => {
       successToast("Processes reordered", "");
@@ -189,7 +188,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     }
   });
 
-  // Command reordering mutation
   const reorderCommandsMutation = trpc.protocol.reorderCommands.useMutation({
     onSuccess: () => {
       successToast("Commands reordered", "");
@@ -237,11 +235,9 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
 
   // Function to update swimlane name
   const updateSwimlane = (swimlaneId: string, newName: string, newDescription?: string) => {
-    // Find the swimlane first to get the real process ID
     const swimlane = swimlanes.find(lane => lane.id === swimlaneId);
     if (!swimlane || !swimlane.processId) return;
 
-    // Update in the database
     updateProcessMutation.mutate({
       id: swimlane.processId,
       data: {
@@ -249,7 +245,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         description: newDescription || ""
       }
     });
-
     // Update locally
     setSwimlanes(swimlanes.map(lane => 
       lane.id === swimlaneId ? { 
@@ -258,6 +253,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         description: newDescription 
       } : lane
     ));
+    refetch();
   };
 
   const handleAddCommandAtPosition = (swimlaneId: string, position: number) => {
@@ -837,28 +833,31 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         
         {/* Swimlanes Section */}
         <DragDropContext onDragEnd={onDragEnd}>
-          <VStack spacing={4} align="stretch">
+          <VStack 
+            spacing={0} 
+            align="stretch"
+            
+            >
             {swimlanes.map((swimlane) => (
               <SwimlaneComponent
-                key={swimlane.id}
-                swimlane={swimlane}
-                isEditing={isEditing}
-                onCommandClick={(cmd) => {
-                  setSelectedCommand(cmd);
-                  onDrawerOpen();
-                }}
-                onRunCommand={handleRunCommand}
-                onDeleteCommand={(swimlaneId, index) => {
-                  setCommandToDeleteSwimlaneId(swimlaneId);
-                  setCommandToDeleteIndex(index);
-                  openDeleteConfirm();
-                }}
-                onAddCommandAtPosition={handleAddCommandAtPosition}
-                onRemoveSwimlane={removeSwimlane}
-                onEditSwimlane={updateSwimlane}
+                  key={swimlane.id}
+                  swimlane={swimlane}
+                  isEditing={isEditing}
+                  onCommandClick={(cmd) => {
+                    setSelectedCommand(cmd);
+                    onDrawerOpen();
+                  }}
+                  onRunCommand={handleRunCommand}
+                  onDeleteCommand={(swimlaneId, index) => {
+                    setCommandToDeleteSwimlaneId(swimlaneId);
+                    setCommandToDeleteIndex(index);
+                    openDeleteConfirm();
+                  }}
+                  onAddCommandAtPosition={handleAddCommandAtPosition}
+                  onRemoveSwimlane={removeSwimlane}
+                  onEditSwimlane={updateSwimlane}
               />
             ))}
-            
             {isEditing && (
               <HStack justify="center" mt={4}>
                 <Button
