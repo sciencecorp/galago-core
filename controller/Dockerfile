@@ -1,9 +1,9 @@
 # Multi-stage build for production
 # Stage 1: .NET SDK for C# compilation only
-FROM mcr.microsoft.com/dotnet/sdk:7.0-alpine AS dotnet-compiler
+FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/sdk:7.0-alpine AS dotnet-compiler
 
 # Stage 2: Node.js build environment
-FROM node:18.20.3-alpine AS builder
+FROM --platform=$TARGETPLATFORM node:18.20.3-alpine AS builder
 WORKDIR /app
 
 # Copy package files and install dependencies
@@ -18,7 +18,7 @@ COPY controller/ ./
 RUN npm run build
 
 # Stage 3: Production runtime with minimal .NET dependencies
-FROM node:18.20.3-alpine AS runner
+FROM --platform=$TARGETPLATFORM node:18.20.3-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV production
 
