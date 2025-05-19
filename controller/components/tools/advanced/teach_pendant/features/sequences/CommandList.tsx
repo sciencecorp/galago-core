@@ -119,8 +119,12 @@ interface CommandItemProps {
   getCommandIcon: (commandName: string) => JSX.Element;
   localCommands: SequenceCommand[];
   handleAddCommand: (index: number) => void;
+  motionProfiles: MotionProfile[];
+  gripParams: GripParams[];
+  labwareList?: any[]; // Using any[] as we don't have the labware type definition
 }
 
+// CommandItem Component with enhanced parameter editing
 const CommandItem: React.FC<CommandItemProps> = ({
   command,
   index,
@@ -137,9 +141,215 @@ const CommandItem: React.FC<CommandItemProps> = ({
   getCommandIcon,
   localCommands,
   handleAddCommand,
+  motionProfiles,
+  gripParams,
+  labwareList,
 }) => {
   const isExpanded = expandedCommand === index;
   const styles = useCommandStyles(command.command, isExpanded);
+
+  // Helper function to determine parameter type
+  const getParamFieldType = (key: string, commandName: string) => {
+    if (key === "labware") return "labware";
+    if (
+      key === "location" ||
+      key === "waypoint" ||
+      key === "waypoint_id" ||
+      key === "nest" ||
+      key === "nest_id"
+    )
+      return "location";
+    if (key === "motion_profile") return "motion_profile";
+    if (key === "grip_params") return "grip_params";
+
+    // For coordinates and waypoint params, return special type
+    if (key === "coordinates" || key === "waypoint") return "coordinates";
+
+    // Check if the value is a boolean
+    if (typeof command.params[key] === "boolean") return "boolean";
+
+    return "text";
+  };
+
+  // Render the appropriate field based on its type
+  const renderParamField = (key: string, value: any) => {
+    const fieldType = getParamFieldType(key, command.command);
+
+    switch (fieldType) {
+      case "labware":
+        return (
+          <Select
+            size="sm"
+            value={value}
+            onChange={(e) => {
+              handleEditCommand(index, {
+                params: {
+                  ...command.params,
+                  [key]: e.target.value,
+                },
+              });
+            }}>
+            {(labwareList || []).map((labware) => (
+              <option key={labware.id} value={labware.id}>
+                {labware.name}
+              </option>
+            ))}
+          </Select>
+        );
+
+      case "location":
+        return (
+          <Select
+            size="sm"
+            value={value}
+            onChange={(e) => {
+              handleEditCommand(index, {
+                params: {
+                  ...command.params,
+                  [key]: e.target.value,
+                },
+              });
+            }}>
+            {teachPoints
+              .filter((p) => p.type === "location")
+              .map((point) => (
+                <option key={point.id} value={point.id}>
+                  {point.name}
+                </option>
+              ))}
+          </Select>
+        );
+
+      case "motion_profile":
+        return (
+          <Select
+            size="sm"
+            value={value}
+            onChange={(e) => {
+              handleEditCommand(index, {
+                params: {
+                  ...command.params,
+                  [key]: e.target.value,
+                },
+              });
+            }}>
+            {(motionProfiles || []).map((profile) => (
+              <option key={profile.id} value={profile.name}>
+                {profile.name}
+              </option>
+            ))}
+          </Select>
+        );
+
+      case "grip_params":
+        return (
+          <Select
+            size="sm"
+            value={value}
+            onChange={(e) => {
+              handleEditCommand(index, {
+                params: {
+                  ...command.params,
+                  [key]: e.target.value,
+                },
+              });
+            }}>
+            {(gripParams || []).map((param) => (
+              <option key={param.id} value={param.id}>
+                {param.name}
+              </option>
+            ))}
+          </Select>
+        );
+
+      case "boolean":
+        return (
+          <Select
+            size="sm"
+            value={String(value)}
+            onChange={(e) => {
+              handleEditCommand(index, {
+                params: {
+                  ...command.params,
+                  [key]: e.target.value === "true",
+                },
+              });
+            }}>
+            <option value="false">False</option>
+            <option value="true">True</option>
+          </Select>
+        );
+
+      case "coordinates":
+        return (
+          <Box width="100%" overflowX="auto">
+            <Table size="sm" variant="simple" width="auto">
+              <Thead>
+                <Tr>
+                  {Array.from(
+                    {
+                      length: parseInt((config.config as any)?.pf400?.joints || "5"),
+                    },
+                    (_, i) => (
+                      <Th key={`j${i + 1}`} fontSize="xs" textAlign="center" px={1}>
+                        J{i + 1}
+                      </Th>
+                    ),
+                  )}
+                </Tr>
+              </Thead>
+              <Tbody>
+                <Tr>
+                  {(value || "0 0 0 0 0 0").split(" ").map((coord: string, i: number) => (
+                    <Td key={i} padding={0.5} width="auto">
+                      <NumberInput
+                        size="xs"
+                        value={parseFloat(coord) || 0}
+                        onChange={(valueString) => {
+                          const coords = (value || "0 0 0 0 0 0").split(" ").map(Number);
+                          coords[i] = parseFloat(valueString) || 0;
+                          handleEditCommand(index, {
+                            params: {
+                              ...command.params,
+                              [key]: coords.join(" "),
+                            },
+                          });
+                        }}
+                        step={0.001}
+                        precision={3}
+                        width="35px">
+                        <NumberInputField
+                          textAlign="right"
+                          paddingInline={0}
+                          fontSize="xs"
+                          px={0.5}
+                        />
+                      </NumberInput>
+                    </Td>
+                  ))}
+                </Tr>
+              </Tbody>
+            </Table>
+          </Box>
+        );
+
+      default:
+        return (
+          <Input
+            size="sm"
+            value={value}
+            onChange={(e) => {
+              handleEditCommand(index, {
+                params: {
+                  ...command.params,
+                  [key]: e.target.value,
+                },
+              });
+            }}
+          />
+        );
+    }
+  };
 
   return (
     <Draggable draggableId={`command-${index}`} index={index} isDragDisabled={!isEditing}>
@@ -147,9 +357,15 @@ const CommandItem: React.FC<CommandItemProps> = ({
         <Box
           ref={provided.innerRef}
           {...provided.draggableProps}
-          style={provided.draggableProps.style}>
+          style={{
+            ...provided.draggableProps.style,
+            // Add this to ensure height transitions are smooth during drag
+            transition: snapshot.isDragging
+              ? provided.draggableProps.style?.transition
+              : "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}>
           <SlideFade key={index} in={true} offsetY="20px">
-            <VStack width="100%" spacing={0} align="stretch" mb={3}>
+            <VStack width="100%" spacing={0} align="stretch" mb={1}>
               <Box width="100%">
                 <Box
                   px={6}
@@ -159,13 +375,6 @@ const CommandItem: React.FC<CommandItemProps> = ({
                   borderWidth="1px"
                   {...styles.container}
                   {...(isEditing ? provided.dragHandleProps : {})}
-                  onClick={() => {
-                    if (!isEditing) {
-                      const newExpandedIndex = expandedCommand === index ? null : index;
-                      setExpandedCommand(newExpandedIndex);
-                      onCommandClick?.(index);
-                    }
-                  }}
                   width="100%"
                   maxW="100%"
                   transition="all 0.2s"
@@ -173,7 +382,14 @@ const CommandItem: React.FC<CommandItemProps> = ({
                   overflow="hidden"
                   opacity={snapshot.isDragging ? 0.8 : 1}
                   boxShadow={snapshot.isDragging ? "md" : undefined}>
-                  <HStack justify="space-between">
+                  <HStack
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newExpandedIndex = expandedCommand === index ? null : index;
+                      setExpandedCommand(newExpandedIndex);
+                      onCommandClick?.(index);
+                    }}
+                    justify="space-between">
                     <HStack spacing={3}>
                       <Box p={2} borderRadius="md" {...styles.iconContainer}>
                         {getCommandIcon(command.command)}
@@ -182,13 +398,18 @@ const CommandItem: React.FC<CommandItemProps> = ({
                         <Text fontSize="md" {...styles.commandName}>
                           {command.command.replace(/_/g, " ")}
                         </Text>
-                        <Text color="gray.500" fontSize="sm">
-                          {getDisplayValue(command)}
-                        </Text>
                       </VStack>
                     </HStack>
                     <HStack spacing={2} minW="70px" justifyContent="flex-end">
-                      {isEditing && (
+                      <IconButton
+                        aria-label={isExpanded ? "Collapse" : "Expand"}
+                        icon={isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
+                        size="sm"
+                        variant="ghost"
+                        colorScheme={getCommandColor(command.command)}
+                        minW="32px"
+                      />
+                      {isEditing && isExpanded && (
                         <IconButton
                           aria-label="Delete command"
                           icon={<DeleteIcon />}
@@ -202,23 +423,13 @@ const CommandItem: React.FC<CommandItemProps> = ({
                           minW="32px"
                         />
                       )}
-                      <IconButton
-                        aria-label={isExpanded ? "Collapse" : "Expand"}
-                        icon={isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
-                        size="sm"
-                        variant="ghost"
-                        colorScheme={getCommandColor(command.command)}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const newExpandedIndex = expandedCommand === index ? null : index;
-                          setExpandedCommand(newExpandedIndex);
-                          onCommandClick?.(index);
-                        }}
-                        minW="32px"
-                      />
                     </HStack>
                   </HStack>
-                  <Collapse in={isEditing || isExpanded}>
+                  <Collapse
+                    in={isExpanded}
+                    animateOpacity
+                    style={{ overflow: "hidden" }}
+                    transition={{ enter: { duration: 0.5 }, exit: { duration: 0.5 } }}>
                     <VStack
                       align="start"
                       mt={4}
@@ -234,79 +445,8 @@ const CommandItem: React.FC<CommandItemProps> = ({
                             <Text fontSize="sm" color="gray.500" width="30%">
                               {formatParamKey(key)}:
                             </Text>
-                            {isEditing && (key === "waypoint" || key === "coordinates") ? (
-                              <Box width="100%" overflowX="auto">
-                                <Table size="sm" variant="simple" width="auto">
-                                  <Thead>
-                                    <Tr>
-                                      {Array.from(
-                                        {
-                                          length: parseInt(
-                                            (config.config as any)?.pf400?.joints || "5",
-                                          ),
-                                        },
-                                        (_, i) => (
-                                          <Th
-                                            key={`j${i + 1}`}
-                                            fontSize="xs"
-                                            textAlign="center"
-                                            px={1}>
-                                            J{i + 1}
-                                          </Th>
-                                        ),
-                                      )}
-                                    </Tr>
-                                  </Thead>
-                                  <Tbody>
-                                    <Tr>
-                                      {(value || "0 0 0 0 0 0")
-                                        .split(" ")
-                                        .map((coord: string, i: number) => (
-                                          <Td key={i} padding={0.5} width="auto">
-                                            <NumberInput
-                                              size="xs"
-                                              value={parseFloat(coord) || 0}
-                                              onChange={(valueString) => {
-                                                const coords = (value || "0 0 0 0 0 0")
-                                                  .split(" ")
-                                                  .map(Number);
-                                                coords[i] = parseFloat(valueString) || 0;
-                                                handleEditCommand(index, {
-                                                  params: {
-                                                    ...command.params,
-                                                    [key]: coords.join(" "),
-                                                  },
-                                                });
-                                              }}
-                                              step={0.001}
-                                              precision={3}
-                                              width="35px">
-                                              <NumberInputField
-                                                textAlign="right"
-                                                paddingInline={0}
-                                                fontSize="xs"
-                                                px={0.5}
-                                              />
-                                            </NumberInput>
-                                          </Td>
-                                        ))}
-                                    </Tr>
-                                  </Tbody>
-                                </Table>
-                              </Box>
-                            ) : isEditing ? (
-                              <Input
-                                size="sm"
-                                value={value}
-                                onChange={(e) => {
-                                  handleEditCommand(index, {
-                                    params: {
-                                      ...command.params,
-                                      [key]: e.target.value,
-                                    },
-                                  });
-                                }}
-                              />
+                            {isEditing ? (
+                              renderParamField(key, value)
                             ) : key === "waypoint" || key === "coordinates" ? (
                               <Box width="100%" overflowX="auto">
                                 <Table size="sm" variant="simple" width="auto">
@@ -571,6 +711,21 @@ export const CommandList: React.FC<CommandListProps> = ({
       order: idx,
     }));
 
+    // Update expanded command index to follow the dragged command
+    if (expandedCommand === source.index) {
+      setExpandedCommand(destination.index);
+    } else if (expandedCommand !== null) {
+      // Handle the case where a command is moved from before the expanded command to after it
+      if (source.index < expandedCommand && destination.index >= expandedCommand) {
+        setExpandedCommand(expandedCommand - 1);
+      }
+      // Handle the case where a command is moved from after the expanded command to before it
+      else if (source.index > expandedCommand && destination.index <= expandedCommand) {
+        setExpandedCommand(expandedCommand + 1);
+      }
+      // Otherwise the expanded command index doesn't need to change
+    }
+
     setLocalCommands(updatedCommands);
     setHasUnsavedChanges(true);
   };
@@ -629,6 +784,13 @@ export const CommandList: React.FC<CommandListProps> = ({
                     variant="ghost"
                     onClick={() => {
                       setIsEditing(false);
+                      // Revert to original state if exited without saving
+                      if (hasUnsavedChanges) {
+                        setLocalCommands(commands || []);
+                        setEditedSequenceName(sequenceName);
+                        setEditedLabware(labware);
+                        setHasUnsavedChanges(false);
+                      }
                     }}
                   />
                 </Tooltip>
@@ -678,6 +840,9 @@ export const CommandList: React.FC<CommandListProps> = ({
                       getCommandIcon={getCommandIcon}
                       localCommands={localCommands}
                       handleAddCommand={handleAddCommand}
+                      motionProfiles={motionProfiles}
+                      gripParams={gripParams}
+                      labwareList={labwareList}
                     />
                   ))}
                   {provided.placeholder}
