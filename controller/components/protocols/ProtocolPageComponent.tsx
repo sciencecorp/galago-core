@@ -419,7 +419,7 @@ export const ProtocolPageComponent: React.FC = () => {
                           }}
                         />
                       </Td>
-                      <Td>{protocol.commands.length}</Td>
+                      <Td>{protocol.length}</Td>
                       <Td>
                         <Menu>
                           <MenuButton

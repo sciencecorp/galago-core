@@ -337,31 +337,55 @@ class RobotArmGripParams(Base, TimestampMixin):
 
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
+class ProtocolCommandGroup(Base, TimestampMixin):
+    __tablename__ = "protocol_command_groups"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    process_id = Column(Integer, ForeignKey("protocol_processes.id"))
+    
+    # Relationships
+    process: RelationshipProperty[Optional["ProtocolProcess"]] = relationship(
+        "ProtocolProcess", back_populates="command_groups"
+    )
+    commands: RelationshipProperty[List["ProtocolCommand"]] = relationship(
+        "ProtocolCommand", back_populates="command_group", cascade="all, delete-orphan"
+    )
+    
+    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
 class ProtocolCommand(Base, TimestampMixin):
     __tablename__ = "protocol_commands"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
+    tool_type = Column(String, nullable=False)
+    tool_id = Column(String, nullable=False) #Not a foreign key, we want to be able to delete/add the tool independtly.
     label = Column(String, nullable=False)
     command = Column(String, nullable=False)
     params = Column(JSON, nullable=False)
     protocol_id = Column(Integer, ForeignKey("protocols.id"))
     process_id = Column(Integer, ForeignKey("protocol_processes.id"), nullable=True)
-    
-    # Update this relationship to remove back_populates
+    command_group_id = Column(Integer, ForeignKey("protocol_command_groups.id"), nullable=True)
+    position = Column(Integer, nullable=False)
+
     protocol: RelationshipProperty[Optional["Protocol"]] = relationship("Protocol")
     process: RelationshipProperty[Optional["ProtocolProcess"]] = relationship(
         "ProtocolProcess", back_populates="commands"
     )
+    command_group: RelationshipProperty[Optional["ProtocolCommandGroup"]] = relationship(
+        "ProtocolCommandGroup", back_populates="commands"
+    )
 
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+
+
 
 class ProtocolProcess(Base, TimestampMixin):
     __tablename__ = "protocol_processes"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
-    order = Column(Integer, nullable=False)
+    position = Column(Integer, nullable=False)
     advanced_parameters = Column(JSON, nullable=True)
     protocol_id = Column(Integer, ForeignKey("protocols.id"))
     
@@ -371,6 +395,9 @@ class ProtocolProcess(Base, TimestampMixin):
     )
     commands: RelationshipProperty[List["ProtocolCommand"]] = relationship(
         "ProtocolCommand", back_populates="process", cascade="all, delete-orphan"
+    )
+    command_groups: RelationshipProperty[List["ProtocolCommandGroup"]] = relationship(
+        "ProtocolCommandGroup", back_populates="process", cascade="all, delete-orphan"
     )
     
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)

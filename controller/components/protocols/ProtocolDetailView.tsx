@@ -15,11 +15,6 @@ import {
   IconButton,
   Divider,
   useDisclosure,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  Center,
   Stat,
   StatLabel,
   StatNumber,
@@ -46,7 +41,6 @@ import { AddToolCommandModal } from "./AddToolCommandModal";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
 import { capitalizeFirst } from "@/utils/parser";
-import { VscRunBelow } from "react-icons/vsc";
 import { ProtocolFormModal } from "./ProtocolFormModal";
 import { FaPlay } from "react-icons/fa6";
 import { SaveIcon } from "@/components/ui/Icons";
@@ -55,291 +49,15 @@ import { ConfirmationModal } from "../ui/ConfirmationModal";
 import { MdOutlineExitToApp, MdOutlineFormatListBulleted } from "react-icons/md";
 import { CommandDetailsDrawer } from "./CommandDetailsDrawer";
 import { ParameterSchema } from "@/types";
-import CommandImage from "@/components/tools/CommandImage";
 import { successToast, errorToast } from "../ui/Toast";
 import { useCommonColors } from "@/components/ui/Theme";
-import { PiPathBold } from "react-icons/pi";
+import { CommandComponent } from "./CommandComponent";
+import { SwimlaneComponent } from "./SwimlaneComponent";
+import { Swimlane } from "@/types/api";
 
-// Interface for swimlane structure
-interface Swimlane {
-  id: string;
-  name: string;
-  commands: any[];
-}
 
-const handleWheel = (e: WheelEvent) => {
-  const container = e.currentTarget as HTMLElement;
-  if (e.deltaY !== 0) {
-    e.preventDefault();
-    container.scrollLeft += e.deltaY;
-  }
-};
 
-const ProtocolSwimLaneCommandComponent: React.FC<{
-  command: any;
-  onCommandClick: (command: any) => void;
-  onRunCommand: (command: any) => void;
-  onDeleteCommand: () => void;
-  isEditing?: boolean;
-}> = ({ command, onCommandClick, onRunCommand, onDeleteCommand, isEditing = false }) => {
-  const infoQuery = trpc.tool.info.useQuery({ toolId: command.commandInfo.toolId });
 
-  return (
-    <Box
-      onClick={(e) => {
-        const target = e.target as HTMLElement;
-        if (!target.closest(".command-menu")) {
-          onCommandClick(command);
-        }
-      }}>
-      <Box
-        left="0px"
-        right="0px"
-        minW="250px"
-        maxW="300px"
-        height="165px"
-        overflowY="auto"
-        mr="4"
-        fontSize="18px"
-        borderLeftRadius="15"
-        borderRightRadius="15"
-        padding="6px"
-        background={useColorModeValue("gray.50", "gray.700")}
-        border="1px"
-        borderColor={useColorModeValue("gray.200", "gray.600")}
-        boxShadow={useColorModeValue("md", "none")}>
-        <VStack alignItems="stretch">
-          <Box>
-            <HStack spacing={2}>
-              <Box width="90%">
-                <Text as="b">{capitalizeFirst(command.commandInfo.toolType)}</Text>
-              </Box>
-              <Box className="command-menu">
-                <Menu>
-                  <MenuButton
-                    as={IconButton}
-                    aria-label="Options"
-                    border={0}
-                    bg="transparent"
-                    icon={<HamburgerIcon fontSize="lg" />}
-                    variant="outline"
-                  />
-                  <MenuList>
-                    <MenuItem onClick={() => onRunCommand(command)} icon={<VscRunBelow />}>
-                      Run Command
-                    </MenuItem>
-                    {isEditing && (
-                      <MenuItem onClick={onDeleteCommand} icon={<DeleteIcon />}>
-                        Delete Command
-                      </MenuItem>
-                    )}
-                  </MenuList>
-                </Menu>
-              </Box>
-            </HStack>
-          </Box>
-          <Center p={0}>
-            <VStack spacing={2}>
-              <CommandImage
-                config={infoQuery.data}
-                command={command}
-                onCommandClick={onCommandClick}
-              />
-              <Box bottom={0} position="sticky">
-                <Text>{capitalizeFirst(command.commandInfo.command.replaceAll("_", " "))}</Text>
-              </Box>
-            </VStack>
-          </Center>
-        </VStack>
-      </Box>
-    </Box>
-  );
-};
-
-// SwimLaneContainer Component for multiple processes
-const SwimLaneContainer: React.FC<{
-  swimlane: Swimlane;
-  isEditing: boolean;
-  onCommandClick: (command: any) => void;
-  onRunCommand: (command: any) => void;
-  onDeleteCommand: (swimlaneId: string, commandIndex: number) => void;
-  onAddCommandAtPosition: (swimlaneId: string, position: number) => void;
-  onRemoveSwimlane: (swimlaneId: string) => void;
-  onEditSwimlane: (swimlaneId: string, newName: string) => void;
-  isSelected?: boolean;
-}> = ({
-  swimlane,
-  isEditing,
-  onCommandClick,
-  onRunCommand,
-  onDeleteCommand,
-  onAddCommandAtPosition,
-  onRemoveSwimlane,
-  onEditSwimlane,
-  isSelected,
-}) => {
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [nameValue, setNameValue] = useState(swimlane.name);
-  const bgColor = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const highlightColor = useColorModeValue("blue.50", "blue.900");
-  const arrowColor = useColorModeValue("gray.500", "gray.400");
-
-  const handleNameChange = () => {
-    onEditSwimlane(swimlane.id, nameValue);
-    setIsEditingName(false);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleNameChange();
-    }
-  };
-
-  return (
-    <Box
-      p={4}
-      borderWidth="1px"
-      borderRadius="md"
-      mb={4}
-      bg={isSelected ? highlightColor : bgColor}
-      borderColor={borderColor}
-      className="swimlane-container">
-      <VStack align="stretch" spacing={4}>
-        <HStack justifyContent="space-between">
-          {isEditingName ? (
-            <Input
-              value={nameValue}
-              onChange={(e) => setNameValue(e.target.value)}
-              onBlur={handleNameChange}
-              onKeyDown={handleKeyDown}
-              autoFocus
-            />
-          ) : (
-            <Heading size="md">{swimlane.name}</Heading>
-          )}
-          <HStack>
-            {isEditing && (
-              <>
-                <Tooltip label="Edit swimlane name">
-                  <IconButton
-                    aria-label="Edit swimlane name"
-                    icon={<EditIcon />}
-                    size="sm"
-                    onClick={() => setIsEditingName(true)}
-                  />
-                </Tooltip>
-                <Tooltip label="Delete swimlane">
-                  <IconButton
-                    aria-label="Delete swimlane"
-                    icon={<DeleteIcon />}
-                    size="sm"
-                    colorScheme="red"
-                    onClick={() => onRemoveSwimlane(swimlane.id)}
-                  />
-                </Tooltip>
-              </>
-            )}
-          </HStack>
-        </HStack>
-        <Box
-          overflowX="auto"
-          py={2}
-          maxW="90vw"
-          onWheel={(e: any) => handleWheel(e)}
-          css={{
-            "&::-webkit-scrollbar": {
-              height: "8px",
-            },
-            "&::-webkit-scrollbar-track": {
-              borderRadius: "4px",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              borderRadius: "4px",
-              "&:hover": {},
-            },
-          }}>
-          <Droppable droppableId={swimlane.id} direction="horizontal">
-            {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
-              <HStack
-                spacing={4}
-                align="flex-start"
-                minW="min-content"
-                ref={provided.innerRef}
-                {...provided.droppableProps}>
-                {swimlane.commands.length === 0 && isEditing ? (
-                  <Button
-                    leftIcon={<AddIcon />}
-                    colorScheme="blue"
-                    variant="outline"
-                    onClick={() => onAddCommandAtPosition(swimlane.id, 0)}>
-                    Add First Command
-                  </Button>
-                ) : (
-                  swimlane.commands.map((command: any, index: number) => (
-                    <Draggable
-                      key={`${swimlane.id}-${command.queueId}`}
-                      draggableId={`${swimlane.id}-${command.queueId}`}
-                      index={index}
-                      isDragDisabled={!isEditing}>
-                      {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
-                        <HStack
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          style={{
-                            ...provided.draggableProps.style,
-                            opacity: snapshot.isDragging ? 0.8 : 1,
-                          }}>
-                          {isEditing && index === 0 && (
-                            <IconButton
-                              aria-label="Add command before"
-                              icon={<AddIcon />}
-                              size="sm"
-                              colorScheme="blue"
-                              variant="ghost"
-                              onClick={() => onAddCommandAtPosition(swimlane.id, index)}
-                              _hover={{ bg: "blue.100" }}
-                            />
-                          )}
-                          <ProtocolSwimLaneCommandComponent
-                            command={command}
-                            onCommandClick={(cmd) => onCommandClick(cmd)}
-                            onRunCommand={onRunCommand}
-                            onDeleteCommand={() => onDeleteCommand(swimlane.id, index)}
-                            isEditing={isEditing}
-                          />
-                          {isEditing ? (
-                            <IconButton
-                              aria-label="Add command after"
-                              icon={<AddIcon />}
-                              size="sm"
-                              colorScheme="blue"
-                              variant="ghost"
-                              onClick={() => onAddCommandAtPosition(swimlane.id, index + 1)}
-                              _hover={{ bg: "blue.100" }}
-                            />
-                          ) : (
-                            index < swimlane.commands.length - 1 && (
-                              <Box color={arrowColor}>
-                                <ArrowForwardIcon boxSize={6} />
-                              </Box>
-                            )
-                          )}
-                        </HStack>
-                      )}
-                    </Draggable>
-                  ))
-                )}
-                {provided.placeholder}
-              </HStack>
-            )}
-          </Droppable>
-        </Box>
-      </VStack>
-    </Box>
-  );
-};
 
 export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const [swimlanes, setSwimlanes] = useState<Swimlane[]>([]);
@@ -392,13 +110,92 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const updateProtocol = trpc.protocol.update.useMutation({
     onSuccess: () => {
       successToast("Protocol updated", "");
-      // Don't force a refetch that will reset swimlanes
-      // Instead, just mark the editing state as done
       setIsEditing(false);
+      refetch();
     },
     onError: (error) => {
       errorToast("Failed to update protocol", error.message);
       console.error("Update protocol error:", error);
+    }
+  });
+
+  // Process mutations
+  const createProcessMutation = trpc.protocol.createProcess.useMutation({
+    onSuccess: () => {
+      successToast("Process created", "");
+      refetch();
+    },
+    onError: (error) => {
+      errorToast("Failed to create process", error.message);
+    }
+  });
+
+  const updateProcessMutation = trpc.protocol.updateProcess.useMutation({
+    onSuccess: () => {
+      successToast("Process updated", "");
+    },
+    onError: (error) => {
+      errorToast("Failed to update process", error.message);
+    }
+  });
+
+  const deleteProcessMutation = trpc.protocol.deleteProcess.useMutation({
+    onSuccess: () => {
+      successToast("Process deleted", "");
+      refetch();
+    },
+    onError: (error) => {
+      errorToast("Failed to delete process", error.message);
+    }
+  });
+
+  // Command mutations
+  const createCommandMutation = trpc.protocol.createCommand.useMutation({
+    onSuccess: () => {
+      successToast("Command created", "");
+      refetch();
+    },
+    onError: (error) => {
+      errorToast("Failed to create command", error.message);
+    }
+  });
+
+  const updateCommandMutation = trpc.protocol.updateCommand.useMutation({
+    onSuccess: () => {
+      successToast("Command updated", "");
+    },
+    onError: (error) => {
+      errorToast("Failed to update command", error.message);
+    }
+  });
+
+  const deleteCommandMutation = trpc.protocol.deleteCommand.useMutation({
+    onSuccess: () => {
+      successToast("Command deleted", "");
+      refetch();
+    },
+    onError: (error) => {
+      errorToast("Failed to delete command", error.message);
+    }
+  });
+
+  // Process reordering mutation
+  const reorderProcessesMutation = trpc.protocol.reorderProcesses.useMutation({
+    onSuccess: () => {
+      successToast("Processes reordered", "");
+    },
+    onError: (error) => {
+      errorToast("Failed to reorder processes", error.message);
+    }
+  });
+
+  // Command reordering mutation
+  const reorderCommandsMutation = trpc.protocol.reorderCommands.useMutation({
+    onSuccess: () => {
+      successToast("Commands reordered", "");
+    },
+    onError: (error) => {
+      errorToast("Failed to reorder commands", error.message);
     }
   });
 
@@ -409,17 +206,27 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   } = useDisclosure();
 
   // Function to add a new swimlane
-  const addSwimlane = () => {
-    const newLaneId = `swimlane-${nextSwimlaneId.current}`;
-    const newSwimlane: Swimlane = {
-      id: newLaneId,
-      name: newSwimlaneTitle || `Process ${nextSwimlaneId.current}`,
-      commands: []
-    };
-
-    setSwimlanes([...swimlanes, newSwimlane]);
-    setNewSwimlaneTitle("New Process");
-    nextSwimlaneId.current += 1;
+  const addSwimlane = async () => {
+    if (!protocol) return;
+    
+    // Calculate the next position for the new process
+    const position = swimlanes.length;
+    
+    // Create the process in the database
+    try {
+      await createProcessMutation.mutateAsync({
+        name: newSwimlaneTitle || `Process ${nextSwimlaneId.current}`,
+        description: "",
+        position: position,
+        protocol_id: protocol.id
+      });
+      
+      // The refetch will update the swimlanes state
+      setNewSwimlaneTitle("New Process");
+      nextSwimlaneId.current += 1;
+    } catch (error) {
+      console.error("Error creating process:", error);
+    }
   };
 
   // Function to remove a swimlane
@@ -429,9 +236,27 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   };
 
   // Function to update swimlane name
-  const updateSwimlane = (swimlaneId: string, newName: string) => {
+  const updateSwimlane = (swimlaneId: string, newName: string, newDescription?: string) => {
+    // Find the swimlane first to get the real process ID
+    const swimlane = swimlanes.find(lane => lane.id === swimlaneId);
+    if (!swimlane || !swimlane.processId) return;
+
+    // Update in the database
+    updateProcessMutation.mutate({
+      id: swimlane.processId,
+      data: {
+        name: newName,
+        description: newDescription || ""
+      }
+    });
+
+    // Update locally
     setSwimlanes(swimlanes.map(lane => 
-      lane.id === swimlaneId ? { ...lane, name: newName } : lane
+      lane.id === swimlaneId ? { 
+        ...lane, 
+        name: newName, 
+        description: newDescription 
+      } : lane
     ));
   };
 
@@ -443,63 +268,27 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
 
   // Initialize from protocol data
   useEffect(() => {
-    if (!protocol?.commands) return;
+    if (!protocol?.processes) return;
 
-    // Check if we already have swimlanes - if so, don't reset them
-    if (swimlanes.length > 0) return;
-
-    // If protocol doesn't have processes array yet, initialize with a single swimlane
-    if (!protocol.processes || protocol.processes.length === 0) {
-      const defaultSwimlaneId = `swimlane-${nextSwimlaneId.current}`;
-      nextSwimlaneId.current += 1;
-
-      const commands = protocol.commands.map((cmd: any, index: number) => ({
-        queueId: index, // Add a unique queueId for each command
-        commandInfo: {
-          toolId: cmd.toolId,
-          toolType: cmd.toolType,
-          command: cmd.command,
-          params: cmd.params || {},
-          label: cmd.label || "",
-          tool_info: cmd.tool_info || {
-            type: cmd.toolType,
-            image_url: cmd.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
-          },
-          advancedParameters: cmd.advancedParameters || {
-            skipExecutionVariable: {
-              variable: null,
-              value: "",
-            },
-            runAsynchronously: false,
-          },
-        },
-      }));
-
-      const defaultSwimlane: Swimlane = {
-        id: defaultSwimlaneId,
-        name: `${protocol.name} Process`,
-        commands: commands
-      };
-
-      setSwimlanes([defaultSwimlane]);
-    } else {
-      // Initialize swimlanes from protocol.processes
-      const initializedSwimlanes = protocol.processes.map((process: any, idx: number) => {
+    // Clear swimlanes when protocol changes
+    if (protocol.id && protocol.processes.length > 0) {
+      const initializedSwimlanes = protocol.processes.map((process, idx) => {
         const swimlaneId = `swimlane-${idx + 1}`;
         
-        const commands = process.commands.map((cmd: any, cmdIdx: number) => ({
+        const commands = process.commands.map((cmd, cmdIdx) => ({
           queueId: cmdIdx,
+          id: cmd.id, // Store the actual database ID
           commandInfo: {
-            toolId: cmd.toolId,
-            toolType: cmd.toolType,
+            toolId: cmd.tool_id,
+            toolType: cmd.tool_type,
             command: cmd.command,
             params: cmd.params || {},
             label: cmd.label || "",
-            tool_info: cmd.tool_info || {
-              type: cmd.toolType,
-              image_url: cmd.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
+            tool_info: {
+              type: cmd.tool_type,
+              image_url: cmd.tool_type === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
             },
-            advancedParameters: cmd.advancedParameters || {
+            advancedParameters: {
               skipExecutionVariable: {
                 variable: null,
                 value: "",
@@ -511,15 +300,20 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
 
         return {
           id: swimlaneId,
-          name: process.name || `Process ${idx + 1}`,
+          name: process.name,
+          description: process.description,
+          processId: process.id, // Store the real process ID
           commands: commands
         };
       });
 
       setSwimlanes(initializedSwimlanes);
       nextSwimlaneId.current = protocol.processes.length + 1;
+    } else if (protocol.id) {
+      // If no processes, create an empty swimlanes array
+      setSwimlanes([]);
     }
-  }, [protocol?.id]); // Only reinitialize if the protocol ID changes
+  }, [protocol?.id, protocol?.processes]); 
 
   useEffect(() => {
     if (protocol?.params) {
@@ -554,29 +348,55 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     }
   };
 
-  const handleCommandAdded = (newCommand: any) => {
-    const commandWithId = {
-      queueId: Date.now(), // Use timestamp as a temporary unique ID
-      ...newCommand,
-    };
+  const handleCommandAdded = async (newCommand: any) => {
+    // Find the target swimlane and its process ID
+    const targetSwimlane = swimlanes.find(lane => lane.id === selectedSwimlaneId);
+    if (!targetSwimlane || !targetSwimlane.processId) return;
 
-    setSwimlanes((prevSwimlanes) => {
-      return prevSwimlanes.map(swimlane => {
-        if (swimlane.id === selectedSwimlaneId) {
-          const updatedCommands = [...swimlane.commands];
-          if (addCommandPosition !== null) {
-            updatedCommands.splice(addCommandPosition, 0, commandWithId);
-          } else {
-            updatedCommands.push(commandWithId);
-          }
-          return {
-            ...swimlane,
-            commands: updatedCommands
-          };
-        }
-        return swimlane;
+    // Determine the position for the new command
+    const position = addCommandPosition !== null ? addCommandPosition : targetSwimlane.commands.length;
+
+    // Create the command in the database
+    try {
+      await createCommandMutation.mutateAsync({
+        name: newCommand.commandInfo.label || newCommand.commandInfo.command,
+        tool_type: newCommand.commandInfo.toolType,
+        tool_id: newCommand.commandInfo.toolId,
+        label: newCommand.commandInfo.label || "",
+        command: newCommand.commandInfo.command,
+        params: newCommand.commandInfo.params || {},
+        process_id: targetSwimlane.processId,
+        position: position
       });
-    });
+
+      // The UI will update after refetch
+    } catch (error) {
+      console.error("Error creating command:", error);
+      
+      // Update the UI temporarily until the refetch completes
+      const commandWithId = {
+        queueId: Date.now(), // Use timestamp as a temporary unique ID
+        ...newCommand,
+      };
+
+      setSwimlanes((prevSwimlanes) => {
+        return prevSwimlanes.map(swimlane => {
+          if (swimlane.id === selectedSwimlaneId) {
+            const updatedCommands = [...swimlane.commands];
+            if (addCommandPosition !== null) {
+              updatedCommands.splice(addCommandPosition, 0, commandWithId);
+            } else {
+              updatedCommands.push(commandWithId);
+            }
+            return {
+              ...swimlane,
+              commands: updatedCommands
+            };
+          }
+          return swimlane;
+        });
+      });
+    }
 
     setAddCommandPosition(null);
     setSelectedSwimlaneId(null);
@@ -591,92 +411,132 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     setIsRunModalOpen(false);
   };
 
-  const handleDeleteCommand = () => {
-    if (commandToDeleteSwimlaneId !== null && commandToDeleteIndex !== null) {
+  const handleDeleteCommand = async () => {
+    if (commandToDeleteSwimlaneId === null || commandToDeleteIndex === null) return;
+    
+    // Find the swimlane and command to delete
+    const swimlane = swimlanes.find(lane => lane.id === commandToDeleteSwimlaneId);
+    if (!swimlane) return;
+    
+    const commandToDelete = swimlane.commands[commandToDeleteIndex];
+    if (!commandToDelete || !commandToDelete.id) {
+      // If command doesn't have an ID (it's a temporary addition), just remove it from the UI
       setSwimlanes((prevSwimlanes) => {
-        return prevSwimlanes.map(swimlane => {
-          if (swimlane.id === commandToDeleteSwimlaneId) {
-            const updatedCommands = [...swimlane.commands];
+        return prevSwimlanes.map(lane => {
+          if (lane.id === commandToDeleteSwimlaneId) {
+            const updatedCommands = [...lane.commands];
             updatedCommands.splice(commandToDeleteIndex, 1);
             return {
-              ...swimlane,
+              ...lane,
               commands: updatedCommands
             };
           }
-          return swimlane;
+          return lane;
         });
       });
+    } else {
+      // Delete from the database
+      try {
+        await deleteCommandMutation.mutateAsync({
+          id: commandToDelete.id
+        });
+        
+        // Update UI will happen via refetch
+      } catch (error) {
+        console.error("Error deleting command:", error);
+        
+        // Update the UI temporarily
+        setSwimlanes((prevSwimlanes) => {
+          return prevSwimlanes.map(lane => {
+            if (lane.id === commandToDeleteSwimlaneId) {
+              const updatedCommands = [...lane.commands];
+              updatedCommands.splice(commandToDeleteIndex, 1);
+              return {
+                ...lane,
+                commands: updatedCommands
+              };
+            }
+            return lane;
+          });
+        });
+      }
     }
+    
     closeDeleteConfirm();
   };
 
-  const handleConfirmDeleteSwimlane = () => {
-    if (swimlaneToDelete !== null) {
-      setSwimlanes(swimlanes.filter(lane => lane.id !== swimlaneToDelete));
+  const handleConfirmDeleteSwimlane = async () => {
+    if (swimlaneToDelete === null) return;
+    
+    // Find the swimlane to delete
+    const swimlane = swimlanes.find(lane => lane.id === swimlaneToDelete);
+    if (!swimlane || !swimlane.processId) {
+      // If the swimlane doesn't have a process ID, just remove it from the UI
+      setSwimlanes(prevSwimlanes => prevSwimlanes.filter(lane => lane.id !== swimlaneToDelete));
+    } else {
+      // Delete from the database
+      try {
+        await deleteProcessMutation.mutateAsync({
+          id: swimlane.processId
+        });
+        
+        // Update UI will happen via refetch
+      } catch (error) {
+        console.error("Error deleting process:", error);
+        
+        // Update the UI temporarily
+        setSwimlanes(prevSwimlanes => prevSwimlanes.filter(lane => lane.id !== swimlaneToDelete));
+      }
     }
+    
     closeDeleteSwimlaneConfirm();
   };
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
     if (!protocol) return;
 
-    // Convert the swimlanes structure to the format expected by the API
-    const processes = swimlanes.map(swimlane => ({
-      name: swimlane.name,
-      commands: swimlane.commands.map(cmd => ({
-        toolId: cmd.commandInfo.toolId,
-        toolType: cmd.commandInfo.toolType,
-        command: cmd.commandInfo.command,
-        params: cmd.commandInfo.params,
-        label: cmd.commandInfo.label || "",
-        tool_info: {
-          type: cmd.commandInfo.toolType,
-          image_url: cmd.commandInfo.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
-        },
-        advancedParameters: cmd.commandInfo.advancedParameters || {
-          skipExecutionVariable: {
-            variable: null,
-            value: "",
-          },
-          runAsynchronously: false,
-        },
-      }))
-    }));
-
-    // For backward compatibility, also set the commands field to ALL commands flattened across swimlanes
-    const flattenedCommands = swimlanes.flatMap(swimlane => 
-      swimlane.commands.map(cmd => ({
-        toolId: cmd.commandInfo.toolId,
-        toolType: cmd.commandInfo.toolType,
-        command: cmd.commandInfo.command,
-        params: cmd.commandInfo.params,
-        label: cmd.commandInfo.label || "",
-        tool_info: {
-          type: cmd.commandInfo.toolType,
-          image_url: cmd.commandInfo.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
-        },
-        advancedParameters: cmd.commandInfo.advancedParameters || {
-          skipExecutionVariable: {
-            variable: null,
-            value: "",
-          },
-          runAsynchronously: false,
-        },
-      }))
-    );
-
+    // Update the protocol parameters
     try {
-      updateProtocol.mutate({
+      await updateProtocol.mutateAsync({
         id: protocol.id,
         data: {
-          name: protocol.name,
-          description: protocol.description,
-          params: localParams,
-          commands: flattenedCommands, // Keep for backward compatibility - now flattened across ALL swimlanes
-          processes: processes, // New structure with multiple swimlanes
-          icon: protocol.icon || "",
-        },
+          params: localParams
+        }
       });
+
+      // Reorder processes if needed
+      const processIds = swimlanes
+        .filter(lane => lane.processId)
+        .map((lane, index) => ({
+          id: lane.processId!,
+          position: index
+        }));
+
+      if (processIds.length > 0) {
+        await reorderProcessesMutation.mutateAsync({
+          protocol_id: protocol.id,
+          process_ids: processIds.map(p => p.id)
+        });
+      }
+
+      // Reorder commands within each process if needed
+      for (const swimlane of swimlanes) {
+        if (!swimlane.processId) continue;
+        
+        const commandIds = swimlane.commands
+          .filter(cmd => cmd.id)
+          .map(cmd => cmd.id);
+          
+        if (commandIds.length > 0) {
+          await reorderCommandsMutation.mutateAsync({
+            process_id: swimlane.processId,
+            command_ids: commandIds
+          });
+        }
+      }
+
+      // Refetch to get the latest state
+      refetch();
     } catch (error) {
       console.error("Error saving protocol:", error);
       errorToast("Failed to save protocol", "An unexpected error occurred");
@@ -694,26 +554,60 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     });
   };
 
-  const handleUpdateCommand = (updatedCommand: any) => {
-    setSwimlanes((prevSwimlanes) => {
-      return prevSwimlanes.map(swimlane => {
-        return {
-          ...swimlane,
-          commands: swimlane.commands.map(cmd => 
-            cmd.queueId === updatedCommand.queueId ? updatedCommand : cmd
-          )
-        };
-      });
-    });
+  const handleUpdateCommand = async (updatedCommand: any) => {
+    // Find the command in the swimlanes
+    for (const swimlane of swimlanes) {
+      const commandIndex = swimlane.commands.findIndex(cmd => cmd.queueId === updatedCommand.queueId);
+      if (commandIndex !== -1) {
+        const command = swimlane.commands[commandIndex];
+        
+        // If the command has an ID, update it in the database
+        if (command.id) {
+          try {
+            await updateCommandMutation.mutateAsync({
+              id: command.id,
+              data: {
+                name: updatedCommand.commandInfo.label || updatedCommand.commandInfo.command,
+                tool_type: updatedCommand.commandInfo.toolType,
+                tool_id: updatedCommand.commandInfo.toolId,
+                label: updatedCommand.commandInfo.label || "",
+                command: updatedCommand.commandInfo.command,
+                params: updatedCommand.commandInfo.params || {}
+              }
+            });
+          } catch (error) {
+            console.error("Error updating command:", error);
+          }
+        }
+        
+        // Update the local state
+        setSwimlanes((prevSwimlanes) => {
+          return prevSwimlanes.map(lane => {
+            if (lane.id === swimlane.id) {
+              const updatedCommands = [...lane.commands];
+              updatedCommands[commandIndex] = updatedCommand;
+              return {
+                ...lane,
+                commands: updatedCommands
+              };
+            }
+            return lane;
+          });
+        });
+        
+        break;
+      }
+    }
   };
 
-  const onDragEnd = (result: DropResult) => {
+  const onDragEnd = async (result: DropResult) => {
     const { source, destination } = result;
     
     if (!destination) return;
 
-    // If dragging within the same swimlane
+    // Update local state first for immediate UI feedback
     if (source.droppableId === destination.droppableId) {
+      // Moving within same swimlane
       setSwimlanes(prevSwimlanes => {
         return prevSwimlanes.map(swimlane => {
           if (swimlane.id === source.droppableId) {
@@ -728,9 +622,34 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
           return swimlane;
         });
       });
+      
+      // Get the process ID for this swimlane
+      const swimlane = swimlanes.find(lane => lane.id === source.droppableId);
+      if (swimlane?.processId) {
+        // Get all command IDs in the new order
+        const updatedSwimlane = swimlanes.find(lane => lane.id === source.droppableId);
+        if (updatedSwimlane) {
+          const commandIds = updatedSwimlane.commands
+            .filter(cmd => cmd.id)
+            .map(cmd => cmd.id);
+            
+          if (commandIds.length > 0) {
+            try {
+              await reorderCommandsMutation.mutateAsync({
+                process_id: swimlane.processId,
+                command_ids: commandIds
+              });
+            } catch (error) {
+              console.error("Error reordering commands:", error);
+              // Revert to the previous state or refetch if there's an error
+              refetch();
+            }
+          }
+        }
+      }
     } 
-    // If dragging between different swimlanes
     else {
+      // Moving between swimlanes
       setSwimlanes(prevSwimlanes => {
         const updatedSwimlanes = [...prevSwimlanes];
         
@@ -760,6 +679,59 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         
         return updatedSwimlanes;
       });
+      
+      // This is more complex as we need to move a command from one process to another
+      // Find the relevant swimlanes and command
+      const sourceSwimlane = swimlanes.find(lane => lane.id === source.droppableId);
+      const destSwimlane = swimlanes.find(lane => lane.id === destination.droppableId);
+      
+      if (sourceSwimlane && destSwimlane && sourceSwimlane.processId && destSwimlane.processId) {
+        const command = sourceSwimlane.commands[source.index];
+        
+        if (command && command.id) {
+          // Update the command to move it to the new process
+          try {
+            await updateCommandMutation.mutateAsync({
+              id: command.id,
+              data: {
+                process_id: destSwimlane.processId,
+                position: destination.index
+              }
+            });
+            
+            // Reorder commands in both processes
+            const sourceCommandIds = sourceSwimlane.commands
+              .filter(cmd => cmd.id && cmd.id !== command.id)
+              .map(cmd => cmd.id);
+              
+            if (sourceCommandIds.length > 0) {
+              await reorderCommandsMutation.mutateAsync({
+                process_id: sourceSwimlane.processId,
+                command_ids: sourceCommandIds
+              });
+            }
+            
+            // Get updated destination swimlane commands
+            const updatedDestSwimlane = swimlanes.find(lane => lane.id === destination.droppableId);
+            if (updatedDestSwimlane) {
+              const destCommandIds = updatedDestSwimlane.commands
+                .filter(cmd => cmd.id)
+                .map(cmd => cmd.id);
+                
+              if (destCommandIds.length > 0) {
+                await reorderCommandsMutation.mutateAsync({
+                  process_id: destSwimlane.processId,
+                  command_ids: destCommandIds
+                });
+              }
+            }
+          } catch (error) {
+            console.error("Error moving command between processes:", error);
+            // Revert to the previous state or refetch if there's an error
+            refetch();
+          }
+        }
+      }
     }
   };
 
@@ -794,7 +766,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
             <Heading size="lg">{protocol.name}</Heading>
             <HStack>
               <Tag colorScheme={getCategoryColor(protocol.category)}>{protocol.category}</Tag>
-              <Text color="gray.500">{protocol.workcell}</Text>
+              <Text color="gray.500">{protocol.workcell_id}</Text>
             </HStack>
           </VStack>
           <HStack>
@@ -867,7 +839,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         <DragDropContext onDragEnd={onDragEnd}>
           <VStack spacing={4} align="stretch">
             {swimlanes.map((swimlane) => (
-              <SwimLaneContainer
+              <SwimlaneComponent
                 key={swimlane.id}
                 swimlane={swimlane}
                 isEditing={isEditing}

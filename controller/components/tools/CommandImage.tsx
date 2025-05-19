@@ -23,16 +23,16 @@ const CommandImage: React.FC<CommandImageProps> = (props) => {
 
   const ToolBoxCommandIconMap = (commandName: string) => {
     const commandIconMap = {
-      run_script: <FaRegFileCode style={{ width: "100%", height: "50px" }} />,
-      show_message: <TbMessageReport style={{ width: "100%", height: "50px" }} />,
-      pause: <MdOutlinePauseCircleOutline style={{ width: "100%", height: "50px" }} />,
-      timer: <MdAlarm style={{ width: "100%", height: "50px" }} />,
-      note: <FaRegStickyNote style={{ width: "100%", height: "50px" }} />,
-      stop_run: <GoStop style={{ width: "100%", height: "50px", color: "red" }} />,
-      goto: <TiArrowRepeat style={{ width: "100%", height: "70px" }} />,
-      variable_assignment: <TbVariable style={{ width: "100%", height: "50px" }} />,
+      run_script: <FaRegFileCode style={{ width: "100%", height: "40px" }} />,
+      show_message: <TbMessageReport style={{ width: "100%", height: "40px" }} />,
+      pause: <MdOutlinePauseCircleOutline style={{ width: "100%", height: "40px" }} />,
+      timer: <MdAlarm style={{ width: "100%", height: "40px" }} />,
+      note: <FaRegStickyNote style={{ width: "100%", height: "40px" }} />,
+      stop_run: <GoStop style={{ width: "100%", height: "40px", color: "red" }} />,
+      goto: <TiArrowRepeat style={{ width: "100%", height: "60px" }} />,
+      variable_assignment: <TbVariable style={{ width: "100%", height: "40px" }} />,
     } as Record<string, JSX.Element>;
-    return commandIconMap[commandName] || <PiToolbox style={{ width: "100%", height: "65px" }} />;
+    return commandIconMap[commandName] || <PiToolbox style={{ width: "100%", height: "55px" }} />;
   };
 
   const renderToolImage = (config: any) => {
@@ -59,8 +59,8 @@ const CommandImage: React.FC<CommandImageProps> = (props) => {
             src={config.image_url}
             alt={config.name}
             objectFit="contain"
-            height="65px"
-            width="65px"
+            height="55px"
+            width="55px"
             transition="all 0.3s ease-in-out"
             cursor="pointer"
             onClick={() => onCommandClick(command)}

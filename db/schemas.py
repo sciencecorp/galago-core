@@ -350,11 +350,29 @@ class LabwareUpdate(BaseModel):
     has_lid: t.Optional[bool] = None
     image_url: t.Optional[str] = None
 
+class ProtocolCommandGroupBase(BaseModel):
+    name: str
+    description: t.Optional[str] = None
+    process_id: int
+
+class ProtocolCommandGroupCreate(ProtocolCommandGroupBase):
+    pass
+
+class ProtocolCommandGroupUpdate(BaseModel):
+    name: t.Optional[str] = None
+    description: t.Optional[str] = None
+    process_id: t.Optional[int] = None
+
+class ProtocolCommandGroup(ProtocolCommandGroupBase, TimestampMixin):
+    id: int
+    commands: t.List["ProtocolCommand"] = []
+    model_config = ConfigDict(from_attributes=True)
+
 # ProtocolProcess Schemas
 class ProtocolProcessBase(BaseModel):
     name: str
     description: t.Optional[str] = None
-    order: int
+    position: int
     advanced_parameters: t.Optional[dict] = None
     protocol_id: int
 
@@ -364,32 +382,41 @@ class ProtocolProcessCreate(ProtocolProcessBase):
 class ProtocolProcessUpdate(BaseModel):
     name: t.Optional[str] = None
     description: t.Optional[str] = None
-    order: t.Optional[int] = None
+    position: t.Optional[int] = None
     advanced_parameters: t.Optional[dict] = None
     protocol_id: t.Optional[int] = None
 
 class ProtocolProcess(ProtocolProcessBase, TimestampMixin):
     id: int
     commands: t.List["ProtocolCommand"] = []
+    command_groups: t.List["ProtocolCommandGroup"] = []
     model_config = ConfigDict(from_attributes=True)
 
 # ProtocolCommand Schemas
 class ProtocolCommandBase(BaseModel):
     name: str
+    tool_type: str
+    tool_id: str 
     label: str
     command: str
     params: t.Dict[str, t.Any]
     process_id: int
+    command_group_id: t.Optional[int] = None
+    position: t.Optional[int] = None
 
 class ProtocolCommandCreate(ProtocolCommandBase):
     pass
 
 class ProtocolCommandUpdate(BaseModel):
     name: t.Optional[str] = None
+    tool_type: t.Optional[str] = None
+    tool_id: t.Optional[str] = None
     label: t.Optional[str] = None
     command: t.Optional[str] = None
     params: t.Optional[t.Dict[str, t.Any]] = None
     process_id: t.Optional[int] = None
+    command_group_id: t.Optional[int] = None
+    position: t.Optional[int] = None
 
 class ProtocolCommand(ProtocolCommandBase, TimestampMixin):
     id: int

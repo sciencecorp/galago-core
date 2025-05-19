@@ -1,5 +1,5 @@
 import typing as t
-from fastapi import FastAPI, HTTPException, Depends, Request, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Depends, Request, UploadFile, File, Form, Body
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -1865,17 +1865,6 @@ async def upload_waypoints(
 
 
 
-class ProtocolUpdate(BaseModel):
-    name: Optional[str] = None
-    category: Optional[str] = None
-    description: Optional[str] = None
-    icon: Optional[str] = None
-    params: Optional[Dict[str, Any]] = None
-    commands: Optional[List[Dict[str, Any]]] = None
-    version: Optional[int] = None
-    is_active: Optional[bool] = None
-
-
 @app.post("/protocols", response_model=schemas.Protocol)
 async def create_protocol(protocol: schemas.ProtocolCreate, db: Session = Depends(get_db)):
     try:
@@ -1925,7 +1914,7 @@ async def create_protocol(protocol: schemas.ProtocolCreate, db: Session = Depend
 
 @app.put("/protocols/{id}", response_model=schemas.Protocol)
 async def update_protocol(
-    id: int, protocol: ProtocolUpdate, db: Session = Depends(get_db)
+    id: int, protocol: schemas.ProtocolUpdate, db: Session = Depends(get_db)
 ):
     db_protocol = db.query(Protocol).get(id)
     if not db_protocol:
@@ -2099,6 +2088,76 @@ def get_protocol_command(command_id: int, db: Session = Depends(get_db)) -> t.An
     if not command:
         raise HTTPException(status_code=404, detail="Protocol command not found")
     return command
+# Add these endpoints to your FastAPI app:
+
+@app.post("/protocol-processes/reorder")
+async def reorder_processes(
+    reorder_data: dict = Body(...), 
+    db: Session = Depends(get_db)
+):
+    """
+    Reorder processes within a protocol. 
+    Expects a JSON with protocol_id and process_ids in the new order.
+    """
+    protocol_id = reorder_data.get("protocol_id")
+    process_ids = reorder_data.get("process_ids", [])
+    
+    if not protocol_id or not process_ids:
+        raise HTTPException(status_code=400, detail="Protocol ID and process IDs are required")
+    
+    # Verify protocol exists
+    protocol = db.query(models.Protocol).get(protocol_id)
+    if not protocol:
+        raise HTTPException(status_code=404, detail="Protocol not found")
+    
+    # Verify all processes exist and belong to this protocol
+    for idx, process_id in enumerate(process_ids):
+        process = db.query(models.ProtocolProcess).get(process_id)
+        if not process:
+            raise HTTPException(status_code=404, detail=f"Process {process_id} not found")
+        if process.protocol_id != protocol_id:
+            raise HTTPException(status_code=400, detail=f"Process {process_id} does not belong to protocol {protocol_id}")
+        
+        # Update the position
+        process.position = idx + 1  # Position is 1-based
+    
+    db.commit()
+    return {"success": True, "message": "Processes reordered successfully"}
+
+
+@app.post("/protocol-commands/reorder")
+async def reorder_commands(
+    reorder_data: dict = Body(...), 
+    db: Session = Depends(get_db)
+):
+    """
+    Reorder commands within a process. 
+    Expects a JSON with process_id and command_ids in the new order.
+    """
+    process_id = reorder_data.get("process_id")
+    command_ids = reorder_data.get("command_ids", [])
+    
+    if not process_id or not command_ids:
+        raise HTTPException(status_code=400, detail="Process ID and command IDs are required")
+    
+    # Verify process exists
+    process = db.query(models.ProtocolProcess).get(process_id)
+    if not process:
+        raise HTTPException(status_code=404, detail="Process not found")
+    
+    # Verify all commands exist and belong to this process
+    for idx, command_id in enumerate(command_ids):
+        command = db.query(models.ProtocolCommand).get(command_id)
+        if not command:
+            raise HTTPException(status_code=404, detail=f"Command {command_id} not found")
+        if command.process_id != process_id:
+            raise HTTPException(status_code=400, detail=f"Command {command_id} does not belong to process {process_id}")
+        
+        # Update the position
+        command.position = idx + 1  # Position is 1-based
+    
+    db.commit()
+    return {"success": True, "message": "Commands reordered successfully"}
 
 @app.post("/protocol-commands", response_model=schemas.ProtocolCommand)
 def create_protocol_command(
@@ -2123,3 +2182,43 @@ def delete_protocol_command(command_id: int, db: Session = Depends(get_db)) -> t
     if not command:
         raise HTTPException(status_code=404, detail="Protocol command not found")
     return crud.protocol_command.remove(db, id=command_id)
+
+# Protocol Command Group endpoints
+@app.get("/protocol-command-groups", response_model=list[schemas.ProtocolCommandGroup])
+def get_protocol_command_groups(
+    db: Session = Depends(get_db), process_id: Optional[int] = None
+) -> t.Any:
+    if process_id:
+        return crud.protocol_command_group.get_all_by(db, obj_in={"process_id": process_id})
+    return crud.protocol_command_group.get_all(db)
+
+@app.get("/protocol-command-groups/{group_id}", response_model=schemas.ProtocolCommandGroup)
+def get_protocol_command_group(group_id: int, db: Session = Depends(get_db)) -> t.Any:
+    group = crud.protocol_command_group.get(db, id=group_id)
+    if not group:
+        raise HTTPException(status_code=404, detail="Protocol command group not found")
+    return group
+
+@app.post("/protocol-command-groups", response_model=schemas.ProtocolCommandGroup)
+def create_protocol_command_group(
+    group: schemas.ProtocolCommandGroupCreate, db: Session = Depends(get_db)
+) -> t.Any:
+    return crud.protocol_command_group.create(db, obj_in=group)
+
+@app.put("/protocol-command-groups/{group_id}", response_model=schemas.ProtocolCommandGroup)
+def update_protocol_command_group(
+    group_id: int,
+    group_update: schemas.ProtocolCommandGroupUpdate,
+    db: Session = Depends(get_db),
+) -> t.Any:
+    group = crud.protocol_command_group.get(db, id=group_id)
+    if not group:
+        raise HTTPException(status_code=404, detail="Protocol command group not found")
+    return crud.protocol_command_group.update(db, db_obj=group, obj_in=group_update)
+
+@app.delete("/protocol-command-groups/{group_id}", response_model=schemas.ProtocolCommandGroup)
+def delete_protocol_command_group(group_id: int, db: Session = Depends(get_db)) -> t.Any:
+    group = crud.protocol_command_group.get(db, id=group_id)
+    if not group:
+        raise HTTPException(status_code=404, detail="Protocol command group not found")
+    return crud.protocol_command_group.remove(db, id=group_id)

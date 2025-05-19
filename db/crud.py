@@ -411,6 +411,11 @@ protocol_command = CRUDBase[
     schemas.ProtocolCommandUpdate
 ](models.ProtocolCommand)
 
+protocol_command_group = CRUDBase[
+    models.ProtocolCommandGroup, 
+    schemas.ProtocolCommandGroupCreate, 
+    schemas.ProtocolCommandGroupUpdate
+](models.ProtocolCommandGroup)
 class CRUDHotel(CRUDBase[models.Hotel, schemas.HotelCreate, schemas.HotelUpdate]):
     pass
 

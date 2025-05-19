@@ -1,147 +1,146 @@
-import StatusTag from "@/components/tools/StatusTag";
-import { Run, RunCommand } from "@/types";
-import { trpc } from "@/utils/trpc";
 import {
   Box,
   Button,
-  Link,
+  HStack,
+  VStack,
+  Heading,
+  Text,
+  Spinner,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Tag,
+  useColorModeValue,
+  IconButton,
+  Divider,
+  useDisclosure,
   Menu,
   MenuButton,
-  MenuIcon,
-  MenuItem,
   MenuList,
-  Spinner,
-  Tag,
-  Td,
-  Tr,
+  MenuItem,
+  Center,
+  Stat,
+  StatLabel,
+  StatNumber,
+  StatGroup,
+  Grid,
+  GridItem,
+  Input,
+  Tooltip,
 } from "@chakra-ui/react";
-import { ToolType } from "gen-interfaces/controller";
-import NextLink from "next/link";
-import { IoPlaySkipForward } from "react-icons/io5";
-import { BsSkipForwardFill } from "react-icons/bs";
+import { DeleteIcon, AddIcon, EditIcon, ArrowForwardIcon, HamburgerIcon } from "@chakra-ui/icons";
+import { useRouter } from "next/router";
+import { useState, useEffect, useCallback, useRef } from "react";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+  DroppableProvided,
+  DraggableProvided,
+  DraggableStateSnapshot,
+  DroppableStateSnapshot,
+} from "react-beautiful-dnd";
+import { AddToolCommandModal } from "./AddToolCommandModal";
+import NewProtocolRunModal from "./NewProtocolRunModal";
+import { trpc } from "@/utils/trpc";
+import { capitalizeFirst } from "@/utils/parser";
 import { VscRunBelow } from "react-icons/vsc";
+import { ProtocolFormModal } from "./ProtocolFormModal";
+import { FaPlay } from "react-icons/fa6";
+import { SaveIcon } from "@/components/ui/Icons";
+import { SiPlatformdotsh } from "react-icons/si";
+import { ConfirmationModal } from "../ui/ConfirmationModal";
+import { MdOutlineExitToApp, MdOutlineFormatListBulleted } from "react-icons/md";
+import { CommandDetailsDrawer } from "./CommandDetailsDrawer";
+import { ParameterSchema } from "@/types";
+import CommandImage from "@/components/tools/CommandImage";
+import { successToast, errorToast } from "../ui/Toast";
+import { useCommonColors } from "@/components/ui/Theme";
+import { PiPathBold } from "react-icons/pi";
 
-export default function CommandComponent({
-  run,
-  command: runCommand,
-}: {
-  run?: Run;
-  command: RunCommand;
-}) {
-  const { queueId, commandInfo, estimatedDuration, status } = runCommand;
-  const { toolId, toolType, params, command, label = "" } = commandInfo;
-  const skipMutation = trpc.commandQueue.skipCommand.useMutation();
-  const skipUntilMutation = trpc.commandQueue.skipCommandsUntil.useMutation();
-  const execMutation = trpc.tool.runCommand.useMutation();
-  const toolStatusQuery = trpc.tool.status.useQuery({ toolId: toolId.toString() });
-  const relevantTimestamp =
-    status === "CREATED"
-      ? runCommand.createdAt
-      : status === "STARTED"
-        ? runCommand.startedAt
-        : status === "COMPLETED"
-          ? runCommand.completedAt
-          : status === "FAILED"
-            ? runCommand.failedAt
-            : status === "SKIPPED"
-              ? runCommand.skippedAt
-              : undefined;
 
-  const queued = queueId && (status === "CREATED" || status === "FAILED" || status === "STARTED");
-  const timeDescription = relevantTimestamp && relevantTimestamp.toLocaleTimeString();
 
-  // Truncate params message if too long
-  const paramLines = JSON.stringify(params, null, 2).split("\n");
-  // const truncatedParams =
-  //   paramLines.length > 10
-  //     ? [...paramLines.slice(0, 10), "...[Text truncated for brevity]"]
-  //     : paramLines;
-  const paramString = paramLines.join("\n");
+
+export const CommandComponent: React.FC<{
+  command: any;
+  onCommandClick: (command: any) => void;
+  onRunCommand: (command: any) => void;
+  onDeleteCommand: () => void;
+  isEditing?: boolean;
+}> = ({ command, onCommandClick, onRunCommand, onDeleteCommand, isEditing = false }) => {
+  const infoQuery = trpc.tool.info.useQuery({ toolId: command.commandInfo.toolId });
+
   return (
-    <Tr>
-      <Td>
-        <Tag>{toolType}</Tag>
-      </Td>
-      <Td>
-        <Tag>{command}</Tag>
-      </Td>
-      <Td>
-        <Box
-          as="pre"
-          style={{
-            maxHeight: "200px",
-            overflowY: "auto",
-            minWidth: "200px", // Increased width
-            maxWidth: "200px", // Increased max width
-            overflowX: "auto",
-            fontSize: "0.8em",
-            whiteSpace: "pre-wrap",
-            wordWrap: "break-word",
-            padding: "4px",
-            textAlign: "left", // Explicitly set left alignment
-          }}>
-          {paramString}
-        </Box>
-      </Td>
-      <Td>
-        <Tag>{estimatedDuration}s</Tag>
-      </Td>
-      <Td minWidth="100px">
-        {" "}
-        {/* Increased width */}
-        <pre
-          style={{
-            fontSize: "0.8em",
-            whiteSpace: "pre-wrap",
-            textAlign: "left", // Explicitly set left alignment
-          }}>
-          {status === "CREATED" ? (
-            ""
-          ) : status === "STARTED" ? (
-            <Spinner size="sm" />
-          ) : status === "COMPLETED" ? (
-            "✅"
-          ) : status === "SKIPPED" ? (
-            <IoPlaySkipForward />
-          ) : status === "FAILED" ? (
-            "❌"
-          ) : (
-            JSON.stringify(status, null, 2)
-          )}{" "}
-          {timeDescription}
-        </pre>
-      </Td>
-      <Td>
-        <Menu>
-          <MenuButton colorScheme="teal" as={Button}>
-            Actions...
-          </MenuButton>
-          <MenuList>
-            {queued ? (
-              <MenuItem onClick={() => skipMutation.mutate(queueId)}>
-                <IoPlaySkipForward />{" "}
-                <Box as="span" ml={2}>
-                  Skip
-                </Box>
-              </MenuItem>
-            ) : null}
-            {queued ? (
-              <MenuItem onClick={() => skipUntilMutation.mutate(queueId)}>
-                <BsSkipForwardFill />{" "}
-                <Box as="span" ml={2}>
-                  Skip to this command
-                </Box>
-              </MenuItem>
-            ) : null}
-            <MenuItem onClick={() => execMutation.mutate(commandInfo)}>
-              <VscRunBelow />{" "}
-              <Box as="span" ml={2}>
-                Send to Tool
+    <Box
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        if (!target.closest(".command-menu")) {
+          onCommandClick(command);
+        }
+      }}>
+      <Box
+        left="0px"
+        right="0px"
+        minW="200px"
+        maxW="220px"
+        height="150px"
+        overflowY="auto"
+        mr="4"
+        fontSize="18px"
+        borderLeftRadius="10"
+        borderRightRadius="10"
+        padding="4px"
+        background={useColorModeValue("gray.50", "gray.700")}
+        border="1px"
+        borderColor={useColorModeValue("gray.200", "gray.600")}
+        boxShadow={useColorModeValue("md", "none")}>
+        <VStack alignItems="stretch">
+          <Box>
+            <HStack spacing={2}>
+              <Box width="90%">
+                <Text fontSize="16px" as="b">{capitalizeFirst(command.commandInfo.toolType)}</Text>
               </Box>
-            </MenuItem>
-          </MenuList>
-        </Menu>
-      </Td>
-    </Tr>
+              <Box className="command-menu">
+                <Menu>
+                  <MenuButton
+                    size="xs"
+                    as={IconButton}
+                    aria-label="Options"
+                    border={0}
+                    bg="transparent"
+                    icon={<HamburgerIcon fontSize="sm" />}
+                    variant="outline"
+                  />
+                  <MenuList>
+                    <MenuItem onClick={() => onRunCommand(command)} icon={<VscRunBelow />}>
+                      Run Command
+                    </MenuItem>
+                    {isEditing && (
+                      <MenuItem onClick={onDeleteCommand} icon={<DeleteIcon />}>
+                        Delete Command
+                      </MenuItem>
+                    )}
+                  </MenuList>
+                </Menu>
+              </Box>
+            </HStack>
+          </Box>
+          <Center p={0}>
+            <VStack spacing={2}>
+              <CommandImage
+                config={infoQuery.data}
+                command={command}
+                onCommandClick={onCommandClick}
+              />
+              <Box bottom={0} position="sticky">
+                <Text>{capitalizeFirst(command.commandInfo.command.replaceAll("_", " "))}</Text>
+              </Box>
+            </VStack>
+          </Center>
+        </VStack>
+      </Box>
+    </Box>
   );
-}
+};
