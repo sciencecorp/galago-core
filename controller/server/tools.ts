@@ -12,13 +12,10 @@ import { Script } from "@/types/api";
 import { Variable } from "@/types/api";
 import { Labware } from "@/types/api";
 import { logAction } from "./logger";
-import { Tool as ToolResponse } from "@/types/api";
 import { JavaScriptExecutor } from "@/server/scripting/javascript/javascript-executor";
 import { CSharpExecutor } from "@/server/scripting/csharp/csharp-executor";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
-const toolStore: Map<string, Tool> = new Map();
-const toolsWithLabware: string[] = ["pf400"];
 
 export default class Tool {
   info: controller_protos.ToolConfig;
@@ -286,17 +283,46 @@ export default class Tool {
         throw new Error(`Failed to fetch ${scriptName}. ${e}`);
       }
     }
+
     const reply = await this.grpc.executeCommand(this._payloadForCommand(command));
+
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
+      // Generate a more user-friendly error message based on the error code
+      let userFriendlyErrorMessage: string;
+
+      // Handle specific error codes
+      switch (reply.response) {
+        case tool_base.ResponseCode.UNRECOGNIZED_COMMAND:
+          userFriendlyErrorMessage = `The command "${command.command}" is not recognized by the tool "${command.toolId}". Please verify that this command is supported by this tool.`;
+          break;
+        case tool_base.ResponseCode.INVALID_ARGUMENTS:
+          userFriendlyErrorMessage = `Invalid arguments provided for command "${command.command}". Check the parameters and try again.`;
+          break;
+        case tool_base.ResponseCode.NOT_READY:
+          userFriendlyErrorMessage = `The tool "${command.toolId}" is currently not ready. Please wait and try again.`;
+          break;
+        case tool_base.ResponseCode.WRONG_TOOL:
+          userFriendlyErrorMessage =
+            "The command was sent to the wrong tool type. Please check that you're using the correct tool for this operation.";
+          break;
+        case tool_base.ResponseCode.ERROR_FROM_TOOL:
+          userFriendlyErrorMessage = reply.error_message
+            ? `Error from tool "${command.toolId}": ${reply.error_message}`
+            : `An error occurred while executing the command "${command.command}" on tool "${command.toolId}".`;
+          break;
+        default:
+          userFriendlyErrorMessage =
+            reply.error_message ||
+            `Failed to execute command "${command.command}" on tool "${command.toolId}"`;
+      }
+
       logAction({
         level: "error",
         action: "Tool Command Execution Error",
-        details: `Failed to execute command: ${command.command}, Tool: ${command.toolId}. Error: ${reply.error_message}`,
+        details: `Failed to execute command: ${command.command}, Tool: ${command.toolId}. Error: ${userFriendlyErrorMessage} (Code: ${reply.response})`,
       });
-      throw new ToolCommandExecutionError(
-        reply.error_message ?? "Tool command failed",
-        reply.response,
-      );
+
+      throw new ToolCommandExecutionError(userFriendlyErrorMessage, reply.response);
     } else if (reply.return_reply && !reply?.error_message) {
       return reply;
     } else if (reply?.error_message) {
@@ -311,7 +337,6 @@ export default class Tool {
       );
     }
   }
-
   async estimateDuration(command: ToolCommandInfo) {
     const reply = await this.grpc.estimateDuration(this._payloadForCommand(command));
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
@@ -407,10 +432,23 @@ export default class Tool {
 
   static async reloadSingleToolConfig(tool: controller_protos.ToolConfig) {
     const normalizedName = Tool.normalizeToolId(tool.name);
+
+    // Remove from tool store
     await this.removeTool(tool.name);
-    // Replace or update the tool config in allTools
+
+    // Update allTools list
     this.allTools = this.allTools.filter((t) => Tool.normalizeToolId(t.name) !== normalizedName);
     this.allTools.push(tool);
+
+    // Update or recreate the tool in the global store
+    const global_key = "__global_tool_store";
+    const me = global as any;
+    if (me[global_key]) {
+      const store: Map<string, Tool> = me[global_key];
+      const newTool = new Tool(tool);
+      newTool.startHeartbeat(5000);
+      store.set(normalizedName, newTool);
+    }
   }
 
   static forId(toolId: string): Tool {
@@ -475,5 +513,26 @@ export class ToolCommandExecutionError extends Error {
   ) {
     super(message);
     this.name = "ToolCommandExecutionError";
+
+    // Add some helpful properties to make error handling easier
+    this.codeString = this.getResponseCodeString(code);
+    this.userFriendlyMessage = message;
+  }
+
+  // Add a property to get the string representation of the response code
+  public codeString: string;
+
+  // Add a property to store user-friendly message
+  public userFriendlyMessage: string;
+
+  // Helper method to get string representation of ResponseCode
+  private getResponseCodeString(code: tool_base.ResponseCode): string {
+    // Convert the numeric code to its string name
+    const codeNames =
+      Object.entries(tool_base.ResponseCode)
+        .filter(([_, value]) => typeof value === "number")
+        .find(([_, value]) => value === code)?.[0] || "UNKNOWN";
+
+    return codeNames;
   }
 }
