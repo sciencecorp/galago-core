@@ -170,6 +170,7 @@ export const commandFields: CommandFields = {
     reset: [],
     start_shake: [
       { name: "speed", type: "number", defaultValue: 1000 },
+      { name: "acceleration", type: "number", defaultValue: 10 },
       { name: "duration", type: "number", defaultValue: 10 },
     ],
     stop_shake: [],
