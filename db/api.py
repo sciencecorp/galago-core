@@ -2315,15 +2315,9 @@ async def external_auth_register(
             expires_delta=access_token_expires,
         )
 
-        # Return the user with access token
-        user_dict = {
-            "id": db_user.id,
-            "username": db_user.username,
-            "email": db_user.email,
-            "is_admin": db_user.is_admin,
-            "access_token": access_token,
-        }
-        return user_dict
+        # Return the full user object with access token
+        db_user.access_token = access_token
+        return db_user
 
     else:
         # Create a new user
@@ -2358,9 +2352,21 @@ async def external_auth_register(
             )
 
             new_user = crud.create_user(db=db, user=user_create)
+            
+            # Ensure the transaction is committed and refresh the user object
+            db.commit()
+            db.refresh(new_user)
+            
             logging.info(
                 f"Created new user from {auth_data.provider} auth: {auth_data.email}"
             )
+            
+            # Verify the user was actually created by querying it back
+            verification_user = crud.get_user_by_email(db, email=auth_data.email)
+            if verification_user:
+                logging.info(f"Verification: OAuth user {verification_user.username} (ID: {verification_user.id}) successfully stored in database")
+            else:
+                logging.error(f"Verification FAILED: OAuth user for {auth_data.email} not found in database after creation")
 
             # Generate token for the new user
             access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -2369,15 +2375,9 @@ async def external_auth_register(
                 expires_delta=access_token_expires,
             )
 
-            # Return user with access token
-            user_dict = {
-                "id": new_user.id,
-                "username": new_user.username,
-                "email": new_user.email,
-                "is_admin": new_user.is_admin,
-                "access_token": access_token,
-            }
-            return user_dict
+            # Add the access token to the user model and return the full user
+            new_user.access_token = access_token
+            return new_user
 
         except Exception as e:
             logging.error(f"Error creating user from external auth: {str(e)}")

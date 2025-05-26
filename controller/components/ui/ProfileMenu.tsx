@@ -98,17 +98,32 @@ export const ProfileMenu: React.FC = () => {
 
   const handleSignOut = async () => {
     setIsLoggingOut(true);
-
-    // Sign out from both auth systems
-    if (isNextAuthActive) {
-      await signOut({ redirect: false });
+    
+    try {
+      // First sign out from custom auth system if active
+      if (isCustomAuthActive) {
+        customAuthLogout();
+      }
+      
+      // Then sign out from NextAuth if active
+      if (isNextAuthActive) {
+        // Use redirect: true here to allow NextAuth to handle the redirect properly
+        await signOut({ 
+          callbackUrl: "/auth/signin",
+          redirect: true
+        });
+        return; // NextAuth will handle the redirect
+      }
+      
+      // Only redirect manually if we're not using NextAuth
+      router.push("/auth/signin");
+    } catch (error) {
+      console.error("Error during sign out:", error);
+      // Force redirect to sign-in page in case of error
+      window.location.href = "/auth/signin";
+    } finally {
+      setIsLoggingOut(false);
     }
-
-    if (isCustomAuthActive) {
-      customAuthLogout();
-    }
-
-    router.push("/auth/signin");
   };
 
   return (

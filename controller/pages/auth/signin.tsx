@@ -30,8 +30,10 @@ import {
   GridItem,
   Flex,
   useColorModeValue,
+  AbsoluteCenter,
 } from "@chakra-ui/react";
-import { FaGoogle, FaGithub, FaUser } from "react-icons/fa";
+import { FaGithub, FaUser } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "../../hooks/useAuth";
 import { useCommonColors, useTextColors } from "../../components/ui/Theme";
 
@@ -328,11 +330,10 @@ export default function SignIn({ providers, csrfToken }: { providers: any; csrfT
                   </VStack>
                 </form>
 
-                <Divider my={3} />
-
-                <Center>
-                  <Text mb={1} fontSize="sm">
-                    Or continue with
+                <Center my={3} position="relative">
+                  <Divider />
+                  <Text fontSize="sm" px={2} position="absolute" left="50%" transform="translateX(-50%)">
+                    or
                   </Text>
                 </Center>
 
@@ -346,11 +347,15 @@ export default function SignIn({ providers, csrfToken }: { providers: any; csrfT
                       {providers?.google && (
                         <Button
                           width="100%"
-                          colorScheme="red"
-                          leftIcon={<FaGoogle />}
+                          bg="gray.50"
+                          color="gray.800"
+                          border="1px"
+                          borderColor="gray.200"
+                          leftIcon={<FcGoogle color="#DB4437" />}
                           onClick={() => handleSocialSignIn("google")}
                           aria-label="Sign in with Google"
-                          size="md">
+                          size="md"
+                          _hover={{ bg: "gray.200" }}>
                           Sign in with Google
                         </Button>
                       )}
@@ -358,23 +363,19 @@ export default function SignIn({ providers, csrfToken }: { providers: any; csrfT
                       {providers?.github && (
                         <Button
                           width="100%"
-                          colorScheme="gray"
+                          bg="black"
+                          color="white"
                           leftIcon={<FaGithub />}
                           onClick={() => handleSocialSignIn("github")}
                           aria-label="Sign in with GitHub"
-                          size="md">
+                          size="md"
+                          _hover={{ bg: "gray.800" }}>
                           Sign in with GitHub
                         </Button>
                       )}
                     </>
                   )}
                 </VStack>
-
-                <Center mt={1}>
-                  <Text fontSize="xs" color="gray.500">
-                    Contact your administrator if you need an account
-                  </Text>
-                </Center>
 
                 <Center mt={1}>
                   <Text fontSize="sm">

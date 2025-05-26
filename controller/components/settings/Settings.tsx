@@ -186,10 +186,15 @@ export const Settings: React.FC = () => {
   // Fetch users
   const fetchUsers = async () => {
     try {
+      console.log("Fetching users...");
       const response = await authAxios.get("/users");
+      console.log("Users response data:", response.data);
       setUsers(response.data);
     } catch (error: any) {
       console.error("Error fetching users:", error);
+      console.error("Error details:", error.response?.data || "No response data");
+      console.error("Error status:", error.response?.status || "No status code");
+      
       // Don't show toast for auth errors - they're handled separately
       if (error?.response?.status !== 401 && error?.response?.status !== 403) {
         toast({

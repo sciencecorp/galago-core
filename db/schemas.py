@@ -716,6 +716,7 @@ class User(UserBase):
     is_active: bool
     created_at: datetime
     updated_at: datetime
+    access_token: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

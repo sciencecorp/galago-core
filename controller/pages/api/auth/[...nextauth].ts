@@ -2,6 +2,7 @@ import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { getSession } from "next-auth/react";
 import axios from "axios";
 import { JWT } from "next-auth/jwt";
 import { Session } from "next-auth";
@@ -31,7 +32,13 @@ declare module "next-auth/jwt" {
   }
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Use internal Docker network for server-side calls, fallback to client-side URL
+// API_BASE_URL already includes /api, NEXT_PUBLIC_API_URL includes /api too
+const SERVER_API_URL = process.env.API_BASE_URL || "http://localhost:8000/api";
+const CLIENT_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+// For server-side NextAuth callbacks, use the Docker internal network
+const API_URL = SERVER_API_URL;
 
 // Helper function to synchronize token with client side storage
 // This is called from the client side
@@ -171,7 +178,7 @@ export const authOptions: NextAuthOptions = {
             token.dbUserId = response.data.id;
           }
         } catch (error) {
-          // Error registering with external provider
+          console.error("Error during external auth:", error);
         }
       }
 
@@ -202,17 +209,19 @@ export const authOptions: NextAuthOptions = {
 
       // For social logins, ensure we have a user
       return !!user;
-    },
+    }
   },
 
   events: {
     async signIn({ user, account }) {
-      // When a user signs in successfully, ensure the token is stored in client-side storage
+      // When a user signs in successfully with credentials, ensure the token is stored in client-side storage
       if (account?.provider === "credentials" && (user as any).accessToken) {
         if (typeof window !== "undefined") {
           syncTokenToStorage((user as any).accessToken);
         }
       }
+      
+      // For OAuth providers, token storage is handled in the client-side useEffect in AuthProvider
     },
 
     async signOut() {

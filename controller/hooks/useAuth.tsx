@@ -90,84 +90,53 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-
-  // Get NextAuth session
   const { data: session, status: sessionStatus } = useSession();
 
-  // Check if user is authenticated via NextAuth
+  // Effect to handle token storage for NextAuth sessions
   useEffect(() => {
-    if (sessionStatus === "authenticated") {
-      if (session?.accessToken) {
-        // Store the token from NextAuth in our local storage/cookies
-        const token = session.accessToken as string;
-        // The refresh token might not always be available from NextAuth
-        const refreshToken = (session as any).refreshToken as string;
-        storeToken(token, refreshToken);
+    if (session?.accessToken) {
+      // Store the NextAuth token for API access
+      localStorage.setItem("token", session.accessToken as string);
+      Cookies.set("token", session.accessToken as string, {
+        expires: 30, // 30 days
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+      });
+    }
+  }, [session]);
 
-        // Fetch user data with the token to keep systems in sync
-        const fetchUserWithToken = async () => {
-          try {
-            const response = await axios.get(`${API_URL}/users/me`, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
+  // Effect to load user on mount or token change
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-            setUser(response.data);
-            setError(null);
-          } catch (err) {
-            console.error("Failed to sync NextAuth session with custom auth:", err);
-          } finally {
-            setLoading(false);
-          }
-        };
-
-        fetchUserWithToken();
-      } else {
-        // Session is authenticated but has no token (abnormal case)
+        const response = await authAxios.get("/users/me");
+        setUser(response.data);
+      } catch (error) {
+        // On error, check session data from NextAuth
+        if (session?.user) {
+          // If we have session data but no API user, we might be using NextAuth
+          setUser(null); // Don't set a user so we rely on session data
+        } else {
+          setUser(null);
+          setError("Failed to load user");
+        }
+      } finally {
         setLoading(false);
       }
-    } else if (sessionStatus === "unauthenticated") {
-      // If NextAuth says we're not authenticated, then check our custom auth
-      checkCustomAuth();
-    } else if (sessionStatus === "loading") {
-      // Keep loading true while NextAuth is checking
-      setLoading(true);
-    }
-  }, [session, sessionStatus]);
+    };
 
-  // Make sure loading is set to false when auth checks complete
-  useEffect(() => {
-    if (sessionStatus !== "loading" && user !== null) {
-      setLoading(false);
-    } else if (
-      sessionStatus === "unauthenticated" &&
-      !localStorage.getItem("token") &&
-      !Cookies.get("token")
-    ) {
-      setLoading(false);
-    }
-  }, [sessionStatus, user]);
-
-  // Check if the user is already logged in via custom auth
-  const checkCustomAuth = async () => {
+    // Only try loading the user if we have a token
     const token = localStorage.getItem("token") || Cookies.get("token");
-
     if (token) {
-      try {
-        const response = await axios.get(`${API_URL}/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        setUser(response.data);
-        setError(null);
-      } catch (err) {
-        console.error("Authentication check failed:", err);
-        removeToken();
-        setUser(null);
-      }
+      loadUser();
+    } else {
+      setLoading(false);
     }
-
-    setLoading(false);
-  };
+  }, [session]);
 
   const login = async (
     username: string,
@@ -305,19 +274,19 @@ export const useAuth = () => {
 // Create an axios instance with auth header
 export const authAxios = axios.create({
   baseURL: API_URL,
+  withCredentials: true, // Include credentials for cookies
 });
 
 // Add a request interceptor to add the token to all requests
 authAxios.interceptors.request.use(
   (config) => {
+    // First check localStorage and cookies for stored tokens
     const token = localStorage.getItem("token") || Cookies.get("token");
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    // With httpOnly cookies, we don't need to manually add the token
-    // The browser will automatically send the cookie with requests
-    // Just make sure credentials are included
-    config.withCredentials = true;
+    
     return config;
   },
   (error) => Promise.reject(error),
