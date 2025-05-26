@@ -11,6 +11,9 @@ export interface Command {
   stop_shake?: Command_StopShake | undefined;
   reset?: Command_Reset | undefined;
   wait_for_shake_to_finish?: Command_WaitForShakeToFinish | undefined;
+  set_temperature?: Command_SetTemperature | undefined;
+  temperature_on?: Command_TemperatureOn | undefined;
+  temperatrue_off?: Command_TemperatureOff | undefined;
 }
 
 export interface Command_Grip {
@@ -24,6 +27,7 @@ export interface Command_Home {
 
 export interface Command_StartShake {
   speed: number;
+  acceleration: number;
   duration: number;
 }
 
@@ -35,6 +39,16 @@ export interface Command_Reset {
 
 export interface Command_WaitForShakeToFinish {
   timeout: number;
+}
+
+export interface Command_TemperatureOn {
+}
+
+export interface Command_TemperatureOff {
+}
+
+export interface Command_SetTemperature {
+  temperature: number;
 }
 
 export interface Config {
@@ -50,6 +64,9 @@ function createBaseCommand(): Command {
     stop_shake: undefined,
     reset: undefined,
     wait_for_shake_to_finish: undefined,
+    set_temperature: undefined,
+    temperature_on: undefined,
+    temperatrue_off: undefined,
   };
 }
 
@@ -75,6 +92,15 @@ export const Command = {
     }
     if (message.wait_for_shake_to_finish !== undefined) {
       Command_WaitForShakeToFinish.encode(message.wait_for_shake_to_finish, writer.uint32(58).fork()).ldelim();
+    }
+    if (message.set_temperature !== undefined) {
+      Command_SetTemperature.encode(message.set_temperature, writer.uint32(66).fork()).ldelim();
+    }
+    if (message.temperature_on !== undefined) {
+      Command_TemperatureOn.encode(message.temperature_on, writer.uint32(74).fork()).ldelim();
+    }
+    if (message.temperatrue_off !== undefined) {
+      Command_TemperatureOff.encode(message.temperatrue_off, writer.uint32(82).fork()).ldelim();
     }
     return writer;
   },
@@ -135,6 +161,27 @@ export const Command = {
 
           message.wait_for_shake_to_finish = Command_WaitForShakeToFinish.decode(reader, reader.uint32());
           continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.set_temperature = Command_SetTemperature.decode(reader, reader.uint32());
+          continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.temperature_on = Command_TemperatureOn.decode(reader, reader.uint32());
+          continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.temperatrue_off = Command_TemperatureOff.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -155,6 +202,13 @@ export const Command = {
       wait_for_shake_to_finish: isSet(object.wait_for_shake_to_finish)
         ? Command_WaitForShakeToFinish.fromJSON(object.wait_for_shake_to_finish)
         : undefined,
+      set_temperature: isSet(object.set_temperature)
+        ? Command_SetTemperature.fromJSON(object.set_temperature)
+        : undefined,
+      temperature_on: isSet(object.temperature_on) ? Command_TemperatureOn.fromJSON(object.temperature_on) : undefined,
+      temperatrue_off: isSet(object.temperatrue_off)
+        ? Command_TemperatureOff.fromJSON(object.temperatrue_off)
+        : undefined,
     };
   },
 
@@ -170,6 +224,14 @@ export const Command = {
     message.reset !== undefined && (obj.reset = message.reset ? Command_Reset.toJSON(message.reset) : undefined);
     message.wait_for_shake_to_finish !== undefined && (obj.wait_for_shake_to_finish = message.wait_for_shake_to_finish
       ? Command_WaitForShakeToFinish.toJSON(message.wait_for_shake_to_finish)
+      : undefined);
+    message.set_temperature !== undefined && (obj.set_temperature = message.set_temperature
+      ? Command_SetTemperature.toJSON(message.set_temperature)
+      : undefined);
+    message.temperature_on !== undefined &&
+      (obj.temperature_on = message.temperature_on ? Command_TemperatureOn.toJSON(message.temperature_on) : undefined);
+    message.temperatrue_off !== undefined && (obj.temperatrue_off = message.temperatrue_off
+      ? Command_TemperatureOff.toJSON(message.temperatrue_off)
       : undefined);
     return obj;
   },
@@ -202,6 +264,15 @@ export const Command = {
       (object.wait_for_shake_to_finish !== undefined && object.wait_for_shake_to_finish !== null)
         ? Command_WaitForShakeToFinish.fromPartial(object.wait_for_shake_to_finish)
         : undefined;
+    message.set_temperature = (object.set_temperature !== undefined && object.set_temperature !== null)
+      ? Command_SetTemperature.fromPartial(object.set_temperature)
+      : undefined;
+    message.temperature_on = (object.temperature_on !== undefined && object.temperature_on !== null)
+      ? Command_TemperatureOn.fromPartial(object.temperature_on)
+      : undefined;
+    message.temperatrue_off = (object.temperatrue_off !== undefined && object.temperatrue_off !== null)
+      ? Command_TemperatureOff.fromPartial(object.temperatrue_off)
+      : undefined;
     return message;
   },
 };
@@ -339,7 +410,7 @@ export const Command_Home = {
 };
 
 function createBaseCommand_StartShake(): Command_StartShake {
-  return { speed: 0, duration: 0 };
+  return { speed: 0, acceleration: 0, duration: 0 };
 }
 
 export const Command_StartShake = {
@@ -347,8 +418,11 @@ export const Command_StartShake = {
     if (message.speed !== 0) {
       writer.uint32(8).int32(message.speed);
     }
+    if (message.acceleration !== 0) {
+      writer.uint32(16).int32(message.acceleration);
+    }
     if (message.duration !== 0) {
-      writer.uint32(16).int32(message.duration);
+      writer.uint32(24).int32(message.duration);
     }
     return writer;
   },
@@ -372,6 +446,13 @@ export const Command_StartShake = {
             break;
           }
 
+          message.acceleration = reader.int32();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
           message.duration = reader.int32();
           continue;
       }
@@ -386,6 +467,7 @@ export const Command_StartShake = {
   fromJSON(object: any): Command_StartShake {
     return {
       speed: isSet(object.speed) ? Number(object.speed) : 0,
+      acceleration: isSet(object.acceleration) ? Number(object.acceleration) : 0,
       duration: isSet(object.duration) ? Number(object.duration) : 0,
     };
   },
@@ -393,6 +475,7 @@ export const Command_StartShake = {
   toJSON(message: Command_StartShake): unknown {
     const obj: any = {};
     message.speed !== undefined && (obj.speed = Math.round(message.speed));
+    message.acceleration !== undefined && (obj.acceleration = Math.round(message.acceleration));
     message.duration !== undefined && (obj.duration = Math.round(message.duration));
     return obj;
   },
@@ -404,6 +487,7 @@ export const Command_StartShake = {
   fromPartial<I extends Exact<DeepPartial<Command_StartShake>, I>>(object: I): Command_StartShake {
     const message = createBaseCommand_StartShake();
     message.speed = object.speed ?? 0;
+    message.acceleration = object.acceleration ?? 0;
     message.duration = object.duration ?? 0;
     return message;
   },
@@ -549,6 +633,150 @@ export const Command_WaitForShakeToFinish = {
   fromPartial<I extends Exact<DeepPartial<Command_WaitForShakeToFinish>, I>>(object: I): Command_WaitForShakeToFinish {
     const message = createBaseCommand_WaitForShakeToFinish();
     message.timeout = object.timeout ?? 0;
+    return message;
+  },
+};
+
+function createBaseCommand_TemperatureOn(): Command_TemperatureOn {
+  return {};
+}
+
+export const Command_TemperatureOn = {
+  encode(_: Command_TemperatureOn, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Command_TemperatureOn {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCommand_TemperatureOn();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): Command_TemperatureOn {
+    return {};
+  },
+
+  toJSON(_: Command_TemperatureOn): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Command_TemperatureOn>, I>>(base?: I): Command_TemperatureOn {
+    return Command_TemperatureOn.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Command_TemperatureOn>, I>>(_: I): Command_TemperatureOn {
+    const message = createBaseCommand_TemperatureOn();
+    return message;
+  },
+};
+
+function createBaseCommand_TemperatureOff(): Command_TemperatureOff {
+  return {};
+}
+
+export const Command_TemperatureOff = {
+  encode(_: Command_TemperatureOff, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Command_TemperatureOff {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCommand_TemperatureOff();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): Command_TemperatureOff {
+    return {};
+  },
+
+  toJSON(_: Command_TemperatureOff): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Command_TemperatureOff>, I>>(base?: I): Command_TemperatureOff {
+    return Command_TemperatureOff.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Command_TemperatureOff>, I>>(_: I): Command_TemperatureOff {
+    const message = createBaseCommand_TemperatureOff();
+    return message;
+  },
+};
+
+function createBaseCommand_SetTemperature(): Command_SetTemperature {
+  return { temperature: 0 };
+}
+
+export const Command_SetTemperature = {
+  encode(message: Command_SetTemperature, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.temperature !== 0) {
+      writer.uint32(8).int32(message.temperature);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Command_SetTemperature {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCommand_SetTemperature();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.temperature = reader.int32();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Command_SetTemperature {
+    return { temperature: isSet(object.temperature) ? Number(object.temperature) : 0 };
+  },
+
+  toJSON(message: Command_SetTemperature): unknown {
+    const obj: any = {};
+    message.temperature !== undefined && (obj.temperature = Math.round(message.temperature));
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Command_SetTemperature>, I>>(base?: I): Command_SetTemperature {
+    return Command_SetTemperature.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Command_SetTemperature>, I>>(object: I): Command_SetTemperature {
+    const message = createBaseCommand_SetTemperature();
+    message.temperature = object.temperature ?? 0;
     return message;
   },
 };
