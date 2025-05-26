@@ -18,12 +18,14 @@ import {
   Tooltip,
   Icon,
   Flex,
+  Divider,
+  Switch,
 } from "@chakra-ui/react";
 import { Nest, Plate, NestStatus, PlateStatus } from "@/types/api";
 import { AddIcon, MinusIcon } from "@chakra-ui/icons";
 import { WellPlateIcon } from "@/components/ui/Icons";
 import { RiCheckFill } from "react-icons/ri";
-import { BsGrid3X3 } from "react-icons/bs";
+import { BsGrid3X3, BsBoxSeam, BsLightningCharge } from "react-icons/bs";
 import { warningToast, errorToast } from "@/components/ui/Toast";
 import { useCommonColors, useTextColors } from "@/components/ui/Theme";
 
@@ -31,6 +33,7 @@ interface NestModalProps {
   isOpen: boolean;
   onClose: () => void;
   toolName: string;
+  toolType?: string;
   nests: Nest[];
   plates: Plate[];
   selectedNests?: number[];
@@ -40,12 +43,17 @@ interface NestModalProps {
   onCreateNest?: (row: number, column: number) => Promise<void>;
   onDeleteNest?: (nestId: number) => Promise<void>;
   onPlateClick?: (plate: Plate) => void;
+  onCheckIn?: (nestId: number, triggerToolCommand?: boolean) => void;
+  onTriggerToolCommandChange?: (value: boolean) => void;
+  containerType: "tool" | "hotel";
+  containerId: number;
 }
 
 const NestModal: React.FC<NestModalProps> = ({
   isOpen,
   onClose,
   toolName,
+  toolType,
   nests,
   plates,
   selectedNests = [],
@@ -55,9 +63,15 @@ const NestModal: React.FC<NestModalProps> = ({
   onCreateNest,
   onDeleteNest,
   onPlateClick,
+  onCheckIn,
+  onTriggerToolCommandChange,
+  containerType,
+  containerId,
 }) => {
   const [localSelectedNests, setLocalSelectedNests] = useState<number[]>(selectedNests || []);
   const [dimensionMode, setDimensionMode] = useState<"row" | "column">("column");
+  const [triggerToolCommand, setTriggerToolCommand] = useState(false);
+  const isLiconic = toolType?.toLowerCase() === "liconic";
 
   // Calculate max dimensions properly, ensuring we count from 1 for hotels
   const maxRows =
@@ -147,7 +161,6 @@ const NestModal: React.FC<NestModalProps> = ({
       const targetIndex = operation === "add" ? currentMax : currentMax - 1;
 
       if (operation === "remove" && onDeleteNest) {
-        // Log existing nests for debugging
         // Find nests to delete at the last row/column
         // Since targetIndex is already currentMax - 1, we don't need to subtract 1 again
         const nestsToDelete = nests.filter((nest) =>
@@ -187,6 +200,12 @@ const NestModal: React.FC<NestModalProps> = ({
     }
   };
 
+  const handleCheckIn = (nestId: number) => {
+    if (onCheckIn) {
+      onCheckIn(nestId, triggerToolCommand);
+    }
+  };
+
   const renderNestContent = (nest: Nest) => {
     const plate = plates.find((p) => p.nest_id === nest.id);
     const isSelected = localSelectedNests.includes(nest.id);
@@ -215,7 +234,7 @@ const NestModal: React.FC<NestModalProps> = ({
           bg: isSelected ? selectedNestBg : "transparent",
         }}>
         {plate && (
-          <Tooltip label={`${plate.name || "Unnamed Plate"}`}>
+          <Tooltip label={`${plate.name || "Unnamed Plate"} - Click to view details or check out`}>
             <Box
               onClick={(e) => {
                 e.stopPropagation(); // Prevent nest selection when clicking the plate
@@ -271,19 +290,42 @@ const NestModal: React.FC<NestModalProps> = ({
       <ModalOverlay backdropFilter="blur(4px)" />
       <ModalContent maxW="fit-content" minW="min-content">
         <ModalHeader borderBottomWidth="1px" py={4}>
-          <HStack spacing={3} justify="space-between">
-            <HStack spacing={3}>
-              <Icon as={BsGrid3X3} boxSize={5} color="teal.500" />
-              <VStack align="start" spacing={0}>
-                <Text>{toolName}</Text>
-                <Text fontSize="sm" color="gray.500">
-                  Select nest{isMultiSelect ? "s" : ""}
-                </Text>
-              </VStack>
+          <VStack spacing={2} align="stretch">
+            <HStack spacing={3} justify="space-between">
+              <HStack spacing={3}>
+                <Icon as={BsGrid3X3} boxSize={5} color="teal.500" />
+                <VStack align="start" spacing={0}>
+                  <Text>{toolName}</Text>
+                  <Text fontSize="sm" color="gray.500">
+                    Select nest{isMultiSelect ? "s" : ""}
+                  </Text>
+                </VStack>
+              </HStack>
+
+              {/* Check-in button in the top right */}
+              {onCheckIn && (
+                <Button
+                  leftIcon={<Icon as={BsBoxSeam} />}
+                  colorScheme="teal"
+                  size="sm"
+                  onClick={() => {
+                    if (localSelectedNests.length > 0) {
+                      // If a nest is selected, use that specific nest
+                      handleCheckIn(localSelectedNests[0]);
+                    } else {
+                      // Otherwise, still open the check-in modal
+                      // which has automatic placement
+                      handleCheckIn(-1); // Use -1 to indicate auto-placement
+                    }
+                  }}>
+                  {localSelectedNests.length > 0 ? "Check In Here" : "Check In"}
+                </Button>
+              )}
             </HStack>
 
+            {/* Grid dimension controls */}
             {onCreateNest && onDeleteNest && (
-              <HStack spacing={2}>
+              <HStack spacing={2} justify="flex-end">
                 <Button
                   size="sm"
                   variant="ghost"
@@ -321,7 +363,30 @@ const NestModal: React.FC<NestModalProps> = ({
                 )}
               </HStack>
             )}
-          </HStack>
+
+            {/* Only show the trigger tool command option for Liconic tools */}
+            {isLiconic && containerType === "tool" && (
+              <HStack spacing={2} justify="flex-end">
+                <HStack spacing={2}>
+                  <Icon as={BsLightningCharge} color="orange.400" />
+                  <Text fontSize="sm" color={textColor}>
+                    Trigger Tool Command
+                  </Text>
+                </HStack>
+                <Switch
+                  isChecked={triggerToolCommand}
+                  onChange={(e) => {
+                    setTriggerToolCommand(e.target.checked);
+                    if (onTriggerToolCommandChange) {
+                      onTriggerToolCommandChange(e.target.checked);
+                    }
+                  }}
+                  colorScheme="teal"
+                  size="sm"
+                />
+              </HStack>
+            )}
+          </VStack>
         </ModalHeader>
         <ModalBody py={6}>
           <Flex>

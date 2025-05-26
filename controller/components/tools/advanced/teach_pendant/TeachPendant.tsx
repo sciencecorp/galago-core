@@ -136,19 +136,8 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
     commandHandlers.handleJog(robotArmCommandMutation, jogAxis, jogDistance, motionProfiles);
   };
 
-  const handleMoveCommand = commandHandlers.handleMoveCommand;
-
   const handleMove = (point: TeachPoint) => {
-    const motionProfile = motionProfiles.find((p) => p.id === selectedMotionProfile?.id);
-    if (motionProfile) {
-      commandHandlers.handleMoveCommand(
-        robotArmCommandMutation,
-        point.name,
-        motionProfile.id,
-        false,
-        motionProfiles,
-      );
-    }
+    commandHandlers.handleMoveCommand(robotArmCommandMutation, point.name, "default");
   };
 
   const handleTeach = async (point: TeachPoint) => {
@@ -475,7 +464,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 commandHandlers.handleSimpleCommand(robotArmCommandMutation, "engage")
               }
               onUnwind={() =>
-                commandHandlers.handleSimpleCommand(robotArmCommandMutation, "retract")
+                commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")
               }
               onGripperOpen={() => {
                 const selectedParams = gripParams.find((p) => p.id === defaultParamsId);
@@ -553,7 +542,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 robotArmCommandMutation.isLoading
               }
               isUnwindLoading={
-                robotArmCommandMutation.variables?.command === "retract" &&
+                robotArmCommandMutation.variables?.command === "unwind" &&
                 robotArmCommandMutation.isLoading
               }
               bgColor={bgColor}
@@ -575,7 +564,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                 onTeach={() => handleTeach(selectedTeachPoint!)}
                 onMove={handleMove}
                 onUnwind={() =>
-                  commandHandlers.handleSimpleCommand(robotArmCommandMutation, "retract")
+                  commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")
                 }
                 onGripperOpen={() =>
                   commandHandlers.handleGripperCommand(
@@ -645,7 +634,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                   }}
                   bg={tabBgColor}
                   borderColor={borderColor}>
-                  Grip Parameters
+                  Grip Settings
                 </Tab>
                 <Tab
                   _selected={{
@@ -732,19 +721,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                       setSelectedMotionProfile(null);
                       motionProfileModal.onOpen();
                     }}
-                    onRegister={(profile: MotionProfile) => {
-                      commandHandlers.handleRegisterMotionProfile(robotArmCommandMutation, {
-                        id: profile.profile_id,
-                        speed: profile.speed,
-                        speed2: profile.speed2,
-                        acceleration: profile.acceleration,
-                        deceleration: profile.deceleration,
-                        accel_ramp: profile.accel_ramp,
-                        decel_ramp: profile.decel_ramp,
-                        inrange: profile.inrange,
-                        straight: profile.straight,
-                      });
-                    }}
                     bgColor={bgColor}
                     bgColorAlpha={bgColorAlpha}
                     defaultProfileId={defaultProfileId}
@@ -802,7 +778,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         </HStack>
       </VStack>
 
-      {/* Modals */}
       <MotionProfileModal
         isOpen={motionProfileModal.isOpen}
         onClose={motionProfileModal.onClose}
@@ -918,8 +893,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         }}
         config={config}
         teachPoints={teachPoints}
-        motionProfiles={motionProfiles}
-        gripParams={gripParams}
       />
 
       {/* Delete confirmation modal */}

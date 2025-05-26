@@ -35,7 +35,6 @@ class RobotSequence(BaseModel):
 
 class MotionProfile(BaseModel):
     name: str
-    profile_id: int
     speed: float = 100
     speed2: float = 100
     acceleration: float = 100
@@ -160,7 +159,7 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                                             "command": "move",
                                             "params": {
                                                 "waypoint": loc_name,
-                                                "motion_profile_id": 1,
+                                                "motion_profile": "Default",
                                             },
                                             "order": len(commands),
                                         }
@@ -214,8 +213,6 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                         data["motion_profiles"].append(
                             {
                                 "name": name,
-                                # Auto-increment profile_id
-                                "profile_id": profile_counter,
                                 "speed": float(p.get("Velocity", 100)),
                                 "speed2": float(p.get("Velocity", 100)),
                                 "acceleration": float(p.get("Acceleration", 100)),
@@ -302,8 +299,6 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                         if "name" not in profile:
                             profile["name"] = f"Profile_{profile_counter}"
                             profile_counter += 1
-                        if "profile_id" not in profile and "id" in profile:
-                            profile["profile_id"] = profile["id"]
                         fixed_profiles.append(profile)
                     data["motion_profiles"] = fixed_profiles
 
@@ -406,7 +401,6 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
                         obj_in=schemas.RobotArmMotionProfileCreate(
                             name=profile.name,
                             tool_id=tool_id,
-                            profile_id=profile.profile_id,
                             speed=profile.speed,
                             speed2=profile.speed2,
                             acceleration=profile.acceleration,

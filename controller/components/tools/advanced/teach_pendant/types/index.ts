@@ -1,5 +1,4 @@
 import { Tool } from "@/types/api";
-import { ToolConfig } from "gen-interfaces/controller";
 import { JointConfig } from "../shared/utils/robotArmUtils";
 import { RobotArmSequence as RobotArmSequenceType } from "@/server/routers/robot-arm";
 
@@ -15,7 +14,7 @@ export interface TeachPoint {
   id: number;
   name: string;
   coordinates: string;
-  type: "location" | "nest";
+  type: "location";
   locType: "j";
   joints?: JointConfig;
   orientation: "portrait" | "landscape";
@@ -25,7 +24,6 @@ export interface TeachPoint {
 export interface MotionProfile {
   id: number;
   name: string;
-  profile_id: number;
   speed: number;
   speed2: number;
   acceleration: number;
@@ -93,7 +91,6 @@ export interface TeachPointsPanelProps {
 export interface MotionProfilesPanelProps {
   profiles: MotionProfile[];
   onEdit: (profile: MotionProfile) => void;
-  onRegister: (profile: MotionProfile) => void;
   onDelete: (id: number) => void;
   onDeleteAll: () => void;
   onAdd: () => void;

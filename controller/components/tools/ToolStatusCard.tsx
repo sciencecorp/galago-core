@@ -66,6 +66,7 @@ interface ToolStatusCardProps {
 export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardProps) {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
+  const [isConfiguring, setIsConfiguring] = useState(false);
   const cardBg = useColorModeValue("white", "gray.900");
   const borderColor = useColorModeValue("gray.200", "gray.700");
 
@@ -182,11 +183,10 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
         </CardHeader>
         <CardBody mt="0px">
           <VStack align="stretch" spacing={4} mb={2}>
-            <ToolStatusTag toolId={toolId} />
+            <ToolStatusTag toolId={toolId} isConfiguring={isConfiguring} />
 
             {/* Always render the ToolConfigEditor but manage its visibility with CSS */}
             <Flex position="relative" width="100%" height="120px">
-              {/* Tool Config Editor */}
               <Box
                 position="absolute"
                 top="0"
@@ -198,14 +198,17 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
                 display="flex"
                 alignItems="center">
                 <Box flex="1">
-                  <ToolConfigEditor toolId={toolId} defaultConfig={toolData as ToolConfig} />
+                  <ToolConfigEditor
+                    toolId={toolId}
+                    defaultConfig={toolData as ToolConfig}
+                    onConfiguring={setIsConfiguring}
+                  />
                 </Box>
                 <Box width="60px" height="60px" ml={2}>
                   <Link href={`/tools/${toolId}`}>{renderToolImage(toolData)}</Link>
                 </Box>
               </Box>
 
-              {/* Image when not hovered */}
               <Box
                 position="absolute"
                 top="0"
@@ -224,12 +227,7 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
           </VStack>
         </CardBody>
       </Card>
-      <EditToolModal
-        toolId={toolId}
-        toolInfo={toolData as ToolConfig}
-        isOpen={isOpen}
-        onClose={onClose}
-      />
+      <EditToolModal toolId={toolId} isOpen={isOpen} onClose={onClose} />
     </>
   );
 }

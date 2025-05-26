@@ -26,7 +26,6 @@ const zRobotArmNest = z.object({
 const zRobotArmMotionProfile = z.object({
   id: z.number(),
   name: z.string(),
-  profile_id: z.number().min(1).max(14),
   speed: z.number(),
   speed2: z.number(),
   acceleration: z.number(),

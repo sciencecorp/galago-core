@@ -17,7 +17,7 @@ import {
 import { GripParams } from "../../types";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { FaArrowsAlt, FaHandPaper } from "react-icons/fa";
-import { BiUpArrow } from "react-icons/bi";
+import { PiCirclesThreeFill } from "react-icons/pi";
 
 interface ControlPanelProps {
   onFree: () => void;
@@ -72,7 +72,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       <Card width="100%" borderColor={borderColor} borderWidth="1px" borderRadius="lg" bg={bgColor}>
         <CardHeader fontWeight="semibold" fontSize="md">
           <HStack>
-            <BiUpArrow />
+            <PiCirclesThreeFill />
             <Box>State Control</Box>
           </HStack>
         </CardHeader>
@@ -100,7 +100,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               size="md"
               isLoading={isUnwindLoading}
               isDisabled={!isEnabled}>
-              Retract
+              Unwind
             </Button>
           </HStack>
         </CardBody>
