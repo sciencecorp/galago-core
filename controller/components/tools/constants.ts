@@ -175,6 +175,9 @@ export const commandFields: CommandFields = {
     ],
     stop_shake: [],
     wait_for_shake_to_finish: [{ name: "timeout", type: "number" }],
+    set_temperature: [{ name: "temperature", type: "number" }],
+    temperature_on: [],
+    temperature_off: [],
   },
   cytation: {
     open_carrier: [],
