@@ -209,7 +209,7 @@ export const authOptions: NextAuthOptions = {
 
       // For social logins, ensure we have a user
       return !!user;
-    }
+    },
   },
 
   events: {
@@ -220,7 +220,7 @@ export const authOptions: NextAuthOptions = {
           syncTokenToStorage((user as any).accessToken);
         }
       }
-      
+
       // For OAuth providers, token storage is handled in the client-side useEffect in AuthProvider
     },
 

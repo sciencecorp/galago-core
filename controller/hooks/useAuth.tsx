@@ -282,11 +282,11 @@ authAxios.interceptors.request.use(
   (config) => {
     // First check localStorage and cookies for stored tokens
     const token = localStorage.getItem("token") || Cookies.get("token");
-    
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     return config;
   },
   (error) => Promise.reject(error),

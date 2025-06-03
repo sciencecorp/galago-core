@@ -21,6 +21,7 @@ import {
   Link,
   useToast,
   Progress,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { authAxios } from "../../hooks/useAuth";
 
@@ -174,144 +175,163 @@ export default function SetNewPassword() {
   };
 
   return (
-    <Container maxW="lg">
-      <Center minH="100vh">
-        <Box p={8} borderWidth={1} borderRadius={8} boxShadow="lg" width="100%">
-          <VStack spacing={6} align="stretch">
-            <Center>
-              <Heading mb={6}>Set New Password</Heading>
-            </Center>
+    <Box minH="100vh" position="relative" overflow="hidden">
+      {/* Subtle background logo */}
+      <Box
+        position="absolute"
+        top="50%"
+        left="50%"
+        transform="translate(-50%, -50%)"
+        zIndex={0}
+        opacity={0.03}
+        pointerEvents="none"
+        width="800px"
+        height="800px"
+        backgroundImage="url('/site_logo.svg')"
+        backgroundSize="contain"
+        backgroundRepeat="no-repeat"
+        backgroundPosition="center"
+        filter={useColorModeValue("none", "invert(1)")}
+      />
+      <Container maxW="lg" position="relative" zIndex={1}>
+        <Center minH="100vh">
+          <Box p={8} borderWidth={1} borderRadius={8} boxShadow="lg" width="100%">
+            <VStack spacing={6} align="stretch">
+              <Center>
+                <Heading mb={6}>Set New Password</Heading>
+              </Center>
 
-            {errorMessage && (
-              <Alert status="error" mb={4} borderRadius="md">
-                <AlertIcon />
-                <AlertDescription>{errorMessage}</AlertDescription>
-                <CloseButton
-                  position="absolute"
-                  right="8px"
-                  top="8px"
-                  onClick={() => setErrorMessage("")}
-                />
-              </Alert>
-            )}
-
-            {successMessage ? (
-              <VStack spacing={6} align="stretch">
-                <Alert status="success" mb={4} borderRadius="md">
+              {errorMessage && (
+                <Alert status="error" mb={4} borderRadius="md">
                   <AlertIcon />
-                  <AlertDescription>{successMessage}</AlertDescription>
+                  <AlertDescription>{errorMessage}</AlertDescription>
+                  <CloseButton
+                    position="absolute"
+                    right="8px"
+                    top="8px"
+                    onClick={() => setErrorMessage("")}
+                  />
                 </Alert>
+              )}
 
-                <Text textAlign="center">
-                  Your password has been successfully reset. You will be redirected to the sign in
-                  page in a few seconds.
-                </Text>
+              {successMessage ? (
+                <VStack spacing={6} align="stretch">
+                  <Alert status="success" mb={4} borderRadius="md">
+                    <AlertIcon />
+                    <AlertDescription>{successMessage}</AlertDescription>
+                  </Alert>
 
-                <Button
-                  colorScheme="teal"
-                  mt={4}
-                  onClick={handleBackToLogin}
-                  aria-label="Back to sign in">
-                  Back to Sign In
-                </Button>
-              </VStack>
-            ) : (
-              <form onSubmit={handleSubmit}>
-                <VStack spacing={4}>
-                  <Text>Create a new password for your account.</Text>
-
-                  <FormControl id="password" isRequired isInvalid={!!formErrors.password}>
-                    <FormLabel>New Password</FormLabel>
-                    <InputGroup>
-                      <Input
-                        type={showPassword ? "text" : "password"}
-                        value={password}
-                        onChange={handlePasswordChange}
-                        placeholder="Enter new password"
-                        aria-label="New password"
-                      />
-                      <InputRightElement width="4.5rem">
-                        <Button
-                          h="1.75rem"
-                          size="sm"
-                          onClick={toggleShowPassword}
-                          aria-label={showPassword ? "Hide password" : "Show password"}>
-                          {showPassword ? "Hide" : "Show"}
-                        </Button>
-                      </InputRightElement>
-                    </InputGroup>
-                    {password && (
-                      <Box mt={2}>
-                        <Text fontSize="xs" mb={1}>
-                          Password strength:
-                        </Text>
-                        <Progress
-                          value={passwordStrength}
-                          size="sm"
-                          colorScheme={
-                            passwordStrength < 25
-                              ? "red"
-                              : passwordStrength < 50
-                                ? "orange"
-                                : passwordStrength < 75
-                                  ? "yellow"
-                                  : "green"
-                          }
-                          borderRadius="md"
-                        />
-                      </Box>
-                    )}
-                    {formErrors.password && (
-                      <FormErrorMessage>{formErrors.password}</FormErrorMessage>
-                    )}
-                  </FormControl>
-
-                  <FormControl
-                    id="confirmPassword"
-                    isRequired
-                    isInvalid={!!formErrors.confirmPassword}>
-                    <FormLabel>Confirm Password</FormLabel>
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      onChange={(e) => {
-                        setConfirmPassword(e.target.value);
-                        validatePasswordMatch(password, e.target.value);
-                      }}
-                      placeholder="Confirm new password"
-                      aria-label="Confirm password"
-                    />
-                    {formErrors.confirmPassword && (
-                      <FormErrorMessage>{formErrors.confirmPassword}</FormErrorMessage>
-                    )}
-                  </FormControl>
+                  <Text textAlign="center">
+                    Your password has been successfully reset. You will be redirected to the sign in
+                    page in a few seconds.
+                  </Text>
 
                   <Button
                     colorScheme="teal"
-                    width="100%"
                     mt={4}
-                    type="submit"
-                    isLoading={isSubmitting}
-                    loadingText="Submitting"
-                    aria-label="Set new password"
-                    isDisabled={!token}>
-                    Set New Password
+                    onClick={handleBackToLogin}
+                    aria-label="Back to sign in">
+                    Back to Sign In
                   </Button>
-
-                  <Center>
-                    <Text>
-                      Remember your password?{" "}
-                      <Link color="teal.500" onClick={handleBackToLogin}>
-                        Sign In
-                      </Link>
-                    </Text>
-                  </Center>
                 </VStack>
-              </form>
-            )}
-          </VStack>
-        </Box>
-      </Center>
-    </Container>
+              ) : (
+                <form onSubmit={handleSubmit}>
+                  <VStack spacing={4}>
+                    <Text>Create a new password for your account.</Text>
+
+                    <FormControl id="password" isRequired isInvalid={!!formErrors.password}>
+                      <FormLabel>New Password</FormLabel>
+                      <InputGroup>
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          value={password}
+                          onChange={handlePasswordChange}
+                          placeholder="Enter new password"
+                          aria-label="New password"
+                        />
+                        <InputRightElement width="4.5rem">
+                          <Button
+                            h="1.75rem"
+                            size="sm"
+                            onClick={toggleShowPassword}
+                            aria-label={showPassword ? "Hide password" : "Show password"}>
+                            {showPassword ? "Hide" : "Show"}
+                          </Button>
+                        </InputRightElement>
+                      </InputGroup>
+                      {password && (
+                        <Box mt={2}>
+                          <Text fontSize="xs" mb={1}>
+                            Password strength:
+                          </Text>
+                          <Progress
+                            value={passwordStrength}
+                            size="sm"
+                            colorScheme={
+                              passwordStrength < 25
+                                ? "red"
+                                : passwordStrength < 50
+                                  ? "orange"
+                                  : passwordStrength < 75
+                                    ? "yellow"
+                                    : "green"
+                            }
+                            borderRadius="md"
+                          />
+                        </Box>
+                      )}
+                      {formErrors.password && (
+                        <FormErrorMessage>{formErrors.password}</FormErrorMessage>
+                      )}
+                    </FormControl>
+
+                    <FormControl
+                      id="confirmPassword"
+                      isRequired
+                      isInvalid={!!formErrors.confirmPassword}>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value);
+                          validatePasswordMatch(password, e.target.value);
+                        }}
+                        placeholder="Confirm new password"
+                        aria-label="Confirm password"
+                      />
+                      {formErrors.confirmPassword && (
+                        <FormErrorMessage>{formErrors.confirmPassword}</FormErrorMessage>
+                      )}
+                    </FormControl>
+
+                    <Button
+                      colorScheme="teal"
+                      width="100%"
+                      mt={4}
+                      type="submit"
+                      isLoading={isSubmitting}
+                      loadingText="Submitting"
+                      aria-label="Set new password"
+                      isDisabled={!token}>
+                      Set New Password
+                    </Button>
+
+                    <Center>
+                      <Text>
+                        Remember your password?{" "}
+                        <Link color="teal.500" onClick={handleBackToLogin}>
+                          Sign In
+                        </Link>
+                      </Text>
+                    </Center>
+                  </VStack>
+                </form>
+              )}
+            </VStack>
+          </Box>
+        </Center>
+      </Container>
+    </Box>
   );
 }

@@ -98,23 +98,23 @@ export const ProfileMenu: React.FC = () => {
 
   const handleSignOut = async () => {
     setIsLoggingOut(true);
-    
+
     try {
       // First sign out from custom auth system if active
       if (isCustomAuthActive) {
         customAuthLogout();
       }
-      
+
       // Then sign out from NextAuth if active
       if (isNextAuthActive) {
         // Use redirect: true here to allow NextAuth to handle the redirect properly
-        await signOut({ 
+        await signOut({
           callbackUrl: "/auth/signin",
-          redirect: true
+          redirect: true,
         });
         return; // NextAuth will handle the redirect
       }
-      
+
       // Only redirect manually if we're not using NextAuth
       router.push("/auth/signin");
     } catch (error) {

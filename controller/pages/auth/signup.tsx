@@ -19,6 +19,7 @@ import {
   FormHelperText,
   Divider,
   HStack,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { FaGithub } from "react-icons/fa";
 import { authAxios } from "@/hooks/useAuth";
@@ -128,7 +129,7 @@ export default function SignUp({ providers, csrfToken }: { providers: any; csrfT
       setIsSubmitting(false);
     }
   };
-  
+
   const handleSocialSignUp = async (provider: string) => {
     try {
       await signIn(provider, { callbackUrl: (callbackUrl as string) || "/" });
@@ -144,139 +145,169 @@ export default function SignUp({ providers, csrfToken }: { providers: any; csrfT
   };
 
   return (
-    <Container maxW="lg">
-      <Center minH="100vh">
-        <Box p={8} borderWidth={1} borderRadius={8} boxShadow="lg" width="100%">
-          <VStack spacing={6} align="stretch">
-            <Center>
-              <Heading mb={6}>Create Galago Account</Heading>
-            </Center>
+    <Box minH="100vh" position="relative" overflow="hidden">
+      {/* Subtle background logo */}
+      <Box
+        position="fixed"
+        top="50%"
+        left="50%"
+        transform="translate(-50%, -50%)"
+        zIndex={0}
+        opacity={0.05}
+        pointerEvents="none"
+        width="60vw"
+        height="60vh"
+        maxWidth="800px"
+        maxHeight="800px"
+        minWidth="400px"
+        minHeight="400px"
+        sx={{
+          backgroundImage: "url('/site_logo.svg')",
+          backgroundSize: "contain",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
+          filter: useColorModeValue("brightness(0.95)", "brightness(1.1) invert(1)"),
+        }}
+      />
+      <Container maxW="lg" position="relative" zIndex={1}>
+        <Center minH="100vh">
+          <Box p={8} borderWidth={1} borderRadius={8} boxShadow="lg" width="100%">
+            <VStack spacing={6} align="stretch">
+              <Center>
+                <Heading mb={6}>Create Galago Account</Heading>
+              </Center>
 
-            <form onSubmit={handleSignUp}>
-              <VStack spacing={4}>
-                <FormControl id="username" isRequired>
-                  <FormLabel>Username</FormLabel>
-                  <InputGroup>
-                    <Input
-                      type="text"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Choose a username"
-                    />
-                  </InputGroup>
-                </FormControl>
+              <form onSubmit={handleSignUp}>
+                <VStack spacing={4}>
+                  <FormControl id="username" isRequired>
+                    <FormLabel>Username</FormLabel>
+                    <InputGroup>
+                      <Input
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Choose a username"
+                      />
+                    </InputGroup>
+                  </FormControl>
 
-                <FormControl id="email" isRequired>
-                  <FormLabel>Email</FormLabel>
-                  <InputGroup>
-                    <Input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email"
-                    />
-                  </InputGroup>
-                </FormControl>
+                  <FormControl id="email" isRequired>
+                    <FormLabel>Email</FormLabel>
+                    <InputGroup>
+                      <Input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                      />
+                    </InputGroup>
+                  </FormControl>
 
-                <FormControl id="password" isRequired>
-                  <FormLabel>Password</FormLabel>
-                  <InputGroup>
+                  <FormControl id="password" isRequired>
+                    <FormLabel>Password</FormLabel>
+                    <InputGroup>
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Create a password"
+                      />
+                      <InputRightElement width="4.5rem">
+                        <Button h="1.75rem" size="sm" onClick={toggleShowPassword}>
+                          {showPassword ? "Hide" : "Show"}
+                        </Button>
+                      </InputRightElement>
+                    </InputGroup>
+                    <FormHelperText>Password must be at least 8 characters long</FormHelperText>
+                  </FormControl>
+
+                  <FormControl id="confirmPassword" isRequired>
+                    <FormLabel>Confirm Password</FormLabel>
                     <Input
                       type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Create a password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm your password"
                     />
-                    <InputRightElement width="4.5rem">
-                      <Button h="1.75rem" size="sm" onClick={toggleShowPassword}>
-                        {showPassword ? "Hide" : "Show"}
-                      </Button>
-                    </InputRightElement>
-                  </InputGroup>
-                  <FormHelperText>Password must be at least 8 characters long</FormHelperText>
-                </FormControl>
+                  </FormControl>
 
-                <FormControl id="confirmPassword" isRequired>
-                  <FormLabel>Confirm Password</FormLabel>
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm your password"
-                  />
-                </FormControl>
-
-                <Button
-                  colorScheme="teal"
-                  width="100%"
-                  mt={6}
-                  type="submit"
-                  isLoading={isSubmitting}
-                  loadingText="Creating Account">
-                  Sign Up
-                </Button>
-              </VStack>
-            </form>
-            
-            <Center my={3} position="relative">
-                  <Divider />
-                  <Text fontSize="sm" px={2} position="absolute" left="50%" transform="translateX(-50%)">
-                    or
-                  </Text>
-                </Center>
-
-                <VStack spacing={2}>
-                  {!providers || Object.keys(providers).length === 0 ? (
-                    <Text fontSize="xs" color="gray.500" textAlign="center">
-                      Social login options are currently unavailable
-                    </Text>
-                  ) : (
-                    <>
-                      {providers?.google && (
-                        <Button
-                          width="100%"
-                          bg="gray.50"
-                          color="gray.800"
-                          border="1px"
-                          borderColor="gray.200"
-                          leftIcon={<FcGoogle color="#DB4437" />}
-                          onClick={() => handleSocialSignUp("google")}
-                          aria-label="Sign in with Google"
-                          size="md"
-                          _hover={{ bg: "gray.200" }}>
-                          Sign up with Google
-                        </Button>
-                      )}
-
-                      {providers?.github && (
-                        <Button
-                          width="100%"
-                          bg="black"
-                          color="white"
-                          leftIcon={<FaGithub />}
-                          onClick={() => handleSocialSignUp("github")}
-                          aria-label="Sign in with GitHub"
-                          size="md"
-                          _hover={{ bg: "gray.800" }}>
-                          Sign up with GitHub
-                        </Button>
-                      )}
-                    </>
-                  )}
+                  <Button
+                    colorScheme="teal"
+                    width="100%"
+                    mt={6}
+                    type="submit"
+                    isLoading={isSubmitting}
+                    loadingText="Creating Account">
+                    Sign Up
+                  </Button>
                 </VStack>
+              </form>
 
-            <Center>
-              <Text>
-                Already have an account?{" "}
-                <Link color="teal.500" onClick={() => router.push("/auth/signin")}>
-                  Sign In
-                </Link>
-              </Text>
-            </Center>
-          </VStack>
-        </Box>
-      </Center>
-    </Container>
+              <Center my={3} position="relative">
+                <Divider />
+                <Text
+                  fontSize="sm"
+                  px={2}
+                  position="absolute"
+                  left="50%"
+                  transform="translateX(-50%)">
+                  or
+                </Text>
+              </Center>
+
+              <VStack spacing={2}>
+                {!providers || Object.keys(providers).length === 0 ? (
+                  <Text fontSize="xs" color="gray.500" textAlign="center">
+                    Social login options are currently unavailable
+                  </Text>
+                ) : (
+                  <>
+                    {providers?.google && (
+                      <Button
+                        width="100%"
+                        bg="gray.50"
+                        color="gray.800"
+                        border="1px"
+                        borderColor="gray.200"
+                        leftIcon={<FcGoogle color="#DB4437" />}
+                        onClick={() => handleSocialSignUp("google")}
+                        aria-label="Sign in with Google"
+                        size="md"
+                        _hover={{ bg: "gray.200" }}>
+                        Sign up with Google
+                      </Button>
+                    )}
+
+                    {providers?.github && (
+                      <Button
+                        width="100%"
+                        bg="black"
+                        color="white"
+                        leftIcon={<FaGithub />}
+                        onClick={() => handleSocialSignUp("github")}
+                        aria-label="Sign in with GitHub"
+                        size="md"
+                        _hover={{ bg: "gray.800" }}>
+                        Sign up with GitHub
+                      </Button>
+                    )}
+                  </>
+                )}
+              </VStack>
+
+              <Center>
+                <Text>
+                  Already have an account?{" "}
+                  <Link color="teal.500" onClick={() => router.push("/auth/signin")}>
+                    Sign In
+                  </Link>
+                </Text>
+              </Center>
+            </VStack>
+          </Box>
+        </Center>
+      </Container>
+    </Box>
   );
 }
 

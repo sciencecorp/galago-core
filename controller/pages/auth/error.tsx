@@ -1,5 +1,15 @@
 import { useRouter } from "next/router";
-import { Box, Heading, Text, VStack, Center, Container, Icon, Button } from "@chakra-ui/react";
+import {
+  Box,
+  Heading,
+  Text,
+  VStack,
+  Center,
+  Container,
+  Icon,
+  Button,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import { FaExclamationTriangle, FaSignInAlt, FaHome } from "react-icons/fa";
 
 // Map of error codes to human-readable messages
@@ -27,44 +37,63 @@ export default function ErrorPage() {
   const errorMessage = errorMessages[errorCode] || errorMessages["Default"];
 
   return (
-    <Container maxW="lg">
-      <Center minH="100vh">
-        <Box p={8} borderWidth={1} borderRadius={8} boxShadow="lg" width="100%">
-          <VStack spacing={8} align="center">
-            <Icon as={FaExclamationTriangle} w={20} h={20} color="red.500" />
+    <Box minH="100vh" position="relative" overflow="hidden">
+      {/* Subtle background logo */}
+      <Box
+        position="absolute"
+        top="50%"
+        left="50%"
+        transform="translate(-50%, -50%)"
+        zIndex={0}
+        opacity={0.03}
+        pointerEvents="none"
+        width="800px"
+        height="800px"
+        backgroundImage="url('/site_logo.svg')"
+        backgroundSize="contain"
+        backgroundRepeat="no-repeat"
+        backgroundPosition="center"
+        filter={useColorModeValue("none", "invert(1)")}
+      />
+      <Container maxW="lg" position="relative" zIndex={1}>
+        <Center minH="100vh">
+          <Box p={8} borderWidth={1} borderRadius={8} boxShadow="lg" width="100%">
+            <VStack spacing={8} align="center">
+              <Icon as={FaExclamationTriangle} w={20} h={20} color="red.500" />
 
-            <Heading size="xl" textAlign="center">
-              Authentication Error
-            </Heading>
+              <Heading size="xl" textAlign="center">
+                Authentication Error
+              </Heading>
 
-            <Text fontSize="lg" textAlign="center" color="red.500">
-              {errorMessage}
-            </Text>
+              <Text fontSize="lg" textAlign="center" color="red.500">
+                {errorMessage}
+              </Text>
 
-            <Text fontSize="md" textAlign="center" color="gray.500">
-              Please try again or contact your administrator if the problem persists.
-            </Text>
+              <Text fontSize="md" textAlign="center" color="gray.500">
+                Please try again or contact your administrator if the problem persists.
+              </Text>
 
-            <VStack spacing={4} width="100%">
-              <Button
-                leftIcon={<FaSignInAlt />}
-                colorScheme="blue"
-                width="100%"
-                onClick={() => router.push("/auth/signin")}>
-                Try Again
-              </Button>
+              <VStack spacing={4} width="100%">
+                <Button
+                  leftIcon={<FaSignInAlt />}
+                  colorScheme="blue"
+                  width="100%"
+                  onClick={() => router.push("/auth/signin")}>
+                  Try Again
+                </Button>
 
-              <Button
-                leftIcon={<FaHome />}
-                variant="outline"
-                width="100%"
-                onClick={() => router.push("/")}>
-                Return to Home
-              </Button>
+                <Button
+                  leftIcon={<FaHome />}
+                  variant="outline"
+                  width="100%"
+                  onClick={() => router.push("/")}>
+                  Return to Home
+                </Button>
+              </VStack>
             </VStack>
-          </VStack>
-        </Box>
-      </Center>
-    </Container>
+          </Box>
+        </Center>
+      </Container>
+    </Box>
   );
 }

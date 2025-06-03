@@ -2352,21 +2352,25 @@ async def external_auth_register(
             )
 
             new_user = crud.create_user(db=db, user=user_create)
-            
+
             # Ensure the transaction is committed and refresh the user object
             db.commit()
             db.refresh(new_user)
-            
+
             logging.info(
                 f"Created new user from {auth_data.provider} auth: {auth_data.email}"
             )
-            
+
             # Verify the user was actually created by querying it back
             verification_user = crud.get_user_by_email(db, email=auth_data.email)
             if verification_user:
-                logging.info(f"Verification: OAuth user {verification_user.username} (ID: {verification_user.id}) successfully stored in database")
+                logging.info(
+                    f"Verification: OAuth user {verification_user.username} (ID: {verification_user.id}) successfully stored in database"
+                )
             else:
-                logging.error(f"Verification FAILED: OAuth user for {auth_data.email} not found in database after creation")
+                logging.error(
+                    f"Verification FAILED: OAuth user for {auth_data.email} not found in database after creation"
+                )
 
             # Generate token for the new user
             access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)

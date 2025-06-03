@@ -18,6 +18,7 @@ import {
   FormErrorMessage,
   Link,
   useToast,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { authAxios } from "../../hooks/useAuth";
 
@@ -77,93 +78,112 @@ export default function ResetPassword() {
   };
 
   return (
-    <Container maxW="lg">
-      <Center minH="100vh">
-        <Box p={8} borderWidth={1} borderRadius={8} boxShadow="lg" width="100%">
-          <VStack spacing={6} align="stretch">
-            <Center>
-              <Heading mb={6}>Reset Password</Heading>
-            </Center>
+    <Box minH="100vh" position="relative" overflow="hidden">
+      {/* Subtle background logo */}
+      <Box
+        position="absolute"
+        top="50%"
+        left="50%"
+        transform="translate(-50%, -50%)"
+        zIndex={0}
+        opacity={0.03}
+        pointerEvents="none"
+        width="800px"
+        height="800px"
+        backgroundImage="url('/site_logo.svg')"
+        backgroundSize="contain"
+        backgroundRepeat="no-repeat"
+        backgroundPosition="center"
+        filter={useColorModeValue("none", "invert(1)")}
+      />
+      <Container maxW="lg" position="relative" zIndex={1}>
+        <Center minH="100vh">
+          <Box p={8} borderWidth={1} borderRadius={8} boxShadow="lg" width="100%">
+            <VStack spacing={6} align="stretch">
+              <Center>
+                <Heading mb={6}>Reset Password</Heading>
+              </Center>
 
-            {errorMessage && (
-              <Alert status="error" mb={4} borderRadius="md">
-                <AlertIcon />
-                <AlertDescription>{errorMessage}</AlertDescription>
-                <CloseButton
-                  position="absolute"
-                  right="8px"
-                  top="8px"
-                  onClick={() => setErrorMessage("")}
-                />
-              </Alert>
-            )}
-
-            {successMessage ? (
-              <VStack spacing={6} align="stretch">
-                <Alert status="success" mb={4} borderRadius="md">
+              {errorMessage && (
+                <Alert status="error" mb={4} borderRadius="md">
                   <AlertIcon />
-                  <AlertDescription>{successMessage}</AlertDescription>
+                  <AlertDescription>{errorMessage}</AlertDescription>
+                  <CloseButton
+                    position="absolute"
+                    right="8px"
+                    top="8px"
+                    onClick={() => setErrorMessage("")}
+                  />
                 </Alert>
+              )}
 
-                <Text textAlign="center">
-                  Please check your email for instructions to reset your password. The link in the
-                  email will expire in 1 hour.
-                </Text>
+              {successMessage ? (
+                <VStack spacing={6} align="stretch">
+                  <Alert status="success" mb={4} borderRadius="md">
+                    <AlertIcon />
+                    <AlertDescription>{successMessage}</AlertDescription>
+                  </Alert>
 
-                <Button
-                  colorScheme="teal"
-                  mt={4}
-                  onClick={handleBackToLogin}
-                  aria-label="Back to sign in">
-                  Back to Sign In
-                </Button>
-              </VStack>
-            ) : (
-              <form onSubmit={handleSubmit}>
-                <VStack spacing={4}>
-                  <Text>
-                    Enter your email address and we&apos;ll send you instructions to reset your
-                    password.
+                  <Text textAlign="center">
+                    Please check your email for instructions to reset your password. The link in the
+                    email will expire in 1 hour.
                   </Text>
-
-                  <FormControl id="email" isRequired isInvalid={!!emailError}>
-                    <FormLabel>Email</FormLabel>
-                    <Input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email address"
-                      aria-label="Email"
-                      onBlur={() => validateEmail(email)}
-                    />
-                    {emailError && <FormErrorMessage>{emailError}</FormErrorMessage>}
-                  </FormControl>
 
                   <Button
                     colorScheme="teal"
-                    width="100%"
                     mt={4}
-                    type="submit"
-                    isLoading={isSubmitting}
-                    loadingText="Submitting"
-                    aria-label="Reset password">
-                    Request Password Reset
+                    onClick={handleBackToLogin}
+                    aria-label="Back to sign in">
+                    Back to Sign In
                   </Button>
-
-                  <Center>
-                    <Text>
-                      Remember your password?{" "}
-                      <Link color="teal.500" onClick={handleBackToLogin}>
-                        Sign In
-                      </Link>
-                    </Text>
-                  </Center>
                 </VStack>
-              </form>
-            )}
-          </VStack>
-        </Box>
-      </Center>
-    </Container>
+              ) : (
+                <form onSubmit={handleSubmit}>
+                  <VStack spacing={4}>
+                    <Text>
+                      Enter your email address and we&apos;ll send you instructions to reset your
+                      password.
+                    </Text>
+
+                    <FormControl id="email" isRequired isInvalid={!!emailError}>
+                      <FormLabel>Email</FormLabel>
+                      <Input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email address"
+                        aria-label="Email"
+                        onBlur={() => validateEmail(email)}
+                      />
+                      {emailError && <FormErrorMessage>{emailError}</FormErrorMessage>}
+                    </FormControl>
+
+                    <Button
+                      colorScheme="teal"
+                      width="100%"
+                      mt={4}
+                      type="submit"
+                      isLoading={isSubmitting}
+                      loadingText="Submitting"
+                      aria-label="Reset password">
+                      Request Password Reset
+                    </Button>
+
+                    <Center>
+                      <Text>
+                        Remember your password?{" "}
+                        <Link color="teal.500" onClick={handleBackToLogin}>
+                          Sign In
+                        </Link>
+                      </Text>
+                    </Center>
+                  </VStack>
+                </form>
+              )}
+            </VStack>
+          </Box>
+        </Center>
+      </Container>
+    </Box>
   );
 }
