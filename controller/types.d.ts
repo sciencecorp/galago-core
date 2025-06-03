@@ -24,8 +24,8 @@ export interface AdvancedParameters {
 
 export interface ToolCommandInfo {
   label?: string;
-  toolId: string;
-  toolType: ToolType;
+  tool_id: string;
+  tool_type: ToolType | string;
   command: string;
   params: Record<string, any>;
   advanced_parameters?: AdvancedParameters;

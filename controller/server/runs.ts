@@ -54,26 +54,14 @@ export default class RunStore {
   }
 
   async createFromProtocol(
-    workcellName: string,
     protocolId: string,
     params: Record<string, any>,
   ): Promise<Run> {
-    // First try to find in TypeScript-defined protocols
-    let protocol = Protocols.find(
-      (p) => p.protocolId === protocolId && p.workcell === workcellName,
-    );
 
-    // If not found in TypeScript protocols, try to load from database
+    const protocol = await Protocol.loadFromDatabase(protocolId);
+
     if (!protocol) {
-      try {
-        protocol = await Protocol.loadFromDatabase(protocolId);
-      } catch (error) {
         throw new ProtocolNotFoundError(protocolId);
-      }
-    }
-
-    if (!protocol) {
-      throw new ProtocolNotFoundError(protocolId);
     }
 
     const validationErrors = protocol.validationErrors(params);

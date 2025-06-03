@@ -9,7 +9,8 @@ import {
   zodSchemaToDefault,
   zodSchemaToEnumValues,
 } from "./zodHelpers";
-import axios from "axios";
+import axios, { all } from "axios";
+import { ProtocolProcess } from "@/types/api";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
 
@@ -23,7 +24,7 @@ export default class Protocol<
   workcell: string = "";
   description?: string;
   icon?: any;
-  private commands: any;
+  private processes: ProtocolProcess[] = [];
 
   constructor(dbProtocol?: any) {
     if (dbProtocol) {
@@ -33,7 +34,7 @@ export default class Protocol<
       this.description = dbProtocol.description;
       this.icon = dbProtocol.icon;
       this.protocolId = dbProtocol.id;
-      this.commands = dbProtocol.commands;
+      this.processes = dbProtocol.processes;
       this.paramSchema = this.jsonToZodSchema(dbProtocol.params) as ParamSchema;
     }
   }
@@ -107,12 +108,18 @@ export default class Protocol<
   }
 
   _generateCommands(params: z.infer<ParamSchema>): ToolCommandInfo[] {
-    if (!this.commands) {
+    if (!this.processes || this.processes.length === 0) {
       return [];
     }
-
-    const commands = this.replaceParameterPlaceholders(this.commands, params);
-    return commands;
+    const allCommands: ToolCommandInfo[] = [];
+    //Sort processes
+    const sortedProcesses = [...this.processes].sort((a, b) => a.position - b.position);
+    for(const process in sortedProcesses) {
+      //Sort commmands 
+      const sortedCommands = [...sortedProcesses[process].commands].sort((a, b) => a.position - b.position);
+      allCommands.push(...sortedCommands);
+    }
+    return allCommands;
   }
 
   private replaceParameterPlaceholders(obj: any, params: any): any {
