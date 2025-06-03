@@ -43,38 +43,22 @@ interface CommandDetailsDrawerProps {
 
 export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props) => {
   const { isOpen, onClose, selectedCommand, onSave, isEditing } = props;
-  const router = useRouter();
   const [editedParams, setEditedParams] = useState<Record<string, any>>({});
   const [editedAdvancedParams, setEditedAdvancedParams] = useState<AdvancedParameters | null>(null);
   const { data: availableVariables } = trpc.variable.getAll.useQuery();
   const { data: labwareData } = trpc.labware.getAll.useQuery();
   const { data: toolsData } = trpc.tool.getAll.useQuery();
 
-  useEffect(() => {
-    console.log("CommandDetailsDrawer mounted");
-    console.log("Selected Command:", selectedCommand);
-  }, []);
+  // GOOD
+  const pf400ToolId = toolsData?.find((t) => t.type === "pf400")?.id || 0;
 
-  const toolId =
-    selectedCommand?.tool_type === "pf400"
-      ? toolsData?.find(
-          (t) =>
-            // Try to match by tool_id (which might be the tool name) or by name
-            t.name?.toLowerCase() === selectedCommand?.tool_id?.toLowerCase() ||
-            // Also try with underscores replaced by spaces
-            t.name?.toLowerCase() === selectedCommand?.tool_id?.replaceAll("_", " ")?.toLowerCase(),
-        )?.id || 0
-      : 0;
-
-  // Query for PF400 locations and sequences when needed
   const waypointsQuery = trpc.robotArm.waypoints.getAll.useQuery(
-    { toolId },
+    { toolId: pf400ToolId },
     {
       enabled: selectedCommand?.tool_type === "pf400",
     },
   );
 
-  // Reset editedParams when a command is selected
   useEffect(() => {
     if (selectedCommand) {
       setEditedParams({});
@@ -82,14 +66,11 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
 
       // If we have labware data and there's a labware parameter using "default"
       if (labwareData && selectedCommand?.params?.labware === "default") {
-        // Check if a labware with the name "default" (case insensitive) exists in the database
         if (labwareData.some((labware) => labware.name.toLowerCase() === "default")) {
-          // Find the exact case of the default labware in the database
           const defaultLabware = labwareData.find(
             (labware) => labware.name.toLowerCase() === "default",
           );
           if (defaultLabware && defaultLabware.name !== "default") {
-            // Update the labware parameter to match the case in the database
             setEditedParams({
               labware: defaultLabware.name,
             });
@@ -195,26 +176,17 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
         advanced_parameters: advancedParams,
       };
 
-      // Call the onSave function with the updated command
       onSave(updatedCommand);
-
-      // Clear edited params
       setEditedParams({});
       setEditedAdvancedParams(null);
-
-      // Close the drawer
       onClose();
     }
   };
 
   const advancedParams = getAdvancedParameters();
 
-  // Render the appropriate input field based on parameter type and name
   const renderParameterInput = (key: string, value: any) => {
-    // Get current value (from editedParams if available, otherwise from command)
     const currentValue = editedParams[key] !== undefined ? editedParams[key] : value;
-
-    // Check if it's a variable reference
     const isVariable = isVariableReference(currentValue);
     const variableName = isVariable ? getVariableNameFromReference(currentValue as string) : "";
 

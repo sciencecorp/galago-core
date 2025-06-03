@@ -26,7 +26,6 @@ export const CommandComponent: React.FC<{
   isEditing?: boolean;
 }> = ({ command, onCommandClick, onRunCommand, onDeleteCommand, isEditing = false }) => {
   const infoQuery = trpc.tool.info.useQuery({ toolId: command.tool_id });
-  console.log("CommandComponent", command, infoQuery.data);
   return (
     <Box
       onClick={(e) => {

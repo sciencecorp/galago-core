@@ -24,27 +24,19 @@ type ProtocolFormData = Omit<Protocol, "id" | "created_at" | "updated_at" | "num
 
 export const NewProtocolForm = () => {
   const router = useRouter();
-  const [isCheckingId, setIsCheckingId] = useState(false);
 
-  // Get selected workcell
   const { data: workcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
   const { data: workcells } = trpc.workcell.getAll.useQuery();
   const selectedWorkcell = workcells?.find((w) => w.name === workcellName);
   const hasWorkcells = workcells && workcells.length > 0;
-
-  // Add query to check existing protocols
-  const { data: existingProtocols } = trpc.protocol.allNames.useQuery(
-    { workcellName: workcellName || "" },
-    { staleTime: 5000 },
-  );
 
   const [formData, setFormData] = useState<ProtocolFormData>({
     name: "",
     category: "development",
     workcell_id: selectedWorkcell?.id || 1,
     description: "",
+    processes: [],
     params: {},
-    commands: [],
     version: 1,
     is_active: true,
   });
@@ -113,14 +105,7 @@ export const NewProtocolForm = () => {
 
     const protocolData = {
       ...formData,
-      name: formData.name.trim(),
-      category: formData.category.trim(),
-      description: formData.description?.trim() || "",
       params: formData.params || {},
-      commands: formData.commands || [],
-      version: 1,
-      is_active: true,
-      workcell_id: Number(formData.workcell_id),
     };
 
     try {

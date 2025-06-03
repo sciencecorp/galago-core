@@ -44,13 +44,24 @@ export const labwareRouter = router({
     });
     const allTools = await get<ToolResponse[]>(`/tools`);
     const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
-    if (allToolswithLabware.length > 0) {
-      await Promise.all(
-        allToolswithLabware.map(async (tool) => {
-          await Tool.loadLabwareToPF400(tool.name);
-        }),
-      );
+    try {
+      if (allToolswithLabware.length > 0) {
+        await Promise.all(
+          allToolswithLabware.map(async (tool) => {
+            await Tool.loadLabwareToPF400(tool.name);
+          }),
+        );
+      }
+    } catch (error) {
+      //Fail silently when pf400 server not available
+      logAction({
+        level: "error",
+        action: "Load Labware to PF400 Failed",
+        details: `Failed to load labware ${input.name} to PF400 tools.`,
+      });
+      console.error("Error loading labware to PF400 tools:", error);
     }
+
     return response;
   }),
 

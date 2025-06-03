@@ -166,9 +166,6 @@ export const ProtocolDesigner: React.FC<{ id: string }> = ({ id }) => {
   });
 
   const reorderCommandsMutation = trpc.protocol.reorderCommands.useMutation({
-    onSuccess: () => {
-      successToast("Commands reordered", "");
-    },
     onError: (error) => {
       errorToast("Failed to reorder commands", error.message);
     },
@@ -495,8 +492,6 @@ export const ProtocolDesigner: React.FC<{ id: string }> = ({ id }) => {
       // Get command IDs in the new order (filter out any commands without IDs)
       const commandIds = newCommands.filter((cmd) => cmd.id).map((cmd) => cmd.id);
 
-      console.log("Reordering commands:", commandIds, "in process:", currentSwimlane.processId);
-
       // Update local state optimistically
       setSwimlanes((prevSwimlanes) => {
         return prevSwimlanes.map((lane) => {
@@ -517,7 +512,6 @@ export const ProtocolDesigner: React.FC<{ id: string }> = ({ id }) => {
             process_id: currentSwimlane.processId,
             command_ids: commandIds,
           });
-          console.log("Commands reordered successfully");
 
           // Optionally refetch to ensure consistency
           // refetch();
@@ -639,7 +633,6 @@ export const ProtocolDesigner: React.FC<{ id: string }> = ({ id }) => {
             <Heading size="lg">{protocol.name}</Heading>
             <HStack>
               <Tag colorScheme={getCategoryColor(protocol.category)}>{protocol.category}</Tag>
-              {/* <Text color="gray.500">{protocol.workcell_id}</Text> */}
             </HStack>
           </VStack>
           <HStack>
@@ -652,13 +645,6 @@ export const ProtocolDesigner: React.FC<{ id: string }> = ({ id }) => {
                   onClick={openParametersModal}>
                   Form
                 </Button>
-                {/* <Button
-                  variant="outline"
-                  leftIcon={<SaveIcon />}
-                  size="md"
-                  onClick={handleSaveChanges}>
-                  Save
-                </Button> */}
                 <Button
                   leftIcon={<MdOutlineExitToApp />}
                   variant="outline"

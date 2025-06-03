@@ -169,8 +169,6 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
       },
     };
 
-    console.log("Submitting command:", newCommand);
-
     onCommandAdded(newCommand);
     onClose();
 

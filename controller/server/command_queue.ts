@@ -508,12 +508,13 @@ export class CommandQueue {
       }
 
       // Handle advanced parameters for skip execution
-      if (nextCommand.commandInfo.advancedParameters?.skipExecutionVariable?.variable) {
+      if (nextCommand.commandInfo.advanced_parameters?.skip_execution_variable?.variable) {
         try {
           // Get the variable name and expected value for skipping
-          const varName = nextCommand.commandInfo.advancedParameters.skipExecutionVariable.variable;
+          const varName =
+            nextCommand.commandInfo.advanced_parameters.skip_execution_variable.variable;
           let expectedValue =
-            nextCommand.commandInfo.advancedParameters.skipExecutionVariable.value;
+            nextCommand.commandInfo.advanced_parameters.skip_execution_variable.value;
           if (expectedValue.startsWith("{{") && expectedValue.endsWith("}}")) {
             expectedValue = (await get<Variable>(`/variables/${expectedValue.slice(2, -2).trim()}`))
               .value;
@@ -536,7 +537,7 @@ export class CommandQueue {
           logAction({
             level: "warning",
             action: "Skip Execution Variable Error",
-            details: `Failed to fetch skip execution variable ${nextCommand.commandInfo.advancedParameters.skipExecutionVariable.variable}: ${e}`,
+            details: `Failed to fetch skip execution variable ${nextCommand.commandInfo?.advanced_parameters?.skip_execution_variable?.variable}: ${e}`,
           });
           // Continue with command execution if we can't check the skip condition
         }

@@ -210,12 +210,10 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
         name: protocol.name,
         description: protocol.description,
         params: localParams,
-        commands: protocol.commands,
         icon: protocol.icon || "",
       },
     });
 
-    // Still call the onSave callback if provided (for compatibility)
     if (onSave) {
       onSave(localParams);
     }
