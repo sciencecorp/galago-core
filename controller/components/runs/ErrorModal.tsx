@@ -9,63 +9,90 @@ import {
   ModalCloseButton,
   Button,
   Text,
-  VStack,
-  useColorModeValue,
+  Box,
+  Flex,
+  Badge,
   Icon,
   Divider,
+  Code,
+  VStack,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { WarningTwoIcon } from "@chakra-ui/icons";
 
 interface ErrorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  errorMessage: string;
-  onRetry: () => void;
-  onClearAll: () => void;
+  errorData: {
+    message: string;
+    code?: string;
+    details?: string;
+  };
 }
 
-export const ErrorModal: React.FC<ErrorModalProps> = ({
-  isOpen,
-  onClose,
-  errorMessage,
-  onRetry,
-  onClearAll,
-}) => {
-  const headerBg = useColorModeValue("red.50", "red.900");
-  const headerColor = useColorModeValue("red.600", "red.200");
+export const ErrorModal: React.FC<ErrorModalProps> = ({ isOpen, onClose, errorData }) => {
+  const bgColor = useColorModeValue("white", "gray.800");
+  const errorBadgeBg = useColorModeValue("red.100", "red.900");
+  const errorBadgeColor = useColorModeValue("red.800", "red.200");
+  const codeBg = useColorModeValue("gray.100", "gray.700");
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
-      <ModalOverlay backdropFilter="blur(3px)" />
-      <ModalContent>
-        <ModalHeader bg={headerBg} color={headerColor} borderTopRadius="md" px={6} py={4}>
-          <VStack align="center" spacing={2}>
-            <Icon as={WarningTwoIcon} boxSize={8} />
-            <Text>Error Occurred</Text>
-          </VStack>
+    <Modal isOpen={isOpen} onClose={onClose} size="lg" isCentered>
+      <ModalOverlay backdropFilter="blur(2px)" />
+      <ModalContent bg={bgColor} borderRadius="lg" boxShadow="xl">
+        <ModalHeader>
+          <Flex alignItems="center">
+            <Icon as={WarningTwoIcon} color="red.500" mr={2} boxSize={5} />
+            <Text>Error Executing Command</Text>
+          </Flex>
         </ModalHeader>
         <ModalCloseButton />
-        <ModalBody px={6} py={5}>
+
+        <ModalBody>
           <VStack spacing={4} align="stretch">
-            <Text fontWeight="medium">An error occurred while executing the command:</Text>
-            <Text fontStyle="italic" color="red.500" fontSize="sm">
-              {errorMessage}
+            <Text fontWeight="bold" fontSize="lg">
+              {errorData.message}
             </Text>
+
+            {errorData.code && (
+              <Flex>
+                <Badge bg={errorBadgeBg} color={errorBadgeColor} px={2} py={1} borderRadius="md">
+                  Error Code: {errorData.code}
+                </Badge>
+              </Flex>
+            )}
+
             <Divider />
-            <Text fontSize="sm">
-              You can either retry the last command or clear all commands in the queue.
-            </Text>
+
+            {errorData.details && (
+              <Box>
+                <Text fontWeight="semibold" mb={2}>
+                  Technical Details:
+                </Text>
+                <Code
+                  p={3}
+                  borderRadius="md"
+                  bg={codeBg}
+                  fontSize="sm"
+                  width="100%"
+                  overflowX="auto">
+                  {errorData.details}
+                </Code>
+              </Box>
+            )}
+
+            <Box>
+              <Text fontSize="sm" color="gray.500">
+                If this error persists, please check the tool connection status and verify that the
+                command is supported by the specified tool.
+              </Text>
+            </Box>
           </VStack>
         </ModalBody>
-        <ModalFooter gap={3}>
-          <Button variant="outline" onClick={onClose}>
-            Dismiss
-          </Button>
-          <Button onClick={onRetry} colorScheme="blue">
-            Retry
-          </Button>
-          <Button onClick={onClearAll} colorScheme="red" variant="outline">
-            Stop
+
+        <ModalFooter>
+          <Button colorScheme="blue" onClick={onClose}>
+            Close
           </Button>
         </ModalFooter>
       </ModalContent>

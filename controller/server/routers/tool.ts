@@ -73,7 +73,7 @@ export const toolRouter = router({
     .mutation(async ({ input }) => {
       const { id, config } = input;
       const response = await put<ToolResponse>(`/tools/${id}`, config);
-      await Tool.removeTool(response.name);
+      await Tool.removeTool(id);
       const updatedToolConfig: controller_protos.ToolConfig = {
         name: response.name,
         type: response.type as ToolType,
@@ -84,10 +84,13 @@ export const toolRouter = router({
         config: (response.config as Config) || {},
       };
 
-      // Reload the tool config with ALL properties
+      // Ensure these async operations complete
       await Tool.reloadSingleToolConfig(updatedToolConfig);
+      await Tool.clearToolStore();
 
-      // Return the updated tool
+      // Explicitly create the tool again to ensure it's in the store with new config
+      Tool.forId(Tool.normalizeToolId(response.name));
+
       return response;
     }),
 
