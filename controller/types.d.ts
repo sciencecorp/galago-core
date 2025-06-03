@@ -18,8 +18,8 @@ export interface SkipExecution {
 }
 
 export interface AdvancedParameters {
-  skipExecutionVariable: SkipExecution;
-  runAsynchronously?: boolean;
+  skip_execution_variable: SkipExecution;
+  run_asynchronously: boolean;
 }
 
 export interface ToolCommandInfo {
@@ -28,7 +28,7 @@ export interface ToolCommandInfo {
   toolType: ToolType;
   command: string;
   params: Record<string, any>;
-  advancedParameters?: AdvancedParameters;
+  advanced_parameters?: AdvancedParameters;
 }
 
 export interface PageProps {

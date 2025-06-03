@@ -1945,10 +1945,24 @@ async def get_protocol(id: int, db: Session = Depends(get_db)):
     db_protocol = db.query(Protocol).get(id)
     if not db_protocol:
         raise HTTPException(status_code=404, detail="Protocol not found")
-        # Explicitly load the processes relationship
-    _ = db_protocol.processes
     
+    # Explicitly load processes and their commands in order
+    processes = db.query(models.ProtocolProcess)\
+        .filter(models.ProtocolProcess.protocol_id == id)\
+        .order_by(models.ProtocolProcess.position)\
+        .all()
+    
+    for process in processes:
+        # Load commands for each process, ordered by position
+        commands = db.query(models.ProtocolCommand)\
+            .filter(models.ProtocolCommand.process_id == process.id)\
+            .order_by(models.ProtocolCommand.position)\
+            .all()
+        process.commands = commands
+    
+    db_protocol.processes = processes
     return db_protocol
+
 
 
 @app.get("/protocols", response_model=List[schemas.Protocol])
@@ -2092,38 +2106,36 @@ def get_protocol_command(command_id: int, db: Session = Depends(get_db)) -> t.An
 
 @app.post("/protocol-processes/reorder")
 async def reorder_processes(
-    reorder_data: dict = Body(...), 
+    reorder_data: dict = Body(...),
     db: Session = Depends(get_db)
 ):
     """
-    Reorder processes within a protocol. 
+    Reorder processes within a protocol.
     Expects a JSON with protocol_id and process_ids in the new order.
     """
+    
     protocol_id = reorder_data.get("protocol_id")
     process_ids = reorder_data.get("process_ids", [])
     
     if not protocol_id or not process_ids:
         raise HTTPException(status_code=400, detail="Protocol ID and process IDs are required")
     
-    # Verify protocol exists
-    protocol = db.query(models.Protocol).get(protocol_id)
-    if not protocol:
-        raise HTTPException(status_code=404, detail="Protocol not found")
-    
     # Verify all processes exist and belong to this protocol
     for idx, process_id in enumerate(process_ids):
-        process = db.query(models.ProtocolProcess).get(process_id)
+        process = db.query(models.ProtocolProcess).filter(
+            models.ProtocolProcess.id == process_id,
+            models.ProtocolProcess.protocol_id == protocol_id  # This was missing!
+        ).first()
+        # This could happen if another browser or user has modified the processes
         if not process:
             raise HTTPException(status_code=404, detail=f"Process {process_id} not found")
-        if process.protocol_id != protocol_id:
-            raise HTTPException(status_code=400, detail=f"Process {process_id} does not belong to protocol {protocol_id}")
-        
-        # Update the position
-        process.position = idx + 1  # Position is 1-based
+        if process:  # Only update if process exists and belongs to protocol
+            process.position = idx + 1
+        else:
+            logging.warning(f"Process {process_id} not found for protocol {protocol_id}")
     
     db.commit()
     return {"success": True, "message": "Processes reordered successfully"}
-
 
 @app.post("/protocol-commands/reorder")
 async def reorder_commands(
@@ -2137,6 +2149,8 @@ async def reorder_commands(
     process_id = reorder_data.get("process_id")
     command_ids = reorder_data.get("command_ids", [])
     
+    logging.info(f"Reordering commands for process {process_id}: {command_ids}")
+    
     if not process_id or not command_ids:
         raise HTTPException(status_code=400, detail="Process ID and command IDs are required")
     
@@ -2149,16 +2163,25 @@ async def reorder_commands(
     for idx, command_id in enumerate(command_ids):
         command = db.query(models.ProtocolCommand).get(command_id)
         if not command:
+            logging.error(f"Command {command_id} not found")
             raise HTTPException(status_code=404, detail=f"Command {command_id} not found")
         if command.process_id != process_id:
+            logging.error(f"Command {command_id} belongs to process {command.process_id}, not {process_id}")
             raise HTTPException(status_code=400, detail=f"Command {command_id} does not belong to process {process_id}")
         
         # Update the position
-        command.position = idx + 1  # Position is 1-based
+        old_position = command.position
+        new_position = idx + 1
+        command.position = new_position
+        logging.info(f"Updated command {command_id} from position {old_position} to {new_position}")
     
-    db.commit()
-    return {"success": True, "message": "Commands reordered successfully"}
-
+    try:
+        db.commit()
+        return {"success": True, "message": "Commands reordered successfully"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    
 @app.post("/protocol-commands", response_model=schemas.ProtocolCommand)
 def create_protocol_command(
     command: schemas.ProtocolCommandCreate, db: Session = Depends(get_db)

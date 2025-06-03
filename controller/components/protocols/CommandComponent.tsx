@@ -10,7 +10,7 @@ import {
   MenuList,
   MenuItem,
   Center,
-  Flex
+  Flex,
 } from "@chakra-ui/react";
 import { DeleteIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { trpc } from "@/utils/trpc";
@@ -25,8 +25,8 @@ export const CommandComponent: React.FC<{
   onDeleteCommand: () => void;
   isEditing?: boolean;
 }> = ({ command, onCommandClick, onRunCommand, onDeleteCommand, isEditing = false }) => {
-  const infoQuery = trpc.tool.info.useQuery({ toolId: command.commandInfo.toolId });
-  
+  const infoQuery = trpc.tool.info.useQuery({ toolId: command.tool_id });
+  console.log("CommandComponent", command, infoQuery.data);
   return (
     <Box
       onClick={(e) => {
@@ -52,37 +52,31 @@ export const CommandComponent: React.FC<{
         borderColor={useColorModeValue("gray.200", "gray.600")}
         boxShadow={useColorModeValue("md", "none")}
         sx={{
-            "&::-webkit-scrollbar": {
-              width: "10px",
-              height: "10px",
-              backgroundColor: "transparent",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              backgroundColor: "transparent",
-            },
-            "&:hover::-webkit-scrollbar-thumb": {
-              backgroundColor: "rgba(0, 0, 0, 0.2)",
-              borderRadius: "8px",
-            },
-            "&": {
-              scrollbarWidth: "thin",
-              scrollbarColor: "transparent transparent",
-            },
-            "&:hover": {
-              scrollbarColor: "rgba(0, 0, 0, 0.2) transparent",
-            },
-            msOverflowStyle: "none",
-          }}>
+          "&::-webkit-scrollbar": {
+            width: "10px",
+            height: "10px",
+            backgroundColor: "transparent",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: "transparent",
+          },
+          "&:hover::-webkit-scrollbar-thumb": {
+            backgroundColor: "rgba(0, 0, 0, 0.2)",
+            borderRadius: "8px",
+          },
+          "&": {
+            scrollbarWidth: "thin",
+            scrollbarColor: "transparent transparent",
+          },
+          "&:hover": {
+            scrollbarColor: "rgba(0, 0, 0, 0.2) transparent",
+          },
+          msOverflowStyle: "none",
+        }}>
         <VStack alignItems="stretch" height="100%" spacing="0">
           <Flex position="relative" alignItems="center" justifyContent="center" pb="1" width="100%">
-            <Box 
-              className="command-menu" 
-              position="absolute" 
-              right="0" 
-              top="0"
-              zIndex="1">
-              <Menu 
-              >
+            <Box className="command-menu" position="absolute" right="0" top="0" zIndex="1">
+              <Menu>
                 <MenuButton
                   size="xs"
                   as={IconButton}
@@ -92,12 +86,10 @@ export const CommandComponent: React.FC<{
                   icon={<HamburgerIcon fontSize="sm" />}
                   variant="outline"
                 />
-                <MenuList
-                  minW="120px"
-                  maxW="150px"
-                >
+                <MenuList minW="120px" maxW="150px">
                   <MenuItem
-                    onClick={() => onRunCommand(command)} icon={<VscRunBelow fontSize="xs" />}>
+                    onClick={() => onRunCommand(command)}
+                    icon={<VscRunBelow fontSize="xs" />}>
                     <Text fontSize="xs">Run Command</Text>
                   </MenuItem>
                   {isEditing && (
@@ -108,19 +100,18 @@ export const CommandComponent: React.FC<{
                 </MenuList>
               </Menu>
             </Box>
-            
+
             <Box textAlign="center" width="80%" mx="auto">
-              <Text 
-                fontSize="14px" 
-                as="b" 
+              <Text
+                fontSize="14px"
+                as="b"
                 isTruncated
-                title={capitalizeAll(command.commandInfo.toolId.replace("_", " "))}
-              >
-                {capitalizeAll(command.commandInfo.toolId.replace("_", " "))}
+                title={capitalizeAll(command?.tool_id.replace("_", " "))}>
+                {capitalizeAll(command?.tool_id.replace("_", " "))}
               </Text>
             </Box>
           </Flex>
-          
+
           <Center p={0} flex="1" overflow="hidden">
             <VStack spacing={2} justifyContent="center" maxW="100%">
               <Box maxW="100%">
@@ -131,13 +122,12 @@ export const CommandComponent: React.FC<{
                 />
               </Box>
               <Box position="sticky" bottom={0} maxW="100%">
-                <Text 
-                  fontSize="sm" 
+                <Text
+                  fontSize="sm"
                   textAlign="center"
                   isTruncated
-                  title={capitalizeFirst(command.commandInfo.command.replaceAll("_", " "))}
-                >
-                  {capitalizeFirst(command.commandInfo.command.replaceAll("_", " "))}
+                  title={capitalizeFirst(command.command.replaceAll("_", " "))}>
+                  {capitalizeFirst(command.command.replaceAll("_", " "))}
                 </Text>
               </Box>
             </VStack>

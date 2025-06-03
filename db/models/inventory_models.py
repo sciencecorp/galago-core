@@ -367,7 +367,7 @@ class ProtocolCommand(Base, TimestampMixin):
     process_id = Column(Integer, ForeignKey("protocol_processes.id"), nullable=True)
     command_group_id = Column(Integer, ForeignKey("protocol_command_groups.id"), nullable=True)
     position = Column(Integer, nullable=False)
-
+    advanced_parameters = Column(JSON, nullable=True)
     protocol: RelationshipProperty[Optional["Protocol"]] = relationship("Protocol")
     process: RelationshipProperty[Optional["ProtocolProcess"]] = relationship(
         "ProtocolProcess", back_populates="commands"

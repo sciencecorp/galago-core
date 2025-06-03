@@ -259,12 +259,7 @@ export const ProtocolFormModal: React.FC<ProtocolFormModalProps> = ({
                 )}
               </FormLabel>
               {isFileInput ? (
-                <Input
-                  type="file"
-                  pt={1}
-                  placeholder={schema.placeHolder || "Choose a file"}
-                  bg="gray.100"
-                />
+                <Input type="file" pt={1} placeholder={schema.placeHolder || "Choose a file"} />
               ) : isBoolean ? (
                 <Select
                   defaultValue={variable?.value || schema.placeHolder || "false"}

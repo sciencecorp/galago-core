@@ -188,7 +188,6 @@ export interface ProtocolCommand {
   process_id: number;
   command_group_id: number;
   position: number;
-
 }
 export interface ProtocolProcess {
   id: number;
@@ -206,7 +205,8 @@ export interface Swimlane {
   id: string;
   name: string;
   description?: string;
-  commands: any[];
+  position: number;
+  commands: ProtocolCommand[];
   processId?: number; // To track the actual process ID in the database
 }
 

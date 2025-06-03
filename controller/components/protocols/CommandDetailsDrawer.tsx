@@ -1,3 +1,5 @@
+// Updated CommandDetailsDrawer.tsx - Key changes marked with comments
+
 import {
   Box,
   Button,
@@ -22,6 +24,7 @@ import {
   AccordionButton,
   AccordionPanel,
   AccordionIcon,
+  FormHelperText,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
@@ -47,16 +50,19 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
   const { data: labwareData } = trpc.labware.getAll.useQuery();
   const { data: toolsData } = trpc.tool.getAll.useQuery();
 
-  // Get the numeric tool ID from the tool name when a PF400 command is selected
+  useEffect(() => {
+    console.log("CommandDetailsDrawer mounted");
+    console.log("Selected Command:", selectedCommand);
+  }, []);
+
   const toolId =
-    selectedCommand?.commandInfo?.toolType === "pf400"
+    selectedCommand?.tool_type === "pf400"
       ? toolsData?.find(
           (t) =>
-            // Try to match by toolId (which might be the tool name) or by name
-            t.name?.toLowerCase() === selectedCommand?.commandInfo?.toolId?.toLowerCase() ||
+            // Try to match by tool_id (which might be the tool name) or by name
+            t.name?.toLowerCase() === selectedCommand?.tool_id?.toLowerCase() ||
             // Also try with underscores replaced by spaces
-            t.name?.toLowerCase() ===
-              selectedCommand?.commandInfo?.toolId?.replaceAll("_", " ")?.toLowerCase(),
+            t.name?.toLowerCase() === selectedCommand?.tool_id?.replaceAll("_", " ")?.toLowerCase(),
         )?.id || 0
       : 0;
 
@@ -64,7 +70,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
   const waypointsQuery = trpc.robotArm.waypoints.getAll.useQuery(
     { toolId },
     {
-      enabled: !!toolId && selectedCommand?.commandInfo?.toolType === "pf400",
+      enabled: selectedCommand?.tool_type === "pf400",
     },
   );
 
@@ -75,7 +81,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
       setEditedAdvancedParams(null);
 
       // If we have labware data and there's a labware parameter using "default"
-      if (labwareData && selectedCommand?.commandInfo?.params?.labware === "default") {
+      if (labwareData && selectedCommand?.params?.labware === "default") {
         // Check if a labware with the name "default" (case insensitive) exists in the database
         if (labwareData.some((labware) => labware.name.toLowerCase() === "default")) {
           // Find the exact case of the default labware in the database
@@ -131,13 +137,13 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
       return editedAdvancedParams;
     }
 
-    if (selectedCommand?.commandInfo?.advancedParameters) {
-      return selectedCommand.commandInfo.advancedParameters;
+    if (selectedCommand?.advanced_parameters) {
+      return selectedCommand?.advanced_parameters;
     }
 
     return {
-      skipExecutionVariable: { variable: null, value: "" },
-      runAsynchronously: false,
+      skip_execution_variable: { variable: null, value: "" },
+      run_asynchronously: false,
     };
   };
 
@@ -146,8 +152,8 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
 
     setEditedAdvancedParams({
       ...currentAdvParams,
-      skipExecutionVariable: {
-        ...currentAdvParams.skipExecutionVariable,
+      skip_execution_variable: {
+        ...currentAdvParams.skip_execution_variable,
         variable: variableName === "" ? null : variableName,
       },
     });
@@ -158,8 +164,8 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
 
     setEditedAdvancedParams({
       ...currentAdvParams,
-      skipExecutionVariable: {
-        ...currentAdvParams.skipExecutionVariable,
+      skip_execution_variable: {
+        ...currentAdvParams.skip_execution_variable,
         value,
       },
     });
@@ -170,36 +176,27 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
 
     setEditedAdvancedParams({
       ...currentAdvParams,
-      runAsynchronously: isChecked,
+      run_asynchronously: isChecked,
     });
   };
 
   const handleSaveInputs = () => {
     if (isEditing && selectedCommand) {
-      // Create updated params by merging original params with edited ones
       const updatedParams = {
-        ...selectedCommand.commandInfo.params,
+        ...selectedCommand?.params,
         ...editedParams,
       };
 
-      // Get the advanced parameters
       const advancedParams = getAdvancedParameters();
 
-      // Create updated command object
       const updatedCommand = {
         ...selectedCommand,
-        commandInfo: {
-          ...selectedCommand.commandInfo,
-          params: updatedParams,
-          advancedParameters: advancedParams,
-        },
+        params: updatedParams,
+        advanced_parameters: advancedParams,
       };
 
       // Call the onSave function with the updated command
       onSave(updatedCommand);
-
-      // Show success toast
-      successToast("Success", "Command parameters have been updated");
 
       // Clear edited params
       setEditedParams({});
@@ -267,7 +264,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
     }
 
     // For sequence_name in run_sequence command, render a dropdown
-    if (key === "sequence_name" && selectedCommand?.commandInfo?.command === "run_sequence") {
+    if (key === "sequence_name" && selectedCommand?.command === "run_sequence") {
       return (
         <HStack width="100%" spacing={2}>
           <Select
@@ -322,8 +319,8 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
     // For location fields in various PF400 commands
     if (
       key === "name" &&
-      selectedCommand?.commandInfo?.command === "move" &&
-      selectedCommand?.commandInfo?.toolType === "pf400"
+      selectedCommand?.command === "move" &&
+      selectedCommand?.tool_type === "pf400"
     ) {
       return (
         <HStack width="100%" spacing={2}>
@@ -424,19 +421,16 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
             <VStack spacing={4} align="self-start" width="100%">
               <Divider />
               <Text as="b">Tool:</Text>
-              <Text>{capitalizeFirst(selectedCommand.commandInfo.toolType)}</Text>
+              <Text>{capitalizeFirst(selectedCommand?.tool_type)}</Text>
               <Divider />
               <Text as="b">Name:</Text>
-              <Text>
-                {capitalizeFirst(selectedCommand.commandInfo.command.replaceAll("_", " "))}
-              </Text>
+              <Text>{capitalizeFirst(selectedCommand?.command?.replaceAll("_", " "))}</Text>
               <Divider />
               <Text as="b" fontSize="18px">
                 Parameters
               </Text>
               <VStack align="stretch" spacing={4} width="100%">
-                {Object.entries(selectedCommand.commandInfo.params).map(([key, value], index) => {
-                  // Get current value (from editedParams if available, otherwise from command)
+                {Object.entries(selectedCommand?.params || {}).map(([key, value], index) => {
                   const currentValue = editedParams[key] !== undefined ? editedParams[key] : value;
 
                   // Check if it's a variable reference
@@ -460,7 +454,6 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
                   );
                 })}
 
-                {/* Advanced Parameters Section */}
                 <Accordion allowToggle width="100%" mt={4}>
                   <AccordionItem>
                     <h2>
@@ -482,7 +475,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
                         <FormControl>
                           <FormLabel>Variable</FormLabel>
                           <Select
-                            value={advancedParams.skipExecutionVariable?.variable || ""}
+                            value={advancedParams.skip_execution_variable?.variable || ""}
                             onChange={(e) => handleSkipVariableSelect(e.target.value)}
                             isDisabled={!isEditing}>
                             <option value="">None</option>
@@ -496,30 +489,28 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
 
                         <FormControl
                           isDisabled={
-                            !advancedParams.skipExecutionVariable?.variable || !isEditing
+                            !advancedParams.skip_execution_variable?.variable || !isEditing
                           }>
                           <FormLabel>Value to Match</FormLabel>
                           <Input
-                            value={advancedParams.skipExecutionVariable?.value || ""}
+                            value={advancedParams.skip_execution_variable?.value || ""}
                             onChange={(e) => handleSkipValueChange(e.target.value)}
                             placeholder="Value that variable must match to skip"
                           />
+                          <FormHelperText fontSize="sm" color="gray.500" mt={2}>
+                            The command will be skipped if the selected variable matches the
+                            specified value.
+                          </FormHelperText>
                         </FormControl>
 
-                        {/* Run Asynchronously */}
                         <FormControl display="flex" alignItems="center" mt={4}>
                           <FormLabel mb="0">Run Asynchronously</FormLabel>
                           <Switch
-                            isChecked={advancedParams.runAsynchronously || false}
+                            isChecked={advancedParams.run_asynchronously || false}
                             onChange={(e) => handleRunAsyncChange(e.target.checked)}
                             isDisabled={!isEditing}
                           />
                         </FormControl>
-
-                        <Text fontSize="sm" color="gray.500" mt={2}>
-                          The command will be skipped if the selected variable matches the specified
-                          value.
-                        </Text>
                       </VStack>
                     </AccordionPanel>
                   </AccordionItem>
@@ -532,7 +523,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
                     onClick={handleSaveInputs}
                     isDisabled={!isEditing}
                     mt={4}>
-                    Save Inputs
+                    Save
                   </Button>
                 )}
               </VStack>

@@ -1,7 +1,5 @@
 import {
   Button,
-  FormControl,
-  FormLabel,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -9,14 +7,10 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Select,
   VStack,
   Input,
-  NumberInput,
-  NumberInputField,
   HStack,
   IconButton,
-  Badge,
   Text,
   Box,
   SimpleGrid,
@@ -62,12 +56,11 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   const [commandParams, setCommandParams] = useState<Record<string, any>>({});
   const [searchQuery, setSearchQuery] = useState("");
 
-  // For the stepper UI - reduced to 2 steps instead of 3
   const steps = [
     { title: "Select Tool", description: "Choose a tool to use" },
     { title: "Select Command", description: "Choose a command" },
   ];
-  
+
   const { activeStep, setActiveStep } = useSteps({
     index: 0,
     count: steps.length,
@@ -75,55 +68,14 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
 
   const toolsQuery = trpc.tool.getAll.useQuery();
   const toolBoxQuery = trpc.tool.getToolBox.useQuery();
-  const { data: fetchedVariables } = trpc.variable.getAll.useQuery();
   const { data: labwareData } = trpc.labware.getAll.useQuery();
 
   const selectedToolData =
     toolsQuery.data?.find((tool) => tool.id === selectedToolId) ||
     (toolBoxQuery.data?.id === selectedToolId ? toolBoxQuery.data : undefined);
 
-  // Query for PF400 locations and sequences when needed
-  const waypointsQuery = trpc.robotArm.waypoints.getAll.useQuery(
-    { toolId: selectedToolData?.id || 0 },
-    { enabled: !!selectedToolData?.id && selectedToolType === "pf400" },
-  );
-
-  useEffect(() => {
-    if (selectedToolType && selectedCommand) {
-      const availableCommands = commandFields[selectedToolType] || {};
-      const fields = availableCommands[selectedCommand] || [];
-
-      const initialParams: Record<string, any> = {};
-      fields.forEach((field: Field) => {
-        if (field.defaultValue !== undefined) {
-          initialParams[field.name] = field.defaultValue;
-        } else if (field.name === "labware") {
-          // Check if there's a labware named "default" in the database first
-          if (labwareData?.some((labware) => labware.name.toLowerCase() === "default")) {
-            // If it exists in labwareData, use the exact case that exists in the database
-            const defaultLabware = labwareData.find(
-              (labware) => labware.name.toLowerCase() === "default",
-            );
-            initialParams[field.name] = defaultLabware?.name || "default";
-          } else {
-            // Otherwise use the lowercase "default"
-            initialParams[field.name] = "default";
-          }
-        }
-      });
-
-      setCommandParams(initialParams);
-    } else {
-      setCommandParams({});
-    }
-  }, [selectedToolType, selectedCommand, labwareData]);
-
-  // Get available commands for the selected tool
+  // Available commands for selected tool
   const availableCommands: Command = selectedToolType ? commandFields[selectedToolType] || {} : {};
-
-  // Get fields for the selected command
-  const fields: Field[] =
-    selectedToolType && selectedCommand ? availableCommands[selectedCommand] || [] : [];
 
   // Get available tools with their IDs and names
   const availableTools = [
@@ -168,11 +120,10 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     setActiveStep(activeStep - 1);
   };
 
-  // Modified to handle command selection and immediate submission
   const handleCommandSelect = (command: string) => {
     setSelectedCommand(command);
-    
-    // Automatically prepare and submit the command with default parameters
+
+    //Submit the command with default parameters
     const availableCommands = commandFields[selectedToolType] || {};
     const fields = availableCommands[command] || [];
 
@@ -201,28 +152,28 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     });
 
     const newCommand = {
-      commandInfo: {
-        toolId:
-          selectedToolType === "toolbox"
-            ? "tool_box"
-            : selectedToolData?.name?.toLocaleLowerCase().replaceAll(" ", "_"),
-        toolType: selectedToolType,
-        command: command,
-        params: finalParams,
-        label: "",
-        advancedParameters: {
-          skipExecutionVariable: {
-            variable: null,
-            value: null,
-          },
-          runAsynchronously: false,
+      tool_id:
+        selectedToolType === "toolbox"
+          ? "tool_box"
+          : selectedToolData?.name?.toLocaleLowerCase().replaceAll(" ", "_"),
+      tool_type: selectedToolType,
+      command: command,
+      params: finalParams,
+      label: "",
+      advanced_parameters: {
+        skip_execution_variable: {
+          variable: null,
+          value: null,
         },
+        run_asynchronously: false,
       },
     };
 
+    console.log("Submitting command:", newCommand);
+
     onCommandAdded(newCommand);
     onClose();
-    
+
     // Reset state after closing
     setActiveStep(0);
     setSelectedToolId("");
@@ -233,7 +184,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   };
 
   // Tool card component
-  const toolCardBg = useColorModeValue("white", "gray.800");
+  const toolCardBg = useColorModeValue("gray.50", "gray.800");
   const selectedToolBg = useColorModeValue("teal.100", "teal.900");
 
   const ToolCard = ({ tool }: { tool: { id: number | string; type: string; name: string } }) => {
@@ -276,7 +227,6 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     );
   };
 
-  // Modified CommandCard to handle direct submission
   const CommandCard = ({ command }: { command: string }) => {
     return (
       <Box
@@ -286,11 +236,9 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
         bg={toolCardBg}
         borderColor="gray.200"
         boxShadow="md"
-        _hover={{ transform: "translateY(-2px)", shadow: "lg", bg: "teal.50" }}
+        _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
         onClick={() => handleCommandSelect(command)}>
-        <Text fontSize="md">
-          {command}
-        </Text>
+        <Text fontSize="md">{command.toLocaleLowerCase().replaceAll("_", " ")}</Text>
       </Box>
     );
   };
@@ -325,11 +273,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                 </HStack>
               )}
             </Flex>
-            <Box
-              maxH="calc(3 * 140px + 3 * 1rem)"
-              overflowY="auto"
-              pr={2}
-              py={5}>
+            <Box maxH="calc(3 * 140px + 3 * 1rem)" overflowY="auto" pr={2} py={5}>
               <SimpleGrid columns={[2, 3, 4, 5]} spacing={4}>
                 {filteredTools.map((tool) => (
                   <ToolCard key={tool.id} tool={tool} />
@@ -351,11 +295,11 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               </Text>
             </Flex>
             <Box maxH="300px" overflowY="auto" pr={2} py={2}>
-              <SimpleGrid columns={[1, 2]} spacing={4}>
+              <VStack spacing={4} width={"100%"} align="stretch">
                 {Object.keys(availableCommands).map((command) => (
                   <CommandCard key={command} command={command} />
                 ))}
-              </SimpleGrid>
+              </VStack>
             </Box>
           </VStack>
         );
@@ -399,9 +343,9 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl">
+    <Modal isOpen={isOpen} onClose={onClose} size={activeStep === 0 ? "md" : "sm"}>
       <ModalOverlay />
-      <ModalContent maxW="900px">
+      <ModalContent maxW={activeStep === 0 ? "900px" : "600px"}>
         <ModalHeader>Add Tool Command</ModalHeader>
         <ModalCloseButton />
         <ModalBody>

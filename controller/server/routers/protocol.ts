@@ -49,6 +49,7 @@ const commandSchema = z.object({
   command_group_id: z.number().optional(),
   position: z.number(),
   protocol_id: z.number().optional(),
+  advanced_parameters: z.record(z.any()).optional(),
 });
 
 const commandGroupSchema = z.object({
@@ -125,13 +126,17 @@ export const protocolRouter = router({
     const response = await get<Protocol>(`${API_BASE_URL}/protocols/${input.id}`);
     return response;
   }),
-  
+
   // Process Routes
-  getAllProcesses: procedure.input(z.object({ protocol_id: z.number().optional() })).query(async ({ input }) => {
-    const params = input.protocol_id ? { protocol_id: input.protocol_id } : {};
-    const response = await get<ProtocolProcess[]>(`${API_BASE_URL}/protocol-processes`, { params });
-    return response;
-  }),
+  getAllProcesses: procedure
+    .input(z.object({ protocol_id: z.number().optional() }))
+    .query(async ({ input }) => {
+      const params = input.protocol_id ? { protocol_id: input.protocol_id } : {};
+      const response = await get<ProtocolProcess[]>(`${API_BASE_URL}/protocol-processes`, {
+        params,
+      });
+      return response;
+    }),
 
   getProcess: procedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
     const response = await get<ProtocolProcess>(`${API_BASE_URL}/protocol-processes/${input.id}`);
@@ -187,8 +192,10 @@ export const protocolRouter = router({
       const params: any = {};
       if (input.process_id) params.process_id = input.process_id;
       if (input.protocol_id) params.protocol_id = input.protocol_id;
-      
-      const response = await get<ProtocolCommand[]>(`${API_BASE_URL}/protocol-commands`, { params });
+
+      const response = await get<ProtocolCommand[]>(`${API_BASE_URL}/protocol-commands`, {
+        params,
+      });
       return response;
     }),
 
@@ -235,19 +242,29 @@ export const protocolRouter = router({
   }),
 
   // Command Group Routes
-  getAllCommandGroups: procedure.input(z.object({ process_id: z.number().optional() })).query(async ({ input }) => {
-    const params = input.process_id ? { process_id: input.process_id } : {};
-    const response = await get<ProtocolCommandGroup[]>(`${API_BASE_URL}/protocol-command-groups`, { params });
-    return response;
-  }),
+  getAllCommandGroups: procedure
+    .input(z.object({ process_id: z.number().optional() }))
+    .query(async ({ input }) => {
+      const params = input.process_id ? { process_id: input.process_id } : {};
+      const response = await get<ProtocolCommandGroup[]>(
+        `${API_BASE_URL}/protocol-command-groups`,
+        { params },
+      );
+      return response;
+    }),
 
   getCommandGroup: procedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
-    const response = await get<ProtocolCommandGroup>(`${API_BASE_URL}/protocol-command-groups/${input.id}`);
+    const response = await get<ProtocolCommandGroup>(
+      `${API_BASE_URL}/protocol-command-groups/${input.id}`,
+    );
     return response;
   }),
 
   createCommandGroup: procedure.input(commandGroupSchema).mutation(async ({ input }) => {
-    const response = await post<ProtocolCommandGroup>(`${API_BASE_URL}/protocol-command-groups`, input);
+    const response = await post<ProtocolCommandGroup>(
+      `${API_BASE_URL}/protocol-command-groups`,
+      input,
+    );
     logAction({
       level: "info",
       action: "New Command Group Added",
@@ -283,7 +300,6 @@ export const protocolRouter = router({
     return { success: true };
   }),
 
-  // Reordering Routes
   reorderProcesses: procedure
     .input(
       z.object({
@@ -295,11 +311,6 @@ export const protocolRouter = router({
       const response = await post(`${API_BASE_URL}/protocol-processes/reorder`, {
         protocol_id: input.protocol_id,
         process_ids: input.process_ids,
-      });
-      logAction({
-        level: "info",
-        action: "Processes Reordered",
-        details: `Processes for protocol ${input.protocol_id} have been reordered.`,
       });
       return response;
     }),

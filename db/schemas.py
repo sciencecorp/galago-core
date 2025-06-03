@@ -401,6 +401,7 @@ class ProtocolCommandBase(BaseModel):
     command: str
     params: t.Dict[str, t.Any]
     process_id: int
+    advanced_parameters: t.Optional[dict] = None
     command_group_id: t.Optional[int] = None
     position: t.Optional[int] = None
 
@@ -415,6 +416,7 @@ class ProtocolCommandUpdate(BaseModel):
     command: t.Optional[str] = None
     params: t.Optional[t.Dict[str, t.Any]] = None
     process_id: t.Optional[int] = None
+    advanced_parameters: t.Optional[dict] = None
     command_group_id: t.Optional[int] = None
     position: t.Optional[int] = None
 

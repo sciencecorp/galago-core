@@ -12,10 +12,11 @@ import { GoStop } from "react-icons/go";
 import { FaArrowRotateLeft } from "react-icons/fa6";
 import { TiArrowRepeat } from "react-icons/ti";
 import { TbVariable } from "react-icons/tb";
+
 interface CommandImageProps {
   config: any;
-  command: RunCommand;
-  onCommandClick: (command: RunCommand) => void;
+  command: any;
+  onCommandClick: (command: any) => void;
 }
 
 const CommandImage: React.FC<CommandImageProps> = (props) => {
@@ -44,7 +45,7 @@ const CommandImage: React.FC<CommandImageProps> = (props) => {
         <Box display="flex" justifyContent="center" alignItems="center" py={3}>
           <IconButton
             aria-label="Tool Box"
-            icon={ToolBoxCommandIconMap(command.commandInfo.command)} // Ensure the icon fills the button
+            icon={ToolBoxCommandIconMap(command.command)} // Ensure the icon fills the button
             variant="ghost"
             colorScheme="teal"
             isRound
