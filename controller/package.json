@@ -43,6 +43,7 @@
     "@uiw/react-textarea-code-editor": "^1.4.4",
     "async": "^3.2.4",
     "attr-accept": "^2.2.2",
+    "avataaars": "^2.0.0",
     "avvvatars-react": "^0.4.2",
     "axios": "^1.4.0",
     "base32": "^0.0.7",
