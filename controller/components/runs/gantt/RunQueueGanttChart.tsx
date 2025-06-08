@@ -2,9 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   Box,
   VStack,
-  HStack,
   Text,
-  Progress,
   Tooltip,
   Flex,
   Spinner,
@@ -12,12 +10,6 @@ import {
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import moment from "moment";
-import {
-  getRunAttributes,
-  calculateRunTimes,
-  groupCommandsByRun,
-  calculateRunCompletion,
-} from "@/utils/runUtils";
 import { TimelineControls } from "./TimelineControls";
 import "@/styles/Home.module.css";
 import { useColorModeValue } from "@chakra-ui/react";
@@ -68,10 +60,10 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
     if (!isAutoScrolling || !commandsAll.data || commandsAll.data.length === 0) return;
 
     const allCommands = commandsAll.data;
-    const firstCommandTime = moment(allCommands[0].createdAt);
+    const firstCommandTime = moment(allCommands[0].created_at);
     const lastCommandTime = allCommands.reduce((latest, cmd) => {
       const cmdEndTime = moment(
-        cmd.completedAt || moment(cmd.createdAt).add(cmd.estimatedDuration || 600, "seconds"),
+        cmd.completed_at || moment(cmd.created_at).add(cmd.estimated_duration || 600, "seconds"),
       );
       return cmdEndTime.isAfter(latest) ? cmdEndTime : latest;
     }, firstCommandTime);
@@ -167,13 +159,13 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
 
     // Sort commands by queueId to maintain execution order
     const sortedCommands = [...commandsAll.data].sort(
-      (a, b) => (a.queueId || 0) - (b.queueId || 0),
+      (a, b) => (a.queue_id || 0) - (b.queue_id || 0),
     );
 
     // Group commands by tool type
     const commandsByTool = sortedCommands.reduce(
       (acc, cmd) => {
-        const toolType = cmd.commandInfo.toolType;
+        const toolType = cmd.command_info.tool_type;
         if (!acc[toolType]) {
           acc[toolType] = [];
         }
@@ -192,20 +184,20 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
 
     return sortedCommands
       .map((command) => {
-        const toolType = command.commandInfo.toolType;
+        const toolType = command.command_info.tool_type;
         const toolIndex = toolTypes.indexOf(toolType);
 
         // Calculate start and end times
-        const startMoment = moment.max(moment(command.createdAt), lastEndTime);
+        const startMoment = moment.max(moment(command.created_at), lastEndTime);
         let endMoment;
 
         // For skipped commands, truncate at current time
         if (command.status === "SKIPPED") {
-          endMoment = command.completedAt ? moment(command.completedAt) : startMoment.clone(); // End right where it started if no completedAt time
+          endMoment = command.completed_at ? moment(command.completed_at) : startMoment.clone(); // End right where it started if no completedAt time
         } else {
           endMoment = moment(
-            command.completedAt ||
-              startMoment.clone().add(command.estimatedDuration || 600, "seconds"),
+            command.completed_at ||
+              startMoment.clone().add(command.estimated_duration || 600, "seconds"),
           );
         }
 
@@ -220,8 +212,8 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
         const visibleEndTime = moment.min(endMoment, endTime);
         const left = `${(visibleStartTime.diff(startTime, "seconds") / totalDuration) * 100}%`;
         const width = `${(visibleEndTime.diff(visibleStartTime, "seconds") / totalDuration) * 100}%`;
-        const isSelected = selectedRunId === command.runId;
-        const bgColor = getToolColor(command.commandInfo.toolType as ToolType);
+        const isSelected = selectedRunId === command.run_id;
+        const bgColor = getToolColor(command.command_info.tool_type as ToolType);
 
         // Determine opacity and style based on command status
         let opacity = 0.9;
@@ -243,8 +235,8 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
 
         return (
           <Tooltip
-            key={command.queueId}
-            label={`Tool: ${command.commandInfo.toolType} | Command: ${command.commandInfo.command} | Status: ${command.status}`}>
+            key={command.queue_id}
+            label={`Tool: ${command.command_info.tool_type} | Command: ${command.command_info.command} | Status: ${command.status}`}>
             <Box
               position="absolute"
               height={`${blockHeight}px`}
@@ -252,7 +244,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
               left={left}
               width={`calc(${width} - 4px)`}
               marginLeft="2px"
-              onClick={() => onRunClick(command.runId)}
+              onClick={() => onRunClick(command.run_id)}
               cursor="pointer"
               border="1px"
               borderStyle={borderStyle}
@@ -309,7 +301,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
                 color="white"
                 isTruncated
                 maxWidth="90%">
-                {command.commandInfo.command
+                {command.command_info.command
                   .split("_")
                   .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
                   .join(" ")}
@@ -324,7 +316,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
   const renderToolLabels = () => {
     if (!commandsAll.data) return null;
 
-    const toolTypes = Array.from(new Set(commandsAll.data.map((cmd) => cmd.commandInfo.toolType)));
+    const toolTypes = Array.from(new Set(commandsAll.data.map((cmd) => cmd.command_info.tool_type)));
     const rowHeight = 60;
 
     if (toolInfoQuery.isLoading) return null;
@@ -441,7 +433,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
   );
 
   const toolTypes = commandsAll.data
-    ? Array.from(new Set(commandsAll.data.map((cmd) => cmd.commandInfo.toolType)))
+    ? Array.from(new Set(commandsAll.data.map((cmd) => cmd.command_info.tool_type)))
     : [];
   const totalHeight = toolTypes.length * 60;
 

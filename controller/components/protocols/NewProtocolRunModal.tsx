@@ -269,11 +269,11 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
 
       await Promise.all(updatePromises.filter(Boolean));
 
+      console.log("Creating protocol run with params:", userDefinedParams);
       // Now queue the run
       await createRunMutation.mutate(
         {
-          protocolId: id,
-          workcellName: workcellName!,
+          protocolId: Number(id),
           params: userDefinedParams,
           numberOfRuns: Number(numberOfRuns.value),
         },
@@ -308,13 +308,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
                 <VStack align="start" spacing={4}>
                   <>
                     {Object.entries(uiParams).map(([param, paramInfo]) => {
-                      // Find if this parameter has a linked variable
                       const linkedVariableName = (paramInfo as any).variable_name;
-                      const linkedVariable =
-                        linkedVariableName && variablesQuery.data
-                          ? variablesQuery.data.find((v) => v.name === linkedVariableName)
-                          : null;
-
                       // Add badge for file input
                       const isFileInput =
                         (paramInfo as ExtendedProtocolParamInfo).fieldType === FieldType.FILE_INPUT;

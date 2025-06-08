@@ -42,31 +42,30 @@ export interface PageProps {
 
 export interface HasRunStatus {
   status: RunStatus;
-  createdAt?: Date;
-  startedAt?: Date;
-  failedAt?: Date;
-  completedAt?: Date;
-  skippedAt?: Date;
+  created_at?: Date;
+  started_at?: Date;
+  failed_at?: Date;
+  completed_at?: Date;
+  skipped_at?: Date;
 }
 
 export interface RunCommand extends HasRunStatus {
-  runId: string;
-  queueId?: number;
-  commandInfo: ToolCommandInfo;
-  estimatedDuration?: number;
-  durationActual?: number;
+  run_id: string;
+  queue_id?: number;
+  command_info: ToolCommandInfo;
+  estimated_duration?: number;
+  duration_actual?: number;
   error?: unknown;
 }
 
 export interface RunRequest {
-  protocolId: string;
+  protocol_id: string;
   params: Record<string, any>;
 }
 
 export interface Run extends HasRunStatus {
   id: string;
   params: Record<string, any>;
-  protocolId: string;
   commands: RunCommand[];
 }
 

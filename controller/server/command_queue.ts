@@ -567,7 +567,7 @@ export class CommandQueue {
       try {
         logger.info("Executing command", nextCommand.commandInfo);
 
-        if (nextCommand.commandInfo.toolId === "tool_box") {
+        if (nextCommand.commandInfo.tool_id === "tool_box") {
           if (nextCommand.commandInfo.command === "pause") {
             const message =
               nextCommand.commandInfo.params?.message || "Run is paused. Click Continue to resume.";

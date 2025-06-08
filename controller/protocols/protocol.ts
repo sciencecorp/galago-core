@@ -9,22 +9,21 @@ import {
   zodSchemaToDefault,
   zodSchemaToEnumValues,
 } from "./zodHelpers";
-import axios, { all } from "axios";
 import { ProtocolProcess } from "@/types/api";
+import {get} from "@/server/utils/api";
 
-const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
 
 export default class Protocol<
   ParamSchema extends MaybeWrappedZodType<AnyZodObject> = MaybeWrappedZodType<AnyZodObject>,
 > {
   name: string = "";
-  protocolId: string = "";
+  protocolId: number = 0;
   paramSchema: ParamSchema = z.object({}) as ParamSchema;
   category: string = "";
   workcell: string = "";
   description?: string;
   icon?: any;
-  private processes: ProtocolProcess[] = [];
+  processes: ProtocolProcess[] = [];
 
   constructor(dbProtocol?: any) {
     if (dbProtocol) {
@@ -188,8 +187,9 @@ export default class Protocol<
     return result;
   }
 
-  static async loadFromDatabase(protocolId: string): Promise<Protocol> {
-    const response = await axios.get(`${API_BASE_URL}/protocols/${protocolId}`);
-    return new Protocol(response.data);
+  static async loadFromDatabase(protocolId: number): Promise<Protocol> {
+    console.log(`Loading protocol with ID: ${protocolId}`);
+    const response = await get<Protocol>(`/protocols/${protocolId}`);
+    return new Protocol(response);
   }
 }
