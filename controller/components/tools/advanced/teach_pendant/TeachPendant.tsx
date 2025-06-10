@@ -778,7 +778,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         </HStack>
       </VStack>
 
-      {/* Modals */}
       <MotionProfileModal
         isOpen={motionProfileModal.isOpen}
         onClose={motionProfileModal.onClose}
@@ -894,8 +893,6 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
         }}
         config={config}
         teachPoints={teachPoints}
-        motionProfiles={motionProfiles}
-        gripParams={gripParams}
       />
 
       {/* Delete confirmation modal */}

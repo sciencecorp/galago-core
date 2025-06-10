@@ -24,7 +24,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3010
-      - GRPC_SERVER_IP=host.docker.internal
+      - GRPC_SERVER_IP=localhost
       - API_BASE_URL=http://db:8000/api
       - REDIS_HOST=redis://queue:6379/1
     depends_on:
@@ -32,6 +32,7 @@ services:
       - db
     networks:
       - app-network
+    network_mode: "host"
 
   db:
     image: ghcr.io/sciencecorp/galago-db:latest

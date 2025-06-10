@@ -84,7 +84,7 @@ class NestStatus(str, PyEnum):
 
 class PlateStatus(str, PyEnum):
     stored = "stored"
-    in_use = "in_use"
+    checked_out = "checked_out"
     completed = "completed"
     disposed = "disposed"
 
@@ -322,13 +322,13 @@ class LabwareCreate(BaseModel):
     number_of_rows: int
     number_of_columns: int
     z_offset: float = 0
-    width: int
-    height: int
-    plate_lid_offset: t.Optional[int] = None
-    lid_offset: t.Optional[int] = None
-    stack_height: t.Optional[int] = None
+    width: t.Optional[float] = 127.8
+    height: t.Optional[float] = 14.5
+    plate_lid_offset: t.Optional[float] = 0
+    lid_offset: t.Optional[float] = 0
+    stack_height: t.Optional[float] = 0
     has_lid: t.Optional[bool] = False
-    image_url: t.Optional[str] = None
+    image_url: t.Optional[str] = ""
 
 
 class Labware(TimestampMixin, LabwareCreate):
@@ -342,11 +342,11 @@ class LabwareUpdate(BaseModel):
     number_of_rows: t.Optional[int] = None
     number_of_columns: t.Optional[int] = None
     z_offset: t.Optional[float] = None
-    width: t.Optional[int] = None
-    height: t.Optional[int] = None
-    plate_lid_offset: t.Optional[int] = None
-    lid_offset: t.Optional[int] = None
-    stack_height: t.Optional[int] = None
+    width: t.Optional[float] = None
+    height: t.Optional[float] = None
+    plate_lid_offset: t.Optional[float] = None
+    lid_offset: t.Optional[float] = None
+    stack_height: t.Optional[float] = None
     has_lid: t.Optional[bool] = None
     image_url: t.Optional[str] = None
 
@@ -596,8 +596,9 @@ class RobotArmMotionProfileResponse(BaseModel):
     inrange: float
     straight: int
     id: int
-    
+
     model_config = ConfigDict(from_attributes=True)
+
 
 # Grip Params Schemas
 class RobotArmGripParamsCreate(BaseModel):
@@ -622,7 +623,7 @@ class RobotArmGripParams(RobotArmGripParamsCreate):
 
 
 class RobotArmWaypoints(BaseModel):
-    tool_name : str
+    tool_name: str
     name: str
     locations: list[RobotArmLocation]  # Full location objects
     motion_profiles: list[RobotArmMotionProfileResponse]  # Full motion profile objects
