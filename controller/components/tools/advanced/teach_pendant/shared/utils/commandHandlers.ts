@@ -6,15 +6,12 @@ import { Tool } from "@/types/api";
 import { successToast, errorToast } from "@/components/ui/Toast";
 import { validateGripParamsExists } from "./commandValidation";
 
-
-
 export function useCommandHandlers(config: Tool) {
   const handleJog = (
     mutation: UseMutationResult<any, unknown, any, unknown>,
     axis: string,
     distance: number,
   ) => {
-
     mutation.mutate({
       toolId: config.name,
       toolType: config.type,

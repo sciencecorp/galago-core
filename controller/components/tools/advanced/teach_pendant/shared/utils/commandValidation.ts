@@ -1,7 +1,6 @@
 import { GripParams, MotionProfile, Sequence } from "../../types";
 import { errorToast } from "@/components/ui/Toast";
 
-
 /**
  * Check if grip parameters exist before allowing gripper commands
  * @param gripParams Array of grip parameters
