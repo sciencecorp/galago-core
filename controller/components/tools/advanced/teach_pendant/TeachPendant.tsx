@@ -133,7 +133,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
   const commandHandlers = useCommandHandlers(config);
 
   const handleJog = () => {
-    commandHandlers.handleJog(robotArmCommandMutation, jogAxis, jogDistance, motionProfiles);
+    commandHandlers.handleJog(robotArmCommandMutation, jogAxis, jogDistance);
   };
 
   const handleMove = (point: TeachPoint) => {
