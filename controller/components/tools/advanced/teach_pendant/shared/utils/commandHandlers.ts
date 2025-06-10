@@ -1,38 +1,19 @@
-import { TeachPoint, MotionProfile, GripParams } from "../../types/";
+import { MotionProfile, GripParams } from "../../types/";
 import { ToolCommandInfo } from "@/types";
 import { ToolType } from "gen-interfaces/controller";
 import { UseMutationResult } from "@tanstack/react-query";
 import { Tool } from "@/types/api";
-import { coordinateToJoints } from "./robotArmUtils";
 import { successToast, errorToast } from "@/components/ui/Toast";
-import { createBatchHandler } from "./batchUtils";
-import { validateMotionProfileExists, validateGripParamsExists } from "./commandValidation";
-import { motion } from "framer-motion";
+import { validateGripParamsExists } from "./commandValidation";
 
-// Add a new interface for the robot motion profile format
-interface RobotMotionProfile {
-  id: number;
-  speed: number;
-  speed2: number;
-  acceleration: number;
-  deceleration: number;
-  accel_ramp: number;
-  decel_ramp: number;
-  inrange: number;
-  straight: number;
-}
+
 
 export function useCommandHandlers(config: Tool) {
   const handleJog = (
     mutation: UseMutationResult<any, unknown, any, unknown>,
     axis: string,
     distance: number,
-    motionProfiles: MotionProfile[] = [],
   ) => {
-    // Validate that motion profiles exist
-    if (!validateMotionProfileExists(motionProfiles, "jog")) {
-      return;
-    }
 
     mutation.mutate({
       toolId: config.name,
@@ -47,12 +28,12 @@ export function useCommandHandlers(config: Tool) {
 
   const handleMoveCommand = (
     mutation: UseMutationResult<any, unknown, any, unknown>,
-    name: string,
+    location: string,
     motion_profile: string,
   ) => {
     const command = "move";
     const params = {
-      name,
+      location,
       motion_profile,
     };
 
