@@ -5,6 +5,7 @@ import CommandQueue from "./command_queue";
 import { Protocols } from "./protocols";
 import Tool from "./tools";
 import Protocol from "@/protocols/protocol";
+import { ProtocolCommand, ToolCommand } from "@/types/api";
 
 // Right now, just an in-memory store wrapping a Map.
 export default class RunStore {
@@ -39,11 +40,11 @@ export default class RunStore {
       // estimate the duration for each command and then update the command when
       // it's known, this will run them all in parallel because we are not
       // awaiting in the loop
-      const tool = Tool.forId(c.commandInfo.tool_id);
+      const tool = Tool.forId(c.command_info.tool_id);
       // This doesn't need to be awaited because it will update the command
       durationEstimates.push(
-        tool.estimateDuration(c.commandInfo).then((duration) => {
-          c.estimatedDuration = duration;
+        tool.estimateDuration(c.command_info).then((duration) => {
+          c.estimated_duration = duration;
         }),
       );
     }
@@ -55,12 +56,12 @@ export default class RunStore {
    * Flattens the protocol's process structure into a linear array of commands
    * while preserving the execution order (processes by position, then commands within each process)
    */
-  private flattenProtocolCommands(protocol: Protocol): ToolCommandInfo[] {
+  private flattenProtocolCommands(protocol: Protocol): ProtocolCommand[] {
     if (!protocol.processes || protocol.processes.length === 0) {
       return [];
     }
 
-    const allCommands: ToolCommandInfo[] = [];
+    const allCommands: ProtocolCommand[] = [];
 
     // Sort processes by position
     const sortedProcesses = [...protocol.processes].sort((a, b) => a.position - b.position);
@@ -104,14 +105,12 @@ export default class RunStore {
     // Convert database commands to ToolCommandInfo format and then to RunCommands
     const runCommands: RunCommand[] = flattenedCommands.map((dbCommand) => {
       // Convert database command structure to ToolCommandInfo
-      const toolCommandInfo = {
-        id: dbCommand.id,
-        name: dbCommand.name,
+      const toolCommandInfo: ToolCommandInfo = {
+        command: dbCommand.command,
         tool_type: dbCommand.tool_type,
         tool_id: dbCommand.tool_id,
         label: dbCommand.label || "",
-        command: dbCommand.command,
-        params: this.replaceParameterPlaceholders(dbCommand.params, params),
+        params: dbCommand.params,
         advanced_parameters: dbCommand.advanced_parameters,
         command_group_id: dbCommand.command_group_id,
         position: dbCommand.position,

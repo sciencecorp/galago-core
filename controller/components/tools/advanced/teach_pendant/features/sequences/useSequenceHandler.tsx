@@ -22,7 +22,6 @@ import {
 } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
 import { RobotArmSequence } from "@/server/routers/robot-arm";
-import { ToolCommandInfo } from "@/types";
 import { Tool } from "@/types/api";
 import { CommandModal } from "./CommandModal";
 import { ToolType } from "gen-interfaces/controller";

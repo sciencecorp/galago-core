@@ -29,6 +29,7 @@ export interface ToolCommandInfo {
   command: string;
   params: Record<string, any>;
   advanced_parameters?: AdvancedParameters;
+
 }
 
 export interface PageProps {
@@ -60,7 +61,7 @@ export interface RunCommand extends HasRunStatus {
 
 export interface RunRequest {
   protocol_id: string;
-  params: Record<string, any>;
+  params: Record<string, any>;vv
 }
 
 export interface Run extends HasRunStatus {
