@@ -81,8 +81,27 @@ async def lifespan(app: FastAPI) -> t.AsyncGenerator[None, None]:
 
 
 app = FastAPI(title="Inventory API", lifespan=lifespan, root_path="/api")
-origins = ["http://localhost:3010", "http://127.0.0.1:3010"]
 
+# More flexible CORS configuration to handle different environments
+# Check if we're in development mode
+ENVIRONMENT = os.environ.get("ENVIRONMENT", "development")
+
+if ENVIRONMENT == "development":
+    # Development: Allow multiple origins for flexibility
+    origins = [
+        "http://localhost:3010",
+        "http://127.0.0.1:3010",
+        "http://0.0.0.0:3010",
+        "http://galago-web-dev:3010",  # Docker container name
+        "http://host.docker.internal:3010",  # Docker host access
+    ]
+else:
+    # Production: More restrictive, get from environment variables
+    origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3010").split(",")
+    # Clean up any whitespace
+    origins = [origin.strip() for origin in origins]
+
+logging.info(f"CORS origins configured: {origins}")
 
 app.add_middleware(
     CORSMiddleware,
@@ -2155,16 +2174,9 @@ async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     if db_user_by_email:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    # Only allow setting is_admin to True if the request comes from an admin
     # For regular self-registration, force is_admin to False
-    try:
-        current_user = await get_current_active_user(Depends(get_current_user))
-        if not current_user.is_admin:
-            # Non-admin users cannot create admin accounts
-            user.is_admin = False
-    except HTTPException:
-        # If no authenticated user (public registration), force is_admin to False
-        user.is_admin = False
+    # This endpoint is designed for public user registration
+    user.is_admin = False
 
     return crud.create_user(db=db, user=user)
 
