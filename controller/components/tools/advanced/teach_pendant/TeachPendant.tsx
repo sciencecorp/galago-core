@@ -132,6 +132,14 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
 
   const commandHandlers = useCommandHandlers(config);
 
+  const handleCloneSequence = (sequence: Sequence) => {
+    const clonedSequence: Sequence = {
+      ...sequence,
+      name: `${sequence.name}`,
+    };
+    handleCreateSequence(clonedSequence);
+  };
+
   const handleJog = () => {
     commandHandlers.handleJog(robotArmCommandMutation, jogAxis, jogDistance);
   };
@@ -767,6 +775,7 @@ export const TeachPendant = ({ toolId, config }: TeachPendantProps) => {
                     onDeleteAll={() => showDeleteConfirm("sequences")}
                     onCreateNew={handleNewSequence}
                     onUpdateSequence={handleUpdateSequence}
+                    onCloneSequence={handleCloneSequence}
                     bgColor={bgColor}
                     bgColorAlpha={bgColorAlpha}
                     config={config}

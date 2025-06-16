@@ -30,7 +30,7 @@ import {
   Text,
   Select,
 } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
+import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon, CopyIcon } from "@chakra-ui/icons";
 import { FaPlay } from "react-icons/fa";
 import { Tool } from "@/types/api";
 import { CommandList } from "./CommandList";
@@ -52,6 +52,7 @@ interface SequencesPanelProps {
   onDeleteAll: () => void;
   onCreateNew: () => void;
   onUpdateSequence: (sequence: Sequence) => void;
+  onCloneSequence: (sequence: Sequence) => void; // Add this prop
   bgColor: string;
   bgColorAlpha: string;
   config: Tool;
@@ -67,6 +68,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
   onDeleteAll,
   onCreateNew,
   onUpdateSequence,
+  onCloneSequence, // Add this prop
   bgColor,
   bgColorAlpha,
   config,
@@ -90,6 +92,37 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
     onPageChange,
     onItemsPerPageChange,
   } = usePagination(sequences);
+
+  // Helper function to generate a unique clone name
+  const generateCloneName = (originalName: string): string => {
+    const basePattern = /^(.+?)(?:\s*\((\d+)\))?$/;
+    const match = originalName.match(basePattern);
+    const baseName = match ? match[1] : originalName;
+
+    // Find existing sequences with similar names
+    const existingNames = sequences.map((seq) => seq.name);
+    let counter = 1;
+    let newName = `${baseName} (${counter})`;
+
+    while (existingNames.includes(newName)) {
+      counter++;
+      newName = `${baseName} (${counter})`;
+    }
+
+    return newName;
+  };
+
+  // Handle clone sequence
+  const handleCloneSequence = (sequence: Sequence) => {
+    const clonedSequence: Sequence = {
+      ...sequence,
+      id: Date.now(), // Temporary ID, will be replaced by backend
+      name: generateCloneName(sequence.name),
+      commands: [...sequence.commands], // Deep copy of commands array
+    };
+
+    onCloneSequence(clonedSequence);
+  };
 
   // Select the first sequence on initial load if available
   useEffect(() => {
@@ -164,6 +197,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
     "0 1px 3px rgba(0, 0, 0, 0.1)",
     "0 1px 3px rgba(0, 0, 0, 0.3)",
   );
+
   return (
     <Box height="100%" overflow="hidden">
       <VStack height="100%" spacing={4}>
@@ -282,6 +316,11 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                                     icon={<FaPlay />}
                                     onClick={() => setSequenceToRun(sequence)}>
                                     Run Sequence
+                                  </MenuItem>
+                                  <MenuItem
+                                    icon={<CopyIcon />}
+                                    onClick={() => handleCloneSequence(sequence)}>
+                                    Clone Sequence
                                   </MenuItem>
                                   <MenuDivider />
                                   <MenuItem

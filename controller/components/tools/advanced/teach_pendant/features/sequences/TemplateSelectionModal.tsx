@@ -14,7 +14,7 @@ import {
   Divider,
 } from "@chakra-ui/react";
 import { TeachPoint } from "../../types/";
-import { DefaultSequences, generateSequenceFromTemplate } from "./DefaultSequences";
+import { generateSequenceFromTemplate } from "./DefaultSequences";
 import { SequenceCommand } from "../../types/";
 
 interface TemplateModalProps {
