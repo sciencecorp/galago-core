@@ -1,82 +1,82 @@
 export const commandFields: CommandFields = {
   vspin_with_loader: {
-    home : [],
-    close_door: [], 
+    home: [],
+    close_door: [],
     show_diagnostics: [],
     park: [],
     open_door: [
       {
         name: "bucket_number",
-        type: "number"
-      }
-    ], 
+        type: "number",
+      },
+    ],
     load_plate: [
       {
-        name: "bucket_number", 
+        name: "bucket_number",
         type: "number",
-        defaultValue: 1
-      }, 
+        defaultValue: 1,
+      },
       {
-        name: "gripper_offset", 
+        name: "gripper_offset",
         type: "number",
-        defaultValue: 2.6
-      }, 
+        defaultValue: 2.6,
+      },
       {
-        name: "plate_height", 
+        name: "plate_height",
         type: "number",
-        defaultValue: 14
-      }, 
+        defaultValue: 14,
+      },
       {
-        name: "speed", 
+        name: "speed",
         type: "number",
-        defaultValue: 2
-      }, 
+        defaultValue: 2,
+      },
       {
         name: "options",
-        type: "number", 
-        defaultValue: 0
-      }
+        type: "number",
+        defaultValue: 0,
+      },
     ],
     unload_plate: [
       {
-        name: "bucket_number", 
+        name: "bucket_number",
         type: "number",
-        defaultValue: 1
-      }, 
+        defaultValue: 1,
+      },
       {
-        name: "gripper_offset", 
+        name: "gripper_offset",
         type: "number",
-        defaultValue: 2.6
-      }, 
+        defaultValue: 2.6,
+      },
       {
-        name: "plate_height", 
+        name: "plate_height",
         type: "number",
-        defaultValue: 14
-      }, 
+        defaultValue: 14,
+      },
       {
-        name: "speed", 
+        name: "speed",
         type: "number",
-        defaultValue: 2
-      }, 
+        defaultValue: 2,
+      },
       {
         name: "options",
         type: "number",
-        defaultValue: 0
-      }
+        defaultValue: 0,
+      },
     ],
     spin_cycle: [
       {
-        name: "velocity_percent", 
+        name: "velocity_percent",
         type: "number",
-      }, 
+      },
       {
-        name:"acceleration_percent",
+        name: "acceleration_percent",
         type: "number",
-      }, 
+      },
       {
         name: "deceleration_percent",
         type: "number",
-      }, 
+      },
       {
         name: "timer_mode",
         type: "number",
@@ -86,57 +86,56 @@ export const commandFields: CommandFields = {
         type: "number",
       },
       {
-        name: "bucket_number_load", 
+        name: "bucket_number_load",
         type: "number",
-        defaultValue: 1
-      }, 
-      {
-        name: "bucket_number_unload", 
-        type: "number",
-        defaultValue: 1
-      }, 
-      {
-        name: "gripper_offset_load", 
-        type: "number",
-        defaultValue: 2.6
+        defaultValue: 1,
       },
       {
-        name: "gripper_offset_unload", 
+        name: "bucket_number_unload",
         type: "number",
-        defaultValue: 2.6
+        defaultValue: 1,
+      },
+      {
+        name: "gripper_offset_load",
+        type: "number",
+        defaultValue: 2.6,
+      },
+      {
+        name: "gripper_offset_unload",
+        type: "number",
+        defaultValue: 2.6,
       },
       {
         name: "plate_height_load",
         type: "number",
-        defaultValue: 14
-      }, 
+        defaultValue: 14,
+      },
       {
         name: "plate_height_unload",
         type: "number",
-        defaultValue:14
-      }, 
+        defaultValue: 14,
+      },
       {
         name: "speed_load",
         type: "number",
-        defaultValue: 2
-      }, 
+        defaultValue: 2,
+      },
       {
         name: "speed_unload",
         type: "number",
-        defaultValue: 2
-      }, 
+        defaultValue: 2,
+      },
       {
         name: "load_options",
         type: "number",
-        defaultValue: 0
-      }, 
+        defaultValue: 0,
+      },
       {
         name: "unload_options",
         type: "number",
-        defaultValue: 0
-      }
-
-    ]
+        defaultValue: 0,
+      },
+    ],
   },
   toolbox: {
     run_script: [
