@@ -118,7 +118,7 @@ export const DefaultSequences: DefaultSequenceTemplate[] = [
         order: 0,
       },
       {
-        command: "dropoff_lid",
+        command: "place_lid",
         params: {
           labware: "default",
           location: "",
