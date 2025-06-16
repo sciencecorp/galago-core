@@ -20,7 +20,7 @@ Docker and docker compose are recommended.
 ### Build and launch controller
 
 ```
-docker-compose -f docker-compose.yml up --build #Prod Mode
+docker-compose -f docker-compose.yml up -d --force-recreate #Prod Mode
 docker-compose -f docker-compose.dev.yml up --build #Dev Mode
 ```
 
