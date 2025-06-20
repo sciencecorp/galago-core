@@ -42,6 +42,12 @@ controller/app.log
 .env*.local
 **/.env*.local
 .env
+.env.local.bak
+.env.oauth
+.env.development.local
+.env.test.local
+.env.production.local
+.env.development
 Procfile.*
 Procfile.tools
 
