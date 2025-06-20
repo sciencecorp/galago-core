@@ -193,12 +193,14 @@ export class JavaScriptExecutor {
         // Override require to handle script dependencies
         require: (moduleName: string) => {
           // Check if this is a script dependency first
-          if (context.requireScript && typeof context.requireScript === 'function') {
+          if (context.requireScript && typeof context.requireScript === "function") {
             try {
               return context.requireScript(moduleName);
             } catch (error) {
               // If requireScript fails, fall back to Node.js require
-              console.warn(`Script dependency '${moduleName}' not found, falling back to Node.js require`);
+              console.warn(
+                `Script dependency '${moduleName}' not found, falling back to Node.js require`,
+              );
             }
           }
           // Fall back to Node.js require for built-in modules

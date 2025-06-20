@@ -20,18 +20,18 @@ export class ScriptLoader {
    */
   static parseImports(content: string, language: string = "javascript"): string[] {
     const imports: string[] = [];
-    const lines = content.split('\n');
-    
+    const lines = content.split("\n");
+
     for (const line of lines) {
       const trimmed = line.trim();
-      
+
       if (language === "javascript") {
         // JavaScript patterns - require() statements
         const jsPatterns = [
           /^require\s*\(\s*["']([^"']+)["']\s*\)/, // require("script_name")
           /^require\s*\(\s*["']([^"']+)["']\s*,\s*["'][^"']+["']\s*\)/, // require("script_name", "alias")
         ];
-        
+
         for (const pattern of jsPatterns) {
           const match = trimmed.match(pattern);
           if (match && match[1]) {
@@ -48,7 +48,7 @@ export class ScriptLoader {
           /^import\s+([a-zA-Z_][a-zA-Z0-9_]*)/, // import script_name
           /^from\s+([a-zA-Z_][a-zA-Z0-9_]*)\s+import/, // from script_name import
         ];
-        
+
         for (const pattern of pythonPatterns) {
           const match = trimmed.match(pattern);
           if (match && match[1]) {
@@ -61,14 +61,17 @@ export class ScriptLoader {
         }
       }
     }
-    
+
     return imports;
   }
 
   /**
    * Auto-generate dependencies array from script content
    */
-  static async generateDependencies(content: string, language: string = "javascript"): Promise<string[]> {
+  static async generateDependencies(
+    content: string,
+    language: string = "javascript",
+  ): Promise<string[]> {
     return this.parseImports(content, language);
   }
 
@@ -91,29 +94,29 @@ export class ScriptLoader {
   static createRequireScript(orderedScripts: Script[]): (scriptName: string) => any {
     const scriptMap = new Map<string, Script>();
     const moduleCache = new Map<string, any>();
-    
+
     // Build map of script names to script objects
     for (const script of orderedScripts) {
       scriptMap.set(script.name, script);
     }
-    
+
     return (scriptName: string) => {
       if (moduleCache.has(scriptName)) {
         return moduleCache.get(scriptName);
       }
-      
+
       const script = scriptMap.get(scriptName);
       if (!script) {
         throw new Error(`Script '${scriptName}' not found`);
       }
-      
+
       // Create a module object with the script's exports
       const module = {
         exports: {},
         name: script.name,
-        content: script.content
+        content: script.content,
       };
-      
+
       // Create a context for the script execution
       const scriptContext = {
         module,
@@ -129,15 +132,15 @@ export class ScriptLoader {
             throw new Error(`Circular dependency detected: ${scriptName} requires itself`);
           }
           return moduleCache.get(name) || module.exports;
-        }
+        },
       };
-      
+
       try {
         // Execute the script in the context
-        const vm = require('vm');
+        const vm = require("vm");
         const context = vm.createContext(scriptContext);
         vm.runInContext(script.content, context);
-        
+
         // Cache the module exports
         moduleCache.set(scriptName, module.exports);
         return module.exports;
@@ -207,18 +210,18 @@ export class ScriptLoader {
    */
   static async assembleJavaScriptWithImports(nameOrId: string | number): Promise<string> {
     const { ordered } = await ScriptLoader.load(nameOrId);
-    
+
     // Create requireScript function
     const requireScript = this.createRequireScript(ordered);
-    
+
     // Build the assembled code with requireScript available
     const requireFunction = `
 // Auto-generated requireScript function
 const requireScript = ${requireScript.toString()};
 `;
-    
+
     const assembledScripts = ordered.map((s) => `// Script: ${s.name}\n${s.content}\n`).join("\n");
-    
+
     return requireFunction + assembledScripts;
   }
-} 
+}

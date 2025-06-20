@@ -224,19 +224,20 @@ export default class Tool {
         .replaceAll(".cs", "");
       try {
         const script = await get<Script>(`/scripts/${scriptName}`);
-        
+
         // Auto-detect and set dependencies from import statements
         const detectedDependencies = ScriptLoader.parseImports(script.content, script.language);
-        const needsUpdate = detectedDependencies.length > 0 && 
+        const needsUpdate =
+          detectedDependencies.length > 0 &&
           (!script.dependencies || script.dependencies.length === 0);
-        
+
         if (needsUpdate) {
           // Update the script with detected dependencies
           await put<Script>(`/scripts/${script.id}`, {
             ...script,
-            dependencies: detectedDependencies
+            dependencies: detectedDependencies,
           });
-          
+
           // Fetch the updated script
           const updatedScript = await get<Script>(`/scripts/${script.id}`);
           command.params.name = updatedScript.content;
