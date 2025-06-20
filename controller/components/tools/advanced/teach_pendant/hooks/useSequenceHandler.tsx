@@ -200,7 +200,6 @@ export function useSequenceHandler(config: Tool) {
   const deleteSequenceMutation = trpc.robotArm.sequence.delete.useMutation({
     onSuccess: () => {
       sequencesQuery.refetch();
-      // Toast is handled in the handler function
     },
   });
 
