@@ -293,7 +293,8 @@ export default class Tool {
             meta_data: { response: result.output } as any,
           } as tool_base.ExecuteCommandReply;
         } else if (script.language === "python") {
-          command.params.name = script.content;
+          const assembled = await ScriptLoader.assemblePython(script.id);
+          command.params.name = assembled;
         }
       } catch (e: any) {
         console.warn("Error at fetching script", e);

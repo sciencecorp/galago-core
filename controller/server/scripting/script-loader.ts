@@ -1,5 +1,6 @@
 import axios from "axios";
 import { Script } from "@/types/api";
+import { logAction } from "@/server/logger";
 
 /**
  * Utility class to gather a script together with its full transitive
@@ -83,7 +84,9 @@ export class ScriptLoader {
       const response = await this.api.get<Script>(`/scripts/${nameOrId}`);
       return response.data;
     } catch (error) {
-      throw new Error(`Script ${nameOrId} not found`);
+      throw new Error(
+        `Script '${nameOrId}' not found. Please check that the script exists and the import statement is correct.`,
+      );
     }
   }
 
@@ -122,9 +125,36 @@ export class ScriptLoader {
         module,
         exports: module.exports,
         console: {
-          log: (...args: any[]) => console.log(`[${scriptName}]`, ...args),
-          error: (...args: any[]) => console.error(`[${scriptName}]`, ...args),
-          warn: (...args: any[]) => console.warn(`[${scriptName}]`, ...args),
+          log: (...args: any[]) => {
+            const message = args
+              .map((arg) => (typeof arg === "object" ? JSON.stringify(arg) : String(arg)))
+              .join(" ");
+            logAction({
+              level: "info",
+              action: "Script Log",
+              details: `[${scriptName}] ${message}`,
+            });
+          },
+          error: (...args: any[]) => {
+            const message = args
+              .map((arg) => (typeof arg === "object" ? JSON.stringify(arg) : String(arg)))
+              .join(" ");
+            logAction({
+              level: "error",
+              action: "Script Error",
+              details: `[${scriptName}] ${message}`,
+            });
+          },
+          warn: (...args: any[]) => {
+            const message = args
+              .map((arg) => (typeof arg === "object" ? JSON.stringify(arg) : String(arg)))
+              .join(" ");
+            logAction({
+              level: "warning",
+              action: "Script Warning",
+              details: `[${scriptName}] ${message}`,
+            });
+          },
         },
         // Provide access to other scripts through requireScript
         requireScript: (name: string) => {
@@ -145,7 +175,11 @@ export class ScriptLoader {
         moduleCache.set(scriptName, module.exports);
         return module.exports;
       } catch (error) {
-        console.error(`Error executing script '${scriptName}':`, error);
+        logAction({
+          level: "error",
+          action: "Script Execution Error",
+          details: `Error executing script '${scriptName}': ${error}`,
+        });
         throw error;
       }
     };
@@ -203,6 +237,59 @@ export class ScriptLoader {
   static async assembleJavaScript(nameOrId: string | number): Promise<string> {
     const { ordered } = await ScriptLoader.load(nameOrId);
     return ordered.map((s) => `// Script: ${s.name}\n${s.content}\n`).join("\n");
+  }
+
+  /**
+   * Convenience helper that returns a single concatenated Python source string
+   * for execution, with each dependency separated by a newline.
+   */
+  static async assemblePython(nameOrId: string | number): Promise<string> {
+    const { ordered } = await ScriptLoader.load(nameOrId);
+
+    // Create a map of script names to their content for import replacement
+    const scriptMap = new Map<string, string>();
+    for (const script of ordered) {
+      scriptMap.set(script.name, script.content);
+    }
+
+    // Track which scripts have been included to avoid duplicates
+    const includedScripts = new Set<string>();
+
+    // First, include all dependency scripts at the top
+    let assembledContent = "";
+    for (const script of ordered.slice(0, -1)) {
+      // All except the last (main) script
+      if (!includedScripts.has(script.name)) {
+        includedScripts.add(script.name);
+        assembledContent += `# Script: ${script.name}\n${script.content}\n`;
+      }
+    }
+
+    // Then process the main script (last one) to replace import statements
+    const mainScript = ordered[ordered.length - 1];
+    let processedContent = mainScript.content;
+
+    // Replace import statements with namespace creation
+    const importPatterns = [
+      /^import\s+([a-zA-Z_][a-zA-Z0-9_]*)/gm, // import script_name
+      /^from\s+([a-zA-Z_][a-zA-Z0-9_]*)\s+import/gm, // from script_name import
+    ];
+
+    for (const pattern of importPatterns) {
+      processedContent = processedContent.replace(pattern, (match, scriptName) => {
+        const importedScript = scriptMap.get(scriptName);
+        if (importedScript) {
+          // Create namespace for the imported script
+          return `# ${match} - creating namespace for imported script
+${scriptName} = type('${scriptName}', (), locals())`;
+        }
+        return match; // Keep original if script not found
+      });
+    }
+
+    assembledContent += `# Script: ${mainScript.name}\n${processedContent}\n`;
+
+    return assembledContent;
   }
 
   /**
