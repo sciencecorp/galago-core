@@ -22,12 +22,14 @@ import {
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
 import { ToolCommandInfo } from "@/types";
-import { ToolType } from "gen-interfaces/controller";
+import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
 import Head from "next/head";
 import { TeachPendant } from "@/components/tools/advanced/teach_pendant/TeachPendant";
 import { commandFields } from "@/components/tools/constants";
 import { errorToast, loadingToast, successToast } from "@/components/ui/Toast";
+import { Tool } from "@/types/api";
+
 // Inside your component
 type AtomicFormValues = string | number | boolean | string[];
 type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormValues>>;
@@ -50,6 +52,7 @@ export default function Page() {
   const toolCommandsDefined = Object.keys(commandFields).includes(String(config?.type));
   const commandOptions = config ? commandFields[config.type] : {};
 
+  console.log("Config for tool:", config);
   useEffect(() => {
     // Wait for the router to be ready and then extract the query parameter
     if (router.isReady) {
@@ -324,26 +327,7 @@ export default function Page() {
           {config?.type === ToolType.pf400 && config && (
             <Box flex={1}>
               <TeachPendant
-                toolId={id || ""}
-                config={{
-                  id: toolQuery.data?.id || 1,
-                  type: config.type,
-                  joints: 6,
-                  workcell_id: 0,
-                  status: "UNKNOWN",
-                  last_updated: new Date(),
-                  created_at: new Date(),
-                  name: config.name,
-                  ip: config.ip,
-                  port: config.port,
-                  description: config.description,
-                  image_url: config.image_url,
-                  config: {
-                    simulated: false,
-                    toolId: config.name,
-                    ...config.config,
-                  },
-                }}
+                tool={config as Tool}
               />
             </Box>
           )}
