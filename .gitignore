@@ -39,15 +39,7 @@ app.log
 controller/app.log
 
 # local env files
-.env*.local
-**/.env*.local
-.env
-.env.local.bak
-.env.oauth
-.env.development.local
-.env.test.local
-.env.production.local
-.env.development
+.env*
 Procfile.*
 Procfile.tools
 
