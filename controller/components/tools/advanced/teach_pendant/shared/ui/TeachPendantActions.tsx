@@ -155,35 +155,13 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
         variant="outline">
         Import
       </Button>
-      <Menu>
-        <MenuButton
-          as={Button}
-          rightIcon={<ChevronDownIcon />}
-          colorScheme="blue"
-          variant="outline"
-          leftIcon={<DownloadIcon />}>
-          Export
-        </MenuButton>
-        <MenuList zIndex={1000} maxH="300px" overflowY="auto">
-          <MenuItem onClick={() => handleExport("json")}>Export All (JSON)</MenuItem>
-          <MenuItem onClick={() => handleExport("xml")}>Export All (XML)</MenuItem>
-          <MenuItem onClick={() => handleExport("json", "teachPoints")}>
-            Export Teach Points (JSON)
-          </MenuItem>
-          <MenuItem onClick={() => handleExport("xml", "teachPoints")}>
-            Export Teach Points (XML)
-          </MenuItem>
-          <MenuItem onClick={() => handleExport("json", "sequences")}>
-            Export Sequences (JSON)
-          </MenuItem>
-          <MenuItem onClick={() => handleExport("json", "motionProfiles")}>
-            Export Motion Profiles (JSON)
-          </MenuItem>
-          <MenuItem onClick={() => handleExport("json", "gripParams")}>
-            Export Grip Parameters (JSON)
-          </MenuItem>
-        </MenuList>
-      </Menu>
+      <Button
+        leftIcon={<DownloadIcon />}
+        colorScheme="blue"
+        variant="outline"
+        onClick={() => handleExport("json")}>
+        Export
+      </Button>
     </HStack>
   );
 };
