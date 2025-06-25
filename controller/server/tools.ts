@@ -7,13 +7,14 @@ import * as tool_driver from "gen-interfaces/tools/grpc_interfaces/tool_driver";
 import { ToolType } from "gen-interfaces/controller";
 import { PromisifiedGrpcClient, promisifyGrpcClient } from "./utils/promisifyGrpcCall";
 import { setInterval, clearInterval } from "timers";
-import { get } from "@/server/utils/api";
+import { get, put } from "@/server/utils/api";
 import { Script } from "@/types/api";
 import { Variable } from "@/types/api";
 import { Labware } from "@/types/api";
 import { logAction } from "./logger";
 import { JavaScriptExecutor } from "@/server/scripting/javascript/javascript-executor";
 import { CSharpExecutor } from "@/server/scripting/csharp/csharp-executor";
+import { ScriptLoader } from "@/server/scripting/script-loader";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 
@@ -223,9 +224,33 @@ export default class Tool {
         .replaceAll(".cs", "");
       try {
         const script = await get<Script>(`/scripts/${scriptName}`);
-        command.params.name = script.content;
+
+        // Auto-detect and set dependencies from import statements
+        const detectedDependencies = ScriptLoader.parseImports(script.content, script.language);
+        const needsUpdate =
+          detectedDependencies.length > 0 &&
+          (!script.dependencies || script.dependencies.length === 0);
+
+        if (needsUpdate) {
+          // Update the script with detected dependencies
+          await put<Script>(`/scripts/${script.id}`, {
+            ...script,
+            dependencies: detectedDependencies,
+          });
+
+          // Fetch the updated script
+          const updatedScript = await get<Script>(`/scripts/${script.id}`);
+          command.params.name = updatedScript.content;
+        } else {
+          command.params.name = script.content;
+        }
+
         if (script.language === "javascript") {
-          const result = await JavaScriptExecutor.executeScript(script.content);
+          const { ordered } = await ScriptLoader.load(script.id);
+          const requireScript = ScriptLoader.createRequireScript(ordered);
+          const assembled = await ScriptLoader.assembleJavaScriptWithImports(script.id);
+
+          const result = await JavaScriptExecutor.executeScript(assembled, { requireScript });
           if (!result.success) {
             const errorMessage = result.output;
             logAction({
@@ -268,7 +293,8 @@ export default class Tool {
             meta_data: { response: result.output } as any,
           } as tool_base.ExecuteCommandReply;
         } else if (script.language === "python") {
-          command.params.name = script.content;
+          const assembled = await ScriptLoader.assemblePython(script.id);
+          command.params.name = assembled;
         }
       } catch (e: any) {
         console.warn("Error at fetching script", e);

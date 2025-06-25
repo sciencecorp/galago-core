@@ -258,6 +258,7 @@ class Script(Base, TimestampMixin):
     language = Column(String, nullable=False)
     is_blocking = Column(Boolean, nullable=False)
     folder_id = Column(Integer, ForeignKey("script_folders.id"), nullable=True)
+    dependencies = Column(JSON, nullable=True, default=list)
 
     # Relationships
     folder: RelationshipProperty[Optional["ScriptFolder"]] = relationship(

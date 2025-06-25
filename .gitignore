@@ -39,9 +39,7 @@ app.log
 controller/app.log
 
 # local env files
-.env*.local
-**/.env*.local
-.env
+.env*
 Procfile.*
 Procfile.tools
 
