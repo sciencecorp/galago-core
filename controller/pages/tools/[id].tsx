@@ -22,7 +22,7 @@ import {
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
 import { ToolCommandInfo } from "@/types";
-import { ToolConfig, ToolType } from "gen-interfaces/controller";
+import { ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
 import Head from "next/head";
 import { TeachPendant } from "@/components/tools/advanced/teach_pendant/TeachPendant";
@@ -38,7 +38,6 @@ export default function Page() {
   const router = useRouter();
   const [id, setId] = useState<string | null>(null);
   const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
-  const toolQuery = trpc.tool.get.useQuery(id || "");
   const config = infoQuery.data;
   const [commandExecutionStatus, setCommandExecutionStatus] = useState<CommandStatus>({});
   const [selectedCommand, setSelectedCommand] = useState<string | undefined>();
