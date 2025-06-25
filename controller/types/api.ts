@@ -273,6 +273,7 @@ export interface Script {
   description: string;
   is_blocking: boolean;
   language: string;
+  dependencies?: string[];
   folder_id?: number;
   folder?: ScriptFolder;
   created_at: Date;

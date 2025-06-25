@@ -13,10 +13,7 @@ services:
       - app-network
 
   galago-web:
-    build:
-      context: .
-      dockerfile: controller/Dockerfile
-    #image: ghcr.io/sciencecorp/galago-web:latest
+    image: ghcr.io/sciencecorp/galago-web:latest
     container_name: galago-web
     ports:
       - "3010:3010"
@@ -32,7 +29,6 @@ services:
       - db
     networks:
       - app-network
-    network_mode: "host"
 
   db:
     image: ghcr.io/sciencecorp/galago-db:latest

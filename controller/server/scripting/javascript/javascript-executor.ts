@@ -98,18 +98,6 @@ export class JavaScriptExecutor {
     let hasError = false;
 
     try {
-      // Check for import statements and provide appropriate error or transform
-      if (script.includes("import ")) {
-        // For now, we'll just provide a clear error message
-        logCapture.push(
-          "ERROR: Import statements are not supported in this JavaScript environment. Please use require() instead.",
-        );
-        return {
-          output: logCapture.join("\n"),
-          success: false,
-        };
-      }
-
       // Create a list to track pending promises
       const pendingPromises: Promise<any>[] = [];
 
@@ -202,7 +190,22 @@ export class JavaScriptExecutor {
             });
           },
         },
-        require: require,
+        // Override require to handle script dependencies
+        require: (moduleName: string) => {
+          // Check if this is a script dependency first
+          if (context.requireScript && typeof context.requireScript === "function") {
+            try {
+              return context.requireScript(moduleName);
+            } catch (error) {
+              // If requireScript fails, fall back to Node.js require
+              console.warn(
+                `Script dependency '${moduleName}' not found, falling back to Node.js require`,
+              );
+            }
+          }
+          // Fall back to Node.js require for built-in modules
+          return require(moduleName);
+        },
         setTimeout,
         clearTimeout,
         setInterval,

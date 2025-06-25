@@ -45,11 +45,15 @@ export const labwareRouter = router({
     const allTools = await get<ToolResponse[]>(`/tools`);
     const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
     if (allToolswithLabware.length > 0) {
-      await Promise.all(
-        allToolswithLabware.map(async (tool) => {
-          await Tool.loadLabwareToPF400(tool.name);
-        }),
-      );
+      try {
+        await Promise.all(
+          allToolswithLabware.map(async (tool) => {
+            await Tool.loadLabwareToPF400(tool.name);
+          }),
+        );
+      } catch (error) {
+        console.error("Error loading labware to PF400 tools:", error);
+      }
     }
     return response;
   }),
@@ -66,11 +70,15 @@ export const labwareRouter = router({
     const allTools = await get<ToolResponse[]>(`/tools`);
     const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
     if (allToolswithLabware.length > 0) {
-      await Promise.all(
-        allToolswithLabware.map(async (tool) => {
-          await Tool.loadLabwareToPF400(tool.name);
-        }),
-      );
+      try {
+        await Promise.all(
+          allToolswithLabware.map(async (tool) => {
+            await Tool.loadLabwareToPF400(tool.name);
+          }),
+        );
+      } catch (error) {
+        console.error("Error loading labware to PF400 tools:", error);
+      }
     }
     return response;
   }),
