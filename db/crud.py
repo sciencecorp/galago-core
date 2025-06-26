@@ -399,6 +399,7 @@ robot_arm_grip_params = CRUDBase[
     schemas.RobotArmGripParamsUpdate,
 ](models.RobotArmGripParams)
 
+form = CRUDBase[models.Form, schemas.FormCreate, schemas.FormUpdate](models.Form)
 
 class CRUDHotel(CRUDBase[models.Hotel, schemas.HotelCreate, schemas.HotelUpdate]):
     pass

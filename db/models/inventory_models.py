@@ -357,3 +357,17 @@ class Protocol(Base, TimestampMixin):
     )
 
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+
+
+class Form(Base, TimestampMixin):
+    __tablename__ = "forms"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+    description = Column(String, nullable=True)
+    fields = Column(JSON, nullable=False)  
+    background_color = Column(String, nullable=True)
+    background_image = Column(String, nullable=True)
+    size = Column(String, nullable=True)  # e.g., "small", "medium", "large"
+    is_locked = Column(Boolean, nullable=False, default=False)
+
+    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)

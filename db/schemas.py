@@ -350,6 +350,54 @@ class LabwareUpdate(BaseModel):
     has_lid: t.Optional[bool] = None
     image_url: t.Optional[str] = None
 
+# Schemas for waypoint data
+class TeachPoint(BaseModel):
+    name: str
+    coordinates: str
+    type: str = "location"
+    loc_type: str = "j"
+    orientation: Optional[str] = None
+
+class Command(BaseModel):
+    command: str
+    params: Dict
+    order: int
+
+
+class Sequence(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    commands: List[Command]
+    tool_id: int = 1
+
+
+class MotionProfile(BaseModel):
+    name: str
+    profile_id: int
+    speed: float = 100
+    speed2: float = 100
+    acceleration: float = 100
+    deceleration: float = 100
+    accel_ramp: float = 0.2
+    decel_ramp: float = 0.2
+    inrange: int = 1
+    straight: int = 0
+    tool_id: int = 1
+
+
+class GripParam(BaseModel):
+    name: str
+    width: float
+    force: float = 15
+    speed: float = 10
+    tool_id: int = 1
+
+
+class WaypointData(BaseModel):
+    teach_points: Optional[List[TeachPoint]] = None
+    sequences: Optional[List[Sequence]] = None
+    motion_profiles: Optional[List[MotionProfile]] = None
+    grip_params: Optional[List[GripParam]] = None
 
 class ProtocolBase(BaseModel):
     name: str
@@ -363,17 +411,16 @@ class ProtocolBase(BaseModel):
     is_active: t.Optional[bool] = True
 
 
-class ProtocolCreate(ProtocolBase):
+class ProtocolCreate(BaseModel):
     name: str
     category: str
     workcell_id: int
-    description: t.Optional[str] = None
-    icon: t.Optional[str] = None
-    params: t.Dict[str, t.Any] = {}
-    commands: t.List[t.Dict[str, t.Any]] = []
-    version: t.Optional[int] = 1
-    is_active: t.Optional[bool] = True
-
+    description: Optional[str] = None
+    icon: Optional[str] = None
+    params: Dict[str, Any]
+    commands: List[Dict[str, Any]]
+    version: Optional[int] = 1
+    is_active: Optional[bool] = True
 
 class ProtocolUpdate(BaseModel):
     name: t.Optional[str] = None
@@ -384,7 +431,6 @@ class ProtocolUpdate(BaseModel):
     commands: t.Optional[t.List[t.Dict[str, t.Any]]] = None
     version: t.Optional[int] = None
     is_active: t.Optional[bool] = None
-
 
 class Protocol(ProtocolBase):
     id: int
@@ -667,3 +713,26 @@ class PlateWithRelations(Plate):
     current_nest: t.Optional[Nest] = None
     nest_history: t.List[PlateNestHistory] = []
     wells: t.List["Well"] = []
+
+
+class FormCreate(BaseModel):
+    name: str
+    description: t.Optional[str] = None
+    fields: t.List[Dict[str, Any]]  # List of field definitions
+    background_color: t.Optional[str] = None
+    background_image: t.Optional[str] = None
+    size: t.Optional[str] = "medium"  # 'small', 'medium', 'large'
+    is_locked: t.Optional[bool] = False
+
+class FormUpdate(BaseModel):
+    name: t.Optional[str] = None
+    description: t.Optional[str] = None
+    fields: t.Optional[List[Dict[str, Any]]] = None
+    background_color: t.Optional[str] = None
+    background_image: t.Optional[str] = None
+    size: t.Optional[str] = None
+    is_locked: t.Optional[bool] = None
+    
+class Form(TimestampMixin, FormCreate):
+    id: int
+    model_config = ConfigDict(from_attributes=True)
