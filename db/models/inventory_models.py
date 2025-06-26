@@ -11,6 +11,7 @@ from sqlalchemy import (
     CheckConstraint,
     Enum as SQLEnum,
     Date,
+    UniqueConstraint
 )
 from sqlalchemy.orm import relationship, RelationshipProperty
 from sqlalchemy.sql import func
@@ -277,7 +278,7 @@ class AppSettings(Base, TimestampMixin):
 class RobotArmLocation(Base, TimestampMixin):
     __tablename__ = "robot_arm_locations"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False)
     location_type = Column(String, nullable=False)
     coordinates = Column(String, nullable=False)
     tool_id = Column(Integer, ForeignKey("tools.id"))
@@ -286,7 +287,10 @@ class RobotArmLocation(Base, TimestampMixin):
         "Tool", back_populates="robot_arm_locations"
     )
 
-    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+        UniqueConstraint('name', 'tool_id', name='unique_name_per_tool')
+    )
 
 
 class RobotArmSequence(Base, TimestampMixin):
