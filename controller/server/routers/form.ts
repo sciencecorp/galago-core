@@ -23,6 +23,7 @@ export const zFormField = z.object({
   validation: z.record(z.any()).optional(),
   options: z.array(zFormFieldOption).optional(),
   default_value: z.union([z.string(), z.array(z.string())]).optional(),
+  mapped_variable: z.string().optional(), // For variable mapping
 });
 
 // Zod schema for forms
@@ -37,6 +38,7 @@ export const zForm = z.object({
   is_locked: z.boolean().optional().default(false),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
+
 });
 
 // Input schemas for mutations

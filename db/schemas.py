@@ -3,7 +3,8 @@ from pydantic import BaseModel, model_validator, ConfigDict
 from datetime import datetime, date
 from typing import Optional, List, Dict, Any
 from enum import Enum as PyEnum
-
+from pydantic import BaseModel, validator
+from typing import List, Dict, Any, Optional, Union
 
 class TimestampMixin(BaseModel):
     created_at: Optional[datetime] = None
@@ -715,10 +716,31 @@ class PlateWithRelations(Plate):
     wells: t.List["Well"] = []
 
 
+class FormFieldOption(BaseModel):
+    """Standard option format for select, radio, checkbox fields"""
+    value: str
+    label: str
+    disabled: Optional[bool] = False
+    description: Optional[str] = None
+
+class FormField(BaseModel):
+    """Enhanced form field with consistent option handling"""
+    type: str  # text, email, select, radio, checkbox, textarea, etc.
+    name: str
+    label: str
+    required: Optional[bool] = False
+    placeholder: Optional[str] = None
+    description: Optional[str] = None
+    validation: Optional[Dict[str, Any]] = None
+    options: Optional[List[FormFieldOption]] = None
+    default_value: Optional[Union[str, List[str]]] = None
+    mapped_variable: Optional[str] = None
+
+    
 class FormCreate(BaseModel):
     name: str
     description: t.Optional[str] = None
-    fields: t.List[Dict[str, Any]]  # List of field definitions
+    fields: Optional[List[FormField]] = None
     background_color: t.Optional[str] = None
     background_image: t.Optional[str] = None
     size: t.Optional[str] = "medium"  # 'small', 'medium', 'large'
@@ -727,12 +749,12 @@ class FormCreate(BaseModel):
 class FormUpdate(BaseModel):
     name: t.Optional[str] = None
     description: t.Optional[str] = None
-    fields: t.Optional[List[Dict[str, Any]]] = None
+    fields: Optional[List[FormField]] = None
     background_color: t.Optional[str] = None
     background_image: t.Optional[str] = None
     size: t.Optional[str] = None
     is_locked: t.Optional[bool] = None
-    
+
 class Form(TimestampMixin, FormCreate):
     id: int
     model_config = ConfigDict(from_attributes=True)

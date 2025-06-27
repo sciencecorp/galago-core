@@ -201,6 +201,7 @@ export interface FormField {
   validation?: Record<string, any>;
   options?: FormFieldOption[];
   default_value?: string | string[];
+  mapped_variable?: string; 
 }
 
 export interface Form {
