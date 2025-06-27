@@ -40,10 +40,10 @@
   "id": 1,
   "background_image": null,
   "is_locked": true,
-  "updated_at": "2025-06-26T22:21:30",
-  "background_color": null,
+  "updated_at": "2025-06-27T17:48:13",
+  "background_color": "#e6f3ff",
   "name": "Contact Form",
   "description": "This should not work if form is locked",
-  "size": "small",
-  "created_at": "2025-06-26T22:21:30"
+  "size": "large",
+  "created_at": "2025-06-27T17:44:06"
 }
