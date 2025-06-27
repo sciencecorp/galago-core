@@ -1,12 +1,19 @@
-import { FormsList, CreateFormModal, FormManagement, FormImportExport } from "@/components/forms";
+import { FormList, FormBuilder } from '@/components/forms';
+import React, { useState } from 'react';
 
-export default function Page() {
+function FormsPage() {
+  const [selectedFormId, setSelectedFormId] = useState(null);
+
   return (
-    <div className="forms-page">
-      <h1>Forms Management</h1>
-      <FormsList />
-      <CreateFormModal />
-      <FormImportExport />
+    <div style={{ display: 'flex', height: '100vh' }}>
+      <FormList
+        selectedFormId={selectedFormId}
+        onSelectForm={setSelectedFormId}
+        onCreateForm={() => setSelectedFormId(null)}
+      />
+      <FormBuilder formId={selectedFormId} />
     </div>
   );
 }
+
+export default FormsPage;
