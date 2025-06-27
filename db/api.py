@@ -12,8 +12,6 @@ import logging
 from typing import Optional, Dict, Any, List
 import uvicorn
 from contextlib import asynccontextmanager
-from db.waypoint_handler import handle_waypoint_upload
-from pydantic import BaseModel
 from db.initializers import (
     initialize_database,
     create_default_motion_profile,
@@ -1804,91 +1802,19 @@ def get_robot_arm_waypoints(
         "grip_params": grip_params,
     }
 
-
-# Schemas for waypoint data
-class TeachPoint(BaseModel):
-    name: str
-    coordinates: str
-    type: str = "location"
-    loc_type: str = "j"
-
-
-class Command(BaseModel):
-    command: str
-    params: Dict
-    order: int
-
-
-class Sequence(BaseModel):
-    name: str
-    description: Optional[str] = ""
-    commands: List[Command]
-    tool_id: int = 1
-
-
-class MotionProfile(BaseModel):
-    name: str
-    profile_id: int
-    speed: float = 100
-    speed2: float = 100
-    acceleration: float = 100
-    deceleration: float = 100
-    accel_ramp: float = 0.2
-    decel_ramp: float = 0.2
-    inrange: int = 1
-    straight: int = 0
-    tool_id: int = 1
-
-
-class GripParam(BaseModel):
-    name: str
-    width: float
-    force: float = 15
-    speed: float = 10
-    tool_id: int = 1
-
-
-class WaypointData(BaseModel):
-    teach_points: Optional[List[TeachPoint]] = None
-    sequences: Optional[List[Sequence]] = None
-    motion_profiles: Optional[List[MotionProfile]] = None
-    grip_params: Optional[List[GripParam]] = None
-
-
 @app.post("/waypoints/upload")
 async def upload_waypoints(
     file: UploadFile = File(...),
     tool_id: int = Form(...),
     db: Session = Depends(get_db),
 ):
+    from db.waypoint_handler import handle_waypoint_upload
+    
     return await handle_waypoint_upload(file, tool_id, db)
 
 
-class ProtocolCreate(BaseModel):
-    name: str
-    category: str
-    workcell_id: int
-    description: Optional[str] = None
-    icon: Optional[str] = None
-    params: Dict[str, Any]
-    commands: List[Dict[str, Any]]
-    version: Optional[int] = 1
-    is_active: Optional[bool] = True
-
-
-class ProtocolUpdate(BaseModel):
-    name: Optional[str] = None
-    category: Optional[str] = None
-    description: Optional[str] = None
-    icon: Optional[str] = None
-    params: Optional[Dict[str, Any]] = None
-    commands: Optional[List[Dict[str, Any]]] = None
-    version: Optional[int] = None
-    is_active: Optional[bool] = None
-
-
 @app.post("/protocols", response_model=schemas.Protocol)
-async def create_protocol(protocol: ProtocolCreate, db: Session = Depends(get_db)):
+async def create_protocol(protocol: schemas.ProtocolCreate, db: Session = Depends(get_db)):
     try:
         # Check if workcell exists
         workcell = db.query(models.Workcell).get(protocol.workcell_id)
@@ -1937,7 +1863,7 @@ async def create_protocol(protocol: ProtocolCreate, db: Session = Depends(get_db
 
 @app.put("/protocols/{id}", response_model=schemas.Protocol)
 async def update_protocol(
-    id: int, protocol: ProtocolUpdate, db: Session = Depends(get_db)
+    id: int, protocol: schemas.ProtocolUpdate, db: Session = Depends(get_db)
 ):
     db_protocol = db.query(Protocol).get(id)
     if not db_protocol:

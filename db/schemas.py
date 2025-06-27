@@ -357,7 +357,7 @@ class TeachPoint(BaseModel):
     coordinates: str
     type: str = "location"
     loc_type: str = "j"
-    orientation: Optional[str] = None
+    orientation: Optional[str] = "landscape"
 
 class Command(BaseModel):
     command: str
