@@ -11,7 +11,7 @@ curl -X POST "$BASE_URL/forms" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Sample Survey Form",
-    "description": "A sample survey form for testing",
+    "title": "A sample survey form for testing",
     "fields": [
       {
         "type": "text",
@@ -48,9 +48,6 @@ curl -X POST "$BASE_URL/forms" \
         "required": false
       }
     ],
-    "background_color": "#f0f8ff",
-    "size": "medium",
-    "is_locked": false
   }'
 
 echo -e "\n\n"
@@ -81,8 +78,7 @@ echo "5. Updating form..."
 curl -X PUT "$BASE_URL/forms/1" \
   -H "Content-Type: application/json" \
   -d '{
-    "description": "Updated sample survey form for testing",
-    "background_color": "#e6f3ff",
+    "title": "Updated sample survey form for testing",
     "size": "large"
   }'
 
@@ -94,7 +90,7 @@ curl -X POST "$BASE_URL/forms" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Contact Form",
-    "description": "Simple contact form",
+    "title": "Simple contact form",
     "fields": [
       {
         "type": "text",
@@ -300,10 +296,6 @@ curl -X POST "$BASE_URL/forms" \
         "required": false
       }
     ],
-    "background_color": "#ffffff",
-    "background_image": "/images/event-bg.jpg",
-    "size": "large",
-    "is_locked": false
   }'
 
 echo -e "\n\nAdvanced form created!"
