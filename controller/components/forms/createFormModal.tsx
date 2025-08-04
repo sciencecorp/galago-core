@@ -6,73 +6,116 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
+  ModalCloseButton,
   Button,
   FormControl,
   FormLabel,
   Input,
   VStack,
+  Select,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { trpc } from '@/utils/trpc';
 import { successToast, errorToast } from '../ui/Toast';
+import { RiAddFill } from "react-icons/ri";
 
-interface CreateFormModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export const CreateFormModal: React.FC<CreateFormModalProps> = ({ isOpen, onClose }) => {
+export const CreateFormModal: React.FC = () => {
   const [formName, setFormName] = useState('');
   const [formDescription, setFormDescription] = useState('');
-  
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const createForm = trpc.form.add.useMutation();
-  const {refetch} = trpc.form.getAll.useQuery();
+  const { refetch } = trpc.form.getAll.useQuery();
+
+  const clearForm = () => {
+    setFormName('');
+    setFormDescription('');
+  };
 
   const handleSave = async () => {
-    try {
-      await createForm.mutateAsync({ name: formName, description: formDescription });
-      successToast('Success', 'Form created successfully');
-      onClose();
-      setFormName('');
-      setFormDescription('');
-    } catch (error) {
-      errorToast('Error', 'Failed to create form');
+    // Basic validation
+    if (!formName.trim()) {
+      errorToast('Error', 'Form name is required');
+      return;
     }
+
+    setIsLoading(true);
+    try {
+      await createForm.mutateAsync({
+        name: formName.trim(),
+        description: formDescription.trim() || undefined,
+        fields: [], 
+        is_locked: false,
+      });
+
+      successToast('Form created successfully', '');
+      onClose();
+      await refetch();
+    } catch (error) {
+      console.error('Failed to create form:', error);
+      errorToast('Error creating form', `Please try again. ${error}`);
+    }
+    setIsLoading(false);
+    clearForm();
+  };
+
+  const handleClose = () => {
+    onClose();
+    clearForm();
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>Create New Form</ModalHeader>
-        <ModalBody>
-          <VStack spacing={4}>
-            <FormControl isRequired>
-              <FormLabel>Form Name</FormLabel>
-              <Input
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-                placeholder="Enter form name"
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel>Description</FormLabel>
-              <Input
-                value={formDescription}
-                onChange={(e) => setFormDescription(e.target.value)}
-                placeholder="Enter form description"
-              />
-            </FormControl>
-          </VStack>
-        </ModalBody>
-        <ModalFooter>
-          <Button colorScheme="blue" onClick={handleSave} mr={3}>
-            Save
-          </Button>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+    <>
+      <Button onClick={onOpen} colorScheme="blue" leftIcon={<RiAddFill />}>
+        New Forms
+      </Button>
+
+      <Modal isOpen={isOpen} onClose={handleClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Create New Form</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <VStack spacing={4}>
+              <FormControl isRequired>
+                <FormLabel>Form Name</FormLabel>
+                <Input
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                  placeholder="Enter form name"
+                  isDisabled={isLoading}
+                />
+              </FormControl>
+              
+              <FormControl>
+                <FormLabel>Description</FormLabel>
+                <Input
+                  value={formDescription}
+                  onChange={(e) => setFormDescription(e.target.value)}
+                  placeholder="Enter form description (optional)"
+                  isDisabled={isLoading}
+                />
+              </FormControl>
+            </VStack>
+          </ModalBody>
+          
+          <ModalFooter>
+            <Button variant="ghost" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button
+              colorScheme="teal"
+              onClick={handleSave}
+              mr={3}
+              isLoading={isLoading}
+              isDisabled={!formName.trim()}
+            >
+              Submit
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </>
   );
 };

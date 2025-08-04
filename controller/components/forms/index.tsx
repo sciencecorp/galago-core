@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Box,
   VStack,
@@ -14,203 +14,101 @@ import {
   Stat,
   StatLabel,
   StatNumber,
-  Text,
-  Editable, 
-  EditableInput,
-  EditablePreview,
-  Button,
-  ButtonGroup,
-  Spacer,
-  FormControl,
-  FormLabel,
-  Input,
-  Select,
-  Badge,
-  SimpleGrid,
-  Textarea
+  useToast,
 } from "@chakra-ui/react";
 import { FormsList } from './formsList';
+import { FormBuilder } from './formBuilder';
 import { trpc } from '@/utils/trpc';
 import { MdFormatListBulleted } from "react-icons/md";
 import { PageHeader } from '../ui/PageHeader';
-import { Form } from '@/types/form';
-import { CloseIcon } from "../ui/Icons";
-import { EditableText } from "../ui/Form";
-import { LuFileText } from "react-icons/lu";
+import { Form } from "@/types";
 import { EmptyState } from "../ui/EmptyState";
+import { CreateFormModal } from "./createFormModal";
+import { successToast, errorToast } from '../ui/Toast';
 
-// Define field types based on your requirements
-enum FieldType {
-  STRING = "string",
-  NUMBER = "number",
-  BOOLEAN = "boolean",
-  FILE = "file",
-}
-
-interface FormField {
-  id: string;
-  name: string;
-  type: FieldType;
-  label?: string;
-  placeholder?: string;
-  required?: boolean;
-  variable_name?: string;
-}
 
 export const Forms = () => {
   const { data: fetchedForms, isLoading, refetch } = trpc.form.getAll.useQuery();
-  const { data: fetchedVariables } = trpc.variable.getAll.useQuery();
-  const editForm = trpc.form.edit.useMutation({
-    onSuccess: () => {
-      refetch();
-    },
-  });
+  const { data: fetchedVariables } = trpc.variable?.getAll.useQuery();
+  const deleteForm = trpc.form.delete.useMutation();
   
-  const addForm = trpc.form.add.useMutation({
-    onSuccess: () => {
-      refetch();
-    },
-  });
   const headerBg = useColorModeValue("white", "gray.700");
   const [selectedFormName, setSelectedFormName] = useState<string | null>(null);
   const [forms, setForms] = useState<Form[]>([]);
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
-  const [formValues, setFormValues] = useState<Record<string, any>>({});
+  const toast = useToast();
 
-  const cardWidth = "600px";
-
+  // Memoize the forms update to prevent unnecessary re-renders
   useEffect(() => {
     if (fetchedForms) {
       setForms(fetchedForms);
     }
   }, [fetchedForms]);
 
-  useEffect(() => {
-    // Reset form values when form changes
-    if (selectedForm) {
-      const initialValues: Record<string, any> = {};
-      selectedForm.fields?.forEach((field: FormField) => {
-        // Set default values based on field type
-        switch (field.type) {
-          case FieldType.BOOLEAN:
-            initialValues[field.id] = false;
-            break;
-          case FieldType.NUMBER:
-            initialValues[field.id] = 0;
-            break;
-          case FieldType.STRING:
-          case FieldType.FILE:
-          default:
-            initialValues[field.id] = "";
-            break;
-        }
-        
-        // If field is linked to a variable, use the variable's value
-        if (field.variable_name && fetchedVariables) {
-          const variable = fetchedVariables.find(v => v.name === field.variable_name);
-          if (variable) {
-            initialValues[field.id] = variable.value;
-          }
-        }
-      });
-      setFormValues(initialValues);
-    }
-  }, [selectedForm, fetchedVariables]);
-
-  const handleFieldChange = (fieldId: string, value: any) => {
-    setFormValues(prev => ({
-      ...prev,
-      [fieldId]: value
-    }));
-  };
-
-  const capitalizeFirst = (str: string) => {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  };
-
-  const getVariableForField = (field: FormField) => {
-    if (!field.variable_name || !fetchedVariables) return null;
-    return fetchedVariables.find(v => v.name === field.variable_name);
-  };
-
-  const renderFormField = (field: FormField) => {
-    const variable = getVariableForField(field);
-    const fieldValue = formValues[field.id] || "";
-    const displayLabel = field.label || capitalizeFirst(field.name.replaceAll("_", " "));
-
-    return (
-      <FormControl key={field.id} isRequired={field.required}>
-        <FormLabel>
-          {displayLabel}
-          {field.variable_name && (
-            <Badge colorScheme="green" ml={2} size="sm">
-              {field.variable_name}
-            </Badge>
-          )}
-        </FormLabel>
-        
-        {field.type === FieldType.FILE ? (
-          <Input
-            type="file"
-            pt={1}
-            placeholder={field.placeholder || "Choose a file"}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              handleFieldChange(field.id, file);
-            }}
-          />
-        ) : field.type === FieldType.BOOLEAN ? (
-          <Select
-            value={fieldValue.toString()}
-            onChange={(e) => handleFieldChange(field.id, e.target.value === "true")}
-          >
-            <option value="true">True</option>
-            <option value="false">False</option>
-          </Select>
-        ) : field.type === FieldType.NUMBER ? (
-          <Input
-            type="number"
-            value={fieldValue}
-            placeholder={field.placeholder || "Enter a number"}
-            onChange={(e) => handleFieldChange(field.id, parseFloat(e.target.value) || 0)}
-          />
-        ) : field.type === FieldType.STRING ? (
-          field.placeholder && field.placeholder.includes('\n') ? (
-            <Textarea
-              value={fieldValue}
-              placeholder={field.placeholder || "Enter text"}
-              onChange={(e) => handleFieldChange(field.id, e.target.value)}
-              rows={4}
-            />
-          ) : (
-            <Input
-              value={fieldValue}
-              placeholder={field.placeholder || "Enter text"}
-              onChange={(e) => handleFieldChange(field.id, e.target.value)}
-            />
-          )
-        ) : (
-          <Input
-            value={fieldValue}
-            placeholder={field.placeholder || "Enter value"}
-            onChange={(e) => handleFieldChange(field.id, e.target.value)}
-          />
-        )}
-      </FormControl>
-    );
-  };
-
-  const handleFormSubmit = () => {
-    console.log("Form submitted with values:", formValues);
-    // Add your form submission logic here
-  };
-
-  const handleFormCancel = () => {
+  // Use useCallback for event handlers
+  const handleFormCancel = useCallback(() => {
     setSelectedForm(null);
     setSelectedFormName(null);
-    setFormValues({});
-  };
-  
+  }, []);
+
+  const handleFormSelect = useCallback((form: Form) => {
+    setSelectedForm(form);
+    setSelectedFormName(form.name);
+  }, []);
+
+  const handleCreateSuccess = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  // Handle form save
+  const handleFormSave = useCallback(() => {
+    successToast('Success', 'Form saved successfully');
+    refetch(); // Refresh the forms list
+  }, [refetch]);
+
+  // Handle form delete
+  const handleFormDelete = useCallback(async () => {
+    if (!selectedForm) return;
+
+    const confirmDelete = window.confirm(`Are you sure you want to delete "${selectedForm.name}"? This action cannot be undone.`);
+    if (!confirmDelete) return;
+
+    try {
+      await deleteForm.mutateAsync({ id: selectedForm.id });
+      successToast('Success', 'Form deleted successfully');
+      handleFormCancel(); // Clear selection
+      refetch(); // Refresh the forms list
+    } catch (error) {
+      console.error('Failed to delete form:', error);
+      errorToast('Error', 'Failed to delete form');
+    }
+  }, [selectedForm, deleteForm, handleFormCancel, refetch]);
+
+  // Memoize computed values
+  const stats = useMemo(() => ({
+    totalForms: forms.length,
+    activeFields: selectedForm?.fields?.length || 0,
+    selectedFormName: selectedForm?.name || "None"
+  }), [forms.length, selectedForm?.fields?.length, selectedForm?.name]);
+
+  // Memoize the FormBuilder props to prevent unnecessary re-renders
+  const formBuilderProps = useMemo(() => {
+    if (!selectedForm) return null;
+    
+    return {
+      formId: selectedForm.id,
+      initialData: {
+        name: selectedForm.name,
+        description: selectedForm.description,
+        fields: selectedForm.fields || [],
+        background_color: selectedForm.background_color,
+        background_image: selectedForm.background_image,
+        size: selectedForm.size,
+        is_locked: selectedForm.is_locked,
+      }
+    };
+  }, [selectedForm]);
+
   if (isLoading) {
     return <Center><Spinner/></Center>;
   }
@@ -225,20 +123,21 @@ export const Forms = () => {
                 title="Forms"
                 subTitle="Create and manage your forms"
                 titleIcon={<Icon as={MdFormatListBulleted} boxSize={8} color="teal.500" />}
+                mainButton={<CreateFormModal onSuccess={handleCreateSuccess} />}
               />
               <Divider />
               <StatGroup>
                 <Stat>
                   <StatLabel>Total Forms</StatLabel>
-                  <StatNumber>{forms.length}</StatNumber>
+                  <StatNumber>{stats.totalForms}</StatNumber>
                 </Stat>
                 <Stat>
                   <StatLabel>Active Fields</StatLabel>
-                  <StatNumber>{selectedForm?.fields?.length || 0}</StatNumber>
+                  <StatNumber>{stats.activeFields}</StatNumber>
                 </Stat>
                 <Stat>
                   <StatLabel>Selected Form</StatLabel>
-                  <StatNumber fontSize="lg">{selectedForm?.name || "None"}</StatNumber>
+                  <StatNumber fontSize="lg">{stats.selectedFormName}</StatNumber>
                 </Stat>
               </StatGroup>
             </VStack>
@@ -249,96 +148,30 @@ export const Forms = () => {
           <Box>
             <FormsList
               forms={forms || []}
-              onSelectForm={(form) => {
-                setSelectedForm(form);
-                setSelectedFormName(form.name);
-              }}
+              onSelectForm={handleFormSelect}
             />
           </Box>
 
-          <Box flex="1" display="flex" alignItems="center" justifyContent="center">
+          <Box flex="1" display="flex" alignItems="flex-start" justifyContent="center">
             {!selectedForm ? (
-                <EmptyState
-                  title="No Form Selected"
-                  description="Please select a form from the list to view or edit."
-                />
+              <EmptyState
+                title="No Form Selected"
+                description="Please select a form from the list to view or edit."
+              />
             ) : (
-            <Card
-              bg={headerBg}
-              w={cardWidth}
-              h="auto"
-              shadow="lg"
-              borderRadius="lg"
-              display="flex"
-            >
-              {selectedForm && (
-                <CardBody display="flex" flexDirection="column" position="relative">
-                  <HStack spacing={2} mb={4}>
-                    <Editable
-                        defaultValue={selectedForm.name}
-                        fontSize="xl"
-                        fontWeight="bold"
-                        onSubmit={(value)=> editForm.mutate({ id: selectedForm.id, data: { name: value }})}
-                        submitOnBlur={true}
-                        flex={1}>
-                    <HStack spacing={2}>
-                        <EditablePreview
-                        py={1}
-                        px={2}
-                        _hover={ {
-                                bg: useColorModeValue("gray.50", "gray.700"),
-                                borderRadius: "md",
-                        }}
-                        />
-                        <EditableInput py={1} px={2} />
-                    </HStack>
-                    </Editable>
-                    <CloseIcon 
-                        fontSize="xs"
-                        cursor="pointer"
-                        color="gray.300"
-                        onClick={handleFormCancel}
-                    />
-                  </HStack>
-                  
-                  {/* Form Fields - Main content area */}
-                  <Box flex="1" overflowY="auto" pr={2}>
-                    {selectedForm.fields && selectedForm.fields.length > 0 ? (
-                      <VStack spacing={4} align="stretch">
-                        {selectedForm.fields.map((field: FormField) => renderFormField(field))}
-                      </VStack>
-                    ) : (
-                      <Center h="200px">
-                        <EmptyState
-                          title="No Fields Defined"
-                          description="This form doesn't have any fields yet."
-                        />
-                      </Center>
-                    )}
-                  </Box>
-                  
-                  {/* Buttons positioned at bottom */}
-                  <HStack justify="flex-end" mt={4} pt={4} borderTop="1px" borderColor="gray.200">
-                    <ButtonGroup>
-                        <Button
-                          colorScheme="gray"
-                          onClick={handleFormCancel}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          colorScheme="teal"
-                          variant="solid"
-                          onClick={handleFormSubmit}
-                          isDisabled={!selectedForm.fields || selectedForm.fields.length === 0}
-                        >
-                          Submit
-                        </Button>
-                    </ButtonGroup>
-                  </HStack>
-                </CardBody>
-              )}
-            </Card>
+              <Box>
+                {/* The FormBuilder now handles its own card, title, and buttons */}
+                {formBuilderProps && (
+                  <FormBuilder
+                    formId={formBuilderProps.formId}
+                    initialData={formBuilderProps.initialData}
+                    onSave={handleFormSave}
+                    onDelete={handleFormDelete}
+                    onCancel={handleFormCancel}
+                    cardWidth="800px"
+                  />
+                )}
+              </Box>
             )}
           </Box>
         </HStack>

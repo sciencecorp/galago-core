@@ -1,8 +1,8 @@
 import React, {useState} from "react"; 
 import { Box, Flex, Text, Spinner, Center, VStack, Button,
-    Input, InputGroup, InputLeftElement, InputRightElement
+    Input, InputGroup, InputLeftElement, InputRightElement,
+    Tooltip
  } from "@chakra-ui/react";
-import { trpc } from "@/utils/trpc";
 import { Form } from "@/types/form";
 import {  CloseIcon } from "@/components/ui/Icons";
 import { SearchIcon } from "@chakra-ui/icons";
@@ -39,6 +39,12 @@ export const FormsList: React.FC<FormsListProps> = (props) => {
           </InputRightElement>
         </InputGroup>
             {forms.filter((form) => form.name.toLowerCase().includes(searchQuery.toLowerCase())).map((form) => (
+                <Tooltip
+                    key={form.id}
+                    label={form.description || "No description available"}
+                    placement="right"
+                    hasArrow
+                    >
                 <Button 
                     p={6}
                     key={form.id}
@@ -52,6 +58,7 @@ export const FormsList: React.FC<FormsListProps> = (props) => {
                 >
                     <Text fontWeight="bold">{form.name}</Text>
                 </Button>
+                </Tooltip>
             ))}
         </VStack>
     );

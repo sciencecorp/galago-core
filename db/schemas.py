@@ -692,10 +692,8 @@ class PlateNestHistoryBase(BaseModel):
 class PlateNestHistoryCreate(PlateNestHistoryBase):
     pass
 
-
 class PlateNestHistoryUpdate(PlateNestHistoryBase):
     pass
-
 
 class PlateNestHistory(PlateNestHistoryBase):
     id: int
@@ -717,21 +715,16 @@ class PlateWithRelations(Plate):
 
 
 class FormFieldOption(BaseModel):
-    """Standard option format for select, radio, checkbox fields"""
     value: str
     label: str
-    disabled: Optional[bool] = False
-    description: Optional[str] = None
 
 class FormField(BaseModel):
-    """Enhanced form field with consistent option handling"""
     type: str  # text, email, select, radio, checkbox, textarea, etc.
     name: str
     label: str
     required: Optional[bool] = False
     placeholder: Optional[str] = None
     description: Optional[str] = None
-    validation: Optional[Dict[str, Any]] = None
     options: Optional[List[FormFieldOption]] = None
     default_value: Optional[Union[str, List[str]]] = None
     mapped_variable: Optional[str] = None
@@ -742,18 +735,14 @@ class FormCreate(BaseModel):
     description: t.Optional[str] = None
     fields: Optional[List[FormField]] = None
     background_color: t.Optional[str] = None
-    background_image: t.Optional[str] = None
-    size: t.Optional[str] = "medium"  # 'small', 'medium', 'large'
-    is_locked: t.Optional[bool] = False
+    font_color: t.Optional[str] = None
 
 class FormUpdate(BaseModel):
     name: t.Optional[str] = None
     description: t.Optional[str] = None
     fields: Optional[List[FormField]] = None
     background_color: t.Optional[str] = None
-    background_image: t.Optional[str] = None
-    size: t.Optional[str] = None
-    is_locked: t.Optional[bool] = None
+    font_color: t.Optional[str] = None
 
 class Form(TimestampMixin, FormCreate):
     id: int

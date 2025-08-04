@@ -370,8 +370,6 @@ class Form(Base, TimestampMixin):
     description = Column(String, nullable=True)
     fields = Column(JSON, nullable=False)  
     background_color = Column(String, nullable=True)
-    background_image = Column(String, nullable=True)
-    size = Column(String, nullable=True)  # e.g., "small", "medium", "large"
-    is_locked = Column(Boolean, nullable=False, default=False)
+    font_color = Column(String, nullable=True)
 
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)

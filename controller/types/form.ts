@@ -1,9 +1,21 @@
+export const FIELD_TYPES = [
+  { value: 'text', label: 'Text Input' },
+  { value: 'email', label: 'Email' },
+  { value: 'password', label: 'Password' },
+  { value: 'number', label: 'Number' },
+  { value: 'url', label: 'URL' },
+  { value: 'textarea', label: 'Textarea' },
+  { value: 'select', label: 'Select Dropdown' },
+  { value: 'radio', label: 'Radio Buttons' },
+  { value: 'checkbox', label: 'Checkbox' },
+  { value: 'date', label: 'Date' },
+  { value: 'time', label: 'Time' },
+  { value: 'file', label: 'File Upload' },
+] as const;
 
 export interface FormFieldOption {
   value: string;
   label: string;
-  disabled?: boolean;
-  description?: string;
 }
 
 export interface FormField {
@@ -11,61 +23,18 @@ export interface FormField {
   name: string;
   label: string;
   required?: boolean;
-  placeholder?: string;
-  description?: string;
-  validation?: Record<string, any>;
-  options?: FormFieldOption[];
-  default_value?: string | string[];
-  mapped_variable?: string; 
+  placeholder?: string | null;
+  options?: FormFieldOption[] | null; // For select, radio, checkbox types
+  default_value?: string | string[] | null;
+  mapped_variable?: string | null;
 }
 
 export interface Form {
   id: number;
   name: string;
   description?: string;
+  background_color?: string | null;
   fields: FormField[];
-  background_color?: string;
-  background_image?: string;
-  size?: "small" | "medium" | "large";
-  is_locked?: boolean;
   created_at?: string;
   updated_at?: string;
-}
-
-export interface FormCreate {
-  name: string;
-  description?: string;
-  fields: FormField[];
-  background_color?: string;
-  background_image?: string;
-  size?: "small" | "medium" | "large";
-  is_locked?: boolean;
-}
-
-export interface FormUpdate {
-  name?: string;
-  description?: string;
-  fields?: FormField[];
-  background_color?: string;
-  background_image?: string;
-  size?: "small" | "medium" | "large";
-  is_locked?: boolean;
-}
-
-export interface FormStats {
-  total: number;
-  locked: number;
-  unlocked: number;
-  bySize: {
-    small: number;
-    medium: number;
-    large: number;
-  };
-  averageFields: number;
-}
-
-export interface FormValidationResult {
-  valid: boolean;
-  data: FormCreate | null;
-  errors: any[] | null;
 }

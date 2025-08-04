@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
-import { Form, FormField } from "@/types/api";
+import { Form, FormField } from "@/types/";
 import { get, post, put, del, uploadFile } from "../utils/api";
 import { logAction } from "@/server/logger";
 
@@ -12,33 +12,43 @@ export const zFormFieldOption = z.object({
   description: z.string().optional(),
 });
 
-// Zod schema for form fields
+// Zod schema for form fields with proper nullable handling
 export const zFormField = z.object({
   type: z.string(), // text, email, select, radio, checkbox, textarea, etc.
   name: z.string(),
   label: z.string(),
   required: z.boolean().optional().default(false),
-  placeholder: z.string().optional(),
-  description: z.string().optional(),
-  validation: z.record(z.any()).optional(),
-  options: z.array(zFormFieldOption).optional(),
-  default_value: z.union([z.string(), z.array(z.string())]).optional(),
-  mapped_variable: z.string().optional(), // For variable mapping
+  placeholder: z.string().nullish(), // Use nullish() to allow null, undefined, or string
+  description: z.string().nullish(),
+  validation: z.record(z.any()).nullish(),
+  options: z.array(zFormFieldOption).nullish(),
+  default_value: z.union([z.string(), z.array(z.string())]).nullish(),
+  mapped_variable: z.string().nullish(), // For variable mapping
 });
+
+// Transform function to clean null values to undefined for API consistency
+const transformNullishToUndefined = <T extends Record<string, any>>(obj: T): T => {
+  const cleaned = { ...obj };
+  Object.keys(cleaned).forEach(key => {
+    if (cleaned[key] === null) {
+      cleaned[key] = undefined;
+    }
+  });
+  return cleaned;
+};
 
 // Zod schema for forms
 export const zForm = z.object({
   id: z.number().optional(),
   name: z.string(),
-  description: z.string().optional(),
+  description: z.string().nullish(),
   fields: z.array(zFormField),
-  background_color: z.string().optional(),
-  background_image: z.string().optional(),
+  background_color: z.string().nullish(),
+  font_color: z.string().nullish(),
   size: z.enum(["small", "medium", "large"]).optional().default("medium"),
   is_locked: z.boolean().optional().default(false),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
-
 });
 
 // Input schemas for mutations
@@ -67,7 +77,13 @@ export const formRouter = router({
 
   // Add new form
   add: procedure.input(zFormCreate).mutation(async ({ input }) => {
-    const response = await post<Form>(`/forms`, input);
+    // Clean the input data
+    const cleanedInput = {
+      ...transformNullishToUndefined(input),
+      fields: input.fields.map(field => transformNullishToUndefined(field))
+    };
+    
+    const response = await post<Form>(`/forms`, cleanedInput);
     logAction({
       level: "info",
       action: "New Form Created",
@@ -76,24 +92,30 @@ export const formRouter = router({
     return response;
   }),
 
-  // Edit existing form
-  edit: procedure
-    .input(
-      z.object({
-        id: z.number(),
-        data: zFormUpdate,
-      })
-    )
-    .mutation(async ({ input }) => {
-      const { id, data } = input;
-      const response = await put<Form>(`/forms/${id}`, data);
-      logAction({
-        level: "info",
-        action: "Form Updated",
-        details: `Form "${data.name || 'ID:' + id}" updated successfully.`,
-      });
-      return response;
-    }),
+ edit: procedure
+  .input(
+    z.object({
+      id: z.number(),
+      data: zFormUpdate,
+    })
+  )
+  .mutation(async ({ input }) => {
+    const { id, data } = input;
+    
+    // Don't transform null values for colors - send them as-is
+    const cleanedData = {
+      ...data, // Keep null values intact
+      fields: data.fields ? data.fields.map(field => transformNullishToUndefined(field)) : undefined
+    };
+    
+    const response = await put<Form>(`/forms/${id}`, cleanedData);
+    logAction({
+      level: "info",
+      action: "Form Updated",
+      details: `Form "${data.name || 'ID:' + id}" updated successfully.`,
+    });
+    return response;
+  }),
 
   // Delete form
   delete: procedure.input(z.number()).mutation(async ({ input }) => {
@@ -295,49 +317,4 @@ export const formRouter = router({
     return stats;
   }),
 
-  // Batch operations
-  batchDelete: procedure
-    .input(z.array(z.number()))
-    .mutation(async ({ input }) => {
-      const deletePromises = input.map(id => del(`/forms/${id}`));
-      await Promise.all(deletePromises);
-      
-      logAction({
-        level: "info",
-        action: "Batch Form Delete",
-        details: `${input.length} forms deleted: IDs ${input.join(", ")}`,
-      });
-      
-      return { message: `${input.length} forms deleted successfully` };
-    }),
-
-  batchLock: procedure
-    .input(z.array(z.number()))
-    .mutation(async ({ input }) => {
-      const lockPromises = input.map(id => put<Form>(`/forms/${id}/lock`, {}));
-      const results = await Promise.all(lockPromises);
-      
-      logAction({
-        level: "info",
-        action: "Batch Form Lock",
-        details: `${input.length} forms locked: IDs ${input.join(", ")}`,
-      });
-      
-      return results;
-    }),
-
-  batchUnlock: procedure
-    .input(z.array(z.number()))
-    .mutation(async ({ input }) => {
-      const unlockPromises = input.map(id => put<Form>(`/forms/${id}/unlock`, {}));
-      const results = await Promise.all(unlockPromises);
-      
-      logAction({
-        level: "info",
-        action: "Batch Form Unlock",
-        details: `${input.length} forms unlocked: IDs ${input.join(", ")}`,
-      });
-      
-      return results;
-    }),
-});
+}); 
