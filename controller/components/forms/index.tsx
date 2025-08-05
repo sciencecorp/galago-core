@@ -24,67 +24,30 @@ import { PageHeader } from '../ui/PageHeader';
 import { Form } from "@/types";
 import { EmptyState } from "../ui/EmptyState";
 import { CreateFormModal } from "./createFormModal";
-import { successToast, errorToast } from '../ui/Toast';
-
 
 export const Forms = () => {
   const { data: fetchedForms, isLoading, refetch } = trpc.form.getAll.useQuery();
-  const { data: fetchedVariables } = trpc.variable?.getAll.useQuery();
-  const deleteForm = trpc.form.delete.useMutation();
   
   const headerBg = useColorModeValue("white", "gray.700");
-  const [selectedFormName, setSelectedFormName] = useState<string | null>(null);
   const [forms, setForms] = useState<Form[]>([]);
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
   const toast = useToast();
 
-  // Memoize the forms update to prevent unnecessary re-renders
   useEffect(() => {
     if (fetchedForms) {
       setForms(fetchedForms);
     }
   }, [fetchedForms]);
 
-  // Use useCallback for event handlers
   const handleFormCancel = useCallback(() => {
     setSelectedForm(null);
-    setSelectedFormName(null);
   }, []);
 
   const handleFormSelect = useCallback((form: Form) => {
     setSelectedForm(form);
-    setSelectedFormName(form.name);
   }, []);
 
-  const handleCreateSuccess = useCallback(() => {
-    refetch();
-  }, [refetch]);
-
-  // Handle form save
-  const handleFormSave = useCallback(() => {
-    successToast('Success', 'Form saved successfully');
-    refetch(); // Refresh the forms list
-  }, [refetch]);
-
-  // Handle form delete
-  const handleFormDelete = useCallback(async () => {
-    if (!selectedForm) return;
-
-    const confirmDelete = window.confirm(`Are you sure you want to delete "${selectedForm.name}"? This action cannot be undone.`);
-    if (!confirmDelete) return;
-
-    try {
-      await deleteForm.mutateAsync({ id: selectedForm.id });
-      successToast('Success', 'Form deleted successfully');
-      handleFormCancel(); // Clear selection
-      refetch(); // Refresh the forms list
-    } catch (error) {
-      console.error('Failed to delete form:', error);
-      errorToast('Error', 'Failed to delete form');
-    }
-  }, [selectedForm, deleteForm, handleFormCancel, refetch]);
-
-  // Memoize computed values
+ 
   const stats = useMemo(() => ({
     totalForms: forms.length,
     activeFields: selectedForm?.fields?.length || 0,
@@ -98,13 +61,11 @@ export const Forms = () => {
     return {
       formId: selectedForm.id,
       initialData: {
+        id: selectedForm.id,
         name: selectedForm.name,
         description: selectedForm.description,
         fields: selectedForm.fields || [],
         background_color: selectedForm.background_color,
-        background_image: selectedForm.background_image,
-        size: selectedForm.size,
-        is_locked: selectedForm.is_locked,
       }
     };
   }, [selectedForm]);
@@ -123,7 +84,7 @@ export const Forms = () => {
                 title="Forms"
                 subTitle="Create and manage your forms"
                 titleIcon={<Icon as={MdFormatListBulleted} boxSize={8} color="teal.500" />}
-                mainButton={<CreateFormModal onSuccess={handleCreateSuccess} />}
+                mainButton={<CreateFormModal/>}
               />
               <Divider />
               <StatGroup>
@@ -132,7 +93,7 @@ export const Forms = () => {
                   <StatNumber>{stats.totalForms}</StatNumber>
                 </Stat>
                 <Stat>
-                  <StatLabel>Active Fields</StatLabel>
+                  <StatLabel>Number of Fields</StatLabel>
                   <StatNumber>{stats.activeFields}</StatNumber>
                 </Stat>
                 <Stat>
@@ -160,15 +121,12 @@ export const Forms = () => {
               />
             ) : (
               <Box>
-                {/* The FormBuilder now handles its own card, title, and buttons */}
                 {formBuilderProps && (
                   <FormBuilder
                     formId={formBuilderProps.formId}
                     initialData={formBuilderProps.initialData}
-                    onSave={handleFormSave}
-                    onDelete={handleFormDelete}
                     onCancel={handleFormCancel}
-                    cardWidth="800px"
+                    onUpdate={refetch}
                   />
                 )}
               </Box>

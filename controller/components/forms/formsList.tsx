@@ -17,11 +17,6 @@ export const FormsList: React.FC<FormsListProps> = (props) => {
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [selectedForm, setSelectedForm] = useState<Form | null>(null);
 
-
-    if (!forms || forms.length === 0) {
-        return <Text>No forms available</Text>;
-    }
-
     return (
         <VStack>
                     <InputGroup>

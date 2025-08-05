@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -20,10 +20,8 @@ import {
   DrawerCloseButton,
   useDisclosure,
   IconButton,
-  Flex,
   Badge,
   Switch,
-  useToast,
   Spinner,
   Radio,
   RadioGroup,
@@ -56,13 +54,13 @@ import { successToast, errorToast } from '../ui/Toast';
 import { IoSettingsSharp } from "react-icons/io5";
 import { DeleteWithConfirmation } from '../ui/Delete';
 import { FormField, Form, FIELD_TYPES} from '@/types';
+import { on } from 'events';
 
 interface FormBuilderProps {
   formId: number;
   initialData?: Form;
   onCancel?: () => void;
-  onSave?: () => void; // Add onSave callback
-  onDelete?: () => void; // Add onDelete callback for consistency
+  onUpdate?: () => void;
 }
 
 const DEFAULT_EDITING_FIELD: FormField = {
@@ -110,8 +108,8 @@ const ColorPicker: React.FC<{
   const borderColor = useColorModeValue('gray.300', 'gray.600');
   const textColor = useColorModeValue('gray.600', 'gray.300');
 
-  // Get the display color - use default if color is null
   const displayColor = color || defaultLightColor;
+  const { data: fetchedForms, isLoading, refetch } = trpc.form.getAll.useQuery();
 
   // Update customColor when color prop changes
   useEffect(() => {
@@ -129,8 +127,8 @@ const ColorPicker: React.FC<{
   };
 
   const handleReset = () => {
-    onChange(null); // This will save null to database
-    setCustomColor(defaultLightColor); // This is just for the color input display
+    onChange(null); 
+    setCustomColor(defaultLightColor); 
   };
 
   // Simple version for font color (black/white only)
@@ -284,8 +282,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
   formId, 
   initialData, 
   onCancel,
-  onSave,
-  onDelete,
+  onUpdate,
 }) => {
   // Color mode values
   const defaultBgColor = useColorModeValue('#ffffff', '#2d3748');
@@ -320,10 +317,8 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
   // Initialize all form data from initialData - use useCallback to prevent infinite loops
   const initializeFormData = useCallback(() => {
     if (initialData) {
-      // Update form basic info
       setFormName(initialData.name || '');
       setFormDescription(initialData.description || '');
-      // Use the actual values from database, including null values
       setBackgroundColor(initialData.background_color !== null ? initialData.background_color : null);
       setFontColor(initialData.font_color !== null ? initialData.font_color : null);
       
@@ -345,15 +340,15 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
   }, [initializeFormData]);
 
   // Update default colors when color mode changes - only if colors are null
-  useEffect(() => {
-    // Don't override existing saved colors from database
-    if (backgroundColor === null) {
-      // Keep it null to use useColorModeValue
-    }
-    if (fontColor === null) {
-      // Keep it null to use useColorModeValue
-    }
-  }, [backgroundColor, fontColor]);
+  // useEffect(() => {
+  //   // Don't override existing saved colors from database
+  //   if (backgroundColor === null) {
+  //     // Keep it null to use useColorModeValue
+  //   }
+  //   if (fontColor === null) {
+  //     // Keep it null to use useColorModeValue
+  //   }
+  // }, [backgroundColor, fontColor]);
 
   // Generate unique field name - memoize the function
   const generateUniqueFieldName = useCallback((baseName: string = 'field') => {
@@ -456,7 +451,6 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
         options: field.options ? field.options.map(option => ({
           value: option.value,
           label: option.label,
-          disabled: option.disabled || false,
         })) : null,
       }));
 
@@ -476,9 +470,8 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
       });
       successToast('Success', 'Form saved successfully');
       
-      // Call the onSave callback to trigger refetch in parent
-      if (onSave) {
-        onSave();
+      if (onUpdate) {
+        onUpdate(); // Call the onUpdate callback if provided
       }
     } catch (error) {
       console.error('Failed to save form:', error);
@@ -486,29 +479,22 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
     } finally {
       setIsSaving(false);
     }
-  }, [formName, formId, fields, formDescription, formSize, backgroundColor, fontColor, updateForm, onSave]);
+  }, [formName, formId, fields, formDescription, formSize, backgroundColor, fontColor, updateForm, onUpdate]);
 
   // Delete entire form - use useCallback
   const handleDeleteForm = useCallback(async () => {
-    if (!formId) {
-      errorToast('Error', 'Form ID is required to delete');
-      return;
-    }
-
-    try {
-      setIsDeleting(true);
+    try{
       await deleteForm.mutateAsync(formId);
-      
-      // Call the onDelete callback to handle cleanup in parent
-      if (onDelete) {
-        onDelete();
+      successToast('Success', 'Form deleted successfully');
+      if (onUpdate) {
+        onUpdate(); // Call the onUpdate callback if provided
+        onCancel && onCancel(); // Close the form builder
       }
     } catch (error) {
       console.error('Failed to delete form:', error);
-    } finally {
-      setIsDeleting(false);
+      errorToast('Error', 'Failed to delete form');
     }
-  }, [formId, deleteForm, onDelete]);
+  }, [formId, deleteForm]);
 
   // Add option for select/radio fields - use useCallback
   const addOption = useCallback(() => {
@@ -744,18 +730,15 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
             }}
             color={fontColor || defaultFontColor}
           />
-          
-          {onCancel && (
-            <CloseIcon
-              fontSize="xs"
-              cursor="pointer"
-              color={useColorModeValue('gray.400', 'gray.500')}
-              onClick={onCancel}
-              _hover={{
-                color: useColorModeValue('gray.600', 'gray.300'),
-              }}
-            />
-          )}
+          <CloseIcon
+            fontSize="xs"
+            cursor="pointer"
+            color={useColorModeValue('gray.400', 'gray.500')}
+            onClick={onCancel}
+            _hover={{
+              color: useColorModeValue('gray.600', 'gray.300'),
+            }}
+          />
         </HStack>
 
         <Box overflowY="auto" maxH="700px" flex={1}>
@@ -1038,15 +1021,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                             borderColor={useColorModeValue('gray.200', 'gray.600')}
                             color={useColorModeValue('gray.800', 'gray.100')}
                           />
-                          <Input
-                            value={option.description || ''}
-                            onChange={(e) => updateOption(index, 'description', e.target.value)}
-                            placeholder="Description (optional)"
-                            size="sm"
-                            bg={useColorModeValue('white', 'gray.700')}
-                            borderColor={useColorModeValue('gray.200', 'gray.600')}
-                            color={useColorModeValue('gray.800', 'gray.100')}
-                          />
+    
                           <IconButton
                             aria-label="Remove option"
                             icon={<RiDeleteBin6Line />}

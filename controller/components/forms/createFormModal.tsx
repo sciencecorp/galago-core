@@ -12,7 +12,6 @@ import {
   FormLabel,
   Input,
   VStack,
-  Select,
   useDisclosure,
 } from '@chakra-ui/react';
 import { trpc } from '@/utils/trpc';
@@ -67,7 +66,10 @@ export const CreateFormModal: React.FC = () => {
 
   return (
     <>
-      <Button onClick={onOpen} colorScheme="blue" leftIcon={<RiAddFill />}>
+      <Button
+       onClick={onOpen} 
+       colorScheme="teal"
+      leftIcon={<RiAddFill />}>
         New Forms
       </Button>
 
