@@ -15,7 +15,6 @@ export const zFormFieldOption = z.object({
 // Zod schema for form fields with proper nullable handling
 export const zFormField = z.object({
   type: z.string(), // text, email, select, radio, checkbox, textarea, etc.
-  name: z.string(),
   label: z.string(),
   required: z.boolean().optional().default(false),
   placeholder: z.string().nullish(), // Use nullish() to allow null, undefined, or string
@@ -29,7 +28,7 @@ export const zFormField = z.object({
 // Transform function to clean null values to undefined for API consistency
 const transformNullishToUndefined = <T extends Record<string, any>>(obj: T): T => {
   const cleaned = { ...obj };
-  Object.keys(cleaned).forEach(key => {
+  Object.keys(cleaned).forEach((key) => {
     if (cleaned[key] === null) {
       cleaned[key] = undefined;
     }
@@ -80,9 +79,9 @@ export const formRouter = router({
     // Clean the input data
     const cleanedInput = {
       ...transformNullishToUndefined(input),
-      fields: input.fields.map(field => transformNullishToUndefined(field))
+      fields: input.fields.map((field) => transformNullishToUndefined(field)),
     };
-    
+
     const response = await post<Form>(`/forms`, cleanedInput);
     logAction({
       level: "info",
@@ -92,30 +91,32 @@ export const formRouter = router({
     return response;
   }),
 
- edit: procedure
-  .input(
-    z.object({
-      id: z.number(),
-      data: zFormUpdate,
-    })
-  )
-  .mutation(async ({ input }) => {
-    const { id, data } = input;
-    
-    // Don't transform null values for colors - send them as-is
-    const cleanedData = {
-      ...data, // Keep null values intact
-      fields: data.fields ? data.fields.map(field => transformNullishToUndefined(field)) : undefined
-    };
-    
-    const response = await put<Form>(`/forms/${id}`, cleanedData);
-    logAction({
-      level: "info",
-      action: "Form Updated",
-      details: `Form "${data.name || 'ID:' + id}" updated successfully.`,
-    });
-    return response;
-  }),
+  edit: procedure
+    .input(
+      z.object({
+        id: z.number(),
+        data: zFormUpdate,
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { id, data } = input;
+
+      // Don't transform null values for colors - send them as-is
+      const cleanedData = {
+        ...data, // Keep null values intact
+        fields: data.fields
+          ? data.fields.map((field) => transformNullishToUndefined(field))
+          : undefined,
+      };
+
+      const response = await put<Form>(`/forms/${id}`, cleanedData);
+      logAction({
+        level: "info",
+        action: "Form Updated",
+        details: `Form "${data.name || "ID:" + id}" updated successfully.`,
+      });
+      return response;
+    }),
 
   // Delete form
   delete: procedure.input(z.number()).mutation(async ({ input }) => {
@@ -143,21 +144,21 @@ export const formRouter = router({
       z.object({
         id: z.number(),
         newName: z.string(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const { id, newName } = input;
-      
+
       // Create form data for the duplicate request
       const formData = new FormData();
-      formData.append('new_name', newName);
-      
+      formData.append("new_name", newName);
+
       const response = await post<Form>(`/forms/${id}/duplicate`, formData, {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          "Content-Type": "application/x-www-form-urlencoded",
         },
       });
-      
+
       logAction({
         level: "info",
         action: "Form Duplicated",
@@ -215,13 +216,13 @@ export const formRouter = router({
     .input(
       z.object({
         file: z.any(), // File object from form data
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       try {
         const { file } = input;
         const response = await uploadFile<Form>("/forms/import", file);
-        
+
         logAction({
           level: "info",
           action: "Form Imported",
@@ -268,53 +269,56 @@ export const formRouter = router({
         size: z.enum(["small", "medium", "large"]).optional(),
         isLocked: z.boolean().optional(),
         searchTerm: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       // Since your API doesn't have built-in filtering, we'll get all and filter client-side
       // You might want to add filtering to your FastAPI endpoints later
       const allForms = await get<Form[]>(`/forms`);
-      
+
       let filteredForms = allForms;
-      
+
       if (input.size) {
-        filteredForms = filteredForms.filter(form => form.size === input.size);
+        filteredForms = filteredForms.filter((form) => form.size === input.size);
       }
-      
+
       if (input.isLocked !== undefined) {
-        filteredForms = filteredForms.filter(form => form.is_locked === input.isLocked);
+        filteredForms = filteredForms.filter((form) => form.is_locked === input.isLocked);
       }
-      
+
       if (input.searchTerm) {
         const searchLower = input.searchTerm.toLowerCase();
-        filteredForms = filteredForms.filter(form => 
-          form.name.toLowerCase().includes(searchLower) ||
-          (form.description && form.description.toLowerCase().includes(searchLower))
+        filteredForms = filteredForms.filter(
+          (form) =>
+            form.name.toLowerCase().includes(searchLower) ||
+            (form.description && form.description.toLowerCase().includes(searchLower)),
         );
       }
-      
+
       return filteredForms;
     }),
 
   // Get form statistics
   getStats: procedure.query(async () => {
     const allForms = await get<Form[]>(`/forms`);
-    
+
     const stats = {
       total: allForms.length,
-      locked: allForms.filter(form => form.is_locked).length,
-      unlocked: allForms.filter(form => !form.is_locked).length,
+      locked: allForms.filter((form) => form.is_locked).length,
+      unlocked: allForms.filter((form) => !form.is_locked).length,
       bySize: {
-        small: allForms.filter(form => form.size === "small").length,
-        medium: allForms.filter(form => form.size === "medium").length,
-        large: allForms.filter(form => form.size === "large").length,
+        small: allForms.filter((form) => form.size === "small").length,
+        medium: allForms.filter((form) => form.size === "medium").length,
+        large: allForms.filter((form) => form.size === "large").length,
       },
-      averageFields: allForms.length > 0 
-        ? Math.round(allForms.reduce((sum, form) => sum + form.fields.length, 0) / allForms.length)
-        : 0,
+      averageFields:
+        allForms.length > 0
+          ? Math.round(
+              allForms.reduce((sum, form) => sum + form.fields.length, 0) / allForms.length,
+            )
+          : 0,
     };
-    
+
     return stats;
   }),
-
-}); 
+});

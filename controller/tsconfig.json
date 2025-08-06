@@ -17,8 +17,8 @@
     "baseUrl": ".",
     "types": ["node"],
     "paths": {
-      "@/types/*": ["types/*"],         
-      "@/types": ["types/index.ts"],      
+      "@/types/*": ["types/*"],
+      "@/types": ["types/index.ts"],
       "react": ["node_modules/@types/react/index.d.ts"],
       "gen-interfaces/*": ["./gen-interfaces/*"],
       "@/*": ["./*"]

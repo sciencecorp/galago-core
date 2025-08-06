@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -13,14 +13,14 @@ import {
   Input,
   VStack,
   useDisclosure,
-} from '@chakra-ui/react';
-import { trpc } from '@/utils/trpc';
-import { successToast, errorToast } from '../ui/Toast';
+} from "@chakra-ui/react";
+import { trpc } from "@/utils/trpc";
+import { successToast, errorToast } from "../ui/Toast";
 import { RiAddFill } from "react-icons/ri";
 
 export const CreateFormModal: React.FC = () => {
-  const [formName, setFormName] = useState('');
-  const [formDescription, setFormDescription] = useState('');
+  const [formName, setFormName] = useState("");
+  const [formDescription, setFormDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -28,14 +28,14 @@ export const CreateFormModal: React.FC = () => {
   const { refetch } = trpc.form.getAll.useQuery();
 
   const clearForm = () => {
-    setFormName('');
-    setFormDescription('');
+    setFormName("");
+    setFormDescription("");
   };
 
   const handleSave = async () => {
     // Basic validation
     if (!formName.trim()) {
-      errorToast('Error', 'Form name is required');
+      errorToast("Error", "Form name is required");
       return;
     }
 
@@ -44,16 +44,16 @@ export const CreateFormModal: React.FC = () => {
       await createForm.mutateAsync({
         name: formName.trim(),
         description: formDescription.trim() || undefined,
-        fields: [], 
+        fields: [],
         is_locked: false,
       });
 
-      successToast('Form created successfully', '');
+      successToast("Form created successfully", "");
       onClose();
       await refetch();
     } catch (error) {
-      console.error('Failed to create form:', error);
-      errorToast('Error creating form', `Please try again. ${error}`);
+      console.error("Failed to create form:", error);
+      errorToast("Error creating form", `Please try again. ${error}`);
     }
     setIsLoading(false);
     clearForm();
@@ -66,10 +66,7 @@ export const CreateFormModal: React.FC = () => {
 
   return (
     <>
-      <Button
-       onClick={onOpen} 
-       colorScheme="teal"
-      leftIcon={<RiAddFill />}>
+      <Button onClick={onOpen} colorScheme="teal" leftIcon={<RiAddFill />}>
         New Forms
       </Button>
 
@@ -89,7 +86,7 @@ export const CreateFormModal: React.FC = () => {
                   isDisabled={isLoading}
                 />
               </FormControl>
-              
+
               <FormControl>
                 <FormLabel>Description</FormLabel>
                 <Input
@@ -101,7 +98,7 @@ export const CreateFormModal: React.FC = () => {
               </FormControl>
             </VStack>
           </ModalBody>
-          
+
           <ModalFooter>
             <Button variant="ghost" onClick={handleClose}>
               Cancel
@@ -111,8 +108,7 @@ export const CreateFormModal: React.FC = () => {
               onClick={handleSave}
               mr={3}
               isLoading={isLoading}
-              isDisabled={!formName.trim()}
-            >
+              isDisabled={!formName.trim()}>
               Submit
             </Button>
           </ModalFooter>

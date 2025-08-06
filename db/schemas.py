@@ -719,8 +719,7 @@ class FormFieldOption(BaseModel):
     label: str
 
 class FormField(BaseModel):
-    type: str  # text, email, select, radio, checkbox, textarea, etc.
-    name: str
+    type: str  
     label: str
     required: Optional[bool] = False
     placeholder: Optional[str] = None

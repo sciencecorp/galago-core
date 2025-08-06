@@ -16,18 +16,18 @@ import {
   StatNumber,
   useToast,
 } from "@chakra-ui/react";
-import { FormsList } from './formsList';
-import { FormBuilder } from './formBuilder';
-import { trpc } from '@/utils/trpc';
+import { FormsList } from "./formsList";
+import { FormBuilder } from "./formBuilder";
+import { trpc } from "@/utils/trpc";
 import { MdFormatListBulleted } from "react-icons/md";
-import { PageHeader } from '../ui/PageHeader';
+import { PageHeader } from "../ui/PageHeader";
 import { Form } from "@/types";
 import { EmptyState } from "../ui/EmptyState";
 import { CreateFormModal } from "./createFormModal";
 
 export const Forms = () => {
   const { data: fetchedForms, isLoading, refetch } = trpc.form.getAll.useQuery();
-  
+
   const headerBg = useColorModeValue("white", "gray.700");
   const [forms, setForms] = useState<Form[]>([]);
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
@@ -47,17 +47,19 @@ export const Forms = () => {
     setSelectedForm(form);
   }, []);
 
- 
-  const stats = useMemo(() => ({
-    totalForms: forms.length,
-    activeFields: selectedForm?.fields?.length || 0,
-    selectedFormName: selectedForm?.name || "None"
-  }), [forms.length, selectedForm?.fields?.length, selectedForm?.name]);
+  const stats = useMemo(
+    () => ({
+      totalForms: forms.length,
+      activeFields: selectedForm?.fields?.length || 0,
+      selectedFormName: selectedForm?.name || "None",
+    }),
+    [forms.length, selectedForm?.fields?.length, selectedForm?.name],
+  );
 
   // Memoize the FormBuilder props to prevent unnecessary re-renders
   const formBuilderProps = useMemo(() => {
     if (!selectedForm) return null;
-    
+
     return {
       formId: selectedForm.id,
       initialData: {
@@ -66,14 +68,18 @@ export const Forms = () => {
         description: selectedForm.description,
         fields: selectedForm.fields || [],
         background_color: selectedForm.background_color,
-      }
+      },
     };
   }, [selectedForm]);
 
   if (isLoading) {
-    return <Center><Spinner/></Center>;
+    return (
+      <Center>
+        <Spinner />
+      </Center>
+    );
   }
-  
+
   return (
     <Box width="100%">
       <VStack spacing={4} align="stretch">
@@ -84,7 +90,7 @@ export const Forms = () => {
                 title="Forms"
                 subTitle="Create and manage your forms"
                 titleIcon={<Icon as={MdFormatListBulleted} boxSize={8} color="teal.500" />}
-                mainButton={<CreateFormModal/>}
+                mainButton={<CreateFormModal />}
               />
               <Divider />
               <StatGroup>
@@ -104,13 +110,10 @@ export const Forms = () => {
             </VStack>
           </CardBody>
         </Card>
-        
+
         <HStack align="stretch" spacing={4}>
           <Box>
-            <FormsList
-              forms={forms || []}
-              onSelectForm={handleFormSelect}
-            />
+            <FormsList forms={forms || []} onSelectForm={handleFormSelect} />
           </Box>
 
           <Box flex="1" display="flex" alignItems="flex-start" justifyContent="center">

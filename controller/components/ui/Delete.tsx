@@ -47,11 +47,11 @@ export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
         </>
       )}
       {variant === "button" && (
-        <Button 
+        <Button
           leftIcon={<RiDeleteBin5Line />}
           isDisabled={disabled}
-          onClick={onOpen} 
-          colorScheme="red" 
+          onClick={onOpen}
+          colorScheme="red"
           loadingText="Deleting..."
           variant="outline">
           Delete

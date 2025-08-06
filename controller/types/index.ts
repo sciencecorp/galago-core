@@ -1,2 +1,2 @@
 // types/index.ts - Central export
-export * from './form';
+export * from "./form";
