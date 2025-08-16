@@ -367,7 +367,6 @@ class Form(Base, TimestampMixin):
     __tablename__ = "forms"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
-    description = Column(String, nullable=True)
     fields = Column(JSON, nullable=False)  
     background_color = Column(String, nullable=True)
     font_color = Column(String, nullable=True)

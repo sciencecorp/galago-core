@@ -36,11 +36,9 @@ const transformNullishToUndefined = <T extends Record<string, any>>(obj: T): T =
   return cleaned;
 };
 
-// Zod schema for forms
 export const zForm = z.object({
   id: z.number().optional(),
   name: z.string(),
-  description: z.string().nullish(),
   fields: z.array(zFormField),
   background_color: z.string().nullish(),
   font_color: z.string().nullish(),

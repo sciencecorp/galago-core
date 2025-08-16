@@ -723,7 +723,6 @@ class FormField(BaseModel):
     label: str
     required: Optional[bool] = False
     placeholder: Optional[str] = None
-    description: Optional[str] = None
     options: Optional[List[FormFieldOption]] = None
     default_value: Optional[Union[str, List[str]]] = None
     mapped_variable: Optional[str] = None
@@ -731,7 +730,6 @@ class FormField(BaseModel):
     
 class FormCreate(BaseModel):
     name: str
-    description: t.Optional[str] = None
     fields: Optional[List[FormField]] = None
     background_color: t.Optional[str] = None
     font_color: t.Optional[str] = None

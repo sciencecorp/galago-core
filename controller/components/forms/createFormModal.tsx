@@ -20,7 +20,6 @@ import { RiAddFill } from "react-icons/ri";
 
 export const CreateFormModal: React.FC = () => {
   const [formName, setFormName] = useState("");
-  const [formDescription, setFormDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -29,11 +28,9 @@ export const CreateFormModal: React.FC = () => {
 
   const clearForm = () => {
     setFormName("");
-    setFormDescription("");
   };
 
   const handleSave = async () => {
-    // Basic validation
     if (!formName.trim()) {
       errorToast("Error", "Form name is required");
       return;
@@ -43,9 +40,7 @@ export const CreateFormModal: React.FC = () => {
     try {
       await createForm.mutateAsync({
         name: formName.trim(),
-        description: formDescription.trim() || undefined,
         fields: [],
-        is_locked: false,
       });
 
       successToast("Form created successfully", "");
@@ -83,16 +78,6 @@ export const CreateFormModal: React.FC = () => {
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="Enter form name"
-                  isDisabled={isLoading}
-                />
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>Description</FormLabel>
-                <Input
-                  value={formDescription}
-                  onChange={(e) => setFormDescription(e.target.value)}
-                  placeholder="Enter form description (optional)"
                   isDisabled={isLoading}
                 />
               </FormControl>

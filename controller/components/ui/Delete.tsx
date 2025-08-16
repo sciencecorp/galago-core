@@ -67,7 +67,7 @@ export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
           onClose();
         }}
         onClose={onClose}>
-        {customText || `Are you sure you want to delete this ${label}?`}
+        {customText || `Are you sure you want to delete ${label}?`}
       </ConfirmationModal>
     </>
   );
