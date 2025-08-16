@@ -24,7 +24,6 @@ const protocolSchema = z.object({
   workcell_id: z.number(),
   description: z.string().optional(),
   icon: z.string().optional(),
-  params: z.record(z.any()),
   commands: z.array(z.any()),
   version: z.number().optional(),
   is_active: z.boolean().optional(),
@@ -55,7 +54,6 @@ export const protocolRouter = router({
       ...input,
       version: input.version || 1,
       is_active: input.is_active ?? true,
-      params: input.params || {},
       commands: input.commands || [],
     };
     const response = await post<Protocol>(`${API_BASE_URL}/protocols`, protocolData);

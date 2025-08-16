@@ -406,7 +406,6 @@ class ProtocolBase(BaseModel):
     workcell_id: int
     description: t.Optional[str] = None
     icon: t.Optional[str] = None
-    params: t.Dict[str, t.Any]
     commands: t.List[t.Dict[str, t.Any]]
     version: t.Optional[int] = 1
     is_active: t.Optional[bool] = True
@@ -418,7 +417,6 @@ class ProtocolCreate(BaseModel):
     workcell_id: int
     description: Optional[str] = None
     icon: Optional[str] = None
-    params: Dict[str, Any]
     commands: List[Dict[str, Any]]
     version: Optional[int] = 1
     is_active: Optional[bool] = True
@@ -428,7 +426,6 @@ class ProtocolUpdate(BaseModel):
     category: t.Optional[str] = None
     description: t.Optional[str] = None
     icon: t.Optional[str] = None
-    params: t.Optional[t.Dict[str, t.Any]] = None
     commands: t.Optional[t.List[t.Dict[str, t.Any]]] = None
     version: t.Optional[int] = None
     is_active: t.Optional[bool] = None
