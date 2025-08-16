@@ -351,8 +351,7 @@ class Protocol(Base, TimestampMixin):
     workcell_id = Column(Integer, ForeignKey("workcells.id"))
     description = Column(String, nullable=True)
     icon = Column(String, nullable=True)
-    params = Column(JSON, nullable=False)  # Zod schema for parameters
-    commands = Column(JSON, nullable=False)  # Template for generating commands
+    commands = Column(JSON, nullable=False) 
     version = Column(Integer, nullable=False, default=1)
     is_active = Column(Boolean, nullable=False, default=True)
 

@@ -1832,7 +1832,6 @@ async def create_protocol(protocol: schemas.ProtocolCreate, db: Session = Depend
             workcell_id=protocol.workcell_id,
             description=protocol.description,
             icon=protocol.icon,
-            params=protocol.params or {},
             commands=protocol.commands or [],
             version=protocol.version or 1,
             is_active=protocol.is_active if protocol.is_active is not None else True,
@@ -1850,14 +1849,12 @@ async def create_protocol(protocol: schemas.ProtocolCreate, db: Session = Depend
         except Exception as e:
             db.rollback()
             logging.error(f"Database error while creating protocol: {str(e)}")
-            logging.error(f"Full error details: {repr(e)}")
             raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
     except HTTPException:
         raise
     except Exception as e:
         logging.error(f"Unexpected error while creating protocol: {str(e)}")
-        logging.error(f"Full error details: {repr(e)}")
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 

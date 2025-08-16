@@ -459,17 +459,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       borderWidth="1px"
       mx="auto"
       overflow="hidden">
-      <ProtocolFormModal
-        isOpen={isParametersModalOpen}
-        onClose={closeParametersModal}
-        initialParams={protocol.params || {}}
-        protocolId={protocol.id}
-        onSave={(newParams) => {
-          setLocalParams(newParams);
-          refetch();
-          closeParametersModal();
-        }}
-      />
       <VStack align="stretch" spacing={6} width="100%">
         <HStack justify="space-between">
           <VStack align="start" spacing={2}>
@@ -482,13 +471,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
           <HStack>
             {isEditing ? (
               <>
-                <Button
-                  leftIcon={<SiPlatformdotsh fontSize="14px" />}
-                  variant="outline"
-                  size="md"
-                  onClick={openParametersModal}>
-                  Form
-                </Button>
                 <Button
                   variant="outline"
                   leftIcon={<SaveIcon />}
