@@ -1974,19 +1974,9 @@ def get_forms(db: Session = Depends(get_db)) -> t.Any:
     """Get all forms."""
     return crud.form.get_all(db)
 
-
-@app.get("/forms/{form_id}", response_model=schemas.Form)
-def get_form(form_id: int, db: Session = Depends(get_db)) -> t.Any:
-    """Get a specific form by ID."""
-    form = crud.form.get(db, id=form_id)
-    if not form:
-        raise HTTPException(status_code=404, detail="Form not found")
-    return form
-
-
-@app.get("/forms/name/{form_name}", response_model=schemas.Form)
-def get_form_by_name(form_name: str, db: Session = Depends(get_db)) -> t.Any:
-    """Get a specific form by name."""
+@app.get("/forms/{form_name}", response_model=schemas.Form)
+def get_form(form_name: str, db: Session = Depends(get_db)) -> t.Any:
+    """Get a specific form by ID or name."""
     form = crud.form.get_by(db, obj_in={"name": form_name})
     if not form:
         raise HTTPException(status_code=404, detail="Form not found")

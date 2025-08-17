@@ -1,5 +1,11 @@
 export const commandFields: CommandFields = {
   toolbox: {
+    user_form: [
+      {
+        name: "name",
+        type: "text"
+      },
+    ],
     run_script: [
       {
         name: "name",
@@ -130,7 +136,6 @@ export const commandFields: CommandFields = {
       { name: "field_4", type: "text", defaultValue: "" },
       { name: "field_5", type: "text", defaultValue: "" },
     ],
-
     print: [
       { name: "format_name", type: "text" },
       { name: "field_0", type: "text" },
@@ -140,7 +145,6 @@ export const commandFields: CommandFields = {
       { name: "field_4", type: "text" },
       { name: "field_5", type: "text" },
     ],
-
     show_diagnostics: [],
     rotate_180: [],
     rotate_stage: [{ name: "angle", type: "number" }],
@@ -282,5 +286,121 @@ export const commandFields: CommandFields = {
     unwind: [],
     go_to: [{ name: "stack_id", type: "number", defaultValue: 1 }],
     send_raw_command: [{ name: "command", type: "text" }],
+  },
+};
+
+// Command icons mapping - separate object for cleaner organization
+export const commandIcons: Record<string, Record<string, string>> = {
+  toolbox: {
+    user_form: "📝",
+    run_script: "⚡",
+    send_slack_alert: "🚨",
+    pause: "⏸️",
+    timer: "⏱️",
+    note: "📄",
+    show_message: "💬",
+    stop_run: "🛑",
+    goto: "🔄",
+    variable_assignment: "📊",
+  },
+  plateloc: {
+    seal: "🔒",
+    set_temperature: "🌡️",
+    set_seal_time: "⏰",
+    get_actual_temperature: "📊",
+    stage_in: "📥",
+    stage_out: "📤",
+    show_diagnostics: "🔍",
+  },
+  bravo: {
+    run_protocol: "🏃",
+    run_runset: "📋",
+  },
+  vprep: {
+    run_protocol: "🏃",
+    run_runset: "📋",
+  },
+  hamilton: {
+    run_protocol: "🏃",
+    load_protocol: "📂",
+  },
+  vcode: {
+    home: "🏠",
+    print_and_apply: "🖨️",
+    print: "🖨️",
+    show_diagnostics: "🔍",
+    rotate_180: "🔄",
+    rotate_stage: "🔄",
+  },
+  xpeel: {
+    peel: "🍊",
+    check_status: "✅",
+    reset: "🔄",
+    restart: "🔄",
+    get_remaining_tape: "📏",
+  },
+  hig_centrifuge: {
+    home: "🏠",
+    close_shield: "🛡️",
+    open_shield: "🛡️",
+    spin: "🌪️",
+  },
+  bioshake: {
+    grip: "✊",
+    ungrip: "✋",
+    home: "🏠",
+    reset: "🔄",
+    start_shake: "🫨",
+    stop_shake: "🛑",
+    wait_for_shake_to_finish: "⏳",
+    set_temperature: "🌡️",
+    temperature_on: "🔥",
+    temperature_off: "❄️",
+  },
+  cytation: {
+    open_carrier: "📂",
+    close_carrier: "📁",
+    start_read: "📖",
+  },
+  dataman70: {
+    reset: "🔄",
+    assert_barcode: "📊",
+  },
+  alps3000: {
+    seal_plate: "🔒",
+  },
+  liconic: {
+    fetch_plate: "📥",
+    store_plate: "📤",
+    reset: "🔄",
+    raw_command: "💻",
+  },
+  opentrons2: {
+    run_program: "🏃",
+    sleep: "😴",
+    pause: "⏸️",
+    resume: "▶️",
+    cancel: "❌",
+    toggle_light: "💡",
+  },
+  pf400: {
+    run_sequence: "🏃",
+    move: "➡️",
+    grasp_plate: "✊",
+    release_plate: "✋",
+    retrieve_plate: "📥",
+    dropoff_plate: "📤",
+    pick_lid: "🎩",
+    place_lid: "🎩",
+    unwind: "🔄",
+  },
+  microserve: {
+    load: "📥",
+    unload: "📤",
+    home: "🏠",
+    abort: "🛑",
+    unwind: "🔄",
+    go_to: "➡️",
+    send_raw_command: "💻",
   },
 };

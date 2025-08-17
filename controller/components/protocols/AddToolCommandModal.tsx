@@ -40,7 +40,7 @@ import {
 import { useState, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
 import { RiSearchLine } from "react-icons/ri";
-import { commandFields } from "../tools/constants";
+import { commandFields, commandIcons } from "../tools/constants";
 import { capitalizeFirst } from "@/utils/parser";
 import { PiToolbox } from "react-icons/pi";
 import { warningToast } from "../ui/Toast";
@@ -88,6 +88,11 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     { enabled: !!selectedToolData?.id && selectedToolType === "pf400" },
   );
 
+  // Helper function to get command icon
+  const getCommandIcon = (toolType: string, command: string): string => {
+    return commandIcons[toolType]?.[command] || "⚙️";
+  };
+
   useEffect(() => {
     if (selectedToolType && selectedCommand) {
       const availableCommands = commandFields[selectedToolType] || {};
@@ -123,7 +128,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
 
   // Get fields for the selected command
   const fields: Field[] =
-    selectedToolType && selectedCommand ? availableCommands[selectedCommand] || [] : [];
+    selectedToolType && selectedCommand ? commandFields[selectedToolType]?.[selectedCommand] || [] : [];
 
   // Get available tools with their IDs and names
   const availableTools = [
@@ -588,20 +593,32 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
 
   const CommandCard = ({ command }: { command: string }) => {
     const isSelected = selectedCommand === command;
+    const icon = getCommandIcon(selectedToolType, command);
 
     return (
       <Box
-        p={3}
+        p={4}
         borderRadius="lg"
         cursor="pointer"
         bg={isSelected ? selectedToolBg : toolCardBg}
         borderColor={isSelected ? "teal.500" : "gray.200"}
+        border="1px solid"
         boxShadow="md"
         _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
-        onClick={() => setSelectedCommand(command)}>
-        <Text fontSize="md" fontWeight={isSelected ? "bold" : "normal"}>
-          {command}
-        </Text>
+        onClick={() => setSelectedCommand(command)}
+        minH="100px">
+        <VStack spacing={3} align="center" justify="center" h="100%">
+          <Text fontSize="2xl" role="img" aria-label={command}>
+            {icon}
+          </Text>
+          <Text 
+            fontSize="sm" 
+            fontWeight={isSelected ? "bold" : "normal"}
+            textAlign="center"
+            wordBreak="break-word">
+            {command}
+          </Text>
+        </VStack>
       </Box>
     );
   };
@@ -664,8 +681,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                 </HStack>
               )}
             </Flex>
-            <Box maxH="300px" overflowY="auto" pr={2} py={2}>
-              <SimpleGrid columns={[1, 2]} spacing={4}>
+            <Box maxH="400px" overflowY="auto" pr={2} py={2}>
+              <SimpleGrid columns={[2, 3, 4]} spacing={4}>
                 {Object.keys(availableCommands).map((command) => (
                   <CommandCard key={command} command={command} />
                 ))}

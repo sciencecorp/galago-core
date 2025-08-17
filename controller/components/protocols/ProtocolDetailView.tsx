@@ -369,7 +369,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       return (
         <Button
           leftIcon={<AddIcon />}
-          colorScheme="blue"
+          colorScheme="teal"
           variant="outline"
           onClick={() => handleAddCommandAtPosition(0)}>
           Add First Command
