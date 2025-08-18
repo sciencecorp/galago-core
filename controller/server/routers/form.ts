@@ -59,16 +59,10 @@ export const formRouter = router({
     return response;
   }),
 
-  // Get a specific form by ID
-  get: procedure.input(z.number()).query(async ({ input }) => {
-    const response = await get<Form>(`/forms/${input}`);
-    return response;
-  }),
 
   // Get a specific form by name
-  getByName: procedure.input(z.string()).query(async ({ input }) => {
-    const encodedName = encodeURIComponent(input);
-    const response = await get<Form>(`/forms/name/${encodedName}`);
+  get: procedure.input(z.string()).query(async ({ input }) => {
+    const response = await get<Form>(`/forms/${input}`);
     return response;
   }),
 
@@ -89,6 +83,15 @@ export const formRouter = router({
     return response;
   }),
 
+  submitForm: procedure
+  .input(z.object({
+    formData: z.record(z.any())
+  }))
+  .mutation(async ({ input }) => {
+    await CommandQueue.global.submitForm(input.formData);
+    return { success: true };
+  }),
+  
   edit: procedure
     .input(
       z.object({

@@ -40,6 +40,7 @@ import { MessageModal } from "./MessageModal";
 import { TimerModal } from "./TimerModal";
 import { StopRunModal } from "./StopRunModal";
 import { ErrorModal } from "./ErrorModal";
+import { FormModal } from "./FormModal";
 
 const LastUpdatedTime = () => {
   const [time, setTime] = useState<string>("");
@@ -68,6 +69,12 @@ export const RunsComponent: React.FC = () => {
   const [isErrorVisible, setIsErrorVisible] = useState(true);
   const [showAllCommands, setShowAllCommands] = useState(true);
 
+
+  // Add these state variables to RunsComponent
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [currentFormName, setCurrentFormName] = useState<string>("");
+  const [formError, setFormError] = useState<string | null>(null);
+ 
   // Unified message state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
@@ -107,6 +114,10 @@ export const RunsComponent: React.FC = () => {
 
   // Query for current message data
   const currentMessageQuery = trpc.commandQueue.currentMessage.useQuery(undefined, {
+    refetchInterval: 1000,
+  });
+
+  const currentFormQuery = trpc.commandQueue.getCurrentForm.useQuery(undefined, {
     refetchInterval: 1000,
   });
 

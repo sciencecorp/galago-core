@@ -110,13 +110,20 @@ export const commandQueueRouter = router({
   gotoCommand: procedure.input(z.number()).mutation(async ({ input }) => {
     return CommandQueue.global.gotoCommand(input);
   }),
-  // Get current message data (type, message text, title)
+
+  // Get current message 
   currentMessage: procedure.query(async () => {
     return CommandQueue.global.currentMessage;
   }),
+
+  currentForm: procedure.query(async () => {
+    return CommandQueue.global.currentForm;
+  }),
+  
   // Resume command (works for both pause and show_message)
   resume: procedure.mutation(() => {
     CommandQueue.global.resume();
     return { success: true };
   }),
+  
 });

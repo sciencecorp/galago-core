@@ -217,13 +217,27 @@ export default class Tool {
     }
 
     //Handle script execution
+//Handle script execution
     if (command.command === "run_script" && command.toolId === "tool_box") {
+      if (!command.params.name || command.params.name.trim() === "") {
+        throw new Error("Script name is required for run_script command");
+      }
       const scriptName = command.params.name
         .replaceAll(".js", "")
         .replaceAll(".py", "")
         .replaceAll(".cs", "");
       try {
         const script = await get<Script>(`/scripts/${scriptName}`);
+
+        // Check if script content is valid before processing
+        if (!script.content || typeof script.content !== 'string') {
+          logAction({
+            level: "error",
+            action: "Script Error",
+            details: `Script ${scriptName} has no content or invalid content`,
+          });
+          throw new Error(`Script ${scriptName} has no content or invalid content`);
+        }
 
         // Auto-detect and set dependencies from import statements
         const detectedDependencies = ScriptLoader.parseImports(script.content, script.language);
@@ -240,6 +254,17 @@ export default class Tool {
 
           // Fetch the updated script
           const updatedScript = await get<Script>(`/scripts/${script.id}`);
+          
+          // Validate updated script content
+          if (!updatedScript.content || typeof updatedScript.content !== 'string') {
+            logAction({
+              level: "error",
+              action: "Script Error",
+              details: `Updated script ${scriptName} has no content or invalid content`,
+            });
+            throw new Error(`Updated script ${scriptName} has no content or invalid content`);
+          }
+          
           command.params.name = updatedScript.content;
         } else {
           command.params.name = script.content;
@@ -249,6 +274,16 @@ export default class Tool {
           const { ordered } = await ScriptLoader.load(script.id);
           const requireScript = ScriptLoader.createRequireScript(ordered);
           const assembled = await ScriptLoader.assembleJavaScriptWithImports(script.id);
+
+          // Validate assembled content
+          if (!assembled || typeof assembled !== 'string') {
+            logAction({
+              level: "error",
+              action: "Script Assembly Error",
+              details: `Failed to assemble JavaScript script ${scriptName} - no content generated`,
+            });
+            throw new Error(`Failed to assemble JavaScript script ${scriptName} - no content generated`);
+          }
 
           const result = await JavaScriptExecutor.executeScript(assembled, { requireScript });
           if (!result.success) {
@@ -294,6 +329,17 @@ export default class Tool {
           } as tool_base.ExecuteCommandReply;
         } else if (script.language === "python") {
           const assembled = await ScriptLoader.assemblePython(script.id);
+          
+          // Validate assembled Python content
+          if (!assembled || typeof assembled !== 'string') {
+            logAction({
+              level: "error",
+              action: "Script Assembly Error",
+              details: `Failed to assemble Python script ${scriptName} - no content generated`,
+            });
+            throw new Error(`Failed to assemble Python script ${scriptName} - no content generated`);
+          }
+          
           command.params.name = assembled;
         }
       } catch (e: any) {

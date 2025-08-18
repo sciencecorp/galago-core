@@ -21,12 +21,14 @@ export enum QueueState {
 
 // UI message type for differentiating between pause and show_message
 export interface UIMessage {
-  type: "pause" | "message" | "timer" | "stop_run";
+  type: "pause" | "message" | "timer" | "stop_run" | "show_form";
   message: string;
   title?: string;
-  pausedAt?: number; // Timestamp when paused or message shown
-  timerDuration?: number; //Total duration of the timer
-  timerEndTime?: number; // Timestamp when timer ends
+  pausedAt?: number;
+  timerDuration?: number;
+  timerEndTime?: number;
+  formName?: string; // Add this for form display
+  formData?: Record<string, any>; // Add this to store submitted form data
 }
 
 export class CommandQueue {

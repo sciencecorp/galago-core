@@ -21,6 +21,13 @@ export class ScriptLoader {
    */
   static parseImports(content: string, language: string = "javascript"): string[] {
     const imports: string[] = [];
+
+
+     if (!content || typeof content !== 'string') {
+      console.warn('parseImports: content is null, undefined, or not a string:', content);
+      return imports;
+    }
+    
     const lines = content.split("\n");
 
     for (const line of lines) {

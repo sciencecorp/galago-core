@@ -86,7 +86,6 @@ export const Forms = () => {
               <VStack spacing={4}>
                   <FormBuilder
                     forms={forms}
-                    selectedForm={selectedForm}
                     onCancel={handleFormCancel}
                     onUpdate={refetch}
                   />
