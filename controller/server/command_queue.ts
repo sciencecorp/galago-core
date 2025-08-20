@@ -21,14 +21,13 @@ export enum QueueState {
 
 // UI message type for differentiating between pause and show_message
 export interface UIMessage {
-  type: "pause" | "message" | "timer" | "stop_run" | "show_form";
+  type: "pause" | "message" | "timer" | "stop_run" | "user_form";
   message: string;
   title?: string;
-  pausedAt?: number;
-  timerDuration?: number;
-  timerEndTime?: number;
-  formName?: string; // Add this for form display
-  formData?: Record<string, any>; // Add this to store submitted form data
+  pausedAt?: number; 
+  timerDuration?: number; 
+  timerEndTime?: number; 
+  formName?: string; // Add this for user_form
 }
 
 export class CommandQueue {
@@ -197,6 +196,30 @@ export class CommandQueue {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
+
+async showUserForm(formName: string) {
+  await this._ensureModalReady();
+
+  const pausedAt = Date.now();
+  this._isWaitingForInput = true;
+  this._currentMessage = {
+    type: "user_form",
+    message: `Please fill out the ${formName} form and click Submit to continue.`,
+    formName: formName,
+    pausedAt: pausedAt,
+  };
+
+  logAction({
+    level: "info",
+    action: "Queue Showing User Form",
+    details: `Queue showing user form: ${formName} at ${new Date(pausedAt).toISOString()}`,
+  });
+
+  // Return a promise that resolves when resume is called
+  return new Promise<void>((resolve) => {
+    this._messageResolve = resolve;
+  });
+}
 
   // Show pause message and wait for user input
   async pause(message?: string) {
@@ -575,7 +598,23 @@ export class CommandQueue {
             await this.commands.complete(nextCommand.queueId);
             await this.pause(message);
             continue;
-          } else if (nextCommand.commandInfo.command === "show_message") {
+          } 
+          else if (nextCommand.commandInfo.command === "user_form") {
+            // Handle user_form command
+            const formName = nextCommand.commandInfo.params?.name; // ✅ Correct: use "name" parameter
+            
+            console.log("Processing user_form command:", { formName }); // Add debugging
+
+            if (!formName) {
+              throw new Error("Form name is required for user_form command");
+            }
+
+            await this.commands.complete(nextCommand.queueId);
+            await this.showUserForm(formName); // Remove message parameter since it doesn't exist
+            continue;
+          }
+          
+          else if (nextCommand.commandInfo.command === "show_message") {
             // Handle show_message command
             let message =
               nextCommand.commandInfo.params?.message ||
