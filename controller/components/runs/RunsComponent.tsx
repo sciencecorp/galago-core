@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { SwimLaneComponent } from "@/components/runs/list/SwimLaneComponent";
 import RunQueueGanttChart from "@/components/runs/gantt/RunQueueGanttChart";
 import { trpc } from "@/utils/trpc";
@@ -74,6 +74,9 @@ export const RunsComponent: React.FC = () => {
   const [isUserFormModalOpen, setIsUserFormModalOpen] = useState(false);
   const [currentForm, setCurrentForm] = useState<Form | null>(null);
   const [userFormError, setUserFormError] = useState<string | null>(null);
+  
+  // OPTIMIZATION: Form cache to prevent unnecessary refetches
+  const [formCache, setFormCache] = useState<Map<string, Form>>(new Map());
  
   // Unified message state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -104,40 +107,43 @@ export const RunsComponent: React.FC = () => {
   const stopQueueMutation = trpc.commandQueue.stop.useMutation();
   const clearAllMutation = trpc.commandQueue.clearAll.useMutation();
   const skipRunMutation = trpc.commandQueue.clearByRunId.useMutation();
-  // Resume mutation
   const resumeMutation = trpc.commandQueue.resume.useMutation();
 
-  const commandsAll = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 2000 });
-  // Query for waiting-for-input status
+  // OPTIMIZATION 1: Adaptive polling based on queue state
+  const stateQuery = trpc.commandQueue.state.useQuery(undefined, { 
+    refetchInterval: 1000 
+  });
+
+  const isQueueBusy = stateQuery.data === ToolStatus.BUSY;
+
+  // OPTIMIZATION 2: Reduce polling when not actively running
   const isWaitingForInputQuery = trpc.commandQueue.isWaitingForInput.useQuery(undefined, {
-    refetchInterval: 1000,
+    refetchInterval: isQueueBusy ? 1000 : 3000, // Slower polling when queue is idle
   });
 
-  // Query for current message data
   const currentMessageQuery = trpc.commandQueue.currentMessage.useQuery(undefined, {
-    refetchInterval: 1000,
+    refetchInterval: isWaitingForInputQuery.data ? 500 : 2000, // Faster when waiting for input
+    enabled: isQueueBusy || isWaitingForInputQuery.data, // Only poll when needed
   });
 
-  // Form fetching query (only execute when we have a form name)
+  // OPTIMIZATION 3: Smart form caching and fetching
+  const shouldFetchForm = useMemo(() => {
+    return messageData.formName && 
+           messageData.type === "user_form" && 
+           !formCache.has(messageData.formName);
+  }, [messageData.formName, messageData.type, formCache]);
+
   const formQuery = trpc.form.get.useQuery(
     messageData.formName || "",
     {
-      enabled: !!messageData.formName && messageData.type === "user_form",
+      enabled: shouldFetchForm,
+      staleTime: 5 * 60 * 1000, // 5 minutes - forms rarely change
+      cacheTime: 15 * 60 * 1000, // 15 minutes cache
+      retry: 1, // Don't retry too many times
     }
   );
 
-  // Handle form query results
-  useEffect(() => {
-    if (formQuery.data && messageData.type === "user_form") {
-      console.log("✅ Form loaded successfully:", formQuery.data);
-      setCurrentForm(formQuery.data);
-      setUserFormError(null);
-    } else if (formQuery.error && messageData.type === "user_form") {
-      console.error("❌ Failed to load form:", formQuery.error);
-      setUserFormError(`Failed to load form: ${formQuery.error.message}`);
-      setCurrentForm(null);
-    }
-  }, [formQuery.data, formQuery.error, messageData.type]);
+  const commandsAll = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 2000 });
 
   const commandBgColor = useColorModeValue("gray.50", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.600");
@@ -154,7 +160,6 @@ export const RunsComponent: React.FC = () => {
     [commandsAll.data],
   );
 
-  const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 1000 });
   const queue = trpc.commandQueue;
   const getError = queue.getError.useQuery(undefined, {
     refetchInterval: 1500,
@@ -162,92 +167,97 @@ export const RunsComponent: React.FC = () => {
     retry: false,
   });
 
-  // Add render logging after all state is declared
-  console.log("🎨 RunsComponent render:", {
-    isUserFormModalOpen,
-    currentForm: !!currentForm,
-    currentFormName: currentForm?.name,
-    messageDataFormName: messageData?.formName,
-    messageType: messageData?.type,
-    isWaitingForInput: isWaitingForInputQuery.data,
-  });
+  // OPTIMIZATION 4: Memoized modal states
+  const modalStates = useMemo(() => {
+    const isWaiting = isWaitingForInputQuery.data;
+    return {
+      shouldShowUserFormModal: isWaiting && messageData.type === "user_form",
+      shouldShowRegularModal: isWaiting && messageData.type !== "user_form" && messageData.type !== "timer",
+      shouldShowTimerModal: isWaiting && messageData.type === "timer",
+      shouldShowStopRunModal: isWaiting && messageData.type === "stop_run",
+    };
+  }, [isWaitingForInputQuery.data, messageData.type]);
 
+  // OPTIMIZATION 5: Cache form data when loaded
   useEffect(() => {
-    console.log("🔍 RunsComponent useEffect triggered");
-    console.log("isWaitingForInputQuery.data:", isWaitingForInputQuery.data);
-    console.log("currentMessageQuery.data:", currentMessageQuery.data);
-    console.log("Current messageData:", messageData);
-    
-    if (isWaitingForInputQuery.data !== undefined) {
-      const shouldShowModal = isWaitingForInputQuery.data;
-      const shouldShowUserForm = shouldShowModal && messageData.type === "user_form";
-      
-      console.log("shouldShowModal:", shouldShowModal);
-      console.log("shouldShowUserForm:", shouldShowUserForm);
-      console.log("messageData.type:", messageData.type);
-      
-      setIsModalOpen(shouldShowModal && messageData.type !== "user_form");
-      setIsUserFormModalOpen(shouldShowUserForm);
-      
-      console.log("Modal states set - isModalOpen:", shouldShowModal && messageData.type !== "user_form");
-      console.log("Modal states set - isUserFormModalOpen:", shouldShowUserForm);
+    if (formQuery.data && messageData.formName) {
+      setFormCache(prev => {
+        const newCache = new Map(prev);
+        newCache.set(messageData.formName!, formQuery.data!);
+        return newCache;
+      });
     }
+  }, [formQuery.data, messageData.formName]);
 
-    if (currentMessageQuery.data) {
-      console.log("📨 Processing currentMessageQuery.data:", currentMessageQuery.data);
+  // OPTIMIZATION 6: Get current form from cache or query
+  const currentFormData = useMemo(() => {
+    if (!messageData.formName || messageData.type !== "user_form") {
+      return null;
+    }
+    return formCache.get(messageData.formName) || formQuery.data || null;
+  }, [messageData.formName, messageData.type, formCache, formQuery.data]);
+
+  // OPTIMIZATION 7: Debounced message data updates with change detection
+  const [previousMessageData, setPreviousMessageData] = useState<string>("");
+  
+  useEffect(() => {
+    if (!currentMessageQuery.data) return;
+
+    const newDataString = JSON.stringify(currentMessageQuery.data);
+    
+    // Only update if data actually changed
+    if (newDataString !== previousMessageData) {
+      setPreviousMessageData(newDataString);
       
-      const newMessageData = {
+      setMessageData({
         type: currentMessageQuery.data.type,
         message: currentMessageQuery.data.message,
-        ...(currentMessageQuery.data.title ? { title: currentMessageQuery.data.title } : {}),
-        ...(currentMessageQuery.data.pausedAt
-          ? { pausedAt: currentMessageQuery.data.pausedAt }
-          : {}),
-        ...(currentMessageQuery.data.timerDuration
-          ? { timerDuration: currentMessageQuery.data.timerDuration }
-          : {}),
-        ...(currentMessageQuery.data.timerEndTime
-          ? { timerEndTime: currentMessageQuery.data.timerEndTime }
-          : {}),
-        ...(currentMessageQuery.data.formName
-          ? { formName: currentMessageQuery.data.formName }
-          : {}),
-      };
-
-      console.log("🎯 Setting messageData to:", newMessageData);
-      setMessageData(newMessageData);
-      
-      // Reset form state when message type changes
-      if (newMessageData.type !== "user_form") {
-        console.log("🧹 Resetting form state (not user_form)");
-        setCurrentForm(null);
-        setUserFormError(null);
-      } else {
-        console.log("📋 User form type detected, formName:", newMessageData.formName);
-      }
+        title: currentMessageQuery.data.title,
+        pausedAt: currentMessageQuery.data.pausedAt,
+        timerDuration: currentMessageQuery.data.timerDuration,
+        timerEndTime: currentMessageQuery.data.timerEndTime,
+        formName: currentMessageQuery.data.formName,
+      });
     }
-  }, [isWaitingForInputQuery.data, currentMessageQuery.data, messageData.type]);
+  }, [currentMessageQuery.data, previousMessageData]);
 
-  const handleResume = () => {
+  // OPTIMIZATION 8: Sync modal states with memoized values
+  useEffect(() => {
+    setIsModalOpen(modalStates.shouldShowRegularModal);
+    setIsUserFormModalOpen(modalStates.shouldShowUserFormModal);
+  }, [modalStates]);
+
+  // OPTIMIZATION 9: Sync current form data
+  useEffect(() => {
+    setCurrentForm(currentFormData);
+    
+    // Handle form loading states
+    if (formQuery.error && messageData.type === "user_form") {
+      setUserFormError(`Failed to load form: ${formQuery.error.message}`);
+    } else if (currentFormData) {
+      setUserFormError(null);
+    }
+  }, [currentFormData, formQuery.error, messageData.type]);
+
+  // OPTIMIZATION 10: Memoized handlers to prevent unnecessary re-renders
+  const handleResume = useCallback(() => {
     resumeMutation.mutate();
-  };
+  }, [resumeMutation]);
 
-  const handleUserFormSubmit = (formData: Record<string, any>) => {
-    // TODO: Handle form submission - for now just resume
+  const handleUserFormSubmit = useCallback((formData: Record<string, any>) => {
     console.log("Form submitted with data:", formData);
     resumeMutation.mutate();
     setIsUserFormModalOpen(false);
     setCurrentForm(null);
-  };
+  }, [resumeMutation]);
 
-  const handleUserFormCancel = () => {
-    // For now, just resume the queue - you might want different behavior
+  const handleUserFormCancel = useCallback(() => {
     resumeMutation.mutate();
     setIsUserFormModalOpen(false);
     setCurrentForm(null);
-  };
+  }, [resumeMutation]);
 
-  const handleRunStop = () => {
+  const handleRunStop = useCallback(() => {
     stopQueueMutation.mutate();
     clearAllMutation.mutate();
     setIsModalOpen(false);
@@ -257,7 +267,7 @@ export const RunsComponent: React.FC = () => {
       title: "Message",
       pausedAt: undefined,
     });
-  };
+  }, [stopQueueMutation, clearAllMutation]);
 
   const ErrorBanner = () => {
     if (!getError.data && !getError.error) return null;
@@ -376,11 +386,11 @@ export const RunsComponent: React.FC = () => {
     return expandedRuns.has(runId) ? <ChevronUpIcon /> : <PlusSquareIcon />;
   }
 
-  const handleConfirmDelete = (runId: string) => {
+  const handleConfirmDelete = useCallback((runId: string) => {
     skipRunMutation.mutate(runId);
-  };
+  }, [skipRunMutation]);
 
-  const handleRunButtonClick = (runId: string) => {
+  const handleRunButtonClick = useCallback((runId: string) => {
     setExpandedRuns((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(runId)) {
@@ -390,9 +400,9 @@ export const RunsComponent: React.FC = () => {
       }
       return newSet;
     });
-  };
+  }, []);
 
-  const handleRunClick = (runId: string) => {
+  const handleRunClick = useCallback((runId: string) => {
     setSelectedRunId((prevId) => (prevId === runId ? null : runId));
     setExpandedRuns((prev) => {
       const newSet = new Set(prev);
@@ -403,7 +413,7 @@ export const RunsComponent: React.FC = () => {
       }
       return newSet;
     });
-  };
+  }, []);
 
   const renderRunsList = () => {
     return groupedCommands.map((run, index) => {
@@ -497,11 +507,23 @@ export const RunsComponent: React.FC = () => {
     });
   };
 
+  // Debug logging (can be removed in production)
+  console.log("🎨 RunsComponent render:", {
+    isUserFormModalOpen,
+    currentForm: !!currentForm,
+    currentFormName: currentForm?.name,
+    messageDataFormName: messageData?.formName,
+    messageType: messageData?.type,
+    isWaitingForInput: isWaitingForInputQuery.data,
+    cacheSize: formCache.size,
+    shouldFetch: shouldFetchForm,
+  });
+
   return (
     <Box width="100%">
-      {messageData.type === "timer" && (
+      {modalStates.shouldShowTimerModal && (
         <TimerModal
-          isOpen={isModalOpen && messageData.type === "timer"}
+          isOpen={modalStates.shouldShowTimerModal}
           messageData={{
             message: messageData.message,
             pausedAt: messageData.pausedAt,
@@ -511,24 +533,28 @@ export const RunsComponent: React.FC = () => {
           onSkip={handleResume}
         />
       )}
+      
       <MessageModal
-        isOpen={isModalOpen && messageData.type !== "timer" && messageData.type !== "user_form"}
+        isOpen={modalStates.shouldShowRegularModal}
         messageData={messageData}
         onContinue={handleResume}
       />
+      
       <UserFormModal
-        isOpen={isUserFormModalOpen}
+        isOpen={modalStates.shouldShowUserFormModal}
         form={currentForm}
         onSubmit={handleUserFormSubmit}
         onCancel={handleUserFormCancel}
       />
+      
       <ErrorModal
         isOpen={isErrorModalOpen}
         onClose={() => setIsErrorModalOpen(false)}
         errorData={errorModalData}
       />
+      
       <StopRunModal
-        isOpen={isModalOpen && messageData.type === "stop_run"}
+        isOpen={modalStates.shouldShowStopRunModal}
         messageData={messageData}
         onClose={handleResume}
         onConfirm={handleRunStop}
@@ -640,6 +666,29 @@ export const RunsComponent: React.FC = () => {
           </CardBody>
         </Card>
       </VStack>
+
+      {/* OPTIMIZATION 11: Conditional debug panel (only when form modal is involved) */}
+      {process.env.NODE_ENV === 'development' && messageData.type === "user_form" && (
+        <Box 
+          position="fixed" 
+          bottom={4} 
+          right={4} 
+          bg="black" 
+          color="white" 
+          p={3} 
+          borderRadius="md" 
+          fontSize="xs"
+          zIndex={9999}
+          maxW="300px">
+          <Text fontWeight="bold" mb={2}>UserForm Debug:</Text>
+          <Text>FormName: {messageData.formName}</Text>
+          <Text>InCache: {messageData.formName ? (formCache.has(messageData.formName) ? 'Yes' : 'No') : 'N/A'}</Text>
+          <Text>QueryStatus: {formQuery.isLoading ? 'Loading' : formQuery.error ? 'Error' : formQuery.data ? 'Success' : 'Idle'}</Text>
+          <Text>ModalOpen: {isUserFormModalOpen ? 'Yes' : 'No'}</Text>
+          <Text>CacheSize: {formCache.size}</Text>
+          <Text>LastUpdate: {new Date(currentMessageQuery.dataUpdatedAt || 0).toLocaleTimeString()}</Text>
+        </Box>
+      )}
     </Box>
   );
 };
