@@ -53,6 +53,26 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
 }) => {
   const inputBg = useColorModeValue("white", "gray.700");
   const borderColor = useColorModeValue("gray.200", "gray.600");
+  
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      try {
+        // Read the file as text
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const content = event.target?.result;
+          // Save the file content to the variable
+          onChange(content);
+          
+        };
+        reader.readAsText(file);
+      } catch (error) {
+        console.error("Error reading file:", error);
+      }
+  };
+
 
   const renderField = () => {
     switch (field.type) {
@@ -177,7 +197,7 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
         return (
           <Input
             type="file"
-            onChange={(e) => onChange(e.target.files?.[0] || null)}
+            onChange={(e) => handleFileChange(e)}
             bg={inputBg}
             borderColor={borderColor}
             color={fontColor || defaultFontColor}
