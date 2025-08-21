@@ -58,6 +58,18 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
       const file = e.target.files?.[0];
       if (!file) return;
 
+      // Check file size (20MB = 20 * 1024 * 1024 bytes)
+      const maxSizeInBytes = 25 * 1024 * 1024; // 20MB
+      if (file.size > maxSizeInBytes) {
+        errorToast(
+          "File too large",
+          `File size must be under 25MB. Selected file is ${(file.size / (1024 * 1024)).toFixed(2)}MB`
+        );
+        // Clear the input
+        e.target.value = '';
+        return;
+      }
+
       try {
         // Read the file as text
         const reader = new FileReader();
@@ -70,6 +82,10 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
         reader.readAsText(file);
       } catch (error) {
         console.error("Error reading file:", error);
+        errorToast(
+          "Error reading file",
+          "Failed to read the selected file. Please try again."
+        );
       }
   };
 
@@ -197,6 +213,7 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
         return (
           <Input
             type="file"
+            accept =".txt, .csv, .json, .xml, .xlsx"
             onChange={(e) => handleFileChange(e)}
             bg={inputBg}
             borderColor={borderColor}
