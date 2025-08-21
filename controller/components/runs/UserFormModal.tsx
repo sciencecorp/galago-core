@@ -26,6 +26,8 @@ import {
   AlertIcon,
 } from "@chakra-ui/react";
 import { Form, FormField } from "@/types";
+import { trpc } from "@/utils/trpc";
+import { errorToast } from "../ui/Toast";
 
 interface UserFormModalProps {
   isOpen: boolean;
@@ -207,7 +209,19 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
   return (
     <FormControl isRequired={field.required}>
       <FormLabel color={fontColor || defaultFontColor} fontWeight="medium">
-        {field.label}
+        <HStack spacing={1} alignItems="center">
+          <Text>{field.label}</Text>
+          {field.mapped_variable && (
+            <Text
+              as="span"
+              fontSize="xs"
+              color="blue.500"
+              fontWeight="bold"
+              ml={1}>
+              (→ {field.mapped_variable})
+            </Text>
+          )}
+        </HStack>
       </FormLabel>
       {renderField()}
     </FormControl>
@@ -222,6 +236,11 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
 }) => {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Add tRPC mutations for variable operations
+  const editVariable = trpc.variable.edit.useMutation();
+  const createVariable = trpc.variable.add.useMutation();
+  const variablesQuery = trpc.variable.getAll.useQuery();
 
   const defaultBgColor = useColorModeValue("#ffffff", "#2d3748");
   const defaultFontColor = useColorModeValue("#1a202c", "#ffffff");
@@ -260,13 +279,74 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateForm()) {
-      onSubmit(formData);
-      // Reset form data for next time
-      setFormData({});
-      setErrors({});
+      try {
+        // Update mapped variables before calling onSubmit
+        await updateMappedVariables();
+        
+        onSubmit(formData);
+        // Reset form data for next time
+        setFormData({});
+        setErrors({});
+      } catch (error) {
+        console.error("Error updating mapped variables:", error);
+        errorToast(
+          "Error updating variables",
+          "Failed to update mapped variables. Please try again."
+        );
+      }
     }
+  };
+
+  // Function to update all mapped variables
+  const updateMappedVariables = async () => {
+    if (!form) return;
+
+    // Get all fields with mapped variables
+    const fieldsWithMappedVariables = form.fields.filter(
+      field => field.mapped_variable && field.mapped_variable.trim() !== ""
+    );
+
+    if (fieldsWithMappedVariables.length === 0) {
+      return; // No mapped variables to update
+    }
+
+    const updatePromises = fieldsWithMappedVariables.map(async (field) => {
+      const variableName = field.mapped_variable!;
+      const formValue = formData[field.label];
+      
+      // Skip if no value provided
+      if (formValue === undefined || formValue === null) {
+        return null;
+      }
+
+      // Find existing variable
+      const existingVariable = variablesQuery.data?.find((v) => v.name === variableName);
+      
+      // Convert all values to strings as specified
+      const stringValue = String(formValue);
+
+      if (!existingVariable) {
+        // Create new variable - always as string type
+        return createVariable.mutateAsync({
+          name: variableName,
+          type: "string",
+          value: stringValue,
+        });
+      } else {
+        // Update existing variable
+        return editVariable.mutateAsync({
+          id: existingVariable.id,
+          value: stringValue,
+          name: existingVariable.name,
+          type: existingVariable.type, // Keep existing type
+        });
+      }
+    });
+
+    // Wait for all variable updates to complete
+    await Promise.all(updatePromises.filter(Boolean));
   };
 
   const handleCancel = () => {
@@ -369,6 +449,8 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
             <Button
               colorScheme="teal"
               onClick={handleSubmit}
+              isLoading={editVariable.isLoading || createVariable.isLoading}
+              isDisabled={editVariable.isLoading || createVariable.isLoading}
               minW="120px">
               Submit
             </Button>
