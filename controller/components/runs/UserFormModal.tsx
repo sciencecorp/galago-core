@@ -212,6 +212,7 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
       case "file":
         return (
           <Input
+            pt={field.type === "file" ? 1 : 0}
             type="file"
             accept =".txt, .csv, .json, .xml, .xlsx"
             onChange={(e) => handleFileChange(e)}
