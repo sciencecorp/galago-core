@@ -93,8 +93,6 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
   const renderField = () => {
     switch (field.type) {
       case "text":
-      case "email":
-      case "password":
       case "url":
         return (
           <Input

@@ -37,14 +37,6 @@ import { DeleteWithConfirmation } from "../ui/Delete";
 import { FormField, Form, FIELD_TYPES, DEFAULT_EDITING_FIELD } from "@/types";
 import { ColorPicker } from "./colorPicker";
 import { FormFieldComponent } from "./formFieldComponent";
-import {
-  AutoComplete,
-  AutoCompleteCreatable,
-  AutoCompleteInput,
-  AutoCompleteItem,
-  AutoCompleteList,
-  Item,
-} from "@choc-ui/chakra-autocomplete";
 
 interface FormBuilderProps {
   forms: Form[];

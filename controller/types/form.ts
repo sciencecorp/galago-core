@@ -1,9 +1,6 @@
 export const FIELD_TYPES = [
   { value: "text", label: "Text Input" },
-  { value: "email", label: "Email" },
-  { value: "password", label: "Password" },
   { value: "number", label: "Number" },
-  { value: "url", label: "URL" },
   { value: "textarea", label: "Textarea" },
   { value: "select", label: "Select Dropdown" },
   { value: "radio", label: "Radio Buttons" },
