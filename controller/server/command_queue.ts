@@ -24,9 +24,9 @@ export interface UIMessage {
   type: "pause" | "message" | "timer" | "stop_run" | "user_form";
   message: string;
   title?: string;
-  pausedAt?: number; 
-  timerDuration?: number; 
-  timerEndTime?: number; 
+  pausedAt?: number;
+  timerDuration?: number;
+  timerEndTime?: number;
   formName?: string; // Add this for user_form
 }
 
@@ -197,29 +197,29 @@ export class CommandQueue {
     }
   }
 
-async showUserForm(formName: string) {
-  await this._ensureModalReady();
+  async showUserForm(formName: string) {
+    await this._ensureModalReady();
 
-  const pausedAt = Date.now();
-  this._isWaitingForInput = true;
-  this._currentMessage = {
-    type: "user_form",
-    message: `Please fill out the ${formName} form and click Submit to continue.`,
-    formName: formName,
-    pausedAt: pausedAt,
-  };
+    const pausedAt = Date.now();
+    this._isWaitingForInput = true;
+    this._currentMessage = {
+      type: "user_form",
+      message: `Please fill out the ${formName} form and click Submit to continue.`,
+      formName: formName,
+      pausedAt: pausedAt,
+    };
 
-  logAction({
-    level: "info",
-    action: "Queue Showing User Form",
-    details: `Queue showing user form: ${formName} at ${new Date(pausedAt).toISOString()}`,
-  });
+    logAction({
+      level: "info",
+      action: "Queue Showing User Form",
+      details: `Queue showing user form: ${formName} at ${new Date(pausedAt).toISOString()}`,
+    });
 
-  // Return a promise that resolves when resume is called
-  return new Promise<void>((resolve) => {
-    this._messageResolve = resolve;
-  });
-}
+    // Return a promise that resolves when resume is called
+    return new Promise<void>((resolve) => {
+      this._messageResolve = resolve;
+    });
+  }
 
   // Show pause message and wait for user input
   async pause(message?: string) {
@@ -598,11 +598,10 @@ async showUserForm(formName: string) {
             await this.commands.complete(nextCommand.queueId);
             await this.pause(message);
             continue;
-          } 
-          else if (nextCommand.commandInfo.command === "user_form") {
+          } else if (nextCommand.commandInfo.command === "user_form") {
             // Handle user_form command
             const formName = nextCommand.commandInfo.params?.name; // ✅ Correct: use "name" parameter
-            
+
             console.log("Processing user_form command:", { formName }); // Add debugging
 
             if (!formName) {
@@ -612,9 +611,7 @@ async showUserForm(formName: string) {
             await this.commands.complete(nextCommand.queueId);
             await this.showUserForm(formName); // Remove message parameter since it doesn't exist
             continue;
-          }
-          
-          else if (nextCommand.commandInfo.command === "show_message") {
+          } else if (nextCommand.commandInfo.command === "show_message") {
             // Handle show_message command
             let message =
               nextCommand.commandInfo.params?.message ||
@@ -774,7 +771,6 @@ async showUserForm(formName: string) {
     try {
       const runQueue: RunQueue = {
         id: run.id,
-        params: run.params,
         run_type: run.protocolId,
         commands_count: run.commands.length,
         status: "CREATED",

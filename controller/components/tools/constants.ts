@@ -3,7 +3,7 @@ export const commandFields: CommandFields = {
     user_form: [
       {
         name: "name",
-        type: "text"
+        type: "text",
       },
     ],
     run_script: [

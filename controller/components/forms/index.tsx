@@ -16,18 +16,17 @@ import {
   StatNumber,
   useToast,
 } from "@chakra-ui/react";
-import { FormsList } from './formsList';
-import { FormBuilder } from './formBuilder';
-import { trpc } from '@/utils/trpc';
+import { FormBuilder } from "./formBuilder";
+import { trpc } from "@/utils/trpc";
 import { MdFormatListBulleted } from "react-icons/md";
-import { PageHeader } from '../ui/PageHeader';
+import { PageHeader } from "../ui/PageHeader";
 import { Form } from "@/types";
 import { EmptyState } from "../ui/EmptyState";
 import { CreateFormModal } from "./createFormModal";
 
 export const Forms = () => {
   const { data: fetchedForms, isLoading, refetch } = trpc.form.getAll.useQuery();
-  
+
   const headerBg = useColorModeValue("white", "gray.700");
   const [forms, setForms] = useState<Form[]>([]);
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
@@ -41,18 +40,24 @@ export const Forms = () => {
   const handleFormCancel = () => {
     setSelectedForm(null);
   };
- 
-  const stats = useMemo(() => ({
-    totalForms: forms.length,
-    activeFields: selectedForm?.fields?.length || 0,
-    selectedFormName: selectedForm?.name || "None"
-  }), [forms.length, selectedForm?.fields?.length, selectedForm?.name]);
 
+  const stats = useMemo(
+    () => ({
+      totalForms: forms.length,
+      activeFields: selectedForm?.fields?.length || 0,
+      selectedFormName: selectedForm?.name || "None",
+    }),
+    [forms.length, selectedForm?.fields?.length, selectedForm?.name],
+  );
 
   if (isLoading) {
-    return <Center><Spinner/></Center>;
+    return (
+      <Center>
+        <Spinner />
+      </Center>
+    );
   }
-  
+
   return (
     <Box width="100%">
       <VStack spacing={4} align="stretch">
@@ -63,7 +68,7 @@ export const Forms = () => {
                 title="Forms"
                 subTitle="Create and manage your forms"
                 titleIcon={<Icon as={MdFormatListBulleted} boxSize={8} color="teal.500" />}
-                mainButton={<CreateFormModal/>}
+                mainButton={<CreateFormModal />}
               />
               <Divider />
               <StatGroup>
@@ -83,13 +88,9 @@ export const Forms = () => {
             </VStack>
           </CardBody>
         </Card>
-              <VStack spacing={4}>
-                  <FormBuilder
-                    forms={forms}
-                    onCancel={handleFormCancel}
-                    onUpdate={refetch}
-                  />
-              </VStack>
+        <VStack spacing={4}>
+          <FormBuilder forms={forms} onCancel={handleFormCancel} onUpdate={refetch} />
+        </VStack>
       </VStack>
     </Box>
   );

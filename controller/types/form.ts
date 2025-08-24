@@ -26,7 +26,7 @@ export interface FormFieldOption {
 }
 
 export interface FormField {
-  type: string; // text, email, select, radio, checkbox, textarea, number, date, tel, etc.
+  type: "text" | "select" | "radio" | "checkbox" | "textarea" | "number" | "date" | "time" | "file"; // text, select, radio, checkbox, textarea, number, date, etc.
   label: string;
   required?: boolean;
   placeholder?: string | null;

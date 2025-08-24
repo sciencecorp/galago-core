@@ -2,28 +2,16 @@ import { Protocol } from "@/types/api";
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import axios from "axios";
-import { TRPCError } from "@trpc/server";
 import { logAction } from "@/server/logger";
 import { get, post, put } from "../utils/api";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
-
-export type AllNamesOutput = {
-  name: string;
-  id: string;
-  category: string;
-  workcell: string;
-  number_of_commands: number;
-  description?: string;
-  icon?: any;
-}[];
 
 const protocolSchema = z.object({
   name: z.string().min(1),
   category: z.string().min(1),
   workcell_id: z.number(),
   description: z.string().optional(),
-  icon: z.string().optional(),
   commands: z.array(z.any()),
   version: z.number().optional(),
   is_active: z.boolean().optional(),

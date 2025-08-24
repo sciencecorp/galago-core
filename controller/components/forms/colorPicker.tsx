@@ -109,7 +109,7 @@ export const ColorPicker: React.FC<{
   if (isSimple) {
     return (
       <FormControl>
-        <FormLabel color={useColorModeValue("gray.700", "gray.200")}>{label}</FormLabel>
+        <FormLabel>{label}</FormLabel>
         <HStack spacing={2}>
           <Button
             size="sm"
@@ -147,11 +147,7 @@ export const ColorPicker: React.FC<{
             White
           </Button>
 
-          <Button
-            size="sm"
-            variant="outline"
-            colorScheme={useColorModeValue("gray", "whiteAlpha")}
-            onClick={handleReset}>
+          <Button size="sm" variant="outline" onClick={handleReset}>
             Auto
           </Button>
         </HStack>
@@ -169,7 +165,7 @@ export const ColorPicker: React.FC<{
 
   return (
     <FormControl>
-      <FormLabel color={useColorModeValue("gray.700", "gray.200")}>{label}</FormLabel>
+      <FormLabel>{label}</FormLabel>
       <HStack spacing={2}>
         <Popover>
           <PopoverTrigger>
@@ -185,16 +181,11 @@ export const ColorPicker: React.FC<{
                   borderColor={borderColor}
                   borderRadius="md"
                 />
-              }
-              variant={useColorModeValue("outline", "solid")}
-              colorScheme={useColorModeValue("gray", "whiteAlpha")}>
+              }>
               Palette
             </Button>
           </PopoverTrigger>
-          <PopoverContent
-            w="300px"
-            bg={useColorModeValue("white", "gray.700")}
-            borderColor={borderColor}>
+          <PopoverContent w="300px" borderColor={borderColor}>
             <PopoverBody>
               <SimpleGrid columns={5} spacing={2}>
                 {COLOR_PALETTE.map((paletteColor) => (
@@ -241,11 +232,7 @@ export const ColorPicker: React.FC<{
           />
         </HStack>
 
-        <Button
-          size="sm"
-          variant="outline"
-          colorScheme={useColorModeValue("gray", "whiteAlpha")}
-          onClick={handleReset}>
+        <Button size="sm" variant="outline" colorScheme={"whiteAlpha"} onClick={handleReset}>
           Reset
         </Button>
       </HStack>

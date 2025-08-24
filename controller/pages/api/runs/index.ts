@@ -12,7 +12,6 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse<RunSubmissi
     const run = await RunStore.global.createFromProtocol(
       req.body.workcellName,
       req.body.protocolId,
-      req.body.params,
     );
     res.status(201).json({ id: run.id, status: run.status });
   } catch (e: any) {

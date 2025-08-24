@@ -53,47 +53,41 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
 }) => {
   const inputBg = useColorModeValue("white", "gray.700");
   const borderColor = useColorModeValue("gray.200", "gray.600");
-  
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-      // Check file size (20MB = 20 * 1024 * 1024 bytes)
-      const maxSizeInBytes = 25 * 1024 * 1024; // 20MB
-      if (file.size > maxSizeInBytes) {
-        errorToast(
-          "File too large",
-          `File size must be under 25MB. Selected file is ${(file.size / (1024 * 1024)).toFixed(2)}MB`
-        );
-        // Clear the input
-        e.target.value = '';
-        return;
-      }
+    // Check file size (20MB = 20 * 1024 * 1024 bytes)
+    const maxSizeInBytes = 25 * 1024 * 1024; // 20MB
+    if (file.size > maxSizeInBytes) {
+      errorToast(
+        "File too large",
+        `File size must be under 25MB. Selected file is ${(file.size / (1024 * 1024)).toFixed(2)}MB`,
+      );
+      // Clear the input
+      e.target.value = "";
+      return;
+    }
 
-      try {
-        // Read the file as text
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const content = event.target?.result;
-          // Save the file content to the variable
-          onChange(content);
-          
-        };
-        reader.readAsText(file);
-      } catch (error) {
-        console.error("Error reading file:", error);
-        errorToast(
-          "Error reading file",
-          "Failed to read the selected file. Please try again."
-        );
-      }
+    try {
+      // Read the file as text
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target?.result;
+        // Save the file content to the variable
+        onChange(content);
+      };
+      reader.readAsText(file);
+    } catch (error) {
+      console.error("Error reading file:", error);
+      errorToast("Error reading file", "Failed to read the selected file. Please try again.");
+    }
   };
-
 
   const renderField = () => {
     switch (field.type) {
       case "text":
-      case "url":
         return (
           <Input
             type={field.type}
@@ -212,7 +206,7 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
           <Input
             pt={field.type === "file" ? 1 : 0}
             type="file"
-            accept =".txt, .csv, .json, .xml, .xlsx"
+            accept=".txt, .csv, .json, .xml, .xlsx"
             onChange={(e) => handleFileChange(e)}
             bg={inputBg}
             borderColor={borderColor}
@@ -248,12 +242,7 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
         <HStack spacing={1} alignItems="center">
           <Text>{field.label}</Text>
           {field.mapped_variable && (
-            <Text
-              as="span"
-              fontSize="xs"
-              color="blue.500"
-              fontWeight="bold"
-              ml={1}>
+            <Text as="span" fontSize="xs" color="blue.500" fontWeight="bold" ml={1}>
               (→ {field.mapped_variable})
             </Text>
           )}
@@ -299,7 +288,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!form) return true;
 
     form.fields.forEach((field) => {
@@ -320,7 +309,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
       try {
         // Update mapped variables before calling onSubmit
         await updateMappedVariables();
-        
+
         onSubmit(formData);
         // Reset form data for next time
         setFormData({});
@@ -329,7 +318,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
         console.error("Error updating mapped variables:", error);
         errorToast(
           "Error updating variables",
-          "Failed to update mapped variables. Please try again."
+          "Failed to update mapped variables. Please try again.",
         );
       }
     }
@@ -341,7 +330,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
 
     // Get all fields with mapped variables
     const fieldsWithMappedVariables = form.fields.filter(
-      field => field.mapped_variable && field.mapped_variable.trim() !== ""
+      (field) => field.mapped_variable && field.mapped_variable.trim() !== "",
     );
 
     if (fieldsWithMappedVariables.length === 0) {
@@ -351,7 +340,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
     const updatePromises = fieldsWithMappedVariables.map(async (field) => {
       const variableName = field.mapped_variable!;
       const formValue = formData[field.label];
-      
+
       // Skip if no value provided
       if (formValue === undefined || formValue === null) {
         return null;
@@ -359,7 +348,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
 
       // Find existing variable
       const existingVariable = variablesQuery.data?.find((v) => v.name === variableName);
-      
+
       // Convert all values to strings as specified
       const stringValue = String(formValue);
 
@@ -396,11 +385,14 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
       <Modal isOpen={isOpen} onClose={() => {}} closeOnOverlayClick={false} isCentered size="md">
         <ModalOverlay backdropFilter="blur(4px)" bg="blackAlpha.300" />
         <ModalContent>
-          <ModalBody>
+          <ModalBody py={6} px={4}>
             <Alert status="error">
               <AlertIcon />
-              Form not found
+              <Text fontWeight="bold">Form Not Found</Text>
             </Alert>
+            <Text color="gray.500" fontSize="sm" textAlign="center">
+              The requested form could not be found. Please contact the administrator.
+            </Text>
           </ModalBody>
           <ModalFooter>
             <Button onClick={onCancel}>Close</Button>
@@ -411,11 +403,11 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
   }
 
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={() => {}} 
-      closeOnOverlayClick={false} 
-      isCentered 
+    <Modal
+      isOpen={isOpen}
+      onClose={() => {}}
+      closeOnOverlayClick={false}
+      isCentered
       size="2xl"
       scrollBehavior="inside">
       <ModalOverlay backdropFilter="blur(4px)" bg="blackAlpha.300" />
@@ -426,24 +418,21 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
         <ModalHeader textAlign="center" borderBottom="1px" borderColor={cardBorderColor}>
           {form.name}
         </ModalHeader>
-        
+
         <ModalBody py={6}>
-          <Card
-            bg="transparent"
-            border="none"
-            shadow="none">
+          <Card bg="transparent" border="none" shadow="none">
             <CardBody p={0}>
               <VStack spacing={6} align="stretch">
                 {form.description && (
-                  <Text 
-                    fontSize="md" 
+                  <Text
+                    fontSize="md"
                     color={form.font_color || defaultFontColor}
                     textAlign="center"
                     fontStyle="italic">
                     {form.description}
                   </Text>
                 )}
-                
+
                 {form.fields.map((field, index) => (
                   <VStack key={index} align="stretch" spacing={1}>
                     <FormFieldInput
@@ -460,12 +449,9 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
                     )}
                   </VStack>
                 ))}
-                
+
                 {form.fields.length === 0 && (
-                  <Text 
-                    textAlign="center" 
-                    color="gray.500" 
-                    fontStyle="italic">
+                  <Text textAlign="center" color="gray.500" fontStyle="italic">
                     This form has no fields configured.
                   </Text>
                 )}
@@ -473,10 +459,10 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
             </CardBody>
           </Card>
         </ModalBody>
-        
+
         <ModalFooter borderTop="1px" borderColor={cardBorderColor}>
           <ButtonGroup spacing={3} width="100%" justifyContent="center">
-            <Button 
+            <Button
               variant="ghost"
               onClick={handleCancel}
               color={form.font_color || defaultFontColor}>

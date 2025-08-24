@@ -38,7 +38,7 @@ import { HiOutlineRectangleStack } from "react-icons/hi2";
 import { GiChaingun } from "react-icons/gi";
 import { useSidebarTheme } from "./Theme";
 import { MdFormatListBulleted } from "react-icons/md";
-import { SiReacthookform } from "react-icons/si"; 
+import { SiReacthookform } from "react-icons/si";
 
 interface SidebarItem {
   name: string;

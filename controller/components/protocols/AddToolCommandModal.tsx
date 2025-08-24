@@ -128,7 +128,9 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
 
   // Get fields for the selected command
   const fields: Field[] =
-    selectedToolType && selectedCommand ? commandFields[selectedToolType]?.[selectedCommand] || [] : [];
+    selectedToolType && selectedCommand
+      ? commandFields[selectedToolType]?.[selectedCommand] || []
+      : [];
 
   // Get available tools with their IDs and names
   const availableTools = [
@@ -611,8 +613,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           <Text fontSize="2xl" role="img" aria-label={command}>
             {icon}
           </Text>
-          <Text 
-            fontSize="sm" 
+          <Text
+            fontSize="sm"
             fontWeight={isSelected ? "bold" : "normal"}
             textAlign="center"
             wordBreak="break-word">

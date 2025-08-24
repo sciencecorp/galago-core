@@ -20,7 +20,10 @@ import { useRouter } from "next/router";
 import { Protocol } from "@/types/api";
 import { successToast, errorToast } from "../ui/Toast";
 
-type ProtocolFormData = Omit<Protocol, "version" | "id" | "created_at" | "updated_at" | "params" | "number_of_commands">;
+type ProtocolFormData = Omit<
+  Protocol,
+  "version" | "id" | "created_at" | "updated_at" | "params" | "number_of_commands"
+>;
 
 export const NewProtocolForm = () => {
   const router = useRouter();
@@ -36,7 +39,6 @@ export const NewProtocolForm = () => {
     workcell_id: selectedWorkcell?.id || 1,
     description: "",
     commands: [],
-    is_active: true,
   });
 
   // Update workcell_id when selected workcell changes

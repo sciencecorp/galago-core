@@ -20,7 +20,6 @@ import { IoSettingsSharp } from "react-icons/io5";
 import { Draggable } from "react-beautiful-dnd";
 import { FormField } from "@/types";
 
-
 interface FormFieldComponentProps {
   field: FormField;
   index: number;
@@ -31,17 +30,18 @@ interface FormFieldComponentProps {
   deleteField: (index: number) => void;
 }
 
-export const FormFieldComponent = React.memo<FormFieldComponentProps>(({ 
-  field, 
-  index, 
-  fontColor, 
-  defaultFontColor, 
-  isSaving, 
-  editField, 
-  deleteField 
+const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
+  field,
+  index,
+  fontColor,
+  defaultFontColor,
+  isSaving,
+  editField,
+  deleteField,
 }) => {
   const fieldId = field.label || "field" + "_" + index;
   const fieldBorderColor = useColorModeValue("gray.200", "gray.600");
+  const placeHolderColor = useColorModeValue("gray.400", "gray.500");
 
   const handleEditClick = useCallback(
     (e: React.MouseEvent) => {
@@ -130,8 +130,8 @@ export const FormFieldComponent = React.memo<FormFieldComponentProps>(({
                 cursor="pointer"
                 color={fontColor || defaultFontColor}
                 bg="transparent"
-                borderColor={useColorModeValue("gray.200", "gray.600")}
-                _placeholder={{ color: useColorModeValue("gray.400", "gray.500") }}
+                // borderColor={useColorModeValue("gray.200", "gray.600")}
+                _placeholder={{ color: placeHolderColor }}
               />
             )}
 
@@ -141,8 +141,8 @@ export const FormFieldComponent = React.memo<FormFieldComponentProps>(({
                 cursor="pointer"
                 color={fontColor || defaultFontColor}
                 bg="transparent"
-                borderColor={useColorModeValue("gray.200", "gray.600")}
-                _placeholder={{ color: useColorModeValue("gray.400", "gray.500") }}>
+                // borderColor={useColorModeValue("gray.200", "gray.600")}
+                _placeholder={{ color: placeHolderColor }}>
                 {field.options?.map((option, idx) => (
                   <option key={idx} value={option.value}>
                     {option.label}
@@ -183,8 +183,7 @@ export const FormFieldComponent = React.memo<FormFieldComponentProps>(({
                 cursor="pointer"
                 color={fontColor || defaultFontColor}
                 bg="transparent"
-                borderColor={useColorModeValue("gray.200", "gray.600")}
-                _placeholder={{ color: useColorModeValue("gray.400", "gray.500") }}
+                _placeholder={{ color: placeHolderColor }}
               />
             )}
           </FormControl>
@@ -192,4 +191,6 @@ export const FormFieldComponent = React.memo<FormFieldComponentProps>(({
       )}
     </Draggable>
   );
-});
+};
+
+export const FormFieldComponent = React.memo(FormFieldComponentBase);

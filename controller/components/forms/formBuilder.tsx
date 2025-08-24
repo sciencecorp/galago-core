@@ -24,10 +24,10 @@ import {
   CardBody,
   useColorModeValue,
   ButtonGroup,
-  Spacer, 
-  CardFooter
+  Spacer,
+  CardFooter,
 } from "@chakra-ui/react";
-import { RiAddFill, RiDeleteBin6Line, RiSaveLine, RiPaletteLine } from "react-icons/ri";
+import { RiAddFill, RiDeleteBin6Line, RiSaveLine } from "react-icons/ri";
 import { CloseIcon } from "@chakra-ui/icons";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { trpc } from "@/utils/trpc";
@@ -44,11 +44,7 @@ interface FormBuilderProps {
   onUpdate?: () => void;
 }
 
-export const FormBuilder: React.FC<FormBuilderProps> = ({
-  forms,
-  onCancel,
-  onUpdate,
-}) => {
+export const FormBuilder: React.FC<FormBuilderProps> = ({ forms, onCancel, onUpdate }) => {
   const defaultBgColor = useColorModeValue("#ffffff", "#2d3748");
   const defaultFontColor = useColorModeValue("#1a202c", "#ffffff");
   const cardBorderColor = useColorModeValue("gray.200", "gray.600");
@@ -64,6 +60,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
   const [isSaving, setIsSaving] = useState(false);
 
   const [editingField, setEditingField] = useState<FormField>(DEFAULT_EDITING_FIELD);
+  const drawerFooterBg = useColorModeValue("gray.50", "gray.700");
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
@@ -82,7 +79,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
     setFormDescription(form.description || "");
     setBackgroundColor(form.background_color || null);
     setFontColor(form.font_color || null);
-    
+
     // Update fields with proper IDs
     if (form.fields && form.fields.length > 0) {
       const fieldsWithIds = form.fields.map((field, index) => ({
@@ -93,22 +90,22 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
     } else {
       setFields([]);
     }
-    
+
     setSelectedFieldIndex(null);
     setEditingField(DEFAULT_EDITING_FIELD);
   };
 
   const onDragEnd = (result: DropResult) => {
-      if (isSaving) return;
-      if (!result.destination) return;
-      setFields((currentFields) => {
-        const items = Array.from(currentFields);
-        const [reorderedItem] = items.splice(result.source.index, 1);
-        items.splice(result.destination!.index, 0, reorderedItem);
-        return items;
-      });
-  }
-  
+    if (isSaving) return;
+    if (!result.destination) return;
+    setFields((currentFields) => {
+      const items = Array.from(currentFields);
+      const [reorderedItem] = items.splice(result.source.index, 1);
+      items.splice(result.destination!.index, 0, reorderedItem);
+      return items;
+    });
+  };
+
   const addField = () => {
     const newField: FormField = {
       type: "text",
@@ -123,11 +120,14 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
     setFields((currentFields) => [...currentFields, newField]);
   };
 
-  const editField = useCallback((index: number) => {
-    setEditingField({ ...fields[index] });
-    setSelectedFieldIndex(index);
-    onOpen();
-  }, [fields, onOpen]);
+  const editField = useCallback(
+    (index: number) => {
+      setEditingField({ ...fields[index] });
+      setSelectedFieldIndex(index);
+      onOpen();
+    },
+    [fields, onOpen],
+  );
 
   const deleteField = useCallback((index: number) => {
     setFields((currentFields) => currentFields.filter((_, i) => i !== index));
@@ -192,7 +192,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
   const handleDeleteForm = async () => {
     if (!selectedForm) return;
-    
+
     try {
       await deleteForm.mutateAsync(selectedForm.id);
       successToast("Success", "Form deleted successfully");
@@ -203,12 +203,12 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
       setBackgroundColor(null);
       setFontColor(null);
       setFields([]);
-      
+
       if (onUpdate) {
-        onUpdate(); 
+        onUpdate();
       }
       if (onCancel) {
-        onCancel(); 
+        onCancel();
       }
     } catch (error) {
       console.error("Failed to delete form:", error);
@@ -237,7 +237,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
         options: newOptions.length > 0 ? newOptions : null,
       };
     });
-  }
+  };
 
   const updateOption = (index: number, key: string, value: any) => {
     setEditingField((current) => {
@@ -254,7 +254,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
           <Text whiteSpace="nowrap" fontWeight="bold" fontSize="lg">
             Select Form:
           </Text>
-          <Select 
+          <Select
             placeholder="Select a form"
             value={selectedForm?.name || ""}
             onChange={(e) => {
@@ -272,15 +272,13 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                 setFontColor(null);
               }
             }}
-            width="300px"
-            >
+            width="300px">
             {forms.map((form) => (
               <option key={form.id} value={form.name}>
                 {form.name}
               </option>
             ))}
           </Select>
-
         </HStack>
 
         <Spacer />
@@ -304,7 +302,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
           )}
         </ButtonGroup>
       </HStack>
-      
+
       {selectedForm && (
         <Card
           bg={backgroundColor || defaultBgColor}
@@ -332,19 +330,11 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                 variant="ghost"
                 onClick={onSettingsOpen}
                 _hover={{
-                  bg: useColorModeValue("gray.100", "gray.600"),
+                  bg: "gray.500",
                 }}
-                color={fontColor || defaultFontColor}
+                color={"gray.500"}
               />
-              <CloseIcon
-                fontSize="xs"
-                cursor="pointer"
-                color={useColorModeValue("gray.400", "gray.500")}
-                onClick={onCancel}
-                _hover={{
-                  color: useColorModeValue("gray.600", "gray.300"),
-                }}
-              />
+              <CloseIcon fontSize="xs" cursor="pointer" color={"gray.500"} onClick={onCancel} />
             </HStack>
 
             <Box overflowY="auto" maxH="700px" flex={1}>
@@ -381,11 +371,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                             py={8}
                             isDisabled={isSaving}
                             mt={4}
-                            color={fontColor || defaultFontColor}
-                            borderColor={useColorModeValue("gray.300", "gray.600")}
-                            _hover={{
-                              borderColor: useColorModeValue("gray.400", "gray.500"),
-                            }}>
+                            color={fontColor || defaultFontColor}>
                             Add Field
                           </Button>
                         </VStack>
@@ -393,17 +379,11 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                     </Droppable>
                   </DragDropContext>
                 </Box>
-                
+
                 <CardFooter>
                   <ButtonGroup spacing={2} justifyContent="end" width="100%">
-                    <Button 
-                      variant="ghost" 
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      colorScheme="teal"
-                      mr={3}>
+                    <Button variant="ghost">Cancel</Button>
+                    <Button colorScheme="teal" mr={3}>
                       Submit
                     </Button>
                   </ButtonGroup>
@@ -414,38 +394,30 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
             {/* Form Settings Drawer */}
             <Drawer isOpen={isSettingsOpen} placement="right" onClose={onSettingsClose} size="md">
               <DrawerOverlay />
-              <DrawerContent bg={useColorModeValue("white", "gray.800")}>
-                <DrawerCloseButton color={useColorModeValue("gray.600", "gray.300")} />
+              <DrawerContent>
+                <DrawerCloseButton />
                 <DrawerHeader color={headerTextColor}>Form Settings</DrawerHeader>
 
                 <DrawerBody>
                   <VStack spacing={6} align="stretch">
                     <FormControl isRequired>
-                      <FormLabel color={useColorModeValue("gray.700", "gray.200")}>Form Name</FormLabel>
+                      <FormLabel>Form Name</FormLabel>
                       <Input
                         value={formName}
                         onChange={(e) => setFormName(e.target.value)}
                         placeholder="Enter form name"
-                        bg={useColorModeValue("white", "gray.700")}
-                        borderColor={useColorModeValue("gray.200", "gray.600")}
-                        color={useColorModeValue("gray.800", "gray.100")}
                       />
                     </FormControl>
 
                     <FormControl>
-                      <FormLabel color={useColorModeValue("gray.700", "gray.200")}>
-                        Description
-                      </FormLabel>
+                      <FormLabel>Description</FormLabel>
                       <Textarea
                         value={formDescription}
                         onChange={(e) => setFormDescription(e.target.value)}
                         placeholder="Enter form description"
-                        bg={useColorModeValue("white", "gray.700")}
-                        borderColor={useColorModeValue("gray.200", "gray.600")}
-                        color={useColorModeValue("gray.800", "gray.100")}
                       />
                     </FormControl>
-                    
+
                     <ColorPicker
                       color={backgroundColor}
                       onChange={setBackgroundColor}
@@ -461,13 +433,12 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                   </VStack>
                 </DrawerBody>
 
-                <DrawerFooter bg={useColorModeValue("gray.50", "gray.700")}>
+                <DrawerFooter bg={drawerFooterBg}>
                   <Button
                     variant="outline"
                     mr={3}
                     onClick={onSettingsClose}
-                    color={useColorModeValue("gray.600", "gray.300")}
-                    borderColor={useColorModeValue("gray.300", "gray.600")}>
+                    borderColor={"gray.300"}>
                     Close
                   </Button>
                 </DrawerFooter>
@@ -477,8 +448,8 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
             {/* Field Editor Drawer */}
             <Drawer isOpen={isOpen} placement="right" onClose={onClose} size="md">
               <DrawerOverlay />
-              <DrawerContent bg={useColorModeValue("white", "gray.800")}>
-                <DrawerCloseButton color={useColorModeValue("gray.600", "gray.300")} />
+              <DrawerContent>
+                <DrawerCloseButton />
                 <DrawerHeader color={headerTextColor}>
                   {selectedFieldIndex === -1 ? "Add Field" : "Edit Field"}
                 </DrawerHeader>
@@ -486,22 +457,17 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                 <DrawerBody>
                   <VStack spacing={4} align="stretch">
                     <FormControl>
-                      <FormLabel color={useColorModeValue("gray.700", "gray.200")}>
-                        Field Type
-                      </FormLabel>
+                      <FormLabel>Field Type</FormLabel>
                       <Select
                         value={editingField.type}
                         onChange={(e) => {
-                          const newType = e.target.value;
+                          const newType = e.target.value as FormField["type"];
                           setEditingField((current) => ({
                             ...current,
                             type: newType,
                             options: ["select", "radio"].includes(newType) ? current.options : null,
                           }));
-                        }}
-                        bg={useColorModeValue("white", "gray.700")}
-                        borderColor={useColorModeValue("gray.200", "gray.600")}
-                        color={useColorModeValue("gray.800", "gray.100")}>
+                        }}>
                         {FIELD_TYPES.map((type) => (
                           <option key={type.value} value={type.value}>
                             {type.label}
@@ -511,23 +477,18 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                     </FormControl>
 
                     <FormControl isRequired>
-                      <FormLabel color={useColorModeValue("gray.700", "gray.200")}>Label</FormLabel>
+                      <FormLabel>Label</FormLabel>
                       <Input
                         value={editingField.label}
                         onChange={(e) =>
                           setEditingField((current) => ({ ...current, label: e.target.value }))
                         }
                         placeholder="Field Label"
-                        bg={useColorModeValue("white", "gray.700")}
-                        borderColor={useColorModeValue("gray.200", "gray.600")}
-                        color={useColorModeValue("gray.800", "gray.100")}
                       />
                     </FormControl>
-                    
+
                     <FormControl>
-                      <FormLabel color={useColorModeValue("gray.700", "gray.200")}>
-                        Placeholder
-                      </FormLabel>
+                      <FormLabel>Placeholder</FormLabel>
                       <Input
                         value={editingField.placeholder || ""}
                         onChange={(e) =>
@@ -537,16 +498,12 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                           }))
                         }
                         placeholder="Placeholder text"
-                        bg={useColorModeValue("white", "gray.700")}
-                        borderColor={useColorModeValue("gray.200", "gray.600")}
-                        color={useColorModeValue("gray.800", "gray.100")}
+                        color={"gray.800"}
                       />
                     </FormControl>
 
                     <FormControl display="flex" alignItems="center">
-                      <FormLabel mb="0" color={useColorModeValue("gray.700", "gray.200")}>
-                        Required Field
-                      </FormLabel>
+                      <FormLabel mb="0">Required Field</FormLabel>
                       <Switch
                         isChecked={editingField.required}
                         onChange={(e) =>
@@ -558,7 +515,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
                     {["select", "radio"].includes(editingField.type) && (
                       <FormControl>
-                        <FormLabel color={useColorModeValue("gray.700", "gray.200")}>Options</FormLabel>
+                        <FormLabel>Options</FormLabel>
                         <VStack spacing={2} align="stretch">
                           {editingField.options?.map((option, index) => (
                             <HStack key={index}>
@@ -567,18 +524,12 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                                 onChange={(e) => updateOption(index, "value", e.target.value)}
                                 placeholder="Value"
                                 size="sm"
-                                bg={useColorModeValue("white", "gray.700")}
-                                borderColor={useColorModeValue("gray.200", "gray.600")}
-                                color={useColorModeValue("gray.800", "gray.100")}
                               />
                               <Input
                                 value={option.label}
                                 onChange={(e) => updateOption(index, "label", e.target.value)}
                                 placeholder="Label"
                                 size="sm"
-                                bg={useColorModeValue("white", "gray.700")}
-                                borderColor={useColorModeValue("gray.200", "gray.600")}
-                                color={useColorModeValue("gray.800", "gray.100")}
                               />
 
                               <IconButton
@@ -604,9 +555,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
                     {variables && variables.length > 0 && (
                       <FormControl>
-                        <FormLabel color={useColorModeValue("gray.700", "gray.200")}>
-                          Map to Variable
-                        </FormLabel>
+                        <FormLabel>Map to Variable</FormLabel>
                         <Select
                           value={editingField.mapped_variable || ""}
                           onChange={(e) =>
@@ -614,10 +563,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                               ...current,
                               mapped_variable: e.target.value || null,
                             }))
-                          }
-                          bg={useColorModeValue("white", "gray.700")}
-                          borderColor={useColorModeValue("gray.200", "gray.600")}
-                          color={useColorModeValue("gray.800", "gray.100")}>
+                          }>
                           <option value="">No mapping</option>
                           {variables.map((variable: any) => (
                             <option key={variable.id} value={variable.name}>
@@ -630,19 +576,11 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                   </VStack>
                 </DrawerBody>
 
-                <DrawerFooter bg={useColorModeValue("gray.50", "gray.700")}>
-                  <Button
-                    variant="outline"
-                    mr={3}
-                    onClick={onClose}
-                    color={useColorModeValue("gray.600", "gray.300")}
-                    borderColor={useColorModeValue("gray.300", "gray.600")}>
+                <DrawerFooter bg={drawerFooterBg}>
+                  <Button variant="outline" mr={3} onClick={onClose}>
                     Cancel
                   </Button>
-                  <Button 
-                    colorScheme="teal" 
-                    onClick={saveField}
-                    isDisabled={!editingField.label}>
+                  <Button colorScheme="teal" onClick={saveField} isDisabled={!editingField.label}>
                     Save
                   </Button>
                 </DrawerFooter>

@@ -74,7 +74,7 @@ export const RunsComponent: React.FC = () => {
   const [isUserFormModalOpen, setIsUserFormModalOpen] = useState(false);
   const [currentForm, setCurrentForm] = useState<Form | null>(null);
   const [userFormError, setUserFormError] = useState<string | null>(null);
- 
+
   // Unified message state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
@@ -119,12 +119,9 @@ export const RunsComponent: React.FC = () => {
   });
 
   // Form fetching query (only execute when we have a form name)
-  const formQuery = trpc.form.get.useQuery(
-    messageData.formName || "",
-    {
-      enabled: !!messageData.formName && messageData.type === "user_form",
-    }
-  );
+  const formQuery = trpc.form.get.useQuery(messageData.formName || "", {
+    enabled: !!messageData.formName && messageData.type === "user_form",
+  });
 
   // Handle form query results
   useEffect(() => {
@@ -177,25 +174,28 @@ export const RunsComponent: React.FC = () => {
     console.log("isWaitingForInputQuery.data:", isWaitingForInputQuery.data);
     console.log("currentMessageQuery.data:", currentMessageQuery.data);
     console.log("Current messageData:", messageData);
-    
+
     if (isWaitingForInputQuery.data !== undefined) {
       const shouldShowModal = isWaitingForInputQuery.data;
       const shouldShowUserForm = shouldShowModal && messageData.type === "user_form";
-      
+
       console.log("shouldShowModal:", shouldShowModal);
       console.log("shouldShowUserForm:", shouldShowUserForm);
       console.log("messageData.type:", messageData.type);
-      
+
       setIsModalOpen(shouldShowModal && messageData.type !== "user_form");
       setIsUserFormModalOpen(shouldShowUserForm);
-      
-      console.log("Modal states set - isModalOpen:", shouldShowModal && messageData.type !== "user_form");
+
+      console.log(
+        "Modal states set - isModalOpen:",
+        shouldShowModal && messageData.type !== "user_form",
+      );
       console.log("Modal states set - isUserFormModalOpen:", shouldShowUserForm);
     }
 
     if (currentMessageQuery.data) {
       console.log("📨 Processing currentMessageQuery.data:", currentMessageQuery.data);
-      
+
       const newMessageData = {
         type: currentMessageQuery.data.type,
         message: currentMessageQuery.data.message,
@@ -216,7 +216,7 @@ export const RunsComponent: React.FC = () => {
 
       console.log("🎯 Setting messageData to:", newMessageData);
       setMessageData(newMessageData);
-      
+
       // Reset form state when message type changes
       if (newMessageData.type !== "user_form") {
         console.log("🧹 Resetting form state (not user_form)");

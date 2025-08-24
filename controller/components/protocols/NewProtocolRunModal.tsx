@@ -168,9 +168,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
     },
   );
 
-  const uiParams = protocol.data?.params || {};
   const { isOpen, onOpen } = useDisclosure({ defaultIsOpen: true });
-  const [userDefinedParams, setUserDefinedParams] = useState<Record<string, any>>({});
   const [formErrors, setFormErrors] = useState<z.inferFormattedError<z.AnyZodObject>>();
   const { getInputProps, getIncrementButtonProps, getDecrementButtonProps } = useNumberInput({
     step: 1,
@@ -210,71 +208,10 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   // Function to update all linked variables before queueing the run
   const updateLinkedVariablesAndQueueRun = async () => {
     try {
-      // Get all parameters with linked variables
-      const linkedParams = Object.entries(uiParams).filter(
-        ([_, paramInfo]) => (paramInfo as any).variable_name,
-      );
-
-      const updatePromises = linkedParams.map(async ([paramName, paramInfo]) => {
-        const variableName = (paramInfo as any).variable_name;
-        if (!variableName) return null;
-
-        const variable = variablesQuery.data?.find((v) => v.name === variableName);
-        const newValue = userDefinedParams[paramName];
-
-        const determineType = () => {
-          const paramType = (paramInfo as ProtocolParamInfo).type;
-          const isFileInput =
-            (paramInfo as ExtendedProtocolParamInfo).fieldType === FieldType.FILE_INPUT;
-
-          if (isFileInput) return "string"; // File contents are stored as strings
-          if (paramType === "number") return "number";
-          if (paramType === "boolean") return "boolean";
-          return "string"; // Default to string
-        };
-
-        if (!variable) {
-          const variableType = determineType();
-          // Special handling for boolean values
-          let valueToSave = newValue;
-          if (variableType === "boolean") {
-            valueToSave = newValue === true || newValue === "true";
-          }
-
-          // Create the new variable
-          return createVariable.mutateAsync({
-            name: variableName,
-            type: variableType,
-            value: valueToSave !== undefined ? String(valueToSave) : "",
-          });
-        }
-
-        // If value hasn't changed, don't update
-        if (newValue === variable.value) return null;
-
-        // Special handling for boolean values to ensure consistency
-        let valueToSave = newValue;
-        if (variable.type === "boolean") {
-          valueToSave = newValue === true || newValue === "true";
-        }
-
-        // Update the existing variable
-        return editVariable.mutateAsync({
-          id: variable.id,
-          value: valueToSave !== undefined ? String(valueToSave) : variable.value,
-          name: variable.name,
-          type: variable.type,
-        });
-      });
-
-      await Promise.all(updatePromises.filter(Boolean));
-
-      // Now queue the run
       await createRunMutation.mutate(
         {
           protocolId: id,
           workcellName: workcellName!,
-          params: userDefinedParams,
           numberOfRuns: Number(numberOfRuns.value),
         },
         {
@@ -292,7 +229,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
 
   return (
     <>
-      {workcellName && uiParams && protocol && (
+      {workcellName && protocol && (
         <Box>
           <Modal
             isOpen={isOpen}
@@ -307,59 +244,6 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
               <ModalBody>
                 <VStack align="start" spacing={4}>
                   <>
-                    {Object.entries(uiParams).map(([param, paramInfo]) => {
-                      // Find if this parameter has a linked variable
-                      const linkedVariableName = (paramInfo as any).variable_name;
-                      const linkedVariable =
-                        linkedVariableName && variablesQuery.data
-                          ? variablesQuery.data.find((v) => v.name === linkedVariableName)
-                          : null;
-
-                      // Add badge for file input
-                      const isFileInput =
-                        (paramInfo as ExtendedProtocolParamInfo).fieldType === FieldType.FILE_INPUT;
-
-                      return (
-                        <FormControl key={param} isInvalid={!!(formErrors && formErrors[param])}>
-                          <FormLabel>
-                            <HStack spacing={1} alignItems="center">
-                              <Text>{capitalizeFirst(param.replaceAll("_", " "))}</Text>
-                              {isFileInput && (
-                                <Text
-                                  as="span"
-                                  fontSize="xs"
-                                  color="purple.500"
-                                  fontWeight="bold"
-                                  ml={1}>
-                                  (File)
-                                </Text>
-                              )}
-                            </HStack>
-                          </FormLabel>
-                          <ParamInput
-                            paramInfo={paramInfo as ExtendedProtocolParamInfo}
-                            value={userDefinedParams[param]}
-                            setValue={(value) =>
-                              setUserDefinedParams({ ...userDefinedParams, [param]: value })
-                            }
-                          />
-                          {!isFileInput &&
-                            (paramInfo.type === "boolean" || paramInfo.type === "number") && (
-                              <FormHelperText>
-                                {(paramInfo as ProtocolParamInfo).placeHolder}
-                              </FormHelperText>
-                            )}
-                          {formErrors &&
-                            formErrors[param]?._errors.map((key, error) => (
-                              <FormErrorMessage key={key}>{error}</FormErrorMessage>
-                            ))}
-                        </FormControl>
-                      );
-                    })}
-
-                    {formErrors?._errors.map((key, error) => (
-                      <FormErrorMessage key={key}>{error}</FormErrorMessage>
-                    ))}
                     <Box width="100%" borderRadius="md" p={4} mt={4}>
                       <FormControl>
                         <FormLabel textAlign="center">Number of Runs</FormLabel>
