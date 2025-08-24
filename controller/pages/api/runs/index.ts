@@ -9,10 +9,7 @@ function getHandler(req: NextApiRequest, res: NextApiResponse<RunStatusList>) {
 
 async function postHandler(req: NextApiRequest, res: NextApiResponse<RunSubmissionStatus>) {
   try {
-    const run = await RunStore.global.createFromProtocol(
-      req.body.workcellName,
-      req.body.protocolId,
-    );
+    const run = await RunStore.global.createFromProtocol(req.body.protocolId);
     res.status(201).json({ id: run.id, status: run.status });
   } catch (e: any) {
     switch (e.name) {

@@ -53,7 +53,7 @@ export default class RunStore {
     await Promise.all(durationEstimates);
   }
 
-  async createFromProtocol(workcellName: string, protocolId: string): Promise<Run> {
+  async createFromProtocol(protocolId: string): Promise<Run> {
     const protocol = await Protocol.loadFromDatabase(protocolId);
 
     if (!protocol) {

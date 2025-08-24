@@ -48,12 +48,6 @@ export async function getRunAttributes(
   }
 
   let runName = protocolName;
-  if (runInfo.params.wellPlateID !== undefined) {
-    runName = `WP-${runInfo.params.wellPlateID} | ${runName}`;
-  }
-  if (runInfo.params.culturePlateType !== undefined) {
-    runName += ` | ${runInfo.params.culturePlateType}`;
-  }
 
   let status = "CREATED";
   let startedAt = "";
