@@ -13,8 +13,6 @@ const protocolSchema = z.object({
   workcell_id: z.number(),
   description: z.string().optional(),
   commands: z.array(z.any()),
-  version: z.number().optional(),
-  is_active: z.boolean().optional(),
 });
 
 export const protocolRouter = router({
@@ -40,8 +38,6 @@ export const protocolRouter = router({
   create: procedure.input(protocolSchema).mutation(async ({ input }) => {
     const protocolData = {
       ...input,
-      version: input.version || 1,
-      is_active: input.is_active ?? true,
       commands: input.commands || [],
     };
     const response = await post<Protocol>(`${API_BASE_URL}/protocols`, protocolData);

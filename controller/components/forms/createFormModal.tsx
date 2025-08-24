@@ -62,7 +62,7 @@ export const CreateFormModal: React.FC = () => {
   return (
     <>
       <Button onClick={onOpen} colorScheme="teal" leftIcon={<RiAddFill />}>
-        New Forms
+        New Form
       </Button>
 
       <Modal isOpen={isOpen} onClose={handleClose}>

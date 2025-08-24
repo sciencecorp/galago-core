@@ -1,9 +1,7 @@
 import typing as t
 from pydantic import BaseModel, model_validator, ConfigDict
 from datetime import datetime, date
-from typing import Optional, List, Dict, Any
 from enum import Enum as PyEnum
-from pydantic import BaseModel, validator
 from typing import List, Dict, Any, Optional, Union
 
 class TimestampMixin(BaseModel):
@@ -405,10 +403,7 @@ class ProtocolBase(BaseModel):
     category: str
     workcell_id: int
     description: t.Optional[str] = None
-    icon: t.Optional[str] = None
     commands: t.List[t.Dict[str, t.Any]]
-    version: t.Optional[int] = 1
-    is_active: t.Optional[bool] = True
 
 
 class ProtocolCreate(BaseModel):
@@ -416,19 +411,13 @@ class ProtocolCreate(BaseModel):
     category: str
     workcell_id: int
     description: Optional[str] = None
-    icon: Optional[str] = None
     commands: List[Dict[str, Any]]
-    version: Optional[int] = 1
-    is_active: Optional[bool] = True
 
 class ProtocolUpdate(BaseModel):
     name: t.Optional[str] = None
     category: t.Optional[str] = None
     description: t.Optional[str] = None
-    icon: t.Optional[str] = None
     commands: t.Optional[t.List[t.Dict[str, t.Any]]] = None
-    version: t.Optional[int] = None
-    is_active: t.Optional[bool] = None
 
 class Protocol(ProtocolBase):
     id: int
@@ -733,7 +722,6 @@ class FormCreate(BaseModel):
 
 class FormUpdate(BaseModel):
     name: t.Optional[str] = None
-    description: t.Optional[str] = None
     fields: Optional[List[FormField]] = None
     background_color: t.Optional[str] = None
     font_color: t.Optional[str] = None

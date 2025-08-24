@@ -1831,10 +1831,7 @@ async def create_protocol(protocol: schemas.ProtocolCreate, db: Session = Depend
             category=protocol.category,
             workcell_id=protocol.workcell_id,
             description=protocol.description,
-            icon=protocol.icon,
             commands=protocol.commands or [],
-            version=protocol.version or 1,
-            is_active=protocol.is_active if protocol.is_active is not None else True,
         )
 
         try:
@@ -2026,10 +2023,10 @@ def delete_form(form_id: int, db: Session = Depends(get_db)) -> t.Any:
     return crud.form.remove(db, id=form_id)
 
 
-@app.post("/forms/{form_id}/duplicate", response_model=schemas.Form)
+app.post("/forms/{form_id}/duplicate", response_model=schemas.Form)
 def duplicate_form(
-    form_id: int, 
-    new_name: str = Form(...), 
+    form_id: int,
+    new_name: str = Form(...),
     db: Session = Depends(get_db)
 ) -> t.Any:
     """Duplicate an existing form with a new name."""
@@ -2041,20 +2038,17 @@ def duplicate_form(
     existing_form = crud.form.get_by(db, obj_in={"name": new_name})
     if existing_form:
         raise HTTPException(
-            status_code=400, 
+            status_code=400,
             detail=f"Form with name '{new_name}' already exists"
         )
     
-    # Create new form with copied data
-    new_form_data = schemas.FormCreate(
-        name=new_name,
-        description=f"Copy of {original_form.name}",
-        fields=original_form.fields,
-        background_color=original_form.background_color,
-        background_image=original_form.background_image,
-        size=original_form.size,
-        is_locked=False  # New form should not be locked by default
-    )
+    # Use Pydantic's model_validate to handle the conversion automatically
+    new_form_data = schemas.FormCreate.model_validate({
+        "name": new_name,
+        "fields": original_form.fields,  # Pydantic will convert this automatically
+        "background_color": original_form.background_color,
+        "font_color": original_form.font_color
+    })
     
     return crud.form.create(db, obj_in=new_form_data)
 

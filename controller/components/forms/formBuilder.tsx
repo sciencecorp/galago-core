@@ -52,7 +52,6 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ forms, onCancel, onUpd
 
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
   const [formName, setFormName] = useState("");
-  const [formDescription, setFormDescription] = useState("");
   const [backgroundColor, setBackgroundColor] = useState<string | null>(null);
   const [fontColor, setFontColor] = useState<string | null>(null);
   const [fields, setFields] = useState<FormField[]>([]);
@@ -76,7 +75,6 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ forms, onCancel, onUpd
   // Update form data when a form is selected
   const updateFormData = (form: Form) => {
     setFormName(form.name || "");
-    setFormDescription(form.description || "");
     setBackgroundColor(form.background_color || null);
     setFontColor(form.font_color || null);
 
@@ -167,7 +165,6 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ forms, onCancel, onUpd
 
       const formData = {
         name: formName,
-        description: formDescription || null,
         background_color: backgroundColor,
         font_color: fontColor,
         fields: cleanedFields,
@@ -199,7 +196,6 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ forms, onCancel, onUpd
       // Clear the selected form after deletion
       setSelectedForm(null);
       setFormName("");
-      setFormDescription("");
       setBackgroundColor(null);
       setFontColor(null);
       setFields([]);
@@ -267,7 +263,6 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ forms, onCancel, onUpd
                 setSelectedForm(null);
                 setFields([]);
                 setFormName("");
-                setFormDescription("");
                 setBackgroundColor(null);
                 setFontColor(null);
               }
@@ -408,16 +403,6 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ forms, onCancel, onUpd
                         placeholder="Enter form name"
                       />
                     </FormControl>
-
-                    <FormControl>
-                      <FormLabel>Description</FormLabel>
-                      <Textarea
-                        value={formDescription}
-                        onChange={(e) => setFormDescription(e.target.value)}
-                        placeholder="Enter form description"
-                      />
-                    </FormControl>
-
                     <ColorPicker
                       color={backgroundColor}
                       onChange={setBackgroundColor}

@@ -9,7 +9,6 @@ import {
   Textarea,
   VStack,
   FormErrorMessage,
-  FormHelperText,
   Alert,
   AlertIcon,
   AlertTitle,
@@ -105,8 +104,6 @@ export const NewProtocolForm = () => {
       category: formData.category.trim(),
       description: formData.description?.trim() || "",
       commands: formData.commands || [],
-      version: 1,
-      is_active: true,
       workcell_id: Number(formData.workcell_id),
     };
 
