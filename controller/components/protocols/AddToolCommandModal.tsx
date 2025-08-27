@@ -77,6 +77,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   const toolBoxQuery = trpc.tool.getToolBox.useQuery();
   const { data: fetchedVariables } = trpc.variable.getAll.useQuery();
   const { data: labwareData } = trpc.labware.getAll.useQuery();
+  const { data: forms } = trpc.form.getAll.useQuery();
 
   const selectedToolData =
     toolsQuery.data?.find((tool) => tool.id === selectedToolId) ||
@@ -251,6 +252,10 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     }
   };
 
+  console.log("Selected tool type is ", selectedToolType);
+  console.log("Selected tool name is", selectedToolId);
+  console.log("Selected command", selectedCommand);
+
   const isVariableReference = (value: any): boolean => {
     return typeof value === "string" && value.startsWith("{{") && value.endsWith("}}");
   };
@@ -305,9 +310,52 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
       );
     }
 
+    if (
+      selectedToolType === "toolbox" &&
+      selectedCommand === "user_form" &&
+      field.name === "name"
+    ) {
+      return (
+        <HStack width="100%">
+          <Select
+            flex={1}
+            value={isVariable ? "" : currentValue || ""}
+            onChange={(e) => {
+              if (!isVariable) {
+                setCommandParams({ ...commandParams, [field.name]: e.target.value });
+              }
+            }}
+            isDisabled={isVariable}
+            placeholder="Select a form">
+            {forms && forms.length > 0 ? (
+              forms.map((form) => (
+                <option key={form.id} value={form.name}>
+                  {form.name}
+                </option>
+              ))
+            ) : (
+              <option value="" disabled>
+                No forms available
+              </option>
+            )}
+          </Select>
+          <Select
+            width="180px"
+            value={variableName}
+            onChange={(e) => handleVariableSelect(field.name, e.target.value)}>
+            <option value="">No Variable</option>
+            {fetchedVariables?.map((variable) => (
+              <option key={variable.id} value={variable.name}>
+                {variable.name}
+              </option>
+            ))}
+          </Select>
+        </HStack>
+      );
+    }
+
     // Special handling for PF400 location and sequence fields
     if (selectedToolType === "pf400") {
-      // For move command's name parameter (locations)
       if (selectedCommand === "move" && field.name === "name") {
         return (
           <HStack width="100%">

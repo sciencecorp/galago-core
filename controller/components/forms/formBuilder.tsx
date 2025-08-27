@@ -483,7 +483,6 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ forms, onCancel, onUpd
                           }))
                         }
                         placeholder="Placeholder text"
-                        color={"gray.800"}
                       />
                     </FormControl>
 

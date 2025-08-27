@@ -46,6 +46,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
   const { data: availableVariables } = trpc.variable.getAll.useQuery();
   const { data: labwareData } = trpc.labware.getAll.useQuery();
   const { data: toolsData } = trpc.tool.getAll.useQuery();
+  const { data: forms } = trpc.form.getAll.useQuery();
 
   // Get the numeric tool ID from the tool name when a PF400 command is selected
   const toolId =
@@ -266,6 +267,58 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
       );
     }
 
+    if (
+      key === "name" &&
+      selectedCommand?.commandInfo?.command === "user_form" &&
+      selectedCommand?.commandInfo?.toolType === "toolbox"
+    ) {
+      return (
+        <HStack width="100%" spacing={2}>
+          <Select
+            flex={1}
+            value={isVariable ? "" : (currentValue as string) || ""}
+            onChange={(e) => {
+              if (!isVariable && isEditing) {
+                setEditedParams({
+                  ...editedParams,
+                  [key]: e.target.value,
+                });
+              }
+            }}
+            isDisabled={isVariable || !isEditing}
+            placeholder="Select a form">
+            {forms && forms.length > 0 ? (
+              forms.map((form) => (
+                <option key={form.id} value={form.name}>
+                  {form.name}
+                </option>
+              ))
+            ) : (
+              <option value="" disabled>
+                No forms available
+              </option>
+            )}
+          </Select>
+          <Select
+            width="180px"
+            value={variableName}
+            onChange={(e) => {
+              if (isEditing) {
+                handleVariableSelect(key, e.target.value);
+              }
+            }}
+            isDisabled={!isEditing}>
+            <option value="">No Variable</option>
+            {availableVariables?.map((variable) => (
+              <option key={variable.id} value={variable.name}>
+                {variable.name}
+              </option>
+            ))}
+          </Select>
+        </HStack>
+      );
+    }
+
     // For sequence_name in run_sequence command, render a dropdown
     if (key === "sequence_name" && selectedCommand?.commandInfo?.command === "run_sequence") {
       return (
@@ -376,7 +429,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
       );
     }
 
-    // Default rendering for all other parameters (unchanged)
+    // Default rendering for all other parameters
     return (
       <HStack width="100%" spacing={2}>
         <Input
