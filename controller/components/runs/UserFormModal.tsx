@@ -464,6 +464,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
           <ButtonGroup spacing={3} width="100%" justifyContent="center">
             <Button
               variant="ghost"
+              minW="120px"
               onClick={handleCancel}
               color={form.font_color || defaultFontColor}>
               Cancel

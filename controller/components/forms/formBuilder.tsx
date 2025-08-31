@@ -26,6 +26,7 @@ import {
   ButtonGroup,
   Spacer,
   CardFooter,
+  Tooltip,
 } from "@chakra-ui/react";
 import { RiAddFill, RiDeleteBin6Line, RiSaveLine } from "react-icons/ri";
 import { CloseIcon } from "@chakra-ui/icons";
@@ -37,14 +38,22 @@ import { DeleteWithConfirmation } from "../ui/Delete";
 import { FormField, Form, FIELD_TYPES, DEFAULT_EDITING_FIELD } from "@/types";
 import { ColorPicker } from "./colorPicker";
 import { FormFieldComponent } from "./formFieldComponent";
+import { MdDownload } from "react-icons/md";
+import { downloadFile } from "@/server/utils/api";
 
 interface FormBuilderProps {
   forms: Form[];
+  onSelectForm?: (form: Form) => void;
   onCancel?: () => void;
   onUpdate?: () => void;
 }
 
-export const FormBuilder: React.FC<FormBuilderProps> = ({ forms, onCancel, onUpdate }) => {
+export const FormBuilder: React.FC<FormBuilderProps> = ({
+  forms,
+  onCancel,
+  onUpdate,
+  onSelectForm,
+}) => {
   const defaultBgColor = useColorModeValue("#ffffff", "#2d3748");
   const defaultFontColor = useColorModeValue("#1a202c", "#ffffff");
   const cardBorderColor = useColorModeValue("gray.200", "gray.600");
@@ -212,6 +221,14 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ forms, onCancel, onUpd
     }
   };
 
+  const onExportForm = async () => {
+    if (!selectedForm) {
+      errorToast("Error", "Please select a form to export");
+      return;
+    }
+    await downloadFile(`/forms/${selectedForm.id}/export`);
+  };
+
   //Select/radio options
   const addOption = () => {
     const newOptions = editingField.options || [];
@@ -257,6 +274,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ forms, onCancel, onUpd
               const formName = e.target.value;
               const form = forms.find((f) => f.name === formName);
               if (form) {
+                onSelectForm?.(form);
                 setSelectedForm(form);
                 updateFormData(form);
               } else {
@@ -312,12 +330,22 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ forms, onCancel, onUpd
           borderWidth="1px">
           <CardBody display="flex" flexDirection="column" position="relative">
             <HStack spacing={2} mb={4}>
-              <VStack align="start" flex={1} spacing={1}>
+              <VStack flex={1} spacing={1} textAlign="center">
                 <Text fontSize="xl" fontWeight="bold" color={fontColor || defaultFontColor}>
                   {formName.trim() || "Untitled Form"}
                 </Text>
               </VStack>
 
+              <Tooltip label="Download Form" openDelay={1000} hasArrow>
+                <IconButton
+                  aria-label="Download Form"
+                  icon={<MdDownload />}
+                  colorScheme="gray"
+                  variant="outline"
+                  onClick={onExportForm}
+                  size="sm"
+                />
+              </Tooltip>
               <IconButton
                 aria-label="Form settings"
                 icon={<IoSettingsSharp />}
@@ -327,14 +355,12 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ forms, onCancel, onUpd
                 _hover={{
                   bg: "gray.500",
                 }}
-                color={"gray.500"}
               />
-              <CloseIcon fontSize="xs" cursor="pointer" color={"gray.500"} onClick={onCancel} />
+              {/* <CloseIcon fontSize="xs" cursor="pointer" color={"gray.500"} onClick={onCancel} /> */}
             </HStack>
 
             <Box overflowY="auto" maxH="700px" flex={1}>
               <VStack spacing={4} align="stretch">
-                {/* Form fields */}
                 <Box p={2}>
                   <DragDropContext onDragEnd={onDragEnd}>
                     <Droppable droppableId="form-fields">
@@ -376,9 +402,11 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ forms, onCancel, onUpd
                 </Box>
 
                 <CardFooter>
-                  <ButtonGroup spacing={2} justifyContent="end" width="100%">
-                    <Button variant="ghost">Cancel</Button>
-                    <Button colorScheme="teal" mr={3}>
+                  <ButtonGroup spacing={3} justifyContent="center" width="100%">
+                    <Button minW="120px" variant="ghost">
+                      Cancel
+                    </Button>
+                    <Button minW="120px" colorScheme="teal" mr={3}>
                       Submit
                     </Button>
                   </ButtonGroup>

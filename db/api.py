@@ -1,4 +1,5 @@
 import typing as t
+from datetime import datetime
 from fastapi import FastAPI, HTTPException, Depends, Request, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -1971,6 +1972,50 @@ def get_forms(db: Session = Depends(get_db)) -> t.Any:
     """Get all forms."""
     return crud.form.get_all(db)
 
+@app.get("/forms/export-all")
+def export_all_forms(db: Session = Depends(get_db)) -> t.Any:
+    """Export all forms as a single downloadable JSON file."""
+    from fastapi.responses import FileResponse
+    import tempfile
+    import os
+    
+    # Get all forms from the database
+    forms = crud.form.get_all(db)
+    
+    if not forms:
+        raise HTTPException(status_code=404, detail="No forms found to export")
+    
+    # Create a temporary file for the JSON content
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
+        temp_file_path = temp_file.name
+        
+        # Serialize all forms to JSON
+        forms_json = {
+            "forms": jsonable_encoder(forms),
+            "export_metadata": {
+                "export_date": datetime.now().isoformat(),
+                "total_forms": len(forms),
+                "version": "1.0"
+            }
+        }
+        
+        temp_file.write(json.dumps(forms_json, indent=2).encode("utf-8"))
+    
+    # Set the filename for download with timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"all_forms_export_{timestamp}.json"
+    
+    # Return the file response which will trigger download in the browser
+    return FileResponse(
+        path=temp_file_path,
+        filename=filename,
+        media_type="application/json",
+        background=BackgroundTask(
+            lambda: os.unlink(temp_file_path)
+        ),  # Delete the temp file after response is sent
+    )
+
+
 @app.get("/forms/{form_name}", response_model=schemas.Form)
 def get_form(form_name: str, db: Session = Depends(get_db)) -> t.Any:
     """Get a specific form by ID or name."""
@@ -2022,61 +2067,6 @@ def delete_form(form_id: int, db: Session = Depends(get_db)) -> t.Any:
     
     return crud.form.remove(db, id=form_id)
 
-
-app.post("/forms/{form_id}/duplicate", response_model=schemas.Form)
-def duplicate_form(
-    form_id: int,
-    new_name: str = Form(...),
-    db: Session = Depends(get_db)
-) -> t.Any:
-    """Duplicate an existing form with a new name."""
-    original_form = crud.form.get(db, id=form_id)
-    if not original_form:
-        raise HTTPException(status_code=404, detail="Form not found")
-    
-    # Check if new name already exists
-    existing_form = crud.form.get_by(db, obj_in={"name": new_name})
-    if existing_form:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Form with name '{new_name}' already exists"
-        )
-    
-    # Use Pydantic's model_validate to handle the conversion automatically
-    new_form_data = schemas.FormCreate.model_validate({
-        "name": new_name,
-        "fields": original_form.fields,  # Pydantic will convert this automatically
-        "background_color": original_form.background_color,
-        "font_color": original_form.font_color
-    })
-    
-    return crud.form.create(db, obj_in=new_form_data)
-
-@app.put("/forms/{form_id}/lock", response_model=schemas.Form)
-def lock_form(form_id: int, db: Session = Depends(get_db)) -> t.Any:
-    """Lock a form to prevent editing."""
-    form = crud.form.get(db, id=form_id)
-    if not form:
-        raise HTTPException(status_code=404, detail="Form not found")
-    
-    form.is_locked = True
-    db.commit()
-    db.refresh(form)
-    return form
-
-
-app.put("/forms/{form_id}/unlock", response_model=schemas.Form)
-def unlock_form(form_id: int, db: Session = Depends(get_db)) -> t.Any:
-    """Unlock a form to allow editing."""
-    form = crud.form.get(db, id=form_id)
-    if not form:
-        raise HTTPException(status_code=404, detail="Form not found")
-    
-    form.is_locked = False
-    db.commit()
-    db.refresh(form)
-    return form
-
 @app.get("/forms/{form_id}/export")
 def export_form_config(form_id: int, db: Session = Depends(get_db)) -> t.Any:
     """Export a form configuration as a downloadable JSON file."""
@@ -2107,6 +2097,8 @@ def export_form_config(form_id: int, db: Session = Depends(get_db)) -> t.Any:
             lambda: os.unlink(temp_file_path)
         ),  # Delete the temp file after response is sent
     )
+
+
 
 @app.post("/forms/import", response_model=schemas.Form)
 async def import_form_config(

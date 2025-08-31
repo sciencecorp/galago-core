@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Box,
   VStack,
-  HStack,
   useColorModeValue,
   Center,
   Spinner,
@@ -14,14 +13,12 @@ import {
   Stat,
   StatLabel,
   StatNumber,
-  useToast,
 } from "@chakra-ui/react";
 import { FormBuilder } from "./formBuilder";
 import { trpc } from "@/utils/trpc";
 import { MdFormatListBulleted } from "react-icons/md";
 import { PageHeader } from "../ui/PageHeader";
 import { Form } from "@/types";
-import { EmptyState } from "../ui/EmptyState";
 import { CreateFormModal } from "./createFormModal";
 
 export const Forms = () => {
@@ -89,7 +86,12 @@ export const Forms = () => {
           </CardBody>
         </Card>
         <VStack spacing={4}>
-          <FormBuilder forms={forms} onCancel={handleFormCancel} onUpdate={refetch} />
+          <FormBuilder
+            forms={forms}
+            onCancel={handleFormCancel}
+            onUpdate={refetch}
+            onSelectForm={setSelectedForm}
+          />
         </VStack>
       </VStack>
     </Box>
