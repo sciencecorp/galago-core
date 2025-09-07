@@ -240,6 +240,9 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
     # Get all labware definitions
     labware = crud.labware.get_all(db)
 
+    # Get all forms 
+    forms = crud.form.get_all(db)
+
     # Create a temporary file for the JSON content
     with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
         temp_file_path = temp_file.name
@@ -252,6 +255,7 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
         workcell_json["wells"] = jsonable_encoder(wells)
         workcell_json["reagents"] = jsonable_encoder(reagents)
         workcell_json["labware"] = jsonable_encoder(labware)
+        workcell_json["forms"] = jsonable_encoder(forms)
 
         temp_file.write(json.dumps(workcell_json, indent=2).encode("utf-8"))
 
@@ -1915,9 +1919,6 @@ async def get_protocols(
         else:
             # If workcell not found, return empty list
             return []
-
-    if is_active is not None:
-        query = query.filter(models.Protocol.is_active == is_active)
 
     protocols = query.all()
     return [protocol for protocol in protocols]
