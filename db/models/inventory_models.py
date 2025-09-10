@@ -350,14 +350,21 @@ class Protocol(Base, TimestampMixin):
     category = Column(String, nullable=False)
     workcell_id = Column(Integer, ForeignKey("workcells.id"))
     description = Column(String, nullable=True)
-    icon = Column(String, nullable=True)
-    params = Column(JSON, nullable=False)  # Zod schema for parameters
-    commands = Column(JSON, nullable=False)  # Template for generating commands
-    version = Column(Integer, nullable=False, default=1)
-    is_active = Column(Boolean, nullable=False, default=True)
+    commands = Column(JSON, nullable=False) 
 
     workcell: RelationshipProperty[Optional["Workcell"]] = relationship(
         "Workcell", back_populates="protocols"
     )
+
+    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+
+
+class Form(Base, TimestampMixin):
+    __tablename__ = "forms"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+    fields = Column(JSON, nullable=False)  
+    background_color = Column(String, nullable=True)
+    font_color = Column(String, nullable=True)
 
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)

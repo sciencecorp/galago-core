@@ -39,14 +39,12 @@ import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
 import { capitalizeFirst } from "@/utils/parser";
 import { VscRunBelow } from "react-icons/vsc";
-import { ProtocolFormModal } from "./ProtocolFormModal";
 import { FaPlay } from "react-icons/fa6";
 import { SaveIcon } from "@/components/ui/Icons";
 import { SiPlatformdotsh } from "react-icons/si";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
 import { MdOutlineExitToApp } from "react-icons/md";
 import { CommandDetailsDrawer } from "./CommandDetailsDrawer";
-import { ParameterSchema } from "@/types";
 import CommandImage from "@/components/tools/CommandImage";
 import { successToast, errorToast } from "../ui/Toast";
 import { useCommonColors } from "@/components/ui/Theme";
@@ -149,7 +147,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [addCommandPosition, setAddCommandPosition] = useState<number | null>(null);
   const [selectedCommand, setSelectedCommand] = useState<any | null>(null);
-  const [localParams, setLocalParams] = useState<Record<string, ParameterSchema>>({});
   const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
   const execMutation = trpc.tool.runCommand.useMutation();
   const bgColor = useColorModeValue("white", "gray.800");
@@ -219,12 +216,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
 
     setCommands(newCommands);
   }, [protocol?.commands]);
-
-  useEffect(() => {
-    if (protocol?.params) {
-      setLocalParams(protocol.params);
-    }
-  }, [protocol?.params]);
 
   useEffect(() => {
     return () => {
@@ -327,9 +318,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       data: {
         name: protocol.name,
         description: protocol.description,
-        params: localParams,
         commands: newCommands,
-        icon: protocol.icon || "",
       },
     });
   };
@@ -369,7 +358,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       return (
         <Button
           leftIcon={<AddIcon />}
-          colorScheme="blue"
+          colorScheme="teal"
           variant="outline"
           onClick={() => handleAddCommandAtPosition(0)}>
           Add First Command
@@ -459,17 +448,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       borderWidth="1px"
       mx="auto"
       overflow="hidden">
-      <ProtocolFormModal
-        isOpen={isParametersModalOpen}
-        onClose={closeParametersModal}
-        initialParams={protocol.params || {}}
-        protocolId={protocol.id}
-        onSave={(newParams) => {
-          setLocalParams(newParams);
-          refetch();
-          closeParametersModal();
-        }}
-      />
       <VStack align="stretch" spacing={6} width="100%">
         <HStack justify="space-between">
           <VStack align="start" spacing={2}>
@@ -482,13 +460,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
           <HStack>
             {isEditing ? (
               <>
-                <Button
-                  leftIcon={<SiPlatformdotsh fontSize="14px" />}
-                  variant="outline"
-                  size="md"
-                  onClick={openParametersModal}>
-                  Form
-                </Button>
                 <Button
                   variant="outline"
                   leftIcon={<SaveIcon />}

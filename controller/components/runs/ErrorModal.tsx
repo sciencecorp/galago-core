@@ -76,7 +76,7 @@ export const ErrorModal: React.FC<ErrorModalProps> = ({ isOpen, onClose, errorDa
                   fontSize="sm"
                   width="100%"
                   overflowX="auto">
-                  {errorData.details}
+                  {errorData.details} - {errorData.message}
                 </Code>
               </Box>
             )}

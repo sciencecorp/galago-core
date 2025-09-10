@@ -23,7 +23,7 @@ interface StopRunModalProps {
   onClose: () => void;
   onConfirm: () => void;
   messageData: {
-    type: "pause" | "message" | "timer" | "stop_run";
+    type: "pause" | "message" | "timer" | "stop_run" | "user_form";
     timerDuration?: number;
     timerEndTime?: number;
     timerStartTime?: number;

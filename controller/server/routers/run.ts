@@ -44,20 +44,18 @@ export const runRouter = router({
   create: procedure
     .input(
       z.object({
-        workcellName: z.string(),
         protocolId: z.string(),
-        params: z.record(z.any()),
         numberOfRuns: z.number().optional(),
       }),
     )
     .mutation(async ({ input }) => {
-      const { workcellName, protocolId, params } = input;
+      const { protocolId } = input;
       try {
         //Promise to create multiple runs
         if (input.numberOfRuns) {
           const runs = [];
           for (let i = 0; i < input.numberOfRuns; i++) {
-            const run = await RunStore.global.createFromProtocol(workcellName, protocolId, params);
+            const run = await RunStore.global.createFromProtocol(protocolId);
             runs.push(run);
           }
           return runs;

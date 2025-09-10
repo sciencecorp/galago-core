@@ -1,9 +1,8 @@
 import typing as t
 from pydantic import BaseModel, model_validator, ConfigDict
 from datetime import datetime, date
-from typing import Optional, List, Dict, Any
 from enum import Enum as PyEnum
-
+from typing import List, Dict, Any, Optional, Union
 
 class TimestampMixin(BaseModel):
     created_at: Optional[datetime] = None
@@ -356,7 +355,7 @@ class TeachPoint(BaseModel):
     coordinates: str
     type: str = "location"
     loc_type: str = "j"
-
+    orientation: Optional[str] = "landscape"
 
 class Command(BaseModel):
     command: str
@@ -404,11 +403,7 @@ class ProtocolBase(BaseModel):
     category: str
     workcell_id: int
     description: t.Optional[str] = None
-    icon: t.Optional[str] = None
-    params: t.Dict[str, t.Any]
     commands: t.List[t.Dict[str, t.Any]]
-    version: t.Optional[int] = 1
-    is_active: t.Optional[bool] = True
 
 
 class ProtocolCreate(BaseModel):
@@ -416,22 +411,13 @@ class ProtocolCreate(BaseModel):
     category: str
     workcell_id: int
     description: Optional[str] = None
-    icon: Optional[str] = None
-    params: Dict[str, Any]
     commands: List[Dict[str, Any]]
-    version: Optional[int] = 1
-    is_active: Optional[bool] = True
 
 class ProtocolUpdate(BaseModel):
     name: t.Optional[str] = None
     category: t.Optional[str] = None
     description: t.Optional[str] = None
-    icon: t.Optional[str] = None
-    params: t.Optional[t.Dict[str, t.Any]] = None
     commands: t.Optional[t.List[t.Dict[str, t.Any]]] = None
-    version: t.Optional[int] = None
-    is_active: t.Optional[bool] = None
-
 
 class Protocol(ProtocolBase):
     id: int
@@ -692,10 +678,8 @@ class PlateNestHistoryBase(BaseModel):
 class PlateNestHistoryCreate(PlateNestHistoryBase):
     pass
 
-
 class PlateNestHistoryUpdate(PlateNestHistoryBase):
     pass
-
 
 class PlateNestHistory(PlateNestHistoryBase):
     id: int
@@ -714,3 +698,34 @@ class PlateWithRelations(Plate):
     current_nest: t.Optional[Nest] = None
     nest_history: t.List[PlateNestHistory] = []
     wells: t.List["Well"] = []
+
+
+class FormFieldOption(BaseModel):
+    value: str
+    label: str
+
+class FormField(BaseModel):
+    type: str  
+    label: str
+    required: Optional[bool] = False
+    placeholder: Optional[str] = None
+    options: Optional[List[FormFieldOption]] = None
+    default_value: Optional[Union[str, List[str]]] = None
+    mapped_variable: Optional[str] = None
+
+    
+class FormCreate(BaseModel):
+    name: str
+    fields: Optional[List[FormField]] = None
+    background_color: t.Optional[str] = None
+    font_color: t.Optional[str] = None
+
+class FormUpdate(BaseModel):
+    name: t.Optional[str] = None
+    fields: Optional[List[FormField]] = None
+    background_color: t.Optional[str] = None
+    font_color: t.Optional[str] = None
+
+class Form(TimestampMixin, FormCreate):
+    id: int
+    model_config = ConfigDict(from_attributes=True)

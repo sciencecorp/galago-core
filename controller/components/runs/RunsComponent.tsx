@@ -40,6 +40,8 @@ import { MessageModal } from "./MessageModal";
 import { TimerModal } from "./TimerModal";
 import { StopRunModal } from "./StopRunModal";
 import { ErrorModal } from "./ErrorModal";
+import { UserFormModal } from "./UserFormModal";
+import { Form } from "@/types";
 
 const LastUpdatedTime = () => {
   const [time, setTime] = useState<string>("");
@@ -68,6 +70,11 @@ export const RunsComponent: React.FC = () => {
   const [isErrorVisible, setIsErrorVisible] = useState(true);
   const [showAllCommands, setShowAllCommands] = useState(true);
 
+  // User Form Modal state
+  const [isUserFormModalOpen, setIsUserFormModalOpen] = useState(false);
+  const [currentForm, setCurrentForm] = useState<Form | null>(null);
+  const [userFormError, setUserFormError] = useState<string | null>(null);
+
   // Unified message state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
@@ -80,12 +87,13 @@ export const RunsComponent: React.FC = () => {
   });
 
   const [messageData, setMessageData] = useState<{
-    type: "pause" | "message" | "timer" | "stop_run";
+    type: "pause" | "message" | "timer" | "stop_run" | "user_form";
     message: string;
     title?: string;
     pausedAt?: number;
     timerDuration?: number;
     timerEndTime?: number;
+    formName?: string;
   }>({
     type: "pause",
     message: "Run is paused. Click Continue to resume.",
@@ -110,6 +118,24 @@ export const RunsComponent: React.FC = () => {
     refetchInterval: 1000,
   });
 
+  // Form fetching query (only execute when we have a form name)
+  const formQuery = trpc.form.get.useQuery(messageData.formName || "", {
+    enabled: !!messageData.formName && messageData.type === "user_form",
+  });
+
+  // Handle form query results
+  useEffect(() => {
+    if (formQuery.data && messageData.type === "user_form") {
+      console.log("✅ Form loaded successfully:", formQuery.data);
+      setCurrentForm(formQuery.data);
+      setUserFormError(null);
+    } else if (formQuery.error && messageData.type === "user_form") {
+      console.error("❌ Failed to load form:", formQuery.error);
+      setUserFormError(`Failed to load form: ${formQuery.error.message}`);
+      setCurrentForm(null);
+    }
+  }, [formQuery.data, formQuery.error, messageData.type]);
+
   const commandBgColor = useColorModeValue("gray.50", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const hoverBgColor = useColorModeValue("gray.100", "gray.600");
@@ -133,12 +159,43 @@ export const RunsComponent: React.FC = () => {
     retry: false,
   });
 
+  // Add render logging after all state is declared
+  console.log("🎨 RunsComponent render:", {
+    isUserFormModalOpen,
+    currentForm: !!currentForm,
+    currentFormName: currentForm?.name,
+    messageDataFormName: messageData?.formName,
+    messageType: messageData?.type,
+    isWaitingForInput: isWaitingForInputQuery.data,
+  });
+
   useEffect(() => {
+    console.log("🔍 RunsComponent useEffect triggered");
+    console.log("isWaitingForInputQuery.data:", isWaitingForInputQuery.data);
+    console.log("currentMessageQuery.data:", currentMessageQuery.data);
+    console.log("Current messageData:", messageData);
+
     if (isWaitingForInputQuery.data !== undefined) {
-      setIsModalOpen(isWaitingForInputQuery.data);
+      const shouldShowModal = isWaitingForInputQuery.data;
+      const shouldShowUserForm = shouldShowModal && messageData.type === "user_form";
+
+      console.log("shouldShowModal:", shouldShowModal);
+      console.log("shouldShowUserForm:", shouldShowUserForm);
+      console.log("messageData.type:", messageData.type);
+
+      setIsModalOpen(shouldShowModal && messageData.type !== "user_form");
+      setIsUserFormModalOpen(shouldShowUserForm);
+
+      console.log(
+        "Modal states set - isModalOpen:",
+        shouldShowModal && messageData.type !== "user_form",
+      );
+      console.log("Modal states set - isUserFormModalOpen:", shouldShowUserForm);
     }
 
     if (currentMessageQuery.data) {
+      console.log("📨 Processing currentMessageQuery.data:", currentMessageQuery.data);
+
       const newMessageData = {
         type: currentMessageQuery.data.type,
         message: currentMessageQuery.data.message,
@@ -152,14 +209,42 @@ export const RunsComponent: React.FC = () => {
         ...(currentMessageQuery.data.timerEndTime
           ? { timerEndTime: currentMessageQuery.data.timerEndTime }
           : {}),
+        ...(currentMessageQuery.data.formName
+          ? { formName: currentMessageQuery.data.formName }
+          : {}),
       };
 
+      console.log("🎯 Setting messageData to:", newMessageData);
       setMessageData(newMessageData);
+
+      // Reset form state when message type changes
+      if (newMessageData.type !== "user_form") {
+        console.log("🧹 Resetting form state (not user_form)");
+        setCurrentForm(null);
+        setUserFormError(null);
+      } else {
+        console.log("📋 User form type detected, formName:", newMessageData.formName);
+      }
     }
-  }, [isWaitingForInputQuery.data, currentMessageQuery.data]);
+  }, [isWaitingForInputQuery.data, currentMessageQuery.data, messageData.type]);
 
   const handleResume = () => {
     resumeMutation.mutate();
+  };
+
+  const handleUserFormSubmit = (formData: Record<string, any>) => {
+    // TODO: Handle form submission - for now just resume
+    console.log("Form submitted with data:", formData);
+    resumeMutation.mutate();
+    setIsUserFormModalOpen(false);
+    setCurrentForm(null);
+  };
+
+  const handleUserFormCancel = () => {
+    // For now, just resume the queue - you might want different behavior
+    resumeMutation.mutate();
+    setIsUserFormModalOpen(false);
+    setCurrentForm(null);
   };
 
   const handleRunStop = () => {
@@ -427,9 +512,15 @@ export const RunsComponent: React.FC = () => {
         />
       )}
       <MessageModal
-        isOpen={isModalOpen && messageData.type != "timer"}
+        isOpen={isModalOpen && messageData.type !== "timer" && messageData.type !== "user_form"}
         messageData={messageData}
         onContinue={handleResume}
+      />
+      <UserFormModal
+        isOpen={isUserFormModalOpen}
+        form={currentForm}
+        onSubmit={handleUserFormSubmit}
+        onCancel={handleUserFormCancel}
       />
       <ErrorModal
         isOpen={isErrorModalOpen}
@@ -456,19 +547,23 @@ export const RunsComponent: React.FC = () => {
                     <HStack>
                       <Badge
                         colorScheme={
-                          isModalOpen
+                          isModalOpen || isUserFormModalOpen
                             ? messageData.type === "pause"
                               ? "orange"
-                              : "blue"
+                              : messageData.type === "user_form"
+                                ? "purple"
+                                : "blue"
                             : stateQuery.data === ToolStatus.BUSY
                               ? "green"
                               : "gray"
                         }
                         fontSize="sm">
-                        {isModalOpen
+                        {isModalOpen || isUserFormModalOpen
                           ? messageData.type === "pause"
                             ? "Paused"
-                            : "Waiting"
+                            : messageData.type === "user_form"
+                              ? "Waiting for Form"
+                              : "Waiting"
                           : stateQuery.data === ToolStatus.BUSY
                             ? "Running"
                             : "Stopped"}

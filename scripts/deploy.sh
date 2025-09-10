@@ -23,7 +23,8 @@ docker-compose -f docker-compose.yml build --no-cache --pull
 
 # Step 5: Start services
 echo "🚀 Starting services..."
-docker-compose -f docker-compose.yml up -d
+
+
 
 # Step 6: Verify deployment
 echo "✅ Verifying deployment..."

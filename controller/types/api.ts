@@ -175,11 +175,7 @@ export interface Protocol {
   category: string;
   workcell_id: number;
   description?: string;
-  icon?: string;
-  params: Record<string, ParameterSchema>;
   commands: ToolCommand[];
-  version?: number;
-  is_active?: boolean;
   created_at?: string;
   updated_at?: string;
 }

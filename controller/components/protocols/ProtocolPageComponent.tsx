@@ -36,9 +36,6 @@ import {
   MenuList,
   MenuItem,
   IconButton,
-  Editable,
-  EditableInput,
-  EditablePreview,
   Popover,
   PopoverTrigger,
   PopoverContent,
@@ -77,7 +74,6 @@ export const ProtocolPageComponent: React.FC = () => {
   const tableBgColor = useColorModeValue("white", "gray.700");
   const hoverBgColor = useColorModeValue("gray.50", "gray.600");
 
-  const router = useRouter();
   const { data: workcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
   const {
     data: protocols,
