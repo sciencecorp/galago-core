@@ -28,7 +28,7 @@ services:
       - REDIS_HOST=redis://queue:6379/1
     stdin_open: true # for debugging
     tty: true # for debugging
-    network_mode: "host"
+    #network_mode: "host"
     networks:
       - app-network
     depends_on:
