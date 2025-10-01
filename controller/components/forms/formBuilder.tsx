@@ -78,7 +78,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 }) => {
   const colors = useCommonColors();
   const textColors = useTextColors();
-  
+
   // Use static form defaults (for the UI chrome around the form)
   const cardBorderColor = colors.borderColor;
   const headerTextColor = textColors.primary;
@@ -435,15 +435,15 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
                 <CardFooter>
                   <ButtonGroup spacing={3} justifyContent="center" width="100%">
-                    <Button 
-                      minW="120px" 
+                    <Button
+                      minW="120px"
                       variant="ghost"
                       color={fontColor || FORM_DEFAULTS.buttonColors.ghost.color}
                       _hover={{ bg: FORM_DEFAULTS.buttonColors.ghost.hoverBg }}>
                       Cancel
                     </Button>
-                    <Button 
-                      minW="120px" 
+                    <Button
+                      minW="120px"
                       mr={3}
                       bg={FORM_DEFAULTS.buttonColors.primary.bg}
                       color={FORM_DEFAULTS.buttonColors.primary.color}
@@ -655,12 +655,13 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
           bg={colors.sectionBg}
           borderColor={colors.borderColor}
           borderWidth="1px">
-          <CardBody display="flex" flexDirection="column" alignItems="center" justifyContent="center">
+          <CardBody
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center">
             <VStack spacing={4}>
-              <Box
-                p={4}
-                borderRadius="full"
-                bg={colors.alternateBg}>
+              <Box p={4} borderRadius="full" bg={colors.alternateBg}>
                 <FaRegListAlt size={48} color={textColors.secondary} />
               </Box>
               <VStack spacing={2}>

@@ -180,14 +180,14 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
                 <RadioGroup>
                   <Stack>
                     {field.options?.map((option, idx) => (
-                      <Radio 
-                        key={idx} 
+                      <Radio
+                        key={idx}
                         value={option.value}
                         sx={{
-                          '[data-checked]': {
+                          "[data-checked]": {
                             bg: FIELD_STYLES.checkbox.checkedBg,
                             borderColor: FIELD_STYLES.checkbox.checkedBorder,
-                          }
+                          },
                         }}>
                         <Text color={fontColor || defaultFontColor}>{option.label}</Text>
                       </Radio>
@@ -199,12 +199,12 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
 
             {field.type === "checkbox" && (
               <Box cursor="pointer" p={2} borderRadius="md" display="inline-block">
-                <Checkbox 
+                <Checkbox
                   sx={{
-                    '[data-checked]': {
+                    "[data-checked]": {
                       bg: FIELD_STYLES.checkbox.checkedBg,
                       borderColor: FIELD_STYLES.checkbox.checkedBorder,
-                    }
+                    },
                   }}>
                   <Text color={fontColor || defaultFontColor}>
                     {field.placeholder || "Checkbox option"}
