@@ -672,7 +672,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                   Select a form from the dropdown above to start editing
                 </Text>
                 <Text fontSize="sm" color={textColors.secondary} textAlign="center" opacity={0.8}>
-                  or create a new form using the "New Form" button
+                  or create a new form using the &quot;New Form&quot; button
                 </Text>
               </VStack>
             </VStack>
