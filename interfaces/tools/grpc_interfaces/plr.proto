@@ -15,10 +15,11 @@ message Command {
   }
 
   message RunScript {
-    string name = 1;
+    string script_content = 1;
     bool blocking =2;
   }
 }
 
 message Config {
+  string python_exe = 1;
 }

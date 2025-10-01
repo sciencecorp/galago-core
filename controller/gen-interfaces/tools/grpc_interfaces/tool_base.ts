@@ -14,7 +14,7 @@ import { Command as Command10, Config as Config29 } from "./multidrop";
 import { Command as Command2, Config as Config21 } from "./opentrons2";
 import { Command as Command3, Config as Config22 } from "./pf400";
 import { Command as Command12, Config as Config31 } from "./plateloc";
-import { Command as Command19 } from "./plr";
+import { Command as Command19, Config as Config38 } from "./plr";
 import { Command as Command6, Config as Config25 } from "./spectramax";
 import { Command as Command15, Config as Config34 } from "./toolbox";
 import { Command as Command11, Config as Config30 } from "./vcode";
@@ -252,7 +252,7 @@ export interface Config {
   hamilton?: Config35 | undefined;
   microserve?: Config36 | undefined;
   vprep?: Config37 | undefined;
-  plr?: Config37 | undefined;
+  plr?: Config38 | undefined;
 }
 
 export interface ExecuteCommandReply {
@@ -725,7 +725,7 @@ export const Config = {
       Config37.encode(message.vprep, writer.uint32(298).fork()).ldelim();
     }
     if (message.plr !== undefined) {
-      Config37.encode(message.plr, writer.uint32(306).fork()).ldelim();
+      Config38.encode(message.plr, writer.uint32(306).fork()).ldelim();
     }
     return writer;
   },
@@ -882,7 +882,7 @@ export const Config = {
             break;
           }
 
-          message.plr = Config37.decode(reader, reader.uint32());
+          message.plr = Config38.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -915,7 +915,7 @@ export const Config = {
       hamilton: isSet(object.hamilton) ? Config35.fromJSON(object.hamilton) : undefined,
       microserve: isSet(object.microserve) ? Config36.fromJSON(object.microserve) : undefined,
       vprep: isSet(object.vprep) ? Config37.fromJSON(object.vprep) : undefined,
-      plr: isSet(object.plr) ? Config37.fromJSON(object.plr) : undefined,
+      plr: isSet(object.plr) ? Config38.fromJSON(object.plr) : undefined,
     };
   },
 
@@ -947,7 +947,7 @@ export const Config = {
     message.microserve !== undefined &&
       (obj.microserve = message.microserve ? Config36.toJSON(message.microserve) : undefined);
     message.vprep !== undefined && (obj.vprep = message.vprep ? Config37.toJSON(message.vprep) : undefined);
-    message.plr !== undefined && (obj.plr = message.plr ? Config37.toJSON(message.plr) : undefined);
+    message.plr !== undefined && (obj.plr = message.plr ? Config38.toJSON(message.plr) : undefined);
     return obj;
   },
 
@@ -1013,7 +1013,7 @@ export const Config = {
     message.vprep = (object.vprep !== undefined && object.vprep !== null)
       ? Config37.fromPartial(object.vprep)
       : undefined;
-    message.plr = (object.plr !== undefined && object.plr !== null) ? Config37.fromPartial(object.plr) : undefined;
+    message.plr = (object.plr !== undefined && object.plr !== null) ? Config38.fromPartial(object.plr) : undefined;
     return message;
   },
 };

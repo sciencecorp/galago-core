@@ -227,14 +227,11 @@ export default class Tool {
                         .replaceAll(".py", "")
                         .replaceAll(".cs", "");
 
-      console.log("Fetching script", scriptName);
       try {
         const script = await get<Script>(`/scripts/${scriptName}`);
         if(command.toolType === ToolType.plr && script.language !== "python") {
           throw new Error("PLR tool only supports Python scripts");
         }
-        console.log("Fetched script", script);
-        command.params.name = script.content;
         if (script.language === "javascript") {
           const result = await JavaScriptExecutor.executeScript(script.content);
           if (!result.success) {
@@ -279,9 +276,10 @@ export default class Tool {
             meta_data: { response: result.output } as any,
           } as tool_base.ExecuteCommandReply;
         } else if (script.language === "python") {
-          command.params.name = script.content;
-          command.params.blocking = true; // Python scripts are always blocking
-          console.log("Executing Python script with PLR", command);
+          command.params.script_content = script.content;
+          command.params.blocking = true; 
+        } else {
+          throw new Error(`Unsupported script language: ${script.language}`);
         }
       } catch (e: any) {
         console.warn("Error at fetching script", e);
@@ -306,7 +304,7 @@ export default class Tool {
       // Handle specific error codes
       switch (reply.response) {
         case tool_base.ResponseCode.UNRECOGNIZED_COMMAND:
-          userFriendlyErrorMessage = `The command "${command.command}" is not recognized by the tool "${command.toolId}". Please verify that this command is supported by this tool.`;
+          userFriendlyErrorMessage = `The command "${command.command}" is not recognized by the tool "${command.toolId}". Please verify that this command is supported by this tool or page view.`;
           break;
         case tool_base.ResponseCode.INVALID_ARGUMENTS:
           userFriendlyErrorMessage = `Invalid arguments provided for command "${command.command}". Check the parameters and try again.`;
