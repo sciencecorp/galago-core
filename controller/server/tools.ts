@@ -219,7 +219,9 @@ export default class Tool {
     console.log("Executing command", command);
     if (
       command.command === "run_script" &&
-      (command.toolType === ToolType.toolbox || command.toolType === ToolType.plr)
+      (command.toolType === ToolType.toolbox ||
+        command.toolType === ToolType.plr ||
+        command.toolType === ToolType.pyhamilton)
     ) {
       if (!command.params.name || command.params.name.trim() === "") {
         throw new Error("Script name is required for run_script command");

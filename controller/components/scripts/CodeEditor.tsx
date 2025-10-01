@@ -29,7 +29,7 @@ import {
   warningToast,
   successToast as showSuccessToast,
   errorToast as showErrorToast,
-  loadingToast
+  loadingToast,
 } from "../ui/Toast";
 import { useScriptColors } from "../ui/Theme";
 import { CloseIcon, PythonIcon, CodeIcon, PlayIcon, SaveIcon } from "../ui/Icons";
@@ -169,58 +169,60 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     }
   }, [fetchedFolders]);
 
-const handleRunScript = async () => {
-  setRunError(false);
-  setConsoleText("");
-  if (!activeTab) return;
-  // Create a promise that wraps the mutation
-  const runScriptPromise = new Promise((resolve, reject) => {
-    runScript.mutate(activeTab, {
-      onSuccess: (data) => {
-        // Handle the response data the same way as before
-        if (data?.meta_data?.response) {
-          setConsoleText(data.meta_data.response);
-          setRunError(false);
-        } else if (data?.error_message) {
+  const handleRunScript = async () => {
+    setRunError(false);
+    setConsoleText("");
+    if (!activeTab) return;
+    // Create a promise that wraps the mutation
+    const runScriptPromise = new Promise((resolve, reject) => {
+      runScript.mutate(activeTab, {
+        onSuccess: (data) => {
+          // Handle the response data the same way as before
+          if (data?.meta_data?.response) {
+            setConsoleText(data.meta_data.response);
+            setRunError(false);
+          } else if (data?.error_message) {
+            setRunError(true);
+            setConsoleText(data.error_message);
+            reject(new Error(data.error_message));
+            return;
+          } else {
+            setRunError(false);
+            setConsoleText("");
+          }
+          resolve(data);
+        },
+        onError: (error) => {
           setRunError(true);
-          setConsoleText(data.error_message);
-          reject(new Error(data.error_message));
-          return;
-        } else {
-          setRunError(false);
-          setConsoleText("");
-        }
-        resolve(data);
-      },
-      onError: (error) => {
-        setRunError(true);
-        setConsoleText(error.message);
-        reject(error);
-      },
+          setConsoleText(error.message);
+          reject(error);
+        },
+      });
     });
-  });
 
-  // Use the loadingToast with the promise
-  loadingToast(`Executing ${activeTab}...`, "Please wait for script to complete.", runScriptPromise, {
-    successTitle: `Script ${activeTab} completed!`,
-    successDescription: () => "The script execution finished successfully",
-    errorTitle: "Failed to run script",
-    errorDescription: (error) => `Error: ${error.message}`,
-  });
+    // Use the loadingToast with the promise
+    loadingToast(
+      `Executing ${activeTab}...`,
+      "Please wait for script to complete.",
+      runScriptPromise,
+      {
+        successTitle: `Script ${activeTab} completed!`,
+        successDescription: () => "The script execution finished successfully",
+        errorTitle: "Failed to run script",
+        errorDescription: (error) => `Error: ${error.message}`,
+      },
+    );
 
-  try {
-    await runScriptPromise;
-  } catch (error) {
-    logAction({
-      level: "error",
-      action: "Script Execution Failed",
-      details: `Error executing script ${activeTab}: ${error}`,
-    });
-    // Error is already handled in the onError callback above
-    // This catch is just to prevent unhandled promise rejection
-  }
-};
-
+    try {
+      await runScriptPromise;
+    } catch (error) {
+      logAction({
+        level: "error",
+        action: "Script Execution Failed",
+        details: `Error executing script ${activeTab}: ${error}`,
+      });
+    }
+  };
 
   const handleSave = async () => {
     if (!activeTab) {
