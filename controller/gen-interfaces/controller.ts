@@ -24,6 +24,7 @@ export enum ToolType {
   microserve = "microserve",
   vprep = "vprep",
   plr = "plr",
+  pyhamilton = "pyhamilton",
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
@@ -86,6 +87,9 @@ export function toolTypeFromJSON(object: any): ToolType {
     case 19:
     case "plr":
       return ToolType.plr;
+    case 20:
+    case "pyhamilton":
+      return ToolType.pyhamilton;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -133,6 +137,8 @@ export function toolTypeToJSON(object: ToolType): string {
       return "vprep";
     case ToolType.plr:
       return "plr";
+    case ToolType.pyhamilton:
+      return "pyhamilton";
     case ToolType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -179,6 +185,8 @@ export function toolTypeToNumber(object: ToolType): number {
       return 18;
     case ToolType.plr:
       return 19;
+    case ToolType.pyhamilton:
+      return 20;
     case ToolType.UNRECOGNIZED:
     default:
       return -1;

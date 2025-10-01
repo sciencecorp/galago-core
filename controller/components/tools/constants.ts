@@ -1,4 +1,18 @@
 export const commandFields: CommandFields = {
+  pyhamilton: {
+    run_script: [
+      {
+        name: "name",
+        type: "text",
+      },
+    ],
+    run_local_script: [
+      {
+        name: "path",
+        type: "text",
+      },
+    ],
+  },
   plr: {
     run_script: [
       {
