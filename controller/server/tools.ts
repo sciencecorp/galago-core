@@ -217,19 +217,22 @@ export default class Tool {
 
     //Handle script execution
     console.log("Executing command", command);
-    if (command.command === "run_script" && ( command.toolType === ToolType.toolbox || command.toolType === ToolType.plr))  {
+    if (
+      command.command === "run_script" &&
+      (command.toolType === ToolType.toolbox || command.toolType === ToolType.plr)
+    ) {
       if (!command.params.name || command.params.name.trim() === "") {
         throw new Error("Script name is required for run_script command");
       }
 
       const scriptName = command.params.name
-                        .replaceAll(".js", "")
-                        .replaceAll(".py", "")
-                        .replaceAll(".cs", "");
+        .replaceAll(".js", "")
+        .replaceAll(".py", "")
+        .replaceAll(".cs", "");
 
       try {
         const script = await get<Script>(`/scripts/${scriptName}`);
-        if(command.toolType === ToolType.plr && script.language !== "python") {
+        if (command.toolType === ToolType.plr && script.language !== "python") {
           throw new Error("PLR tool only supports Python scripts");
         }
         if (script.language === "javascript") {
@@ -277,7 +280,7 @@ export default class Tool {
           } as tool_base.ExecuteCommandReply;
         } else if (script.language === "python") {
           command.params.script_content = script.content;
-          command.params.blocking = true; 
+          command.params.blocking = true;
         } else {
           throw new Error(`Unsupported script language: ${script.language}`);
         }

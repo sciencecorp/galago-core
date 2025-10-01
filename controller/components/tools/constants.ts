@@ -4,7 +4,7 @@ export const commandFields: CommandFields = {
       {
         name: "name",
         type: "text",
-      }
+      },
     ],
     run_local_script: [
       {

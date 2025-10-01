@@ -121,198 +121,198 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
   };
 
   // Helper function to determine what type of input to render
-const renderInputForKey = (key: string, value: any) => {
-  // Helper function to get current value with proper fallback
-  const getCurrentValue = () => {
-    if (type && newConfig[type] && key in newConfig[type]) {
-      return newConfig[type][key]; // Use the edited value, even if empty string
-    }
-    return value ?? ""; // Only fall back to original if undefined/null
-  };
+  const renderInputForKey = (key: string, value: any) => {
+    // Helper function to get current value with proper fallback
+    const getCurrentValue = () => {
+      if (type && newConfig[type] && key in newConfig[type]) {
+        return newConfig[type][key]; // Use the edited value, even if empty string
+      }
+      return value ?? ""; // Only fall back to original if undefined/null
+    };
 
-  // For COM port fields, use the InputWithDropdown component
-  if (key.toLowerCase().includes("com_port")) {
-    const currentValue = getCurrentValue();
+    // For COM port fields, use the InputWithDropdown component
+    if (key.toLowerCase().includes("com_port")) {
+      const currentValue = getCurrentValue();
 
-    // Create options array with all COM ports
-    const comPortOptions = comPorts.map((port) => ({ value: port }));
+      // Create options array with all COM ports
+      const comPortOptions = comPorts.map((port) => ({ value: port }));
 
-    return (
-      <InputWithDropdown
-        value={currentValue}
-        options={comPortOptions}
-        onChange={(newValue) => {
-          handleConfigChange(
-            { target: { value: newValue } } as React.ChangeEvent<HTMLInputElement>,
-            key,
-          );
-        }}
-        placeholder="Enter COM port (e.g., COM1)"
-        menuPlacement="right"
-        zIndex={2000}
-      />
-    );
-  }
-
-  // For IP address fields
-  if (
-    key.toLowerCase().includes("ip") ||
-    key.toLowerCase().includes("host") ||
-    key.toLowerCase().includes("address")
-  ) {
-    const currentValue = getCurrentValue();
-    const isValid = currentValue === "" || isValidIP(currentValue);
-
-    return (
-      <InputGroup>
-        <Input
+      return (
+        <InputWithDropdown
           value={currentValue}
-          onChange={(e) => handleConfigChange(e, key)}
-          placeholder="Enter IP address (e.g., 192.168.1.1)"
-          isInvalid={!isValid}
-          borderColor={isValid ? undefined : "red.300"}
+          options={comPortOptions}
+          onChange={(newValue) => {
+            handleConfigChange(
+              { target: { value: newValue } } as React.ChangeEvent<HTMLInputElement>,
+              key,
+            );
+          }}
+          placeholder="Enter COM port (e.g., COM1)"
+          menuPlacement="right"
+          zIndex={2000}
         />
-        <InputRightElement width="4.5rem">
-          <Tooltip label={isValid ? "Valid IP format" : "Invalid IP format"}>
-            <Button
-              h="1.75rem"
-              size="sm"
-              colorScheme={isValid ? "teal" : "red"}
-              variant="outline"
-              onClick={() => {
-                if (!isValid) {
-                  errorToast(
-                    "Invalid IP Address",
-                    "Please enter a valid IP address (e.g., 192.168.1.1) or 'localhost'",
-                  );
-                } else {
-                  successToast("Valid IP Address", "IP address format is valid");
-                }
-              }}>
-              {isValid ? "✓" : "✗"}
-            </Button>
-          </Tooltip>
-        </InputRightElement>
-      </InputGroup>
-    );
-  }
+      );
+    }
 
-  // For directory path fields, render with a browse button
-  if (
-    key.toLowerCase().includes("dir") ||
-    key.toLowerCase().includes("path") ||
-    key.toLowerCase().includes("directory")
-  ) {
-    // Special placeholder for Cytation directories
-    const isCytationConfig =
-      type === ToolType.cytation && (key === "protocol_dir" || key === "experiment_dir");
+    // For IP address fields
+    if (
+      key.toLowerCase().includes("ip") ||
+      key.toLowerCase().includes("host") ||
+      key.toLowerCase().includes("address")
+    ) {
+      const currentValue = getCurrentValue();
+      const isValid = currentValue === "" || isValidIP(currentValue);
 
-    const placeholder = isCytationConfig
-      ? `Enter full absolute path (e.g., C:\\cytation_${key.includes("protocol") ? "protocols" : "experiments"})`
-      : `Enter full path for ${key.replaceAll("_", " ")}`;
+      return (
+        <InputGroup>
+          <Input
+            value={currentValue}
+            onChange={(e) => handleConfigChange(e, key)}
+            placeholder="Enter IP address (e.g., 192.168.1.1)"
+            isInvalid={!isValid}
+            borderColor={isValid ? undefined : "red.300"}
+          />
+          <InputRightElement width="4.5rem">
+            <Tooltip label={isValid ? "Valid IP format" : "Invalid IP format"}>
+              <Button
+                h="1.75rem"
+                size="sm"
+                colorScheme={isValid ? "teal" : "red"}
+                variant="outline"
+                onClick={() => {
+                  if (!isValid) {
+                    errorToast(
+                      "Invalid IP Address",
+                      "Please enter a valid IP address (e.g., 192.168.1.1) or 'localhost'",
+                    );
+                  } else {
+                    successToast("Valid IP Address", "IP address format is valid");
+                  }
+                }}>
+                {isValid ? "✓" : "✗"}
+              </Button>
+            </Tooltip>
+          </InputRightElement>
+        </InputGroup>
+      );
+    }
 
-    return (
-      <Input
-        value={getCurrentValue()}
-        onChange={(e) => handleConfigChange(e, key)}
-        placeholder={placeholder}
-      />
-    );
-  }
+    // For directory path fields, render with a browse button
+    if (
+      key.toLowerCase().includes("dir") ||
+      key.toLowerCase().includes("path") ||
+      key.toLowerCase().includes("directory")
+    ) {
+      // Special placeholder for Cytation directories
+      const isCytationConfig =
+        type === ToolType.cytation && (key === "protocol_dir" || key === "experiment_dir");
 
-  // For PF400 GPL version
-  if (type === ToolType.pf400 && key.toLowerCase().includes("gpl_version")) {
-    return (
-      <Select
-        value={getCurrentValue()}
-        onChange={(e) => handleConfigChange(e, key)}
-        placeholder="Select GPL version">
-        {gplVersions.map((version) => (
-          <option key={version} value={version}>
-            {version}
-          </option>
-        ))}
-      </Select>
-    );
-  }
+      const placeholder = isCytationConfig
+        ? `Enter full absolute path (e.g., C:\\cytation_${key.includes("protocol") ? "protocols" : "experiments"})`
+        : `Enter full path for ${key.replaceAll("_", " ")}`;
 
-  // For numeric fields like ports
-  if (key.toLowerCase().includes("port") && !key.toLowerCase().includes("com_port")) {
-    const currentValue = getCurrentValue();
-    // Parse as number and validate port range (0-65535)
-    const numValue = Number(currentValue);
-    const isValid =
-      currentValue === "" ||
-      (!isNaN(numValue) && Number.isInteger(numValue) && numValue >= 0 && numValue <= 65535);
+      return (
+        <Input
+          value={getCurrentValue()}
+          onChange={(e) => handleConfigChange(e, key)}
+          placeholder={placeholder}
+        />
+      );
+    }
 
-    return (
-      <InputGroup>
+    // For PF400 GPL version
+    if (type === ToolType.pf400 && key.toLowerCase().includes("gpl_version")) {
+      return (
+        <Select
+          value={getCurrentValue()}
+          onChange={(e) => handleConfigChange(e, key)}
+          placeholder="Select GPL version">
+          {gplVersions.map((version) => (
+            <option key={version} value={version}>
+              {version}
+            </option>
+          ))}
+        </Select>
+      );
+    }
+
+    // For numeric fields like ports
+    if (key.toLowerCase().includes("port") && !key.toLowerCase().includes("com_port")) {
+      const currentValue = getCurrentValue();
+      // Parse as number and validate port range (0-65535)
+      const numValue = Number(currentValue);
+      const isValid =
+        currentValue === "" ||
+        (!isNaN(numValue) && Number.isInteger(numValue) && numValue >= 0 && numValue <= 65535);
+
+      return (
+        <InputGroup>
+          <Input
+            value={currentValue}
+            onChange={(e) => {
+              // Only allow numbers
+              if (e.target.value === "" || /^\d+$/.test(e.target.value)) {
+                handleConfigChange(e, key);
+              }
+            }}
+            placeholder="Enter port number (0-65535)"
+            isInvalid={!isValid}
+            type="number"
+            min={0}
+            max={65535}
+          />
+          {!isValid && (
+            <InputRightElement>
+              <Tooltip label="Port must be a number between 0-65535">
+                <Button size="sm" colorScheme="red" variant="ghost">
+                  !
+                </Button>
+              </Tooltip>
+            </InputRightElement>
+          )}
+        </InputGroup>
+      );
+    }
+
+    // For other numeric fields
+    if (
+      key.toLowerCase().includes("speed") ||
+      key.toLowerCase().includes("timeout") ||
+      key.toLowerCase().includes("count") ||
+      key.toLowerCase().includes("duration") ||
+      key.toLowerCase().includes("interval")
+    ) {
+      const currentValue = getCurrentValue();
+      const numValue = Number(currentValue);
+      const isValid = currentValue === "" || (!isNaN(numValue) && Number.isInteger(numValue));
+
+      return (
         <Input
           value={currentValue}
           onChange={(e) => {
             // Only allow numbers
-            if (e.target.value === "" || /^\d+$/.test(e.target.value)) {
+            if (e.target.value === "" || /^-?\d+$/.test(e.target.value)) {
               handleConfigChange(e, key);
             }
           }}
-          placeholder="Enter port number (0-65535)"
+          placeholder={`Enter ${key.replaceAll("_", " ")}`}
           isInvalid={!isValid}
           type="number"
-          min={0}
-          max={65535}
         />
-        {!isValid && (
-          <InputRightElement>
-            <Tooltip label="Port must be a number between 0-65535">
-              <Button size="sm" colorScheme="red" variant="ghost">
-                !
-              </Button>
-            </Tooltip>
-          </InputRightElement>
-        )}
-      </InputGroup>
-    );
-  }
+      );
+    }
 
-  // For other numeric fields
-  if (
-    key.toLowerCase().includes("speed") ||
-    key.toLowerCase().includes("timeout") ||
-    key.toLowerCase().includes("count") ||
-    key.toLowerCase().includes("duration") ||
-    key.toLowerCase().includes("interval")
-  ) {
-    const currentValue = getCurrentValue();
-    const numValue = Number(currentValue);
-    const isValid = currentValue === "" || (!isNaN(numValue) && Number.isInteger(numValue));
-
+    // Default text input for everything else
     return (
       <Input
-        value={currentValue}
+        value={getCurrentValue()}
         onChange={(e) => {
-          // Only allow numbers
-          if (e.target.value === "" || /^-?\d+$/.test(e.target.value)) {
-            handleConfigChange(e, key);
-          }
+          handleConfigChange(e, key);
         }}
         placeholder={`Enter ${key.replaceAll("_", " ")}`}
-        isInvalid={!isValid}
-        type="number"
       />
     );
-  }
-
-  // Default text input for everything else
-  return (
-    <Input
-      value={getCurrentValue()}
-      onChange={(e) => {
-        handleConfigChange(e, key);
-      }}
-      placeholder={`Enter ${key.replaceAll("_", " ")}`}
-    />
-  );
-};
+  };
 
   return (
     <>
