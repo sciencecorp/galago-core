@@ -7,14 +7,13 @@ import * as tool_driver from "gen-interfaces/tools/grpc_interfaces/tool_driver";
 import { ToolType } from "gen-interfaces/controller";
 import { PromisifiedGrpcClient, promisifyGrpcClient } from "./utils/promisifyGrpcCall";
 import { setInterval, clearInterval } from "timers";
-import { get, put } from "@/server/utils/api";
+import { get } from "@/server/utils/api";
 import { Script } from "@/types/api";
 import { Variable } from "@/types/api";
 import { Labware } from "@/types/api";
 import { logAction } from "./logger";
 import { JavaScriptExecutor } from "@/server/scripting/javascript/javascript-executor";
 import { CSharpExecutor } from "@/server/scripting/csharp/csharp-executor";
-import { ScriptLoader } from "@/server/scripting/script-loader";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 
@@ -228,66 +227,9 @@ export default class Tool {
         .replaceAll(".cs", "");
       try {
         const script = await get<Script>(`/scripts/${scriptName}`);
-
-        // Check if script content is valid before processing
-        if (!script.content || typeof script.content !== "string") {
-          logAction({
-            level: "error",
-            action: "Script Error",
-            details: `Script ${scriptName} has no content or invalid content`,
-          });
-          throw new Error(`Script ${scriptName} has no content or invalid content`);
-        }
-
-        // Auto-detect and set dependencies from import statements
-        const detectedDependencies = ScriptLoader.parseImports(script.content, script.language);
-        const needsUpdate =
-          detectedDependencies.length > 0 &&
-          (!script.dependencies || script.dependencies.length === 0);
-
-        if (needsUpdate) {
-          // Update the script with detected dependencies
-          await put<Script>(`/scripts/${script.id}`, {
-            ...script,
-            dependencies: detectedDependencies,
-          });
-
-          // Fetch the updated script
-          const updatedScript = await get<Script>(`/scripts/${script.id}`);
-
-          // Validate updated script content
-          if (!updatedScript.content || typeof updatedScript.content !== "string") {
-            logAction({
-              level: "error",
-              action: "Script Error",
-              details: `Updated script ${scriptName} has no content or invalid content`,
-            });
-            throw new Error(`Updated script ${scriptName} has no content or invalid content`);
-          }
-
-          command.params.name = updatedScript.content;
-        } else {
-          command.params.name = script.content;
-        }
-
+        command.params.name = script.content;
         if (script.language === "javascript") {
-          const { ordered } = await ScriptLoader.load(script.id);
-          const requireScript = ScriptLoader.createRequireScript(ordered);
-          const assembled = await ScriptLoader.assembleJavaScriptWithImports(script.id);
-
-          // Validate assembled content
-          if (!assembled || typeof assembled !== "string") {
-            logAction({
-              level: "error",
-              action: "Script Assembly Error",
-              details: `Failed to assemble JavaScript script ${scriptName} - no content generated`,
-            });
-            throw new Error(
-              `Failed to assemble JavaScript script ${scriptName} - no content generated`,
-            );
-          }
-
-          const result = await JavaScriptExecutor.executeScript(assembled, { requireScript });
+          const result = await JavaScriptExecutor.executeScript(script.content);
           if (!result.success) {
             const errorMessage = result.output;
             logAction({
@@ -330,21 +272,7 @@ export default class Tool {
             meta_data: { response: result.output } as any,
           } as tool_base.ExecuteCommandReply;
         } else if (script.language === "python") {
-          const assembled = await ScriptLoader.assemblePython(script.id);
-
-          // Validate assembled Python content
-          if (!assembled || typeof assembled !== "string") {
-            logAction({
-              level: "error",
-              action: "Script Assembly Error",
-              details: `Failed to assemble Python script ${scriptName} - no content generated`,
-            });
-            throw new Error(
-              `Failed to assemble Python script ${scriptName} - no content generated`,
-            );
-          }
-
-          command.params.name = assembled;
+          command.params.name = script.content;
         }
       } catch (e: any) {
         console.warn("Error at fetching script", e);

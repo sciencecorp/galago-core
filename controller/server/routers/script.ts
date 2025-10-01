@@ -18,7 +18,6 @@ export const zScript = z.object({
   description: z.string().optional(),
   language: z.string(),
   folder_id: z.number().nullable().optional(),
-  dependencies: z.array(z.string()).optional(),
 });
 
 export const zScriptFolder = z.object({
@@ -142,14 +141,5 @@ export const scriptRouter = router({
       // Typically, you might return the imported script details if available
       // For now, returning a simple success message or placeholder
       return { success: true, message: "Import handled by API endpoint." };
-    }),
-
-  // Auto-generate dependencies from script content
-  generateDependencies: procedure
-    .input(z.object({ content: z.string() }))
-    .mutation(async ({ input }) => {
-      const { ScriptLoader } = await import("@/server/scripting/script-loader");
-      const dependencies = await ScriptLoader.generateDependencies(input.content);
-      return { dependencies };
     }),
 });

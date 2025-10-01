@@ -423,6 +423,7 @@ class Protocol(ProtocolBase):
     id: int
     created_at: t.Optional[datetime] = None
     updated_at: t.Optional[datetime] = None
+
     model_config = ConfigDict(
         from_attributes=True,
         json_encoders={datetime: lambda dt: dt.isoformat()},
@@ -455,7 +456,6 @@ class ScriptBase(BaseModel):
     language: str = "python"
     is_blocking: bool = True
     folder_id: t.Optional[int] = None
-    dependencies: t.Optional[list[str]] = []
 
 
 class ScriptCreate(ScriptBase):
@@ -469,14 +469,12 @@ class ScriptUpdate(BaseModel):
     language: t.Optional[str] = None
     is_blocking: t.Optional[bool] = None
     folder_id: t.Optional[int] = None
-    dependencies: t.Optional[list[str]] = None
 
 
 class Script(ScriptBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    dependencies: t.Optional[list[str]] = []
 
     class Config:
         from_attributes = True
