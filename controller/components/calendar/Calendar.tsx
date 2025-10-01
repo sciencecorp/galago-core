@@ -24,15 +24,22 @@ const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const paddingMap = { sm: 5, md: 5, lg: 5, xl: 5, "2xl": 7 };
 
 export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, size = "md" }) => {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  // Initialize with a static date to prevent hydration mismatch
+  const [currentDate, setCurrentDate] = useState(() => new Date(2024, 9, 1)); // October 1, 2024
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [daysInMonth, setDaysInMonth] = useState<Date[]>([]);
+  const [isClient, setIsClient] = useState(false);
   const bgColor = useColorModeValue("gray.500", "gray.200");
   const todayBg = useColorModeValue("teal.100", "teal.800");
   const hoverColor = useColorModeValue("teal.300", "teal.900");
-  const paddingSize = useBreakpointValue(paddingMap);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const fontColor = useColorModeValue("black", "white");
+
+  // Set to current date only after client hydration
+  useEffect(() => {
+    setIsClient(true);
+    setCurrentDate(new Date());
+  }, []);
 
   const generateCalendarDays = useCallback(() => {
     const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -72,10 +79,12 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
   }, [generateCalendarDays]);
 
   useEffect(() => {
-    updateTime();
-    const timer = setInterval(updateTime, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    if (isClient) {
+      updateTime();
+      const timer = setInterval(updateTime, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [isClient]);
 
   const handleDateClick = (date: Date) => {
     setSelectedDate(date);
@@ -90,10 +99,15 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   };
 
-  const isCurrentDay = (date: Date) =>
-    date.getDate() === new Date().getDate() &&
-    date.getMonth() === new Date().getMonth() &&
-    date.getFullYear() === new Date().getFullYear();
+  const isCurrentDay = (date: Date) => {
+    if (!isClient) return false; // Prevent hydration mismatch
+    const today = new Date();
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  };
 
   const updateTime = () => {
     const now = new Date();
@@ -114,7 +128,7 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
         <Button size="sm" color={bgColor} onClick={handlePrevMonth} variant="ghost">
           <FiChevronLeft color="gray" />
         </Button>
-        <Heading size="sm">
+        <Heading size="sm" suppressHydrationWarning={true}>
           {currentDate.toLocaleString("default", { month: "long" })} {currentDate.getFullYear()}
         </Heading>
         <Button size="sm" onClick={handleNextMonth} color={bgColor} variant="ghost">

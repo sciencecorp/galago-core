@@ -101,7 +101,7 @@ message Command {
   }
 
   message RunScript {
-    string name = 1;
+    string script_content = 1;
     bool blocking = 2;
   }
 

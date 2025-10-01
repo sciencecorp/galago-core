@@ -1,4 +1,32 @@
 export const commandFields: CommandFields = {
+  pyhamilton: {
+    run_script: [
+      {
+        name: "name",
+        type: "text",
+      },
+    ],
+    run_local_script: [
+      {
+        name: "path",
+        type: "text",
+      },
+    ],
+  },
+  plr: {
+    run_script: [
+      {
+        name: "name",
+        type: "text",
+      },
+    ],
+    run_local_script: [
+      {
+        name: "path",
+        type: "text",
+      },
+    ],
+  },
   toolbox: {
     user_form: [
       {
@@ -11,10 +39,10 @@ export const commandFields: CommandFields = {
         name: "name",
         type: "text",
       },
-      {
-        name: "blocking",
-        type: "boolean",
-      },
+      // {
+      //   name: "blocking",
+      //   type: "boolean",
+      // },
     ],
     send_slack_alert: [
       {
