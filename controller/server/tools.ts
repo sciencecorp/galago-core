@@ -216,17 +216,24 @@ export default class Tool {
     }
 
     //Handle script execution
-    //Handle script execution
-    if (command.command === "run_script" && command.toolId === "tool_box") {
+    console.log("Executing command", command);
+    if (command.command === "run_script" && ( command.toolType === ToolType.toolbox || command.toolType === ToolType.plr))  {
       if (!command.params.name || command.params.name.trim() === "") {
         throw new Error("Script name is required for run_script command");
       }
+
       const scriptName = command.params.name
-        .replaceAll(".js", "")
-        .replaceAll(".py", "")
-        .replaceAll(".cs", "");
+                        .replaceAll(".js", "")
+                        .replaceAll(".py", "")
+                        .replaceAll(".cs", "");
+
+      console.log("Fetching script", scriptName);
       try {
         const script = await get<Script>(`/scripts/${scriptName}`);
+        if(command.toolType === ToolType.plr && script.language !== "python") {
+          throw new Error("PLR tool only supports Python scripts");
+        }
+        console.log("Fetched script", script);
         command.params.name = script.content;
         if (script.language === "javascript") {
           const result = await JavaScriptExecutor.executeScript(script.content);
@@ -273,6 +280,8 @@ export default class Tool {
           } as tool_base.ExecuteCommandReply;
         } else if (script.language === "python") {
           command.params.name = script.content;
+          command.params.blocking = true; // Python scripts are always blocking
+          console.log("Executing Python script with PLR", command);
         }
       } catch (e: any) {
         console.warn("Error at fetching script", e);
