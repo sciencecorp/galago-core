@@ -29,6 +29,7 @@ import {
   Tooltip,
 } from "@chakra-ui/react";
 import { RiAddFill, RiDeleteBin6Line, RiSaveLine } from "react-icons/ri";
+import { FaRegListAlt } from "react-icons/fa";
 import { CloseIcon } from "@chakra-ui/icons";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { trpc } from "@/utils/trpc";
@@ -40,6 +41,27 @@ import { ColorPicker } from "./colorPicker";
 import { FormFieldComponent } from "./formFieldComponent";
 import { MdDownload } from "react-icons/md";
 import { downloadFile } from "@/server/utils/api";
+import { useCommonColors, useTextColors } from "../ui/Theme";
+
+// Static form defaults - these should NOT change with dark mode
+// Forms are "locked" to their designed appearance regardless of theme
+const FORM_DEFAULTS = {
+  backgroundColor: "white",
+  fontColor: "gray.800",
+  borderColor: "gray.200",
+  placeholderColor: "gray.400",
+  buttonColors: {
+    primary: {
+      bg: "teal.500",
+      color: "white",
+      hoverBg: "teal.600",
+    },
+    ghost: {
+      color: "gray.800",
+      hoverBg: "rgba(0, 0, 0, 0.05)",
+    },
+  },
+} as const;
 
 interface FormBuilderProps {
   forms: Form[];
@@ -54,10 +76,12 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
   onUpdate,
   onSelectForm,
 }) => {
-  const defaultBgColor = useColorModeValue("#ffffff", "#2d3748");
-  const defaultFontColor = useColorModeValue("#1a202c", "#ffffff");
-  const cardBorderColor = useColorModeValue("gray.200", "gray.600");
-  const headerTextColor = useColorModeValue("gray.800", "gray.100");
+  const colors = useCommonColors();
+  const textColors = useTextColors();
+  
+  // Use static form defaults (for the UI chrome around the form)
+  const cardBorderColor = colors.borderColor;
+  const headerTextColor = textColors.primary;
 
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
   const [formName, setFormName] = useState("");
@@ -68,7 +92,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
   const [isSaving, setIsSaving] = useState(false);
 
   const [editingField, setEditingField] = useState<FormField>(DEFAULT_EDITING_FIELD);
-  const drawerFooterBg = useColorModeValue("gray.50", "gray.700");
+  const drawerFooterBg = colors.sectionBg;
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
@@ -261,8 +285,8 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
   };
 
   return (
-    <VStack spacing={4} align="stretch">
-      <HStack spacing={2} justifyContent="space-between" alignItems="center">
+    <VStack spacing={4} align="center">
+      <HStack spacing={2} justifyContent="space-between" alignItems="center" w="810px">
         <HStack>
           <Text whiteSpace="nowrap" fontWeight="bold" fontSize="lg">
             Select Form:
@@ -318,8 +342,8 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
       {selectedForm && (
         <Card
-          bg={backgroundColor || defaultBgColor}
-          color={fontColor || defaultFontColor}
+          bg={backgroundColor || FORM_DEFAULTS.backgroundColor}
+          color={fontColor || FORM_DEFAULTS.fontColor}
           w="810px"
           h="auto"
           shadow="lg"
@@ -331,7 +355,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
           <CardBody display="flex" flexDirection="column" position="relative">
             <HStack spacing={2} mb={4}>
               <VStack flex={1} spacing={1} textAlign="center">
-                <Text fontSize="xl" fontWeight="bold" color={fontColor || defaultFontColor}>
+                <Text fontSize="xl" fontWeight="bold" color={fontColor || FORM_DEFAULTS.fontColor}>
                   {formName.trim() || "Untitled Form"}
                 </Text>
               </VStack>
@@ -340,10 +364,12 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                 <IconButton
                   aria-label="Download Form"
                   icon={<MdDownload />}
-                  colorScheme="gray"
                   variant="outline"
                   onClick={onExportForm}
                   size="sm"
+                  borderColor={FORM_DEFAULTS.placeholderColor}
+                  color={fontColor || FORM_DEFAULTS.fontColor}
+                  _hover={{ bg: FORM_DEFAULTS.buttonColors.ghost.hoverBg }}
                 />
               </Tooltip>
               <IconButton
@@ -352,8 +378,9 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                 size="sm"
                 variant="ghost"
                 onClick={onSettingsOpen}
+                color={fontColor || FORM_DEFAULTS.fontColor}
                 _hover={{
-                  bg: "gray.500",
+                  bg: FORM_DEFAULTS.buttonColors.ghost.hoverBg,
                 }}
               />
               {/* <CloseIcon fontSize="xs" cursor="pointer" color={"gray.500"} onClick={onCancel} /> */}
@@ -377,7 +404,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                               field={field}
                               index={index}
                               fontColor={fontColor}
-                              defaultFontColor={defaultFontColor}
+                              defaultFontColor={FORM_DEFAULTS.fontColor}
                               isSaving={isSaving}
                               editField={editField}
                               deleteField={deleteField}
@@ -387,12 +414,17 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                           <Button
                             leftIcon={<RiAddFill />}
                             onClick={addField}
-                            variant="dashed"
+                            variant="outline"
                             size="lg"
                             py={8}
                             isDisabled={isSaving}
                             mt={4}
-                            color={fontColor || defaultFontColor}>
+                            borderStyle="dashed"
+                            borderWidth="2px"
+                            borderColor={FORM_DEFAULTS.borderColor}
+                            color={fontColor || FORM_DEFAULTS.fontColor}
+                            bg="transparent"
+                            _hover={{ bg: FORM_DEFAULTS.buttonColors.ghost.hoverBg }}>
                             Add Field
                           </Button>
                         </VStack>
@@ -403,10 +435,19 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
                 <CardFooter>
                   <ButtonGroup spacing={3} justifyContent="center" width="100%">
-                    <Button minW="120px" variant="ghost">
+                    <Button 
+                      minW="120px" 
+                      variant="ghost"
+                      color={fontColor || FORM_DEFAULTS.buttonColors.ghost.color}
+                      _hover={{ bg: FORM_DEFAULTS.buttonColors.ghost.hoverBg }}>
                       Cancel
                     </Button>
-                    <Button minW="120px" colorScheme="teal" mr={3}>
+                    <Button 
+                      minW="120px" 
+                      mr={3}
+                      bg={FORM_DEFAULTS.buttonColors.primary.bg}
+                      color={FORM_DEFAULTS.buttonColors.primary.color}
+                      _hover={{ bg: FORM_DEFAULTS.buttonColors.primary.hoverBg }}>
                       Submit
                     </Button>
                   </ButtonGroup>
@@ -611,11 +652,30 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
           display="flex"
           alignItems="center"
           justifyContent="center"
-          borderColor={cardBorderColor}
+          bg={colors.sectionBg}
+          borderColor={colors.borderColor}
           borderWidth="1px">
-          <Text fontSize="lg" color="gray.500">
-            Please select a form to start editing
-          </Text>
+          <CardBody display="flex" flexDirection="column" alignItems="center" justifyContent="center">
+            <VStack spacing={4}>
+              <Box
+                p={4}
+                borderRadius="full"
+                bg={colors.alternateBg}>
+                <FaRegListAlt size={48} color={textColors.secondary} />
+              </Box>
+              <VStack spacing={2}>
+                <Text fontSize="2xl" fontWeight="bold" color={textColors.primary}>
+                  No Form Selected
+                </Text>
+                <Text fontSize="md" color={textColors.secondary} textAlign="center">
+                  Select a form from the dropdown above to start editing
+                </Text>
+                <Text fontSize="sm" color={textColors.secondary} textAlign="center" opacity={0.8}>
+                  or create a new form using the "New Form" button
+                </Text>
+              </VStack>
+            </VStack>
+          </CardBody>
         </Card>
       )}
     </VStack>

@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { FormBuilder } from "./formBuilder";
 import { trpc } from "@/utils/trpc";
-import { MdFormatListBulleted } from "react-icons/md";
+import { FaRegListAlt } from "react-icons/fa";
 import { PageHeader } from "../ui/PageHeader";
 import { Form } from "@/types";
 import { CreateFormModal } from "./createFormModal";
@@ -64,7 +64,7 @@ export const Forms = () => {
               <PageHeader
                 title="Forms"
                 subTitle="Create and manage your forms"
-                titleIcon={<Icon as={MdFormatListBulleted} boxSize={8} color="teal.500" />}
+                titleIcon={<Icon as={FaRegListAlt} boxSize={8} color="teal.500" />}
                 mainButton={<CreateFormModal />}
               />
               <Divider />
@@ -85,14 +85,16 @@ export const Forms = () => {
             </VStack>
           </CardBody>
         </Card>
-        <VStack spacing={4}>
-          <FormBuilder
-            forms={forms}
-            onCancel={handleFormCancel}
-            onUpdate={refetch}
-            onSelectForm={setSelectedForm}
-          />
-        </VStack>
+        <Card bg={headerBg} shadow="md" borderRadius="lg">
+          <CardBody>
+            <FormBuilder
+              forms={forms}
+              onCancel={handleFormCancel}
+              onUpdate={refetch}
+              onSelectForm={setSelectedForm}
+            />
+          </CardBody>
+        </Card>
       </VStack>
     </Box>
   );
