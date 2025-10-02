@@ -37,7 +37,7 @@ import { BsBoxSeam } from "react-icons/bs";
 import { HiOutlineRectangleStack } from "react-icons/hi2";
 import { GiChaingun } from "react-icons/gi";
 import { useSidebarTheme } from "./Theme";
-import { MdFormatListBulleted } from "react-icons/md";
+import { FaRegListAlt } from "react-icons/fa";
 import { SiReacthookform } from "react-icons/si";
 
 interface SidebarItem {
@@ -57,7 +57,7 @@ const sidebarItems: SidebarItem[] = [
   { name: "Workcells", icon: GiChaingun, path: "/workcells" },
   { name: "Tools", icon: BsTools, path: "/tools" },
   { name: "Protocols", icon: PiPathBold, path: "/protocols" },
-  { name: "Forms", icon: MdFormatListBulleted, path: "/forms" },
+  { name: "Forms", icon: FaRegListAlt, path: "/forms" },
   { name: "Inventory", icon: BsBoxSeam, path: "/inventory" },
   // { name: "Schedule", icon: RiCalendarCheckLine, path: "/schedule" },
   { name: "Labware", icon: HiOutlineRectangleStack, path: "/labware" },
