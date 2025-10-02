@@ -17,7 +17,7 @@ Galago consists of several distinct modules:
 - 📋 **Protocol management** - Create, edit, and execute complex laboratory protocols
 - 📊 **Real-time monitoring** - Live status updates and logging of all device operations
 - 🗄️ **Inventory tracking** - Manage labware, samples, and consumables
-- 📈 **Run analytics** - Detailed execution reports and performance metrics
+- 📈 **Run analytics** - Detailed execution reports
 - 🔧 **Extensible architecture** - Easy integration of new laboratory equipment
 
 ## Getting Started
@@ -37,25 +37,12 @@ Galago consists of several distinct modules:
    cd galago-core
    ```
 
-2. **Set up configuration**
-   ```bash
-   cp app_config.json.template app_config.json
-   # Edit app_config.json with your specific settings
-   ```
-
-3. **Set environment variables**
-   ```bash
-   export JWT_SECRET="your-secure-jwt-secret-here"
-   export HOST_IP="localhost"
-   export REDIS_IP="127.0.0.1:6379"
-   ```
-
-4. **Launch development environment**
+2. **Launch development environment**
    ```bash
    docker-compose -f docker-compose.dev.yml up --build
    ```
 
-5. **Access the application**
+3. **Access the application**
    - Web Interface: http://localhost:3010
    - Database API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
@@ -70,13 +57,7 @@ bin/make deps
 bin/make proto
 ```
 
-#### 2. Set up configuration
-```bash
-cp app_config.json.template app_config.json
-# Edit app_config.json with your settings
-```
-
-#### 3. Start Redis (if not using Docker)
+#### 2. Start Redis (if not using Docker)
 ```bash
 # macOS
 bin/make redis
@@ -85,14 +66,14 @@ bin/make redis
 redis-server
 ```
 
-#### 4. Start the database service
+#### 3. Start the database service
 ```bash
 cd db
 pip install -r requirements.txt
 uvicorn api:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-#### 5. Start the web controller
+#### 4. Start the web controller
 ```bash
 cd controller
 npm install
@@ -104,9 +85,6 @@ npm run dev
 For production deployment:
 
 ```bash
-# Set production environment variables
-export NODE_ENV=production
-export JWT_SECRET="your-production-jwt-secret"
 
 # Launch production stack
 docker-compose -f docker-compose.yml up -d --force-recreate
