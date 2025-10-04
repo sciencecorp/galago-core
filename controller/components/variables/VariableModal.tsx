@@ -77,7 +77,7 @@ export const VariableModal: React.FC = () => {
                   <option value="number">Number</option>
                   <option value="boolean">Boolean</option>
                   <option value="array">Array</option>
-                  <option value="object">Object</option>
+                  <option value="json">Json</option>
                 </Select>
               </FormControl>
               <FormControl>
