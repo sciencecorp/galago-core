@@ -167,7 +167,7 @@ export class JavaScriptExecutor {
       // Create a sandbox with the provided context
       const sandbox = {
         axios: wrappedAxios,
-        VariablesWrapper: VariablesWrapper, 
+        VariablesWrapper: VariablesWrapper,
         console: {
           log: (...args: any[]) => {
             const logMessage = args

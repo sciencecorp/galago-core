@@ -32,12 +32,14 @@ Galago consists of several distinct modules:
 ### Quick Start with Docker (Recommended)
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/your-org/galago-core.git
    cd galago-core
    ```
 
 2. **Launch development environment**
+
    ```bash
    docker-compose -f docker-compose.dev.yml up --build
    ```
@@ -52,12 +54,14 @@ Galago consists of several distinct modules:
 If you prefer to run without Docker:
 
 #### 1. Build dependencies and interfaces
+
 ```bash
 bin/make deps
 bin/make proto
 ```
 
 #### 2. Start Redis (if not using Docker)
+
 ```bash
 # macOS
 bin/make redis
@@ -67,6 +71,7 @@ redis-server
 ```
 
 #### 3. Start the database service
+
 ```bash
 cd db
 pip install -r requirements.txt
@@ -74,6 +79,7 @@ uvicorn api:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 #### 4. Start the web controller
+
 ```bash
 cd controller
 npm install
@@ -195,6 +201,7 @@ To integrate a new laboratory instrument:
 ### Common Issues
 
 **Container fails to start:**
+
 ```bash
 # Check logs
 docker-compose logs galago-web-dev
@@ -206,6 +213,7 @@ docker-compose -f docker-compose.dev.yml up --build
 ```
 
 **Redis connection issues:**
+
 ```bash
 # Verify Redis is running
 redis-cli ping
@@ -215,18 +223,21 @@ docker-compose logs queue
 ```
 
 **Port conflicts:**
+
 - Web interface (3010), Database API (8000), Redis (1203)
 - Modify port mappings in docker-compose files if needed
 
 ## Architecture Details
 
 ### Data Flow
+
 1. **User Interface** (Next.js) → tRPC calls → **Controller Server**
 2. **Controller Server** → HTTP API calls → **Database Service**
 3. **Controller Server** → gRPC calls → **Tool Drivers**
 4. **Queue System** (Redis) manages asynchronous protocol execution
 
 ### Database Schema
+
 - **Inventory**: Labware, samples, and consumables tracking
 - **Protocols**: Stored procedures and execution templates
 - **Runs**: Execution history and results

@@ -144,14 +144,13 @@ export class CSharpExecutor {
     }
   }
 
-
-/**
- * Generates a C# program with the provided script and context
- * @param script The C# script to execute
- * @param context The context object to expose to the script
- * @returns A complete C# program as a string
- */
-private static generateCSharpProgram(script: string, context: Record<string, any>): string {
+  /**
+   * Generates a C# program with the provided script and context
+   * @param script The C# script to execute
+   * @param context The context object to expose to the script
+   * @returns A complete C# program as a string
+   */
+  private static generateCSharpProgram(script: string, context: Record<string, any>): string {
     // Create JSON string representation of the context
     const contextJson = JSON.stringify(context);
 
@@ -319,7 +318,7 @@ public class VariablesWrapper : IDisposable
         }
     }
 }`;
-}
+  }
 
   /**
    * Generates a .NET project file for the C# program
