@@ -9,7 +9,7 @@ export const zVariable = z.object({
   id: z.number().optional(),
   name: z.string(),
   value: z.string(),
-  type: z.enum(["string", "number", "boolean", "array", "object"]),
+  type: z.enum(["string", "number", "boolean", "array", "json"]),
 });
 
 export const variableRouter = router({

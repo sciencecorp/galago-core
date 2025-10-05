@@ -170,11 +170,8 @@ class Program
             var contextJson = @"${contextJson.replace(/"/g, '\\"')}";
             var context = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(contextJson);
             
-            // Create HTTP client for web requests
-            using var httpClient = new HttpClient();
-            
-            // Setup Variables API wrapper
-            var variables = new VariablesWrapper(httpClient);
+            // Note: VariablesWrapper can now be created easily
+            // Example: var variables = new VariablesWrapper();
             
             // Execute the user's script
             ${script}
@@ -188,15 +185,33 @@ class Program
 }
 
 // Variables API wrapper class
-public class VariablesWrapper
+public class VariablesWrapper : IDisposable
 {
     private readonly HttpClient _httpClient;
     private readonly string _apiUrl;
+    private readonly bool _ownsHttpClient;
 
-    public VariablesWrapper(HttpClient httpClient)
+    /// <summary>
+    /// Creates a new VariablesWrapper with default settings
+    /// </summary>
+    /// <param name="apiUrl">Optional custom API URL (defaults to "http://db:8000")</param>
+    public VariablesWrapper(string apiUrl = "http://db:8000")
     {
-        _httpClient = httpClient;
-        _apiUrl = "http://db:8000"; // Using the docker container hostname
+        _httpClient = new HttpClient();
+        _apiUrl = apiUrl ?? throw new ArgumentNullException(nameof(apiUrl));
+        _ownsHttpClient = true; // We created it, so we should dispose it
+    }
+
+    /// <summary>
+    /// Creates a new VariablesWrapper with a provided HttpClient (for advanced scenarios)
+    /// </summary>
+    /// <param name="httpClient">The HttpClient instance to use for API calls</param>
+    /// <param name="apiUrl">Optional custom API URL (defaults to "http://db:8000")</param>
+    public VariablesWrapper(HttpClient httpClient, string apiUrl = "http://db:8000")
+    {
+        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        _apiUrl = apiUrl ?? throw new ArgumentNullException(nameof(apiUrl));
+        _ownsHttpClient = false; // We didn't create it, so we shouldn't dispose it
     }
 
     public async Task<JsonElement?> GetVariableAsync(string name)
@@ -292,6 +307,14 @@ public class VariablesWrapper
         {
             Console.Error.WriteLine($"Error in DeleteVariableAsync: {ex.Message}");
             throw;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_ownsHttpClient)
+        {
+            _httpClient?.Dispose();
         }
     }
 }`;
