@@ -9,9 +9,14 @@ class VariablesWrapper {
   private axios: AxiosInstance;
   private API_URL: string;
 
-  constructor(axiosInstance: AxiosInstance) {
-    this.axios = axiosInstance;
-    this.API_URL = "http://db:8000"; // Using the docker container hostname
+  /**
+   * Creates a new VariablesWrapper
+   * @param axiosInstance Optional axios instance to use (creates default if not provided)
+   * @param apiUrl Optional custom API URL (defaults to "http://db:8000")
+   */
+  constructor(axiosInstance?: AxiosInstance, apiUrl: string = "http://db:8000") {
+    this.axios = axiosInstance || axios.create(); // Create default axios instance if not provided
+    this.API_URL = apiUrl;
   }
 
   /**
@@ -73,7 +78,6 @@ class VariablesWrapper {
     return response.data;
   }
 }
-
 export class JavaScriptExecutor {
   /**
    * Executes a JavaScript script in a sandboxed context
@@ -158,12 +162,12 @@ export class JavaScriptExecutor {
       })();
 
       // Create Variables Wrapper instance
-      const variables = new VariablesWrapper(wrappedAxios);
+      // const variables = new VariablesWrapper(wrappedAxios);
 
       // Create a sandbox with the provided context
       const sandbox = {
         axios: wrappedAxios,
-        variables: variables, // Add the variables wrapper to the sandbox
+        VariablesWrapper: VariablesWrapper, 
         console: {
           log: (...args: any[]) => {
             const logMessage = args

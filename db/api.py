@@ -1249,15 +1249,13 @@ def create_variable(
     return crud.variables.create(db, obj_in=variable)
 
 
-@app.put("/variables/{variable_id}", response_model=schemas.VariableUpdate)
+@app.put("/variables/{variable_name}", response_model=schemas.VariableUpdate)
 def update_variable(
-    variable_id: int,
+    variable_name: t.Union[int, str] ,
     variable_update: schemas.VariableUpdate,
     db: Session = Depends(get_db),
 ) -> t.Any:
-    db_variable = (
-        db.query(models.Variable).filter(models.Variable.id == variable_id).first()
-    )
+    db_variable = crud.variables.get(db, id=variable_name)
     if not db_variable:
         raise HTTPException(status_code=404, detail="Variable not found")
     return crud.variables.update(db, db_obj=db_variable, obj_in=variable_update)
