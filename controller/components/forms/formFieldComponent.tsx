@@ -13,12 +13,32 @@ import {
   Radio,
   RadioGroup,
   Stack,
-  useColorModeValue,
 } from "@chakra-ui/react";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { IoSettingsSharp } from "react-icons/io5";
 import { Draggable } from "react-beautiful-dnd";
 import { FormField } from "@/types";
+
+// Static form field colors - locked appearance regardless of theme
+const FIELD_STYLES = {
+  borderColor: "gray.300",
+  focusBorderColor: "blue.500",
+  placeholderColor: "gray.400",
+  editButton: {
+    color: "blue.500",
+    hoverBg: "blue.50",
+  },
+  deleteButton: {
+    color: "red.500",
+    hoverBg: "red.50",
+  },
+  checkbox: {
+    checkedBg: "blue.500",
+    checkedBorder: "blue.500",
+  },
+  // Force light color scheme for native inputs (date picker, etc.)
+  inputColorScheme: "light",
+} as const;
 
 interface FormFieldComponentProps {
   field: FormField;
@@ -40,8 +60,6 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
   deleteField,
 }) => {
   const fieldId = field.label || "field" + "_" + index;
-  const fieldBorderColor = useColorModeValue("gray.200", "gray.600");
-  const placeHolderColor = useColorModeValue("gray.400", "gray.500");
 
   const handleEditClick = useCallback(
     (e: React.MouseEvent) => {
@@ -81,14 +99,13 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
           opacity={snapshot.isDragging ? 0.8 : 1}
           role="group"
           _hover={{
-            borderColor: fieldBorderColor,
+            borderColor: FIELD_STYLES.borderColor,
           }}>
           <HStack>
             <IconButton
               aria-label="Edit field"
               icon={<IoSettingsSharp />}
               size="xs"
-              colorScheme="blue"
               variant="ghost"
               position="absolute"
               top={2}
@@ -97,12 +114,13 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
               opacity={0}
               _groupHover={{ opacity: 1 }}
               zIndex={2}
+              color={FIELD_STYLES.editButton.color}
+              _hover={{ bg: FIELD_STYLES.editButton.hoverBg }}
             />
             <IconButton
               aria-label="Delete field"
               icon={<RiDeleteBin6Line />}
               size="xs"
-              colorScheme="red"
               variant="ghost"
               position="absolute"
               top={2}
@@ -111,6 +129,8 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
               opacity={0}
               _groupHover={{ opacity: 1 }}
               zIndex={2}
+              color={FIELD_STYLES.deleteButton.color}
+              _hover={{ bg: FIELD_STYLES.deleteButton.hoverBg }}
             />
           </HStack>
 
@@ -130,8 +150,10 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
                 cursor="pointer"
                 color={fontColor || defaultFontColor}
                 bg="transparent"
-                // borderColor={useColorModeValue("gray.200", "gray.600")}
-                _placeholder={{ color: placeHolderColor }}
+                borderColor={FIELD_STYLES.borderColor}
+                focusBorderColor={FIELD_STYLES.focusBorderColor}
+                _placeholder={{ color: FIELD_STYLES.placeholderColor }}
+                sx={{ colorScheme: FIELD_STYLES.inputColorScheme }}
               />
             )}
 
@@ -141,8 +163,10 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
                 cursor="pointer"
                 color={fontColor || defaultFontColor}
                 bg="transparent"
-                // borderColor={useColorModeValue("gray.200", "gray.600")}
-                _placeholder={{ color: placeHolderColor }}>
+                borderColor={FIELD_STYLES.borderColor}
+                focusBorderColor={FIELD_STYLES.focusBorderColor}
+                _placeholder={{ color: FIELD_STYLES.placeholderColor }}
+                sx={{ colorScheme: FIELD_STYLES.inputColorScheme }}>
                 {field.options?.map((option, idx) => (
                   <option key={idx} value={option.value}>
                     {option.label}
@@ -156,7 +180,15 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
                 <RadioGroup>
                   <Stack>
                     {field.options?.map((option, idx) => (
-                      <Radio key={idx} value={option.value} colorScheme="blue">
+                      <Radio
+                        key={idx}
+                        value={option.value}
+                        sx={{
+                          "[data-checked]": {
+                            bg: FIELD_STYLES.checkbox.checkedBg,
+                            borderColor: FIELD_STYLES.checkbox.checkedBorder,
+                          },
+                        }}>
                         <Text color={fontColor || defaultFontColor}>{option.label}</Text>
                       </Radio>
                     ))}
@@ -167,7 +199,13 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
 
             {field.type === "checkbox" && (
               <Box cursor="pointer" p={2} borderRadius="md" display="inline-block">
-                <Checkbox colorScheme="blue">
+                <Checkbox
+                  sx={{
+                    "[data-checked]": {
+                      bg: FIELD_STYLES.checkbox.checkedBg,
+                      borderColor: FIELD_STYLES.checkbox.checkedBorder,
+                    },
+                  }}>
                   <Text color={fontColor || defaultFontColor}>
                     {field.placeholder || "Checkbox option"}
                   </Text>
@@ -183,7 +221,10 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
                 cursor="pointer"
                 color={fontColor || defaultFontColor}
                 bg="transparent"
-                _placeholder={{ color: placeHolderColor }}
+                borderColor={FIELD_STYLES.borderColor}
+                focusBorderColor={FIELD_STYLES.focusBorderColor}
+                _placeholder={{ color: FIELD_STYLES.placeholderColor }}
+                sx={{ colorScheme: FIELD_STYLES.inputColorScheme }}
               />
             )}
           </FormControl>
