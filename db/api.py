@@ -649,9 +649,6 @@ async def import_workcell_config(
                         db, obj_in=schemas.ReagentCreate(**reagent_create)
                     )
 
-        # Continue with the rest of your existing processing for scripts, variables, etc...
-        # (The existing code for scripts, variables, labware, forms, script_folders, and protocols)
-
         # Process scripts if they exist in the import data
         if "scripts" in workcell_data and isinstance(workcell_data["scripts"], list):
             for script_data in workcell_data["scripts"]:
@@ -696,9 +693,207 @@ async def import_workcell_config(
                     variable_create = {k: v for k, v in variable_data.items() if k != "id"}
                     crud.variables.create(db, obj_in=schemas.VariableCreate(**variable_create))
 
-        # Process labware, forms, script_folders similarly...
-        # (Include the rest of your existing processing code here)
+        # Process labware if they exist in the import data
+        if "labware" in workcell_data and isinstance(workcell_data["labware"], list):
+            for labware_data in workcell_data["labware"]:
+                if not isinstance(labware_data, dict) or "name" not in labware_data:
+                    continue
 
+                labware_data["workcell_id"] = workcell.id
+                existing_labware = crud.labware.get_by(
+                    db, obj_in={"name": labware_data["name"], "workcell_id": workcell.id}
+                )
+
+                labware_fields = {
+                    "name": labware_data["name"],
+                    "description": labware_data.get("description", ""),
+                    "number_of_rows": labware_data.get("number_of_rows", 8),
+                    "number_of_columns": labware_data.get("number_of_columns", 12),
+                    "z_offset": labware_data.get("z_offset", 0.0),
+                    "width": labware_data.get("width", 0.0),
+                    "height": labware_data.get("height", 0.0),
+                    "plate_lid_offset": labware_data.get("plate_lid_offset", 0.0),
+                    "lid_offset": labware_data.get("lid_offset", 0.0),
+                    "stack_height": labware_data.get("stack_height", 0.0),
+                    "has_lid": labware_data.get("has_lid", False),
+                    "image_url": labware_data.get("image_url", ""),
+                    "workcell_id": workcell.id,
+                }
+
+                if existing_labware:
+                    crud.labware.update(
+                        db,
+                        db_obj=existing_labware,
+                        obj_in=schemas.LabwareUpdate(**labware_fields),
+                    )
+                else:
+                    crud.labware.create(
+                        db, obj_in=schemas.LabwareCreate(**labware_fields)
+                    )
+
+        # Process script folders if they exist in the import data
+        if "script_folders" in workcell_data and isinstance(workcell_data["script_folders"], list):
+            for folder_data in workcell_data["script_folders"]:
+                if not isinstance(folder_data, dict) or "name" not in folder_data:
+                    continue
+
+                folder_data["workcell_id"] = workcell.id
+                existing_folder = crud.script_folders.get_by(
+                    db, obj_in={"name": folder_data["name"], "workcell_id": workcell.id}
+                )
+
+                if existing_folder:
+                    folder_update = {k: v for k, v in folder_data.items() if k != "id"}
+                    crud.script_folders.update(
+                        db,
+                        db_obj=existing_folder,
+                        obj_in=schemas.ScriptFolderUpdate(**folder_update),
+                    )
+                else:
+                    folder_create = {k: v for k, v in folder_data.items() if k != "id"}
+                    crud.script_folders.create(db, obj_in=schemas.ScriptFolderCreate(**folder_create))
+        
+        # Process forms if they exist in the import data
+        if "forms" in workcell_data and isinstance(workcell_data["forms"], list):
+            for form_data in workcell_data["forms"]:
+                if not isinstance(form_data, dict) or "name" not in form_data:
+                    continue
+
+                form_data["workcell_id"] = workcell.id
+                existing_form = crud.form.get_by(
+                    db, obj_in={"name": form_data["name"], "workcell_id": workcell.id}
+                )
+
+                form_fields = {
+                    "name": form_data["name"],
+                    "fields": form_data.get("fields", []),
+                    "background_color": form_data.get("background_color"),
+                    "font_color": form_data.get("font_color"),
+                    "workcell_id": workcell.id,
+                }
+
+                if existing_form:
+                    crud.form.update(
+                        db,
+                        db_obj=existing_form,
+                        obj_in=schemas.FormUpdate(**form_fields),
+                    )
+                else:
+                    crud.form.create(
+                        db, obj_in=schemas.FormCreate(**form_fields)
+                    )
+
+        # Process and create/update protocols if they exist in the import data
+        if "protocols" in workcell_data and isinstance(
+            workcell_data["protocols"], list
+        ):
+            # Ensure protocols relation is loaded if the workcell existed
+            if existing_workcell:
+                # Refresh to ensure relationships are loaded, needed if we are updating
+                db.refresh(workcell)
+                _ = workcell.protocols  # This ensures the collection is loaded
+
+            # Query existing protocols for this workcell once to avoid N+1 queries
+            current_protocols = (
+                db.query(models.Protocol)
+                .filter(models.Protocol.workcell_id == workcell.id)
+                .all()
+            )
+            existing_protocol_map = {p.name: p for p in current_protocols}
+
+            for protocol_data in workcell_data["protocols"]:
+                # Basic validation (add more checks if needed)
+                if not isinstance(protocol_data, dict) or "name" not in protocol_data:
+                    logging.warning(
+                        f"Skipping invalid protocol data (missing name): {protocol_data}"
+                    )
+                    continue
+
+                # Remove fields not part of the model before checking existence/updating/creating
+                protocol_data_cleaned = {
+                    k: v
+                    for k, v in protocol_data.items()
+                    if hasattr(models.Protocol, k)
+                    or k
+                    in [
+                        "name",
+                        "category",
+                        "workcell_id",
+                        "description",
+                        "icon",
+                        "params",
+                        "commands",
+                        "version",
+                        "is_active",
+                    ]
+                }
+                protocol_data_cleaned[
+                    "workcell_id"
+                ] = workcell.id  # Ensure correct workcell id
+
+                protocol_name = protocol_data_cleaned.get("name")
+                if protocol_name:
+                    existing_protocol = existing_protocol_map.get(protocol_name)
+
+                    if existing_protocol:
+                        # Update existing protocol
+                        update_payload = {
+                            k: v for k, v in protocol_data_cleaned.items() if k != "id"
+                        }
+
+                        try:
+                            # Validate payload against update schema
+                            protocol_update_schema = schemas.ProtocolUpdate(
+                                **update_payload
+                            )
+                            update_data = protocol_update_schema.dict(
+                                exclude_unset=True
+                            )
+                            for key, value in update_data.items():
+                                if hasattr(existing_protocol, key):
+                                    setattr(existing_protocol, key, value)
+                            # db.flush() # Flush is optional here, commit will handle it
+                        except Exception as e:
+                            logging.warning(
+                                f"Skipping protocol update for '{protocol_name}' due to error: {e}"
+                            )
+                            logging.exception(
+                                "Detailed error during protocol update preparation:"
+                            )
+                            continue
+                    else:
+                        # Create new protocol
+                        create_payload = protocol_data_cleaned.copy()
+
+                        # Ensure required fields for creation are present
+                        if "category" not in create_payload:
+                            logging.warning(
+                                f"Skipping protocol creation for '{protocol_name}' due to missing 'category'."
+                            )
+                            continue
+
+                        try:
+                            # Validate payload against create schema
+                            protocol_create_schema = schemas.ProtocolCreate(
+                                **create_payload
+                            )
+                            new_protocol = models.Protocol(
+                                **protocol_create_schema.dict()
+                            )
+                            db.add(new_protocol)
+                            db.flush()  # Flush to get potential ID and check constraints early
+                        except Exception as e:
+                            logging.warning(
+                                f"Skipping protocol creation for '{protocol_name}' due to error: {e}"
+                            )
+                            logging.exception(
+                                "Detailed error during protocol creation:"
+                            )
+                            continue
+                else:
+                    logging.warning(
+                        f"Skipping protocol data because 'name' was missing or None: {protocol_data_cleaned}"
+                    )
         # Commit all changes made within the try block
         db.commit()
 
