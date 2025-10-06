@@ -352,7 +352,8 @@ class VariableBase(BaseModel):
 class VariableCreate(VariableBase):
     name: str
     type: str
-
+    workcell_id: int 
+    
     @model_validator(mode="before")
     @classmethod
     def check_value_type(cls, data: t.Any) -> t.Any:
@@ -368,6 +369,7 @@ class VariableUpdate(BaseModel):
     name: t.Optional[str] = None
     value: t.Optional[str] = None
     type: t.Optional[str] = None
+    workcell_id: t.Optional[int] = None
 
     @model_validator(mode="before")
     @classmethod
@@ -548,6 +550,7 @@ class LabwareCreate(BaseModel):
     stack_height: t.Optional[float] = 0
     has_lid: t.Optional[bool] = False
     image_url: t.Optional[str] = ""
+    workcell_id: int
 
 
 class Labware(TimestampMixin, LabwareCreate):
@@ -568,6 +571,7 @@ class LabwareUpdate(BaseModel):
     stack_height: t.Optional[float] = None
     has_lid: t.Optional[bool] = None
     image_url: t.Optional[str] = None
+    workcell_id: t.Optional[int] = None
 
 # Schemas for waypoint data
 class TeachPoint(BaseModel):
@@ -676,6 +680,7 @@ class ScriptBase(BaseModel):
     language: str = "python"
     is_blocking: bool = True
     folder_id: t.Optional[int] = None
+    workcell_id: t.Optional[int] = None
 
 
 class ScriptCreate(ScriptBase):
@@ -689,6 +694,7 @@ class ScriptUpdate(BaseModel):
     language: t.Optional[str] = None
     is_blocking: t.Optional[bool] = None
     folder_id: t.Optional[int] = None
+    workcell_id: t.Optional[int] = None
 
 
 class Script(ScriptBase):
@@ -704,6 +710,7 @@ class ScriptFolderBase(BaseModel):
     name: str
     description: t.Optional[str] = None
     parent_id: t.Optional[int] = None
+    workcell_id: int
 
 
 class ScriptFolderCreate(ScriptFolderBase):
@@ -714,7 +721,7 @@ class ScriptFolderUpdate(BaseModel):
     name: t.Optional[str] = None
     description: t.Optional[str] = None
     parent_id: t.Optional[int] = None
-
+    workcell_id: t.Optional[int] = None
 
 class ScriptFolder(ScriptFolderBase):
     model_config = ConfigDict(from_attributes=True)
@@ -937,12 +944,14 @@ class FormCreate(BaseModel):
     fields: Optional[List[FormField]] = None
     background_color: t.Optional[str] = None
     font_color: t.Optional[str] = None
+    workcell_id: t.Optional[int] = None
 
 class FormUpdate(BaseModel):
     name: t.Optional[str] = None
     fields: Optional[List[FormField]] = None
     background_color: t.Optional[str] = None
     font_color: t.Optional[str] = None
+    workcell_id: t.Optional[int] = None
 
 class Form(TimestampMixin, FormCreate):
     id: int
