@@ -165,11 +165,9 @@ export const RunsComponent: React.FC = () => {
 
       setIsModalOpen(shouldShowModal && messageData.type !== "user_form");
       setIsUserFormModalOpen(shouldShowUserForm);
-
     }
 
     if (currentMessageQuery.data) {
-
       const newMessageData = {
         type: currentMessageQuery.data.type,
         message: currentMessageQuery.data.message,
@@ -194,7 +192,7 @@ export const RunsComponent: React.FC = () => {
       if (newMessageData.type !== "user_form") {
         setCurrentForm(null);
         setUserFormError(null);
-      } 
+      }
     }
   }, [isWaitingForInputQuery.data, currentMessageQuery.data, messageData.type]);
 
