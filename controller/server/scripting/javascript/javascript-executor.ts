@@ -79,7 +79,11 @@ class Variables {
    * @param apiUrl Optional custom API URL for this request
    * @returns The updated variable data
    */
-  static async updateVariable(name: string, newValue: string | number | boolean, apiUrl?: string): Promise<any> {
+  static async updateVariable(
+    name: string,
+    newValue: string | number | boolean,
+    apiUrl?: string,
+  ): Promise<any> {
     const baseUrl = apiUrl || this.defaultApiUrl;
     const variable = { value: newValue };
     const response = await this.axiosInstance.put(`${baseUrl}/variables/${name}`, variable);
