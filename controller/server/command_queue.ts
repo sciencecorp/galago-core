@@ -715,7 +715,7 @@ export class CommandQueue {
               // Update the variable in the database
               await put<Variable>(`/variables/${targetVariable.id}`, {
                 ...targetVariable,
-                value: finalValue,
+                value: String(finalValue),
               });
 
               logAction({
