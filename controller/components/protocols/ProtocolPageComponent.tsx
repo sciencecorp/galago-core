@@ -41,9 +41,17 @@ import {
   PopoverContent,
   PopoverBody,
   Text,
+  Checkbox,
+  ModalFooter,
 } from "@chakra-ui/react";
-import { SearchIcon, ArrowUpDownIcon, HamburgerIcon } from "@chakra-ui/icons";
-import { useState, useMemo } from "react";
+import {
+  SearchIcon,
+  ArrowUpDownIcon,
+  HamburgerIcon,
+  DownloadIcon,
+  DeleteIcon,
+} from "@chakra-ui/icons";
+import { useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import NewProtocolRunModal from "./NewProtocolRunModal";
@@ -51,6 +59,7 @@ import { trpc } from "@/utils/trpc";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { PiPathBold } from "react-icons/pi";
 import { RiAddFill } from "react-icons/ri";
+import { FaFileImport, FaPlay } from "react-icons/fa";
 import { EditableText } from "../ui/Form";
 import { errorToast, successToast } from "../ui/Toast";
 
@@ -64,10 +73,18 @@ export const ProtocolPageComponent: React.FC = () => {
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [runModalProtocolId, setRunModalProtocolId] = useState<string | null>(null);
+  const [createDependencies, setCreateDependencies] = useState(true);
+  const [exportProtocolId, setExportProtocolId] = useState<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const {
     isOpen: isNewProtocolOpen,
     onOpen: onNewProtocolOpen,
     onClose: onNewProtocolClose,
+  } = useDisclosure();
+  const {
+    isOpen: isImportModalOpen,
+    onOpen: onImportModalOpen,
+    onClose: onImportModalClose,
   } = useDisclosure();
 
   const headerBg = useColorModeValue("white", "gray.700");
@@ -101,6 +118,50 @@ export const ProtocolPageComponent: React.FC = () => {
       errorToast("Error updating protocol", error.message);
     },
   });
+
+  const importProtocol = trpc.protocol.import.useMutation({
+    onSuccess: () => {
+      successToast("Protocol imported", "");
+      refetch();
+      onImportModalClose();
+    },
+    onError: (error) => {
+      errorToast("Error importing protocol", error.message);
+    },
+  });
+
+  const { data: exportData, refetch: refetchExport } = trpc.protocol.export.useQuery(
+    { id: exportProtocolId || 0 },
+    {
+      enabled: exportProtocolId !== null,
+      onSuccess: (data) => {
+        if (exportProtocolId !== null) {
+          const protocol = protocols?.find((p) => p.id === exportProtocolId);
+          if (protocol && data) {
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: "application/json" });
+
+            // Create download link
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `${protocol.name}-protocol.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            successToast("Protocol Exported", `${protocol.name} has been exported successfully`);
+          }
+          setExportProtocolId(null);
+        }
+      },
+      onError: (error) => {
+        errorToast("Export Failed", error.message || "Failed to export protocol");
+        setExportProtocolId(null);
+      },
+    },
+  );
 
   // Get unique workcells and categories for filters
   const uniqueWorkcells = useMemo(() => {
@@ -215,6 +276,49 @@ export const ProtocolPageComponent: React.FC = () => {
     });
   };
 
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const importData = JSON.parse(text);
+
+      // Validate the import data structure
+      if (!importData.protocol || !importData.protocol.name) {
+        throw new Error("Invalid protocol export file");
+      }
+
+      // Get the current workcell ID
+      const currentWorkcell = workcells?.find((w) => w.name === workcellName);
+      if (!currentWorkcell) {
+        throw new Error("No workcell selected");
+      }
+
+      // Import the protocol
+      importProtocol.mutate({
+        data: importData,
+        workcell_id: currentWorkcell.id,
+        createDependencies,
+      });
+    } catch (error: any) {
+      errorToast("Import Failed", error.message || "Failed to parse import file");
+    }
+
+    // Reset the file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleExportProtocol = (protocolId: number) => {
+    setExportProtocolId(protocolId);
+  };
+
   return (
     <VStack spacing={4} align="stretch" minH="100vh" pb={8}>
       <Card bg={headerBg} shadow="md">
@@ -225,9 +329,18 @@ export const ProtocolPageComponent: React.FC = () => {
               subTitle="Manage and run your automation protocols"
               titleIcon={<Icon as={PiPathBold} boxSize={8} color="teal.500" />}
               mainButton={
-                <Button colorScheme="teal" leftIcon={<RiAddFill />} onClick={onNewProtocolOpen}>
-                  New Protocol
-                </Button>
+                <HStack>
+                  <Button
+                    colorScheme="blue"
+                    variant="outline"
+                    leftIcon={<FaFileImport />}
+                    onClick={onImportModalOpen}>
+                    Import
+                  </Button>
+                  <Button colorScheme="teal" leftIcon={<RiAddFill />} onClick={onNewProtocolOpen}>
+                    New Protocol
+                  </Button>
+                </HStack>
               }
             />
 
@@ -427,12 +540,20 @@ export const ProtocolPageComponent: React.FC = () => {
                           <MenuList>
                             <MenuItem
                               onClick={() => handleRunClick(protocol.id.toString())}
-                              color="green.500">
+                              color="green.500"
+                              icon={<Icon as={FaPlay} />}>
                               Run
                             </MenuItem>
                             <MenuItem
+                              onClick={() => handleExportProtocol(protocol.id)}
+                              color="blue.500"
+                              icon={<DownloadIcon />}>
+                              Export
+                            </MenuItem>
+                            <MenuItem
                               color="red.500"
-                              onClick={() => handleDelete(protocol.id.toString())}>
+                              onClick={() => handleDelete(protocol.id.toString())}
+                              icon={<DeleteIcon />}>
                               Delete
                             </MenuItem>
                           </MenuList>
@@ -459,6 +580,45 @@ export const ProtocolPageComponent: React.FC = () => {
           <ModalBody pb={6}>
             <NewProtocolForm />
           </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      <Modal isOpen={isImportModalOpen} onClose={onImportModalClose} size="md">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Import Protocol</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <VStack spacing={4} align="stretch">
+              <Text>
+                Select a protocol export file (JSON format) to import. The protocol and its
+                dependencies will be imported into the current workcell.
+              </Text>
+              <Checkbox
+                isChecked={createDependencies}
+                onChange={(e) => setCreateDependencies(e.target.checked)}>
+                Create missing dependencies (tools, variables, labware)
+              </Checkbox>
+              <Input
+                type="file"
+                accept=".json"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                display="none"
+              />
+            </VStack>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="outline" mr={3} onClick={onImportModalClose}>
+              Cancel
+            </Button>
+            <Button
+              colorScheme="teal"
+              onClick={handleImportClick}
+              isLoading={importProtocol.isLoading}>
+              Select File
+            </Button>
+          </ModalFooter>
         </ModalContent>
       </Modal>
     </VStack>

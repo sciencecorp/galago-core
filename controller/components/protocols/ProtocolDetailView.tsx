@@ -40,6 +40,7 @@ import { trpc } from "@/utils/trpc";
 import { capitalizeFirst } from "@/utils/parser";
 import { VscRunBelow } from "react-icons/vsc";
 import { FaPlay } from "react-icons/fa6";
+import { FaFileExport } from "react-icons/fa";
 import { SaveIcon } from "@/components/ui/Icons";
 import { SiPlatformdotsh } from "react-icons/si";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
@@ -178,6 +179,11 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     },
   });
 
+  const exportProtocolMutation = trpc.protocol.export.useQuery(
+    { id: parseInt(id) },
+    { enabled: false },
+  );
+
   const {
     isOpen: isParametersModalOpen,
     onOpen: openParametersModal,
@@ -286,6 +292,33 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       return updatedCommands;
     });
     closeDeleteConfirm();
+  };
+
+  const handleExport = async () => {
+    try {
+      const result = await exportProtocolMutation.refetch();
+      if (!result.data) {
+        throw new Error("No export data returned");
+      }
+
+      const exportData = result.data;
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: "application/json" });
+
+      // Create download link
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${protocol?.name || "protocol"}-protocol.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      successToast("Protocol Exported", `${protocol?.name} has been exported successfully`);
+    } catch (error: any) {
+      errorToast("Export Failed", error.message || "Failed to export protocol");
+    }
   };
 
   const handleSaveChanges = () => {
@@ -476,6 +509,14 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
               </>
             ) : (
               <>
+                <Button
+                  leftIcon={<FaFileExport />}
+                  colorScheme="green"
+                  variant="outline"
+                  onClick={handleExport}
+                  isLoading={exportProtocolMutation.isFetching}>
+                  Export
+                </Button>
                 <Button
                   leftIcon={<EditIcon />}
                   colorScheme="teal"
