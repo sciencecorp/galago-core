@@ -408,7 +408,10 @@ class Protocol(Base, TimestampMixin):
         "Workcell", back_populates="protocols"
     )
 
-    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+        UniqueConstraint('name', 'workcell_id', name='unique_protocol_name_per_workcell')
+    )
 
 
 class Form(Base, TimestampMixin):

@@ -525,7 +525,7 @@ export class CommandQueue {
 
     while (this.state === ToolStatus.BUSY) {
       // Small delay between processing commands to avoid race conditions
-      await new Promise((resolve) => setTimeout(resolve, 750));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       const nextCommand = await this.commands.startNext();
       if (!nextCommand) {
         this.stop(); //stop the queue when there are no more commands available!!
@@ -601,9 +601,6 @@ export class CommandQueue {
           } else if (nextCommand.commandInfo.command === "user_form") {
             // Handle user_form command
             const formName = nextCommand.commandInfo.params?.name; // ✅ Correct: use "name" parameter
-
-            console.log("Processing user_form command:", { formName }); // Add debugging
-
             if (!formName) {
               throw new Error("Form name is required for user_form command");
             }

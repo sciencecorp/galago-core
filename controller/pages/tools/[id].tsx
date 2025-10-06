@@ -50,7 +50,6 @@ export default function Page() {
   const toolCommandsDefined = Object.keys(commandFields).includes(String(config?.type));
   const commandOptions = config ? commandFields[config.type] : {};
 
-  console.log("Config for tool:", config);
   useEffect(() => {
     // Wait for the router to be ready and then extract the query parameter
     if (router.isReady) {

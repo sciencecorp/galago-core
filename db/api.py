@@ -1418,7 +1418,18 @@ def get_variables(db: Session = Depends(get_db), workcell_name: Optional[str] = 
 def get_variable(
     variable_name: t.Union[int, str], db: Session = Depends(get_db)
 ) -> t.Any:
-    existing_variable = crud.variables.get(db, id=variable_name)
+    # If it's a numeric ID, get by ID directly
+    if isinstance(variable_name, str) and variable_name.isdigit():
+        existing_variable = crud.variables.get(db, id=int(variable_name))
+    elif isinstance(variable_name, int):
+        existing_variable = crud.variables.get(db, id=variable_name)
+    else:
+        # It's a name, so we need to filter by selected workcell
+        selected_workcell_id = get_selected_workcell_id(db)
+        existing_variable = crud.variables.get_by(
+            db, obj_in={"name": variable_name, "workcell_id": selected_workcell_id}
+        )
+    
     if not existing_variable:
         raise HTTPException(status_code=404, detail="Variable not found")
     return existing_variable
@@ -1504,13 +1515,6 @@ def get_labware(labware_id: int, db: Session = Depends(get_db)) -> t.Any:
     if labware is None:
         raise HTTPException(status_code=404, detail="Labware not found")
     return labware
-
-
-@app.post("/labware", response_model=schemas.Labware)
-def create_labware(
-    labware: schemas.LabwareCreate, db: Session = Depends(get_db)
-) -> t.Any:
-    return crud.labware.create(db, obj_in=labware)
 
 
 @app.put("/labware/{labware_id}", response_model=schemas.LabwareUpdate)
@@ -1719,23 +1723,7 @@ def create_script_folder(
     # Check for existing folder with same name in the same workcell
     existing_folder = crud.script_folders.get_by(
         db, obj_in={"name": folder.name, "workcell_id": folder.workcell_id}
-    )@app.post("/forms", response_model=schemas.Form)
-def create_form(form: schemas.FormCreate, db: Session = Depends(get_db)) -> t.Any:
-    """Create a new form."""
-    # If no workcell_id provided, use the selected workcell
-    if not hasattr(form, 'workcell_id') or form.workcell_id is None:
-        form.workcell_id = get_selected_workcell_id(db)
-    
-    # Check if form with same name already exists in the same workcell
-    existing_form = crud.form.get_by(db, obj_in={"name": form.name, "workcell_id": form.workcell_id})
-    if existing_form:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Form with name '{form.name}' already exists in this workcell"
-        )
-    
-    return crud.form.create(db, obj_in=form)
-
+    )
     if existing_folder:
         raise HTTPException(
             status_code=400,
@@ -2311,8 +2299,15 @@ def export_all_forms(db: Session = Depends(get_db)) -> t.Any:
 
 @app.get("/forms/{form_name}", response_model=schemas.Form)
 def get_form(form_name: str, db: Session = Depends(get_db)) -> t.Any:
-    """Get a specific form by ID or name."""
-    form = crud.form.get_by(db, obj_in={"name": form_name})
+    """Get a specific form by name, filtered by selected workcell."""
+    # If it's numeric, treat as ID
+    if form_name.isdigit():
+        form = crud.form.get(db, id=int(form_name))
+    else:
+        # It's a name, filter by selected workcell
+        selected_workcell_id = get_selected_workcell_id(db)
+        form = crud.form.get_by(db, obj_in={"name": form_name, "workcell_id": selected_workcell_id})
+    
     if not form:
         raise HTTPException(status_code=404, detail="Form not found")
     return form

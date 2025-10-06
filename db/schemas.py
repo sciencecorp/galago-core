@@ -352,7 +352,7 @@ class VariableBase(BaseModel):
 class VariableCreate(VariableBase):
     name: str
     type: str
-    workcell_id: int 
+    workcell_id: t.Optional[int] = None 
     
     @model_validator(mode="before")
     @classmethod
@@ -550,7 +550,7 @@ class LabwareCreate(BaseModel):
     stack_height: t.Optional[float] = 0
     has_lid: t.Optional[bool] = False
     image_url: t.Optional[str] = ""
-    workcell_id: int
+    workcell_id: t.Optional[int] = None
 
 
 class Labware(TimestampMixin, LabwareCreate):
