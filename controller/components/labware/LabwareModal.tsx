@@ -27,8 +27,8 @@ export const LabwareModal: React.FC = () => {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [numberOfRows, setNumberOfRows] = useState(0);
-  const [numberOfColumns, setNumberOfColumns] = useState(0);
+  const [numberOfRows, setNumberOfRows] = useState(8);
+  const [numberOfColumns, setNumberOfColumns] = useState(12);
   const [imageUrl, setImageUrl] = useState("");
 
   const addLabware = trpc.labware.add.useMutation();
@@ -89,13 +89,19 @@ export const LabwareModal: React.FC = () => {
               </FormControl>
               <FormControl>
                 <FormLabel>Rows</FormLabel>
-                <NumberInput value={numberOfRows} onChange={(_, val) => setNumberOfRows(val)}>
+                <NumberInput
+                  defaultValue={8}
+                  value={numberOfRows}
+                  onChange={(_, val) => setNumberOfRows(val)}>
                   <NumberInputField />
                 </NumberInput>
               </FormControl>
               <FormControl>
                 <FormLabel>Columns</FormLabel>
-                <NumberInput value={numberOfColumns} onChange={(_, val) => setNumberOfColumns(val)}>
+                <NumberInput
+                  defaultValue={12}
+                  value={numberOfColumns}
+                  onChange={(_, val) => setNumberOfColumns(val)}>
                   <NumberInputField />
                 </NumberInput>
               </FormControl>

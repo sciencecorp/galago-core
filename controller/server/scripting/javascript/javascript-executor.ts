@@ -3,30 +3,42 @@ import * as vm from "vm";
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosInstance } from "axios";
 
 /**
- * A wrapper class that provides methods for managing variables through API calls
+ * Static service class that provides methods for managing variables through API calls
  */
-class VariablesWrapper {
-  private axios: AxiosInstance;
-  private API_URL: string;
+class Variables {
+  private static axiosInstance: AxiosInstance = axios.create();
+  private static defaultApiUrl: string = "http://db:8000";
 
   /**
-   * Creates a new VariablesWrapper
-   * @param axiosInstance Optional axios instance to use (creates default if not provided)
-   * @param apiUrl Optional custom API URL (defaults to "http://db:8000")
+   * Configure the default API URL and optionally a custom axios instance
+   * @param apiUrl The base API URL to use
+   * @param axiosInstance Optional custom axios instance
    */
-  constructor(axiosInstance?: AxiosInstance, apiUrl: string = "http://db:8000") {
-    this.axios = axiosInstance || axios.create(); // Create default axios instance if not provided
-    this.API_URL = apiUrl;
+  static configure(apiUrl: string, axiosInstance?: AxiosInstance): void {
+    this.defaultApiUrl = apiUrl;
+    if (axiosInstance) {
+      this.axiosInstance = axiosInstance;
+    }
+  }
+
+  /**
+   * Get the current default API URL
+   * @returns The current default API URL
+   */
+  static getDefaultApiUrl(): string {
+    return this.defaultApiUrl;
   }
 
   /**
    * Get a variable by name
-   * @param {string} name - The name of the variable to retrieve
-   * @returns {Promise<any>} - The retrieved variable data
+   * @param name The name of the variable to retrieve
+   * @param apiUrl Optional custom API URL for this request
+   * @returns The retrieved variable data
    */
-  async get_variable(name: string): Promise<any> {
+  static async getVariable(name: string, apiUrl?: string): Promise<any> {
+    const baseUrl = apiUrl || this.defaultApiUrl;
     try {
-      const response = await this.axios.get(`${this.API_URL}/variables/${name}`);
+      const response = await this.axiosInstance.get(`${baseUrl}/variables/${name}`);
       return response.data;
     } catch (error: any) {
       if (error.response && error.response.status === 404) {
@@ -39,45 +51,58 @@ class VariablesWrapper {
 
   /**
    * Get all variables
-   * @returns {Promise<any>} - All variables data
+   * @param apiUrl Optional custom API URL for this request
+   * @returns All variables data
    */
-  async get_all_variables(): Promise<any> {
-    const response = await this.axios.get(`${this.API_URL}/variables`);
+  static async getAllVariables(apiUrl?: string): Promise<any> {
+    const baseUrl = apiUrl || this.defaultApiUrl;
+    const response = await this.axiosInstance.get(`${baseUrl}/variables`);
     return response.data;
   }
 
   /**
    * Create a new variable
-   * @param {object} data - The variable data to create
-   * @returns {Promise<any>} - The created variable data
+   * @param data The variable data to create
+   * @param apiUrl Optional custom API URL for this request
+   * @returns The created variable data
    */
-  async create_variable(data: Record<string, any>): Promise<any> {
-    const response = await this.axios.post(`${this.API_URL}/variables`, data);
+  static async createVariable(data: Record<string, any>, apiUrl?: string): Promise<any> {
+    const baseUrl = apiUrl || this.defaultApiUrl;
+    const response = await this.axiosInstance.post(`${baseUrl}/variables`, data);
     return response.data;
   }
 
   /**
    * Update a variable by name
-   * @param {string} name - The name of the variable to update
-   * @param {string|number|boolean} new_value - The new value for the variable
-   * @returns {Promise<any>} - The updated variable data
+   * @param name The name of the variable to update
+   * @param newValue The new value for the variable
+   * @param apiUrl Optional custom API URL for this request
+   * @returns The updated variable data
    */
-  async update_variable(name: string, new_value: string | number | boolean): Promise<any> {
-    const variable = { value: new_value };
-    const response = await this.axios.put(`${this.API_URL}/variables/${name}`, variable);
+  static async updateVariable(
+    name: string,
+    newValue: string | number | boolean,
+    apiUrl?: string,
+  ): Promise<any> {
+    const baseUrl = apiUrl || this.defaultApiUrl;
+    const variable = { value: newValue };
+    const response = await this.axiosInstance.put(`${baseUrl}/variables/${name}`, variable);
     return response.data;
   }
 
   /**
    * Delete a variable by name
-   * @param {string} name - The name of the variable to delete
-   * @returns {Promise<any>} - The response from the delete operation
+   * @param name The name of the variable to delete
+   * @param apiUrl Optional custom API URL for this request
+   * @returns The response from the delete operation
    */
-  async delete_variable(name: string): Promise<any> {
-    const response = await this.axios.delete(`${this.API_URL}/variables/${name}`);
+  static async deleteVariable(name: string, apiUrl?: string): Promise<any> {
+    const baseUrl = apiUrl || this.defaultApiUrl;
+    const response = await this.axiosInstance.delete(`${baseUrl}/variables/${name}`);
     return response.data;
   }
 }
+
 export class JavaScriptExecutor {
   /**
    * Executes a JavaScript script in a sandboxed context
@@ -161,13 +186,10 @@ export class JavaScriptExecutor {
         return axiosFn;
       })();
 
-      // Create Variables Wrapper instance
-      // const variables = new VariablesWrapper(wrappedAxios);
-
       // Create a sandbox with the provided context
       const sandbox = {
         axios: wrappedAxios,
-        VariablesWrapper: VariablesWrapper,
+        Variables: Variables,
         console: {
           log: (...args: any[]) => {
             const logMessage = args

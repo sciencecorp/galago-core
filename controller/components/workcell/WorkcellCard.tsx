@@ -45,6 +45,9 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
   const { data: selectedWorkcellData, refetch } = trpc.workcell.getSelectedWorkcell.useQuery();
 
   const handleSelect = async () => {
+    if (selectedWorkcellData === workcell.name) {
+      await setWorkcell.mutate("");
+    }
     await setWorkcell.mutate(workcell.name);
     await clearToolStore.mutate();
     document.title = `Workcell - ${workcell.name}`;

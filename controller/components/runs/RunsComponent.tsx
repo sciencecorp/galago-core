@@ -126,7 +126,6 @@ export const RunsComponent: React.FC = () => {
   // Handle form query results
   useEffect(() => {
     if (formQuery.data && messageData.type === "user_form") {
-      console.log("✅ Form loaded successfully:", formQuery.data);
       setCurrentForm(formQuery.data);
       setUserFormError(null);
     } else if (formQuery.error && messageData.type === "user_form") {
@@ -159,43 +158,16 @@ export const RunsComponent: React.FC = () => {
     retry: false,
   });
 
-  // Add render logging after all state is declared
-  console.log("🎨 RunsComponent render:", {
-    isUserFormModalOpen,
-    currentForm: !!currentForm,
-    currentFormName: currentForm?.name,
-    messageDataFormName: messageData?.formName,
-    messageType: messageData?.type,
-    isWaitingForInput: isWaitingForInputQuery.data,
-  });
-
   useEffect(() => {
-    console.log("🔍 RunsComponent useEffect triggered");
-    console.log("isWaitingForInputQuery.data:", isWaitingForInputQuery.data);
-    console.log("currentMessageQuery.data:", currentMessageQuery.data);
-    console.log("Current messageData:", messageData);
-
     if (isWaitingForInputQuery.data !== undefined) {
       const shouldShowModal = isWaitingForInputQuery.data;
       const shouldShowUserForm = shouldShowModal && messageData.type === "user_form";
 
-      console.log("shouldShowModal:", shouldShowModal);
-      console.log("shouldShowUserForm:", shouldShowUserForm);
-      console.log("messageData.type:", messageData.type);
-
       setIsModalOpen(shouldShowModal && messageData.type !== "user_form");
       setIsUserFormModalOpen(shouldShowUserForm);
-
-      console.log(
-        "Modal states set - isModalOpen:",
-        shouldShowModal && messageData.type !== "user_form",
-      );
-      console.log("Modal states set - isUserFormModalOpen:", shouldShowUserForm);
     }
 
     if (currentMessageQuery.data) {
-      console.log("📨 Processing currentMessageQuery.data:", currentMessageQuery.data);
-
       const newMessageData = {
         type: currentMessageQuery.data.type,
         message: currentMessageQuery.data.message,
@@ -214,16 +186,12 @@ export const RunsComponent: React.FC = () => {
           : {}),
       };
 
-      console.log("🎯 Setting messageData to:", newMessageData);
       setMessageData(newMessageData);
 
       // Reset form state when message type changes
       if (newMessageData.type !== "user_form") {
-        console.log("🧹 Resetting form state (not user_form)");
         setCurrentForm(null);
         setUserFormError(null);
-      } else {
-        console.log("📋 User form type detected, formName:", newMessageData.formName);
       }
     }
   }, [isWaitingForInputQuery.data, currentMessageQuery.data, messageData.type]);
@@ -234,7 +202,6 @@ export const RunsComponent: React.FC = () => {
 
   const handleUserFormSubmit = (formData: Record<string, any>) => {
     // TODO: Handle form submission - for now just resume
-    console.log("Form submitted with data:", formData);
     resumeMutation.mutate();
     setIsUserFormModalOpen(false);
     setCurrentForm(null);

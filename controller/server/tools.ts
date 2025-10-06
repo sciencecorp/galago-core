@@ -216,7 +216,6 @@ export default class Tool {
     }
 
     //Handle script execution
-    console.log("Executing command", command);
     if (
       command.command === "run_script" &&
       (command.toolType === ToolType.toolbox ||

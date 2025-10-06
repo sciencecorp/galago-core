@@ -214,7 +214,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
       }
     } catch (error) {
       console.error("Failed to save form:", error);
-      errorToast("Error", "Failed to save form");
+      errorToast("Error", `Failed to save form. ${error}`);
     } finally {
       setIsSaving(false);
     }

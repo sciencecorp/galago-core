@@ -35,6 +35,47 @@ log_config["formatters"]["access"]["fmt"] = "%(asctime)s | %(levelname)s | %(mes
 log_config["formatters"]["default"]["fmt"] = "%(asctime)s | %(levelname)s | %(message)s"
 
 
+
+
+def get_selected_workcell_name(db: Session) -> str:
+    """Get the currently selected workcell name from settings.
+    
+    Raises:
+        HTTPException: If no workcell is selected
+    """
+    workcell_setting = crud.settings.get_by(db, obj_in={"name": "workcell"})
+    if not workcell_setting or not workcell_setting.is_active:
+        raise HTTPException(
+            status_code=400, 
+            detail="No workcell is currently selected. Please select a workcell in settings."
+        )
+    return workcell_setting.value
+
+
+def get_selected_workcell_id(db: Session) -> int:
+    """Get the currently selected workcell ID from settings.
+    
+    Raises:
+        HTTPException: If no workcell is selected or workcell doesn't exist
+    """
+    # Get the workcell setting
+    workcell_setting = crud.settings.get_by(db, obj_in={"name": "workcell"})
+    if not workcell_setting or not workcell_setting.is_active:
+        raise HTTPException(
+            status_code=400, 
+            detail="No workcell is currently selected. Please select a workcell in settings."
+        )
+    
+    # Get the workcell by name
+    selected_workcell = crud.workcell.get_by(db, obj_in={"name": workcell_setting.value})
+    if not selected_workcell:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Selected workcell '{workcell_setting.value}' not found"
+        )
+    
+    return selected_workcell.id
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> t.AsyncGenerator[None, None]:
     try:
@@ -148,9 +189,6 @@ def get_inventory(workcell_name: str, db: Session = Depends(get_db)) -> t.Any:
     )
 
 
-@app.get("/test")
-def test():
-    return {"test": "test hello"}
 
 
 # CRUD API endpoints for Workcells
@@ -198,9 +236,10 @@ def delete_workcell(workcell_id: int, db: Session = Depends(get_db)) -> t.Any:
     return deleted_workcell
 
 
+# Updated export workcell config
 @app.get("/workcells/{workcell_id}/export")
 def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t.Any:
-    """Export a workcell configuration including all related tools as a downloadable JSON file."""
+    """Export a workcell configuration including all related data as a downloadable JSON file."""
     from fastapi.responses import FileResponse
     import tempfile
     import os
@@ -237,11 +276,12 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
     for well in wells:
         reagents.extend(crud.reagent.get_all_by(db, obj_in={"well_id": well.id}))
 
-    # Get all labware definitions
-    labware = crud.labware.get_all(db)
-
-    # Get all forms 
-    forms = crud.form.get_all(db)
+    # NEW: Get workcell-specific entities
+    scripts = crud.scripts.get_all_by(db, obj_in={"workcell_id": workcell.id})
+    variables = crud.variables.get_all_by(db, obj_in={"workcell_id": workcell.id})
+    labware = crud.labware.get_all_by(db, obj_in={"workcell_id": workcell.id})
+    forms = crud.form.get_all_by(db, obj_in={"workcell_id": workcell.id})
+    script_folders = crud.script_folders.get_all_by(db, obj_in={"workcell_id": workcell.id})
 
     # Create a temporary file for the JSON content
     with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
@@ -249,13 +289,16 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
         # Serialize the workcell to JSON and write to the file
         workcell_json = jsonable_encoder(workcell)
 
-        # Add the inventory data to the export
+        # Add the inventory and entity data to the export
         workcell_json["nests"] = jsonable_encoder(nests)
         workcell_json["plates"] = jsonable_encoder(plates)
         workcell_json["wells"] = jsonable_encoder(wells)
         workcell_json["reagents"] = jsonable_encoder(reagents)
+        workcell_json["scripts"] = jsonable_encoder(scripts)
+        workcell_json["variables"] = jsonable_encoder(variables)
         workcell_json["labware"] = jsonable_encoder(labware)
         workcell_json["forms"] = jsonable_encoder(forms)
+        workcell_json["script_folders"] = jsonable_encoder(script_folders)
 
         temp_file.write(json.dumps(workcell_json, indent=2).encode("utf-8"))
 
@@ -271,7 +314,6 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
             lambda: os.unlink(temp_file_path)
         ),  # Delete the temp file after response is sent
     )
-
 
 @app.post("/workcells/import", response_model=schemas.Workcell)
 async def import_workcell_config(
@@ -301,6 +343,13 @@ async def import_workcell_config(
                 detail="Invalid workcell configuration: Missing name field",
             )
 
+        # ID mapping dictionaries to track old_id -> new_id
+        hotel_id_mapping = {}
+        tool_id_mapping = {}
+        nest_id_mapping = {}
+        plate_id_mapping = {}
+        well_id_mapping = {}
+
         # Check if a workcell with this name already exists
         existing_workcell = crud.workcell.get_by(
             db, obj_in={"name": workcell_data["name"]}
@@ -327,98 +376,13 @@ async def import_workcell_config(
                 db, obj_in=schemas.WorkcellCreate(**workcell_fields)
             )
 
-        # Process and create/update tools if they exist in the import data
-        if "tools" in workcell_data and isinstance(workcell_data["tools"], list):
-            for tool_data in workcell_data["tools"]:
-                # Skip if essential tool data is missing
-                if (
-                    not isinstance(tool_data, dict)
-                    or "name" not in tool_data
-                    or "type" not in tool_data
-                ):
-                    continue
-
-                # Set the workcell_id for the tool
-                tool_data["workcell_id"] = workcell.id
-
-                # Check if this tool already exists in the workcell
-                existing_tool = None
-                for t in workcell.tools:
-                    if t.name == tool_data["name"]:
-                        existing_tool = t
-                        break
-
-                if existing_tool:
-                    # Update existing tool
-                    tool_update = {k: v for k, v in tool_data.items() if k != "id"}
-                    crud.tool.update(
-                        db,
-                        db_obj=existing_tool,
-                        obj_in=schemas.ToolUpdate(**tool_update),
-                    )
-                else:
-                    # Create new tool
-                    new_tool = crud.tool.create(
-                        db, obj_in=schemas.ToolCreate(**tool_data)
-                    )
-                    # Create default motion profile and grip params if it's a pf400
-                    if new_tool.type == "pf400":
-                        create_default_motion_profile(db, new_tool.id)
-                        create_default_grip_params(db, new_tool.id)
-                        logging.info(
-                            f"Created default profiles for imported PF400 tool: {new_tool.name}"
-                        )
-
-        # Process and create/update labware if they exist in the import data
-        if "labware" in workcell_data and isinstance(workcell_data["labware"], list):
-            for labware_data in workcell_data["labware"]:
-                # Skip if essential labware data is missing
-                if not isinstance(labware_data, dict) or "name" not in labware_data:
-                    continue
-
-                # Check if this labware already exists
-                existing_labware = crud.labware.get_by(
-                    db, obj_in={"name": labware_data["name"]}
-                )
-
-                # Extract labware fields
-                labware_fields = {
-                    "name": labware_data["name"],
-                    "description": labware_data.get("description", ""),
-                    "number_of_rows": labware_data.get("number_of_rows", 8),
-                    "number_of_columns": labware_data.get("number_of_columns", 12),
-                    "z_offset": labware_data.get("z_offset", 0.0),
-                    "width": labware_data.get("width", 0.0),
-                    "height": labware_data.get("height", 0.0),
-                    "plate_lid_offset": labware_data.get("plate_lid_offset", 0.0),
-                    "lid_offset": labware_data.get("lid_offset", 0.0),
-                    "stack_height": labware_data.get("stack_height", 0.0),
-                    "has_lid": labware_data.get("has_lid", False),
-                    "image_url": labware_data.get("image_url", ""),
-                }
-
-                # Create or update the labware
-                if existing_labware:
-                    # Update existing labware
-                    _ = crud.labware.update(
-                        db,
-                        db_obj=existing_labware,
-                        obj_in=schemas.LabwareUpdate(**labware_fields),
-                    )
-                else:
-                    # Create new labware
-                    _ = crud.labware.create(
-                        db, obj_in=schemas.LabwareCreate(**labware_fields)
-                    )
-
-        # Process and create/update hotels if they exist in the import data
+        # Process hotels FIRST (no dependencies)
         if "hotels" in workcell_data and isinstance(workcell_data["hotels"], list):
             for hotel_data in workcell_data["hotels"]:
-                # Skip if essential hotel data is missing
                 if not isinstance(hotel_data, dict) or "name" not in hotel_data:
                     continue
 
-                # Set the workcell_id for the hotel
+                old_hotel_id = hotel_data.get("id")
                 hotel_data["workcell_id"] = workcell.id
 
                 # Check if this hotel already exists in the workcell
@@ -431,94 +395,179 @@ async def import_workcell_config(
                 if existing_hotel:
                     # Update existing hotel
                     hotel_update = {k: v for k, v in hotel_data.items() if k != "id"}
-                    crud.hotel.update(
+                    updated_hotel = crud.hotel.update(
                         db,
                         db_obj=existing_hotel,
                         obj_in=schemas.HotelUpdate(**hotel_update),
                     )
+                    if old_hotel_id:
+                        hotel_id_mapping[old_hotel_id] = updated_hotel.id
                 else:
                     # Create new hotel
-                    crud.hotel.create(db, obj_in=schemas.HotelCreate(**hotel_data))
+                    hotel_create = {k: v for k, v in hotel_data.items() if k != "id"}
+                    new_hotel = crud.hotel.create(db, obj_in=schemas.HotelCreate(**hotel_create))
+                    if old_hotel_id:
+                        hotel_id_mapping[old_hotel_id] = new_hotel.id
 
-        # Process and create/update nests if they exist in the import data
+        # Process tools SECOND (no dependencies)
+        if "tools" in workcell_data and isinstance(workcell_data["tools"], list):
+            for tool_data in workcell_data["tools"]:
+                if (
+                    not isinstance(tool_data, dict)
+                    or "name" not in tool_data
+                    or "type" not in tool_data
+                ):
+                    continue
+
+                old_tool_id = tool_data.get("id")
+                tool_data["workcell_id"] = workcell.id
+
+                # Check if this tool already exists in the workcell
+                existing_tool = None
+                for t in workcell.tools:
+                    if t.name == tool_data["name"]:
+                        existing_tool = t
+                        break
+
+                if existing_tool:
+                    # Update existing tool
+                    tool_update = {k: v for k, v in tool_data.items() if k != "id"}
+                    updated_tool = crud.tool.update(
+                        db,
+                        db_obj=existing_tool,
+                        obj_in=schemas.ToolUpdate(**tool_update),
+                    )
+                    if old_tool_id:
+                        tool_id_mapping[old_tool_id] = updated_tool.id
+                else:
+                    # Create new tool
+                    new_tool = crud.tool.create(
+                        db, obj_in=schemas.ToolCreate(**tool_data)
+                    )
+                    if old_tool_id:
+                        tool_id_mapping[old_tool_id] = new_tool.id
+                    
+                    # Create default motion profile and grip params if it's a pf400
+                    if new_tool.type == "pf400":
+                        create_default_motion_profile(db, new_tool.id)
+                        create_default_grip_params(db, new_tool.id)
+                        logging.info(
+                            f"Created default profiles for imported PF400 tool: {new_tool.name}"
+                        )
+
+        # Process nests THIRD (depends on tools and hotels)
         if "nests" in workcell_data and isinstance(workcell_data["nests"], list):
             for nest_data in workcell_data["nests"]:
-                # Skip if essential nest data is missing
                 if not isinstance(nest_data, dict) or "name" not in nest_data:
                     continue
+
+                old_nest_id = nest_data.get("id")
+
+                # Remap foreign keys using the mapping dictionaries
+                if nest_data.get("hotel_id") and nest_data["hotel_id"] in hotel_id_mapping:
+                    nest_data["hotel_id"] = hotel_id_mapping[nest_data["hotel_id"]]
+                elif nest_data.get("hotel_id"):
+                    # If we can't map it, set to null to avoid FK constraint
+                    logging.warning(f"Could not map hotel_id {nest_data['hotel_id']} for nest {nest_data['name']}")
+                    nest_data["hotel_id"] = None
+
+                if nest_data.get("tool_id") and nest_data["tool_id"] in tool_id_mapping:
+                    nest_data["tool_id"] = tool_id_mapping[nest_data["tool_id"]]
+                elif nest_data.get("tool_id"):
+                    # If we can't map it, set to null to avoid FK constraint
+                    logging.warning(f"Could not map tool_id {nest_data['tool_id']} for nest {nest_data['name']}")
+                    nest_data["tool_id"] = None
 
                 # Check if this nest already exists
                 existing_nest = None
                 try:
-                    nest_id = nest_data.get("id")
-                    if nest_id is not None:
-                        existing_nest = crud.nest.get(db, id=int(nest_id))
-                except Exception as e:
-                    logging.error(f"Nest {nest_data.get('name')} not found: {e}")
+                    if old_nest_id is not None:
+                        existing_nest = crud.nest.get(db, id=int(old_nest_id))
+                except Exception:
+                    existing_nest = None
 
                 if existing_nest:
                     # Update existing nest
                     nest_update = {k: v for k, v in nest_data.items() if k != "id"}
-                    crud.nest.update(
+                    updated_nest = crud.nest.update(
                         db,
                         db_obj=existing_nest,
                         obj_in=schemas.NestUpdate(**nest_update),
                     )
+                    if old_nest_id:
+                        nest_id_mapping[old_nest_id] = updated_nest.id
                 else:
                     # Create new nest
                     nest_create = {k: v for k, v in nest_data.items() if k != "id"}
-                    crud.nest.create(db, obj_in=schemas.NestCreate(**nest_create))
+                    new_nest = crud.nest.create(db, obj_in=schemas.NestCreate(**nest_create))
+                    if old_nest_id:
+                        nest_id_mapping[old_nest_id] = new_nest.id
 
-        # Process and create/update plates if they exist in the import data
+        # Process plates FOURTH (depends on nests)
         if "plates" in workcell_data and isinstance(workcell_data["plates"], list):
             for plate_data in workcell_data["plates"]:
-                # Skip if essential plate data is missing
                 if not isinstance(plate_data, dict) or "barcode" not in plate_data:
                     continue
+
+                old_plate_id = plate_data.get("id")
+
+                # Remap nest_id
+                if plate_data.get("nest_id") and plate_data["nest_id"] in nest_id_mapping:
+                    plate_data["nest_id"] = nest_id_mapping[plate_data["nest_id"]]
+                elif plate_data.get("nest_id"):
+                    logging.warning(f"Could not map nest_id {plate_data['nest_id']} for plate {plate_data.get('name')}")
+                    plate_data["nest_id"] = None
 
                 # Check if this plate already exists
                 existing_plate = None
                 try:
-                    plate_id = plate_data.get("id")
-                    if plate_id is not None:
-                        existing_plate = crud.plate.get(db, id=int(plate_id))
-                except Exception as e:
-                    # Try to find by barcode
-                    logging.error(f"Plate {plate_data.get('name')} not found: {e}")
-                    existing_plate = crud.plate.get_by(
-                        db, obj_in={"barcode": plate_data["barcode"]}
-                    )
+                    if old_plate_id is not None:
+                        existing_plate = crud.plate.get(db, id=int(old_plate_id))
+                    else:
+                        existing_plate = crud.plate.get_by(
+                            db, obj_in={"barcode": plate_data["barcode"]}
+                        )
+                except Exception:
+                    existing_plate = None
 
                 if existing_plate:
                     # Update existing plate
                     plate_update = {k: v for k, v in plate_data.items() if k != "id"}
-                    crud.plate.update(
+                    updated_plate = crud.plate.update(
                         db,
                         db_obj=existing_plate,
                         obj_in=schemas.PlateUpdate(**plate_update),
                     )
+                    if old_plate_id:
+                        plate_id_mapping[old_plate_id] = updated_plate.id
                 else:
                     # Create new plate
                     plate_create = {k: v for k, v in plate_data.items() if k != "id"}
-                    crud.plate.create(db, obj_in=schemas.PlateCreate(**plate_create))
+                    new_plate = crud.plate.create(db, obj_in=schemas.PlateCreate(**plate_create))
+                    if old_plate_id:
+                        plate_id_mapping[old_plate_id] = new_plate.id
 
-        # Process and create/update wells if they exist in the import data
+        # Process wells FIFTH (depends on plates)
         if "wells" in workcell_data and isinstance(workcell_data["wells"], list):
             for well_data in workcell_data["wells"]:
-                # Skip if essential well data is missing
                 if not isinstance(well_data, dict) or "plate_id" not in well_data:
                     continue
+
+                old_well_id = well_data.get("id")
+
+                # Remap plate_id
+                if well_data.get("plate_id") and well_data["plate_id"] in plate_id_mapping:
+                    well_data["plate_id"] = plate_id_mapping[well_data["plate_id"]]
+                elif well_data.get("plate_id"):
+                    logging.warning(f"Could not map plate_id {well_data['plate_id']} for well")
+                    continue  # Skip this well if we can't map the plate
 
                 # Check if this well already exists
                 existing_well = None
                 try:
-                    well_id = well_data.get("id")
-                    if well_id is not None:
-                        existing_well = crud.well.get(db, id=int(well_id))
-                except Exception as e:
-                    # Try to find by plate_id, row and column
-                    logging.error(f"Well {well_data.get('name')} not found: {e}")
-                    if "row" in well_data and "column" in well_data:
+                    if old_well_id is not None:
+                        existing_well = crud.well.get(db, id=int(old_well_id))
+                    elif "row" in well_data and "column" in well_data:
                         existing_well = crud.well.get_by(
                             db,
                             obj_in={
@@ -527,24 +576,29 @@ async def import_workcell_config(
                                 "column": well_data["column"],
                             },
                         )
+                except Exception:
+                    existing_well = None
 
                 if existing_well:
                     # Update existing well
                     well_update = {k: v for k, v in well_data.items() if k != "id"}
-                    crud.well.update(
+                    updated_well = crud.well.update(
                         db,
                         db_obj=existing_well,
                         obj_in=schemas.WellUpdate(**well_update),
                     )
+                    if old_well_id:
+                        well_id_mapping[old_well_id] = updated_well.id
                 else:
                     # Create new well
                     well_create = {k: v for k, v in well_data.items() if k != "id"}
-                    crud.well.create(db, obj_in=schemas.WellCreate(**well_create))
+                    new_well = crud.well.create(db, obj_in=schemas.WellCreate(**well_create))
+                    if old_well_id:
+                        well_id_mapping[old_well_id] = new_well.id
 
-        # Process and create/update reagents if they exist in the import data
+        # Process reagents LAST (depends on wells)
         if "reagents" in workcell_data and isinstance(workcell_data["reagents"], list):
             for reagent_data in workcell_data["reagents"]:
-                # Skip if essential reagent data is missing
                 if (
                     not isinstance(reagent_data, dict)
                     or "well_id" not in reagent_data
@@ -552,22 +606,29 @@ async def import_workcell_config(
                 ):
                     continue
 
+                # Remap well_id
+                if reagent_data.get("well_id") and reagent_data["well_id"] in well_id_mapping:
+                    reagent_data["well_id"] = well_id_mapping[reagent_data["well_id"]]
+                elif reagent_data.get("well_id"):
+                    logging.warning(f"Could not map well_id {reagent_data['well_id']} for reagent {reagent_data['name']}")
+                    continue  # Skip this reagent if we can't map the well
+
                 # Check if this reagent already exists
                 existing_reagent = None
                 try:
                     reagent_id = reagent_data.get("id")
                     if reagent_id is not None:
                         existing_reagent = crud.reagent.get(db, id=int(reagent_id))
-                except Exception as e:
-                    logging.error(f"Reagent {reagent_data.get('name')} not found: {e}")
-                    # Try to find by well_id and name
-                    existing_reagent = crud.reagent.get_by(
-                        db,
-                        obj_in={
-                            "well_id": reagent_data["well_id"],
-                            "name": reagent_data["name"],
-                        },
-                    )
+                    else:
+                        existing_reagent = crud.reagent.get_by(
+                            db,
+                            obj_in={
+                                "well_id": reagent_data["well_id"],
+                                "name": reagent_data["name"],
+                            },
+                        )
+                except Exception:
+                    existing_reagent = None
 
                 if existing_reagent:
                     # Update existing reagent
@@ -586,6 +647,140 @@ async def import_workcell_config(
                     }
                     crud.reagent.create(
                         db, obj_in=schemas.ReagentCreate(**reagent_create)
+                    )
+
+        # Process scripts if they exist in the import data
+        if "scripts" in workcell_data and isinstance(workcell_data["scripts"], list):
+            for script_data in workcell_data["scripts"]:
+                if not isinstance(script_data, dict) or "name" not in script_data:
+                    continue
+
+                script_data["workcell_id"] = workcell.id
+                existing_script = crud.scripts.get_by(
+                    db, obj_in={"name": script_data["name"], "workcell_id": workcell.id}
+                )
+
+                if existing_script:
+                    script_update = {k: v for k, v in script_data.items() if k != "id"}
+                    crud.scripts.update(
+                        db,
+                        db_obj=existing_script,
+                        obj_in=schemas.ScriptUpdate(**script_update),
+                    )
+                else:
+                    script_create = {k: v for k, v in script_data.items() if k != "id"}
+                    crud.scripts.create(db, obj_in=schemas.ScriptCreate(**script_create))
+
+        # Process variables if they exist in the import data
+        if "variables" in workcell_data and isinstance(workcell_data["variables"], list):
+            for variable_data in workcell_data["variables"]:
+                if not isinstance(variable_data, dict) or "name" not in variable_data:
+                    continue
+
+                variable_data["workcell_id"] = workcell.id
+                existing_variable = crud.variables.get_by(
+                    db, obj_in={"name": variable_data["name"], "workcell_id": workcell.id}
+                )
+
+                if existing_variable:
+                    variable_update = {k: v for k, v in variable_data.items() if k != "id"}
+                    crud.variables.update(
+                        db,
+                        db_obj=existing_variable,
+                        obj_in=schemas.VariableUpdate(**variable_update),
+                    )
+                else:
+                    variable_create = {k: v for k, v in variable_data.items() if k != "id"}
+                    crud.variables.create(db, obj_in=schemas.VariableCreate(**variable_create))
+
+        # Process labware if they exist in the import data
+        if "labware" in workcell_data and isinstance(workcell_data["labware"], list):
+            for labware_data in workcell_data["labware"]:
+                if not isinstance(labware_data, dict) or "name" not in labware_data:
+                    continue
+
+                labware_data["workcell_id"] = workcell.id
+                existing_labware = crud.labware.get_by(
+                    db, obj_in={"name": labware_data["name"], "workcell_id": workcell.id}
+                )
+
+                labware_fields = {
+                    "name": labware_data["name"],
+                    "description": labware_data.get("description", ""),
+                    "number_of_rows": labware_data.get("number_of_rows", 8),
+                    "number_of_columns": labware_data.get("number_of_columns", 12),
+                    "z_offset": labware_data.get("z_offset", 0.0),
+                    "width": labware_data.get("width", 0.0),
+                    "height": labware_data.get("height", 0.0),
+                    "plate_lid_offset": labware_data.get("plate_lid_offset", 0.0),
+                    "lid_offset": labware_data.get("lid_offset", 0.0),
+                    "stack_height": labware_data.get("stack_height", 0.0),
+                    "has_lid": labware_data.get("has_lid", False),
+                    "image_url": labware_data.get("image_url", ""),
+                    "workcell_id": workcell.id,
+                }
+
+                if existing_labware:
+                    crud.labware.update(
+                        db,
+                        db_obj=existing_labware,
+                        obj_in=schemas.LabwareUpdate(**labware_fields),
+                    )
+                else:
+                    crud.labware.create(
+                        db, obj_in=schemas.LabwareCreate(**labware_fields)
+                    )
+
+        # Process script folders if they exist in the import data
+        if "script_folders" in workcell_data and isinstance(workcell_data["script_folders"], list):
+            for folder_data in workcell_data["script_folders"]:
+                if not isinstance(folder_data, dict) or "name" not in folder_data:
+                    continue
+
+                folder_data["workcell_id"] = workcell.id
+                existing_folder = crud.script_folders.get_by(
+                    db, obj_in={"name": folder_data["name"], "workcell_id": workcell.id}
+                )
+
+                if existing_folder:
+                    folder_update = {k: v for k, v in folder_data.items() if k != "id"}
+                    crud.script_folders.update(
+                        db,
+                        db_obj=existing_folder,
+                        obj_in=schemas.ScriptFolderUpdate(**folder_update),
+                    )
+                else:
+                    folder_create = {k: v for k, v in folder_data.items() if k != "id"}
+                    crud.script_folders.create(db, obj_in=schemas.ScriptFolderCreate(**folder_create))
+        
+        # Process forms if they exist in the import data
+        if "forms" in workcell_data and isinstance(workcell_data["forms"], list):
+            for form_data in workcell_data["forms"]:
+                if not isinstance(form_data, dict) or "name" not in form_data:
+                    continue
+
+                form_data["workcell_id"] = workcell.id
+                existing_form = crud.form.get_by(
+                    db, obj_in={"name": form_data["name"], "workcell_id": workcell.id}
+                )
+
+                form_fields = {
+                    "name": form_data["name"],
+                    "fields": form_data.get("fields", []),
+                    "background_color": form_data.get("background_color"),
+                    "font_color": form_data.get("font_color"),
+                    "workcell_id": workcell.id,
+                }
+
+                if existing_form:
+                    crud.form.update(
+                        db,
+                        db_obj=existing_form,
+                        obj_in=schemas.FormUpdate(**form_fields),
+                    )
+                else:
+                    crud.form.create(
+                        db, obj_in=schemas.FormCreate(**form_fields)
                     )
 
         # Process and create/update protocols if they exist in the import data
@@ -699,8 +894,7 @@ async def import_workcell_config(
                     logging.warning(
                         f"Skipping protocol data because 'name' was missing or None: {protocol_data_cleaned}"
                     )
-
-        # Commit all changes made within the try block (workcell, tools, protocols, etc.)
+        # Commit all changes made within the try block
         db.commit()
 
         # Return the updated workcell (re-query ensures relations are fresh)
@@ -718,8 +912,15 @@ async def import_workcell_config(
 
 
 @app.get("/tools", response_model=list[schemas.Tool])
-def get_tools(db: Session = Depends(get_db)) -> t.Any:
-    return crud.tool.get_all(db)
+def get_tools(db: Session = Depends(get_db), workcell_name: Optional[str] = None) -> t.Any:
+    # If no workcell_name provided, use the selected workcell
+    if workcell_name is None:
+        workcell_name = get_selected_workcell_name(db)
+        
+    workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
+    if not workcell:
+        raise HTTPException(status_code=404, detail="Workcell not found")
+    return crud.tool.get_all_by(db, obj_in={"workcell_id": workcell.id})
 
 
 @app.get("/tools/{tool_id}", response_model=schemas.Tool)
@@ -784,27 +985,23 @@ def delete_tool(tool_id: str, db: Session = Depends(get_db)) -> t.Any:
     return crud.tool.remove(db, id=tool.id)
 
 
-# CRUD API endpoints for Nests
+# Also update other endpoints that use workcell_name filtering
 @app.get("/nests", response_model=list[schemas.Nest])
 def get_nests(
     db: Session = Depends(get_db), workcell_name: Optional[str] = None
 ) -> t.Any:
-    if workcell_name:
-        workcell = crud.workcell.get_by(db=db, obj_in={"name": workcell_name})
-        if not workcell:
-            raise HTTPException(status_code=404, detail="Workcell not found")
+    # If no workcell_name provided, use the selected workcell
+    if workcell_name is None:
+        workcell_name = get_selected_workcell_name(db)
+        
+    workcell = crud.workcell.get_by(db=db, obj_in={"name": workcell_name})
+    if not workcell:
+        raise HTTPException(status_code=404, detail="Workcell not found")
 
-        # Use the specialized method that gets both tool and hotel nests
-        nests = crud.nest.get_all_nests_by_workcell_id(db=db, workcell_id=workcell.id)
-        print(
-            f"Retrieved {len(nests)} nests for workcell {workcell_name} (id: {workcell.id})"
-        )
-        return nests
-    else:
-        return crud.nest.get_all(db)
+    # Use the specialized method that gets both tool and hotel nests
+    nests = crud.nest.get_all_nests_by_workcell_id(db=db, workcell_id=workcell.id)
+    return nests
 
-
-# upload teach pendant data through xml/json file #TODO @mohamed
 
 
 @app.get("/nests/{nest_id}", response_model=schemas.Nest)
@@ -843,15 +1040,11 @@ def delete_nest(nest_id: int, db: Session = Depends(get_db)) -> t.Any:
 def get_plates(
     db: Session = Depends(get_db), workcell_name: Optional[str] = None
 ) -> t.Any:
-    """
-    Get all plates, optionally filtered by workcell.
-    This function retrieves plates either directly from the database (no filter)
-    or filtered by workcell name.
-    """
-    if not workcell_name:
-        return crud.plate.get_all(db)
-
-    # If workcell name is provided, filter plates belonging to that workcell
+    """Get all plates, optionally filtered by workcell."""
+    # If no workcell_name provided, use the selected workcell
+    if workcell_name is None:
+        workcell_name = get_selected_workcell_name(db)
+        
     workcell = crud.workcell.get_by(db=db, obj_in={"name": workcell_name})
     if not workcell:
         raise HTTPException(status_code=404, detail="Workcell not found")
@@ -1063,17 +1256,20 @@ def get_wells(
     plate_id: Optional[int] = None,
     workcell_name: Optional[str] = None,
 ) -> t.Any:
-    if workcell_name:
-        workcell = crud.workcell.get_by(db=db, obj_in={"name": workcell_name})
-        if not workcell:
-            raise HTTPException(status_code=404, detail="Workcell not found")
-        return crud.well.get_all_by_workcell_id(db, workcell_id=workcell.id)
     if plate_id:
         plate = crud.plate.get(db, id=plate_id)
         if plate is None:
             raise HTTPException(status_code=404, detail="Plate not found")
         return plate.wells
-    return crud.well.get_all(db)
+    
+    # If no workcell_name provided, use the selected workcell
+    if workcell_name is None:
+        workcell_name = get_selected_workcell_name(db)
+        
+    workcell = crud.workcell.get_by(db=db, obj_in={"name": workcell_name})
+    if not workcell:
+        raise HTTPException(status_code=404, detail="Workcell not found")
+    return crud.well.get_all_by_workcell_id(db, workcell_id=workcell.id)
 
 
 @app.get("/wells/{well_id}", response_model=schemas.Well)
@@ -1114,11 +1310,6 @@ def get_reagents(
     plate_id: Optional[int] = None,
     workcell_name: Optional[str] = None,
 ) -> t.Any:
-    if workcell_name:
-        workcell = crud.workcell.get_by(db=db, obj_in={"name": workcell_name})
-        if not workcell:
-            raise HTTPException(status_code=404, detail="Workcell not found")
-        return crud.reagent.get_all_by_workcell_id(db, workcell_id=workcell.id)
     if plate_id:
         plate = crud.plate.get(db, id=plate_id)
         if plate is None:
@@ -1127,7 +1318,15 @@ def get_reagents(
         for well in plate.wells:
             reagents += well.reagents
         return reagents
-    return crud.reagent.get_all(db)
+    
+    # If no workcell_name provided, use the selected workcell
+    if workcell_name is None:
+        workcell_name = get_selected_workcell_name(db)
+        
+    workcell = crud.workcell.get_by(db=db, obj_in={"name": workcell_name})
+    if not workcell:
+        raise HTTPException(status_code=404, detail="Workcell not found")
+    return crud.reagent.get_all_by_workcell_id(db, workcell_id=workcell.id)
 
 
 @app.get("/reagents/{reagent_id}", response_model=schemas.Reagent)
@@ -1221,30 +1420,58 @@ async def create_log(log: schemas.LogCreate, db: Session = Depends(log_db)) -> t
 
 
 @app.get("/variables", response_model=list[schemas.Variable])
-def get_variables(db: Session = Depends(get_db)) -> t.Any:
-    return crud.variables.get_all(db)
+def get_variables(db: Session = Depends(get_db), workcell_name: Optional[str] = None) -> t.Any:
+    # If no workcell_name provided, use the selected workcell
+    if workcell_name is None:
+        workcell_name = get_selected_workcell_name(db)
+        
+    workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
+    if not workcell:
+        raise HTTPException(status_code=404, detail="Workcell not found")
+    return crud.variables.get_all_by(db, obj_in={"workcell_id": workcell.id})
+
 
 
 @app.get("/variables/{variable_name}", response_model=schemas.Variable)
 def get_variable(
     variable_name: t.Union[int, str], db: Session = Depends(get_db)
 ) -> t.Any:
-    existing_variable = crud.variables.get(db, id=variable_name)
+    # If it's a numeric ID, get by ID directly
+    if isinstance(variable_name, str) and variable_name.isdigit():
+        existing_variable = crud.variables.get(db, id=int(variable_name))
+    elif isinstance(variable_name, int):
+        existing_variable = crud.variables.get(db, id=variable_name)
+    else:
+        # It's a name, so we need to filter by selected workcell
+        selected_workcell_id = get_selected_workcell_id(db)
+        existing_variable = crud.variables.get_by(
+            db, obj_in={"name": variable_name, "workcell_id": selected_workcell_id}
+        )
+    
     if not existing_variable:
         raise HTTPException(status_code=404, detail="Variable not found")
     return existing_variable
 
 
-@app.post("/variables", response_model=schemas.VariableCreate)
+@app.post("/variables", response_model=schemas.Variable)
 def create_variable(
     variable: schemas.VariableCreate, db: Session = Depends(get_db)
 ) -> t.Any:
+    # If no workcell_id provided, use the selected workcell
+    if not hasattr(variable, 'workcell_id') or variable.workcell_id is None:
+        variable.workcell_id = get_selected_workcell_id(db)
+    
     existing_variable = (
-        db.query(models.Variable).filter(models.Variable.name == variable.name).first()
+        db.query(models.Variable)
+        .filter(
+            models.Variable.name == variable.name,
+            models.Variable.workcell_id == variable.workcell_id
+        )
+        .first()
     )
     if existing_variable:
         raise HTTPException(
-            status_code=400, detail="Variable with that name already exists"
+            status_code=400, detail="Variable with that name already exists in this workcell"
         )
     return crud.variables.create(db, obj_in=variable)
 
@@ -1268,10 +1495,36 @@ def delete_variable(variable_id: int, db: Session = Depends(get_db)) -> t.Any:
         raise HTTPException(status_code=404, detail="Variable not found")
     return db_variable
 
-
 @app.get("/labware", response_model=list[schemas.Labware])
-def get_labwares(db: Session = Depends(get_db)) -> t.Any:
-    return crud.labware.get_all(db)
+def get_labwares(db: Session = Depends(get_db), workcell_name: Optional[str] = None) -> t.Any:
+    # If no workcell_name provided, use the selected workcell
+    if workcell_name is None:
+        workcell_name = get_selected_workcell_name(db)
+        
+    workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
+    if not workcell:
+        raise HTTPException(status_code=404, detail="Workcell not found")
+    return crud.labware.get_all_by(db, obj_in={"workcell_id": workcell.id})
+
+@app.post("/labware", response_model=schemas.Labware)
+def create_labware(
+    labware: schemas.LabwareCreate, db: Session = Depends(get_db)
+) -> t.Any:
+    # If no workcell_id provided, use the selected workcell
+    if not hasattr(labware, 'workcell_id') or labware.workcell_id is None:
+        labware.workcell_id = get_selected_workcell_id(db)
+    
+    # Check for existing labware with same name in the same workcell
+    existing_labware = crud.labware.get_by(
+        db, obj_in={"name": labware.name, "workcell_id": labware.workcell_id}
+    )
+    if existing_labware:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Labware with name '{labware.name}' already exists in this workcell"
+        )
+    
+    return crud.labware.create(db, obj_in=labware)
 
 
 @app.get("/labware/{labware_id}", response_model=schemas.Labware)
@@ -1280,13 +1533,6 @@ def get_labware(labware_id: int, db: Session = Depends(get_db)) -> t.Any:
     if labware is None:
         raise HTTPException(status_code=404, detail="Labware not found")
     return labware
-
-
-@app.post("/labware", response_model=schemas.Labware)
-def create_labware(
-    labware: schemas.LabwareCreate, db: Session = Depends(get_db)
-) -> t.Any:
-    return crud.labware.create(db, obj_in=labware)
 
 
 @app.put("/labware/{labware_id}", response_model=schemas.LabwareUpdate)
@@ -1458,12 +1704,22 @@ def update_setting(
     return crud.settings.update(db, db_obj=settings, obj_in=setting_update)
 
 
-@app.get("/script-folders", response_model=list[schemas.ScriptFolderResponse])
-def get_script_folders(db: Session = Depends(get_db)) -> t.Any:
-    # Only return root folders (where parent_id is null)
+app.get("/script-folders", response_model=list[schemas.ScriptFolderResponse])
+def get_script_folders(db: Session = Depends(get_db), workcell_name: Optional[str] = None) -> t.Any:
+    # If no workcell_name provided, use the selected workcell
+    if workcell_name is None:
+        workcell_name = get_selected_workcell_name(db)
+        
+    workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
+    if not workcell:
+        raise HTTPException(status_code=404, detail="Workcell not found")
+    # Only return root folders (where parent_id is null) for the specific workcell
     return [
-        folder for folder in crud.script_folders.get_all(db) if folder.parent_id is None
+        folder for folder in crud.script_folders.get_all_by(db, obj_in={"workcell_id": workcell.id}) 
+        if folder.parent_id is None
     ]
+
+
 
 
 @app.get("/script-folders/{folder_id}", response_model=schemas.ScriptFolder)
@@ -1478,8 +1734,21 @@ def get_script_folder(folder_id: int, db: Session = Depends(get_db)) -> t.Any:
 def create_script_folder(
     folder: schemas.ScriptFolderCreate, db: Session = Depends(get_db)
 ) -> t.Any:
+    # If no workcell_id provided, use the selected workcell
+    if not hasattr(folder, 'workcell_id') or folder.workcell_id is None:
+        folder.workcell_id = get_selected_workcell_id(db)
+    
+    # Check for existing folder with same name in the same workcell
+    existing_folder = crud.script_folders.get_by(
+        db, obj_in={"name": folder.name, "workcell_id": folder.workcell_id}
+    )
+    if existing_folder:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Script folder with name '{folder.name}' already exists in this workcell"
+        )
+    
     return crud.script_folders.create(db, obj_in=folder)
-
 
 @app.put("/script-folders/{folder_id}", response_model=schemas.ScriptFolder)
 def update_script_folder(
@@ -1504,22 +1773,43 @@ def delete_script_folder(folder_id: int, db: Session = Depends(get_db)) -> t.Any
 
 
 @app.get("/scripts", response_model=list[schemas.Script])
-def get_scripts(db: Session = Depends(get_db)) -> t.Any:
-    return crud.scripts.get_all(db)
+def get_scripts(db: Session = Depends(get_db), workcell_name: Optional[str] = None) -> t.Any:
+    # If no workcell_name provided, use the selected workcell
+    if workcell_name is None:
+        workcell_name = get_selected_workcell_name(db)
+    
+    workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
+    if not workcell:
+        raise HTTPException(status_code=404, detail="Workcell not found")
+    return crud.scripts.get_all_by(db, obj_in={"workcell_id": workcell.id})
+
 
 
 @app.get("/scripts/{script_id}", response_model=schemas.Script)
 def get_script(script_id: t.Union[int, str], db: Session = Depends(get_db)) -> t.Any:
-    script = crud.scripts.get(db, id=script_id)
+    script = crud.scripts.get(db, id=script_id, normalize_name=True)
     if script is None:
         raise HTTPException(status_code=404, detail="Script not found")
     return script
 
 
-@app.post("/scripts", response_model=schemas.ScriptCreate)
+@app.post("/scripts", response_model=schemas.Script)
 def create_script(script: schemas.ScriptCreate, db: Session = Depends(get_db)) -> t.Any:
+    # If no workcell_id provided, use the selected workcell
+    if not hasattr(script, 'workcell_id') or script.workcell_id is None:
+        script.workcell_id = get_selected_workcell_id(db)
+    
+    # Check for existing script with same name in the same workcell
+    existing_script = crud.scripts.get_by(
+        db, obj_in={"name": script.name, "workcell_id": script.workcell_id}
+    )
+    if existing_script:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Script with name '{script.name}' already exists in this workcell"
+        )
+    
     return crud.scripts.create(db, obj_in=script)
-
 
 @app.put("/scripts/{script_id}", response_model=schemas.ScriptCreate)
 def update_script(
@@ -1927,12 +2217,14 @@ async def get_protocols(
 def get_hotels(
     db: Session = Depends(get_db), workcell_name: Optional[str] = None
 ) -> t.Any:
-    if workcell_name:
-        workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
-        if not workcell:
-            raise HTTPException(status_code=404, detail="Workcell not found")
-        return crud.hotel.get_all_by(db, obj_in={"workcell_id": workcell.id})
-    return crud.hotel.get_all(db)
+    # If no workcell_name provided, use the selected workcell
+    if workcell_name is None:
+        workcell_name = get_selected_workcell_name(db)
+        
+    workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
+    if not workcell:
+        raise HTTPException(status_code=404, detail="Workcell not found")
+    return crud.hotel.get_all_by(db, obj_in={"workcell_id": workcell.id})
 
 
 @app.get("/hotels/{hotel_id}", response_model=schemas.Hotel)
@@ -1967,9 +2259,17 @@ def delete_hotel(hotel_id: int, db: Session = Depends(get_db)) -> t.Any:
 
 
 @app.get("/forms", response_model=list[schemas.Form])
-def get_forms(db: Session = Depends(get_db)) -> t.Any:
-    """Get all forms."""
-    return crud.form.get_all(db)
+def get_forms(db: Session = Depends(get_db), workcell_name: Optional[str] = None) -> t.Any:
+    """Get all forms, optionally filtered by workcell."""
+    # If no workcell_name provided, use the selected workcell
+    if workcell_name is None:
+        workcell_name = get_selected_workcell_name(db)
+        
+    workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
+    if not workcell:
+        raise HTTPException(status_code=404, detail="Workcell not found")
+    return crud.form.get_all_by(db, obj_in={"workcell_id": workcell.id})
+
 
 @app.get("/forms/export-all")
 def export_all_forms(db: Session = Depends(get_db)) -> t.Any:
@@ -2017,8 +2317,15 @@ def export_all_forms(db: Session = Depends(get_db)) -> t.Any:
 
 @app.get("/forms/{form_name}", response_model=schemas.Form)
 def get_form(form_name: str, db: Session = Depends(get_db)) -> t.Any:
-    """Get a specific form by ID or name."""
-    form = crud.form.get_by(db, obj_in={"name": form_name})
+    """Get a specific form by name, filtered by selected workcell."""
+    # If it's numeric, treat as ID
+    if form_name.isdigit():
+        form = crud.form.get(db, id=int(form_name))
+    else:
+        # It's a name, filter by selected workcell
+        selected_workcell_id = get_selected_workcell_id(db)
+        form = crud.form.get_by(db, obj_in={"name": form_name, "workcell_id": selected_workcell_id})
+    
     if not form:
         raise HTTPException(status_code=404, detail="Form not found")
     return form
@@ -2026,16 +2333,19 @@ def get_form(form_name: str, db: Session = Depends(get_db)) -> t.Any:
 @app.post("/forms", response_model=schemas.Form)
 def create_form(form: schemas.FormCreate, db: Session = Depends(get_db)) -> t.Any:
     """Create a new form."""
-    # Check if form with same name already exists
-    existing_form = crud.form.get_by(db, obj_in={"name": form.name})
+    # If no workcell_id provided, use the selected workcell
+    if not hasattr(form, 'workcell_id') or form.workcell_id is None:
+        form.workcell_id = get_selected_workcell_id(db)
+    
+    # Check if form with same name already exists in the same workcell
+    existing_form = crud.form.get_by(db, obj_in={"name": form.name, "workcell_id": form.workcell_id})
     if existing_form:
         raise HTTPException(
             status_code=400, 
-            detail=f"Form with name '{form.name}' already exists"
+            detail=f"Form with name '{form.name}' already exists in this workcell"
         )
     
     return crud.form.create(db, obj_in=form)
-
 
 @app.put("/forms/{form_id}", response_model=schemas.Form)
 def update_form(

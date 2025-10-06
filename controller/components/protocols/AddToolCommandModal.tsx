@@ -252,10 +252,6 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     }
   };
 
-  console.log("Selected tool type is ", selectedToolType);
-  console.log("Selected tool name is", selectedToolId);
-  console.log("Selected command", selectedCommand);
-
   const isVariableReference = (value: any): boolean => {
     return typeof value === "string" && value.startsWith("{{") && value.endsWith("}}");
   };
