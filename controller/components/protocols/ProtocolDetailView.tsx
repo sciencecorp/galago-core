@@ -49,6 +49,7 @@ import { CommandDetailsDrawer } from "./CommandDetailsDrawer";
 import CommandImage from "@/components/tools/CommandImage";
 import { successToast, errorToast } from "../ui/Toast";
 import { useCommonColors } from "@/components/ui/Theme";
+import axios from "axios";
 
 const handleWheel = (e: WheelEvent) => {
   const container = e.currentTarget as HTMLElement;
@@ -146,6 +147,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const [isAddCommandModalOpen, setIsAddCommandModalOpen] = useState(false);
   const [isRunModalOpen, setIsRunModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [addCommandPosition, setAddCommandPosition] = useState<number | null>(null);
   const [selectedCommand, setSelectedCommand] = useState<any | null>(null);
   const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
@@ -178,11 +180,6 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       refetch();
     },
   });
-
-  const exportProtocolMutation = trpc.protocol.export.useQuery(
-    { id: parseInt(id) },
-    { enabled: false },
-  );
 
   const {
     isOpen: isParametersModalOpen,
@@ -296,28 +293,35 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
 
   const handleExport = async () => {
     try {
-      const result = await exportProtocolMutation.refetch();
-      if (!result.data) {
-        throw new Error("No export data returned");
+      setIsExporting(true);
+      if (!protocol) {
+        throw new Error("Protocol not found");
       }
 
-      const exportData = result.data;
-      const dataStr = JSON.stringify(exportData, null, 2);
-      const dataBlob = new Blob([dataStr], { type: "application/json" });
+      // Download the file directly from the backend
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+      const response = await axios.get(`${API_BASE_URL}/protocols/${id}/export`, {
+        responseType: "blob",
+      });
 
       // Create download link
-      const url = URL.createObjectURL(dataBlob);
+      const url = URL.createObjectURL(response.data);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${protocol?.name || "protocol"}-protocol.json`;
+      link.download = `${protocol.name.replace(/\s+/g, "_")}-protocol.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      successToast("Protocol Exported", `${protocol?.name} has been exported successfully`);
+      successToast("Protocol Exported", `${protocol.name} has been exported successfully`);
     } catch (error: any) {
-      errorToast("Export Failed", error.message || "Failed to export protocol");
+      errorToast(
+        "Export Failed",
+        error.response?.data?.detail || error.message || "Failed to export protocol",
+      );
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -514,7 +518,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                   colorScheme="green"
                   variant="outline"
                   onClick={handleExport}
-                  isLoading={exportProtocolMutation.isFetching}>
+                  isLoading={isExporting}>
                   Export
                 </Button>
                 <Button
