@@ -49,7 +49,7 @@ import { CommandDetailsDrawer } from "./CommandDetailsDrawer";
 import CommandImage from "@/components/tools/CommandImage";
 import { successToast, errorToast } from "../ui/Toast";
 import { useCommonColors } from "@/components/ui/Theme";
-import axios from "axios";
+import { downloadFile } from "@/server/utils/api";
 
 const handleWheel = (e: WheelEvent) => {
   const container = e.currentTarget as HTMLElement;
@@ -298,28 +298,13 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         throw new Error("Protocol not found");
       }
 
-      // Download the file directly from the backend
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-      const response = await axios.get(`${API_BASE_URL}/protocols/${id}/export`, {
-        responseType: "blob",
-      });
-
-      // Create download link
-      const url = URL.createObjectURL(response.data);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${protocol.name.replace(/\s+/g, "_")}-protocol.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // Use the downloadFile utility
+      const filename = `${protocol.name.replace(/\s+/g, "_")}-protocol.json`;
+      await downloadFile(`/protocols/${id}/export`, filename);
 
       successToast("Protocol Exported", `${protocol.name} has been exported successfully`);
     } catch (error: any) {
-      errorToast(
-        "Export Failed",
-        error.response?.data?.detail || error.message || "Failed to export protocol",
-      );
+      errorToast("Export Failed", error.message || "Failed to export protocol");
     } finally {
       setIsExporting(false);
     }

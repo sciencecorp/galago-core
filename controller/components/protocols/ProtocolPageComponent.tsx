@@ -60,7 +60,7 @@ import { RiAddFill } from "react-icons/ri";
 import { FaFileImport, FaPlay } from "react-icons/fa";
 import { EditableText } from "../ui/Form";
 import { errorToast, successToast } from "../ui/Toast";
-import axios from "axios";
+import { downloadFile, uploadFile } from "@/server/utils/api";
 
 type SortField = "name" | "category";
 type SortOrder = "asc" | "desc";
@@ -243,26 +243,15 @@ export const ProtocolPageComponent: React.FC = () => {
         throw new Error("No workcell selected");
       }
 
-      // Create form data for the upload
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("workcell_id", currentWorkcell.id.toString());
-
-      // Send the import request to the backend
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-      await axios.post(`${API_BASE_URL}/protocols/import`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      // Use the uploadFile utility
+      await uploadFile("/protocols/import", file, {
+        workcell_id: currentWorkcell.id,
       });
 
       successToast("Protocol Imported", "Protocol has been imported successfully");
       refetch();
     } catch (error: any) {
-      errorToast(
-        "Import Failed",
-        error.response?.data?.detail || error.message || "Failed to import protocol",
-      );
+      errorToast("Import Failed", error.message || "Failed to import protocol");
     } finally {
       setIsImporting(false);
       // Reset the file input
@@ -280,28 +269,13 @@ export const ProtocolPageComponent: React.FC = () => {
         throw new Error("Protocol not found");
       }
 
-      // Download the file directly from the backend
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-      const response = await axios.get(`${API_BASE_URL}/protocols/${protocolId}/export`, {
-        responseType: "blob",
-      });
-
-      // Create download link
-      const url = URL.createObjectURL(response.data);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${protocol.name.replace(/\s+/g, "_")}-protocol.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // Use the downloadFile utility
+      const filename = `${protocol.name.replace(/\s+/g, "_")}-protocol.json`;
+      await downloadFile(`/protocols/${protocolId}/export`, filename);
 
       successToast("Protocol Exported", `${protocol.name} has been exported successfully`);
     } catch (error: any) {
-      errorToast(
-        "Export Failed",
-        error.response?.data?.detail || error.message || "Failed to export protocol",
-      );
+      errorToast("Export Failed", error.message || "Failed to export protocol");
     } finally {
       setIsExporting(false);
     }
