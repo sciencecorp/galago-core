@@ -3,7 +3,7 @@ import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import axios from "axios";
 import { logAction } from "@/server/logger";
-import { get, post, put } from "../utils/api";
+import { get, post } from "../utils/api";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
 

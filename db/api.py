@@ -2184,6 +2184,97 @@ async def get_protocol(id: int, db: Session = Depends(get_db)):
     return db_protocol
 
 
+@app.get("/protocols/{id}/export")
+async def export_protocol(id: int, db: Session = Depends(get_db)) -> t.Any:
+    """Export a protocol as a downloadable JSON file."""
+    from fastapi.responses import FileResponse
+    import tempfile
+    import os
+
+    # Get the protocol
+    db_protocol = db.query(Protocol).get(id)
+    if not db_protocol:
+        raise HTTPException(status_code=404, detail="Protocol not found")
+
+    # Build export data
+    export_data = {
+        "protocol": {
+            "name": db_protocol.name,
+            "category": db_protocol.category,
+            "description": db_protocol.description,
+            "commands": db_protocol.commands,
+        },
+        "exportedAt": datetime.utcnow().isoformat(),
+        "version": "1.0",
+    }
+
+    # Create a temporary file for the JSON content
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
+        temp_file_path = temp_file.name
+        temp_file.write(json.dumps(export_data, indent=2).encode("utf-8"))
+
+    # Set the filename for download
+    filename = f"{db_protocol.name.replace(' ', '_')}-protocol.json"
+
+    # Return the file response which will trigger download in the browser
+    return FileResponse(
+        path=temp_file_path,
+        filename=filename,
+        media_type="application/json",
+        background=BackgroundTask(
+            lambda: os.unlink(temp_file_path)
+        ),  # Delete the temp file after response is sent
+    )
+
+
+@app.post("/protocols/import", response_model=schemas.Protocol)
+async def import_protocol(
+    file: UploadFile = File(...),
+    workcell_id: int = Form(...),
+    db: Session = Depends(get_db),
+) -> t.Any:
+    """Import a protocol from an uploaded JSON file."""
+    try:
+        # Read the uploaded file content
+        file_content = await file.read()
+        import_data = json.loads(file_content.decode("utf-8"))
+
+        # Validate the import data structure
+        if "protocol" not in import_data or "name" not in import_data["protocol"]:
+            raise HTTPException(status_code=400, detail="Invalid protocol export file")
+
+        protocol_data = import_data["protocol"]
+
+        # Check if workcell exists
+        workcell = db.query(models.Workcell).get(workcell_id)
+        if not workcell:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Workcell with ID {workcell_id} not found",
+            )
+
+        # Create the protocol
+        db_protocol = Protocol(
+            name=protocol_data["name"],
+            category=protocol_data.get("category", "development"),
+            description=protocol_data.get("description"),
+            commands=protocol_data.get("commands", []),
+            workcell_id=workcell_id,
+        )
+
+        db.add(db_protocol)
+        db.commit()
+        db.refresh(db_protocol)
+
+        return db_protocol
+
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON file")
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+
+
 @app.get("/protocols", response_model=List[schemas.Protocol])
 async def get_protocols(
     workcell_id: Optional[int] = None,
