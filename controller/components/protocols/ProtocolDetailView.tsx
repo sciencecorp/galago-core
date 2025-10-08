@@ -40,6 +40,7 @@ import { trpc } from "@/utils/trpc";
 import { capitalizeFirst } from "@/utils/parser";
 import { VscRunBelow } from "react-icons/vsc";
 import { FaPlay } from "react-icons/fa6";
+import { FaFileExport } from "react-icons/fa";
 import { SaveIcon } from "@/components/ui/Icons";
 import { SiPlatformdotsh } from "react-icons/si";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
@@ -48,6 +49,7 @@ import { CommandDetailsDrawer } from "./CommandDetailsDrawer";
 import CommandImage from "@/components/tools/CommandImage";
 import { successToast, errorToast } from "../ui/Toast";
 import { useCommonColors } from "@/components/ui/Theme";
+import { downloadFile } from "@/server/utils/api";
 
 const handleWheel = (e: WheelEvent) => {
   const container = e.currentTarget as HTMLElement;
@@ -145,6 +147,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const [isAddCommandModalOpen, setIsAddCommandModalOpen] = useState(false);
   const [isRunModalOpen, setIsRunModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [addCommandPosition, setAddCommandPosition] = useState<number | null>(null);
   const [selectedCommand, setSelectedCommand] = useState<any | null>(null);
   const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
@@ -286,6 +289,25 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       return updatedCommands;
     });
     closeDeleteConfirm();
+  };
+
+  const handleExport = async () => {
+    try {
+      setIsExporting(true);
+      if (!protocol) {
+        throw new Error("Protocol not found");
+      }
+
+      // Use the downloadFile utility
+      const filename = `${protocol.name.replace(/\s+/g, "_")}-protocol.json`;
+      await downloadFile(`/protocols/${id}/export`, filename);
+
+      successToast("Protocol Exported", `${protocol.name} has been exported successfully`);
+    } catch (error: any) {
+      errorToast("Export Failed", error.message || "Failed to export protocol");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleSaveChanges = () => {
@@ -476,6 +498,14 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
               </>
             ) : (
               <>
+                <Button
+                  leftIcon={<FaFileExport />}
+                  colorScheme="green"
+                  variant="outline"
+                  onClick={handleExport}
+                  isLoading={isExporting}>
+                  Export
+                </Button>
                 <Button
                   leftIcon={<EditIcon />}
                   colorScheme="teal"
