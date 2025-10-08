@@ -215,6 +215,28 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
           />
         );
 
+      case "label":
+        return (
+          <Text color={fontColor || defaultFontColor} fontSize="md" py={2}>
+            {field.label}
+          </Text>
+        );
+
+      case "button":
+        return (
+          <Button
+            colorScheme={value ? "green" : "teal"}
+            size="md"
+            onClick={() => {
+              // Set the mapped variable to true when clicked
+              onChange(true);
+            }}
+            mt={2}
+            rightIcon={value ? <span>✓</span> : undefined}>
+            {field.label}
+          </Button>
+        );
+
       default:
         return (
           <Input
@@ -231,8 +253,8 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
     }
   };
 
-  // Don't render label for checkbox since it's already included in the checkbox component
-  if (field.type === "checkbox") {
+  // Don't render label for checkbox, label, and button types since they handle their own display
+  if (field.type === "checkbox" || field.type === "label" || field.type === "button") {
     return <>{renderField()}</>;
   }
 
@@ -292,9 +314,20 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
     if (!form) return true;
 
     form.fields.forEach((field) => {
+      // Skip validation for label fields (they're just display text)
+      if (field.type === "label") {
+        return;
+      }
+
       if (field.required) {
         const value = formData[field.label];
-        if (!value || (typeof value === "string" && value.trim() === "")) {
+
+        // Special handling for button fields - they set a boolean value when clicked
+        if (field.type === "button") {
+          if (!value) {
+            newErrors[field.label] = `Please click "${field.label}" before submitting`;
+          }
+        } else if (!value || (typeof value === "string" && value.trim() === "")) {
           newErrors[field.label] = `${field.label} is required`;
         }
       }
