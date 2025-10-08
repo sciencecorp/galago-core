@@ -194,8 +194,13 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
                           <Radio
                             key={idx}
                             value={option.value}
+                            borderColor="gray.400"
                             sx={{
-                              "[data-checked]": {
+                              ".chakra-radio__control": {
+                                borderColor: "gray.400",
+                                borderWidth: "2px",
+                              },
+                              ".chakra-radio__control[data-checked]": {
                                 bg: FIELD_STYLES.checkbox.checkedBg,
                                 borderColor: FIELD_STYLES.checkbox.checkedBorder,
                               },
@@ -211,8 +216,13 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
                 {field.type === "checkbox" && (
                   <Box cursor="pointer" p={2} borderRadius="md" display="inline-block">
                     <Checkbox
+                      borderColor="gray.400"
                       sx={{
-                        "[data-checked]": {
+                        ".chakra-checkbox__control": {
+                          borderColor: "gray.400",
+                          borderWidth: "2px",
+                        },
+                        ".chakra-checkbox__control[data-checked]": {
                           bg: FIELD_STYLES.checkbox.checkedBg,
                           borderColor: FIELD_STYLES.checkbox.checkedBorder,
                         },

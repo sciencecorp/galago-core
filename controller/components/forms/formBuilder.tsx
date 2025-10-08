@@ -39,6 +39,7 @@ import { DeleteWithConfirmation } from "../ui/Delete";
 import { FormField, Form, FIELD_TYPES, DEFAULT_EDITING_FIELD } from "@/types";
 import { ColorPicker } from "./colorPicker";
 import { FormFieldComponent } from "./formFieldComponent";
+import { FieldTypeSelector } from "./fieldTypeSelector";
 import { MdDownload } from "react-icons/md";
 import { downloadFile } from "@/server/utils/api";
 import { useCommonColors, useTextColors } from "../ui/Theme";
@@ -511,23 +512,17 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                 <DrawerBody>
                   <VStack spacing={4} align="stretch">
                     <FormControl>
-                      <FormLabel>Field Type</FormLabel>
-                      <Select
-                        value={editingField.type}
-                        onChange={(e) => {
-                          const newType = e.target.value as FormField["type"];
+                      <FormLabel mb={3}>Field Type</FormLabel>
+                      <FieldTypeSelector
+                        selectedType={editingField.type}
+                        onSelect={(newType) => {
                           setEditingField((current) => ({
                             ...current,
                             type: newType,
                             options: ["select", "radio"].includes(newType) ? current.options : null,
                           }));
-                        }}>
-                        {FIELD_TYPES.map((type) => (
-                          <option key={type.value} value={type.value}>
-                            {type.label}
-                          </option>
-                        ))}
-                      </Select>
+                        }}
+                      />
                     </FormControl>
 
                     <FormControl isRequired>
