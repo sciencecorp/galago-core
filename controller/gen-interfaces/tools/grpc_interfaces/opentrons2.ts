@@ -6,7 +6,6 @@ export const protobufPackage = "com.science.foundry.tools.grpc_interfaces.opentr
 
 export interface Command {
   run_program?: Command_RunProgram | undefined;
-  sleep?: Command_Sleep | undefined;
   pause?: Command_Pause | undefined;
   resume?: Command_Resume | undefined;
   cancel?: Command_Cancel | undefined;
@@ -14,12 +13,8 @@ export interface Command {
 }
 
 export interface Command_RunProgram {
-  program_name: string;
-  params: { [key: string]: any } | undefined;
-}
-
-export interface Command_Sleep {
-  seconds: number;
+  script_content: string;
+  variables: { [key: string]: any } | undefined;
 }
 
 export interface Command_Pause {
@@ -37,18 +32,10 @@ export interface Command_ToggleLight {
 export interface Config {
   robot_ip: string;
   robot_port: number;
-  program_dir: string;
 }
 
 function createBaseCommand(): Command {
-  return {
-    run_program: undefined,
-    sleep: undefined,
-    pause: undefined,
-    resume: undefined,
-    cancel: undefined,
-    toggle_light: undefined,
-  };
+  return { run_program: undefined, pause: undefined, resume: undefined, cancel: undefined, toggle_light: undefined };
 }
 
 export const Command = {
@@ -56,20 +43,17 @@ export const Command = {
     if (message.run_program !== undefined) {
       Command_RunProgram.encode(message.run_program, writer.uint32(10).fork()).ldelim();
     }
-    if (message.sleep !== undefined) {
-      Command_Sleep.encode(message.sleep, writer.uint32(18).fork()).ldelim();
-    }
     if (message.pause !== undefined) {
-      Command_Pause.encode(message.pause, writer.uint32(26).fork()).ldelim();
+      Command_Pause.encode(message.pause, writer.uint32(18).fork()).ldelim();
     }
     if (message.resume !== undefined) {
-      Command_Resume.encode(message.resume, writer.uint32(34).fork()).ldelim();
+      Command_Resume.encode(message.resume, writer.uint32(26).fork()).ldelim();
     }
     if (message.cancel !== undefined) {
-      Command_Cancel.encode(message.cancel, writer.uint32(42).fork()).ldelim();
+      Command_Cancel.encode(message.cancel, writer.uint32(34).fork()).ldelim();
     }
     if (message.toggle_light !== undefined) {
-      Command_ToggleLight.encode(message.toggle_light, writer.uint32(50).fork()).ldelim();
+      Command_ToggleLight.encode(message.toggle_light, writer.uint32(42).fork()).ldelim();
     }
     return writer;
   },
@@ -93,31 +77,24 @@ export const Command = {
             break;
           }
 
-          message.sleep = Command_Sleep.decode(reader, reader.uint32());
+          message.pause = Command_Pause.decode(reader, reader.uint32());
           continue;
         case 3:
           if (tag !== 26) {
             break;
           }
 
-          message.pause = Command_Pause.decode(reader, reader.uint32());
+          message.resume = Command_Resume.decode(reader, reader.uint32());
           continue;
         case 4:
           if (tag !== 34) {
             break;
           }
 
-          message.resume = Command_Resume.decode(reader, reader.uint32());
+          message.cancel = Command_Cancel.decode(reader, reader.uint32());
           continue;
         case 5:
           if (tag !== 42) {
-            break;
-          }
-
-          message.cancel = Command_Cancel.decode(reader, reader.uint32());
-          continue;
-        case 6:
-          if (tag !== 50) {
             break;
           }
 
@@ -135,7 +112,6 @@ export const Command = {
   fromJSON(object: any): Command {
     return {
       run_program: isSet(object.run_program) ? Command_RunProgram.fromJSON(object.run_program) : undefined,
-      sleep: isSet(object.sleep) ? Command_Sleep.fromJSON(object.sleep) : undefined,
       pause: isSet(object.pause) ? Command_Pause.fromJSON(object.pause) : undefined,
       resume: isSet(object.resume) ? Command_Resume.fromJSON(object.resume) : undefined,
       cancel: isSet(object.cancel) ? Command_Cancel.fromJSON(object.cancel) : undefined,
@@ -147,7 +123,6 @@ export const Command = {
     const obj: any = {};
     message.run_program !== undefined &&
       (obj.run_program = message.run_program ? Command_RunProgram.toJSON(message.run_program) : undefined);
-    message.sleep !== undefined && (obj.sleep = message.sleep ? Command_Sleep.toJSON(message.sleep) : undefined);
     message.pause !== undefined && (obj.pause = message.pause ? Command_Pause.toJSON(message.pause) : undefined);
     message.resume !== undefined && (obj.resume = message.resume ? Command_Resume.toJSON(message.resume) : undefined);
     message.cancel !== undefined && (obj.cancel = message.cancel ? Command_Cancel.toJSON(message.cancel) : undefined);
@@ -164,9 +139,6 @@ export const Command = {
     const message = createBaseCommand();
     message.run_program = (object.run_program !== undefined && object.run_program !== null)
       ? Command_RunProgram.fromPartial(object.run_program)
-      : undefined;
-    message.sleep = (object.sleep !== undefined && object.sleep !== null)
-      ? Command_Sleep.fromPartial(object.sleep)
       : undefined;
     message.pause = (object.pause !== undefined && object.pause !== null)
       ? Command_Pause.fromPartial(object.pause)
@@ -185,16 +157,16 @@ export const Command = {
 };
 
 function createBaseCommand_RunProgram(): Command_RunProgram {
-  return { program_name: "", params: undefined };
+  return { script_content: "", variables: undefined };
 }
 
 export const Command_RunProgram = {
   encode(message: Command_RunProgram, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.program_name !== "") {
-      writer.uint32(10).string(message.program_name);
+    if (message.script_content !== "") {
+      writer.uint32(10).string(message.script_content);
     }
-    if (message.params !== undefined) {
-      Struct.encode(Struct.wrap(message.params), writer.uint32(18).fork()).ldelim();
+    if (message.variables !== undefined) {
+      Struct.encode(Struct.wrap(message.variables), writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -211,14 +183,14 @@ export const Command_RunProgram = {
             break;
           }
 
-          message.program_name = reader.string();
+          message.script_content = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.params = Struct.unwrap(Struct.decode(reader, reader.uint32()));
+          message.variables = Struct.unwrap(Struct.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -231,15 +203,15 @@ export const Command_RunProgram = {
 
   fromJSON(object: any): Command_RunProgram {
     return {
-      program_name: isSet(object.program_name) ? String(object.program_name) : "",
-      params: isObject(object.params) ? object.params : undefined,
+      script_content: isSet(object.script_content) ? String(object.script_content) : "",
+      variables: isObject(object.variables) ? object.variables : undefined,
     };
   },
 
   toJSON(message: Command_RunProgram): unknown {
     const obj: any = {};
-    message.program_name !== undefined && (obj.program_name = message.program_name);
-    message.params !== undefined && (obj.params = message.params);
+    message.script_content !== undefined && (obj.script_content = message.script_content);
+    message.variables !== undefined && (obj.variables = message.variables);
     return obj;
   },
 
@@ -249,64 +221,8 @@ export const Command_RunProgram = {
 
   fromPartial<I extends Exact<DeepPartial<Command_RunProgram>, I>>(object: I): Command_RunProgram {
     const message = createBaseCommand_RunProgram();
-    message.program_name = object.program_name ?? "";
-    message.params = object.params ?? undefined;
-    return message;
-  },
-};
-
-function createBaseCommand_Sleep(): Command_Sleep {
-  return { seconds: 0 };
-}
-
-export const Command_Sleep = {
-  encode(message: Command_Sleep, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.seconds !== 0) {
-      writer.uint32(8).int32(message.seconds);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Command_Sleep {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCommand_Sleep();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.seconds = reader.int32();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Command_Sleep {
-    return { seconds: isSet(object.seconds) ? Number(object.seconds) : 0 };
-  },
-
-  toJSON(message: Command_Sleep): unknown {
-    const obj: any = {};
-    message.seconds !== undefined && (obj.seconds = Math.round(message.seconds));
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<Command_Sleep>, I>>(base?: I): Command_Sleep {
-    return Command_Sleep.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<Command_Sleep>, I>>(object: I): Command_Sleep {
-    const message = createBaseCommand_Sleep();
-    message.seconds = object.seconds ?? 0;
+    message.script_content = object.script_content ?? "";
+    message.variables = object.variables ?? undefined;
     return message;
   },
 };
@@ -488,7 +404,7 @@ export const Command_ToggleLight = {
 };
 
 function createBaseConfig(): Config {
-  return { robot_ip: "", robot_port: 0, program_dir: "" };
+  return { robot_ip: "", robot_port: 0 };
 }
 
 export const Config = {
@@ -498,9 +414,6 @@ export const Config = {
     }
     if (message.robot_port !== 0) {
       writer.uint32(16).int32(message.robot_port);
-    }
-    if (message.program_dir !== "") {
-      writer.uint32(26).string(message.program_dir);
     }
     return writer;
   },
@@ -526,13 +439,6 @@ export const Config = {
 
           message.robot_port = reader.int32();
           continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.program_dir = reader.string();
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -546,7 +452,6 @@ export const Config = {
     return {
       robot_ip: isSet(object.robot_ip) ? String(object.robot_ip) : "",
       robot_port: isSet(object.robot_port) ? Number(object.robot_port) : 0,
-      program_dir: isSet(object.program_dir) ? String(object.program_dir) : "",
     };
   },
 
@@ -554,7 +459,6 @@ export const Config = {
     const obj: any = {};
     message.robot_ip !== undefined && (obj.robot_ip = message.robot_ip);
     message.robot_port !== undefined && (obj.robot_port = Math.round(message.robot_port));
-    message.program_dir !== undefined && (obj.program_dir = message.program_dir);
     return obj;
   },
 
@@ -566,7 +470,6 @@ export const Config = {
     const message = createBaseConfig();
     message.robot_ip = object.robot_ip ?? "";
     message.robot_port = object.robot_port ?? 0;
-    message.program_dir = object.program_dir ?? "";
     return message;
   },
 };
