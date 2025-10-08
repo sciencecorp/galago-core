@@ -215,6 +215,36 @@ export default class Tool {
       }
     }
 
+    //Handle opentrons2 run_program command
+    if (command.toolType === ToolType.opentrons2 && command.command === "run_program") {
+      if (!params.script_name || params.script_name.trim() === "") {
+        throw new Error("Script name is required for run_program command");
+      }
+      const scriptName = params.script_name
+        .replaceAll(".js", "")
+        .replaceAll(".py", "")
+        .replaceAll(".cs", "");
+      try {
+        const script = await get<Script>(`/scripts/${scriptName}`);
+        if (script.language !== "python") {
+          throw new Error("Opentrons2 tool only supports Python scripts");
+        }
+        params.script_content = script.content;
+        params.variables = await get<Variable[]>(`/variables`);
+      } catch (e: any) {
+        console.warn("Error at fetching script", e);
+        logAction({
+          level: "error",
+          action: "Script Error",
+          details: `Failed to fetch ${scriptName}. ${e}`,
+        });
+        if (e.status === 404) {
+          throw new Error(`Script ${scriptName} not found`);
+        }
+        throw new Error(`Failed to fetch ${scriptName}. ${e}`);
+      }
+    }
+
     //Handle script execution
     if (
       command.command === "run_script" &&
