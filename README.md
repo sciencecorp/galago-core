@@ -41,7 +41,7 @@ Galago consists of several distinct modules:
 2. **Launch development environment**
 
    ```bash
-   docker-compose -f docker-compose.dev.yml up --build
+   docker compose -f docker compose.dev.yml up --build
    ```
 
 3. **Access the application**
@@ -93,26 +93,26 @@ For production deployment:
 ```bash
 
 # Launch production stack
-docker-compose -f docker-compose.yml up -d --force-recreate
+docker compose -f docker compose.yml up -d --force-recreate
 ```
 
 ## Other docker commands
 
 ```
 #Stop containters
-docker-compose -f docker-compose.dev.yml down
+docker compose -f docker compose.dev.yml down
 
 #remove existing images
-docker-compose -f docker-compose.dev.yml down --rmi all
+docker compose -f docker compose.dev.yml down --rmi all
 
 #Remove orphans
-docker compose -f docker-compose.dev.yml down --rmi all --remove-orphans
+docker compose -f docker compose.dev.yml down --rmi all --remove-orphans
 
 #rebuild a specific service
-docker-compose up -d --force-recreate --no-deps --build service_name
+docker compose up -d --force-recreate --no-deps --build service_name
 
 #e.g
-docker-compose -f docker-compose.dev.yml up --build db
+docker compose -f docker compose.dev.yml up --build db
 
 #add npm deps to dev environment
 docker exec -it galago-web-dev npm install <package name>
@@ -204,12 +204,12 @@ To integrate a new laboratory instrument:
 
 ```bash
 # Check logs
-docker-compose logs galago-web-dev
-docker-compose logs galago-db-dev
+docker compose logs galago-web-dev
+docker compose logs galago-db-dev
 
 # Rebuild containers
-docker-compose -f docker-compose.dev.yml down --rmi all
-docker-compose -f docker-compose.dev.yml up --build
+docker compose -f docker compose.dev.yml down --rmi all
+docker compose -f docker compose.dev.yml up --build
 ```
 
 **Redis connection issues:**
@@ -219,13 +219,13 @@ docker-compose -f docker-compose.dev.yml up --build
 redis-cli ping
 
 # Check Redis logs
-docker-compose logs queue
+docker compose logs queue
 ```
 
 **Port conflicts:**
 
 - Web interface (3010), Database API (8000), Redis (1203)
-- Modify port mappings in docker-compose files if needed
+- Modify port mappings in docker compose files if needed
 
 ## Architecture Details
 
