@@ -531,40 +531,59 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                     </FormControl>
 
                     <FormControl isRequired>
-                      <FormLabel>Label</FormLabel>
+                      <FormLabel>
+                        {editingField.type === "label"
+                          ? "Text Content"
+                          : editingField.type === "button"
+                            ? "Button Text"
+                            : "Label"}
+                      </FormLabel>
                       <Input
                         value={editingField.label}
                         onChange={(e) =>
                           setEditingField((current) => ({ ...current, label: e.target.value }))
                         }
-                        placeholder="Field Label"
+                        placeholder={
+                          editingField.type === "label"
+                            ? "Static text to display"
+                            : editingField.type === "button"
+                              ? "Button text"
+                              : "Field Label"
+                        }
                       />
                     </FormControl>
 
-                    <FormControl>
-                      <FormLabel>Placeholder</FormLabel>
-                      <Input
-                        value={editingField.placeholder || ""}
-                        onChange={(e) =>
-                          setEditingField((current) => ({
-                            ...current,
-                            placeholder: e.target.value || null,
-                          }))
-                        }
-                        placeholder="Placeholder text"
-                      />
-                    </FormControl>
+                    {!["label", "button"].includes(editingField.type) && (
+                      <FormControl>
+                        <FormLabel>Placeholder</FormLabel>
+                        <Input
+                          value={editingField.placeholder || ""}
+                          onChange={(e) =>
+                            setEditingField((current) => ({
+                              ...current,
+                              placeholder: e.target.value || null,
+                            }))
+                          }
+                          placeholder="Placeholder text"
+                        />
+                      </FormControl>
+                    )}
 
-                    <FormControl display="flex" alignItems="center">
-                      <FormLabel mb="0">Required Field</FormLabel>
-                      <Switch
-                        isChecked={editingField.required}
-                        onChange={(e) =>
-                          setEditingField((current) => ({ ...current, required: e.target.checked }))
-                        }
-                        colorScheme="blue"
-                      />
-                    </FormControl>
+                    {!["label", "button"].includes(editingField.type) && (
+                      <FormControl display="flex" alignItems="center">
+                        <FormLabel mb="0">Required Field</FormLabel>
+                        <Switch
+                          isChecked={editingField.required}
+                          onChange={(e) =>
+                            setEditingField((current) => ({
+                              ...current,
+                              required: e.target.checked,
+                            }))
+                          }
+                          colorScheme="blue"
+                        />
+                      </FormControl>
+                    )}
 
                     {["select", "radio"].includes(editingField.type) && (
                       <FormControl>
@@ -608,7 +627,11 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
                     {variables && variables.length > 0 && (
                       <FormControl>
-                        <FormLabel>Map to Variable</FormLabel>
+                        <FormLabel>
+                          {editingField.type === "button"
+                            ? "Set Variable on Click"
+                            : "Map to Variable"}
+                        </FormLabel>
                         <Select
                           value={editingField.mapped_variable || ""}
                           onChange={(e) =>
@@ -624,6 +647,11 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                             </option>
                           ))}
                         </Select>
+                        {editingField.type === "button" && (
+                          <Text fontSize="sm" color="gray.500" mt={1}>
+                            The button will set this variable when clicked
+                          </Text>
+                        )}
                       </FormControl>
                     )}
                   </VStack>

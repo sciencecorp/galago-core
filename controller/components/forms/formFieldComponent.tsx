@@ -13,6 +13,7 @@ import {
   Radio,
   RadioGroup,
   Stack,
+  Button,
 } from "@chakra-ui/react";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { IoSettingsSharp } from "react-icons/io5";
@@ -135,97 +136,109 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
           </HStack>
 
           <FormControl>
-            <FormLabel color={fontColor || defaultFontColor}>
-              {field.label}
-              {field.required && (
-                <Text as="span" color="red.500" ml={1}>
-                  *
-                </Text>
-              )}
-            </FormLabel>
+            {field.type === "label" ? (
+              <Text color={fontColor || defaultFontColor} fontSize="md" py={2}>
+                {field.label}
+              </Text>
+            ) : field.type === "button" ? (
+              <Button colorScheme="teal" size="md" cursor="pointer" _hover={{ opacity: 0.8 }}>
+                {field.label || "Button"}
+              </Button>
+            ) : (
+              <>
+                <FormLabel color={fontColor || defaultFontColor}>
+                  {field.label}
+                  {field.required && (
+                    <Text as="span" color="red.500" ml={1}>
+                      *
+                    </Text>
+                  )}
+                </FormLabel>
 
-            {field.type === "textarea" && (
-              <Textarea
-                placeholder={field.placeholder || ""}
-                cursor="pointer"
-                color={fontColor || defaultFontColor}
-                bg="transparent"
-                borderColor={FIELD_STYLES.borderColor}
-                focusBorderColor={FIELD_STYLES.focusBorderColor}
-                _placeholder={{ color: FIELD_STYLES.placeholderColor }}
-                sx={{ colorScheme: FIELD_STYLES.inputColorScheme }}
-              />
-            )}
+                {field.type === "textarea" && (
+                  <Textarea
+                    placeholder={field.placeholder || ""}
+                    cursor="pointer"
+                    color={fontColor || defaultFontColor}
+                    bg="transparent"
+                    borderColor={FIELD_STYLES.borderColor}
+                    focusBorderColor={FIELD_STYLES.focusBorderColor}
+                    _placeholder={{ color: FIELD_STYLES.placeholderColor }}
+                    sx={{ colorScheme: FIELD_STYLES.inputColorScheme }}
+                  />
+                )}
 
-            {field.type === "select" && (
-              <Select
-                placeholder={field.placeholder || "Select option"}
-                cursor="pointer"
-                color={fontColor || defaultFontColor}
-                bg="transparent"
-                borderColor={FIELD_STYLES.borderColor}
-                focusBorderColor={FIELD_STYLES.focusBorderColor}
-                _placeholder={{ color: FIELD_STYLES.placeholderColor }}
-                sx={{ colorScheme: FIELD_STYLES.inputColorScheme }}>
-                {field.options?.map((option, idx) => (
-                  <option key={idx} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Select>
-            )}
-
-            {field.type === "radio" && (
-              <Box cursor="pointer" p={2} borderRadius="md">
-                <RadioGroup>
-                  <Stack>
+                {field.type === "select" && (
+                  <Select
+                    placeholder={field.placeholder || "Select option"}
+                    cursor="pointer"
+                    color={fontColor || defaultFontColor}
+                    bg="transparent"
+                    borderColor={FIELD_STYLES.borderColor}
+                    focusBorderColor={FIELD_STYLES.focusBorderColor}
+                    _placeholder={{ color: FIELD_STYLES.placeholderColor }}
+                    sx={{ colorScheme: FIELD_STYLES.inputColorScheme }}>
                     {field.options?.map((option, idx) => (
-                      <Radio
-                        key={idx}
-                        value={option.value}
-                        sx={{
-                          "[data-checked]": {
-                            bg: FIELD_STYLES.checkbox.checkedBg,
-                            borderColor: FIELD_STYLES.checkbox.checkedBorder,
-                          },
-                        }}>
-                        <Text color={fontColor || defaultFontColor}>{option.label}</Text>
-                      </Radio>
+                      <option key={idx} value={option.value}>
+                        {option.label}
+                      </option>
                     ))}
-                  </Stack>
-                </RadioGroup>
-              </Box>
-            )}
+                  </Select>
+                )}
 
-            {field.type === "checkbox" && (
-              <Box cursor="pointer" p={2} borderRadius="md" display="inline-block">
-                <Checkbox
-                  sx={{
-                    "[data-checked]": {
-                      bg: FIELD_STYLES.checkbox.checkedBg,
-                      borderColor: FIELD_STYLES.checkbox.checkedBorder,
-                    },
-                  }}>
-                  <Text color={fontColor || defaultFontColor}>
-                    {field.placeholder || "Checkbox option"}
-                  </Text>
-                </Checkbox>
-              </Box>
-            )}
+                {field.type === "radio" && (
+                  <Box cursor="pointer" p={2} borderRadius="md">
+                    <RadioGroup>
+                      <Stack>
+                        {field.options?.map((option, idx) => (
+                          <Radio
+                            key={idx}
+                            value={option.value}
+                            sx={{
+                              "[data-checked]": {
+                                bg: FIELD_STYLES.checkbox.checkedBg,
+                                borderColor: FIELD_STYLES.checkbox.checkedBorder,
+                              },
+                            }}>
+                            <Text color={fontColor || defaultFontColor}>{option.label}</Text>
+                          </Radio>
+                        ))}
+                      </Stack>
+                    </RadioGroup>
+                  </Box>
+                )}
 
-            {!["textarea", "select", "radio", "checkbox"].includes(field.type) && (
-              <Input
-                pt={field.type === "file" ? 1 : 0}
-                type={field.type}
-                placeholder={field.placeholder || ""}
-                cursor="pointer"
-                color={fontColor || defaultFontColor}
-                bg="transparent"
-                borderColor={FIELD_STYLES.borderColor}
-                focusBorderColor={FIELD_STYLES.focusBorderColor}
-                _placeholder={{ color: FIELD_STYLES.placeholderColor }}
-                sx={{ colorScheme: FIELD_STYLES.inputColorScheme }}
-              />
+                {field.type === "checkbox" && (
+                  <Box cursor="pointer" p={2} borderRadius="md" display="inline-block">
+                    <Checkbox
+                      sx={{
+                        "[data-checked]": {
+                          bg: FIELD_STYLES.checkbox.checkedBg,
+                          borderColor: FIELD_STYLES.checkbox.checkedBorder,
+                        },
+                      }}>
+                      <Text color={fontColor || defaultFontColor}>
+                        {field.placeholder || "Checkbox option"}
+                      </Text>
+                    </Checkbox>
+                  </Box>
+                )}
+
+                {!["textarea", "select", "radio", "checkbox"].includes(field.type) && (
+                  <Input
+                    pt={field.type === "file" ? 1 : 0}
+                    type={field.type}
+                    placeholder={field.placeholder || ""}
+                    cursor="pointer"
+                    color={fontColor || defaultFontColor}
+                    bg="transparent"
+                    borderColor={FIELD_STYLES.borderColor}
+                    focusBorderColor={FIELD_STYLES.focusBorderColor}
+                    _placeholder={{ color: FIELD_STYLES.placeholderColor }}
+                    sx={{ colorScheme: FIELD_STYLES.inputColorScheme }}
+                  />
+                )}
+              </>
             )}
           </FormControl>
         </Box>
