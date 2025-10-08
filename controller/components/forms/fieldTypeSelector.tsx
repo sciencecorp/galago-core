@@ -1,9 +1,9 @@
 import React from "react";
 import { Box, SimpleGrid, Text, VStack, Icon } from "@chakra-ui/react";
-import { 
-  MdTextFields, 
-  MdNumbers, 
-  MdSubject, 
+import {
+  MdTextFields,
+  MdNumbers,
+  MdSubject,
   MdArrowDropDownCircle,
   MdRadioButtonChecked,
   MdCheckBox,
@@ -25,7 +25,12 @@ const FIELD_TYPE_OPTIONS = [
   { value: "text", label: "Text Input", icon: MdTextFields, description: "Single line text" },
   { value: "number", label: "Number", icon: MdNumbers, description: "Numeric input" },
   { value: "textarea", label: "Textarea", icon: MdSubject, description: "Multi-line text" },
-  { value: "select", label: "Dropdown", icon: MdArrowDropDownCircle, description: "Select one option" },
+  {
+    value: "select",
+    label: "Dropdown",
+    icon: MdArrowDropDownCircle,
+    description: "Select one option",
+  },
   { value: "radio", label: "Radio Buttons", icon: MdRadioButtonChecked, description: "Choose one" },
   { value: "checkbox", label: "Checkbox", icon: MdCheckBox, description: "Toggle option" },
   { value: "date", label: "Date", icon: MdCalendarToday, description: "Date picker" },
@@ -65,8 +70,7 @@ export const FieldTypeSelector: React.FC<FieldTypeSelectorProps> = ({ selectedTy
               transform: "translateY(0)",
             }}
             position="relative"
-            role="group"
-          >
+            role="group">
             <VStack spacing={1} align="center">
               <Icon
                 as={fieldType.icon}
@@ -82,16 +86,14 @@ export const FieldTypeSelector: React.FC<FieldTypeSelectorProps> = ({ selectedTy
                 fontWeight={isSelected ? "bold" : "medium"}
                 color={isSelected ? "teal.700" : "gray.700"}
                 textAlign="center"
-                noOfLines={1}
-              >
+                noOfLines={1}>
                 {fieldType.label}
               </Text>
               <Text
                 fontSize="xs"
                 color={isSelected ? "teal.600" : "gray.500"}
                 textAlign="center"
-                noOfLines={1}
-              >
+                noOfLines={1}>
                 {fieldType.description}
               </Text>
             </VStack>
@@ -101,4 +103,3 @@ export const FieldTypeSelector: React.FC<FieldTypeSelectorProps> = ({ selectedTy
     </SimpleGrid>
   );
 };
-
