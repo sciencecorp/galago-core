@@ -13,7 +13,6 @@ import {
   Radio,
   RadioGroup,
   Stack,
-  Button,
 } from "@chakra-ui/react";
 import { RiDeleteBin6Line, RiFileCopyLine } from "react-icons/ri";
 import { IoSettingsSharp } from "react-icons/io5";
@@ -167,10 +166,6 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
               <Text color={fontColor || defaultFontColor} fontSize="md" py={2}>
                 {field.label}
               </Text>
-            ) : field.type === "button" ? (
-              <Button colorScheme="teal" size="md" cursor="pointer" _hover={{ opacity: 0.8 }}>
-                {field.label || "Button"}
-              </Button>
             ) : (
               <>
                 <FormLabel color={fontColor || defaultFontColor}>

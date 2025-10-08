@@ -222,21 +222,6 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
           </Text>
         );
 
-      case "button":
-        return (
-          <Button
-            colorScheme={value ? "green" : "teal"}
-            size="md"
-            onClick={() => {
-              // Set the mapped variable to true when clicked
-              onChange(true);
-            }}
-            mt={2}
-            rightIcon={value ? <span>✓</span> : undefined}>
-            {field.label}
-          </Button>
-        );
-
       default:
         return (
           <Input
@@ -253,8 +238,8 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
     }
   };
 
-  // Don't render label for checkbox, label, and button types since they handle their own display
-  if (field.type === "checkbox" || field.type === "label" || field.type === "button") {
+  // Don't render label for checkbox and label types since they handle their own display
+  if (field.type === "checkbox" || field.type === "label") {
     return <>{renderField()}</>;
   }
 
@@ -322,12 +307,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
       if (field.required) {
         const value = formData[field.label];
 
-        // Special handling for button fields - they set a boolean value when clicked
-        if (field.type === "button") {
-          if (!value) {
-            newErrors[field.label] = `Please click "${field.label}" before submitting`;
-          }
-        } else if (!value || (typeof value === "string" && value.trim() === "")) {
+        if (!value || (typeof value === "string" && value.trim() === "")) {
           newErrors[field.label] = `${field.label} is required`;
         }
       }

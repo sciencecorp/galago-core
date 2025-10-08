@@ -11,7 +11,6 @@ import {
   MdAccessTime,
   MdUploadFile,
   MdLabel,
-  MdSmartButton,
 } from "react-icons/md";
 import { FormField } from "@/types";
 import { useCommonColors } from "../ui/Theme";
@@ -37,7 +36,6 @@ const FIELD_TYPE_OPTIONS = [
   { value: "time", label: "Time", icon: MdAccessTime, description: "Time picker" },
   { value: "file", label: "File Upload", icon: MdUploadFile, description: "Upload files" },
   { value: "label", label: "Static Text", icon: MdLabel, description: "Display only text" },
-  { value: "button", label: "Button", icon: MdSmartButton, description: "Clickable button" },
 ] as const;
 
 export const FieldTypeSelector: React.FC<FieldTypeSelectorProps> = ({ selectedType, onSelect }) => {

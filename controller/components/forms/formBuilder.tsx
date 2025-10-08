@@ -47,7 +47,6 @@ import {
   MdAccessTime,
   MdUploadFile,
   MdLabel,
-  MdSmartButton,
 } from "react-icons/md";
 import { FaRegListAlt } from "react-icons/fa";
 import { CloseIcon } from "@chakra-ui/icons";
@@ -165,14 +164,9 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
   const addField = (fieldType: FormField["type"] = "text") => {
     const newField: FormField = {
       type: fieldType,
-      label:
-        fieldType === "label"
-          ? "Static text"
-          : fieldType === "button"
-            ? "Button"
-            : `Field ${fields.length + 1}`,
+      label: fieldType === "label" ? "Static text" : `Field ${fields.length + 1}`,
       required: false,
-      placeholder: fieldType === "label" || fieldType === "button" ? null : "Enter text...",
+      placeholder: fieldType === "label" ? null : "Enter text...",
       options: ["select", "radio"].includes(fieldType) ? [] : null,
       default_value: null,
       mapped_variable: null,
@@ -480,7 +474,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                           )}
 
                           {/* Add Field Menu */}
-                          <Menu placement="left-start">
+                          <Menu placement="left-end">
                             <MenuButton
                               as={Button}
                               leftIcon={<RiAddFill />}
@@ -553,11 +547,6 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                                   icon={<MdLabel size={20} />}
                                   onClick={() => addField("label")}>
                                   Static Text
-                                </MenuItem>
-                                <MenuItem
-                                  icon={<MdSmartButton size={20} />}
-                                  onClick={() => addField("button")}>
-                                  Button
                                 </MenuItem>
                               </MenuList>
                             </Portal>
@@ -661,11 +650,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
                     <FormControl isRequired>
                       <FormLabel>
-                        {editingField.type === "label"
-                          ? "Text Content"
-                          : editingField.type === "button"
-                            ? "Button Text"
-                            : "Label"}
+                        {editingField.type === "label" ? "Text Content" : "Label"}
                       </FormLabel>
                       <Input
                         value={editingField.label}
@@ -673,16 +658,12 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                           setEditingField((current) => ({ ...current, label: e.target.value }))
                         }
                         placeholder={
-                          editingField.type === "label"
-                            ? "Static text to display"
-                            : editingField.type === "button"
-                              ? "Button text"
-                              : "Field Label"
+                          editingField.type === "label" ? "Static text to display" : "Field Label"
                         }
                       />
                     </FormControl>
 
-                    {!["label", "button"].includes(editingField.type) && (
+                    {editingField.type !== "label" && (
                       <FormControl>
                         <FormLabel>Placeholder</FormLabel>
                         <Input
@@ -698,7 +679,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                       </FormControl>
                     )}
 
-                    {!["label", "button"].includes(editingField.type) && (
+                    {editingField.type !== "label" && (
                       <FormControl display="flex" alignItems="center">
                         <FormLabel mb="0">Required Field</FormLabel>
                         <Switch
@@ -756,11 +737,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
                     {variables && variables.length > 0 && (
                       <FormControl>
-                        <FormLabel>
-                          {editingField.type === "button"
-                            ? "Set Variable on Click"
-                            : "Map to Variable"}
-                        </FormLabel>
+                        <FormLabel>Map to Variable</FormLabel>
                         <Select
                           value={editingField.mapped_variable || ""}
                           onChange={(e) =>
@@ -776,11 +753,6 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                             </option>
                           ))}
                         </Select>
-                        {editingField.type === "button" && (
-                          <Text fontSize="sm" color="gray.500" mt={1}>
-                            The button will set this variable when clicked
-                          </Text>
-                        )}
                       </FormControl>
                     )}
                   </VStack>
