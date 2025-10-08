@@ -169,60 +169,98 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     }
   }, [fetchedFolders]);
 
-  const handleRunScript = async () => {
-    setRunError(false);
-    setConsoleText("");
-    if (!activeTab) return;
-    // Create a promise that wraps the mutation
-    const runScriptPromise = new Promise((resolve, reject) => {
-      runScript.mutate(activeTab, {
-        onSuccess: (data) => {
-          // Handle the response data the same way as before
-          if (data?.meta_data?.response) {
-            setConsoleText(data.meta_data.response);
-            setRunError(false);
-          } else if (data?.error_message) {
-            setRunError(true);
-            setConsoleText(data.error_message);
-            reject(new Error(data.error_message));
-            return;
-          } else {
-            setRunError(false);
-            setConsoleText("");
-          }
-          resolve(data);
-        },
-        onError: (error) => {
+const handleRunScript = async () => {
+  setRunError(false);
+  setConsoleText("");
+  if (!activeTab) return;
+
+  // Create a promise that wraps the mutation
+  const runScriptPromise = new Promise((resolve, reject) => {
+    runScript.mutate(activeTab, {
+      onSuccess: (data) => {
+        // Handle the response data the same way as before
+        if (data?.meta_data?.response) {
+          setConsoleText(data.meta_data.response);
+          setRunError(false);
+        } else if (data?.error_message) {
           setRunError(true);
+          setConsoleText(data.error_message);
+          reject(new Error(data.error_message));
+          return;
+        } else {
+          setRunError(false);
+          setConsoleText("");
+        }
+        resolve(data);
+      },
+      onError: (error) => {
+        setRunError(true);
+        
+        // Check if this is a gRPC connection error
+        if (error.message && error.message.includes('UNAVAILABLE: No connection established')) {
+          const userFriendlyMessage = `Cannot connect to script execution server. Please ensure the gRPC Python server is running and accessible.
+
+Connection Error: ${error.message}
+
+To resolve this issue:
+1. Verify the Python gRPC server is started
+2. Check if the server is running on the expected port (1010)
+3. Ensure there are no network connectivity issues`;
+          
+          setConsoleText(userFriendlyMessage);
+          reject(new Error("gRPC Server Connection Failed"));
+        } else if (error.message && error.message.includes('ENETUNREACH')) {
+          const userFriendlyMessage = `Network unreachable - Cannot connect to script execution server.
+
+The system cannot establish a connection to the gRPC server. This typically means:
+1. The Python gRPC server is not running
+2. Network configuration issues
+3. Port 1010 may be blocked or unavailable
+
+Original Error: ${error.message}`;
+          
+          setConsoleText(userFriendlyMessage);
+          reject(new Error("Network Connection Failed"));
+        } else {
           setConsoleText(error.message);
           reject(error);
-        },
-      });
-    });
-
-    // Use the loadingToast with the promise
-    loadingToast(
-      `Executing ${activeTab}...`,
-      "Please wait for script to complete.",
-      runScriptPromise,
-      {
-        successTitle: `Script ${activeTab} completed!`,
-        successDescription: () => "The script execution finished successfully",
-        errorTitle: "Failed to run script",
-        errorDescription: (error) => `Error: ${error.message}`,
+        }
       },
-    );
+    });
+  });
 
-    try {
-      await runScriptPromise;
-    } catch (error) {
-      logAction({
-        level: "error",
-        action: "Script Execution Failed",
-        details: `Error executing script ${activeTab}: ${error}`,
-      });
-    }
-  };
+  // Use the loadingToast with the promise
+  loadingToast(
+    `Executing ${activeTab}...`,
+    "Please wait for script to complete.",
+    runScriptPromise,
+    {
+      successTitle: `Script ${activeTab} completed!`,
+      successDescription: () => "The script execution finished successfully",
+      errorTitle: "Failed to run script",
+      errorDescription: (error) => {
+        // Provide more specific error messages for connection issues
+        if (error.message === "gRPC Server Connection Failed") {
+          return "Cannot connect to script execution server. Please check if the gRPC Python server is running. If it is, check the status of Tool Box in the tools page.";
+        } else if (error.message === "Network Connection Failed") {
+          return "Network connection to script execution server failed. Please verify server status.";
+        } else {
+          return `Error: ${error.message}`;
+        }
+      },
+    },
+  );
+
+  try {
+    await runScriptPromise;
+  } catch (error) {
+    logAction({
+      level: "error",
+      action: "Script Execution Failed",
+      details: `Error executing script ${activeTab}: ${error}`,
+    });
+  }
+};
 
   const handleSave = async () => {
     if (!activeTab) {
