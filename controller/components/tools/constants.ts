@@ -241,10 +241,9 @@ export const commandFields: CommandFields = {
   },
   opentrons2: {
     run_program: [
-      { name: "program_name", type: "text" },
-      { name: "params", type: "text" },
+      { name: "script_name", type: "text" },
+      // { name: "params", type: "text" },
     ],
-    sleep: [{ name: "seconds", type: "number" }],
     pause: [],
     resume: [],
     cancel: [],
