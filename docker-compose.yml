@@ -13,10 +13,7 @@ services:
       - app-network
 
   galago-web:
-    # image: ghcr.io/sciencecorp/galago-web:latest
-    build:
-      context: .
-      dockerfile: controller/Dockerfile
+    image: ghcr.io/sciencecorp/galago-web:latest
     container_name: galago-web
     ports:
       - "3010:3010"
