@@ -19,7 +19,7 @@ services:
       - "9229:9229" # Node.js debug port
     volumes:
       - ./controller:/app:cached
-      - /app/node_modules  # Persist node_modules
+      - /app/node_modules # Persist node_modules
     environment:
       - NODE_ENV=development
       - PORT=3010

@@ -1704,7 +1704,7 @@ def update_setting(
     return crud.settings.update(db, db_obj=settings, obj_in=setting_update)
 
 
-app.get("/script-folders", response_model=list[schemas.ScriptFolderResponse])
+@app.get("/script-folders", response_model=list[schemas.ScriptFolderResponse])
 def get_script_folders(db: Session = Depends(get_db), workcell_name: Optional[str] = None) -> t.Any:
     # If no workcell_name provided, use the selected workcell
     if workcell_name is None:
@@ -1843,17 +1843,23 @@ def export_script_config(script_id: int, db: Session = Depends(get_db)) -> t.Any
 @app.post("/scripts/import", response_model=schemas.Script)
 async def import_script_config(
     file: UploadFile = File(...),
-    folder_id: Optional[int] = File(None),
+    folder_id: Optional[int] = Form(None),
     db: Session = Depends(get_db),
 ) -> t.Any:
     """Import a script from an uploaded file."""
     try:
+        # Get the currently selected workcell ID - this will raise HTTPException if none selected
+        workcell_id = get_selected_workcell_id(db)
+        
         # Read the uploaded file content
         file_content_bytes = await file.read()
         file_content = file_content_bytes.decode("utf-8")
         file_name = file.filename
+        
         if not file_name:
             raise HTTPException(status_code=400, detail="File name is required")
+            
+        # Determine language from file extension
         if file_name.endswith(".py"):
             language = "python"
         elif file_name.endswith(".js"):
@@ -1863,32 +1869,44 @@ async def import_script_config(
                 status_code=400,
                 detail="Unsupported file type. Only .py and .js files are allowed.",
             )
+            
+        # Extract script name from filename (remove extension)
+        script_name = file_name.replace(".py", "").replace(".js", "")
+        
         # Prepare script data for creation
         script_data = schemas.ScriptCreate(
-            name=file_name.replace(".py", "").replace(".js", ""),
+            name=script_name,
             content=file_content,
             language=language,
             folder_id=folder_id,
-            description="Imported script",  # Add a default description
+            description="Imported script",
+            workcell_id=workcell_id,  # Associate with selected workcell
         )
 
-        # Check if script with the same name exists in the same folder (or globally if no folder)
+        # Check if script with the same name exists in the same workcell and folder
         existing_script = crud.scripts.get_by(
-            db, obj_in={"name": script_data.name, "folder_id": script_data.folder_id}
+            db, obj_in={
+                "name": script_data.name, 
+                "folder_id": script_data.folder_id,
+                "workcell_id": workcell_id
+            }
         )
 
         if existing_script:
             raise HTTPException(
                 status_code=400,
-                detail=f"Script with name '{script_data.name}' already exists",
+                detail=f"Script with name '{script_data.name}' already exists in this workcell/folder",
             )
-        else:
-            # Create new script
-            new_script = crud.scripts.create(db, obj_in=script_data)
-            db.commit()
-            db.refresh(new_script)
-            return new_script
 
+        # Create new script
+        new_script = crud.scripts.create(db, obj_in=script_data)
+        db.commit()
+        db.refresh(new_script)
+        return new_script
+
+    except HTTPException:
+        # Re-raise HTTPExceptions (including the one from get_selected_workcell_id)
+        raise
     except Exception as e:
         db.rollback()
         logging.error(f"Error importing script: {str(e)}")
