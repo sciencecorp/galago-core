@@ -57,7 +57,7 @@ export class CommandQueue {
     }
     this._setState(ToolStatus.FAILED);
     this.error = error;
-    throw error;
+    logger.error('CommandQueue failed:', error);
   }
 
   get state(): CommandQueueState {
@@ -476,7 +476,7 @@ export class CommandQueue {
         details: "Error while starting the queue.: " + e,
       });
       this.error = e instanceof Error ? e : new Error("Execution failed");
-      this.fail(e);
+      this._setState(ToolStatus.FAILED);
     } finally {
       this._runningPromise = undefined;
       if (this.state === ToolStatus.BUSY) {
@@ -520,8 +520,6 @@ export class CommandQueue {
 
   private async _runBusyLoopWhileQueueNotEmpty(timeout = 120) {
     this._setState(ToolStatus.BUSY);
-    let threadTs: string | undefined;
-    const startedAt = Date.now();
 
     while (this.state === ToolStatus.BUSY) {
       // Small delay between processing commands to avoid race conditions
@@ -736,7 +734,7 @@ export class CommandQueue {
             }
           }
         }
-
+        
         // Regular command, send to Tool
         await this.executeCommand(nextCommand);
 
