@@ -27,8 +27,27 @@ import {
   Spacer,
   CardFooter,
   Tooltip,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Icon,
+  Portal,
 } from "@chakra-ui/react";
 import { RiAddFill, RiDeleteBin6Line, RiSaveLine } from "react-icons/ri";
+import { ChevronDownIcon } from "@chakra-ui/icons";
+import {
+  MdTextFields,
+  MdNumbers,
+  MdSubject,
+  MdArrowDropDownCircle,
+  MdRadioButtonChecked,
+  MdCheckBox,
+  MdCalendarToday,
+  MdAccessTime,
+  MdUploadFile,
+  MdLabel,
+} from "react-icons/md";
 import { FaRegListAlt } from "react-icons/fa";
 import { CloseIcon } from "@chakra-ui/icons";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
@@ -39,6 +58,7 @@ import { DeleteWithConfirmation } from "../ui/Delete";
 import { FormField, Form, FIELD_TYPES, DEFAULT_EDITING_FIELD } from "@/types";
 import { ColorPicker } from "./colorPicker";
 import { FormFieldComponent } from "./formFieldComponent";
+import { FieldTypeSelector } from "./fieldTypeSelector";
 import { MdDownload } from "react-icons/md";
 import { downloadFile } from "@/server/utils/api";
 import { useCommonColors, useTextColors } from "../ui/Theme";
@@ -82,6 +102,10 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
   // Use static form defaults (for the UI chrome around the form)
   const cardBorderColor = colors.borderColor;
   const headerTextColor = textColors.primary;
+
+  // Dark mode compatible menu colors
+  const menuBg = useColorModeValue("white", "gray.700");
+  const menuBorderColor = useColorModeValue("gray.200", "gray.600");
 
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
   const [formName, setFormName] = useState("");
@@ -137,18 +161,23 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
     });
   };
 
-  const addField = () => {
+  const addField = (fieldType: FormField["type"] = "text") => {
     const newField: FormField = {
-      type: "text",
-      label: `Field ${fields.length + 1}`,
+      type: fieldType,
+      label: fieldType === "label" ? "Static text" : `Field ${fields.length + 1}`,
       required: false,
-      placeholder: "Enter text...",
-      options: null,
+      placeholder: fieldType === "label" ? null : "Enter text...",
+      options: ["select", "radio"].includes(fieldType) ? [] : null,
       default_value: null,
       mapped_variable: null,
     };
 
     setFields((currentFields) => [...currentFields, newField]);
+
+    // Auto-open the drawer to edit the new field
+    setEditingField(newField);
+    setSelectedFieldIndex(fields.length); // The index of the new field
+    onOpen();
   };
 
   const editField = useCallback(
@@ -164,6 +193,21 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
     setFields((currentFields) => currentFields.filter((_, i) => i !== index));
   }, []);
 
+  const duplicateField = useCallback((index: number) => {
+    setFields((currentFields) => {
+      const fieldToDuplicate = currentFields[index];
+      const duplicatedField = {
+        ...fieldToDuplicate,
+        label: `${fieldToDuplicate.label} (Copy)`,
+      };
+      // Insert the duplicated field right after the original
+      const newFields = [...currentFields];
+      newFields.splice(index + 1, 0, duplicatedField);
+      return newFields;
+    });
+    successToast("Success", "Field duplicated successfully");
+  }, []);
+
   const saveField = () => {
     if (selectedFieldIndex !== null && selectedFieldIndex >= 0) {
       setFields((currentFields) => {
@@ -171,7 +215,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
         newFields[selectedFieldIndex] = { ...editingField };
         return newFields;
       });
-      successToast("Success", "Field updated successfully");
+      successToast("Success", "Field saved successfully");
     }
     onClose();
     setSelectedFieldIndex(null);
@@ -408,25 +452,105 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                               isSaving={isSaving}
                               editField={editField}
                               deleteField={deleteField}
+                              duplicateField={duplicateField}
                             />
                           ))}
                           {provided.placeholder}
-                          <Button
-                            leftIcon={<RiAddFill />}
-                            onClick={addField}
-                            variant="outline"
-                            size="lg"
-                            py={8}
-                            isDisabled={isSaving}
-                            mt={4}
-                            borderStyle="dashed"
-                            borderWidth="2px"
-                            borderColor={FORM_DEFAULTS.borderColor}
-                            color={fontColor || FORM_DEFAULTS.fontColor}
-                            bg="transparent"
-                            _hover={{ bg: FORM_DEFAULTS.buttonColors.ghost.hoverBg }}>
-                            Add Field
-                          </Button>
+
+                          {/* Empty state when no fields */}
+                          {fields.length === 0 && (
+                            <VStack spacing={3} py={8} opacity={0.7}>
+                              <Icon as={RiAddFill} boxSize={12} color="gray.400" />
+                              <Text
+                                fontSize="lg"
+                                fontWeight="medium"
+                                color={fontColor || FORM_DEFAULTS.fontColor}>
+                                No fields yet
+                              </Text>
+                              <Text fontSize="sm" color="gray.500" textAlign="center" px={4}>
+                                Click the button below to add your first field
+                              </Text>
+                            </VStack>
+                          )}
+
+                          {/* Add Field Menu */}
+                          <Menu placement="left-end">
+                            <MenuButton
+                              as={Button}
+                              leftIcon={<RiAddFill />}
+                              variant="outline"
+                              size="lg"
+                              py={8}
+                              isDisabled={isSaving}
+                              mt={4}
+                              borderStyle="dashed"
+                              borderWidth="2px"
+                              borderColor={FORM_DEFAULTS.borderColor}
+                              color={fontColor || FORM_DEFAULTS.fontColor}
+                              bg="transparent"
+                              _hover={{ bg: FORM_DEFAULTS.buttonColors.ghost.hoverBg }}
+                              _active={{ bg: FORM_DEFAULTS.buttonColors.ghost.hoverBg }}>
+                              Add Field
+                            </MenuButton>
+                            <Portal>
+                              <MenuList
+                                maxH="400px"
+                                overflowY="auto"
+                                bg={menuBg}
+                                borderColor={menuBorderColor}>
+                                <MenuItem
+                                  icon={<MdTextFields size={20} />}
+                                  onClick={() => addField("text")}>
+                                  Text Input
+                                </MenuItem>
+                                <MenuItem
+                                  icon={<MdNumbers size={20} />}
+                                  onClick={() => addField("number")}>
+                                  Number
+                                </MenuItem>
+                                <MenuItem
+                                  icon={<MdSubject size={20} />}
+                                  onClick={() => addField("textarea")}>
+                                  Textarea
+                                </MenuItem>
+                                <MenuItem
+                                  icon={<MdArrowDropDownCircle size={20} />}
+                                  onClick={() => addField("select")}>
+                                  Dropdown
+                                </MenuItem>
+                                <MenuItem
+                                  icon={<MdRadioButtonChecked size={20} />}
+                                  onClick={() => addField("radio")}>
+                                  Radio Buttons
+                                </MenuItem>
+                                <MenuItem
+                                  icon={<MdCheckBox size={20} />}
+                                  onClick={() => addField("checkbox")}>
+                                  Checkbox
+                                </MenuItem>
+                                <MenuItem
+                                  icon={<MdCalendarToday size={20} />}
+                                  onClick={() => addField("date")}>
+                                  Date
+                                </MenuItem>
+                                <MenuItem
+                                  icon={<MdAccessTime size={20} />}
+                                  onClick={() => addField("time")}>
+                                  Time
+                                </MenuItem>
+                                <MenuItem
+                                  icon={<MdUploadFile size={20} />}
+                                  onClick={() => addField("file")}>
+                                  File Upload
+                                </MenuItem>
+                                <MenuItem
+                                  icon={<MdLabel size={20} />}
+                                  onClick={() => addField("label")}>
+                                  Static Text
+                                </MenuItem>
+                              </MenuList>
+                            </Portal>
+                          </Menu>
                         </VStack>
                       )}
                     </Droppable>
@@ -511,60 +635,65 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                 <DrawerBody>
                   <VStack spacing={4} align="stretch">
                     <FormControl>
-                      <FormLabel>Field Type</FormLabel>
-                      <Select
-                        value={editingField.type}
-                        onChange={(e) => {
-                          const newType = e.target.value as FormField["type"];
+                      <FormLabel mb={3}>Field Type</FormLabel>
+                      <FieldTypeSelector
+                        selectedType={editingField.type}
+                        onSelect={(newType) => {
                           setEditingField((current) => ({
                             ...current,
                             type: newType,
                             options: ["select", "radio"].includes(newType) ? current.options : null,
                           }));
-                        }}>
-                        {FIELD_TYPES.map((type) => (
-                          <option key={type.value} value={type.value}>
-                            {type.label}
-                          </option>
-                        ))}
-                      </Select>
+                        }}
+                      />
                     </FormControl>
 
                     <FormControl isRequired>
-                      <FormLabel>Label</FormLabel>
+                      <FormLabel>
+                        {editingField.type === "label" ? "Text Content" : "Label"}
+                      </FormLabel>
                       <Input
                         value={editingField.label}
                         onChange={(e) =>
                           setEditingField((current) => ({ ...current, label: e.target.value }))
                         }
-                        placeholder="Field Label"
+                        placeholder={
+                          editingField.type === "label" ? "Static text to display" : "Field Label"
+                        }
                       />
                     </FormControl>
 
-                    <FormControl>
-                      <FormLabel>Placeholder</FormLabel>
-                      <Input
-                        value={editingField.placeholder || ""}
-                        onChange={(e) =>
-                          setEditingField((current) => ({
-                            ...current,
-                            placeholder: e.target.value || null,
-                          }))
-                        }
-                        placeholder="Placeholder text"
-                      />
-                    </FormControl>
+                    {editingField.type !== "label" && (
+                      <FormControl>
+                        <FormLabel>Placeholder</FormLabel>
+                        <Input
+                          value={editingField.placeholder || ""}
+                          onChange={(e) =>
+                            setEditingField((current) => ({
+                              ...current,
+                              placeholder: e.target.value || null,
+                            }))
+                          }
+                          placeholder="Placeholder text"
+                        />
+                      </FormControl>
+                    )}
 
-                    <FormControl display="flex" alignItems="center">
-                      <FormLabel mb="0">Required Field</FormLabel>
-                      <Switch
-                        isChecked={editingField.required}
-                        onChange={(e) =>
-                          setEditingField((current) => ({ ...current, required: e.target.checked }))
-                        }
-                        colorScheme="blue"
-                      />
-                    </FormControl>
+                    {editingField.type !== "label" && (
+                      <FormControl display="flex" alignItems="center">
+                        <FormLabel mb="0">Required Field</FormLabel>
+                        <Switch
+                          isChecked={editingField.required}
+                          onChange={(e) =>
+                            setEditingField((current) => ({
+                              ...current,
+                              required: e.target.checked,
+                            }))
+                          }
+                          colorScheme="blue"
+                        />
+                      </FormControl>
+                    )}
 
                     {["select", "radio"].includes(editingField.type) && (
                       <FormControl>

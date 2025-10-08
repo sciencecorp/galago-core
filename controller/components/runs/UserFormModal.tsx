@@ -215,6 +215,13 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
           />
         );
 
+      case "label":
+        return (
+          <Text color={fontColor || defaultFontColor} fontSize="md" py={2}>
+            {field.label}
+          </Text>
+        );
+
       default:
         return (
           <Input
@@ -231,8 +238,8 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
     }
   };
 
-  // Don't render label for checkbox since it's already included in the checkbox component
-  if (field.type === "checkbox") {
+  // Don't render label for checkbox and label types since they handle their own display
+  if (field.type === "checkbox" || field.type === "label") {
     return <>{renderField()}</>;
   }
 
@@ -292,8 +299,14 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
     if (!form) return true;
 
     form.fields.forEach((field) => {
+      // Skip validation for label fields (they're just display text)
+      if (field.type === "label") {
+        return;
+      }
+
       if (field.required) {
         const value = formData[field.label];
+
         if (!value || (typeof value === "string" && value.trim() === "")) {
           newErrors[field.label] = `${field.label} is required`;
         }

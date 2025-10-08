@@ -8,6 +8,7 @@ export const FIELD_TYPES = [
   { value: "date", label: "Date" },
   { value: "time", label: "Time" },
   { value: "file", label: "File Upload" },
+  { value: "label", label: "Static Text Label" },
 ] as const;
 
 export const DEFAULT_EDITING_FIELD: FormField = {
@@ -26,7 +27,17 @@ export interface FormFieldOption {
 }
 
 export interface FormField {
-  type: "text" | "select" | "radio" | "checkbox" | "textarea" | "number" | "date" | "time" | "file"; // text, select, radio, checkbox, textarea, number, date, etc.
+  type:
+    | "text"
+    | "select"
+    | "radio"
+    | "checkbox"
+    | "textarea"
+    | "number"
+    | "date"
+    | "time"
+    | "file"
+    | "label"; // text, select, radio, checkbox, textarea, number, date, etc.
   label: string;
   required?: boolean;
   placeholder?: string | null;
