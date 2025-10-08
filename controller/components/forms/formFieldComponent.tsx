@@ -15,7 +15,7 @@ import {
   Stack,
   Button,
 } from "@chakra-ui/react";
-import { RiDeleteBin6Line } from "react-icons/ri";
+import { RiDeleteBin6Line, RiFileCopyLine } from "react-icons/ri";
 import { IoSettingsSharp } from "react-icons/io5";
 import { Draggable } from "react-beautiful-dnd";
 import { FormField } from "@/types";
@@ -49,6 +49,7 @@ interface FormFieldComponentProps {
   isSaving: boolean;
   editField: (index: number) => void;
   deleteField: (index: number) => void;
+  duplicateField: (index: number) => void;
 }
 
 const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
@@ -59,6 +60,7 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
   isSaving,
   editField,
   deleteField,
+  duplicateField,
 }) => {
   const fieldId = field.label || "field" + "_" + index;
 
@@ -78,6 +80,15 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
       deleteField(index);
     },
     [index, deleteField],
+  );
+
+  const handleDuplicateClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      duplicateField(index);
+    },
+    [index, duplicateField],
   );
 
   return (
@@ -103,6 +114,7 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
             borderColor: FIELD_STYLES.borderColor,
           }}>
           <HStack>
+            {/* Action Buttons */}
             <IconButton
               aria-label="Edit field"
               icon={<IoSettingsSharp />}
@@ -110,13 +122,28 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
               variant="ghost"
               position="absolute"
               top={2}
-              right={8}
+              right={14}
               onClick={handleEditClick}
               opacity={0}
               _groupHover={{ opacity: 1 }}
               zIndex={2}
               color={FIELD_STYLES.editButton.color}
               _hover={{ bg: FIELD_STYLES.editButton.hoverBg }}
+            />
+            <IconButton
+              aria-label="Duplicate field"
+              icon={<RiFileCopyLine />}
+              size="xs"
+              variant="ghost"
+              position="absolute"
+              top={2}
+              right={8}
+              onClick={handleDuplicateClick}
+              opacity={0}
+              _groupHover={{ opacity: 1 }}
+              zIndex={2}
+              color="green.500"
+              _hover={{ bg: "green.50" }}
             />
             <IconButton
               aria-label="Delete field"
