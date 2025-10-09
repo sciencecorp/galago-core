@@ -79,10 +79,6 @@ test_py() {
   mypy db 
 }
 
-pytest() {
-  pytest db/tests/ -vv
-}
-
 unittest_py() {
   python -m unittest discover -s db/tests/ -p "*_test.py"
 }
