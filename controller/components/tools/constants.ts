@@ -308,7 +308,7 @@ export const commandFields: CommandFields = {
 // Command icons mapping - separate object for cleaner organization
 export const commandIcons: Record<string, Record<string, string>> = {
   toolbox: {
-    user_fform: "📝",
+    user_form: "📝",
     run_script: "⚡",
     pause: "⏸️",
     timer: "⏱️",
