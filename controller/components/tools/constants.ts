@@ -317,6 +317,7 @@ export const commandIcons: Record<string, Record<string, string>> = {
     stop_run: "🛑",
     goto: "🔄",
     variable_assignment: "📊",
+    text_to_speech: "🗣️"
   },
   plateloc: {
     seal: "🔒",
