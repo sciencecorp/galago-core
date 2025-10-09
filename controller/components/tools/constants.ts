@@ -117,7 +117,7 @@ export const commandFields: CommandFields = {
         type: "text",
         defaultValue: "This is a text to speech message.",
       },
-    ]
+    ],
   },
   plateloc: {
     seal: [],
