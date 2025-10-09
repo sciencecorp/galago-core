@@ -44,24 +44,6 @@ export const commandFields: CommandFields = {
       //   type: "boolean",
       // },
     ],
-    send_slack_alert: [
-      {
-        name: "workcell",
-        type: "text",
-      },
-      {
-        name: "tool",
-        type: "text",
-      },
-      {
-        name: "protocol",
-        type: "text",
-      },
-      {
-        name: "error_message",
-        type: "text",
-      },
-    ],
     pause: [
       {
         name: "message",
@@ -129,6 +111,13 @@ export const commandFields: CommandFields = {
         type: "text",
       },
     ],
+    text_to_speech: [
+      {
+        name: "text",
+        type: "text",
+        defaultValue: "This is a text to speech message.",
+      },
+    ]
   },
   plateloc: {
     seal: [],
@@ -319,9 +308,8 @@ export const commandFields: CommandFields = {
 // Command icons mapping - separate object for cleaner organization
 export const commandIcons: Record<string, Record<string, string>> = {
   toolbox: {
-    user_form: "📝",
+    user_fform: "📝",
     run_script: "⚡",
-    send_slack_alert: "🚨",
     pause: "⏸️",
     timer: "⏱️",
     note: "📄",
