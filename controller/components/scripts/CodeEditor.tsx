@@ -57,6 +57,8 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [folders, setFolders] = useState<ScriptFolder[]>([]);
   const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
   const { data: fetchedFolders, refetch: refetchFolders } = trpc.script.getAllFolders.useQuery();
+  const { data: selectedWorkcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
+  const { data: workcells } = trpc.workcell.getAll.useQuery();
   const editScript = trpc.script.edit.useMutation();
   const deleteScript = trpc.script.delete.useMutation();
   const addFolder = trpc.script.addFolder.useMutation();
@@ -382,9 +384,17 @@ Original Error: ${error.message}`;
   };
 
   const handleFolderCreate = async (name: string, parentId?: number) => {
+    // Get the workcell ID from the selected workcell name
+    const selectedWorkcell = workcells?.find((wc) => wc.name === selectedWorkcellName);
+    if (!selectedWorkcell) {
+      showErrorToast("Error creating folder", "No workcell selected");
+      return;
+    }
+
     await addFolder.mutateAsync({
       name,
       parent_id: parentId,
+      workcell_id: selectedWorkcell.id,
     });
     await refetchFolders();
   };
