@@ -256,6 +256,7 @@ export interface ScriptFolder {
   name: string;
   description?: string;
   parent_id?: number;
+  workcell_id: number;
   subfolders: ScriptFolder[];
   scripts: Script[];
   created_at: Date;
