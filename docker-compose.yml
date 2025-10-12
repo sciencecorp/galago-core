@@ -31,7 +31,10 @@ services:
       - app-network
 
   db:
-    image: ghcr.io/sciencecorp/galago-db:latest
+    build:
+      context: ./db
+      dockerfile: Dockerfile 
+    # image: ghcr.io/sciencecorp/galago-db:latest
     container_name: galago-db
     ports:
       - "8000:8000"

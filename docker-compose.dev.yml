@@ -50,15 +50,13 @@ services:
     networks:
       - app-network
     volumes:
-      - .:/app
+      - ./db:/app/db:cached
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
       timeout: 5s
       retries: 3
-    # Use this command to see if the server starts properly
-    command: >
-      sh -c "uvicorn api:app --host 0.0.0.0 --port 8000 --reload --log-level debug"
+
 
 volumes:
   sqlite_data:
