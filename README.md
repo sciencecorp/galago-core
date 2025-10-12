@@ -75,7 +75,7 @@ redis-server
 ```bash
 cd db
 pip install -r requirements.txt
-uvicorn api:app --host 0.0.0.0 --port 8000 --reload
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 #### 4. Start the web controller
