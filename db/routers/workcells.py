@@ -140,7 +140,7 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
 
 
 #TODO: This function is insanely long, break it up into smaller functions.
-@app.post("/workcells/import", response_model=schemas.Workcell)
+@router.post("/import", response_model=schemas.Workcell)
 async def import_workcell_config(
     file: UploadFile = File(...), db: Session = Depends(get_db)
 ) -> t.Any:
