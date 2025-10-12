@@ -11,7 +11,7 @@ import tempfile
 import os
 import logging
 
-from db import crud, schemas
+from db import  schemas
 import db.models.inventory_models as models
 from ..dependencies import get_db
 

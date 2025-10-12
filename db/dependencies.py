@@ -1,5 +1,5 @@
 import typing as t
-from fastapi import HTTPException, Depends
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from db.models.db_session import SessionLocal, LogsSessionLocal
 from db import crud
