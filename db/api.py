@@ -108,20 +108,6 @@ app.add_middleware(
 )
 
 
-def get_db() -> t.Generator[Session, None, None]:
-    db_session = SessionLocal()
-    try:
-        yield db_session
-    finally:
-        db_session.close()
-
-
-def log_db() -> t.Generator[Session, None, None]:
-    db_session = LogsSessionLocal()
-    try:
-        yield db_session
-    finally:
-        db_session.close()
 
 
 @app.exception_handler(IntegrityError)
