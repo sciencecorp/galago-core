@@ -412,6 +412,12 @@ robot_arm_grip_params = CRUDBase[
 
 form = CRUDBase[models.Form, schemas.FormCreate, schemas.FormUpdate](models.Form)
 
+opentron_scripts = CRUDBase[
+    models.OpentronsScript,
+    schemas.OpentronsScriptCreate,
+    schemas.OpentronsScriptUpdate,
+](models.OpentronsScript)
+
 class CRUDHotel(CRUDBase[models.Hotel, schemas.HotelCreate, schemas.HotelUpdate]):
     pass
 

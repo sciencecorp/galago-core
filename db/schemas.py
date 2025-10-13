@@ -705,6 +705,27 @@ class Script(ScriptBase):
     class Config:
         from_attributes = True
 
+class OpentronsScriptCreate(BaseModel):
+    name: str
+    description: t.Optional[str] = None
+    content: str = ""
+    is_blocking: bool = True
+    workcell_id: t.Optional[int] = None
+
+class OpentronsScriptUpdate(BaseModel):
+    name: t.Optional[str] = None
+    description: t.Optional[str] = None
+    content: t.Optional[str] = None
+    is_blocking: t.Optional[bool] = None
+    workcell_id: t.Optional[int] = None
+
+class OpentronsScript(OpentronsScriptCreate):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
 
 class ScriptFolderBase(BaseModel):
     name: str

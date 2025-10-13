@@ -24,7 +24,8 @@ from .routers import (
     protocols,
     hotels,
     forms,
-    robot_arm
+    robot_arm,
+    opentrons
 )
 
 # Configure logging
@@ -96,7 +97,7 @@ def create_app() -> FastAPI:
     app.include_router(hotels.router, prefix="/hotels", tags=["hotels"])
     app.include_router(forms.router, prefix="/forms", tags=["forms"])
     app.include_router(robot_arm.router, prefix="/robot-arm", tags=["robot-arm"])
-    
+    app.include_router(opentrons.router, prefix="/opentrons", tags=["opentrons"])
     return app
 
 app = create_app()

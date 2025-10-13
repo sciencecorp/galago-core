@@ -318,6 +318,21 @@ class Script(Base, TimestampMixin):
         UniqueConstraint('name', 'workcell_id', name='unique_script_name_per_workcell')
     )
 
+class OpentronsScript(Base, TimestampMixin):
+    __tablename__ = "opentrons_scripts"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=False)
+    content = Column(String, nullable=False)
+    workcell_id = Column(Integer, ForeignKey("workcells.id"))
+    workcell: RelationshipProperty[Optional["Workcell"]] = relationship(
+        "Workcell"
+    )
+
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+        UniqueConstraint('name', 'workcell_id', name='unique_opentrons_script_name_per_workcell')
+    )
 
 class AppSettings(Base, TimestampMixin):
     __tablename__ = "app_settings"
