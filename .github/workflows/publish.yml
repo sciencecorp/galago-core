@@ -36,7 +36,7 @@ jobs:
           file: controller/Dockerfile
           push: true
           tags: ghcr.io/sciencecorp/galago-web:latest
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           cache-from: type=registry,ref=ghcr.io/sciencecorp/galago-web:buildcache
           cache-to: type=registry,ref=ghcr.io/sciencecorp/galago-web:buildcache,mode=max
           provenance: false
