@@ -25,7 +25,7 @@ Galago consists of several distinct modules:
 ### Prerequisites
 
 - **Node.js** 18.13 or higher
-- **Python** 3.9 or higher
+- **Python** 3.11
 - **Docker** and **Docker Compose** (recommended for development)
 - **Redis** (for queue management)
 
