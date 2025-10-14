@@ -193,7 +193,7 @@ export class CommandQueue {
       this._isWaitingForInput = false;
 
       // Add a small delay to ensure all state updates have propagated
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   }
 
@@ -534,7 +534,7 @@ export class CommandQueue {
 
     while (this.state === ToolStatus.BUSY) {
       // Small delay between processing commands to avoid race conditions
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       const nextCommand = await this.commands.startNext();
       if (!nextCommand) {
         this.stop(); // stop the queue when there are no more commands available!!
