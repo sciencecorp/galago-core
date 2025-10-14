@@ -1,5 +1,5 @@
 # Use official Python image as the base image
-FROM --platform=$TARGETPLATFORM python:3.9-slim
+FROM --platform=$TARGETPLATFORM python:3.11-slim
 
 # Set the working directory
 WORKDIR /app

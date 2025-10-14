@@ -2,5 +2,5 @@ name: foundry-runtime
 channels:
   - defaults
 dependencies:
-  - python=3.9.12
+  - python="3.11"
   - nodejs=16.13.1
