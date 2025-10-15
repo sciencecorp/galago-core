@@ -77,6 +77,7 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
     _ = workcell.protocols
     _ = workcell.hotels
 
+
     # Get all nests for the workcell (from both tools and hotels)
     nests = crud.nest.get_all_nests_by_workcell_id(db=db, workcell_id=workcell.id)
 
@@ -111,6 +112,30 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
         # Serialize the workcell to JSON and write to the file
         workcell_json = jsonable_encoder(workcell)
 
+        # Get robot arm data for PF400 tools
+        robot_arm_locations = []
+        robot_arm_sequences = []
+        robot_arm_motion_profiles = []
+        robot_arm_grip_params = []
+
+        for tool in workcell.tools:
+            if tool.type == "pf400":
+                # Get all robot arm data for this tool
+                tool_locations = crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": tool.id})
+                tool_sequences = crud.robot_arm_sequence.get_all_by(db, obj_in={"tool_id": tool.id})
+                tool_motion_profiles = crud.robot_arm_motion_profile.get_all_by(db, obj_in={"tool_id": tool.id})
+                tool_grip_params = crud.robot_arm_grip_params.get_all_by(db, obj_in={"tool_id": tool.id})
+                
+                robot_arm_locations.extend(tool_locations)
+                robot_arm_sequences.extend(tool_sequences)
+                robot_arm_motion_profiles.extend(tool_motion_profiles)
+                robot_arm_grip_params.extend(tool_grip_params)
+
+        # Add the robot arm data to the export JSON (after adding other data):
+        workcell_json["robot_arm_locations"] = jsonable_encoder(robot_arm_locations)
+        workcell_json["robot_arm_sequences"] = jsonable_encoder(robot_arm_sequences)
+        workcell_json["robot_arm_motion_profiles"] = jsonable_encoder(robot_arm_motion_profiles)
+        workcell_json["robot_arm_grip_params"] = jsonable_encoder(robot_arm_grip_params)
         # Add the inventory and entity data to the export
         workcell_json["nests"] = jsonable_encoder(nests)
         workcell_json["plates"] = jsonable_encoder(plates)
@@ -279,7 +304,118 @@ async def import_workcell_config(
                         logging.info(
                             f"Created default profiles for imported PF400 tool: {new_tool.name}"
                         )
+# Process robot arm locations if they exist in the import data
+        if "robot_arm_locations" in workcell_data and isinstance(workcell_data["robot_arm_locations"], list):
+            for location_data in workcell_data["robot_arm_locations"]:
+                if not isinstance(location_data, dict) or "name" not in location_data or "tool_id" not in location_data:
+                    continue
 
+                # Remap tool_id using the mapping dictionary
+                if location_data.get("tool_id") and location_data["tool_id"] in tool_id_mapping:
+                    location_data["tool_id"] = tool_id_mapping[location_data["tool_id"]]
+                elif location_data.get("tool_id"):
+                    logging.warning(f"Could not map tool_id {location_data['tool_id']} for robot arm location {location_data['name']}")
+                    continue  # Skip if we can't map the tool
+
+                existing_location = crud.robot_arm_location.get_by(
+                    db, obj_in={"name": location_data["name"], "tool_id": location_data["tool_id"]}
+                )
+
+                if existing_location:
+                    location_update = {k: v for k, v in location_data.items() if k != "id"}
+                    crud.robot_arm_location.update(
+                        db,
+                        db_obj=existing_location,
+                        obj_in=schemas.RobotArmLocationUpdate(**location_update),
+                    )
+                else:
+                    location_create = {k: v for k, v in location_data.items() if k != "id"}
+                    crud.robot_arm_location.create(db, obj_in=schemas.RobotArmLocationCreate(**location_create))
+
+        # Process robot arm sequences if they exist in the import data
+        if "robot_arm_sequences" in workcell_data and isinstance(workcell_data["robot_arm_sequences"], list):
+            for sequence_data in workcell_data["robot_arm_sequences"]:
+                if not isinstance(sequence_data, dict) or "name" not in sequence_data or "tool_id" not in sequence_data:
+                    continue
+
+                # Remap tool_id using the mapping dictionary
+                if sequence_data.get("tool_id") and sequence_data["tool_id"] in tool_id_mapping:
+                    sequence_data["tool_id"] = tool_id_mapping[sequence_data["tool_id"]]
+                elif sequence_data.get("tool_id"):
+                    logging.warning(f"Could not map tool_id {sequence_data['tool_id']} for robot arm sequence {sequence_data['name']}")
+                    continue  # Skip if we can't map the tool
+
+                existing_sequence = crud.robot_arm_sequence.get_by(
+                    db, obj_in={"name": sequence_data["name"], "tool_id": sequence_data["tool_id"]}
+                )
+
+                if existing_sequence:
+                    sequence_update = {k: v for k, v in sequence_data.items() if k != "id"}
+                    crud.robot_arm_sequence.update(
+                        db,
+                        db_obj=existing_sequence,
+                        obj_in=schemas.RobotArmSequenceUpdate(**sequence_update),
+                    )
+                else:
+                    sequence_create = {k: v for k, v in sequence_data.items() if k != "id"}
+                    crud.robot_arm_sequence.create(db, obj_in=schemas.RobotArmSequenceCreate(**sequence_create))
+
+        # Process robot arm motion profiles if they exist in the import data
+        if "robot_arm_motion_profiles" in workcell_data and isinstance(workcell_data["robot_arm_motion_profiles"], list):
+            for profile_data in workcell_data["robot_arm_motion_profiles"]:
+                if not isinstance(profile_data, dict) or "name" not in profile_data or "tool_id" not in profile_data:
+                    continue
+
+                # Remap tool_id using the mapping dictionary
+                if profile_data.get("tool_id") and profile_data["tool_id"] in tool_id_mapping:
+                    profile_data["tool_id"] = tool_id_mapping[profile_data["tool_id"]]
+                elif profile_data.get("tool_id"):
+                    logging.warning(f"Could not map tool_id {profile_data['tool_id']} for robot arm motion profile {profile_data['name']}")
+                    continue  # Skip if we can't map the tool
+
+                existing_profile = crud.robot_arm_motion_profile.get_by(
+                    db, obj_in={"name": profile_data["name"], "tool_id": profile_data["tool_id"]}
+                )
+
+                if existing_profile:
+                    profile_update = {k: v for k, v in profile_data.items() if k != "id"}
+                    crud.robot_arm_motion_profile.update(
+                        db,
+                        db_obj=existing_profile,
+                        obj_in=schemas.RobotArmMotionProfileUpdate(**profile_update),
+                    )
+                else:
+                    profile_create = {k: v for k, v in profile_data.items() if k != "id"}
+                    crud.robot_arm_motion_profile.create(db, obj_in=schemas.RobotArmMotionProfileCreate(**profile_create))
+
+        # Process robot arm grip params if they exist in the import data
+        if "robot_arm_grip_params" in workcell_data and isinstance(workcell_data["robot_arm_grip_params"], list):
+            for grip_data in workcell_data["robot_arm_grip_params"]:
+                if not isinstance(grip_data, dict) or "name" not in grip_data or "tool_id" not in grip_data:
+                    continue
+
+                # Remap tool_id using the mapping dictionary
+                if grip_data.get("tool_id") and grip_data["tool_id"] in tool_id_mapping:
+                    grip_data["tool_id"] = tool_id_mapping[grip_data["tool_id"]]
+                elif grip_data.get("tool_id"):
+                    logging.warning(f"Could not map tool_id {grip_data['tool_id']} for robot arm grip params {grip_data['name']}")
+                    continue  # Skip if we can't map the tool
+
+                existing_grip_params = crud.robot_arm_grip_params.get_by(
+                    db, obj_in={"name": grip_data["name"], "tool_id": grip_data["tool_id"]}
+                )
+
+                if existing_grip_params:
+                    grip_update = {k: v for k, v in grip_data.items() if k != "id"}
+                    crud.robot_arm_grip_params.update(
+                        db,
+                        db_obj=existing_grip_params,
+                        obj_in=schemas.RobotArmGripParamsUpdate(**grip_update),
+                    )
+                else:
+                    grip_create = {k: v for k, v in grip_data.items() if k != "id"}
+                    crud.robot_arm_grip_params.create(db, obj_in=schemas.RobotArmGripParamsCreate(**grip_create))
+                    
         # Process nests THIRD (depends on tools and hotels)
         if "nests" in workcell_data and isinstance(workcell_data["nests"], list):
             for nest_data in workcell_data["nests"]:
