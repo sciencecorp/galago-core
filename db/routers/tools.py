@@ -41,7 +41,7 @@ def get_tool(tool_id: t.Union[int, str], db: Session = Depends(get_db)) -> t.Any
 def create_tool(tool: schemas.ToolCreate, db: Session = Depends(get_db)) -> t.Any:
     all_tools = crud.tool.get_all(db)
     existing_ports = [tool.port for tool in all_tools]
-    port_range = range(40000, 40100)  # let's cap the number of tools at 500 for now  (hope one day this breaks)
+    port_range = range(40000, 40100)  # let's cap the number of tools at 100 for now  (hope one day this breaks)
 
     def get_next_available_port(session: Session) -> int:
         for port in port_range:
