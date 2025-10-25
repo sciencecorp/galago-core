@@ -7,7 +7,7 @@ DATA_DIR = BASE_DIR / "data"
 if not DATA_DIR.exists():
     DATA_DIR.mkdir(parents=True)
 
-inventory_db_path = DATA_DIR / "inventory.db"
+inventory_db_path = DATA_DIR / "galago.db"
 logs_db_path = DATA_DIR / "logs.db"
 
 INVENTORY_DB_URL = f"sqlite:///{inventory_db_path}"

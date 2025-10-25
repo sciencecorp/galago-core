@@ -24,13 +24,28 @@ Galago consists of several distinct modules:
 
 ### Prerequisites
 
+We recommend the use docker for both development and production. 
+- **Docker** and **Docker Compose** 
+
+Optional
 - **Node.js** 18.13 or higher
 - **Python** 3.11
-- **Docker** and **Docker Compose** (recommended for development)
 - **Redis** (for queue management)
 
-### Quick Start with Docker (Recommended)
+## Quick Start with Docker (Recommended)
 
+### For Windows (using WSL)
+
+1. Install Ubuntu via WSL following [these instructions](https://learn.microsoft.com/en-us/windows/wsl/install).
+2. Inside WSL:
+
+```
+curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+sudo apt-get update
+sudo apt-get install redis
+sudo service redis-server start
+```
 1. **Clone the repository**
 
    ```bash
@@ -49,42 +64,6 @@ Galago consists of several distinct modules:
    - Database API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
 
-### Manual Setup
-
-If you prefer to run without Docker:
-
-#### 1. Build dependencies and interfaces
-
-```bash
-bin/make deps
-bin/make proto
-```
-
-#### 2. Start Redis (if not using Docker)
-
-```bash
-# macOS
-bin/make redis
-
-# Or install manually
-redis-server
-```
-
-#### 3. Start the database service
-
-```bash
-cd db
-pip install -r requirements.txt
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-#### 4. Start the web controller
-
-```bash
-cd controller
-npm install
-npm run dev
-```
 
 ## Production Deployment
 
@@ -96,7 +75,7 @@ For production deployment:
 docker-compose -f docker-compose.yml up -d --force-recreate
 ```
 
-## Other docker commands
+## Helpful docker commands
 
 ```
 #Stop containters
@@ -111,57 +90,62 @@ docker compose -f docker-compose.dev.yml down --rmi all --remove-orphans
 #rebuild a specific service
 docker-compose up -d --force-recreate --no-deps --build service_name
 
-#e.g
+#e.g: rebuild db
 docker-compose -f docker-compose.dev.yml up --build db
 
 #add npm deps to dev environment
 docker exec -it galago-web-dev npm install <package name>
 ```
 
-## Using conda
-
-### Build the base environmnent
+## Database Migrations 
 
 ```
-conda create -n galago
-conda activate galago #mac
-source activate galago #windows
+# Migrations run automatically on startup
+docker-compose -f docker-compose.dev.yml up --build db #development 
+
+docker-compose up -d db #production
 ```
 
-### Build dependencies
+### Creating new migrations
+```
+# Navigate to the db directory
+cd db
+
+# Generate migration template for manual changes
+alembic revision -m "description of changes"
+
+#Example. 
+alembic revision --autogenerate -m "add script_environment column to scripts"
 
 ```
-bin/make deps
-bin/make proto
+
+### Check current migration version 
+```
+# In development
+docker-compose -f docker-compose.dev.yml exec db bash -c "cd /app/db && python -m alembic current"
+
+# In production
+docker-compose exec db bash -c "cd /app/db && python -m alembic current"
 ```
 
-## Redis
+### Running migrations manually
+```
+# Upgrade to latest
+docker-compose exec db bash -c "cd /app/db && python -m alembic upgrade head"
 
-Local install (if not using docker)
+# Rollback one migration
+docker-compose exec db bash -c "cd /app/db && python -m alembic downgrade -1"
 
-### For Mac (zsh)
-
-```zsh
-#Install and start redis
-bin/make redis
-
-#Confirm that the server is up
-redis-cli ping
+# Rollback to specific version
+docker-compose exec db bash -c "cd /app/db && python -m alembic downgrade <revision_id>"
 ```
 
-### For Windows (using WSL)
+## Automatic BAKCUPS 
 
-1. Install Ubuntu via WSL following [these instructions](https://learn.microsoft.com/en-us/windows/wsl/install).
-2. Inside WSL:
+Database backups are created automatically before each migration. We set a 7 days (development) and 30 days (production) rentention policy, these can be adjusted.
 
-```
-curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
-echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
-sudo apt-get update
-sudo apt-get install redis
-sudo service redis-server start
-```
-
+In Development the backups are under ```db/data/backups```  
+In Production you should create a backups directory where your compose directory is located. Or update the docker-compose.yml mount directory. 
 ## Contributing
 
 We welcome contributions to Galago! Please follow these guidelines:
@@ -196,9 +180,6 @@ To integrate a new laboratory instrument:
 - **Keep dependencies updated** regularly
 - **Report security issues** privately to the maintainers
 
-## Troubleshooting
-
-### Common Issues
 
 **Container fails to start:**
 

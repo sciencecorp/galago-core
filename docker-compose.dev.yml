@@ -51,6 +51,7 @@ services:
       - app-network
     volumes:
       - ./db:/app/db:cached
+      - ./db/data/backups:/app/db/data/backups:rw
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s

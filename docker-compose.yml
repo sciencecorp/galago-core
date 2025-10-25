@@ -31,15 +31,20 @@ services:
       - app-network
 
   db:
-    image: ghcr.io/sciencecorp/galago-db:latest
+    # image: ghcr.io/sciencecorp/galago-db:latest
+    build:
+      context: ./db
+      dockerfile: Dockerfile
     container_name: galago-db
     ports:
       - "8000:8000"
     environment:
       - ENVIRONMENT=production
+      - BACKUP_RETENTION_DAYS=30
     restart: always
     volumes:
-      - sqlite_data:/data
+      - sqlite_data:/app/db/data
+      - ./backups:/app/db/data/backups 
     networks:
       - app-network
     healthcheck:
@@ -47,6 +52,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+      start_period: 30s 
 
 volumes:
   redis_data:
