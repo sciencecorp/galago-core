@@ -44,7 +44,7 @@ services:
     restart: always
     volumes:
       - sqlite_data:/app/db/data
-      - ./backups:/app/db/data/backups 
+      - ./backups:/app/db/data/backups
     networks:
       - app-network
     healthcheck:
@@ -52,7 +52,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-      start_period: 30s 
+      start_period: 30s
 
 volumes:
   redis_data:

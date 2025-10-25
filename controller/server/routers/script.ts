@@ -6,12 +6,7 @@ import Tool from "@/server/tools";
 import { ToolType } from "gen-interfaces/controller";
 import { logAction } from "@/server/logger";
 
-export const zScriptEnvironment = z.enum([
-  "global",
-  "opentrons",
-  "hamilton",
-  "pylabrobot",
-]);
+export const zScriptEnvironment = z.enum(["global", "opentrons", "hamilton", "pylabrobot"]);
 
 export const zScript = z.object({
   id: z.number().optional(),
@@ -45,9 +40,7 @@ export const scriptRouter = router({
     return response;
   }),
 
-  getByEnvironment: procedure
-  .input(zScriptEnvironment)
-  .query(async ({ input }) => {
+  getByEnvironment: procedure.input(zScriptEnvironment).query(async ({ input }) => {
     const response = await get<Script[]>(`/scripts?script_environment=${input}`);
     return response;
   }),
@@ -133,6 +126,5 @@ export const scriptRouter = router({
   deleteFolder: procedure.input(z.number()).mutation(async ({ input }) => {
     await del(`/script-folders/${input}`);
     return { message: "Folder deleted successfully" };
-  })
+  }),
 });
-  

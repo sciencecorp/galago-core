@@ -1,5 +1,6 @@
 import { DateTime } from "luxon";
 import { Config } from "gen-interfaces/tools/grpc_interfaces/tool_base";
+export type ScriptEnvironment = "global" | "opentrons" | "hamilton" | "pylabrobot";
 
 export interface Workcell {
   id: number;
@@ -270,6 +271,7 @@ export interface Script {
   description: string;
   is_blocking: boolean;
   language: string;
+  script_environment: ScriptEnvironment;
   folder_id?: number;
   folder?: ScriptFolder;
   created_at: Date;

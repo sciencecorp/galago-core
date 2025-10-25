@@ -24,10 +24,12 @@ Galago consists of several distinct modules:
 
 ### Prerequisites
 
-We recommend the use docker for both development and production. 
-- **Docker** and **Docker Compose** 
+We recommend the use docker for both development and production.
+
+- **Docker** and **Docker Compose**
 
 Optional
+
 - **Node.js** 18.13 or higher
 - **Python** 3.11
 - **Redis** (for queue management)
@@ -46,6 +48,7 @@ sudo apt-get update
 sudo apt-get install redis
 sudo service redis-server start
 ```
+
 1. **Clone the repository**
 
    ```bash
@@ -63,7 +66,6 @@ sudo service redis-server start
    - Web Interface: http://localhost:3010
    - Database API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
-
 
 ## Production Deployment
 
@@ -97,16 +99,17 @@ docker-compose -f docker-compose.dev.yml up --build db
 docker exec -it galago-web-dev npm install <package name>
 ```
 
-## Database Migrations 
+## Database Migrations
 
 ```
 # Migrations run automatically on startup
-docker-compose -f docker-compose.dev.yml up --build db #development 
+docker-compose -f docker-compose.dev.yml up --build db #development
 
 docker-compose up -d db #production
 ```
 
 ### Creating new migrations
+
 ```
 # Navigate to the db directory
 cd db
@@ -114,12 +117,13 @@ cd db
 # Generate migration template for manual changes
 alembic revision -m "description of changes"
 
-#Example. 
+#Example.
 alembic revision --autogenerate -m "add script_environment column to scripts"
 
 ```
 
-### Check current migration version 
+### Check current migration version
+
 ```
 # In development
 docker-compose -f docker-compose.dev.yml exec db bash -c "cd /app/db && python -m alembic current"
@@ -129,6 +133,7 @@ docker-compose exec db bash -c "cd /app/db && python -m alembic current"
 ```
 
 ### Running migrations manually
+
 ```
 # Upgrade to latest
 docker-compose exec db bash -c "cd /app/db && python -m alembic upgrade head"
@@ -140,12 +145,13 @@ docker-compose exec db bash -c "cd /app/db && python -m alembic downgrade -1"
 docker-compose exec db bash -c "cd /app/db && python -m alembic downgrade <revision_id>"
 ```
 
-## Automatic BAKCUPS 
+## Automatic BAKCUPS
 
 Database backups are created automatically before each migration. We set a 7 days (development) and 30 days (production) rentention policy, these can be adjusted.
 
-In Development the backups are under ```db/data/backups```  
-In Production you should create a backups directory where your compose directory is located. Or update the docker-compose.yml mount directory. 
+In Development the backups are under `db/data/backups`  
+In Production you should create a backups directory where your compose directory is located. Or update the docker-compose.yml mount directory.
+
 ## Contributing
 
 We welcome contributions to Galago! Please follow these guidelines:
@@ -179,7 +185,6 @@ To integrate a new laboratory instrument:
 - **Use environment variables** for configuration
 - **Keep dependencies updated** regularly
 - **Report security issues** privately to the maintainers
-
 
 **Container fails to start:**
 
