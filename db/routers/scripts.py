@@ -12,20 +12,21 @@ router = APIRouter()
 
 
 @router.get("", response_model=list[schemas.Script])
-def get_scripts(db: Session = Depends(get_db), workcell_name: Optional[str] = None) -> t.Any:
+def get_scripts(db: Session = Depends(get_db), workcell_name: Optional[str] = None, script_environment: Optional[str] = None) -> t.Any:
     # If no workcell_name provided, use the selected workcell
     if workcell_name is None:
         workcell_name = get_selected_workcell_name(db)
     
     workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
-    if not workcell:
-        raise HTTPException(status_code=404, detail="Workcell not found")
-    return crud.scripts.get_all_by(db, obj_in={"workcell_id": workcell.id})
-
+    filter_obj = {"workcell_id": workcell.id}
+    if script_environment:
+        filter_obj["script_environment"] = script_environment
+    
+    return crud.scripts.get_all_by(db, obj_in=filter_obj)
 
 @router.get("/{script_id}", response_model=schemas.Script)
 def get_script(script_id: t.Union[int, str], db: Session = Depends(get_db)) -> t.Any:
-    script = crud.scripts.get(db, id=script_id, normalize_name=True)
+    script = crud.scripts.get(db, id=script_id, normalize_name=False)
     if script is None:
         raise HTTPException(status_code=404, detail="Script not found")
     return script

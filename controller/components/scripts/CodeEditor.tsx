@@ -19,7 +19,7 @@ import {
 } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import { trpc } from "@/utils/trpc";
-import { Script, ScriptFolder } from "@/types/api";
+import { Script, ScriptEnvironment, ScriptFolder } from "@/types/api";
 import { NewScript } from "./NewScript";
 import { NewFolder } from "./NewFolder";
 import { PageHeader } from "../ui/PageHeader";
@@ -45,7 +45,13 @@ import { Console } from "./Console";
 import { ResizablePanel } from "./ResizablePanel";
 import { logAction } from "@/server/logger";
 
-export const ScriptsEditor: React.FC = (): JSX.Element => {
+
+interface ScriptsEditorProps {
+  scriptsEnvironment: ScriptEnvironment;
+}
+
+export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) : JSX.Element => {
+  const { scriptsEnvironment } = props;
   const [openTabs, setOpenTabs] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [activeFolder, setActiveFolder] = useState<ScriptFolder | null>(null);
@@ -55,7 +61,9 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const { hoverBg, bgColor, borderColor, consoleHeaderBg, consoleBg } = useScriptColors();
   const [scripts, setScripts] = useState<Script[]>([]);
   const [folders, setFolders] = useState<ScriptFolder[]>([]);
-  const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
+  const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery(
+    { script_environment: scriptsEnvironment },
+  );
   const { data: fetchedFolders, refetch: refetchFolders } = trpc.script.getAllFolders.useQuery();
   const { data: selectedWorkcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
   const { data: workcells } = trpc.workcell.getAll.useQuery();

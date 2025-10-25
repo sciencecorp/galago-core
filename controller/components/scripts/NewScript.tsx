@@ -20,21 +20,25 @@ import {
 import { trpc } from "@/utils/trpc";
 import { validateScriptName, showErrorToast, showSuccessToast } from "./utils";
 import { FileAddIcon } from "../ui/Icons";
+import { ScriptEnvironment } from "@/types/api";
+
 interface NewScriptProps {
   isDisabled?: boolean;
   activeFolderId?: number;
   onScriptCreated?: () => void;
+  defaultEnvironment?: ScriptEnvironment;
 }
 
 export const NewScript: React.FC<NewScriptProps> = (props) => {
-  const { isDisabled, activeFolderId, onScriptCreated } = props;
+  const { isDisabled, activeFolderId, onScriptCreated, defaultEnvironment } = props;
   const [scriptName, setScriptName] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(false);
   const [description, setDescription] = useState("");
   const addScript = trpc.script.add.useMutation();
   const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
-  const [selectedLanguage, setSelectedLanguage] = useState<string>("python"); // This can be dynamic based on user selection
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("python"); 
+  const [environment, setEnvironment] = useState<ScriptEnvironment>(defaultEnvironment || "global");
 
   const handleSave = async () => {
     const isNotValid = validateScriptName(scriptName);
@@ -50,6 +54,7 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
       language: selectedLanguage,
       is_blocking: true,
       folder_id: activeFolderId,
+      script_environment: environment,
     };
 
     setIsLoading(true);

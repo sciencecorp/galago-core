@@ -35,18 +35,21 @@ export const zScriptFolderUpdate = z.object({
 });
 
 export const scriptRouter = router({
-  getAll: procedure.query(async () => {
-    const response = await get<Script[]>(`/scripts`);
-    return response;
-  }),
 
-  getByEnvironment: procedure.input(zScriptEnvironment).query(async ({ input }) => {
-    const response = await get<Script[]>(`/scripts?script_environment=${input}`);
-    return response;
-  }),
-
-  getOpentrons: procedure.query(async () => {
-    const response = await get<Script[]>(`/scripts?script_environment=opentrons`);
+getAll: procedure
+  .input(
+    z.object({
+      script_environment: zScriptEnvironment.optional(),
+    }).optional()
+  )
+  .query(async ({ input }) => {
+    const params = new URLSearchParams();
+    if (input?.script_environment) {
+      params.append("script_environment", input.script_environment);
+    }
+    const queryString = params.toString();
+    const url = `/scripts${queryString ? `?${queryString}` : ""}`;
+    const response = await get<Script[]>(url);
     return response;
   }),
 
