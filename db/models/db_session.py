@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from db.config import INVENTORY_DB_URL, LOGS_DB_URL
+from config import INVENTORY_DB_URL, LOGS_DB_URL
 from sqlalchemy import event
 
 Base = declarative_base()

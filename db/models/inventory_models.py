@@ -302,6 +302,7 @@ class Script(Base, TimestampMixin):
     content = Column(String, nullable=False)
     language = Column(String, nullable=False)
     is_blocking = Column(Boolean, nullable=False)
+    script_environment = Column(String, nullable=False, default="global", server_default="global")  # NEW
     folder_id = Column(Integer, ForeignKey("script_folders.id"), nullable=True)
     workcell_id = Column(Integer, ForeignKey("workcells.id"))
     workcell: RelationshipProperty[Optional["Workcell"]] = relationship(
@@ -316,22 +317,6 @@ class Script(Base, TimestampMixin):
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
         UniqueConstraint('name', 'workcell_id', name='unique_script_name_per_workcell')
-    )
-
-class OpentronsScript(Base, TimestampMixin):
-    __tablename__ = "opentrons_scripts"
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    description = Column(String, nullable=False)
-    content = Column(String, nullable=False)
-    workcell_id = Column(Integer, ForeignKey("workcells.id"))
-    workcell: RelationshipProperty[Optional["Workcell"]] = relationship(
-        "Workcell"
-    )
-
-    __table_args__ = (
-        CheckConstraint("name <> ''", name="check_non_empty_name"),
-        UniqueConstraint('name', 'workcell_id', name='unique_opentrons_script_name_per_workcell')
     )
 
 class AppSettings(Base, TimestampMixin):

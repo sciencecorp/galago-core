@@ -679,6 +679,7 @@ class ScriptBase(BaseModel):
     content: str = ""
     language: str = "python"
     is_blocking: bool = True
+    script_environment: str = "global"  # NEW
     folder_id: t.Optional[int] = None
     workcell_id: t.Optional[int] = None
 
@@ -693,33 +694,12 @@ class ScriptUpdate(BaseModel):
     content: t.Optional[str] = None
     language: t.Optional[str] = None
     is_blocking: t.Optional[bool] = None
+    script_environment: t.Optional[str] = None  # NEW
     folder_id: t.Optional[int] = None
     workcell_id: t.Optional[int] = None
 
 
 class Script(ScriptBase):
-    id: int
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        from_attributes = True
-
-class OpentronsScriptCreate(BaseModel):
-    name: str
-    description: t.Optional[str] = None
-    content: str = ""
-    is_blocking: bool = True
-    workcell_id: t.Optional[int] = None
-
-class OpentronsScriptUpdate(BaseModel):
-    name: t.Optional[str] = None
-    description: t.Optional[str] = None
-    content: t.Optional[str] = None
-    is_blocking: t.Optional[bool] = None
-    workcell_id: t.Optional[int] = None
-
-class OpentronsScript(OpentronsScriptCreate):
     id: int
     created_at: datetime
     updated_at: datetime
