@@ -1,15 +1,17 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { get, post, put, del } from "../utils/api";
-import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 import { Script, ScriptFolder } from "@/types/api";
-import { run } from "node:test";
 import Tool from "@/server/tools";
 import { ToolType } from "gen-interfaces/controller";
 import { logAction } from "@/server/logger";
-import { log } from "console";
 
-const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
+export const zScriptEnvironment = z.enum([
+  "global",
+  "opentrons",
+  "hamilton",
+  "pylabrobot",
+]);
 
 export const zScript = z.object({
   id: z.number().optional(),
@@ -17,6 +19,7 @@ export const zScript = z.object({
   content: z.string(),
   description: z.string().optional(),
   language: z.string(),
+  script_environment: zScriptEnvironment.default("global"),
   folder_id: z.number().nullable().optional(),
 });
 
@@ -39,6 +42,18 @@ export const zScriptFolderUpdate = z.object({
 export const scriptRouter = router({
   getAll: procedure.query(async () => {
     const response = await get<Script[]>(`/scripts`);
+    return response;
+  }),
+
+  getByEnvironment: procedure
+  .input(zScriptEnvironment)
+  .query(async ({ input }) => {
+    const response = await get<Script[]>(`/scripts?script_environment=${input}`);
+    return response;
+  }),
+
+  getOpentrons: procedure.query(async () => {
+    const response = await get<Script[]>(`/scripts?script_environment=opentrons`);
     return response;
   }),
 
@@ -118,37 +133,6 @@ export const scriptRouter = router({
   deleteFolder: procedure.input(z.number()).mutation(async ({ input }) => {
     await del(`/script-folders/${input}`);
     return { message: "Folder deleted successfully" };
-  }),
-
-  // Export script content
-  exportConfig: procedure.input(z.number()).mutation(async ({ input }) => {
-    try {
-      const scriptId = input;
-      // Directly fetch script content from the backend API (assuming an endpoint exists or will be created)
-      const response = await get<Script>(`/scripts/${scriptId}/export`); // Using GET for simplicity, adjust if needed
-      // Return the content or the whole script object as needed by the frontend hook
-      return response; // Assuming the backend returns { id, name, content, language, ... }
-    } catch (error) {
-      console.error("Export failed:", error);
-      throw error;
-    }
-  }),
-
-  // Import script (Placeholder - Needs backend implementation)
-  // The actual file upload is handled directly by the frontend to a specific API endpoint
-  // This mutation might be used for post-import processing or just kept for consistency
-  importConfig: procedure
-    .input(
-      z.object({
-        // Define expected input if any post-processing is needed after upload
-        // For now, it might not need input if the fetch call handles everything
-      }),
-    )
-    .mutation(async ({ input }) => {
-      // Placeholder: In a real scenario, this might trigger post-import actions
-      // or could be removed if the direct fetch call is sufficient.
-      // Typically, you might return the imported script details if available
-      // For now, returning a simple success message or placeholder
-      return { success: true, message: "Import handled by API endpoint." };
-    }),
+  })
 });
+  
