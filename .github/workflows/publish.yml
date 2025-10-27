@@ -2,6 +2,10 @@ name: Publish Docker Images
 on:
   push:
     branches: [main]
+    paths:
+      - 'controller/**'
+      - 'db/**'
+      - '.github/workflows/publish.yml'
   workflow_dispatch:
 jobs:
   build-and-publish:
