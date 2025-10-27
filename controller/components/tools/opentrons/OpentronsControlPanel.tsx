@@ -15,6 +15,7 @@ import {
   FormControl,
   FormLabel,
   Tooltip,
+  Text
 } from '@chakra-ui/react';
 import { trpc } from '@/utils/trpc';
 import { ToolCommandInfo } from '@/types';
@@ -34,7 +35,7 @@ export const OpentronsControlPanel: React.FC<OpentronsControlPanelProps> = ({
   const bgColor = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const [lightsOn, setLightsOn] = useState(false);
-  
+  const [isSimulated, setIsSimulated] = useState(false);
   const commandMutation = trpc.tool.runCommand.useMutation();
 
 
@@ -69,7 +70,7 @@ export const OpentronsControlPanel: React.FC<OpentronsControlPanelProps> = ({
 
   const handleToggleLights = async () => {
     const newState = !lightsOn;
-    await executeCommand('set_lights', { on: newState });
+    await executeCommand('toggle_light', { on: newState });
     setLightsOn(newState);
   };
 
@@ -101,19 +102,17 @@ export const OpentronsControlPanel: React.FC<OpentronsControlPanelProps> = ({
       borderRadius="md"
       width="100%"
     >
-      <CardHeader pb={2}>
-        <Heading size="sm">Robot Controls</Heading>
-      </CardHeader>
       <CardBody pt={2}>
         <VStack spacing={3} align="stretch">
-          {/* Home Button */}
+                <Text pb={2} textAlign="start" mt={2}>
+        <Heading size="sm" >Robot Controls</Heading>
+      </Text>
           <Tooltip label="Home all axes" placement="right" hasArrow>
             <Button
               leftIcon={<Icon as={FaHome} />}
               colorScheme="blue"
               variant="solid"
               onClick={handleHome}
-              // isDisabled={!isConnected || commandMutation.isLoading}
               isLoading={
                 commandMutation.isLoading && 
                 commandMutation.variables?.command === 'home'
@@ -127,67 +126,31 @@ export const OpentronsControlPanel: React.FC<OpentronsControlPanelProps> = ({
 
           <Divider />
 
-          {/* Lights Control */}
-          <FormControl display="flex" alignItems="center" justifyContent="space-between">
-            <HStack>
-              <Icon as={FaLightbulb} color={lightsOn ? 'yellow.400' : 'gray.400'} />
-              <FormLabel mb={0} fontSize="sm">
-                Deck Lights
-              </FormLabel>
-            </HStack>
-            <Switch
-              colorScheme="yellow"
-              isChecked={lightsOn}
-              onChange={handleToggleLights}
-              // isDisabled={!isConnected || commandMutation.isLoading}
-            />
-          </FormControl>
+            <VStack spacing={2} align="stretch" width="100%" >
+            <Text fontWeight="bold" textAlign="start">Deck Lights</Text>
+            <Tooltip label="Toggle deck lights" placement="right" hasArrow>
+              <Button
+                leftIcon={<Icon as={FaLightbulb} />}
+                colorScheme="yellow"
+                variant="outline"
+                onClick={handleToggleLights}
+                isLoading={
+                  commandMutation.isLoading && 
+                  commandMutation.variables?.command === 'toggle_light'
+                }
+                size="md"
+                width="100%"
+              >
+              Toggle Lights
+            </Button>
+          </Tooltip>
+            </VStack>
+
 
           <Divider />
 
-          {/* Door Controls */}
           <VStack spacing={2} align="stretch">
-            <Tooltip label="Open robot door" placement="right" hasArrow>
-              <Button
-                leftIcon={<Icon as={FaDoorOpen} />}
-                colorScheme="teal"
-                variant="outline"
-                onClick={handleOpenDoor}
-                // isDisabled={!isConnected || commandMutation.isLoading}
-                isLoading={
-                  commandMutation.isLoading && 
-                  commandMutation.variables?.command === 'open_door'
-                }
-                size="sm"
-                width="100%"
-              >
-                Open Door
-              </Button>
-            </Tooltip>
-
-            <Tooltip label="Close robot door" placement="right" hasArrow>
-              <Button
-                leftIcon={<Icon as={FaDoorClosed} />}
-                colorScheme="teal"
-                variant="outline"
-                onClick={handleCloseDoor}
-                // isDisabled={!isConnected || commandMutation.isLoading}
-                isLoading={
-                  commandMutation.isLoading && 
-                  commandMutation.variables?.command === 'close_door'
-                }
-                size="sm"
-                width="100%"
-              >
-                Close Door
-              </Button>
-            </Tooltip>
-          </VStack>
-
-          <Divider />
-
-          {/* Protocol Controls */}
-          <VStack spacing={2} align="stretch">
+            <Text fontWeight="bold" textAlign="start">Run Controls</Text>
             <Tooltip label="Pause running protocol" placement="right" hasArrow>
               <Button
                 leftIcon={<Icon as={MdPause} />}
@@ -202,7 +165,7 @@ export const OpentronsControlPanel: React.FC<OpentronsControlPanelProps> = ({
                 size="sm"
                 width="100%"
               >
-                Pause Protocol
+                Pause Run
               </Button>
             </Tooltip>
 
@@ -220,7 +183,7 @@ export const OpentronsControlPanel: React.FC<OpentronsControlPanelProps> = ({
                 size="sm"
                 width="100%"
               >
-                Resume Protocol
+                Resume Run
               </Button>
             </Tooltip>
 
@@ -238,10 +201,20 @@ export const OpentronsControlPanel: React.FC<OpentronsControlPanelProps> = ({
                 size="sm"
                 width="100%"
               >
-                Stop Protocol
+                Stop Run
               </Button>
             </Tooltip>
           </VStack>
+                    <Divider />
+          <VStack spacing={2} align="stretch" width="100%" >
+                <Switch
+                  isChecked={isSimulated}
+                  onChange={() => setIsSimulated(!isSimulated)}
+                  colorScheme="teal"
+                >
+                  Simulate Run
+                </Switch>
+            </VStack>
         </VStack>
       </CardBody>
     </Card>
