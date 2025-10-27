@@ -23,6 +23,7 @@ def create_default_labware(db: Session) -> None:
                     lid_offset=0,
                     stack_height=0,
                     has_lid=False,
+                    workcell_id=None
                 ),
             )
             logging.info("Created default labware")
@@ -102,7 +103,7 @@ def create_default_grip_params(db: Session, tool_id: int) -> None:
 
 def initialize_database(db: Session) -> None:
     """Initialize database with default data."""
-    create_default_labware(db)
+    #create_default_labware(db) --- IGNORE ---
 
     # Default motion profiles and grip parameters are now created
     # when a pf400 tool is added via db/api.py

@@ -1,10 +1,12 @@
 import typing as t
 from pydantic import BaseModel, model_validator, ConfigDict
 from datetime import datetime, date
-from typing import Optional, List, Dict, Any
 from enum import Enum as PyEnum
+from typing import List, Dict, Any, Optional, Union
+import json 
 
 
+        
 class TimestampMixin(BaseModel):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
@@ -246,7 +248,6 @@ class Log(TimestampMixin, LogCreate):
     id: int
     model_config = ConfigDict(from_attributes=True)
 
-
 class VariableBase(BaseModel):
     name: str
     value: str
@@ -254,38 +255,96 @@ class VariableBase(BaseModel):
 
     @classmethod
     def validate_value_type(cls, data: t.Any) -> t.Any:
-        model_dictionary = {}
+        if not isinstance(data, dict):
+            return data
+            
+        model_dictionary = data.copy()
+        
+        # Validate type field first
+        if "type" in model_dictionary and model_dictionary["type"] not in [
+            "string", "number", "boolean", "array", "json"
+        ]:
+            raise ValueError(
+                "Type must be one of: string, number, boolean, array, json"
+            )
 
-        if isinstance(data, dict):
-            for key, value in data.items():
-                model_dictionary[key] = value
-                if key == "type" and value not in [
-                    "string",
-                    "number",
-                    "boolean",
-                    "array",
-                    "json",
-                ]:
-                    raise ValueError(
-                        "Type must be one of string, " "number, boolean, array, json"
-                    )
+        # Only validate value if both type and value are present
+        if "type" not in model_dictionary or "value" not in model_dictionary:
+            return data
+            
+        value_type = model_dictionary["type"]
+        value = model_dictionary["value"]
+        
+        # Ensure value is always a string (this is how they're stored)
+        if not isinstance(value, str):
+            raise ValueError("All values must be provided as strings")
+        
+        if value_type == "string":
+            # String values are always valid
+            pass
+                
+        elif value_type == "number":
+            if value.strip() == "":
+                raise ValueError("Number value cannot be empty")
+            try:
+                float(value)
+            except (ValueError, TypeError):
+                raise ValueError(f"Value '{value}' is not a valid number")
+                
+        elif value_type == "boolean":
+            if value.strip().lower() not in ["true", "false"]:
+                raise ValueError("Boolean value must be 'true' or 'false' (case insensitive)")
+                
+        elif value_type == "array":
+            # Arrays must start with [ and end with ]
+            if not value.strip().startswith('[') or not value.strip().endswith(']'):
+                raise ValueError("Array must start with [ and end with ]")
+            
+            try:
+                # Parse as JSON to validate structure
+                parsed_array = json.loads(value)
+                
+                # Must be a list
+                if not isinstance(parsed_array, list):
+                    raise ValueError("Array value must be a JSON array")
+                
+                # Empty arrays are valid
+                if len(parsed_array) == 0:
+                    pass
+                else:
+                    # Check that all elements are the same type
+                    first_element = parsed_array[0]
+                    first_type = type(first_element)
+                    
+                    # Only allow string, number (int/float), or boolean
+                    if first_type not in [str, int, float, bool]:
+                        raise ValueError("Array elements must be strings, numbers, or booleans only")
+                    
+                    # Check all elements are same type (treat int and float as same type)
+                    for i, element in enumerate(parsed_array):
+                        element_type = type(element)
+                        
+                        # Reject nested arrays or objects
+                        if isinstance(element, (list, dict)):
+                            raise ValueError("Nested arrays and objects are not allowed")
+                        
+                        # Check type consistency (treat int/float as numbers)
+                        if first_type in [int, float] and element_type in [int, float]:
+                            continue  # Both are numbers, OK
+                        elif element_type != first_type:
+                            raise ValueError(f"All array elements must be the same type. Found {first_type.__name__} and {element_type.__name__}")
+                                
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Array must be valid JSON: {str(e)}")
 
-            if "type" in model_dictionary and "value" in model_dictionary:
-                if model_dictionary["type"] == "string" and not isinstance(
-                    model_dictionary["value"], str
-                ):
-                    raise ValueError("Value must be a string")
-
-                if model_dictionary["type"] == "number":
-                    try:
-                        float(model_dictionary["value"])
-                    except ValueError:
-                        raise ValueError("Value must be a number")
-
-                if model_dictionary["type"] == "boolean" and str(
-                    model_dictionary["value"]
-                ).lower() not in ["true", "false"]:
-                    raise ValueError("Value must be a boolean")
+                
+        elif value_type == "json":
+            if value.strip() == "":
+                raise ValueError("JSON value cannot be empty")
+            try:
+                json.loads(value)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Invalid JSON format: {str(e)}")
 
         return data
 
@@ -293,7 +352,8 @@ class VariableBase(BaseModel):
 class VariableCreate(VariableBase):
     name: str
     type: str
-
+    workcell_id: t.Optional[int] = None 
+    
     @model_validator(mode="before")
     @classmethod
     def check_value_type(cls, data: t.Any) -> t.Any:
@@ -307,15 +367,176 @@ class Variable(TimestampMixin, VariableCreate):
 
 class VariableUpdate(BaseModel):
     name: t.Optional[str] = None
-    value: t.Optional[t.Union[str, int, bool]] = None
+    value: t.Optional[str] = None
     type: t.Optional[str] = None
+    workcell_id: t.Optional[int] = None
 
     @model_validator(mode="before")
     @classmethod
     def check_value_type(cls, data: t.Any) -> t.Any:
         return VariableBase.validate_value_type(data)
 
-
+# Helper functions for working with variables
+class VariableHelpers:
+    @staticmethod
+    def parse_array_value(value: str) -> list[str]:
+        """Parse comma-separated string into list of strings.
+        
+        Args:
+            value: Comma-separated string (e.g., "item1, item2, item3")
+            
+        Returns:
+            List of strings with whitespace stripped
+            
+        Examples:
+            parse_array_value("a, b, c") -> ["a", "b", "c"]
+            parse_array_value("") -> []
+            parse_array_value("single") -> ["single"]
+        """
+        if not value or value.strip() == "":
+            return []
+        
+        # Split by comma and strip whitespace from each item
+        items = [item.strip() for item in value.split(",")]
+        # Filter out empty strings that might result from consecutive commas
+        return [item for item in items if item != ""]
+    
+    @staticmethod
+    def parse_json_value(value: str) -> t.Any:
+        """Parse JSON string into Python object.
+        
+        Raises:
+            json.JSONDecodeError: If the string is not valid JSON
+        """
+        if not value or value.strip() == "":
+            raise ValueError("JSON value cannot be empty")
+        return json.loads(value)
+    
+    @staticmethod
+    def parse_boolean_value(value: str) -> bool:
+        """Parse string boolean into Python boolean.
+        
+        Args:
+            value: String representation of boolean ("true", "false", case-insensitive)
+            
+        Returns:
+            Boolean value
+            
+        Raises:
+            ValueError: If value is not a valid boolean string
+        """
+        if not isinstance(value, str):
+            raise ValueError("Boolean value must be a string")
+        
+        lower_value = value.strip().lower()
+        if lower_value == "true":
+            return True
+        elif lower_value == "false":
+            return False
+        else:
+            raise ValueError("Boolean value must be 'true' or 'false' (case insensitive)")
+    
+    @staticmethod
+    def parse_number_value(value: str) -> float:
+        """Parse string number into Python float.
+        
+        Raises:
+            ValueError: If the string cannot be converted to a number
+        """
+        if not value or value.strip() == "":
+            raise ValueError("Number value cannot be empty")
+        return float(value.strip())
+    
+    @staticmethod
+    def format_array_value(items: list[str]) -> str:
+        """Format list of strings into comma-separated string.
+        
+        Args:
+            items: List of strings to join
+            
+        Returns:
+            Comma-separated string with spaces after commas
+        """
+        return ", ".join(str(item) for item in items)
+    
+    @staticmethod
+    def format_json_value(obj: t.Any) -> str:
+        """Format Python object into compact JSON string.
+        
+        Args:
+            obj: Python object to serialize to JSON
+            
+        Returns:
+            Compact JSON string (no extra whitespace)
+        """
+        return json.dumps(obj, separators=(",", ":"))
+    
+    @staticmethod
+    def get_parsed_value(variable: Variable) -> t.Any:
+        """Get the parsed value based on the variable type.
+        
+        Args:
+            variable: Variable instance with type and string value
+            
+        Returns:
+            Parsed value in appropriate Python type:
+            - string -> str
+            - number -> float  
+            - boolean -> bool
+            - array -> list[str]
+            - json -> Any (parsed JSON)
+        """
+        if variable.type == "string":
+            return variable.value
+        elif variable.type == "number":
+            return VariableHelpers.parse_number_value(variable.value)
+        elif variable.type == "boolean":
+            return VariableHelpers.parse_boolean_value(variable.value)
+        elif variable.type == "array":
+            return VariableHelpers.parse_array_value(variable.value)
+        elif variable.type == "json":
+            return VariableHelpers.parse_json_value(variable.value)
+        else:
+            # Unknown type, return as string
+            return variable.value
+    
+    @staticmethod
+    def validate_and_format_value(value: str, variable_type: str) -> str:
+        """Validate a value for a given type and return formatted string.
+        
+        This is useful for preprocessing values before creating/updating variables.
+        
+        Args:
+            value: Raw value as string
+            variable_type: Type to validate against
+            
+        Returns:
+            Formatted string value ready for storage
+            
+        Raises:
+            ValueError: If value is invalid for the given type
+        """
+        if variable_type == "string":
+            return value
+        elif variable_type == "number":
+            # Validate by parsing, then return original string
+            float(value.strip())
+            return value.strip()
+        elif variable_type == "boolean":
+            # Validate and normalize
+            parsed = VariableHelpers.parse_boolean_value(value)
+            return "true" if parsed else "false"
+        elif variable_type == "array":
+            # Validate by parsing, then return normalized format  
+            items = VariableHelpers.parse_array_value(value)
+            return VariableHelpers.format_array_value(items)
+        elif variable_type == "json":
+            # Validate by parsing, then return formatted JSON
+            obj = VariableHelpers.parse_json_value(value)
+            return VariableHelpers.format_json_value(obj)
+        else:
+            raise ValueError(f"Unknown variable type: {variable_type}")
+        
 class LabwareCreate(BaseModel):
     name: str
     description: str
@@ -329,6 +550,7 @@ class LabwareCreate(BaseModel):
     stack_height: t.Optional[float] = 0
     has_lid: t.Optional[bool] = False
     image_url: t.Optional[str] = ""
+    workcell_id: t.Optional[int] = None
 
 
 class Labware(TimestampMixin, LabwareCreate):
@@ -349,42 +571,77 @@ class LabwareUpdate(BaseModel):
     stack_height: t.Optional[float] = None
     has_lid: t.Optional[bool] = None
     image_url: t.Optional[str] = None
+    workcell_id: t.Optional[int] = None
 
+# Schemas for waypoint data
+class TeachPoint(BaseModel):
+    name: str
+    coordinates: str
+    type: str = "location"
+    loc_type: str = "j"
+    orientation: Optional[str] = "landscape"
+
+class Command(BaseModel):
+    command: str
+    params: Dict
+    order: int
+
+
+class Sequence(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    commands: List[Command]
+    tool_id: int = 1
+
+
+class MotionProfile(BaseModel):
+    name: str
+    profile_id: int
+    speed: float = 100
+    speed2: float = 100
+    acceleration: float = 100
+    deceleration: float = 100
+    accel_ramp: float = 0.2
+    decel_ramp: float = 0.2
+    inrange: int = 1
+    straight: int = 0
+    tool_id: int = 1
+
+
+class GripParam(BaseModel):
+    name: str
+    width: float
+    force: float = 15
+    speed: float = 10
+    tool_id: int = 1
+
+
+class WaypointData(BaseModel):
+    teach_points: Optional[List[TeachPoint]] = None
+    sequences: Optional[List[Sequence]] = None
+    motion_profiles: Optional[List[MotionProfile]] = None
+    grip_params: Optional[List[GripParam]] = None
 
 class ProtocolBase(BaseModel):
     name: str
     category: str
     workcell_id: int
     description: t.Optional[str] = None
-    icon: t.Optional[str] = None
-    params: t.Dict[str, t.Any]
     commands: t.List[t.Dict[str, t.Any]]
-    version: t.Optional[int] = 1
-    is_active: t.Optional[bool] = True
 
 
-class ProtocolCreate(ProtocolBase):
+class ProtocolCreate(BaseModel):
     name: str
     category: str
     workcell_id: int
-    description: t.Optional[str] = None
-    icon: t.Optional[str] = None
-    params: t.Dict[str, t.Any] = {}
-    commands: t.List[t.Dict[str, t.Any]] = []
-    version: t.Optional[int] = 1
-    is_active: t.Optional[bool] = True
-
+    description: Optional[str] = None
+    commands: List[Dict[str, Any]]
 
 class ProtocolUpdate(BaseModel):
     name: t.Optional[str] = None
     category: t.Optional[str] = None
     description: t.Optional[str] = None
-    icon: t.Optional[str] = None
-    params: t.Optional[t.Dict[str, t.Any]] = None
     commands: t.Optional[t.List[t.Dict[str, t.Any]]] = None
-    version: t.Optional[int] = None
-    is_active: t.Optional[bool] = None
-
 
 class Protocol(ProtocolBase):
     id: int
@@ -423,6 +680,7 @@ class ScriptBase(BaseModel):
     language: str = "python"
     is_blocking: bool = True
     folder_id: t.Optional[int] = None
+    workcell_id: t.Optional[int] = None
 
 
 class ScriptCreate(ScriptBase):
@@ -436,6 +694,7 @@ class ScriptUpdate(BaseModel):
     language: t.Optional[str] = None
     is_blocking: t.Optional[bool] = None
     folder_id: t.Optional[int] = None
+    workcell_id: t.Optional[int] = None
 
 
 class Script(ScriptBase):
@@ -451,6 +710,7 @@ class ScriptFolderBase(BaseModel):
     name: str
     description: t.Optional[str] = None
     parent_id: t.Optional[int] = None
+    workcell_id: int
 
 
 class ScriptFolderCreate(ScriptFolderBase):
@@ -461,7 +721,7 @@ class ScriptFolderUpdate(BaseModel):
     name: t.Optional[str] = None
     description: t.Optional[str] = None
     parent_id: t.Optional[int] = None
-
+    workcell_id: t.Optional[int] = None
 
 class ScriptFolder(ScriptFolderBase):
     model_config = ConfigDict(from_attributes=True)
@@ -643,10 +903,8 @@ class PlateNestHistoryBase(BaseModel):
 class PlateNestHistoryCreate(PlateNestHistoryBase):
     pass
 
-
 class PlateNestHistoryUpdate(PlateNestHistoryBase):
     pass
-
 
 class PlateNestHistory(PlateNestHistoryBase):
     id: int
@@ -665,3 +923,36 @@ class PlateWithRelations(Plate):
     current_nest: t.Optional[Nest] = None
     nest_history: t.List[PlateNestHistory] = []
     wells: t.List["Well"] = []
+
+
+class FormFieldOption(BaseModel):
+    value: str
+    label: str
+
+class FormField(BaseModel):
+    type: str  
+    label: str
+    required: Optional[bool] = False
+    placeholder: Optional[str] = None
+    options: Optional[List[FormFieldOption]] = None
+    default_value: Optional[Union[str, List[str]]] = None
+    mapped_variable: Optional[str] = None
+
+    
+class FormCreate(BaseModel):
+    name: str
+    fields: Optional[List[FormField]] = None
+    background_color: t.Optional[str] = None
+    font_color: t.Optional[str] = None
+    workcell_id: t.Optional[int] = None
+
+class FormUpdate(BaseModel):
+    name: t.Optional[str] = None
+    fields: Optional[List[FormField]] = None
+    background_color: t.Optional[str] = None
+    font_color: t.Optional[str] = None
+    workcell_id: t.Optional[int] = None
+
+class Form(TimestampMixin, FormCreate):
+    id: int
+    model_config = ConfigDict(from_attributes=True)

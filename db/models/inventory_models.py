@@ -11,6 +11,7 @@ from sqlalchemy import (
     CheckConstraint,
     Enum as SQLEnum,
     Date,
+    UniqueConstraint
 )
 from sqlalchemy.orm import relationship, RelationshipProperty
 from sqlalchemy.sql import func
@@ -34,6 +35,21 @@ class Workcell(Base, TimestampMixin):
     hotels: RelationshipProperty[List["Hotel"]] = relationship(
         "Hotel", back_populates="workcell", cascade="all, delete-orphan"
     )
+    scripts: RelationshipProperty[List["Script"]] = relationship(
+        "Script", back_populates="workcell", cascade="all, delete-orphan"
+    )
+    variables: RelationshipProperty[List["Variable"]] = relationship(
+        "Variable", back_populates="workcell", cascade="all, delete-orphan"
+    )
+    labware: RelationshipProperty[List["Labware"]] = relationship(
+        "Labware", back_populates="workcell", cascade="all, delete-orphan"
+    )
+    forms: RelationshipProperty[List["Form"]] = relationship(
+        "Form", back_populates="workcell", cascade="all, delete-orphan"
+    )
+    script_folders: RelationshipProperty[List["ScriptFolder"]] = relationship(
+        "ScriptFolder", back_populates="workcell", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
@@ -42,7 +58,7 @@ class Tool(Base, TimestampMixin):
     __tablename__ = "tools"
     id = Column(Integer, primary_key=True)
     type = Column(String, nullable=False)
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False)
     description = Column(String, nullable=True)
     image_url = Column(String, nullable=True)
     ip = Column(String, nullable=False)
@@ -68,13 +84,16 @@ class Tool(Base, TimestampMixin):
         List["RobotArmGripParams"]
     ] = relationship("RobotArmGripParams", back_populates="tool")
 
-    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+        UniqueConstraint('name', 'workcell_id', name='unique_tool_name_per_workcell')
+    )
 
 
 class Hotel(Base, TimestampMixin):
     __tablename__ = "hotels"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False)
     description = Column(String, nullable=True)
     image_url = Column(String, nullable=True)
     rows = Column(Integer, nullable=False)
@@ -89,7 +108,11 @@ class Hotel(Base, TimestampMixin):
         "Nest", back_populates="hotel"
     )
 
-    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+        UniqueConstraint('name', 'workcell_id', name='unique_hotel_name_per_workcell')
+    )
+
 
 
 class NestStatus(str, enum.Enum):
@@ -207,17 +230,24 @@ class VariableType(Base, TimestampMixin):
 class Variable(Base, TimestampMixin):
     __tablename__ = "variables"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True, nullable=False)
+    name = Column(String, index=True, nullable=False)
     value = Column(String, nullable=False)
     type = Column(String)
+    workcell_id = Column(Integer, ForeignKey("workcells.id"))
+    workcell: RelationshipProperty[Optional["Workcell"]] = relationship(
+        "Workcell", back_populates="variables"
+    )
 
-    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+        UniqueConstraint('name', 'workcell_id', name='unique_variable_name_per_workcell')
+    )
 
 
 class Labware(Base, TimestampMixin):
     __tablename__ = "labware"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False)
     image_url = Column(String, nullable=True)
     description = Column(String, nullable=False)
     number_of_rows = Column(Integer, nullable=False)
@@ -229,16 +259,27 @@ class Labware(Base, TimestampMixin):
     lid_offset = Column(Float, nullable=True)
     stack_height = Column(Float, nullable=True)
     has_lid = Column(Boolean, nullable=True)
+    workcell_id = Column(Integer, ForeignKey("workcells.id"))
+    workcell: RelationshipProperty[Optional["Workcell"]] = relationship(
+        "Workcell", back_populates="labware"
+    )
 
-    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+        UniqueConstraint('name', 'workcell_id', name='unique_labware_name_per_workcell')
+    )
 
 
 class ScriptFolder(Base, TimestampMixin):
     __tablename__ = "script_folders"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False)
     parent_id = Column(Integer, ForeignKey("script_folders.id"), nullable=True)
     description = Column(String, nullable=True)
+    workcell_id = Column(Integer, ForeignKey("workcells.id"))
+    workcell: RelationshipProperty[Optional["Workcell"]] = relationship(
+        "Workcell", back_populates="script_folders"
+    )
 
     # Relationships
     parent: RelationshipProperty[Optional["ScriptFolder"]] = relationship(
@@ -248,20 +289,33 @@ class ScriptFolder(Base, TimestampMixin):
         "Script", back_populates="folder"
     )
 
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+        UniqueConstraint('name', 'workcell_id', name='unique_script_folder_name_per_workcell')
+    )
 
 class Script(Base, TimestampMixin):
     __tablename__ = "scripts"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False)
     description = Column(String, nullable=False)
     content = Column(String, nullable=False)
     language = Column(String, nullable=False)
     is_blocking = Column(Boolean, nullable=False)
     folder_id = Column(Integer, ForeignKey("script_folders.id"), nullable=True)
+    workcell_id = Column(Integer, ForeignKey("workcells.id"))
+    workcell: RelationshipProperty[Optional["Workcell"]] = relationship(
+        "Workcell", back_populates="scripts"
+    )
 
     # Relationships
     folder: RelationshipProperty[Optional["ScriptFolder"]] = relationship(
         "ScriptFolder", back_populates="scripts"
+    )
+
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+        UniqueConstraint('name', 'workcell_id', name='unique_script_name_per_workcell')
     )
 
 
@@ -276,7 +330,7 @@ class AppSettings(Base, TimestampMixin):
 class RobotArmLocation(Base, TimestampMixin):
     __tablename__ = "robot_arm_locations"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False)
     location_type = Column(String, nullable=False)
     coordinates = Column(String, nullable=False)
     tool_id = Column(Integer, ForeignKey("tools.id"))
@@ -285,13 +339,16 @@ class RobotArmLocation(Base, TimestampMixin):
         "Tool", back_populates="robot_arm_locations"
     )
 
-    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+        UniqueConstraint('name', 'tool_id', name='unique_name_per_tool')
+    )
 
 
 class RobotArmSequence(Base, TimestampMixin):
     __tablename__ = "robot_arm_sequences"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False)
     description = Column(String, nullable=True)
     commands = Column(JSON, nullable=False)
     tool_id = Column(Integer, ForeignKey("tools.id"))
@@ -306,7 +363,7 @@ class RobotArmSequence(Base, TimestampMixin):
 class RobotArmMotionProfile(Base, TimestampMixin):
     __tablename__ = "robot_arm_motion_profiles"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False)
     speed = Column(Float, nullable=False)
     speed2 = Column(Float, nullable=False)
     acceleration = Column(Float, nullable=False)
@@ -326,7 +383,7 @@ class RobotArmMotionProfile(Base, TimestampMixin):
 class RobotArmGripParams(Base, TimestampMixin):
     __tablename__ = "robot_arm_grip_params"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False)
     width = Column(Integer, nullable=False)
     speed = Column(Integer, nullable=False)
     force = Column(Integer, nullable=False)
@@ -345,14 +402,31 @@ class Protocol(Base, TimestampMixin):
     category = Column(String, nullable=False)
     workcell_id = Column(Integer, ForeignKey("workcells.id"))
     description = Column(String, nullable=True)
-    icon = Column(String, nullable=True)
-    params = Column(JSON, nullable=False)  # Zod schema for parameters
-    commands = Column(JSON, nullable=False)  # Template for generating commands
-    version = Column(Integer, nullable=False, default=1)
-    is_active = Column(Boolean, nullable=False, default=True)
+    commands = Column(JSON, nullable=False) 
 
     workcell: RelationshipProperty[Optional["Workcell"]] = relationship(
         "Workcell", back_populates="protocols"
     )
 
-    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+        UniqueConstraint('name', 'workcell_id', name='unique_protocol_name_per_workcell')
+    )
+
+
+class Form(Base, TimestampMixin):
+    __tablename__ = "forms"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    fields = Column(JSON, nullable=False)  
+    background_color = Column(String, nullable=True)
+    font_color = Column(String, nullable=True)
+    workcell_id = Column(Integer, ForeignKey("workcells.id"))
+    workcell: RelationshipProperty[Optional["Workcell"]] = relationship(
+        "Workcell", back_populates="forms"
+    )
+
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+        UniqueConstraint('name', 'workcell_id', name='unique_form_name_per_workcell')
+    )

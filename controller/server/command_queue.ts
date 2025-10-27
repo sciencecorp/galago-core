@@ -21,12 +21,13 @@ export enum QueueState {
 
 // UI message type for differentiating between pause and show_message
 export interface UIMessage {
-  type: "pause" | "message" | "timer" | "stop_run";
+  type: "pause" | "message" | "timer" | "stop_run" | "user_form";
   message: string;
   title?: string;
-  pausedAt?: number; // Timestamp when paused or message shown
-  timerDuration?: number; //Total duration of the timer
-  timerEndTime?: number; // Timestamp when timer ends
+  pausedAt?: number;
+  timerDuration?: number;
+  timerEndTime?: number;
+  formName?: string; // Add this for user_form
 }
 
 export class CommandQueue {
@@ -56,7 +57,7 @@ export class CommandQueue {
     }
     this._setState(ToolStatus.FAILED);
     this.error = error;
-    throw error;
+    logger.error("CommandQueue failed:", error);
   }
 
   get state(): CommandQueueState {
@@ -192,8 +193,32 @@ export class CommandQueue {
       this._isWaitingForInput = false;
 
       // Add a small delay to ensure all state updates have propagated
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
+  }
+
+  async showUserForm(formName: string) {
+    await this._ensureModalReady();
+
+    const pausedAt = Date.now();
+    this._isWaitingForInput = true;
+    this._currentMessage = {
+      type: "user_form",
+      message: `Please fill out the ${formName} form and click Submit to continue.`,
+      formName: formName,
+      pausedAt: pausedAt,
+    };
+
+    logAction({
+      level: "info",
+      action: "Queue Showing User Form",
+      details: `Queue showing user form: ${formName} at ${new Date(pausedAt).toISOString()}`,
+    });
+
+    // Return a promise that resolves when resume is called
+    return new Promise<void>((resolve) => {
+      this._messageResolve = resolve;
+    });
   }
 
   // Show pause message and wait for user input
@@ -383,6 +408,12 @@ export class CommandQueue {
     this._isWaitingForInput = false;
     this._messageResolve = undefined;
 
+    // Clear any previous errors when resuming
+    if (this.error) {
+      console.log("Clearing error on resume");
+      this.clearError();
+    }
+
     logAction({
       level: "info",
       action: "Queue Resumed",
@@ -427,8 +458,13 @@ export class CommandQueue {
   }
 
   async clearError() {
+    console.log("Clearing error and resetting state from:", this._state);
     this.error = undefined;
-    this._setState(ToolStatus.READY);
+
+    // Only reset to READY if we're currently in FAILED state
+    if (this._state === ToolStatus.FAILED) {
+      this._setState(ToolStatus.READY);
+    }
   }
 
   slackNotificationsEnabled: boolean = true;
@@ -451,7 +487,7 @@ export class CommandQueue {
         details: "Error while starting the queue.: " + e,
       });
       this.error = e instanceof Error ? e : new Error("Execution failed");
-      this.fail(e);
+      this._setState(ToolStatus.FAILED);
     } finally {
       this._runningPromise = undefined;
       if (this.state === ToolStatus.BUSY) {
@@ -495,83 +531,94 @@ export class CommandQueue {
 
   private async _runBusyLoopWhileQueueNotEmpty(timeout = 120) {
     this._setState(ToolStatus.BUSY);
-    let threadTs: string | undefined;
-    const startedAt = Date.now();
 
     while (this.state === ToolStatus.BUSY) {
       // Small delay between processing commands to avoid race conditions
-      await new Promise((resolve) => setTimeout(resolve, 750));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       const nextCommand = await this.commands.startNext();
       if (!nextCommand) {
-        this.stop(); //stop the queue when there are no more commands available!!
+        this.stop(); // stop the queue when there are no more commands available!!
         return;
       }
 
-      // Handle advanced parameters for skip execution
-      if (nextCommand.commandInfo.advancedParameters?.skipExecutionVariable?.variable) {
-        try {
-          // Get the variable name and expected value for skipping
-          const varName = nextCommand.commandInfo.advancedParameters.skipExecutionVariable.variable;
-          let expectedValue =
-            nextCommand.commandInfo.advancedParameters.skipExecutionVariable.value;
-          if (expectedValue.startsWith("{{") && expectedValue.endsWith("}}")) {
-            expectedValue = (await get<Variable>(`/variables/${expectedValue.slice(2, -2).trim()}`))
-              .value;
-          }
-
-          // Fetch the variable from the database
-          const varResponse = await get<Variable>(`/variables/${varName}`);
-          // If variable value matches expected value, skip this command
-          if (varResponse.value === expectedValue) {
-            logAction({
-              level: "info",
-              action: "Command Skipped",
-              details: `Skipping command: ${nextCommand.commandInfo.command} for tool: ${nextCommand.commandInfo.toolId} because variable ${varName} = ${expectedValue}`,
-            });
-
-            await this.skipCommand(nextCommand.queueId);
-            continue;
-          }
-        } catch (e) {
-          logAction({
-            level: "warning",
-            action: "Skip Execution Variable Error",
-            details: `Failed to fetch skip execution variable ${nextCommand.commandInfo.advancedParameters.skipExecutionVariable.variable}: ${e}`,
-          });
-          // Continue with command execution if we can't check the skip condition
-        }
-      }
-
-      const dateString = String(nextCommand.createdAt);
-      const dateObject = new Date(dateString);
-
-      // Format timestamp logic...
-      const year = dateObject.getFullYear();
-      const month = dateObject.getMonth() + 1;
-      const day = dateObject.getDate();
-      const hours = dateObject.getHours();
-      const minutes = dateObject.getMinutes();
-      const seconds = dateObject.getSeconds();
-
-      const amOrPm = hours >= 12 ? "PM" : "AM";
-      const formattedHours = (hours % 12 || 12).toString();
-
-      const formattedDateTime = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
-        2,
-        "0",
-      )} ${formattedHours.padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
-        seconds,
-      ).padStart(2, "0")} ${amOrPm}`;
-
       try {
-        logger.info("Executing command", nextCommand.commandInfo);
+        logger.info("Executing command:", nextCommand.commandInfo);
 
+        // Handle advanced parameters for skip execution
+        if (nextCommand.commandInfo.advancedParameters?.skipExecutionVariable?.variable) {
+          try {
+            // Get the variable name and expected value for skipping
+            const varName =
+              nextCommand.commandInfo.advancedParameters.skipExecutionVariable.variable;
+            let expectedValue =
+              nextCommand.commandInfo.advancedParameters.skipExecutionVariable.value;
+            if (expectedValue.startsWith("{{") && expectedValue.endsWith("}}")) {
+              expectedValue = (
+                await get<Variable>(`/variables/${expectedValue.slice(2, -2).trim()}`)
+              ).value;
+            }
+
+            // Fetch the variable from the database
+            const varResponse = await get<Variable>(`/variables/${varName}`);
+            // If variable value matches expected value, skip this command
+            if (varResponse.value === expectedValue) {
+              logAction({
+                level: "info",
+                action: "Command Skipped",
+                details: `Skipping command: ${nextCommand.commandInfo.command} for tool: ${nextCommand.commandInfo.toolId} because variable ${varName} = ${expectedValue}`,
+              });
+
+              await this.skipCommand(nextCommand.queueId);
+              continue;
+            }
+          } catch (e) {
+            logAction({
+              level: "warning",
+              action: "Skip Execution Variable Error",
+              details: `Failed to fetch skip execution variable ${nextCommand.commandInfo.advancedParameters.skipExecutionVariable.variable}: ${e}`,
+            });
+            // Continue with command execution if we can't check the skip condition
+          }
+        }
+
+        const dateString = String(nextCommand.createdAt);
+        const dateObject = new Date(dateString);
+
+        // Format timestamp logic...
+        const year = dateObject.getFullYear();
+        const month = dateObject.getMonth() + 1;
+        const day = dateObject.getDate();
+        const hours = dateObject.getHours();
+        const minutes = dateObject.getMinutes();
+        const seconds = dateObject.getSeconds();
+
+        const amOrPm = hours >= 12 ? "PM" : "AM";
+        const formattedHours = (hours % 12 || 12).toString();
+
+        const formattedDateTime = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
+          2,
+          "0",
+        )} ${formattedHours.padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
+          seconds,
+        ).padStart(2, "0")} ${amOrPm}`;
+
+        // Handle special tool_box commands
         if (nextCommand.commandInfo.toolId === "tool_box") {
           if (nextCommand.commandInfo.command === "pause") {
             const message =
               nextCommand.commandInfo.params?.message || "Run is paused. Click Continue to resume.";
             await this.commands.complete(nextCommand.queueId);
             await this.pause(message);
+            continue;
+          } else if (nextCommand.commandInfo.command === "user_form") {
+            // Handle user_form command
+            const formName = nextCommand.commandInfo.params?.name;
+            if (!formName) {
+              throw new Error("Form name is required for user_form command");
+            }
+
+            await this.commands.complete(nextCommand.queueId);
+            await this.showUserForm(formName);
             continue;
           } else if (nextCommand.commandInfo.command === "show_message") {
             // Handle show_message command
@@ -680,7 +727,7 @@ export class CommandQueue {
               // Update the variable in the database
               await put<Variable>(`/variables/${targetVariable.id}`, {
                 ...targetVariable,
-                value: finalValue,
+                value: String(finalValue),
               });
 
               logAction({
@@ -712,20 +759,32 @@ export class CommandQueue {
         });
         logger.info("Command executed successfully");
       } catch (e) {
-        let errorMessage = null;
-        if (e instanceof Error) {
-          errorMessage = e.message;
-        } else {
-          errorMessage = new Error("Unknown error while trying to execute tool command");
-        }
         logger.error("Failed to execute command", e);
+
+        // Mark command as failed in the queue
         await this.commands.fail(
           nextCommand.queueId,
           e instanceof Error ? e : new Error("Unknown error"),
         );
+
+        // Set error state for UI to display
         this.error = e instanceof Error ? e : new Error("Execution failed");
-        throw e;
+        this._setState(ToolStatus.FAILED);
+
+        logAction({
+          level: "error",
+          action: "Command Failed",
+          details: `Command failed: ${e instanceof Error ? e.message : e}`,
+        });
+
+        // Exit the busy loop but keep the error state
+        break;
       }
+    }
+
+    // Only set to READY if we're not in FAILED state
+    if (this.state === ToolStatus.BUSY) {
+      this._setState(ToolStatus.READY);
     }
   }
 
@@ -733,7 +792,6 @@ export class CommandQueue {
     try {
       const runQueue: RunQueue = {
         id: run.id,
-        params: run.params,
         run_type: run.protocolId,
         commands_count: run.commands.length,
         status: "CREATED",

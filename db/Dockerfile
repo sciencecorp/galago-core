@@ -1,5 +1,5 @@
 # Use official Python image as the base image
-FROM --platform=$TARGETPLATFORM python:3.9-slim
+FROM --platform=$TARGETPLATFORM python:3.11-slim
 
 # Set the working directory
 WORKDIR /app
@@ -19,4 +19,4 @@ ENV PYTHONPATH="/app"
 EXPOSE 8000
 
 # Command to run the FastAPI app with Uvicorn
-CMD ["uvicorn", "db.api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "db.main:app", "--host", "0.0.0.0", "--port", "8000"]

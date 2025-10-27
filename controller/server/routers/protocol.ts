@@ -2,32 +2,17 @@ import { Protocol } from "@/types/api";
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import axios from "axios";
-import { TRPCError } from "@trpc/server";
 import { logAction } from "@/server/logger";
-import { get, post, put } from "../utils/api";
+import { get, post } from "../utils/api";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
-
-export type AllNamesOutput = {
-  name: string;
-  id: string;
-  category: string;
-  workcell: string;
-  number_of_commands: number;
-  description?: string;
-  icon?: any;
-}[];
 
 const protocolSchema = z.object({
   name: z.string().min(1),
   category: z.string().min(1),
   workcell_id: z.number(),
   description: z.string().optional(),
-  icon: z.string().optional(),
-  params: z.record(z.any()),
   commands: z.array(z.any()),
-  version: z.number().optional(),
-  is_active: z.boolean().optional(),
 });
 
 export const protocolRouter = router({
@@ -53,9 +38,6 @@ export const protocolRouter = router({
   create: procedure.input(protocolSchema).mutation(async ({ input }) => {
     const protocolData = {
       ...input,
-      version: input.version || 1,
-      is_active: input.is_active ?? true,
-      params: input.params || {},
       commands: input.commands || [],
     };
     const response = await post<Protocol>(`${API_BASE_URL}/protocols`, protocolData);

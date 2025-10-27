@@ -1,27 +1,99 @@
 # Galago
 
+**Galago** is a comprehensive laboratory automation platform that orchestrates and manages laboratory equipment through a unified interface. It provides protocol execution, device management, and real-time monitoring for automated laboratory workflows.
+
+## Architecture
+
 Galago consists of several distinct modules:
 
-- Controller, a NEXT.js app which governs a defined set of devices (execution management and scheduling)
-- [Tool drivers](https://github.com/sciencecorp/galago-tools) which implement a gRPC interface and handle tool-specific control logic
+- **Controller**: A Next.js + tRPC web application that provides the user interface, manages device orchestration, protocol execution, and scheduling
+- **Database API**: A FastAPI-based service that handles data persistence for inventory, protocols, and logs
+- **Tool Drivers**: [Separate repository](https://github.com/sciencecorp/galago-tools) containing gRPC-based drivers for laboratory equipment
+- **Queue System**: Redis-based task queue for managing protocol execution and device coordination
 
-To build the protobuf interfaces, simply run `bin/make proto`.
+## Features
 
-## Getting started
+- 🔬 **Multi-device orchestration** - Coordinate multiple laboratory instruments simultaneously
+- 📋 **Protocol management** - Create, edit, and execute complex laboratory protocols
+- 📊 **Real-time monitoring** - Live status updates and logging of all device operations
+- 🗄️ **Inventory tracking** - Manage labware, samples, and consumables
+- 📈 **Run analytics** - Detailed execution reports
+- 🔧 **Extensible architecture** - Easy integration of new laboratory equipment
 
-### Requirements
+## Getting Started
 
-1. Node 18.13
-2. Python 3.9
-3. Docker and Docker compose
+### Prerequisites
 
-Docker and docker compose are recommended.
+- **Node.js** 18.13 or higher
+- **Python** 3.11
+- **Docker** and **Docker Compose** (recommended for development)
+- **Redis** (for queue management)
 
-### Build and launch controller
+### Quick Start with Docker (Recommended)
 
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/your-org/galago-core.git
+   cd galago-core
+   ```
+
+2. **Launch development environment**
+
+   ```bash
+   docker-compose -f docker-compose.dev.yml up --build
+   ```
+
+3. **Access the application**
+   - Web Interface: http://localhost:3010
+   - Database API: http://localhost:8000
+   - API Documentation: http://localhost:8000/docs
+
+### Manual Setup
+
+If you prefer to run without Docker:
+
+#### 1. Build dependencies and interfaces
+
+```bash
+bin/make deps
+bin/make proto
 ```
-docker-compose -f docker-compose.yml up --build #Prod Mode
-docker-compose -f docker-compose.dev.yml up --build #Dev Mode
+
+#### 2. Start Redis (if not using Docker)
+
+```bash
+# macOS
+bin/make redis
+
+# Or install manually
+redis-server
+```
+
+#### 3. Start the database service
+
+```bash
+cd db
+pip install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+#### 4. Start the web controller
+
+```bash
+cd controller
+npm install
+npm run dev
+```
+
+## Production Deployment
+
+For production deployment:
+
+```bash
+
+# Launch production stack
+docker-compose -f docker-compose.yml up -d --force-recreate
 ```
 
 ## Other docker commands
@@ -90,8 +162,93 @@ sudo apt-get install redis
 sudo service redis-server start
 ```
 
-## Launching Galago
+## Contributing
+
+We welcome contributions to Galago! Please follow these guidelines:
+
+### Development Workflow
+
+1. **Fork the repository** and create a feature branch
+2. **Set up development environment** using Docker Compose
+3. **Make your changes** following the existing code style
+4. **Test your changes** thoroughly
+5. **Submit a pull request** with a clear description
+
+### Code Style
+
+- **TypeScript/JavaScript**: Follow existing patterns, use Prettier for formatting
+- **Python**: Follow PEP 8, use type hints where possible
+- **Commit messages**: Use conventional commit format
+
+### Adding New Tools
+
+To integrate a new laboratory instrument:
+
+1. Implement the gRPC interface in the [galago-tools repository](https://github.com/sciencecorp/galago-tools)
+2. Add the tool type to `interfaces/controller.proto`
+3. Update the controller to recognize the new tool type
+4. Add appropriate UI components for tool-specific operations
+
+## Security
+
+- **Never commit sensitive information** (API keys, passwords, etc.)
+- **Use environment variables** for configuration
+- **Keep dependencies updated** regularly
+- **Report security issues** privately to the maintainers
+
+## Troubleshooting
+
+### Common Issues
+
+**Container fails to start:**
 
 ```bash
-bin/make run
+# Check logs
+docker-compose logs galago-web-dev
+docker-compose logs galago-db-dev
+
+# Rebuild containers
+docker-compose -f docker-compose.dev.yml down --rmi all
+docker-compose -f docker-compose.dev.yml up --build
 ```
+
+**Redis connection issues:**
+
+```bash
+# Verify Redis is running
+redis-cli ping
+
+# Check Redis logs
+docker-compose logs queue
+```
+
+**Port conflicts:**
+
+- Web interface (3010), Database API (8000), Redis (1203)
+- Modify port mappings in docker-compose files if needed
+
+## Architecture Details
+
+### Data Flow
+
+1. **User Interface** (Next.js) → tRPC calls → **Controller Server**
+2. **Controller Server** → HTTP API calls → **Database Service**
+3. **Controller Server** → gRPC calls → **Tool Drivers**
+4. **Queue System** (Redis) manages asynchronous protocol execution
+
+### Database Schema
+
+- **Inventory**: Labware, samples, and consumables tracking
+- **Protocols**: Stored procedures and execution templates
+- **Runs**: Execution history and results
+- **Logs**: System events and device communications
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+- **Documentation**: Check the `/docs` endpoint when running the database API
+- **Issues**: Report bugs and feature requests via GitHub Issues
+- **Discussions**: Use GitHub Discussions for questions and community support

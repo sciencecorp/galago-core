@@ -9,9 +9,11 @@ import { MdOutlinePauseCircleOutline } from "react-icons/md";
 import { MdAlarm } from "react-icons/md";
 import { FaRegStickyNote } from "react-icons/fa";
 import { GoStop } from "react-icons/go";
-import { FaArrowRotateLeft } from "react-icons/fa6";
 import { TiArrowRepeat } from "react-icons/ti";
 import { TbVariable } from "react-icons/tb";
+import { SiReacthookform } from "react-icons/si";
+import { PiUserSoundBold } from "react-icons/pi";
+
 interface CommandImageProps {
   config: any;
   command: RunCommand;
@@ -31,6 +33,8 @@ const CommandImage: React.FC<CommandImageProps> = (props) => {
       stop_run: <GoStop style={{ width: "100%", height: "50px", color: "red" }} />,
       goto: <TiArrowRepeat style={{ width: "100%", height: "70px" }} />,
       variable_assignment: <TbVariable style={{ width: "100%", height: "50px" }} />,
+      user_form: <SiReacthookform style={{ width: "100%", height: "50px", strokeWidth: 1 }} />,
+      text_to_speech: <PiUserSoundBold style={{ width: "100%", height: "50px" }} />,
     } as Record<string, JSX.Element>;
     return commandIconMap[commandName] || <PiToolbox style={{ width: "100%", height: "65px" }} />;
   };

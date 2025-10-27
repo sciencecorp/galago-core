@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { trpc } from "@/utils/trpc";
 import { Workcell } from "@/types/api";
-
+import { uploadFile, downloadFile } from "@/server/utils/api";
 /**
  * React hook for workcell import/export functionality
  * Provides an interface to the server-side import/export operations
@@ -68,37 +68,17 @@ export const useWorkcellIO = (
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return { success: false, message: "No file selected." };
+    if (!file) return;
 
     try {
-      // Create a FormData object to send the file
-      const formData = new FormData();
-      formData.append("file", file);
-
-      // Make a direct fetch call to the FastAPI endpoint instead of using tRPC
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/workcells/import`,
-        {
-          method: "POST",
-          body: formData,
-          // Don't set Content-Type header, the browser will set it with the boundary
-        },
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Import failed: ${errorData.detail || response.statusText}`);
-      }
-
-      const result = await response.json();
-
+      await uploadFile("/workcells/import", file);
       // Refresh data
       await refetch();
       await refetchSelected();
 
       return {
         success: true,
-        message: `Workcell ${result?.name || "unknown"} imported successfully.`,
+        message: `Workcell imported successfully.`,
       };
     } catch (error) {
       console.error("Import failed:", error);

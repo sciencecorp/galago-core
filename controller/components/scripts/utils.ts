@@ -4,8 +4,6 @@ import { successToast, errorToast } from "../ui/Toast";
 export const validateScriptName = (name: string): string => {
   if (!name) return "Name cannot be empty";
   if (name.length > 25) return "Name cannot exceed 25 characters";
-  if (!/^[a-z][a-z0-9_]*$/.test(name))
-    return "Name must start with a lowercase letter and contain only lowercase letters, numbers, and underscores. Do not add a file extension.";
   if (/_{2,}/.test(name)) return "Name cannot contain consecutive underscores";
   if (name.endsWith("_")) return "Name cannot end with an underscore";
   return "";

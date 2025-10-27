@@ -29,6 +29,7 @@ import {
   warningToast,
   successToast as showSuccessToast,
   errorToast as showErrorToast,
+  loadingToast,
 } from "../ui/Toast";
 import { useScriptColors } from "../ui/Theme";
 import { CloseIcon, PythonIcon, CodeIcon, PlayIcon, SaveIcon } from "../ui/Icons";
@@ -42,6 +43,7 @@ import { AiOutlineJavaScript } from "react-icons/ai";
 import { fileTypeToExtensionMap } from "./utils";
 import { Console } from "./Console";
 import { ResizablePanel } from "./ResizablePanel";
+import { logAction } from "@/server/logger";
 
 export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
@@ -55,6 +57,8 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [folders, setFolders] = useState<ScriptFolder[]>([]);
   const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
   const { data: fetchedFolders, refetch: refetchFolders } = trpc.script.getAllFolders.useQuery();
+  const { data: selectedWorkcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
+  const { data: workcells } = trpc.workcell.getAll.useQuery();
   const editScript = trpc.script.edit.useMutation();
   const deleteScript = trpc.script.delete.useMutation();
   const addFolder = trpc.script.addFolder.useMutation();
@@ -172,39 +176,91 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     setConsoleText("");
     if (!activeTab) return;
 
-    infoToast(`Executing ${activeTab}...`, "");
-
-    try {
-      const response = await runScript.mutateAsync(activeTab, {
-        onSuccess: () => {
-          toast.closeAll();
-          showSuccessToast("Script Completed!", "The script execution finished successfully.");
+    // Create a promise that wraps the mutation
+    const runScriptPromise = new Promise((resolve, reject) => {
+      runScript.mutate(activeTab, {
+        onSuccess: (data) => {
+          // Handle the response data the same way as before
+          if (data?.meta_data?.response) {
+            setConsoleText(data.meta_data.response);
+            setRunError(false);
+          } else if (data?.error_message) {
+            setRunError(true);
+            setConsoleText(data.error_message);
+            reject(new Error(data.error_message));
+            return;
+          } else {
+            setRunError(false);
+            setConsoleText("");
+          }
+          resolve(data);
         },
         onError: (error) => {
-          toast.closeAll();
           setRunError(true);
-          setConsoleText(error.message);
-          showErrorToast("Failed to run script", `Error= ${error.message}`);
+
+          // Check if this is a gRPC connection error
+          if (error.message && error.message.includes("UNAVAILABLE: No connection established")) {
+            const userFriendlyMessage = `Cannot connect to script execution server. Please ensure the gRPC Python server is running and accessible.
+
+Connection Error: ${error.message}
+
+To resolve this issue:
+1. Verify the Python gRPC server is started
+2. Check if the server is running on the expected port (1010)
+3. Ensure there are no network connectivity issues`;
+
+            setConsoleText(userFriendlyMessage);
+            reject(new Error("gRPC Server Connection Failed"));
+          } else if (error.message && error.message.includes("ENETUNREACH")) {
+            const userFriendlyMessage = `Network unreachable - Cannot connect to script execution server.
+
+The system cannot establish a connection to the gRPC server. This typically means:
+1. The Python gRPC server is not running
+2. Network configuration issues
+3. Port 1010 may be blocked or unavailable
+
+Original Error: ${error.message}`;
+
+            setConsoleText(userFriendlyMessage);
+            reject(new Error("Network Connection Failed"));
+          } else {
+            setConsoleText(error.message);
+            reject(error);
+          }
         },
       });
+    });
 
-      if (response?.meta_data?.response) {
-        setConsoleText(response.meta_data.response);
-        showSuccessToast("Script Completed!", "The script execution finished successfully.");
-      } else if (response?.error_message) {
-        setRunError(true);
-        setConsoleText(response.error_message);
-        showErrorToast("Failed to run script", `Error= ${response.error_message}`);
-      } else {
-        setRunError(false);
-        setConsoleText("");
-        showSuccessToast("Script Completed!", "The script execution finished successfully.");
-      }
+    // Use the loadingToast with the promise
+    loadingToast(
+      `Executing ${activeTab}...`,
+      "Please wait for script to complete.",
+      runScriptPromise,
+      {
+        successTitle: `Script ${activeTab} completed!`,
+        successDescription: () => "The script execution finished successfully",
+        errorTitle: "Failed to run script",
+        errorDescription: (error) => {
+          // Provide more specific error messages for connection issues
+          if (error.message === "gRPC Server Connection Failed") {
+            return "Cannot connect to script execution server. Please check if the gRPC Python server is running. If it is, check the status of Tool Box in the tools page.";
+          } else if (error.message === "Network Connection Failed") {
+            return "Network connection to script execution server failed. Please verify server status.";
+          } else {
+            return `Error: ${error.message}`;
+          }
+        },
+      },
+    );
+
+    try {
+      await runScriptPromise;
     } catch (error) {
-      setRunError(true);
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      setConsoleText(errorMessage);
-      showErrorToast("Failed to run script", `Error= ${errorMessage}`);
+      logAction({
+        level: "error",
+        action: "Script Execution Failed",
+        details: `Error executing script ${activeTab}: ${error}`,
+      });
     }
   };
 
@@ -328,9 +384,17 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   };
 
   const handleFolderCreate = async (name: string, parentId?: number) => {
+    // Get the workcell ID from the selected workcell name
+    const selectedWorkcell = workcells?.find((wc) => wc.name === selectedWorkcellName);
+    if (!selectedWorkcell) {
+      showErrorToast("Error creating folder", "No workcell selected");
+      return;
+    }
+
     await addFolder.mutateAsync({
       name,
       parent_id: parentId,
+      workcell_id: selectedWorkcell.id,
     });
     await refetchFolders();
   };

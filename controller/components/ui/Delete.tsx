@@ -47,7 +47,13 @@ export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
         </>
       )}
       {variant === "button" && (
-        <Button isDisabled={disabled} onClick={onOpen} colorScheme="red" variant="solid">
+        <Button
+          leftIcon={<RiDeleteBin5Line />}
+          isDisabled={disabled}
+          onClick={onOpen}
+          colorScheme="red"
+          loadingText="Deleting..."
+          variant="outline">
           Delete
         </Button>
       )}
@@ -61,7 +67,7 @@ export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
           onClose();
         }}
         onClose={onClose}>
-        {customText || `Are you sure you want to delete this ${label}?`}
+        {customText || `Are you sure you want to delete ${label}?`}
       </ConfirmationModal>
     </>
   );

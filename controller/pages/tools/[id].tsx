@@ -17,7 +17,6 @@ import {
   AlertIcon,
   AlertTitle,
   AlertDescription,
-  CloseButton,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
@@ -28,6 +27,8 @@ import Head from "next/head";
 import { TeachPendant } from "@/components/tools/advanced/teach_pendant/TeachPendant";
 import { commandFields } from "@/components/tools/constants";
 import { errorToast, loadingToast, successToast } from "@/components/ui/Toast";
+import { Tool } from "@/types/api";
+
 // Inside your component
 type AtomicFormValues = string | number | boolean | string[];
 type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormValues>>;
@@ -36,7 +37,6 @@ export default function Page() {
   const router = useRouter();
   const [id, setId] = useState<string | null>(null);
   const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
-  const toolQuery = trpc.tool.get.useQuery(id || "");
   const config = infoQuery.data;
   const [commandExecutionStatus, setCommandExecutionStatus] = useState<CommandStatus>({});
   const [selectedCommand, setSelectedCommand] = useState<string | undefined>();
@@ -323,28 +323,7 @@ export default function Page() {
           )}
           {config?.type === ToolType.pf400 && config && (
             <Box flex={1}>
-              <TeachPendant
-                toolId={id || ""}
-                config={{
-                  id: toolQuery.data?.id || 1,
-                  type: config.type,
-                  joints: 6,
-                  workcell_id: 0,
-                  status: "UNKNOWN",
-                  last_updated: new Date(),
-                  created_at: new Date(),
-                  name: config.name,
-                  ip: config.ip,
-                  port: config.port,
-                  description: config.description,
-                  image_url: config.image_url,
-                  config: {
-                    simulated: false,
-                    toolId: config.name,
-                    ...config.config,
-                  },
-                }}
-              />
+              <TeachPendant tool={config as Tool} />
             </Box>
           )}
         </HStack>
