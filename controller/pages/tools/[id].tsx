@@ -1,0 +1,333 @@
+import CommandButton from "./commandButton";
+import { ChangeEvent, useEffect, useState } from "react";
+import ToolStatusCard from "@/components/tools/ToolStatusCard";
+import {
+  Select,
+  Button,
+  FormControl,
+  FormLabel,
+  Box,
+  VStack,
+  Input,
+  NumberInput,
+  NumberInputField,
+  Heading,
+  HStack,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+} from "@chakra-ui/react";
+import { useRouter } from "next/router";
+import { trpc } from "@/utils/trpc";
+import { ToolCommandInfo } from "@/types";
+import { ToolType } from "gen-interfaces/controller";
+import { capitalizeFirst } from "@/utils/parser";
+import Head from "next/head";
+import { TeachPendant } from "@/components/tools/advanced/teach_pendant/TeachPendant";
+import { commandFields } from "@/components/tools/constants";
+import { errorToast, loadingToast, successToast } from "@/components/ui/Toast";
+import { Tool } from "@/types/api";
+
+// Inside your component
+type AtomicFormValues = string | number | boolean | string[];
+type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormValues>>;
+
+export default function Page() {
+  const router = useRouter();
+  const [id, setId] = useState<string | null>(null);
+  const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
+  const config = infoQuery.data;
+  const [commandExecutionStatus, setCommandExecutionStatus] = useState<CommandStatus>({});
+  const [selectedCommand, setSelectedCommand] = useState<string | undefined>();
+  const [formValues, setFormValues] = useState<FormValues>({});
+
+  const doesCommandHaveParameters = (commandName: string) => {
+    if (!config) return false;
+    const fields = commandFields[config?.type][commandName];
+    return fields && fields.length > 0;
+  };
+  const toolCommandsDefined = Object.keys(commandFields).includes(String(config?.type));
+  const commandOptions = config ? commandFields[config.type] : {};
+
+  useEffect(() => {
+    // Wait for the router to be ready and then extract the query parameter
+    if (router.isReady) {
+      const queryId = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
+      setId(queryId || null); // Ensure a null fallback if the ID is not available
+    }
+  }, [router.isReady, router.query.id]);
+
+  useEffect(() => {
+    if (config?.name) {
+      document.title = `Tool: ${config.name}`;
+    }
+  }, [config?.name]);
+
+  useEffect(() => {
+    if (selectedCommand) {
+      setFormValues((prevValues) => {
+        const newValues = { ...prevValues };
+        const fields = commandOptions[selectedCommand];
+
+        fields.forEach((field) => {
+          if (Array.isArray(field.type)) {
+            const nestedFieldValues: Record<string, AtomicFormValues> = {};
+            field.type.forEach((nestedField) => {
+              nestedFieldValues[nestedField.name] =
+                nestedField.defaultValue !== undefined ? nestedField.defaultValue : "";
+            });
+            newValues[field.name] = nestedFieldValues;
+          }
+          if (field.type === "text_array") {
+            newValues[field.name] =
+              field.defaultValue instanceof Array ? field.defaultValue.join(", ") : "";
+          } else {
+            newValues[field.name] = field.defaultValue !== undefined ? field.defaultValue : "";
+          }
+        });
+        return newValues;
+      });
+    }
+  }, [selectedCommand]);
+  const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    setSelectedCommand(event.target.value);
+    setFormValues({});
+  };
+
+  const commandMutation = trpc.tool.runCommand.useMutation();
+
+  const executeCommandWithToast = (commandName: string, toolCommand: ToolCommandInfo) => {
+    setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "idle" }));
+
+    // Create a promise from the mutation
+    const commandPromise = new Promise((resolve, reject) => {
+      commandMutation.mutate(toolCommand, {
+        onSuccess: (data) => {
+          setCommandExecutionStatus((prevStatus) => ({
+            ...prevStatus,
+            [commandName]: "success",
+          }));
+          resolve(data);
+        },
+        onError: (error) => {
+          setCommandExecutionStatus((prevStatus) => ({
+            ...prevStatus,
+            [commandName]: "error",
+          }));
+          reject(error);
+        },
+      });
+    });
+
+    // Use the loadingToast with the promise
+    loadingToast(`Executing ${commandName}..`, "Please wait.", commandPromise, {
+      successTitle: `Command ${commandName} completed!`,
+      successDescription: () => "Command completed successfully",
+      errorTitle: "Failed to execute command",
+      errorDescription: (error) => `Error= ${error.message}`,
+    });
+  };
+
+  const handleSubmit = () => {
+    if (!selectedCommand || !config) return;
+
+    const toolCommand: ToolCommandInfo = {
+      toolId: config.name,
+      toolType: config.type,
+      command: selectedCommand,
+      params: formValues,
+    };
+
+    executeCommandWithToast(selectedCommand, toolCommand);
+  };
+
+  const executeCommand = (commandName: string, params: FormValues) => {
+    if (!config) return;
+
+    const toolCommand: ToolCommandInfo = {
+      toolId: config.name,
+      toolType: config.type,
+      command: commandName,
+      params: params,
+    };
+
+    executeCommandWithToast(commandName, toolCommand);
+  };
+
+  const handleInputChange = (
+    fieldName: string,
+    fieldType: FieldType,
+    value: string | number | boolean,
+    parentField?: string,
+  ) => {
+    setFormValues((prevValues) => {
+      const newValues = { ...prevValues };
+      let updatedValue: AtomicFormValues = value;
+
+      // If the field is of type 'text_array', split the string into an array.
+      if (fieldType === "text_array" && typeof value === "string") {
+        updatedValue = value.split(",").map((item) => item.trim());
+      }
+
+      if (parentField) {
+        // If it's a nested field
+        newValues[parentField] = {
+          ...(newValues[parentField] as Record<string, any>),
+          [fieldName]: updatedValue,
+        };
+      } else {
+        // For top-level fields
+        newValues[fieldName] = updatedValue;
+      }
+      return newValues;
+    });
+  };
+
+  const handleSelectCommand = (commandName: string) => {
+    // Check if the command has parameters
+    if (doesCommandHaveParameters(commandName)) {
+      // If it has parameters, set up for additional input
+      setSelectedCommand(commandName);
+    } else {
+      // If it doesn't have parameters, execute it immediately
+      executeCommand(commandName, {});
+    }
+  };
+  const renderFields = (fields: Field[], parentField?: string) => {
+    return fields.map((field) => {
+      if (Array.isArray(field.type)) {
+        return (
+          <Box key={field.name} border="1px" borderColor="gray.200" borderRadius="md" p={4} my={2}>
+            <Heading size="sm" mb={2}>
+              {field.name}
+            </Heading>
+            {renderFields(field.type, field.name)}
+          </Box>
+        );
+      } else if (field.type === "text_array") {
+        return (
+          <FormControl key={field.name} my={2}>
+            <FormLabel>{field.name}</FormLabel>
+            <Input
+              type="text"
+              value={String(
+                (parentField
+                  ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
+                    ""
+                  : formValues[field.name]) || "",
+              )}
+              onChange={(e) =>
+                handleInputChange(field.name, field.type, e.target.value, parentField)
+              }
+            />
+          </FormControl>
+        );
+      } else {
+        return (
+          <FormControl key={field.name} my={2}>
+            <FormLabel>{field.name}</FormLabel>
+            {field.type == "boolean" ? (
+              <Input
+                type="boolean"
+                value={String(
+                  (parentField
+                    ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
+                      "false"
+                    : formValues[field.name]) || "false",
+                )}
+                onChange={(e) =>
+                  handleInputChange(field.name, field.type, e.target.value, parentField)
+                }
+              />
+            ) : field.type === "text" ? (
+              <Input
+                type="string"
+                value={String(
+                  (parentField
+                    ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
+                      ""
+                    : formValues[field.name]) || "",
+                )}
+                onChange={(e) =>
+                  handleInputChange(field.name, field.type, e.target.value, parentField)
+                }
+              />
+            ) : (
+              <NumberInput
+                value={Number(
+                  (parentField
+                    ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
+                      0
+                    : formValues[field.name]) || 0,
+                )}
+                onChange={(valueString, valueNumber) =>
+                  handleInputChange(field.name, field.type, valueNumber, parentField)
+                }>
+                <NumberInputField />
+              </NumberInput>
+            )}
+          </FormControl>
+        );
+      }
+    });
+  };
+
+  return (
+    <>
+      <Head>
+        <title>{config?.name ? `Tool: ${config.name}` : "Tool"}</title>
+      </Head>
+      <Box maxWidth="1800px" margin="auto">
+        <HStack spacing={4} align="start" width="100%">
+          {config?.type !== ToolType.pf400 && (
+            <VStack spacing={4} width="100%">
+              {!toolCommandsDefined && (
+                <>
+                  <Alert status="error" variant="left-accent" mb={2}>
+                    <AlertIcon />
+                    <Box flex="1">
+                      <AlertTitle>Error</AlertTitle>
+                      <AlertDescription>Invalid Tool Type.</AlertDescription>
+                      <AlertDescription>
+                        This tool has not been defined. Contact administrator.
+                      </AlertDescription>
+                    </Box>
+                  </Alert>
+                </>
+              )}
+              <ToolStatusCard toolId={id || ""} />
+              {toolCommandsDefined && (
+                <FormControl>
+                  <VStack width="100%" spacing={1}>
+                    <FormLabel>Select Command</FormLabel>
+                    <Select placeholder="Select command" onChange={handleChange}>
+                      {Object.keys(commandOptions).map((command) => (
+                        <option key={command} value={command}>
+                          {capitalizeFirst(command.replaceAll("_", " "))}
+                        </option>
+                      ))}
+                    </Select>
+                    {selectedCommand && (
+                      <>
+                        {renderFields(commandOptions[selectedCommand])}
+                        <Button width="100%" onClick={handleSubmit} colorScheme="teal">
+                          Send Command
+                        </Button>
+                      </>
+                    )}
+                  </VStack>
+                </FormControl>
+              )}
+            </VStack>
+          )}
+          {config?.type === ToolType.pf400 && config && (
+            <Box flex={1}>
+              <TeachPendant tool={config as Tool} />
+            </Box>
+          )}
+        </HStack>
+      </Box>
+    </>
+  );
+}

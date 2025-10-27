@@ -1,0 +1,33 @@
+# Use official Python image as the base image
+FROM python:3.11-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Install development dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the requirements files
+COPY requirements.txt requirements-dev.txt ./
+
+# Install both production and development dependencies
+RUN pip install --no-cache-dir --timeout=120 -r requirements.txt \
+    && pip install --no-cache-dir --timeout=120 -r requirements-dev.txt
+
+COPY . . 
+ENV PYTHONPATH="/app"
+
+# Install debugging tools
+RUN pip install debugpy
+
+# Expose FastAPI and debugpy ports
+EXPOSE 8000 5678
+
+# Use a shell script to enable debugging when needed
+COPY ./docker-entrypoint-dev.sh /
+RUN chmod +x /docker-entrypoint-dev.sh
+
+ENTRYPOINT ["/docker-entrypoint-dev.sh"]  
