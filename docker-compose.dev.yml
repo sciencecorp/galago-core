@@ -1,0 +1,69 @@
+services:
+  queue:
+    image: redis:6.2-alpine
+    restart: unless-stopped
+    container_name: redis
+    command: redis-server --save 20 1 --loglevel warning
+    ports:
+      - "1203:6379"
+    networks:
+      - app-network
+
+  galago-web-dev:
+    build:
+      context: .
+      dockerfile: controller/Dockerfile.dev
+    container_name: galago-web-dev
+    ports:
+      - "3010:3010"
+      - "9229:9229" # Node.js debug port
+    volumes:
+      - ./controller:/app:cached
+      - /app/node_modules # Persist node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3010
+      - GRPC_SERVER_IP=host.docker.internal
+      - API_BASE_URL=http://db:8000/api
+      - REDIS_HOST=redis://queue:6379/1
+    stdin_open: true # for debugging
+    tty: true # for debugging
+    #network_mode: "host"
+    networks:
+      - app-network
+    depends_on:
+      - db
+      - queue
+
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile.dev
+    container_name: galago-db-dev
+    ports:
+      - "8000:8000"
+      - "5678:5678" # Python debug port
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=0
+    networks:
+      - app-network
+    volumes:
+      - ./db:/app/db:cached
+      - ./db/data/backups:/app/db/data/backups:rw
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  sqlite_data:
+  redis_data:
+  node_modules:
+  npm_cache:
+
+networks:
+  app-network:
+    driver: bridge

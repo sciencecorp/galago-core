@@ -1,0 +1,155 @@
+#!/usr/bin/env bash
+
+PROTOC_GEN_TS_PATH=".\\controller\\node_modules\\.bin\\protoc-gen-ts_proto"
+PROTO_SRC="./interfaces"
+ENV_NAME="galago-core" 
+
+# Install dependencies for tool servers, controller, and protobuf generator
+deps() {
+  python_deps
+  npm_deps
+  npm install -g grpc-tools@1.12.4 ts-proto@1.151.1
+}
+
+build_env() {
+    echo "Creating conda environment '$ENV_NAME'..."
+    mamba create --name $ENV_NAME python=3.9.12 nodejs=18.20.3 -y
+    echo "Conda environment '$ENV_NAME' created."
+}
+
+python_deps() {
+  echo "Installing Python Dependencies"
+  python -m pip install -r db/requirements.txt
+  python -m pip install grpcio-tools
+  python -m pip install black
+  echo "Python Dependencies Installed"
+} 
+
+npm_deps() {
+  echo "Installing Node Dependencies"
+  (cd controller && npm install)
+  echo "Node Dependencies Installed"
+}
+
+#create local redis database for local dev (mac only)
+redis() {
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+  # Check if Homebrew is installed
+  if ! command -v brew &> /dev/null; then
+    echo "Homebrew not found. Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  else
+    echo "Homebrew is already installed."
+  fi
+
+  # Install Redis
+  if ! command -v redis-server &> /dev/null; then
+    echo "Installing Redis..."
+    brew install redis
+    brew services start redis
+    echo "Redis service is running."
+  else
+    echo "Redis is already installed and running."
+  fi
+}
+
+test() {
+  test_ts
+  test_py
+}
+
+test_ts() {
+  echo "Runnning Node Tests"
+  (cd controller && npx prettier . --check && npx tsc --build --clean && npm run test) &&
+  build_prod
+}
+
+build_prod() {
+  echo "Building production assets..."
+  npm_deps
+  (cd controller && npm run build)
+  echo "Production build complete."
+}
+
+test_py() {
+  echo "Running Python Tests"
+  echo "Ruff Check"
+  ruff check .
+  echo "Mypy Check Db"
+  mypy --config-file=db/pyproject.toml db --install-types --non-interactive
+}
+
+unittest_py() {
+  python -m unittest discover -s db/tests/ -p "*_test.py"
+}
+
+# Clean up all generated files
+clean_proto() {
+  echo "Cleaning up generated proto files"
+  rm -rf controller/gen-interfaces tools/*_pb2*.py*
+  mkdir -p controller/gen-interfaces/tools
+  echo "Cleaned up generated proto files"
+}
+
+# Generate protobuf definitions for TypeScript
+proto_ts() {
+  mkdir -p ./controller/gen-interfaces
+  python -m grpc_tools.protoc \
+    -I=${PROTO_SRC}/ \
+    --ts_proto_out=./controller/gen-interfaces/ \
+    --ts_proto_opt=stringEnums=true \
+    --ts_proto_opt=esModuleInterop=true \
+    --ts_proto_opt=snakeToCamel=false \
+    --ts_proto_opt=outputServices=grpc-js \
+    ${PROTO_SRC}/*.proto ${PROTO_SRC}/tools/grpc_interfaces/*.proto
+        # --plugin=protoc-gen-ts_proto="${PROTOC_GEN_TS_PATH}.cmd" \
+}
+
+
+proto_ts_v2() {
+  mkdir -p ./controller/gen-interfaces
+  python -m grpc_tools.protoc \
+    -I=${PROTO_SRC}/ \
+    --plugin=protoc-gen-ts_proto="${PROTOC_GEN_TS_PATH}.cmd" \
+    --ts_proto_out=./controller/gen-interfaces/ \
+    --ts_proto_opt=stringEnums=true \
+    --ts_proto_opt=esModuleInterop=true \
+    --ts_proto_opt=snakeToCamel=false \
+    --ts_proto_opt=outputServices=grpc-js \
+    ${PROTO_SRC}/*.proto ${PROTO_SRC}/tools/grpc_interfaces/*.proto
+}
+
+# Generate all protobuf definitions
+proto() {
+  clean_proto
+  proto_ts
+}
+
+format_py() {
+  echo "Formatting Python files with Black"
+  black .
+}
+
+format_ts() {
+  echo "Formatting TypeScript/JavaScript files with Prettier"
+  (cd controller && npx prettier --write .)
+}
+
+format() {
+  format_py
+  format_ts
+  echo "All files formatted!"
+}
+
+for cmd in "$@"; do
+  set -ex
+  $cmd
+  set +ex
+done
+
+if [ $# -eq 0 ]; then
+  echo "No command specified, available commands:"
+  for cmd in $(compgen -A function | grep -E '^'); do
+    echo "  ${cmd#}"
+  done
+fi
