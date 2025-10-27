@@ -1,0 +1,14 @@
+{
+  "protocolName": "Fetch Plate",
+  "steps": [
+    {
+      "toolId": "pf400_1",
+      "toolType": "pf400",
+      "command": "run_sequence",
+      "params": {
+        "sequence_name": "getPlateBravoNest4",
+        "labware": "default"
+      }
+    }
+  ]
+}

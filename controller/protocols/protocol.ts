@@ -1,0 +1,208 @@
+import { RunRequest, ToolCommandInfo } from "@/types";
+import { AnyZodObject, z, ZodError } from "zod";
+import { ProtocolParamInfo } from "./params";
+import {
+  MaybeWrappedZodType,
+  innerZodObjectShape,
+  zodSchemaToTypeName,
+  zodSchemaToDescription,
+  zodSchemaToDefault,
+  zodSchemaToEnumValues,
+} from "./zodHelpers";
+import { ProtocolProcess } from "@/types/api";
+import {get} from "@/server/utils/api";
+
+
+export default class Protocol<
+  ParamSchema extends MaybeWrappedZodType<AnyZodObject> = MaybeWrappedZodType<AnyZodObject>,
+> {
+  name: string = "";
+  protocolId: number = 0;
+  paramSchema: ParamSchema = z.object({}) as ParamSchema;
+  category: string = "";
+  workcell: string = "";
+  description?: string;
+  icon?: any;
+  processes: ProtocolProcess[] = [];
+
+  constructor(dbProtocol?: any) {
+    if (dbProtocol) {
+      this.name = dbProtocol.name;
+      this.category = dbProtocol.category;
+      this.workcell = dbProtocol.workcell;
+      this.description = dbProtocol.description;
+      this.icon = dbProtocol.icon;
+      this.protocolId = dbProtocol.id;
+      this.processes = dbProtocol.processes;
+      this.paramSchema = this.jsonToZodSchema(dbProtocol.params) as ParamSchema;
+    }
+  }
+
+  private jsonToZodSchema(jsonSchema: any): z.ZodObject<any> {
+    if (!jsonSchema) {
+      return z.object({});
+    }
+
+    const shape: { [key: string]: z.ZodTypeAny } = {};
+
+    // Handle both JSON Schema format and simple format
+    const entries = jsonSchema.properties
+      ? Object.entries(jsonSchema.properties)
+      : Object.entries(jsonSchema);
+
+    for (const [key, value] of entries) {
+      const prop = value as any;
+      let zodType: z.ZodTypeAny;
+
+      // If it's the simple format, prop is the type string
+      const type = typeof prop === "string" ? prop : prop.type;
+
+      switch (type) {
+        case "string":
+          if (prop.enum) {
+            zodType = z.enum(prop.enum as [string, ...string[]]);
+          } else {
+            zodType = z.string();
+          }
+          break;
+        case "number":
+          zodType = z.number();
+          break;
+        case "integer":
+          zodType = z.number().int();
+          break;
+        case "boolean":
+          zodType = z.boolean();
+          break;
+        case "array":
+          if (prop.items?.type === "string") {
+            if (prop.items.enum) {
+              zodType = z.array(z.enum(prop.items.enum as [string, ...string[]]));
+            } else {
+              zodType = z.array(z.string());
+            }
+          } else if (prop.items?.type === "number") {
+            zodType = z.array(z.number());
+          } else if (prop.items?.type === "integer") {
+            zodType = z.array(z.number().int());
+          } else if (prop.items?.type === "boolean") {
+            zodType = z.array(z.boolean());
+          } else {
+            zodType = z.array(z.any());
+          }
+          break;
+        default:
+          zodType = z.any();
+      }
+
+      // Handle required fields
+      if (jsonSchema.required?.includes(key)) {
+        shape[key] = zodType;
+      } else {
+        shape[key] = zodType.optional();
+      }
+    }
+
+    return z.object(shape);
+  }
+
+  _generateCommands(params: z.infer<ParamSchema>): ToolCommandInfo[] {
+    if (!this.processes || this.processes.length === 0) {
+      return [];
+    }
+    const allCommands: ToolCommandInfo[] = [];
+    //Sort processes
+    const sortedProcesses = [...this.processes].sort((a, b) => a.position - b.position);
+    for(const process in sortedProcesses) {
+      //Sort commmands 
+      const sortedCommands = [...sortedProcesses[process].commands].sort((a, b) => a.position - b.position);
+      allCommands.push(...sortedCommands);
+    }
+    return allCommands;
+  }
+
+  private replaceParameterPlaceholders(obj: any, params: any): any {
+    if (Array.isArray(obj)) {
+      return obj.map((item) => this.replaceParameterPlaceholders(item, params));
+    } else if (typeof obj === "object" && obj !== null) {
+      const newObj: any = {};
+      for (const [key, value] of Object.entries(obj)) {
+        newObj[key] = this.replaceParameterPlaceholders(value, params);
+      }
+      return newObj;
+    } else if (typeof obj === "string") {
+      return obj.replace(/\${([^}]+)}/g, (_, param) => {
+        return params[param] !== undefined ? params[param] : `\${${param}}`;
+      });
+    }
+    return obj;
+  }
+
+  generate(runRequest: RunRequest): ToolCommandInfo[] | false {
+    const parsedParams = this.maybeParseParams(runRequest.params);
+    if (!parsedParams) {
+      return false;
+    }
+    return this._generateCommands(parsedParams);
+  }
+
+  validationErrors(params: Record<string, any>): ZodError | undefined {
+    const result = this.paramSchema.safeParse(params);
+    if (!result.success) {
+      return result.error;
+    }
+  }
+
+  maybeParseParams(params: Record<string, any>): z.infer<ParamSchema> | undefined {
+    const result = this.paramSchema.safeParse(params);
+    if (result.success) {
+      return result.data;
+    }
+  }
+
+  preview() {
+    return {
+      name: this.name,
+      category: this.category,
+      workcell: this.workcell,
+      description: this.description,
+      icon: this.icon,
+    };
+  }
+
+  _generateCommands(): ToolCommandInfo[] | null {
+    if (!this.commands) {
+      return null;
+    }
+    return this.commands.map((cmd: any) => ({
+      toolId: cmd.toolId,
+      toolType: cmd.toolType,
+      command: cmd.command,
+      params: cmd.params,
+      advancedParameters: cmd.advancedParameters,
+    }));
+  }
+
+  paramInfo(param: z.ZodTypeAny): ProtocolParamInfo {
+    return {
+      type: zodSchemaToTypeName(param),
+      options: zodSchemaToEnumValues(param),
+      placeHolder: zodSchemaToDefault(param),
+    };
+  }
+
+  uiParams(): Record<string, ProtocolParamInfo> {
+    const shape = innerZodObjectShape(this.paramSchema);
+    const result: Record<string, ProtocolParamInfo> = {};
+    for (const [key, value] of Object.entries(shape)) {
+      result[key] = this.paramInfo(value);
+    }
+    return result;
+  }
+
+  static async loadFromDatabase(protocolId: number): Promise<Protocol> {
+    console.log(`Loading protocol with ID: ${protocolId}`);
+    const response = await get<Protocol>(`/protocols/${protocolId}`);
+    return new Protocol(response);
+  }
+}

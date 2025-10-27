@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "lib": ["dom", "dom.iterable", "esnext", "es2016"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "baseUrl": ".",
+    "types": ["node"],
+    "paths": {
+      "@/types/*": ["types/*"],
+      "@/types": ["types/index.ts"],
+      "react": ["node_modules/@types/react/index.d.ts"],
+      "gen-interfaces/*": ["./gen-interfaces/*"],
+      "@/*": ["./*"]
+    },
+    "jsxImportSource": "@emotion/react" // Add this line
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.png",
+    "**/*.jpg",
+    "**/*.svg",
+    "**/*.jpeg"
+  ],
+  "exclude": ["node_modules", "./gen-interfaces/*"]
+}
