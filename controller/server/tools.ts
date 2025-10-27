@@ -217,6 +217,8 @@ export default class Tool {
 
     //Handle opentrons2 run_program command
     if (command.toolType === ToolType.opentrons2 && command.command === "run_program") {
+      console.log("Executing Opentrons2 run_program command");
+      console.log("Command params before processing:", params);
       if (!params.script_name || params.script_name.trim() === "") {
         throw new Error("Script name is required for run_program command");
       }
@@ -328,7 +330,7 @@ export default class Tool {
         throw new Error(`Failed to fetch ${scriptName}. ${e}`);
       }
     }
-
+    console.log("Final command params before sending to tool:", params);
     const reply = await this.grpc.executeCommand(this._payloadForCommand(command));
 
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {

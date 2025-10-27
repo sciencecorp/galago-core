@@ -51,7 +51,7 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
       name: scriptName,
       description,
       content: "",
-      language: selectedLanguage,
+      language: environment === "opentrons" ? "python" : selectedLanguage,
       is_blocking: true,
       folder_id: activeFolderId,
       script_environment: environment,
@@ -100,28 +100,30 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
                 <FormLabel>Name</FormLabel>
                 <Input value={scriptName} onChange={(e) => setScriptName(e.target.value)} />
               </FormControl>
-              <FormControl>
-                <ButtonGroup>
-                  <Button
-                    size="sm"
-                    colorScheme={selectedLanguage === "python" ? "teal" : "gray"}
-                    onClick={() => setSelectedLanguage("python")}>
-                    Python
-                  </Button>
-                  <Button
-                    size="sm"
-                    colorScheme={selectedLanguage === "javascript" ? "teal" : "gray"}
-                    onClick={() => setSelectedLanguage("javascript")}>
-                    JavaScript
-                  </Button>
-                  <Button
-                    size="sm"
-                    colorScheme={selectedLanguage === "csharp" ? "teal" : "gray"}
-                    onClick={() => setSelectedLanguage("csharp")}>
-                    C#
-                  </Button>
-                </ButtonGroup>
-              </FormControl>
+              {environment === "global" && (
+                <FormControl>
+                  <ButtonGroup>
+                    <Button
+                      size="sm"
+                      colorScheme={selectedLanguage === "python" ? "teal" : "gray"}
+                      onClick={() => setSelectedLanguage("python")}>
+                      Python
+                    </Button>
+                    <Button
+                      size="sm"
+                      colorScheme={selectedLanguage === "javascript" ? "teal" : "gray"}
+                      onClick={() => setSelectedLanguage("javascript")}>
+                      JavaScript
+                    </Button>
+                    <Button
+                      size="sm"
+                      colorScheme={selectedLanguage === "csharp" ? "teal" : "gray"}
+                      onClick={() => setSelectedLanguage("csharp")}>
+                      C#
+                    </Button>
+                  </ButtonGroup>
+                </FormControl>
+              )}
               <FormControl>
                 <FormLabel>Description</FormLabel>
                 <Input value={description} onChange={(e) => setDescription(e.target.value)} />

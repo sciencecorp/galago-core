@@ -1,6 +1,6 @@
 import { DateTime } from "luxon";
 import { Config } from "gen-interfaces/tools/grpc_interfaces/tool_base";
-export type ScriptEnvironment = "global" | "opentrons" | "hamilton" | "pylabrobot";
+export type ScriptEnvironment = "global" | "opentrons" | "pyhamilton" | "pylabrobot";
 
 export interface Workcell {
   id: number;

@@ -7,7 +7,6 @@ import {
   Input,
   VStack,
   useColorModeValue,
-  Flex,
   Tooltip,
   Card,
   CardBody,
@@ -47,6 +46,7 @@ import { logAction } from "@/server/logger";
 
 
 interface ScriptsEditorProps {
+  toolId: string;
   scriptsEnvironment: ScriptEnvironment;
 }
 
@@ -179,16 +179,50 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) : JSX.Element
     }
   }, [fetchedFolders]);
 
-  const handleRunScript = async () => {
-    setRunError(false);
-    setConsoleText("");
-    if (!activeTab) return;
+// Update the handleRunScript function in ScriptsEditor component
 
-    // Create a promise that wraps the mutation
-    const runScriptPromise = new Promise((resolve, reject) => {
-      runScript.mutate(activeTab, {
+const handleRunScript = async () => {
+  setRunError(false);
+  setConsoleText("");
+  if (!activeTab) return;
+
+  const activeScript = getActiveScript();
+  if (!activeScript) {
+    showErrorToast("No active script", "Could not find the active script to run.");
+    return;
+  }
+
+  let toolType = "";
+  let toolId = "";
+  switch (scriptsEnvironment) {
+    case "opentrons":
+      toolType = "opentrons2";
+      break;
+    case "pyhamilton":
+      toolType = "pyhamilton";
+      break;
+    case "pylabrobot":
+      toolType = "pylabrobot";
+      break;
+    case "global":
+    default:
+      toolId = "Tool Box";
+      toolType = "toolbox";
+      break;
+  }
+
+  // Create a promise that wraps the mutation
+  const runScriptPromise = new Promise((resolve, reject) => {
+    runScript.mutate(
+      {
+        toolId: toolId || props.toolId,
+        toolType,
+        name: activeScript.name,
+        script_environment: scriptsEnvironment,
+      },
+      {
         onSuccess: (data) => {
-          // Handle the response data the same way as before
+          // Handle the response data
           if (data?.meta_data?.response) {
             setConsoleText(data.meta_data.response);
             setRunError(false);
@@ -210,67 +244,69 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) : JSX.Element
           if (error.message && error.message.includes("UNAVAILABLE: No connection established")) {
             const userFriendlyMessage = `Cannot connect to script execution server. Please ensure the gRPC Python server is running and accessible.
 
-Connection Error: ${error.message}
+          Connection Error: ${error.message}
 
-To resolve this issue:
-1. Verify the Python gRPC server is started
-2. Check if the server is running on the expected port (1010)
-3. Ensure there are no network connectivity issues`;
+          To resolve this issue:
+          1. Verify the Python gRPC server is started
+          2. Check if the server is running on the expected port (1010)
+          3. Ensure there are no network connectivity issues`;
 
-            setConsoleText(userFriendlyMessage);
-            reject(new Error("gRPC Server Connection Failed"));
-          } else if (error.message && error.message.includes("ENETUNREACH")) {
-            const userFriendlyMessage = `Network unreachable - Cannot connect to script execution server.
+                      setConsoleText(userFriendlyMessage);
+                      reject(new Error("gRPC Server Connection Failed"));
+                    } else if (error.message && error.message.includes("ENETUNREACH")) {
+                      const userFriendlyMessage = `Network unreachable - Cannot connect to script execution server.
 
-The system cannot establish a connection to the gRPC server. This typically means:
-1. The Python gRPC server is not running
-2. Network configuration issues
-3. Port 1010 may be blocked or unavailable
+          The system cannot establish a connection to the gRPC server. This typically means:
+          1. The Python gRPC server is not running
+          2. Network configuration issues
+          3. Port 1010 may be blocked or unavailable
 
-Original Error: ${error.message}`;
+          Original Error: ${error.message}`;
 
-            setConsoleText(userFriendlyMessage);
-            reject(new Error("Network Connection Failed"));
-          } else {
-            setConsoleText(error.message);
-            reject(error);
-          }
-        },
-      });
-    });
+                      setConsoleText(userFriendlyMessage);
+                      reject(new Error("Network Connection Failed"));
+                    } else {
+                      setConsoleText(error.message);
+                      reject(error);
+                    }
+                  },
+                }
+              );
+            });
 
-    // Use the loadingToast with the promise
-    loadingToast(
-      `Executing ${activeTab}...`,
-      "Please wait for script to complete.",
-      runScriptPromise,
-      {
-        successTitle: `Script ${activeTab} completed!`,
-        successDescription: () => "The script execution finished successfully",
-        errorTitle: "Failed to run script",
-        errorDescription: (error) => {
-          // Provide more specific error messages for connection issues
-          if (error.message === "gRPC Server Connection Failed") {
-            return "Cannot connect to script execution server. Please check if the gRPC Python server is running. If it is, check the status of Tool Box in the tools page.";
-          } else if (error.message === "Network Connection Failed") {
-            return "Network connection to script execution server failed. Please verify server status.";
-          } else {
-            return `Error: ${error.message}`;
-          }
-        },
-      },
-    );
+            // Use the loadingToast with the promise
+            loadingToast(
+              `Executing ${activeScript.name}...`,
+              "Please wait for script to complete.",
+              runScriptPromise,
+              {
+                successTitle: `Script ${activeScript.name} completed!`,
+                successDescription: () => "The script execution finished successfully",
+                errorTitle: "Failed to run script",
+                errorDescription: (error) => {
+                  // Provide more specific error messages for connection issues
+                  if (error.message === "gRPC Server Connection Failed") {
+                    return "Cannot connect to script execution server. Please check if the gRPC Python server is running. If it is, check the status of Tool Box in the tools page.";
+                  } else if (error.message === "Network Connection Failed") {
+                    return "Network connection to script execution server failed. Please verify server status.";
+                  } else {
+                    return `Error: ${error.message}`;
+                  }
+                },
+              }
+            );
 
-    try {
-      await runScriptPromise;
-    } catch (error) {
-      logAction({
-        level: "error",
-        action: "Script Execution Failed",
-        details: `Error executing script ${activeTab}: ${error}`,
-      });
-    }
-  };
+            try {
+              await runScriptPromise;
+            } catch (error) {
+              logAction({
+                level: "error",
+                action: "Script Execution Failed",
+                details: `Error executing script ${activeScript.name} in environment ${scriptsEnvironment}: ${error}`,
+              });
+            }
+          };
+
 
   const handleSave = async () => {
     if (!activeTab) {
@@ -650,18 +686,11 @@ Original Error: ${error.message}`;
     </Button>
   );
 
-  const exportButton = (
-    <Button
-      leftIcon={<FaFileExport />}
-      colorScheme="green"
-      variant="outline"
-      onClick={onExportConfig}
-      isDisabled={!activeTab || isExporting}
-      isLoading={isExporting}
-      size="sm">
-      Export Active Script
-    </Button>
-  );
+  const headerMessage = scriptsEnvironment === "global" ?
+        "Create and manage global scripts." : scriptsEnvironment === "opentrons" ?
+        "Create and manage Opentrons scripts." : scriptsEnvironment === "pylabrobot" ?
+        "Create and manage PyLabRobot scripts." : scriptsEnvironment === "pyhamilton" ?
+        "Create and manage PyHamilton scripts." : "Create and manage scripts.";
 
   return (
     <Box maxW="100%">
@@ -677,21 +706,18 @@ Original Error: ${error.message}`;
         {`Are you sure you want to delete ${scriptToDelete?.name}?`}
       </ConfirmationModal>
       <VStack spacing={4} align="stretch" width="100%">
-        <Card bg={headerBg} shadow="md">
-          <CardBody>
-            <VStack spacing={4} align="stretch">
-              <PageHeader
-                title="Scripts"
-                subTitle="Create and manage Python and JavaScript scripts"
-                titleIcon={<Icon as={CodeIcon} boxSize={8} color="teal.500" />}
-                mainButton={importButton}
-                // secondaryButton={exportButton}
-              />
-            </VStack>
-          </CardBody>
-        </Card>
-
-        {/* Hidden file input for import - accept .py and .js files */}
+          <Card bg={headerBg} shadow="md">
+            <CardBody>
+              <VStack spacing={4} align="stretch">
+                <PageHeader
+                  title="Scripts"
+                  subTitle={headerMessage}
+                  titleIcon={<Icon as={CodeIcon} boxSize={8} color="teal.500" />}
+                  mainButton={importButton}
+                />
+              </VStack>
+            </CardBody>
+          </Card>
         <Input
           type="file"
           ref={fileInputRef}
@@ -699,7 +725,6 @@ Original Error: ${error.message}`;
           style={{ display: "none" }}
           accept=".py,.js"
         />
-
         <Card borderRadius="lg" bg={headerBg} shadow="md">
           <CardBody>
             <HStack
@@ -724,6 +749,7 @@ Original Error: ${error.message}`;
                     <NewScript
                       activeFolderId={openFolders.size > 0 ? activeFolder?.id : undefined}
                       onScriptCreated={refreshData}
+                      defaultEnvironment={scriptsEnvironment}
                     />
                     <NewFolder
                       isCreatingRoot={folderCreating}
@@ -850,5 +876,5 @@ Original Error: ${error.message}`;
         </Card>
       </VStack>
     </Box>
-  );
+  );  
 };

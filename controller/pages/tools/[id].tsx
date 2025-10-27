@@ -1,4 +1,3 @@
-import CommandButton from "./commandButton";
 import { ChangeEvent, useEffect, useState } from "react";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import {
@@ -28,10 +27,13 @@ import { TeachPendant } from "@/components/tools/advanced/teach_pendant/TeachPen
 import { commandFields } from "@/components/tools/constants";
 import { errorToast, loadingToast, successToast } from "@/components/ui/Toast";
 import { Tool } from "@/types/api";
+import { OT2CodeEditor } from "@/components/tools/opentrons/CodeEditor";
 
-// Inside your component
 type AtomicFormValues = string | number | boolean | string[];
 type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormValues>>;
+
+
+const CUSTOM_TOOL_VIEWS = [ToolType.pf400, ToolType.opentrons2];
 
 export default function Page() {
   const router = useRouter();
@@ -278,9 +280,9 @@ export default function Page() {
       <Head>
         <title>{config?.name ? `Tool: ${config.name}` : "Tool"}</title>
       </Head>
-      <Box maxWidth="1800px" margin="auto">
+      <Box >
         <HStack spacing={4} align="start" width="100%">
-          {config?.type !== ToolType.pf400 && (
+          {config?.type && !CUSTOM_TOOL_VIEWS.includes(config?.type) && (
             <VStack spacing={4} width="100%">
               {!toolCommandsDefined && (
                 <>
@@ -326,6 +328,13 @@ export default function Page() {
               <TeachPendant tool={config as Tool} />
             </Box>
           )}
+
+        {config?.type === ToolType.opentrons2 && config && (
+          <Box flex={1}>
+            <OT2CodeEditor 
+             toolConfig={config} />
+          </Box>
+)}
         </HStack>
       </Box>
     </>

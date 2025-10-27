@@ -7,5 +7,5 @@ export default function Page() {
     document.title = "Scripts";
   }, []);
 
-  return <ScriptsEditor />;
+  return <ScriptsEditor scriptsEnvironment="global" toolId="Tool Box"/>;
 }

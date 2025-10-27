@@ -6,7 +6,7 @@ import Tool from "@/server/tools";
 import { ToolType } from "gen-interfaces/controller";
 import { logAction } from "@/server/logger";
 
-export const zScriptEnvironment = z.enum(["global", "opentrons", "hamilton", "pylabrobot"]);
+export const zScriptEnvironment = z.enum(["global", "opentrons", "pyhamilton", "pylabrobot"]);
 
 export const zScript = z.object({
   id: z.number().optional(),
@@ -70,15 +70,22 @@ getAll: procedure
       return response;
     }),
 
-  run: procedure.input(z.string()).mutation(async ({ input }) => {
+  run: procedure.input(z.object({ toolId: z.string(), toolType: z.string(), name: z.string(),  script_environment: zScriptEnvironment.optional() })).mutation(async ({ input }) => {
+    const command = input.toolType === ToolType.opentrons2 ? "run_program" : "run_script";
+    let params = {};
+    if(input.toolType === ToolType.opentrons2){
+      params = { script_name: input.name, simulate: true };
+    }
+    else{
+      params = { name: input.name, blocking: true};
+    }
+
     const commandInfo = {
-      toolId: "Tool Box",
-      toolType: ToolType.toolbox,
-      command: "run_script",
-      params: {
-        name: input,
-        blocking: true,
-      },
+      toolId: input.toolId,
+      toolType: input.toolType as ToolType,
+      environment: input.script_environment || "global",
+      command,
+      params,
     };
     return await Tool.executeCommand(commandInfo);
   }),

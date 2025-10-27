@@ -15,6 +15,8 @@ export interface Command {
 export interface Command_RunProgram {
   script_content: string;
   variables: { [key: string]: any } | undefined;
+  take_photos?: boolean | undefined;
+  simulate?: boolean | undefined;
 }
 
 export interface Command_Pause {
@@ -157,7 +159,7 @@ export const Command = {
 };
 
 function createBaseCommand_RunProgram(): Command_RunProgram {
-  return { script_content: "", variables: undefined };
+  return { script_content: "", variables: undefined, take_photos: undefined, simulate: undefined };
 }
 
 export const Command_RunProgram = {
@@ -167,6 +169,12 @@ export const Command_RunProgram = {
     }
     if (message.variables !== undefined) {
       Struct.encode(Struct.wrap(message.variables), writer.uint32(18).fork()).ldelim();
+    }
+    if (message.take_photos !== undefined) {
+      writer.uint32(24).bool(message.take_photos);
+    }
+    if (message.simulate !== undefined) {
+      writer.uint32(32).bool(message.simulate);
     }
     return writer;
   },
@@ -192,6 +200,20 @@ export const Command_RunProgram = {
 
           message.variables = Struct.unwrap(Struct.decode(reader, reader.uint32()));
           continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.take_photos = reader.bool();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.simulate = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -205,6 +227,8 @@ export const Command_RunProgram = {
     return {
       script_content: isSet(object.script_content) ? String(object.script_content) : "",
       variables: isObject(object.variables) ? object.variables : undefined,
+      take_photos: isSet(object.take_photos) ? Boolean(object.take_photos) : undefined,
+      simulate: isSet(object.simulate) ? Boolean(object.simulate) : undefined,
     };
   },
 
@@ -212,6 +236,8 @@ export const Command_RunProgram = {
     const obj: any = {};
     message.script_content !== undefined && (obj.script_content = message.script_content);
     message.variables !== undefined && (obj.variables = message.variables);
+    message.take_photos !== undefined && (obj.take_photos = message.take_photos);
+    message.simulate !== undefined && (obj.simulate = message.simulate);
     return obj;
   },
 
@@ -223,6 +249,8 @@ export const Command_RunProgram = {
     const message = createBaseCommand_RunProgram();
     message.script_content = object.script_content ?? "";
     message.variables = object.variables ?? undefined;
+    message.take_photos = object.take_photos ?? undefined;
+    message.simulate = object.simulate ?? undefined;
     return message;
   },
 };

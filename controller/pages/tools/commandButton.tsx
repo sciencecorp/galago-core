@@ -16,13 +16,11 @@ const CommandButton: React.FC<CommandButtonProps> = ({
   onSelectCommand,
   status = "idle",
 }) => {
-  // const colorScheme = status === 'success' ? 'green' : status === 'error' ? 'red' : 'gray';
 
   return (
     <Button
       onClick={() => onSelectCommand(commandName)}
       m={2}
-      // colorScheme={colorScheme}
     >
       {commandName}
     </Button>
