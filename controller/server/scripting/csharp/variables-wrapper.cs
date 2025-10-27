@@ -5,29 +5,41 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 /// <summary>
-/// A wrapper class that provides methods for managing variables through API calls
+/// Static service class that provides methods for managing variables through API calls
 /// </summary>
-public class VariablesWrapper
+public static class Variables
 {
-    private readonly HttpClient _httpClient;
-    private readonly string _apiUrl;
+    private static readonly HttpClient _httpClient = new HttpClient();
+    private static string _defaultApiUrl = "http://db:8000";
 
-    public VariablesWrapper(HttpClient httpClient)
+    /// <summary>
+    /// Configure the default API URL for all operations
+    /// </summary>
+    /// <param name="apiUrl">The base API URL to use</param>
+    public static void Configure(string apiUrl)
     {
-        _httpClient = httpClient;
-        _apiUrl = "http://db:8000"; // Using the docker container hostname
+        _defaultApiUrl = apiUrl ?? throw new ArgumentNullException(nameof(apiUrl));
     }
+
+    /// <summary>
+    /// Get the current default API URL
+    /// </summary>
+    /// <returns>The current default API URL</returns>
+    public static string GetDefaultApiUrl() => _defaultApiUrl;
 
     /// <summary>
     /// Get a variable by name
     /// </summary>
     /// <param name="name">The name of the variable to retrieve</param>
+    /// <param name="apiUrl">Optional custom API URL</param>
     /// <returns>The retrieved variable data</returns>
-    public async Task<JsonElement?> GetVariableAsync(string name)
+    public static async Task<JsonElement?> GetVariableAsync(string name, string apiUrl = null)
     {
+        var baseUrl = apiUrl ?? _defaultApiUrl;
+        
         try
         {
-            var response = await _httpClient.GetAsync($"{_apiUrl}/variables/{name}");
+            var response = await _httpClient.GetAsync($"{baseUrl}/variables/{name}");
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
@@ -53,12 +65,15 @@ public class VariablesWrapper
     /// <summary>
     /// Get all variables
     /// </summary>
+    /// <param name="apiUrl">Optional custom API URL</param>
     /// <returns>All variables data</returns>
-    public async Task<JsonElement> GetAllVariablesAsync()
+    public static async Task<JsonElement> GetAllVariablesAsync(string apiUrl = null)
     {
+        var baseUrl = apiUrl ?? _defaultApiUrl;
+        
         try
         {
-            var response = await _httpClient.GetAsync($"{_apiUrl}/variables");
+            var response = await _httpClient.GetAsync($"{baseUrl}/variables");
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<JsonElement>(content);
@@ -71,17 +86,28 @@ public class VariablesWrapper
     }
 
     /// <summary>
-    /// Create a new variable
+    /// Create a new variable - matches Python implementation exactly
     /// </summary>
-    /// <param name="data">The variable data to create</param>
+    /// <param name="data">The variable data to create (should be a dictionary-like object with name, value, type, etc.)</param>
+    /// <param name="apiUrl">Optional custom API URL</param>
     /// <returns>The created variable data</returns>
-    public async Task<JsonElement> CreateVariableAsync(object data)
+    public static async Task<JsonElement> CreateVariableAsync(object data, string apiUrl = null)
     {
+        var baseUrl = apiUrl ?? _defaultApiUrl;
+        
         try
         {
             var json = JsonSerializer.Serialize(data);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync($"{_apiUrl}/variables", content);
+            var response = await _httpClient.PostAsync($"{baseUrl}/variables", content);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.Error.WriteLine($"API Error {response.StatusCode}: {errorContent}");
+                Console.Error.WriteLine($"Sent JSON: {json}");
+            }
+            
             response.EnsureSuccessStatusCode();
             var responseContent = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<JsonElement>(responseContent);
@@ -98,15 +124,18 @@ public class VariablesWrapper
     /// </summary>
     /// <param name="name">The name of the variable to update</param>
     /// <param name="newValue">The new value for the variable</param>
+    /// <param name="apiUrl">Optional custom API URL</param>
     /// <returns>The updated variable data</returns>
-    public async Task<JsonElement> UpdateVariableAsync(string name, object newValue)
+    public static async Task<JsonElement> UpdateVariableAsync(string name, object newValue, string apiUrl = null)
     {
+        var baseUrl = apiUrl ?? _defaultApiUrl;
+        
         try
         {
             var variable = new { value = newValue };
             var json = JsonSerializer.Serialize(variable);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PutAsync($"{_apiUrl}/variables/{name}", content);
+            var response = await _httpClient.PutAsync($"{baseUrl}/variables/{name}", content);
             response.EnsureSuccessStatusCode();
             var responseContent = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<JsonElement>(responseContent);
@@ -122,12 +151,15 @@ public class VariablesWrapper
     /// Delete a variable by name
     /// </summary>
     /// <param name="name">The name of the variable to delete</param>
+    /// <param name="apiUrl">Optional custom API URL</param>
     /// <returns>The response from the delete operation</returns>
-    public async Task<JsonElement> DeleteVariableAsync(string name)
+    public static async Task<JsonElement> DeleteVariableAsync(string name, string apiUrl = null)
     {
+        var baseUrl = apiUrl ?? _defaultApiUrl;
+        
         try
         {
-            var response = await _httpClient.DeleteAsync($"{_apiUrl}/variables/{name}");
+            var response = await _httpClient.DeleteAsync($"{baseUrl}/variables/{name}");
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<JsonElement>(content);

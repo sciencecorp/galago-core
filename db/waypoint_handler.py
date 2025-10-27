@@ -6,59 +6,8 @@ from sqlalchemy.orm import Session
 from db import crud
 from db.models.inventory_models import RobotArmLocation
 from db import schemas
-from pydantic import BaseModel
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 import re
-
-
-# Schemas for waypoint data
-class TeachPoint(BaseModel):
-    name: str
-    coordinates: str
-    type: str = "location"
-    loc_type: str = "j"
-    orientation: Optional[str] = None
-
-
-class Command(BaseModel):
-    command: str
-    params: Dict
-    order: int
-
-
-class RobotSequence(BaseModel):
-    name: str
-    description: Optional[str] = ""
-    commands: List[Command]
-    tool_id: int = 1
-
-
-class MotionProfile(BaseModel):
-    name: str
-    speed: float = 100
-    speed2: float = 100
-    acceleration: float = 100
-    deceleration: float = 100
-    accel_ramp: float = 0.2
-    decel_ramp: float = 0.2
-    inrange: int = 1
-    straight: int = 0
-    tool_id: int = 1
-
-
-class GripParam(BaseModel):
-    name: str
-    width: float
-    force: float = 15
-    speed: float = 10
-    tool_id: int = 1
-
-
-class WaypointData(BaseModel):
-    teach_points: Optional[List[TeachPoint]] = None
-    sequences: Optional[List[RobotSequence]] = None
-    motion_profiles: Optional[List[MotionProfile]] = None
-    grip_params: Optional[List[GripParam]] = None
 
 
 def get_unique_name(db: Session, name: str, table, tool_id: int) -> str:
@@ -69,7 +18,6 @@ def get_unique_name(db: Session, name: str, table, tool_id: int) -> str:
         name = f"{base_name}_{counter}"
         counter += 1
     return name
-
 
 def is_valid_location_name(name):
     return bool(re.search(r"[a-zA-Z]", name))  # Ensure at least one letter is present
@@ -326,7 +274,7 @@ async def handle_waypoint_upload(file: UploadFile, tool_id: int, db: Session):
             )
 
         # Validate data against schema
-        waypoint_data = WaypointData(**data)
+        waypoint_data = schemas.WaypointData(**data)
 
         # Store data in database within a transaction
         try:

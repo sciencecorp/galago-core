@@ -204,6 +204,17 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
                 .join(models.Workcell)
                 .filter(models.Workcell.id == workcell_id)
             )
+        # NEW: Added workcell filtering for the new entities
+        elif self.model == models.Script:
+            query = query.filter(models.Script.workcell_id == workcell_id)
+        elif self.model == models.ScriptFolder:
+            query = query.filter(models.ScriptFolder.workcell_id == workcell_id)
+        elif self.model == models.Variable:
+            query = query.filter(models.Variable.workcell_id == workcell_id)
+        elif self.model == models.Labware:
+            query = query.filter(models.Labware.workcell_id == workcell_id)
+        elif self.model == models.Form:
+            query = query.filter(models.Form.workcell_id == workcell_id)
         else:
             raise ValueError("Failed to get all by workcell id.")
 
@@ -404,6 +415,7 @@ protocol_process = CRUDBase[
     schemas.ProtocolProcessCreate, 
     schemas.ProtocolProcessUpdate
 ](models.ProtocolProcess)
+form = CRUDBase[models.Form, schemas.FormCreate, schemas.FormUpdate](models.Form)
 
 protocol_command = CRUDBase[
     models.ProtocolCommand, 

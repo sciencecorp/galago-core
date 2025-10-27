@@ -25,6 +25,15 @@ export const zScriptFolder = z.object({
   name: z.string(),
   description: z.string().optional(),
   parent_id: z.number().optional(),
+  workcell_id: z.number(),
+});
+
+export const zScriptFolderUpdate = z.object({
+  id: z.number(),
+  name: z.string().optional(),
+  description: z.string().optional(),
+  parent_id: z.number().optional(),
+  workcell_id: z.number().optional(),
 });
 
 export const scriptRouter = router({
@@ -52,7 +61,7 @@ export const scriptRouter = router({
 
   run: procedure.input(z.string()).mutation(async ({ input }) => {
     const commandInfo = {
-      toolId: "tool_box",
+      toolId: "Tool Box",
       toolType: ToolType.toolbox,
       command: "run_script",
       params: {
@@ -100,7 +109,7 @@ export const scriptRouter = router({
     return response;
   }),
 
-  editFolder: procedure.input(zScriptFolder).mutation(async ({ input }) => {
+  editFolder: procedure.input(zScriptFolderUpdate).mutation(async ({ input }) => {
     const { id } = input;
     const response = await put<ScriptFolder>(`/script-folders/${id}`, input);
     return response;

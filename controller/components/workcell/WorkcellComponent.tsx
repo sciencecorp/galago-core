@@ -90,7 +90,7 @@ export const WorkcellComponent = () => {
       onClick={handleImportClick}
       isLoading={isImporting}
       isDisabled={isImporting}>
-      {selectedWorkcellName ? "Import into Selected" : "Import New"}
+      Import
     </Button>
   );
 

@@ -52,6 +52,7 @@ export default class RunStore {
     await Promise.all(durationEstimates);
   }
 
+<<<<<<< HEAD
   /**
    * Flattens the protocol's process structure into a linear array of commands
    * while preserving the execution order (processes by position, then commands within each process)
@@ -60,6 +61,10 @@ export default class RunStore {
     if (!protocol.processes || protocol.processes.length === 0) {
       return [];
     }
+=======
+  async createFromProtocol(protocolId: string): Promise<Run> {
+    const protocol = await Protocol.loadFromDatabase(protocolId);
+>>>>>>> origin
 
     const allCommands: ProtocolCommand[] = [];
 
@@ -86,10 +91,14 @@ export default class RunStore {
       throw new ProtocolNotFoundError(protocolId);
     }
 
+<<<<<<< HEAD
     const validationErrors = protocol.validationErrors(params);
     if (validationErrors) {
       throw validationErrors;
     }
+=======
+    const commands = protocol._generateCommands();
+>>>>>>> origin
 
     // Instead of calling protocol.generate(), we now need to flatten the process structure
     // and create ToolCommandInfo objects from the database commands
@@ -126,7 +135,6 @@ export default class RunStore {
 
     const run: Run = {
       id: runId,
-      params: params,
       protocolId,
       commands: runCommands,
       status: "CREATED",

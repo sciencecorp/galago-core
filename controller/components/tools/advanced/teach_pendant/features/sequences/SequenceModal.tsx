@@ -69,10 +69,6 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
       errorToast("Error", "Name is required");
       return;
     }
-    if (commands.length === 0) {
-      errorToast("Error", "No commands to save");
-      return;
-    }
     const sequenceData = {
       name,
       description,

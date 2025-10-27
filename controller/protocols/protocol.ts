@@ -170,6 +170,19 @@ export default class Protocol<
     };
   }
 
+  _generateCommands(): ToolCommandInfo[] | null {
+    if (!this.commands) {
+      return null;
+    }
+    return this.commands.map((cmd: any) => ({
+      toolId: cmd.toolId,
+      toolType: cmd.toolType,
+      command: cmd.command,
+      params: cmd.params,
+      advancedParameters: cmd.advancedParameters,
+    }));
+  }
+
   paramInfo(param: z.ZodTypeAny): ProtocolParamInfo {
     return {
       type: zodSchemaToTypeName(param),

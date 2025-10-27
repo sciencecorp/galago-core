@@ -122,10 +122,17 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
 
   // Helper function to determine what type of input to render
   const renderInputForKey = (key: string, value: any) => {
+    // Helper function to get current value with proper fallback
+    const getCurrentValue = () => {
+      if (type && newConfig[type] && key in newConfig[type]) {
+        return newConfig[type][key]; // Use the edited value, even if empty string
+      }
+      return value ?? ""; // Only fall back to original if undefined/null
+    };
+
     // For COM port fields, use the InputWithDropdown component
     if (key.toLowerCase().includes("com_port")) {
-      const currentValue =
-        type && newConfig[type] && key in newConfig[type] ? newConfig[type][key] : value || "";
+      const currentValue = getCurrentValue();
 
       // Create options array with all COM ports
       const comPortOptions = comPorts.map((port) => ({ value: port }));
@@ -153,8 +160,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
       key.toLowerCase().includes("host") ||
       key.toLowerCase().includes("address")
     ) {
-      const currentValue =
-        type && newConfig[type] && key in newConfig[type] ? newConfig[type][key] : value || "";
+      const currentValue = getCurrentValue();
       const isValid = currentValue === "" || isValidIP(currentValue);
 
       return (
@@ -207,7 +213,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
 
       return (
         <Input
-          value={newConfig[type!]?.[key] || value}
+          value={getCurrentValue()}
           onChange={(e) => handleConfigChange(e, key)}
           placeholder={placeholder}
         />
@@ -218,7 +224,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
     if (type === ToolType.pf400 && key.toLowerCase().includes("gpl_version")) {
       return (
         <Select
-          value={newConfig[type!]?.[key] || value}
+          value={getCurrentValue()}
           onChange={(e) => handleConfigChange(e, key)}
           placeholder="Select GPL version">
           {gplVersions.map((version) => (
@@ -232,7 +238,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
 
     // For numeric fields like ports
     if (key.toLowerCase().includes("port") && !key.toLowerCase().includes("com_port")) {
-      const currentValue = newConfig[type!]?.[key] || value || "";
+      const currentValue = getCurrentValue();
       // Parse as number and validate port range (0-65535)
       const numValue = Number(currentValue);
       const isValid =
@@ -276,7 +282,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
       key.toLowerCase().includes("duration") ||
       key.toLowerCase().includes("interval")
     ) {
-      const currentValue = newConfig[type!]?.[key] || value || "";
+      const currentValue = getCurrentValue();
       const numValue = Number(currentValue);
       const isValid = currentValue === "" || (!isNaN(numValue) && Number.isInteger(numValue));
 
@@ -299,7 +305,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
     // Default text input for everything else
     return (
       <Input
-        value={newConfig[type!]?.[key] || value}
+        value={getCurrentValue()}
         onChange={(e) => {
           handleConfigChange(e, key);
         }}

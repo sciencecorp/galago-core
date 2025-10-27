@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000/api";
+
 export const api = axios.create({
-  baseURL: `${process.env.API_BASE_URL}` || "http://localhost:8000/api",
+  baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
@@ -132,6 +134,55 @@ export const uploadFile = async <T>(
     } else {
       console.error("Unexpected error:", error);
       throw new Error("An unexpected error occurred during file upload");
+    }
+  }
+};
+
+export const downloadFile = async (url: string, filename?: string): Promise<void> => {
+  try {
+    const response = await api.get<Blob>(url, {
+      responseType: "blob",
+    });
+
+    // Extract filename from Content-Disposition header if not provided
+    if (!filename) {
+      const contentDisposition = response.headers["content-disposition"];
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1].replace(/['"]/g, "");
+        }
+      }
+      // Fallback to a default filename if still not found
+      if (!filename) {
+        filename = url.split("/").pop() || "download";
+      }
+    }
+
+    // Create a blob URL for the file
+    const blob = new Blob([response.data], {
+      type: response.headers["content-type"] || "application/octet-stream",
+    });
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    // Create a temporary anchor element and trigger download
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+
+    // Cleanup
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const errorMsg = unpackError(error);
+      console.error("File download error:", errorMsg);
+      throw new Error(`Error downloading file: ${error.response?.status} - ${errorMsg}`);
+    } else {
+      console.error("Unexpected error during download:", error);
+      throw new Error("An unexpected error occurred during file download");
     }
   }
 };

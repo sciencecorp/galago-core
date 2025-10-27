@@ -215,15 +215,57 @@ export default class Tool {
       }
     }
 
-    //Handle script execution
-    if (command.command === "run_script" && command.toolId === "tool_box") {
-      const scriptName = command.params.name
+    //Handle opentrons2 run_program command
+    if (command.toolType === ToolType.opentrons2 && command.command === "run_program") {
+      if (!params.script_name || params.script_name.trim() === "") {
+        throw new Error("Script name is required for run_program command");
+      }
+      const scriptName = params.script_name
         .replaceAll(".js", "")
         .replaceAll(".py", "")
         .replaceAll(".cs", "");
       try {
         const script = await get<Script>(`/scripts/${scriptName}`);
-        command.params.name = script.content;
+        if (script.language !== "python") {
+          throw new Error("Opentrons2 tool only supports Python scripts");
+        }
+        params.script_content = script.content;
+        params.variables = await get<Variable[]>(`/variables`);
+      } catch (e: any) {
+        console.warn("Error at fetching script", e);
+        logAction({
+          level: "error",
+          action: "Script Error",
+          details: `Failed to fetch ${scriptName}. ${e}`,
+        });
+        if (e.status === 404) {
+          throw new Error(`Script ${scriptName} not found`);
+        }
+        throw new Error(`Failed to fetch ${scriptName}. ${e}`);
+      }
+    }
+
+    //Handle script execution
+    if (
+      command.command === "run_script" &&
+      (command.toolType === ToolType.toolbox ||
+        command.toolType === ToolType.plr ||
+        command.toolType === ToolType.pyhamilton)
+    ) {
+      if (!command.params.name || command.params.name.trim() === "") {
+        throw new Error("Script name is required for run_script command");
+      }
+
+      const scriptName = command.params.name
+        .replaceAll(".js", "")
+        .replaceAll(".py", "")
+        .replaceAll(".cs", "");
+
+      try {
+        const script = await get<Script>(`/scripts/${scriptName}`);
+        if (command.toolType === ToolType.plr && script.language !== "python") {
+          throw new Error("PLR tool only supports Python scripts");
+        }
         if (script.language === "javascript") {
           const result = await JavaScriptExecutor.executeScript(script.content);
           if (!result.success) {
@@ -268,7 +310,10 @@ export default class Tool {
             meta_data: { response: result.output } as any,
           } as tool_base.ExecuteCommandReply;
         } else if (script.language === "python") {
-          command.params.name = script.content;
+          command.params.script_content = script.content;
+          command.params.blocking = true;
+        } else {
+          throw new Error(`Unsupported script language: ${script.language}`);
         }
       } catch (e: any) {
         console.warn("Error at fetching script", e);
@@ -293,7 +338,7 @@ export default class Tool {
       // Handle specific error codes
       switch (reply.response) {
         case tool_base.ResponseCode.UNRECOGNIZED_COMMAND:
-          userFriendlyErrorMessage = `The command "${command.command}" is not recognized by the tool "${command.toolId}". Please verify that this command is supported by this tool.`;
+          userFriendlyErrorMessage = `The command "${command.command}" is not recognized by the tool "${command.toolId}". Please verify that this command is supported by this tool or page view.`;
           break;
         case tool_base.ResponseCode.INVALID_ARGUMENTS:
           userFriendlyErrorMessage = `Invalid arguments provided for command "${command.command}". Check the parameters and try again.`;

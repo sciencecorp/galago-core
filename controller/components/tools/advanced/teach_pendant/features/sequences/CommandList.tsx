@@ -190,7 +190,7 @@ const CommandItem: React.FC<CommandItemProps> = ({
               });
             }}>
             {(labwareList || []).map((labware) => (
-              <option key={labware.id} value={labware.id}>
+              <option key={labware.id} value={labware.name}>
                 {labware.name}
               </option>
             ))}
@@ -213,7 +213,7 @@ const CommandItem: React.FC<CommandItemProps> = ({
             {teachPoints
               .filter((p) => p.type === "location")
               .map((point) => (
-                <option key={point.id} value={point.id}>
+                <option key={point.id} value={point.name}>
                   {point.name}
                 </option>
               ))}

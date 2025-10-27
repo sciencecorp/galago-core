@@ -2,7 +2,6 @@ import { Protocol, ProtocolProcess, ProtocolCommand, ProtocolCommandGroup } from
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import axios from "axios";
-import { TRPCError } from "@trpc/server";
 import { logAction } from "@/server/logger";
 import { get, post, put, del } from "../utils/api";
 
@@ -18,7 +17,8 @@ export type AllNamesOutput = {
   icon?: any;
 }[];
 
-// Schema Definitions
+
+
 const protocolSchema = z.object({
   name: z.string().min(1),
   category: z.string().min(1),

@@ -38,6 +38,8 @@ import { VscSymbolBoolean } from "react-icons/vsc";
 import { TbVariable } from "react-icons/tb";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { successToast, errorToast } from "../ui/Toast";
+import { VscJson } from "react-icons/vsc";
+import { MdOutlineDataArray } from "react-icons/md";
 
 // Function to truncate text to a maximum length
 const truncateText = (text: string, maxLength: number = 50) => {
@@ -106,6 +108,10 @@ export const Variables: React.FC = () => {
         return <MdOutlineNumbers />;
       case "boolean":
         return <VscSymbolBoolean />;
+      case "array":
+        return <MdOutlineDataArray />;
+      case "json":
+        return <VscJson />;
       default:
         return null;
     }

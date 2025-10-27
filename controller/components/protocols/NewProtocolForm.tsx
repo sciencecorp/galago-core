@@ -9,7 +9,6 @@ import {
   Textarea,
   VStack,
   FormErrorMessage,
-  FormHelperText,
   Alert,
   AlertIcon,
   AlertTitle,
@@ -20,7 +19,10 @@ import { useRouter } from "next/router";
 import { Protocol } from "@/types/api";
 import { successToast, errorToast } from "../ui/Toast";
 
-type ProtocolFormData = Omit<Protocol, "id" | "created_at" | "updated_at" | "number_of_commands">;
+type ProtocolFormData = Omit<
+  Protocol,
+  "version" | "id" | "created_at" | "updated_at" | "params" | "number_of_commands"
+>;
 
 export const NewProtocolForm = () => {
   const router = useRouter();
@@ -81,10 +83,6 @@ export const NewProtocolForm = () => {
 
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
-    }
-
-    if (!formData.category) {
-      newErrors.category = "Category is required";
     }
 
     if (!selectedWorkcell) {
@@ -199,11 +197,11 @@ export const NewProtocolForm = () => {
         </FormControl>
 
         <Button
+          isDisabled={!selectedWorkcell || !formData.name || !formData.category}
           type="submit"
-          colorScheme="blue"
+          colorScheme="teal"
           isLoading={createProtocol.isLoading}
-          loadingText="Creating..."
-          isDisabled={createProtocol.isLoading || !selectedWorkcell}>
+          loadingText="Creating...">
           Create Protocol
         </Button>
       </VStack>

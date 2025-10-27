@@ -72,12 +72,22 @@ export const NewFolder: React.FC<NewFolderProps> = ({
 }) => {
   const addFolder = trpc.script.addFolder.useMutation();
   const { refetch: refetchFolders } = trpc.script.getAllFolders.useQuery();
+  const { data: selectedWorkcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
+  const { data: workcells } = trpc.workcell.getAll.useQuery();
 
   const handleCreate = async () => {
     try {
+      // Get the workcell ID from the selected workcell name
+      const selectedWorkcell = workcells?.find((wc) => wc.name === selectedWorkcellName);
+      if (!selectedWorkcell) {
+        showErrorToast("Error creating folder", "No workcell selected");
+        return;
+      }
+
       await addFolder.mutateAsync({
         name: "new_folder",
         parent_id: parentId,
+        workcell_id: selectedWorkcell.id,
       });
       await refetchFolders();
       onFolderCreated?.();
