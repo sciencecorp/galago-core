@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException
-from pathlib import Path
 import sys
 sys.path.append('/app/db')
 from backup_manager import BackupManager

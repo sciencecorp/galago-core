@@ -16,12 +16,8 @@ const CommandButton: React.FC<CommandButtonProps> = ({
   onSelectCommand,
   status = "idle",
 }) => {
-
   return (
-    <Button
-      onClick={() => onSelectCommand(commandName)}
-      m={2}
-    >
+    <Button onClick={() => onSelectCommand(commandName)} m={2}>
       {commandName}
     </Button>
   );

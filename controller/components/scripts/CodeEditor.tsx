@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, use } from "react";
 import {
   Box,
   Button,
@@ -44,14 +44,14 @@ import { Console } from "./Console";
 import { ResizablePanel } from "./ResizablePanel";
 import { logAction } from "@/server/logger";
 
-
 interface ScriptsEditorProps {
   toolId: string;
   scriptsEnvironment: ScriptEnvironment;
+  isSimulated?: boolean;
 }
 
-export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) : JSX.Element => {
-  const { scriptsEnvironment } = props;
+export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props): JSX.Element => {
+  const { scriptsEnvironment, isSimulated = false } = props;
   const [openTabs, setOpenTabs] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [activeFolder, setActiveFolder] = useState<ScriptFolder | null>(null);
@@ -61,9 +61,9 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) : JSX.Element
   const { hoverBg, bgColor, borderColor, consoleHeaderBg, consoleBg } = useScriptColors();
   const [scripts, setScripts] = useState<Script[]>([]);
   const [folders, setFolders] = useState<ScriptFolder[]>([]);
-  const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery(
-    { script_environment: scriptsEnvironment },
-  );
+  const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery({
+    script_environment: scriptsEnvironment,
+  });
   const { data: fetchedFolders, refetch: refetchFolders } = trpc.script.getAllFolders.useQuery();
   const { data: selectedWorkcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
   const { data: workcells } = trpc.workcell.getAll.useQuery();
@@ -91,9 +91,11 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) : JSX.Element
   const monacoRef = useRef<typeof monaco | null>(null);
   const [editorLanguage, setEditorLanguage] = useState<string>("python");
   const jsIconColor = useColorModeValue("orange", "yellow");
-  const toast = useToast();
 
-  // Define refreshData function here
+  useEffect(() => {
+    console.log("isSimulated changed in ScriptsEditor: " + isSimulated);
+  }, [isSimulated]);
+
   const refreshData = async () => {
     await refetch();
     await refetchFolders();
@@ -109,14 +111,12 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) : JSX.Element
   const activeScriptId = getActiveScript()?.id;
 
   // Instantiate the useScriptIO hook
-  const {
-    fileInputRef,
-    handleExportConfig,
-    handleImportClick,
-    handleFileChange,
-    isImporting,
-    isExporting,
-  } = useScriptIO(scripts, activeScriptId, refetch, refetchFolders);
+  const { fileInputRef, handleExportConfig, handleImportClick, handleFileChange } = useScriptIO(
+    scripts,
+    activeScriptId,
+    refetch,
+    refetchFolders,
+  );
 
   // Wrapped handlers to add toast notifications
   const onExportConfig = async () => {
@@ -179,70 +179,71 @@ export const ScriptsEditor: React.FC<ScriptsEditorProps> = (props) : JSX.Element
     }
   }, [fetchedFolders]);
 
-// Update the handleRunScript function in ScriptsEditor component
+  // Update the handleRunScript function in ScriptsEditor component
 
-const handleRunScript = async () => {
-  setRunError(false);
-  setConsoleText("");
-  if (!activeTab) return;
+  const handleRunScript = async () => {
+    setRunError(false);
+    setConsoleText("");
+    if (!activeTab) return;
 
-  const activeScript = getActiveScript();
-  if (!activeScript) {
-    showErrorToast("No active script", "Could not find the active script to run.");
-    return;
-  }
+    const activeScript = getActiveScript();
+    if (!activeScript) {
+      showErrorToast("No active script", "Could not find the active script to run.");
+      return;
+    }
 
-  let toolType = "";
-  let toolId = "";
-  switch (scriptsEnvironment) {
-    case "opentrons":
-      toolType = "opentrons2";
-      break;
-    case "pyhamilton":
-      toolType = "pyhamilton";
-      break;
-    case "pylabrobot":
-      toolType = "pylabrobot";
-      break;
-    case "global":
-    default:
-      toolId = "Tool Box";
-      toolType = "toolbox";
-      break;
-  }
+    let toolType = "";
+    let toolId = "";
+    switch (scriptsEnvironment) {
+      case "opentrons":
+        toolType = "opentrons2";
+        break;
+      case "pyhamilton":
+        toolType = "pyhamilton";
+        break;
+      case "pylabrobot":
+        toolType = "pylabrobot";
+        break;
+      case "global":
+      default:
+        toolId = "Tool Box";
+        toolType = "toolbox";
+        break;
+    }
 
-  // Create a promise that wraps the mutation
-  const runScriptPromise = new Promise((resolve, reject) => {
-    runScript.mutate(
-      {
-        toolId: toolId || props.toolId,
-        toolType,
-        name: activeScript.name,
-        script_environment: scriptsEnvironment,
-      },
-      {
-        onSuccess: (data) => {
-          // Handle the response data
-          if (data?.meta_data?.response) {
-            setConsoleText(data.meta_data.response);
-            setRunError(false);
-          } else if (data?.error_message) {
-            setRunError(true);
-            setConsoleText(data.error_message);
-            reject(new Error(data.error_message));
-            return;
-          } else {
-            setRunError(false);
-            setConsoleText("");
-          }
-          resolve(data);
+    // Create a promise that wraps the mutation
+    const runScriptPromise = new Promise((resolve, reject) => {
+      runScript.mutate(
+        {
+          toolId: toolId || props.toolId,
+          toolType,
+          name: activeScript.name,
+          script_environment: scriptsEnvironment,
+          simulate: isSimulated,
         },
-        onError: (error) => {
-          setRunError(true);
+        {
+          onSuccess: (data) => {
+            // Handle the response data
+            if (data?.meta_data?.response) {
+              setConsoleText(data.meta_data.response);
+              setRunError(false);
+            } else if (data?.error_message) {
+              setRunError(true);
+              setConsoleText(data.error_message);
+              reject(new Error(data.error_message));
+              return;
+            } else {
+              setRunError(false);
+              setConsoleText("");
+            }
+            resolve(data);
+          },
+          onError: (error) => {
+            setRunError(true);
 
-          // Check if this is a gRPC connection error
-          if (error.message && error.message.includes("UNAVAILABLE: No connection established")) {
-            const userFriendlyMessage = `Cannot connect to script execution server. Please ensure the gRPC Python server is running and accessible.
+            // Check if this is a gRPC connection error
+            if (error.message && error.message.includes("UNAVAILABLE: No connection established")) {
+              const userFriendlyMessage = `Cannot connect to script execution server. Please ensure the gRPC Python server is running and accessible.
 
           Connection Error: ${error.message}
 
@@ -251,10 +252,10 @@ const handleRunScript = async () => {
           2. Check if the server is running on the expected port (1010)
           3. Ensure there are no network connectivity issues`;
 
-                      setConsoleText(userFriendlyMessage);
-                      reject(new Error("gRPC Server Connection Failed"));
-                    } else if (error.message && error.message.includes("ENETUNREACH")) {
-                      const userFriendlyMessage = `Network unreachable - Cannot connect to script execution server.
+              setConsoleText(userFriendlyMessage);
+              reject(new Error("gRPC Server Connection Failed"));
+            } else if (error.message && error.message.includes("ENETUNREACH")) {
+              const userFriendlyMessage = `Network unreachable - Cannot connect to script execution server.
 
           The system cannot establish a connection to the gRPC server. This typically means:
           1. The Python gRPC server is not running
@@ -263,50 +264,49 @@ const handleRunScript = async () => {
 
           Original Error: ${error.message}`;
 
-                      setConsoleText(userFriendlyMessage);
-                      reject(new Error("Network Connection Failed"));
-                    } else {
-                      setConsoleText(error.message);
-                      reject(error);
-                    }
-                  },
-                }
-              );
-            });
-
-            // Use the loadingToast with the promise
-            loadingToast(
-              `Executing ${activeScript.name}...`,
-              "Please wait for script to complete.",
-              runScriptPromise,
-              {
-                successTitle: `Script ${activeScript.name} completed!`,
-                successDescription: () => "The script execution finished successfully",
-                errorTitle: "Failed to run script",
-                errorDescription: (error) => {
-                  // Provide more specific error messages for connection issues
-                  if (error.message === "gRPC Server Connection Failed") {
-                    return "Cannot connect to script execution server. Please check if the gRPC Python server is running. If it is, check the status of Tool Box in the tools page.";
-                  } else if (error.message === "Network Connection Failed") {
-                    return "Network connection to script execution server failed. Please verify server status.";
-                  } else {
-                    return `Error: ${error.message}`;
-                  }
-                },
-              }
-            );
-
-            try {
-              await runScriptPromise;
-            } catch (error) {
-              logAction({
-                level: "error",
-                action: "Script Execution Failed",
-                details: `Error executing script ${activeScript.name} in environment ${scriptsEnvironment}: ${error}`,
-              });
+              setConsoleText(userFriendlyMessage);
+              reject(new Error("Network Connection Failed"));
+            } else {
+              setConsoleText(error.message);
+              reject(error);
             }
-          };
+          },
+        },
+      );
+    });
 
+    // Use the loadingToast with the promise
+    loadingToast(
+      `Executing ${activeScript.name}...`,
+      "Please wait for script to complete.",
+      runScriptPromise,
+      {
+        successTitle: `Script ${activeScript.name} completed!`,
+        successDescription: () => "The script execution finished successfully",
+        errorTitle: "Failed to run script",
+        errorDescription: (error) => {
+          // Provide more specific error messages for connection issues
+          if (error.message === "gRPC Server Connection Failed") {
+            return "Cannot connect to script execution server. Please check if the gRPC Python server is running. If it is, check the status of Tool Box in the tools page.";
+          } else if (error.message === "Network Connection Failed") {
+            return "Network connection to script execution server failed. Please verify server status.";
+          } else {
+            return `Error: ${error.message}`;
+          }
+        },
+      },
+    );
+
+    try {
+      await runScriptPromise;
+    } catch (error) {
+      logAction({
+        level: "error",
+        action: "Script Execution Failed",
+        details: `Error executing script ${activeScript.name} in environment ${scriptsEnvironment}: ${error}`,
+      });
+    }
+  };
 
   const handleSave = async () => {
     if (!activeTab) {
@@ -672,25 +672,27 @@ const handleRunScript = async () => {
     setActiveTab(fullName);
   };
 
-  // Define Import and Export buttons
   const importButton = (
     <Button
       leftIcon={<FaFileImport />}
       colorScheme="blue"
       variant="outline"
       onClick={handleImportClick}
-      isLoading={isImporting}
-      isDisabled={isImporting}
       size="sm">
       Import
     </Button>
   );
 
-  const headerMessage = scriptsEnvironment === "global" ?
-        "Create and manage global scripts." : scriptsEnvironment === "opentrons" ?
-        "Create and manage Opentrons scripts." : scriptsEnvironment === "pylabrobot" ?
-        "Create and manage PyLabRobot scripts." : scriptsEnvironment === "pyhamilton" ?
-        "Create and manage PyHamilton scripts." : "Create and manage scripts.";
+  const headerMessage =
+    scriptsEnvironment === "global"
+      ? "Create and manage global scripts."
+      : scriptsEnvironment === "opentrons"
+        ? "Create and manage Opentrons scripts."
+        : scriptsEnvironment === "pylabrobot"
+          ? "Create and manage PyLabRobot scripts."
+          : scriptsEnvironment === "pyhamilton"
+            ? "Create and manage PyHamilton scripts."
+            : "Create and manage scripts.";
 
   return (
     <Box maxW="100%">
@@ -706,18 +708,18 @@ const handleRunScript = async () => {
         {`Are you sure you want to delete ${scriptToDelete?.name}?`}
       </ConfirmationModal>
       <VStack spacing={4} align="stretch" width="100%">
-          <Card bg={headerBg} shadow="md">
-            <CardBody>
-              <VStack spacing={4} align="stretch">
-                <PageHeader
-                  title="Scripts"
-                  subTitle={headerMessage}
-                  titleIcon={<Icon as={CodeIcon} boxSize={8} color="teal.500" />}
-                  mainButton={importButton}
-                />
-              </VStack>
-            </CardBody>
-          </Card>
+        <Card bg={headerBg} shadow="md">
+          <CardBody>
+            <VStack spacing={4} align="stretch">
+              <PageHeader
+                title="Scripts"
+                subTitle={headerMessage}
+                titleIcon={<Icon as={CodeIcon} boxSize={8} color="teal.500" />}
+                mainButton={importButton}
+              />
+            </VStack>
+          </CardBody>
+        </Card>
         <Input
           type="file"
           ref={fileInputRef}
@@ -789,8 +791,7 @@ const handleRunScript = async () => {
                           colorScheme="gray"
                           variant="outline"
                           onClick={onExportConfig}
-                          isDisabled={!activeTab || isExporting}
-                          isLoading={isExporting}
+                          isDisabled={!activeTab}
                           size="sm"
                         />
                       </Tooltip>
@@ -876,5 +877,5 @@ const handleRunScript = async () => {
         </Card>
       </VStack>
     </Box>
-  );  
+  );
 };

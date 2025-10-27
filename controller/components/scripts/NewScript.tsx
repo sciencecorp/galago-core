@@ -37,7 +37,7 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
   const [description, setDescription] = useState("");
   const addScript = trpc.script.add.useMutation();
   const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
-  const [selectedLanguage, setSelectedLanguage] = useState<string>("python"); 
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("python");
   const [environment, setEnvironment] = useState<ScriptEnvironment>(defaultEnvironment || "global");
 
   const handleSave = async () => {

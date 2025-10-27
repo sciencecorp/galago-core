@@ -1,4 +1,5 @@
-# db/alembic/env.py
+# ruff: noqa: E402
+# mypy: disable-error-code="import-not-found"
 from logging.config import fileConfig
 import sys
 import os
@@ -12,9 +13,9 @@ from sqlalchemy import pool
 from alembic import context
 
 # Import using relative paths from db root
-from models.db_session import Base
-from config import INVENTORY_DB_URL
-import models.inventory_models as models  # Import to register all models
+from models.db_session import Base  # noqa: F401, E402
+from config import INVENTORY_DB_URL  # noqa: F401, E402
+import models.inventory_models # noqa: F401, E402
 
 # this is the Alembic Config object
 config = context.config

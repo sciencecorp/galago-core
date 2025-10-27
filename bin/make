@@ -76,7 +76,7 @@ test_py() {
   echo "Ruff Check"
   ruff check .
   echo "Mypy Check Db"
-  mypy db 
+  mypy --config-file=db/pyproject.toml db --install-types --non-interactive
 }
 
 unittest_py() {

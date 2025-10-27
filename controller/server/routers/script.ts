@@ -35,23 +35,24 @@ export const zScriptFolderUpdate = z.object({
 });
 
 export const scriptRouter = router({
-
-getAll: procedure
-  .input(
-    z.object({
-      script_environment: zScriptEnvironment.optional(),
-    }).optional()
-  )
-  .query(async ({ input }) => {
-    const params = new URLSearchParams();
-    if (input?.script_environment) {
-      params.append("script_environment", input.script_environment);
-    }
-    const queryString = params.toString();
-    const url = `/scripts${queryString ? `?${queryString}` : ""}`;
-    const response = await get<Script[]>(url);
-    return response;
-  }),
+  getAll: procedure
+    .input(
+      z
+        .object({
+          script_environment: zScriptEnvironment.optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ input }) => {
+      const params = new URLSearchParams();
+      if (input?.script_environment) {
+        params.append("script_environment", input.script_environment);
+      }
+      const queryString = params.toString();
+      const url = `/scripts${queryString ? `?${queryString}` : ""}`;
+      const response = await get<Script[]>(url);
+      return response;
+    }),
 
   get: procedure.input(z.string()).query(async ({ input }) => {
     const response = await get<Script>(`/scripts/${input}`);
@@ -70,25 +71,34 @@ getAll: procedure
       return response;
     }),
 
-  run: procedure.input(z.object({ toolId: z.string(), toolType: z.string(), name: z.string(),  script_environment: zScriptEnvironment.optional() })).mutation(async ({ input }) => {
-    const command = input.toolType === ToolType.opentrons2 ? "run_program" : "run_script";
-    let params = {};
-    if(input.toolType === ToolType.opentrons2){
-      params = { script_name: input.name, simulate: true };
-    }
-    else{
-      params = { name: input.name, blocking: true};
-    }
+  run: procedure
+    .input(
+      z.object({
+        toolId: z.string(),
+        toolType: z.string(),
+        name: z.string(),
+        script_environment: zScriptEnvironment.optional(),
+        simulate: z.boolean().optional(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const command = input.toolType === ToolType.opentrons2 ? "run_program" : "run_script";
+      let params = {};
+      if (input.toolType === ToolType.opentrons2) {
+        params = { script_name: input.name, simulate: input.simulate || false };
+      } else {
+        params = { name: input.name, blocking: true };
+      }
 
-    const commandInfo = {
-      toolId: input.toolId,
-      toolType: input.toolType as ToolType,
-      environment: input.script_environment || "global",
-      command,
-      params,
-    };
-    return await Tool.executeCommand(commandInfo);
-  }),
+      const commandInfo = {
+        toolId: input.toolId,
+        toolType: input.toolType as ToolType,
+        environment: input.script_environment || "global",
+        command,
+        params,
+      };
+      return await Tool.executeCommand(commandInfo);
+    }),
 
   edit: procedure.input(zScript).mutation(async ({ input }) => {
     // Ensure folder_id is handled properly - if it's null or undefined, we'll set it to null explicitly

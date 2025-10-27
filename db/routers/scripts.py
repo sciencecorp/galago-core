@@ -18,7 +18,10 @@ def get_scripts(db: Session = Depends(get_db), workcell_name: Optional[str] = No
         workcell_name = get_selected_workcell_name(db)
     
     workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
-    filter_obj = {"workcell_id": workcell.id}
+    if not workcell:
+        raise HTTPException(status_code=404, detail="Workcell not found")
+    
+    filter_obj: dict[str, t.Any] = {"workcell_id": workcell.id}
     if script_environment:
         filter_obj["script_environment"] = script_environment
     

@@ -14,10 +14,6 @@ export const useScriptIO = (
 ) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // tRPC mutations (assuming these will be created in the script router)
-  const exportConfigMutation = trpc.script.exportConfig.useMutation();
-  const importConfigMutation = trpc.script.importConfig.useMutation(); // Placeholder
-
   // Export logic
   const handleExportConfig = async () => {
     if (!selectedScriptId) {
@@ -33,9 +29,7 @@ export const useScriptIO = (
     }
 
     try {
-      const scriptData = await exportConfigMutation.mutateAsync(selectedScriptId);
-
-      const blob = new Blob([scriptData.content], { type: "text/plain" });
+      const blob = new Blob([selectedScript.content], { type: "text/plain" });
       const url = window.URL.createObjectURL(blob);
 
       const downloadLink = document.createElement("a");
@@ -119,7 +113,5 @@ export const useScriptIO = (
     handleExportConfig,
     handleImportClick,
     handleFileChange,
-    isImporting: importConfigMutation.isLoading, // Use the correct mutation status
-    isExporting: exportConfigMutation.isLoading,
   };
 };

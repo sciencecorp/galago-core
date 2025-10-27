@@ -179,7 +179,23 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         elif self.model == models.Nest:
             # Special handling for Nest - can be associated with either Tool or Hotel
             # both of which are associated with Workcell
-            return self.get_all_by_workcell_id(db, workcell_id=workcell_id)
+            # Use the specialized method for Nest which properly handles both Tool and Hotel
+            tool_nests: List[models.Nest] = (
+                db.query(models.Nest)
+                .join(models.Tool)
+                .filter(models.Tool.workcell_id == workcell_id)
+                .filter_by(**obj_in_data)
+                .all()
+            )
+            hotel_nests: List[models.Nest] = (
+                db.query(models.Nest)
+                .join(models.Hotel)
+                .filter(models.Hotel.workcell_id == workcell_id)
+                .filter_by(**obj_in_data)
+                .all()
+            )
+            result: List[ModelType] = tool_nests + hotel_nests  # type: ignore[assignment]
+            return result
         elif self.model == models.Plate:
             query = (
                 query.join(models.Nest)
@@ -344,20 +360,20 @@ class CRUDNest(CRUDBase[models.Nest, schemas.NestCreate, schemas.NestUpdate]):
         """
         Get all nests for a workcell by joining through either the tool or hotel.
         """
-        tool_nests = (
+        tool_nests: List[models.Nest] = (
             db.query(models.Nest)
             .join(models.Tool)
             .filter(models.Tool.workcell_id == workcell_id)
             .all()
         )
-
-        hotel_nests = (
+        
+        hotel_nests: List[models.Nest] = (
             db.query(models.Nest)
             .join(models.Hotel)
             .filter(models.Hotel.workcell_id == workcell_id)
             .all()
         )
-
+        
         return tool_nests + hotel_nests
 
 
