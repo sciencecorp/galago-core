@@ -3,35 +3,28 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://ghcr.io/sciencecorp/galago-web
     permissions:
       contents: read
       packages: write
-      actions: write
+      id-token: write  # Required for keyless signing
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-        with:
-          driver-opts: network=host
-
+      
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_PAT }}
-
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: Build and push galago-web
         uses: docker/build-push-action@v4
         with:
@@ -42,8 +35,15 @@ jobs:
           platforms: linux/amd64,linux/arm64
           cache-from: type=registry,ref=ghcr.io/sciencecorp/galago-web:buildcache
           cache-to: type=registry,ref=ghcr.io/sciencecorp/galago-web:buildcache,mode=max
-          provenance: false
-
+      
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.4.0
+      
+      - name: Sign galago-web image
+        run: cosign sign --yes ghcr.io/sciencecorp/galago-web:latest
+        env:
+          COSIGN_EXPERIMENTAL: 1
+      
       - name: Build and push galago-db
         uses: docker/build-push-action@v4
         with:
@@ -54,4 +54,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           cache-from: type=registry,ref=ghcr.io/sciencecorp/galago-db:buildcache
           cache-to: type=registry,ref=ghcr.io/sciencecorp/galago-db:buildcache,mode=max
-          provenance: false
+      
+      - name: Sign galago-db image
+        run: cosign sign --yes ghcr.io/sciencecorp/galago-db:latest
+        env:
+          COSIGN_EXPERIMENTAL: 1
