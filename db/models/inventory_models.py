@@ -69,7 +69,7 @@ class Tool(Base, TimestampMixin):
         "Workcell", back_populates="tools"
     )
     nests: RelationshipProperty[List["Nest"]] = relationship(
-        "Nest", back_populates="tool"
+        "Nest", back_populates="tool", cascade="all, delete-orphan"
     )
     robot_arm_locations: RelationshipProperty[List["RobotArmLocation"]] = relationship(
         "RobotArmLocation", back_populates="tool", cascade="all, delete-orphan"

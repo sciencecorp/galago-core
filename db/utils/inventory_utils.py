@@ -10,16 +10,6 @@ logger = logging.getLogger(__name__)
 def create_default_inventory_nests(db: Session, tool_id: int) -> list[inventory_models.Nest]:
     """
     Create default inventory nests for a tool based on its type.
-    
-    Args:
-        db: Database session
-        tool_id: ID of the tool to create nests for
-        
-    Returns:
-        List of created Nest objects
-        
-    Raises:
-        ValueError: If tool not found or tool type not in inventory map
     """
     # Get the tool
     tool = db.query(inventory_models.Tool).filter(inventory_models.Tool.id == tool_id).first()
@@ -42,8 +32,8 @@ def create_default_inventory_nests(db: Session, tool_id: int) -> list[inventory_
     
     # Create nests
     created_nests = []
-    for row in range(1, rows + 1):
-        for column in range(1, columns + 1):
+    for row in range(0, rows):
+        for column in range(0, columns):
             nest = inventory_models.Nest(
                 name=f"{tool.name}_R{row}C{column}",
                 row=row,
