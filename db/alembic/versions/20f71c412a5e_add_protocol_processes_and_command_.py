@@ -97,12 +97,21 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
-    # Drop the new tables
-    op.drop_table('protocol_commands')
-    op.drop_table('protocol_command_groups')
-    op.drop_table('protocol_processes')
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    existing_tables = inspector.get_table_names()
     
-    # Restore commands column to protocols
-    with op.batch_alter_table('protocols', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('commands', sqlite.JSON(), nullable=False))
-        batch_op.drop_constraint(None, type_='unique')
+    # Drop the new tables if they exist
+    if 'protocol_commands' in existing_tables:
+        op.drop_table('protocol_commands')
+    if 'protocol_command_groups' in existing_tables:
+        op.drop_table('protocol_command_groups')
+    if 'protocol_processes' in existing_tables:
+        op.drop_table('protocol_processes')
+    
+    # Restore commands column to protocols if protocols table exists
+    if 'protocols' in existing_tables:
+        columns = [col['name'] for col in inspector.get_columns('protocols')]
+        if 'commands' not in columns:
+            with op.batch_alter_table('protocols', schema=None) as batch_op:
+                batch_op.add_column(sa.Column('commands', sqlite.JSON(), nullable=False, server_default='[]'))

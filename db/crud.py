@@ -344,14 +344,14 @@ class CRUDNest(CRUDBase[models.Nest, schemas.NestCreate, schemas.NestUpdate]):
         """
         Get all nests for a workcell by joining through either the tool or hotel.
         """
-        tool_nests = (
+        tool_nests : List[models.Nest] = (
             db.query(models.Nest)
             .join(models.Tool)
             .filter(models.Tool.workcell_id == workcell_id)
             .all()
         )
 
-        hotel_nests = (
+        hotel_nests: List[models.Nest] = (
             db.query(models.Nest)
             .join(models.Hotel)
             .filter(models.Hotel.workcell_id == workcell_id)
