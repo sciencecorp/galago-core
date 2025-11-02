@@ -622,29 +622,115 @@ class WaypointData(BaseModel):
     motion_profiles: Optional[List[MotionProfile]] = None
     grip_params: Optional[List[GripParam]] = None
 
+class ProtocolCommandGroupBase(BaseModel):
+    name: str
+    description: t.Optional[str] = None
+    process_id: int
+
+class ProtocolCommandGroupCreate(ProtocolCommandGroupBase):
+    pass
+
+class ProtocolCommandGroupUpdate(BaseModel):
+    name: t.Optional[str] = None
+    description: t.Optional[str] = None
+    process_id: t.Optional[int] = None
+
+class ProtocolCommandGroup(ProtocolCommandGroupBase, TimestampMixin):
+    id: int
+    commands: t.List["ProtocolCommand"] = []
+    model_config = ConfigDict(from_attributes=True)
+
+# ProtocolProcess Schemas
+class ProtocolProcessBase(BaseModel):
+    name: str
+    description: t.Optional[str] = None
+    position: int
+    advanced_parameters: t.Optional[dict] = None
+    protocol_id: int
+
+class ProtocolProcessCreate(ProtocolProcessBase):
+    pass
+
+class ProtocolProcessUpdate(BaseModel):
+    name: t.Optional[str] = None
+    description: t.Optional[str] = None
+    position: t.Optional[int] = None
+    advanced_parameters: t.Optional[dict] = None
+    protocol_id: t.Optional[int] = None
+
+class ProtocolProcess(ProtocolProcessBase, TimestampMixin):
+    id: int
+    commands: t.List["ProtocolCommand"] = []
+    command_groups: t.List["ProtocolCommandGroup"] = []
+    model_config = ConfigDict(from_attributes=True)
+
+# ProtocolCommand Schemas
+class ProtocolCommandBase(BaseModel):
+    name: str
+    tool_type: str
+    tool_id: str 
+    label: str
+    command: str
+    params: t.Dict[str, t.Any]
+    process_id: int
+    advanced_parameters: t.Optional[dict] = None
+    command_group_id: t.Optional[int] = None
+    position: t.Optional[int] = None
+
+class ProtocolCommandCreate(ProtocolCommandBase):
+    pass
+
+class ProtocolCommandUpdate(BaseModel):
+    name: t.Optional[str] = None
+    tool_type: t.Optional[str] = None
+    tool_id: t.Optional[str] = None
+    label: t.Optional[str] = None
+    command: t.Optional[str] = None
+    params: t.Optional[t.Dict[str, t.Any]] = None
+    process_id: t.Optional[int] = None
+    advanced_parameters: t.Optional[dict] = None
+    command_group_id: t.Optional[int] = None
+    position: t.Optional[int] = None
+
+class ProtocolCommand(ProtocolCommandBase, TimestampMixin):
+    id: int
+    model_config = ConfigDict(from_attributes=True)
+
 class ProtocolBase(BaseModel):
     name: str
     category: str
     workcell_id: int
     description: t.Optional[str] = None
-    commands: t.List[t.Dict[str, t.Any]]
+    icon: t.Optional[str] = None
+    params: t.Dict[str, t.Any]
+    version: t.Optional[int] = 1
+    is_active: t.Optional[bool] = True
 
 
 class ProtocolCreate(BaseModel):
     name: str
     category: str
     workcell_id: int
-    description: Optional[str] = None
-    commands: List[Dict[str, Any]]
+    description: t.Optional[str] = None
+    icon: t.Optional[str] = None
+    params: t.Dict[str, t.Any] = {}
+    version: t.Optional[int] = 1
+    is_active: t.Optional[bool] = True
+
 
 class ProtocolUpdate(BaseModel):
     name: t.Optional[str] = None
     category: t.Optional[str] = None
     description: t.Optional[str] = None
-    commands: t.Optional[t.List[t.Dict[str, t.Any]]] = None
+    icon: t.Optional[str] = None
+    params: t.Optional[t.Dict[str, t.Any]] = None
+    version: t.Optional[int] = None
+    is_active: t.Optional[bool] = None
+
 
 class Protocol(ProtocolBase):
     id: int
+    processes: t.List["ProtocolProcess"] = []
     created_at: t.Optional[datetime] = None
     updated_at: t.Optional[datetime] = None
 
@@ -652,7 +738,6 @@ class Protocol(ProtocolBase):
         from_attributes=True,
         json_encoders={datetime: lambda dt: dt.isoformat()},
     )
-
 
 class AppSettingsCreate(BaseModel):
     name: str

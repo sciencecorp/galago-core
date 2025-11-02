@@ -103,7 +103,7 @@ class BackupManager:
     def list_backups(self) -> list[Path]:
         """List all available backups."""
         return sorted(
-            self.backup_dir.glob("inventory_*.db"),
+            self.backup_dir.glob("*.db"),
             key=lambda p: p.stat().st_mtime,
             reverse=True
         )
