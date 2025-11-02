@@ -175,7 +175,6 @@ export interface Protocol {
   category: string;
   workcell_id: number;
   description?: string;
-  commands: ToolCommand[];
   created_at?: string;
   updated_at?: string;
 }

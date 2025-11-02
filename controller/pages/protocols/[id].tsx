@@ -1,7 +1,7 @@
-import { ProtocolDetailView } from "@/components/protocols/ProtocolDetailView";
+import { ProtocolDesigner } from "@/components/protocols/ProtocolDesigner";
 import { ProtocolPageComponent } from "@/components/protocols/ProtocolPageComponent";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { Box } from "@chakra-ui/react";
 
 export default function ProtocolPage() {
   const router = useRouter();
@@ -13,8 +13,8 @@ export default function ProtocolPage() {
   }
 
   return (
-    <div>
-      <ProtocolDetailView id={id} />
-    </div>
+    <Box display="flex" flexDirection="column" width="100%" height="100%">
+      <ProtocolDesigner id={id} />
+    </Box>
   );
 }

@@ -1,6 +1,7 @@
 // types/index.ts - Central export
 export * from "./form";
 export * from "./run";
+export * from "./protocol"; 
 
 export interface ParameterSchema {
   type: string;
@@ -15,12 +16,4 @@ export interface PageProps {
   icon: any;
   color: any;
   description: string;
-}
-
-export interface Protocol {
-  id: number;
-  name: string;
-  description?: string;
-  icon?: any;
-  params: Record<string, string>;
 }
