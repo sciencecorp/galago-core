@@ -395,19 +395,94 @@ class RobotArmGripParams(Base, TimestampMixin):
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
 
-class Protocol(Base, TimestampMixin):
-    __tablename__ = "protocols"
+class ProtocolCommandGroup(Base, TimestampMixin):
+    """Groups related commands within a process"""
+    __tablename__ = "protocol_command_groups"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    process_id = Column(Integer, ForeignKey("protocol_processes.id"))
+    
+    # Relationships
+    process: RelationshipProperty[Optional["ProtocolProcess"]] = relationship(
+        "ProtocolProcess", back_populates="command_groups"
+    )
+    commands: RelationshipProperty[List["ProtocolCommand"]] = relationship(
+        "ProtocolCommand", back_populates="command_group", cascade="all, delete-orphan"
+    )
+    
+    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+
+
+class ProtocolCommand(Base, TimestampMixin):
+    """Individual protocol commands - now can belong to a process or command group"""
+    __tablename__ = "protocol_commands"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    tool_type = Column(String, nullable=False)
+    tool_id = Column(String, nullable=False)  # Not a foreign key - allows independent tool lifecycle
+    label = Column(String, nullable=False)
+    command = Column(String, nullable=False)
+    params = Column(JSON, nullable=False)
+    protocol_id = Column(Integer, ForeignKey("protocols.id"))
+    process_id = Column(Integer, ForeignKey("protocol_processes.id"), nullable=True)
+    command_group_id = Column(Integer, ForeignKey("protocol_command_groups.id"), nullable=True)
+    position = Column(Integer, nullable=False)
+    advanced_parameters = Column(JSON, nullable=True)
+    
+    # Relationships
+    protocol: RelationshipProperty[Optional["Protocol"]] = relationship("Protocol")
+    process: RelationshipProperty[Optional["ProtocolProcess"]] = relationship(
+        "ProtocolProcess", back_populates="commands"
+    )
+    command_group: RelationshipProperty[Optional["ProtocolCommandGroup"]] = relationship(
+        "ProtocolCommandGroup", back_populates="commands"
+    )
+
+    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+
+
+class ProtocolProcess(Base, TimestampMixin):
+    """Organizes commands into logical processes within a protocol"""
+    __tablename__ = "protocol_processes"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    position = Column(Integer, nullable=False)
+    advanced_parameters = Column(JSON, nullable=True)
+    protocol_id = Column(Integer, ForeignKey("protocols.id"))
+    
+    # Relationships
+    protocol: RelationshipProperty[Optional["Protocol"]] = relationship(
+        "Protocol", back_populates="processes"
+    )
+    commands: RelationshipProperty[List["ProtocolCommand"]] = relationship(
+        "ProtocolCommand", back_populates="process", cascade="all, delete-orphan"
+    )
+    command_groups: RelationshipProperty[List["ProtocolCommandGroup"]] = relationship(
+        "ProtocolCommandGroup", back_populates="process", cascade="all, delete-orphan"
+    )
+    
+    __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
+
+
+class Protocol(Base, TimestampMixin):
+    """Top-level protocol containing processes and commands"""
+    __tablename__ = "protocols"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
     category = Column(String, nullable=False)
     workcell_id = Column(Integer, ForeignKey("workcells.id"))
     description = Column(String, nullable=True)
-    commands = Column(JSON, nullable=False) 
 
+    # Relationships
     workcell: RelationshipProperty[Optional["Workcell"]] = relationship(
         "Workcell", back_populates="protocols"
     )
-
+    processes: RelationshipProperty[List["ProtocolProcess"]] = relationship(
+        "ProtocolProcess", back_populates="protocol", cascade="all, delete-orphan"
+    )
+    
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
         UniqueConstraint('name', 'workcell_id', name='unique_protocol_name_per_workcell')
