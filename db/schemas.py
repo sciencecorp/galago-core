@@ -702,7 +702,6 @@ class ProtocolBase(BaseModel):
     workcell_id: int
     description: t.Optional[str] = None
     icon: t.Optional[str] = None
-    params: t.Dict[str, t.Any]
     version: t.Optional[int] = 1
     is_active: t.Optional[bool] = True
 
@@ -713,7 +712,6 @@ class ProtocolCreate(BaseModel):
     workcell_id: int
     description: t.Optional[str] = None
     icon: t.Optional[str] = None
-    params: t.Dict[str, t.Any] = {}
     version: t.Optional[int] = 1
     is_active: t.Optional[bool] = True
 
@@ -723,7 +721,6 @@ class ProtocolUpdate(BaseModel):
     category: t.Optional[str] = None
     description: t.Optional[str] = None
     icon: t.Optional[str] = None
-    params: t.Optional[t.Dict[str, t.Any]] = None
     version: t.Optional[int] = None
     is_active: t.Optional[bool] = None
 

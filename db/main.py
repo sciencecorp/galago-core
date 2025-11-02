@@ -22,6 +22,9 @@ from .routers import (
     settings,
     logs,
     protocols,
+    protocol_processes,      
+    protocol_commands,     
+    protocol_command_groups,  
     hotels,
     forms,
     robot_arm, 
@@ -94,6 +97,9 @@ def create_app() -> FastAPI:
     app.include_router(settings.router, prefix="/settings", tags=["settings"])
     app.include_router(logs.router, prefix="/logs", tags=["logs"])
     app.include_router(protocols.router, prefix="/protocols", tags=["protocols"])
+    app.include_router(protocol_processes.router, prefix="/protocol-processes", tags=["protocol-processes"])
+    app.include_router(protocol_commands.router, prefix="/protocol-commands", tags=["protocol-commands"])
+    app.include_router(protocol_command_groups.router, prefix="/protocol-command-groups", tags=["protocol-command-groups"])
     app.include_router(hotels.router, prefix="/hotels", tags=["hotels"])
     app.include_router(forms.router, prefix="/forms", tags=["forms"])
     app.include_router(robot_arm.router, prefix="/robot-arm", tags=["robot-arm"])

@@ -412,6 +412,28 @@ robot_arm_grip_params = CRUDBase[
 
 form = CRUDBase[models.Form, schemas.FormCreate, schemas.FormUpdate](models.Form)
 
+protocol = CRUDBase[
+    models.Protocol, schemas.ProtocolCreate, schemas.ProtocolUpdate
+](models.Protocol)
+
+protocol_process = CRUDBase[
+    models.ProtocolProcess, 
+    schemas.ProtocolProcessCreate, 
+    schemas.ProtocolProcessUpdate
+](models.ProtocolProcess)
+
+protocol_command = CRUDBase[
+    models.ProtocolCommand, 
+    schemas.ProtocolCommandCreate, 
+    schemas.ProtocolCommandUpdate
+](models.ProtocolCommand)
+
+protocol_command_group = CRUDBase[
+    models.ProtocolCommandGroup, 
+    schemas.ProtocolCommandGroupCreate, 
+    schemas.ProtocolCommandGroupUpdate
+](models.ProtocolCommandGroup)
+
 class CRUDHotel(CRUDBase[models.Hotel, schemas.HotelCreate, schemas.HotelUpdate]):
     pass
 
