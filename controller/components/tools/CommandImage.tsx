@@ -13,11 +13,12 @@ import { TiArrowRepeat } from "react-icons/ti";
 import { TbVariable } from "react-icons/tb";
 import { SiReacthookform } from "react-icons/si";
 import { PiUserSoundBold } from "react-icons/pi";
+import { ToolCommand } from "@/types/api";
 
 interface CommandImageProps {
   config: any;
-  command: RunCommand;
-  onCommandClick: (command: RunCommand) => void;
+  command: ToolCommand;
+  onCommandClick: (command: ToolCommand) => void;
 }
 
 const CommandImage: React.FC<CommandImageProps> = (props) => {
@@ -48,7 +49,7 @@ const CommandImage: React.FC<CommandImageProps> = (props) => {
         <Box display="flex" justifyContent="center" alignItems="center" py={3}>
           <IconButton
             aria-label="Tool Box"
-            icon={ToolBoxCommandIconMap(command.commandInfo.command)} // Ensure the icon fills the button
+            icon={ToolBoxCommandIconMap(command?.command)} // Ensure the icon fills the button
             variant="ghost"
             colorScheme="teal"
             isRound

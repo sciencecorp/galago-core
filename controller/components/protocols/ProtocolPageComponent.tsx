@@ -399,7 +399,6 @@ export const ProtocolPageComponent: React.FC = () => {
                     <Th>Category</Th>
                     <Th>Workcell</Th>
                     <Th>Description</Th>
-                    <Th>Commands</Th>
                     <Th>Actions</Th>
                   </Tr>
                 </Thead>
@@ -492,7 +491,7 @@ export const ProtocolPageComponent: React.FC = () => {
                           }}
                         />
                       </Td>
-                      <Td>{protocol.commands.length}</Td>
+                      {/* <Td>{protocol.commands.length}</Td> */}
                       <Td>
                         <Menu>
                           <MenuButton

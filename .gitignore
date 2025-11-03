@@ -59,9 +59,12 @@ next-env.d.ts
 
 *.db
 
-**/inventory.db
+**/galago.db
 **/*.egg-info
 .mypy_cache
+
+#database backups
+/db/data/backups/
 
 #windows exe in root folder
 

@@ -12,3 +12,13 @@ export const convertArrayToString = (array: number[] | string[], maxLength: numb
 export const capitalizeFirst = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
+
+export const capitalizeAll = (str: string) => {
+  if (!str) return str;
+  const withSpaces = str.replace(/_/g, " ");
+
+  return withSpaces
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};

@@ -36,7 +36,6 @@ async def create_protocol(protocol: schemas.ProtocolCreate, db: Session = Depend
             category=protocol.category,
             workcell_id=protocol.workcell_id,
             description=protocol.description,
-            commands=protocol.commands or [],
         )
 
         try:
