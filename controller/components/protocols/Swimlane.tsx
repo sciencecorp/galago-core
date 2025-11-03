@@ -1,4 +1,3 @@
-
 import {
   Box,
   Button,
@@ -21,7 +20,7 @@ import {
   DroppableStateSnapshot,
 } from "react-beautiful-dnd";
 import { CommandComponent } from "./CommandComponent";
-import { Swimlane } from "@/types/api";
+import { Swimlane } from "@/types";
 import { EditableText } from "../ui/Form";
 
 const handleWheel = (e: WheelEvent) => {

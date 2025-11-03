@@ -49,12 +49,16 @@ interface AddToolCommandModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCommandAdded: (newCommand: any) => void;
+  processId: number;
+  position?: number;
 }
 
 export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   isOpen,
   onClose,
   onCommandAdded,
+  processId, // ADD THIS
+  position = 0,
 }) => {
   const [selectedToolId, setSelectedToolId] = useState<number | string>("");
   const [selectedToolType, setSelectedToolType] = useState("");
@@ -199,23 +203,27 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
       }
     });
 
+    const commandName = `${selectedToolType}_${selectedCommand}`;
+    const toolId =
+      selectedToolType === "toolbox"
+        ? "tool_box"
+        : selectedToolData?.name?.toLowerCase().replaceAll(" ", "_") || String(selectedToolId);
+
     const newCommand = {
-      commandInfo: {
-        toolId:
-          selectedToolType === "toolbox"
-            ? "tool_box"
-            : selectedToolData?.name?.toLocaleLowerCase().replaceAll(" ", "_"),
-        toolType: selectedToolType,
-        command: selectedCommand,
-        params: finalParams, // Use the complete params
-        label: "",
-        advancedParameters: {
-          skipExecutionVariable: {
-            variable: null,
-            value: null,
-          },
-          runAsynchronously: false,
+      name: commandName,
+      tool_type: selectedToolType,
+      tool_id: toolId,
+      label: `${capitalizeFirst(selectedToolType)} - ${selectedCommand}`,
+      command: selectedCommand,
+      params: finalParams,
+      process_id: processId,
+      position: position,
+      advanced_parameters: {
+        skipExecutionVariable: {
+          variable: null,
+          value: null,
         },
+        runAsynchronously: false,
       },
     };
 

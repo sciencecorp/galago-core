@@ -457,12 +457,16 @@ class ProtocolProcess(Base, TimestampMixin):
         "Protocol", back_populates="processes"
     )
     commands: RelationshipProperty[List["ProtocolCommand"]] = relationship(
-        "ProtocolCommand", back_populates="process", cascade="all, delete-orphan"
+        "ProtocolCommand", 
+        back_populates="process", 
+        cascade="all, delete-orphan",
+        order_by="ProtocolCommand.position"  # Add this line
     )
     command_groups: RelationshipProperty[List["ProtocolCommandGroup"]] = relationship(
-        "ProtocolCommandGroup", back_populates="process", cascade="all, delete-orphan"
+        "ProtocolCommandGroup", 
+        back_populates="process", 
+        cascade="all, delete-orphan"
     )
-    
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
 
@@ -480,7 +484,10 @@ class Protocol(Base, TimestampMixin):
         "Workcell", back_populates="protocols"
     )
     processes: RelationshipProperty[List["ProtocolProcess"]] = relationship(
-        "ProtocolProcess", back_populates="protocol", cascade="all, delete-orphan"
+        "ProtocolProcess", 
+        back_populates="protocol", 
+        cascade="all, delete-orphan",
+        order_by="ProtocolProcess.position"  # Add this line
     )
     
     __table_args__ = (

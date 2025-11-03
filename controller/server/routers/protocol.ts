@@ -13,20 +13,14 @@ export type AllNamesOutput = {
   workcell: string;
   number_of_commands: number;
   description?: string;
-  icon?: any;
 }[];
 
-
-
+// Updated to match backend - removed params, icon, version, is_active
 const protocolSchema = z.object({
   name: z.string().min(1),
   category: z.string().min(1),
   workcell_id: z.number(),
   description: z.string().optional(),
-  icon: z.string().optional(),
-  params: z.record(z.any()),
-  version: z.number().optional(),
-  is_active: z.boolean().optional(),
 });
 
 const processSchema = z.object({
@@ -39,15 +33,14 @@ const processSchema = z.object({
 
 const commandSchema = z.object({
   name: z.string().min(1),
-  tool_type: z.string(),
-  tool_id: z.string(),
-  label: z.string(),
-  command: z.string(),
+  tool_type: z.string().min(1),
+  tool_id: z.string().min(1),
+  label: z.string().min(1),
+  command: z.string().min(1),
   params: z.record(z.any()),
-  process_id: z.number().optional(),
+  process_id: z.number(),
   command_group_id: z.number().optional(),
   position: z.number(),
-  protocol_id: z.number().optional(),
   advanced_parameters: z.record(z.any()).optional(),
 });
 
@@ -79,13 +72,7 @@ export const protocolRouter = router({
   }),
 
   create: procedure.input(protocolSchema).mutation(async ({ input }) => {
-    const protocolData = {
-      ...input,
-      version: input.version || 1,
-      is_active: input.is_active ?? true,
-      params: input.params || {},
-    };
-    const response = await post<Protocol>(`${API_BASE_URL}/protocols`, protocolData);
+    const response = await post<Protocol>(`${API_BASE_URL}/protocols`, input);
     logAction({
       level: "info",
       action: "New Protocol Added",
@@ -204,7 +191,21 @@ export const protocolRouter = router({
   }),
 
   createCommand: procedure.input(commandSchema).mutation(async ({ input }) => {
-    const response = await post<ProtocolCommand>(`${API_BASE_URL}/protocol-commands`, input);
+    // Ensure all required fields are present with defaults if needed
+    const commandData = {
+      name: input.name,
+      tool_type: input.tool_type,
+      tool_id: input.tool_id,
+      label: input.label,
+      command: input.command,
+      params: input.params || {},
+      process_id: input.process_id,
+      position: input.position,
+      command_group_id: input.command_group_id,
+      advanced_parameters: input.advanced_parameters,
+    };
+
+    const response = await post<ProtocolCommand>(`${API_BASE_URL}/protocol-commands`, commandData);
     logAction({
       level: "info",
       action: "New Command Added",
@@ -238,6 +239,19 @@ export const protocolRouter = router({
       details: `Command ${input.id} deleted successfully.`,
     });
     return { success: true };
+  }),
+
+  bulkCreateCommands: procedure.input(z.array(commandSchema)).mutation(async ({ input }) => {
+    const response = await post<ProtocolCommand[]>(
+      `${API_BASE_URL}/protocol-commands/bulk-create`,
+      input,
+    );
+    logAction({
+      level: "info",
+      action: "Bulk Commands Added",
+      details: `${input.length} commands added successfully.`,
+    });
+    return response;
   }),
 
   // Command Group Routes
@@ -299,17 +313,21 @@ export const protocolRouter = router({
     return { success: true };
   }),
 
-  reorderProcesses: procedure
+  reorderProcess: procedure
     .input(
       z.object({
-        protocol_id: z.number(),
-        process_ids: z.array(z.number()),
+        id: z.number(),
+        new_position: z.number(),
       }),
     )
     .mutation(async ({ input }) => {
-      const response = await post(`${API_BASE_URL}/protocol-processes/reorder`, {
-        protocol_id: input.protocol_id,
-        process_ids: input.process_ids,
+      const response = await post(`${API_BASE_URL}/protocol-processes/${input.id}/reorder`, {
+        new_position: input.new_position,
+      });
+      logAction({
+        level: "info",
+        action: "Process Reordered",
+        details: `Process ${input.id} moved to position ${input.new_position}.`,
       });
       return response;
     }),

@@ -103,7 +103,7 @@ async def delete_protocol_process(id: int, db: Session = Depends(get_db)):
 @router.post("/{id}/reorder")
 async def reorder_protocol_process(
     id: int,
-    new_position: int,
+    request: schemas.ReorderProcessRequest,  # Accept body instead of query param
     db: Session = Depends(get_db)
 ):
     """Reorder a protocol process within its protocol."""
@@ -113,6 +113,7 @@ async def reorder_protocol_process(
 
     old_position = db_process.position
     protocol_id = db_process.protocol_id
+    new_position = request.new_position
 
     # Get all processes for this protocol
     all_processes = crud.protocol_process.get_all_by(
@@ -129,13 +130,16 @@ async def reorder_protocol_process(
         for process in all_processes:
             if old_position < process.position <= new_position:
                 process.position -= 1
+                db.add(process)
     else:
         # Moving up
         for process in all_processes:
             if new_position <= process.position < old_position:
                 process.position += 1
+                db.add(process)
 
     db_process.position = new_position
+    db.add(db_process)
     db.commit()
     db.refresh(db_process)
 

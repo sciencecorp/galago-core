@@ -132,8 +132,8 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
       return editedAdvancedParams;
     }
 
-    if (selectedCommand?.commandInfo?.advancedParameters) {
-      return selectedCommand.commandInfo.advancedParameters;
+    if (selectedCommand?.advancedParameters) {
+      return selectedCommand.advancedParameters;
     }
 
     return {
@@ -175,41 +175,39 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
     });
   };
 
-  const handleSaveInputs = () => {
-    if (isEditing && selectedCommand) {
-      // Create updated params by merging original params with edited ones
-      const updatedParams = {
-        ...selectedCommand.commandInfo.params,
-        ...editedParams,
-      };
+const handleSaveInputs = () => {
+  if (isEditing && selectedCommand) {
+    // Create updated params by merging original params with edited ones
+    const updatedParams = {
+      ...selectedCommand.params,
+      ...editedParams,
+    };
 
-      // Get the advanced parameters
-      const advancedParams = getAdvancedParameters();
+    // Get the advanced parameters
+    const advancedParams = getAdvancedParameters();
 
-      // Create updated command object
-      const updatedCommand = {
-        ...selectedCommand,
-        commandInfo: {
-          ...selectedCommand.commandInfo,
-          params: updatedParams,
-          advancedParameters: advancedParams,
-        },
-      };
+    // Pass back just the fields that changed
+    const updatedCommand = {
+      id: selectedCommand.id,
+      params: updatedParams,
+      advanced_parameters: advancedParams,
+    };
 
-      // Call the onSave function with the updated command
-      onSave(updatedCommand);
+    // Call the onSave function with the updated command
+    onSave(updatedCommand);
 
-      // Show success toast
-      successToast("Success", "Command parameters have been updated");
+    // Show success toast
+    successToast("Success", "Command parameters have been updated");
 
-      // Clear edited params
-      setEditedParams({});
-      setEditedAdvancedParams(null);
+    // Clear edited params
+    setEditedParams({});
+    setEditedAdvancedParams(null);
 
-      // Close the drawer
-      onClose();
-    }
-  };
+    // Close the drawer
+    onClose();
+  }
+};
+
 
   const advancedParams = getAdvancedParameters();
 
@@ -477,18 +475,16 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
             <VStack spacing={4} align="self-start" width="100%">
               <Divider />
               <Text as="b">Tool:</Text>
-              <Text>{capitalizeFirst(selectedCommand.commandInfo.toolType)}</Text>
+              <Text>{capitalizeFirst(selectedCommand.tool_type)}</Text>
               <Divider />
               <Text as="b">Name:</Text>
-              <Text>
-                {capitalizeFirst(selectedCommand.commandInfo.command.replaceAll("_", " "))}
-              </Text>
+              <Text>{capitalizeFirst(selectedCommand.command.replaceAll("_", " "))}</Text>
               <Divider />
               <Text as="b" fontSize="18px">
                 Parameters
               </Text>
               <VStack align="stretch" spacing={4} width="100%">
-                {Object.entries(selectedCommand.commandInfo.params).map(([key, value], index) => {
+                {Object.entries(selectedCommand.params).map(([key, value], index) => {
                   // Get current value (from editedParams if available, otherwise from command)
                   const currentValue = editedParams[key] !== undefined ? editedParams[key] : value;
 

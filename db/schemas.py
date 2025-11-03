@@ -640,6 +640,9 @@ class ProtocolCommandGroup(ProtocolCommandGroupBase, TimestampMixin):
     commands: t.List["ProtocolCommand"] = []
     model_config = ConfigDict(from_attributes=True)
 
+class ReorderProcessRequest(BaseModel):
+    new_position: int
+
 # ProtocolProcess Schemas
 class ProtocolProcessBase(BaseModel):
     name: str
@@ -673,6 +676,7 @@ class ProtocolCommandBase(BaseModel):
     command: str
     params: t.Dict[str, t.Any]
     process_id: int
+    protocol_id: t.Optional[int] = None  
     advanced_parameters: t.Optional[dict] = None
     command_group_id: t.Optional[int] = None
     position: t.Optional[int] = None

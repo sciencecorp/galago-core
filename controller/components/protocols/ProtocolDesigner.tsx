@@ -155,7 +155,7 @@ export const ProtocolDesigner: React.FC<{ id: string }> = ({ id }) => {
     },
   });
 
-  const reorderProcessesMutation = trpc.protocol.reorderProcesses.useMutation({
+  const reorderProcessesMutation = trpc.protocol.reorderProcess.useMutation({
     onSuccess: () => {
       successToast("Protocol updated", "");
     },
@@ -263,7 +263,11 @@ export const ProtocolDesigner: React.FC<{ id: string }> = ({ id }) => {
   }, [protocol?.params]);
 
   if (isLoading) {
-    return <Center><Spinner size="sm" /></Center>;
+    return (
+      <Center>
+        <Spinner size="sm" />
+      </Center>
+    );
   }
 
   if (error || !protocol) {
@@ -291,13 +295,16 @@ export const ProtocolDesigner: React.FC<{ id: string }> = ({ id }) => {
 
   const handleCommandAdded = async (newCommand: any) => {
     const targetSwimlane = swimlanes.find((lane) => lane.id === selectedSwimlaneId);
-    if (!targetSwimlane || !targetSwimlane.processId) return;
+    if (!targetSwimlane || !targetSwimlane.processId) {
+      errorToast("Error", "No process selected");
+      return;
+    }
 
     const position =
       addCommandPosition !== null ? addCommandPosition : targetSwimlane.commands.length;
 
     const commandData = {
-      name: newCommand.label || newCommand.command,
+      name: newCommand.name,
       tool_type: newCommand.tool_type,
       tool_id: newCommand.tool_id,
       label: newCommand.label || "",
@@ -308,11 +315,14 @@ export const ProtocolDesigner: React.FC<{ id: string }> = ({ id }) => {
       position: position,
     };
 
-    await createCommandMutation.mutateAsync(commandData);
-
-    setAddCommandPosition(null);
-    setSelectedSwimlaneId(null);
-    setIsAddCommandModalOpen(false);
+    try {
+      await createCommandMutation.mutateAsync(commandData);
+      setAddCommandPosition(null);
+      setSelectedSwimlaneId(null);
+      setIsAddCommandModalOpen(false);
+    } catch (error) {
+      console.error("Error creating command:", error);
+    }
   };
 
   const handleRunClick = () => {
@@ -362,27 +372,6 @@ export const ProtocolDesigner: React.FC<{ id: string }> = ({ id }) => {
     closeDeleteSwimlaneConfirm();
   };
 
-  const handleSaveChanges = async () => {
-    if (!protocol) return;
-
-    // Update the protocol parameters
-    try {
-      //Okay so this updates localParams (the form parameters). This will be removed later.
-      await updateProtocol.mutateAsync({
-        id: protocol.id,
-        data: {
-          params: localParams,
-        },
-      });
-
-      // Refetch to get the latest state
-      refetch();
-    } catch (error) {
-      console.error("Error saving protocol:", error);
-      errorToast("Failed to save protocol", "An unexpected error occurred");
-    }
-  };
-
   const handleRunCommand = (command: any) => {
     execMutation.mutate(command, {
       onSuccess: () => {
@@ -394,80 +383,82 @@ export const ProtocolDesigner: React.FC<{ id: string }> = ({ id }) => {
     });
   };
 
-  const handleUpdateCommand = async (updatedCommand: any) => {
-    // Find the command in the swimlanes
-    for (const swimlane of swimlanes) {
-      const commandIndex = swimlane.commands.findIndex((cmd) => cmd.id === updatedCommand.id);
-      if (commandIndex !== -1) {
-        const command = swimlane.commands[commandIndex];
+const handleUpdateCommand = async (updatedCommand: any) => {
+  // Find the command in the swimlanes
+  for (const swimlane of swimlanes) {
+    const commandIndex = swimlane.commands.findIndex((cmd) => cmd.id === updatedCommand.id);
+    if (commandIndex !== -1) {
+      const command = swimlane.commands[commandIndex];
 
-        // If the command has an ID, update it in the database
-        if (command.id) {
-          try {
-            await updateCommandMutation.mutateAsync({
-              id: command.id,
-              data: {
-                name: updatedCommand.label || updatedCommand.command,
-                tool_type: updatedCommand.tool_type,
-                tool_id: updatedCommand.tool_id,
-                label: updatedCommand.label || "",
-                command: updatedCommand.command,
-                params: updatedCommand.params || {},
-                advanced_parameters: updatedCommand.advanced_parameters || {},
-              },
-            });
-          } catch (error) {
-            console.error("Error updating command:", error);
+      if (command.id) {
+        try {
+          // Extract the data from commandInfo if it exists (from drawer)
+          const commandData = updatedCommand.commandInfo || updatedCommand;
+          
+          // When updating from drawer, only send params and advanced_parameters
+          // Don't send other fields unless they're actually being changed
+          const updateData: any = {};
+          
+          // Always include params and advanced_parameters if they exist
+          if (commandData.params) {
+            updateData.params = commandData.params;
           }
-        }
+          
+          if (commandData.advancedParameters || commandData.advanced_parameters) {
+            updateData.advanced_parameters = commandData.advancedParameters || commandData.advanced_parameters;
+          }
+          
+          // Only include other fields if they're explicitly being updated and have values
+          if (commandData.name && commandData.name !== command.name) {
+            updateData.name = commandData.name;
+          }
+          
+          if (commandData.process_id && commandData.process_id !== command.process_id) {
+            updateData.process_id = commandData.process_id;
+          }
 
-        // Update the local state
-        setSwimlanes((prevSwimlanes) => {
-          return prevSwimlanes.map((lane) => {
-            if (lane.id === swimlane.id) {
-              const updatedCommands = [...lane.commands];
-              updatedCommands[commandIndex] = updatedCommand;
-              return {
-                ...lane,
-                commands: updatedCommands,
-              };
-            }
-            return lane;
+          await updateCommandMutation.mutateAsync({
+            id: command.id,
+            data: updateData,
           });
-        });
-
-        break;
+          
+          await refetch();
+        } catch (error) {
+          console.error("Error updating command:", error);
+        }
       }
-    }
-  };
 
+      break;
+    }
+  }
+};
   const onDragEnd = async (result: DropResult) => {
     const { source, destination, type } = result;
 
     if (!destination) return; // If dropped outside any droppable area, do nothing
 
-    // Handle swimlane reordering
     if (type === "SWIMLANE") {
       const newSwimlanes = Array.from(swimlanes);
       const [reorderedSwimlane] = newSwimlanes.splice(source.index, 1);
       newSwimlanes.splice(destination.index, 0, reorderedSwimlane);
 
+      // Update local state immediately
       setSwimlanes(newSwimlanes);
 
       try {
-        const processIds = newSwimlanes
-          .filter((lane) => lane.processId)
-          .map((lane) => lane.processId!);
-
-        if (processIds.length > 0) {
+        // Just update the one that moved - backend will handle shifting others
+        const movedSwimlane = newSwimlanes[destination.index];
+        if (movedSwimlane.processId) {
           await reorderProcessesMutation.mutateAsync({
-            protocol_id: protocol!.id,
-            process_ids: processIds,
+            id: movedSwimlane.processId,
+            new_position: destination.index,
           });
         }
-        refetch();
+
+        await refetch(); // Refetch to get correct positions for all
       } catch (error) {
         console.error("Error reordering processes:", error);
+        await refetch(); // Revert on error
       }
       return;
     }
@@ -561,18 +552,18 @@ export const ProtocolDesigner: React.FC<{ id: string }> = ({ id }) => {
       });
 
       try {
-        // First, update the command to move it to the new process
+        // Step 1: Move the command to the new process (just change process_id, not position yet)
         await updateCommandMutation.mutateAsync({
           id: commandToMove.id,
           data: {
             process_id: destSwimlane.processId,
-            position: destination.index + 1, // Backend expects 1-based positions
           },
         });
 
+        // Step 2: Reorder source process (without the moved command)
         const sourceCommandIds = sourceSwimlane.commands
           .filter((cmd, idx) => idx !== source.index && cmd.id)
-          .map((cmd) => cmd.id);
+          .map((cmd) => cmd.id!);
 
         if (sourceCommandIds.length > 0) {
           await reorderCommandsMutation.mutateAsync({
@@ -581,10 +572,10 @@ export const ProtocolDesigner: React.FC<{ id: string }> = ({ id }) => {
           });
         }
 
-        // Destination process: get all command IDs in new order
+        // Step 3: Reorder destination process (with the moved command in the right spot)
         const destCommands = [...destSwimlane.commands];
         destCommands.splice(destination.index, 0, commandToMove);
-        const destCommandIds = destCommands.filter((cmd) => cmd.id).map((cmd) => cmd.id);
+        const destCommandIds = destCommands.filter((cmd) => cmd.id).map((cmd) => cmd.id!);
 
         if (destCommandIds.length > 0) {
           await reorderCommandsMutation.mutateAsync({
@@ -592,10 +583,13 @@ export const ProtocolDesigner: React.FC<{ id: string }> = ({ id }) => {
             command_ids: destCommandIds,
           });
         }
-        refetch();
+
+        // Refetch to ensure everything is in sync
+        await refetch();
       } catch (error) {
         console.error("Error moving command between processes:", error);
-        refetch();
+        // Revert optimistic update on error
+        await refetch();
       }
     }
   };
@@ -626,13 +620,6 @@ export const ProtocolDesigner: React.FC<{ id: string }> = ({ id }) => {
           <HStack>
             {isEditing ? (
               <>
-                <Button
-                  leftIcon={<SiPlatformdotsh fontSize="14px" />}
-                  variant="outline"
-                  size="md"
-                  onClick={openParametersModal}>
-                  Form
-                </Button>
                 <Button
                   leftIcon={<MdOutlineExitToApp />}
                   variant="outline"
@@ -745,8 +732,14 @@ export const ProtocolDesigner: React.FC<{ id: string }> = ({ id }) => {
 
       <AddToolCommandModal
         isOpen={isAddCommandModalOpen}
-        onClose={() => setIsAddCommandModalOpen(false)}
+        onClose={() => {
+          setIsAddCommandModalOpen(false);
+          setSelectedSwimlaneId(null);
+          setAddCommandPosition(null);
+        }}
         onCommandAdded={handleCommandAdded}
+        processId={swimlanes.find((lane) => lane.id === selectedSwimlaneId)?.processId || 0}
+        position={addCommandPosition !== null ? addCommandPosition : 0}
       />
 
       {isRunModalOpen && (

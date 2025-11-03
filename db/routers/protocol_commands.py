@@ -9,50 +9,19 @@ from ..dependencies import get_db
 
 router = APIRouter()
 
-
 @router.post("", response_model=schemas.ProtocolCommand)
 async def create_protocol_command(
     command: schemas.ProtocolCommandCreate, 
     db: Session = Depends(get_db)
 ):
-    """Create a new protocol command."""
-    try:
-        # Verify protocol exists
-        if command.protocol_id:
-            protocol = db.query(models.Protocol).get(command.protocol_id)
-            if not protocol:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Protocol with ID {command.protocol_id} not found"
-                )
-
-        # Verify process exists if provided
-        if command.process_id:
-            process = db.query(models.ProtocolProcess).get(command.process_id)
-            if not process:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Protocol process with ID {command.process_id} not found"
-                )
-
-        # Verify command group exists if provided
-        if command.command_group_id:
-            group = db.query(models.ProtocolCommandGroup).get(command.command_group_id)
-            if not group:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Protocol command group with ID {command.command_group_id} not found"
-                )
-
-        db_command = crud.protocol_command.create(db=db, obj_in=command)
-        return db_command
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logging.error(f"Error creating protocol command: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error creating command: {str(e)}")
-
+    # Get protocol_id from the process if not provided
+    if not command.protocol_id and command.process_id:
+        process = db.query(models.ProtocolProcess).get(command.process_id)
+        if process:
+            command.protocol_id = process.protocol_id
+    
+    db_command = crud.protocol_command.create(db=db, obj_in=command)
+    return db_command
 
 @router.get("", response_model=List[schemas.ProtocolCommand])
 async def get_protocol_commands(
@@ -100,15 +69,6 @@ async def update_protocol_command(
     if not db_command:
         raise HTTPException(status_code=404, detail="Protocol command not found")
 
-    # Verify related entities if they're being updated
-    if command.protocol_id is not None:
-        protocol = db.query(models.Protocol).get(command.protocol_id)
-        if not protocol:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Protocol with ID {command.protocol_id} not found"
-            )
-
     if command.process_id is not None:
         process = db.query(models.ProtocolProcess).get(command.process_id)
         if not process:
@@ -144,49 +104,60 @@ async def delete_protocol_command(id: int, db: Session = Depends(get_db)):
     return {"success": True, "message": "Protocol command deleted successfully"}
 
 
-@router.post("/{id}/reorder")
-async def reorder_protocol_command(
-    id: int,
-    new_position: int,
+from pydantic import BaseModel
+
+# Add this model at the top with other imports
+class ReorderCommandsRequest(BaseModel):
+    process_id: int
+    command_ids: List[int]
+
+from pydantic import BaseModel
+
+# Add this model near the top with imports
+class ReorderCommandsRequest(BaseModel):
+    process_id: int
+    command_ids: List[int]
+
+# Replace the /reorder endpoint:
+@router.post("/reorder")
+async def reorder_protocol_commands(
+    request: ReorderCommandsRequest,
     db: Session = Depends(get_db)
 ):
-    """Reorder a protocol command within its parent (process or command group)."""
-    db_command = crud.protocol_command.get(db=db, id=id)
-    if not db_command:
-        raise HTTPException(status_code=404, detail="Protocol command not found")
-
-    old_position = db_command.position
-
-    # Get all commands for the same parent
-    filters = {}
-    if db_command.command_group_id:
-        filters["command_group_id"] = db_command.command_group_id
-    elif db_command.process_id:
-        filters["process_id"] = db_command.process_id
-    else:
-        filters["protocol_id"] = db_command.protocol_id
-
-    all_commands = crud.protocol_command.get_all_by(db=db, obj_in=filters)
-    all_commands.sort(key=lambda c: c.position if c.position else 0)
-
-    # Update positions
-    if new_position > old_position:
-        # Moving down
-        for command in all_commands:
-            if old_position < command.position <= new_position:
-                command.position -= 1
-    else:
-        # Moving up
-        for command in all_commands:
-            if new_position <= command.position < old_position:
-                command.position += 1
-
-    db_command.position = new_position
-    db.commit()
-    db.refresh(db_command)
-
-    return {"success": True, "message": "Command reordered successfully"}
-
+    """Reorder multiple commands by providing ordered list of IDs."""
+    try:
+        # Validate all commands exist and belong to the process
+        for command_id in request.command_ids:
+            db_command = crud.protocol_command.get(db=db, id=command_id)
+            if not db_command:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Command {command_id} not found"
+                )
+            if db_command.process_id != request.process_id:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Command {command_id} does not belong to process {request.process_id}"
+                )
+        
+        # Update positions based on order in the list
+        for position, command_id in enumerate(request.command_ids):
+            db_command = crud.protocol_command.get(db=db, id=command_id)
+            if db_command:
+                db_command.position = position
+                db.add(db_command)  # Mark for update
+        
+        db.commit()  # Commit all changes
+        
+        return {"success": True, "message": f"Reordered {len(request.command_ids)} commands successfully"}
+    
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
+        logging.error(f"Error reordering commands: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error reordering: {str(e)}")
 
 @router.post("/bulk-create", response_model=List[schemas.ProtocolCommand])
 async def bulk_create_commands(

@@ -1,7 +1,7 @@
 // types/index.ts - Central export
 export * from "./form";
 export * from "./run";
-export * from "./protocol"; 
+export * from "./protocol";
 
 export interface ParameterSchema {
   type: string;

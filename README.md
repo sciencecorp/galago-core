@@ -109,7 +109,8 @@ docker-compose up -d db #production
 ```
 
 ### Creating new migrations
-For consistency, migrations are generated directly in Docker. 
+
+For consistency, migrations are generated directly in Docker.
 
 ```
 
