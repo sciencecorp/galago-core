@@ -80,11 +80,7 @@ const zPickAndPlace = z.object({
 });
 
 // Helper function to execute Bravo commands
-async function executeBravoCommand(
-  toolId: string,
-  command: string,
-  params: Record<string, any>
-) {
+async function executeBravoCommand(toolId: string, command: string, params: Record<string, any>) {
   const commandInfo = {
     toolId,
     toolType: ToolType.bravo,
@@ -110,25 +106,19 @@ export const bravoRouter = router({
     }),
 
   // Close
-  close: procedure
-    .input(z.object({ toolId: z.string() }))
-    .mutation(async ({ input }) => {
-      return await executeBravoCommand(input.toolId, "close", {});
-    }),
+  close: procedure.input(z.object({ toolId: z.string() })).mutation(async ({ input }) => {
+    return await executeBravoCommand(input.toolId, "close", {});
+  }),
 
   // Home W axis
-  homeW: procedure
-    .input(z.object({ toolId: z.string() }))
-    .mutation(async ({ input }) => {
-      return await executeBravoCommand(input.toolId, "home_w", {});
-    }),
+  homeW: procedure.input(z.object({ toolId: z.string() })).mutation(async ({ input }) => {
+    return await executeBravoCommand(input.toolId, "home_w", {});
+  }),
 
   // Home XYZ axes
-  homeXYZ: procedure
-    .input(z.object({ toolId: z.string() }))
-    .mutation(async ({ input }) => {
-      return await executeBravoCommand(input.toolId, "home_xyz", {});
-    }),
+  homeXYZ: procedure.input(z.object({ toolId: z.string() })).mutation(async ({ input }) => {
+    return await executeBravoCommand(input.toolId, "home_xyz", {});
+  }),
 
   // Mix
   mix: procedure
@@ -208,25 +198,19 @@ export const bravoRouter = router({
     }),
 
   // Get Firmware Version
-  getFirmwareVersion: procedure
-    .input(z.object({ toolId: z.string() }))
-    .query(async ({ input }) => {
-      return await executeBravoCommand(input.toolId, "get_firmware_version", {});
-    }),
+  getFirmwareVersion: procedure.input(z.object({ toolId: z.string() })).query(async ({ input }) => {
+    return await executeBravoCommand(input.toolId, "get_firmware_version", {});
+  }),
 
   // Enumerate Profiles
-  enumerateProfiles: procedure
-    .input(z.object({ toolId: z.string() }))
-    .query(async ({ input }) => {
-      return await executeBravoCommand(input.toolId, "enumerate_profiles", {});
-    }),
+  enumerateProfiles: procedure.input(z.object({ toolId: z.string() })).query(async ({ input }) => {
+    return await executeBravoCommand(input.toolId, "enumerate_profiles", {});
+  }),
 
   // Show Diagnostics
-  showDiagnostics: procedure
-    .input(z.object({ toolId: z.string() }))
-    .mutation(async ({ input }) => {
-      return await executeBravoCommand(input.toolId, "show_diagnostics", {});
-    }),
+  showDiagnostics: procedure.input(z.object({ toolId: z.string() })).mutation(async ({ input }) => {
+    return await executeBravoCommand(input.toolId, "show_diagnostics", {});
+  }),
 
   // Estimate duration for any command
   estimateDuration: procedure
@@ -235,7 +219,7 @@ export const bravoRouter = router({
         toolId: z.string(),
         command: z.string(),
         params: z.record(z.any()),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const tool = Tool.forId(input.toolId);

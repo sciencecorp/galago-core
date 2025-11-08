@@ -133,9 +133,7 @@ export const commandFields: CommandFields = {
     run_runset: [{ name: "runset_file", type: "text" }],
   },
   bravo: {
-    initialize: [
-      { name: "profile", type: "text", defaultValue: "Mol Bio Bravo" }
-    ],
+    initialize: [{ name: "profile", type: "text", defaultValue: "Mol Bio Bravo" }],
     close: [],
     home_w: [],
     home_xyz: [],
@@ -146,7 +144,7 @@ export const commandFields: CommandFields = {
       { name: "cycles", type: "number", defaultValue: 3 },
       { name: "plate_location", type: "number", defaultValue: 1 },
       { name: "distance_from_well_bottom", type: "number", defaultValue: 0 },
-      { name: "retract_distance_per_microliter", type: "number", defaultValue: 0 }
+      { name: "retract_distance_per_microliter", type: "number", defaultValue: 0 },
     ],
     wash: [
       { name: "volume", type: "number", defaultValue: 100 },
@@ -158,7 +156,7 @@ export const commandFields: CommandFields = {
       { name: "distance_from_well_bottom", type: "number", defaultValue: 0 },
       { name: "retract_distance_per_microliter", type: "number", defaultValue: 0 },
       { name: "pump_in_flow_speed", type: "number", defaultValue: 100 },
-      { name: "pump_out_flow_speed", type: "number", defaultValue: 100 }
+      { name: "pump_out_flow_speed", type: "number", defaultValue: 100 },
     ],
     aspirate: [
       { name: "volume", type: "number", defaultValue: 100 },
@@ -166,7 +164,7 @@ export const commandFields: CommandFields = {
       { name: "distance_from_well_bottom", type: "number", defaultValue: 0 },
       { name: "pre_aspirate_volume", type: "number", defaultValue: 0 },
       { name: "post_aspirate_volume", type: "number", defaultValue: 0 },
-      { name: "retract_distance_per_microliter", type: "number", defaultValue: 0 }
+      { name: "retract_distance_per_microliter", type: "number", defaultValue: 0 },
     ],
     dispense: [
       { name: "volume", type: "number", defaultValue: 100 },
@@ -174,35 +172,29 @@ export const commandFields: CommandFields = {
       { name: "blow_out_volume", type: "number", defaultValue: 0 },
       { name: "plate_location", type: "number", defaultValue: 1 },
       { name: "distance_from_well_bottom", type: "number", defaultValue: 0 },
-      { name: "retract_distance_per_microliter", type: "number", defaultValue: 0 }
+      { name: "retract_distance_per_microliter", type: "number", defaultValue: 0 },
     ],
-    tips_on: [
-      { name: "plate_location", type: "number", defaultValue: 1 }
-    ],
-    tips_off: [
-      { name: "plate_location", type: "number", defaultValue: 1 }
-    ],
+    tips_on: [{ name: "plate_location", type: "number", defaultValue: 1 }],
+    tips_off: [{ name: "plate_location", type: "number", defaultValue: 1 }],
     move_to_location: [
       { name: "plate_location", type: "number", defaultValue: 1 },
-      { name: "only_z", type: "boolean", defaultValue: false }
+      { name: "only_z", type: "boolean", defaultValue: false },
     ],
     set_labware_at_location: [
       { name: "plate_location", type: "number", defaultValue: 1 },
-      { name: "labware_type", type: "text", defaultValue: "96-well plate" }
+      { name: "labware_type", type: "text", defaultValue: "96-well plate" },
     ],
-    set_liquid_class: [
-      { name: "liquid_class", type: "text", defaultValue: "Water" }
-    ],
+    set_liquid_class: [{ name: "liquid_class", type: "text", defaultValue: "Water" }],
     pick_and_place: [
       { name: "source_location", type: "number", defaultValue: 1 },
       { name: "dest_location", type: "number", defaultValue: 2 },
       { name: "gripper_offset", type: "number", defaultValue: 0 },
-      { name: "labware_thickness", type: "number", defaultValue: 14 }
+      { name: "labware_thickness", type: "number", defaultValue: 14 },
     ],
     get_device_configuration: [],
     get_firmware_version: [],
     enumerate_profiles: [],
-    show_diagnostics: []
+    show_diagnostics: [],
   },
   vprep: {
     run_protocol: [{ name: "protocol_file", type: "text" }],
@@ -509,6 +501,6 @@ export const commandIcons: Record<string, Record<string, string>> = {
     get_device_configuration: "⚙️",
     get_firmware_version: "📋",
     enumerate_profiles: "📝",
-    show_diagnostics: "🔍"
-}
+    show_diagnostics: "🔍",
+  },
 };
