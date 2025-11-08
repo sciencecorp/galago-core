@@ -62,7 +62,7 @@ export default class RunStore {
 
     const commands = protocol._generateCommands();
 
-    if (!commands) {
+    if (!commands || commands.length === 0) {
       throw new ProtocolGenerationFailedError(protocolId);
     }
 
@@ -73,6 +73,8 @@ export default class RunStore {
       commandInfo: c,
       status: "CREATED",
       createdAt: new Date(),
+      processId: c.processId, // Capture process info
+      processName: c.processName, // Capture process info
     }));
 
     const run: Run = {
@@ -85,7 +87,9 @@ export default class RunStore {
 
     RunStore.global.set(runId, run);
 
+    // This will queue all commands in order
     await CommandQueue.global.enqueueRun(run);
+
     return run;
   }
 }

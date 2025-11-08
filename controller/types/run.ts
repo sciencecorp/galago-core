@@ -18,6 +18,8 @@ export interface RunCommand extends HasRunStatus {
   estimatedDuration?: number;
   durationActual?: number;
   error?: unknown;
+  processId?: number;
+  processName?: string;
 }
 
 export interface SkipExecution {
@@ -46,6 +48,8 @@ export interface ToolCommandInfo {
   command: string;
   params: Record<string, any>;
   advancedParameters?: AdvancedParameters;
+  processId?: number;
+  processName?: string;
 }
 
 export interface RunRequest {

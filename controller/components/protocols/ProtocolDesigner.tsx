@@ -383,55 +383,56 @@ export const ProtocolDesigner: React.FC<{ id: string }> = ({ id }) => {
     });
   };
 
-const handleUpdateCommand = async (updatedCommand: any) => {
-  // Find the command in the swimlanes
-  for (const swimlane of swimlanes) {
-    const commandIndex = swimlane.commands.findIndex((cmd) => cmd.id === updatedCommand.id);
-    if (commandIndex !== -1) {
-      const command = swimlane.commands[commandIndex];
+  const handleUpdateCommand = async (updatedCommand: any) => {
+    // Find the command in the swimlanes
+    for (const swimlane of swimlanes) {
+      const commandIndex = swimlane.commands.findIndex((cmd) => cmd.id === updatedCommand.id);
+      if (commandIndex !== -1) {
+        const command = swimlane.commands[commandIndex];
 
-      if (command.id) {
-        try {
-          // Extract the data from commandInfo if it exists (from drawer)
-          const commandData = updatedCommand.commandInfo || updatedCommand;
-          
-          // When updating from drawer, only send params and advanced_parameters
-          // Don't send other fields unless they're actually being changed
-          const updateData: any = {};
-          
-          // Always include params and advanced_parameters if they exist
-          if (commandData.params) {
-            updateData.params = commandData.params;
-          }
-          
-          if (commandData.advancedParameters || commandData.advanced_parameters) {
-            updateData.advanced_parameters = commandData.advancedParameters || commandData.advanced_parameters;
-          }
-          
-          // Only include other fields if they're explicitly being updated and have values
-          if (commandData.name && commandData.name !== command.name) {
-            updateData.name = commandData.name;
-          }
-          
-          if (commandData.process_id && commandData.process_id !== command.process_id) {
-            updateData.process_id = commandData.process_id;
-          }
+        if (command.id) {
+          try {
+            // Extract the data from commandInfo if it exists (from drawer)
+            const commandData = updatedCommand.commandInfo || updatedCommand;
 
-          await updateCommandMutation.mutateAsync({
-            id: command.id,
-            data: updateData,
-          });
-          
-          await refetch();
-        } catch (error) {
-          console.error("Error updating command:", error);
+            // When updating from drawer, only send params and advanced_parameters
+            // Don't send other fields unless they're actually being changed
+            const updateData: any = {};
+
+            // Always include params and advanced_parameters if they exist
+            if (commandData.params) {
+              updateData.params = commandData.params;
+            }
+
+            if (commandData.advancedParameters || commandData.advanced_parameters) {
+              updateData.advanced_parameters =
+                commandData.advancedParameters || commandData.advanced_parameters;
+            }
+
+            // Only include other fields if they're explicitly being updated and have values
+            if (commandData.name && commandData.name !== command.name) {
+              updateData.name = commandData.name;
+            }
+
+            if (commandData.process_id && commandData.process_id !== command.process_id) {
+              updateData.process_id = commandData.process_id;
+            }
+
+            await updateCommandMutation.mutateAsync({
+              id: command.id,
+              data: updateData,
+            });
+
+            await refetch();
+          } catch (error) {
+            console.error("Error updating command:", error);
+          }
         }
-      }
 
-      break;
+        break;
+      }
     }
-  }
-};
+  };
   const onDragEnd = async (result: DropResult) => {
     const { source, destination, type } = result;
 

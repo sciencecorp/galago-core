@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { SwimLaneComponent } from "@/components/runs/list/SwimLaneComponent";
+// import { SwimLaneComponent } from "@/components/runs/list/SwimLaneComponent";
 import RunQueueGanttChart from "@/components/runs/gantt/RunQueueGanttChart";
 import { trpc } from "@/utils/trpc";
 import {
@@ -455,7 +455,7 @@ export const RunsComponent: React.FC = () => {
                 borderRadius="md"
                 mt={2}
                 bg={expandedRunBg}>
-                <SwimLaneComponent runCommands={run.Commands} showAllCommands={showAllCommands} />
+                {/* <SwimLaneComponent runCommands={run.Commands} showAllCommands={showAllCommands} /> */}
               </Box>
             )}
           </Box>

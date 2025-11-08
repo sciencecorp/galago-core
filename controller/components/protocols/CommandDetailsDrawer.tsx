@@ -175,39 +175,38 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
     });
   };
 
-const handleSaveInputs = () => {
-  if (isEditing && selectedCommand) {
-    // Create updated params by merging original params with edited ones
-    const updatedParams = {
-      ...selectedCommand.params,
-      ...editedParams,
-    };
+  const handleSaveInputs = () => {
+    if (isEditing && selectedCommand) {
+      // Create updated params by merging original params with edited ones
+      const updatedParams = {
+        ...selectedCommand.params,
+        ...editedParams,
+      };
 
-    // Get the advanced parameters
-    const advancedParams = getAdvancedParameters();
+      // Get the advanced parameters
+      const advancedParams = getAdvancedParameters();
 
-    // Pass back just the fields that changed
-    const updatedCommand = {
-      id: selectedCommand.id,
-      params: updatedParams,
-      advanced_parameters: advancedParams,
-    };
+      // Pass back just the fields that changed
+      const updatedCommand = {
+        id: selectedCommand.id,
+        params: updatedParams,
+        advanced_parameters: advancedParams,
+      };
 
-    // Call the onSave function with the updated command
-    onSave(updatedCommand);
+      // Call the onSave function with the updated command
+      onSave(updatedCommand);
 
-    // Show success toast
-    successToast("Success", "Command parameters have been updated");
+      // Show success toast
+      successToast("Success", "Command parameters have been updated");
 
-    // Clear edited params
-    setEditedParams({});
-    setEditedAdvancedParams(null);
+      // Clear edited params
+      setEditedParams({});
+      setEditedAdvancedParams(null);
 
-    // Close the drawer
-    onClose();
-  }
-};
-
+      // Close the drawer
+      onClose();
+    }
+  };
 
   const advancedParams = getAdvancedParameters();
 
