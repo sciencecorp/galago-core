@@ -34,6 +34,9 @@ import { BravoAdvanced } from "@/components/tools/advanced/bravo";
 type AtomicFormValues = string | number | boolean | string[];
 type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormValues>>;
 
+
+const CUSTOM_TOOL_VIEWS = [ToolType.pf400, ToolType.bravo];
+
 export default function Page() {
   const router = useRouter();
   const [id, setId] = useState<string | null>(null);
@@ -281,7 +284,7 @@ export default function Page() {
       </Head>
       <Box>
         <HStack spacing={4} align="start" width="100%">
-          {config?.type !== ToolType.pf400 && (
+      {config?.type && !CUSTOM_TOOL_VIEWS.includes(config?.type) && (
             <VStack spacing={4} width="100%">
               {!toolCommandsDefined && (
                 <>

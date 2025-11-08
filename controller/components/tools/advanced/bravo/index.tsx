@@ -22,6 +22,7 @@ import {
   SimpleGrid,
   IconButton,
   Tooltip,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { FaHome, FaPlay, FaStop, FaEyeDropper, FaVial } from "react-icons/fa";
 import { trpc } from "@/utils/trpc";
@@ -37,19 +38,18 @@ type DeckPosition = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 interface LabwarePosition {
   position: DeckPosition;
   labwareType: string;
-  hasHeater: boolean;
 }
 
 const DECK_POSITIONS: LabwarePosition[] = [
-  { position: 1, labwareType: "96-well plate", hasHeater: false },
-  { position: 2, labwareType: "96-well plate", hasHeater: false },
-  { position: 3, labwareType: "96-well plate", hasHeater: false },
-  { position: 4, labwareType: "96-well plate", hasHeater: true },
-  { position: 5, labwareType: "96-well plate", hasHeater: false },
-  { position: 6, labwareType: "96-well plate", hasHeater: true },
-  { position: 7, labwareType: "Tip rack", hasHeater: false },
-  { position: 8, labwareType: "Reagent trough", hasHeater: false },
-  { position: 9, labwareType: "Tip rack", hasHeater: false },
+  { position: 1, labwareType: "96-well plate" },
+  { position: 2, labwareType: "96-well plate" },
+  { position: 3, labwareType: "96-well plate" },
+  { position: 4, labwareType: "96-well plate" },
+  { position: 5, labwareType: "96-well plate" },
+  { position: 6, labwareType: "96-well plate" },
+  { position: 7, labwareType: "Tip rack" },
+  { position: 8, labwareType: "Reagent trough" },
+  { position: 9, labwareType: "Tip rack" },
 ];
 
 export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
@@ -236,14 +236,11 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
   };
 
   const getDeckPositionColor = (position: DeckPosition) => {
-    if (selectedPosition === position) return "blue.400";
-    const labware = DECK_POSITIONS.find((p) => p.position === position);
-    if (labware?.hasHeater) return "orange.200";
-    return "gray.100";
+    if (selectedPosition === position) return useColorModeValue("teal.300", "teal.600");
   };
 
   return (
-    <Box p={4} maxW="1400px" mx="auto">
+    <Box p={4} >
       <VStack spacing={6} align="stretch">
         {/* Header */}
         <HStack justify="space-between">
@@ -254,64 +251,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
         </HStack>
 
         <HStack spacing={6} align="start">
-          {/* Left Panel - Deck Grid */}
-          <Card flex={2}>
-            <CardHeader>
-              <Heading size="md">Deck Layout (3x3)</Heading>
-              <Text fontSize="sm" color="gray.600">
-                Click a position to select it
-              </Text>
-            </CardHeader>
-            <CardBody>
-              <Grid templateColumns="repeat(3, 1fr)" gap={4}>
-                {DECK_POSITIONS.map((labware) => (
-                  <GridItem
-                    key={labware.position}
-                    bg={getDeckPositionColor(labware.position)}
-                    border="2px solid"
-                    borderColor={
-                      selectedPosition === labware.position ? "blue.600" : "gray.300"
-                    }
-                    borderRadius="md"
-                    p={4}
-                    cursor="pointer"
-                    onClick={() => setSelectedPosition(labware.position)}
-                    _hover={{ transform: "scale(1.02)", transition: "all 0.2s" }}
-                    position="relative">
-                    <VStack spacing={1} align="center">
-                      <Text fontWeight="bold" fontSize="2xl">
-                        {labware.position}
-                      </Text>
-                      <Text fontSize="xs" color="gray.600" textAlign="center">
-                        {labware.labwareType}
-                      </Text>
-                      {labware.hasHeater && (
-                        <Badge colorScheme="orange" fontSize="xs">
-                          🔥 Heater
-                        </Badge>
-                      )}
-                    </VStack>
-                  </GridItem>
-                ))}
-              </Grid>
-
-              {selectedPosition && (
-                <Box mt={4} p={3} bg="blue.50" borderRadius="md">
-                  <Text fontWeight="bold">
-                    Selected Position: {selectedPosition}
-                  </Text>
-                  <Text fontSize="sm" color="gray.600">
-                    {
-                      DECK_POSITIONS.find((p) => p.position === selectedPosition)
-                        ?.labwareType
-                    }
-                  </Text>
-                </Box>
-              )}
-            </CardBody>
-          </Card>
-
-          {/* Right Panel - Controls */}
+                      {/* Left Panel - Controls */}
           <VStack flex={1} spacing={4}>
             {/* Homing Controls */}
             <Card width="100%">
@@ -450,6 +390,57 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
               </CardBody>
             </Card>
           </VStack>
+          {/* Right Panel - Deck Grid */}
+          <Card flex={3}>
+            <CardHeader>
+              <Heading size="md">Bravo Deck</Heading>
+              <Text color="gray.500">
+                Click a position to select it
+              </Text>
+            </CardHeader>
+            <CardBody>
+              <Grid templateColumns="repeat(3, 1fr)" gap={4}>
+                {DECK_POSITIONS.map((labware) => (
+                  <GridItem
+                    key={labware.position}
+                    bg={getDeckPositionColor(labware.position)}
+                    border="2px solid"
+                    borderColor={
+                      selectedPosition === labware.position ? "blue.600" : "gray.300"
+                    }
+                    borderRadius="md"
+                    p={4}
+                    cursor="pointer"
+                    onClick={() => setSelectedPosition(labware.position)}
+                    _hover={{ transform: "scale(1.02)", transition: "all 0.2s" }}
+                    position="relative">
+                    <VStack spacing={1} align="center">
+                      <Text fontWeight="bold" fontSize="2xl">
+                        {labware.position}
+                      </Text>
+                      <Text fontSize="xs" textAlign="center">
+                        {labware.labwareType}
+                      </Text>
+                    </VStack>
+                  </GridItem>
+                ))}
+              </Grid>
+
+              {selectedPosition && (
+                <Box mt={4} p={3} borderRadius="md" border="1px solid" borderColor="gray.500">
+                  <Text fontWeight="bold">
+                    Selected Position: {selectedPosition}
+                  </Text>
+                  <Text fontSize="sm" color="gray.600">
+                    {
+                      DECK_POSITIONS.find((p) => p.position === selectedPosition)
+                        ?.labwareType
+                    }
+                  </Text>
+                </Box>
+              )}
+            </CardBody>
+          </Card>
         </HStack>
       </VStack>
     </Box>
