@@ -61,9 +61,10 @@ const StyledCard = styled(Card)`
 interface ToolStatusCardProps {
   toolId: string;
   style?: any;
+  customWidth?: string;
 }
 
-export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardProps) {
+export default function ToolStatusCard({ toolId, style = {}, customWidth }: ToolStatusCardProps) {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [isConfiguring, setIsConfiguring] = useState(false);
@@ -158,7 +159,7 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
         borderColor={borderColor}
         borderWidth="1px"
         height="280px"
-        width="280px"
+        width={customWidth || "280px"}
         borderRadius="lg"
         boxShadow="md"
         transition="0.3s ease-out"

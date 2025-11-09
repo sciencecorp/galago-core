@@ -19,15 +19,16 @@ import {
   Card,
   CardHeader,
   CardBody,
-  SimpleGrid,
-  IconButton,
-  Tooltip,
   useColorModeValue,
+  Tag,
 } from "@chakra-ui/react";
 import { FaHome, FaPlay, FaStop, FaEyeDropper, FaVial } from "react-icons/fa";
 import { trpc } from "@/utils/trpc";
 import { Tool } from "@/types/api";
 import { loadingToast } from "@/components/ui/Toast";
+import ToolStatusCard from "@/components/tools/ToolStatusCard";
+import { RiArrowDownDoubleFill } from "react-icons/ri";
+import { RiArrowUpDoubleFill } from "react-icons/ri";
 
 interface BravoAdvancedProps {
   tool: Tool;
@@ -235,122 +236,148 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
     );
   };
 
-  const getDeckPositionColor = (position: DeckPosition) => {
-    if (selectedPosition === position) return useColorModeValue("teal.300", "teal.600");
-  };
-
   return (
-    <Box p={4} >
-      <VStack spacing={6} align="stretch">
-        {/* Header */}
-        <HStack justify="space-between">
-          <Heading size="lg">Bravo Advanced Control</Heading>
-          <Badge colorScheme={hasTips ? "green" : "gray"} fontSize="md" p={2}>
-            {hasTips ? "Tips Loaded" : "No Tips"}
+    <Box p={6} minH="100vh">
+      <VStack spacing={6} align="stretch" maxW="1600px" mx="auto">
+        {/* Header with Status */}
+        <HStack justify="space-between" align="center" pb={2}>
+          <VStack align="start" spacing={1}>
+            <Heading size="lg">Bravo Advanced Control</Heading>
+            <Text fontSize="sm" color="gray.500">
+              Select a deck position and perform operations
+            </Text>
+          </VStack>
+          <Badge 
+            colorScheme={hasTips ? "green" : "gray"} 
+            fontSize="lg" 
+            px={4} 
+            py={2}
+            borderRadius="full"
+          >
+            {hasTips ? "✓ Tips Loaded" : "No Tips"}
           </Badge>
         </HStack>
 
-        <HStack spacing={6} align="start">
-                      {/* Left Panel - Controls */}
-          <VStack flex={1} spacing={4}>
-            {/* Homing Controls */}
-            <Card width="100%">
-              <CardHeader>
-                <Heading size="sm">Homing</Heading>
+        {/* Main Layout */}
+        <HStack spacing={6} align="stretch">
+          {/* Left Sidebar - Controls */}
+          <VStack width="320px" flexShrink={0} spacing={4} align="stretch">
+            <ToolStatusCard toolId={tool.name} customWidth="100%"/>
+
+            {/* System Controls */}
+            <Card>
+              <CardHeader pb={2}>
+                <Heading size="sm" color="gray.700">System Controls</Heading>
               </CardHeader>
-              <CardBody>
-                <VStack spacing={2}>
+              <CardBody pt={3}>
+                <VStack spacing={3}>
+                  <HStack spacing={2} width="100%">
+                    <Button
+                      leftIcon={<FaHome />}
+                      onClick={handleHomeW}
+                      flex={1}
+                      size="sm"
+                      colorScheme="blue"
+                      variant="outline"
+                      isLoading={homeWMutation.isLoading}>
+                      Home W
+                    </Button>
+                    <Button
+                      leftIcon={<FaHome />}
+                      onClick={handleHomeXYZ}
+                      flex={1}
+                      size="sm"
+                      colorScheme="blue"
+                      variant="outline"
+                      isLoading={homeXYZMutation.isLoading}>
+                      Home XYZ
+                    </Button>
+                  </HStack>
+                  
+                  <Divider />
+                  
                   <Button
-                    leftIcon={<FaHome />}
-                    onClick={handleHomeW}
+                    onClick={() =>
+                      selectedPosition && handleMoveToPosition(selectedPosition)
+                    }
                     width="100%"
-                    colorScheme="blue"
-                    isLoading={homeWMutation.isLoading}>
-                    Home W Axis
-                  </Button>
-                  <Button
-                    leftIcon={<FaHome />}
-                    onClick={handleHomeXYZ}
-                    width="100%"
-                    colorScheme="blue"
-                    isLoading={homeXYZMutation.isLoading}>
-                    Home XYZ Axes
+                    size="md"
+                    colorScheme="purple"
+                    isDisabled={!selectedPosition}
+                    isLoading={moveToLocationMutation.isLoading}>
+                    {selectedPosition 
+                      ? `Move to Position ${selectedPosition}` 
+                      : "Select Position to Move"}
                   </Button>
                 </VStack>
-              </CardBody>
-            </Card>
-
-            {/* Movement Controls */}
-            <Card width="100%">
-              <CardHeader>
-                <Heading size="sm">Movement</Heading>
-              </CardHeader>
-              <CardBody>
-                <Button
-                  onClick={() =>
-                    selectedPosition && handleMoveToPosition(selectedPosition)
-                  }
-                  width="100%"
-                  colorScheme="purple"
-                  isDisabled={!selectedPosition}
-                  isLoading={moveToLocationMutation.isLoading}>
-                  Move to Selected Position
-                </Button>
               </CardBody>
             </Card>
 
             {/* Tip Management */}
-            <Card width="100%">
-              <CardHeader>
-                <Heading size="sm">Tip Management</Heading>
+            <Card>
+              <CardHeader pb={2}>
+                <Heading size="sm" color="gray.700">Tip Management</Heading>
               </CardHeader>
-              <CardBody>
-                <VStack spacing={2}>
+              <CardBody pt={3}>
+                <HStack spacing={2}>
                   <Button
-                    leftIcon={<FaPlay />}
+                    leftIcon={<RiArrowUpDoubleFill fontSize="20px" />}
                     onClick={handleTipsOn}
-                    width="100%"
+                    flex={1}
                     colorScheme="green"
                     isDisabled={hasTips || !selectedPosition}
                     isLoading={tipsOnMutation.isLoading}>
-                    Pick Up Tips
+                    Pick Up
                   </Button>
                   <Button
-                    leftIcon={<FaStop />}
+                    leftIcon={<RiArrowDownDoubleFill fontSize="20px" />}
                     onClick={handleTipsOff}
-                    width="100%"
+                    flex={1}
                     colorScheme="red"
                     isDisabled={!hasTips || !selectedPosition}
                     isLoading={tipsOffMutation.isLoading}>
-                    Eject Tips
+                    Eject
                   </Button>
-                </VStack>
+                </HStack>
+                {!selectedPosition && (
+                  <Text fontSize="xs" color="gray.500" mt={2} textAlign="center">
+                    Select a position first
+                  </Text>
+                )}
               </CardBody>
             </Card>
 
             {/* Liquid Handling */}
-            <Card width="100%">
-              <CardHeader>
-                <Heading size="sm">Liquid Handling</Heading>
+            <Card>
+              <CardHeader pb={2}>
+                <Heading size="sm" color="gray.700">Liquid Handling</Heading>
               </CardHeader>
-              <CardBody>
-                <VStack spacing={3}>
+              <CardBody pt={3}>
+                <VStack spacing={4}>
+                  {/* Volume Input */}
                   <FormControl>
-                    <FormLabel fontSize="sm">Volume (µL)</FormLabel>
+                    <FormLabel fontSize="sm" fontWeight="semibold">
+                      Volume (µL)
+                    </FormLabel>
                     <NumberInput
                       value={volume}
                       onChange={(_, val) => setVolume(val)}
                       min={1}
-                      max={1000}>
+                      max={1000}
+                      size="md">
                       <NumberInputField />
                     </NumberInput>
                   </FormControl>
 
+                  {/* Liquid Class */}
                   <FormControl>
-                    <FormLabel fontSize="sm">Liquid Class</FormLabel>
+                    <FormLabel fontSize="sm" fontWeight="semibold">
+                      Liquid Class
+                    </FormLabel>
                     <Select
                       value={liquidClass}
-                      onChange={(e) => setLiquidClass(e.target.value)}>
+                      onChange={(e) => setLiquidClass(e.target.value)}
+                      size="md">
                       <option value="Water">Water</option>
                       <option value="DMSO">DMSO</option>
                       <option value="Serum">Serum</option>
@@ -360,6 +387,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                       size="sm"
                       mt={2}
                       width="100%"
+                      variant="outline"
                       onClick={handleSetLiquidClass}
                       isLoading={setLiquidClassMutation.isLoading}>
                       Apply Liquid Class
@@ -368,77 +396,129 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
 
                   <Divider />
 
-                  <Button
-                    leftIcon={<FaEyeDropper />}
-                    onClick={handleAspirate}
-                    width="100%"
-                    colorScheme="teal"
-                    isDisabled={!hasTips || !selectedPosition}
-                    isLoading={aspirateMutation.isLoading}>
-                    Aspirate
-                  </Button>
-                  <Button
-                    leftIcon={<FaVial />}
-                    onClick={handleDispense}
-                    width="100%"
-                    colorScheme="orange"
-                    isDisabled={!hasTips || !selectedPosition}
-                    isLoading={dispenseMutation.isLoading}>
-                    Dispense
-                  </Button>
+                  {/* Action Buttons */}
+                  <VStack spacing={2} width="100%">
+                    <Button
+                      leftIcon={<FaEyeDropper />}
+                      onClick={handleAspirate}
+                      width="100%"
+                      size="lg"
+                      colorScheme="teal"
+                      isDisabled={!hasTips || !selectedPosition}
+                      isLoading={aspirateMutation.isLoading}>
+                      Aspirate {volume}µL
+                    </Button>
+                    <Button
+                      leftIcon={<FaVial />}
+                      onClick={handleDispense}
+                      width="100%"
+                      size="lg"
+                      colorScheme="orange"
+                      isDisabled={!hasTips || !selectedPosition}
+                      isLoading={dispenseMutation.isLoading}>
+                      Dispense {volume}µL
+                    </Button>
+                  </VStack>
+
+                  {(!hasTips || !selectedPosition) && (
+                    <Text fontSize="xs" color="gray.500" textAlign="center">
+                      {!hasTips && !selectedPosition
+                        ? "Pick up tips and select position"
+                        : !hasTips
+                        ? "Pick up tips first"
+                        : "Select a position"}
+                    </Text>
+                  )}
                 </VStack>
               </CardBody>
             </Card>
           </VStack>
-          {/* Right Panel - Deck Grid */}
-          <Card flex={3}>
-            <CardHeader>
-              <Heading size="md">Bravo Deck</Heading>
-              <Text color="gray.500">
-                Click a position to select it
-              </Text>
-            </CardHeader>
-            <CardBody>
-              <Grid templateColumns="repeat(3, 1fr)" gap={4}>
-                {DECK_POSITIONS.map((labware) => (
-                  <GridItem
-                    key={labware.position}
-                    bg={getDeckPositionColor(labware.position)}
-                    border="2px solid"
-                    borderColor={
-                      selectedPosition === labware.position ? "blue.600" : "gray.300"
-                    }
-                    borderRadius="md"
-                    p={4}
-                    cursor="pointer"
-                    onClick={() => setSelectedPosition(labware.position)}
-                    _hover={{ transform: "scale(1.02)", transition: "all 0.2s" }}
-                    position="relative">
-                    <VStack spacing={1} align="center">
-                      <Text fontWeight="bold" fontSize="2xl">
-                        {labware.position}
-                      </Text>
-                      <Text fontSize="xs" textAlign="center">
-                        {labware.labwareType}
-                      </Text>
-                    </VStack>
-                  </GridItem>
-                ))}
-              </Grid>
 
-              {selectedPosition && (
-                <Box mt={4} p={3} borderRadius="md" border="1px solid" borderColor="gray.500">
-                  <Text fontWeight="bold">
-                    Selected Position: {selectedPosition}
-                  </Text>
-                  <Text fontSize="sm" color="gray.600">
-                    {
-                      DECK_POSITIONS.find((p) => p.position === selectedPosition)
-                        ?.labwareType
-                    }
-                  </Text>
-                </Box>
-              )}
+          {/* Right Panel - Deck Grid */}
+          <Card flex={1} display="flex" flexDirection="column">
+            <CardHeader pb={4}>
+              <VStack align="center" spacing={1}>
+                <Heading size="lg">Bravo Deck Layout</Heading>
+                <Text fontSize="sm" color="gray.500">
+                  {selectedPosition 
+                    ? `Position ${selectedPosition} selected - ${DECK_POSITIONS.find(p => p.position === selectedPosition)?.labwareType}`
+                    : "Click a position to select it"}
+                </Text>
+              </VStack>
+            </CardHeader>
+            <CardBody display="flex" alignItems="start" justifyContent="center" flex={1} pt={20}>
+              <Grid 
+                border="1px solid"
+                borderColor="gray.200"
+                borderRadius="lg"
+                p={8}
+                templateColumns="repeat(3, 1fr)" 
+                gap={6} 
+                maxWidth="800px"
+              >
+                {DECK_POSITIONS.map((labware) => {
+                  const isSelected = selectedPosition === labware.position;
+                  const bgColor = isSelected 
+                    ? useColorModeValue("blue.50", "blue.900")
+                    : useColorModeValue("gray.50", "gray.700");
+                  const borderColor = isSelected ? "blue.500" : "gray.300";
+                  
+                  return (
+                    <GridItem
+                      key={labware.position}
+                      bg={bgColor}
+                      border="3px solid"
+                      borderColor={borderColor}
+                      borderRadius="lg"
+                      p={6}
+                      cursor="pointer"
+                      onClick={() => setSelectedPosition(labware.position)}
+                      _hover={{ 
+                        transform: "translateY(-4px)", 
+                        shadow: "lg",
+                        borderColor: isSelected ? "blue.600" : "blue.300",
+                        transition: "all 0.2s" 
+                      }}
+                      transition="all 0.2s"
+                      position="relative"
+                      height="160px"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <VStack spacing={3}>
+                        <Text 
+                          fontWeight="bold" 
+                          fontSize="4xl" 
+                          color={isSelected ? "blue.600" : "gray.600"}
+                        >
+                          {labware.position}
+                        </Text>
+                        <Badge 
+                          colorScheme={isSelected ? "blue" : "gray"}
+                          fontSize="sm"
+                          px={3}
+                          py={1}
+                          borderRadius="md"
+                        >
+                          {labware.labwareType}
+                        </Badge>
+                      </VStack>
+                      {isSelected && (
+                        <Box
+                          position="absolute"
+                          top={2}
+                          right={2}
+                          w={3}
+                          h={3}
+                          bg="blue.500"
+                          borderRadius="full"
+                        />
+                      )}
+                    </GridItem>
+                  );
+                })}
+              </Grid>
             </CardBody>
           </Card>
         </HStack>
