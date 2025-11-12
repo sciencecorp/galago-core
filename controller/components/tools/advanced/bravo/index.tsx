@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   VStack,
@@ -20,15 +20,27 @@ import {
   CardHeader,
   CardBody,
   useColorModeValue,
-  Tag,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  ModalCloseButton,
+  useDisclosure,
+  Spinner,
 } from "@chakra-ui/react";
-import { FaHome, FaPlay, FaStop, FaEyeDropper, FaVial } from "react-icons/fa";
+import { FaHome, FaPlay, FaStop, FaEyeDropper, FaVial, FaSave } from "react-icons/fa";
 import { trpc } from "@/utils/trpc";
-import { Tool } from "@/types/api";
 import { loadingToast } from "@/components/ui/Toast";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
-import { RiArrowDownDoubleFill } from "react-icons/ri";
-import { RiArrowUpDoubleFill } from "react-icons/ri";
+import { RiArrowDownDoubleFill, RiArrowUpDoubleFill } from "react-icons/ri";
+import { BsGearFill } from "react-icons/bs";
+import { Inventory, Plate, Reagent, Nest, Tool, NestStatus, Hotel } from "@/types/api";
 
 interface BravoAdvancedProps {
   tool: Tool;
@@ -39,9 +51,10 @@ type DeckPosition = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 interface LabwarePosition {
   position: DeckPosition;
   labwareType: string;
+  nestId?: number;
 }
 
-const DECK_POSITIONS: LabwarePosition[] = [
+const DEFAULT_DECK_POSITIONS: LabwarePosition[] = [
   { position: 1, labwareType: "96-well plate" },
   { position: 2, labwareType: "96-well plate" },
   { position: 3, labwareType: "96-well plate" },
@@ -55,12 +68,32 @@ const DECK_POSITIONS: LabwarePosition[] = [
 
 export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
   const toast = useToast();
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedPosition, setSelectedPosition] = useState<DeckPosition | null>(null);
   const [volume, setVolume] = useState<number>(100);
   const [liquidClass, setLiquidClass] = useState<string>("Water");
   const [hasTips, setHasTips] = useState<boolean>(false);
+  const [deckPositions, setDeckPositions] = useState<LabwarePosition[]>(DEFAULT_DECK_POSITIONS);
+  const [editingPosition, setEditingPosition] = useState<DeckPosition | null>(null);
+  const [selectedLabware, setSelectedLabware] = useState<string>("");
+  const [nestsInitialized, setNestsInitialized] = useState<boolean>(false);
+  const SelectedWorkcellName = trpc.workcell.getSelectedWorkcell.useQuery();
 
-  // TRPC mutations
+
+  // TRPC queries and mutations
+  const { data: nests = [], refetch: refetchNests, isLoading: nestsLoading } = trpc.inventory.getNests.useQuery<Nest[]>(
+    SelectedWorkcellName.data ?? "",
+    {
+      refetchOnMount: true,
+      refetchOnWindowFocus: true,
+    },
+  );
+  
+  const { data: allLabware, isLoading: labwareLoading } = trpc.labware.getAll.useQuery();
+  
+  const updateNestMutation = trpc.inventory.updateNest.useMutation();
+
+  // Existing mutations
   const homeWMutation = trpc.bravo.homeW.useMutation();
   const homeXYZMutation = trpc.bravo.homeXYZ.useMutation();
   const moveToLocationMutation = trpc.bravo.moveToLocation.useMutation();
@@ -69,6 +102,34 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
   const tipsOnMutation = trpc.bravo.tipsOn.useMutation();
   const tipsOffMutation = trpc.bravo.tipsOff.useMutation();
   const setLiquidClassMutation = trpc.bravo.setLiquidClass.useMutation();
+  const showDiagnosticsMutation = trpc.bravo.showDiagnostics.useMutation();
+
+  // Check if nests exist for this tool and map them to deck positions
+  useEffect(() => {
+    if (nests && tool.id) {
+      const bravoNests = nests.filter(nest => nest.tool_id === tool.id);
+      
+      if (bravoNests.length === 9) {
+        setNestsInitialized(true);
+        
+        // Map nests to deck positions (sorted by row, then column)
+        const sortedNests = [...bravoNests].sort((a, b) => {
+          if (a.row !== b.row) return a.row - b.row;
+          return a.column - b.column;
+        });
+        
+        const updatedPositions = DEFAULT_DECK_POSITIONS.map((pos, index) => ({
+          ...pos,
+          nestId: sortedNests[index]?.id,
+          labwareType: sortedNests[index]?.name?.split('_').pop() || pos.labwareType,
+        }));
+        
+        setDeckPositions(updatedPositions);
+      } else {
+        setNestsInitialized(false);
+      }
+    }
+  }, [nests, tool.id]);
 
   const executeWithToast = async (
     mutationFn: () => Promise<any>,
@@ -84,6 +145,13 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
     });
 
     return promise;
+  };
+
+  const handleShowDiagnostics = () => {
+    executeWithToast(
+      () => showDiagnosticsMutation.mutateAsync({ toolId: tool.name }),
+      "Show Diagnostics"
+    );
   };
 
   const handleHomeW = () => {
@@ -236,6 +304,75 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
     );
   };
 
+  const handleEditLabware = (position: DeckPosition) => {
+    setEditingPosition(position);
+    const currentLabware = deckPositions.find(p => p.position === position);
+    setSelectedLabware(currentLabware?.labwareType || "");
+    onOpen();
+  };
+
+  const handleSaveLabware = async () => {
+    if (!editingPosition || !selectedLabware) return;
+
+    const positionData = deckPositions.find(p => p.position === editingPosition);
+    if (!positionData?.nestId) {
+      toast({
+        title: "Error",
+        description: "Nest not initialized for this position",
+        status: "error",
+        duration: 3000,
+      });
+      return;
+    }
+
+    try {
+      await updateNestMutation.mutateAsync({
+        id: positionData.nestId,
+        name: `${tool.name}_R${Math.floor((editingPosition - 1) / 3)}C${(editingPosition - 1) % 3}_${selectedLabware}`,
+        row: Math.floor((editingPosition - 1) / 3),
+        column: (editingPosition - 1) % 3,
+        tool_id: tool.id,
+      });
+
+      // Update local state
+      setDeckPositions(prev =>
+        prev.map(p =>
+          p.position === editingPosition
+            ? { ...p, labwareType: selectedLabware }
+            : p
+        )
+      );
+
+      toast({
+        title: "Labware updated",
+        description: `Position ${editingPosition} now has ${selectedLabware}`,
+        status: "success",
+        duration: 3000,
+      });
+
+      onClose();
+      refetchNests();
+    } catch (error) {
+      toast({
+        title: "Error updating labware",
+        description: error.message,
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  if (nestsLoading || labwareLoading) {
+    return (
+      <Box p={6} minH="100vh" display="flex" alignItems="center" justifyContent="center">
+        <VStack spacing={4}>
+          <Spinner size="xl" />
+          <Text>Loading Bravo configuration...</Text>
+        </VStack>
+      </Box>
+    );
+  }
+
   return (
     <Box p={6} minH="100vh">
       <VStack spacing={6} align="stretch" maxW="1600px" mx="auto">
@@ -258,6 +395,20 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
           </Badge>
         </HStack>
 
+        {/* Warning for missing nests */}
+        {!nestsInitialized && (
+          <Alert status="warning" borderRadius="md">
+            <AlertIcon />
+            <Box flex="1">
+              <AlertTitle>Nests Not Initialized</AlertTitle>
+              <AlertDescription>
+                This Bravo tool requires 9 inventory nests (3x3 grid) to be created. 
+                Please contact an administrator to initialize the inventory nests for this tool.
+              </AlertDescription>
+            </Box>
+          </Alert>
+        )}
+
         {/* Main Layout */}
         <HStack spacing={6} align="stretch">
           {/* Left Sidebar - Controls */}
@@ -267,35 +418,20 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
             {/* System Controls */}
             <Card>
               <CardHeader pb={2}>
-                <Heading size="sm" color="gray.700">System Controls</Heading>
+                <Heading size="sm">System Controls</Heading>
               </CardHeader>
               <CardBody pt={3}>
                 <VStack spacing={3}>
-                  <HStack spacing={2} width="100%">
-                    <Button
-                      leftIcon={<FaHome />}
-                      onClick={handleHomeW}
-                      flex={1}
-                      size="sm"
-                      colorScheme="blue"
-                      variant="outline"
-                      isLoading={homeWMutation.isLoading}>
-                      Home W
-                    </Button>
-                    <Button
-                      leftIcon={<FaHome />}
-                      onClick={handleHomeXYZ}
-                      flex={1}
-                      size="sm"
-                      colorScheme="blue"
-                      variant="outline"
-                      isLoading={homeXYZMutation.isLoading}>
-                      Home XYZ
-                    </Button>
-                  </HStack>
-                  
+                  <Button
+                    leftIcon={<BsGearFill />}
+                    onClick={handleShowDiagnostics}
+                    width="100%"
+                    size="md"
+                    colorScheme="blue"
+                    isLoading={showDiagnosticsMutation.isLoading}>
+                    Show Diagnostics
+                  </Button> 
                   <Divider />
-                  
                   <Button
                     onClick={() =>
                       selectedPosition && handleMoveToPosition(selectedPosition)
@@ -303,7 +439,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                     width="100%"
                     size="md"
                     colorScheme="purple"
-                    isDisabled={!selectedPosition}
+                    isDisabled={!selectedPosition || !nestsInitialized}
                     isLoading={moveToLocationMutation.isLoading}>
                     {selectedPosition 
                       ? `Move to Position ${selectedPosition}` 
@@ -316,7 +452,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
             {/* Tip Management */}
             <Card>
               <CardHeader pb={2}>
-                <Heading size="sm" color="gray.700">Tip Management</Heading>
+                <Heading size="sm">Tip Management</Heading>
               </CardHeader>
               <CardBody pt={3}>
                 <HStack spacing={2}>
@@ -325,7 +461,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                     onClick={handleTipsOn}
                     flex={1}
                     colorScheme="green"
-                    isDisabled={hasTips || !selectedPosition}
+                    isDisabled={hasTips || !selectedPosition || !nestsInitialized}
                     isLoading={tipsOnMutation.isLoading}>
                     Pick Up
                   </Button>
@@ -334,7 +470,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                     onClick={handleTipsOff}
                     flex={1}
                     colorScheme="red"
-                    isDisabled={!hasTips || !selectedPosition}
+                    isDisabled={!hasTips || !selectedPosition || !nestsInitialized}
                     isLoading={tipsOffMutation.isLoading}>
                     Eject
                   </Button>
@@ -404,7 +540,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                       width="100%"
                       size="lg"
                       colorScheme="teal"
-                      isDisabled={!hasTips || !selectedPosition}
+                      isDisabled={!hasTips || !selectedPosition || !nestsInitialized}
                       isLoading={aspirateMutation.isLoading}>
                       Aspirate {volume}µL
                     </Button>
@@ -414,7 +550,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                       width="100%"
                       size="lg"
                       colorScheme="orange"
-                      isDisabled={!hasTips || !selectedPosition}
+                      isDisabled={!hasTips || !selectedPosition || !nestsInitialized}
                       isLoading={dispenseMutation.isLoading}>
                       Dispense {volume}µL
                     </Button>
@@ -441,13 +577,14 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                 <Heading size="lg">Bravo Deck Layout</Heading>
                 <Text fontSize="sm" color="gray.500">
                   {selectedPosition 
-                    ? `Position ${selectedPosition} selected - ${DECK_POSITIONS.find(p => p.position === selectedPosition)?.labwareType}`
+                    ? `Position ${selectedPosition} selected - ${deckPositions.find(p => p.position === selectedPosition)?.labwareType}`
                     : "Click a position to select it"}
                 </Text>
               </VStack>
             </CardHeader>
-            <CardBody display="flex" alignItems="start" justifyContent="center" flex={1} pt={20}>
+            <CardBody display="flex" flexDirection="column" alignItems="center" justifyContent="start" flex={1} pt={8}>
               <Grid 
+                bg={useColorModeValue("gray.100", "gray.800")}
                 border="1px solid"
                 borderColor="gray.200"
                 borderRadius="lg"
@@ -456,7 +593,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                 gap={6} 
                 maxWidth="800px"
               >
-                {DECK_POSITIONS.map((labware) => {
+                {deckPositions.map((labware) => {
                   const isSelected = selectedPosition === labware.position;
                   const bgColor = isSelected 
                     ? useColorModeValue("blue.50", "blue.900")
@@ -472,25 +609,27 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                       borderRadius="lg"
                       p={6}
                       cursor="pointer"
-                      onClick={() => setSelectedPosition(labware.position)}
+                      onClick={() => nestsInitialized && setSelectedPosition(labware.position)}
                       _hover={{ 
-                        transform: "translateY(-4px)", 
-                        shadow: "lg",
-                        borderColor: isSelected ? "blue.600" : "blue.300",
+                        transform: nestsInitialized ? "translateY(-4px)" : "none", 
+                        shadow: nestsInitialized ? "lg" : "none",
+                        borderColor: nestsInitialized ? (isSelected ? "blue.600" : "blue.300") : borderColor,
                         transition: "all 0.2s" 
                       }}
                       transition="all 0.2s"
                       position="relative"
-                      height="160px"
+                      height="200px"
                       display="flex"
+                      flexDirection="column"
                       alignItems="center"
                       justifyContent="center"
+                      opacity={nestsInitialized ? 1 : 0.5}
                     >
-                      <VStack spacing={3}>
+                      <VStack spacing={3} flex={1} justify="center">
                         <Text 
                           fontWeight="bold" 
                           fontSize="4xl" 
-                          color={isSelected ? "blue.600" : "gray.600"}
+                          color={isSelected ? "blue.600" : "gray.500"}
                         >
                           {labware.position}
                         </Text>
@@ -504,6 +643,23 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                           {labware.labwareType}
                         </Badge>
                       </VStack>
+                      
+                      {nestsInitialized && (
+                        <Button
+                          size="xs"
+                          leftIcon={<FaSave />}
+                          colorScheme="purple"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditLabware(labware.position);
+                          }}
+                          width="100%"
+                        >
+                          Edit Labware
+                        </Button>
+                      )}
+                      
                       {isSelected && (
                         <Box
                           position="absolute"
@@ -523,6 +679,44 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
           </Card>
         </HStack>
       </VStack>
+
+      {/* Labware Selection Modal */}
+      <Modal isOpen={isOpen} onClose={onClose} size="md">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Edit Labware - Position {editingPosition}</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <FormControl>
+              <FormLabel>Select Labware Type</FormLabel>
+              <Select
+                value={selectedLabware}
+                onChange={(e) => setSelectedLabware(e.target.value)}
+                placeholder="Select labware"
+              >
+                {allLabware?.map((labware) => (
+                  <option key={labware.id} value={labware.name}>
+                    {labware.name}
+                  </option>
+                ))}
+              </Select>
+            </FormControl>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={onClose}>
+              Cancel
+            </Button>
+            <Button 
+              colorScheme="blue" 
+              onClick={handleSaveLabware}
+              isDisabled={!selectedLabware}
+              isLoading={updateNestMutation.isLoading}
+            >
+              Save
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };
