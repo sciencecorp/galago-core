@@ -25,7 +25,7 @@ def get_scripts(db: Session = Depends(get_db), workcell_name: Optional[str] = No
 
 @router.get("/{script_id}", response_model=schemas.Script)
 def get_script(script_id: t.Union[int, str], db: Session = Depends(get_db)) -> t.Any:
-    script = crud.scripts.get(db, id=script_id, normalize_name=True)
+    script = crud.scripts.get(db, id=script_id, normalize_name=False)
     if script is None:
         raise HTTPException(status_code=404, detail="Script not found")
     return script
