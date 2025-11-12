@@ -29,7 +29,7 @@ import {
   Divider,
 } from '@chakra-ui/react';
 import { Search, Download, FileText, Workflow, Grid, Layers } from 'lucide-react';
-import { trpc } from '@/utils/trpc'; // Adjust import path as needed
+import { trpc } from '@/utils/trpc';
 
 const typeIcons = {
   script: FileText,
@@ -51,16 +51,11 @@ export default function GalagoRegistryBrowser() {
   const [tagFilter, setTagFilter] = useState<string>("all");
   const toast = useToast();
 
-  // Fetch registry using tRPC
   const { data: registry, isLoading, error, refetch } = trpc.registry.getRegistry.useQuery();
-  
-  // Fetch all tags
   const { data: allTags = [] } = trpc.registry.getTags.useQuery();
 
-  // Download mutation
   const downloadMutation = trpc.registry.downloadItem.useMutation({
     onSuccess: (data) => {
-      // Create appropriate blob based on content type
       let blob;
       let filename;
       
@@ -297,7 +292,7 @@ export default function GalagoRegistryBrowser() {
                       size="sm"
                       width="full"
                       onClick={() => handleDownload(item.id)}
-                      isLoading={downloadMutation.isPending}
+                      isLoading={downloadMutation.isLoading}
                     >
                       Download
                     </Button>
