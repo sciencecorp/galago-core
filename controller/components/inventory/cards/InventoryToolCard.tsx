@@ -96,7 +96,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   const toolData = workcellTools?.find((tool) => tool.id === toolId);
   const { name, type } = toolData || {};
 
-  const toolNests = nests.filter((nest) => nest.name?.toString() === name?.toString());
+  const toolNests = nests.filter((nest) => nest.tool_id === toolId);
   const toolPlates = plates.filter((plate) => toolNests.some((nest) => nest.id === plate.nest_id));
 
   // Get reagent count for this tool's plates
