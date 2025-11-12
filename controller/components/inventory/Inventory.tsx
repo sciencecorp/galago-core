@@ -35,7 +35,7 @@ import {
   NumberDecrementStepper,
   Heading,
 } from "@chakra-ui/react";
-import {  Plate, Reagent, Nest, Tool, NestStatus, Hotel } from "@/types/api";
+import { Plate, Reagent, Nest, Tool, NestStatus, Hotel } from "@/types/api";
 import { PageHeader } from "@/components/ui/PageHeader";
 import InventorySearch from "./search/InventorySearch";
 import { InventoryToolCard } from "./cards/InventoryToolCard";
