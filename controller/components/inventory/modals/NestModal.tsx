@@ -74,15 +74,22 @@ const NestModal: React.FC<NestModalProps> = ({
   const isLiconic = toolType?.toLowerCase() === "liconic";
 
   // Calculate max dimensions properly, ensuring we count from 1 for hotels
-  const maxRows =
-    nests.length > 0
-      ? Math.max(...nests.map((nest) => nest.row)) + 1 // +1 because we need to count row 0 as row 1
-      : 1;
+  const maxRows = nests.length > 0 ? Math.max(...nests.map((nest) => nest.row)) + 1 : 1;
 
-  const maxColumns =
-    nests.length > 0
-      ? Math.max(...nests.map((nest) => nest.column)) + 1 // +1 because we need to count column 0 as column 1
-      : 1;
+  const maxColumns = nests.length > 0 ? Math.max(...nests.map((nest) => nest.column)) + 1 : 1;
+
+  // Calculate dynamic cell size based on grid dimensions
+  const calculateCellSize = () => {
+    // Base sizes for different grid configurations
+    if (maxRows <= 3 && maxColumns <= 3) return "80px";
+    if (maxRows <= 5 && maxColumns <= 5) return "70px";
+    if (maxRows <= 8 && maxColumns <= 8) return "60px";
+    if (maxRows <= 12 && maxColumns <= 12) return "50px";
+    return "40px"; // For very large grids
+  };
+
+  const cellSize = calculateCellSize();
+  const labelWidth = maxRows >= 10 ? "45px" : "40px";
 
   // Use color hooks
   const {
@@ -90,10 +97,9 @@ const NestModal: React.FC<NestModalProps> = ({
     borderColor: nestBorderColor,
     selectedBg: selectedNestBg,
     selectedBorder: selectedNestBorder,
-    sectionBg: ghostNestBg, // Use sectionBg for ghost
+    sectionBg: ghostNestBg,
   } = useCommonColors();
   const { primary: textColor } = useTextColors();
-  // Specific overrides not in common theme
   const ghostNestBorder = useColorModeValue("gray.300", "gray.600");
   const labelBg = useColorModeValue("gray.100", "gray.600");
 
@@ -107,10 +113,8 @@ const NestModal: React.FC<NestModalProps> = ({
 
     if (isMultiSelect) {
       if (localSelectedNests.includes(nest.id)) {
-        // Always allow deselection
         newSelection = localSelectedNests.filter((id) => id !== nest.id);
       } else {
-        // Check if we can add more selections
         if (maxSelections && localSelectedNests.length >= maxSelections) {
           warningToast(
             "Selection limit reached",
@@ -153,16 +157,10 @@ const NestModal: React.FC<NestModalProps> = ({
 
   const handleDimensionChange = async (type: "row" | "column", operation: "add" | "remove") => {
     try {
-      // Get current max dimensions (these are 1-based for UI display)
       const currentMax = type === "row" ? maxRows : maxColumns;
-
-      // For adding, we want the new index to be equal to currentMax (which is the next 0-based index)
-      // For removing, we want the last index (currentMax - 1)
       const targetIndex = operation === "add" ? currentMax : currentMax - 1;
 
       if (operation === "remove" && onDeleteNest) {
-        // Find nests to delete at the last row/column
-        // Since targetIndex is already currentMax - 1, we don't need to subtract 1 again
         const nestsToDelete = nests.filter((nest) =>
           type === "row" ? nest.row === targetIndex : nest.column === targetIndex,
         );
@@ -176,20 +174,16 @@ const NestModal: React.FC<NestModalProps> = ({
           await onDeleteNest(nest.id);
         }
       } else if (operation === "add" && onCreateNest) {
-        // If inventory is empty, create first nest at (0,0)
         if (nests.length === 0) {
           await onCreateNest(0, 0);
           return;
         }
 
-        // Add new nests in the new row/column
         if (type === "row") {
-          // Add a new row - create a nest at the new row for each existing column
           for (let col = 0; col < maxColumns; col++) {
             await onCreateNest(targetIndex, col);
           }
         } else {
-          // Add a new column - create a nest at the new column for each existing row
           for (let row = 0; row < maxRows; row++) {
             await onCreateNest(row, targetIndex);
           }
@@ -221,15 +215,15 @@ const NestModal: React.FC<NestModalProps> = ({
         cursor="pointer"
         onClick={() => handleNestClick(nest)}
         position="relative"
-        height="60px"
-        width="60px"
+        height={cellSize}
+        width={cellSize}
         display="flex"
         alignItems="center"
         justifyContent="center"
         transition="all 0.2s"
         _hover={{
-          transform: "scale(1.02)",
-          shadow: "sm",
+          transform: "scale(1.05)",
+          shadow: "md",
           borderColor: selectedNestBorder,
           bg: isSelected ? selectedNestBg : "transparent",
         }}>
@@ -237,7 +231,7 @@ const NestModal: React.FC<NestModalProps> = ({
           <Tooltip label={`${plate.name || "Unnamed Plate"} - Click to view details or check out`}>
             <Box
               onClick={(e) => {
-                e.stopPropagation(); // Prevent nest selection when clicking the plate
+                e.stopPropagation();
                 if (onPlateClick) {
                   onPlateClick(plate);
                 }
@@ -250,7 +244,7 @@ const NestModal: React.FC<NestModalProps> = ({
               <WellPlateIcon
                 rows={getPlateTypeInfo(plate.plate_type).rows}
                 columns={getPlateTypeInfo(plate.plate_type).cols}
-                size="40px"
+                size={`calc(${cellSize} - 20px)`}
               />
             </Box>
           </Tooltip>
@@ -265,8 +259,8 @@ const NestModal: React.FC<NestModalProps> = ({
             }
             borderRadius="full"
             px="1.5"
-            fontSize="xs">
-            {nest.status}
+            fontSize="2xs">
+            {nest.status.charAt(0).toUpperCase()}
           </Badge>
         )}
         {isSelected && (
@@ -285,10 +279,21 @@ const NestModal: React.FC<NestModalProps> = ({
     );
   };
 
+  // Determine modal size based on grid dimensions
+  const getModalSize = () => {
+    const totalCells = maxRows * maxColumns;
+    if (totalCells > 144) return "6xl"; // 12x12 or larger
+    if (totalCells > 100) return "5xl"; // 10x10 to 12x12
+    if (totalCells > 64) return "4xl"; // 8x8 to 10x10
+    if (totalCells > 36) return "3xl"; // 6x6 to 8x8
+    if (totalCells > 16) return "2xl"; // 4x4 to 6x6
+    return "xl";
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="md">
+    <Modal isOpen={isOpen} onClose={onClose} size={getModalSize()}>
       <ModalOverlay backdropFilter="blur(4px)" />
-      <ModalContent maxW="fit-content" minW="min-content">
+      <ModalContent maxW="95vw">
         <ModalHeader borderBottomWidth="1px" py={4}>
           <VStack spacing={2} align="stretch">
             <HStack spacing={3} justify="space-between">
@@ -297,12 +302,11 @@ const NestModal: React.FC<NestModalProps> = ({
                 <VStack align="start" spacing={0}>
                   <Text>{toolName}</Text>
                   <Text fontSize="sm" color="gray.500">
-                    Select nest{isMultiSelect ? "s" : ""}
+                    {maxRows} × {maxColumns} Grid
                   </Text>
                 </VStack>
               </HStack>
 
-              {/* Check-in button in the top right */}
               {onCheckIn && (
                 <Button
                   leftIcon={<Icon as={BsBoxSeam} />}
@@ -310,12 +314,9 @@ const NestModal: React.FC<NestModalProps> = ({
                   size="sm"
                   onClick={() => {
                     if (localSelectedNests.length > 0) {
-                      // If a nest is selected, use that specific nest
                       handleCheckIn(localSelectedNests[0]);
                     } else {
-                      // Otherwise, still open the check-in modal
-                      // which has automatic placement
-                      handleCheckIn(-1); // Use -1 to indicate auto-placement
+                      handleCheckIn(-1);
                     }
                   }}>
                   {localSelectedNests.length > 0 ? "Check In Here" : "Check In"}
@@ -323,7 +324,6 @@ const NestModal: React.FC<NestModalProps> = ({
               )}
             </HStack>
 
-            {/* Grid dimension controls */}
             {onCreateNest && onDeleteNest && (
               <HStack spacing={2} justify="flex-end">
                 <Button
@@ -364,7 +364,6 @@ const NestModal: React.FC<NestModalProps> = ({
               </HStack>
             )}
 
-            {/* Only show the trigger tool command option for Liconic tools */}
             {isLiconic && containerType === "tool" && (
               <HStack spacing={2} justify="flex-end">
                 <HStack spacing={2}>
@@ -388,89 +387,92 @@ const NestModal: React.FC<NestModalProps> = ({
             )}
           </VStack>
         </ModalHeader>
-        <ModalBody py={6}>
-          <Flex>
-            {/* Row labels column */}
-            <VStack spacing={0} pt={14} pr={3} minW="40px">
-              {Array.from({ length: maxRows }, (_, i) => (
-                <Box
-                  key={`row-${i}`}
-                  h="60px"
-                  mb={i < maxRows - 1 ? "12px" : 0}
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="flex-end">
+        <ModalBody py={6} overflow="auto" maxH="70vh">
+          <Flex justify="center" align="center" w="100%">
+            <Flex>
+              {/* Row labels column */}
+              <VStack spacing={0} pt={14} pr={2} minW={labelWidth} justify="flex-start">
+                {Array.from({ length: maxRows }, (_, i) => (
                   <Box
-                    bg={labelBg}
-                    px={2}
-                    py={1}
-                    borderRadius="md"
-                    fontSize="sm"
-                    fontWeight="medium">
-                    {i + 1}
-                  </Box>
-                </Box>
-              ))}
-            </VStack>
-
-            <VStack spacing={0} align="stretch">
-              {/* Column labels row */}
-              <HStack spacing={3} px={4} pb={3} minH="40px" align="flex-end">
-                {Array.from({ length: maxColumns }, (_, i) => (
-                  <Flex key={`col-${i}`} w="60px" justify="center">
+                    key={`row-${i}`}
+                    h={cellSize}
+                    mb={i < maxRows - 1 ? "8px" : 0}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="flex-end">
                     <Box
                       bg={labelBg}
                       px={2}
                       py={1}
                       borderRadius="md"
-                      fontSize="sm"
-                      fontWeight="medium">
+                      fontSize="xs"
+                      fontWeight="bold"
+                      minW="30px"
+                      textAlign="center">
                       {i + 1}
                     </Box>
-                  </Flex>
+                  </Box>
                 ))}
-              </HStack>
+              </VStack>
 
-              {/* Grid */}
-              <Grid
-                templateColumns={`repeat(${maxColumns}, 60px)`}
-                gap={3}
-                p={4}
-                bg={ghostNestBg}
-                borderRadius="lg"
-                key={`grid-${maxRows}-${maxColumns}`}>
-                {Array.from({ length: maxRows }, (_, rowIndex) =>
-                  Array.from({ length: maxColumns }, (_, colIndex) => {
-                    // For UI we're using 1-based indexing (rowIndex and colIndex are 0-based)
-                    // But database stores 0-based indexes, so look for nests at rowIndex and colIndex
-                    const nest = nests.find((n) => n.row === rowIndex && n.column === colIndex);
+              <VStack spacing={0} align="stretch">
+                {/* Column labels row */}
+                <HStack spacing={2} px={2} pb={2} minH="40px" align="flex-end" justify="center">
+                  {Array.from({ length: maxColumns }, (_, i) => (
+                    <Flex key={`col-${i}`} w={cellSize} justify="center">
+                      <Box
+                        bg={labelBg}
+                        px={2}
+                        py={1}
+                        borderRadius="md"
+                        fontSize="xs"
+                        fontWeight="bold"
+                        minW="30px"
+                        textAlign="center">
+                        {i + 1}
+                      </Box>
+                    </Flex>
+                  ))}
+                </HStack>
 
-                    if (!nest) {
-                      // No longer render ghost nests
-                      return (
-                        <Box
-                          key={`empty-${rowIndex}-${colIndex}`}
-                          height="60px"
-                          width="60px"
-                          borderWidth="1px"
-                          borderStyle="dashed"
-                          borderColor={ghostNestBorder}
-                          borderRadius="md"
-                          opacity={0.5}
-                        />
-                      );
-                    }
+                {/* Grid */}
+                <Grid
+                  templateColumns={`repeat(${maxColumns}, ${cellSize})`}
+                  gap={2}
+                  p={3}
+                  bg={ghostNestBg}
+                  borderRadius="lg"
+                  key={`grid-${maxRows}-${maxColumns}`}>
+                  {Array.from({ length: maxRows }, (_, rowIndex) =>
+                    Array.from({ length: maxColumns }, (_, colIndex) => {
+                      const nest = nests.find((n) => n.row === rowIndex && n.column === colIndex);
 
-                    return renderNestContent(nest);
-                  }),
-                )}
-              </Grid>
-            </VStack>
+                      if (!nest) {
+                        return (
+                          <Box
+                            key={`empty-${rowIndex}-${colIndex}`}
+                            height={cellSize}
+                            width={cellSize}
+                            borderWidth="1px"
+                            borderStyle="dashed"
+                            borderColor={ghostNestBorder}
+                            borderRadius="md"
+                            opacity={0.4}
+                          />
+                        );
+                      }
+
+                      return renderNestContent(nest);
+                    }),
+                  )}
+                </Grid>
+              </VStack>
+            </Flex>
           </Flex>
         </ModalBody>
 
         {isMultiSelect && (
-          <ModalFooter borderBottomWidth="1px" py={4}>
+          <ModalFooter borderTopWidth="1px" py={4}>
             <HStack width="100%" justify="space-between">
               <Text color="gray.500" fontSize="sm">
                 {localSelectedNests.length} nest{localSelectedNests.length !== 1 ? "s" : ""}{" "}
