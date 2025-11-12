@@ -218,8 +218,6 @@ class Hotel(HotelCreate, TimestampMixin):
 
 
 class Inventory(BaseModel):
-    workcell: Workcell
-    instruments: t.List[Instrument]
     hotels: t.List[Hotel] = []
     nests: t.List[Nest]
     plates: t.List[Plate]

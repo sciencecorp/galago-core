@@ -58,11 +58,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         elif isinstance(id, str) and id.isdigit():
             return db.query(self.model).filter(self.model.id == int(id)).one_or_none()
         else:  # we assume this is a string
+            search_name = id
             if normalize_name:
-                id = id.lower().replace(" ", "_").strip()
+                search_name = id.lower().replace(" ", "_").strip()
+            
+            # Always do case-insensitive search by lowering both sides
             return (
                 db.query(self.model)
-                .filter(func.lower(self.model.name) == id)
+                .filter(func.lower(self.model.name) == func.lower(search_name))
                 .one_or_none()
             )
 
