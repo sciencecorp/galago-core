@@ -34,13 +34,13 @@ import {
   useDisclosure,
   Spinner,
 } from "@chakra-ui/react";
-import { FaHome, FaPlay, FaStop, FaEyeDropper, FaVial, FaSave } from "react-icons/fa";
+import {  FaEyeDropper, FaVial, FaSave } from "react-icons/fa";
 import { trpc } from "@/utils/trpc";
 import { loadingToast } from "@/components/ui/Toast";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import { RiArrowDownDoubleFill, RiArrowUpDoubleFill } from "react-icons/ri";
 import { BsGearFill } from "react-icons/bs";
-import { Inventory, Plate, Reagent, Nest, Tool, NestStatus, Hotel } from "@/types/api";
+import { Nest, Tool } from "@/types/api";
 
 interface BravoAdvancedProps {
   tool: Tool;
@@ -79,8 +79,6 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
   const [nestsInitialized, setNestsInitialized] = useState<boolean>(false);
   const SelectedWorkcellName = trpc.workcell.getSelectedWorkcell.useQuery();
 
-
-  // TRPC queries and mutations
   const { data: nests = [], refetch: refetchNests, isLoading: nestsLoading } = trpc.inventory.getNests.useQuery<Nest[]>(
     SelectedWorkcellName.data ?? "",
     {
@@ -93,7 +91,6 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
   
   const updateNestMutation = trpc.inventory.updateNest.useMutation();
 
-  // Existing mutations
   const homeWMutation = trpc.bravo.homeW.useMutation();
   const homeXYZMutation = trpc.bravo.homeXYZ.useMutation();
   const moveToLocationMutation = trpc.bravo.moveToLocation.useMutation();
@@ -104,11 +101,9 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
   const setLiquidClassMutation = trpc.bravo.setLiquidClass.useMutation();
   const showDiagnosticsMutation = trpc.bravo.showDiagnostics.useMutation();
 
-  // Check if nests exist for this tool and map them to deck positions
   useEffect(() => {
     if (nests && tool.id) {
-      const bravoNests = nests.filter(nest => nest.tool_id === tool.id);
-      
+      const bravoNests = (nests as Nest[]).filter(nest => nest.tool_id === tool.id);
       if (bravoNests.length === 9) {
         setNestsInitialized(true);
         
@@ -591,7 +586,6 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                 p={8}
                 templateColumns="repeat(3, 1fr)" 
                 gap={6} 
-                maxWidth="800px"
               >
                 {deckPositions.map((labware) => {
                   const isSelected = selectedPosition === labware.position;
@@ -618,7 +612,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                       }}
                       transition="all 0.2s"
                       position="relative"
-                      height="200px"
+                      height="160px"
                       display="flex"
                       flexDirection="column"
                       alignItems="center"
