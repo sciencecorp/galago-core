@@ -38,6 +38,16 @@ Galago consists of several distinct modules:
    cd galago-core
    ```
 
+2. **Install grpcio dependencies on a local environment (for proto files, testing, linting, etc)**
+   ```bash
+   bin/make deps 
+   ```
+
+3. **Generate proto files**
+   ```bash 
+   bin/make proto
+   ```
+
 2. **Launch development environment**
 
    ```bash
