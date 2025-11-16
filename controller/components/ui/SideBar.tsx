@@ -39,6 +39,7 @@ import { GiChaingun } from "react-icons/gi";
 import { useSidebarTheme } from "./Theme";
 import { FaRegListAlt } from "react-icons/fa";
 import { SiReacthookform } from "react-icons/si";
+import { VscExtensions } from "react-icons/vsc";
 
 interface SidebarItem {
   name: string;
@@ -65,6 +66,7 @@ const sidebarItems: SidebarItem[] = [
   { name: "Logs", icon: FiBook, path: "/logs" },
   { name: "Variables", icon: TbVariable, path: "/variables" },
   { name: "Scripts", icon: MdOutlineIntegrationInstructions, path: "/scripts" },
+  { name: "Extensions", icon: VscExtensions, path: "/hub" },
   // { name: "Settings", icon: FiSettings, path: "/settings" },
   // { name: "Logout", icon: FiLogOut, path: "/logout" },
 ];

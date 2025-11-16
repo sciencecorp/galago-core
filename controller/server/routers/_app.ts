@@ -13,6 +13,7 @@ import { inventoryRouter } from "./inventory";
 import { robotArmRouter } from "./robot-arm";
 import { csharpRouter } from "./cSharpRouter";
 import { formRouter } from "./form";
+import { registryRouter } from "./registry";
 
 export const appRouter = router({
   inventory: inventoryRouter,
@@ -28,6 +29,7 @@ export const appRouter = router({
   robotArm: robotArmRouter,
   cSharp: csharpRouter,
   form: formRouter,
+  registry: registryRouter,
 });
 
 export type AppRouter = typeof appRouter;

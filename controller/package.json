@@ -58,6 +58,7 @@
     "ldrs": "^1.0.2",
     "lodash.debounce": "^4.0.8",
     "log-timestamp": "^0.3.0",
+    "lucide-react": "^0.553.0",
     "luxon": "^3.3.0",
     "moment-timezone": "^0.5.40",
     "next": "13.1.2",
