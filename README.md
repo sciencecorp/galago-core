@@ -1,5 +1,10 @@
 # Galago
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Python Version](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
+[![GitHub Issues](https://img.shields.io/github/issues/sciencecorp/galago-core)](https://github.com/sciencecorp/galago-tools/issues)
+
+
 **Galago** is a comprehensive laboratory automation platform that orchestrates and manages laboratory equipment through a unified interface. It provides protocol execution, device management, and real-time monitoring for automated laboratory workflows.
 
 ## Architecture
