@@ -56,22 +56,24 @@ If you plan to contribute or customize Galago, start by forking the repository:
 ### Quick Start with Docker (Recommended)
 
 2. **Install grpcio dependencies on a local environment (for proto files, testing, linting, etc)**
+
    ```bash
-   bin/make deps 
+   bin/make deps
    ```
 
 3. **Generate proto files**
-   ```bash 
+
+   ```bash
    bin/make proto
    ```
 
-2. **Launch development environment**
+4. **Launch development environment**
 
    ```bash
    docker-compose -f docker-compose.dev.yml up --build
    ```
 
-3. **Access the application**
+5. **Access the application**
    - Web Interface: http://localhost:3010
    - Database API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs

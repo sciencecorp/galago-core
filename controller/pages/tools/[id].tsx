@@ -28,10 +28,13 @@ import { TeachPendant } from "@/components/tools/advanced/teach_pendant/TeachPen
 import { commandFields } from "@/components/tools/constants";
 import { errorToast, loadingToast, successToast } from "@/components/ui/Toast";
 import { Tool } from "@/types/api";
+import { BravoAdvanced } from "@/components/tools/advanced/bravo";
 
 // Inside your component
 type AtomicFormValues = string | number | boolean | string[];
 type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormValues>>;
+
+const CUSTOM_TOOL_VIEWS = [ToolType.pf400, ToolType.bravo];
 
 export default function Page() {
   const router = useRouter();
@@ -278,9 +281,9 @@ export default function Page() {
       <Head>
         <title>{config?.name ? `Tool: ${config.name}` : "Tool"}</title>
       </Head>
-      <Box maxWidth="1800px" margin="auto">
+      <Box>
         <HStack spacing={4} align="start" width="100%">
-          {config?.type !== ToolType.pf400 && (
+          {config?.type && !CUSTOM_TOOL_VIEWS.includes(config?.type) && (
             <VStack spacing={4} width="100%">
               {!toolCommandsDefined && (
                 <>
@@ -324,6 +327,11 @@ export default function Page() {
           {config?.type === ToolType.pf400 && config && (
             <Box flex={1}>
               <TeachPendant tool={config as Tool} />
+            </Box>
+          )}
+          {config?.type === ToolType.bravo && config && (
+            <Box flex={1}>
+              <BravoAdvanced tool={config as Tool} />
             </Box>
           )}
         </HStack>
