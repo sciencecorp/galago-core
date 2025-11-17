@@ -20,7 +20,7 @@ build_env() {
 python_deps() {
   echo "Installing Python Dependencies"
   python -m pip install -r db/requirements.txt
-  python -m pip install grpcio-tools
+  python -m pip install grpcio-tools==1.70.0
   python -m pip install black
   echo "Python Dependencies Installed"
 } 
