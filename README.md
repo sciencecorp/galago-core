@@ -11,14 +11,6 @@ Galago consists of several distinct modules:
 - **Tool Drivers**: [Separate repository](https://github.com/sciencecorp/galago-tools) containing gRPC-based drivers for laboratory equipment
 - **Queue System**: Redis-based task queue for managing protocol execution and device coordination
 
-## Features
-
-- 🔬 **Multi-device orchestration** - Coordinate multiple laboratory instruments simultaneously
-- 📋 **Protocol management** - Create, edit, and execute complex laboratory protocols
-- 📊 **Real-time monitoring** - Live status updates and logging of all device operations
-- 🗄️ **Inventory tracking** - Manage labware, samples, and consumables
-- 📈 **Run analytics** - Detailed execution reports
-- 🔧 **Extensible architecture** - Easy integration of new laboratory equipment
 
 ## Getting Started
 
@@ -29,14 +21,26 @@ Galago consists of several distinct modules:
 - **Docker** and **Docker Compose** (recommended for development)
 - **Redis** (for queue management)
 
-### Quick Start with Docker (Recommended)
+### Fork the Repository (Recommended)
 
-1. **Clone the repository**
+If you plan to contribute or customize Galago, start by forking the repository:
 
-   ```bash
-   git clone https://github.com/your-org/galago-core.git
+1. **Fork on GitHub**: Click the "Fork" button at the top right of the [repository page](https://github.com/sciencecopr/galago-core), or use this direct link:
+   
+   **[Fork Galago →](https://github.com/sciencecorp/galago-core/fork)**
+
+2. **Clone your fork** (replace `your-username` with your GitHub username):
+```bash
+   git clone https://github.com/your-username/galago-core.git
    cd galago-core
-   ```
+```
+
+3. **Add upstream remote** (to keep your fork updated):
+```bash
+   git remote add upstream https://github.com/your-org/galago-core.git
+```
+
+### Quick Start with Docker (Recommended)
 
 2. **Install grpcio dependencies on a local environment (for proto files, testing, linting, etc)**
    ```bash
@@ -103,7 +107,7 @@ For production deployment:
 ```bash
 
 # Launch production stack
-docker-compose -f docker-compose.yml up -d --force-recreate
+docker-compose up -d
 ```
 
 ## Other docker commands
