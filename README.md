@@ -11,6 +11,14 @@ Galago consists of several distinct modules:
 - **Tool Drivers**: [Separate repository](https://github.com/sciencecorp/galago-tools) containing gRPC-based drivers for laboratory equipment
 - **Queue System**: Redis-based task queue for managing protocol execution and device coordination
 
+## Features
+
+- 🔬 **Multi-device orchestration** - Coordinate multiple laboratory instruments simultaneously
+- 📋 **Protocol management** - Create, edit, and execute complex laboratory protocols
+- 📊 **Real-time monitoring** - Live status updates and logging of all device operations
+- 🗄️ **Inventory tracking** - Manage labware, samples, and consumables
+- 📈 **Run analytics** - Detailed execution reports
+- 🔧 **Extensible architecture** - Easy integration of new laboratory equipment
 
 ## Getting Started
 
