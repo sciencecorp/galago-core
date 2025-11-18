@@ -45,7 +45,6 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
   const configureMutation = trpc.tool.configure.useMutation();
   const { data: workcells } = trpc.workcell.getAll.useQuery();
 
-  const [thisWorkcellTools, setThisWorkcellTools] = useState<Tool[]>([]);
   const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({
     workcellId: workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id,
   });
