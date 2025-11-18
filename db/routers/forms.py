@@ -25,7 +25,7 @@ def get_forms(db: Session = Depends(get_db), workcell_name: Optional[str] = None
     if workcell_name is None:
         workcell_name = get_selected_workcell_name(db)
         print("Using selected workcell_name:", workcell_name)
-    if workcell_name is None:
+    if workcell_name is None or workcell_name == "":
         return crud.form.get_all(db)   
     print("Workcell Name:", workcell_name)
     workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
@@ -135,7 +135,6 @@ def delete_form(form_id: int, db: Session = Depends(get_db)) -> t.Any:
     form = crud.form.get(db, id=form_id)
     if not form:
         raise HTTPException(status_code=404, detail="Form not found")
-    
     return crud.form.remove(db, id=form_id)
 
 
