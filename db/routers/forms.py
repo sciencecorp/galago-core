@@ -21,9 +21,13 @@ router = APIRouter()
 def get_forms(db: Session = Depends(get_db), workcell_name: Optional[str] = None) -> t.Any:
     """Get all forms, optionally filtered by workcell."""
     # If no workcell_name provided, use the selected workcell
+    print("Received workcell_name:", workcell_name)
     if workcell_name is None:
         workcell_name = get_selected_workcell_name(db)
-        
+        print("Using selected workcell_name:", workcell_name)
+    if workcell_name is None:
+        return crud.form.get_all(db)   
+    print("Workcell Name:", workcell_name)
     workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
     if not workcell:
         raise HTTPException(status_code=404, detail="Workcell not found")
