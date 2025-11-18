@@ -22,11 +22,14 @@ import { Form } from "@/types";
 import { CreateFormModal } from "./createFormModal";
 
 export const Forms = () => {
-  const { data: fetchedForms, isLoading, refetch } = trpc.form.getAll.useQuery();
+  const { data: fetchedForms, isLoading, refetch, isError } = trpc.form.getAll.useQuery();
 
   const headerBg = useColorModeValue("white", "gray.700");
   const [forms, setForms] = useState<Form[]>([]);
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
+  const { data: selectedWorkcellData, refetch: refetchWorkcell } =
+    trpc.workcell.getSelectedWorkcell.useQuery();
+  const [selectedWorkcell, setSelectedWorkcell] = useState<string | null>(null);
 
   useEffect(() => {
     if (fetchedForms) {
@@ -37,6 +40,12 @@ export const Forms = () => {
   const handleFormCancel = () => {
     setSelectedForm(null);
   };
+
+  useEffect(() => {
+    if (selectedWorkcellData) {
+      setSelectedWorkcell(selectedWorkcellData);
+    }
+  }, [selectedWorkcellData]);
 
   const stats = useMemo(
     () => ({
@@ -65,7 +74,7 @@ export const Forms = () => {
                 title="Forms"
                 subTitle="Create and manage your forms"
                 titleIcon={<Icon as={FaRegListAlt} boxSize={8} color="teal.500" />}
-                mainButton={<CreateFormModal />}
+                mainButton={<CreateFormModal isDisabled={true} />}
               />
               <Divider />
               <StatGroup>
@@ -92,6 +101,7 @@ export const Forms = () => {
               onCancel={handleFormCancel}
               onUpdate={refetch}
               onSelectForm={setSelectedForm}
+              isDisabled={!selectedWorkcell}
             />
           </CardBody>
         </Card>

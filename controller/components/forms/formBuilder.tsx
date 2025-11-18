@@ -88,6 +88,7 @@ interface FormBuilderProps {
   onSelectForm?: (form: Form) => void;
   onCancel?: () => void;
   onUpdate?: () => void;
+  isDisabled?: boolean;
 }
 
 export const FormBuilder: React.FC<FormBuilderProps> = ({
@@ -95,6 +96,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
   onCancel,
   onUpdate,
   onSelectForm,
+  isDisabled,
 }) => {
   const colors = useCommonColors();
   const textColors = useTextColors();
@@ -177,7 +179,6 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
     // Auto-open the drawer to edit the new field
     setEditingField(newField);
     setSelectedFieldIndex(fields.length); // The index of the new field
-    onOpen();
   };
 
   const editField = useCallback(
@@ -337,6 +338,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
           </Text>
           <Select
             placeholder="Select a form"
+            isDisabled={isDisabled}
             value={selectedForm?.name || ""}
             onChange={(e) => {
               const formName = e.target.value;

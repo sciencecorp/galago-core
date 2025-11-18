@@ -13,12 +13,13 @@ import {
   Input,
   VStack,
   useDisclosure,
+  Tooltip,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { successToast, errorToast } from "../ui/Toast";
 import { RiAddFill } from "react-icons/ri";
 
-export const CreateFormModal: React.FC = () => {
+export const CreateFormModal: React.FC<{ isDisabled?: boolean }> = ({ isDisabled }) => {
   const [formName, setFormName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -61,9 +62,15 @@ export const CreateFormModal: React.FC = () => {
 
   return (
     <>
-      <Button onClick={onOpen} colorScheme="teal" leftIcon={<RiAddFill />}>
-        New Form
-      </Button>
+      <Tooltip label={isDisabled ? "Select a workcell to create a form" : ""}>
+        <Button
+          onClick={onOpen}
+          colorScheme="teal"
+          leftIcon={<RiAddFill />}
+          isDisabled={isDisabled}>
+          New Form
+        </Button>
+      </Tooltip>
 
       <Modal isOpen={isOpen} onClose={handleClose}>
         <ModalOverlay />
