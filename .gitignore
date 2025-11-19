@@ -74,3 +74,6 @@ app_config.json
 
 tools/build/*
 .cursor/rules/
+
+# Don't update docker compose files. 
+docker-compose.yml 
