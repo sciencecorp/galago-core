@@ -57,7 +57,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [activeFolder, setActiveFolder] = useState<ScriptFolder | null>(null);
   const [openFolders, setOpenFolders] = useState<Set<number>>(new Set());
   const [activeOpenFolder, setActiveOpenFolder] = useState<ScriptFolder | null>(
-    null,
+    null
   );
   const [searchQuery, setSearchQuery] = useState<string>("");
   const { hoverBg, bgColor, borderColor, consoleHeaderBg, consoleBg } =
@@ -77,7 +77,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const deleteFolder = trpc.script.deleteFolder.useMutation();
   const codeTheme = useColorModeValue("vs-light", "vs-dark");
   const [editedContents, setEditedContents] = useState<Record<string, string>>(
-    {},
+    {}
   );
   const [scriptsEdited, setScriptsEdited] = useState<Script[]>([]);
   const [currentContent, setCurrentContent] = useState<string>("");
@@ -91,7 +91,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [scriptToDelete, setScriptToDelete] = useState<Script | null>(null);
   const [editingScriptName, setEditingScriptName] = useState<Script | null>(
-    null,
+    null
   );
   const [folderCreating, setFolderCreating] = useState(false);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
@@ -110,7 +110,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const getActiveScript = () => {
     if (!activeTab) return null;
     return scripts.find(
-      (s) => `${s.name}.${fileTypeToExtensionMap[s.language]}` === activeTab,
+      (s) => `${s.name}.${fileTypeToExtensionMap[s.language]}` === activeTab
     );
   };
 
@@ -160,7 +160,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
       async () => {
         await handleRunScript();
-      },
+      }
     );
   };
 
@@ -273,7 +273,7 @@ Original Error: ${error.message}`;
             return `Error: ${error.message}`;
           }
         },
-      },
+      }
     );
 
     try {
@@ -308,7 +308,7 @@ Original Error: ${error.message}`;
     if (editedContent === activeScript.content) {
       warningToast(
         "No changes detected",
-        "No edits were made to the active script.",
+        "No edits were made to the active script."
       );
       return;
     }
@@ -331,12 +331,12 @@ Original Error: ${error.message}`;
       refetch();
       showSuccessToast(
         "Script updated successfully",
-        "Your changes have been saved.",
+        "Your changes have been saved."
       );
     } catch (error) {
       showErrorToast(
         "Error updating script",
-        "An error occurred while saving the script. Please try again.",
+        "An error occurred while saving the script. Please try again."
       );
     }
   };
@@ -381,8 +381,8 @@ Original Error: ${error.message}`;
     if (fetchedScript) {
       setScripts(
         fetchedScript.filter((script) =>
-          script.name.toLowerCase().includes(searchQuery.toLowerCase()),
-        ),
+          script.name.toLowerCase().includes(searchQuery.toLowerCase())
+        )
       );
     }
   }, [fetchedScript, searchQuery]);
@@ -401,7 +401,7 @@ Original Error: ${error.message}`;
 
       if (openTabs.includes(oldTabName)) {
         setOpenTabs(
-          openTabs.map((tab) => (tab === oldTabName ? newTabName : tab)),
+          openTabs.map((tab) => (tab === oldTabName ? newTabName : tab))
         );
       }
       if (activeTab === oldTabName) {
@@ -417,7 +417,7 @@ Original Error: ${error.message}`;
   const handleFolderCreate = async (name: string, parentId?: number) => {
     // Get the workcell ID from the selected workcell name
     const selectedWorkcell = workcells?.find(
-      (wc) => wc.name === selectedWorkcellName,
+      (wc) => wc.name === selectedWorkcellName
     );
     if (!selectedWorkcell) {
       showErrorToast("Error creating folder", "No workcell selected");
@@ -655,13 +655,11 @@ Original Error: ${error.message}`;
 
     setScriptsEdited((prev) => {
       const existingScriptIndex = prev.findIndex(
-        (script) => script.id === activeScript.id,
+        (script) => script.id === activeScript.id
       );
       if (existingScriptIndex >= 0) {
         return prev.map((script, index) =>
-          index === existingScriptIndex
-            ? { ...script, content: value }
-            : script,
+          index === existingScriptIndex ? { ...script, content: value } : script
         );
       } else {
         return [...prev, { ...activeScript, content: value }];

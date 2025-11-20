@@ -110,12 +110,12 @@ export const TeachPointRow: React.FC<TeachPointRowProps> = ({
                     {Array.from(
                       {
                         length: parseInt(
-                          (config.config as any)?.pf400?.joints || "5",
+                          (config.config as any)?.pf400?.joints || "5"
                         ),
                       },
                       (_, i) => (
                         <Th key={`j${i + 1}`}>J{i + 1}</Th>
-                      ),
+                      )
                     )}
                   </Tr>
                 </Thead>
@@ -132,7 +132,7 @@ export const TeachPointRow: React.FC<TeachPointRowProps> = ({
                     ) : (
                       <Td
                         colSpan={parseInt(
-                          (config.config as any)?.pf400?.joints || "5",
+                          (config.config as any)?.pf400?.joints || "5"
                         )}
                       >
                         No coordinates available

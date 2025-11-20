@@ -26,7 +26,7 @@ export default function StatusTag(
   props: Omit<TagProps, "colorScheme"> & {
     status: ToolStatus | undefined;
     label?: string;
-  },
+  }
 ): JSX.Element {
   const tagProps = {
     ...props,

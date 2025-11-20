@@ -8,7 +8,7 @@ import { Labware } from "@/types/api";
  */
 export const useLabwareIO = (
   labware: Labware[],
-  refetch: () => Promise<unknown>,
+  refetch: () => Promise<unknown>
 ) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -73,7 +73,7 @@ export const useLabwareIO = (
   };
 
   const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
     if (!file) return { success: false, message: "No file selected." };
@@ -90,13 +90,13 @@ export const useLabwareIO = (
           method: "POST",
           body: formData,
           // Don't set Content-Type header, the browser will set it with the boundary
-        },
+        }
       );
 
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
-          `Import failed: ${errorData.detail || response.statusText}`,
+          `Import failed: ${errorData.detail || response.statusText}`
         );
       }
 

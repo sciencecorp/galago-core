@@ -87,7 +87,7 @@ export const commandQueueRouter = router({
       z.object({
         limit: z.number().optional(),
         offset: z.number().optional(),
-      }),
+      })
     )
     .query(async ({ input }) => {
       const { limit = 20000, offset = 0 } = input; // default values if not provided
@@ -103,12 +103,12 @@ export const commandQueueRouter = router({
       z.object({
         runId: z.string(),
         index: z.number(),
-      }),
+      })
     )
     .mutation(async ({ input }) => {
       return CommandQueue.global.gotoCommandByRunIndex(
         input.runId,
-        input.index,
+        input.index
       );
     }),
   gotoCommand: procedure.input(z.number()).mutation(async ({ input }) => {

@@ -72,7 +72,7 @@ export const CommandModal: React.FC<CommandModalProps> = ({
         acc[field.name] = field.defaultValue ?? "";
         return acc;
       },
-      {} as Record<string, any>,
+      {} as Record<string, any>
     );
     setParams(defaultParams);
   };
@@ -81,12 +81,12 @@ export const CommandModal: React.FC<CommandModalProps> = ({
     const processedParams = { ...params };
 
     const motionProfile = motionProfiles.find(
-      (profile) => profile.name === processedParams.motion_profile,
+      (profile) => profile.name === processedParams.motion_profile
     );
 
     if (processedParams.grip_params) {
       const grip = gripParams.find(
-        (g) => g.id === Number(processedParams.grip_params),
+        (g) => g.id === Number(processedParams.grip_params)
       );
       if (grip) {
         processedParams.width = grip.width;
@@ -107,8 +107,8 @@ export const CommandModal: React.FC<CommandModalProps> = ({
           Number(
             processedParams.waypoint ||
               processedParams.location ||
-              processedParams.nest,
-          ),
+              processedParams.nest
+          )
       );
       if (point) {
         if (processedParams.waypoint) {
@@ -124,7 +124,7 @@ export const CommandModal: React.FC<CommandModalProps> = ({
 
     if (processedParams.labware) {
       const labware = labwareList?.find(
-        (l) => l.id === Number(processedParams.labware),
+        (l) => l.id === Number(processedParams.labware)
       );
       if (labware) {
         processedParams.labware = labware.id;

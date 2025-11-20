@@ -44,7 +44,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({
   const [currentTime, setCurrentTime] = useState(moment());
   const [startTime, setStartTime] = useState(moment().subtract(1, "minute"));
   const [endTime, setEndTime] = useState(
-    moment().add(1, "hour").add(59, "minutes"),
+    moment().add(1, "hour").add(59, "minutes")
   );
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
   const [timeScale, setTimeScale] = useState<TimeScale>(TimeScale.MINUTES);
@@ -82,7 +82,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({
     const lastCommandTime = allCommands.reduce((latest, cmd) => {
       const cmdEndTime = moment(
         cmd.completedAt ||
-          moment(cmd.createdAt).add(cmd.estimatedDuration || 600, "seconds"),
+          moment(cmd.createdAt).add(cmd.estimatedDuration || 600, "seconds")
       );
       return cmdEndTime.isAfter(latest) ? cmdEndTime : latest;
     }, firstCommandTime);
@@ -139,7 +139,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({
 
   const handleTimeWindowChange = (
     newStart: moment.Moment,
-    newEnd: moment.Moment,
+    newEnd: moment.Moment
   ) => {
     setIsAutoScrolling(false);
     setStartTime(newStart);
@@ -176,7 +176,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({
           borderLeft="1px dashed"
           borderColor={borderColorAlpha}
           zIndex={1}
-        />,
+        />
       );
     }
     return lines;
@@ -187,7 +187,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({
 
     // Sort commands by queueId to maintain execution order
     const sortedCommands = [...commandsAll.data].sort(
-      (a, b) => (a.queueId || 0) - (b.queueId || 0),
+      (a, b) => (a.queueId || 0) - (b.queueId || 0)
     );
 
     // Group commands by tool type
@@ -200,7 +200,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({
         acc[toolType].push(cmd);
         return acc;
       },
-      {} as Record<string, RunCommand[]>,
+      {} as Record<string, RunCommand[]>
     );
 
     const toolTypes = Object.keys(commandsByTool);
@@ -229,7 +229,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({
             command.completedAt ||
               startMoment
                 .clone()
-                .add(command.estimatedDuration || 600, "seconds"),
+                .add(command.estimatedDuration || 600, "seconds")
           );
         }
 
@@ -342,8 +342,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({
                   .split("_")
                   .map(
                     (word) =>
-                      word.charAt(0).toUpperCase() +
-                      word.slice(1).toLowerCase(),
+                      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
                   )
                   .join(" ")}
               </Text>
@@ -358,7 +357,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({
     if (!commandsAll.data) return null;
 
     const toolTypes = Array.from(
-      new Set(commandsAll.data.map((cmd) => cmd.commandInfo.toolType)),
+      new Set(commandsAll.data.map((cmd) => cmd.commandInfo.toolType))
     );
     const rowHeight = 60;
 
@@ -484,7 +483,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({
 
   const toolTypes = commandsAll.data
     ? Array.from(
-        new Set(commandsAll.data.map((cmd) => cmd.commandInfo.toolType)),
+        new Set(commandsAll.data.map((cmd) => cmd.commandInfo.toolType))
       )
     : [];
   const totalHeight = toolTypes.length * 60;

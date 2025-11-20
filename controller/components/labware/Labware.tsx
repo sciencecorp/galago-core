@@ -47,7 +47,7 @@ export const Labware: React.FC = () => {
   const [labware, setLabware] = useState<LabwareResponse[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLabwareId, setSelectedLabwareId] = useState<number | null>(
-    null,
+    null
   );
   const colors = useCommonColors();
 
@@ -83,13 +83,13 @@ export const Labware: React.FC = () => {
     } catch (error) {
       errorToast(
         "Error deleting labware",
-        error instanceof Error ? error.message : "An error occurred",
+        error instanceof Error ? error.message : "An error occurred"
       );
     }
   };
 
   const filteredLabware = labware?.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleLabwareUpdate = async (editedLabware: LabwareResponse) => {
@@ -99,7 +99,7 @@ export const Labware: React.FC = () => {
     } catch (error) {
       errorToast(
         "Error updating labware",
-        error instanceof Error ? error.message : "An error occurred",
+        error instanceof Error ? error.message : "An error occurred"
       );
     }
   };
@@ -123,7 +123,7 @@ export const Labware: React.FC = () => {
 
           successToast(
             "Export Successful",
-            "All labware configurations exported",
+            "All labware configurations exported"
           );
         }
       } catch (error) {
@@ -131,7 +131,7 @@ export const Labware: React.FC = () => {
           "Export Failed",
           error instanceof Error
             ? error.message
-            : "Failed to export all labware",
+            : "Failed to export all labware"
         );
       }
       return;
@@ -168,7 +168,7 @@ export const Labware: React.FC = () => {
   const hasLidCount = labware.filter((item) => item.has_lid).length;
   const avgRows = Math.round(
     labware.reduce((sum, item) => sum + item.number_of_rows, 0) /
-      (labware.length || 1),
+      (labware.length || 1)
   );
 
   // Create the Import button (regular size to match LabwareModal button)
@@ -281,8 +281,8 @@ export const Labware: React.FC = () => {
                         (item) =>
                           !e.target.value ||
                           (item.number_of_rows === rows &&
-                            item.number_of_columns === cols),
-                      ) as LabwareResponse[],
+                            item.number_of_columns === cols)
+                      ) as LabwareResponse[]
                     );
                   }}
                 >
@@ -302,8 +302,8 @@ export const Labware: React.FC = () => {
                       e.target.value === "" ? null : e.target.value === "true";
                     setLabware(
                       fetchedLabware?.filter(
-                        (item) => hasLid === null || item.has_lid === hasLid,
-                      ) as LabwareResponse[],
+                        (item) => hasLid === null || item.has_lid === hasLid
+                      ) as LabwareResponse[]
                     );
                   }}
                 >

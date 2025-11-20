@@ -79,7 +79,7 @@ export const WorkcellComponent = () => {
 
   const getActiveWorkcells = () => {
     return workcells.filter(
-      (w) => selectedWorkcellName && w.name === selectedWorkcellName,
+      (w) => selectedWorkcellName && w.name === selectedWorkcellName
     ).length;
   };
 

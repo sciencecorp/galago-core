@@ -156,7 +156,7 @@ const FolderNode: React.FC<FolderNodeProps> = ({
                 if (folder.scripts.length > 0 || folder.subfolders.length > 0) {
                   showErrorToast(
                     "Cannot delete non-empty folder",
-                    "Please move or delete the contents of the folder first.",
+                    "Please move or delete the contents of the folder first."
                   );
                   return;
                 }

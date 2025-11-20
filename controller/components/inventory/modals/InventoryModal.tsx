@@ -120,7 +120,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
   const [plateId, setPlateId] = useState("");
   const [barcode, setBarcode] = useState("");
   const [selectionMode, setSelectionMode] = useState<"manual" | "nest">(
-    "manual",
+    "manual"
   );
 
   // Save the initial container settings
@@ -161,7 +161,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
         (!initialContainerId || !initialContainerType)
       ) {
         const selectedNest = availableNests.find(
-          (n) => n.id === initialSelectedNestIds[0],
+          (n) => n.id === initialSelectedNestIds[0]
         );
         if (selectedNest) {
           if (selectedNest.tool_id) {
@@ -198,7 +198,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
           (!initialContainerId || !initialContainerType)
         ) {
           const plateNest = availableNests.find(
-            (n) => n.id === selectedPlate.nest_id,
+            (n) => n.id === selectedPlate.nest_id
           );
           if (plateNest) {
             if (plateNest.tool_id) {
@@ -351,7 +351,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
         containerDetails = tool?.name || "unknown tool";
       } else if (containerInfo.containerType === "hotel") {
         const hotel = staticHotels.find(
-          (h) => h.id === containerInfo.containerId,
+          (h) => h.id === containerInfo.containerId
         );
         containerDetails = hotel?.name || "unknown hotel";
       }
@@ -399,7 +399,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
               name: `${manualPlateName}-${index + 1}`,
               plate_type: manualPlateType,
               status: "stored" as PlateStatus,
-            }),
+            })
           );
         }
 
@@ -416,7 +416,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
         } else if (nestSelections.length < numberOfPlates) {
           // For manual selection, we need enough nests selected
           throw new Error(
-            `Not enough nests selected. Need ${numberOfPlates} but only selected ${nestSelections.length}.`,
+            `Not enough nests selected. Need ${numberOfPlates} but only selected ${nestSelections.length}.`
           );
         } else {
           // For manual nest selection with multiple plates, we need to submit them one by one
@@ -474,7 +474,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
     } catch (error) {
       errorToast(
         "Error",
-        error instanceof Error ? error.message : "An error occurred",
+        error instanceof Error ? error.message : "An error occurred"
       );
     } finally {
       setIsSubmitting(false);
@@ -527,7 +527,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
     } catch (error) {
       errorToast(
         "Error",
-        error instanceof Error ? error.message : "An error occurred",
+        error instanceof Error ? error.message : "An error occurred"
       );
     } finally {
       setIsSubmitting(false);
@@ -841,7 +841,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
                   value={
                     selectedPlate?.nest_id
                       ? availableNests.find(
-                          (n) => n.id === selectedPlate.nest_id,
+                          (n) => n.id === selectedPlate.nest_id
                         )?.name || selectedPlate.nest_id
                       : "Not checked in"
                   }
@@ -917,7 +917,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
                           value={
                             nestSelections[0]
                               ? availableNests.find(
-                                  (n) => n.id === nestSelections[0],
+                                  (n) => n.id === nestSelections[0]
                                 )?.name || nestSelections[0]
                               : "None"
                           }
@@ -1006,7 +1006,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
                 );
               }
               return false;
-            }),
+            })
           )}
           selectedNests={
             mode === "check-in"

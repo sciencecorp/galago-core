@@ -6,18 +6,18 @@ export interface JointConfig {
 
 export const jointsToCoordinate = (
   joints: JointConfig,
-  numJoints: number,
+  numJoints: number
 ): string => {
   const jointValues = Array.from(
     { length: numJoints },
-    (_, i) => joints[`j${i + 1}`] || 0,
+    (_, i) => joints[`j${i + 1}`] || 0
   );
   return jointValues.join(" ");
 };
 
 export function coordinateToJoints(
   coordinates: string,
-  numJoints: number,
+  numJoints: number
 ): JointConfig {
   const values = coordinates.split(" ").map(Number);
   const joints: JointConfig = {};
@@ -37,7 +37,7 @@ export function coordinateToJoints(
 
 export function validateJointCount(
   coordinates: string,
-  expectedJoints: number,
+  expectedJoints: number
 ): boolean {
   const values = coordinates.split(" ").slice(1);
   // Allow for more joints than expected, but ensure there are at least the expected number
@@ -47,7 +47,7 @@ export function validateJointCount(
 export function filterItems<T extends { name: string; type?: string }>(
   items: T[] | undefined,
   searchTerm: string,
-  type: string | "all",
+  type: string | "all"
 ): T[] {
   if (!items) return [];
   return items.filter((item) => {

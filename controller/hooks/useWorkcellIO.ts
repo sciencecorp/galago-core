@@ -10,7 +10,7 @@ export const useWorkcellIO = (
   workcells: Workcell[],
   selectedWorkcellName: string | undefined,
   refetch: () => Promise<unknown>,
-  refetchSelected: () => Promise<unknown>,
+  refetchSelected: () => Promise<unknown>
 ) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -29,7 +29,7 @@ export const useWorkcellIO = (
 
     // Find the workcell ID from the name
     const selectedWorkcell = workcells.find(
-      (wc) => wc.name === selectedWorkcellName,
+      (wc) => wc.name === selectedWorkcellName
     );
     if (!selectedWorkcell) {
       return {
@@ -41,7 +41,7 @@ export const useWorkcellIO = (
     try {
       // The exportConfig mutation now returns the workcell data directly
       const workcellData = await exportConfigMutation.mutateAsync(
-        selectedWorkcell.id,
+        selectedWorkcell.id
       );
 
       // Create a Blob from the workcell data and trigger download
@@ -79,7 +79,7 @@ export const useWorkcellIO = (
   };
 
   const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;

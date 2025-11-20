@@ -122,7 +122,7 @@ interface CommandItemProps {
   handleDeleteCommand: (index: number) => void;
   handleEditCommand: (
     index: number,
-    updatedCommand: Partial<SequenceCommand>,
+    updatedCommand: Partial<SequenceCommand>
   ) => void;
   setExpandedCommand: (index: number | null) => void;
   onCommandClick?: (index: number) => void;
@@ -306,7 +306,7 @@ const CommandItem: React.FC<CommandItemProps> = ({
                   {Array.from(
                     {
                       length: parseInt(
-                        (config.config as any)?.pf400?.joints || "5",
+                        (config.config as any)?.pf400?.joints || "5"
                       ),
                     },
                     (_, i) => (
@@ -318,7 +318,7 @@ const CommandItem: React.FC<CommandItemProps> = ({
                       >
                         J{i + 1}
                       </Th>
-                    ),
+                    )
                   )}
                 </Tr>
               </Thead>
@@ -484,8 +484,7 @@ const CommandItem: React.FC<CommandItemProps> = ({
                     >
                       {Object.entries(command.params)
                         .filter(
-                          ([key]) =>
-                            key !== "waypoint_id" && key !== "waypoint",
+                          ([key]) => key !== "waypoint_id" && key !== "waypoint"
                         )
                         .map(([key, value]) => (
                           <HStack key={key} width="100%">
@@ -503,7 +502,7 @@ const CommandItem: React.FC<CommandItemProps> = ({
                                         {
                                           length: parseInt(
                                             (config.config as any)?.pf400
-                                              ?.joints || "5",
+                                              ?.joints || "5"
                                           ),
                                         },
                                         (_, i) => (
@@ -515,7 +514,7 @@ const CommandItem: React.FC<CommandItemProps> = ({
                                           >
                                             J{i + 1}
                                           </Th>
-                                        ),
+                                        )
                                       )}
                                     </Tr>
                                   </Thead>
@@ -602,7 +601,7 @@ export const CommandList: React.FC<CommandListProps> = ({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [insertIndex, setInsertIndex] = useState<number | null>(null);
   const [expandedCommand, setExpandedCommand] = useState<number | null>(
-    expandedCommandIndex || null,
+    expandedCommandIndex || null
   );
   const { data: labwareList } = trpc.labware.getAll.useQuery(undefined, {
     enabled: isEditing,
@@ -610,7 +609,7 @@ export const CommandList: React.FC<CommandListProps> = ({
 
   const bgColor = useColorModeValue(
     "white",
-    isEditing ? "gray.700" : "gray.900",
+    isEditing ? "gray.700" : "gray.900"
   );
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const arrowColor = useColorModeValue("gray.400", "gray.600");
@@ -650,7 +649,7 @@ export const CommandList: React.FC<CommandListProps> = ({
 
   const handleEditCommand = (
     index: number,
-    updatedCommand: Partial<SequenceCommand>,
+    updatedCommand: Partial<SequenceCommand>
   ) => {
     const newCommands = [...localCommands];
     newCommands[index] = {
@@ -712,7 +711,7 @@ export const CommandList: React.FC<CommandListProps> = ({
       case "move":
         if (command.params.waypoint_id) {
           const point = teachPoints.find(
-            (p) => p.id === command.params.waypoint_id,
+            (p) => p.id === command.params.waypoint_id
           );
           displayValue = point
             ? point.name
@@ -724,7 +723,7 @@ export const CommandList: React.FC<CommandListProps> = ({
       case "approach":
         if (command.params.nest_id) {
           const point = teachPoints.find(
-            (p) => p.id === command.params.nest_id,
+            (p) => p.id === command.params.nest_id
           );
           displayValue = point
             ? point.name
@@ -734,7 +733,7 @@ export const CommandList: React.FC<CommandListProps> = ({
       case "leave":
         if (command.params.nest_id) {
           const point = teachPoints.find(
-            (p) => p.id === command.params.nest_id,
+            (p) => p.id === command.params.nest_id
           );
           displayValue = point
             ? point.name

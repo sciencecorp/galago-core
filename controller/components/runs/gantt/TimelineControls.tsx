@@ -83,7 +83,7 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
     for (let i = 1; i < timeIntervals; i++) {
       const intervalTime = moment(startTime).add(
         (totalDuration / timeIntervals) * i,
-        "seconds",
+        "seconds"
       );
       // Adjust the left position to match grid lines
       const left = `calc(${(i / timeIntervals) * 100}% - 2px)`;
@@ -110,7 +110,7 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
           isTruncated
         >
           {intervalTime.format(format)}
-        </Text>,
+        </Text>
       );
     }
     return labels;

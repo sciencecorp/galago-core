@@ -51,7 +51,7 @@ export const useTeachPendantState = () => {
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   const [globalSearchTerm, setGlobalSearchTerm] = useState("");
   const [globalFilterType, setGlobalFilterType] = useState<ItemType | "all">(
-    "all",
+    "all"
   );
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<ItemType | "all">("all");
@@ -66,7 +66,7 @@ export const useTeachPendantState = () => {
     number | null
   >(null);
   const [defaultGripParamsId, setDefaultGripParamsId] = useState<number | null>(
-    null,
+    null
   );
 
   // Manual control states
@@ -77,7 +77,7 @@ export const useTeachPendantState = () => {
   // Teach point states
   const [currentTeachpoint, setCurrentTeachpoint] = useState("");
   const [currentType, setCurrentType] = useState<"nest" | "location">(
-    "location",
+    "location"
   );
   const [currentCoordinate, setCurrentCoordinate] = useState("");
   const [currentApproachPath, setCurrentApproachPath] = useState<string[]>([]);

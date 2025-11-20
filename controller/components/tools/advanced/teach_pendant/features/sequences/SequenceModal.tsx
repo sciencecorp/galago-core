@@ -50,7 +50,7 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
   const [name, setName] = useState(sequence?.name ?? "");
   const [description, setDescription] = useState(sequence?.description ?? "");
   const [commands, setCommands] = useState<SequenceCommand[]>(
-    sequence?.commands ?? [],
+    sequence?.commands ?? []
   );
   const [labware, setLabware] = useState(sequence?.labware ?? "default");
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);

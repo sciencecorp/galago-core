@@ -49,12 +49,12 @@ export const Calendar: React.FC<CalendarProps> = ({
     const startOfMonth = new Date(
       currentDate.getFullYear(),
       currentDate.getMonth(),
-      1,
+      1
     );
     const endOfMonth = new Date(
       currentDate.getFullYear(),
       currentDate.getMonth() + 1,
-      0,
+      0
     );
     const dates: Date[] = [];
     const startDay = startOfMonth.getDay();
@@ -64,22 +64,22 @@ export const Calendar: React.FC<CalendarProps> = ({
     const prevMonthLastDay = new Date(
       currentDate.getFullYear(),
       currentDate.getMonth(),
-      0,
+      0
     ).getDate();
     for (let i = startDay - 1; i >= 0; i--) {
       dates.push(
         new Date(
           currentDate.getFullYear(),
           currentDate.getMonth() - 1,
-          prevMonthLastDay - i,
-        ),
+          prevMonthLastDay - i
+        )
       );
     }
 
     // Fill in the dates for the current month
     for (let i = 1; i <= totalDays; i++) {
       dates.push(
-        new Date(currentDate.getFullYear(), currentDate.getMonth(), i),
+        new Date(currentDate.getFullYear(), currentDate.getMonth(), i)
       );
     }
 
@@ -87,7 +87,7 @@ export const Calendar: React.FC<CalendarProps> = ({
     const nextMonthDays = 35 - dates.length;
     for (let i = 1; i <= nextMonthDays; i++) {
       dates.push(
-        new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, i),
+        new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, i)
       );
     }
 
@@ -113,13 +113,13 @@ export const Calendar: React.FC<CalendarProps> = ({
 
   const handlePrevMonth = () => {
     setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1),
+      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
     );
   };
 
   const handleNextMonth = () => {
     setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1),
+      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
     );
   };
 

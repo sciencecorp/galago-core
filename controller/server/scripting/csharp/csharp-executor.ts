@@ -18,7 +18,7 @@ export class CSharpExecutor {
   static async executeScript(
     script: string,
     context: Record<string, any> = {},
-    timeout: number = 30000,
+    timeout: number = 30000
   ): Promise<{
     output: string;
     success: boolean;
@@ -70,7 +70,7 @@ export class CSharpExecutor {
 
         const { stdout: runStdout, stderr: runStderr } = await execPromise(
           runCommand,
-          { timeout },
+          { timeout }
         );
 
         if (runStdout) {
@@ -157,7 +157,7 @@ export class CSharpExecutor {
    */
   private static generateCSharpProgram(
     script: string,
-    context: Record<string, any>,
+    context: Record<string, any>
   ): string {
     // Create JSON string representation of the context
     const contextJson = JSON.stringify(context);

@@ -71,7 +71,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
     } catch (error) {
       errorToast(
         "Error deleting workcell",
-        `Can't delete a workcell with active protocols. ${error}. `,
+        `Can't delete a workcell with active protocols. ${error}. `
       );
     }
   };

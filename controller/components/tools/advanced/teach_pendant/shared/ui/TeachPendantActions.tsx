@@ -46,7 +46,7 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
 
   const handleExport = (
     format: "json" | "xml",
-    dataType?: "teachPoints" | "motionProfiles" | "gripParams" | "sequences",
+    dataType?: "teachPoints" | "motionProfiles" | "gripParams" | "sequences"
   ) => {
     let exportData: any = {};
 
@@ -96,7 +96,7 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
 
     successToast(
       "Export Successful",
-      `Data has been exported as ${format.toUpperCase()}`,
+      `Data has been exported as ${format.toUpperCase()}`
     );
   };
 
@@ -115,13 +115,13 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
           {
             method: "POST",
             body: formData,
-          },
+          }
         );
 
         if (!response.ok) {
           const error = await response.json();
           throw new Error(
-            `Failed to import ${files[i].name}: ${error.detail || "Unknown error"}`,
+            `Failed to import ${files[i].name}: ${error.detail || "Unknown error"}`
           );
         }
 
@@ -130,7 +130,7 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
         // Show a summary toast for each file
         if (result.summary) {
           const summaryText = Object.entries(
-            result.summary as Record<string, number>,
+            result.summary as Record<string, number>
           )
             .filter(([_, count]) => count > 0)
             .map(([type, count]) => `${count} ${type.replace(/_/g, " ")}`)
@@ -140,7 +140,7 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
             `Imported ${files[i].name}`,
             summaryText
               ? `Imported ${summaryText}`
-              : "File imported successfully",
+              : "File imported successfully"
           );
         }
 
@@ -149,7 +149,7 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
     } catch (error) {
       errorToast(
         "Import Failed",
-        error instanceof Error ? error.message : "Failed to import data",
+        error instanceof Error ? error.message : "Failed to import data"
       );
     }
 

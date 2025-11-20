@@ -69,7 +69,7 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
       e.stopPropagation();
       editField(index);
     },
-    [index, editField],
+    [index, editField]
   );
 
   const handleDeleteClick = useCallback(
@@ -78,7 +78,7 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
       e.stopPropagation();
       deleteField(index);
     },
-    [index, deleteField],
+    [index, deleteField]
   );
 
   const handleDuplicateClick = useCallback(
@@ -87,7 +87,7 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
       e.stopPropagation();
       duplicateField(index);
     },
-    [index, duplicateField],
+    [index, duplicateField]
   );
 
   return (
@@ -270,7 +270,7 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
                 )}
 
                 {!["textarea", "select", "radio", "checkbox"].includes(
-                  field.type,
+                  field.type
                 ) && (
                   <Input
                     pt={field.type === "file" ? 1 : 0}

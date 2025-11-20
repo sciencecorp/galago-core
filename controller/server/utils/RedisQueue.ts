@@ -18,13 +18,13 @@ export type StoredRunCommand = Readonly<
 export default class RedisQueue {
   constructor(
     private redis: Redis,
-    public queueName: string,
+    public queueName: string
   ) {}
 
   async push(item: RunCommand) {
     await this.redis.rpush(
       this._key("queuedIds"),
-      await this._persistedId(item),
+      await this._persistedId(item)
     );
   }
 
@@ -32,7 +32,7 @@ export default class RedisQueue {
     await this.redis.hset(
       this._key("runs"),
       runQueueId,
-      SuperJSON.stringify(runQueue),
+      SuperJSON.stringify(runQueue)
     );
     return runQueueId;
   }
@@ -54,7 +54,7 @@ export default class RedisQueue {
 
   async gotoCommandByIndex(
     runId: string,
-    targetIndex: number,
+    targetIndex: number
   ): Promise<boolean> {
     try {
       if (!runId) {
@@ -75,7 +75,7 @@ export default class RedisQueue {
           if (item.runId === runId) {
             allCommands.push(item);
           }
-        }),
+        })
       );
 
       // Sort commands by queueId to ensure they're in order
@@ -84,7 +84,7 @@ export default class RedisQueue {
       // Check if index is valid
       if (targetIndex < 0 || targetIndex >= allCommands.length) {
         throw new Error(
-          `Invalid index ${targetIndex} for run ${runId}. Run has ${allCommands.length} commands.`,
+          `Invalid index ${targetIndex} for run ${runId}. Run has ${allCommands.length} commands.`
         );
       }
 
@@ -118,7 +118,7 @@ export default class RedisQueue {
     } catch (error) {
       console.error(
         `Failed to goto index ${targetIndex} in run ${runId}:`,
-        error,
+        error
       );
       throw error;
     }
@@ -144,7 +144,7 @@ export default class RedisQueue {
         // Get all commands for this run (executed and queued)
         const allCommandIds = await this.redis.hkeys(this._key("itemJson"));
         const commandsToCheck = allCommandIds.filter(
-          (id) => !queuedIds.includes(id),
+          (id) => !queuedIds.includes(id)
         );
 
         // Commands to requeue (will be in reverse order to maintain correct sequence)
@@ -167,7 +167,7 @@ export default class RedisQueue {
                 commandsToRequeue.push(cmdId);
               }
             }
-          }),
+          })
         );
 
         // Sort commands by ID (ascending) to maintain execution order
@@ -255,13 +255,13 @@ export default class RedisQueue {
 
   async getPaginated(
     offset: number = 0,
-    limit: number = 20,
+    limit: number = 20
   ): Promise<StoredRunCommand[]> {
     // Get the specified range of IDs from the queuedIds list.
     const ids = await this.redis.lrange(
       this._key("queuedIds"),
       offset,
-      offset + limit - 1,
+      offset + limit - 1
     );
     if (ids.length === 0) {
       return [];
@@ -271,7 +271,7 @@ export default class RedisQueue {
     const commands = await Promise.all(
       commandsJson
         .filter((json) => json !== null)
-        .map((json) => this._deserialize(json!)),
+        .map((json) => this._deserialize(json!))
     );
     return commands;
   }
@@ -308,7 +308,7 @@ export default class RedisQueue {
           // Also remove from queuedIds if it's still there
           await this.redis.lrem(this._key("queuedIds"), 0, id);
         }
-      }),
+      })
     );
 
     // Delete all matching commands from itemJson
@@ -334,7 +334,7 @@ export default class RedisQueue {
     await Promise.all(
       idsToSkip.map(async (id) => {
         await this.skip(this._parseId(id));
-      }),
+      })
     );
   }
 
@@ -344,7 +344,7 @@ export default class RedisQueue {
 
   private async _updateItem(
     id: number,
-    updates: Partial<RunCommand>,
+    updates: Partial<RunCommand>
   ): Promise<StoredRunCommand> {
     const item = await this.find(id);
     if (!item) {
@@ -388,7 +388,7 @@ export default class RedisQueue {
     await this.redis.hset(
       this._key("itemJson"),
       item.queueId,
-      this._serialize(item),
+      this._serialize(item)
     );
     return item.queueId;
   }

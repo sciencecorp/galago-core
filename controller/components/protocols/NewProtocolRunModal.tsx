@@ -46,7 +46,7 @@ export default function NewProtocolRunModal({
         });
         errorToast("Error loading protocol", error.message);
       },
-    },
+    }
   );
 
   const { isOpen, onOpen } = useDisclosure({ defaultIsOpen: true });
@@ -70,7 +70,7 @@ export default function NewProtocolRunModal({
     onSuccess: (data) => {
       successToast(
         "Run queued successfully",
-        `Successfully queued ${numberOfRuns.value} run${Number(numberOfRuns.value) > 1 ? "s" : ""}`,
+        `Successfully queued ${numberOfRuns.value} run${Number(numberOfRuns.value) > 1 ? "s" : ""}`
       );
       onClose();
       router.push(`/runs`);
@@ -94,7 +94,7 @@ export default function NewProtocolRunModal({
     if (!workcellName) {
       errorToast(
         "No workcell selected",
-        "Please select a workcell before queuing a run",
+        "Please select a workcell before queuing a run"
       );
       return;
     }

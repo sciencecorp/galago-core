@@ -10,7 +10,7 @@ export const useScriptIO = (
   scripts: Script[], // Assuming you'll pass the list of scripts
   selectedScriptId: number | undefined, // Assuming scripts are identified by ID
   refetchScripts: () => Promise<unknown>, // Specific refetch for scripts
-  refetchFolders: () => Promise<unknown>, // Specific refetch for folders
+  refetchFolders: () => Promise<unknown> // Specific refetch for folders
 ) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -69,7 +69,7 @@ export const useScriptIO = (
   };
 
   const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
     if (!file) return { success: false, message: "No file selected." };
@@ -88,13 +88,13 @@ export const useScriptIO = (
           method: "POST",
           body: formData,
           // Don't set Content-Type header, the browser will set it with the boundary
-        },
+        }
       );
 
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
-          `Import failed: ${errorData.detail || response.statusText}`,
+          `Import failed: ${errorData.detail || response.statusText}`
         );
       }
 

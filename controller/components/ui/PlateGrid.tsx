@@ -166,7 +166,7 @@ export const PlateGrid: React.FC<PlateGridProps> = ({
             Array.from({ length: cols }).map((_, colIndex) => {
               const well = wellGrid[rowIndex][colIndex];
               return renderWell(well, rowIndex, colIndex);
-            }),
+            })
           )}
         </Grid>
       </Box>

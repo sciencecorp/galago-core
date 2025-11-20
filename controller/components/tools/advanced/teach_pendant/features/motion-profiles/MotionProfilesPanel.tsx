@@ -63,7 +63,7 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
   const handleSaveValue = (
     profile: MotionProfile,
     field: keyof MotionProfile,
-    value: any,
+    value: any
   ) => {
     const updatedProfile = { ...profile, [field]: value };
     onEdit(updatedProfile);
@@ -107,7 +107,7 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
             borderColor={borderColor}
             boxShadow={useColorModeValue(
               "0 1px 3px rgba(0, 0, 0, 0.1)",
-              "0 1px 3px rgba(0, 0, 0, 0.3)",
+              "0 1px 3px rgba(0, 0, 0, 0.3)"
             )}
           >
             <Table
@@ -189,7 +189,7 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                         isChecked={profile.id === defaultProfileId}
                         onChange={() =>
                           onSetDefault(
-                            profile.id === defaultProfileId ? null : profile.id,
+                            profile.id === defaultProfileId ? null : profile.id
                           )
                         }
                         isDisabled={!profile.id}
@@ -280,7 +280,7 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                           handleSaveValue(
                             profile,
                             "straight",
-                            e.target.checked ? 1 : 0,
+                            e.target.checked ? 1 : 0
                           )
                         }
                         size="sm"

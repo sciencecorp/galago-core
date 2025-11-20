@@ -204,12 +204,12 @@ const SequenceModal: React.FC<SequenceModalProps> = ({
 export function useSequenceHandler(config: Tool) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedSequence, setSelectedSequence] = useState<Sequence | null>(
-    null,
+    null
   );
   const commandMutation = trpc.tool.runCommand.useMutation();
   const sequencesQuery = trpc.robotArm.sequence.getAll.useQuery(
     { toolId: config.id },
-    { enabled: !!config.id && config.id !== 0 },
+    { enabled: !!config.id && config.id !== 0 }
   );
   const labwareQuery = trpc.labware.getAll.useQuery(undefined, {
     staleTime: Infinity,
@@ -245,7 +245,7 @@ export function useSequenceHandler(config: Tool) {
    * @returns Object containing success and error counts
    */
   const handleBatchCreateSequence = async (
-    sequences: Omit<RobotArmSequence, "id">[],
+    sequences: Omit<RobotArmSequence, "id">[]
   ) => {
     const createSequence = async (sequence: Omit<RobotArmSequence, "id">) => {
       await createSequenceMutation.mutateAsync(sequence);
@@ -254,7 +254,7 @@ export function useSequenceHandler(config: Tool) {
     const batchCreateSequences = createBatchHandler(
       createSequence,
       "create",
-      "sequences",
+      "sequences"
     );
 
     return await batchCreateSequences(sequences);
@@ -273,7 +273,7 @@ export function useSequenceHandler(config: Tool) {
     const batchUpdateSequences = createBatchHandler(
       updateSequence,
       "update",
-      "sequences",
+      "sequences"
     );
 
     return await batchUpdateSequences(sequences);
@@ -292,21 +292,21 @@ export function useSequenceHandler(config: Tool) {
     const batchDeleteSequences = createBatchHandlerForIds(
       deleteSequence,
       "delete",
-      "sequences",
+      "sequences"
     );
 
     return await batchDeleteSequences(ids);
   };
 
   const handleCreateSequence = async (
-    sequence: Omit<RobotArmSequence, "id">,
+    sequence: Omit<RobotArmSequence, "id">
   ) => {
     try {
       await createSequenceMutation.mutateAsync(sequence);
     } catch (error) {
       errorToast(
         "Failed to create sequence",
-        "An error occurred while creating the sequence",
+        "An error occurred while creating the sequence"
       );
     }
   };
@@ -317,7 +317,7 @@ export function useSequenceHandler(config: Tool) {
     } catch (error) {
       errorToast(
         "Failed to update sequence",
-        "An error occurred while updating the sequence",
+        "An error occurred while updating the sequence"
       );
     }
   };
@@ -385,7 +385,7 @@ export function useSequenceHandler(config: Tool) {
     const batchRunSequences = createBatchHandler(
       runSequence,
       "run",
-      "sequences",
+      "sequences"
     );
 
     return await batchRunSequences(sequences);

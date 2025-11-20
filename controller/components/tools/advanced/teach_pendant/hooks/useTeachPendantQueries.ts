@@ -3,37 +3,37 @@ import { TeachPoint, MotionProfile, GripParams, Sequence } from "../types/";
 
 export const useTeachPendantQueries = (
   toolId: string | undefined,
-  configId: number,
+  configId: number
 ) => {
   // Queries
   const toolStatusQuery = trpc.tool.status.useQuery(
     { toolId: toolId || "" },
-    { enabled: !!toolId },
+    { enabled: !!toolId }
   );
 
   const motionProfilesQuery = trpc.robotArm.motionProfile.getAll.useQuery(
     { toolId: configId },
-    { enabled: !!configId && configId !== 0 },
+    { enabled: !!configId && configId !== 0 }
   );
 
   const gripParamsQuery = trpc.robotArm.gripParams.getAll.useQuery(
     { toolId: configId },
-    { enabled: !!configId && configId !== 0 },
+    { enabled: !!configId && configId !== 0 }
   );
 
   const robotArmSequencesQuery = trpc.robotArm.sequence.getAll.useQuery(
     { toolId: configId },
-    { enabled: !!configId && configId !== 0 },
+    { enabled: !!configId && configId !== 0 }
   );
 
   const robotArmLocationsQuery = trpc.robotArm.location.getAll.useQuery(
     { toolId: configId },
-    { enabled: !!configId && configId !== 0 },
+    { enabled: !!configId && configId !== 0 }
   );
 
   const waypointsQuery = trpc.robotArm.waypoints.getAll.useQuery(
     { toolId: configId },
-    { enabled: !!configId && configId !== 0 },
+    { enabled: !!configId && configId !== 0 }
   );
 
   // Mutations

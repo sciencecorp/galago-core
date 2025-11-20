@@ -39,7 +39,7 @@ interface CommandDetailsDrawerProps {
 }
 
 export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (
-  props,
+  props
 ) => {
   const { isOpen, onClose, selectedCommand, onSave, isEditing } = props;
   const router = useRouter();
@@ -63,7 +63,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (
             t.name?.toLowerCase() ===
               selectedCommand?.commandInfo?.toolId
                 ?.replaceAll("_", " ")
-                ?.toLowerCase(),
+                ?.toLowerCase()
         )?.id || 0
       : 0;
 
@@ -72,7 +72,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (
     { toolId },
     {
       enabled: !!toolId && selectedCommand?.commandInfo?.toolType === "pf400",
-    },
+    }
   );
 
   // Reset editedParams when a command is selected
@@ -89,12 +89,12 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (
         // Check if a labware with the name "default" (case insensitive) exists in the database
         if (
           labwareData.some(
-            (labware) => labware.name.toLowerCase() === "default",
+            (labware) => labware.name.toLowerCase() === "default"
           )
         ) {
           // Find the exact case of the default labware in the database
           const defaultLabware = labwareData.find(
-            (labware) => labware.name.toLowerCase() === "default",
+            (labware) => labware.name.toLowerCase() === "default"
           );
           if (defaultLabware && defaultLabware.name !== "default") {
             // Update the labware parameter to match the case in the database
@@ -265,7 +265,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (
               </option>
             ))}
             {!labwareData?.some(
-              (labware) => labware.name.toLowerCase() === "default",
+              (labware) => labware.name.toLowerCase() === "default"
             ) && <option value="default">default</option>}
           </Select>
           <Select
@@ -530,7 +530,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (
               <Text as="b">Name:</Text>
               <Text>
                 {capitalizeFirst(
-                  selectedCommand.commandInfo.command.replaceAll("_", " "),
+                  selectedCommand.commandInfo.command.replaceAll("_", " ")
                 )}
               </Text>
               <Divider />
@@ -565,7 +565,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (
                         {renderParameterInput(key, value)}
                       </Box>
                     );
-                  },
+                  }
                 )}
 
                 {/* Advanced Parameters Section */}

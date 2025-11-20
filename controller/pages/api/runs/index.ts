@@ -9,7 +9,7 @@ function getHandler(req: NextApiRequest, res: NextApiResponse<RunStatusList>) {
 
 async function postHandler(
   req: NextApiRequest,
-  res: NextApiResponse<RunSubmissionStatus>,
+  res: NextApiResponse<RunSubmissionStatus>
 ) {
   try {
     const run = await RunStore.global.createFromProtocol(req.body.protocolId);

@@ -81,7 +81,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
 
   const handleConfigChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-    key: string,
+    key: string
   ) => {
     const { value } = e.target;
     if (!type) return;
@@ -151,7 +151,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
               {
                 target: { value: newValue },
               } as React.ChangeEvent<HTMLInputElement>,
-              key,
+              key
             );
           }}
           placeholder="Enter COM port (e.g., COM1)"
@@ -190,12 +190,12 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
                   if (!isValid) {
                     errorToast(
                       "Invalid IP Address",
-                      "Please enter a valid IP address (e.g., 192.168.1.1) or 'localhost'",
+                      "Please enter a valid IP address (e.g., 192.168.1.1) or 'localhost'"
                     );
                   } else {
                     successToast(
                       "Valid IP Address",
-                      "IP address format is valid",
+                      "IP address format is valid"
                     );
                   }
                 }}
@@ -412,12 +412,12 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
                                   if (newIp !== "" && !isValidIP(newIp)) {
                                     errorToast(
                                       "Invalid IP Address",
-                                      "Please enter a valid IP address (e.g., 192.168.1.1) or 'localhost'",
+                                      "Please enter a valid IP address (e.g., 192.168.1.1) or 'localhost'"
                                     );
                                   } else if (newIp !== "") {
                                     successToast(
                                       "Valid IP Address",
-                                      "IP address format is valid",
+                                      "IP address format is valid"
                                     );
                                   }
                                 }}

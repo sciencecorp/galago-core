@@ -101,7 +101,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   const handleSaveCoordinates = (
     teachpoint: TeachPoint,
     newValue: number,
-    jointIndex: number,
+    jointIndex: number
   ) => {
     const updatedPoint = teachpoint.coordinates.split(" ");
     updatedPoint[jointIndex] = newValue.toString();
@@ -110,7 +110,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
 
   const handleSaveOrientation = (
     teachpoint: TeachPoint,
-    newValue: "landscape" | "portrait",
+    newValue: "landscape" | "portrait"
   ) => {
     onEdit({ ...teachpoint, orientation: newValue });
   };
@@ -173,7 +173,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
             borderColor={borderColor}
             boxShadow={useColorModeValue(
               "0 1px 3px rgba(0, 0, 0, 0.1)",
-              "0 1px 3px rgba(0, 0, 0, 0.3)",
+              "0 1px 3px rgba(0, 0, 0, 0.3)"
             )}
           >
             <Table
@@ -241,13 +241,13 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                                 handleSaveCoordinates(
                                   point,
                                   Number(value),
-                                  index,
+                                  index
                                 );
                             }}
                             defaultValue={coord}
                           />
                         </Td>
-                      ),
+                      )
                     )}
                     <Td>
                       <Select

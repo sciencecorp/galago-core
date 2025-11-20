@@ -30,7 +30,7 @@ interface LaneCommandComponentProps {
 }
 
 const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (
-  props,
+  props
 ) => {
   const { command, onCommandClick } = props;
   const infoQuery = trpc.tool.info.useQuery({
@@ -177,7 +177,7 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (
             <Box bottom={0} position="sticky">
               <Text>
                 {capitalizeFirst(
-                  command.commandInfo.command.replaceAll("_", " "),
+                  command.commandInfo.command.replaceAll("_", " ")
                 )}
               </Text>
             </Box>

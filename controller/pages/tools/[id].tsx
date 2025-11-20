@@ -52,7 +52,7 @@ export default function Page() {
     return fields && fields.length > 0;
   };
   const toolCommandsDefined = Object.keys(commandFields).includes(
-    String(config?.type),
+    String(config?.type)
   );
   const commandOptions = config ? commandFields[config.type] : {};
 
@@ -112,7 +112,7 @@ export default function Page() {
 
   const executeCommandWithToast = (
     commandName: string,
-    toolCommand: ToolCommandInfo,
+    toolCommand: ToolCommandInfo
   ) => {
     setCommandExecutionStatus((prevStatus) => ({
       ...prevStatus,
@@ -178,7 +178,7 @@ export default function Page() {
     fieldName: string,
     fieldType: FieldType,
     value: string | number | boolean,
-    parentField?: string,
+    parentField?: string
   ) => {
     setFormValues((prevValues) => {
       const newValues = { ...prevValues };
@@ -245,14 +245,14 @@ export default function Page() {
                         AtomicFormValues
                       >
                     )?.[field.name] || ""
-                  : formValues[field.name]) || "",
+                  : formValues[field.name]) || ""
               )}
               onChange={(e) =>
                 handleInputChange(
                   field.name,
                   field.type,
                   e.target.value,
-                  parentField,
+                  parentField
                 )
               }
             />
@@ -273,14 +273,14 @@ export default function Page() {
                           AtomicFormValues
                         >
                       )?.[field.name] || "false"
-                    : formValues[field.name]) || "false",
+                    : formValues[field.name]) || "false"
                 )}
                 onChange={(e) =>
                   handleInputChange(
                     field.name,
                     field.type,
                     e.target.value,
-                    parentField,
+                    parentField
                   )
                 }
               />
@@ -295,14 +295,14 @@ export default function Page() {
                           AtomicFormValues
                         >
                       )?.[field.name] || ""
-                    : formValues[field.name]) || "",
+                    : formValues[field.name]) || ""
                 )}
                 onChange={(e) =>
                   handleInputChange(
                     field.name,
                     field.type,
                     e.target.value,
-                    parentField,
+                    parentField
                   )
                 }
               />
@@ -316,14 +316,14 @@ export default function Page() {
                           AtomicFormValues
                         >
                       )?.[field.name] || 0
-                    : formValues[field.name]) || 0,
+                    : formValues[field.name]) || 0
                 )}
                 onChange={(valueString, valueNumber) =>
                   handleInputChange(
                     field.name,
                     field.type,
                     valueNumber,
-                    parentField,
+                    parentField
                   )
                 }
               >

@@ -22,7 +22,7 @@ export const SwimLaneComponent: React.FC<SwimLaneProps> = ({
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedCommand, setSelectedCommand] = useState<RunCommand | null>(
-    null,
+    null
   );
 
   const displayedCommands = showAllCommands

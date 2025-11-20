@@ -36,15 +36,15 @@ interface InventoryHotelCardProps {
     hotelId: number,
     nestName: string,
     nestRow: number,
-    nestColumn: number,
+    nestColumn: number
   ) => Promise<void>;
   onCreatePlate: (
     nestId: number,
-    plateData: { name: string; barcode: string; plate_type: string },
+    plateData: { name: string; barcode: string; plate_type: string }
   ) => void;
   onCreateReagent: (
     nestId: number,
-    reagentData: Omit<Reagent, "id" | "well_id">,
+    reagentData: Omit<Reagent, "id" | "well_id">
   ) => void;
   onNestClick: (nest: Nest) => void;
   onDeleteNest: (nestId: number) => Promise<void>;
@@ -75,7 +75,7 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
 
   const hotelNests = nests.filter((nest) => nest.hotel_id === hotelId);
   const hotelPlates = plates.filter((plate) =>
-    hotelNests.some((nest) => nest.id === plate.nest_id),
+    hotelNests.some((nest) => nest.id === plate.nest_id)
   );
 
   useEffect(() => {
@@ -93,7 +93,7 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
     for (let col = 0; col < (hotel?.columns || 0); col++) {
       // Check if this position already has a nest
       const existingNest = hotelNests.find(
-        (n) => n.row === row && n.column === col,
+        (n) => n.row === row && n.column === col
       );
       if (!existingNest) {
         // Create a placeholder nest for this position

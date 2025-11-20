@@ -67,7 +67,7 @@ export const RunsComponent: React.FC = () => {
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [expandedRuns, setExpandedRuns] = useState<Set<string>>(new Set());
   const [runAttributesMap, setRunAttributesMap] = useState<Record<string, any>>(
-    {},
+    {}
   );
   const [isErrorVisible, setIsErrorVisible] = useState(true);
   const [showAllCommands, setShowAllCommands] = useState(true);
@@ -117,7 +117,7 @@ export const RunsComponent: React.FC = () => {
     undefined,
     {
       refetchInterval: 1000,
-    },
+    }
   );
 
   // Query for current message data
@@ -125,7 +125,7 @@ export const RunsComponent: React.FC = () => {
     undefined,
     {
       refetchInterval: 1000,
-    },
+    }
   );
 
   // Form fetching query (only execute when we have a form name)
@@ -161,7 +161,7 @@ export const RunsComponent: React.FC = () => {
 
   const groupedCommands = useMemo(
     () => (commandsAll.data ? groupCommandsByRun(commandsAll.data) : []),
-    [commandsAll.data],
+    [commandsAll.data]
   );
 
   const stateQuery = trpc.commandQueue.state.useQuery(undefined, {
@@ -324,10 +324,10 @@ export const RunsComponent: React.FC = () => {
   // Calculate statistics
   const totalRuns = groupedCommands.length;
   const completedRuns = groupedCommands.filter((run) =>
-    run.Commands.every((cmd) => cmd.status === "COMPLETED"),
+    run.Commands.every((cmd) => cmd.status === "COMPLETED")
   ).length;
   const activeRuns = groupedCommands.filter((run) =>
-    run.Commands.some((cmd) => cmd.status === "STARTED"),
+    run.Commands.some((cmd) => cmd.status === "STARTED")
   ).length;
   const pendingRuns = totalRuns - completedRuns - activeRuns;
 
@@ -439,8 +439,7 @@ export const RunsComponent: React.FC = () => {
                     value={
                       (run.Commands.filter(
                         (cmd) =>
-                          cmd.status === "COMPLETED" ||
-                          cmd.status === "SKIPPED",
+                          cmd.status === "COMPLETED" || cmd.status === "SKIPPED"
                       ).length /
                         runAttributes.commandsCount) *
                       100

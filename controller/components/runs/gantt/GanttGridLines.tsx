@@ -24,7 +24,7 @@ export const GanttGridLines: React.FC<GanttGridLinesProps> = ({
         borderLeft="1px dashed"
         borderColor={borderColorAlpha}
         zIndex={1}
-      />,
+      />
     );
   }
   return <>{lines}</>;

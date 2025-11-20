@@ -86,7 +86,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   // Query for PF400 locations and sequences when needed
   const waypointsQuery = trpc.robotArm.waypoints.getAll.useQuery(
     { toolId: selectedToolData?.id || 0 },
-    { enabled: !!selectedToolData?.id && selectedToolType === "pf400" },
+    { enabled: !!selectedToolData?.id && selectedToolType === "pf400" }
   );
 
   // Helper function to get command icon
@@ -107,12 +107,12 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           // Check if there's a labware named "default" in the database first
           if (
             labwareData?.some(
-              (labware) => labware.name.toLowerCase() === "default",
+              (labware) => labware.name.toLowerCase() === "default"
             )
           ) {
             // If it exists in labwareData, use the exact case that exists in the database
             const defaultLabware = labwareData.find(
-              (labware) => labware.name.toLowerCase() === "default",
+              (labware) => labware.name.toLowerCase() === "default"
             );
             initialParams[field.name] = defaultLabware?.name || "default";
           } else {
@@ -163,7 +163,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
       tool.type
         .toLowerCase()
         .replace(/_/g, " ")
-        .includes(searchQuery.toLowerCase()),
+        .includes(searchQuery.toLowerCase())
   );
 
   const handleToolSelect = (tool: {
@@ -311,7 +311,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               </option>
             ))}
             {!labwareData?.some(
-              (labware) => labware.name.toLowerCase() === "default",
+              (labware) => labware.name.toLowerCase() === "default"
             ) && <option value="default">default</option>}
           </Select>
           <Select
@@ -829,7 +829,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               <VStack spacing={4} align="stretch" width="100%">
                 {fields.map((field: Field) => {
                   const isVariable = isVariableReference(
-                    commandParams[field.name],
+                    commandParams[field.name]
                   );
                   const variableName = isVariable
                     ? getVariableNameFromReference(commandParams[field.name])

@@ -85,7 +85,7 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
     },
     {
       refetchInterval: 1000,
-    },
+    }
   );
 
   useEffect(() => {

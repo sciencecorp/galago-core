@@ -46,7 +46,7 @@ export const protocolRouter = router({
     };
     const response = await post<Protocol>(
       `${API_BASE_URL}/protocols`,
-      protocolData,
+      protocolData
     );
     logAction({
       level: "info",
@@ -61,12 +61,12 @@ export const protocolRouter = router({
       z.object({
         id: z.number(),
         data: protocolSchema.partial(),
-      }),
+      })
     )
     .mutation(async ({ input }) => {
       const response = await axios.put(
         `${API_BASE_URL}/protocols/${input.id}`,
-        input.data,
+        input.data
       );
       logAction({
         level: "info",

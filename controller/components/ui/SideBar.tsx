@@ -142,7 +142,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                 item.path === "/"
                   ? "Home"
                   : capitalizeFirst(
-                      `${item.path.replaceAll("/", "").replaceAll("_", " ")}`,
+                      `${item.path.replaceAll("/", "").replaceAll("_", " ")}`
                     );
             }}
             _hover={{ background: theme.hoverBg }}

@@ -76,7 +76,7 @@ export const InventoryManager = () => {
   const [selectedNest, setSelectedNest] = useState<Nest | null>(null);
   const [selectedNestIds, setSelectedNestIds] = useState<number[]>([]);
   const [selectedContainerId, setSelectedContainerId] = useState<number | null>(
-    null,
+    null
   );
   const [selectedContainerType, setSelectedContainerType] = useState<
     "tool" | "hotel" | ""
@@ -100,7 +100,7 @@ export const InventoryManager = () => {
   const workcells = trpc.workcell.getAll.useQuery();
   const SelectedWorkcellName = trpc.workcell.getSelectedWorkcell.useQuery();
   const selectedWorkcell = workcells.data?.find(
-    (workcell) => workcell.name === SelectedWorkcellName.data,
+    (workcell) => workcell.name === SelectedWorkcellName.data
   );
 
   // Add a specific query for hotels
@@ -157,7 +157,7 @@ export const InventoryManager = () => {
   const totalReagents = typedReagents.length;
   const totalNests = typedNests.length;
   const occupiedNests = typedPlates.filter(
-    (plate) => plate.nest_id !== null,
+    (plate) => plate.nest_id !== null
   ).length;
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,7 +198,7 @@ export const InventoryManager = () => {
             colorScheme: "orange",
           },
         ],
-        "info",
+        "info"
       );
     } else {
       // Plate not in any nest, offer different actions
@@ -223,7 +223,7 @@ export const InventoryManager = () => {
             colorScheme: "green",
           },
         ],
-        "info",
+        "info"
       );
     }
   };
@@ -241,7 +241,7 @@ export const InventoryManager = () => {
     nestName: string,
     nestRow: number,
     nestColumn: number,
-    isHotel: boolean = false,
+    isHotel: boolean = false
   ) => {
     try {
       // Use tRPC for all nest creation
@@ -282,7 +282,7 @@ export const InventoryManager = () => {
     } catch (error) {
       errorToast(
         "Error creating nest",
-        error instanceof Error ? error.message : "Unknown error",
+        error instanceof Error ? error.message : "Unknown error"
       );
     }
   };
@@ -294,14 +294,14 @@ export const InventoryManager = () => {
     } catch (error) {
       errorToast(
         "Error deleting nest",
-        error instanceof Error ? error.message : "Unknown error",
+        error instanceof Error ? error.message : "Unknown error"
       );
     }
   };
 
   const handleCreatePlate = async (
     nestId: number,
-    plateData: { name: string; barcode: string; plate_type: string },
+    plateData: { name: string; barcode: string; plate_type: string }
   ) => {
     try {
       await createPlateMutation.mutateAsync({
@@ -314,14 +314,14 @@ export const InventoryManager = () => {
     } catch (error) {
       errorToast(
         "Error creating plate",
-        error instanceof Error ? error.message : "Unknown error",
+        error instanceof Error ? error.message : "Unknown error"
       );
     }
   };
 
   const handleCreateReagent = async (
     wellId: number,
-    reagentData: Omit<Reagent, "id" | "well_id">,
+    reagentData: Omit<Reagent, "id" | "well_id">
   ) => {
     try {
       await createReagentMutation.mutateAsync({
@@ -332,7 +332,7 @@ export const InventoryManager = () => {
     } catch (error) {
       errorToast(
         "Error creating reagent",
-        error instanceof Error ? error.message : "Unknown error",
+        error instanceof Error ? error.message : "Unknown error"
       );
       throw error;
     }
@@ -374,7 +374,7 @@ export const InventoryManager = () => {
 
         if (emptyNests.length === 0) {
           throw new Error(
-            `No empty nests available for automatic placement${containerType ? ` in the selected ${containerType}` : ""}`,
+            `No empty nests available for automatic placement${containerType ? ` in the selected ${containerType}` : ""}`
           );
         }
 
@@ -406,7 +406,7 @@ export const InventoryManager = () => {
       for (const plateData of newPlates) {
         // Check if a plate with this name already exists
         const plateWithSameName = typedPlates.find(
-          (p) => p.name === plateData.name,
+          (p) => p.name === plateData.name
         );
         if (plateWithSameName) {
           // Append a unique identifier if name already exists
@@ -463,12 +463,12 @@ export const InventoryManager = () => {
             });
             successToast(
               "Tool command triggered",
-              `Physical check-in command sent to ${tool.name} for position R${row + 1}C${column + 1}`,
+              `Physical check-in command sent to ${tool.name} for position R${row + 1}C${column + 1}`
             );
           } catch (cmdError) {
             errorToast(
               "Warning: Plate stored but tool command failed",
-              cmdError instanceof Error ? cmdError.message : "Unknown error",
+              cmdError instanceof Error ? cmdError.message : "Unknown error"
             );
           }
         }
@@ -480,12 +480,12 @@ export const InventoryManager = () => {
 
       successToast(
         "Check-in successful",
-        `${newPlates.length} plate(s) checked in successfully`,
+        `${newPlates.length} plate(s) checked in successfully`
       );
     } catch (error) {
       errorToast(
         "Error checking in plate(s)",
-        error instanceof Error ? error.message : "Unknown error",
+        error instanceof Error ? error.message : "Unknown error"
       );
     }
   };
@@ -575,12 +575,12 @@ export const InventoryManager = () => {
 
             successToast(
               "Tool command triggered",
-              `Physical check-out command sent to ${tool.name} for position R${row + 1}C${column + 1}`,
+              `Physical check-out command sent to ${tool.name} for position R${row + 1}C${column + 1}`
             );
           } catch (cmdError) {
             errorToast(
               "Warning: Plate checked out but tool command failed",
-              cmdError instanceof Error ? cmdError.message : "Unknown error",
+              cmdError instanceof Error ? cmdError.message : "Unknown error"
             );
           }
         }
@@ -594,12 +594,12 @@ export const InventoryManager = () => {
 
       successToast(
         "Check-out successful",
-        `Plate ${plateToCheckOut.name || plateToCheckOut.barcode} checked out successfully`,
+        `Plate ${plateToCheckOut.name || plateToCheckOut.barcode} checked out successfully`
       );
     } catch (error) {
       errorToast(
         "Error checking out plate",
-        error instanceof Error ? error.message : "Unknown error",
+        error instanceof Error ? error.message : "Unknown error"
       );
     }
   };
@@ -669,7 +669,7 @@ export const InventoryManager = () => {
           errorTitle: "Hotel Creation Issue",
           errorDescription: (error) =>
             `Some nests could not be created: ${error.message || "Unknown error"}`,
-        },
+        }
       );
 
       // Wait for all nests to be created
@@ -681,7 +681,7 @@ export const InventoryManager = () => {
     } catch (error) {
       errorToast(
         "Error creating hotel",
-        error instanceof Error ? error.message : "Unknown error",
+        error instanceof Error ? error.message : "Unknown error"
       );
     }
   };
@@ -695,7 +695,7 @@ export const InventoryManager = () => {
       // Create a progress toast to show deletion progress
       const progress = progressToast(
         `Deleting Hotel (0/${totalNests} nests)`,
-        0,
+        0
       );
 
       // Delete all nests first
@@ -709,7 +709,7 @@ export const InventoryManager = () => {
           const percent = Math.round((deletedCount / totalNests) * 100);
           progress.updateProgress(
             percent,
-            `Deleting nests (${deletedCount}/${totalNests})`,
+            `Deleting nests (${deletedCount}/${totalNests})`
           );
         } catch (nestError) {
           // Continue with other nests even if one fails
@@ -726,24 +726,24 @@ export const InventoryManager = () => {
         // Complete the progress
         progress.complete(
           "Hotel Deleted",
-          `Successfully deleted hotel and ${deletedCount} nests`,
+          `Successfully deleted hotel and ${deletedCount} nests`
         );
       } catch (hotelError) {
         // Show warning if hotel deletion failed but nests were deleted
         if (deletedCount > 0) {
           progress.updateProgress(
             100,
-            `Deleted ${deletedCount}/${totalNests} nests, but hotel deletion failed`,
+            `Deleted ${deletedCount}/${totalNests} nests, but hotel deletion failed`
           );
 
           warningToast(
             "Partial deletion",
-            `Deleted ${deletedCount}/${totalNests} nests, but hotel record deletion failed`,
+            `Deleted ${deletedCount}/${totalNests} nests, but hotel record deletion failed`
           );
         } else {
           progress.error(
             "Deletion Failed",
-            `Failed to delete hotel: ${hotelError instanceof Error ? hotelError.message : "Unknown error"}`,
+            `Failed to delete hotel: ${hotelError instanceof Error ? hotelError.message : "Unknown error"}`
           );
         }
       }
@@ -754,7 +754,7 @@ export const InventoryManager = () => {
     } catch (error) {
       errorToast(
         "Error deleting hotel",
-        error instanceof Error ? error.message : "Unknown error",
+        error instanceof Error ? error.message : "Unknown error"
       );
 
       // Still refresh data even after errors
@@ -836,7 +836,7 @@ export const InventoryManager = () => {
                   <InventoryToolCard
                     toolId={tool.id}
                     nests={typedNests.filter(
-                      (n: Nest) => n.tool_id === tool.id,
+                      (n: Nest) => n.tool_id === tool.id
                     )}
                     plates={typedPlates}
                     onCreateNest={(toolId, name, row, col) =>
@@ -893,7 +893,7 @@ export const InventoryManager = () => {
                     <InventoryHotelCard
                       hotelId={hotel.id}
                       nests={typedNests.filter(
-                        (n: Nest) => n.hotel_id === hotel.id,
+                        (n: Nest) => n.hotel_id === hotel.id
                       )}
                       plates={typedPlates}
                       onCreateNest={(hotelId, name, row, col) =>

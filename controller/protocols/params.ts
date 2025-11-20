@@ -20,7 +20,7 @@ type Param<T extends z.ZodTypeAny, B extends ProtocolParamType> = z.ZodBranded<
 
 function Param<T extends z.ZodTypeAny, B extends ProtocolParamType>(
   name: B,
-  type: T,
+  type: T
 ): Param<T, B> {
   const branded = type.brand(name) as Param<T, B>;
   branded._def._paramType = name;

@@ -151,23 +151,23 @@ export class CommandQueue {
         // Wrap strings in quotes for the expression evaluator
         resolvedExpression = resolvedExpression.replace(
           fullMatch,
-          `"${varInfo.value}"`,
+          `"${varInfo.value}"`
         );
       } else if (varInfo.type === "number") {
         resolvedExpression = resolvedExpression.replace(
           fullMatch,
-          varInfo.value,
+          varInfo.value
         );
       } else if (varInfo.type === "boolean") {
         resolvedExpression = resolvedExpression.replace(
           fullMatch,
-          varInfo.value,
+          varInfo.value
         );
       } else {
         // For other types, convert to string and wrap in quotes
         resolvedExpression = resolvedExpression.replace(
           fullMatch,
-          `"${varInfo.value}"`,
+          `"${varInfo.value}"`
         );
       }
     }
@@ -176,7 +176,7 @@ export class CommandQueue {
       // For security, we're using a restricted approach to evaluate the expression
       // This is safer than using eval() directly
       const result = Function(
-        '"use strict"; return (' + resolvedExpression + ")",
+        '"use strict"; return (' + resolvedExpression + ")"
       )();
       return result;
     } catch (e) {
@@ -448,7 +448,7 @@ export class CommandQueue {
 
   async getPaginated(
     offset: number = 0,
-    limit: number = 20,
+    limit: number = 20
   ): Promise<StoredRunCommand[]> {
     return this.commands.getPaginated(offset, limit);
   }
@@ -584,7 +584,7 @@ export class CommandQueue {
             ) {
               expectedValue = (
                 await get<Variable>(
-                  `/variables/${expectedValue.slice(2, -2).trim()}`,
+                  `/variables/${expectedValue.slice(2, -2).trim()}`
                 )
               ).value;
             }
@@ -627,12 +627,12 @@ export class CommandQueue {
         const formattedHours = (hours % 12 || 12).toString();
 
         const formattedDateTime = `${year}-${String(month).padStart(2, "0")}-${String(
-          day,
+          day
         ).padStart(
           2,
-          "0",
+          "0"
         )} ${formattedHours.padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
-          seconds,
+          seconds
         ).padStart(2, "0")} ${amOrPm}`;
 
         // Handle special tool_box commands
@@ -665,7 +665,7 @@ export class CommandQueue {
             if (message.startsWith("{{") && message.endsWith("}}")) {
               try {
                 const variableResponse = await get<Variable>(
-                  `/variables/${message.slice(2, -2).trim()}`,
+                  `/variables/${message.slice(2, -2).trim()}`
                 );
                 // Use just the value property of the variable
                 message = variableResponse.value;
@@ -685,10 +685,10 @@ export class CommandQueue {
           } else if (nextCommand.commandInfo.command === "timer") {
             // Handle timer command
             const minutes = Number(
-              nextCommand.commandInfo.params?.minutes || 0,
+              nextCommand.commandInfo.params?.minutes || 0
             );
             const seconds = Number(
-              nextCommand.commandInfo.params?.seconds || 30,
+              nextCommand.commandInfo.params?.seconds || 30
             );
             const message =
               nextCommand.commandInfo.params?.message || "Timer in progress...";
@@ -713,7 +713,7 @@ export class CommandQueue {
             return; // Exit the loop as we've stopped the queue
           } else if (nextCommand.commandInfo.command === "goto") {
             const targetIndex = Number(
-              nextCommand.commandInfo.params?.targetIndex,
+              nextCommand.commandInfo.params?.targetIndex
             );
             const runId =
               nextCommand.commandInfo.params?.runId || nextCommand.runId;
@@ -723,7 +723,7 @@ export class CommandQueue {
               await this.gotoCommandByRunIndex(runId, targetIndex);
             } else {
               throw new Error(
-                "Goto command requires either targetId or both targetIndex and runId",
+                "Goto command requires either targetId or both targetIndex and runId"
               );
             }
             continue;
@@ -744,7 +744,7 @@ export class CommandQueue {
             try {
               // First, fetch the target variable to get its type
               const targetVariable = await get<Variable>(
-                `/variables/${variableName}`,
+                `/variables/${variableName}`
               );
 
               if (!targetVariable) {
@@ -821,7 +821,7 @@ export class CommandQueue {
         // Mark command as failed in the queue
         await this.commands.fail(
           nextCommand.queueId,
-          e instanceof Error ? e : new Error("Unknown error"),
+          e instanceof Error ? e : new Error("Unknown error")
         );
 
         // Set error state for UI to display

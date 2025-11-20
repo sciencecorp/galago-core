@@ -13,10 +13,10 @@ export const TimePicker: React.FC<CustomTimePickerProps> = ({
   const [period, setPeriod] = useState<string>("AM");
 
   const hours = Array.from({ length: 12 }, (_, i) =>
-    String(i + 1).padStart(2, "0"),
+    String(i + 1).padStart(2, "0")
   );
   const minutes = Array.from({ length: 60 }, (_, i) =>
-    String(i).padStart(2, "0"),
+    String(i).padStart(2, "0")
   );
   const periods = ["AM", "PM"];
 

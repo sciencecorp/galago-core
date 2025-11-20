@@ -48,7 +48,7 @@ export const Forms = () => {
       activeFields: selectedForm?.fields?.length || 0,
       selectedFormName: selectedForm?.name || "None",
     }),
-    [forms.length, selectedForm?.fields?.length, selectedForm?.name],
+    [forms.length, selectedForm?.fields?.length, selectedForm?.name]
   );
 
   if (isLoading) {

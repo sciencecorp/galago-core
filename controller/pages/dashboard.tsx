@@ -105,7 +105,7 @@ function CommandListComponent() {
 
   const commandsQuery = trpc.commandQueue.commands.useQuery(
     { limit: limit, offset: offset },
-    { refetchInterval: 100 },
+    { refetchInterval: 100 }
   );
   const hasPrevious = offset > 0;
   const hasNext =

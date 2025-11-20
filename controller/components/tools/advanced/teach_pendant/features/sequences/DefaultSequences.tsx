@@ -144,7 +144,7 @@ export const generateSequenceFromTemplate = (
   id: string,
   safeLocation: string,
   nestLocation: string,
-  labwareId: string = "default",
+  labwareId: string = "default"
 ): SequenceCommand[] => {
   const template = DefaultSequences.find((seq) => seq.id === id);
   if (!template) {
@@ -152,7 +152,7 @@ export const generateSequenceFromTemplate = (
     return [];
   }
   const commands = JSON.parse(
-    JSON.stringify(template.commands),
+    JSON.stringify(template.commands)
   ) as SequenceCommand[];
   commands.forEach((cmd) => {
     if (cmd.command === "move") {
@@ -160,7 +160,7 @@ export const generateSequenceFromTemplate = (
     }
     if (
       ["dropoff_plate", "retrieve_plate", "pick_lid", "place_lid"].includes(
-        cmd.command,
+        cmd.command
       )
     ) {
       cmd.params.location = nestLocation;

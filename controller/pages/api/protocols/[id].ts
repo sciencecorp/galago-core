@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 // TODO: This is a stub, implement the real thing
 export default function protocolsHandler(
   req: NextApiRequest,
-  res: NextApiResponse<Protocol>,
+  res: NextApiResponse<Protocol>
 ) {
   const { query, method } = req;
   const id = parseInt(query.id as string, 10);

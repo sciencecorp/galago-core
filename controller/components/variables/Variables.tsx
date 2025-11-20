@@ -87,7 +87,7 @@ export const Variables: React.FC = () => {
         acc[variable.type] = (acc[variable.type] || 0) + 1;
         return acc;
       },
-      {} as Record<string, number>,
+      {} as Record<string, number>
     );
     return stats;
   }, [variables]);
@@ -96,7 +96,7 @@ export const Variables: React.FC = () => {
     return variables?.filter(
       (variable) =>
         variable.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        (typeFilter === "" || variable.type === typeFilter),
+        (typeFilter === "" || variable.type === typeFilter)
     );
   }, [variables, searchQuery, typeFilter]);
 

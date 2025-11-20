@@ -13,7 +13,7 @@ import { useState, useEffect } from "react";
 import { successToast, errorToast, infoToast } from "../ui/Toast";
 
 function toolSpecificConfig(
-  toolConfig: ToolConfig,
+  toolConfig: ToolConfig
 ): Record<string, any> | undefined {
   const toolType = toolConfig.type;
   const config = toolConfig.config;
@@ -40,7 +40,7 @@ export function ToolConfigEditor({
     {
       refetchInterval: 2000, // Refetch every 2 seconds
       staleTime: 0, // Consider data stale immediately
-    },
+    }
   );
 
   const statusQuery = trpc.tool.status.useQuery(
@@ -52,7 +52,7 @@ export function ToolConfigEditor({
           setSimulated(data.status === "SIMULATED");
         }
       },
-    },
+    }
   );
 
   var error_description = "Error connecting to instrument";

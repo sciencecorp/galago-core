@@ -52,7 +52,7 @@ export default function Nav() {
     { href: "/", title: "Home" },
   ];
   const tabIndex = TabPages.findIndex(
-    ({ href }) => router.route.indexOf(href) === 0,
+    ({ href }) => router.route.indexOf(href) === 0
   );
   const selectedTab = tabIndex >= 0 ? TabPages[tabIndex] : undefined;
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);

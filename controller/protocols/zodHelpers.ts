@@ -13,7 +13,7 @@ export type MaybeWrappedZodType<I extends z.ZodTypeAny> =
   | z.ZodArray<I>;
 
 export function innerZodType<I extends z.ZodTypeAny>(
-  type: MaybeWrappedZodType<I>,
+  type: MaybeWrappedZodType<I>
 ): I {
   if (type instanceof z.ZodLazy) {
     return innerZodType(type.schema);
@@ -49,7 +49,7 @@ export function zodSchemaToTypeName(schema: z.ZodTypeAny): ProtocolParamType {
       return "boolean";
     default:
       throw new Error(
-        `Unknown zod type for schema ${util.inspect(schema, false, 10, false)}`,
+        `Unknown zod type for schema ${util.inspect(schema, false, 10, false)}`
       );
   }
 }

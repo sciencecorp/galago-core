@@ -72,7 +72,7 @@ export const ProtocolPageComponent: React.FC = () => {
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [runModalProtocolId, setRunModalProtocolId] = useState<string | null>(
-    null,
+    null
   );
   const [isImporting, setIsImporting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -207,7 +207,7 @@ export const ProtocolPageComponent: React.FC = () => {
     if (isNaN(parseInt(protocolId))) {
       errorToast(
         "Cannot Delete",
-        "TypeScript-based protocols cannot be deleted as they are part of the codebase. Only database protocols can be deleted.",
+        "TypeScript-based protocols cannot be deleted as they are part of the codebase. Only database protocols can be deleted."
       );
       return;
     }
@@ -236,7 +236,7 @@ export const ProtocolPageComponent: React.FC = () => {
   };
 
   const handleFileSelect = async (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -257,7 +257,7 @@ export const ProtocolPageComponent: React.FC = () => {
 
       successToast(
         "Protocol Imported",
-        "Protocol has been imported successfully",
+        "Protocol has been imported successfully"
       );
       refetch();
     } catch (error: any) {
@@ -285,7 +285,7 @@ export const ProtocolPageComponent: React.FC = () => {
 
       successToast(
         "Protocol Exported",
-        `${protocol.name} has been exported successfully`,
+        `${protocol.name} has been exported successfully`
       );
     } catch (error: any) {
       errorToast("Export Failed", error.message || "Failed to export protocol");

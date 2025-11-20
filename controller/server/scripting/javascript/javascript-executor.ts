@@ -39,7 +39,7 @@ class Variables {
     const baseUrl = apiUrl || this.defaultApiUrl;
     try {
       const response = await this.axiosInstance.get(
-        `${baseUrl}/variables/${name}`,
+        `${baseUrl}/variables/${name}`
       );
       return response.data;
     } catch (error: any) {
@@ -70,12 +70,12 @@ class Variables {
    */
   static async createVariable(
     data: Record<string, any>,
-    apiUrl?: string,
+    apiUrl?: string
   ): Promise<any> {
     const baseUrl = apiUrl || this.defaultApiUrl;
     const response = await this.axiosInstance.post(
       `${baseUrl}/variables`,
-      data,
+      data
     );
     return response.data;
   }
@@ -90,13 +90,13 @@ class Variables {
   static async updateVariable(
     name: string,
     newValue: string | number | boolean,
-    apiUrl?: string,
+    apiUrl?: string
   ): Promise<any> {
     const baseUrl = apiUrl || this.defaultApiUrl;
     const variable = { value: newValue };
     const response = await this.axiosInstance.put(
       `${baseUrl}/variables/${name}`,
-      variable,
+      variable
     );
     return response.data;
   }
@@ -110,7 +110,7 @@ class Variables {
   static async deleteVariable(name: string, apiUrl?: string): Promise<any> {
     const baseUrl = apiUrl || this.defaultApiUrl;
     const response = await this.axiosInstance.delete(
-      `${baseUrl}/variables/${name}`,
+      `${baseUrl}/variables/${name}`
     );
     return response.data;
   }
@@ -127,7 +127,7 @@ export class JavaScriptExecutor {
   static async executeScript(
     script: string,
     context: Record<string, any> = {},
-    timeout: number = 30000,
+    timeout: number = 30000
   ): Promise<any> {
     logAction({
       level: "info",
@@ -144,7 +144,7 @@ export class JavaScriptExecutor {
       if (script.includes("import ")) {
         // For now, we'll just provide a clear error message
         logCapture.push(
-          "ERROR: Import statements are not supported in this JavaScript environment. Please use require() instead.",
+          "ERROR: Import statements are not supported in this JavaScript environment. Please use require() instead."
         );
         return {
           output: logCapture.join("\n"),
@@ -166,7 +166,7 @@ export class JavaScriptExecutor {
         // Define the main axios function with proper typing
         const axiosFn = function (
           url: string,
-          config?: AxiosRequestConfig,
+          config?: AxiosRequestConfig
         ): Promise<AxiosResponse> {
           const promise = axios(url, config);
           return trackPromise(promise);
@@ -209,7 +209,7 @@ export class JavaScriptExecutor {
           log: (...args: any[]) => {
             const logMessage = args
               .map((arg) =>
-                typeof arg === "object" ? JSON.stringify(arg) : String(arg),
+                typeof arg === "object" ? JSON.stringify(arg) : String(arg)
               )
               .join(" ");
             // Add to our log capture
@@ -224,7 +224,7 @@ export class JavaScriptExecutor {
           error: (...args: any[]) => {
             const errorMessage = args
               .map((arg) =>
-                typeof arg === "object" ? JSON.stringify(arg) : String(arg),
+                typeof arg === "object" ? JSON.stringify(arg) : String(arg)
               )
               .join(" ");
             logCapture.push(`ERROR: ${errorMessage}`);
@@ -238,7 +238,7 @@ export class JavaScriptExecutor {
           warn: (...args: any[]) => {
             const warnMessage = args
               .map((arg) =>
-                typeof arg === "object" ? JSON.stringify(arg) : String(arg),
+                typeof arg === "object" ? JSON.stringify(arg) : String(arg)
               )
               .join(" ");
             logCapture.push(`WARNING: ${warnMessage}`);
@@ -292,8 +292,8 @@ export class JavaScriptExecutor {
           setTimeout(() => {
             reject(
               new Error(
-                `Timed out waiting for ${pendingPromises.length} promises to complete after ${timeout}ms`,
-              ),
+                `Timed out waiting for ${pendingPromises.length} promises to complete after ${timeout}ms`
+              )
             );
           }, timeout);
         });

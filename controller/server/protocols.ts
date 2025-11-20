@@ -19,7 +19,7 @@ async function loadDatabaseProtocols(): Promise<Protocol[]> {
           console.error(`Failed to load protocol ${protocolData.id}:`, error);
           return null;
         }
-      }),
+      })
     );
 
     return dbProtocols.filter((p): p is Protocol => p !== null);

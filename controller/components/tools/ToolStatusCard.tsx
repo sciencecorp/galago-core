@@ -82,7 +82,7 @@ export default function ToolStatusCard({
   const { data: workcells } = trpc.workcell.getAll.useQuery();
   const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({
     workcellId: workcells?.find(
-      (workcell) => workcell.name === selectedWorkcellData,
+      (workcell) => workcell.name === selectedWorkcellData
     )?.id,
   });
   const editTool = trpc.tool.edit.useMutation();

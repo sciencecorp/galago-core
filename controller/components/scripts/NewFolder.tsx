@@ -80,7 +80,7 @@ export const NewFolder: React.FC<NewFolderProps> = ({
     try {
       // Get the workcell ID from the selected workcell name
       const selectedWorkcell = workcells?.find(
-        (wc) => wc.name === selectedWorkcellName,
+        (wc) => wc.name === selectedWorkcellName
       );
       if (!selectedWorkcell) {
         showErrorToast("Error creating folder", "No workcell selected");

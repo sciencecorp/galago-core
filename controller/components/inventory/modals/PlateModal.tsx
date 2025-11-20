@@ -34,7 +34,7 @@ interface PlateModalProps {
   plate: Plate;
   onCreateReagent: (
     nestId: number,
-    reagentData: Omit<Reagent, "id" | "well_id">,
+    reagentData: Omit<Reagent, "id" | "well_id">
   ) => void;
 }
 
@@ -70,7 +70,7 @@ const PlateModal: React.FC<PlateModalProps> = ({
     plate.id,
     {
       enabled: !!plate.id,
-    },
+    }
   );
 
   // Mutation for deleting reagents
@@ -88,7 +88,7 @@ const PlateModal: React.FC<PlateModalProps> = ({
     setSelectedWells((prev) =>
       prev.includes(wellId)
         ? prev.filter((id) => id !== wellId)
-        : [...prev, wellId],
+        : [...prev, wellId]
     );
   };
 
@@ -96,7 +96,7 @@ const PlateModal: React.FC<PlateModalProps> = ({
     if (selectedWells.length === 0) {
       warningToast(
         "No wells selected",
-        "Please select at least one well to add reagents to.",
+        "Please select at least one well to add reagents to."
       );
       return;
     }
@@ -129,7 +129,7 @@ const PlateModal: React.FC<PlateModalProps> = ({
 
       successToast(
         "Reagents added successfully",
-        "Reagents have been added to the selected wells.",
+        "Reagents have been added to the selected wells."
       );
     } catch (error: any) {
       errorToast("Error adding reagents", error.message);
@@ -140,7 +140,7 @@ const PlateModal: React.FC<PlateModalProps> = ({
     if (selectedWells.length === 0) {
       warningToast(
         "No wells selected",
-        "Please select at least one well to clear reagents from.",
+        "Please select at least one well to clear reagents from."
       );
       return;
     }
@@ -148,7 +148,7 @@ const PlateModal: React.FC<PlateModalProps> = ({
     try {
       // Get reagents for the selected wells
       const wellReagents = (reagents as Reagent[]).filter((r) =>
-        selectedWells.includes(r.well_id),
+        selectedWells.includes(r.well_id)
       );
 
       // Delete each reagent
@@ -161,7 +161,7 @@ const PlateModal: React.FC<PlateModalProps> = ({
 
       successToast(
         "Reagents cleared successfully",
-        "Reagents have been removed from the selected wells.",
+        "Reagents have been removed from the selected wells."
       );
     } catch (error: any) {
       errorToast("Error clearing reagents", error.message);
@@ -170,14 +170,14 @@ const PlateModal: React.FC<PlateModalProps> = ({
 
   const getWellTooltip = (wellId: number): string => {
     const wellReagents = (reagents as Reagent[]).filter(
-      (r: Reagent) => r.well_id === wellId,
+      (r: Reagent) => r.well_id === wellId
     );
     if (wellReagents.length === 0) return "Empty";
 
     return wellReagents
       .map(
         (r: Reagent) =>
-          `${r.name} - ${r.volume}µL - Expires: ${new Date(r.expiration_date).toLocaleDateString()}`,
+          `${r.name} - ${r.volume}µL - Expires: ${new Date(r.expiration_date).toLocaleDateString()}`
       )
       .join("\n");
   };

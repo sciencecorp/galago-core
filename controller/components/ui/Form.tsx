@@ -37,7 +37,7 @@ export const Editable = (props: {
   renderInput: (
     value: string | number,
     setValue: (newValue: string) => void,
-    submit: (newValue?: string) => void,
+    submit: (newValue?: string) => void
   ) => JSX.Element;
   preview: JSX.Element;
   defaultValue?: string;
@@ -63,7 +63,7 @@ export const Editable = (props: {
 
   const startEditing = () => {
     setValue(
-      defaultValue === undefined || defaultValue === null ? "" : defaultValue,
+      defaultValue === undefined || defaultValue === null ? "" : defaultValue
     );
     setIsEditing(true);
   };

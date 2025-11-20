@@ -115,7 +115,7 @@ export const TimerModal: React.FC<TimerModalProps> = ({
       const totalDuration = Math.ceil(duration / 1000);
       const progressPercent = Math.max(
         0,
-        Math.min(100, (timeLeft / duration) * 100),
+        Math.min(100, (timeLeft / duration) * 100)
       );
 
       setRemainingSeconds(secondsLeft);

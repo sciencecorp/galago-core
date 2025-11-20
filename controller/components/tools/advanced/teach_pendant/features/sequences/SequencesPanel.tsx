@@ -80,10 +80,10 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
   config,
 }) => {
   const [selectedSequence, setSelectedSequence] = useState<Sequence | null>(
-    null,
+    null
   );
   const [sequenceToDelete, setSequenceToDelete] = useState<Sequence | null>(
-    null,
+    null
   );
   const [sequenceToRun, setSequenceToRun] = useState<Sequence | null>(null);
   const [expandedCommandIndex, setExpandedCommandIndex] = useState<
@@ -147,7 +147,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
   useEffect(() => {
     if (selectedSequence) {
       const updatedSequence = sequences.find(
-        (seq) => seq.id === selectedSequence.id,
+        (seq) => seq.id === selectedSequence.id
       );
       // Only update if the found sequence is different from the current selectedSequence.
       if (updatedSequence && updatedSequence !== selectedSequence) {
@@ -192,7 +192,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
         // Select another sequence if available after deletion
         if (sequences.length > 1) {
           const nextSequence = sequences.find(
-            (seq) => seq.id !== sequenceToDelete.id,
+            (seq) => seq.id !== sequenceToDelete.id
           );
           if (nextSequence) {
             setSelectedSequence(nextSequence);
@@ -211,7 +211,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
   const textColor = useColorModeValue("gray.800", "gray.100");
   const panelShadowColor = useColorModeValue(
     "0 1px 3px rgba(0, 0, 0, 0.1)",
-    "0 1px 3px rgba(0, 0, 0, 0.3)",
+    "0 1px 3px rgba(0, 0, 0, 0.3)"
   );
 
   return (
@@ -409,7 +409,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                       } catch (error) {
                         console.error(
                           "Failed to update sequence commands:",
-                          error,
+                          error
                         );
                       }
                     }}
@@ -432,7 +432,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                       } catch (error) {
                         console.error(
                           "Failed to update sequence labware:",
-                          error,
+                          error
                         );
                       }
                     }}
@@ -440,7 +440,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                     onCommandClick={(index) => {
                       if (!isEditing) {
                         setExpandedCommandIndex(
-                          expandedCommandIndex === index ? null : index,
+                          expandedCommandIndex === index ? null : index
                         );
                       }
                     }}

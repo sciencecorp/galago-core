@@ -56,15 +56,15 @@ interface InventoryToolCardProps {
     toolId: number,
     nestName: string,
     nestRow: number,
-    nestColumn: number,
+    nestColumn: number
   ) => Promise<void>;
   onCreatePlate: (
     nestId: number,
-    plateData: { name: string; barcode: string; plate_type: string },
+    plateData: { name: string; barcode: string; plate_type: string }
   ) => void;
   onCreateReagent: (
     nestId: number,
-    reagentData: Omit<Reagent, "id" | "well_id">,
+    reagentData: Omit<Reagent, "id" | "well_id">
   ) => void;
   onNestClick: (nest: Nest) => void;
   onDeleteNest: (nestId: number) => Promise<void>;
@@ -93,7 +93,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   const workcells = trpc.workcell.getAll.useQuery();
   const SelectedWorkcellName = trpc.workcell.getSelectedWorkcell.useQuery();
   const selectedWorkcell = workcells.data?.find(
-    (workcell) => workcell.name === SelectedWorkcellName.data,
+    (workcell) => workcell.name === SelectedWorkcellName.data
   );
   const workcellTools = selectedWorkcell?.tools;
   const toolData = workcellTools?.find((tool) => tool.id === toolId);
@@ -101,7 +101,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
 
   const toolNests = nests.filter((nest) => nest.tool_id === toolId);
   const toolPlates = plates.filter((plate) =>
-    toolNests.some((nest) => nest.id === plate.nest_id),
+    toolNests.some((nest) => nest.id === plate.nest_id)
   );
 
   // Get reagent count for this tool's plates

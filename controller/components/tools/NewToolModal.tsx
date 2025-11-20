@@ -63,11 +63,11 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
   const { data: workcells } = trpc.workcell.getAll.useQuery();
   const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({
     workcellId: workcells?.find(
-      (workcell) => workcell.name === selectedWorkcellData,
+      (workcell) => workcell.name === selectedWorkcellData
     )?.id,
   });
   const workcellId = workcells?.find(
-    (workcell) => workcell.name === selectedWorkcellData,
+    (workcell) => workcell.name === selectedWorkcellData
   )?.id;
 
   const availableTools = Object.values(ToolType)
@@ -75,13 +75,13 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
       (tool) =>
         tool !== ToolType.UNRECOGNIZED &&
         tool !== ToolType.unknown &&
-        tool !== ToolType.toolbox,
+        tool !== ToolType.toolbox
     )
     .sort();
 
   // Filter tools based on search query
   const filteredTools = availableTools.filter((tool) =>
-    tool.toLowerCase().replace(/_/g, " ").includes(searchQuery.toLowerCase()),
+    tool.toLowerCase().replace(/_/g, " ").includes(searchQuery.toLowerCase())
   );
 
   const { data: configData, isFetching: isConfigLoading } =

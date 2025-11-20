@@ -146,7 +146,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
     commandHandlers.handleMoveCommand(
       robotArmCommandMutation,
       point.name,
-      "default",
+      "default"
     );
   };
 
@@ -154,7 +154,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
     if (toolStatusQuery.data?.status === "SIMULATED") {
       warningToast(
         "Simulation Mode",
-        "Teaching points is not available in simulation mode.",
+        "Teaching points is not available in simulation mode."
       );
       return;
     }
@@ -180,18 +180,18 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
         // Limit coordinates to the configured number of joints
         const limitedCoordinates = paddedCoordinates.slice(
           0,
-          parseInt(numJoints.toString()),
+          parseInt(numJoints.toString())
         );
 
         if (
           !validateJointCount(
             response.meta_data.location,
-            parseInt(numJoints.toString()),
+            parseInt(numJoints.toString())
           )
         ) {
           errorToast(
             "Joint Count Mismatch",
-            `Robot returned ${coordinates.length} joints but at least ${numJoints} joints are required`,
+            `Robot returned ${coordinates.length} joints but at least ${numJoints} joints are required`
           );
           return;
         }
@@ -211,7 +211,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
         // Add success toast
         successToast(
           "Point Updated",
-          `Successfully taught new position to point "${point.name}"`,
+          `Successfully taught new position to point "${point.name}"`
         );
       } else {
         throw new Error("No location data received from robot");
@@ -265,18 +265,18 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
     switch (activeTab) {
       case 0: // Teach Points
         return teachPoints.filter((point) =>
-          point.name.toLowerCase().includes(term),
+          point.name.toLowerCase().includes(term)
         );
       case 1: // Motion Profiles
         return (
           motionProfilesQuery.data?.filter((profile) =>
-            profile.name.toLowerCase().includes(term),
+            profile.name.toLowerCase().includes(term)
           ) || []
         );
       case 2: // Grip Parameters
         return (
           gripParamsQuery.data?.filter((params) =>
-            params.name.toLowerCase().includes(term),
+            params.name.toLowerCase().includes(term)
           ) || []
         );
       case 3: // Sequences
@@ -286,7 +286,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
             sequence.commands &&
             Array.isArray(sequence.commands) &&
             (sequence.name.toLowerCase().includes(term) ||
-              sequence.description?.toLowerCase().includes(term)),
+              sequence.description?.toLowerCase().includes(term))
         );
       default:
         return [];
@@ -363,7 +363,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
     const batchDeleteTeachPoints = createBatchHandlerForIds(
       deleteTeachPoint,
       "delete",
-      "teach points",
+      "teach points"
     );
 
     await batchDeleteTeachPoints(pointIds);
@@ -380,7 +380,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
     const batchDeleteMotionProfiles = createBatchHandlerForIds(
       deleteMotionProfile,
       "delete",
-      "motion profiles",
+      "motion profiles"
     );
 
     await batchDeleteMotionProfiles(profileIds);
@@ -397,7 +397,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
     const batchDeleteGripParams = createBatchHandlerForIds(
       deleteGripParam,
       "delete",
-      "grip parameters",
+      "grip parameters"
     );
 
     await batchDeleteGripParams(paramIds);
@@ -414,7 +414,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
     const batchDeleteSequences = createBatchHandlerForIds(
       (id) => handleDeleteSequence(id, true),
       "delete",
-      "sequences",
+      "sequences"
     );
 
     await batchDeleteSequences(sequenceIds);
@@ -427,7 +427,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
 
   // Function to show delete confirmation modal
   const showDeleteConfirm = (
-    type: "teachPoints" | "motionProfiles" | "gripParams" | "sequences",
+    type: "teachPoints" | "motionProfiles" | "gripParams" | "sequences"
   ) => {
     let message = "";
     let count = 0;
@@ -459,7 +459,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
     if (count === 0) {
       warningToast(
         "Nothing to delete",
-        "There are no items to delete in this section.",
+        "There are no items to delete in this section."
       );
       return;
     }
@@ -480,7 +480,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
       minW="1200px"
       boxShadow={useColorModeValue(
         "0 4px 12px rgba(0, 0, 0, 0.1)",
-        "0 4px 16px rgba(0, 0, 0, 0.6)",
+        "0 4px 16px rgba(0, 0, 0, 0.6)"
       )}
     >
       <VStack p={4} spacing={4} align="stretch">
@@ -501,24 +501,24 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
               onFree={() =>
                 commandHandlers.handleSimpleCommand(
                   robotArmCommandMutation,
-                  "release",
+                  "release"
                 )
               }
               onUnfree={() =>
                 commandHandlers.handleSimpleCommand(
                   robotArmCommandMutation,
-                  "engage",
+                  "engage"
                 )
               }
               onUnwind={() =>
                 commandHandlers.handleSimpleCommand(
                   robotArmCommandMutation,
-                  "unwind",
+                  "unwind"
                 )
               }
               onGripperOpen={() => {
                 const selectedParams = gripParams.find(
-                  (p) => p.id === defaultParamsId,
+                  (p) => p.id === defaultParamsId
                 );
                 if (selectedParams) {
                   commandHandlers.handleGripperCommand(
@@ -526,7 +526,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                     "open",
                     selectedParams,
                     false,
-                    gripParams,
+                    gripParams
                   );
                 } else {
                   // Let server handle defaults
@@ -542,13 +542,13 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       force: 0, // Server will override with its defaults
                     },
                     false,
-                    gripParams,
+                    gripParams
                   );
                 }
               }}
               onGripperClose={() => {
                 const selectedParams = gripParams.find(
-                  (p) => p.id === defaultParamsId,
+                  (p) => p.id === defaultParamsId
                 );
                 if (selectedParams) {
                   commandHandlers.handleGripperCommand(
@@ -556,7 +556,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                     "close",
                     selectedParams,
                     false,
-                    gripParams,
+                    gripParams
                   );
                 } else {
                   // Let server handle defaults
@@ -572,7 +572,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       force: 0, // Server will override with its defaults
                     },
                     false,
-                    gripParams,
+                    gripParams
                   );
                 }
               }}
@@ -620,7 +620,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                 onUnwind={() =>
                   commandHandlers.handleSimpleCommand(
                     robotArmCommandMutation,
-                    "unwind",
+                    "unwind"
                   )
                 }
                 onGripperOpen={() =>
@@ -629,7 +629,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                     "open",
                     selectedGripParams!,
                     false,
-                    gripParams,
+                    gripParams
                   )
                 }
                 onGripperClose={() =>
@@ -638,7 +638,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                     "close",
                     selectedGripParams!,
                     false,
-                    gripParams,
+                    gripParams
                   )
                 }
                 jogEnabled={jogEnabled}
@@ -728,7 +728,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                     gripParams={gripParams}
                     sequences={sequences || []}
                     expandedRows={Object.fromEntries(
-                      Object.keys(expandedRows).map((key) => [key, true]),
+                      Object.keys(expandedRows).map((key) => [key, true])
                     )}
                     toggleRow={toggleRow}
                     onImport={async () => {}}

@@ -40,8 +40,8 @@ export default class Tool {
     this.grpc = promisifyGrpcClient(
       new tool_driver.ToolDriverClient(
         target,
-        grpc.credentials.createInsecure(),
-      ),
+        grpc.credentials.createInsecure()
+      )
     );
   }
 
@@ -109,7 +109,7 @@ export default class Tool {
     }
     try {
       const waypointsResponse = await get<any>(
-        `/robot-arm-waypoints?tool_id=${toolId}`,
+        `/robot-arm-waypoints?tool_id=${toolId}`
       );
 
       await tool.executeCommand({
@@ -134,7 +134,7 @@ export default class Tool {
       });
       console.error(
         `Failed to load waypoints for PF400 tool: ${toolId}`,
-        error,
+        error
       );
     }
   }
@@ -169,7 +169,7 @@ export default class Tool {
       });
       throw new ToolCommandExecutionError(
         reply.error_message ?? "Connect Command failed",
-        reply.response,
+        reply.response
       );
     }
     if (config.pf400) {
@@ -193,7 +193,7 @@ export default class Tool {
       details: `Executing command: ${command.command}, Tool: ${command.toolId}, Params:${JSON.stringify(command.params).replaceAll("{", "").replaceAll("}", "")}`,
     });
     return await Tool.forId(
-      this.normalizeToolId(command.toolId),
+      this.normalizeToolId(command.toolId)
     ).executeCommand(command);
   }
 
@@ -207,7 +207,7 @@ export default class Tool {
       if (paramValue.startsWith("{{") && paramValue.endsWith("}}")) {
         try {
           const varValue = await get<Variable>(
-            `/variables/${paramValue.slice(2, -2)}`,
+            `/variables/${paramValue.slice(2, -2)}`
           );
           params[key] = varValue.value;
         } catch (e) {
@@ -304,7 +304,7 @@ export default class Tool {
             // Throw a ToolCommandExecutionError to ensure proper error propagation
             throw new ToolCommandExecutionError(
               errorMessage || "JavaScript execution failed",
-              tool_base.ResponseCode.ERROR_FROM_TOOL,
+              tool_base.ResponseCode.ERROR_FROM_TOOL
             );
           }
           return {
@@ -326,7 +326,7 @@ export default class Tool {
             // Throw a ToolCommandExecutionError to ensure proper error propagation
             throw new ToolCommandExecutionError(
               errorMessage || "C# execution failed",
-              tool_base.ResponseCode.ERROR_FROM_TOOL,
+              tool_base.ResponseCode.ERROR_FROM_TOOL
             );
           }
           return {
@@ -355,7 +355,7 @@ export default class Tool {
     }
 
     const reply = await this.grpc.executeCommand(
-      this._payloadForCommand(command),
+      this._payloadForCommand(command)
     );
 
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
@@ -396,7 +396,7 @@ export default class Tool {
 
       throw new ToolCommandExecutionError(
         userFriendlyErrorMessage,
-        reply.response,
+        reply.response
       );
     } else if (reply.return_reply && !reply?.error_message) {
       return reply;
@@ -408,18 +408,18 @@ export default class Tool {
       });
       throw new ToolCommandExecutionError(
         reply.error_message ?? "Tool command failed",
-        reply.response,
+        reply.response
       );
     }
   }
   async estimateDuration(command: ToolCommandInfo) {
     const reply = await this.grpc.estimateDuration(
-      this._payloadForCommand(command),
+      this._payloadForCommand(command)
     );
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
       throw new ToolCommandExecutionError(
         reply.error_message ?? "Estimating duration failed",
-        reply.response,
+        reply.response
       );
     }
     return reply.estimated_duration_seconds;
@@ -504,7 +504,7 @@ export default class Tool {
       return toolModule.Config.create({});
     } catch (error) {
       throw new Error(
-        `Failed to load config for ToolType: ${toolTypeName}. Error: ${error}`,
+        `Failed to load config for ToolType: ${toolTypeName}. Error: ${error}`
       );
     }
   }
@@ -517,7 +517,7 @@ export default class Tool {
 
     // Update allTools list
     this.allTools = this.allTools.filter(
-      (t) => Tool.normalizeToolId(t.name) !== normalizedName,
+      (t) => Tool.normalizeToolId(t.name) !== normalizedName
     );
     this.allTools.push(tool);
 
@@ -555,12 +555,12 @@ export default class Tool {
         const result = this.allTools.find(
           (tool) =>
             tool.name.toLocaleLowerCase().replaceAll(" ", "_") ===
-            id.toLocaleLowerCase().replaceAll(" ", "_"),
+            id.toLocaleLowerCase().replaceAll(" ", "_")
         );
         if (!result) {
           console.warn(
             `Failed to find tool ${id} in allTools list: `,
-            this.allTools,
+            this.allTools
           );
           throw new Error(`Tool with id ${id} not found in in database'`);
         }
@@ -593,7 +593,7 @@ export default class Tool {
 export class ToolCommandExecutionError extends Error {
   constructor(
     message: string,
-    public code: tool_base.ResponseCode,
+    public code: tool_base.ResponseCode
   ) {
     super(message);
     this.name = "ToolCommandExecutionError";

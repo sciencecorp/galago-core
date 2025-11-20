@@ -118,12 +118,12 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
   const [fontColor, setFontColor] = useState<string | null>(null);
   const [fields, setFields] = useState<FormField[]>([]);
   const [selectedFieldIndex, setSelectedFieldIndex] = useState<number | null>(
-    null,
+    null
   );
   const [isSaving, setIsSaving] = useState(false);
 
   const [editingField, setEditingField] = useState<FormField>(
-    DEFAULT_EDITING_FIELD,
+    DEFAULT_EDITING_FIELD
   );
   const drawerFooterBg = colors.sectionBg;
 
@@ -196,7 +196,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
       setSelectedFieldIndex(index);
       onOpen();
     },
-    [fields, onOpen],
+    [fields, onOpen]
   );
 
   const deleteField = useCallback((index: number) => {

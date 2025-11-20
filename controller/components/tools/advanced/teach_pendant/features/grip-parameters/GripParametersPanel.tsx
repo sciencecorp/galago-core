@@ -69,7 +69,7 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
   const handleSaveValue = (
     param: GripParams,
     field: keyof GripParams,
-    value: any,
+    value: any
   ) => {
     const updatedParams = { ...param, [field]: value };
     onInlineEdit(updatedParams);
@@ -112,7 +112,7 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
             borderColor={borderColor}
             boxShadow={useColorModeValue(
               "0 1px 3px rgba(0, 0, 0, 0.1)",
-              "0 1px 3px rgba(0, 0, 0, 0.3)",
+              "0 1px 3px rgba(0, 0, 0, 0.3)"
             )}
           >
             <Table
@@ -181,7 +181,7 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
                               ? param.id === defaultParamsId
                                 ? null
                                 : param.id
-                              : null,
+                              : null
                           )
                         }
                       />

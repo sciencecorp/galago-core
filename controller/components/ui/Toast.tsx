@@ -22,7 +22,7 @@ const defaultToastOptions = {
  * @param options Options to override defaults
  */
 export const setDefaultToastOptions = (
-  options: Partial<typeof defaultToastOptions>,
+  options: Partial<typeof defaultToastOptions>
 ) => {
   Object.assign(defaultToastOptions, options);
 };
@@ -45,7 +45,7 @@ export const positionedToast = (
     | "bottom-left",
   title: string,
   description: string,
-  status: "info" | "warning" | "success" | "error" = "info",
+  status: "info" | "warning" | "success" | "error" = "info"
 ) => {
   return toast({
     title,
@@ -75,7 +75,7 @@ export const loadingToast = <T,>(
     successDescription?: (result: T) => string;
     errorTitle?: string;
     errorDescription?: (error: any) => string;
-  } = {},
+  } = {}
 ) => {
   const toastId = toast({
     title: loadingTitle,
@@ -131,25 +131,25 @@ export const batchOperationToast = (
   itemType: string,
   count: number,
   successCount: number,
-  errorCount: number = 0,
+  errorCount: number = 0
 ) => {
   if (successCount === count) {
     // All operations successful
     successToast(
       `Batch ${operation} completed`,
-      `Successfully ${operation}d ${successCount} ${itemType}`,
+      `Successfully ${operation}d ${successCount} ${itemType}`
     );
   } else if (errorCount > 0) {
     // Some operations failed
     warningToast(
       `Batch ${operation} completed with errors`,
-      `${successCount} of ${count} ${itemType} ${operation}d successfully, ${errorCount} failed`,
+      `${successCount} of ${count} ${itemType} ${operation}d successfully, ${errorCount} failed`
     );
   } else {
     // No operations performed
     warningToast(
       `No ${itemType} ${operation}d`,
-      `No ${itemType} were available to ${operation}`,
+      `No ${itemType} were available to ${operation}`
     );
   }
 };
@@ -168,7 +168,7 @@ export const batchOperationLoadingToast = <
   operation: string,
   itemType: string,
   totalCount: number,
-  batchPromise: Promise<T>,
+  batchPromise: Promise<T>
 ) => {
   return loadingToast(
     `Processing ${itemType}...`,
@@ -181,7 +181,7 @@ export const batchOperationLoadingToast = <
       errorTitle: `Batch ${operation} failed`,
       errorDescription: (error) =>
         `Failed to ${operation} ${itemType}: ${error.message || "Unknown error"}`,
-    },
+    }
   );
 };
 
@@ -224,7 +224,7 @@ export const progressToast = (title: string, initialProgress: number = 0) => {
     },
     complete: (
       successTitle: string = "Complete",
-      successDescription: string = "Operation completed successfully",
+      successDescription: string = "Operation completed successfully"
     ) => {
       if (toast.isActive(toastId)) {
         toast.update(toastId, {
@@ -237,7 +237,7 @@ export const progressToast = (title: string, initialProgress: number = 0) => {
     },
     error: (
       errorTitle: string = "Error",
-      errorDescription: string = "Operation failed",
+      errorDescription: string = "Operation failed"
     ) => {
       if (toast.isActive(toastId)) {
         toast.update(toastId, {
@@ -274,7 +274,7 @@ export const actionToast = (
     colorScheme?: string;
     variant?: string;
   }>,
-  status: "info" | "warning" | "success" | "error" = "info",
+  status: "info" | "warning" | "success" | "error" = "info"
 ) => {
   const toastId = toast({
     title,

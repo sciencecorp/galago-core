@@ -26,7 +26,7 @@ export function ProtocolRunComponent({ id }: { id: string }) {
   const commandList = run.data?.commands || [];
   const durationSum = commandList.reduce(
     (acc, cur) => acc + (cur.estimatedDuration ?? 0),
-    0,
+    0
   );
 
   return (

@@ -72,7 +72,7 @@ export const workcellRouter = router({
     .input(
       z.object({
         file: z.any(), // File object from form data
-      }),
+      })
     )
     .mutation(async ({ input }) => {
       try {

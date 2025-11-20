@@ -4,7 +4,7 @@ type GrpcCallbackFunction<Request, Response> = (
   request: Request,
   metadata: grpc.Metadata,
   options: grpc.CallOptions,
-  callback: (error: any, response: Response) => void,
+  callback: (error: any, response: Response) => void
 ) => grpc.ClientUnaryCall;
 
 type PromisifiedGrpcCall<F extends Function> =
@@ -12,7 +12,7 @@ type PromisifiedGrpcCall<F extends Function> =
     ? (
         request: Request,
         metadata?: grpc.Metadata,
-        options?: grpc.CallOptions,
+        options?: grpc.CallOptions
       ) => Promise<Response>
     : never;
 
@@ -24,7 +24,7 @@ export type PromisifiedGrpcClient<T extends grpc.Client> = {
 
 export function promisifyGrpcCall<F extends Function>(
   func: F,
-  bind?: any,
+  bind?: any
 ): PromisifiedGrpcCall<F> {
   return ((...args: any) =>
     new Promise((resolve, reject) => {
@@ -43,7 +43,7 @@ export function promisifyGrpcCall<F extends Function>(
 
 // Make a proxy with wrapped methods
 export function promisifyGrpcClient<T extends grpc.Client>(
-  client: T,
+  client: T
 ): PromisifiedGrpcClient<T> {
   const wrappedClient: PromisifiedGrpcClient<T> = Object.create(client);
   for (const key in client) {

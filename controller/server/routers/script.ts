@@ -146,7 +146,7 @@ export const scriptRouter = router({
       z.object({
         // Define expected input if any post-processing is needed after upload
         // For now, it might not need input if the fetch call handles everything
-      }),
+      })
     )
     .mutation(async ({ input }) => {
       // Placeholder: In a real scenario, this might trigger post-import actions

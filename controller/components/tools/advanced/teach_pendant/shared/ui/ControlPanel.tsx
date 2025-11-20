@@ -190,7 +190,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               value={selectedGripParamsId || ""}
               onChange={(e) =>
                 onGripParamsChange(
-                  e.target.value ? Number(e.target.value) : null,
+                  e.target.value ? Number(e.target.value) : null
                 )
               }
               placeholder="Use Default Parameters"

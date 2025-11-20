@@ -5,7 +5,7 @@ import Protocol from "@/protocols/protocol";
 
 export async function getRunAttributes(
   runInfo: any,
-  commandInfo: any,
+  commandInfo: any
 ): Promise<{
   runId: string;
   runName: string;
@@ -93,7 +93,7 @@ export async function getRunAttributes(
 export function calculateRunTimes(
   runAttributes: any,
   currentTime: moment.Moment,
-  runCommands: RunCommand[] = [],
+  runCommands: RunCommand[] = []
 ) {
   let runStart = moment(runAttributes.createdAt);
   let runEnd: moment.Moment;
@@ -147,7 +147,7 @@ export function calculateRunCompletion(commands: RunCommand[]): number {
   if (!commands.length) return 0;
 
   const completedCommands = commands.filter(
-    (cmd) => cmd.status === "COMPLETED" || cmd.status === "FAILED",
+    (cmd) => cmd.status === "COMPLETED" || cmd.status === "FAILED"
   ).length;
 
   return (completedCommands / commands.length) * 100;

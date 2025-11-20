@@ -60,7 +60,7 @@ export const LabwareModal: React.FC = () => {
     } catch (error) {
       errorToast(
         "Error saving labware",
-        error instanceof Error ? error.message : "An error occurred",
+        error instanceof Error ? error.message : "An error occurred"
       );
     }
     setIsLoading(false);

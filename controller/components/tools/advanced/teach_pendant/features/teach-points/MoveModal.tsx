@@ -22,7 +22,7 @@ interface MoveModalProps {
   onMove: (
     point: TeachPoint,
     profile: MotionProfile,
-    action?: "approach" | "leave",
+    action?: "approach" | "leave"
   ) => void;
   action?: "approach" | "leave";
   config: any;
@@ -37,13 +37,13 @@ export const MoveModal: React.FC<MoveModalProps> = ({
   config,
 }) => {
   const [selectedProfileId, setSelectedProfileId] = useState<number | null>(
-    null,
+    null
   );
 
   const handleMove = () => {
     if (!selectedProfileId) return;
     const profile = config.motionProfiles?.find(
-      (p: MotionProfile) => p.id === selectedProfileId,
+      (p: MotionProfile) => p.id === selectedProfileId
     );
     if (!profile) return;
     onMove(point, profile, action);

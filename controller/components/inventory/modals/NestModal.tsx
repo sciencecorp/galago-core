@@ -69,10 +69,10 @@ const NestModal: React.FC<NestModalProps> = ({
   containerId,
 }) => {
   const [localSelectedNests, setLocalSelectedNests] = useState<number[]>(
-    selectedNests || [],
+    selectedNests || []
   );
   const [dimensionMode, setDimensionMode] = useState<"row" | "column">(
-    "column",
+    "column"
   );
   const [triggerToolCommand, setTriggerToolCommand] = useState(false);
   const isLiconic = toolType?.toLowerCase() === "liconic";
@@ -124,7 +124,7 @@ const NestModal: React.FC<NestModalProps> = ({
         if (maxSelections && localSelectedNests.length >= maxSelections) {
           warningToast(
             "Selection limit reached",
-            `You can only select up to ${maxSelections} nest${maxSelections > 1 ? "s" : ""}`,
+            `You can only select up to ${maxSelections} nest${maxSelections > 1 ? "s" : ""}`
           );
           return;
         }
@@ -163,7 +163,7 @@ const NestModal: React.FC<NestModalProps> = ({
 
   const handleDimensionChange = async (
     type: "row" | "column",
-    operation: "add" | "remove",
+    operation: "add" | "remove"
   ) => {
     try {
       const currentMax = type === "row" ? maxRows : maxColumns;
@@ -173,13 +173,13 @@ const NestModal: React.FC<NestModalProps> = ({
         const nestsToDelete = nests.filter((nest) =>
           type === "row"
             ? nest.row === targetIndex
-            : nest.column === targetIndex,
+            : nest.column === targetIndex
         );
 
         if (nestsToDelete.length === 0) {
           warningToast(
             "No nests to remove",
-            `No nests found in the last ${type}`,
+            `No nests found in the last ${type}`
           );
           return;
         }
@@ -206,7 +206,7 @@ const NestModal: React.FC<NestModalProps> = ({
     } catch (error) {
       errorToast(
         "Error modifying grid",
-        "Failed to modify the grid dimensions",
+        "Failed to modify the grid dimensions"
       );
     }
   };
@@ -366,7 +366,7 @@ const NestModal: React.FC<NestModalProps> = ({
                   }
                   onClick={() =>
                     setDimensionMode((prev) =>
-                      prev === "column" ? "row" : "column",
+                      prev === "column" ? "row" : "column"
                     )
                   }
                   color={textColor}
@@ -500,7 +500,7 @@ const NestModal: React.FC<NestModalProps> = ({
                   {Array.from({ length: maxRows }, (_, rowIndex) =>
                     Array.from({ length: maxColumns }, (_, colIndex) => {
                       const nest = nests.find(
-                        (n) => n.row === rowIndex && n.column === colIndex,
+                        (n) => n.row === rowIndex && n.column === colIndex
                       );
 
                       if (!nest) {
@@ -519,7 +519,7 @@ const NestModal: React.FC<NestModalProps> = ({
                       }
 
                       return renderNestContent(nest);
-                    }),
+                    })
                   )}
                 </Grid>
               </VStack>

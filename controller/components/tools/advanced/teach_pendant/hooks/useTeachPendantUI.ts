@@ -20,13 +20,13 @@ export const useTeachPendantUI = (config: Tool) => {
   const [selectedGripParams, setSelectedGripParams] =
     useState<GripParams | null>(null);
   const [selectedSequence, setSelectedSequence] = useState<Sequence | null>(
-    null,
+    null
   );
 
   // UI state
   const [activeTab, setActiveTab] = useState(0);
   const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>(
-    {},
+    {}
   );
   const [jogEnabled, setJogEnabled] = useState(false);
   const [jogAxis, setJogAxis] = useState<string>("1");

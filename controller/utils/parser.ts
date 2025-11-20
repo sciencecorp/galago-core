@@ -1,6 +1,6 @@
 export const convertArrayToString = (
   array: number[] | string[],
-  maxLength: number,
+  maxLength: number
 ): string => {
   const stringArray = array.map((val) => val.toString());
   const commaSeparatedString = stringArray.join(", ");

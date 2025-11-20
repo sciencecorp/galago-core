@@ -155,7 +155,7 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
               <Box bottom={0} position="sticky">
                 <Text>
                   {capitalizeFirst(
-                    command.commandInfo.command.replaceAll("_", " "),
+                    command.commandInfo.command.replaceAll("_", " ")
                   )}
                 </Text>
               </Box>
@@ -174,7 +174,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [addCommandPosition, setAddCommandPosition] = useState<number | null>(
-    null,
+    null
   );
   const [selectedCommand, setSelectedCommand] = useState<any | null>(null);
   const {
@@ -198,11 +198,11 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const { data: workcells } = trpc.workcell.getAll.useQuery();
   const { data: fetchedIds } = trpc.tool.availableIDs.useQuery({
     workcellId: workcells?.find(
-      (workcell) => workcell.name === selectedWorkcellData,
+      (workcell) => workcell.name === selectedWorkcellData
     )?.id,
   });
   const [commandToDeleteIndex, setCommandToDeleteIndex] = useState<any | null>(
-    null,
+    null
   );
   const {
     isOpen: isDeleteConfirmOpen,
@@ -341,7 +341,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
 
       successToast(
         "Protocol Exported",
-        `${protocol.name} has been exported successfully`,
+        `${protocol.name} has been exported successfully`
       );
     } catch (error: any) {
       errorToast("Export Failed", error.message || "Failed to export protocol");
@@ -402,8 +402,8 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const handleUpdateCommand = (updatedCommand: any) => {
     setCommands((prevCommands) =>
       prevCommands.map((cmd) =>
-        cmd.queueId === updatedCommand.queueId ? updatedCommand : cmd,
-      ),
+        cmd.queueId === updatedCommand.queueId ? updatedCommand : cmd
+      )
     );
   };
 
@@ -419,7 +419,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
 
   const renderDraggableCommands = (
     provided: DroppableProvided,
-    snapshot: DroppableStateSnapshot,
+    snapshot: DroppableStateSnapshot
   ) => {
     if (commands.length === 0 && isEditing) {
       return (
@@ -451,7 +451,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
           >
             {(
               provided: DraggableProvided,
-              snapshot: DraggableStateSnapshot,
+              snapshot: DraggableStateSnapshot
             ) => (
               <HStack
                 ref={provided.innerRef}

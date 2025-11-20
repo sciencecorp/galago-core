@@ -63,7 +63,7 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
     if (file.size > maxSizeInBytes) {
       errorToast(
         "File too large",
-        `File size must be under 25MB. Selected file is ${(file.size / (1024 * 1024)).toFixed(2)}MB`,
+        `File size must be under 25MB. Selected file is ${(file.size / (1024 * 1024)).toFixed(2)}MB`
       );
       // Clear the input
       e.target.value = "";
@@ -83,7 +83,7 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
       console.error("Error reading file:", error);
       errorToast(
         "Error reading file",
-        "Failed to read the selected file. Please try again.",
+        "Failed to read the selected file. Please try again."
       );
     }
   };
@@ -343,7 +343,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
         console.error("Error updating mapped variables:", error);
         errorToast(
           "Error updating variables",
-          "Failed to update mapped variables. Please try again.",
+          "Failed to update mapped variables. Please try again."
         );
       }
     }
@@ -355,7 +355,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
 
     // Get all fields with mapped variables
     const fieldsWithMappedVariables = form.fields.filter(
-      (field) => field.mapped_variable && field.mapped_variable.trim() !== "",
+      (field) => field.mapped_variable && field.mapped_variable.trim() !== ""
     );
 
     if (fieldsWithMappedVariables.length === 0) {
@@ -373,7 +373,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
 
       // Find existing variable
       const existingVariable = variablesQuery.data?.find(
-        (v) => v.name === variableName,
+        (v) => v.name === variableName
       );
 
       // Convert all values to strings as specified

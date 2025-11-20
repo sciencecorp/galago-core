@@ -34,7 +34,7 @@ interface ToolStatusCardsProps {
 }
 
 export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (
-  props,
+  props
 ) => {
   const [toolIds, setToolIds] = useState<string[]>([]);
   const { data: selectedWorkcellData, refetch: refetchWorkcell } =
@@ -51,7 +51,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (
   const [thisWorkcellTools, setThisWorkcellTools] = useState<Tool[]>([]);
   const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({
     workcellId: workcells?.find(
-      (workcell) => workcell.name === selectedWorkcellData,
+      (workcell) => workcell.name === selectedWorkcellData
     )?.id,
   });
 
@@ -69,7 +69,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (
       if (allTools) {
         // Create a separate configuration instance for each tool to properly handle errors
         const configureToolWithErrorHandling = async (
-          tool: (typeof allTools)[0],
+          tool: (typeof allTools)[0]
         ) => {
           const toolId = tool.name.toLocaleLowerCase().replaceAll(" ", "_");
 
@@ -121,17 +121,17 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (
         if (results.failed.length > 0 && results.success.length > 0) {
           infoToast(
             "Connection Process Complete",
-            `Connected ${results.success.length} tools, failed to connect ${results.failed.length} tools.`,
+            `Connected ${results.success.length} tools, failed to connect ${results.failed.length} tools.`
           );
         } else if (results.failed.length > 0) {
           errorToast(
             "Connection Process Failed",
-            `Failed to connect any tools. Check individual error messages.`,
+            `Failed to connect any tools. Check individual error messages.`
           );
         } else if (results.success.length > 0) {
           successToast(
             "Connection Process Successful",
-            `Successfully connected all ${results.success.length} tools.`,
+            `Successfully connected all ${results.success.length} tools.`
           );
         }
 
@@ -145,7 +145,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (
 
       errorToast(
         "Connection Process Error",
-        "An unexpected error occurred during the connection process.",
+        "An unexpected error occurred during the connection process."
       );
     } finally {
       setConnectingLoading(false);
@@ -214,8 +214,8 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (
                       const searchTerm = e.target.value.toLowerCase();
                       setToolIds(
                         fetchedIds?.filter((id) =>
-                          id.toLowerCase().includes(searchTerm),
-                        ) || [],
+                          id.toLowerCase().includes(searchTerm)
+                        ) || []
                       );
                     }}
                     bg={tableBgColor}

@@ -74,7 +74,7 @@ export const formRouter = router({
       z.object({
         id: z.number(),
         data: zFormUpdate,
-      }),
+      })
     )
     .mutation(async ({ input }) => {
       const { id, data } = input;

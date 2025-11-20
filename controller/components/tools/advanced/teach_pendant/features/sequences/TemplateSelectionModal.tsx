@@ -44,7 +44,7 @@ export const TemplateSelectionModal: React.FC<TemplateModalProps> = ({
       selectedTemplate,
       safeLocation,
       nestLocation,
-      labware,
+      labware
     );
     onTemplateSelect(commands);
     onClose();
@@ -77,7 +77,7 @@ export const TemplateSelectionModal: React.FC<TemplateModalProps> = ({
                     {teachPoints
                       .filter(
                         (p) =>
-                          !p.name.includes("safe") && !p.name.includes("Safe"),
+                          !p.name.includes("safe") && !p.name.includes("Safe")
                       )
                       .map((point) => (
                         <option key={point.id} value={point.name}>
@@ -97,7 +97,7 @@ export const TemplateSelectionModal: React.FC<TemplateModalProps> = ({
                     {teachPoints
                       .filter(
                         (p) =>
-                          p.name.includes("safe") || p.name.includes("Safe"),
+                          p.name.includes("safe") || p.name.includes("Safe")
                       )
                       .map((point) => (
                         <option key={point.id} value={point.name}>
