@@ -48,8 +48,12 @@ const styles = {
 
 export default function Nav() {
   const router = useRouter();
-  const breadcrumbs: { href?: string; title: string }[] = [{ href: "/", title: "Home" }];
-  const tabIndex = TabPages.findIndex(({ href }) => router.route.indexOf(href) === 0);
+  const breadcrumbs: { href?: string; title: string }[] = [
+    { href: "/", title: "Home" },
+  ];
+  const tabIndex = TabPages.findIndex(
+    ({ href }) => router.route.indexOf(href) === 0,
+  );
   const selectedTab = tabIndex >= 0 ? TabPages[tabIndex] : undefined;
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
   const { lastClickedSubtab, setLastClickedSubtab } = useSidebar();
@@ -61,7 +65,10 @@ export default function Nav() {
   if (selectedTab) {
     if (router.route !== selectedTab.href) {
       breadcrumbs.push(selectedTab);
-      breadcrumbs.push({ title: `${router.asPath.split("/").pop()}`, href: "#" });
+      breadcrumbs.push({
+        title: `${router.asPath.split("/").pop()}`,
+        href: "#",
+      });
     } else {
       breadcrumbs.push({ title: selectedTab.title, href: "#" });
     }
@@ -76,9 +83,12 @@ export default function Nav() {
         spacing={4}
         width={"100%"}
         height="45px"
-        className={process.env.appMode == "PROD" ? "production-nav" : "development-nav"}
+        className={
+          process.env.appMode == "PROD" ? "production-nav" : "development-nav"
+        }
         bg={bgColor}
-        color={textColor}>
+        color={textColor}
+      >
         <Link href="/" passHref>
           <Image width="50px" paddingLeft="5" src="/site_logo.svg" alt="logo" />
         </Link>
@@ -86,7 +96,10 @@ export default function Nav() {
           {breadcrumbs.map((breadcrumb) => {
             const isCurrentPage = breadcrumb.href === "#";
             return (
-              <BreadcrumbItem key={breadcrumb.href} isCurrentPage={isCurrentPage}>
+              <BreadcrumbItem
+                key={breadcrumb.href}
+                isCurrentPage={isCurrentPage}
+              >
                 {isCurrentPage ? (
                   <BreadcrumbLink>{breadcrumb.title}</BreadcrumbLink>
                 ) : (
@@ -99,7 +112,10 @@ export default function Nav() {
           })}
         </Breadcrumb>
         <Flex justifyContent="center" width="100%" marginLeft="-15%">
-          <Tabs index={tabIndex} onChange={(index) => router.push(TabPages[index].href)}>
+          <Tabs
+            index={tabIndex}
+            onChange={(index) => router.push(TabPages[index].href)}
+          >
             <TabList>
               {TabPages.map(({ title, href }) => (
                 <Tab key={href}>{title}</Tab>

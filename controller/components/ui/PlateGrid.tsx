@@ -1,5 +1,11 @@
 import React from "react";
-import { Grid, Box, Tooltip, VStack, useColorModeValue } from "@chakra-ui/react";
+import {
+  Grid,
+  Box,
+  Tooltip,
+  VStack,
+  useColorModeValue,
+} from "@chakra-ui/react";
 
 interface PlateGridProps {
   plateType: string;
@@ -79,9 +85,11 @@ export const PlateGrid: React.FC<PlateGridProps> = ({
     .map(() => Array(cols).fill(null));
 
   wells.forEach((well) => {
-    const rowIndex = typeof well.row === "string" ? well.row.charCodeAt(0) - 65 : well.row;
+    const rowIndex =
+      typeof well.row === "string" ? well.row.charCodeAt(0) - 65 : well.row;
 
-    const colIndex = typeof well.column === "number" ? well.column - 1 : well.column;
+    const colIndex =
+      typeof well.column === "number" ? well.column - 1 : well.column;
 
     if (rowIndex >= 0 && rowIndex < rows && colIndex >= 0 && colIndex < cols) {
       wellGrid[rowIndex][colIndex] = well;
@@ -109,7 +117,13 @@ export const PlateGrid: React.FC<PlateGridProps> = ({
     return (
       <Tooltip key={well.id} label={tooltipLabel}>
         <Box
-          bg={isSelected ? styles.selectedColor : hasReagent ? "green.200" : "transparent"}
+          bg={
+            isSelected
+              ? styles.selectedColor
+              : hasReagent
+                ? "green.200"
+                : "transparent"
+          }
           border="1px solid"
           borderColor={isSelected ? "blue.400" : borderColor}
           borderRadius={styles.shape === "circle" ? "full" : "md"}
@@ -121,7 +135,11 @@ export const PlateGrid: React.FC<PlateGridProps> = ({
           alignItems="center"
           justifyContent="center"
           _hover={{
-            bg: isSelected ? styles.selectedColor : hasReagent ? "green.300" : styles.hoverColor,
+            bg: isSelected
+              ? styles.selectedColor
+              : hasReagent
+                ? "green.300"
+                : styles.hoverColor,
           }}
           transition="all 0.2s"
         />
@@ -137,8 +155,13 @@ export const PlateGrid: React.FC<PlateGridProps> = ({
         borderRadius="md"
         p={2}
         width={`${totalWidth + 16}px`} // Add 16px for padding (8px on each side)
-        height={`${totalHeight + 16}px`}>
-        <Grid templateColumns={`repeat(${cols}, ${wellSize}px)`} gap={spacing} w="fit-content">
+        height={`${totalHeight + 16}px`}
+      >
+        <Grid
+          templateColumns={`repeat(${cols}, ${wellSize}px)`}
+          gap={spacing}
+          w="fit-content"
+        >
           {Array.from({ length: rows }).map((_, rowIndex) =>
             Array.from({ length: cols }).map((_, colIndex) => {
               const well = wellGrid[rowIndex][colIndex];

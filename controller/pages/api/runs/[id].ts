@@ -2,7 +2,10 @@ import RunStore from "@/server/runs";
 import { Run } from "@/types";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-export default function runsHandler(req: NextApiRequest, res: NextApiResponse<Run>) {
+export default function runsHandler(
+  req: NextApiRequest,
+  res: NextApiResponse<Run>,
+) {
   const { query, method } = req;
   const id = String(query.id);
 

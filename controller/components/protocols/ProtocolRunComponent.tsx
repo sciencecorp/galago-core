@@ -24,7 +24,10 @@ export function ProtocolRunComponent({ id }: { id: string }) {
   if (run.isError) return <div>Error: {run.error.message}</div>;
 
   const commandList = run.data?.commands || [];
-  const durationSum = commandList.reduce((acc, cur) => acc + (cur.estimatedDuration ?? 0), 0);
+  const durationSum = commandList.reduce(
+    (acc, cur) => acc + (cur.estimatedDuration ?? 0),
+    0,
+  );
 
   return (
     <VStack align="start" spacing={8} width="100%">
@@ -33,7 +36,9 @@ export function ProtocolRunComponent({ id }: { id: string }) {
         <HStack spacing={2}>
           <Text>Duration:</Text>
           <Tag>
-            {moment.utc(moment.duration(durationSum, "seconds").asMilliseconds()).format("H:mm:ss")}
+            {moment
+              .utc(moment.duration(durationSum, "seconds").asMilliseconds())
+              .format("H:mm:ss")}
           </Tag>
         </HStack>
       </HStack>

@@ -4,6 +4,106 @@ PROTOC_GEN_TS_PATH=".\\controller\\node_modules\\.bin\\protoc-gen-ts_proto"
 PROTO_SRC="./interfaces"
 ENV_NAME="galago-core" 
 
+#Docker commands
+
+prod() {
+  echo "Starting production containers..."
+  docker-compose up --build -d
+  echo "✅ Production containers started!"
+}
+
+dev_up() {
+  echo "Starting dev containers..."
+  docker-compose -f docker-compose.dev.yml up --build
+  echo "✅ Dev containers started!"
+}
+
+dev_rebuild() {
+  echo "Rebuilding dev containers..."
+  docker-compose -f docker-compose.dev.yml down
+  docker-compose -f docker-compose.dev.yml build
+  docker-compose -f docker-compose.dev.yml up --build
+  echo "✅ Dev containers rebuilt and started!"
+}
+
+dev_down() {
+  echo "Stopping dev containers..."
+  docker-compose -f docker-compose.dev.yml down
+  echo "✅ Dev containers stopped!"
+}
+
+dev_logs() {
+  docker-compose -f docker-compose.dev.yml logs -f
+}
+
+shell_node() {
+  echo "Opening shell in Node container..."
+  docker-compose -f docker-compose.dev.yml exec galago-web-dev sh
+}
+
+shell_python() {
+  echo "Opening shell in Python container..."
+  docker-compose -f docker-compose.dev.yml exec galago-db-dev sh
+}
+
+test_docker() {
+  echo "Running all tests in Docker dev containers..."
+  test_docker_node
+  test_docker_python
+  echo "✅ All Docker tests passed!"
+}
+
+test_docker_node() {
+  echo "Running Node tests in dev container..."
+  docker compose exec galago-web-dev test
+  if [ $? -eq 0 ]; then
+    echo "✅ Node tests passed!"
+  else
+    echo "❌ Node tests failed"
+    return 1
+  fi
+}
+
+test_docker_python() {
+  echo "Running Python tests in dev container..."
+  docker compose exec db test
+  if [ $? -eq 0 ]; then
+    echo "✅ Python tests passed!"
+  else
+    echo "❌ Python tests failed"
+    return 1
+  fi
+}
+
+format_docker() {
+  echo "Formatting all code in Docker dev containers..."
+  format_docker_node
+  format_docker_python
+  echo "✅ All code formatted!"
+}
+
+format_docker_node() {
+  echo "Formatting Node code in dev container..."
+  docker compose exec galago-web-dev format
+  if [ $? -eq 0 ]; then
+    echo "✅ Node code formatted!"
+  else
+    echo "❌ Node formatting failed"
+    return 1
+  fi
+}
+
+format_docker_python() {
+  echo "Formatting Python code in dev container..."
+  docker compose exec db format
+  if [ $? -eq 0 ]; then
+    echo "✅ Python code formatted!"
+  else
+    echo "❌ Python formatting failed"
+    return 1
+  fi
+}
+
 # Install dependencies for tool servers, controller, and protobuf generator
 deps() {
   python_deps
@@ -149,7 +249,40 @@ done
 
 if [ $# -eq 0 ]; then
   echo "No command specified, available commands:"
-  for cmd in $(compgen -A function | grep -E '^'); do
-    echo "  ${cmd#}"
-  done
+  echo ""
+  echo "🐳 Development Containers:"
+  echo "  dev_up             - Start dev containers"
+  echo "  dev_down           - Stop dev containers"
+  echo "  dev_rebuild        - Rebuild and restart containers"
+  echo "  dev_logs           - Follow container logs"
+  echo "  shell_node         - Open shell in Node container"
+  echo "  shell_python       - Open shell in Python container"
+  echo ""
+  echo "🧪 Docker Tests (in dev containers):"
+  echo "  test_docker        - Run all tests in Docker"
+  echo "  test_docker_node   - Run Node.js tests in Docker"
+  echo "  test_docker_python - Run Python tests in Docker"
+  echo ""
+  echo "✨ Docker Formatting (in dev containers):"
+  echo "  format_docker        - Format all code in Docker"
+  echo "  format_docker_node   - Format Node.js code in Docker"
+  echo "  format_docker_python - Format Python code in Docker"
+  echo ""
+  echo "💻 Native Tests (local):"
+  echo "  test               - Run all native tests"
+  echo "  test_ts            - Run Node.js tests natively"
+  echo "  test_py            - Run Python linting/type checks"
+  echo "  unittest_py        - Run Python unit tests"
+  echo ""
+  echo "✨ Native Formatting (local):"
+  echo "  format             - Format all code natively"
+  echo "  format_ts          - Format TypeScript natively"
+  echo "  format_py          - Format Python natively"
+  echo ""
+  echo "🔧 Other Commands:"
+  echo "  deps               - Install all dependencies"
+  echo "  build_env          - Create conda environment"
+  echo "  proto              - Generate protobuf files"
+  echo "  build_prod         - Build production assets"
+  echo "  redis              - Install/start Redis (Mac only)"
 fi

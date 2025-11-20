@@ -22,7 +22,11 @@ import { Form } from "@/types";
 import { CreateFormModal } from "./createFormModal";
 
 export const Forms = () => {
-  const { data: fetchedForms, isLoading, refetch } = trpc.form.getAll.useQuery();
+  const {
+    data: fetchedForms,
+    isLoading,
+    refetch,
+  } = trpc.form.getAll.useQuery();
 
   const headerBg = useColorModeValue("white", "gray.700");
   const [forms, setForms] = useState<Form[]>([]);
@@ -64,7 +68,9 @@ export const Forms = () => {
               <PageHeader
                 title="Forms"
                 subTitle="Create and manage your forms"
-                titleIcon={<Icon as={FaRegListAlt} boxSize={8} color="teal.500" />}
+                titleIcon={
+                  <Icon as={FaRegListAlt} boxSize={8} color="teal.500" />
+                }
                 mainButton={<CreateFormModal />}
               />
               <Divider />
@@ -79,7 +85,9 @@ export const Forms = () => {
                 </Stat>
                 <Stat>
                   <StatLabel>Selected Form</StatLabel>
-                  <StatNumber fontSize="lg">{stats.selectedFormName}</StatNumber>
+                  <StatNumber fontSize="lg">
+                    {stats.selectedFormName}
+                  </StatNumber>
                 </Stat>
               </StatGroup>
             </VStack>

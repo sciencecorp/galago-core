@@ -151,12 +151,18 @@ export const generateSequenceFromTemplate = (
     console.error(`Template "${id}" not found.`);
     return [];
   }
-  const commands = JSON.parse(JSON.stringify(template.commands)) as SequenceCommand[];
+  const commands = JSON.parse(
+    JSON.stringify(template.commands),
+  ) as SequenceCommand[];
   commands.forEach((cmd) => {
     if (cmd.command === "move") {
       cmd.params.location = safeLocation;
     }
-    if (["dropoff_plate", "retrieve_plate", "pick_lid", "place_lid"].includes(cmd.command)) {
+    if (
+      ["dropoff_plate", "retrieve_plate", "pick_lid", "place_lid"].includes(
+        cmd.command,
+      )
+    ) {
       cmd.params.location = nestLocation;
       cmd.params.labware = labwareId;
     }

@@ -1,6 +1,11 @@
 import { ToolType } from "gen-interfaces/controller";
 
-export type RunStatus = "CREATED" | "STARTED" | "FAILED" | "COMPLETED" | "SKIPPED";
+export type RunStatus =
+  | "CREATED"
+  | "STARTED"
+  | "FAILED"
+  | "COMPLETED"
+  | "SKIPPED";
 
 export interface HasRunStatus {
   status: RunStatus;

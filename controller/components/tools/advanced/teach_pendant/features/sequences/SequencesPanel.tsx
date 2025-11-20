@@ -30,7 +30,13 @@ import {
   Text,
   Select,
 } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon, CopyIcon } from "@chakra-ui/icons";
+import {
+  AddIcon,
+  DeleteIcon,
+  EditIcon,
+  HamburgerIcon,
+  CopyIcon,
+} from "@chakra-ui/icons";
 import { FaPlay } from "react-icons/fa";
 import { Tool } from "@/types/api";
 import { CommandList } from "./CommandList";
@@ -73,10 +79,16 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
   bgColorAlpha,
   config,
 }) => {
-  const [selectedSequence, setSelectedSequence] = useState<Sequence | null>(null);
-  const [sequenceToDelete, setSequenceToDelete] = useState<Sequence | null>(null);
+  const [selectedSequence, setSelectedSequence] = useState<Sequence | null>(
+    null,
+  );
+  const [sequenceToDelete, setSequenceToDelete] = useState<Sequence | null>(
+    null,
+  );
   const [sequenceToRun, setSequenceToRun] = useState<Sequence | null>(null);
-  const [expandedCommandIndex, setExpandedCommandIndex] = useState<number | null>(null);
+  const [expandedCommandIndex, setExpandedCommandIndex] = useState<
+    number | null
+  >(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
   const runConfirmRef = useRef<HTMLButtonElement>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -134,7 +146,9 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
   // Update selected sequence when sequences change
   useEffect(() => {
     if (selectedSequence) {
-      const updatedSequence = sequences.find((seq) => seq.id === selectedSequence.id);
+      const updatedSequence = sequences.find(
+        (seq) => seq.id === selectedSequence.id,
+      );
       // Only update if the found sequence is different from the current selectedSequence.
       if (updatedSequence && updatedSequence !== selectedSequence) {
         setSelectedSequence(updatedSequence);
@@ -177,7 +191,9 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
       if (selectedSequence?.id === sequenceToDelete.id) {
         // Select another sequence if available after deletion
         if (sequences.length > 1) {
-          const nextSequence = sequences.find((seq) => seq.id !== sequenceToDelete.id);
+          const nextSequence = sequences.find(
+            (seq) => seq.id !== sequenceToDelete.id,
+          );
           if (nextSequence) {
             setSelectedSequence(nextSequence);
           }
@@ -211,10 +227,16 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
               size="sm"
               onClick={onDeleteAll}
               colorScheme="red"
-              variant="outline">
+              variant="outline"
+            >
               Delete All
             </Button>
-            <Button leftIcon={<AddIcon />} size="sm" onClick={onCreateNew} colorScheme="blue">
+            <Button
+              leftIcon={<AddIcon />}
+              size="sm"
+              onClick={onCreateNew}
+              colorScheme="blue"
+            >
               New Sequence
             </Button>
           </HStack>
@@ -229,7 +251,8 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                   borderWidth="1px"
                   borderRadius="md"
                   borderColor={borderColor}
-                  boxShadow={panelShadowColor}>
+                  boxShadow={panelShadowColor}
+                >
                   <Table
                     variant="simple"
                     size="sm"
@@ -250,7 +273,8 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                         borderColor: borderColor,
                         color: textColor,
                       },
-                    }}>
+                    }}
+                  >
                     <Thead position="sticky" top={0} zIndex={1}>
                       <Tr>
                         <Th bg={headerBgColor} color={textColor}>
@@ -259,7 +283,12 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                         <Th bg={headerBgColor} color={textColor}>
                           Labware
                         </Th>
-                        <Th textAlign="right" width="80px" bg={headerBgColor} color={textColor}>
+                        <Th
+                          textAlign="right"
+                          width="80px"
+                          bg={headerBgColor}
+                          color={textColor}
+                        >
                           Actions
                         </Th>
                       </Tr>
@@ -270,15 +299,25 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                           key={sequence.id}
                           onClick={() => handleSequenceClick(sequence)}
                           cursor="pointer"
-                          bg={selectedSequence?.id === sequence.id ? bgColorAlpha : "transparent"}
-                          _hover={{ bg: hoverBgColor }}>
+                          bg={
+                            selectedSequence?.id === sequence.id
+                              ? bgColorAlpha
+                              : "transparent"
+                          }
+                          _hover={{ bg: hoverBgColor }}
+                        >
                           <Td>
                             <EditableText
                               defaultValue={sequence.name}
-                              preview={<Text fontSize="xs">{sequence.name}</Text>}
+                              preview={
+                                <Text fontSize="xs">{sequence.name}</Text>
+                              }
                               onSubmit={(value) => {
                                 if (value) {
-                                  handleSequenceUpdate({ ...sequence, name: value });
+                                  handleSequenceUpdate({
+                                    ...sequence,
+                                    name: value,
+                                  });
                                 }
                               }}
                             />
@@ -291,10 +330,17 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                                   value: item.name,
                                 })) || []
                               }
-                              preview={<Text fontSize="xs">{sequence.labware || "default"}</Text>}
+                              preview={
+                                <Text fontSize="xs">
+                                  {sequence.labware || "default"}
+                                </Text>
+                              }
                               onSubmit={async (value) => {
                                 if (value) {
-                                  handleSequenceUpdate({ ...sequence, labware: value });
+                                  handleSequenceUpdate({
+                                    ...sequence,
+                                    labware: value,
+                                  });
                                 }
                               }}
                             />
@@ -314,19 +360,24 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                                 <MenuList onClick={(e) => e.stopPropagation()}>
                                   <MenuItem
                                     icon={<FaPlay />}
-                                    onClick={() => setSequenceToRun(sequence)}>
+                                    onClick={() => setSequenceToRun(sequence)}
+                                  >
                                     Run Sequence
                                   </MenuItem>
                                   <MenuItem
                                     icon={<CopyIcon />}
-                                    onClick={() => handleCloneSequence(sequence)}>
+                                    onClick={() =>
+                                      handleCloneSequence(sequence)
+                                    }
+                                  >
                                     Clone Sequence
                                   </MenuItem>
                                   <MenuDivider />
                                   <MenuItem
                                     icon={<DeleteIcon />}
                                     color="red.500"
-                                    onClick={() => handleDeleteClick(sequence)}>
+                                    onClick={() => handleDeleteClick(sequence)}
+                                  >
                                     Delete Sequence
                                   </MenuItem>
                                 </MenuList>
@@ -356,7 +407,10 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                           commands: updatedCommands,
                         });
                       } catch (error) {
-                        console.error("Failed to update sequence commands:", error);
+                        console.error(
+                          "Failed to update sequence commands:",
+                          error,
+                        );
                       }
                     }}
                     onSequenceNameChange={async (newName) => {
@@ -376,13 +430,18 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                           labware: newLabware,
                         });
                       } catch (error) {
-                        console.error("Failed to update sequence labware:", error);
+                        console.error(
+                          "Failed to update sequence labware:",
+                          error,
+                        );
                       }
                     }}
                     expandedCommandIndex={expandedCommandIndex}
                     onCommandClick={(index) => {
                       if (!isEditing) {
-                        setExpandedCommandIndex(expandedCommandIndex === index ? null : index);
+                        setExpandedCommandIndex(
+                          expandedCommandIndex === index ? null : index,
+                        );
                       }
                     }}
                     config={config}
@@ -416,15 +475,16 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
       <AlertDialog
         isOpen={sequenceToDelete !== null}
         leastDestructiveRef={cancelRef}
-        onClose={() => setSequenceToDelete(null)}>
+        onClose={() => setSequenceToDelete(null)}
+      >
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
               Delete Sequence
             </AlertDialogHeader>
             <AlertDialogBody>
-              Are you sure you want to delete the sequence &quot;{sequenceToDelete?.name}&quot;?
-              This action cannot be undone.
+              Are you sure you want to delete the sequence &quot;
+              {sequenceToDelete?.name}&quot;? This action cannot be undone.
             </AlertDialogBody>
             <AlertDialogFooter>
               <Button ref={cancelRef} onClick={() => setSequenceToDelete(null)}>
@@ -442,7 +502,8 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
       <AlertDialog
         isOpen={sequenceToRun !== null}
         leastDestructiveRef={runConfirmRef}
-        onClose={() => setSequenceToRun(null)}>
+        onClose={() => setSequenceToRun(null)}
+      >
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
@@ -452,7 +513,8 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
               {sequenceToRun?.commands && sequenceToRun.commands.length > 0 ? (
                 <Box>
                   <Text>
-                    Are you sure you want to run the sequence &quot;{sequenceToRun?.name}&quot;?
+                    Are you sure you want to run the sequence &quot;
+                    {sequenceToRun?.name}&quot;?
                   </Text>
                   This sequence contains {sequenceToRun.commands.length} command
                   {sequenceToRun.commands.length !== 1 ? "s" : ""}.
@@ -464,11 +526,17 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
               )}
             </AlertDialogBody>
             <AlertDialogFooter>
-              <Button ref={runConfirmRef} onClick={() => setSequenceToRun(null)}>
+              <Button
+                ref={runConfirmRef}
+                onClick={() => setSequenceToRun(null)}
+              >
                 Cancel
               </Button>
               <Button
-                isDisabled={!sequenceToRun?.commands || sequenceToRun.commands.length === 0}
+                isDisabled={
+                  !sequenceToRun?.commands ||
+                  sequenceToRun.commands.length === 0
+                }
                 colorScheme="blue"
                 onClick={() => {
                   if (sequenceToRun) {
@@ -476,7 +544,8 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                     setSequenceToRun(null);
                   }
                 }}
-                ml={3}>
+                ml={3}
+              >
                 Run
               </Button>
             </AlertDialogFooter>

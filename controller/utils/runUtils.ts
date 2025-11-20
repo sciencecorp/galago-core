@@ -64,7 +64,8 @@ export async function getRunAttributes(
       status = "FAILED";
     } else if (commandInfo.some((cmd) => cmd.status === "STARTED")) {
       status = "STARTED";
-      startedAt = commandInfo.find((cmd) => cmd.status === "STARTED")?.startedAt || "";
+      startedAt =
+        commandInfo.find((cmd) => cmd.status === "STARTED")?.startedAt || "";
     } else if (commandInfo.every((cmd) => cmd.status === "CREATED")) {
       status = "QUEUED";
     } else if (
@@ -100,7 +101,8 @@ export function calculateRunTimes(
 
   // Check if all commands are completed
   const isCompleted =
-    runCommands.length > 0 && runCommands[runCommands.length - 1].status === "COMPLETED";
+    runCommands.length > 0 &&
+    runCommands[runCommands.length - 1].status === "COMPLETED";
 
   if (isCompleted) {
     runEnd = moment(runCommands[runCommands.length - 1].completedAt);

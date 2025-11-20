@@ -78,7 +78,9 @@ export const WorkcellComponent = () => {
   }, [fetchedWorkcells]);
 
   const getActiveWorkcells = () => {
-    return workcells.filter((w) => selectedWorkcellName && w.name === selectedWorkcellName).length;
+    return workcells.filter(
+      (w) => selectedWorkcellName && w.name === selectedWorkcellName,
+    ).length;
   };
 
   // Create the Import button (regular size to match NewWorkcellModal button)
@@ -89,7 +91,8 @@ export const WorkcellComponent = () => {
       variant="outline"
       onClick={handleImportClick}
       isLoading={isImporting}
-      isDisabled={isImporting}>
+      isDisabled={isImporting}
+    >
       Import
     </Button>
   );
@@ -102,7 +105,8 @@ export const WorkcellComponent = () => {
       variant="outline"
       onClick={onExportConfig}
       isDisabled={!selectedWorkcellName || isExporting}
-      isLoading={isExporting}>
+      isLoading={isExporting}
+    >
       Export
     </Button>
   );
@@ -116,7 +120,9 @@ export const WorkcellComponent = () => {
               <PageHeader
                 title="Workcells"
                 subTitle="Manage and configure your workcells"
-                titleIcon={<Icon as={GiChaingun} boxSize={8} color="teal.500" />}
+                titleIcon={
+                  <Icon as={GiChaingun} boxSize={8} color="teal.500" />
+                }
                 mainButton={importButton}
                 secondaryButton={exportButton}
                 tertiaryButton={<NewWorkcellModal />}
@@ -131,7 +137,9 @@ export const WorkcellComponent = () => {
                 </Stat>
                 <Stat>
                   <StatLabel>Active Workcell</StatLabel>
-                  <StatNumber fontSize="lg">{selectedWorkcellName || "None"}</StatNumber>
+                  <StatNumber fontSize="lg">
+                    {selectedWorkcellName || "None"}
+                  </StatNumber>
                 </Stat>
               </StatGroup>
             </VStack>
@@ -153,9 +161,14 @@ export const WorkcellComponent = () => {
               columns={{ base: 1, md: 1, lg: 2, xl: 3 }}
               spacing={10}
               w="100%"
-              alignItems="stretch">
+              alignItems="stretch"
+            >
               {workcells.map((workcell) => (
-                <WorkcellCard key={workcell.id} onChange={refetch} workcell={workcell} />
+                <WorkcellCard
+                  key={workcell.id}
+                  onChange={refetch}
+                  workcell={workcell}
+                />
               ))}
             </SimpleGrid>
           </CardBody>

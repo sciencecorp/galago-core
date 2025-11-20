@@ -58,7 +58,10 @@ const customTheme = extendTheme({
             },
             _focus: {
               borderColor: props.colorMode === "dark" ? "blue.400" : "blue.500",
-              boxShadow: props.colorMode === "dark" ? "0 0 0 1px #4299E1" : "0 0 0 1px #3182CE",
+              boxShadow:
+                props.colorMode === "dark"
+                  ? "0 0 0 1px #4299E1"
+                  : "0 0 0 1px #3182CE",
             },
           },
         }),

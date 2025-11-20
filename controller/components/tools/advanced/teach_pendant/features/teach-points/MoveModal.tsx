@@ -19,7 +19,11 @@ interface MoveModalProps {
   isOpen: boolean;
   onClose: () => void;
   point: TeachPoint;
-  onMove: (point: TeachPoint, profile: MotionProfile, action?: "approach" | "leave") => void;
+  onMove: (
+    point: TeachPoint,
+    profile: MotionProfile,
+    action?: "approach" | "leave",
+  ) => void;
   action?: "approach" | "leave";
   config: any;
 }
@@ -32,11 +36,15 @@ export const MoveModal: React.FC<MoveModalProps> = ({
   action,
   config,
 }) => {
-  const [selectedProfileId, setSelectedProfileId] = useState<number | null>(null);
+  const [selectedProfileId, setSelectedProfileId] = useState<number | null>(
+    null,
+  );
 
   const handleMove = () => {
     if (!selectedProfileId) return;
-    const profile = config.motionProfiles?.find((p: MotionProfile) => p.id === selectedProfileId);
+    const profile = config.motionProfiles?.find(
+      (p: MotionProfile) => p.id === selectedProfileId,
+    );
     if (!profile) return;
     onMove(point, profile, action);
     onClose();
@@ -55,7 +63,8 @@ export const MoveModal: React.FC<MoveModalProps> = ({
               <Select
                 value={selectedProfileId || ""}
                 onChange={(e) => setSelectedProfileId(Number(e.target.value))}
-                placeholder="Select motion profile">
+                placeholder="Select motion profile"
+              >
                 {config.motionProfiles?.map((profile: MotionProfile) => (
                   <option key={profile.id} value={profile.id}>
                     {profile.name}
@@ -66,7 +75,12 @@ export const MoveModal: React.FC<MoveModalProps> = ({
           </VStack>
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={handleMove} isDisabled={!selectedProfileId}>
+          <Button
+            colorScheme="blue"
+            mr={3}
+            onClick={handleMove}
+            isDisabled={!selectedProfileId}
+          >
             Move
           </Button>
           <Button onClick={onClose}>Cancel</Button>

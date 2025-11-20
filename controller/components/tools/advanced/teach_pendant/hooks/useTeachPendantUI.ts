@@ -13,14 +13,21 @@ export const useTeachPendantUI = (config: Tool) => {
   const sequenceModal = useDisclosure();
 
   // Selected items
-  const [selectedTeachPoint, setSelectedTeachPoint] = useState<TeachPoint | null>(null);
-  const [selectedMotionProfile, setSelectedMotionProfile] = useState<MotionProfile | null>(null);
-  const [selectedGripParams, setSelectedGripParams] = useState<GripParams | null>(null);
-  const [selectedSequence, setSelectedSequence] = useState<Sequence | null>(null);
+  const [selectedTeachPoint, setSelectedTeachPoint] =
+    useState<TeachPoint | null>(null);
+  const [selectedMotionProfile, setSelectedMotionProfile] =
+    useState<MotionProfile | null>(null);
+  const [selectedGripParams, setSelectedGripParams] =
+    useState<GripParams | null>(null);
+  const [selectedSequence, setSelectedSequence] = useState<Sequence | null>(
+    null,
+  );
 
   // UI state
   const [activeTab, setActiveTab] = useState(0);
-  const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>({});
+  const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>(
+    {},
+  );
   const [jogEnabled, setJogEnabled] = useState(false);
   const [jogAxis, setJogAxis] = useState<string>("1");
   const [jogDistance, setJogDistance] = useState(1);

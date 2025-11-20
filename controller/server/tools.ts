@@ -5,7 +5,10 @@ import * as tool_base from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import * as tool_driver from "gen-interfaces/tools/grpc_interfaces/tool_driver";
 import { ToolType } from "gen-interfaces/controller";
-import { PromisifiedGrpcClient, promisifyGrpcClient } from "./utils/promisifyGrpcCall";
+import {
+  PromisifiedGrpcClient,
+  promisifyGrpcClient,
+} from "./utils/promisifyGrpcCall";
 import { setInterval, clearInterval } from "timers";
 import { get } from "@/server/utils/api";
 import { Script } from "@/types/api";
@@ -30,11 +33,15 @@ export default class Tool {
   constructor(info: controller_protos.ToolConfig) {
     this.info = info;
     this.config = info.config;
-    const grpcServerIp = info.ip === "localhost" ? "host.docker.internal" : info.ip;
+    const grpcServerIp =
+      info.ip === "localhost" ? "host.docker.internal" : info.ip;
     const target = `${grpcServerIp}:${info.port}`;
 
     this.grpc = promisifyGrpcClient(
-      new tool_driver.ToolDriverClient(target, grpc.credentials.createInsecure()),
+      new tool_driver.ToolDriverClient(
+        target,
+        grpc.credentials.createInsecure(),
+      ),
     );
   }
 
@@ -62,7 +69,10 @@ export default class Tool {
       console.error(`Failed to fetch status for tool ${this.info.name}: ${e}`);
       this.status = ToolStatus.UNKNOWN_STATUS;
       this.stopHeartbeat();
-      return { uptime: 0, status: ToolStatus.UNKNOWN_STATUS } as tool_base.StatusReply;
+      return {
+        uptime: 0,
+        status: ToolStatus.UNKNOWN_STATUS,
+      } as tool_base.StatusReply;
     }
   }
 
@@ -98,7 +108,9 @@ export default class Tool {
       return; // Only proceed if the tool is of type PF400
     }
     try {
-      const waypointsResponse = await get<any>(`/robot-arm-waypoints?tool_id=${toolId}`);
+      const waypointsResponse = await get<any>(
+        `/robot-arm-waypoints?tool_id=${toolId}`,
+      );
 
       await tool.executeCommand({
         toolId: normalizedId,
@@ -120,7 +132,10 @@ export default class Tool {
         action: "PF400 Configuration Error",
         details: `Failed to load waypoints for PF400 tool: ${toolId}. Error: ${error}`,
       });
-      console.error(`Failed to load waypoints for PF400 tool: ${toolId}`, error);
+      console.error(
+        `Failed to load waypoints for PF400 tool: ${toolId}`,
+        error,
+      );
     }
   }
 
@@ -177,7 +192,9 @@ export default class Tool {
       action: "Tool Command Execution",
       details: `Executing command: ${command.command}, Tool: ${command.toolId}, Params:${JSON.stringify(command.params).replaceAll("{", "").replaceAll("}", "")}`,
     });
-    return await Tool.forId(this.normalizeToolId(command.toolId)).executeCommand(command);
+    return await Tool.forId(
+      this.normalizeToolId(command.toolId),
+    ).executeCommand(command);
   }
 
   async executeCommand(command: ToolCommandInfo) {
@@ -189,7 +206,9 @@ export default class Tool {
       const paramValue = String(params[key]);
       if (paramValue.startsWith("{{") && paramValue.endsWith("}}")) {
         try {
-          const varValue = await get<Variable>(`/variables/${paramValue.slice(2, -2)}`);
+          const varValue = await get<Variable>(
+            `/variables/${paramValue.slice(2, -2)}`,
+          );
           params[key] = varValue.value;
         } catch (e) {
           logAction({
@@ -203,7 +222,10 @@ export default class Tool {
     }
 
     // For pf400 run_sequence commands, ensure labware parameter is never empty
-    if (command.toolType === ToolType.pf400 && command.command === "run_sequence") {
+    if (
+      command.toolType === ToolType.pf400 &&
+      command.command === "run_sequence"
+    ) {
       // If labware is undefined, null, or empty string, set it to "default"
       if (!params.labware) {
         logAction({
@@ -216,7 +238,10 @@ export default class Tool {
     }
 
     //Handle opentrons2 run_program command
-    if (command.toolType === ToolType.opentrons2 && command.command === "run_program") {
+    if (
+      command.toolType === ToolType.opentrons2 &&
+      command.command === "run_program"
+    ) {
       if (!params.script_name || params.script_name.trim() === "") {
         throw new Error("Script name is required for run_program command");
       }
@@ -329,7 +354,9 @@ export default class Tool {
       }
     }
 
-    const reply = await this.grpc.executeCommand(this._payloadForCommand(command));
+    const reply = await this.grpc.executeCommand(
+      this._payloadForCommand(command),
+    );
 
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
       // Generate a more user-friendly error message based on the error code
@@ -367,7 +394,10 @@ export default class Tool {
         details: `Failed to execute command: ${command.command}, Tool: ${command.toolId}. Error: ${userFriendlyErrorMessage} (Code: ${reply.response})`,
       });
 
-      throw new ToolCommandExecutionError(userFriendlyErrorMessage, reply.response);
+      throw new ToolCommandExecutionError(
+        userFriendlyErrorMessage,
+        reply.response,
+      );
     } else if (reply.return_reply && !reply?.error_message) {
       return reply;
     } else if (reply?.error_message) {
@@ -383,7 +413,9 @@ export default class Tool {
     }
   }
   async estimateDuration(command: ToolCommandInfo) {
-    const reply = await this.grpc.estimateDuration(this._payloadForCommand(command));
+    const reply = await this.grpc.estimateDuration(
+      this._payloadForCommand(command),
+    );
     if (reply.response !== tool_base.ResponseCode.SUCCESS) {
       throw new ToolCommandExecutionError(
         reply.error_message ?? "Estimating duration failed",
@@ -471,7 +503,9 @@ export default class Tool {
       }
       return toolModule.Config.create({});
     } catch (error) {
-      throw new Error(`Failed to load config for ToolType: ${toolTypeName}. Error: ${error}`);
+      throw new Error(
+        `Failed to load config for ToolType: ${toolTypeName}. Error: ${error}`,
+      );
     }
   }
 
@@ -482,7 +516,9 @@ export default class Tool {
     await this.removeTool(tool.name);
 
     // Update allTools list
-    this.allTools = this.allTools.filter((t) => Tool.normalizeToolId(t.name) !== normalizedName);
+    this.allTools = this.allTools.filter(
+      (t) => Tool.normalizeToolId(t.name) !== normalizedName,
+    );
     this.allTools.push(tool);
 
     // Update or recreate the tool in the global store
@@ -522,7 +558,10 @@ export default class Tool {
             id.toLocaleLowerCase().replaceAll(" ", "_"),
         );
         if (!result) {
-          console.warn(`Failed to find tool ${id} in allTools list: `, this.allTools);
+          console.warn(
+            `Failed to find tool ${id} in allTools list: `,
+            this.allTools,
+          );
           throw new Error(`Tool with id ${id} not found in in database'`);
         }
         toolInfo = result;

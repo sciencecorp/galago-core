@@ -14,7 +14,8 @@ import axios from "axios";
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
 
 export default class Protocol<
-  ParamSchema extends MaybeWrappedZodType<AnyZodObject> = MaybeWrappedZodType<AnyZodObject>,
+  ParamSchema extends
+    MaybeWrappedZodType<AnyZodObject> = MaybeWrappedZodType<AnyZodObject>,
 > {
   name: string = "";
   protocolId: string = "";

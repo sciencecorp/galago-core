@@ -41,7 +41,12 @@ import { Tool } from "@/types/api";
 import { trpc } from "@/utils/trpc";
 import { CommandIcons } from "@/components/ui/Icons";
 import { getCommandColor, getCommandColorHex } from "@/components/ui/Theme";
-import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "react-beautiful-dnd";
 import { SaveIcon, EditIcon } from "@/components/ui/Icons";
 import { ArrowForwardIcon } from "@chakra-ui/icons";
 
@@ -53,8 +58,12 @@ const useCommandStyles = (commandName: string, isExpanded: boolean) => {
 
   return {
     container: {
-      borderColor: isExpanded ? `${commandColor}.${isDarkMode ? "500" : "300"}` : borderColor,
-      bg: isExpanded ? `${commandColor}.${isDarkMode ? "900" : "50"}` : "transparent",
+      borderColor: isExpanded
+        ? `${commandColor}.${isDarkMode ? "500" : "300"}`
+        : borderColor,
+      bg: isExpanded
+        ? `${commandColor}.${isDarkMode ? "900" : "50"}`
+        : "transparent",
       boxShadow: isExpanded ? "md" : "none",
       opacity: isExpanded ? 1 : 0.8,
       _hover: {
@@ -111,7 +120,10 @@ interface CommandItemProps {
   teachPoints: TeachPoint[];
   config: Tool;
   handleDeleteCommand: (index: number) => void;
-  handleEditCommand: (index: number, updatedCommand: Partial<SequenceCommand>) => void;
+  handleEditCommand: (
+    index: number,
+    updatedCommand: Partial<SequenceCommand>,
+  ) => void;
   setExpandedCommand: (index: number | null) => void;
   onCommandClick?: (index: number) => void;
   getDisplayValue: (command: SequenceCommand) => string;
@@ -188,7 +200,8 @@ const CommandItem: React.FC<CommandItemProps> = ({
                   [key]: e.target.value,
                 },
               });
-            }}>
+            }}
+          >
             {(labwareList || []).map((labware) => (
               <option key={labware.id} value={labware.name}>
                 {labware.name}
@@ -209,7 +222,8 @@ const CommandItem: React.FC<CommandItemProps> = ({
                   [key]: e.target.value,
                 },
               });
-            }}>
+            }}
+          >
             {teachPoints
               .filter((p) => p.type === "location")
               .map((point) => (
@@ -232,7 +246,8 @@ const CommandItem: React.FC<CommandItemProps> = ({
                   [key]: e.target.value,
                 },
               });
-            }}>
+            }}
+          >
             {(motionProfiles || []).map((profile) => (
               <option key={profile.id} value={profile.name}>
                 {profile.name}
@@ -253,7 +268,8 @@ const CommandItem: React.FC<CommandItemProps> = ({
                   [key]: e.target.value,
                 },
               });
-            }}>
+            }}
+          >
             {(gripParams || []).map((param) => (
               <option key={param.id} value={param.id}>
                 {param.name}
@@ -274,7 +290,8 @@ const CommandItem: React.FC<CommandItemProps> = ({
                   [key]: e.target.value === "true",
                 },
               });
-            }}>
+            }}
+          >
             <option value="false">False</option>
             <option value="true">True</option>
           </Select>
@@ -288,10 +305,17 @@ const CommandItem: React.FC<CommandItemProps> = ({
                 <Tr>
                   {Array.from(
                     {
-                      length: parseInt((config.config as any)?.pf400?.joints || "5"),
+                      length: parseInt(
+                        (config.config as any)?.pf400?.joints || "5",
+                      ),
                     },
                     (_, i) => (
-                      <Th key={`j${i + 1}`} fontSize="xs" textAlign="center" px={1}>
+                      <Th
+                        key={`j${i + 1}`}
+                        fontSize="xs"
+                        textAlign="center"
+                        px={1}
+                      >
                         J{i + 1}
                       </Th>
                     ),
@@ -300,33 +324,38 @@ const CommandItem: React.FC<CommandItemProps> = ({
               </Thead>
               <Tbody>
                 <Tr>
-                  {(value || "0 0 0 0 0 0").split(" ").map((coord: string, i: number) => (
-                    <Td key={i} padding={0.5} width="auto">
-                      <NumberInput
-                        size="xs"
-                        value={parseFloat(coord) || 0}
-                        onChange={(valueString) => {
-                          const coords = (value || "0 0 0 0 0 0").split(" ").map(Number);
-                          coords[i] = parseFloat(valueString) || 0;
-                          handleEditCommand(index, {
-                            params: {
-                              ...command.params,
-                              [key]: coords.join(" "),
-                            },
-                          });
-                        }}
-                        step={0.001}
-                        precision={3}
-                        width="35px">
-                        <NumberInputField
-                          textAlign="right"
-                          paddingInline={0}
-                          fontSize="xs"
-                          px={0.5}
-                        />
-                      </NumberInput>
-                    </Td>
-                  ))}
+                  {(value || "0 0 0 0 0 0")
+                    .split(" ")
+                    .map((coord: string, i: number) => (
+                      <Td key={i} padding={0.5} width="auto">
+                        <NumberInput
+                          size="xs"
+                          value={parseFloat(coord) || 0}
+                          onChange={(valueString) => {
+                            const coords = (value || "0 0 0 0 0 0")
+                              .split(" ")
+                              .map(Number);
+                            coords[i] = parseFloat(valueString) || 0;
+                            handleEditCommand(index, {
+                              params: {
+                                ...command.params,
+                                [key]: coords.join(" "),
+                              },
+                            });
+                          }}
+                          step={0.001}
+                          precision={3}
+                          width="35px"
+                        >
+                          <NumberInputField
+                            textAlign="right"
+                            paddingInline={0}
+                            fontSize="xs"
+                            px={0.5}
+                          />
+                        </NumberInput>
+                      </Td>
+                    ))}
                 </Tr>
               </Tbody>
             </Table>
@@ -352,7 +381,11 @@ const CommandItem: React.FC<CommandItemProps> = ({
   };
 
   return (
-    <Draggable draggableId={`command-${index}`} index={index} isDragDisabled={!isEditing}>
+    <Draggable
+      draggableId={`command-${index}`}
+      index={index}
+      isDragDisabled={!isEditing}
+    >
       {(provided, snapshot) => (
         <Box
           ref={provided.innerRef}
@@ -363,7 +396,8 @@ const CommandItem: React.FC<CommandItemProps> = ({
             transition: snapshot.isDragging
               ? provided.draggableProps.style?.transition
               : "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-          }}>
+          }}
+        >
           <SlideFade key={index} in={true} offsetY="20px">
             <VStack width="100%" spacing={0} align="stretch" mb={1}>
               <Box width="100%">
@@ -381,15 +415,18 @@ const CommandItem: React.FC<CommandItemProps> = ({
                   position="relative"
                   overflow="hidden"
                   opacity={snapshot.isDragging ? 0.8 : 1}
-                  boxShadow={snapshot.isDragging ? "md" : undefined}>
+                  boxShadow={snapshot.isDragging ? "md" : undefined}
+                >
                   <HStack
                     onClick={(e) => {
                       e.stopPropagation();
-                      const newExpandedIndex = expandedCommand === index ? null : index;
+                      const newExpandedIndex =
+                        expandedCommand === index ? null : index;
                       setExpandedCommand(newExpandedIndex);
                       onCommandClick?.(index);
                     }}
-                    justify="space-between">
+                    justify="space-between"
+                  >
                     <HStack spacing={3}>
                       <Box p={2} borderRadius="md" {...styles.iconContainer}>
                         {getCommandIcon(command.command)}
@@ -403,7 +440,9 @@ const CommandItem: React.FC<CommandItemProps> = ({
                     <HStack spacing={2} minW="70px" justifyContent="flex-end">
                       <IconButton
                         aria-label={isExpanded ? "Collapse" : "Expand"}
-                        icon={isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
+                        icon={
+                          isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />
+                        }
                         size="sm"
                         variant="ghost"
                         colorScheme={getCommandColor(command.command)}
@@ -429,7 +468,11 @@ const CommandItem: React.FC<CommandItemProps> = ({
                     in={isExpanded}
                     animateOpacity
                     style={{ overflow: "hidden" }}
-                    transition={{ enter: { duration: 0.5 }, exit: { duration: 0.5 } }}>
+                    transition={{
+                      enter: { duration: 0.5 },
+                      exit: { duration: 0.5 },
+                    }}
+                  >
                     <VStack
                       align="start"
                       mt={4}
@@ -437,9 +480,13 @@ const CommandItem: React.FC<CommandItemProps> = ({
                       pl={2}
                       pt={2}
                       borderTop="1px"
-                      borderColor="gray.100">
+                      borderColor="gray.100"
+                    >
                       {Object.entries(command.params)
-                        .filter(([key]) => key !== "waypoint_id" && key !== "waypoint")
+                        .filter(
+                          ([key]) =>
+                            key !== "waypoint_id" && key !== "waypoint",
+                        )
                         .map(([key, value]) => (
                           <HStack key={key} width="100%">
                             <Text fontSize="sm" color="gray.500" width="30%">
@@ -455,7 +502,8 @@ const CommandItem: React.FC<CommandItemProps> = ({
                                       {Array.from(
                                         {
                                           length: parseInt(
-                                            (config.config as any)?.pf400?.joints || "5",
+                                            (config.config as any)?.pf400
+                                              ?.joints || "5",
                                           ),
                                         },
                                         (_, i) => (
@@ -463,7 +511,8 @@ const CommandItem: React.FC<CommandItemProps> = ({
                                             key={`j${i + 1}`}
                                             fontSize="xs"
                                             textAlign="center"
-                                            px={1}>
+                                            px={1}
+                                          >
                                             J{i + 1}
                                           </Th>
                                         ),
@@ -480,7 +529,8 @@ const CommandItem: React.FC<CommandItemProps> = ({
                                               fontSize="sm"
                                               textAlign="center"
                                               width="60px"
-                                              fontFamily="mono">
+                                              fontFamily="mono"
+                                            >
                                               {Number(coord).toFixed(2)}
                                             </Text>
                                           </Td>
@@ -543,7 +593,8 @@ export const CommandList: React.FC<CommandListProps> = ({
   expandedCommandIndex,
   onCommandClick,
 }) => {
-  const [localCommands, setLocalCommands] = useState<SequenceCommand[]>(commands);
+  const [localCommands, setLocalCommands] =
+    useState<SequenceCommand[]>(commands);
   const [isEditing, setIsEditing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editedSequenceName, setEditedSequenceName] = useState(sequenceName);
@@ -557,7 +608,10 @@ export const CommandList: React.FC<CommandListProps> = ({
     enabled: isEditing,
   });
 
-  const bgColor = useColorModeValue("white", isEditing ? "gray.700" : "gray.900");
+  const bgColor = useColorModeValue(
+    "white",
+    isEditing ? "gray.700" : "gray.900",
+  );
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const arrowColor = useColorModeValue("gray.400", "gray.600");
 
@@ -594,7 +648,10 @@ export const CommandList: React.FC<CommandListProps> = ({
     setHasUnsavedChanges(true);
   };
 
-  const handleEditCommand = (index: number, updatedCommand: Partial<SequenceCommand>) => {
+  const handleEditCommand = (
+    index: number,
+    updatedCommand: Partial<SequenceCommand>,
+  ) => {
     const newCommands = [...localCommands];
     newCommands[index] = {
       ...newCommands[index],
@@ -604,7 +661,10 @@ export const CommandList: React.FC<CommandListProps> = ({
     setHasUnsavedChanges(true);
   };
 
-  const handleModalAddCommand = (command: { command: string; params: Record<string, any> }) => {
+  const handleModalAddCommand = (command: {
+    command: string;
+    params: Record<string, any>;
+  }) => {
     const newCommand: SequenceCommand = {
       command: command.command,
       params: command.params,
@@ -620,7 +680,10 @@ export const CommandList: React.FC<CommandListProps> = ({
         order: idx,
       }));
     } else {
-      newCommands = [...localCommands, { ...newCommand, order: localCommands.length }];
+      newCommands = [
+        ...localCommands,
+        { ...newCommand, order: localCommands.length },
+      ];
     }
 
     setLocalCommands(newCommands);
@@ -648,22 +711,34 @@ export const CommandList: React.FC<CommandListProps> = ({
     switch (command.command) {
       case "move":
         if (command.params.waypoint_id) {
-          const point = teachPoints.find((p) => p.id === command.params.waypoint_id);
-          displayValue = point ? point.name : `Unknown (${command.params.waypoint_id})`;
+          const point = teachPoints.find(
+            (p) => p.id === command.params.waypoint_id,
+          );
+          displayValue = point
+            ? point.name
+            : `Unknown (${command.params.waypoint_id})`;
         } else if (command.params.waypoint) {
           displayValue = command.params.waypoint;
         }
         break;
       case "approach":
         if (command.params.nest_id) {
-          const point = teachPoints.find((p) => p.id === command.params.nest_id);
-          displayValue = point ? point.name : `Unknown (${command.params.nest_id})`;
+          const point = teachPoints.find(
+            (p) => p.id === command.params.nest_id,
+          );
+          displayValue = point
+            ? point.name
+            : `Unknown (${command.params.nest_id})`;
         }
         break;
       case "leave":
         if (command.params.nest_id) {
-          const point = teachPoints.find((p) => p.id === command.params.nest_id);
-          displayValue = point ? point.name : `Unknown (${command.params.nest_id})`;
+          const point = teachPoints.find(
+            (p) => p.id === command.params.nest_id,
+          );
+          displayValue = point
+            ? point.name
+            : `Unknown (${command.params.nest_id})`;
         }
         break;
       default:
@@ -716,11 +791,17 @@ export const CommandList: React.FC<CommandListProps> = ({
       setExpandedCommand(destination.index);
     } else if (expandedCommand !== null) {
       // Handle the case where a command is moved from before the expanded command to after it
-      if (source.index < expandedCommand && destination.index >= expandedCommand) {
+      if (
+        source.index < expandedCommand &&
+        destination.index >= expandedCommand
+      ) {
         setExpandedCommand(expandedCommand - 1);
       }
       // Handle the case where a command is moved from after the expanded command to before it
-      else if (source.index > expandedCommand && destination.index <= expandedCommand) {
+      else if (
+        source.index > expandedCommand &&
+        destination.index <= expandedCommand
+      ) {
         setExpandedCommand(expandedCommand + 1);
       }
       // Otherwise the expanded command index doesn't need to change
@@ -741,7 +822,8 @@ export const CommandList: React.FC<CommandListProps> = ({
       height="100%"
       display="flex"
       flexDirection="column"
-      overflow="hidden">
+      overflow="hidden"
+    >
       <VStack spacing={2} height="100%" width="100%">
         <HStack width="100%" justify="space-between" align="start">
           <VStack align="start" spacing={1}>
@@ -750,7 +832,9 @@ export const CommandList: React.FC<CommandListProps> = ({
               <Text fontSize="sm" color="gray.500">
                 Labware:
               </Text>
-              <Badge colorScheme={labware === "default" ? "teal" : "blue"}>{labware}</Badge>
+              <Badge colorScheme={labware === "default" ? "teal" : "blue"}>
+                {labware}
+              </Badge>
             </HStack>
           </VStack>
           <ButtonGroup>
@@ -808,7 +892,8 @@ export const CommandList: React.FC<CommandListProps> = ({
                   width="100%"
                   align="stretch"
                   {...provided.droppableProps}
-                  ref={provided.innerRef}>
+                  ref={provided.innerRef}
+                >
                   {isEditing && (
                     <SlideFade in={isEditing} offsetY="-20px">
                       <IconButton

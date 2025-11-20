@@ -26,7 +26,12 @@ import {
   InputLeftElement,
   Input,
 } from "@chakra-ui/react";
-import { CloseIcon, WarningIcon, QuestionOutlineIcon, SearchIcon } from "@chakra-ui/icons";
+import {
+  CloseIcon,
+  WarningIcon,
+  QuestionOutlineIcon,
+  SearchIcon,
+} from "@chakra-ui/icons";
 import { useEffect, useState, useMemo } from "react";
 import { Log } from "@/types/api";
 import { renderDatetime } from "../ui/Time";
@@ -147,7 +152,8 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                 <Select
                   value={selectedLevel}
                   onChange={(e) => setSelectedLevel(e.target.value)}
-                  maxW="200px">
+                  maxW="200px"
+                >
                   <option value="">All Levels</option>
                   <option value="error">Error</option>
                   <option value="warning">Warning</option>
@@ -172,7 +178,8 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                     td: {
                       borderColor: useColorModeValue("gray.200", "gray.600"),
                     },
-                  }}>
+                  }}
+                >
                   <Thead>
                     <Tr>
                       <Th p={1}></Th>
@@ -204,7 +211,8 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                   value={limit}
                   width="75px"
                   size="sm"
-                  onChange={(e) => setLimit(Number(e.target.value))}>
+                  onChange={(e) => setLimit(Number(e.target.value))}
+                >
                   <option value="25">25</option>
                   <option value="50">50</option>
                   <option value="100">100</option>
@@ -212,10 +220,15 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                 <Button
                   size="sm"
                   disabled={!hasPrevious}
-                  onClick={() => setOffset(Math.max(offset - limit, 0))}>
+                  onClick={() => setOffset(Math.max(offset - limit, 0))}
+                >
                   Previous
                 </Button>
-                <Button size="sm" disabled={!hasNext} onClick={() => setOffset(offset + limit)}>
+                <Button
+                  size="sm"
+                  disabled={!hasNext}
+                  onClick={() => setOffset(offset + limit)}
+                >
                   Next
                 </Button>
               </HStack>

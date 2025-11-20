@@ -30,7 +30,11 @@ interface ErrorModalProps {
   };
 }
 
-export const ErrorModal: React.FC<ErrorModalProps> = ({ isOpen, onClose, errorData }) => {
+export const ErrorModal: React.FC<ErrorModalProps> = ({
+  isOpen,
+  onClose,
+  errorData,
+}) => {
   const bgColor = useColorModeValue("white", "gray.800");
   const errorBadgeBg = useColorModeValue("red.100", "red.900");
   const errorBadgeColor = useColorModeValue("red.800", "red.200");
@@ -56,7 +60,13 @@ export const ErrorModal: React.FC<ErrorModalProps> = ({ isOpen, onClose, errorDa
 
             {errorData.code && (
               <Flex>
-                <Badge bg={errorBadgeBg} color={errorBadgeColor} px={2} py={1} borderRadius="md">
+                <Badge
+                  bg={errorBadgeBg}
+                  color={errorBadgeColor}
+                  px={2}
+                  py={1}
+                  borderRadius="md"
+                >
                   Error Code: {errorData.code}
                 </Badge>
               </Flex>
@@ -75,7 +85,8 @@ export const ErrorModal: React.FC<ErrorModalProps> = ({ isOpen, onClose, errorDa
                   bg={codeBg}
                   fontSize="sm"
                   width="100%"
-                  overflowX="auto">
+                  overflowX="auto"
+                >
                   {errorData.details} - {errorData.message}
                 </Code>
               </Box>
@@ -83,8 +94,8 @@ export const ErrorModal: React.FC<ErrorModalProps> = ({ isOpen, onClose, errorDa
 
             <Box>
               <Text fontSize="sm" color="gray.500">
-                If this error persists, please check the tool connection status and verify that the
-                command is supported by the specified tool.
+                If this error persists, please check the tool connection status
+                and verify that the command is supported by the specified tool.
               </Text>
             </Box>
           </VStack>

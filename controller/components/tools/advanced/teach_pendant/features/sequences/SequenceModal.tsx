@@ -19,7 +19,13 @@ import {
   Switch,
 } from "@chakra-ui/react";
 import { Tool } from "@/types/api";
-import { Sequence, SequenceCommand, TeachPoint, MotionProfile, GripParams } from "../../types/";
+import {
+  Sequence,
+  SequenceCommand,
+  TeachPoint,
+  MotionProfile,
+  GripParams,
+} from "../../types/";
 import { trpc } from "@/utils/trpc";
 import { errorToast } from "@/components/ui/Toast";
 import { TemplateSelectionModal } from "./TemplateSelectionModal";
@@ -43,7 +49,9 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
 }) => {
   const [name, setName] = useState(sequence?.name ?? "");
   const [description, setDescription] = useState(sequence?.description ?? "");
-  const [commands, setCommands] = useState<SequenceCommand[]>(sequence?.commands ?? []);
+  const [commands, setCommands] = useState<SequenceCommand[]>(
+    sequence?.commands ?? [],
+  );
   const [labware, setLabware] = useState(sequence?.labware ?? "default");
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const { data: labwareList } = trpc.labware.getAll.useQuery();
@@ -86,7 +94,9 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>{sequence ? "Edit Sequence" : "New Sequence"}</ModalHeader>
+          <ModalHeader>
+            {sequence ? "Edit Sequence" : "New Sequence"}
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4} align="stretch">
@@ -100,7 +110,8 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
                 <Select
                   value={labware}
                   onChange={(e) => setLabware(e.target.value)}
-                  placeholder="Select labware">
+                  placeholder="Select labware"
+                >
                   <option value="default">Default</option>
                   {labwareList
                     ?.filter((item) => item.name.toLowerCase() !== "default")
@@ -117,7 +128,10 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
 
               <FormControl>
                 <FormLabel>Description</FormLabel>
-                <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+                <Input
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
               </FormControl>
               <VStack spacing={4} align="stretch">
                 <HStack justify="space-between" mb={2}>
@@ -135,35 +149,47 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
                 {createFromTemplate && (
                   <ButtonGroup size="sm" variant="outline">
                     <Button
-                      colorScheme={selectedTemplate === "pick_plate" ? "blue" : "gray"}
+                      colorScheme={
+                        selectedTemplate === "pick_plate" ? "blue" : "gray"
+                      }
                       onClick={() => {
                         setSelectedTemplate("pick_plate");
                         setIsTemplateModalOpen(true);
-                      }}>
+                      }}
+                    >
                       Pick Plate
                     </Button>
                     <Button
-                      colorScheme={selectedTemplate === "place_plate" ? "blue" : "gray"}
+                      colorScheme={
+                        selectedTemplate === "place_plate" ? "blue" : "gray"
+                      }
                       onClick={() => {
                         setSelectedTemplate("place_plate");
                         setIsTemplateModalOpen(true);
-                      }}>
+                      }}
+                    >
                       Place Plate
                     </Button>
                     <Button
-                      colorScheme={selectedTemplate === "pick_lid" ? "blue" : "gray"}
+                      colorScheme={
+                        selectedTemplate === "pick_lid" ? "blue" : "gray"
+                      }
                       onClick={() => {
                         setSelectedTemplate("pick_lid");
                         setIsTemplateModalOpen(true);
-                      }}>
+                      }}
+                    >
                       Pick Lid
                     </Button>
                     <Button
-                      colorScheme={selectedTemplate === "place_lid" ? "blue" : "gray"}
+                      colorScheme={
+                        selectedTemplate === "place_lid" ? "blue" : "gray"
+                      }
                       onClick={() => {
                         setSelectedTemplate("place_lid");
                         setIsTemplateModalOpen(true);
-                      }}>
+                      }}
+                    >
                       Place Lid
                     </Button>
                   </ButtonGroup>
@@ -176,7 +202,11 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
             <Button variant="ghost" mr={3} onClick={onClose}>
               Cancel
             </Button>
-            <Button isDisabled={name.trim() === ""} colorScheme="blue" onClick={handleSave}>
+            <Button
+              isDisabled={name.trim() === ""}
+              colorScheme="blue"
+              onClick={handleSave}
+            >
               Save
             </Button>
           </ModalFooter>
@@ -185,7 +215,11 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
 
       <TemplateSelectionModal
         selectedTemplate={
-          selectedTemplate as "pick_plate" | "place_plate" | "pick_lid" | "place_lid"
+          selectedTemplate as
+            | "pick_plate"
+            | "place_plate"
+            | "pick_lid"
+            | "place_lid"
         }
         isOpen={isTemplateModalOpen}
         onClose={() => setIsTemplateModalOpen(false)}

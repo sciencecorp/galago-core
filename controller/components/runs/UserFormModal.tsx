@@ -81,7 +81,10 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
       reader.readAsText(file);
     } catch (error) {
       console.error("Error reading file:", error);
-      errorToast("Error reading file", "Failed to read the selected file. Please try again.");
+      errorToast(
+        "Error reading file",
+        "Failed to read the selected file. Please try again.",
+      );
     }
   };
 
@@ -138,7 +141,8 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
             bg={inputBg}
             borderColor={borderColor}
             color={fontColor || defaultFontColor}
-            isRequired={field.required}>
+            isRequired={field.required}
+          >
             {field.options?.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -156,7 +160,8 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
                   key={option.value}
                   value={option.value}
                   colorScheme="teal"
-                  color={fontColor || defaultFontColor}>
+                  color={fontColor || defaultFontColor}
+                >
                   {option.label}
                 </Radio>
               ))}
@@ -170,7 +175,8 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
             isChecked={value || false}
             onChange={(e) => onChange(e.target.checked)}
             colorScheme="teal"
-            color={fontColor || defaultFontColor}>
+            color={fontColor || defaultFontColor}
+          >
             {field.label}
           </Checkbox>
         );
@@ -249,7 +255,13 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
         <HStack spacing={1} alignItems="center">
           <Text>{field.label}</Text>
           {field.mapped_variable && (
-            <Text as="span" fontSize="xs" color="blue.500" fontWeight="bold" ml={1}>
+            <Text
+              as="span"
+              fontSize="xs"
+              color="blue.500"
+              fontWeight="bold"
+              ml={1}
+            >
               (→ {field.mapped_variable})
             </Text>
           )}
@@ -360,7 +372,9 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
       }
 
       // Find existing variable
-      const existingVariable = variablesQuery.data?.find((v) => v.name === variableName);
+      const existingVariable = variablesQuery.data?.find(
+        (v) => v.name === variableName,
+      );
 
       // Convert all values to strings as specified
       const stringValue = String(formValue);
@@ -395,7 +409,13 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
 
   if (!form) {
     return (
-      <Modal isOpen={isOpen} onClose={() => {}} closeOnOverlayClick={false} isCentered size="md">
+      <Modal
+        isOpen={isOpen}
+        onClose={() => {}}
+        closeOnOverlayClick={false}
+        isCentered
+        size="md"
+      >
         <ModalOverlay backdropFilter="blur(4px)" bg="blackAlpha.300" />
         <ModalContent>
           <ModalBody py={6} px={4}>
@@ -404,7 +424,8 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
               <Text fontWeight="bold">Form Not Found</Text>
             </Alert>
             <Text color="gray.500" fontSize="sm" textAlign="center">
-              The requested form could not be found. Please contact the administrator.
+              The requested form could not be found. Please contact the
+              administrator.
             </Text>
           </ModalBody>
           <ModalFooter>
@@ -422,13 +443,19 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
       closeOnOverlayClick={false}
       isCentered
       size="2xl"
-      scrollBehavior="inside">
+      scrollBehavior="inside"
+    >
       <ModalOverlay backdropFilter="blur(4px)" bg="blackAlpha.300" />
       <ModalContent
         maxH="90vh"
         bg={form.background_color || defaultBgColor}
-        color={form.font_color || defaultFontColor}>
-        <ModalHeader textAlign="center" borderBottom="1px" borderColor={cardBorderColor}>
+        color={form.font_color || defaultFontColor}
+      >
+        <ModalHeader
+          textAlign="center"
+          borderBottom="1px"
+          borderColor={cardBorderColor}
+        >
           {form.name}
         </ModalHeader>
 
@@ -441,7 +468,8 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
                     fontSize="md"
                     color={form.font_color || defaultFontColor}
                     textAlign="center"
-                    fontStyle="italic">
+                    fontStyle="italic"
+                  >
                     {form.description}
                   </Text>
                 )}
@@ -451,7 +479,9 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
                     <FormFieldInput
                       field={field}
                       value={formData[field.label]}
-                      onChange={(value) => handleFieldChange(field.label, value)}
+                      onChange={(value) =>
+                        handleFieldChange(field.label, value)
+                      }
                       fontColor={form.font_color}
                       defaultFontColor={defaultFontColor}
                     />
@@ -479,7 +509,8 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
               variant="ghost"
               minW="120px"
               onClick={handleCancel}
-              color={form.font_color || defaultFontColor}>
+              color={form.font_color || defaultFontColor}
+            >
               Cancel
             </Button>
             <Button
@@ -487,7 +518,8 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
               onClick={handleSubmit}
               isLoading={editVariable.isLoading || createVariable.isLoading}
               isDisabled={editVariable.isLoading || createVariable.isLoading}
-              minW="120px">
+              minW="120px"
+            >
               Submit
             </Button>
           </ButtonGroup>

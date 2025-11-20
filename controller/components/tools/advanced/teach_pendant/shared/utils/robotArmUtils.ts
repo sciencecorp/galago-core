@@ -4,12 +4,21 @@ export interface JointConfig {
   [key: string]: number | undefined;
 }
 
-export const jointsToCoordinate = (joints: JointConfig, numJoints: number): string => {
-  const jointValues = Array.from({ length: numJoints }, (_, i) => joints[`j${i + 1}`] || 0);
+export const jointsToCoordinate = (
+  joints: JointConfig,
+  numJoints: number,
+): string => {
+  const jointValues = Array.from(
+    { length: numJoints },
+    (_, i) => joints[`j${i + 1}`] || 0,
+  );
   return jointValues.join(" ");
 };
 
-export function coordinateToJoints(coordinates: string, numJoints: number): JointConfig {
+export function coordinateToJoints(
+  coordinates: string,
+  numJoints: number,
+): JointConfig {
   const values = coordinates.split(" ").map(Number);
   const joints: JointConfig = {};
 
@@ -26,7 +35,10 @@ export function coordinateToJoints(coordinates: string, numJoints: number): Join
   return joints;
 }
 
-export function validateJointCount(coordinates: string, expectedJoints: number): boolean {
+export function validateJointCount(
+  coordinates: string,
+  expectedJoints: number,
+): boolean {
   const values = coordinates.split(" ").slice(1);
   // Allow for more joints than expected, but ensure there are at least the expected number
   return values.length >= expectedJoints;
@@ -39,7 +51,9 @@ export function filterItems<T extends { name: string; type?: string }>(
 ): T[] {
   if (!items) return [];
   return items.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = item.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
     const matchesType = type === "all" || item.type === type;
     return matchesSearch && matchesType;
   });

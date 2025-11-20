@@ -93,33 +93,48 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
             <VStack spacing={4}>
               <FormControl>
                 <FormLabel>Name</FormLabel>
-                <Input value={scriptName} onChange={(e) => setScriptName(e.target.value)} />
+                <Input
+                  value={scriptName}
+                  onChange={(e) => setScriptName(e.target.value)}
+                />
               </FormControl>
               <FormControl>
                 <ButtonGroup>
                   <Button
                     size="sm"
-                    colorScheme={selectedLanguage === "python" ? "teal" : "gray"}
-                    onClick={() => setSelectedLanguage("python")}>
+                    colorScheme={
+                      selectedLanguage === "python" ? "teal" : "gray"
+                    }
+                    onClick={() => setSelectedLanguage("python")}
+                  >
                     Python
                   </Button>
                   <Button
                     size="sm"
-                    colorScheme={selectedLanguage === "javascript" ? "teal" : "gray"}
-                    onClick={() => setSelectedLanguage("javascript")}>
+                    colorScheme={
+                      selectedLanguage === "javascript" ? "teal" : "gray"
+                    }
+                    onClick={() => setSelectedLanguage("javascript")}
+                  >
                     JavaScript
                   </Button>
                   <Button
                     size="sm"
-                    colorScheme={selectedLanguage === "csharp" ? "teal" : "gray"}
-                    onClick={() => setSelectedLanguage("csharp")}>
+                    colorScheme={
+                      selectedLanguage === "csharp" ? "teal" : "gray"
+                    }
+                    onClick={() => setSelectedLanguage("csharp")}
+                  >
                     C#
                   </Button>
                 </ButtonGroup>
               </FormControl>
               <FormControl>
                 <FormLabel>Description</FormLabel>
-                <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+                <Input
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
               </FormControl>
             </VStack>
           </ModalBody>
@@ -127,7 +142,12 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
             <Button variant="ghost" onClick={onClose}>
               Cancel
             </Button>
-            <Button colorScheme="teal" onClick={handleSave} mr={3} isLoading={isLoading}>
+            <Button
+              colorScheme="teal"
+              onClick={handleSave}
+              mr={3}
+              isLoading={isLoading}
+            >
               Submit
             </Button>
           </ModalFooter>

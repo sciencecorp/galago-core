@@ -1,4 +1,13 @@
-import { VStack, Box, Button, HStack, Heading, Select, Center, Flex } from "@chakra-ui/react";
+import {
+  VStack,
+  Box,
+  Button,
+  HStack,
+  Heading,
+  Select,
+  Center,
+  Flex,
+} from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import React from "react";
 import { LogView } from "@/components/logs/LogView";

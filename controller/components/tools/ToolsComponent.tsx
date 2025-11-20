@@ -33,7 +33,9 @@ interface ToolStatusCardsProps {
   showAsGrid?: boolean;
 }
 
-export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) => {
+export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (
+  props,
+) => {
   const [toolIds, setToolIds] = useState<string[]>([]);
   const { data: selectedWorkcellData, refetch: refetchWorkcell } =
     trpc.workcell.getSelectedWorkcell.useQuery();
@@ -41,13 +43,16 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
   const [connectingLoading, setConnectingLoading] = useState(false);
   const headerBg = useColorModeValue("white", "gray.700");
   const tableBgColor = useColorModeValue("white", "gray.700");
-  const { data: allTools, refetch: refetchAllTools } = trpc.tool.getAll.useQuery();
+  const { data: allTools, refetch: refetchAllTools } =
+    trpc.tool.getAll.useQuery();
   const configureMutation = trpc.tool.configure.useMutation();
   const { data: workcells } = trpc.workcell.getAll.useQuery();
 
   const [thisWorkcellTools, setThisWorkcellTools] = useState<Tool[]>([]);
   const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({
-    workcellId: workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id,
+    workcellId: workcells?.find(
+      (workcell) => workcell.name === selectedWorkcellData,
+    )?.id,
   });
 
   const connectAllTools = async () => {
@@ -63,7 +68,9 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
     try {
       if (allTools) {
         // Create a separate configuration instance for each tool to properly handle errors
-        const configureToolWithErrorHandling = async (tool: (typeof allTools)[0]) => {
+        const configureToolWithErrorHandling = async (
+          tool: (typeof allTools)[0],
+        ) => {
           const toolId = tool.name.toLocaleLowerCase().replaceAll(" ", "_");
 
           // Skip tool_box and tools without configs
@@ -173,11 +180,14 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
                     disabled={toolIds.length === 0}
                     onClick={connectAllTools}
                     variant="outline"
-                    leftIcon={<Icon as={FaPlugCircleCheck} />}>
+                    leftIcon={<Icon as={FaPlugCircleCheck} />}
+                  >
                     Connect All
                   </Button>
                 }
-                secondaryButton={<NewToolModal isDisabled={!selectedWorkcell} />}
+                secondaryButton={
+                  <NewToolModal isDisabled={!selectedWorkcell} />
+                }
               />
               <Divider />
               <StatGroup>
@@ -187,7 +197,9 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
                 </Stat>
                 <Stat>
                   <StatLabel>Selected Workcell</StatLabel>
-                  <StatNumber fontSize="lg">{selectedWorkcell || "None"}</StatNumber>
+                  <StatNumber fontSize="lg">
+                    {selectedWorkcell || "None"}
+                  </StatNumber>
                 </Stat>
               </StatGroup>
               <Divider />
@@ -201,7 +213,9 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
                     onChange={(e) => {
                       const searchTerm = e.target.value.toLowerCase();
                       setToolIds(
-                        fetchedIds?.filter((id) => id.toLowerCase().includes(searchTerm)) || [],
+                        fetchedIds?.filter((id) =>
+                          id.toLowerCase().includes(searchTerm),
+                        ) || [],
                       );
                     }}
                     bg={tableBgColor}
@@ -214,7 +228,13 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
         </Card>
         <Card bg={headerBg} shadow="md">
           <CardBody>
-            <Flex wrap="wrap" justify="space-evenly" mt={4} align="stretch" gap={4}>
+            <Flex
+              wrap="wrap"
+              justify="space-evenly"
+              mt={4}
+              align="stretch"
+              gap={4}
+            >
               {toolIds.map((toolId, index) => (
                 <ToolStatusCard key={`${toolId}-${index}`} toolId={toolId} />
               ))}

@@ -31,7 +31,9 @@ export function ToolStatusTag({
         <StatusTag status={status} />
       )}
       <Tag ml={2}>
-        {moment.utc(moment.duration(uptime, "seconds").asMilliseconds()).format("H:mm:ss")}
+        {moment
+          .utc(moment.duration(uptime, "seconds").asMilliseconds())
+          .format("H:mm:ss")}
       </Tag>
     </Box>
   );

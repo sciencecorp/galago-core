@@ -104,16 +104,20 @@ export const scriptRouter = router({
     return response;
   }),
 
-  addFolder: procedure.input(zScriptFolder.omit({ id: true })).mutation(async ({ input }) => {
-    const response = await post<ScriptFolder>(`/script-folders`, input);
-    return response;
-  }),
+  addFolder: procedure
+    .input(zScriptFolder.omit({ id: true }))
+    .mutation(async ({ input }) => {
+      const response = await post<ScriptFolder>(`/script-folders`, input);
+      return response;
+    }),
 
-  editFolder: procedure.input(zScriptFolderUpdate).mutation(async ({ input }) => {
-    const { id } = input;
-    const response = await put<ScriptFolder>(`/script-folders/${id}`, input);
-    return response;
-  }),
+  editFolder: procedure
+    .input(zScriptFolderUpdate)
+    .mutation(async ({ input }) => {
+      const { id } = input;
+      const response = await put<ScriptFolder>(`/script-folders/${id}`, input);
+      return response;
+    }),
 
   deleteFolder: procedure.input(z.number()).mutation(async ({ input }) => {
     await del(`/script-folders/${input}`);

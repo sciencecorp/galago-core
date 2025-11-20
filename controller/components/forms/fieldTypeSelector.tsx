@@ -21,24 +21,72 @@ interface FieldTypeSelectorProps {
 }
 
 const FIELD_TYPE_OPTIONS = [
-  { value: "text", label: "Text Input", icon: MdTextFields, description: "Single line text" },
-  { value: "number", label: "Number", icon: MdNumbers, description: "Numeric input" },
-  { value: "textarea", label: "Textarea", icon: MdSubject, description: "Multi-line text" },
+  {
+    value: "text",
+    label: "Text Input",
+    icon: MdTextFields,
+    description: "Single line text",
+  },
+  {
+    value: "number",
+    label: "Number",
+    icon: MdNumbers,
+    description: "Numeric input",
+  },
+  {
+    value: "textarea",
+    label: "Textarea",
+    icon: MdSubject,
+    description: "Multi-line text",
+  },
   {
     value: "select",
     label: "Dropdown",
     icon: MdArrowDropDownCircle,
     description: "Select one option",
   },
-  { value: "radio", label: "Radio Buttons", icon: MdRadioButtonChecked, description: "Choose one" },
-  { value: "checkbox", label: "Checkbox", icon: MdCheckBox, description: "Toggle option" },
-  { value: "date", label: "Date", icon: MdCalendarToday, description: "Date picker" },
-  { value: "time", label: "Time", icon: MdAccessTime, description: "Time picker" },
-  { value: "file", label: "File Upload", icon: MdUploadFile, description: "Upload files" },
-  { value: "label", label: "Static Text", icon: MdLabel, description: "Display only text" },
+  {
+    value: "radio",
+    label: "Radio Buttons",
+    icon: MdRadioButtonChecked,
+    description: "Choose one",
+  },
+  {
+    value: "checkbox",
+    label: "Checkbox",
+    icon: MdCheckBox,
+    description: "Toggle option",
+  },
+  {
+    value: "date",
+    label: "Date",
+    icon: MdCalendarToday,
+    description: "Date picker",
+  },
+  {
+    value: "time",
+    label: "Time",
+    icon: MdAccessTime,
+    description: "Time picker",
+  },
+  {
+    value: "file",
+    label: "File Upload",
+    icon: MdUploadFile,
+    description: "Upload files",
+  },
+  {
+    value: "label",
+    label: "Static Text",
+    icon: MdLabel,
+    description: "Display only text",
+  },
 ] as const;
 
-export const FieldTypeSelector: React.FC<FieldTypeSelectorProps> = ({ selectedType, onSelect }) => {
+export const FieldTypeSelector: React.FC<FieldTypeSelectorProps> = ({
+  selectedType,
+  onSelect,
+}) => {
   const colors = useCommonColors();
 
   return (
@@ -68,7 +116,8 @@ export const FieldTypeSelector: React.FC<FieldTypeSelectorProps> = ({ selectedTy
               transform: "translateY(0)",
             }}
             position="relative"
-            role="group">
+            role="group"
+          >
             <VStack spacing={1} align="center">
               <Icon
                 as={fieldType.icon}
@@ -84,14 +133,16 @@ export const FieldTypeSelector: React.FC<FieldTypeSelectorProps> = ({ selectedTy
                 fontWeight={isSelected ? "bold" : "medium"}
                 color={isSelected ? "teal.700" : "gray.700"}
                 textAlign="center"
-                noOfLines={1}>
+                noOfLines={1}
+              >
                 {fieldType.label}
               </Text>
               <Text
                 fontSize="xs"
                 color={isSelected ? "teal.600" : "gray.500"}
                 textAlign="center"
-                noOfLines={1}>
+                noOfLines={1}
+              >
                 {fieldType.description}
               </Text>
             </VStack>

@@ -20,7 +20,14 @@ interface PageHeaderProps {
 }
 
 export const PageHeader: React.FC<PageHeaderProps> = (props) => {
-  const { title, mainButton, secondaryButton, tertiaryButton, titleIcon, subTitle } = props;
+  const {
+    title,
+    mainButton,
+    secondaryButton,
+    tertiaryButton,
+    titleIcon,
+    subTitle,
+  } = props;
   return (
     <Box width="100%">
       <Flex justify="space-between" align="center" width="100%">

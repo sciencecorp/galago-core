@@ -2,7 +2,10 @@
 
 import { HasRunStatus, RunStatus } from "@/types";
 
-export function setRunStatusWithTimestamp(status: HasRunStatus, newStatus: RunStatus) {
+export function setRunStatusWithTimestamp(
+  status: HasRunStatus,
+  newStatus: RunStatus,
+) {
   const now = new Date();
   // This could be DRYed up with string literal template types, but is more
   // obvious this way

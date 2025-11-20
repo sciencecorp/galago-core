@@ -7,7 +7,9 @@ type RedisQueueKey = "queuedIds" | "itemJson" | "nextId" | "runs" | "errors";
 
 // Once we store the RunCommand, we know the ID exists, but also don't want it
 // to be mutated in memory.
-export type StoredRunCommand = Readonly<RunCommand & Required<Pick<RunCommand, "queueId">>>;
+export type StoredRunCommand = Readonly<
+  RunCommand & Required<Pick<RunCommand, "queueId">>
+>;
 
 // A Queue stored in Redis. For now, each RunCommand is stored as a JSON string
 // in Redis, with a list of IDs to process.
@@ -20,11 +22,18 @@ export default class RedisQueue {
   ) {}
 
   async push(item: RunCommand) {
-    await this.redis.rpush(this._key("queuedIds"), await this._persistedId(item));
+    await this.redis.rpush(
+      this._key("queuedIds"),
+      await this._persistedId(item),
+    );
   }
 
   async runPush(runQueueId: string, runQueue: RunQueue): Promise<string> {
-    await this.redis.hset(this._key("runs"), runQueueId, SuperJSON.stringify(runQueue));
+    await this.redis.hset(
+      this._key("runs"),
+      runQueueId,
+      SuperJSON.stringify(runQueue),
+    );
     return runQueueId;
   }
 
@@ -43,7 +52,10 @@ export default class RedisQueue {
     return item;
   }
 
-  async gotoCommandByIndex(runId: string, targetIndex: number): Promise<boolean> {
+  async gotoCommandByIndex(
+    runId: string,
+    targetIndex: number,
+  ): Promise<boolean> {
     try {
       if (!runId) {
         throw new Error("runId is required for gotoCommandByIndex");
@@ -104,7 +116,10 @@ export default class RedisQueue {
 
       return true;
     } catch (error) {
-      console.error(`Failed to goto index ${targetIndex} in run ${runId}:`, error);
+      console.error(
+        `Failed to goto index ${targetIndex} in run ${runId}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -128,7 +143,9 @@ export default class RedisQueue {
 
         // Get all commands for this run (executed and queued)
         const allCommandIds = await this.redis.hkeys(this._key("itemJson"));
-        const commandsToCheck = allCommandIds.filter((id) => !queuedIds.includes(id));
+        const commandsToCheck = allCommandIds.filter(
+          (id) => !queuedIds.includes(id),
+        );
 
         // Commands to requeue (will be in reverse order to maintain correct sequence)
         const commandsToRequeue: number[] = [];
@@ -236,16 +253,25 @@ export default class RedisQueue {
     return items.sort((a, b) => a.queueId - b.queueId);
   }
 
-  async getPaginated(offset: number = 0, limit: number = 20): Promise<StoredRunCommand[]> {
+  async getPaginated(
+    offset: number = 0,
+    limit: number = 20,
+  ): Promise<StoredRunCommand[]> {
     // Get the specified range of IDs from the queuedIds list.
-    const ids = await this.redis.lrange(this._key("queuedIds"), offset, offset + limit - 1);
+    const ids = await this.redis.lrange(
+      this._key("queuedIds"),
+      offset,
+      offset + limit - 1,
+    );
     if (ids.length === 0) {
       return [];
     }
     // Get the corresponding commands from the itemJson hash map.
     const commandsJson = await this.redis.hmget(this._key("itemJson"), ...ids);
     const commands = await Promise.all(
-      commandsJson.filter((json) => json !== null).map((json) => this._deserialize(json!)),
+      commandsJson
+        .filter((json) => json !== null)
+        .map((json) => this._deserialize(json!)),
     );
     return commands;
   }
@@ -316,7 +342,10 @@ export default class RedisQueue {
     await this._updateItem(id, { status: "FAILED", error });
   }
 
-  private async _updateItem(id: number, updates: Partial<RunCommand>): Promise<StoredRunCommand> {
+  private async _updateItem(
+    id: number,
+    updates: Partial<RunCommand>,
+  ): Promise<StoredRunCommand> {
     const item = await this.find(id);
     if (!item) {
       throw new Error(`Item ${id} not found`);
@@ -356,7 +385,11 @@ export default class RedisQueue {
     if (!item.queueId) {
       item.queueId = await this._nextId();
     }
-    await this.redis.hset(this._key("itemJson"), item.queueId, this._serialize(item));
+    await this.redis.hset(
+      this._key("itemJson"),
+      item.queueId,
+      this._serialize(item),
+    );
     return item.queueId;
   }
 

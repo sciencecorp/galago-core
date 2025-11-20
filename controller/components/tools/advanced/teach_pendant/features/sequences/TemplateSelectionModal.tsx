@@ -72,9 +72,13 @@ export const TemplateSelectionModal: React.FC<TemplateModalProps> = ({
                   <Select
                     placeholder="Select nest location"
                     value={nestLocation}
-                    onChange={(e) => setNestLocation(e.target.value)}>
+                    onChange={(e) => setNestLocation(e.target.value)}
+                  >
                     {teachPoints
-                      .filter((p) => !p.name.includes("safe") && !p.name.includes("Safe"))
+                      .filter(
+                        (p) =>
+                          !p.name.includes("safe") && !p.name.includes("Safe"),
+                      )
                       .map((point) => (
                         <option key={point.id} value={point.name}>
                           {point.name}
@@ -88,9 +92,13 @@ export const TemplateSelectionModal: React.FC<TemplateModalProps> = ({
                   <Select
                     placeholder="Select safe location"
                     value={safeLocation}
-                    onChange={(e) => setSafeLocation(e.target.value)}>
+                    onChange={(e) => setSafeLocation(e.target.value)}
+                  >
                     {teachPoints
-                      .filter((p) => p.name.includes("safe") || p.name.includes("Safe"))
+                      .filter(
+                        (p) =>
+                          p.name.includes("safe") || p.name.includes("Safe"),
+                      )
                       .map((point) => (
                         <option key={point.id} value={point.name}>
                           {point.name}
@@ -109,7 +117,8 @@ export const TemplateSelectionModal: React.FC<TemplateModalProps> = ({
           <Button
             isDisabled={!selectedTemplate || !safeLocation || !nestLocation}
             colorScheme="blue"
-            onClick={handleSubmit}>
+            onClick={handleSubmit}
+          >
             Use Template
           </Button>
         </ModalFooter>

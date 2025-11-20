@@ -21,7 +21,13 @@ import {
   MenuItem,
   Center,
 } from "@chakra-ui/react";
-import { DeleteIcon, AddIcon, EditIcon, ArrowForwardIcon, HamburgerIcon } from "@chakra-ui/icons";
+import {
+  DeleteIcon,
+  AddIcon,
+  EditIcon,
+  ArrowForwardIcon,
+  HamburgerIcon,
+} from "@chakra-ui/icons";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import {
@@ -67,8 +73,16 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
   onRunCommand: (command: any) => void;
   onDeleteCommand: () => void;
   isEditing?: boolean;
-}> = ({ command, onCommandClick, onRunCommand, onDeleteCommand, isEditing = false }) => {
-  const infoQuery = trpc.tool.info.useQuery({ toolId: command.commandInfo.toolId });
+}> = ({
+  command,
+  onCommandClick,
+  onRunCommand,
+  onDeleteCommand,
+  isEditing = false,
+}) => {
+  const infoQuery = trpc.tool.info.useQuery({
+    toolId: command.commandInfo.toolId,
+  });
 
   return (
     <Box
@@ -77,7 +91,8 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
         if (!target.closest(".command-menu")) {
           onCommandClick(command);
         }
-      }}>
+      }}
+    >
       <Box
         left="0px"
         right="0px"
@@ -93,12 +108,15 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
         background={useColorModeValue("gray.50", "gray.700")}
         border="1px"
         borderColor={useColorModeValue("gray.200", "gray.600")}
-        boxShadow={useColorModeValue("md", "none")}>
+        boxShadow={useColorModeValue("md", "none")}
+      >
         <VStack alignItems="stretch">
           <Box>
             <HStack spacing={2}>
               <Box width="90%">
-                <Text as="b">{capitalizeFirst(command.commandInfo.toolType)}</Text>
+                <Text as="b">
+                  {capitalizeFirst(command.commandInfo.toolType)}
+                </Text>
               </Box>
               <Box className="command-menu">
                 <Menu>
@@ -111,7 +129,10 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
                     variant="outline"
                   />
                   <MenuList>
-                    <MenuItem onClick={() => onRunCommand(command)} icon={<VscRunBelow />}>
+                    <MenuItem
+                      onClick={() => onRunCommand(command)}
+                      icon={<VscRunBelow />}
+                    >
                       Run Command
                     </MenuItem>
                     {isEditing && (
@@ -132,7 +153,11 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
                 onCommandClick={onCommandClick}
               />
               <Box bottom={0} position="sticky">
-                <Text>{capitalizeFirst(command.commandInfo.command.replaceAll("_", " "))}</Text>
+                <Text>
+                  {capitalizeFirst(
+                    command.commandInfo.command.replaceAll("_", " "),
+                  )}
+                </Text>
               </Box>
             </VStack>
           </Center>
@@ -148,9 +173,15 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const [isRunModalOpen, setIsRunModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [addCommandPosition, setAddCommandPosition] = useState<number | null>(null);
+  const [addCommandPosition, setAddCommandPosition] = useState<number | null>(
+    null,
+  );
   const [selectedCommand, setSelectedCommand] = useState<any | null>(null);
-  const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
+  const {
+    isOpen: isDrawerOpen,
+    onOpen: onDrawerOpen,
+    onClose: onDrawerClose,
+  } = useDisclosure();
   const execMutation = trpc.tool.runCommand.useMutation();
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
@@ -162,12 +193,17 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
     error,
     refetch,
   } = trpc.protocol.getById.useQuery({ id: parseInt(id) });
-  const { data: selectedWorkcellData } = trpc.workcell.getSelectedWorkcell.useQuery();
+  const { data: selectedWorkcellData } =
+    trpc.workcell.getSelectedWorkcell.useQuery();
   const { data: workcells } = trpc.workcell.getAll.useQuery();
   const { data: fetchedIds } = trpc.tool.availableIDs.useQuery({
-    workcellId: workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id,
+    workcellId: workcells?.find(
+      (workcell) => workcell.name === selectedWorkcellData,
+    )?.id,
   });
-  const [commandToDeleteIndex, setCommandToDeleteIndex] = useState<any | null>(null);
+  const [commandToDeleteIndex, setCommandToDeleteIndex] = useState<any | null>(
+    null,
+  );
   const {
     isOpen: isDeleteConfirmOpen,
     onOpen: openDeleteConfirm,
@@ -205,7 +241,8 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         label: cmd.label || "",
         tool_info: cmd.tool_info || {
           type: cmd.toolType,
-          image_url: cmd.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
+          image_url:
+            cmd.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
         },
         advancedParameters: cmd.advancedParameters || {
           skipExecutionVariable: {
@@ -302,7 +339,10 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       const filename = `${protocol.name.replace(/\s+/g, "_")}-protocol.json`;
       await downloadFile(`/protocols/${id}/export`, filename);
 
-      successToast("Protocol Exported", `${protocol.name} has been exported successfully`);
+      successToast(
+        "Protocol Exported",
+        `${protocol.name} has been exported successfully`,
+      );
     } catch (error: any) {
       errorToast("Export Failed", error.message || "Failed to export protocol");
     } finally {
@@ -323,7 +363,10 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       // Add tool info for UI
       tool_info: {
         type: cmd.commandInfo.toolType,
-        image_url: cmd.commandInfo.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
+        image_url:
+          cmd.commandInfo.toolType === "toolbox"
+            ? "/tool_icons/toolbox.png"
+            : undefined,
       },
       //Add advanced parameters for UI
       advancedParameters: cmd.commandInfo.advancedParameters || {
@@ -358,7 +401,9 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
 
   const handleUpdateCommand = (updatedCommand: any) => {
     setCommands((prevCommands) =>
-      prevCommands.map((cmd) => (cmd.queueId === updatedCommand.queueId ? updatedCommand : cmd)),
+      prevCommands.map((cmd) =>
+        cmd.queueId === updatedCommand.queueId ? updatedCommand : cmd,
+      ),
     );
   };
 
@@ -382,7 +427,8 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
           leftIcon={<AddIcon />}
           colorScheme="teal"
           variant="outline"
-          onClick={() => handleAddCommandAtPosition(0)}>
+          onClick={() => handleAddCommandAtPosition(0)}
+        >
           Add First Command
         </Button>
       );
@@ -394,14 +440,19 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         align="flex-start"
         minW="min-content"
         ref={provided.innerRef}
-        {...provided.droppableProps}>
+        {...provided.droppableProps}
+      >
         {commands.map((command: any, index: number) => (
           <Draggable
             key={command.queueId}
             draggableId={command.queueId.toString()}
             index={index}
-            isDragDisabled={!isEditing}>
-            {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
+            isDragDisabled={!isEditing}
+          >
+            {(
+              provided: DraggableProvided,
+              snapshot: DraggableStateSnapshot,
+            ) => (
               <HStack
                 ref={provided.innerRef}
                 {...provided.draggableProps}
@@ -409,7 +460,8 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                 style={{
                   ...provided.draggableProps.style,
                   opacity: snapshot.isDragging ? 0.8 : 1,
-                }}>
+                }}
+              >
                 {isEditing && index === 0 && (
                   <IconButton
                     aria-label="Add command before"
@@ -469,13 +521,16 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       borderColor={borderColor}
       borderWidth="1px"
       mx="auto"
-      overflow="hidden">
+      overflow="hidden"
+    >
       <VStack align="stretch" spacing={6} width="100%">
         <HStack justify="space-between">
           <VStack align="start" spacing={2}>
             <Heading size="lg">{protocol.name}</Heading>
             <HStack>
-              <Tag colorScheme={getCategoryColor(protocol.category)}>{protocol.category}</Tag>
+              <Tag colorScheme={getCategoryColor(protocol.category)}>
+                {protocol.category}
+              </Tag>
               <Text color="gray.500">{protocol.workcell}</Text>
             </HStack>
           </VStack>
@@ -486,13 +541,15 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                   variant="outline"
                   leftIcon={<SaveIcon />}
                   size="md"
-                  onClick={handleSaveChanges}>
+                  onClick={handleSaveChanges}
+                >
                   Save
                 </Button>
                 <Button
                   leftIcon={<MdOutlineExitToApp />}
                   variant="outline"
-                  onClick={() => setIsEditing(false)}>
+                  onClick={() => setIsEditing(false)}
+                >
                   Exit
                 </Button>
               </>
@@ -503,16 +560,22 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                   colorScheme="green"
                   variant="outline"
                   onClick={handleExport}
-                  isLoading={isExporting}>
+                  isLoading={isExporting}
+                >
                   Export
                 </Button>
                 <Button
                   leftIcon={<EditIcon />}
                   colorScheme="teal"
-                  onClick={() => setIsEditing(true)}>
+                  onClick={() => setIsEditing(true)}
+                >
                   Edit
                 </Button>
-                <Button leftIcon={<FaPlay />} colorScheme="green" onClick={handleRunClick}>
+                <Button
+                  leftIcon={<FaPlay />}
+                  colorScheme="green"
+                  onClick={handleRunClick}
+                >
                   Run
                 </Button>
               </>
@@ -538,7 +601,8 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
               borderRadius: "4px",
               "&:hover": {},
             },
-          }}>
+          }}
+        >
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="commands" direction="horizontal">
               {renderDraggableCommands}
@@ -563,7 +627,10 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       />
 
       {isRunModalOpen && (
-        <NewProtocolRunModal id={protocol.id.toString()} onClose={handleRunModalClose} />
+        <NewProtocolRunModal
+          id={protocol.id.toString()}
+          onClose={handleRunModalClose}
+        />
       )}
 
       <ConfirmationModal
@@ -572,7 +639,8 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         header={`Delete command?`}
         isOpen={isDeleteConfirmOpen}
         onClick={handleDeleteCommand}
-        onClose={closeDeleteConfirm}>
+        onClose={closeDeleteConfirm}
+      >
         {`Are you sure you want to delete this command "${selectedCommand?.commandInfo?.command?.replaceAll("_", " ") || ""}"?`}
       </ConfirmationModal>
     </Box>

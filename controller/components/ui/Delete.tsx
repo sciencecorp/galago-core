@@ -1,4 +1,10 @@
-import { useDisclosure, IconButton, Text, Button, HStack } from "@chakra-ui/react";
+import {
+  useDisclosure,
+  IconButton,
+  Text,
+  Button,
+  HStack,
+} from "@chakra-ui/react";
 import React from "react";
 import { RiDeleteBin5Line } from "react-icons/ri";
 
@@ -15,7 +21,15 @@ export interface DeleteButtonProps {
 }
 
 export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
-  const { disabled, label, onDelete, showText, variant = "icon", customText, size = "md" } = props;
+  const {
+    disabled,
+    label,
+    onDelete,
+    showText,
+    variant = "icon",
+    customText,
+    size = "md",
+  } = props;
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
@@ -53,7 +67,8 @@ export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
           onClick={onOpen}
           colorScheme="red"
           loadingText="Deleting..."
-          variant="outline">
+          variant="outline"
+        >
           Delete
         </Button>
       )}
@@ -66,7 +81,8 @@ export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
           onDelete();
           onClose();
         }}
-        onClose={onClose}>
+        onClose={onClose}
+      >
         {customText || `Are you sure you want to delete ${label}?`}
       </ConfirmationModal>
     </>

@@ -66,10 +66,17 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   bgColor,
   borderColor,
 }) => {
-  const isEnabled = toolState === ToolStatus.SIMULATED || toolState === ToolStatus.READY;
+  const isEnabled =
+    toolState === ToolStatus.SIMULATED || toolState === ToolStatus.READY;
   return (
     <VStack spacing={4} width="100%" height="100%">
-      <Card width="100%" borderColor={borderColor} borderWidth="1px" borderRadius="lg" bg={bgColor}>
+      <Card
+        width="100%"
+        borderColor={borderColor}
+        borderWidth="1px"
+        borderRadius="lg"
+        bg={bgColor}
+      >
         <CardHeader fontWeight="semibold" fontSize="md">
           <HStack>
             <PiCirclesThreeFill />
@@ -83,7 +90,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               colorScheme="green"
               size="md"
               isLoading={isFreeLoading}
-              isDisabled={!isEnabled}>
+              isDisabled={!isEnabled}
+            >
               Free
             </Button>
             <Button
@@ -91,7 +99,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               colorScheme="red"
               size="md"
               isLoading={isUnfreeLoading}
-              isDisabled={!isEnabled}>
+              isDisabled={!isEnabled}
+            >
               Unfree
             </Button>
             <Button
@@ -99,14 +108,21 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               colorScheme="purple"
               size="md"
               isLoading={isUnwindLoading}
-              isDisabled={!isEnabled}>
+              isDisabled={!isEnabled}
+            >
               Unwind
             </Button>
           </HStack>
         </CardBody>
       </Card>
 
-      <Card width="100%" borderColor={borderColor} borderWidth="1px" borderRadius="lg" bg={bgColor}>
+      <Card
+        width="100%"
+        borderColor={borderColor}
+        borderWidth="1px"
+        borderRadius="lg"
+        bg={bgColor}
+      >
         <CardHeader fontWeight="semibold" fontSize="md">
           <HStack>
             <FaArrowsAlt />
@@ -119,7 +135,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               value={jogAxis}
               onChange={(e) => setJogAxis(e.target.value)}
               width="100%"
-              borderColor={borderColor}>
+              borderColor={borderColor}
+            >
               <option value="">Select Axis</option>
               <option value="x">X</option>
               <option value="y">Y</option>
@@ -130,23 +147,37 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             </Select>
             <NumberInput
               value={jogDistance}
-              onChange={(valueString) => setJogDistance(parseFloat(valueString))}
+              onChange={(valueString) =>
+                setJogDistance(parseFloat(valueString))
+              }
               width="100%"
-              borderColor={borderColor}>
+              borderColor={borderColor}
+            >
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
                 <NumberDecrementStepper />
               </NumberInputStepper>
             </NumberInput>
-            <Button onClick={onJog} colorScheme="teal" width="100%" isDisabled={!isEnabled}>
+            <Button
+              onClick={onJog}
+              colorScheme="teal"
+              width="100%"
+              isDisabled={!isEnabled}
+            >
               Jog
             </Button>
           </VStack>
         </CardBody>
       </Card>
 
-      <Card width="100%" borderColor={borderColor} borderWidth="1px" borderRadius="lg" bg={bgColor}>
+      <Card
+        width="100%"
+        borderColor={borderColor}
+        borderWidth="1px"
+        borderRadius="lg"
+        bg={bgColor}
+      >
         <CardHeader fontWeight="semibold" fontSize="md">
           <HStack>
             <FaHandPaper />
@@ -157,9 +188,14 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           <VStack spacing={4} width="100%">
             <Select
               value={selectedGripParamsId || ""}
-              onChange={(e) => onGripParamsChange(e.target.value ? Number(e.target.value) : null)}
+              onChange={(e) =>
+                onGripParamsChange(
+                  e.target.value ? Number(e.target.value) : null,
+                )
+              }
               placeholder="Use Default Parameters"
-              borderColor={borderColor}>
+              borderColor={borderColor}
+            >
               {gripParams.map((param, index) => (
                 <option key={param.id || `new-${index}`} value={param.id}>
                   {param.name}
@@ -167,10 +203,20 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               ))}
             </Select>
             <HStack spacing={4} width="100%">
-              <Button onClick={onGripperOpen} colorScheme="green" flex={1} isDisabled={!isEnabled}>
+              <Button
+                onClick={onGripperOpen}
+                colorScheme="green"
+                flex={1}
+                isDisabled={!isEnabled}
+              >
                 Open
               </Button>
-              <Button onClick={onGripperClose} colorScheme="red" flex={1} isDisabled={!isEnabled}>
+              <Button
+                onClick={onGripperClose}
+                colorScheme="red"
+                flex={1}
+                isDisabled={!isEnabled}
+              >
                 Close
               </Button>
             </HStack>

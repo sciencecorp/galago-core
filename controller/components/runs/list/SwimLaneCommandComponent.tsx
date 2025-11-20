@@ -29,9 +29,13 @@ interface LaneCommandComponentProps {
   onCommandClick: (command: RunCommand) => void;
 }
 
-const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) => {
+const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (
+  props,
+) => {
   const { command, onCommandClick } = props;
-  const infoQuery = trpc.tool.info.useQuery({ toolId: command.commandInfo.toolId });
+  const infoQuery = trpc.tool.info.useQuery({
+    toolId: command.commandInfo.toolId,
+  });
   const skipMutation = trpc.commandQueue.skipCommand.useMutation();
   const skipUntilMutation = trpc.commandQueue.skipCommandsUntil.useMutation();
   const execMutation = trpc.tool.runCommand.useMutation();
@@ -72,7 +76,9 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
 
   const queued =
     queueId &&
-    (command.status === "CREATED" || command.status === "FAILED" || command.status === "STARTED");
+    (command.status === "CREATED" ||
+      command.status === "FAILED" ||
+      command.status === "STARTED");
 
   return (
     <Box
@@ -97,13 +103,22 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
       background={setBackgroundColor(command.status)}
       border={command.status === "STARTED" ? "2px" : "1px"}
       borderColor={command.status === "STARTED" ? "teal" : borderColorStyle}
-      boxShadow={useColorModeValue("md", "none")}>
+      boxShadow={useColorModeValue("md", "none")}
+    >
       <VStack alignItems="stretch">
         <Box>
           <HStack spacing={2}>
             <Box width="90%">
-              <HStack py={command.status === "COMPLETED" || command.status === "SKIPPED" ? 1 : 0}>
-                {command.status === "COMPLETED" && <FaCheckCircle color="green.500" />}
+              <HStack
+                py={
+                  command.status === "COMPLETED" || command.status === "SKIPPED"
+                    ? 1
+                    : 0
+                }
+              >
+                {command.status === "COMPLETED" && (
+                  <FaCheckCircle color="green.500" />
+                )}
                 {command.status === "SKIPPED" && <GoSkip color="orange" />}
                 <Text as="b">{toolName}</Text>
               </HStack>
@@ -129,14 +144,18 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
                       </MenuItem>
                     ) : null}
                     {queued ? (
-                      <MenuItem onClick={() => skipUntilMutation.mutate(queueId)}>
+                      <MenuItem
+                        onClick={() => skipUntilMutation.mutate(queueId)}
+                      >
                         <BsSkipForwardFill />{" "}
                         <Box as="span" ml={2}>
                           Skip to this command
                         </Box>
                       </MenuItem>
                     ) : null}
-                    <MenuItem onClick={() => execMutation.mutate(command.commandInfo)}>
+                    <MenuItem
+                      onClick={() => execMutation.mutate(command.commandInfo)}
+                    >
                       <VscRunBelow />{" "}
                       <Box as="span" ml={2}>
                         Send to Tool
@@ -156,7 +175,11 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
               onCommandClick={onCommandClick}
             />
             <Box bottom={0} position="sticky">
-              <Text>{capitalizeFirst(command.commandInfo.command.replaceAll("_", " "))}</Text>
+              <Text>
+                {capitalizeFirst(
+                  command.commandInfo.command.replaceAll("_", " "),
+                )}
+              </Text>
             </Box>
           </VStack>
         </Center>

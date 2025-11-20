@@ -1,4 +1,12 @@
-import { Button, HStack, Menu, MenuButton, MenuList, MenuItem, Input } from "@chakra-ui/react";
+import {
+  Button,
+  HStack,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Input,
+} from "@chakra-ui/react";
 import { ChevronDownIcon, DownloadIcon } from "@chakra-ui/icons";
 import { FiUpload } from "react-icons/fi";
 import React, { useRef } from "react";
@@ -74,7 +82,9 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
     }
 
     const fileName = `teach-pendant-${dataType || "all"}-${new Date().toISOString()}.${format}`;
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+      type: "application/json",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -84,7 +94,10 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    successToast("Export Successful", `Data has been exported as ${format.toUpperCase()}`);
+    successToast(
+      "Export Successful",
+      `Data has been exported as ${format.toUpperCase()}`,
+    );
   };
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,35 +110,47 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
         formData.append("file", files[i]);
         formData.append("tool_id", String(toolId));
 
-        const response = await fetch("http://localhost:8000/api/robot-arm/waypoints/upload", {
-          method: "POST",
-          body: formData,
-        });
+        const response = await fetch(
+          "http://localhost:8000/api/robot-arm/waypoints/upload",
+          {
+            method: "POST",
+            body: formData,
+          },
+        );
 
         if (!response.ok) {
           const error = await response.json();
-          throw new Error(`Failed to import ${files[i].name}: ${error.detail || "Unknown error"}`);
+          throw new Error(
+            `Failed to import ${files[i].name}: ${error.detail || "Unknown error"}`,
+          );
         }
 
         const result = await response.json();
 
         // Show a summary toast for each file
         if (result.summary) {
-          const summaryText = Object.entries(result.summary as Record<string, number>)
+          const summaryText = Object.entries(
+            result.summary as Record<string, number>,
+          )
             .filter(([_, count]) => count > 0)
             .map(([type, count]) => `${count} ${type.replace(/_/g, " ")}`)
             .join(", ");
 
           successToast(
             `Imported ${files[i].name}`,
-            summaryText ? `Imported ${summaryText}` : "File imported successfully",
+            summaryText
+              ? `Imported ${summaryText}`
+              : "File imported successfully",
           );
         }
 
         await onImport(result.data);
       }
     } catch (error) {
-      errorToast("Import Failed", error instanceof Error ? error.message : "Failed to import data");
+      errorToast(
+        "Import Failed",
+        error instanceof Error ? error.message : "Failed to import data",
+      );
     }
 
     if (fileInputRef.current) {
@@ -152,7 +177,8 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
         leftIcon={<FiUpload />}
         onClick={() => fileInputRef.current?.click()}
         colorScheme="blue"
-        variant="outline">
+        variant="outline"
+      >
         Import
       </Button>
       <Menu>
@@ -161,12 +187,17 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
           rightIcon={<ChevronDownIcon />}
           colorScheme="blue"
           variant="outline"
-          leftIcon={<DownloadIcon />}>
+          leftIcon={<DownloadIcon />}
+        >
           Export
         </MenuButton>
         <MenuList zIndex={1000} maxH="300px" overflowY="auto">
-          <MenuItem onClick={() => handleExport("json")}>Export All (JSON)</MenuItem>
-          <MenuItem onClick={() => handleExport("xml")}>Export All (XML)</MenuItem>
+          <MenuItem onClick={() => handleExport("json")}>
+            Export All (JSON)
+          </MenuItem>
+          <MenuItem onClick={() => handleExport("xml")}>
+            Export All (XML)
+          </MenuItem>
           <MenuItem onClick={() => handleExport("json", "teachPoints")}>
             Export Teach Points (JSON)
           </MenuItem>

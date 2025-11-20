@@ -22,7 +22,9 @@ import { ToolConfig } from "gen-interfaces/controller";
 
 export default function Page() {
   const router = useRouter();
-  const id = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
+  const id = Array.isArray(router.query.id)
+    ? router.query.id[0]
+    : router.query.id;
 
   const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
   const configDefault = infoQuery.data;

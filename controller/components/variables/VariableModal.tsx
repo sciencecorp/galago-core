@@ -72,7 +72,10 @@ export const VariableModal: React.FC = () => {
               </FormControl>
               <FormControl>
                 <FormLabel>Type</FormLabel>
-                <Select value={type} onChange={(e) => setType(e.target.value as Variable["type"])}>
+                <Select
+                  value={type}
+                  onChange={(e) => setType(e.target.value as Variable["type"])}
+                >
                   <option value="string">String</option>
                   <option value="number">Number</option>
                   <option value="boolean">Boolean</option>
@@ -86,12 +89,16 @@ export const VariableModal: React.FC = () => {
                   <Select
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
-                    placeholder="Choose a value">
+                    placeholder="Choose a value"
+                  >
                     <option value="true">True</option>
                     <option value="false">False</option>
                   </Select>
                 ) : (
-                  <Input value={value} onChange={(e) => setValue(e.target.value)} />
+                  <Input
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                  />
                 )}
               </FormControl>
             </VStack>
@@ -100,7 +107,12 @@ export const VariableModal: React.FC = () => {
             <Button variant="ghost" onClick={onClose}>
               Cancel
             </Button>
-            <Button colorScheme="teal" onClick={handleSave} mr={3} isLoading={isLoading}>
+            <Button
+              colorScheme="teal"
+              onClick={handleSave}
+              mr={3}
+              isLoading={isLoading}
+            >
               Submit
             </Button>
           </ModalFooter>

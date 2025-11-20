@@ -69,7 +69,8 @@ export const StopRunModal: React.FC<StopRunModalProps> = ({
         setCountdown(null);
         onClose();
       }}
-      isCentered>
+      isCentered
+    >
       <ModalOverlay backdropFilter="blur(4px)" bg="blackAlpha.300" />
       <ModalContent bg={bgColor} maxW="md">
         <ModalHeader textAlign="center">Stop Run</ModalHeader>
@@ -86,13 +87,15 @@ export const StopRunModal: React.FC<StopRunModalProps> = ({
                   value={(countdown / 5) * 100}
                   size="80px"
                   thickness="8px"
-                  color="red.500">
+                  color="red.500"
+                >
                   <CircularProgressLabel fontSize="2xl" fontWeight="bold">
                     {countdown}
                   </CircularProgressLabel>
                 </CircularProgress>
                 <Text mt={2} fontWeight="bold" textAlign="center">
-                  Run will stop in {countdown} second{countdown !== 1 ? "s" : ""}
+                  Run will stop in {countdown} second
+                  {countdown !== 1 ? "s" : ""}
                 </Text>
               </VStack>
             </Center>
@@ -106,14 +109,16 @@ export const StopRunModal: React.FC<StopRunModalProps> = ({
                 setCountdown(null);
                 onClose();
               }}
-              isDisabled={countdown !== null}>
+              isDisabled={countdown !== null}
+            >
               Continue
             </Button>
             <Button
               colorScheme="red"
               onClick={handleConfirm}
               leftIcon={<MdStop />}
-              isDisabled={countdown !== null}>
+              isDisabled={countdown !== null}
+            >
               Stop Run
             </Button>
           </HStack>

@@ -35,28 +35,32 @@ export const labwareRouter = router({
   }),
 
   // Add new labware
-  add: procedure.input(zLabware.omit({ id: true })).mutation(async ({ input }) => {
-    const response = await post<Labware>(`/labware`, input);
-    logAction({
-      level: "info",
-      action: "New Labware Added",
-      details: `Labware ${input.name} added successfully.`,
-    });
-    const allTools = await get<ToolResponse[]>(`/tools`);
-    const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
-    if (allToolswithLabware.length > 0) {
-      try {
-        await Promise.all(
-          allToolswithLabware.map(async (tool) => {
-            await Tool.loadLabwareToPF400(tool.name);
-          }),
-        );
-      } catch (error) {
-        console.error("Error loading labware to PF400 tools:", error);
+  add: procedure
+    .input(zLabware.omit({ id: true }))
+    .mutation(async ({ input }) => {
+      const response = await post<Labware>(`/labware`, input);
+      logAction({
+        level: "info",
+        action: "New Labware Added",
+        details: `Labware ${input.name} added successfully.`,
+      });
+      const allTools = await get<ToolResponse[]>(`/tools`);
+      const allToolswithLabware = allTools.filter(
+        (tool) => tool.type === "pf400",
+      );
+      if (allToolswithLabware.length > 0) {
+        try {
+          await Promise.all(
+            allToolswithLabware.map(async (tool) => {
+              await Tool.loadLabwareToPF400(tool.name);
+            }),
+          );
+        } catch (error) {
+          console.error("Error loading labware to PF400 tools:", error);
+        }
       }
-    }
-    return response;
-  }),
+      return response;
+    }),
 
   // Edit existing labware
   edit: procedure.input(zLabware).mutation(async ({ input }) => {
@@ -68,7 +72,9 @@ export const labwareRouter = router({
       details: `Labware ${input.name} updated successfully.`,
     });
     const allTools = await get<ToolResponse[]>(`/tools`);
-    const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
+    const allToolswithLabware = allTools.filter(
+      (tool) => tool.type === "pf400",
+    );
     if (allToolswithLabware.length > 0) {
       try {
         await Promise.all(
@@ -87,7 +93,9 @@ export const labwareRouter = router({
   delete: procedure.input(z.number()).mutation(async ({ input }) => {
     await del(`/labware/${input}`);
     const allTools = await get<ToolResponse[]>(`/tools`);
-    const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
+    const allToolswithLabware = allTools.filter(
+      (tool) => tool.type === "pf400",
+    );
     if (allToolswithLabware.length > 0) {
       try {
         await Promise.all(
@@ -140,7 +148,9 @@ export const labwareRouter = router({
 
         // Reload labware in all PF400 tools
         const allTools = await get<ToolResponse[]>(`/tools`);
-        const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
+        const allToolswithLabware = allTools.filter(
+          (tool) => tool.type === "pf400",
+        );
         if (allToolswithLabware.length > 0) {
           await Promise.all(
             allToolswithLabware.map(async (tool) => {

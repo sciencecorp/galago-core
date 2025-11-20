@@ -93,7 +93,8 @@ export const CreateFormModal: React.FC = () => {
               onClick={handleSave}
               mr={3}
               isLoading={isLoading}
-              isDisabled={!formName.trim()}>
+              isDisabled={!formName.trim()}
+            >
               Submit
             </Button>
           </ModalFooter>

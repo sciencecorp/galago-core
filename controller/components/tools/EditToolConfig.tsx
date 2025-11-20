@@ -49,7 +49,9 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
   const [newDescription, setNewDescription] = useState("");
   const [newIp, setNewIp] = useState("");
   const [newPort, setNewPort] = useState<number | string>("");
-  const [newConfig, setNewConfig] = useState<Record<string, Record<string, any>>>({});
+  const [newConfig, setNewConfig] = useState<
+    Record<string, Record<string, any>>
+  >({});
   const editTool = trpc.tool.edit.useMutation();
   const getTool = trpc.tool.info.useQuery({ toolId: toolId });
   const { description, config, type, ip, port } = getTool.data || {};
@@ -100,7 +102,10 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
       const editedTool = {
         description: newDescription || description,
         ip: newIp || ip,
-        port: typeof newPort === "string" && newPort !== "" ? parseInt(newPort) : port,
+        port:
+          typeof newPort === "string" && newPort !== ""
+            ? parseInt(newPort)
+            : port,
         config: newConfig || config,
       };
       await editTool.mutateAsync({ id: id, config: editedTool });
@@ -143,7 +148,9 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
           options={comPortOptions}
           onChange={(newValue) => {
             handleConfigChange(
-              { target: { value: newValue } } as React.ChangeEvent<HTMLInputElement>,
+              {
+                target: { value: newValue },
+              } as React.ChangeEvent<HTMLInputElement>,
               key,
             );
           }}
@@ -186,9 +193,13 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
                       "Please enter a valid IP address (e.g., 192.168.1.1) or 'localhost'",
                     );
                   } else {
-                    successToast("Valid IP Address", "IP address format is valid");
+                    successToast(
+                      "Valid IP Address",
+                      "IP address format is valid",
+                    );
                   }
-                }}>
+                }}
+              >
                 {isValid ? "✓" : "✗"}
               </Button>
             </Tooltip>
@@ -205,7 +216,8 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
     ) {
       // Special placeholder for Cytation directories
       const isCytationConfig =
-        type === ToolType.cytation && (key === "protocol_dir" || key === "experiment_dir");
+        type === ToolType.cytation &&
+        (key === "protocol_dir" || key === "experiment_dir");
 
       const placeholder = isCytationConfig
         ? `Enter full absolute path (e.g., C:\\cytation_${key.includes("protocol") ? "protocols" : "experiments"})`
@@ -226,7 +238,8 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
         <Select
           value={getCurrentValue()}
           onChange={(e) => handleConfigChange(e, key)}
-          placeholder="Select GPL version">
+          placeholder="Select GPL version"
+        >
           {gplVersions.map((version) => (
             <option key={version} value={version}>
               {version}
@@ -237,13 +250,19 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
     }
 
     // For numeric fields like ports
-    if (key.toLowerCase().includes("port") && !key.toLowerCase().includes("com_port")) {
+    if (
+      key.toLowerCase().includes("port") &&
+      !key.toLowerCase().includes("com_port")
+    ) {
       const currentValue = getCurrentValue();
       // Parse as number and validate port range (0-65535)
       const numValue = Number(currentValue);
       const isValid =
         currentValue === "" ||
-        (!isNaN(numValue) && Number.isInteger(numValue) && numValue >= 0 && numValue <= 65535);
+        (!isNaN(numValue) &&
+          Number.isInteger(numValue) &&
+          numValue >= 0 &&
+          numValue <= 65535);
 
       return (
         <InputGroup>
@@ -284,7 +303,8 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
     ) {
       const currentValue = getCurrentValue();
       const numValue = Number(currentValue);
-      const isValid = currentValue === "" || (!isNaN(numValue) && Number.isInteger(numValue));
+      const isValid =
+        currentValue === "" || (!isNaN(numValue) && Number.isInteger(numValue));
 
       return (
         <Input
@@ -329,7 +349,9 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
                 type != undefined &&
                 Object.entries(config[type] || {}).map(([key, value]) => (
                   <FormControl key={key}>
-                    <FormLabel>{capitalizeFirst(key).replaceAll("_", " ")}</FormLabel>
+                    <FormLabel>
+                      {capitalizeFirst(key).replaceAll("_", " ")}
+                    </FormLabel>
                     {renderInputForKey(key, value)}
                   </FormControl>
                 ))}
@@ -341,7 +363,12 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
                 <AccordionItem>
                   <h2>
                     <AccordionButton>
-                      <Box as="span" flex="1" textAlign="left" fontWeight="bold">
+                      <Box
+                        as="span"
+                        flex="1"
+                        textAlign="left"
+                        fontWeight="bold"
+                      >
                         Advanced Parameters
                       </Box>
                       <AccordionIcon />
@@ -358,7 +385,11 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
                             onChange={(e) => setNewIp(e.target.value)}
                             placeholder="Enter IP address (e.g., 192.168.1.1 or localhost)"
                             isInvalid={newIp !== "" && !isValidIP(newIp)}
-                            borderColor={newIp === "" || isValidIP(newIp) ? undefined : "red.300"}
+                            borderColor={
+                              newIp === "" || isValidIP(newIp)
+                                ? undefined
+                                : "red.300"
+                            }
                           />
                           <InputRightElement width="4.5rem">
                             <Tooltip
@@ -366,11 +397,16 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
                                 newIp === "" || isValidIP(newIp)
                                   ? "Valid IP format"
                                   : "Invalid IP format"
-                              }>
+                              }
+                            >
                               <Button
                                 h="1.75rem"
                                 size="sm"
-                                colorScheme={newIp === "" || isValidIP(newIp) ? "teal" : "red"}
+                                colorScheme={
+                                  newIp === "" || isValidIP(newIp)
+                                    ? "teal"
+                                    : "red"
+                                }
                                 variant="outline"
                                 onClick={() => {
                                   if (newIp !== "" && !isValidIP(newIp)) {
@@ -379,9 +415,13 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
                                       "Please enter a valid IP address (e.g., 192.168.1.1) or 'localhost'",
                                     );
                                   } else if (newIp !== "") {
-                                    successToast("Valid IP Address", "IP address format is valid");
+                                    successToast(
+                                      "Valid IP Address",
+                                      "IP address format is valid",
+                                    );
                                   }
-                                }}>
+                                }}
+                              >
                                 {newIp === "" || isValidIP(newIp) ? "✓" : "✗"}
                               </Button>
                             </Tooltip>
@@ -397,7 +437,10 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
                             value={newPort}
                             onChange={(e) => {
                               // Only allow numbers
-                              if (e.target.value === "" || /^\d+$/.test(e.target.value)) {
+                              if (
+                                e.target.value === "" ||
+                                /^\d+$/.test(e.target.value)
+                              ) {
                                 setNewPort(e.target.value);
                               }
                             }}
@@ -420,7 +463,11 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
                               Number(newPort) > 65535) && (
                               <InputRightElement>
                                 <Tooltip label="Port must be a number between 0-65535">
-                                  <Button size="sm" colorScheme="red" variant="ghost">
+                                  <Button
+                                    size="sm"
+                                    colorScheme="red"
+                                    variant="ghost"
+                                  >
                                     !
                                   </Button>
                                 </Tooltip>

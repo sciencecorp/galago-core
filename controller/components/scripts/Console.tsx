@@ -93,7 +93,8 @@ export const Console: React.FC<ConsoleProps> = ({
       borderWidth="1px"
       borderColor={borderColor}
       overflow="hidden"
-      position="relative">
+      position="relative"
+    >
       <Flex
         ref={dragHandleRef}
         width="100%"
@@ -119,7 +120,8 @@ export const Console: React.FC<ConsoleProps> = ({
         onMouseDown={(e) => {
           handleDragStart(e);
         }}
-        cursor="ns-resize">
+        cursor="ns-resize"
+      >
         <Flex align="center">
           <Icon as={MdDragIndicator} mr={2} />
           <Text userSelect="none">Output Console</Text>
@@ -131,7 +133,8 @@ export const Console: React.FC<ConsoleProps> = ({
         p={2}
         overflowY="auto"
         overflowX="auto"
-        display={isMinimized ? "none" : "block"}>
+        display={isMinimized ? "none" : "block"}
+      >
         <Box
           maxWidth="100%"
           fontFamily="monospace"
@@ -145,11 +148,13 @@ export const Console: React.FC<ConsoleProps> = ({
               padding: 0,
               margin: 0,
             },
-          }}>
+          }}
+        >
           <pre
             style={{
               color: runError ? "red" : "inherit",
-            }}>
+            }}
+          >
             {consoleText}
           </pre>
         </Box>

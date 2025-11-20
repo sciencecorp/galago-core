@@ -1,11 +1,20 @@
 import { trpc } from "@/utils/trpc";
-import { Button, HStack, Switch, Text, Tooltip, VStack } from "@chakra-ui/react";
+import {
+  Button,
+  HStack,
+  Switch,
+  Text,
+  Tooltip,
+  VStack,
+} from "@chakra-ui/react";
 import { ToolConfig } from "gen-interfaces/controller";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { useState, useEffect } from "react";
 import { successToast, errorToast, infoToast } from "../ui/Toast";
 
-function toolSpecificConfig(toolConfig: ToolConfig): Record<string, any> | undefined {
+function toolSpecificConfig(
+  toolConfig: ToolConfig,
+): Record<string, any> | undefined {
   const toolType = toolConfig.type;
   const config = toolConfig.config;
   if (!config) return;
@@ -144,7 +153,8 @@ export function ToolConfigEditor({
         disabled={isLoading || toolConfiguring}
         onClick={async () => saveConfig(false)}
         isDisabled={!isReachable || isSimulated}
-        isLoading={toolConfiguring}>
+        isLoading={toolConfiguring}
+      >
         Connect
       </Button>
     </VStack>

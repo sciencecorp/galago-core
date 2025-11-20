@@ -13,9 +13,15 @@ export class TipsRequirements {
       return;
     }
     wells.forEach((well) => {
-      inventory.reagents = inventory.reagents.filter((reagent) => reagent.well_id !== well.id);
+      inventory.reagents = inventory.reagents.filter(
+        (reagent) => reagent.well_id !== well.id,
+      );
     });
   };
 
-  findAvailableTips = (tipType: TipTypes, wells_array: string[], inventory: Inventory) => {};
+  findAvailableTips = (
+    tipType: TipTypes,
+    wells_array: string[],
+    inventory: Inventory,
+  ) => {};
 }

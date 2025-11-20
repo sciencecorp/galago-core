@@ -68,15 +68,21 @@ const NestModal: React.FC<NestModalProps> = ({
   containerType,
   containerId,
 }) => {
-  const [localSelectedNests, setLocalSelectedNests] = useState<number[]>(selectedNests || []);
-  const [dimensionMode, setDimensionMode] = useState<"row" | "column">("column");
+  const [localSelectedNests, setLocalSelectedNests] = useState<number[]>(
+    selectedNests || [],
+  );
+  const [dimensionMode, setDimensionMode] = useState<"row" | "column">(
+    "column",
+  );
   const [triggerToolCommand, setTriggerToolCommand] = useState(false);
   const isLiconic = toolType?.toLowerCase() === "liconic";
 
   // Calculate max dimensions properly, ensuring we count from 1 for hotels
-  const maxRows = nests.length > 0 ? Math.max(...nests.map((nest) => nest.row)) + 1 : 1;
+  const maxRows =
+    nests.length > 0 ? Math.max(...nests.map((nest) => nest.row)) + 1 : 1;
 
-  const maxColumns = nests.length > 0 ? Math.max(...nests.map((nest) => nest.column)) + 1 : 1;
+  const maxColumns =
+    nests.length > 0 ? Math.max(...nests.map((nest) => nest.column)) + 1 : 1;
 
   // Calculate dynamic cell size based on grid dimensions
   const calculateCellSize = () => {
@@ -155,18 +161,26 @@ const NestModal: React.FC<NestModalProps> = ({
     return { rows, cols };
   };
 
-  const handleDimensionChange = async (type: "row" | "column", operation: "add" | "remove") => {
+  const handleDimensionChange = async (
+    type: "row" | "column",
+    operation: "add" | "remove",
+  ) => {
     try {
       const currentMax = type === "row" ? maxRows : maxColumns;
       const targetIndex = operation === "add" ? currentMax : currentMax - 1;
 
       if (operation === "remove" && onDeleteNest) {
         const nestsToDelete = nests.filter((nest) =>
-          type === "row" ? nest.row === targetIndex : nest.column === targetIndex,
+          type === "row"
+            ? nest.row === targetIndex
+            : nest.column === targetIndex,
         );
 
         if (nestsToDelete.length === 0) {
-          warningToast("No nests to remove", `No nests found in the last ${type}`);
+          warningToast(
+            "No nests to remove",
+            `No nests found in the last ${type}`,
+          );
           return;
         }
 
@@ -190,7 +204,10 @@ const NestModal: React.FC<NestModalProps> = ({
         }
       }
     } catch (error) {
-      errorToast("Error modifying grid", "Failed to modify the grid dimensions");
+      errorToast(
+        "Error modifying grid",
+        "Failed to modify the grid dimensions",
+      );
     }
   };
 
@@ -226,9 +243,12 @@ const NestModal: React.FC<NestModalProps> = ({
           shadow: "md",
           borderColor: selectedNestBorder,
           bg: isSelected ? selectedNestBg : "transparent",
-        }}>
+        }}
+      >
         {plate && (
-          <Tooltip label={`${plate.name || "Unnamed Plate"} - Click to view details or check out`}>
+          <Tooltip
+            label={`${plate.name || "Unnamed Plate"} - Click to view details or check out`}
+          >
             <Box
               onClick={(e) => {
                 e.stopPropagation();
@@ -240,7 +260,8 @@ const NestModal: React.FC<NestModalProps> = ({
               _hover={{
                 transform: "scale(1.1)",
               }}
-              transition="all 0.2s">
+              transition="all 0.2s"
+            >
               <WellPlateIcon
                 rows={getPlateTypeInfo(plate.plate_type).rows}
                 columns={getPlateTypeInfo(plate.plate_type).cols}
@@ -255,11 +276,16 @@ const NestModal: React.FC<NestModalProps> = ({
             top="-2"
             left="-2"
             colorScheme={
-              nest.status === "empty" ? "gray" : nest.status === "reserved" ? "yellow" : "red"
+              nest.status === "empty"
+                ? "gray"
+                : nest.status === "reserved"
+                  ? "yellow"
+                  : "red"
             }
             borderRadius="full"
             px="1.5"
-            fontSize="2xs">
+            fontSize="2xs"
+          >
             {nest.status.charAt(0).toUpperCase()}
           </Badge>
         )}
@@ -271,7 +297,8 @@ const NestModal: React.FC<NestModalProps> = ({
             colorScheme="teal"
             borderRadius="full"
             p="0.5"
-            fontSize="xs">
+            fontSize="xs"
+          >
             <Icon as={RiCheckFill} boxSize={3} />
           </Badge>
         )}
@@ -318,7 +345,8 @@ const NestModal: React.FC<NestModalProps> = ({
                     } else {
                       handleCheckIn(-1);
                     }
-                  }}>
+                  }}
+                >
                   {localSelectedNests.length > 0 ? "Check In Here" : "Check In"}
                 </Button>
               )}
@@ -336,10 +364,17 @@ const NestModal: React.FC<NestModalProps> = ({
                       <Icon as={BsGrid3X3} transform="rotate(90deg)" />
                     )
                   }
-                  onClick={() => setDimensionMode((prev) => (prev === "column" ? "row" : "column"))}
+                  onClick={() =>
+                    setDimensionMode((prev) =>
+                      prev === "column" ? "row" : "column",
+                    )
+                  }
                   color={textColor}
-                  fontWeight="medium">
-                  {dimensionMode === "column" ? "Adding Columns" : "Adding Rows"}
+                  fontWeight="medium"
+                >
+                  {dimensionMode === "column"
+                    ? "Adding Columns"
+                    : "Adding Rows"}
                 </Button>
                 <Tooltip label={`Add ${dimensionMode}`}>
                   <IconButton
@@ -356,7 +391,9 @@ const NestModal: React.FC<NestModalProps> = ({
                       aria-label={`Remove ${dimensionMode}`}
                       icon={<MinusIcon />}
                       size="sm"
-                      onClick={() => handleDimensionChange(dimensionMode, "remove")}
+                      onClick={() =>
+                        handleDimensionChange(dimensionMode, "remove")
+                      }
                       colorScheme="teal"
                     />
                   </Tooltip>
@@ -391,7 +428,13 @@ const NestModal: React.FC<NestModalProps> = ({
           <Flex justify="center" align="center" w="100%">
             <Flex>
               {/* Row labels column */}
-              <VStack spacing={0} pt={14} pr={2} minW={labelWidth} justify="flex-start">
+              <VStack
+                spacing={0}
+                pt={14}
+                pr={2}
+                minW={labelWidth}
+                justify="flex-start"
+              >
                 {Array.from({ length: maxRows }, (_, i) => (
                   <Box
                     key={`row-${i}`}
@@ -399,7 +442,8 @@ const NestModal: React.FC<NestModalProps> = ({
                     mb={i < maxRows - 1 ? "8px" : 0}
                     display="flex"
                     alignItems="center"
-                    justifyContent="flex-end">
+                    justifyContent="flex-end"
+                  >
                     <Box
                       bg={labelBg}
                       px={2}
@@ -408,7 +452,8 @@ const NestModal: React.FC<NestModalProps> = ({
                       fontSize="xs"
                       fontWeight="bold"
                       minW="30px"
-                      textAlign="center">
+                      textAlign="center"
+                    >
                       {i + 1}
                     </Box>
                   </Box>
@@ -417,7 +462,14 @@ const NestModal: React.FC<NestModalProps> = ({
 
               <VStack spacing={0} align="stretch">
                 {/* Column labels row */}
-                <HStack spacing={2} px={2} pb={2} minH="40px" align="flex-end" justify="center">
+                <HStack
+                  spacing={2}
+                  px={2}
+                  pb={2}
+                  minH="40px"
+                  align="flex-end"
+                  justify="center"
+                >
                   {Array.from({ length: maxColumns }, (_, i) => (
                     <Flex key={`col-${i}`} w={cellSize} justify="center">
                       <Box
@@ -428,7 +480,8 @@ const NestModal: React.FC<NestModalProps> = ({
                         fontSize="xs"
                         fontWeight="bold"
                         minW="30px"
-                        textAlign="center">
+                        textAlign="center"
+                      >
                         {i + 1}
                       </Box>
                     </Flex>
@@ -442,10 +495,13 @@ const NestModal: React.FC<NestModalProps> = ({
                   p={3}
                   bg={ghostNestBg}
                   borderRadius="lg"
-                  key={`grid-${maxRows}-${maxColumns}`}>
+                  key={`grid-${maxRows}-${maxColumns}`}
+                >
                   {Array.from({ length: maxRows }, (_, rowIndex) =>
                     Array.from({ length: maxColumns }, (_, colIndex) => {
-                      const nest = nests.find((n) => n.row === rowIndex && n.column === colIndex);
+                      const nest = nests.find(
+                        (n) => n.row === rowIndex && n.column === colIndex,
+                      );
 
                       if (!nest) {
                         return (
@@ -475,13 +531,14 @@ const NestModal: React.FC<NestModalProps> = ({
           <ModalFooter borderTopWidth="1px" py={4}>
             <HStack width="100%" justify="space-between">
               <Text color="gray.500" fontSize="sm">
-                {localSelectedNests.length} nest{localSelectedNests.length !== 1 ? "s" : ""}{" "}
-                selected
+                {localSelectedNests.length} nest
+                {localSelectedNests.length !== 1 ? "s" : ""} selected
               </Text>
               <Button
                 colorScheme="teal"
                 onClick={handleConfirmSelection}
-                isDisabled={localSelectedNests.length === 0}>
+                isDisabled={localSelectedNests.length === 0}
+              >
                 Confirm Selection
               </Button>
             </HStack>

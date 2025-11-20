@@ -105,7 +105,11 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           initialParams[field.name] = field.defaultValue;
         } else if (field.name === "labware") {
           // Check if there's a labware named "default" in the database first
-          if (labwareData?.some((labware) => labware.name.toLowerCase() === "default")) {
+          if (
+            labwareData?.some(
+              (labware) => labware.name.toLowerCase() === "default",
+            )
+          ) {
             // If it exists in labwareData, use the exact case that exists in the database
             const defaultLabware = labwareData.find(
               (labware) => labware.name.toLowerCase() === "default",
@@ -125,7 +129,9 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   }, [selectedToolType, selectedCommand, labwareData]);
 
   // Get available commands for the selected tool
-  const availableCommands: Command = selectedToolType ? commandFields[selectedToolType] || {} : {};
+  const availableCommands: Command = selectedToolType
+    ? commandFields[selectedToolType] || {}
+    : {};
 
   // Get fields for the selected command
   const fields: Field[] =
@@ -154,10 +160,17 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   const filteredTools = availableTools.filter(
     (tool) =>
       tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tool.type.toLowerCase().replace(/_/g, " ").includes(searchQuery.toLowerCase()),
+      tool.type
+        .toLowerCase()
+        .replace(/_/g, " ")
+        .includes(searchQuery.toLowerCase()),
   );
 
-  const handleToolSelect = (tool: { id: number | string; type: string; name: string }) => {
+  const handleToolSelect = (tool: {
+    id: number | string;
+    type: string;
+    name: string;
+  }) => {
     setSelectedToolId(tool.id);
     setSelectedToolType(tool.type);
     setSelectedCommand("");
@@ -253,7 +266,11 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   };
 
   const isVariableReference = (value: any): boolean => {
-    return typeof value === "string" && value.startsWith("{{") && value.endsWith("}}");
+    return (
+      typeof value === "string" &&
+      value.startsWith("{{") &&
+      value.endsWith("}}")
+    );
   };
 
   const getVariableNameFromReference = (value: string): string => {
@@ -267,7 +284,9 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     // Get current value
     const currentValue = commandParams[field.name];
     const isVariable = isVariableReference(currentValue);
-    const variableName = isVariable ? getVariableNameFromReference(currentValue) : "";
+    const variableName = isVariable
+      ? getVariableNameFromReference(currentValue)
+      : "";
 
     // For labware fields, use a dropdown with available labware
     if (field.name === "labware") {
@@ -278,23 +297,28 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
             value={isVariable ? "" : currentValue || "default"}
             onChange={(e) => {
               if (!isVariable) {
-                setCommandParams({ ...commandParams, [field.name]: e.target.value });
+                setCommandParams({
+                  ...commandParams,
+                  [field.name]: e.target.value,
+                });
               }
             }}
-            isDisabled={isVariable}>
+            isDisabled={isVariable}
+          >
             {labwareData?.map((labware) => (
               <option key={labware.id} value={labware.name}>
                 {labware.name}
               </option>
             ))}
-            {!labwareData?.some((labware) => labware.name.toLowerCase() === "default") && (
-              <option value="default">default</option>
-            )}
+            {!labwareData?.some(
+              (labware) => labware.name.toLowerCase() === "default",
+            ) && <option value="default">default</option>}
           </Select>
           <Select
             width="180px"
             value={variableName}
-            onChange={(e) => handleVariableSelect(field.name, e.target.value)}>
+            onChange={(e) => handleVariableSelect(field.name, e.target.value)}
+          >
             <option value="">No Variable</option>
             {fetchedVariables?.map((variable) => (
               <option key={variable.id} value={variable.name}>
@@ -318,11 +342,15 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
             value={isVariable ? "" : currentValue || ""}
             onChange={(e) => {
               if (!isVariable) {
-                setCommandParams({ ...commandParams, [field.name]: e.target.value });
+                setCommandParams({
+                  ...commandParams,
+                  [field.name]: e.target.value,
+                });
               }
             }}
             isDisabled={isVariable}
-            placeholder="Select a form">
+            placeholder="Select a form"
+          >
             {forms && forms.length > 0 ? (
               forms.map((form) => (
                 <option key={form.id} value={form.name}>
@@ -338,7 +366,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           <Select
             width="180px"
             value={variableName}
-            onChange={(e) => handleVariableSelect(field.name, e.target.value)}>
+            onChange={(e) => handleVariableSelect(field.name, e.target.value)}
+          >
             <option value="">No Variable</option>
             {fetchedVariables?.map((variable) => (
               <option key={variable.id} value={variable.name}>
@@ -360,14 +389,19 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               value={isVariable ? "" : currentValue || ""}
               onChange={(e) => {
                 if (e.target.value) {
-                  setCommandParams({ ...commandParams, [field.name]: e.target.value });
+                  setCommandParams({
+                    ...commandParams,
+                    [field.name]: e.target.value,
+                  });
                 } else {
                   setCommandParams({ ...commandParams, [field.name]: "" });
                 }
               }}
               isDisabled={isVariable}
-              placeholder="Select a location">
-              {waypointsQuery.data?.locations && waypointsQuery.data.locations.length > 0 ? (
+              placeholder="Select a location"
+            >
+              {waypointsQuery.data?.locations &&
+              waypointsQuery.data.locations.length > 0 ? (
                 waypointsQuery.data.locations.map((loc) => (
                   <option key={loc.id} value={loc.name}>
                     {loc.name}
@@ -382,7 +416,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
             <Select
               width="180px"
               value={variableName}
-              onChange={(e) => handleVariableSelect(field.name, e.target.value)}>
+              onChange={(e) => handleVariableSelect(field.name, e.target.value)}
+            >
               <option value="">No Variable</option>
               {fetchedVariables?.map((variable) => (
                 <option key={variable.id} value={variable.name}>
@@ -395,7 +430,10 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
       }
 
       // For run_sequence command's sequence_name parameter
-      if (selectedCommand === "run_sequence" && field.name === "sequence_name") {
+      if (
+        selectedCommand === "run_sequence" &&
+        field.name === "sequence_name"
+      ) {
         return (
           <HStack width="100%">
             <Select
@@ -403,15 +441,20 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               value={isVariable ? "" : currentValue || ""}
               onChange={(e) => {
                 if (e.target.value) {
-                  setCommandParams({ ...commandParams, [field.name]: e.target.value });
+                  setCommandParams({
+                    ...commandParams,
+                    [field.name]: e.target.value,
+                  });
                 } else {
                   // Ensure empty string is saved when nothing is selected
                   setCommandParams({ ...commandParams, [field.name]: "" });
                 }
               }}
               isDisabled={isVariable}
-              placeholder="Select a sequence">
-              {waypointsQuery.data?.sequences && waypointsQuery.data.sequences.length > 0 ? (
+              placeholder="Select a sequence"
+            >
+              {waypointsQuery.data?.sequences &&
+              waypointsQuery.data.sequences.length > 0 ? (
                 waypointsQuery.data.sequences.map((seq) => (
                   <option key={seq.id} value={seq.name}>
                     {seq.name}
@@ -426,7 +469,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
             <Select
               width="180px"
               value={variableName}
-              onChange={(e) => handleVariableSelect(field.name, e.target.value)}>
+              onChange={(e) => handleVariableSelect(field.name, e.target.value)}
+            >
               <option value="">No Variable</option>
               {fetchedVariables?.map((variable) => (
                 <option key={variable.id} value={variable.name}>
@@ -457,16 +501,23 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               }
               onChange={(value) => {
                 if (!isVariable) {
-                  setCommandParams({ ...commandParams, [field.name]: parseFloat(value) || 0 });
+                  setCommandParams({
+                    ...commandParams,
+                    [field.name]: parseFloat(value) || 0,
+                  });
                 }
               }}
-              isDisabled={isVariable}>
-              <NumberInputField placeholder={isVariable ? "Using variable" : "Enter value"} />
+              isDisabled={isVariable}
+            >
+              <NumberInputField
+                placeholder={isVariable ? "Using variable" : "Enter value"}
+              />
             </NumberInput>
             <Select
               width="180px"
               value={variableName}
-              onChange={(e) => handleVariableSelect(field.name, e.target.value)}>
+              onChange={(e) => handleVariableSelect(field.name, e.target.value)}
+            >
               <option value="">No Variable</option>
               {fetchedVariables?.map((variable) => (
                 <option key={variable.id} value={variable.name}>
@@ -494,7 +545,10 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                 if (!isVariable) {
                   try {
                     const arrayValue = JSON.parse(e.target.value);
-                    setCommandParams({ ...commandParams, [field.name]: arrayValue });
+                    setCommandParams({
+                      ...commandParams,
+                      [field.name]: arrayValue,
+                    });
                   } catch {
                     // If parsing fails, store as empty array
                     setCommandParams({ ...commandParams, [field.name]: [] });
@@ -502,14 +556,17 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                 }
               }}
               placeholder={
-                isVariable ? "Using variable" : "Enter as JSON array: ['item1', 'item2']"
+                isVariable
+                  ? "Using variable"
+                  : "Enter as JSON array: ['item1', 'item2']"
               }
               isDisabled={isVariable}
             />
             <Select
               width="180px"
               value={variableName}
-              onChange={(e) => handleVariableSelect(field.name, e.target.value)}>
+              onChange={(e) => handleVariableSelect(field.name, e.target.value)}
+            >
               <option value="">No Variable</option>
               {fetchedVariables?.map((variable) => (
                 <option key={variable.id} value={variable.name}>
@@ -535,17 +592,22 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               }
               onChange={(e) => {
                 if (!isVariable) {
-                  setCommandParams({ ...commandParams, [field.name]: e.target.value === "true" });
+                  setCommandParams({
+                    ...commandParams,
+                    [field.name]: e.target.value === "true",
+                  });
                 }
               }}
-              isDisabled={isVariable}>
+              isDisabled={isVariable}
+            >
               <option value="true">True</option>
               <option value="false">False</option>
             </Select>
             <Select
               width="180px"
               value={variableName}
-              onChange={(e) => handleVariableSelect(field.name, e.target.value)}>
+              onChange={(e) => handleVariableSelect(field.name, e.target.value)}
+            >
               <option value="">No Variable</option>
               {fetchedVariables?.map((variable) => (
                 <option key={variable.id} value={variable.name}>
@@ -571,7 +633,10 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               }
               onChange={(e) => {
                 if (!isVariable) {
-                  setCommandParams({ ...commandParams, [field.name]: e.target.value });
+                  setCommandParams({
+                    ...commandParams,
+                    [field.name]: e.target.value,
+                  });
                 }
               }}
               placeholder={isVariable ? "Using variable" : "Enter value"}
@@ -580,7 +645,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
             <Select
               width="180px"
               value={variableName}
-              onChange={(e) => handleVariableSelect(field.name, e.target.value)}>
+              onChange={(e) => handleVariableSelect(field.name, e.target.value)}
+            >
               <option value="">No Variable</option>
               {fetchedVariables?.map((variable) => (
                 <option key={variable.id} value={variable.name}>
@@ -597,7 +663,11 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   const toolCardBg = useColorModeValue("white", "gray.800");
   const selectedToolBg = useColorModeValue("teal.100", "teal.900");
 
-  const ToolCard = ({ tool }: { tool: { id: number | string; type: string; name: string } }) => {
+  const ToolCard = ({
+    tool,
+  }: {
+    tool: { id: number | string; type: string; name: string };
+  }) => {
     const isSelected = selectedToolId === tool.id;
 
     return (
@@ -609,7 +679,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
         borderColor={isSelected ? "teal.500" : "gray.200"}
         boxShadow="md"
         _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
-        onClick={() => handleToolSelect(tool)}>
+        onClick={() => handleToolSelect(tool)}
+      >
         <VStack spacing={1} align="center">
           {tool.type === "toolbox" ? (
             <IconButton
@@ -652,7 +723,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
         boxShadow="md"
         _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
         onClick={() => setSelectedCommand(command)}
-        minH="100px">
+        minH="100px"
+      >
         <VStack spacing={3} align="center" justify="center" h="100%">
           <Text fontSize="2xl" role="img" aria-label={command}>
             {icon}
@@ -661,7 +733,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
             fontSize="sm"
             fontWeight={isSelected ? "bold" : "normal"}
             textAlign="center"
-            wordBreak="break-word">
+            wordBreak="break-word"
+          >
             {command}
           </Text>
         </VStack>
@@ -703,7 +776,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               maxH="calc(3 * 140px + 3 * 1rem)" // 3 rows of cards (approx 130px each) + spacing
               overflowY="auto"
               pr={2}
-              py={5}>
+              py={5}
+            >
               <SimpleGrid columns={[2, 3, 4, 5]} spacing={4}>
                 {filteredTools.map((tool) => (
                   <ToolCard key={tool.id} tool={tool} />
@@ -718,7 +792,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
             <Flex justify="space-between" align="center">
               <Text fontSize="md" fontWeight="bold">
                 Available Commands for{" "}
-                {selectedToolData?.name || capitalizeFirst(selectedToolType.replaceAll("_", " "))}
+                {selectedToolData?.name ||
+                  capitalizeFirst(selectedToolType.replaceAll("_", " "))}
               </Text>
               {selectedCommand && (
                 <HStack>
@@ -744,15 +819,18 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
                 Configure Parameters
               </Text>
               <Tag colorScheme="teal">
-                {selectedToolData?.name || capitalizeFirst(selectedToolType.replaceAll("_", " "))} →{" "}
-                {selectedCommand}
+                {selectedToolData?.name ||
+                  capitalizeFirst(selectedToolType.replaceAll("_", " "))}{" "}
+                → {selectedCommand}
               </Tag>
             </HStack>
 
             {fields.length > 0 ? (
               <VStack spacing={4} align="stretch" width="100%">
                 {fields.map((field: Field) => {
-                  const isVariable = isVariableReference(commandParams[field.name]);
+                  const isVariable = isVariableReference(
+                    commandParams[field.name],
+                  );
                   const variableName = isVariable
                     ? getVariableNameFromReference(commandParams[field.name])
                     : "";
@@ -795,7 +873,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               colorScheme="teal"
               ml={3}
               onClick={handleNextStep}
-              isDisabled={!selectedToolType}>
+              isDisabled={!selectedToolType}
+            >
               Next
             </Button>
           </>
@@ -813,7 +892,8 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               colorScheme="teal"
               ml={3}
               onClick={handleNextStep}
-              isDisabled={!selectedCommand}>
+              isDisabled={!selectedCommand}
+            >
               Next
             </Button>
           </>

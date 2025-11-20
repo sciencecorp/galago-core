@@ -1,4 +1,12 @@
-import { HStack, Button, Text, Select, Box, IconButton, useColorModeValue } from "@chakra-ui/react";
+import {
+  HStack,
+  Button,
+  Text,
+  Select,
+  Box,
+  IconButton,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import {
   RiArrowDownSLine,
   RiArrowLeftSLine,
@@ -44,7 +52,8 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           value={itemsPerPage}
           onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
           borderColor={borderColor}
-          bg={bgColor}>
+          bg={bgColor}
+        >
           <option value={5}>5</option>
           <option value={10}>10</option>
           <option value={20}>20</option>
@@ -52,7 +61,14 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
         </Select>
       </HStack>
 
-      <Text fontSize="xs" fontWeight={500} color={textColor} flexShrink={0} mt={0} px={0}>
+      <Text
+        fontSize="xs"
+        fontWeight={500}
+        color={textColor}
+        flexShrink={0}
+        mt={0}
+        px={0}
+      >
         {start}-{end} of {total}
       </Text>
 
@@ -76,7 +92,8 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           onChange={(e) => onPageChange(Number(e.target.value))}
           borderColor={borderColor}
           bg={bgColor}
-          width="70px">
+          width="70px"
+        >
           {[...Array(totalPages).keys()].map((n) => (
             <option key={n} value={n + 1}>
               {n + 1}

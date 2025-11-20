@@ -32,5 +32,7 @@ export default function StatusTag(
     ...props,
     colorScheme: statusColor(props.status),
   };
-  return <Tag {...tagProps}>{props.children ?? displayStatus(props.status)}</Tag>;
+  return (
+    <Tag {...tagProps}>{props.children ?? displayStatus(props.status)}</Tag>
+  );
 }

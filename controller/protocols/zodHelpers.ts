@@ -2,7 +2,8 @@ import { z } from "zod";
 import * as util from "util";
 import { ProtocolParamType } from "./params";
 
-export type InnerZodType<W extends z.ZodTypeAny> = W extends MaybeWrappedZodType<infer I> ? I : W;
+export type InnerZodType<W extends z.ZodTypeAny> =
+  W extends MaybeWrappedZodType<infer I> ? I : W;
 
 export type MaybeWrappedZodType<I extends z.ZodTypeAny> =
   | I
@@ -11,7 +12,9 @@ export type MaybeWrappedZodType<I extends z.ZodTypeAny> =
   | z.ZodDefault<I>
   | z.ZodArray<I>;
 
-export function innerZodType<I extends z.ZodTypeAny>(type: MaybeWrappedZodType<I>): I {
+export function innerZodType<I extends z.ZodTypeAny>(
+  type: MaybeWrappedZodType<I>,
+): I {
   if (type instanceof z.ZodLazy) {
     return innerZodType(type.schema);
   } else if (type instanceof z.ZodEffects) {
@@ -25,9 +28,9 @@ export function innerZodType<I extends z.ZodTypeAny>(type: MaybeWrappedZodType<I
   }
 }
 
-export function innerZodObjectShape<T extends MaybeWrappedZodType<z.AnyZodObject>>(
-  paramSchema: T,
-): InnerZodType<T> {
+export function innerZodObjectShape<
+  T extends MaybeWrappedZodType<z.AnyZodObject>,
+>(paramSchema: T): InnerZodType<T> {
   return innerZodType(paramSchema).shape;
 }
 
@@ -45,7 +48,9 @@ export function zodSchemaToTypeName(schema: z.ZodTypeAny): ProtocolParamType {
     case "ZodBoolean":
       return "boolean";
     default:
-      throw new Error(`Unknown zod type for schema ${util.inspect(schema, false, 10, false)}`);
+      throw new Error(
+        `Unknown zod type for schema ${util.inspect(schema, false, 10, false)}`,
+      );
   }
 }
 

@@ -119,49 +119,73 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
             </FormControl>
             <FormControl>
               <FormLabel>Speed (%)</FormLabel>
-              <NumberInput value={speed} onChange={(_, value) => setSpeed(value)}>
+              <NumberInput
+                value={speed}
+                onChange={(_, value) => setSpeed(value)}
+              >
                 <NumberInputField />
               </NumberInput>
             </FormControl>
             <FormControl>
               <FormLabel>Speed 2 (%)</FormLabel>
-              <NumberInput value={speed2} onChange={(_, value) => setSpeed2(value)}>
+              <NumberInput
+                value={speed2}
+                onChange={(_, value) => setSpeed2(value)}
+              >
                 <NumberInputField />
               </NumberInput>
             </FormControl>
             <FormControl>
               <FormLabel>Acceleration (%)</FormLabel>
-              <NumberInput value={acceleration} onChange={(_, value) => setAcceleration(value)}>
+              <NumberInput
+                value={acceleration}
+                onChange={(_, value) => setAcceleration(value)}
+              >
                 <NumberInputField />
               </NumberInput>
             </FormControl>
             <FormControl>
               <FormLabel>Deceleration (%)</FormLabel>
-              <NumberInput value={deceleration} onChange={(_, value) => setDeceleration(value)}>
+              <NumberInput
+                value={deceleration}
+                onChange={(_, value) => setDeceleration(value)}
+              >
                 <NumberInputField />
               </NumberInput>
             </FormControl>
             <FormControl>
               <FormLabel>Accel Ramp (%)</FormLabel>
-              <NumberInput value={accelRamp} onChange={(_, value) => setAccelRamp(value)}>
+              <NumberInput
+                value={accelRamp}
+                onChange={(_, value) => setAccelRamp(value)}
+              >
                 <NumberInputField />
               </NumberInput>
             </FormControl>
             <FormControl>
               <FormLabel>Decel Ramp (%)</FormLabel>
-              <NumberInput value={decelRamp} onChange={(_, value) => setDecelRamp(value)}>
+              <NumberInput
+                value={decelRamp}
+                onChange={(_, value) => setDecelRamp(value)}
+              >
                 <NumberInputField />
               </NumberInput>
             </FormControl>
             <FormControl>
               <FormLabel>Inrange</FormLabel>
-              <NumberInput value={inrange} onChange={(_, value) => setInrange(value)}>
+              <NumberInput
+                value={inrange}
+                onChange={(_, value) => setInrange(value)}
+              >
                 <NumberInputField />
               </NumberInput>
             </FormControl>
             <FormControl>
               <FormLabel>Straight</FormLabel>
-              <Switch value={straight} onChange={(e) => setStraight(e.target.checked ? 1 : 0)} />
+              <Switch
+                value={straight}
+                onChange={(e) => setStraight(e.target.checked ? 1 : 0)}
+              />
             </FormControl>
           </VStack>
         </ModalBody>

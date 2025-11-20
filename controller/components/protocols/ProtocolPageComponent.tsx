@@ -71,7 +71,9 @@ export const ProtocolPageComponent: React.FC = () => {
   const [workcellFilter, setWorkcellFilter] = useState<string>("");
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
-  const [runModalProtocolId, setRunModalProtocolId] = useState<string | null>(null);
+  const [runModalProtocolId, setRunModalProtocolId] = useState<string | null>(
+    null,
+  );
   const [isImporting, setIsImporting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -139,7 +141,8 @@ export const ProtocolPageComponent: React.FC = () => {
         protocol.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         protocol.description?.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesCategory = !categoryFilter || protocol.category === categoryFilter;
+      const matchesCategory =
+        !categoryFilter || protocol.category === categoryFilter;
 
       return matchesSearch && matchesCategory;
     });
@@ -154,7 +157,9 @@ export const ProtocolPageComponent: React.FC = () => {
       const bValue = b[sortField];
 
       if (typeof aValue === "string" && typeof bValue === "string") {
-        return sortOrder === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+        return sortOrder === "asc"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
       }
 
       if (typeof aValue === "number" && typeof bValue === "number") {
@@ -230,7 +235,9 @@ export const ProtocolPageComponent: React.FC = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -248,7 +255,10 @@ export const ProtocolPageComponent: React.FC = () => {
         workcell_id: currentWorkcell.id,
       });
 
-      successToast("Protocol Imported", "Protocol has been imported successfully");
+      successToast(
+        "Protocol Imported",
+        "Protocol has been imported successfully",
+      );
       refetch();
     } catch (error: any) {
       errorToast("Import Failed", error.message || "Failed to import protocol");
@@ -273,7 +283,10 @@ export const ProtocolPageComponent: React.FC = () => {
       const filename = `${protocol.name.replace(/\s+/g, "_")}-protocol.json`;
       await downloadFile(`/protocols/${protocolId}/export`, filename);
 
-      successToast("Protocol Exported", `${protocol.name} has been exported successfully`);
+      successToast(
+        "Protocol Exported",
+        `${protocol.name} has been exported successfully`,
+      );
     } catch (error: any) {
       errorToast("Export Failed", error.message || "Failed to export protocol");
     } finally {
@@ -298,10 +311,15 @@ export const ProtocolPageComponent: React.FC = () => {
                     leftIcon={<FaFileImport />}
                     onClick={handleImportClick}
                     isLoading={isImporting}
-                    isDisabled={isImporting}>
+                    isDisabled={isImporting}
+                  >
                     Import
                   </Button>
-                  <Button colorScheme="teal" leftIcon={<RiAddFill />} onClick={onNewProtocolOpen}>
+                  <Button
+                    colorScheme="teal"
+                    leftIcon={<RiAddFill />}
+                    onClick={onNewProtocolOpen}
+                  >
                     New Protocol
                   </Button>
                 </HStack>
@@ -345,7 +363,8 @@ export const ProtocolPageComponent: React.FC = () => {
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 maxW="200px"
-                bg={tableBgColor}>
+                bg={tableBgColor}
+              >
                 {categories.map((category) => (
                   <option key={category} value={category}>
                     {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -358,7 +377,8 @@ export const ProtocolPageComponent: React.FC = () => {
                 value={workcellFilter}
                 onChange={(e) => setWorkcellFilter(e.target.value)}
                 maxW="200px"
-                bg={tableBgColor}>
+                bg={tableBgColor}
+              >
                 {uniqueWorkcells.map((workcell) => (
                   <option key={workcell.id} value={workcell.id.toString()}>
                     {workcell.name}
@@ -383,7 +403,8 @@ export const ProtocolPageComponent: React.FC = () => {
                   td: {
                     borderColor: useColorModeValue("gray.200", "gray.600"),
                   },
-                }}>
+                }}
+              >
                 <Thead>
                   <Tr>
                     <Th cursor="pointer" onClick={() => handleSort("name")}>
@@ -391,7 +412,11 @@ export const ProtocolPageComponent: React.FC = () => {
                         <span>Name</span>
                         {sortField === "name" && (
                           <ArrowUpDownIcon
-                            transform={sortOrder === "desc" ? "rotate(180deg)" : undefined}
+                            transform={
+                              sortOrder === "desc"
+                                ? "rotate(180deg)"
+                                : undefined
+                            }
                           />
                         )}
                       </HStack>
@@ -409,10 +434,16 @@ export const ProtocolPageComponent: React.FC = () => {
                       <Td>
                         <EditableText
                           defaultValue={protocol.name}
-                          preview={<Link href={`/protocols/${protocol.id}`}>{protocol.name}</Link>}
+                          preview={
+                            <Link href={`/protocols/${protocol.id}`}>
+                              {protocol.name}
+                            </Link>
+                          }
                           onSubmit={(value) => {
                             if (value && value !== protocol.name) {
-                              handleUpdateProtocol(protocol.id, { name: value });
+                              handleUpdateProtocol(protocol.id, {
+                                name: value,
+                              });
                             }
                           }}
                         />
@@ -423,7 +454,8 @@ export const ProtocolPageComponent: React.FC = () => {
                             <Tag
                               colorScheme={getCategoryColor(protocol.category)}
                               cursor="pointer"
-                              _hover={{ opacity: 0.8 }}>
+                              _hover={{ opacity: 0.8 }}
+                            >
                               {protocol.category}
                             </Tag>
                           </PopoverTrigger>
@@ -434,13 +466,20 @@ export const ProtocolPageComponent: React.FC = () => {
                                   <Button
                                     key={category}
                                     size="sm"
-                                    variant={category === protocol.category ? "solid" : "ghost"}
+                                    variant={
+                                      category === protocol.category
+                                        ? "solid"
+                                        : "ghost"
+                                    }
                                     colorScheme={getCategoryColor(category)}
                                     onClick={() => {
                                       if (category !== protocol.category) {
-                                        handleUpdateProtocol(protocol.id, { category });
+                                        handleUpdateProtocol(protocol.id, {
+                                          category,
+                                        });
                                       }
-                                    }}>
+                                    }}
+                                  >
                                     {category}
                                   </Button>
                                 ))}
@@ -452,7 +491,10 @@ export const ProtocolPageComponent: React.FC = () => {
                       <Td>
                         <Popover placement="bottom" closeOnBlur={true}>
                           <PopoverTrigger>
-                            <Text cursor="pointer" _hover={{ color: "blue.500" }}>
+                            <Text
+                              cursor="pointer"
+                              _hover={{ color: "blue.500" }}
+                            >
                               {getWorkcellName(protocol.workcell_id)}
                             </Text>
                           </PopoverTrigger>
@@ -464,15 +506,20 @@ export const ProtocolPageComponent: React.FC = () => {
                                     key={workcell.id}
                                     size="sm"
                                     variant={
-                                      workcell.id === protocol.workcell_id ? "solid" : "ghost"
+                                      workcell.id === protocol.workcell_id
+                                        ? "solid"
+                                        : "ghost"
                                     }
                                     onClick={() => {
-                                      if (workcell.id !== protocol.workcell_id) {
+                                      if (
+                                        workcell.id !== protocol.workcell_id
+                                      ) {
                                         handleUpdateProtocol(protocol.id, {
                                           workcell_id: workcell.id,
                                         });
                                       }
-                                    }}>
+                                    }}
+                                  >
                                     {workcell.name}
                                   </Button>
                                 ))}
@@ -487,7 +534,9 @@ export const ProtocolPageComponent: React.FC = () => {
                           preview={<Text>{protocol.description || "-"}</Text>}
                           onSubmit={(value) => {
                             if (value !== protocol.description) {
-                              handleUpdateProtocol(protocol.id, { description: value });
+                              handleUpdateProtocol(protocol.id, {
+                                description: value,
+                              });
                             }
                           }}
                         />
@@ -503,21 +552,28 @@ export const ProtocolPageComponent: React.FC = () => {
                           />
                           <MenuList>
                             <MenuItem
-                              onClick={() => handleRunClick(protocol.id.toString())}
+                              onClick={() =>
+                                handleRunClick(protocol.id.toString())
+                              }
                               color="green.500"
-                              icon={<Icon as={FaPlay} />}>
+                              icon={<Icon as={FaPlay} />}
+                            >
                               Run
                             </MenuItem>
                             <MenuItem
                               onClick={() => handleExportProtocol(protocol.id)}
                               color="blue.500"
-                              icon={<DownloadIcon />}>
+                              icon={<DownloadIcon />}
+                            >
                               Export
                             </MenuItem>
                             <MenuItem
                               color="red.500"
-                              onClick={() => handleDelete(protocol.id.toString())}
-                              icon={<DeleteIcon />}>
+                              onClick={() =>
+                                handleDelete(protocol.id.toString())
+                              }
+                              icon={<DeleteIcon />}
+                            >
                               Delete
                             </MenuItem>
                           </MenuList>
@@ -533,7 +589,10 @@ export const ProtocolPageComponent: React.FC = () => {
       </Card>
 
       {runModalProtocolId && (
-        <NewProtocolRunModal id={runModalProtocolId} onClose={handleRunModalClose} />
+        <NewProtocolRunModal
+          id={runModalProtocolId}
+          onClose={handleRunModalClose}
+        />
       )}
 
       <Modal isOpen={isNewProtocolOpen} onClose={onNewProtocolClose} size="xl">

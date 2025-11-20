@@ -85,14 +85,18 @@ export const LabwareModal: React.FC = () => {
               </FormControl>
               <FormControl>
                 <FormLabel>Description</FormLabel>
-                <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+                <Input
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
               </FormControl>
               <FormControl>
                 <FormLabel>Rows</FormLabel>
                 <NumberInput
                   defaultValue={8}
                   value={numberOfRows}
-                  onChange={(_, val) => setNumberOfRows(val)}>
+                  onChange={(_, val) => setNumberOfRows(val)}
+                >
                   <NumberInputField />
                 </NumberInput>
               </FormControl>
@@ -101,13 +105,17 @@ export const LabwareModal: React.FC = () => {
                 <NumberInput
                   defaultValue={12}
                   value={numberOfColumns}
-                  onChange={(_, val) => setNumberOfColumns(val)}>
+                  onChange={(_, val) => setNumberOfColumns(val)}
+                >
                   <NumberInputField />
                 </NumberInput>
               </FormControl>
               <FormControl>
                 <FormLabel>Image URL</FormLabel>
-                <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+                <Input
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                />
               </FormControl>
             </VStack>
           </ModalBody>
@@ -115,7 +123,12 @@ export const LabwareModal: React.FC = () => {
             <Button variant="ghost" onClick={onClose}>
               Cancel
             </Button>
-            <Button colorScheme="teal" onClick={handleSave} mr={3} isLoading={isLoading}>
+            <Button
+              colorScheme="teal"
+              onClick={handleSave}
+              mr={3}
+              isLoading={isLoading}
+            >
               Submit
             </Button>
           </ModalFooter>

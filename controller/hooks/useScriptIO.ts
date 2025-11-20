@@ -33,7 +33,8 @@ export const useScriptIO = (
     }
 
     try {
-      const scriptData = await exportConfigMutation.mutateAsync(selectedScriptId);
+      const scriptData =
+        await exportConfigMutation.mutateAsync(selectedScriptId);
 
       const blob = new Blob([scriptData.content], { type: "text/plain" });
       const url = window.URL.createObjectURL(blob);
@@ -49,7 +50,10 @@ export const useScriptIO = (
       window.URL.revokeObjectURL(url);
 
       // Use original name in success message
-      return { success: true, message: `Script ${selectedScript.name} downloaded.` };
+      return {
+        success: true,
+        message: `Script ${selectedScript.name} downloaded.`,
+      };
     } catch (error) {
       console.error("Export failed:", error);
       return {
@@ -64,7 +68,9 @@ export const useScriptIO = (
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return { success: false, message: "No file selected." };
 
@@ -87,7 +93,9 @@ export const useScriptIO = (
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Import failed: ${errorData.detail || response.statusText}`);
+        throw new Error(
+          `Import failed: ${errorData.detail || response.statusText}`,
+        );
       }
 
       const result = await response.json();

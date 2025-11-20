@@ -31,14 +31,18 @@ import { Tool } from "@/types/api";
 
 // Inside your component
 type AtomicFormValues = string | number | boolean | string[];
-type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormValues>>;
+type FormValues = Record<
+  string,
+  AtomicFormValues | Record<string, AtomicFormValues>
+>;
 
 export default function Page() {
   const router = useRouter();
   const [id, setId] = useState<string | null>(null);
   const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
   const config = infoQuery.data;
-  const [commandExecutionStatus, setCommandExecutionStatus] = useState<CommandStatus>({});
+  const [commandExecutionStatus, setCommandExecutionStatus] =
+    useState<CommandStatus>({});
   const [selectedCommand, setSelectedCommand] = useState<string | undefined>();
   const [formValues, setFormValues] = useState<FormValues>({});
 
@@ -47,13 +51,17 @@ export default function Page() {
     const fields = commandFields[config?.type][commandName];
     return fields && fields.length > 0;
   };
-  const toolCommandsDefined = Object.keys(commandFields).includes(String(config?.type));
+  const toolCommandsDefined = Object.keys(commandFields).includes(
+    String(config?.type),
+  );
   const commandOptions = config ? commandFields[config.type] : {};
 
   useEffect(() => {
     // Wait for the router to be ready and then extract the query parameter
     if (router.isReady) {
-      const queryId = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
+      const queryId = Array.isArray(router.query.id)
+        ? router.query.id[0]
+        : router.query.id;
       setId(queryId || null); // Ensure a null fallback if the ID is not available
     }
   }, [router.isReady, router.query.id]);
@@ -75,15 +83,20 @@ export default function Page() {
             const nestedFieldValues: Record<string, AtomicFormValues> = {};
             field.type.forEach((nestedField) => {
               nestedFieldValues[nestedField.name] =
-                nestedField.defaultValue !== undefined ? nestedField.defaultValue : "";
+                nestedField.defaultValue !== undefined
+                  ? nestedField.defaultValue
+                  : "";
             });
             newValues[field.name] = nestedFieldValues;
           }
           if (field.type === "text_array") {
             newValues[field.name] =
-              field.defaultValue instanceof Array ? field.defaultValue.join(", ") : "";
+              field.defaultValue instanceof Array
+                ? field.defaultValue.join(", ")
+                : "";
           } else {
-            newValues[field.name] = field.defaultValue !== undefined ? field.defaultValue : "";
+            newValues[field.name] =
+              field.defaultValue !== undefined ? field.defaultValue : "";
           }
         });
         return newValues;
@@ -97,8 +110,14 @@ export default function Page() {
 
   const commandMutation = trpc.tool.runCommand.useMutation();
 
-  const executeCommandWithToast = (commandName: string, toolCommand: ToolCommandInfo) => {
-    setCommandExecutionStatus((prevStatus) => ({ ...prevStatus, [commandName]: "idle" }));
+  const executeCommandWithToast = (
+    commandName: string,
+    toolCommand: ToolCommandInfo,
+  ) => {
+    setCommandExecutionStatus((prevStatus) => ({
+      ...prevStatus,
+      [commandName]: "idle",
+    }));
 
     // Create a promise from the mutation
     const commandPromise = new Promise((resolve, reject) => {
@@ -198,7 +217,14 @@ export default function Page() {
     return fields.map((field) => {
       if (Array.isArray(field.type)) {
         return (
-          <Box key={field.name} border="1px" borderColor="gray.200" borderRadius="md" p={4} my={2}>
+          <Box
+            key={field.name}
+            border="1px"
+            borderColor="gray.200"
+            borderRadius="md"
+            p={4}
+            my={2}
+          >
             <Heading size="sm" mb={2}>
               {field.name}
             </Heading>
@@ -213,12 +239,21 @@ export default function Page() {
               type="text"
               value={String(
                 (parentField
-                  ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
-                    ""
+                  ? (
+                      formValues[parentField] as Record<
+                        string,
+                        AtomicFormValues
+                      >
+                    )?.[field.name] || ""
                   : formValues[field.name]) || "",
               )}
               onChange={(e) =>
-                handleInputChange(field.name, field.type, e.target.value, parentField)
+                handleInputChange(
+                  field.name,
+                  field.type,
+                  e.target.value,
+                  parentField,
+                )
               }
             />
           </FormControl>
@@ -232,12 +267,21 @@ export default function Page() {
                 type="boolean"
                 value={String(
                   (parentField
-                    ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
-                      "false"
+                    ? (
+                        formValues[parentField] as Record<
+                          string,
+                          AtomicFormValues
+                        >
+                      )?.[field.name] || "false"
                     : formValues[field.name]) || "false",
                 )}
                 onChange={(e) =>
-                  handleInputChange(field.name, field.type, e.target.value, parentField)
+                  handleInputChange(
+                    field.name,
+                    field.type,
+                    e.target.value,
+                    parentField,
+                  )
                 }
               />
             ) : field.type === "text" ? (
@@ -245,25 +289,44 @@ export default function Page() {
                 type="string"
                 value={String(
                   (parentField
-                    ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
-                      ""
+                    ? (
+                        formValues[parentField] as Record<
+                          string,
+                          AtomicFormValues
+                        >
+                      )?.[field.name] || ""
                     : formValues[field.name]) || "",
                 )}
                 onChange={(e) =>
-                  handleInputChange(field.name, field.type, e.target.value, parentField)
+                  handleInputChange(
+                    field.name,
+                    field.type,
+                    e.target.value,
+                    parentField,
+                  )
                 }
               />
             ) : (
               <NumberInput
                 value={Number(
                   (parentField
-                    ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
-                      0
+                    ? (
+                        formValues[parentField] as Record<
+                          string,
+                          AtomicFormValues
+                        >
+                      )?.[field.name] || 0
                     : formValues[field.name]) || 0,
                 )}
                 onChange={(valueString, valueNumber) =>
-                  handleInputChange(field.name, field.type, valueNumber, parentField)
-                }>
+                  handleInputChange(
+                    field.name,
+                    field.type,
+                    valueNumber,
+                    parentField,
+                  )
+                }
+              >
                 <NumberInputField />
               </NumberInput>
             )}
@@ -301,7 +364,10 @@ export default function Page() {
                 <FormControl>
                   <VStack width="100%" spacing={1}>
                     <FormLabel>Select Command</FormLabel>
-                    <Select placeholder="Select command" onChange={handleChange}>
+                    <Select
+                      placeholder="Select command"
+                      onChange={handleChange}
+                    >
                       {Object.keys(commandOptions).map((command) => (
                         <option key={command} value={command}>
                           {capitalizeFirst(command.replaceAll("_", " "))}
@@ -311,7 +377,11 @@ export default function Page() {
                     {selectedCommand && (
                       <>
                         {renderFields(commandOptions[selectedCommand])}
-                        <Button width="100%" onClick={handleSubmit} colorScheme="teal">
+                        <Button
+                          width="100%"
+                          onClick={handleSubmit}
+                          colorScheme="teal"
+                        >
                           Send Command
                         </Button>
                       </>

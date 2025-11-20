@@ -26,7 +26,9 @@ export const useTeachPendantData = () => {
   };
 
   const updateMotionProfile = (profile: MotionProfile) => {
-    setMotionProfiles((prev) => prev.map((p) => (p.id === profile.id ? profile : p)));
+    setMotionProfiles((prev) =>
+      prev.map((p) => (p.id === profile.id ? profile : p)),
+    );
   };
 
   const deleteMotionProfile = (id: number) => {

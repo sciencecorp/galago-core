@@ -86,19 +86,28 @@ export const GripParamsModal: React.FC<GripParamsModalProps> = ({
             </FormControl>
             <FormControl>
               <FormLabel>Width (mm)</FormLabel>
-              <NumberInput value={width} onChange={(_, value) => setWidth(value)}>
+              <NumberInput
+                value={width}
+                onChange={(_, value) => setWidth(value)}
+              >
                 <NumberInputField />
               </NumberInput>
             </FormControl>
             <FormControl>
               <FormLabel>Speed (%)</FormLabel>
-              <NumberInput value={speed} onChange={(_, value) => setSpeed(value)}>
+              <NumberInput
+                value={speed}
+                onChange={(_, value) => setSpeed(value)}
+              >
                 <NumberInputField />
               </NumberInput>
             </FormControl>
             <FormControl>
               <FormLabel>Force (%)</FormLabel>
-              <NumberInput value={force} onChange={(_, value) => setForce(value)}>
+              <NumberInput
+                value={force}
+                onChange={(_, value) => setForce(value)}
+              >
                 <NumberInputField />
               </NumberInput>
             </FormControl>

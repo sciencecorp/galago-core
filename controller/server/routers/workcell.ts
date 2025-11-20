@@ -44,9 +44,11 @@ export const workcellRouter = router({
     return { message: "Workcell deleted successfully" };
   }),
 
-  setSelectedWorkcell: procedure.input(z.string()).mutation(async ({ input }) => {
-    return await put<AppSettings>(`/settings/workcell`, { value: input });
-  }),
+  setSelectedWorkcell: procedure
+    .input(z.string())
+    .mutation(async ({ input }) => {
+      return await put<AppSettings>(`/settings/workcell`, { value: input });
+    }),
 
   getSelectedWorkcell: procedure.query(async () => {
     const response = await get<AppSettings>(`/settings/workcell`);

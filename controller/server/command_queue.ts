@@ -149,21 +149,35 @@ export class CommandQueue {
       // For expressions, replace the variable reference with a value that works in the expression
       if (varInfo.type === "string") {
         // Wrap strings in quotes for the expression evaluator
-        resolvedExpression = resolvedExpression.replace(fullMatch, `"${varInfo.value}"`);
+        resolvedExpression = resolvedExpression.replace(
+          fullMatch,
+          `"${varInfo.value}"`,
+        );
       } else if (varInfo.type === "number") {
-        resolvedExpression = resolvedExpression.replace(fullMatch, varInfo.value);
+        resolvedExpression = resolvedExpression.replace(
+          fullMatch,
+          varInfo.value,
+        );
       } else if (varInfo.type === "boolean") {
-        resolvedExpression = resolvedExpression.replace(fullMatch, varInfo.value);
+        resolvedExpression = resolvedExpression.replace(
+          fullMatch,
+          varInfo.value,
+        );
       } else {
         // For other types, convert to string and wrap in quotes
-        resolvedExpression = resolvedExpression.replace(fullMatch, `"${varInfo.value}"`);
+        resolvedExpression = resolvedExpression.replace(
+          fullMatch,
+          `"${varInfo.value}"`,
+        );
       }
     }
 
     try {
       // For security, we're using a restricted approach to evaluate the expression
       // This is safer than using eval() directly
-      const result = Function('"use strict"; return (' + resolvedExpression + ")")();
+      const result = Function(
+        '"use strict"; return (' + resolvedExpression + ")",
+      )();
       return result;
     } catch (e) {
       throw new Error(`Failed to evaluate expression "${expression}": ${e}`);
@@ -432,7 +446,10 @@ export class CommandQueue {
     return this.commands.all();
   }
 
-  async getPaginated(offset: number = 0, limit: number = 20): Promise<StoredRunCommand[]> {
+  async getPaginated(
+    offset: number = 0,
+    limit: number = 20,
+  ): Promise<StoredRunCommand[]> {
     return this.commands.getPaginated(offset, limit);
   }
   async getAllRuns(): Promise<RunQueue[]> {
@@ -524,7 +541,11 @@ export class CommandQueue {
       this._messageResolve = undefined;
     }
     logger.info("Command Queue stopped!");
-    logAction({ level: "info", action: "Queue stopped", details: "Queue stopped." });
+    logAction({
+      level: "info",
+      action: "Queue stopped",
+      details: "Queue stopped.",
+    });
 
     this._setState(ToolStatus.OFFLINE);
   }
@@ -545,16 +566,26 @@ export class CommandQueue {
         logger.info("Executing command:", nextCommand.commandInfo);
 
         // Handle advanced parameters for skip execution
-        if (nextCommand.commandInfo.advancedParameters?.skipExecutionVariable?.variable) {
+        if (
+          nextCommand.commandInfo.advancedParameters?.skipExecutionVariable
+            ?.variable
+        ) {
           try {
             // Get the variable name and expected value for skipping
             const varName =
-              nextCommand.commandInfo.advancedParameters.skipExecutionVariable.variable;
+              nextCommand.commandInfo.advancedParameters.skipExecutionVariable
+                .variable;
             let expectedValue =
-              nextCommand.commandInfo.advancedParameters.skipExecutionVariable.value;
-            if (expectedValue.startsWith("{{") && expectedValue.endsWith("}}")) {
+              nextCommand.commandInfo.advancedParameters.skipExecutionVariable
+                .value;
+            if (
+              expectedValue.startsWith("{{") &&
+              expectedValue.endsWith("}}")
+            ) {
               expectedValue = (
-                await get<Variable>(`/variables/${expectedValue.slice(2, -2).trim()}`)
+                await get<Variable>(
+                  `/variables/${expectedValue.slice(2, -2).trim()}`,
+                )
               ).value;
             }
 
@@ -595,7 +626,9 @@ export class CommandQueue {
         const amOrPm = hours >= 12 ? "PM" : "AM";
         const formattedHours = (hours % 12 || 12).toString();
 
-        const formattedDateTime = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
+        const formattedDateTime = `${year}-${String(month).padStart(2, "0")}-${String(
+          day,
+        ).padStart(
           2,
           "0",
         )} ${formattedHours.padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
@@ -606,7 +639,8 @@ export class CommandQueue {
         if (nextCommand.commandInfo.toolId === "tool_box") {
           if (nextCommand.commandInfo.command === "pause") {
             const message =
-              nextCommand.commandInfo.params?.message || "Run is paused. Click Continue to resume.";
+              nextCommand.commandInfo.params?.message ||
+              "Run is paused. Click Continue to resume.";
             await this.commands.complete(nextCommand.queueId);
             await this.pause(message);
             continue;
@@ -650,9 +684,14 @@ export class CommandQueue {
             continue;
           } else if (nextCommand.commandInfo.command === "timer") {
             // Handle timer command
-            const minutes = Number(nextCommand.commandInfo.params?.minutes || 0);
-            const seconds = Number(nextCommand.commandInfo.params?.seconds || 30);
-            const message = nextCommand.commandInfo.params?.message || "Timer in progress...";
+            const minutes = Number(
+              nextCommand.commandInfo.params?.minutes || 0,
+            );
+            const seconds = Number(
+              nextCommand.commandInfo.params?.seconds || 30,
+            );
+            const message =
+              nextCommand.commandInfo.params?.message || "Timer in progress...";
             await this.commands.complete(nextCommand.queueId);
             await this.startTimer(minutes, seconds, message);
             continue;
@@ -660,7 +699,8 @@ export class CommandQueue {
             await this.commands.complete(nextCommand.queueId); //This marks the command as complete
             continue;
           } else if (nextCommand.commandInfo.command === "stop_run") {
-            const message = nextCommand.commandInfo.params?.message || "Stopping run...";
+            const message =
+              nextCommand.commandInfo.params?.message || "Stopping run...";
             logAction({
               level: "info",
               action: "Run Stop Requested",
@@ -672,8 +712,11 @@ export class CommandQueue {
             await this.commands.complete(nextCommand.queueId);
             return; // Exit the loop as we've stopped the queue
           } else if (nextCommand.commandInfo.command === "goto") {
-            const targetIndex = Number(nextCommand.commandInfo.params?.targetIndex);
-            const runId = nextCommand.commandInfo.params?.runId || nextCommand.runId;
+            const targetIndex = Number(
+              nextCommand.commandInfo.params?.targetIndex,
+            );
+            const runId =
+              nextCommand.commandInfo.params?.runId || nextCommand.runId;
 
             await this.commands.complete(nextCommand.queueId);
             if (targetIndex !== undefined && runId) {
@@ -684,7 +727,9 @@ export class CommandQueue {
               );
             }
             continue;
-          } else if (nextCommand.commandInfo.command === "variable_assignment") {
+          } else if (
+            nextCommand.commandInfo.command === "variable_assignment"
+          ) {
             let variableName = nextCommand.commandInfo.params?.name;
             const expressionValue = nextCommand.commandInfo.params?.value;
 
@@ -698,28 +743,40 @@ export class CommandQueue {
             }
             try {
               // First, fetch the target variable to get its type
-              const targetVariable = await get<Variable>(`/variables/${variableName}`);
+              const targetVariable = await get<Variable>(
+                `/variables/${variableName}`,
+              );
 
               if (!targetVariable) {
                 throw new Error(`Target variable ${variableName} not found`);
               }
 
               // Evaluate the expression with variable substitution
-              const evaluatedValue = await this.evaluateExpression(expressionValue);
+              const evaluatedValue =
+                await this.evaluateExpression(expressionValue);
 
               // Convert result to match the target variable type if needed
               let finalValue = evaluatedValue;
 
-              if (targetVariable.type === "number" && typeof evaluatedValue !== "number") {
+              if (
+                targetVariable.type === "number" &&
+                typeof evaluatedValue !== "number"
+              ) {
                 // Try to convert to number if target is number type
                 const numValue = Number(evaluatedValue);
                 if (!isNaN(numValue)) {
                   finalValue = numValue;
                 }
-              } else if (targetVariable.type === "boolean" && typeof evaluatedValue !== "boolean") {
+              } else if (
+                targetVariable.type === "boolean" &&
+                typeof evaluatedValue !== "boolean"
+              ) {
                 // For boolean targets, convert truthy/falsy values properly
                 finalValue = Boolean(evaluatedValue);
-              } else if (targetVariable.type === "string" && typeof evaluatedValue !== "string") {
+              } else if (
+                targetVariable.type === "string" &&
+                typeof evaluatedValue !== "string"
+              ) {
                 // Convert to string for string targets
                 finalValue = String(evaluatedValue);
               }

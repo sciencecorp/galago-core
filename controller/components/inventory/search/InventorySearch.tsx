@@ -65,7 +65,11 @@ const InventorySearch: React.FC<InventorySearchProps> = ({
             onChange={onSearchChange}
           />
           <InputRightElement>
-            <CloseIcon cursor="pointer" color="gray.300" onClick={onClearSearch} />
+            <CloseIcon
+              cursor="pointer"
+              color="gray.300"
+              onClick={onClearSearch}
+            />
           </InputRightElement>
         </InputGroup>
       </HStack>
@@ -84,18 +88,26 @@ const InventorySearch: React.FC<InventorySearchProps> = ({
                     : index % 2 === 0
                       ? cardBg
                       : hoverBg
-                }>
+                }
+              >
                 {isPlate(result) && (
                   <Tooltip label="Click to find corresponding plate">
-                    <Text onClick={() => onPlateSelect(result)} cursor="pointer">
-                      Plate: {result.name} | {result.plate_type} | {result.barcode} |{" "}
+                    <Text
+                      onClick={() => onPlateSelect(result)}
+                      cursor="pointer"
+                    >
+                      Plate: {result.name} | {result.plate_type} |{" "}
+                      {result.barcode} |{" "}
                       {result.nest_id ? "Checked in" : "Not checked in"}
                     </Text>
                   </Tooltip>
                 )}
                 {isReagent(result) && (
                   <Tooltip label="Click to find corresponding plate">
-                    <Text onClick={() => onReagentSelect(result)} cursor="pointer">
+                    <Text
+                      onClick={() => onReagentSelect(result)}
+                      cursor="pointer"
+                    >
                       {isNumber(result.name)
                         ? `Culture: ${result.name} | creation: ${result.expiration_date} | `
                         : `Reagent: ${result.name} | ${result.volume} µL | expiry: ${result.expiration_date} | `}

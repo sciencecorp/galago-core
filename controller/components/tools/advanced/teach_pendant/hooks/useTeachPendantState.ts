@@ -36,25 +36,38 @@ export const useTeachPendantState = () => {
 
   // Data states
   const [locations, setLocations] = useState<TeachPoint[]>([]);
-  const [selectedMotionProfile, setSelectedMotionProfile] = useState<MotionProfile | null>(null);
-  const [selectedGripParams, setSelectedGripParams] = useState<GripParams | null>(null);
+  const [selectedMotionProfile, setSelectedMotionProfile] =
+    useState<MotionProfile | null>(null);
+  const [selectedGripParams, setSelectedGripParams] =
+    useState<GripParams | null>(null);
   const [selectedPoint, setSelectedPoint] = useState<TeachPoint | null>(null);
   const [editingPoint, setEditingPoint] = useState<TeachPoint | null>(null);
-  const [selectedAction, setSelectedAction] = useState<"approach" | "leave" | undefined>();
+  const [selectedAction, setSelectedAction] = useState<
+    "approach" | "leave" | undefined
+  >();
 
   // UI states
   const [activeTab, setActiveTab] = useState(0);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   const [globalSearchTerm, setGlobalSearchTerm] = useState("");
-  const [globalFilterType, setGlobalFilterType] = useState<ItemType | "all">("all");
+  const [globalFilterType, setGlobalFilterType] = useState<ItemType | "all">(
+    "all",
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<ItemType | "all">("all");
 
   // Settings states
-  const [selectedMotionProfileId, setSelectedMotionProfileId] = useState<number>(1);
-  const [selectedGripParamsId, setSelectedGripParamsId] = useState<number | null>(null);
-  const [defaultMotionProfileId, setDefaultMotionProfileId] = useState<number | null>(null);
-  const [defaultGripParamsId, setDefaultGripParamsId] = useState<number | null>(null);
+  const [selectedMotionProfileId, setSelectedMotionProfileId] =
+    useState<number>(1);
+  const [selectedGripParamsId, setSelectedGripParamsId] = useState<
+    number | null
+  >(null);
+  const [defaultMotionProfileId, setDefaultMotionProfileId] = useState<
+    number | null
+  >(null);
+  const [defaultGripParamsId, setDefaultGripParamsId] = useState<number | null>(
+    null,
+  );
 
   // Manual control states
   const [manualWidth, setManualWidth] = useState<number>(122);
@@ -63,7 +76,9 @@ export const useTeachPendantState = () => {
 
   // Teach point states
   const [currentTeachpoint, setCurrentTeachpoint] = useState("");
-  const [currentType, setCurrentType] = useState<"nest" | "location">("location");
+  const [currentType, setCurrentType] = useState<"nest" | "location">(
+    "location",
+  );
   const [currentCoordinate, setCurrentCoordinate] = useState("");
   const [currentApproachPath, setCurrentApproachPath] = useState<string[]>([]);
 

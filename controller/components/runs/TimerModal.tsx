@@ -35,7 +35,11 @@ const formatTimeDisplay = (totalSeconds: number): string => {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 };
 
-export const TimerModal: React.FC<TimerModalProps> = ({ isOpen, messageData, onSkip }) => {
+export const TimerModal: React.FC<TimerModalProps> = ({
+  isOpen,
+  messageData,
+  onSkip,
+}) => {
   const bgColor = useColorModeValue("white", "gray.800");
   const timerColor = useColorModeValue("purple.500", "purple.300");
 
@@ -109,7 +113,10 @@ export const TimerModal: React.FC<TimerModalProps> = ({ isOpen, messageData, onS
       const timeLeft = Math.max(0, endTime - currentTime);
       const secondsLeft = Math.ceil(timeLeft / 1000);
       const totalDuration = Math.ceil(duration / 1000);
-      const progressPercent = Math.max(0, Math.min(100, (timeLeft / duration) * 100));
+      const progressPercent = Math.max(
+        0,
+        Math.min(100, (timeLeft / duration) * 100),
+      );
 
       setRemainingSeconds(secondsLeft);
       setTotalSeconds(totalDuration);
@@ -141,7 +148,12 @@ export const TimerModal: React.FC<TimerModalProps> = ({ isOpen, messageData, onS
   if (!isOpen) return null;
 
   return (
-    <Modal isOpen={true} onClose={() => {}} closeOnOverlayClick={false} isCentered>
+    <Modal
+      isOpen={true}
+      onClose={() => {}}
+      closeOnOverlayClick={false}
+      isCentered
+    >
       <ModalOverlay backdropFilter="blur(4px)" bg="blackAlpha.300" />
       <ModalContent bg={bgColor} maxW="md">
         <ModalHeader textAlign="center">
@@ -183,7 +195,12 @@ export const TimerModal: React.FC<TimerModalProps> = ({ isOpen, messageData, onS
           </VStack>
         </ModalBody>
         <ModalFooter justifyContent="center">
-          <Button colorScheme="purple" onClick={handleSkip} size="lg" minW="150px">
+          <Button
+            colorScheme="purple"
+            onClick={handleSkip}
+            size="lg"
+            minW="150px"
+          >
             Skip Timer
           </Button>
         </ModalFooter>

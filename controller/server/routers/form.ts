@@ -36,8 +36,14 @@ export const zForm = z.object({
 });
 
 // Input schemas for mutations
-export const zFormCreate = zForm.omit({ id: true, created_at: true, updated_at: true });
-export const zFormUpdate = zForm.partial().omit({ created_at: true, updated_at: true });
+export const zFormCreate = zForm.omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+export const zFormUpdate = zForm
+  .partial()
+  .omit({ created_at: true, updated_at: true });
 
 export const formRouter = router({
   // Get all forms

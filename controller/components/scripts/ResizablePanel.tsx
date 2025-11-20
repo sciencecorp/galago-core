@@ -97,7 +97,8 @@ export const ResizablePanel: React.FC<ResizablePanelProps> = ({
         _hover={{ bg: "gray.400", opacity: 0.7 }}
         _active={{ bg: "blue.400", opacity: 0.7 }}
         justifyContent="center"
-        alignItems="center">
+        alignItems="center"
+      >
         <Box height="40%" width="2px" opacity={0.7} borderRadius="full" />
       </Flex>
     </Box>

@@ -119,7 +119,8 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       borderRight={isMobile ? "1px" : "none"}
       borderColor={theme.borderColor}
       height="100%"
-      {...transitionProps}>
+      {...transitionProps}
+    >
       <VStack left={0} p={1} spacing={4} align="stretch" width="100%">
         <HStack pb={10} pl={2} pt={2} width="100%" position="relative">
           <Image
@@ -128,7 +129,8 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             paddingLeft="0"
             src="/site_logo.svg"
             alt="logo"
-            filter={logoFilter}></Image>
+            filter={logoFilter}
+          ></Image>
         </HStack>
 
         {sidebarItems.map((item) => (
@@ -139,7 +141,9 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
               document.title =
                 item.path === "/"
                   ? "Home"
-                  : capitalizeFirst(`${item.path.replaceAll("/", "").replaceAll("_", " ")}`);
+                  : capitalizeFirst(
+                      `${item.path.replaceAll("/", "").replaceAll("_", " ")}`,
+                    );
             }}
             _hover={{ background: theme.hoverBg }}
             borderRadius="md"
@@ -148,13 +152,18 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             alignItems="center"
             justifyContent={isSidebarExpanded ? "start" : "center"}
             bg={router.pathname === item.path ? theme.activeBg : "transparent"}
-            width={isMobile ? "100%" : "auto"}>
+            width={isMobile ? "100%" : "auto"}
+          >
             {!isSidebarExpanded ? (
               <Tooltip label={item.name} placement="right">
                 <Box>
                   <item.icon
                     size="26"
-                    color={router.pathname === item.path ? theme.activeIconColor : undefined}
+                    color={
+                      router.pathname === item.path
+                        ? theme.activeIconColor
+                        : undefined
+                    }
                   />
                 </Box>
               </Tooltip>
@@ -162,12 +171,21 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
               <>
                 <item.icon
                   size="26"
-                  color={router.pathname === item.path ? theme.activeIconColor : undefined}
+                  color={
+                    router.pathname === item.path
+                      ? theme.activeIconColor
+                      : undefined
+                  }
                 />
                 <Text
-                  color={router.pathname === item.path ? theme.activeTextColor : theme.textColor}
+                  color={
+                    router.pathname === item.path
+                      ? theme.activeTextColor
+                      : theme.textColor
+                  }
                   ml={4}
-                  fontSize="md">
+                  fontSize="md"
+                >
                   {item.name}
                 </Text>
               </>
@@ -194,7 +212,8 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
           borderColor={theme.borderColor}
           height="100vh"
           boxShadow={theme.shadow}
-          {...transitionProps}>
+          {...transitionProps}
+        >
           {SidebarContent}
         </Box>
       ) : (
@@ -207,7 +226,8 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                 paddingLeft="0"
                 src="/site_logo.svg"
                 alt="logo"
-                filter={logoFilter}></Image>
+                filter={logoFilter}
+              ></Image>
             </Box>
             <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
               <DrawerOverlay />
@@ -220,7 +240,8 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                 borderRight="1px"
                 borderColor={theme.borderColor}
                 height="100%"
-                boxShadow={theme.shadow}>
+                boxShadow={theme.shadow}
+              >
                 {SidebarContent}
               </DrawerContent>
             </Drawer>
@@ -232,8 +253,11 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       <Box
         flex="1"
         p={4}
-        ml={!isMobile ? (isSidebarExpanded ? expandedWidth : collapsedWidth) : "0"}
-        {...transitionProps}>
+        ml={
+          !isMobile ? (isSidebarExpanded ? expandedWidth : collapsedWidth) : "0"
+        }
+        {...transitionProps}
+      >
         {children}
       </Box>
     </Flex>

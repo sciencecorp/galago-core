@@ -21,11 +21,16 @@ export const useWorkcellIO = (
   // Export logic
   const handleExportConfig = async () => {
     if (!selectedWorkcellName) {
-      return { success: false, message: "Please select a workcell to export its configuration." };
+      return {
+        success: false,
+        message: "Please select a workcell to export its configuration.",
+      };
     }
 
     // Find the workcell ID from the name
-    const selectedWorkcell = workcells.find((wc) => wc.name === selectedWorkcellName);
+    const selectedWorkcell = workcells.find(
+      (wc) => wc.name === selectedWorkcellName,
+    );
     if (!selectedWorkcell) {
       return {
         success: false,
@@ -35,10 +40,14 @@ export const useWorkcellIO = (
 
     try {
       // The exportConfig mutation now returns the workcell data directly
-      const workcellData = await exportConfigMutation.mutateAsync(selectedWorkcell.id);
+      const workcellData = await exportConfigMutation.mutateAsync(
+        selectedWorkcell.id,
+      );
 
       // Create a Blob from the workcell data and trigger download
-      const blob = new Blob([JSON.stringify(workcellData, null, 2)], { type: "application/json" });
+      const blob = new Blob([JSON.stringify(workcellData, null, 2)], {
+        type: "application/json",
+      });
       const url = window.URL.createObjectURL(blob);
 
       const downloadLink = document.createElement("a");
@@ -51,7 +60,10 @@ export const useWorkcellIO = (
       // Clean up the URL object after download
       window.URL.revokeObjectURL(url);
 
-      return { success: true, message: `Configuration for ${selectedWorkcellName} downloaded.` };
+      return {
+        success: true,
+        message: `Configuration for ${selectedWorkcellName} downloaded.`,
+      };
     } catch (error) {
       console.error("Export failed:", error);
       return {
@@ -66,7 +78,9 @@ export const useWorkcellIO = (
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 

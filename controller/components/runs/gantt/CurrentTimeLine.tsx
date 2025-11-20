@@ -5,7 +5,9 @@ interface CurrentTimeLineProps {
   position: number;
 }
 
-export const CurrentTimeLine: React.FC<CurrentTimeLineProps> = ({ position }) => {
+export const CurrentTimeLine: React.FC<CurrentTimeLineProps> = ({
+  position,
+}) => {
   const circleBg = useColorModeValue("white", "gray.800");
 
   return (

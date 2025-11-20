@@ -6,7 +6,10 @@ import { Labware } from "@/types/api";
  * React hook for labware import/export functionality
  * Provides an interface to the server-side import/export operations
  */
-export const useLabwareIO = (labware: Labware[], refetch: () => Promise<unknown>) => {
+export const useLabwareIO = (
+  labware: Labware[],
+  refetch: () => Promise<unknown>,
+) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // tRPC mutations
@@ -16,7 +19,10 @@ export const useLabwareIO = (labware: Labware[], refetch: () => Promise<unknown>
   // Export logic
   const handleExportConfig = async (labwareId: number) => {
     if (!labwareId) {
-      return { success: false, message: "Please select a labware to export its configuration." };
+      return {
+        success: false,
+        message: "Please select a labware to export its configuration.",
+      };
     }
 
     // Find the labware by ID
@@ -33,7 +39,9 @@ export const useLabwareIO = (labware: Labware[], refetch: () => Promise<unknown>
       const labwareData = await exportConfigMutation.mutateAsync(labwareId);
 
       // Create a Blob from the labware data and trigger download
-      const blob = new Blob([JSON.stringify(labwareData, null, 2)], { type: "application/json" });
+      const blob = new Blob([JSON.stringify(labwareData, null, 2)], {
+        type: "application/json",
+      });
       const url = window.URL.createObjectURL(blob);
 
       const downloadLink = document.createElement("a");
@@ -46,7 +54,10 @@ export const useLabwareIO = (labware: Labware[], refetch: () => Promise<unknown>
       // Clean up the URL object after download
       window.URL.revokeObjectURL(url);
 
-      return { success: true, message: `Configuration for ${selectedLabware.name} downloaded.` };
+      return {
+        success: true,
+        message: `Configuration for ${selectedLabware.name} downloaded.`,
+      };
     } catch (error) {
       console.error("Export failed:", error);
       return {
@@ -61,7 +72,9 @@ export const useLabwareIO = (labware: Labware[], refetch: () => Promise<unknown>
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return { success: false, message: "No file selected." };
 
@@ -82,7 +95,9 @@ export const useLabwareIO = (labware: Labware[], refetch: () => Promise<unknown>
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Import failed: ${errorData.detail || response.statusText}`);
+        throw new Error(
+          `Import failed: ${errorData.detail || response.statusText}`,
+        );
       }
 
       const result = await response.json();

@@ -143,12 +143,19 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
   };
 
   const handleMove = (point: TeachPoint) => {
-    commandHandlers.handleMoveCommand(robotArmCommandMutation, point.name, "default");
+    commandHandlers.handleMoveCommand(
+      robotArmCommandMutation,
+      point.name,
+      "default",
+    );
   };
 
   const handleTeach = async (point: TeachPoint) => {
     if (toolStatusQuery.data?.status === "SIMULATED") {
-      warningToast("Simulation Mode", "Teaching points is not available in simulation mode.");
+      warningToast(
+        "Simulation Mode",
+        "Teaching points is not available in simulation mode.",
+      );
       return;
     }
 
@@ -171,9 +178,17 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
         }
 
         // Limit coordinates to the configured number of joints
-        const limitedCoordinates = paddedCoordinates.slice(0, parseInt(numJoints.toString()));
+        const limitedCoordinates = paddedCoordinates.slice(
+          0,
+          parseInt(numJoints.toString()),
+        );
 
-        if (!validateJointCount(response.meta_data.location, parseInt(numJoints.toString()))) {
+        if (
+          !validateJointCount(
+            response.meta_data.location,
+            parseInt(numJoints.toString()),
+          )
+        ) {
           errorToast(
             "Joint Count Mismatch",
             `Robot returned ${coordinates.length} joints but at least ${numJoints} joints are required`,
@@ -194,7 +209,10 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
         robotArmLocationsQuery.refetch();
 
         // Add success toast
-        successToast("Point Updated", `Successfully taught new position to point "${point.name}"`);
+        successToast(
+          "Point Updated",
+          `Successfully taught new position to point "${point.name}"`,
+        );
       } else {
         throw new Error("No location data received from robot");
       }
@@ -206,7 +224,8 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
 
   // Check if robot is connected (READY or SIMULATED)
   const isConnected =
-    toolStatusQuery.data?.status === "READY" || toolStatusQuery.data?.status === "SIMULATED";
+    toolStatusQuery.data?.status === "READY" ||
+    toolStatusQuery.data?.status === "SIMULATED";
 
   // Update local state when queries complete
   useEffect(() => {
@@ -245,7 +264,9 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
     const term = searchTerm.toLowerCase();
     switch (activeTab) {
       case 0: // Teach Points
-        return teachPoints.filter((point) => point.name.toLowerCase().includes(term));
+        return teachPoints.filter((point) =>
+          point.name.toLowerCase().includes(term),
+        );
       case 1: // Motion Profiles
         return (
           motionProfilesQuery.data?.filter((profile) =>
@@ -254,7 +275,9 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
         );
       case 2: // Grip Parameters
         return (
-          gripParamsQuery.data?.filter((params) => params.name.toLowerCase().includes(term)) || []
+          gripParamsQuery.data?.filter((params) =>
+            params.name.toLowerCase().includes(term),
+          ) || []
         );
       case 3: // Sequences
         return (sequences || []).filter(
@@ -350,9 +373,9 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
   };
 
   const handleDeleteAllMotionProfiles = async () => {
-    const profileIds = (motionProfilesQuery.data?.map((profile) => profile.id) || []).filter(
-      (id): id is number => id !== undefined,
-    );
+    const profileIds = (
+      motionProfilesQuery.data?.map((profile) => profile.id) || []
+    ).filter((id): id is number => id !== undefined);
 
     const batchDeleteMotionProfiles = createBatchHandlerForIds(
       deleteMotionProfile,
@@ -367,9 +390,9 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
   };
 
   const handleDeleteAllGripParams = async () => {
-    const paramIds = (gripParamsQuery.data?.map((param) => param.id) || []).filter(
-      (id): id is number => id !== undefined,
-    );
+    const paramIds = (
+      gripParamsQuery.data?.map((param) => param.id) || []
+    ).filter((id): id is number => id !== undefined);
 
     const batchDeleteGripParams = createBatchHandlerForIds(
       deleteGripParam,
@@ -434,7 +457,10 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
     }
 
     if (count === 0) {
-      warningToast("Nothing to delete", "There are no items to delete in this section.");
+      warningToast(
+        "Nothing to delete",
+        "There are no items to delete in this section.",
+      );
       return;
     }
 
@@ -455,25 +481,45 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
       boxShadow={useColorModeValue(
         "0 4px 12px rgba(0, 0, 0, 0.1)",
         "0 4px 16px rgba(0, 0, 0, 0.6)",
-      )}>
+      )}
+    >
       <VStack p={4} spacing={4} align="stretch">
         {/* Main Content Area */}
         <HStack align="start" spacing={4}>
           {/* Left Side - Status Card and Control Panel */}
-          <VStack width="280px" flexShrink={0} spacing={4} align="stretch" pl={0}>
+          <VStack
+            width="280px"
+            flexShrink={0}
+            spacing={4}
+            align="stretch"
+            pl={0}
+          >
             <Box>
               <ToolStatusCard toolId={tool.name} />
             </Box>
             <ControlPanel
-              onFree={() => commandHandlers.handleSimpleCommand(robotArmCommandMutation, "release")}
+              onFree={() =>
+                commandHandlers.handleSimpleCommand(
+                  robotArmCommandMutation,
+                  "release",
+                )
+              }
               onUnfree={() =>
-                commandHandlers.handleSimpleCommand(robotArmCommandMutation, "engage")
+                commandHandlers.handleSimpleCommand(
+                  robotArmCommandMutation,
+                  "engage",
+                )
               }
               onUnwind={() =>
-                commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")
+                commandHandlers.handleSimpleCommand(
+                  robotArmCommandMutation,
+                  "unwind",
+                )
               }
               onGripperOpen={() => {
-                const selectedParams = gripParams.find((p) => p.id === defaultParamsId);
+                const selectedParams = gripParams.find(
+                  (p) => p.id === defaultParamsId,
+                );
                 if (selectedParams) {
                   commandHandlers.handleGripperCommand(
                     robotArmCommandMutation,
@@ -501,7 +547,9 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                 }
               }}
               onGripperClose={() => {
-                const selectedParams = gripParams.find((p) => p.id === defaultParamsId);
+                const selectedParams = gripParams.find(
+                  (p) => p.id === defaultParamsId,
+                );
                 if (selectedParams) {
                   commandHandlers.handleGripperCommand(
                     robotArmCommandMutation,
@@ -570,7 +618,10 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                 onTeach={() => handleTeach(selectedTeachPoint!)}
                 onMove={handleMove}
                 onUnwind={() =>
-                  commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")
+                  commandHandlers.handleSimpleCommand(
+                    robotArmCommandMutation,
+                    "unwind",
+                  )
                 }
                 onGripperOpen={() =>
                   commandHandlers.handleGripperCommand(
@@ -607,7 +658,12 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
             </InputGroup>
 
             {/* Tabs Section */}
-            <Tabs index={activeTab} onChange={setActiveTab} variant="enclosed" colorScheme="blue">
+            <Tabs
+              index={activeTab}
+              onChange={setActiveTab}
+              variant="enclosed"
+              colorScheme="blue"
+            >
               <TabList>
                 <Tab
                   _selected={{
@@ -617,7 +673,8 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                     borderBottomColor: tabActiveBgColor,
                   }}
                   bg={tabBgColor}
-                  borderColor={borderColor}>
+                  borderColor={borderColor}
+                >
                   Teach Points
                 </Tab>
                 <Tab
@@ -628,7 +685,8 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                     borderBottomColor: tabActiveBgColor,
                   }}
                   bg={tabBgColor}
-                  borderColor={borderColor}>
+                  borderColor={borderColor}
+                >
                   Motion Profiles
                 </Tab>
                 <Tab
@@ -639,7 +697,8 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                     borderBottomColor: tabActiveBgColor,
                   }}
                   bg={tabBgColor}
-                  borderColor={borderColor}>
+                  borderColor={borderColor}
+                >
                   Grip Settings
                 </Tab>
                 <Tab
@@ -650,7 +709,8 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                     borderBottomColor: tabActiveBgColor,
                   }}
                   bg={tabBgColor}
-                  borderColor={borderColor}>
+                  borderColor={borderColor}
+                >
                   Sequences
                 </Tab>
               </TabList>
@@ -659,7 +719,8 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                 borderWidth="1px"
                 borderTop="0"
                 borderColor={borderColor}
-                borderRadius="0 0 md md">
+                borderRadius="0 0 md md"
+              >
                 <TabPanel>
                   <TeachPointsPanel
                     teachPoints={filteredItems as TeachPoint[]}
@@ -719,7 +780,10 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       }
                     }}
                     onDelete={async (id: number) => {
-                      await deleteMotionProfileMutation.mutateAsync({ id, tool_id: tool.id });
+                      await deleteMotionProfileMutation.mutateAsync({
+                        id,
+                        tool_id: tool.id,
+                      });
                       motionProfilesQuery.refetch();
                     }}
                     onDeleteAll={() => showDeleteConfirm("motionProfiles")}
@@ -730,7 +794,9 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                     bgColor={bgColor}
                     bgColorAlpha={bgColorAlpha}
                     defaultProfileId={defaultProfileId}
-                    onSetDefault={(id: number | null) => setDefaultProfileId(id)}
+                    onSetDefault={(id: number | null) =>
+                      setDefaultProfileId(id)
+                    }
                   />
                 </TabPanel>
                 <TabPanel>
@@ -741,7 +807,10 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       gripParamsModal.onOpen();
                     }}
                     onDelete={async (id) => {
-                      await deleteGripParamsMutation.mutateAsync({ id, tool_id: tool.id });
+                      await deleteGripParamsMutation.mutateAsync({
+                        id,
+                        tool_id: tool.id,
+                      });
                       gripParamsQuery.refetch();
                     }}
                     onDeleteAll={() => showDeleteConfirm("gripParams")}
@@ -858,7 +927,9 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
             joints[`j${i}`] = limitedCoords[i - 1] || 0;
           }
 
-          const orientation = !point.orientation ? "landscape" : point.orientation;
+          const orientation = !point.orientation
+            ? "landscape"
+            : point.orientation;
 
           const location = {
             name: point.name,
@@ -909,7 +980,8 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
         onClick={deleteHandler}
         header="Delete Confirmation"
         colorScheme="red"
-        confirmText="Delete">
+        confirmText="Delete"
+      >
         {confirmMessage}
       </ConfirmationModal>
     </Card>

@@ -26,7 +26,10 @@ import {
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import StatusTag from "@/components/tools/StatusTag";
-import { ExecuteCommandReply, ResponseCode } from "gen-interfaces/tools/grpc_interfaces/tool_base";
+import {
+  ExecuteCommandReply,
+  ResponseCode,
+} from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { ToolCommandInfo } from "@/types";
 import { ToolType } from "gen-interfaces/controller";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
@@ -40,9 +43,15 @@ interface QueueStatusComponent {
   totalRuns: number;
 }
 
-export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns }) => {
-  const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 1000 });
-  const commandsQuery = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
+export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({
+  totalRuns,
+}) => {
+  const stateQuery = trpc.commandQueue.state.useQuery(undefined, {
+    refetchInterval: 1000,
+  });
+  const commandsQuery = trpc.commandQueue.getAll.useQuery(undefined, {
+    refetchInterval: 1000,
+  });
   const stateMutationOpts = {
     onSettled: () => {
       stateQuery.refetch();
@@ -55,7 +64,9 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
   const stopMutation = queue.stop.useMutation(stateMutationOpts);
   const clearAllMutation = queue.clearAll.useMutation(stateMutationOpts);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const getError = queue.getError.useQuery(undefined, { refetchInterval: 1500 });
+  const getError = queue.getError.useQuery(undefined, {
+    refetchInterval: 1500,
+  });
 
   const run = async () => {
     restartMutation.mutate();
@@ -82,7 +93,9 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
           <ModalHeader>Warning</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Text>Make sure instruments are not unintentionally in simulation mode.</Text>
+            <Text>
+              Make sure instruments are not unintentionally in simulation mode.
+            </Text>
           </ModalBody>
           <ModalFooter>
             <Button colorScheme="teal" mr={3} onClick={handleConfirmStart}>
@@ -104,7 +117,8 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
   const hasFailed = stateQuery.data === ToolStatus.FAILED;
 
   // Check if there are any commands (including completed ones) to clear
-  const hasCommandsToClear = commandsQuery.data && commandsQuery.data.length > 0;
+  const hasCommandsToClear =
+    commandsQuery.data && commandsQuery.data.length > 0;
 
   return (
     <>
@@ -115,7 +129,8 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
             leftIcon={<Icon as={FaPause} />}
             colorScheme="orange"
             variant="solid"
-            onClick={() => pause()}>
+            onClick={() => pause()}
+          >
             Pause Queue
           </Button>
         ) : (
@@ -124,7 +139,8 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
             colorScheme="green"
             variant="solid"
             onClick={() => onOpen()}
-            isDisabled={totalRuns === 0}>
+            isDisabled={totalRuns === 0}
+          >
             Start Queue
           </Button>
         )}
@@ -135,8 +151,11 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
           onClick={() => clear()}
           isDisabled={!hasCommandsToClear}
           title={
-            hasCommandsToClear ? "Clear all runs including completed ones" : "No runs to clear"
-          }>
+            hasCommandsToClear
+              ? "Clear all runs including completed ones"
+              : "No runs to clear"
+          }
+        >
           Clear All
         </Button>
       </ButtonGroup>

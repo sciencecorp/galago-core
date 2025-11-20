@@ -100,18 +100,31 @@ export const InputWithDropdown: React.FC<InputWithDropdownProps> = ({
 
   return (
     <InputGroup>
-      <Input value={value} onChange={handleInputChange} placeholder={placeholder} {...inputProps} />
+      <Input
+        value={value}
+        onChange={handleInputChange}
+        placeholder={placeholder}
+        {...inputProps}
+      />
       <InputRightElement width={validation ? "8rem" : "2.5rem"}>
         {validation && (
           <Box mr={2}>
-            <Tooltip label={validation.tooltipLabel || (validation.isValid ? "Valid" : "Invalid")}>
+            <Tooltip
+              label={
+                validation.tooltipLabel ||
+                (validation.isValid ? "Valid" : "Invalid")
+              }
+            >
               <Button
                 h="1.75rem"
                 size="sm"
                 colorScheme={validation.isValid ? "teal" : "red"}
                 variant="outline"
-                onClick={validation.onValidationClick}>
-                {validation.isValid ? validation.validIcon || "✓" : validation.invalidIcon || "✗"}
+                onClick={validation.onValidationClick}
+              >
+                {validation.isValid
+                  ? validation.validIcon || "✓"
+                  : validation.invalidIcon || "✗"}
               </Button>
             </Tooltip>
           </Box>
@@ -139,7 +152,10 @@ export const InputWithDropdown: React.FC<InputWithDropdownProps> = ({
           <Portal>
             <MenuList maxHeight={menuMaxHeight} overflowY="auto" zIndex={2000}>
               {options.map((option) => (
-                <MenuItem key={option.value} onClick={() => handleOptionSelect(option.value)}>
+                <MenuItem
+                  key={option.value}
+                  onClick={() => handleOptionSelect(option.value)}
+                >
                   {option.label || option.value}
                 </MenuItem>
               ))}

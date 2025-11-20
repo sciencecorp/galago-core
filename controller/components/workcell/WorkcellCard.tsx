@@ -42,7 +42,8 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
     },
   });
   const [selectedWorkcell, setSelectedWorkcell] = useState<string | null>(null);
-  const { data: selectedWorkcellData, refetch } = trpc.workcell.getSelectedWorkcell.useQuery();
+  const { data: selectedWorkcellData, refetch } =
+    trpc.workcell.getSelectedWorkcell.useQuery();
 
   const handleSelect = async () => {
     await setWorkcell.mutate(workcell.name);
@@ -86,8 +87,20 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
 
   // Generate a consistent color based on workcell name
   const getWorkcellColor = (name: string) => {
-    const colors = ["red", "orange", "yellow", "green", "teal", "blue", "cyan", "purple", "pink"];
-    const hash = name.split("").reduce((acc, char) => char.charCodeAt(0) + acc, 0);
+    const colors = [
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "teal",
+      "blue",
+      "cyan",
+      "purple",
+      "pink",
+    ];
+    const hash = name
+      .split("")
+      .reduce((acc, char) => char.charCodeAt(0) + acc, 0);
     return colors[hash % colors.length];
   };
 
@@ -104,7 +117,8 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
       overflow="hidden"
       height="100%"
       margin="2px"
-      width="100%">
+      width="100%"
+    >
       <CardBody p={4}>
         <VStack align="stretch" spacing={4}>
           <HStack justify="space-between">
@@ -123,7 +137,9 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
                   <EditableText
                     defaultValue={workcell.location || ""}
                     preview={<Text>{workcell.location || "No location"}</Text>}
-                    onSubmit={(value) => handleEdit({ ...workcell, location: value || "" })}
+                    onSubmit={(value) =>
+                      handleEdit({ ...workcell, location: value || "" })
+                    }
                   />
                 </HStack>
               </VStack>
@@ -144,7 +160,9 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
                   {workcell.description}
                 </Text>
               }
-              onSubmit={(value) => handleEdit({ ...workcell, description: value || "" })}
+              onSubmit={(value) =>
+                handleEdit({ ...workcell, description: value || "" })
+              }
             />
           )}
 
@@ -176,13 +194,20 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
           )}
         </VStack>
       </CardBody>
-      <CardFooter pt={4} pb={4} px={4} borderTop="1px" borderColor={borderColor}>
+      <CardFooter
+        pt={4}
+        pb={4}
+        px={4}
+        borderTop="1px"
+        borderColor={borderColor}
+      >
         <Button
           width="full"
           colorScheme={isSelected ? "teal" : "gray"}
           variant={isSelected ? "solid" : "outline"}
           onClick={handleSelect}
-          size="sm">
+          size="sm"
+        >
           {isSelected ? "Selected" : "Select Workcell"}
         </Button>
       </CardFooter>

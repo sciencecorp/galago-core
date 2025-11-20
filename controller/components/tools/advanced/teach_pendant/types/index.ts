@@ -67,7 +67,11 @@ export interface Sequence {
 }
 
 export type SearchableItem = TeachPoint | MotionProfile | GripParams | Sequence;
-export type ItemType = "teachPoint" | "motionProfile" | "gripParams" | "sequence";
+export type ItemType =
+  | "teachPoint"
+  | "motionProfile"
+  | "gripParams"
+  | "sequence";
 
 export interface TeachPointsPanelProps {
   teachPoints: TeachPoint[];

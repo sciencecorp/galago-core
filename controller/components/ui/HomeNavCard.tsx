@@ -1,5 +1,14 @@
 import { trpc } from "@/utils/trpc";
-import { Alert, Box, Card, CardBody, Heading, Text, VStack, HStack } from "@chakra-ui/react";
+import {
+  Alert,
+  Box,
+  Card,
+  CardBody,
+  Heading,
+  Text,
+  VStack,
+  HStack,
+} from "@chakra-ui/react";
 import { PageProps } from "@/types";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
@@ -11,7 +20,10 @@ interface HomeNavCardProps {
   titleSx?: SystemStyleObject; // Change to SystemStyleObject
 }
 
-export default function HomeNavCard({ pageProps, titleSx }: HomeNavCardProps): JSX.Element {
+export default function HomeNavCard({
+  pageProps,
+  titleSx,
+}: HomeNavCardProps): JSX.Element {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const bgColor = useColorModeValue("", "gray.700"); // Adjust the dark mode color as needed
@@ -35,7 +47,8 @@ export default function HomeNavCard({ pageProps, titleSx }: HomeNavCardProps): J
       transition="all 0.2s ease-in-out"
       backgroundColor={isHovered ? "#cee0f0" : "gray.100"}
       cursor="pointer"
-      bg={bgColor}>
+      bg={bgColor}
+    >
       <HStack>
         <Box width="12%" height="auto" padding="2%" paddingTop="6%">
           {pageProps.icon}
@@ -43,7 +56,10 @@ export default function HomeNavCard({ pageProps, titleSx }: HomeNavCardProps): J
         <Box>
           <VStack>
             <CardBody>
-              <Heading size="md" sx={pageProps.title === "Tools" ? titleSx : {}}>
+              <Heading
+                size="md"
+                sx={pageProps.title === "Tools" ? titleSx : {}}
+              >
                 {pageProps.title}
               </Heading>
               <Text py="2">{pageProps.description}</Text>

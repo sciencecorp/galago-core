@@ -21,7 +21,9 @@ const defaultToastOptions = {
  * Customize default toast options
  * @param options Options to override defaults
  */
-export const setDefaultToastOptions = (options: Partial<typeof defaultToastOptions>) => {
+export const setDefaultToastOptions = (
+  options: Partial<typeof defaultToastOptions>,
+) => {
   Object.assign(defaultToastOptions, options);
 };
 
@@ -34,7 +36,13 @@ export const setDefaultToastOptions = (options: Partial<typeof defaultToastOptio
  * @returns The toast ID
  */
 export const positionedToast = (
-  position: "top" | "top-right" | "top-left" | "bottom" | "bottom-right" | "bottom-left",
+  position:
+    | "top"
+    | "top-right"
+    | "top-left"
+    | "bottom"
+    | "bottom-right"
+    | "bottom-left",
   title: string,
   description: string,
   status: "info" | "warning" | "success" | "error" = "info",
@@ -139,7 +147,10 @@ export const batchOperationToast = (
     );
   } else {
     // No operations performed
-    warningToast(`No ${itemType} ${operation}d`, `No ${itemType} were available to ${operation}`);
+    warningToast(
+      `No ${itemType} ${operation}d`,
+      `No ${itemType} were available to ${operation}`,
+    );
   }
 };
 
@@ -151,7 +162,9 @@ export const batchOperationToast = (
  * @param batchPromise Promise that resolves with the results of the batch operation
  * @returns The toast ID
  */
-export const batchOperationLoadingToast = <T extends { successCount: number; errorCount: number }>(
+export const batchOperationLoadingToast = <
+  T extends { successCount: number; errorCount: number },
+>(
   operation: string,
   itemType: string,
   totalCount: number,
@@ -200,7 +213,9 @@ export const progressToast = (title: string, initialProgress: number = 0) => {
         toast.update(toastId, {
           description: (
             <div>
-              <div style={{ marginBottom: "8px" }}>{description || `${progress}% complete`}</div>
+              <div style={{ marginBottom: "8px" }}>
+                {description || `${progress}% complete`}
+              </div>
               <progress value={progress} max="100" style={{ width: "100%" }} />
             </div>
           ),
@@ -220,7 +235,10 @@ export const progressToast = (title: string, initialProgress: number = 0) => {
         });
       }
     },
-    error: (errorTitle: string = "Error", errorDescription: string = "Operation failed") => {
+    error: (
+      errorTitle: string = "Error",
+      errorDescription: string = "Operation failed",
+    ) => {
       if (toast.isActive(toastId)) {
         toast.update(toastId, {
           title: errorTitle,
@@ -275,7 +293,8 @@ export const actionToast = (
                 if (toast.isActive(toastId)) {
                   toast.close(toastId);
                 }
-              }}>
+              }}
+            >
               {action.label}
             </Button>
           ))}
