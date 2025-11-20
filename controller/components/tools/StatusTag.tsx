@@ -26,11 +26,13 @@ export default function StatusTag(
   props: Omit<TagProps, "colorScheme"> & {
     status: ToolStatus | undefined;
     label?: string;
-  },
+  }
 ): JSX.Element {
   const tagProps = {
     ...props,
     colorScheme: statusColor(props.status),
   };
-  return <Tag {...tagProps}>{props.children ?? displayStatus(props.status)}</Tag>;
+  return (
+    <Tag {...tagProps}>{props.children ?? displayStatus(props.status)}</Tag>
+  );
 }

@@ -9,12 +9,12 @@ import { errorToast } from "@/components/ui/Toast";
  */
 export const validateGripParamsExists = (
   gripParams: GripParams[],
-  actionType: "open" | "close" = "close",
+  actionType: "open" | "close" = "close"
 ): boolean => {
   if (!gripParams || gripParams.length === 0) {
     errorToast(
       "No Grip Parameters",
-      `Cannot ${actionType} gripper without grip parameters. Please create grip parameters first.`,
+      `Cannot ${actionType} gripper without grip parameters. Please create grip parameters first.`
     );
     return false;
   }
@@ -30,7 +30,7 @@ export const validateSequenceExists = (sequences: Sequence[]): boolean => {
   if (!sequences || sequences.length === 0) {
     errorToast(
       "No Sequences",
-      "Cannot run sequence without any sequences defined. Please create a sequence first.",
+      "Cannot run sequence without any sequences defined. Please create a sequence first."
     );
     return false;
   }

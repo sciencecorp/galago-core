@@ -32,7 +32,13 @@ import {
   loadingToast,
 } from "../ui/Toast";
 import { useScriptColors } from "../ui/Theme";
-import { CloseIcon, PythonIcon, CodeIcon, PlayIcon, SaveIcon } from "../ui/Icons";
+import {
+  CloseIcon,
+  PythonIcon,
+  CodeIcon,
+  PlayIcon,
+  SaveIcon,
+} from "../ui/Icons";
 import * as monaco from "monaco-editor";
 import { editor } from "monaco-editor";
 import { FaFileImport, FaFileExport } from "react-icons/fa";
@@ -50,14 +56,19 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [activeFolder, setActiveFolder] = useState<ScriptFolder | null>(null);
   const [openFolders, setOpenFolders] = useState<Set<number>>(new Set());
-  const [activeOpenFolder, setActiveOpenFolder] = useState<ScriptFolder | null>(null);
+  const [activeOpenFolder, setActiveOpenFolder] = useState<ScriptFolder | null>(
+    null
+  );
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const { hoverBg, bgColor, borderColor, consoleHeaderBg, consoleBg } = useScriptColors();
+  const { hoverBg, bgColor, borderColor, consoleHeaderBg, consoleBg } =
+    useScriptColors();
   const [scripts, setScripts] = useState<Script[]>([]);
   const [folders, setFolders] = useState<ScriptFolder[]>([]);
   const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
-  const { data: fetchedFolders, refetch: refetchFolders } = trpc.script.getAllFolders.useQuery();
-  const { data: selectedWorkcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
+  const { data: fetchedFolders, refetch: refetchFolders } =
+    trpc.script.getAllFolders.useQuery();
+  const { data: selectedWorkcellName } =
+    trpc.workcell.getSelectedWorkcell.useQuery();
   const { data: workcells } = trpc.workcell.getAll.useQuery();
   const editScript = trpc.script.edit.useMutation();
   const deleteScript = trpc.script.delete.useMutation();
@@ -65,7 +76,9 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const editFolder = trpc.script.editFolder.useMutation();
   const deleteFolder = trpc.script.deleteFolder.useMutation();
   const codeTheme = useColorModeValue("vs-light", "vs-dark");
-  const [editedContents, setEditedContents] = useState<Record<string, string>>({});
+  const [editedContents, setEditedContents] = useState<Record<string, string>>(
+    {}
+  );
   const [scriptsEdited, setScriptsEdited] = useState<Script[]>([]);
   const [currentContent, setCurrentContent] = useState<string>("");
   const [consoleText, setConsoleText] = useState<string>("");
@@ -77,7 +90,9 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const activeTabBg = useColorModeValue("white", "gray.800");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [scriptToDelete, setScriptToDelete] = useState<Script | null>(null);
-  const [editingScriptName, setEditingScriptName] = useState<Script | null>(null);
+  const [editingScriptName, setEditingScriptName] = useState<Script | null>(
+    null
+  );
   const [folderCreating, setFolderCreating] = useState(false);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof monaco | null>(null);
@@ -94,7 +109,9 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   // Get active script based on activeTab name
   const getActiveScript = () => {
     if (!activeTab) return null;
-    return scripts.find((s) => `${s.name}.${fileTypeToExtensionMap[s.language]}` === activeTab);
+    return scripts.find(
+      (s) => `${s.name}.${fileTypeToExtensionMap[s.language]}` === activeTab
+    );
   };
 
   // Get active script ID based on activeTab name
@@ -139,9 +156,12 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     });
 
     // Run script hotkey (F5)
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, async () => {
-      await handleRunScript();
-    });
+    editor.addCommand(
+      monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
+      async () => {
+        await handleRunScript();
+      }
+    );
   };
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
@@ -199,7 +219,10 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
           setRunError(true);
 
           // Check if this is a gRPC connection error
-          if (error.message && error.message.includes("UNAVAILABLE: No connection established")) {
+          if (
+            error.message &&
+            error.message.includes("UNAVAILABLE: No connection established")
+          ) {
             const userFriendlyMessage = `Cannot connect to script execution server. Please ensure the gRPC Python server is running and accessible.
 
 Connection Error: ${error.message}
@@ -250,7 +273,7 @@ Original Error: ${error.message}`;
             return `Error: ${error.message}`;
           }
         },
-      },
+      }
     );
 
     try {
@@ -283,7 +306,10 @@ Original Error: ${error.message}`;
     }
 
     if (editedContent === activeScript.content) {
-      warningToast("No changes detected", "No edits were made to the active script.");
+      warningToast(
+        "No changes detected",
+        "No edits were made to the active script."
+      );
       return;
     }
 
@@ -303,11 +329,14 @@ Original Error: ${error.message}`;
       }
 
       refetch();
-      showSuccessToast("Script updated successfully", "Your changes have been saved.");
+      showSuccessToast(
+        "Script updated successfully",
+        "Your changes have been saved."
+      );
     } catch (error) {
       showErrorToast(
         "Error updating script",
-        "An error occurred while saving the script. Please try again.",
+        "An error occurred while saving the script. Please try again."
       );
     }
   };
@@ -352,8 +381,8 @@ Original Error: ${error.message}`;
     if (fetchedScript) {
       setScripts(
         fetchedScript.filter((script) =>
-          script.name.toLowerCase().includes(searchQuery.toLowerCase()),
-        ),
+          script.name.toLowerCase().includes(searchQuery.toLowerCase())
+        )
       );
     }
   }, [fetchedScript, searchQuery]);
@@ -371,7 +400,9 @@ Original Error: ${error.message}`;
       const newTabName = `${cleanNewName}.${fileTypeToExtensionMap[script.language]}`;
 
       if (openTabs.includes(oldTabName)) {
-        setOpenTabs(openTabs.map((tab) => (tab === oldTabName ? newTabName : tab)));
+        setOpenTabs(
+          openTabs.map((tab) => (tab === oldTabName ? newTabName : tab))
+        );
       }
       if (activeTab === oldTabName) {
         setActiveTab(newTabName);
@@ -385,7 +416,9 @@ Original Error: ${error.message}`;
 
   const handleFolderCreate = async (name: string, parentId?: number) => {
     // Get the workcell ID from the selected workcell name
-    const selectedWorkcell = workcells?.find((wc) => wc.name === selectedWorkcellName);
+    const selectedWorkcell = workcells?.find(
+      (wc) => wc.name === selectedWorkcellName
+    );
     if (!selectedWorkcell) {
       showErrorToast("Error creating folder", "No workcell selected");
       return;
@@ -446,7 +479,10 @@ Original Error: ${error.message}`;
     const extension = tabName.split(".").pop();
     if (extension === "js") {
       return (
-        <AiOutlineJavaScript fontSize="13px" color={activeTab === tabName ? jsIconColor : "gray"} />
+        <AiOutlineJavaScript
+          fontSize="13px"
+          color={activeTab === tabName ? jsIconColor : "gray"}
+        />
       );
     } else if (extension === "cs" || extension === "csharp") {
       return (
@@ -460,7 +496,12 @@ Original Error: ${error.message}`;
         />
       );
     } else {
-      return <PythonIcon fontSize="13px" color={activeTab === tabName ? "teal" : "gray"} />;
+      return (
+        <PythonIcon
+          fontSize="13px"
+          color={activeTab === tabName ? "teal" : "gray"}
+        />
+      );
     }
   };
 
@@ -486,10 +527,15 @@ Original Error: ${error.message}`;
             transition="all 0.2s"
             position="relative"
             overflow="hidden"
-            px={3}>
+            px={3}
+          >
             <HStack spacing={2} flex={1}>
               {getTabIcon(tab)}
-              <Text color={activeTab === tab ? activeTabFontColor : ""} fontSize="sm" isTruncated>
+              <Text
+                color={activeTab === tab ? activeTabFontColor : ""}
+                fontSize="sm"
+                isTruncated
+              >
                 {tab}
               </Text>
             </HStack>
@@ -505,7 +551,14 @@ Original Error: ${error.message}`;
               }}
             />
             {activeTab === tab && (
-              <Box position="absolute" bottom={0} left={0} right={0} height="2px" bg="teal.500" />
+              <Box
+                position="absolute"
+                bottom={0}
+                left={0}
+                right={0}
+                height="2px"
+                bg="teal.500"
+              />
             )}
           </Button>
         ))}
@@ -523,8 +576,15 @@ Original Error: ${error.message}`;
         top={0}
         left={0}
         right={0}
-        bottom={0}>
-        <VStack spacing={0.5} align="stretch" width="100%" overflowY="auto" height="100%">
+        bottom={0}
+      >
+        <VStack
+          spacing={0.5}
+          align="stretch"
+          width="100%"
+          overflowY="auto"
+          height="100%"
+        >
           <ScriptFolderTree
             folders={folders}
             scripts={scripts}
@@ -594,10 +654,12 @@ Original Error: ${error.message}`;
     }));
 
     setScriptsEdited((prev) => {
-      const existingScriptIndex = prev.findIndex((script) => script.id === activeScript.id);
+      const existingScriptIndex = prev.findIndex(
+        (script) => script.id === activeScript.id
+      );
       if (existingScriptIndex >= 0) {
         return prev.map((script, index) =>
-          index === existingScriptIndex ? { ...script, content: value } : script,
+          index === existingScriptIndex ? { ...script, content: value } : script
         );
       } else {
         return [...prev, { ...activeScript, content: value }];
@@ -637,7 +699,8 @@ Original Error: ${error.message}`;
       onClick={handleImportClick}
       isLoading={isImporting}
       isDisabled={isImporting}
-      size="sm">
+      size="sm"
+    >
       Import
     </Button>
   );
@@ -650,7 +713,8 @@ Original Error: ${error.message}`;
       onClick={onExportConfig}
       isDisabled={!activeTab || isExporting}
       isLoading={isExporting}
-      size="sm">
+      size="sm"
+    >
       Export Active Script
     </Button>
   );
@@ -665,7 +729,8 @@ Original Error: ${error.message}`;
         onClick={() => {
           handleDeleteScript();
         }}
-        onClose={onClose}>
+        onClose={onClose}
+      >
         {`Are you sure you want to delete ${scriptToDelete?.name}?`}
       </ConfirmationModal>
       <VStack spacing={4} align="stretch" width="100%">
@@ -699,12 +764,14 @@ Original Error: ${error.message}`;
               alignItems="stretch"
               spacing={1}
               height="calc(100vh - 100px)"
-              minH="500px">
+              minH="500px"
+            >
               <ResizablePanel
                 initialWidth="200px"
                 minWidth="100px"
                 maxWidth="30%"
-                borderColor={borderColor}>
+                borderColor={borderColor}
+              >
                 <VStack alignItems="flex-start" spacing={4} height="100%">
                   <HStack width="100%" spacing={2}>
                     <Input
@@ -714,7 +781,9 @@ Original Error: ${error.message}`;
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                     <NewScript
-                      activeFolderId={openFolders.size > 0 ? activeFolder?.id : undefined}
+                      activeFolderId={
+                        openFolders.size > 0 ? activeFolder?.id : undefined
+                      }
                       onScriptCreated={refreshData}
                     />
                     <NewFolder
@@ -724,7 +793,12 @@ Original Error: ${error.message}`;
                       parentId={activeOpenFolder?.id}
                     />
                   </HStack>
-                  <Box width="100%" flex={1} overflowY="auto" position="relative">
+                  <Box
+                    width="100%"
+                    flex={1}
+                    overflowY="auto"
+                    position="relative"
+                  >
                     <Scripts />
                   </Box>
                 </VStack>
@@ -737,18 +811,24 @@ Original Error: ${error.message}`;
                   overflow="hidden"
                   borderWidth="1px"
                   borderColor={borderColor}
-                  flex={1}>
+                  flex={1}
+                >
                   <HStack
                     width="100%"
                     justify="space-between"
                     p={2}
                     borderBottomWidth="1px"
-                    borderColor={borderColor}>
+                    borderColor={borderColor}
+                  >
                     <Box flex={1} overflow="hidden">
                       <Tabs />
                     </Box>
                     <HStack spacing={2} flexShrink={0}>
-                      <Tooltip label="Download Script" openDelay={1000} hasArrow>
+                      <Tooltip
+                        label="Download Script"
+                        openDelay={1000}
+                        hasArrow
+                      >
                         <IconButton
                           aria-label="Download Script"
                           icon={<MdDownload />}
@@ -817,7 +897,8 @@ Original Error: ${error.message}`;
                           bottom: 0,
                           background:
                             "repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(128,128,128,0.1) 10px, rgba(128,128,128,0.1) 20px)",
-                        }}>
+                        }}
+                      >
                         <VStack spacing={2}>
                           <Text fontSize="sm" color="gray.400">
                             Select a script to get started

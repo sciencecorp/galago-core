@@ -50,7 +50,12 @@ import {
 } from "react-icons/md";
 import { FaRegListAlt } from "react-icons/fa";
 import { CloseIcon } from "@chakra-ui/icons";
-import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "react-beautiful-dnd";
 import { trpc } from "@/utils/trpc";
 import { successToast, errorToast } from "../ui/Toast";
 import { IoSettingsSharp } from "react-icons/io5";
@@ -112,10 +117,14 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
   const [backgroundColor, setBackgroundColor] = useState<string | null>(null);
   const [fontColor, setFontColor] = useState<string | null>(null);
   const [fields, setFields] = useState<FormField[]>([]);
-  const [selectedFieldIndex, setSelectedFieldIndex] = useState<number | null>(null);
+  const [selectedFieldIndex, setSelectedFieldIndex] = useState<number | null>(
+    null
+  );
   const [isSaving, setIsSaving] = useState(false);
 
-  const [editingField, setEditingField] = useState<FormField>(DEFAULT_EDITING_FIELD);
+  const [editingField, setEditingField] = useState<FormField>(
+    DEFAULT_EDITING_FIELD
+  );
   const drawerFooterBg = colors.sectionBg;
 
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -164,7 +173,8 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
   const addField = (fieldType: FormField["type"] = "text") => {
     const newField: FormField = {
       type: fieldType,
-      label: fieldType === "label" ? "Static text" : `Field ${fields.length + 1}`,
+      label:
+        fieldType === "label" ? "Static text" : `Field ${fields.length + 1}`,
       required: false,
       placeholder: fieldType === "label" ? null : "Enter text...",
       options: ["select", "radio"].includes(fieldType) ? [] : null,
@@ -186,7 +196,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
       setSelectedFieldIndex(index);
       onOpen();
     },
-    [fields, onOpen],
+    [fields, onOpen]
   );
 
   const deleteField = useCallback((index: number) => {
@@ -330,7 +340,12 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
   return (
     <VStack spacing={4} align="center">
-      <HStack spacing={2} justifyContent="space-between" alignItems="center" w="810px">
+      <HStack
+        spacing={2}
+        justifyContent="space-between"
+        alignItems="center"
+        w="810px"
+      >
         <HStack>
           <Text whiteSpace="nowrap" fontWeight="bold" fontSize="lg">
             Select Form:
@@ -353,7 +368,8 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                 setFontColor(null);
               }
             }}
-            width="300px">
+            width="300px"
+          >
             {forms.map((form) => (
               <option key={form.id} value={form.name}>
                 {form.name}
@@ -371,7 +387,8 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
             isLoading={isSaving}
             loadingText="Saving..."
             isDisabled={!formName.trim() || !selectedForm}
-            flex={1}>
+            flex={1}
+          >
             Save
           </Button>
           {selectedForm && (
@@ -395,11 +412,16 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
           display="flex"
           transition="all 0.3s ease"
           borderColor={cardBorderColor}
-          borderWidth="1px">
+          borderWidth="1px"
+        >
           <CardBody display="flex" flexDirection="column" position="relative">
             <HStack spacing={2} mb={4}>
               <VStack flex={1} spacing={1} textAlign="center">
-                <Text fontSize="xl" fontWeight="bold" color={fontColor || FORM_DEFAULTS.fontColor}>
+                <Text
+                  fontSize="xl"
+                  fontWeight="bold"
+                  color={fontColor || FORM_DEFAULTS.fontColor}
+                >
                   {formName.trim() || "Untitled Form"}
                 </Text>
               </VStack>
@@ -441,7 +463,8 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                           align="stretch"
                           ref={provided.innerRef}
                           {...provided.droppableProps}
-                          role="group">
+                          role="group"
+                        >
                           {fields.map((field, index) => (
                             <FormFieldComponent
                               key={field.label + "_" + index}
@@ -460,14 +483,24 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                           {/* Empty state when no fields */}
                           {fields.length === 0 && (
                             <VStack spacing={3} py={8} opacity={0.7}>
-                              <Icon as={RiAddFill} boxSize={12} color="gray.400" />
+                              <Icon
+                                as={RiAddFill}
+                                boxSize={12}
+                                color="gray.400"
+                              />
                               <Text
                                 fontSize="lg"
                                 fontWeight="medium"
-                                color={fontColor || FORM_DEFAULTS.fontColor}>
+                                color={fontColor || FORM_DEFAULTS.fontColor}
+                              >
                                 No fields yet
                               </Text>
-                              <Text fontSize="sm" color="gray.500" textAlign="center" px={4}>
+                              <Text
+                                fontSize="sm"
+                                color="gray.500"
+                                textAlign="center"
+                                px={4}
+                              >
                                 Click the button below to add your first field
                               </Text>
                             </VStack>
@@ -488,8 +521,13 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                               borderColor={FORM_DEFAULTS.borderColor}
                               color={fontColor || FORM_DEFAULTS.fontColor}
                               bg="transparent"
-                              _hover={{ bg: FORM_DEFAULTS.buttonColors.ghost.hoverBg }}
-                              _active={{ bg: FORM_DEFAULTS.buttonColors.ghost.hoverBg }}>
+                              _hover={{
+                                bg: FORM_DEFAULTS.buttonColors.ghost.hoverBg,
+                              }}
+                              _active={{
+                                bg: FORM_DEFAULTS.buttonColors.ghost.hoverBg,
+                              }}
+                            >
                               Add Field
                             </MenuButton>
                             <Portal>
@@ -497,55 +535,66 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                                 maxH="400px"
                                 overflowY="auto"
                                 bg={menuBg}
-                                borderColor={menuBorderColor}>
+                                borderColor={menuBorderColor}
+                              >
                                 <MenuItem
                                   icon={<MdTextFields size={20} />}
-                                  onClick={() => addField("text")}>
+                                  onClick={() => addField("text")}
+                                >
                                   Text Input
                                 </MenuItem>
                                 <MenuItem
                                   icon={<MdNumbers size={20} />}
-                                  onClick={() => addField("number")}>
+                                  onClick={() => addField("number")}
+                                >
                                   Number
                                 </MenuItem>
                                 <MenuItem
                                   icon={<MdSubject size={20} />}
-                                  onClick={() => addField("textarea")}>
+                                  onClick={() => addField("textarea")}
+                                >
                                   Textarea
                                 </MenuItem>
                                 <MenuItem
                                   icon={<MdArrowDropDownCircle size={20} />}
-                                  onClick={() => addField("select")}>
+                                  onClick={() => addField("select")}
+                                >
                                   Dropdown
                                 </MenuItem>
                                 <MenuItem
                                   icon={<MdRadioButtonChecked size={20} />}
-                                  onClick={() => addField("radio")}>
+                                  onClick={() => addField("radio")}
+                                >
                                   Radio Buttons
                                 </MenuItem>
                                 <MenuItem
                                   icon={<MdCheckBox size={20} />}
-                                  onClick={() => addField("checkbox")}>
+                                  onClick={() => addField("checkbox")}
+                                >
                                   Checkbox
                                 </MenuItem>
                                 <MenuItem
                                   icon={<MdCalendarToday size={20} />}
-                                  onClick={() => addField("date")}>
+                                  onClick={() => addField("date")}
+                                >
                                   Date
                                 </MenuItem>
                                 <MenuItem
                                   icon={<MdAccessTime size={20} />}
-                                  onClick={() => addField("time")}>
+                                  onClick={() => addField("time")}
+                                >
                                   Time
                                 </MenuItem>
                                 <MenuItem
                                   icon={<MdUploadFile size={20} />}
-                                  onClick={() => addField("file")}>
+                                  onClick={() => addField("file")}
+                                >
                                   File Upload
                                 </MenuItem>
                                 <MenuItem
                                   icon={<MdLabel size={20} />}
-                                  onClick={() => addField("label")}>
+                                  onClick={() => addField("label")}
+                                >
                                   Static Text
                                 </MenuItem>
                               </MenuList>
@@ -562,8 +611,11 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                     <Button
                       minW="120px"
                       variant="ghost"
-                      color={fontColor || FORM_DEFAULTS.buttonColors.ghost.color}
-                      _hover={{ bg: FORM_DEFAULTS.buttonColors.ghost.hoverBg }}>
+                      color={
+                        fontColor || FORM_DEFAULTS.buttonColors.ghost.color
+                      }
+                      _hover={{ bg: FORM_DEFAULTS.buttonColors.ghost.hoverBg }}
+                    >
                       Cancel
                     </Button>
                     <Button
@@ -571,7 +623,10 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                       mr={3}
                       bg={FORM_DEFAULTS.buttonColors.primary.bg}
                       color={FORM_DEFAULTS.buttonColors.primary.color}
-                      _hover={{ bg: FORM_DEFAULTS.buttonColors.primary.hoverBg }}>
+                      _hover={{
+                        bg: FORM_DEFAULTS.buttonColors.primary.hoverBg,
+                      }}
+                    >
                       Submit
                     </Button>
                   </ButtonGroup>
@@ -580,11 +635,18 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
             </Box>
 
             {/* Form Settings Drawer */}
-            <Drawer isOpen={isSettingsOpen} placement="right" onClose={onSettingsClose} size="md">
+            <Drawer
+              isOpen={isSettingsOpen}
+              placement="right"
+              onClose={onSettingsClose}
+              size="md"
+            >
               <DrawerOverlay />
               <DrawerContent>
                 <DrawerCloseButton />
-                <DrawerHeader color={headerTextColor}>Form Settings</DrawerHeader>
+                <DrawerHeader color={headerTextColor}>
+                  Form Settings
+                </DrawerHeader>
 
                 <DrawerBody>
                   <VStack spacing={6} align="stretch">
@@ -616,7 +678,8 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                     variant="outline"
                     mr={3}
                     onClick={onSettingsClose}
-                    borderColor={"gray.300"}>
+                    borderColor={"gray.300"}
+                  >
                     Close
                   </Button>
                 </DrawerFooter>
@@ -624,7 +687,12 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
             </Drawer>
 
             {/* Field Editor Drawer */}
-            <Drawer isOpen={isOpen} placement="right" onClose={onClose} size="md">
+            <Drawer
+              isOpen={isOpen}
+              placement="right"
+              onClose={onClose}
+              size="md"
+            >
               <DrawerOverlay />
               <DrawerContent>
                 <DrawerCloseButton />
@@ -642,7 +710,9 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                           setEditingField((current) => ({
                             ...current,
                             type: newType,
-                            options: ["select", "radio"].includes(newType) ? current.options : null,
+                            options: ["select", "radio"].includes(newType)
+                              ? current.options
+                              : null,
                           }));
                         }}
                       />
@@ -650,15 +720,22 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
                     <FormControl isRequired>
                       <FormLabel>
-                        {editingField.type === "label" ? "Text Content" : "Label"}
+                        {editingField.type === "label"
+                          ? "Text Content"
+                          : "Label"}
                       </FormLabel>
                       <Input
                         value={editingField.label}
                         onChange={(e) =>
-                          setEditingField((current) => ({ ...current, label: e.target.value }))
+                          setEditingField((current) => ({
+                            ...current,
+                            label: e.target.value,
+                          }))
                         }
                         placeholder={
-                          editingField.type === "label" ? "Static text to display" : "Field Label"
+                          editingField.type === "label"
+                            ? "Static text to display"
+                            : "Field Label"
                         }
                       />
                     </FormControl>
@@ -703,13 +780,17 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                             <HStack key={index}>
                               <Input
                                 value={option.value}
-                                onChange={(e) => updateOption(index, "value", e.target.value)}
+                                onChange={(e) =>
+                                  updateOption(index, "value", e.target.value)
+                                }
                                 placeholder="Value"
                                 size="sm"
                               />
                               <Input
                                 value={option.label}
-                                onChange={(e) => updateOption(index, "label", e.target.value)}
+                                onChange={(e) =>
+                                  updateOption(index, "label", e.target.value)
+                                }
                                 placeholder="Label"
                                 size="sm"
                               />
@@ -728,7 +809,8 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                             size="sm"
                             onClick={addOption}
                             leftIcon={<RiAddFill />}
-                            colorScheme="blue">
+                            colorScheme="blue"
+                          >
                             Add Option
                           </Button>
                         </VStack>
@@ -745,7 +827,8 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                               ...current,
                               mapped_variable: e.target.value || null,
                             }))
-                          }>
+                          }
+                        >
                           <option value="">No mapping</option>
                           {variables.map((variable: any) => (
                             <option key={variable.id} value={variable.name}>
@@ -762,7 +845,11 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                   <Button variant="outline" mr={3} onClick={onClose}>
                     Cancel
                   </Button>
-                  <Button colorScheme="teal" onClick={saveField} isDisabled={!editingField.label}>
+                  <Button
+                    colorScheme="teal"
+                    onClick={saveField}
+                    isDisabled={!editingField.label}
+                  >
                     Save
                   </Button>
                 </DrawerFooter>
@@ -783,24 +870,39 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
           justifyContent="center"
           bg={colors.sectionBg}
           borderColor={colors.borderColor}
-          borderWidth="1px">
+          borderWidth="1px"
+        >
           <CardBody
             display="flex"
             flexDirection="column"
             alignItems="center"
-            justifyContent="center">
+            justifyContent="center"
+          >
             <VStack spacing={4}>
               <Box p={4} borderRadius="full" bg={colors.alternateBg}>
                 <FaRegListAlt size={48} color={textColors.secondary} />
               </Box>
               <VStack spacing={2}>
-                <Text fontSize="2xl" fontWeight="bold" color={textColors.primary}>
+                <Text
+                  fontSize="2xl"
+                  fontWeight="bold"
+                  color={textColors.primary}
+                >
                   No Form Selected
                 </Text>
-                <Text fontSize="md" color={textColors.secondary} textAlign="center">
+                <Text
+                  fontSize="md"
+                  color={textColors.secondary}
+                  textAlign="center"
+                >
                   Select a form from the dropdown above to start editing
                 </Text>
-                <Text fontSize="sm" color={textColors.secondary} textAlign="center" opacity={0.8}>
+                <Text
+                  fontSize="sm"
+                  color={textColors.secondary}
+                  textAlign="center"
+                  opacity={0.8}
+                >
                   or create a new form using the &quot;New Form&quot; button
                 </Text>
               </VStack>

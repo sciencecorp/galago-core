@@ -63,7 +63,10 @@ interface ToolStatusCardProps {
   style?: any;
 }
 
-export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardProps) {
+export default function ToolStatusCard({
+  toolId,
+  style = {},
+}: ToolStatusCardProps) {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [isConfiguring, setIsConfiguring] = useState(false);
@@ -74,10 +77,13 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
   const toolData = infoQuery.data;
   const { description, name } = infoQuery.data || {};
   const deleteTool = trpc.tool.delete.useMutation();
-  const { data: selectedWorkcellData } = trpc.workcell.getSelectedWorkcell.useQuery();
+  const { data: selectedWorkcellData } =
+    trpc.workcell.getSelectedWorkcell.useQuery();
   const { data: workcells } = trpc.workcell.getAll.useQuery();
   const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({
-    workcellId: workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id,
+    workcellId: workcells?.find(
+      (workcell) => workcell.name === selectedWorkcellData
+    )?.id,
   });
   const editTool = trpc.tool.edit.useMutation();
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -143,12 +149,14 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
         header={`Delete command?`}
         isOpen={isDeleteConfirmOpen}
         onClick={async () => handleDelete(toolId)}
-        onClose={closeDeleteConfirm}>
+        onClose={closeDeleteConfirm}
+      >
         <>
           {`Are you sure you want to delete this tool ${name}?`}
           {toolData.type === ToolType.pf400 && (
             <Tag colorScheme="orange" variant="solid" mt={4} p={2}>
-              This will also delete teachpoints for this robot. Backup your data before proceeding.
+              This will also delete teachpoints for this robot. Backup your data
+              before proceeding.
             </Tag>
           )}
         </>
@@ -167,7 +175,8 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
         p={2}
         style={{ ...style }}
         onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}>
+        onMouseLeave={() => setIsHovered(false)}
+      >
         <CardHeader pb="0px">
           <Flex justifyContent="space-between" alignItems="center">
             <Box>
@@ -177,7 +186,9 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
               <Text fontSize="sm">{description}</Text>
             </Box>
             <Box top={-5} right={-5} position="relative">
-              {toolId !== "tool_box" && <EditMenu onEdit={onOpen} onDelete={openDeleteConfirm} />}
+              {toolId !== "tool_box" && (
+                <EditMenu onEdit={onOpen} onDelete={openDeleteConfirm} />
+              )}
             </Box>
           </Flex>
         </CardHeader>
@@ -196,7 +207,8 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
                 pointerEvents={isHovered ? "auto" : "none"}
                 transition="opacity 0.3s ease-in-out"
                 display="flex"
-                alignItems="center">
+                alignItems="center"
+              >
                 <Box flex="1">
                   <ToolConfigEditor
                     toolId={toolId}
@@ -205,7 +217,9 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
                   />
                 </Box>
                 <Box width="60px" height="60px" ml={2}>
-                  <Link href={`/tools/${toolId}`}>{renderToolImage(toolData)}</Link>
+                  <Link href={`/tools/${toolId}`}>
+                    {renderToolImage(toolData)}
+                  </Link>
                 </Box>
               </Box>
 
@@ -220,8 +234,11 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
                 alignItems="center"
                 opacity={isHovered ? 0 : 1}
                 pointerEvents={isHovered ? "none" : "auto"}
-                transition="opacity 0.3s ease-in-out">
-                <Link href={`/tools/${toolId}`}>{renderToolImage(toolData)}</Link>
+                transition="opacity 0.3s ease-in-out"
+              >
+                <Link href={`/tools/${toolId}`}>
+                  {renderToolImage(toolData)}
+                </Link>
               </Box>
             </Flex>
           </VStack>

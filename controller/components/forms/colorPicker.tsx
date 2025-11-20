@@ -125,7 +125,8 @@ export const ColorPicker: React.FC<{
                 borderColor={borderColor}
                 borderRadius="sm"
               />
-            }>
+            }
+          >
             Black
           </Button>
 
@@ -143,7 +144,8 @@ export const ColorPicker: React.FC<{
                 borderColor={borderColor}
                 borderRadius="sm"
               />
-            }>
+            }
+          >
             White
           </Button>
 
@@ -181,7 +183,8 @@ export const ColorPicker: React.FC<{
                   borderColor={borderColor}
                   borderRadius="md"
                 />
-              }>
+              }
+            >
               Palette
             </Button>
           </PopoverTrigger>
@@ -195,7 +198,9 @@ export const ColorPicker: React.FC<{
                       h="40px"
                       bg={paletteColor}
                       border="2px solid"
-                      borderColor={color === paletteColor ? "blue.500" : borderColor}
+                      borderColor={
+                        color === paletteColor ? "blue.500" : borderColor
+                      }
                       borderRadius="md"
                       cursor="pointer"
                       onClick={() => {
@@ -232,7 +237,12 @@ export const ColorPicker: React.FC<{
           />
         </HStack>
 
-        <Button size="sm" variant="outline" colorScheme={"whiteAlpha"} onClick={handleReset}>
+        <Button
+          size="sm"
+          variant="outline"
+          colorScheme={"whiteAlpha"}
+          onClick={handleReset}
+        >
           Reset
         </Button>
       </HStack>

@@ -38,7 +38,9 @@ class Variables {
   static async getVariable(name: string, apiUrl?: string): Promise<any> {
     const baseUrl = apiUrl || this.defaultApiUrl;
     try {
-      const response = await this.axiosInstance.get(`${baseUrl}/variables/${name}`);
+      const response = await this.axiosInstance.get(
+        `${baseUrl}/variables/${name}`
+      );
       return response.data;
     } catch (error: any) {
       if (error.response && error.response.status === 404) {
@@ -66,9 +68,15 @@ class Variables {
    * @param apiUrl Optional custom API URL for this request
    * @returns The created variable data
    */
-  static async createVariable(data: Record<string, any>, apiUrl?: string): Promise<any> {
+  static async createVariable(
+    data: Record<string, any>,
+    apiUrl?: string
+  ): Promise<any> {
     const baseUrl = apiUrl || this.defaultApiUrl;
-    const response = await this.axiosInstance.post(`${baseUrl}/variables`, data);
+    const response = await this.axiosInstance.post(
+      `${baseUrl}/variables`,
+      data
+    );
     return response.data;
   }
 
@@ -82,11 +90,14 @@ class Variables {
   static async updateVariable(
     name: string,
     newValue: string | number | boolean,
-    apiUrl?: string,
+    apiUrl?: string
   ): Promise<any> {
     const baseUrl = apiUrl || this.defaultApiUrl;
     const variable = { value: newValue };
-    const response = await this.axiosInstance.put(`${baseUrl}/variables/${name}`, variable);
+    const response = await this.axiosInstance.put(
+      `${baseUrl}/variables/${name}`,
+      variable
+    );
     return response.data;
   }
 
@@ -98,7 +109,9 @@ class Variables {
    */
   static async deleteVariable(name: string, apiUrl?: string): Promise<any> {
     const baseUrl = apiUrl || this.defaultApiUrl;
-    const response = await this.axiosInstance.delete(`${baseUrl}/variables/${name}`);
+    const response = await this.axiosInstance.delete(
+      `${baseUrl}/variables/${name}`
+    );
     return response.data;
   }
 }
@@ -114,7 +127,7 @@ export class JavaScriptExecutor {
   static async executeScript(
     script: string,
     context: Record<string, any> = {},
-    timeout: number = 30000,
+    timeout: number = 30000
   ): Promise<any> {
     logAction({
       level: "info",
@@ -131,7 +144,7 @@ export class JavaScriptExecutor {
       if (script.includes("import ")) {
         // For now, we'll just provide a clear error message
         logCapture.push(
-          "ERROR: Import statements are not supported in this JavaScript environment. Please use require() instead.",
+          "ERROR: Import statements are not supported in this JavaScript environment. Please use require() instead."
         );
         return {
           output: logCapture.join("\n"),
@@ -153,7 +166,7 @@ export class JavaScriptExecutor {
         // Define the main axios function with proper typing
         const axiosFn = function (
           url: string,
-          config?: AxiosRequestConfig,
+          config?: AxiosRequestConfig
         ): Promise<AxiosResponse> {
           const promise = axios(url, config);
           return trackPromise(promise);
@@ -176,7 +189,9 @@ export class JavaScriptExecutor {
 
         methodsToWrap.forEach((method) => {
           // Use type assertion to ensure TypeScript understands this is a valid property
-          (axiosFn as any)[method] = function (...args: any[]): Promise<AxiosResponse> {
+          (axiosFn as any)[method] = function (
+            ...args: any[]
+          ): Promise<AxiosResponse> {
             // Use type assertion here as well for the method access
             const promise = (axios as any)[method].apply(axios, args);
             return trackPromise(promise);
@@ -193,7 +208,9 @@ export class JavaScriptExecutor {
         console: {
           log: (...args: any[]) => {
             const logMessage = args
-              .map((arg) => (typeof arg === "object" ? JSON.stringify(arg) : String(arg)))
+              .map((arg) =>
+                typeof arg === "object" ? JSON.stringify(arg) : String(arg)
+              )
               .join(" ");
             // Add to our log capture
             logCapture.push(logMessage);
@@ -206,7 +223,9 @@ export class JavaScriptExecutor {
           },
           error: (...args: any[]) => {
             const errorMessage = args
-              .map((arg) => (typeof arg === "object" ? JSON.stringify(arg) : String(arg)))
+              .map((arg) =>
+                typeof arg === "object" ? JSON.stringify(arg) : String(arg)
+              )
               .join(" ");
             logCapture.push(`ERROR: ${errorMessage}`);
             logAction({
@@ -218,7 +237,9 @@ export class JavaScriptExecutor {
           },
           warn: (...args: any[]) => {
             const warnMessage = args
-              .map((arg) => (typeof arg === "object" ? JSON.stringify(arg) : String(arg)))
+              .map((arg) =>
+                typeof arg === "object" ? JSON.stringify(arg) : String(arg)
+              )
               .join(" ");
             logCapture.push(`WARNING: ${warnMessage}`);
             logAction({
@@ -271,14 +292,17 @@ export class JavaScriptExecutor {
           setTimeout(() => {
             reject(
               new Error(
-                `Timed out waiting for ${pendingPromises.length} promises to complete after ${timeout}ms`,
-              ),
+                `Timed out waiting for ${pendingPromises.length} promises to complete after ${timeout}ms`
+              )
             );
           }, timeout);
         });
 
         // Wait for either all promises to complete or timeout
-        await Promise.race([Promise.allSettled(pendingPromises), timeoutPromise]);
+        await Promise.race([
+          Promise.allSettled(pendingPromises),
+          timeoutPromise,
+        ]);
       }
       // Check if any errors were logged before returning success
       if (hasError || logCapture.some((msg) => msg.startsWith("ERROR:"))) {
@@ -308,7 +332,8 @@ export class JavaScriptExecutor {
       };
     } catch (error) {
       // If execution fails, return an error result with any logs that were captured before the error
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
 
       logAction({
         level: "error",

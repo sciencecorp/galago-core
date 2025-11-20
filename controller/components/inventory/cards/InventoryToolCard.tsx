@@ -56,13 +56,16 @@ interface InventoryToolCardProps {
     toolId: number,
     nestName: string,
     nestRow: number,
-    nestColumn: number,
+    nestColumn: number
   ) => Promise<void>;
   onCreatePlate: (
     nestId: number,
-    plateData: { name: string; barcode: string; plate_type: string },
+    plateData: { name: string; barcode: string; plate_type: string }
   ) => void;
-  onCreateReagent: (nestId: number, reagentData: Omit<Reagent, "id" | "well_id">) => void;
+  onCreateReagent: (
+    nestId: number,
+    reagentData: Omit<Reagent, "id" | "well_id">
+  ) => void;
   onNestClick: (nest: Nest) => void;
   onDeleteNest: (nestId: number) => Promise<void>;
   onPlateClick?: (plate: Plate) => void;
@@ -90,22 +93,23 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   const workcells = trpc.workcell.getAll.useQuery();
   const SelectedWorkcellName = trpc.workcell.getSelectedWorkcell.useQuery();
   const selectedWorkcell = workcells.data?.find(
-    (workcell) => workcell.name === SelectedWorkcellName.data,
+    (workcell) => workcell.name === SelectedWorkcellName.data
   );
   const workcellTools = selectedWorkcell?.tools;
   const toolData = workcellTools?.find((tool) => tool.id === toolId);
   const { name, type } = toolData || {};
 
   const toolNests = nests.filter((nest) => nest.tool_id === toolId);
-  const toolPlates = plates.filter((plate) => toolNests.some((nest) => nest.id === plate.nest_id));
+  const toolPlates = plates.filter((plate) =>
+    toolNests.some((nest) => nest.id === plate.nest_id)
+  );
 
   // Get reagent count for this tool's plates
-  const { data: plateReagents = [] } = trpc.inventory.getReagents.useQuery<Reagent[]>(
-    toolPlates[0]?.id || 0,
-    {
-      enabled: toolPlates.length > 0,
-    },
-  );
+  const { data: plateReagents = [] } = trpc.inventory.getReagents.useQuery<
+    Reagent[]
+  >(toolPlates[0]?.id || 0, {
+    enabled: toolPlates.length > 0,
+  });
 
   // Count reagents
   const reagentCount = (plateReagents as Reagent[]).length || 0;
@@ -150,12 +154,18 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
         onClick={onOpen}
         transition="all 0.2s"
         cursor="pointer"
-        _hover={{ transform: "translateY(-2px)", shadow: "lg" }}>
+        _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
+      >
         <CardHeader pb={4}>
           <VStack align="stretch" spacing={2}>
             <Flex justify="space-between" align="center">
               <HStack spacing={3}>
-                <Box boxSize="50px" display="flex" alignItems="center" justifyContent="center">
+                <Box
+                  boxSize="50px"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                >
                   {toolData ? renderToolImage(toolData) : <Spinner size="md" />}
                 </Box>
                 <Box>
@@ -229,7 +239,9 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
             if (nest) onNestClick(nest);
           });
         }}
-        onCreateNest={(row, column) => onCreateNest(toolId, `${name}`, row, column)}
+        onCreateNest={(row, column) =>
+          onCreateNest(toolId, `${name}`, row, column)
+        }
         onDeleteNest={onDeleteNest}
         onPlateClick={onPlateClick}
         onCheckIn={onCheckIn}

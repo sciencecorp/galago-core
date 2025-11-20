@@ -14,7 +14,7 @@ export const runRouter = router({
     .input(
       z.object({
         // pagination will go here. later
-      }),
+      })
     )
     .query(async () => {
       return RunStore.global.all();
@@ -24,7 +24,7 @@ export const runRouter = router({
     .input(
       z.object({
         id: z.string(),
-      }),
+      })
     )
     .query(async ({ input }) => {
       const { id } = input;
@@ -46,7 +46,7 @@ export const runRouter = router({
       z.object({
         protocolId: z.string(),
         numberOfRuns: z.number().optional(),
-      }),
+      })
     )
     .mutation(async ({ input }) => {
       const { protocolId } = input;

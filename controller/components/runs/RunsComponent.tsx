@@ -66,7 +66,9 @@ const LastUpdatedTime = () => {
 export const RunsComponent: React.FC = () => {
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [expandedRuns, setExpandedRuns] = useState<Set<string>>(new Set());
-  const [runAttributesMap, setRunAttributesMap] = useState<Record<string, any>>({});
+  const [runAttributesMap, setRunAttributesMap] = useState<Record<string, any>>(
+    {}
+  );
   const [isErrorVisible, setIsErrorVisible] = useState(true);
   const [showAllCommands, setShowAllCommands] = useState(true);
 
@@ -107,16 +109,24 @@ export const RunsComponent: React.FC = () => {
   // Resume mutation
   const resumeMutation = trpc.commandQueue.resume.useMutation();
 
-  const commandsAll = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 2000 });
-  // Query for waiting-for-input status
-  const isWaitingForInputQuery = trpc.commandQueue.isWaitingForInput.useQuery(undefined, {
-    refetchInterval: 1000,
+  const commandsAll = trpc.commandQueue.getAll.useQuery(undefined, {
+    refetchInterval: 2000,
   });
+  // Query for waiting-for-input status
+  const isWaitingForInputQuery = trpc.commandQueue.isWaitingForInput.useQuery(
+    undefined,
+    {
+      refetchInterval: 1000,
+    }
+  );
 
   // Query for current message data
-  const currentMessageQuery = trpc.commandQueue.currentMessage.useQuery(undefined, {
-    refetchInterval: 1000,
-  });
+  const currentMessageQuery = trpc.commandQueue.currentMessage.useQuery(
+    undefined,
+    {
+      refetchInterval: 1000,
+    }
+  );
 
   // Form fetching query (only execute when we have a form name)
   const formQuery = trpc.form.get.useQuery(messageData.formName || "", {
@@ -142,15 +152,21 @@ export const RunsComponent: React.FC = () => {
   const cardBg = useColorModeValue("white", "gray.700");
   const expandedRunBg = useColorModeValue("white", "gray.800");
   const boxShadowValue = useColorModeValue("md", "none");
-  const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
-  const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
+  const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, {
+    refetchInterval: 1000,
+  });
+  const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, {
+    refetchInterval: 1000,
+  });
 
   const groupedCommands = useMemo(
     () => (commandsAll.data ? groupCommandsByRun(commandsAll.data) : []),
-    [commandsAll.data],
+    [commandsAll.data]
   );
 
-  const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 1000 });
+  const stateQuery = trpc.commandQueue.state.useQuery(undefined, {
+    refetchInterval: 1000,
+  });
   const queue = trpc.commandQueue;
   const getError = queue.getError.useQuery(undefined, {
     refetchInterval: 1500,
@@ -161,7 +177,8 @@ export const RunsComponent: React.FC = () => {
   useEffect(() => {
     if (isWaitingForInputQuery.data !== undefined) {
       const shouldShowModal = isWaitingForInputQuery.data;
-      const shouldShowUserForm = shouldShowModal && messageData.type === "user_form";
+      const shouldShowUserForm =
+        shouldShowModal && messageData.type === "user_form";
 
       setIsModalOpen(shouldShowModal && messageData.type !== "user_form");
       setIsUserFormModalOpen(shouldShowUserForm);
@@ -171,7 +188,9 @@ export const RunsComponent: React.FC = () => {
       const newMessageData = {
         type: currentMessageQuery.data.type,
         message: currentMessageQuery.data.message,
-        ...(currentMessageQuery.data.title ? { title: currentMessageQuery.data.title } : {}),
+        ...(currentMessageQuery.data.title
+          ? { title: currentMessageQuery.data.title }
+          : {}),
         ...(currentMessageQuery.data.pausedAt
           ? { pausedAt: currentMessageQuery.data.pausedAt }
           : {}),
@@ -250,7 +269,8 @@ export const RunsComponent: React.FC = () => {
           } else if ("code" in getError.data) {
             // Convert numeric code to string if possible
             const code = getError.data.code;
-            errorCode = typeof code === "number" ? `Code ${code}` : String(code);
+            errorCode =
+              typeof code === "number" ? `Code ${code}` : String(code);
           }
 
           errorDetails = JSON.stringify(getError.data, null, 2);
@@ -272,7 +292,9 @@ export const RunsComponent: React.FC = () => {
                 </Badge>
               )}
             </AlertTitle>
-            <AlertDescription fontWeight="medium">{errorMessage}</AlertDescription>
+            <AlertDescription fontWeight="medium">
+              {errorMessage}
+            </AlertDescription>
           </Box>
           <HStack>
             <Button
@@ -286,7 +308,8 @@ export const RunsComponent: React.FC = () => {
                   code: errorCode,
                   details: errorDetails,
                 });
-              }}>
+              }}
+            >
               Details
             </Button>
             <CloseButton onClick={() => setIsErrorVisible(false)} />
@@ -301,10 +324,10 @@ export const RunsComponent: React.FC = () => {
   // Calculate statistics
   const totalRuns = groupedCommands.length;
   const completedRuns = groupedCommands.filter((run) =>
-    run.Commands.every((cmd) => cmd.status === "COMPLETED"),
+    run.Commands.every((cmd) => cmd.status === "COMPLETED")
   ).length;
   const activeRuns = groupedCommands.filter((run) =>
-    run.Commands.some((cmd) => cmd.status === "STARTED"),
+    run.Commands.some((cmd) => cmd.status === "STARTED")
   ).length;
   const pendingRuns = totalRuns - completedRuns - activeRuns;
 
@@ -326,7 +349,10 @@ export const RunsComponent: React.FC = () => {
         const cmdInfo = CommandInfo.data?.find((r) => r.runId === run.Id);
 
         // Only update if we don't have attributes for this run or if the data has changed
-        if (!runAttributesMap[run.Id] || runAttributesMap[run.Id].status !== cmdInfo?.status) {
+        if (
+          !runAttributesMap[run.Id] ||
+          runAttributesMap[run.Id].status !== cmdInfo?.status
+        ) {
           const attributes = await getRunAttributes(runInfo, cmdInfo);
           newAttributes[run.Id] = attributes;
         } else {
@@ -402,7 +428,8 @@ export const RunsComponent: React.FC = () => {
                 bg: hoverBgColor,
                 transform: "translateY(-1px)",
                 boxShadow: "md",
-              }}>
+              }}
+            >
               <VStack spacing="2">
                 {runAttributes.commandsCount > 0 && (
                   <Progress
@@ -411,7 +438,8 @@ export const RunsComponent: React.FC = () => {
                     isAnimated
                     value={
                       (run.Commands.filter(
-                        (cmd) => cmd.status === "COMPLETED" || cmd.status === "SKIPPED",
+                        (cmd) =>
+                          cmd.status === "COMPLETED" || cmd.status === "SKIPPED"
                       ).length /
                         runAttributes.commandsCount) *
                       100
@@ -428,7 +456,8 @@ export const RunsComponent: React.FC = () => {
                     color={textColor}
                     leftIcon={expandButtonIcon(run.Id)}
                     size="sm"
-                    _hover={{ bg: "transparent" }}>
+                    _hover={{ bg: "transparent" }}
+                  >
                     <HStack spacing={2}>
                       <Text fontSize="sm" fontWeight="medium">
                         {index + 1}.
@@ -454,8 +483,12 @@ export const RunsComponent: React.FC = () => {
                 borderColor={borderColor}
                 borderRadius="md"
                 mt={2}
-                bg={expandedRunBg}>
-                <SwimLaneComponent runCommands={run.Commands} showAllCommands={showAllCommands} />
+                bg={expandedRunBg}
+              >
+                <SwimLaneComponent
+                  runCommands={run.Commands}
+                  showAllCommands={showAllCommands}
+                />
               </Box>
             )}
           </Box>
@@ -479,7 +512,11 @@ export const RunsComponent: React.FC = () => {
         />
       )}
       <MessageModal
-        isOpen={isModalOpen && messageData.type !== "timer" && messageData.type !== "user_form"}
+        isOpen={
+          isModalOpen &&
+          messageData.type !== "timer" &&
+          messageData.type !== "user_form"
+        }
         messageData={messageData}
         onContinue={handleResume}
       />
@@ -524,7 +561,8 @@ export const RunsComponent: React.FC = () => {
                               ? "green"
                               : "gray"
                         }
-                        fontSize="sm">
+                        fontSize="sm"
+                      >
                         {isModalOpen || isUserFormModalOpen
                           ? messageData.type === "pause"
                             ? "Paused"
@@ -570,7 +608,10 @@ export const RunsComponent: React.FC = () => {
           <CardBody>
             <VStack spacing={4} align="stretch">
               <Box>
-                <RunQueueGanttChart onRunClick={handleRunClick} selectedRunId={selectedRunId} />
+                <RunQueueGanttChart
+                  onRunClick={handleRunClick}
+                  selectedRunId={selectedRunId}
+                />
               </Box>
             </VStack>
           </CardBody>

@@ -69,7 +69,7 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
       e.stopPropagation();
       editField(index);
     },
-    [index, editField],
+    [index, editField]
   );
 
   const handleDeleteClick = useCallback(
@@ -78,7 +78,7 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
       e.stopPropagation();
       deleteField(index);
     },
-    [index, deleteField],
+    [index, deleteField]
   );
 
   const handleDuplicateClick = useCallback(
@@ -87,7 +87,7 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
       e.stopPropagation();
       duplicateField(index);
     },
-    [index, duplicateField],
+    [index, duplicateField]
   );
 
   return (
@@ -95,7 +95,8 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
       key={fieldId}
       draggableId={fieldId.toString()}
       index={index}
-      isDragDisabled={isSaving}>
+      isDragDisabled={isSaving}
+    >
       {(provided, snapshot) => (
         <Box
           ref={provided.innerRef}
@@ -111,7 +112,8 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
           role="group"
           _hover={{
             borderColor: FIELD_STYLES.borderColor,
-          }}>
+          }}
+        >
           <HStack>
             {/* Action Buttons */}
             <IconButton
@@ -199,7 +201,8 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
                     borderColor={FIELD_STYLES.borderColor}
                     focusBorderColor={FIELD_STYLES.focusBorderColor}
                     _placeholder={{ color: FIELD_STYLES.placeholderColor }}
-                    sx={{ colorScheme: FIELD_STYLES.inputColorScheme }}>
+                    sx={{ colorScheme: FIELD_STYLES.inputColorScheme }}
+                  >
                     {field.options?.map((option, idx) => (
                       <option key={idx} value={option.value}>
                         {option.label}
@@ -224,10 +227,14 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
                               },
                               ".chakra-radio__control[data-checked]": {
                                 bg: FIELD_STYLES.checkbox.checkedBg,
-                                borderColor: FIELD_STYLES.checkbox.checkedBorder,
+                                borderColor:
+                                  FIELD_STYLES.checkbox.checkedBorder,
                               },
-                            }}>
-                            <Text color={fontColor || defaultFontColor}>{option.label}</Text>
+                            }}
+                          >
+                            <Text color={fontColor || defaultFontColor}>
+                              {option.label}
+                            </Text>
                           </Radio>
                         ))}
                       </Stack>
@@ -236,7 +243,12 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
                 )}
 
                 {field.type === "checkbox" && (
-                  <Box cursor="pointer" p={2} borderRadius="md" display="inline-block">
+                  <Box
+                    cursor="pointer"
+                    p={2}
+                    borderRadius="md"
+                    display="inline-block"
+                  >
                     <Checkbox
                       borderColor="gray.400"
                       sx={{
@@ -248,7 +260,8 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
                           bg: FIELD_STYLES.checkbox.checkedBg,
                           borderColor: FIELD_STYLES.checkbox.checkedBorder,
                         },
-                      }}>
+                      }}
+                    >
                       <Text color={fontColor || defaultFontColor}>
                         {field.placeholder || "Checkbox option"}
                       </Text>
@@ -256,7 +269,9 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
                   </Box>
                 )}
 
-                {!["textarea", "select", "radio", "checkbox"].includes(field.type) && (
+                {!["textarea", "select", "radio", "checkbox"].includes(
+                  field.type
+                ) && (
                   <Input
                     pt={field.type === "file" ? 1 : 0}
                     type={field.type}

@@ -31,5 +31,10 @@ RUN npm ci
 RUN npm list -g next || npm install -g next
 RUN mkdir -p node_modules && chmod -R 777 node_modules
 
+# Copy test and format scripts and make them executable
+COPY ./controller/test.sh /usr/local/bin/test
+COPY ./controller/format.sh /usr/local/bin/format
+RUN chmod +x /usr/local/bin/test /usr/local/bin/format
+
 EXPOSE 3010 9229
 CMD ["npm", "run", "dev"]

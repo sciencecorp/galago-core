@@ -9,7 +9,7 @@ enum TimeScale {
 export const calculateTimelinePosition = (
   visibleStart: moment.Moment,
   startTime: moment.Moment,
-  totalDuration: number,
+  totalDuration: number
 ): string => {
   return `${(visibleStart.diff(startTime, "seconds") / totalDuration) * 100}%`;
 };
@@ -17,7 +17,7 @@ export const calculateTimelinePosition = (
 export const calculateBlockWidth = (
   visibleStart: moment.Moment,
   visibleEnd: moment.Moment,
-  totalDuration: number,
+  totalDuration: number
 ): string => {
   return `${(visibleEnd.diff(visibleStart, "seconds") / totalDuration) * 100}%`;
 };
@@ -36,7 +36,7 @@ export const getIntervalDuration = (scale: TimeScale) => {
 export const calculateCurrentTimePosition = (
   currentTime: moment.Moment,
   startTime: moment.Moment,
-  endTime: moment.Moment,
+  endTime: moment.Moment
 ): number => {
   const totalMinutes = endTime.diff(startTime, "minutes");
   const currentMinutes = currentTime.diff(startTime, "minutes");

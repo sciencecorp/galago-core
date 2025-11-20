@@ -1,5 +1,10 @@
 import React from "react";
-import { Box, Tooltip, Icon as ChakraIcon, IconProps as ChakraIconProps } from "@chakra-ui/react";
+import {
+  Box,
+  Tooltip,
+  Icon as ChakraIcon,
+  IconProps as ChakraIconProps,
+} from "@chakra-ui/react";
 import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { SiPython } from "react-icons/si";
 import { VscCode } from "react-icons/vsc";
@@ -41,7 +46,10 @@ interface WellPlateIconProps {
 }
 
 // Custom Components
-export const Icon = ({ as, ...props }: IconBaseProps & { as: React.ElementType }) => {
+export const Icon = ({
+  as,
+  ...props
+}: IconBaseProps & { as: React.ElementType }) => {
   return <ChakraIcon as={as} {...props} />;
 };
 
@@ -105,7 +113,11 @@ export {
 };
 
 // Custom Icon Components
-export const WellPlateIcon: React.FC<WellPlateIconProps> = ({ rows, columns, size = "48px" }) => {
+export const WellPlateIcon: React.FC<WellPlateIconProps> = ({
+  rows,
+  columns,
+  size = "48px",
+}) => {
   // Determine if this matches a standard plate format
   const getStandardFormat = (r: number, c: number): string => {
     if (r === 1 && c === 1) return "1-well";
@@ -130,7 +142,8 @@ export const WellPlateIcon: React.FC<WellPlateIconProps> = ({ rows, columns, siz
   const wellSize = 10;
   const spacing = is384Well ? 2 : 3;
   const width = columns * wellSize + (columns - 1) * spacing + 2 * padding;
-  const height = displayRows * wellSize + (displayRows - 1) * spacing + 2 * padding;
+  const height =
+    displayRows * wellSize + (displayRows - 1) * spacing + 2 * padding;
 
   // Generate well positions
   const wells = [];
@@ -150,7 +163,8 @@ export const WellPlateIcon: React.FC<WellPlateIconProps> = ({ rows, columns, siz
           height="100%"
           viewBox={`0 0 ${width} ${height}`}
           preserveAspectRatio="xMidYMid meet"
-          style={{ overflow: "visible" }}>
+          style={{ overflow: "visible" }}
+        >
           {/* Plate border */}
           <rect
             x="1"

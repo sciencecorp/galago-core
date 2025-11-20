@@ -10,7 +10,7 @@ export const useScriptIO = (
   scripts: Script[], // Assuming you'll pass the list of scripts
   selectedScriptId: number | undefined, // Assuming scripts are identified by ID
   refetchScripts: () => Promise<unknown>, // Specific refetch for scripts
-  refetchFolders: () => Promise<unknown>, // Specific refetch for folders
+  refetchFolders: () => Promise<unknown> // Specific refetch for folders
 ) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -33,7 +33,8 @@ export const useScriptIO = (
     }
 
     try {
-      const scriptData = await exportConfigMutation.mutateAsync(selectedScriptId);
+      const scriptData =
+        await exportConfigMutation.mutateAsync(selectedScriptId);
 
       const blob = new Blob([scriptData.content], { type: "text/plain" });
       const url = window.URL.createObjectURL(blob);
@@ -49,7 +50,10 @@ export const useScriptIO = (
       window.URL.revokeObjectURL(url);
 
       // Use original name in success message
-      return { success: true, message: `Script ${selectedScript.name} downloaded.` };
+      return {
+        success: true,
+        message: `Script ${selectedScript.name} downloaded.`,
+      };
     } catch (error) {
       console.error("Export failed:", error);
       return {
@@ -64,7 +68,9 @@ export const useScriptIO = (
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return { success: false, message: "No file selected." };
 
@@ -82,12 +88,14 @@ export const useScriptIO = (
           method: "POST",
           body: formData,
           // Don't set Content-Type header, the browser will set it with the boundary
-        },
+        }
       );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Import failed: ${errorData.detail || response.statusText}`);
+        throw new Error(
+          `Import failed: ${errorData.detail || response.statusText}`
+        );
       }
 
       const result = await response.json();

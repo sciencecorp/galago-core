@@ -7,7 +7,10 @@ function getHandler(req: NextApiRequest, res: NextApiResponse<RunStatusList>) {
   res.status(200).json({ count: runs.length, data: runs });
 }
 
-async function postHandler(req: NextApiRequest, res: NextApiResponse<RunSubmissionStatus>) {
+async function postHandler(
+  req: NextApiRequest,
+  res: NextApiResponse<RunSubmissionStatus>
+) {
   try {
     const run = await RunStore.global.createFromProtocol(req.body.protocolId);
     res.status(201).json({ id: run.id, status: run.status });

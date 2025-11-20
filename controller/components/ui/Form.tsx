@@ -37,7 +37,7 @@ export const Editable = (props: {
   renderInput: (
     value: string | number,
     setValue: (newValue: string) => void,
-    submit: (newValue?: string) => void,
+    submit: (newValue?: string) => void
   ) => JSX.Element;
   preview: JSX.Element;
   defaultValue?: string;
@@ -47,15 +47,24 @@ export const Editable = (props: {
   minWidth?: number;
   persistentEdit?: boolean;
 }) => {
-  const { onSubmit, renderInput, preview, defaultValue, disabled, startInEditView, minWidth } =
-    props;
+  const {
+    onSubmit,
+    renderInput,
+    preview,
+    defaultValue,
+    disabled,
+    startInEditView,
+    minWidth,
+  } = props;
 
   const [isEditing, setIsEditing] = React.useState(!!startInEditView);
   const [value, setValue] = React.useState("");
   const [isHovered, setIsHovered] = useState(false); // Hover state for edit icon visibility
 
   const startEditing = () => {
-    setValue(defaultValue === undefined || defaultValue === null ? "" : defaultValue);
+    setValue(
+      defaultValue === undefined || defaultValue === null ? "" : defaultValue
+    );
     setIsEditing(true);
   };
 
@@ -95,7 +104,8 @@ export const Editable = (props: {
     <HStack
       className={props.persistentEdit ? "" : "editable"}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}>
+      onMouseLeave={() => setIsHovered(false)}
+    >
       {preview}
       <Flex justifyContent="center" ml={0}>
         {isHovered && ( // Show the edit icon only when hovered
@@ -132,7 +142,8 @@ export const EditableText = (props: {
   const inputBg = useColorModeValue("white", "gray.700");
 
   // If displayValue is provided, use it for display but keep defaultValue for editing
-  const displayText = props.displayValue !== undefined ? props.displayValue : props.defaultValue;
+  const displayText =
+    props.displayValue !== undefined ? props.displayValue : props.defaultValue;
 
   // Check if we need to show a tooltip (when displayValue is different from defaultValue)
   const shouldShowTooltip =
@@ -146,7 +157,8 @@ export const EditableText = (props: {
     <Text
       fontSize="sm"
       color={displayText ? textColor : placeholderColor}
-      fontStyle={displayText ? "normal" : "italic"}>
+      fontStyle={displayText ? "normal" : "italic"}
+    >
       {displayText || props.placeholder || "Click to edit"}
     </Text>
   );
@@ -213,7 +225,8 @@ export const EditableSelect = (props: {
           defaultValue={value}
           onSelectOption={(params) => {
             submit(params?.item?.value);
-          }}>
+          }}
+        >
           <AutoCompleteInput
             width={props.dropDownWidth ? props.dropDownWidth : 230}
             autoFocus
@@ -223,9 +236,15 @@ export const EditableSelect = (props: {
             }}
             style={inputStyles}
           />
-          <AutoCompleteList width={props.dropDownWidth ? props.dropDownWidth : 230}>
+          <AutoCompleteList
+            width={props.dropDownWidth ? props.dropDownWidth : 230}
+          >
             {props.options.map((option, i) => (
-              <AutoCompleteItem key={`${i}`} value={`${option.value}`} label={option.label}>
+              <AutoCompleteItem
+                key={`${i}`}
+                value={`${option.value}`}
+                label={option.label}
+              >
                 {option.label}
               </AutoCompleteItem>
             ))}

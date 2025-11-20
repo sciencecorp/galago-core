@@ -18,11 +18,17 @@ export const loggingRouter = router({
   }),
 
   getPaginated: procedure
-    .input(z.object({ skip: z.number(), limit: z.number(), descending: z.boolean() }))
+    .input(
+      z.object({
+        skip: z.number(),
+        limit: z.number(),
+        descending: z.boolean(),
+      })
+    )
     .query(async ({ input }) => {
       const { skip, limit, descending } = input;
       const response = await get<Log[]>(
-        `/logs?skip=${skip}&limit=${limit}&descending=${descending}`,
+        `/logs?skip=${skip}&limit=${limit}&descending=${descending}`
       );
       return response;
     }),

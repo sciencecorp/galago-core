@@ -74,7 +74,9 @@ export const TeachPointModal: React.FC<TeachPointModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>{point ? "Edit Teach Point" : "Create Teach Point"}</ModalHeader>
+        <ModalHeader>
+          {point ? "Edit Teach Point" : "Create Teach Point"}
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={4}>

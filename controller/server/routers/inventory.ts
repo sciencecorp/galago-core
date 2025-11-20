@@ -2,7 +2,14 @@ import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { get, post, put, del } from "../utils/api";
 import { TRPCError } from "@trpc/server";
-import { Workcell, AppSettings, Nest, Plate, Reagent, Hotel } from "@/types/api";
+import {
+  Workcell,
+  AppSettings,
+  Nest,
+  Plate,
+  Reagent,
+  Hotel,
+} from "@/types/api";
 
 // Zod schemas for validation
 const zNest = z.object({
@@ -45,26 +52,30 @@ const zHotel = z.object({
 
 export const inventoryRouter = router({
   // Nest endpoints
-  getNests: procedure.input(z.string()).query(async ({ input: workcellName }) => {
-    // Explicitly set cache-control headers to no-cache
-    const response = await get(`/nests?workcell_name=${workcellName}`, {
-      headers: {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        Pragma: "no-cache",
-        Expires: "0",
-      },
-    });
-    return response;
-  }),
+  getNests: procedure
+    .input(z.string())
+    .query(async ({ input: workcellName }) => {
+      // Explicitly set cache-control headers to no-cache
+      const response = await get(`/nests?workcell_name=${workcellName}`, {
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      });
+      return response;
+    }),
   getNest: procedure.input(z.number()).query(async ({ input: nestId }) => {
     const response = await get(`/nests/${nestId}`);
     return response;
   }),
 
-  createNest: procedure.input(zNest.omit({ id: true })).mutation(async ({ input }) => {
-    const response = await post(`/nests`, input);
-    return response;
-  }),
+  createNest: procedure
+    .input(zNest.omit({ id: true }))
+    .mutation(async ({ input }) => {
+      const response = await post(`/nests`, input);
+      return response;
+    }),
 
   updateNest: procedure.input(zNest).mutation(async ({ input }) => {
     const { id, ...updateData } = input;
@@ -78,26 +89,32 @@ export const inventoryRouter = router({
   }),
 
   // Plate endpoints
-  getPlates: procedure.input(z.string()).query(async ({ input: workcellName }) => {
-    const encodedName = encodeURIComponent(workcellName);
-    const response = await get(`/plates?workcell_name=${encodedName}`);
-    return response;
-  }),
+  getPlates: procedure
+    .input(z.string())
+    .query(async ({ input: workcellName }) => {
+      const encodedName = encodeURIComponent(workcellName);
+      const response = await get(`/plates?workcell_name=${encodedName}`);
+      return response;
+    }),
 
   getPlate: procedure.input(z.number()).query(async ({ input: plateId }) => {
     const response = await get(`/plates/${plateId}`);
     return response;
   }),
 
-  getPlateInfo: procedure.input(z.number()).query(async ({ input: plateId }) => {
-    const response = await get(`/plates/${plateId}/info`);
-    return response;
-  }),
+  getPlateInfo: procedure
+    .input(z.number())
+    .query(async ({ input: plateId }) => {
+      const response = await get(`/plates/${plateId}/info`);
+      return response;
+    }),
 
-  createPlate: procedure.input(zPlate.omit({ id: true })).mutation(async ({ input }) => {
-    const response = await post(`/plates`, input);
-    return response;
-  }),
+  createPlate: procedure
+    .input(zPlate.omit({ id: true }))
+    .mutation(async ({ input }) => {
+      const response = await post(`/plates`, input);
+      return response;
+    }),
 
   updatePlate: procedure.input(zPlate).mutation(async ({ input }) => {
     const { id, ...updateData } = input;
@@ -122,15 +139,19 @@ export const inventoryRouter = router({
     return response;
   }),
 
-  getWorkcellReagents: procedure.input(z.string()).query(async ({ input: workcellName }) => {
-    const response = await get(`/reagents?workcell_name=${workcellName}`);
-    return response;
-  }),
+  getWorkcellReagents: procedure
+    .input(z.string())
+    .query(async ({ input: workcellName }) => {
+      const response = await get(`/reagents?workcell_name=${workcellName}`);
+      return response;
+    }),
 
-  createReagent: procedure.input(zReagent.omit({ id: true })).mutation(async ({ input }) => {
-    const response = await post(`/reagents`, input);
-    return response;
-  }),
+  createReagent: procedure
+    .input(zReagent.omit({ id: true }))
+    .mutation(async ({ input }) => {
+      const response = await post(`/reagents`, input);
+      return response;
+    }),
 
   updateReagent: procedure.input(zReagent).mutation(async ({ input }) => {
     const { id, ...updateData } = input;
@@ -144,14 +165,16 @@ export const inventoryRouter = router({
   }),
 
   // Add getHotels procedure
-  getHotels: procedure.input(z.string().optional()).query(async ({ input: workcellName }) => {
-    let url = `/hotels`;
-    if (workcellName) {
-      url += `?workcell_name=${encodeURIComponent(workcellName)}`;
-    }
-    const response = await get<Hotel[]>(url);
-    return response;
-  }),
+  getHotels: procedure
+    .input(z.string().optional())
+    .query(async ({ input: workcellName }) => {
+      let url = `/hotels`;
+      if (workcellName) {
+        url += `?workcell_name=${encodeURIComponent(workcellName)}`;
+      }
+      const response = await get<Hotel[]>(url);
+      return response;
+    }),
 
   // Add getHotelById procedure
   getHotelById: procedure.input(z.number()).query(async ({ input }) => {
@@ -160,10 +183,12 @@ export const inventoryRouter = router({
   }),
 
   // Add createHotel procedure with proper typing
-  createHotel: procedure.input(zHotel.omit({ id: true })).mutation(async ({ input }) => {
-    const response = await post<Hotel>(`/hotels`, input);
-    return response;
-  }),
+  createHotel: procedure
+    .input(zHotel.omit({ id: true }))
+    .mutation(async ({ input }) => {
+      const response = await post<Hotel>(`/hotels`, input);
+      return response;
+    }),
 
   // Add updateHotel procedure with proper typing
   updateHotel: procedure.input(zHotel).mutation(async ({ input }) => {

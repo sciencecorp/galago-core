@@ -58,7 +58,10 @@ export const commandColors = {
 
 // Get command color by command name
 export const getCommandColor = (commandName: string): string => {
-  return commandColors[commandName as keyof typeof commandColors] || commandColors.default;
+  return (
+    commandColors[commandName as keyof typeof commandColors] ||
+    commandColors.default
+  );
 };
 
 // Command color hex values (for direct use with icons)
@@ -76,7 +79,10 @@ export const commandColorHex = {
 
 // Get command color hex by command name
 export const getCommandColorHex = (commandName: string): string => {
-  return commandColorHex[commandName as keyof typeof commandColorHex] || commandColorHex.default;
+  return (
+    commandColorHex[commandName as keyof typeof commandColorHex] ||
+    commandColorHex.default
+  );
 };
 
 // Add sidebar theme configuration

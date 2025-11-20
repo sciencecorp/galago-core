@@ -44,7 +44,8 @@ export const ParameterEditor: React.FC<ParameterEditorProps> = ({
         rightIcon={isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
         height="24px"
         py={0}
-        maxW="150px">
+        maxW="150px"
+      >
         Parameters
       </Button>
 
@@ -63,7 +64,8 @@ export const ParameterEditor: React.FC<ParameterEditorProps> = ({
                     <NumberInput
                       size="sm"
                       value={value}
-                      onChange={(_, val) => handleParamChange(key, val)}>
+                      onChange={(_, val) => handleParamChange(key, val)}
+                    >
                       <NumberInputField />
                     </NumberInput>
                   ) : typeof value === "boolean" ? (

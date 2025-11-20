@@ -27,8 +27,16 @@ import { Tool } from "@/types/api";
 import { CommandModal } from "./CommandModal";
 import { ToolType } from "gen-interfaces/controller";
 import { TeachPoint, MotionProfile, GripParams } from "../../types";
-import { successToast, warningToast, errorToast, batchOperationToast } from "@/components/ui/Toast";
-import { createBatchHandler, createBatchHandlerForIds } from "../../shared/utils/batchUtils";
+import {
+  successToast,
+  warningToast,
+  errorToast,
+  batchOperationToast,
+} from "@/components/ui/Toast";
+import {
+  createBatchHandler,
+  createBatchHandlerForIds,
+} from "../../shared/utils/batchUtils";
 import { validateSequenceExists } from "../../shared/utils/commandValidation";
 
 export interface SequenceCommand {
@@ -71,7 +79,8 @@ const SequenceModal: React.FC<SequenceModalProps> = ({
   const [description, setDescription] = useState(sequence?.description ?? "");
   const [commands, setCommands] = useState(sequence?.commands ?? []);
   const [isCommandModalOpen, setIsCommandModalOpen] = useState(false);
-  const { handleUpdateSequence, handleCreateSequence } = useSequenceHandler(config);
+  const { handleUpdateSequence, handleCreateSequence } =
+    useSequenceHandler(config);
 
   // Reset form when sequence changes
   useEffect(() => {
@@ -79,7 +88,10 @@ const SequenceModal: React.FC<SequenceModalProps> = ({
     setDescription(sequence?.description ?? "");
   }, [sequence]);
 
-  const handleAddCommand = (command: { command: string; params: Record<string, any> }) => {
+  const handleAddCommand = (command: {
+    command: string;
+    params: Record<string, any>;
+  }) => {
     setCommands([...commands, { ...command, order: commands.length }]);
   };
 
@@ -116,7 +128,9 @@ const SequenceModal: React.FC<SequenceModalProps> = ({
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>{sequence ? "Edit Sequence" : "Create Sequence"}</ModalHeader>
+          <ModalHeader>
+            {sequence ? "Edit Sequence" : "Create Sequence"}
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4}>
@@ -154,7 +168,11 @@ const SequenceModal: React.FC<SequenceModalProps> = ({
                     </HStack>
                   ))}
                 </VStack>
-                <Button mt={2} size="sm" onClick={() => setIsCommandModalOpen(true)}>
+                <Button
+                  mt={2}
+                  size="sm"
+                  onClick={() => setIsCommandModalOpen(true)}
+                >
                   Add Command
                 </Button>
               </Box>
@@ -185,11 +203,13 @@ const SequenceModal: React.FC<SequenceModalProps> = ({
 
 export function useSequenceHandler(config: Tool) {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [selectedSequence, setSelectedSequence] = useState<Sequence | null>(null);
+  const [selectedSequence, setSelectedSequence] = useState<Sequence | null>(
+    null
+  );
   const commandMutation = trpc.tool.runCommand.useMutation();
   const sequencesQuery = trpc.robotArm.sequence.getAll.useQuery(
     { toolId: config.id },
-    { enabled: !!config.id && config.id !== 0 },
+    { enabled: !!config.id && config.id !== 0 }
   );
   const labwareQuery = trpc.labware.getAll.useQuery(undefined, {
     staleTime: Infinity,
@@ -224,12 +244,18 @@ export function useSequenceHandler(config: Tool) {
    * @param sequences Array of sequences to create
    * @returns Object containing success and error counts
    */
-  const handleBatchCreateSequence = async (sequences: Omit<RobotArmSequence, "id">[]) => {
+  const handleBatchCreateSequence = async (
+    sequences: Omit<RobotArmSequence, "id">[]
+  ) => {
     const createSequence = async (sequence: Omit<RobotArmSequence, "id">) => {
       await createSequenceMutation.mutateAsync(sequence);
     };
 
-    const batchCreateSequences = createBatchHandler(createSequence, "create", "sequences");
+    const batchCreateSequences = createBatchHandler(
+      createSequence,
+      "create",
+      "sequences"
+    );
 
     return await batchCreateSequences(sequences);
   };
@@ -244,7 +270,11 @@ export function useSequenceHandler(config: Tool) {
       await updateSequenceMutation.mutateAsync(sequence);
     };
 
-    const batchUpdateSequences = createBatchHandler(updateSequence, "update", "sequences");
+    const batchUpdateSequences = createBatchHandler(
+      updateSequence,
+      "update",
+      "sequences"
+    );
 
     return await batchUpdateSequences(sequences);
   };
@@ -259,16 +289,25 @@ export function useSequenceHandler(config: Tool) {
       await deleteSequenceMutation.mutateAsync({ id, tool_id: config.id });
     };
 
-    const batchDeleteSequences = createBatchHandlerForIds(deleteSequence, "delete", "sequences");
+    const batchDeleteSequences = createBatchHandlerForIds(
+      deleteSequence,
+      "delete",
+      "sequences"
+    );
 
     return await batchDeleteSequences(ids);
   };
 
-  const handleCreateSequence = async (sequence: Omit<RobotArmSequence, "id">) => {
+  const handleCreateSequence = async (
+    sequence: Omit<RobotArmSequence, "id">
+  ) => {
     try {
       await createSequenceMutation.mutateAsync(sequence);
     } catch (error) {
-      errorToast("Failed to create sequence", "An error occurred while creating the sequence");
+      errorToast(
+        "Failed to create sequence",
+        "An error occurred while creating the sequence"
+      );
     }
   };
 
@@ -276,7 +315,10 @@ export function useSequenceHandler(config: Tool) {
     try {
       await updateSequenceMutation.mutateAsync(sequence);
     } catch (error) {
-      errorToast("Failed to update sequence", "An error occurred while updating the sequence");
+      errorToast(
+        "Failed to update sequence",
+        "An error occurred while updating the sequence"
+      );
     }
   };
 
@@ -340,7 +382,11 @@ export function useSequenceHandler(config: Tool) {
       });
     };
 
-    const batchRunSequences = createBatchHandler(runSequence, "run", "sequences");
+    const batchRunSequences = createBatchHandler(
+      runSequence,
+      "run",
+      "sequences"
+    );
 
     return await batchRunSequences(sequences);
   };

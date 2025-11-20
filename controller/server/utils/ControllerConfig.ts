@@ -20,7 +20,9 @@ let ControllerConfig = {} as controller_protos.WorkcellConfig;
 
 if (fs.existsSync(config_path)) {
   let config_text = fs.readFileSync(config_path, "utf8");
-  ControllerConfig = controller_protos.WorkcellConfig.fromJSON(JSON.parse(config_text));
+  ControllerConfig = controller_protos.WorkcellConfig.fromJSON(
+    JSON.parse(config_text)
+  );
 }
 
 export default ControllerConfig;

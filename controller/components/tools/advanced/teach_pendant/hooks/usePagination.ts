@@ -8,7 +8,7 @@ export interface PaginationConfig {
 
 export const usePagination = <T extends { id?: number }>(
   items: T[],
-  defaultItemsPerPage: number = 10,
+  defaultItemsPerPage: number = 10
 ) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(defaultItemsPerPage);
@@ -25,7 +25,7 @@ export const usePagination = <T extends { id?: number }>(
 
   const paginatedItems = sortedItems.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   const onPageChange = (page: number) => {

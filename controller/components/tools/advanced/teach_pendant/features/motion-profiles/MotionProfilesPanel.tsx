@@ -19,7 +19,13 @@ import {
   MenuItem,
   Text,
 } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon, CheckIcon } from "@chakra-ui/icons";
+import {
+  AddIcon,
+  DeleteIcon,
+  EditIcon,
+  HamburgerIcon,
+  CheckIcon,
+} from "@chakra-ui/icons";
 import { MotionProfile, MotionProfilesPanelProps } from "../../types/";
 import { useState, useRef } from "react";
 import { useOutsideClick } from "@chakra-ui/react";
@@ -54,7 +60,11 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
   const textColor = useColorModeValue("gray.800", "gray.100");
   const tableRef = useRef<HTMLDivElement>(null);
 
-  const handleSaveValue = (profile: MotionProfile, field: keyof MotionProfile, value: any) => {
+  const handleSaveValue = (
+    profile: MotionProfile,
+    field: keyof MotionProfile,
+    value: any
+  ) => {
     const updatedProfile = { ...profile, [field]: value };
     onEdit(updatedProfile);
   };
@@ -73,10 +83,16 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
               size="sm"
               onClick={onDeleteAll}
               colorScheme="red"
-              variant="outline">
+              variant="outline"
+            >
               Delete All
             </Button>
-            <Button leftIcon={<AddIcon />} size="sm" onClick={onAdd} colorScheme="blue">
+            <Button
+              leftIcon={<AddIcon />}
+              size="sm"
+              onClick={onAdd}
+              colorScheme="blue"
+            >
               New Motion Profile
             </Button>
           </HStack>
@@ -91,8 +107,9 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
             borderColor={borderColor}
             boxShadow={useColorModeValue(
               "0 1px 3px rgba(0, 0, 0, 0.1)",
-              "0 1px 3px rgba(0, 0, 0, 0.3)",
-            )}>
+              "0 1px 3px rgba(0, 0, 0, 0.3)"
+            )}
+          >
             <Table
               variant="simple"
               size="sm"
@@ -113,7 +130,8 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                   borderColor: borderColor,
                   color: textColor,
                 },
-              }}>
+              }}
+            >
               <Thead position="sticky" top={0} zIndex={1}>
                 <Tr>
                   <Th bg={headerBgColor} color={textColor}>
@@ -151,7 +169,8 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                     minWidth="120px"
                     textAlign="right"
                     bg={headerBgColor}
-                    color={textColor}>
+                    color={textColor}
+                  >
                     Actions
                   </Th>
                 </Tr>
@@ -160,13 +179,18 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                 {paginatedItems.map((profile) => (
                   <Tr
                     key={profile.id || `new-${profile.name}`}
-                    bg={profile.id === defaultProfileId ? bgColorAlpha : undefined}
-                    _hover={{ bg: hoverBgColor }}>
+                    bg={
+                      profile.id === defaultProfileId ? bgColorAlpha : undefined
+                    }
+                    _hover={{ bg: hoverBgColor }}
+                  >
                     <Td>
                       <Switch
                         isChecked={profile.id === defaultProfileId}
                         onChange={() =>
-                          onSetDefault(profile.id === defaultProfileId ? null : profile.id)
+                          onSetDefault(
+                            profile.id === defaultProfileId ? null : profile.id
+                          )
                         }
                         isDisabled={!profile.id}
                       />
@@ -184,7 +208,8 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                         defaultValue={(profile.speed ?? 0).toString()}
                         onSubmit={(value) => {
                           const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(profile, "speed", numValue);
+                          !isNaN(numValue) &&
+                            handleSaveValue(profile, "speed", numValue);
                         }}
                       />
                     </Td>
@@ -193,7 +218,8 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                         defaultValue={(profile.speed2 ?? 0).toString()}
                         onSubmit={(value) => {
                           const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(profile, "speed2", numValue);
+                          !isNaN(numValue) &&
+                            handleSaveValue(profile, "speed2", numValue);
                         }}
                       />
                     </Td>
@@ -202,7 +228,8 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                         defaultValue={(profile.acceleration ?? 0).toString()}
                         onSubmit={(value) => {
                           const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(profile, "acceleration", numValue);
+                          !isNaN(numValue) &&
+                            handleSaveValue(profile, "acceleration", numValue);
                         }}
                       />
                     </Td>
@@ -211,7 +238,8 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                         defaultValue={(profile.deceleration ?? 0).toString()}
                         onSubmit={(value) => {
                           const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(profile, "deceleration", numValue);
+                          !isNaN(numValue) &&
+                            handleSaveValue(profile, "deceleration", numValue);
                         }}
                       />
                     </Td>
@@ -220,7 +248,8 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                         defaultValue={(profile.accel_ramp ?? 0).toString()}
                         onSubmit={(value) => {
                           const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(profile, "accel_ramp", numValue);
+                          !isNaN(numValue) &&
+                            handleSaveValue(profile, "accel_ramp", numValue);
                         }}
                       />
                     </Td>
@@ -229,7 +258,8 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                         defaultValue={(profile.decel_ramp ?? 0).toString()}
                         onSubmit={(value) => {
                           const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(profile, "decel_ramp", numValue);
+                          !isNaN(numValue) &&
+                            handleSaveValue(profile, "decel_ramp", numValue);
                         }}
                       />
                     </Td>
@@ -238,7 +268,8 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                         defaultValue={(profile.inrange ?? 0).toString()}
                         onSubmit={(value) => {
                           const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(profile, "inrange", numValue);
+                          !isNaN(numValue) &&
+                            handleSaveValue(profile, "inrange", numValue);
                         }}
                       />
                     </Td>
@@ -246,7 +277,11 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                       <Switch
                         isChecked={profile.straight === 1}
                         onChange={(e) =>
-                          handleSaveValue(profile, "straight", e.target.checked ? 1 : 0)
+                          handleSaveValue(
+                            profile,
+                            "straight",
+                            e.target.checked ? 1 : 0
+                          )
                         }
                         size="sm"
                       />
@@ -266,7 +301,8 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                           <MenuItem
                             icon={<DeleteIcon />}
                             onClick={() => onDelete(profile.id!)}
-                            color="red.500">
+                            color="red.500"
+                          >
                             <Text fontWeight="bold">Delete</Text>
                           </MenuItem>
                         </MenuList>

@@ -16,7 +16,11 @@ import {
   Image,
 } from "@chakra-ui/react";
 import { ScriptFolder, Script } from "@/types/api";
-import { validateFolderName, removeFileExtension, showErrorToast } from "./utils";
+import {
+  validateFolderName,
+  removeFileExtension,
+  showErrorToast,
+} from "./utils";
 import { useScriptColors } from "../ui/Theme";
 import {
   MenuIcon,
@@ -100,7 +104,8 @@ const FolderNode: React.FC<FolderNodeProps> = ({
         _hover={{ bg: isActive ? selectedBg : hoverBg }}
         onClick={() => onFolderClick?.(folder)}
         cursor="pointer"
-        position="relative">
+        position="relative"
+      >
         <Icon
           as={isOpen ? FolderOpenIcon : FolderIcon}
           color={isActive ? selectedColor : "gray.500"}
@@ -140,7 +145,8 @@ const FolderNode: React.FC<FolderNodeProps> = ({
               onClick={(e) => {
                 e.stopPropagation();
                 setIsEditing(true);
-              }}>
+              }}
+            >
               Rename
             </MenuItem>
             <MenuItem
@@ -150,12 +156,13 @@ const FolderNode: React.FC<FolderNodeProps> = ({
                 if (folder.scripts.length > 0 || folder.subfolders.length > 0) {
                   showErrorToast(
                     "Cannot delete non-empty folder",
-                    "Please move or delete the contents of the folder first.",
+                    "Please move or delete the contents of the folder first."
                   );
                   return;
                 }
                 onFolderDelete(folder);
-              }}>
+              }}
+            >
               Delete
             </MenuItem>
           </MenuList>
@@ -236,11 +243,17 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
       _hover={{ bg: isActive ? selectedBg : hoverBg }}
       onClick={onClick}
       cursor="pointer"
-      position="relative">
+      position="relative"
+    >
       {script.language === "javascript" ? (
         <AiOutlineJavaScript color={isActive ? "teal" : jsIconColor} />
       ) : script.language === "csharp" ? (
-        <Image src="/tool_icons/csharp.svg" alt="C# Icon" height="18px" width="18px" />
+        <Image
+          src="/tool_icons/csharp.svg"
+          alt="C# Icon"
+          height="18px"
+          width="18px"
+        />
       ) : (
         <PythonIcon color={isActive ? "teal" : "lightblue"} />
       )}
@@ -262,13 +275,16 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
           label={script.description || "No description available"}
           openDelay={1000}
           placement="right"
-          hasArrow>
+          hasArrow
+        >
           <Text
             flex={1}
             fontSize="14px"
             fontWeight={isActive ? "medium" : "normal"}
-            color={isActive ? selectedColor : "inherit"}>
-            {`${script.name}.${fileTypeToExtensionMap[script.language]}`.length > 15
+            color={isActive ? selectedColor : "inherit"}
+          >
+            {`${script.name}.${fileTypeToExtensionMap[script.language]}`
+              .length > 15
               ? `${`${script.name}.${fileTypeToExtensionMap[script.language]}`.substring(0, 15)}...`
               : `${script.name}.${fileTypeToExtensionMap[script.language]}`}
           </Text>
@@ -291,7 +307,8 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
             onClick={(e) => {
               e.stopPropagation();
               setIsEditing(true);
-            }}>
+            }}
+          >
             Rename
           </MenuItem>
           <MenuItem
@@ -299,7 +316,8 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
             onClick={(e) => {
               e.stopPropagation();
               onDelete(script);
-            }}>
+            }}
+          >
             Delete
           </MenuItem>
         </MenuList>

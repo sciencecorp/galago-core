@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 
 interface SidebarContextProps {
   lastClickedSubtab: string | null;
@@ -10,8 +16,12 @@ const SidebarContext = createContext<SidebarContextProps>({
   setLastClickedSubtab: () => {},
 });
 
-export const SidebarProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [lastClickedSubtab, setLastClickedSubtabState] = useState<string | null>(null);
+export const SidebarProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const [lastClickedSubtab, setLastClickedSubtabState] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -29,7 +39,9 @@ export const SidebarProvider: React.FC<{ children: ReactNode }> = ({ children })
     setLastClickedSubtabState(subtab);
   };
   return (
-    <SidebarContext.Provider value={{ lastClickedSubtab, setLastClickedSubtab }}>
+    <SidebarContext.Provider
+      value={{ lastClickedSubtab, setLastClickedSubtab }}
+    >
       {children}
     </SidebarContext.Provider>
   );

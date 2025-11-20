@@ -44,7 +44,9 @@ export default function Page() {
   // Fetch data from different sections
   const { data: tools } = trpc.tool.getAll.useQuery();
   const { data: workcells } = trpc.workcell.getAll.useQuery();
-  const { data: protocols } = trpc.protocol.allNames.useQuery({ workcellName: "" });
+  const { data: protocols } = trpc.protocol.allNames.useQuery({
+    workcellName: "",
+  });
   const { data: labware } = trpc.labware.getAll.useQuery();
   const { data: variables } = trpc.variable.getAll.useQuery();
   const { data: logs } = trpc.logging.getPaginated.useQuery({
@@ -69,7 +71,8 @@ export default function Page() {
 
   // Calculate active runs
   const activeRuns = Array.isArray(runs)
-    ? runs.filter((run) => run.status === "CREATED" || run.status === "STARTED").length
+    ? runs.filter((run) => run.status === "CREATED" || run.status === "STARTED")
+        .length
     : 0;
 
   return (
@@ -86,7 +89,8 @@ export default function Page() {
               h="440px"
               maxW="300px"
               minW="300px"
-              overflow="hidden">
+              overflow="hidden"
+            >
               <CardBody>
                 <VStack align="stretch" spacing={2}>
                   <HStack justify="space-between">
@@ -105,7 +109,10 @@ export default function Page() {
             </Card>
 
             {/* Documentation Card */}
-            <Link href="https://sciencecorp.github.io/galago-docs/" target="_blank">
+            <Link
+              href="https://sciencecorp.github.io/galago-docs/"
+              target="_blank"
+            >
               <Card
                 bg={headerBg}
                 shadow="md"
@@ -113,9 +120,14 @@ export default function Page() {
                 minW="300px"
                 h="205px"
                 overflow="hidden"
-                _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
+                _hover={{
+                  transform: "translateY(-4px)",
+                  shadow: "lg",
+                  bg: hoverBg,
+                }}
                 transition="all 0.2s"
-                cursor="pointer">
+                cursor="pointer"
+              >
                 <CardBody>
                   <VStack align="stretch" spacing={2}>
                     <HStack justify="space-between">
@@ -127,8 +139,9 @@ export default function Page() {
                     </HStack>
                     <Divider />
                     <Text fontSize="sm">
-                      Explore our comprehensive documentation to learn about Galago&apos;s features,
-                      best practices, and get started with automation.
+                      Explore our comprehensive documentation to learn about
+                      Galago&apos;s features, best practices, and get started
+                      with automation.
                     </Text>
                   </VStack>
                 </CardBody>
@@ -143,9 +156,14 @@ export default function Page() {
               <Card
                 bg={headerBg}
                 shadow="md"
-                _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
+                _hover={{
+                  transform: "translateY(-4px)",
+                  shadow: "lg",
+                  bg: hoverBg,
+                }}
                 transition="all 0.2s"
-                cursor="pointer">
+                cursor="pointer"
+              >
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
                     <HStack justify="space-between">
@@ -171,9 +189,14 @@ export default function Page() {
               <Card
                 bg={headerBg}
                 shadow="md"
-                _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
+                _hover={{
+                  transform: "translateY(-4px)",
+                  shadow: "lg",
+                  bg: hoverBg,
+                }}
                 transition="all 0.2s"
-                cursor="pointer">
+                cursor="pointer"
+              >
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
                     <HStack justify="space-between">
@@ -199,9 +222,14 @@ export default function Page() {
               <Card
                 bg={headerBg}
                 shadow="md"
-                _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
+                _hover={{
+                  transform: "translateY(-4px)",
+                  shadow: "lg",
+                  bg: hoverBg,
+                }}
                 transition="all 0.2s"
-                cursor="pointer">
+                cursor="pointer"
+              >
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
                     <HStack justify="space-between">
@@ -227,9 +255,14 @@ export default function Page() {
               <Card
                 bg={headerBg}
                 shadow="md"
-                _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
+                _hover={{
+                  transform: "translateY(-4px)",
+                  shadow: "lg",
+                  bg: hoverBg,
+                }}
                 transition="all 0.2s"
-                cursor="pointer">
+                cursor="pointer"
+              >
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
                     <HStack justify="space-between">
@@ -255,9 +288,14 @@ export default function Page() {
               <Card
                 bg={headerBg}
                 shadow="md"
-                _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
+                _hover={{
+                  transform: "translateY(-4px)",
+                  shadow: "lg",
+                  bg: hoverBg,
+                }}
                 transition="all 0.2s"
-                cursor="pointer">
+                cursor="pointer"
+              >
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
                     <HStack justify="space-between">
@@ -283,9 +321,14 @@ export default function Page() {
               <Card
                 bg={headerBg}
                 shadow="md"
-                _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
+                _hover={{
+                  transform: "translateY(-4px)",
+                  shadow: "lg",
+                  bg: hoverBg,
+                }}
                 transition="all 0.2s"
-                cursor="pointer">
+                cursor="pointer"
+              >
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
                     <HStack justify="space-between">
@@ -311,9 +354,14 @@ export default function Page() {
               <Card
                 bg={headerBg}
                 shadow="md"
-                _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
+                _hover={{
+                  transform: "translateY(-4px)",
+                  shadow: "lg",
+                  bg: hoverBg,
+                }}
                 transition="all 0.2s"
-                cursor="pointer">
+                cursor="pointer"
+              >
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
                     <HStack justify="space-between">
@@ -321,7 +369,11 @@ export default function Page() {
                         <Heading size="md">Labware</Heading>
                         <Text color="gray.500">Lab equipment</Text>
                       </VStack>
-                      <Icon as={HiOutlineRectangleStack} boxSize={8} color={iconColor} />
+                      <Icon
+                        as={HiOutlineRectangleStack}
+                        boxSize={8}
+                        color={iconColor}
+                      />
                     </HStack>
                     <Divider />
                     <Stat>
@@ -339,9 +391,14 @@ export default function Page() {
               <Card
                 bg={headerBg}
                 shadow="md"
-                _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
+                _hover={{
+                  transform: "translateY(-4px)",
+                  shadow: "lg",
+                  bg: hoverBg,
+                }}
                 transition="all 0.2s"
-                cursor="pointer">
+                cursor="pointer"
+              >
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
                     <HStack justify="space-between">
@@ -367,9 +424,14 @@ export default function Page() {
               <Card
                 bg={headerBg}
                 shadow="md"
-                _hover={{ transform: "translateY(-4px)", shadow: "lg", bg: hoverBg }}
+                _hover={{
+                  transform: "translateY(-4px)",
+                  shadow: "lg",
+                  bg: hoverBg,
+                }}
                 transition="all 0.2s"
-                cursor="pointer">
+                cursor="pointer"
+              >
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
                     <HStack justify="space-between">

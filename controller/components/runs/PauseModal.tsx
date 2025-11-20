@@ -20,12 +20,21 @@ interface PauseModalProps {
   onContinue: () => void;
 }
 
-export const PauseModal: React.FC<PauseModalProps> = ({ isOpen, pauseMessage, onContinue }) => {
+export const PauseModal: React.FC<PauseModalProps> = ({
+  isOpen,
+  pauseMessage,
+  onContinue,
+}) => {
   const bgColor = useColorModeValue("white", "gray.800");
   const iconColor = useColorModeValue("orange.500", "orange.300");
 
   return (
-    <Modal isOpen={isOpen} onClose={() => {}} closeOnOverlayClick={false} isCentered>
+    <Modal
+      isOpen={isOpen}
+      onClose={() => {}}
+      closeOnOverlayClick={false}
+      isCentered
+    >
       <ModalOverlay backdropFilter="blur(4px)" bg="blackAlpha.300" />
       <ModalContent bg={bgColor} maxW="md">
         <ModalHeader textAlign="center">Run Paused</ModalHeader>
@@ -41,7 +50,8 @@ export const PauseModal: React.FC<PauseModalProps> = ({ isOpen, pauseMessage, on
             colorScheme="teal"
             onClick={onContinue}
             size="lg"
-            minW="150px">
+            minW="150px"
+          >
             Continue
           </Button>
         </ModalFooter>

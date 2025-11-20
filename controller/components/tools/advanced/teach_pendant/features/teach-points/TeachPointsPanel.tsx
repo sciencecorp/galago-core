@@ -19,7 +19,13 @@ import {
   MenuDivider,
   Select,
 } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon, EditIcon, CheckIcon, HamburgerIcon } from "@chakra-ui/icons";
+import {
+  AddIcon,
+  DeleteIcon,
+  EditIcon,
+  CheckIcon,
+  HamburgerIcon,
+} from "@chakra-ui/icons";
 import { Tool } from "@/types/api";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "../../types";
 import { FaPlay, FaArrowRight, FaArrowLeft } from "react-icons/fa";
@@ -92,13 +98,20 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
     onItemsPerPageChange,
   } = usePagination(teachPoints);
 
-  const handleSaveCoordinates = (teachpoint: TeachPoint, newValue: number, jointIndex: number) => {
+  const handleSaveCoordinates = (
+    teachpoint: TeachPoint,
+    newValue: number,
+    jointIndex: number
+  ) => {
     const updatedPoint = teachpoint.coordinates.split(" ");
     updatedPoint[jointIndex] = newValue.toString();
     onEdit({ ...teachpoint, coordinates: updatedPoint.join(" ") });
   };
 
-  const handleSaveOrientation = (teachpoint: TeachPoint, newValue: "landscape" | "portrait") => {
+  const handleSaveOrientation = (
+    teachpoint: TeachPoint,
+    newValue: "landscape" | "portrait"
+  ) => {
     onEdit({ ...teachpoint, orientation: newValue });
   };
 
@@ -136,10 +149,16 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
               size="sm"
               onClick={onDeleteAll}
               colorScheme="red"
-              variant="outline">
+              variant="outline"
+            >
               Delete All
             </Button>
-            <Button leftIcon={<AddIcon />} size="sm" onClick={onAdd} colorScheme="blue">
+            <Button
+              leftIcon={<AddIcon />}
+              size="sm"
+              onClick={onAdd}
+              colorScheme="blue"
+            >
               New Teach Point
             </Button>
           </HStack>
@@ -154,8 +173,9 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
             borderColor={borderColor}
             boxShadow={useColorModeValue(
               "0 1px 3px rgba(0, 0, 0, 0.1)",
-              "0 1px 3px rgba(0, 0, 0, 0.3)",
-            )}>
+              "0 1px 3px rgba(0, 0, 0, 0.3)"
+            )}
+          >
             <Table
               variant="simple"
               size="sm"
@@ -176,7 +196,8 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                   borderColor: borderColor,
                   color: textColor,
                 },
-              }}>
+              }}
+            >
               <Thead position="sticky" top={0} zIndex={1}>
                 <Tr>
                   <Th bg={headerBgColor} color={textColor}>
@@ -191,14 +212,18 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                     minWidth="120px"
                     textAlign="right"
                     bg={headerBgColor}
-                    color={textColor}>
+                    color={textColor}
+                  >
                     Actions
                   </Th>
                 </Tr>
               </Thead>
               <Tbody>
                 {paginatedItems.map((point, index) => (
-                  <Tr key={point.id} bg={expandedRows[point.id] ? bgColorAlpha : undefined}>
+                  <Tr
+                    key={point.id}
+                    bg={expandedRows[point.id] ? bgColorAlpha : undefined}
+                  >
                     <Td width="200px">
                       <EditableText
                         defaultValue={point.name}
@@ -207,30 +232,43 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                         }}
                       />
                     </Td>
-                    {limitCoordinates(point?.coordinates || "").map((coord, index) => (
-                      <Td key={index}>
-                        <EditableText
-                          onSubmit={async (value) => {
-                            value && handleSaveCoordinates(point, Number(value), index);
-                          }}
-                          defaultValue={coord}
-                        />
-                      </Td>
-                    ))}
+                    {limitCoordinates(point?.coordinates || "").map(
+                      (coord, index) => (
+                        <Td key={index}>
+                          <EditableText
+                            onSubmit={async (value) => {
+                              value &&
+                                handleSaveCoordinates(
+                                  point,
+                                  Number(value),
+                                  index
+                                );
+                            }}
+                            defaultValue={coord}
+                          />
+                        </Td>
+                      )
+                    )}
                     <Td>
                       <Select
                         value={point.orientation}
                         onChange={(e) => {
                           const value = e.target.value;
-                          const orientation: "portrait" | "landscape" | undefined =
-                            value === "portrait" || value === "landscape" ? value : undefined;
+                          const orientation:
+                            | "portrait"
+                            | "landscape"
+                            | undefined =
+                            value === "portrait" || value === "landscape"
+                              ? value
+                              : undefined;
                           if (orientation !== undefined) {
                             handleSaveOrientation(point, orientation);
                           }
                         }}
                         size="sm"
                         borderColor={borderColor}
-                        bg={tableBgColor}>
+                        bg={tableBgColor}
+                      >
                         <option value="portrait">Portrait</option>
                         <option value="landscape">Landscape</option>
                       </Select>
@@ -247,11 +285,17 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                           minW="32px"
                         />
                         <MenuList>
-                          <MenuItem icon={<FaPlay />} onClick={() => onMove(point)}>
+                          <MenuItem
+                            icon={<FaPlay />}
+                            onClick={() => onMove(point)}
+                          >
                             Move to point
                           </MenuItem>
                           {isConnected && (
-                            <MenuItem icon={<BsRecordCircle />} onClick={() => onTeach(point)}>
+                            <MenuItem
+                              icon={<BsRecordCircle />}
+                              onClick={() => onTeach(point)}
+                            >
                               Teach current position
                             </MenuItem>
                           )}
@@ -259,7 +303,8 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                           <MenuItem
                             icon={<DeleteIcon />}
                             onClick={() => onDelete(point)}
-                            color="red.500">
+                            color="red.500"
+                          >
                             Delete point
                           </MenuItem>
                         </MenuList>

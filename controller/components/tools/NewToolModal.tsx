@@ -40,8 +40,16 @@ interface AddToolCommandModalProps {
 
 export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
   const { isDisabled } = props;
-  const { isOpen: isSelectOpen, onOpen: onSelectOpen, onClose: onSelectClose } = useDisclosure();
-  const { isOpen: isDetailsOpen, onOpen: onDetailsOpen, onClose: onDetailsClose } = useDisclosure();
+  const {
+    isOpen: isSelectOpen,
+    onOpen: onSelectOpen,
+    onClose: onSelectClose,
+  } = useDisclosure();
+  const {
+    isOpen: isDetailsOpen,
+    onOpen: onDetailsOpen,
+    onClose: onDetailsClose,
+  } = useDisclosure();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTool, setSelectedTool] = useState<ToolType | null>(null);
@@ -50,23 +58,30 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
   const [isLoading, setIsLoading] = useState(false);
   const addTool = trpc.tool.add.useMutation();
   const selectedToolBg = useColorModeValue("teal.100", "teal.900");
-  const { data: selectedWorkcellData } = trpc.workcell.getSelectedWorkcell.useQuery();
+  const { data: selectedWorkcellData } =
+    trpc.workcell.getSelectedWorkcell.useQuery();
   const { data: workcells } = trpc.workcell.getAll.useQuery();
   const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({
-    workcellId: workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id,
+    workcellId: workcells?.find(
+      (workcell) => workcell.name === selectedWorkcellData
+    )?.id,
   });
-  const workcellId = workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id;
+  const workcellId = workcells?.find(
+    (workcell) => workcell.name === selectedWorkcellData
+  )?.id;
 
   const availableTools = Object.values(ToolType)
     .filter(
       (tool) =>
-        tool !== ToolType.UNRECOGNIZED && tool !== ToolType.unknown && tool !== ToolType.toolbox,
+        tool !== ToolType.UNRECOGNIZED &&
+        tool !== ToolType.unknown &&
+        tool !== ToolType.toolbox
     )
     .sort();
 
   // Filter tools based on search query
   const filteredTools = availableTools.filter((tool) =>
-    tool.toLowerCase().replace(/_/g, " ").includes(searchQuery.toLowerCase()),
+    tool.toLowerCase().replace(/_/g, " ").includes(searchQuery.toLowerCase())
   );
 
   const { data: configData, isFetching: isConfigLoading } =
@@ -144,7 +159,8 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
         borderColor={isSelected ? "teal.500" : "gray.200"}
         boxShadow="md"
         _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
-        onClick={() => handleToolSelect(tool)}>
+        onClick={() => handleToolSelect(tool)}
+      >
         <VStack spacing={1} align="center">
           <Image
             src={`/tool_icons/${tool}.png`}
@@ -168,7 +184,8 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
         onClick={onSelectOpen}
         colorScheme="teal"
         leftIcon={<RiAddFill />}
-        isDisabled={isDisabled}>
+        isDisabled={isDisabled}
+      >
         New Tool
       </Button>
 
@@ -208,7 +225,8 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
                 maxH="calc(3 * 140px + 3 * 1rem)" // 3 rows of cards (approx 130px each) + spacing
                 overflowY="auto"
                 pr={2}
-                py={5}>
+                py={5}
+              >
                 <SimpleGrid columns={[2, 3, 4, 5]} spacing={4}>
                   {filteredTools.map((tool) => (
                     <ToolCard key={tool} tool={tool} />
@@ -226,7 +244,8 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
               colorScheme="teal"
               ml={3}
               onClick={handleConfirmSelection}
-              isDisabled={!selectedTool}>
+              isDisabled={!selectedTool}
+            >
               Continue
             </Button>
           </ModalFooter>
@@ -259,12 +278,18 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
 
                 <FormControl isRequired>
                   <FormLabel>Name</FormLabel>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} />
+                  <Input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
                 </FormControl>
 
                 <FormControl>
                   <FormLabel>Description</FormLabel>
-                  <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+                  <Input
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
                 </FormControl>
               </VStack>
             )}
@@ -276,13 +301,19 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
               onClick={() => {
                 onDetailsClose();
                 onSelectOpen();
-              }}>
+              }}
+            >
               Back
             </Button>
             <Button variant="ghost" ml={2} onClick={onDetailsClose}>
               Cancel
             </Button>
-            <Button colorScheme="teal" ml={3} onClick={handleSave} isLoading={isLoading}>
+            <Button
+              colorScheme="teal"
+              ml={3}
+              onClick={handleSave}
+              isLoading={isLoading}
+            >
               Save
             </Button>
           </ModalFooter>

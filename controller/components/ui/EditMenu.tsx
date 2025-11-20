@@ -1,5 +1,12 @@
 import React from "react";
-import { Box, Menu, MenuButton, MenuList, MenuItem, IconButton } from "@chakra-ui/react";
+import {
+  Box,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  IconButton,
+} from "@chakra-ui/react";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import { RiDeleteBin5Line, RiEdit2Line } from "react-icons/ri";
 
@@ -22,10 +29,19 @@ export const EditMenu: React.FC<EditMenuProps> = (props) => {
 
   return (
     <Menu>
-      <MenuButton as={IconButton} aria-label="Options" icon={<HamburgerIcon />} variant="ghost" />
+      <MenuButton
+        as={IconButton}
+        aria-label="Options"
+        icon={<HamburgerIcon />}
+        variant="ghost"
+      />
       <MenuList>
         {customMenuItems.map((item, index) => (
-          <MenuItem key={`custom-item-${index}`} icon={item.icon} onClick={item.onClick}>
+          <MenuItem
+            key={`custom-item-${index}`}
+            icon={item.icon}
+            onClick={item.onClick}
+          >
             {item.label}
           </MenuItem>
         ))}

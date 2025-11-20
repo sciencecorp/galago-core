@@ -45,7 +45,7 @@ export default class RunStore {
       durationEstimates.push(
         tool.estimateDuration(c.commandInfo).then((duration) => {
           c.estimatedDuration = duration;
-        }),
+        })
       );
     }
 
@@ -93,7 +93,7 @@ export default class RunStore {
 export class ProtocolParamsInvalidError extends Error {
   constructor(
     public protocolId: string,
-    public cause: ZodError,
+    public cause: ZodError
   ) {
     super(`Protocol params invalid: ${cause.message}`);
     this.name = "ProtocolParamsInvalidError";

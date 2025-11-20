@@ -10,7 +10,7 @@ export function useCommandHandlers(config: Tool) {
   const handleJog = (
     mutation: UseMutationResult<any, unknown, any, unknown>,
     axis: string,
-    distance: number,
+    distance: number
   ) => {
     mutation.mutate({
       toolId: config.name,
@@ -26,7 +26,7 @@ export function useCommandHandlers(config: Tool) {
   const handleMoveCommand = (
     mutation: UseMutationResult<any, unknown, any, unknown>,
     location: string,
-    motion_profile: string,
+    motion_profile: string
   ) => {
     const command = "move";
     const params = {
@@ -47,7 +47,7 @@ export function useCommandHandlers(config: Tool) {
     action: "open" | "close",
     params: GripParams,
     silent: boolean = false,
-    allGripParams: GripParams[] = [],
+    allGripParams: GripParams[] = []
   ) => {
     // Validate that grip parameters exist
     if (!validateGripParamsExists(allGripParams, action)) {
@@ -83,7 +83,7 @@ export function useCommandHandlers(config: Tool) {
   const handleSimpleCommand = async (
     commandMutation: UseMutationResult<any, unknown, ToolCommandInfo>,
     command: "release" | "engage" | "unwind",
-    silent: boolean = false,
+    silent: boolean = false
   ) => {
     const simpleCommand: ToolCommandInfo = {
       toolId: config.name,

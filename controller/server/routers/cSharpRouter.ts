@@ -31,7 +31,7 @@ export const csharpRouter = router({
         const result = await CSharpExecutor.executeScript(
           input.script,
           input.context,
-          input.timeout,
+          input.timeout
         );
 
         return result;

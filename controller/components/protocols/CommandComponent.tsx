@@ -33,7 +33,9 @@ export default function CommandComponent({
   const skipMutation = trpc.commandQueue.skipCommand.useMutation();
   const skipUntilMutation = trpc.commandQueue.skipCommandsUntil.useMutation();
   const execMutation = trpc.tool.runCommand.useMutation();
-  const toolStatusQuery = trpc.tool.status.useQuery({ toolId: toolId.toString() });
+  const toolStatusQuery = trpc.tool.status.useQuery({
+    toolId: toolId.toString(),
+  });
   const relevantTimestamp =
     status === "CREATED"
       ? runCommand.createdAt
@@ -47,8 +49,11 @@ export default function CommandComponent({
               ? runCommand.skippedAt
               : undefined;
 
-  const queued = queueId && (status === "CREATED" || status === "FAILED" || status === "STARTED");
-  const timeDescription = relevantTimestamp && relevantTimestamp.toLocaleTimeString();
+  const queued =
+    queueId &&
+    (status === "CREATED" || status === "FAILED" || status === "STARTED");
+  const timeDescription =
+    relevantTimestamp && relevantTimestamp.toLocaleTimeString();
 
   // Truncate params message if too long
   const paramLines = JSON.stringify(params, null, 2).split("\n");
@@ -79,7 +84,8 @@ export default function CommandComponent({
             wordWrap: "break-word",
             padding: "4px",
             textAlign: "left", // Explicitly set left alignment
-          }}>
+          }}
+        >
           {paramString}
         </Box>
       </Td>
@@ -94,7 +100,8 @@ export default function CommandComponent({
             fontSize: "0.8em",
             whiteSpace: "pre-wrap",
             textAlign: "left", // Explicitly set left alignment
-          }}>
+          }}
+        >
           {status === "CREATED" ? (
             ""
           ) : status === "STARTED" ? (

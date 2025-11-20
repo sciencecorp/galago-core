@@ -23,6 +23,11 @@ ENV PYTHONPATH="/app"
 # Install debugging tools
 RUN pip install debugpy
 
+# Copy test and format scripts and make them executable
+COPY ./test.sh /usr/local/bin/test
+COPY ./format.sh /usr/local/bin/format
+RUN chmod +x /usr/local/bin/test /usr/local/bin/format
+
 # Expose FastAPI and debugpy ports
 EXPOSE 8000 5678
 
@@ -30,4 +35,4 @@ EXPOSE 8000 5678
 COPY ./docker-entrypoint-dev.sh /
 RUN chmod +x /docker-entrypoint-dev.sh
 
-ENTRYPOINT ["/docker-entrypoint-dev.sh"]  
+ENTRYPOINT ["/docker-entrypoint-dev.sh"]

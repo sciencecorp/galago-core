@@ -23,7 +23,11 @@ interface CalendarProps {
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const paddingMap = { sm: 5, md: 5, lg: 5, xl: 5, "2xl": 7 };
 
-export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, size = "md" }) => {
+export const Calendar: React.FC<CalendarProps> = ({
+  onDateSelect,
+  onTimeSelect,
+  size = "md",
+}) => {
   // Initialize with a static date to prevent hydration mismatch
   const [currentDate, setCurrentDate] = useState(() => new Date(2024, 9, 1)); // October 1, 2024
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -42,8 +46,16 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
   }, []);
 
   const generateCalendarDays = useCallback(() => {
-    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    const startOfMonth = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      1
+    );
+    const endOfMonth = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + 1,
+      0
+    );
     const dates: Date[] = [];
     const startDay = startOfMonth.getDay();
     const totalDays = endOfMonth.getDate();
@@ -52,23 +64,31 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
     const prevMonthLastDay = new Date(
       currentDate.getFullYear(),
       currentDate.getMonth(),
-      0,
+      0
     ).getDate();
     for (let i = startDay - 1; i >= 0; i--) {
       dates.push(
-        new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, prevMonthLastDay - i),
+        new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth() - 1,
+          prevMonthLastDay - i
+        )
       );
     }
 
     // Fill in the dates for the current month
     for (let i = 1; i <= totalDays; i++) {
-      dates.push(new Date(currentDate.getFullYear(), currentDate.getMonth(), i));
+      dates.push(
+        new Date(currentDate.getFullYear(), currentDate.getMonth(), i)
+      );
     }
 
     // Fill in the dates for the next month to complete a 6-row grid
     const nextMonthDays = 35 - dates.length;
     for (let i = 1; i <= nextMonthDays; i++) {
-      dates.push(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, i));
+      dates.push(
+        new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, i)
+      );
     }
 
     setDaysInMonth(dates);
@@ -92,11 +112,15 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
   };
 
   const handlePrevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+    );
   };
 
   const handleNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
+    );
   };
 
   const isCurrentDay = (date: Date) => {
@@ -125,19 +149,40 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
   return (
     <VStack spacing={2} p={2}>
       <HStack justifyContent="space-between" width="100%">
-        <Button size="sm" color={bgColor} onClick={handlePrevMonth} variant="ghost">
+        <Button
+          size="sm"
+          color={bgColor}
+          onClick={handlePrevMonth}
+          variant="ghost"
+        >
           <FiChevronLeft color="gray" />
         </Button>
         <Heading size="sm" suppressHydrationWarning={true}>
-          {currentDate.toLocaleString("default", { month: "long" })} {currentDate.getFullYear()}
+          {currentDate.toLocaleString("default", { month: "long" })}{" "}
+          {currentDate.getFullYear()}
         </Heading>
-        <Button size="sm" onClick={handleNextMonth} color={bgColor} variant="ghost">
+        <Button
+          size="sm"
+          onClick={handleNextMonth}
+          color={bgColor}
+          variant="ghost"
+        >
           <FiChevronRight color="gray" />
         </Button>
       </HStack>
-      <Grid templateColumns="repeat(7, minmax(35px, 1fr))" gap={0.5} width="fit-content">
+      <Grid
+        templateColumns="repeat(7, minmax(35px, 1fr))"
+        gap={0.5}
+        width="fit-content"
+      >
         {daysOfWeek.map((day) => (
-          <Text key={day} fontWeight="bold" textAlign="center" fontSize="xs" p={0}>
+          <Text
+            key={day}
+            fontWeight="bold"
+            textAlign="center"
+            fontSize="xs"
+            p={0}
+          >
             {day}
           </Text>
         ))}
@@ -156,7 +201,8 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
             bg={isCurrentDay(day) ? todayBg : "transparent"}
             _hover={{ bg: hoverColor }}
             onClick={() => handleDateClick(day)}
-            cursor="pointer">
+            cursor="pointer"
+          >
             <Text fontSize="xs" color={fontColor}>
               {day.getDate()}
             </Text>

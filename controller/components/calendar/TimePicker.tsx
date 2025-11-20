@@ -5,13 +5,19 @@ interface CustomTimePickerProps {
   onTimeSelect?: (time: string) => void;
 }
 
-export const TimePicker: React.FC<CustomTimePickerProps> = ({ onTimeSelect }) => {
+export const TimePicker: React.FC<CustomTimePickerProps> = ({
+  onTimeSelect,
+}) => {
   const [hour, setHour] = useState<string>("12");
   const [minute, setMinute] = useState<string>("00");
   const [period, setPeriod] = useState<string>("AM");
 
-  const hours = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
-  const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
+  const hours = Array.from({ length: 12 }, (_, i) =>
+    String(i + 1).padStart(2, "0")
+  );
+  const minutes = Array.from({ length: 60 }, (_, i) =>
+    String(i).padStart(2, "0")
+  );
   const periods = ["AM", "PM"];
 
   const handleTimeChange = () => {
@@ -43,7 +49,8 @@ export const TimePicker: React.FC<CustomTimePickerProps> = ({ onTimeSelect }) =>
         height="60px"
         width="100px"
         borderRadius="10px"
-        boxShadow="md">
+        boxShadow="md"
+      >
         {hours.map((h) => (
           <option key={h} value={h}>
             {h}
@@ -58,7 +65,8 @@ export const TimePicker: React.FC<CustomTimePickerProps> = ({ onTimeSelect }) =>
         height="60px"
         width="100px"
         borderRadius="10px"
-        boxShadow="md">
+        boxShadow="md"
+      >
         {minutes.map((m) => (
           <option key={m} value={m}>
             {m}
@@ -72,7 +80,8 @@ export const TimePicker: React.FC<CustomTimePickerProps> = ({ onTimeSelect }) =>
         height="60px"
         width="100px"
         borderRadius="10px"
-        boxShadow="md">
+        boxShadow="md"
+      >
         {periods.map((p) => (
           <option key={p} value={p}>
             {p}

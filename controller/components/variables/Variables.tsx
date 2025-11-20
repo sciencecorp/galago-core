@@ -87,7 +87,7 @@ export const Variables: React.FC = () => {
         acc[variable.type] = (acc[variable.type] || 0) + 1;
         return acc;
       },
-      {} as Record<string, number>,
+      {} as Record<string, number>
     );
     return stats;
   }, [variables]);
@@ -96,7 +96,7 @@ export const Variables: React.FC = () => {
     return variables?.filter(
       (variable) =>
         variable.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        (typeFilter === "" || variable.type === typeFilter),
+        (typeFilter === "" || variable.type === typeFilter)
     );
   }, [variables, searchQuery, typeFilter]);
 
@@ -136,7 +136,9 @@ export const Variables: React.FC = () => {
               <PageHeader
                 title="Variables"
                 subTitle="Manage system-wide variables and configurations"
-                titleIcon={<Icon as={TbVariable} boxSize={8} color="teal.500" />}
+                titleIcon={
+                  <Icon as={TbVariable} boxSize={8} color="teal.500" />
+                }
                 mainButton={<VariableModal />}
               />
 
@@ -188,7 +190,8 @@ export const Variables: React.FC = () => {
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
                   maxW="200px"
-                  bg={tableBgColor}>
+                  bg={tableBgColor}
+                >
                   <option value="string">String</option>
                   <option value="number">Number</option>
                   <option value="boolean">Boolean</option>
@@ -213,7 +216,8 @@ export const Variables: React.FC = () => {
                     td: {
                       borderColor: useColorModeValue("gray.200", "gray.600"),
                     },
-                  }}>
+                  }}
+                >
                   <Thead>
                     <Tr>
                       <Th>Name</Th>
@@ -230,7 +234,11 @@ export const Variables: React.FC = () => {
                         <Td>
                           <EditableText
                             onSubmit={async (value) => {
-                              value && (await handleVariableUpdate({ ...variable, name: value }));
+                              value &&
+                                (await handleVariableUpdate({
+                                  ...variable,
+                                  name: value,
+                                }));
                             }}
                             defaultValue={variable.name}
                           />
@@ -244,7 +252,11 @@ export const Variables: React.FC = () => {
                         <Td maxWidth="300px">
                           <EditableText
                             onSubmit={async (value) => {
-                              value && (await handleVariableUpdate({ ...variable, value: value }));
+                              value &&
+                                (await handleVariableUpdate({
+                                  ...variable,
+                                  value: value,
+                                }));
                             }}
                             defaultValue={variable.value}
                             displayValue={truncateText(variable.value, 60)}

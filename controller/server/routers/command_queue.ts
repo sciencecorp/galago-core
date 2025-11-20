@@ -36,7 +36,8 @@ export const commandQueueRouter = router({
         userFriendlyMessage =
           "The command was sent to the wrong tool type. Please check that you're using the correct tool for this operation.";
       } else if (error.code === ResponseCode.NOT_READY) {
-        userFriendlyMessage = "The tool is not ready. Please check its status and try again.";
+        userFriendlyMessage =
+          "The tool is not ready. Please check its status and try again.";
       }
 
       // Return enhanced error information
@@ -86,7 +87,7 @@ export const commandQueueRouter = router({
       z.object({
         limit: z.number().optional(),
         offset: z.number().optional(),
-      }),
+      })
     )
     .query(async ({ input }) => {
       const { limit = 20000, offset = 0 } = input; // default values if not provided
@@ -102,10 +103,13 @@ export const commandQueueRouter = router({
       z.object({
         runId: z.string(),
         index: z.number(),
-      }),
+      })
     )
     .mutation(async ({ input }) => {
-      return CommandQueue.global.gotoCommandByRunIndex(input.runId, input.index);
+      return CommandQueue.global.gotoCommandByRunIndex(
+        input.runId,
+        input.index
+      );
     }),
   gotoCommand: procedure.input(z.number()).mutation(async ({ input }) => {
     return CommandQueue.global.gotoCommand(input);

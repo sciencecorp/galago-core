@@ -58,7 +58,12 @@ type InventoryModalProps = {
   initialContainerType?: "tool" | "hotel" | "";
   onCheckIn?: (params: {
     nestId: number;
-    plates: Array<{ barcode: string; name: string; plate_type: string; status: PlateStatus }>;
+    plates: Array<{
+      barcode: string;
+      name: string;
+      plate_type: string;
+      status: PlateStatus;
+    }>;
     triggerToolCommand: boolean;
     isStatic?: boolean;
     containerId?: number;
@@ -91,8 +96,12 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
   onPlateClick,
 }) => {
   // State for controlled form
-  const [selectedContainerId, setSelectedContainerId] = useState<number | string>("");
-  const [selectedContainerType, setSelectedContainerType] = useState<"tool" | "hotel" | "">("");
+  const [selectedContainerId, setSelectedContainerId] = useState<
+    number | string
+  >("");
+  const [selectedContainerType, setSelectedContainerType] = useState<
+    "tool" | "hotel" | ""
+  >("");
   const [nestSelections, setNestSelections] = useState<number[]>([]);
   const [triggerToolCommand, setTriggerToolCommand] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -110,7 +119,9 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
   // Check-out specific state
   const [plateId, setPlateId] = useState("");
   const [barcode, setBarcode] = useState("");
-  const [selectionMode, setSelectionMode] = useState<"manual" | "nest">("manual");
+  const [selectionMode, setSelectionMode] = useState<"manual" | "nest">(
+    "manual"
+  );
 
   // Save the initial container settings
   const [initialSettings, setInitialSettings] = useState<{
@@ -145,8 +156,13 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
       }
 
       // If there are initial nests, get container info from them, but don't override explicit container settings
-      if (initialSelectedNestIds.length > 0 && (!initialContainerId || !initialContainerType)) {
-        const selectedNest = availableNests.find((n) => n.id === initialSelectedNestIds[0]);
+      if (
+        initialSelectedNestIds.length > 0 &&
+        (!initialContainerId || !initialContainerType)
+      ) {
+        const selectedNest = availableNests.find(
+          (n) => n.id === initialSelectedNestIds[0]
+        );
         if (selectedNest) {
           if (selectedNest.tool_id) {
             setSelectedContainerId(selectedNest.tool_id);
@@ -181,7 +197,9 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
           selectedPlate?.nest_id &&
           (!initialContainerId || !initialContainerType)
         ) {
-          const plateNest = availableNests.find((n) => n.id === selectedPlate.nest_id);
+          const plateNest = availableNests.find(
+            (n) => n.id === selectedPlate.nest_id
+          );
           if (plateNest) {
             if (plateNest.tool_id) {
               setSelectedContainerType("tool");
@@ -224,7 +242,12 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
 
   // Auto-select first available container when none is selected (but don't override explicit settings)
   useEffect(() => {
-    if (isOpen && !selectedContainerId && storageContainers.length > 0 && !initialContainerId) {
+    if (
+      isOpen &&
+      !selectedContainerId &&
+      storageContainers.length > 0 &&
+      !initialContainerId
+    ) {
       const firstContainer = storageContainers[0];
       setSelectedContainerId(firstContainer.id);
       setSelectedContainerType(firstContainer.type as "tool" | "hotel");
@@ -308,7 +331,8 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
 
       // Determine container type and ID before processing
       let containerInfo = {
-        containerId: selectedContainerId !== "" ? Number(selectedContainerId) : undefined,
+        containerId:
+          selectedContainerId !== "" ? Number(selectedContainerId) : undefined,
         containerType: selectedContainerType || undefined,
       };
 
@@ -326,7 +350,9 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
         const tool = tools.find((t) => t.id === containerInfo.containerId);
         containerDetails = tool?.name || "unknown tool";
       } else if (containerInfo.containerType === "hotel") {
-        const hotel = staticHotels.find((h) => h.id === containerInfo.containerId);
+        const hotel = staticHotels.find(
+          (h) => h.id === containerInfo.containerId
+        );
         containerDetails = hotel?.name || "unknown hotel";
       }
 
@@ -348,8 +374,15 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
             .slice(1)
             .filter((row) => row.trim()); // Skip header row
           platesToCheckIn = rows.map((row) => {
-            const [barcode, name, plate_type] = row.split(",").map((cell) => cell.trim());
-            return { barcode, name, plate_type, status: "stored" as PlateStatus };
+            const [barcode, name, plate_type] = row
+              .split(",")
+              .map((cell) => cell.trim());
+            return {
+              barcode,
+              name,
+              plate_type,
+              status: "stored" as PlateStatus,
+            };
           });
         } else {
           if (!manualPlateName || !manualPlateType) {
@@ -357,12 +390,17 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
           }
 
           // Generate plates for batch entry with unique names
-          platesToCheckIn = Array.from({ length: numberOfPlates }, (_, index) => ({
-            barcode: manualBarcode ? `${manualBarcode}-${index + 1}` : generateBarcode(index),
-            name: `${manualPlateName}-${index + 1}`,
-            plate_type: manualPlateType,
-            status: "stored" as PlateStatus,
-          }));
+          platesToCheckIn = Array.from(
+            { length: numberOfPlates },
+            (_, index) => ({
+              barcode: manualBarcode
+                ? `${manualBarcode}-${index + 1}`
+                : generateBarcode(index),
+              name: `${manualPlateName}-${index + 1}`,
+              plate_type: manualPlateType,
+              status: "stored" as PlateStatus,
+            })
+          );
         }
 
         // Determine if we're using automatic or manual nest selection
@@ -378,7 +416,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
         } else if (nestSelections.length < numberOfPlates) {
           // For manual selection, we need enough nests selected
           throw new Error(
-            `Not enough nests selected. Need ${numberOfPlates} but only selected ${nestSelections.length}.`,
+            `Not enough nests selected. Need ${numberOfPlates} but only selected ${nestSelections.length}.`
           );
         } else {
           // For manual nest selection with multiple plates, we need to submit them one by one
@@ -421,7 +459,9 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
         plates: [singlePlate],
         triggerToolCommand:
           selectedContainerType === "tool" &&
-          tools.find((t) => t.id === selectedContainerId)?.type?.toLowerCase() === "liconic" &&
+          tools
+            .find((t) => t.id === selectedContainerId)
+            ?.type?.toLowerCase() === "liconic" &&
           triggerToolCommand,
         isStatic: selectedContainerType === "hotel",
         containerId: Number(selectedContainerId),
@@ -432,7 +472,10 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
       resetState();
       onClose();
     } catch (error) {
-      errorToast("Error", error instanceof Error ? error.message : "An error occurred");
+      errorToast(
+        "Error",
+        error instanceof Error ? error.message : "An error occurred"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -454,7 +497,9 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
           barcode: barcode || selectedPlate?.barcode,
           triggerToolCommand:
             selectedContainerType === "tool" &&
-            tools.find((t) => t.id === selectedContainerId)?.type?.toLowerCase() === "liconic" &&
+            tools
+              .find((t) => t.id === selectedContainerId)
+              ?.type?.toLowerCase() === "liconic" &&
             triggerToolCommand,
           isStatic: selectedContainerType === "hotel",
         });
@@ -468,7 +513,9 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
           plateId: Number(plateId),
           triggerToolCommand:
             selectedContainerType === "tool" &&
-            tools.find((t) => t.id === selectedContainerId)?.type?.toLowerCase() === "liconic" &&
+            tools
+              .find((t) => t.id === selectedContainerId)
+              ?.type?.toLowerCase() === "liconic" &&
             triggerToolCommand,
           isStatic: selectedContainerType === "hotel",
         });
@@ -478,7 +525,10 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
       resetState();
       onClose();
     } catch (error) {
-      errorToast("Error", error instanceof Error ? error.message : "An error occurred");
+      errorToast(
+        "Error",
+        error instanceof Error ? error.message : "An error occurred"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -518,15 +568,22 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
           bg={sectionBg}
           p={4}
           borderRadius="md"
-          borderColor={borderColor}>
+          borderColor={borderColor}
+        >
           <TabList mb="1em">
-            <Tab _selected={{ bg: selectedBg, borderColor: borderColor }} color={textColor}>
+            <Tab
+              _selected={{ bg: selectedBg, borderColor: borderColor }}
+              color={textColor}
+            >
               <HStack>
                 <Text>Single Entry</Text>
                 <Badge colorScheme="blue">1 Plate</Badge>
               </HStack>
             </Tab>
-            <Tab _selected={{ bg: selectedBg, borderColor: borderColor }} color={textColor}>
+            <Tab
+              _selected={{ bg: selectedBg, borderColor: borderColor }}
+              color={textColor}
+            >
               <HStack>
                 <Text>Batch Entry</Text>
                 <Badge colorScheme="purple">Multiple</Badge>
@@ -564,13 +621,17 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
                       value={manualBarcode}
                       onChange={(e) => setManualBarcode(e.target.value)}
                       placeholder={
-                        useAutoBarcode ? "Will be auto-generated" : "Enter plate barcode"
+                        useAutoBarcode
+                          ? "Will be auto-generated"
+                          : "Enter plate barcode"
                       }
                       bg={inputBg}
                       isDisabled={useAutoBarcode}
                     />
                     <FormHelperText color={textColor}>
-                      {useAutoBarcode ? "Auto-generate barcode" : "Enter barcode manually"}
+                      {useAutoBarcode
+                        ? "Auto-generate barcode"
+                        : "Enter barcode manually"}
                     </FormHelperText>
                   </FormControl>
                   <FormControl isRequired>
@@ -589,7 +650,8 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
                     value={manualPlateType}
                     onChange={(e) => setManualPlateType(e.target.value)}
                     placeholder="Select plate type"
-                    bg={inputBg}>
+                    bg={inputBg}
+                  >
                     <option value="6 well">6 Well</option>
                     <option value="24 well">24 Well</option>
                     <option value="96 well">96 Well</option>
@@ -607,7 +669,8 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
                       min={1}
                       value={numberOfPlates}
                       onChange={(_, value) => setNumberOfPlates(value)}
-                      bg={inputBg}>
+                      bg={inputBg}
+                    >
                       <NumberInputField />
                       <NumberInputStepper>
                         <NumberIncrementStepper />
@@ -621,7 +684,8 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
                       value={manualPlateType}
                       onChange={(e) => setManualPlateType(e.target.value)}
                       placeholder="Select plate type"
-                      bg={inputBg}>
+                      bg={inputBg}
+                    >
                       <option value="6 well">6 Well</option>
                       <option value="24 well">24 Well</option>
                       <option value="96 well">96 Well</option>
@@ -666,7 +730,9 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
                       isDisabled={useAutoBarcode}
                     />
                     <FormHelperText color={textColor}>
-                      {useAutoBarcode ? "Auto-generate barcodes" : "Enter base barcode manually"}
+                      {useAutoBarcode
+                        ? "Auto-generate barcodes"
+                        : "Enter base barcode manually"}
                     </FormHelperText>
                   </FormControl>
                   <FormControl isRequired flex="1">
@@ -741,8 +807,11 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
         mt={2}
         isDisabled={
           !uploadedFile &&
-          ((!useAutoBarcode && !manualBarcode) || !manualPlateName || !manualPlateType)
-        }>
+          ((!useAutoBarcode && !manualBarcode) ||
+            !manualPlateName ||
+            !manualPlateType)
+        }
+      >
         Auto Check In
       </Button>
     </VStack>
@@ -760,15 +829,20 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
             <VStack spacing={4}>
               <FormControl>
                 <FormLabel color={labelColor}>Selected Plate</FormLabel>
-                <Input value={selectedPlate?.name || ""} isReadOnly bg={inputBg} />
+                <Input
+                  value={selectedPlate?.name || ""}
+                  isReadOnly
+                  bg={inputBg}
+                />
               </FormControl>
               <FormControl>
                 <FormLabel color={labelColor}>Current Nest</FormLabel>
                 <Input
                   value={
                     selectedPlate?.nest_id
-                      ? availableNests.find((n) => n.id === selectedPlate.nest_id)?.name ||
-                        selectedPlate.nest_id
+                      ? availableNests.find(
+                          (n) => n.id === selectedPlate.nest_id
+                        )?.name || selectedPlate.nest_id
                       : "Not checked in"
                   }
                   isReadOnly
@@ -786,7 +860,8 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
                         : selectedPlate?.status === "completed"
                           ? "purple"
                           : "red"
-                  }>
+                  }
+                >
                   {selectedPlate?.status || "Unknown"}
                 </Badge>
               </FormControl>
@@ -796,12 +871,14 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
               <TabList mb="1em">
                 <Tab
                   onClick={() => setSelectionMode("manual")}
-                  _selected={{ bg: selectedBg, borderColor: borderColor }}>
+                  _selected={{ bg: selectedBg, borderColor: borderColor }}
+                >
                   Barcode Entry
                 </Tab>
                 <Tab
                   onClick={() => setSelectionMode("nest")}
-                  _selected={{ bg: selectedBg, borderColor: borderColor }}>
+                  _selected={{ bg: selectedBg, borderColor: borderColor }}
+                >
                   Nest Selection
                 </Tab>
               </TabList>
@@ -820,13 +897,16 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
                 <TabPanel p={0}>
                   <VStack spacing={4}>
                     <FormControl isRequired>
-                      <FormLabel color={labelColor}>Select from Inventory</FormLabel>
+                      <FormLabel color={labelColor}>
+                        Select from Inventory
+                      </FormLabel>
                       <Button
                         leftIcon={<Icon as={BsGrid3X3} />}
                         colorScheme="teal"
                         variant="outline"
                         size="md"
-                        onClick={() => setIsNestModalOpen(true)}>
+                        onClick={() => setIsNestModalOpen(true)}
+                      >
                         Open Inventory
                       </Button>
                     </FormControl>
@@ -836,8 +916,9 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
                         <Input
                           value={
                             nestSelections[0]
-                              ? availableNests.find((n) => n.id === nestSelections[0])?.name ||
-                                nestSelections[0]
+                              ? availableNests.find(
+                                  (n) => n.id === nestSelections[0]
+                                )?.name || nestSelections[0]
                               : "None"
                           }
                           isReadOnly
@@ -863,9 +944,12 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
         size="lg"
         mt={2}
         isDisabled={
-          (selectionMode === "manual" && !barcode && (!selectedPlate || !selectedPlate.barcode)) ||
+          (selectionMode === "manual" &&
+            !barcode &&
+            (!selectedPlate || !selectedPlate.barcode)) ||
           (selectionMode === "nest" && !plateId && nestSelections.length === 0)
-        }>
+        }
+      >
         Check Out
       </Button>
     </VStack>
@@ -879,12 +963,16 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
           <ModalHeader borderBottomWidth="1px" py={4}>
             <HStack spacing={3}>
               <Icon as={BsBoxSeam} boxSize={5} color="teal.500" />
-              <Text>{mode === "check-in" ? "Check In Plate(s)" : "Check Out Plate"}</Text>
+              <Text>
+                {mode === "check-in" ? "Check In Plate(s)" : "Check Out Plate"}
+              </Text>
             </HStack>
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody py={6}>
-            {mode === "check-in" ? renderCheckInContent() : renderCheckOutContent()}
+            {mode === "check-in"
+              ? renderCheckInContent()
+              : renderCheckOutContent()}
           </ModalBody>
         </ModalContent>
       </Modal>
@@ -897,7 +985,8 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
           toolName={
             selectedContainerType === "tool"
               ? tools.find((t) => t.id === selectedContainerId)?.name || ""
-              : staticHotels.find((h) => h.id === selectedContainerId)?.name || ""
+              : staticHotels.find((h) => h.id === selectedContainerId)?.name ||
+                ""
           }
           toolType={
             selectedContainerType === "tool"
@@ -908,12 +997,16 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
           plates={plates.filter((plate) =>
             availableNests.some((n) => {
               if (selectedContainerType === "tool") {
-                return n.tool_id === selectedContainerId && plate.nest_id === n.id;
+                return (
+                  n.tool_id === selectedContainerId && plate.nest_id === n.id
+                );
               } else if (selectedContainerType === "hotel") {
-                return n.hotel_id === selectedContainerId && plate.nest_id === n.id;
+                return (
+                  n.hotel_id === selectedContainerId && plate.nest_id === n.id
+                );
               }
               return false;
-            }),
+            })
           )}
           selectedNests={
             mode === "check-in"

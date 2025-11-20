@@ -5,7 +5,7 @@ import Protocol from "@/protocols/protocol";
 
 export async function getRunAttributes(
   runInfo: any,
-  commandInfo: any,
+  commandInfo: any
 ): Promise<{
   runId: string;
   runName: string;
@@ -64,7 +64,8 @@ export async function getRunAttributes(
       status = "FAILED";
     } else if (commandInfo.some((cmd) => cmd.status === "STARTED")) {
       status = "STARTED";
-      startedAt = commandInfo.find((cmd) => cmd.status === "STARTED")?.startedAt || "";
+      startedAt =
+        commandInfo.find((cmd) => cmd.status === "STARTED")?.startedAt || "";
     } else if (commandInfo.every((cmd) => cmd.status === "CREATED")) {
       status = "QUEUED";
     } else if (
@@ -92,7 +93,7 @@ export async function getRunAttributes(
 export function calculateRunTimes(
   runAttributes: any,
   currentTime: moment.Moment,
-  runCommands: RunCommand[] = [],
+  runCommands: RunCommand[] = []
 ) {
   let runStart = moment(runAttributes.createdAt);
   let runEnd: moment.Moment;
@@ -100,7 +101,8 @@ export function calculateRunTimes(
 
   // Check if all commands are completed
   const isCompleted =
-    runCommands.length > 0 && runCommands[runCommands.length - 1].status === "COMPLETED";
+    runCommands.length > 0 &&
+    runCommands[runCommands.length - 1].status === "COMPLETED";
 
   if (isCompleted) {
     runEnd = moment(runCommands[runCommands.length - 1].completedAt);
@@ -145,7 +147,7 @@ export function calculateRunCompletion(commands: RunCommand[]): number {
   if (!commands.length) return 0;
 
   const completedCommands = commands.filter(
-    (cmd) => cmd.status === "COMPLETED" || cmd.status === "FAILED",
+    (cmd) => cmd.status === "COMPLETED" || cmd.status === "FAILED"
   ).length;
 
   return (completedCommands / commands.length) * 100;

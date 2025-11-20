@@ -21,12 +21,25 @@ export interface ConfirmationModalProps {
 }
 
 export const ConfirmationModal = (props: ConfirmationModalProps) => {
-  const { children, confirmText = "Ok", colorScheme, header, isOpen, onClose, onClick } = props;
+  const {
+    children,
+    confirmText = "Ok",
+    colorScheme,
+    header,
+    isOpen,
+    onClose,
+    onClick,
+  } = props;
 
   const cancelRef = React.useRef(null);
 
   return (
-    <AlertDialog leastDestructiveRef={cancelRef} onClose={onClose} isOpen={isOpen} isCentered>
+    <AlertDialog
+      leastDestructiveRef={cancelRef}
+      onClose={onClose}
+      isOpen={isOpen}
+      isCentered
+    >
       <AlertDialogOverlay />
       <AlertDialogContent>
         <AlertDialogHeader>{header}</AlertDialogHeader>
@@ -40,7 +53,8 @@ export const ConfirmationModal = (props: ConfirmationModalProps) => {
             onClick={() => {
               onClick();
               onClose();
-            }}>
+            }}
+          >
             {confirmText}
           </Button>
         </AlertDialogFooter>

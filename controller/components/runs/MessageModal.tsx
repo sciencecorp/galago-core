@@ -65,12 +65,20 @@ const FormatText = ({ text }: { text: string }) => {
       if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
         // Remove the * characters and make it bold
         return (
-          <Text as="span" fontWeight="bold" key={`part-${lineIndex}-${partIndex}`}>
+          <Text
+            as="span"
+            fontWeight="bold"
+            key={`part-${lineIndex}-${partIndex}`}
+          >
             {part.slice(1, -1)}
           </Text>
         );
       }
-      return <React.Fragment key={`part-${lineIndex}-${partIndex}`}>{part}</React.Fragment>;
+      return (
+        <React.Fragment key={`part-${lineIndex}-${partIndex}`}>
+          {part}
+        </React.Fragment>
+      );
     });
 
     // Return the formatted line
@@ -85,7 +93,11 @@ const FormatText = ({ text }: { text: string }) => {
   return <>{processedLines}</>;
 };
 
-export const MessageModal: React.FC<MessageProps> = ({ isOpen, messageData, onContinue }) => {
+export const MessageModal: React.FC<MessageProps> = ({
+  isOpen,
+  messageData,
+  onContinue,
+}) => {
   const bgColor = useColorModeValue("white", "gray.800");
   const pauseIconColor = useColorModeValue("orange.500", "orange.300");
   const messageIconColor = useColorModeValue("blue.500", "blue.300");
@@ -115,11 +127,18 @@ export const MessageModal: React.FC<MessageProps> = ({ isOpen, messageData, onCo
   }, [isOpen, messageData.pausedAt]);
 
   return (
-    <Modal isOpen={isOpen} onClose={() => {}} closeOnOverlayClick={false} isCentered>
+    <Modal
+      isOpen={isOpen}
+      onClose={() => {}}
+      closeOnOverlayClick={false}
+      isCentered
+    >
       <ModalOverlay backdropFilter="blur(4px)" bg="blackAlpha.300" />
       <ModalContent bg={bgColor} maxW="md">
         <ModalHeader textAlign="center">
-          {messageData.type === "pause" ? "Run Paused" : messageData.title || "Message"}
+          {messageData.type === "pause"
+            ? "Run Paused"
+            : messageData.title || "Message"}
         </ModalHeader>
         {messageData.type === "pause" && messageData.pausedAt && (
           <HStack px={4} py={2} justify="center" spacing={2}>
@@ -146,7 +165,12 @@ export const MessageModal: React.FC<MessageProps> = ({ isOpen, messageData, onCo
           </VStack>
         </ModalBody>
         <ModalFooter justifyContent="center">
-          <Button colorScheme="blue" onClick={onContinue} size="lg" minW="150px">
+          <Button
+            colorScheme="blue"
+            onClick={onContinue}
+            size="lg"
+            minW="150px"
+          >
             Continue
           </Button>
         </ModalFooter>

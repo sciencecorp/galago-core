@@ -57,10 +57,12 @@ export const toolRouter = router({
     } as ToolResponse;
   }),
 
-  add: procedure.input(zTool.omit({ id: true, port: true })).mutation(async ({ input }) => {
-    const response = post<ToolResponse>(`/tools`, input);
-    return response;
-  }),
+  add: procedure
+    .input(zTool.omit({ id: true, port: true }))
+    .mutation(async ({ input }) => {
+      const response = post<ToolResponse>(`/tools`, input);
+      return response;
+    }),
 
   //Edit an existing tool
   edit: procedure
@@ -68,7 +70,7 @@ export const toolRouter = router({
       z.object({
         id: z.string(),
         config: zTool,
-      }),
+      })
     )
     .mutation(async ({ input }) => {
       const { id, config } = input;
@@ -100,21 +102,25 @@ export const toolRouter = router({
     return { message: "Tool deleted successfully" };
   }),
 
-  getProtoConfigDefinitions: procedure.input(zToolType).query(async ({ input }) => {
-    const configDefinition = await Tool.getToolConfigDefinition(input);
-    return configDefinition;
-  }),
+  getProtoConfigDefinitions: procedure
+    .input(zToolType)
+    .query(async ({ input }) => {
+      const configDefinition = await Tool.getToolConfigDefinition(input);
+      return configDefinition;
+    }),
 
   availableIDs: procedure
     .input(
       z.object({
         workcellId: z.number().optional(),
-      }),
+      })
     )
     .query(async ({ input }) => {
       let allTools = await get<ToolResponse[]>(`/tools`);
       Tool.reloadWorkcellConfig(allTools as controller_protos.ToolConfig[]);
-      const toolIds = allTools.map((tool) => tool.name.toLocaleLowerCase().replaceAll(" ", "_"));
+      const toolIds = allTools.map((tool) =>
+        tool.name.toLocaleLowerCase().replaceAll(" ", "_")
+      );
       toolIds.push("tool_box");
       return toolIds;
     }),
@@ -123,10 +129,12 @@ export const toolRouter = router({
     .input(
       z.object({
         toolId: z.string(),
-      }),
+      })
     )
     .query(async ({ input }) => {
-      const tool = Tool.forId(input.toolId.toLocaleLowerCase().replaceAll(" ", "_"));
+      const tool = Tool.forId(
+        input.toolId.toLocaleLowerCase().replaceAll(" ", "_")
+      );
       return await tool.fetchStatus();
     }),
 
@@ -134,10 +142,12 @@ export const toolRouter = router({
     .input(
       z.object({
         toolId: z.string(),
-      }),
+      })
     )
     .query(({ input }) => {
-      const tool = Tool.forId(input.toolId.toLocaleLowerCase().replaceAll(" ", "_"));
+      const tool = Tool.forId(
+        input.toolId.toLocaleLowerCase().replaceAll(" ", "_")
+      );
       return tool.info;
     }),
 
@@ -151,7 +161,7 @@ export const toolRouter = router({
       z.object({
         toolId: z.string(),
         config: z.custom<Config>().transform(Config.fromPartial),
-      }),
+      })
     )
     .mutation(async ({ input }) => {
       const { toolId, config } = input;
@@ -167,7 +177,7 @@ export const toolRouter = router({
         toolType: zToolType,
         command: z.string(),
         params: z.record(z.any()),
-      }),
+      })
     )
     .mutation(async ({ input }) => {
       return await Tool.executeCommand(input);

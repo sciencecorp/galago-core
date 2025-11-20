@@ -28,18 +28,22 @@ import {
 } from "@chakra-ui/react";
 
 function CommandQueueStatusComponent() {
-  const [slackNotificationsEnabled, setSlackNotificationsEnabled] = useState(false);
+  const [slackNotificationsEnabled, setSlackNotificationsEnabled] =
+    useState(false);
   const toggleSlackNotifications = () => {
     setSlackNotificationsEnabled(!slackNotificationsEnabled);
   };
-  const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 100 });
+  const stateQuery = trpc.commandQueue.state.useQuery(undefined, {
+    refetchInterval: 100,
+  });
   const stateMutationOpts = {
     onSettled: () => stateQuery.refetch(),
   };
   const queue = trpc.commandQueue;
   const restartMutation = queue.restart.useMutation(stateMutationOpts);
   const stopMutation = queue.stop.useMutation(stateMutationOpts);
-  const clearCompletedMutation = queue.clearCompleted.useMutation(stateMutationOpts);
+  const clearCompletedMutation =
+    queue.clearCompleted.useMutation(stateMutationOpts);
   const clearAllMutation = queue.clearAll.useMutation(stateMutationOpts);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const handleStartClick = () => {
@@ -60,11 +64,15 @@ function CommandQueueStatusComponent() {
       <HStack>
         <Button onClick={handleStartClick}>Start</Button>
         <Button onClick={() => stopMutation.mutate()}>Stop</Button>
-        <Button onClick={() => clearCompletedMutation.mutate()}>Clear Completed</Button>
+        <Button onClick={() => clearCompletedMutation.mutate()}>
+          Clear Completed
+        </Button>
         <Button onClick={() => clearAllMutation.mutate()}>Clear All</Button>
         {/* button to toggle slack notifications */}
         <Button onClick={toggleSlackNotifications}>
-          {slackNotificationsEnabled ? "Disable Slack Notifications" : "Enable Slack Notifications"}
+          {slackNotificationsEnabled
+            ? "Disable Slack Notifications"
+            : "Enable Slack Notifications"}
         </Button>
       </HStack>
       <Modal isOpen={isOpen} onClose={onClose}>
@@ -73,7 +81,9 @@ function CommandQueueStatusComponent() {
           <ModalHeader>Warning</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Text>Make sure instruments are not unintentionally in simulation mode.</Text>
+            <Text>
+              Make sure instruments are not unintentionally in simulation mode.
+            </Text>
           </ModalBody>
           <ModalFooter>
             <Button colorScheme="blue" mr={3} onClick={handleConfirmStart}>
@@ -95,10 +105,11 @@ function CommandListComponent() {
 
   const commandsQuery = trpc.commandQueue.commands.useQuery(
     { limit: limit, offset: offset },
-    { refetchInterval: 100 },
+    { refetchInterval: 100 }
   );
   const hasPrevious = offset > 0;
-  const hasNext = (commandsQuery.data && commandsQuery.data.length === limit) || false;
+  const hasNext =
+    (commandsQuery.data && commandsQuery.data.length === limit) || false;
 
   const handleNext = () => {
     if (hasNext) {
@@ -137,7 +148,9 @@ function CommandListComponent() {
         <Tbody>
           {commandsQuery.isSuccess &&
             commandsQuery.data.map((command, i) => {
-              return <CommandComponent key={command.queueId} command={command} />;
+              return (
+                <CommandComponent key={command.queueId} command={command} />
+              );
             })}
         </Tbody>
       </Table>

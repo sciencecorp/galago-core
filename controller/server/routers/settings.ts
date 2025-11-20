@@ -15,10 +15,12 @@ export const workcellRouter = router({
     return response;
   }),
 
-  add: procedure.input(zAppSettings.omit({ id: true })).mutation(async ({ input }) => {
-    const response = await post<AppSettings>(`/settings`, input);
-    return response;
-  }),
+  add: procedure
+    .input(zAppSettings.omit({ id: true }))
+    .mutation(async ({ input }) => {
+      const response = await post<AppSettings>(`/settings`, input);
+      return response;
+    }),
 
   edit: procedure.input(zAppSettings).mutation(async ({ input }) => {
     const { id } = input;

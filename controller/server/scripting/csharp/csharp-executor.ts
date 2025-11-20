@@ -18,7 +18,7 @@ export class CSharpExecutor {
   static async executeScript(
     script: string,
     context: Record<string, any> = {},
-    timeout: number = 30000,
+    timeout: number = 30000
   ): Promise<{
     output: string;
     success: boolean;
@@ -55,9 +55,10 @@ export class CSharpExecutor {
       const compileCommand = `cd ${tempDir} && dotnet build -c Release -o ./bin`;
 
       try {
-        const { stdout: compileStdout, stderr: compileStderr } = await execPromise(compileCommand, {
-          timeout,
-        });
+        const { stdout: compileStdout, stderr: compileStderr } =
+          await execPromise(compileCommand, {
+            timeout,
+          });
 
         if (compileStderr) {
           logCapture.push(`Compilation warnings: ${compileStderr}`);
@@ -67,7 +68,10 @@ export class CSharpExecutor {
         logCapture.push("Running C# program...");
         const runCommand = `cd ${tempDir} && dotnet ./bin/project.dll`;
 
-        const { stdout: runStdout, stderr: runStderr } = await execPromise(runCommand, { timeout });
+        const { stdout: runStdout, stderr: runStderr } = await execPromise(
+          runCommand,
+          { timeout }
+        );
 
         if (runStdout) {
           logCapture.push(runStdout);
@@ -126,7 +130,8 @@ export class CSharpExecutor {
       };
     } catch (error) {
       // If execution fails, return an error result
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
 
       logAction({
         level: "error",
@@ -150,7 +155,10 @@ export class CSharpExecutor {
    * @param context The context object to expose to the script
    * @returns A complete C# program as a string
    */
-  private static generateCSharpProgram(script: string, context: Record<string, any>): string {
+  private static generateCSharpProgram(
+    script: string,
+    context: Record<string, any>
+  ): string {
     // Create JSON string representation of the context
     const contextJson = JSON.stringify(context);
 

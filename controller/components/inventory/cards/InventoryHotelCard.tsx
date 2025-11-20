@@ -36,13 +36,16 @@ interface InventoryHotelCardProps {
     hotelId: number,
     nestName: string,
     nestRow: number,
-    nestColumn: number,
+    nestColumn: number
   ) => Promise<void>;
   onCreatePlate: (
     nestId: number,
-    plateData: { name: string; barcode: string; plate_type: string },
+    plateData: { name: string; barcode: string; plate_type: string }
   ) => void;
-  onCreateReagent: (nestId: number, reagentData: Omit<Reagent, "id" | "well_id">) => void;
+  onCreateReagent: (
+    nestId: number,
+    reagentData: Omit<Reagent, "id" | "well_id">
+  ) => void;
   onNestClick: (nest: Nest) => void;
   onDeleteNest: (nestId: number) => Promise<void>;
   onPlateClick?: (plate: Plate) => void;
@@ -72,7 +75,7 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
 
   const hotelNests = nests.filter((nest) => nest.hotel_id === hotelId);
   const hotelPlates = plates.filter((plate) =>
-    hotelNests.some((nest) => nest.id === plate.nest_id),
+    hotelNests.some((nest) => nest.id === plate.nest_id)
   );
 
   useEffect(() => {
@@ -89,7 +92,9 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
   for (let row = 0; row < (hotel?.rows || 0); row++) {
     for (let col = 0; col < (hotel?.columns || 0); col++) {
       // Check if this position already has a nest
-      const existingNest = hotelNests.find((n) => n.row === row && n.column === col);
+      const existingNest = hotelNests.find(
+        (n) => n.row === row && n.column === col
+      );
       if (!existingNest) {
         // Create a placeholder nest for this position
         const placeholderNest: Nest = {
@@ -119,7 +124,8 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
         transition="all 0.2s"
         cursor="pointer"
         onClick={onOpen}
-        _hover={{ transform: "translateY(-2px)", shadow: "lg" }}>
+        _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
+      >
         <CardHeader pb={3}>
           <VStack align="stretch" spacing={2}>
             <HStack spacing={3} justify="space-between">
@@ -209,7 +215,9 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
             if (nest) onNestClick(nest);
           });
         }}
-        onCreateNest={(row, column) => onCreateNest(hotelId, hotel?.name || "Hotel", row, column)}
+        onCreateNest={(row, column) =>
+          onCreateNest(hotelId, hotel?.name || "Hotel", row, column)
+        }
         onDeleteNest={onDeleteNest}
         onPlateClick={onPlateClick}
         onCheckIn={onCheckIn}

@@ -37,15 +37,24 @@ enum TimeScale {
   HOURS = "hours",
 }
 
-const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRunId }) => {
+const RunQueueGanttChart: React.FC<GanttChartProps> = ({
+  onRunClick,
+  selectedRunId,
+}) => {
   const [currentTime, setCurrentTime] = useState(moment());
   const [startTime, setStartTime] = useState(moment().subtract(1, "minute"));
-  const [endTime, setEndTime] = useState(moment().add(1, "hour").add(59, "minutes"));
+  const [endTime, setEndTime] = useState(
+    moment().add(1, "hour").add(59, "minutes")
+  );
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
   const [timeScale, setTimeScale] = useState<TimeScale>(TimeScale.MINUTES);
 
-  const commandsAll = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
-  const runsQuery = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
+  const commandsAll = trpc.commandQueue.getAll.useQuery(undefined, {
+    refetchInterval: 1000,
+  });
+  const runsQuery = trpc.commandQueue.getAllRuns.useQuery(undefined, {
+    refetchInterval: 1000,
+  });
   const toolInfoQuery = trpc.tool.getAll.useQuery();
 
   const borderColor = useColorModeValue("gray.300", "gray.700");
@@ -65,13 +74,15 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
   }, []);
 
   useEffect(() => {
-    if (!isAutoScrolling || !commandsAll.data || commandsAll.data.length === 0) return;
+    if (!isAutoScrolling || !commandsAll.data || commandsAll.data.length === 0)
+      return;
 
     const allCommands = commandsAll.data;
     const firstCommandTime = moment(allCommands[0].createdAt);
     const lastCommandTime = allCommands.reduce((latest, cmd) => {
       const cmdEndTime = moment(
-        cmd.completedAt || moment(cmd.createdAt).add(cmd.estimatedDuration || 600, "seconds"),
+        cmd.completedAt ||
+          moment(cmd.createdAt).add(cmd.estimatedDuration || 600, "seconds")
       );
       return cmdEndTime.isAfter(latest) ? cmdEndTime : latest;
     }, firstCommandTime);
@@ -89,7 +100,13 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
 
   if (!commandsAll.data || !runsQuery.data) {
     return (
-      <Box width="100%" height="400px" display="flex" justifyContent="center" alignItems="center">
+      <Box
+        width="100%"
+        height="400px"
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+      >
         <Spinner />
       </Box>
     );
@@ -120,7 +137,10 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
     }
   };
 
-  const handleTimeWindowChange = (newStart: moment.Moment, newEnd: moment.Moment) => {
+  const handleTimeWindowChange = (
+    newStart: moment.Moment,
+    newEnd: moment.Moment
+  ) => {
     setIsAutoScrolling(false);
     setStartTime(newStart);
     setEndTime(newEnd);
@@ -156,7 +176,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
           borderLeft="1px dashed"
           borderColor={borderColorAlpha}
           zIndex={1}
-        />,
+        />
       );
     }
     return lines;
@@ -167,7 +187,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
 
     // Sort commands by queueId to maintain execution order
     const sortedCommands = [...commandsAll.data].sort(
-      (a, b) => (a.queueId || 0) - (b.queueId || 0),
+      (a, b) => (a.queueId || 0) - (b.queueId || 0)
     );
 
     // Group commands by tool type
@@ -180,7 +200,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
         acc[toolType].push(cmd);
         return acc;
       },
-      {} as Record<string, RunCommand[]>,
+      {} as Record<string, RunCommand[]>
     );
 
     const toolTypes = Object.keys(commandsByTool);
@@ -201,11 +221,15 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
 
         // For skipped commands, truncate at current time
         if (command.status === "SKIPPED") {
-          endMoment = command.completedAt ? moment(command.completedAt) : startMoment.clone(); // End right where it started if no completedAt time
+          endMoment = command.completedAt
+            ? moment(command.completedAt)
+            : startMoment.clone(); // End right where it started if no completedAt time
         } else {
           endMoment = moment(
             command.completedAt ||
-              startMoment.clone().add(command.estimatedDuration || 600, "seconds"),
+              startMoment
+                .clone()
+                .add(command.estimatedDuration || 600, "seconds")
           );
         }
 
@@ -244,7 +268,8 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
         return (
           <Tooltip
             key={command.queueId}
-            label={`Tool: ${command.commandInfo.toolType} | Command: ${command.commandInfo.command} | Status: ${command.status}`}>
+            label={`Tool: ${command.commandInfo.toolType} | Command: ${command.commandInfo.command} | Status: ${command.status}`}
+          >
             <Box
               position="absolute"
               height={`${blockHeight}px`}
@@ -265,7 +290,9 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
               zIndex={2}
               boxShadow={isSelected ? "md" : "none"}
               backgroundImage={pattern}
-              animation={command.status === "STARTED" ? "pulse 2s infinite" : undefined}
+              animation={
+                command.status === "STARTED" ? "pulse 2s infinite" : undefined
+              }
               sx={{
                 "@keyframes pulse": {
                   "0%": {
@@ -278,7 +305,8 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
                     boxShadow: "0 0 0 0 rgba(49, 151, 149, 0)",
                   },
                 },
-              }}>
+              }}
+            >
               {command.status === "STARTED" && (
                 <Box
                   position="absolute"
@@ -308,10 +336,14 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
                 letterSpacing="wide"
                 color="white"
                 isTruncated
-                maxWidth="90%">
+                maxWidth="90%"
+              >
                 {command.commandInfo.command
                   .split("_")
-                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                  .map(
+                    (word) =>
+                      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                  )
                   .join(" ")}
               </Text>
             </Box>
@@ -324,7 +356,9 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
   const renderToolLabels = () => {
     if (!commandsAll.data) return null;
 
-    const toolTypes = Array.from(new Set(commandsAll.data.map((cmd) => cmd.commandInfo.toolType)));
+    const toolTypes = Array.from(
+      new Set(commandsAll.data.map((cmd) => cmd.commandInfo.toolType))
+    );
     const rowHeight = 60;
 
     if (toolInfoQuery.isLoading) return null;
@@ -339,7 +373,8 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
         borderRight="1px solid"
         borderColor={borderColor}
         bg={toolLabelsBgColor}
-        zIndex={1}>
+        zIndex={1}
+      >
         {toolTypes.map((toolType, index) => {
           const toolInfo = toolInfoQuery.data?.find((t) => t.type === toolType);
           const imageUrl = toolInfo?.image_url;
@@ -360,7 +395,8 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
               alignItems="center"
               gap="3"
               _hover={{ bg: toolLabelHoverBg }}
-              transition="background 0.2s">
+              transition="background 0.2s"
+            >
               <Flex
                 width="40px"
                 height="40px"
@@ -368,9 +404,14 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
                 borderRadius="md"
                 justifyContent="center"
                 alignItems="center"
-                boxShadow="sm">
+                boxShadow="sm"
+              >
                 {isToolbox ? (
-                  <Box width="30px" height="30px" color={getToolColor("toolbox" as ToolType)}>
+                  <Box
+                    width="30px"
+                    height="30px"
+                    color={getToolColor("toolbox" as ToolType)}
+                  >
                     <PiToolbox style={{ width: "100%", height: "100%" }} />
                   </Box>
                 ) : imageUrl ? (
@@ -441,7 +482,9 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
   );
 
   const toolTypes = commandsAll.data
-    ? Array.from(new Set(commandsAll.data.map((cmd) => cmd.commandInfo.toolType)))
+    ? Array.from(
+        new Set(commandsAll.data.map((cmd) => cmd.commandInfo.toolType))
+      )
     : [];
   const totalHeight = toolTypes.length * 60;
 
@@ -464,8 +507,14 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
             overflowX="hidden"
             bg={mainBgColor}
             border="1px solid"
-            borderColor={borderColor}>
-            <Box position="relative" minHeight="100%" height={`${totalHeight}px`} pt="10px">
+            borderColor={borderColor}
+          >
+            <Box
+              position="relative"
+              minHeight="100%"
+              height={`${totalHeight}px`}
+              pt="10px"
+            >
               {renderGridLines()}
               <Box position="relative" zIndex={2}>
                 {renderCommands()}

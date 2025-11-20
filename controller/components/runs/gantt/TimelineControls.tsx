@@ -14,7 +14,11 @@ import {
   Flex,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { ArrowLeftIcon, ArrowRightIcon, ChevronDownIcon } from "@chakra-ui/icons";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ChevronDownIcon,
+} from "@chakra-ui/icons";
 import { BiTime } from "react-icons/bi";
 import moment from "moment";
 // import { TimeScale } from '@/types';
@@ -77,7 +81,10 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
 
     // Render labels for grid lines (excluding the first and last)
     for (let i = 1; i < timeIntervals; i++) {
-      const intervalTime = moment(startTime).add((totalDuration / timeIntervals) * i, "seconds");
+      const intervalTime = moment(startTime).add(
+        (totalDuration / timeIntervals) * i,
+        "seconds"
+      );
       // Adjust the left position to match grid lines
       const left = `calc(${(i / timeIntervals) * 100}% - 2px)`;
 
@@ -100,9 +107,10 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
             borderColor: hoverBorderColor,
           }}
           maxW="100px"
-          isTruncated>
+          isTruncated
+        >
           {intervalTime.format(format)}
-        </Text>,
+        </Text>
       );
     }
     return labels;
@@ -151,7 +159,8 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
               variant="outline"
               colorScheme="blue"
               float="right"
-              marginRight={4}>
+              marginRight={4}
+            >
               {getScaleLabel(timeScale)}
             </MenuButton>
             <MenuList
@@ -166,41 +175,48 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
                 },
                 backgroundColor: menuBg,
                 position: "relative",
-              }}>
+              }}
+            >
               <MenuItem
                 onClick={() => onZoomChange(TimeScale.SECONDS)}
                 sx={{
-                  backgroundColor: timeScale === TimeScale.SECONDS ? selectedBg : menuBg,
+                  backgroundColor:
+                    timeScale === TimeScale.SECONDS ? selectedBg : menuBg,
                   "&:hover": {
                     backgroundColor: menuHoverBg,
                   },
                   position: "relative",
                   zIndex: 101,
-                }}>
+                }}
+              >
                 Seconds View
               </MenuItem>
               <MenuItem
                 onClick={() => onZoomChange(TimeScale.MINUTES)}
                 sx={{
-                  backgroundColor: timeScale === TimeScale.MINUTES ? selectedBg : menuBg,
+                  backgroundColor:
+                    timeScale === TimeScale.MINUTES ? selectedBg : menuBg,
                   "&:hover": {
                     backgroundColor: menuHoverBg,
                   },
                   position: "relative",
                   zIndex: 101,
-                }}>
+                }}
+              >
                 Minutes View
               </MenuItem>
               <MenuItem
                 onClick={() => onZoomChange(TimeScale.HOURS)}
                 sx={{
-                  backgroundColor: timeScale === TimeScale.HOURS ? selectedBg : menuBg,
+                  backgroundColor:
+                    timeScale === TimeScale.HOURS ? selectedBg : menuBg,
                   "&:hover": {
                     backgroundColor: menuHoverBg,
                   },
                   position: "relative",
                   zIndex: 101,
-                }}>
+                }}
+              >
                 Hours View
               </MenuItem>
             </MenuList>
@@ -214,7 +230,8 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
         height="24px"
         mt={2}
         marginLeft="200px"
-        paddingX={4}>
+        paddingX={4}
+      >
         {renderTimeLabels()}
       </Box>
     </VStack>

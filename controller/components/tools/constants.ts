@@ -205,8 +205,16 @@ export const commandFields: CommandFields = {
     close_carrier: [],
     start_read: [
       { name: "protocol_file", type: "text", defaultValue: "C://protocols" },
-      { name: "experiment_name", type: "text", defaultValue: "C://experiments" },
-      { name: "well_addresses", type: "text_array", defaultValue: ["A1", "B2"] },
+      {
+        name: "experiment_name",
+        type: "text",
+        defaultValue: "C://experiments",
+      },
+      {
+        name: "well_addresses",
+        type: "text_array",
+        defaultValue: ["A1", "B2"],
+      },
     ],
   },
   dataman70: {

@@ -18,13 +18,17 @@ export const unpackError = (error: any): string => {
   } else if (error.response?.data?.error) {
     const { title, message } = error.response.data.error;
     errorMessage =
-      title && message ? `${title}: ${message}` : JSON.stringify(error.response.data.error);
+      title && message
+        ? `${title}: ${message}`
+        : JSON.stringify(error.response.data.error);
   } else if (error.response?.data?.message) {
     errorMessage = error.response.data.message;
   } else if (error.message) {
     errorMessage = error.message;
   }
-  return typeof errorMessage === "string" ? errorMessage : JSON.stringify(errorMessage);
+  return typeof errorMessage === "string"
+    ? errorMessage
+    : JSON.stringify(errorMessage);
 };
 
 export const get = async <T>(url: string, params?: any): Promise<T> => {
@@ -55,7 +59,7 @@ export const post = async <T>(url: string, data: any): Promise<T | null> => {
       const errorMsg = unpackError(error);
       console.error("Request error:", errorMsg);
       throw new Error(
-        `${error.response?.status} - ${errorMsg} - ${JSON.stringify(error.response?.data?.detail)}`,
+        `${error.response?.status} - ${errorMsg} - ${JSON.stringify(error.response?.data?.detail)}`
       );
     } else {
       console.error("Unexpected error:", error);
@@ -73,7 +77,7 @@ export const put = async <T>(url: string, data: any): Promise<T> => {
       const errorMsg = unpackError(error);
       console.error("Request error:", errorMsg);
       throw new Error(
-        `Error: ${error.response?.status} - ${errorMsg} - ${JSON.stringify(error.response?.data?.detail)}`,
+        `Error: ${error.response?.status} - ${errorMsg} - ${JSON.stringify(error.response?.data?.detail)}`
       );
     } else {
       console.error("Unexpected error:", error);
@@ -104,7 +108,7 @@ export const del = async <T>(url: string): Promise<T> => {
 export const uploadFile = async <T>(
   url: string,
   file: File,
-  extraData?: Record<string, any>,
+  extraData?: Record<string, any>
 ): Promise<T> => {
   try {
     // Create FormData and append the file
@@ -138,7 +142,10 @@ export const uploadFile = async <T>(
   }
 };
 
-export const downloadFile = async (url: string, filename?: string): Promise<void> => {
+export const downloadFile = async (
+  url: string,
+  filename?: string
+): Promise<void> => {
   try {
     const response = await api.get<Blob>(url, {
       responseType: "blob",
@@ -148,7 +155,9 @@ export const downloadFile = async (url: string, filename?: string): Promise<void
     if (!filename) {
       const contentDisposition = response.headers["content-disposition"];
       if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        const filenameMatch = contentDisposition.match(
+          /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+        );
         if (filenameMatch && filenameMatch[1]) {
           filename = filenameMatch[1].replace(/['"]/g, "");
         }
@@ -179,7 +188,9 @@ export const downloadFile = async (url: string, filename?: string): Promise<void
     if (axios.isAxiosError(error)) {
       const errorMsg = unpackError(error);
       console.error("File download error:", errorMsg);
-      throw new Error(`Error downloading file: ${error.response?.status} - ${errorMsg}`);
+      throw new Error(
+        `Error downloading file: ${error.response?.status} - ${errorMsg}`
+      );
     } else {
       console.error("Unexpected error during download:", error);
       throw new Error("An unexpected error occurred during file download");

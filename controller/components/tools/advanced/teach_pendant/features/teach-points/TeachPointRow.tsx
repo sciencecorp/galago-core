@@ -15,7 +15,11 @@ import {
   Tbody,
   Th,
 } from "@chakra-ui/react";
-import { ChevronUpIcon, ChevronDownIcon, HamburgerIcon } from "@chakra-ui/icons";
+import {
+  ChevronUpIcon,
+  ChevronDownIcon,
+  HamburgerIcon,
+} from "@chakra-ui/icons";
 import { Tool } from "@/types/api";
 import { TeachPoint } from "../../types";
 
@@ -63,7 +67,9 @@ export const TeachPointRow: React.FC<TeachPointRowProps> = ({
         </Td>
         <Td>{point.name}</Td>
         <Td>
-          <Badge colorScheme={point.type === "location" ? "blue" : "green"}>{point.type}</Badge>
+          <Badge colorScheme={point.type === "location" ? "blue" : "green"}>
+            {point.type}
+          </Badge>
         </Td>
         <Td textAlign="right">
           <Menu>
@@ -90,7 +96,9 @@ export const TeachPointRow: React.FC<TeachPointRowProps> = ({
             <VStack align="start" spacing={2} p={2}>
               <HStack width="100%" justify="space-between">
                 <Text fontWeight="bold">
-                  Coordinates ({point.locType ? getLocTypeDisplay(point.locType) : "Unknown"})
+                  Coordinates (
+                  {point.locType ? getLocTypeDisplay(point.locType) : "Unknown"}
+                  )
                 </Text>
                 <Badge colorScheme="gray">
                   {point.locType ? point.locType.toUpperCase() : "N/A"}
@@ -100,23 +108,33 @@ export const TeachPointRow: React.FC<TeachPointRowProps> = ({
                 <Thead>
                   <Tr>
                     {Array.from(
-                      { length: parseInt((config.config as any)?.pf400?.joints || "5") },
+                      {
+                        length: parseInt(
+                          (config.config as any)?.pf400?.joints || "5"
+                        ),
+                      },
                       (_, i) => (
                         <Th key={`j${i + 1}`}>J{i + 1}</Th>
-                      ),
+                      )
                     )}
                   </Tr>
                 </Thead>
                 <Tbody>
                   <Tr>
                     {point.coordinates ? (
-                      point.coordinates.split(" ").map((coord: string, i: number) => (
-                        <Td key={i} fontFamily="mono">
-                          {parseFloat(coord).toFixed(3)}
-                        </Td>
-                      ))
+                      point.coordinates
+                        .split(" ")
+                        .map((coord: string, i: number) => (
+                          <Td key={i} fontFamily="mono">
+                            {parseFloat(coord).toFixed(3)}
+                          </Td>
+                        ))
                     ) : (
-                      <Td colSpan={parseInt((config.config as any)?.pf400?.joints || "5")}>
+                      <Td
+                        colSpan={parseInt(
+                          (config.config as any)?.pf400?.joints || "5"
+                        )}
+                      >
                         No coordinates available
                       </Td>
                     )}

@@ -46,7 +46,9 @@ import { useCommonColors } from "@/components/ui/Theme";
 export const Labware: React.FC = () => {
   const [labware, setLabware] = useState<LabwareResponse[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLabwareId, setSelectedLabwareId] = useState<number | null>(null);
+  const [selectedLabwareId, setSelectedLabwareId] = useState<number | null>(
+    null
+  );
   const colors = useCommonColors();
 
   const { data: fetchedLabware, refetch } = trpc.labware.getAll.useQuery();
@@ -81,13 +83,13 @@ export const Labware: React.FC = () => {
     } catch (error) {
       errorToast(
         "Error deleting labware",
-        error instanceof Error ? error.message : "An error occurred",
+        error instanceof Error ? error.message : "An error occurred"
       );
     }
   };
 
   const filteredLabware = labware?.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleLabwareUpdate = async (editedLabware: LabwareResponse) => {
@@ -97,7 +99,7 @@ export const Labware: React.FC = () => {
     } catch (error) {
       errorToast(
         "Error updating labware",
-        error instanceof Error ? error.message : "An error occurred",
+        error instanceof Error ? error.message : "An error occurred"
       );
     }
   };
@@ -119,12 +121,17 @@ export const Labware: React.FC = () => {
           linkElement.setAttribute("download", exportFileDefaultName);
           linkElement.click();
 
-          successToast("Export Successful", "All labware configurations exported");
+          successToast(
+            "Export Successful",
+            "All labware configurations exported"
+          );
         }
       } catch (error) {
         errorToast(
           "Export Failed",
-          error instanceof Error ? error.message : "Failed to export all labware",
+          error instanceof Error
+            ? error.message
+            : "Failed to export all labware"
         );
       }
       return;
@@ -160,7 +167,8 @@ export const Labware: React.FC = () => {
   const totalLabware = labware.length;
   const hasLidCount = labware.filter((item) => item.has_lid).length;
   const avgRows = Math.round(
-    labware.reduce((sum, item) => sum + item.number_of_rows, 0) / (labware.length || 1),
+    labware.reduce((sum, item) => sum + item.number_of_rows, 0) /
+      (labware.length || 1)
   );
 
   // Create the Import button (regular size to match LabwareModal button)
@@ -171,7 +179,8 @@ export const Labware: React.FC = () => {
       variant="outline"
       onClick={handleImportClick}
       isLoading={isImporting}
-      isDisabled={isImporting}>
+      isDisabled={isImporting}
+    >
       Import
     </Button>
   );
@@ -184,7 +193,8 @@ export const Labware: React.FC = () => {
       variant="outline"
       onClick={onExportConfig}
       isDisabled={isExporting}
-      isLoading={isExporting}>
+      isLoading={isExporting}
+    >
       {selectedLabwareId ? "Export Selected" : "Export All"}
     </Button>
   );
@@ -198,7 +208,13 @@ export const Labware: React.FC = () => {
               <PageHeader
                 title="Labware"
                 subTitle="Manage and configure your labware definitions"
-                titleIcon={<Icon as={HiOutlineRectangleStack} boxSize={8} color="teal.500" />}
+                titleIcon={
+                  <Icon
+                    as={HiOutlineRectangleStack}
+                    boxSize={8}
+                    color="teal.500"
+                  />
+                }
                 mainButton={importButton}
                 secondaryButton={exportButton}
                 tertiaryButton={<LabwareModal />}
@@ -232,7 +248,8 @@ export const Labware: React.FC = () => {
                   <Stat>
                     <StatLabel>Selected</StatLabel>
                     <StatNumber fontSize="lg">
-                      {labware.find((item) => item.id === selectedLabwareId)?.name || "None"}
+                      {labware.find((item) => item.id === selectedLabwareId)
+                        ?.name || "None"}
                     </StatNumber>
                   </Stat>
                 )}
@@ -263,10 +280,12 @@ export const Labware: React.FC = () => {
                       fetchedLabware?.filter(
                         (item) =>
                           !e.target.value ||
-                          (item.number_of_rows === rows && item.number_of_columns === cols),
-                      ) as LabwareResponse[],
+                          (item.number_of_rows === rows &&
+                            item.number_of_columns === cols)
+                      ) as LabwareResponse[]
                     );
-                  }}>
+                  }}
+                >
                   <option value="2x3">6-well</option>
                   <option value="3x4">12-well</option>
                   <option value="4x6">24-well</option>
@@ -279,13 +298,15 @@ export const Labware: React.FC = () => {
                   maxW="200px"
                   bg={colors.inputBg}
                   onChange={(e) => {
-                    const hasLid = e.target.value === "" ? null : e.target.value === "true";
+                    const hasLid =
+                      e.target.value === "" ? null : e.target.value === "true";
                     setLabware(
                       fetchedLabware?.filter(
-                        (item) => hasLid === null || item.has_lid === hasLid,
-                      ) as LabwareResponse[],
+                        (item) => hasLid === null || item.has_lid === hasLid
+                      ) as LabwareResponse[]
                     );
-                  }}>
+                  }}
+                >
                   <option value="true">With Lid</option>
                   <option value="false">Without Lid</option>
                 </Select>
@@ -309,7 +330,8 @@ export const Labware: React.FC = () => {
                     td: {
                       borderColor: colors.borderColor,
                     },
-                  }}>
+                  }}
+                >
                   <Thead>
                     <Tr>
                       <Th></Th>
@@ -334,7 +356,12 @@ export const Labware: React.FC = () => {
                         _hover={{ bg: colors.hoverBg }}
                         onClick={() => handleRowClick(item)}
                         cursor="pointer"
-                        bg={selectedLabwareId === item.id ? colors.selectedBg : undefined}>
+                        bg={
+                          selectedLabwareId === item.id
+                            ? colors.selectedBg
+                            : undefined
+                        }
+                      >
                         <Td width="50px">
                           <WellPlateIcon
                             rows={item.number_of_rows}
@@ -344,7 +371,11 @@ export const Labware: React.FC = () => {
                         <Td>
                           <EditableText
                             onSubmit={async (value) => {
-                              value && (await handleLabwareUpdate({ ...item, name: value }));
+                              value &&
+                                (await handleLabwareUpdate({
+                                  ...item,
+                                  name: value,
+                                }));
                             }}
                             defaultValue={item.name}
                           />
@@ -352,7 +383,11 @@ export const Labware: React.FC = () => {
                         <Td>
                           <EditableText
                             onSubmit={async (value) => {
-                              value && (await handleLabwareUpdate({ ...item, description: value }));
+                              value &&
+                                (await handleLabwareUpdate({
+                                  ...item,
+                                  description: value,
+                                }));
                             }}
                             defaultValue={item.description}
                           />
@@ -362,7 +397,10 @@ export const Labware: React.FC = () => {
                             onSubmit={async (value) => {
                               const numValue = Number(value);
                               !isNaN(numValue) &&
-                                (await handleLabwareUpdate({ ...item, number_of_rows: numValue }));
+                                (await handleLabwareUpdate({
+                                  ...item,
+                                  number_of_rows: numValue,
+                                }));
                             }}
                             defaultValue={item.number_of_rows.toString()}
                           />
@@ -385,7 +423,10 @@ export const Labware: React.FC = () => {
                             onSubmit={async (value) => {
                               const numValue = Number(value);
                               !isNaN(numValue) &&
-                                (await handleLabwareUpdate({ ...item, z_offset: numValue }));
+                                (await handleLabwareUpdate({
+                                  ...item,
+                                  z_offset: numValue,
+                                }));
                             }}
                             defaultValue={item.z_offset.toString()}
                           />
@@ -395,9 +436,14 @@ export const Labware: React.FC = () => {
                             onSubmit={async (value) => {
                               const numValue = Number(value);
                               !isNaN(numValue) &&
-                                (await handleLabwareUpdate({ ...item, width: numValue }));
+                                (await handleLabwareUpdate({
+                                  ...item,
+                                  width: numValue,
+                                }));
                             }}
-                            defaultValue={item.width ? item.width.toString() : ""}
+                            defaultValue={
+                              item.width ? item.width.toString() : ""
+                            }
                           />
                         </Td>
                         <Td>
@@ -405,7 +451,10 @@ export const Labware: React.FC = () => {
                             onSubmit={async (value) => {
                               const numValue = Number(value);
                               !isNaN(numValue) &&
-                                (await handleLabwareUpdate({ ...item, height: numValue }));
+                                (await handleLabwareUpdate({
+                                  ...item,
+                                  height: numValue,
+                                }));
                             }}
                             defaultValue={item.height.toString()}
                           />
@@ -421,7 +470,9 @@ export const Labware: React.FC = () => {
                                 }));
                             }}
                             defaultValue={
-                              item.plate_lid_offset ? item.plate_lid_offset.toString() : ""
+                              item.plate_lid_offset
+                                ? item.plate_lid_offset.toString()
+                                : ""
                             }
                           />
                         </Td>
@@ -430,9 +481,14 @@ export const Labware: React.FC = () => {
                             onSubmit={async (value) => {
                               const numValue = Number(value);
                               !isNaN(numValue) &&
-                                (await handleLabwareUpdate({ ...item, lid_offset: numValue }));
+                                (await handleLabwareUpdate({
+                                  ...item,
+                                  lid_offset: numValue,
+                                }));
                             }}
-                            defaultValue={item.lid_offset ? item.lid_offset.toString() : ""}
+                            defaultValue={
+                              item.lid_offset ? item.lid_offset.toString() : ""
+                            }
                           />
                         </Td>
                         <Td>
@@ -440,16 +496,26 @@ export const Labware: React.FC = () => {
                             onSubmit={async (value) => {
                               const numValue = Number(value);
                               !isNaN(numValue) &&
-                                (await handleLabwareUpdate({ ...item, stack_height: numValue }));
+                                (await handleLabwareUpdate({
+                                  ...item,
+                                  stack_height: numValue,
+                                }));
                             }}
-                            defaultValue={item.stack_height ? item.stack_height.toString() : ""}
+                            defaultValue={
+                              item.stack_height
+                                ? item.stack_height.toString()
+                                : ""
+                            }
                           />
                         </Td>
                         <Td>
                           <Switch
                             isChecked={item.has_lid}
                             onChange={async (e) => {
-                              await handleLabwareUpdate({ ...item, has_lid: e.target.checked });
+                              await handleLabwareUpdate({
+                                ...item,
+                                has_lid: e.target.checked,
+                              });
                             }}
                           />
                         </Td>

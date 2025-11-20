@@ -2,7 +2,8 @@ import { useState } from "react";
 
 export const useTeachPendantSettings = () => {
   // Settings state
-  const [autoRegisterMotionProfile, setAutoRegisterMotionProfile] = useState(true);
+  const [autoRegisterMotionProfile, setAutoRegisterMotionProfile] =
+    useState(true);
   const [confirmBeforeDelete, setConfirmBeforeDelete] = useState(true);
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   const [defaultJogDistance, setDefaultJogDistance] = useState(10);

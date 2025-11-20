@@ -23,7 +23,13 @@ import {
   NumberInputField,
   Input,
 } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon, CheckIcon } from "@chakra-ui/icons";
+import {
+  AddIcon,
+  DeleteIcon,
+  EditIcon,
+  HamburgerIcon,
+  CheckIcon,
+} from "@chakra-ui/icons";
 import { GripParams } from "../../types";
 import { useState, useRef } from "react";
 import { useOutsideClick } from "@chakra-ui/react";
@@ -60,7 +66,11 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
   const textColor = useColorModeValue("gray.800", "gray.100");
   const tableRef = useRef<HTMLDivElement>(null);
 
-  const handleSaveValue = (param: GripParams, field: keyof GripParams, value: any) => {
+  const handleSaveValue = (
+    param: GripParams,
+    field: keyof GripParams,
+    value: any
+  ) => {
     const updatedParams = { ...param, [field]: value };
     onInlineEdit(updatedParams);
   };
@@ -78,10 +88,16 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
               size="sm"
               onClick={onDeleteAll}
               colorScheme="red"
-              variant="outline">
+              variant="outline"
+            >
               Delete All
             </Button>
-            <Button leftIcon={<AddIcon />} size="sm" onClick={onAdd} colorScheme="blue">
+            <Button
+              leftIcon={<AddIcon />}
+              size="sm"
+              onClick={onAdd}
+              colorScheme="blue"
+            >
               New Grip Parameters
             </Button>
           </HStack>
@@ -96,8 +112,9 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
             borderColor={borderColor}
             boxShadow={useColorModeValue(
               "0 1px 3px rgba(0, 0, 0, 0.1)",
-              "0 1px 3px rgba(0, 0, 0, 0.3)",
-            )}>
+              "0 1px 3px rgba(0, 0, 0, 0.3)"
+            )}
+          >
             <Table
               variant="simple"
               size="sm"
@@ -118,7 +135,8 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
                   borderColor: borderColor,
                   color: textColor,
                 },
-              }}>
+              }}
+            >
               <Thead position="sticky" top={0} zIndex={1}>
                 <Tr>
                   <Th bg={headerBgColor} color={textColor}>
@@ -141,7 +159,8 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
                     minWidth="120px"
                     textAlign="right"
                     bg={headerBgColor}
-                    color={textColor}>
+                    color={textColor}
+                  >
                     Actions
                   </Th>
                 </Tr>
@@ -151,13 +170,18 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
                   <Tr
                     key={param.id}
                     bg={param.id === defaultParamsId ? bgColorAlpha : undefined}
-                    _hover={{ bg: hoverBgColor }}>
+                    _hover={{ bg: hoverBgColor }}
+                  >
                     <Td>
                       <Switch
                         isChecked={param.id === defaultParamsId}
                         onChange={() =>
                           onSetDefault(
-                            param.id ? (param.id === defaultParamsId ? null : param.id) : null,
+                            param.id
+                              ? param.id === defaultParamsId
+                                ? null
+                                : param.id
+                              : null
                           )
                         }
                       />
@@ -175,7 +199,8 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
                         defaultValue={(param.width ?? 0).toString()}
                         onSubmit={(value) => {
                           const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(param, "width", numValue);
+                          !isNaN(numValue) &&
+                            handleSaveValue(param, "width", numValue);
                         }}
                       />
                     </Td>
@@ -184,7 +209,8 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
                         defaultValue={(param.speed ?? 0).toString()}
                         onSubmit={(value) => {
                           const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(param, "speed", numValue);
+                          !isNaN(numValue) &&
+                            handleSaveValue(param, "speed", numValue);
                         }}
                       />
                     </Td>
@@ -193,7 +219,8 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
                         defaultValue={(param.force ?? 0).toString()}
                         onSubmit={(value) => {
                           const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(param, "force", numValue);
+                          !isNaN(numValue) &&
+                            handleSaveValue(param, "force", numValue);
                         }}
                       />
                     </Td>
@@ -212,7 +239,8 @@ export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
                           <MenuItem
                             icon={<DeleteIcon />}
                             onClick={() => onDelete(param.id!)}
-                            color="red.500">
+                            color="red.500"
+                          >
                             Delete Parameters
                           </MenuItem>
                         </MenuList>

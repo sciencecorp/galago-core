@@ -5,7 +5,9 @@ interface GanttGridLinesProps {
   intervals: number;
 }
 
-export const GanttGridLines: React.FC<GanttGridLinesProps> = ({ intervals }) => {
+export const GanttGridLines: React.FC<GanttGridLinesProps> = ({
+  intervals,
+}) => {
   const borderColorAlpha = useColorModeValue("gray.300", "gray.600");
 
   const lines = [];
@@ -22,7 +24,7 @@ export const GanttGridLines: React.FC<GanttGridLinesProps> = ({ intervals }) => 
         borderLeft="1px dashed"
         borderColor={borderColorAlpha}
         zIndex={1}
-      />,
+      />
     );
   }
   return <>{lines}</>;

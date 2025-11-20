@@ -21,26 +21,33 @@ export const protocolRouter = router({
     return response;
   }),
 
-  allNames: procedure.input(z.object({ workcellName: z.string() })).query(async ({ input }) => {
-    const { workcellName } = input;
-    const response = await get<Protocol[]>(`protocols`, {
-      params: { workcell_name: workcellName },
-    });
-    return response;
-  }),
+  allNames: procedure
+    .input(z.object({ workcellName: z.string() }))
+    .query(async ({ input }) => {
+      const { workcellName } = input;
+      const response = await get<Protocol[]>(`protocols`, {
+        params: { workcell_name: workcellName },
+      });
+      return response;
+    }),
 
-  get: procedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-    const { id } = input;
-    const response = await get<Protocol>(`/protocols/${id}`);
-    return response;
-  }),
+  get: procedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      const { id } = input;
+      const response = await get<Protocol>(`/protocols/${id}`);
+      return response;
+    }),
 
   create: procedure.input(protocolSchema).mutation(async ({ input }) => {
     const protocolData = {
       ...input,
       commands: input.commands || [],
     };
-    const response = await post<Protocol>(`${API_BASE_URL}/protocols`, protocolData);
+    const response = await post<Protocol>(
+      `${API_BASE_URL}/protocols`,
+      protocolData
+    );
     logAction({
       level: "info",
       action: "New Protocol Added",
@@ -54,10 +61,13 @@ export const protocolRouter = router({
       z.object({
         id: z.number(),
         data: protocolSchema.partial(),
-      }),
+      })
     )
     .mutation(async ({ input }) => {
-      const response = await axios.put(`${API_BASE_URL}/protocols/${input.id}`, input.data);
+      const response = await axios.put(
+        `${API_BASE_URL}/protocols/${input.id}`,
+        input.data
+      );
       logAction({
         level: "info",
         action: "Protocol Updated",
@@ -66,18 +76,22 @@ export const protocolRouter = router({
       return response.data;
     }),
 
-  delete: procedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
-    await axios.delete(`${API_BASE_URL}/protocols/${input.id}`);
-    logAction({
-      level: "info",
-      action: "Protocol Deleted",
-      details: `Protocol ${input.id} deleted successfully.`,
-    });
-    return { success: true };
-  }),
+  delete: procedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      await axios.delete(`${API_BASE_URL}/protocols/${input.id}`);
+      logAction({
+        level: "info",
+        action: "Protocol Deleted",
+        details: `Protocol ${input.id} deleted successfully.`,
+      });
+      return { success: true };
+    }),
 
-  getById: procedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
-    const response = await axios.get(`${API_BASE_URL}/protocols/${input.id}`);
-    return response.data;
-  }),
+  getById: procedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ input }) => {
+      const response = await axios.get(`${API_BASE_URL}/protocols/${input.id}`);
+      return response.data;
+    }),
 });

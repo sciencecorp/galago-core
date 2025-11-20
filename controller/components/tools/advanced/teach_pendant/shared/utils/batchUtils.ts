@@ -11,9 +11,11 @@ import { batchOperationToast } from "@/components/ui/Toast";
 export const createBatchHandler = <T, R>(
   singleItemHandler: (item: T) => Promise<R>,
   operationName: string,
-  itemTypeName: string,
+  itemTypeName: string
 ) => {
-  return async (items: T[]): Promise<{ successCount: number; errorCount: number }> => {
+  return async (
+    items: T[]
+  ): Promise<{ successCount: number; errorCount: number }> => {
     if (items.length === 0) {
       batchOperationToast(operationName, itemTypeName, 0, 0);
       return { successCount: 0, errorCount: 0 };
@@ -32,7 +34,13 @@ export const createBatchHandler = <T, R>(
       }
     }
 
-    batchOperationToast(operationName, itemTypeName, items.length, successCount, errorCount);
+    batchOperationToast(
+      operationName,
+      itemTypeName,
+      items.length,
+      successCount,
+      errorCount
+    );
     return { successCount, errorCount };
   };
 };
@@ -48,11 +56,15 @@ export const createBatchHandler = <T, R>(
 export const createBatchIdHandler = <T extends { id: number | undefined }, R>(
   singleItemHandler: (id: number) => Promise<R>,
   operationName: string,
-  itemTypeName: string,
+  itemTypeName: string
 ) => {
-  return async (items: T[]): Promise<{ successCount: number; errorCount: number }> => {
+  return async (
+    items: T[]
+  ): Promise<{ successCount: number; errorCount: number }> => {
     // Filter out items without IDs and extract IDs
-    const ids = items.map((item) => item.id).filter((id): id is number => id !== undefined);
+    const ids = items
+      .map((item) => item.id)
+      .filter((id): id is number => id !== undefined);
 
     if (ids.length === 0) {
       batchOperationToast(operationName, itemTypeName, 0, 0);
@@ -67,12 +79,21 @@ export const createBatchIdHandler = <T extends { id: number | undefined }, R>(
         await singleItemHandler(id);
         successCount++;
       } catch (error) {
-        console.error(`Failed to ${operationName} ${itemTypeName} with ID ${id}:`, error);
+        console.error(
+          `Failed to ${operationName} ${itemTypeName} with ID ${id}:`,
+          error
+        );
         errorCount++;
       }
     }
 
-    batchOperationToast(operationName, itemTypeName, ids.length, successCount, errorCount);
+    batchOperationToast(
+      operationName,
+      itemTypeName,
+      ids.length,
+      successCount,
+      errorCount
+    );
     return { successCount, errorCount };
   };
 };
@@ -83,9 +104,11 @@ export const createBatchIdHandler = <T extends { id: number | undefined }, R>(
 export const createBatchHandlerForIds = <R>(
   singleIdHandler: (id: number) => Promise<R>,
   operationName: string,
-  itemTypeName: string,
+  itemTypeName: string
 ) => {
-  return async (ids: number[]): Promise<{ successCount: number; errorCount: number }> => {
+  return async (
+    ids: number[]
+  ): Promise<{ successCount: number; errorCount: number }> => {
     if (ids.length === 0) {
       batchOperationToast(operationName, itemTypeName, 0, 0);
       return { successCount: 0, errorCount: 0 };
@@ -99,12 +122,21 @@ export const createBatchHandlerForIds = <R>(
         await singleIdHandler(id);
         successCount++;
       } catch (error) {
-        console.error(`Failed to ${operationName} ${itemTypeName} with ID ${id}:`, error);
+        console.error(
+          `Failed to ${operationName} ${itemTypeName} with ID ${id}:`,
+          error
+        );
         errorCount++;
       }
     }
 
-    batchOperationToast(operationName, itemTypeName, ids.length, successCount, errorCount);
+    batchOperationToast(
+      operationName,
+      itemTypeName,
+      ids.length,
+      successCount,
+      errorCount
+    );
     return { successCount, errorCount };
   };
 };
