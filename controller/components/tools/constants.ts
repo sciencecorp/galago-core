@@ -133,68 +133,64 @@ export const commandFields: CommandFields = {
     run_runset: [{ name: "runset_file", type: "text" }],
   },
   bravo: {
-    initialize: [{ name: "profile", type: "text", defaultValue: "Mol Bio Bravo" }],
-    close: [],
-    home_w: [],
-    home_xyz: [],
-    mix: [
-      { name: "volume", type: "number", defaultValue: 100 },
-      { name: "pre_aspirate_volume", type: "number", defaultValue: 0 },
-      { name: "blow_out_volume", type: "number", defaultValue: 0 },
-      { name: "cycles", type: "number", defaultValue: 3 },
-      { name: "plate_location", type: "number", defaultValue: 1 },
-      { name: "distance_from_well_bottom", type: "number", defaultValue: 0 },
-      { name: "retract_distance_per_microliter", type: "number", defaultValue: 0 },
-    ],
-    wash: [
-      { name: "volume", type: "number", defaultValue: 100 },
-      { name: "empty_tips", type: "boolean", defaultValue: true },
-      { name: "pre_aspirate_volume", type: "number", defaultValue: 0 },
-      { name: "blow_out_volume", type: "number", defaultValue: 0 },
-      { name: "cycles", type: "number", defaultValue: 3 },
-      { name: "plate_location", type: "number", defaultValue: 1 },
-      { name: "distance_from_well_bottom", type: "number", defaultValue: 0 },
-      { name: "retract_distance_per_microliter", type: "number", defaultValue: 0 },
-      { name: "pump_in_flow_speed", type: "number", defaultValue: 100 },
-      { name: "pump_out_flow_speed", type: "number", defaultValue: 100 },
-    ],
-    aspirate: [
-      { name: "volume", type: "number", defaultValue: 100 },
-      { name: "plate_location", type: "number", defaultValue: 1 },
-      { name: "distance_from_well_bottom", type: "number", defaultValue: 0 },
-      { name: "pre_aspirate_volume", type: "number", defaultValue: 0 },
-      { name: "post_aspirate_volume", type: "number", defaultValue: 0 },
-      { name: "retract_distance_per_microliter", type: "number", defaultValue: 0 },
-    ],
-    dispense: [
-      { name: "volume", type: "number", defaultValue: 100 },
-      { name: "empty_tips", type: "boolean", defaultValue: false },
-      { name: "blow_out_volume", type: "number", defaultValue: 0 },
-      { name: "plate_location", type: "number", defaultValue: 1 },
-      { name: "distance_from_well_bottom", type: "number", defaultValue: 0 },
-      { name: "retract_distance_per_microliter", type: "number", defaultValue: 0 },
-    ],
-    tips_on: [{ name: "plate_location", type: "number", defaultValue: 1 }],
-    tips_off: [{ name: "plate_location", type: "number", defaultValue: 1 }],
-    move_to_location: [
-      { name: "plate_location", type: "number", defaultValue: 1 },
-      { name: "only_z", type: "boolean", defaultValue: false },
-    ],
-    set_labware_at_location: [
-      { name: "plate_location", type: "number", defaultValue: 1 },
-      { name: "labware_type", type: "text", defaultValue: "96-well plate" },
-    ],
-    set_liquid_class: [{ name: "liquid_class", type: "text", defaultValue: "Water" }],
-    pick_and_place: [
-      { name: "source_location", type: "number", defaultValue: 1 },
-      { name: "dest_location", type: "number", defaultValue: 2 },
-      { name: "gripper_offset", type: "number", defaultValue: 0 },
-      { name: "labware_thickness", type: "number", defaultValue: 14 },
-    ],
-    get_device_configuration: [],
-    get_firmware_version: [],
-    enumerate_profiles: [],
-    show_diagnostics: [],
+      home: [
+    { name: "axis", type: "text", defaultValue: "X" },
+    { name: "force_initialize", type: "boolean", defaultValue: true }
+  ],
+  mix: [
+    { name: "location", type: "number", defaultValue: 1 },
+    { name: "volume", type: "number", defaultValue: 100 },
+    { name: "pre_aspirate_volume", type: "number", defaultValue: 0 },
+    { name: "blow_out_volume", type: "number", defaultValue: 0 },
+    { name: "liquid_class", type: "text", defaultValue: "" },
+    { name: "cycles", type: "number", defaultValue: 3 },
+    { name: "retract_distance_per_microliter", type: "number", defaultValue: 0 },
+    { name: "pipette_technique", type: "text", defaultValue: "" },
+    { name: "aspirate_distance", type: "number", defaultValue: 2.0 },
+    { name: "dispense_distance", type: "number", defaultValue: 2.0 },
+    { name: "perform_tip_touch", type: "boolean", defaultValue: false },
+    { name: "tip_touch_side", type: "text", defaultValue: "None" },
+    { name: "tip_touch_retract_distance", type: "number", defaultValue: 0 },
+    { name: "tip_touch_horizonal_offset", type: "number", defaultValue: 0 }
+  ],
+  aspirate: [
+    { name: "location", type: "number", defaultValue: 1 },
+    { name: "volume", type: "number", defaultValue: 100 },
+    { name: "pre_aspirate_volume", type: "number", defaultValue: 0 },
+    { name: "post_aspirate_volume", type: "number", defaultValue: 0 },
+    { name: "liquid_class", type: "text", defaultValue: "" },
+    { name: "distance_from_well_bottom", type: "number", defaultValue: 2.0 },
+    { name: "retract_distance_per_microliter", type: "number", defaultValue: 0 },
+    { name: "pipette_technique", type: "text", defaultValue: "" },
+    { name: "perform_tip_touch", type: "boolean", defaultValue: false },
+    { name: "tip_touch_side", type: "text", defaultValue: "None" },
+    { name: "tip_touch_retract_distance", type: "number", defaultValue: 0 },
+    { name: "tip_touch_horizonal_offset", type: "number", defaultValue: 0 }
+  ],
+  dispense: [
+    { name: "location", type: "number", defaultValue: 1 },
+    { name: "empty_tips", type: "boolean", defaultValue: false },
+    { name: "volume", type: "number", defaultValue: 100 },
+    { name: "blow_out_volume", type: "number", defaultValue: 0 },
+    { name: "liquid_class", type: "text", defaultValue: "" },
+    { name: "distance_from_well_bottom", type: "number", defaultValue: 2.0 },
+    { name: "retract_distance_per_microliter", type: "number", defaultValue: 0 },
+    { name: "pipette_technique", type: "text", defaultValue: "" },
+    { name: "perform_tip_touch", type: "boolean", defaultValue: false },
+    { name: "tip_touch_side", type: "text", defaultValue: "None" },
+    { name: "tip_touch_retract_distance", type: "number", defaultValue: 0 },
+    { name: "tip_touch_horizonal_offset", type: "number", defaultValue: 0 }
+  ],
+  tips_on: [
+    { name: "plate_location", type: "number", defaultValue: 1 }
+  ],
+  tips_off: [
+    { name: "plate_location", type: "number", defaultValue: 1 }
+  ],
+  move_to_location: [
+    { name: "plate_location", type: "number", defaultValue: 1 }
+  ],
+  show_diagnostics: []
   },
   vprep: {
     run_protocol: [{ name: "protocol_file", type: "text" }],

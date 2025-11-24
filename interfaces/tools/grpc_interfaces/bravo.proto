@@ -1,78 +1,72 @@
 syntax = 'proto3';
 
 package com.science.foundry.tools.grpc_interfaces.bravo;
+import "google/protobuf/struct.proto";
+
 
 message Command {
   oneof command {
-    Initialize initialize = 1;
-    Close close = 2;
-    HomeW home_w = 3;
-    HomeXYZ home_xyz = 4;
-    Mix mix = 5;
-    Wash wash = 6;
-    Aspirate aspirate = 7;
-    Dispense dispense = 8;
-    TipsOn tips_on = 9;
-    TipsOff tips_off = 10;
-    MoveToLocation move_to_location = 11;
-    SetLabwareAtLocation set_labware_at_location = 12;
-    SetLiquidClass set_liquid_class = 13;
-    PickAndPlace pick_and_place = 14;
-    GetDeviceConfiguration get_device_configuration = 15;
-    GetFirmwareVersion get_firmware_version = 16;
-    EnumerateProfiles enumerate_profiles = 17;
-    ShowDiagnostics show_diagnostics = 18;
+    Home home = 1;
+    Mix mix = 2;
+    Aspirate aspirate = 3;
+    Dispense dispense = 4;
+    TipsOn tips_on = 5;
+    TipsOff tips_off = 6;
+    MoveToLocation move_to_location = 7;
+    ConfigureDeck configure_deck = 8;
+    ShowDiagnostics show_diagnostics = 9;
   }
 
-  message Initialize {
-    string profile = 1;
+  message Home{
+    string axis =1;
+    bool force_initialize = 2; 
   }
-
-  message Close {}
-
-  message HomeW {}
-
-  message HomeXYZ {}
 
   message Mix {
-    float volume = 1;
-    float pre_aspirate_volume = 2;
-    float blow_out_volume = 3;
-    int32 cycles = 4;
-    int32 plate_location = 5;
-    float distance_from_well_bottom = 6;
-    float retract_distance_per_microliter = 7;
-  }
-
-  message Wash {
-    float volume = 1;
-    bool empty_tips = 2;
-    float pre_aspirate_volume = 3;
+    int32 location = 1;
+    float volume = 2;
+    float pre_aspirate_volume = 3;  
     float blow_out_volume = 4;
-    int32 cycles = 5;
-    int32 plate_location = 6;
-    float distance_from_well_bottom = 7;
-    float retract_distance_per_microliter = 8;
-    float pump_in_flow_speed = 9;
-    float pump_out_flow_speed = 10;
+    string liquid_class = 5;
+    int32 cycles = 6;
+    float retract_distance_per_microliter = 7;
+    string pipette_technique = 8;
+    float aspirate_distance = 9;
+    float dispense_distance = 10;
+    bool perform_tip_touch = 11;
+    string tip_touch_side =12;
+    float tip_touch_retract_distance = 13;
+    float tip_touch_horizonal_offset = 14; 
   }
 
   message Aspirate {
-    float volume = 1;
-    int32 plate_location = 2;
-    optional float distance_from_well_bottom = 3;
-    optional float pre_aspirate_volume = 4;
-    optional float post_aspirate_volume = 5;
-    optional float retract_distance_per_microliter = 6;
+    int32 location = 1;
+    float volume = 2;
+    float pre_aspirate_volume = 3;  
+    float post_aspirate_volume = 4;
+    string liquid_class = 5;
+    float distance_from_well_bottom = 6;
+    float retract_distance_per_microliter = 7;
+    string pipette_technique = 8;
+    bool perform_tip_touch = 9;
+    string tip_touch_side =10;
+    float tip_touch_retract_distance = 11;
+    float tip_touch_horizonal_offset = 12; 
   }
 
   message Dispense {
-    float volume = 1;
+    int32 location = 1;
     bool empty_tips = 2;
-    float blow_out_volume = 3;
-    int32 plate_location = 4;
-    optional float distance_from_well_bottom = 5;
-    optional float retract_distance_per_microliter = 6;
+    float volume = 3;
+    float blow_out_volume = 4;  
+    string liquid_class = 6;
+    float distance_from_well_bottom = 7;
+    float retract_distance_per_microliter = 8;
+    string pipette_technique = 9;
+    bool perform_tip_touch = 10;
+    string tip_touch_side =11;
+    float tip_touch_retract_distance = 12;
+    float tip_touch_horizonal_offset = 13; 
   }
 
   message TipsOn {
@@ -85,32 +79,13 @@ message Command {
 
   message MoveToLocation {
     int32 plate_location = 1;
-    optional bool only_z = 2;
   }
-
-  message SetLabwareAtLocation {
-    int32 plate_location = 1;
-    string labware_type = 2;
-  }
-
-  message SetLiquidClass {
-    string liquid_class = 1;
-  }
-
-  message PickAndPlace {
-    int32 source_location = 1;
-    int32 dest_location = 2;
-    float gripper_offset = 3;
-    float labware_thickness = 4;
-  }
-
-  message GetDeviceConfiguration {}
-
-  message GetFirmwareVersion {}
-
-  message EnumerateProfiles {}
 
   message ShowDiagnostics {}
+
+  message ConfigureDeck {
+    google.protobuf.Struct deck_configuration = 2;
+  }
 }
 
 message Response {
@@ -145,5 +120,5 @@ message Response {
 }
 
 message Config {
-    string profile = 1;
+    string device_file = 1;
 }
