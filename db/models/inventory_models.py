@@ -53,7 +53,9 @@ class Workcell(Base, TimestampMixin):
     script_folders: RelationshipProperty[List["ScriptFolder"]] = relationship(
         "ScriptFolder", back_populates="workcell", cascade="all, delete-orphan"
     )
-
+    bravo_deck_configs: RelationshipProperty[List["BravoDeckConfig"]] = relationship(
+        "BravoDeckConfig", back_populates="workcell", cascade="all, delete-orphan"
+    )
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
 
@@ -484,4 +486,24 @@ class BravoSequenceStep(Base, TimestampMixin):
     __table_args__ = (
         CheckConstraint("command_name <> ''", name="check_non_empty_command_name"),
         CheckConstraint("label <> ''", name="check_non_empty_label"),
+    )
+
+
+class BravoDeckConfig(Base, TimestampMixin):
+    __tablename__ = "bravo_deck_configs"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    deck_layout = Column(JSON, nullable=False)
+    workcell_id = Column(Integer, ForeignKey("workcells.id"))
+
+    # Relationships
+    workcell: RelationshipProperty[Optional["Workcell"]] = relationship(
+        "Workcell", back_populates="bravo_deck_configs"
+    )
+
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+        UniqueConstraint(
+            "name", "workcell_id", name="unique_bravo_deck_config_name_per_workcell"
+        ),
     )

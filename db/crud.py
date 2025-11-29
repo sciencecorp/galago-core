@@ -431,3 +431,7 @@ bravo_sequence_step = CRUDBase[
     schemas.BravoSequenceStepCreate,
     schemas.BravoSequenceStepUpdate,
 ](models.BravoSequenceStep)
+
+bravo_deck_config = CRUDBase[
+    models.BravoDeckConfig, schemas.BravoDeckConfigCreate, schemas.BravoDeckConfigUpdate
+](models.BravoDeckConfig)

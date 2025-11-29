@@ -1088,3 +1088,74 @@ class BravoSequence(BravoSequenceBase, TimestampMixin):
 class ReorderBravoStepsRequest(BaseModel):
     sequence_id: int
     step_ids: List[int]
+
+
+# Bravo Deck Config Schemas
+class BravoDeckConfigBase(BaseModel):
+    name: str
+    deck_layout: Dict[str, Optional[str]]
+    workcell_id: int
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_deck_layout(cls, data: t.Any) -> t.Any:
+        if not isinstance(data, dict):
+            return data
+
+        deck_layout = data.get("deck_layout", {})
+
+        # Validate that deck_layout is a dictionary
+        if not isinstance(deck_layout, dict):
+            raise ValueError("deck_layout must be a dictionary")
+
+        # Validate that we have exactly 9 locations (1-9)
+        required_locations = {str(i) for i in range(1, 10)}
+        provided_locations = set(deck_layout.keys())
+
+        if provided_locations != required_locations:
+            missing = required_locations - provided_locations
+            extra = provided_locations - required_locations
+            error_parts = []
+            if missing:
+                error_parts.append(f"missing locations: {sorted(missing)}")
+            if extra:
+                error_parts.append(f"unexpected locations: {sorted(extra)}")
+            raise ValueError(
+                f"deck_layout must have exactly locations 1-9. {', '.join(error_parts)}"
+            )
+
+        # Validate that all values are either strings or None
+        for location, labware in deck_layout.items():
+            if labware is not None and not isinstance(labware, str):
+                raise ValueError(
+                    f"Location {location} labware must be a string or null, got {type(labware).__name__}"
+                )
+
+        return data
+
+
+class BravoDeckConfigCreate(BravoDeckConfigBase):
+    pass
+
+
+class BravoDeckConfigUpdate(BaseModel):
+    name: t.Optional[str] = None
+    deck_layout: t.Optional[Dict[str, Optional[str]]] = None
+    workcell_id: t.Optional[int] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_deck_layout(cls, data: t.Any) -> t.Any:
+        if not isinstance(data, dict):
+            return data
+
+        # Only validate if deck_layout is being updated
+        if "deck_layout" in data and data["deck_layout"] is not None:
+            return BravoDeckConfigBase.validate_deck_layout(data)
+
+        return data
+
+
+class BravoDeckConfig(BravoDeckConfigBase, TimestampMixin):
+    id: int
+    model_config = ConfigDict(from_attributes=True)
