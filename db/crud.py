@@ -1,14 +1,14 @@
+import typing as t
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from db import schemas
 import db.models.inventory_models as models
 import db.models.log_models as log_model
-import typing as t
-from sqlalchemy import func
+from db import schemas
 
 ModelType = TypeVar("ModelType", bound=models.Base)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
@@ -61,7 +61,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             search_name = id
             if normalize_name:
                 search_name = id.lower().replace(" ", "_").strip()
-            
+
             # Always do case-insensitive search by lowering both sides
             return (
                 db.query(self.model)
@@ -415,8 +415,19 @@ robot_arm_grip_params = CRUDBase[
 
 form = CRUDBase[models.Form, schemas.FormCreate, schemas.FormUpdate](models.Form)
 
+
 class CRUDHotel(CRUDBase[models.Hotel, schemas.HotelCreate, schemas.HotelUpdate]):
     pass
 
 
 hotel = CRUDHotel(models.Hotel)
+
+bravo_sequence = CRUDBase[
+    models.BravoSequence, schemas.BravoSequenceCreate, schemas.BravoSequenceUpdate
+](models.BravoSequence)
+
+bravo_sequence_step = CRUDBase[
+    models.BravoSequenceStep,
+    schemas.BravoSequenceStepCreate,
+    schemas.BravoSequenceStepUpdate,
+](models.BravoSequenceStep)
