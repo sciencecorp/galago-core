@@ -9,12 +9,9 @@ import {
   Text,
   Heading,
   Badge,
-  NumberInput,
-  NumberInputField,
   FormControl,
   FormLabel,
   Select,
-  Divider,
   useToast,
   Card,
   CardHeader,
@@ -33,14 +30,26 @@ import {
   ModalCloseButton,
   useDisclosure,
   Spinner,
+  Divider,
+  StatGroup,
+  Stat,
+  StatLabel,
+  StatNumber,
+  Icon,
 } from "@chakra-ui/react";
 import { FaEyeDropper, FaVial, FaSave, FaTrash } from "react-icons/fa";
 import { trpc } from "@/utils/trpc";
 import { Tool, Plate, Nest } from "@/types/api";
 import { loadingToast } from "@/components/ui/Toast";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
-import { RiArrowDownDoubleFill, RiArrowUpDoubleFill } from "react-icons/ri";
 import { BsGearFill } from "react-icons/bs";
+import { BravoDeckConfigSelector } from "./BravoDeckSelector";
+import { CreateDeckConfigModal } from "./CreateDeckConfigModal";
+import { useCommonColors, useTextColors } from "@/components/ui/Theme";
+import { successToast } from "@/components/ui/Toast";
+import { RiDeleteBin5Line, RiEdit2Line } from "react-icons/ri";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FaRegListAlt } from "react-icons/fa";
 
 interface BravoAdvancedProps {
   tool: Tool;
@@ -85,7 +94,6 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
   const [selectedLabware, setSelectedLabware] = useState<string>("");
   const [nestsInitialized, setNestsInitialized] = useState<boolean>(false);
   const SelectedWorkcellName = trpc.workcell.getSelectedWorkcell.useQuery();
-
   const {
     data: nests = [],
     refetch: refetchNests,
@@ -94,6 +102,45 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
+  const headerBg = useColorModeValue("white", "gray.700");
+  const [selectedConfigId, setSelectedConfigId] = useState<number | null>(null);
+  // Inside BravoAdvanced component, add this state:
+  const [loadedConfig, setLoadedConfig] = useState<number | null>(null);
+  const colors = useCommonColors();
+  const deckBgColor = useColorModeValue("gray.100", "gray.800");
+  const [selectedDeckConfig, setSelectedDeckConfig] = useState<string>("");
+
+  const { data: configs, refetch: refetchConfigs } = trpc.bravoDeckConfig.getAll.useQuery({
+    workcellId: 1,
+  });
+  const [selectedDeckConfigId, setSelectedDeckConfigId] = useState<number | null>(null);
+
+  const handleConfigLoaded = (config: BravoDeckConfig) => {
+    if (nests && plates) {
+      const bravoNests = nests.filter((nest: Nest) => nest.tool_id === tool.id);
+
+      if (bravoNests.length === 9) {
+        const sortedNests = [...bravoNests].sort((a, b) => {
+          if (a.row !== b.row) return a.row - b.row;
+          return a.column - b.column;
+        });
+
+        const updatedPositions: LabwarePosition[] = sortedNests.map((nest, index) => {
+          const position = (index + 1) as DeckPosition;
+          const configuredLabware = config.deck_layout[position.toString()];
+
+          return {
+            position,
+            nestId: nest.id,
+            labwareType: configuredLabware || "Empty",
+          };
+        });
+
+        setDeckPositions(updatedPositions);
+        successToast("Config loaded", `Loaded configuration "${config.name}"`);
+      }
+    }
+  };
 
   const {
     data: plates,
@@ -110,8 +157,6 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
   const deletePlateMutation = trpc.inventory.deletePlate.useMutation();
 
   // Existing mutations
-  const homeWMutation = trpc.bravo.homeW.useMutation();
-  const homeXYZMutation = trpc.bravo.homeXYZ.useMutation();
   const moveToLocationMutation = trpc.bravo.moveToLocation.useMutation();
   const aspirateMutation = trpc.bravo.aspirate.useMutation();
   const dispenseMutation = trpc.bravo.dispense.useMutation();
@@ -119,6 +164,41 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
   const tipsOffMutation = trpc.bravo.tipsOff.useMutation();
   const setLiquidClassMutation = trpc.bravo.setLiquidClass.useMutation();
   const showDiagnosticsMutation = trpc.bravo.showDiagnostics.useMutation();
+
+  const { data: configToLoad, refetch: refetchConfigToLoad } = trpc.bravoDeckConfig.get.useQuery(
+    loadedConfig!,
+    {
+      enabled: !!loadedConfig,
+    },
+  );
+  // Effect to apply loaded config
+  useEffect(() => {
+    if (configToLoad && nests && plates) {
+      // Apply the config to deck positions
+      const bravoNests = nests.filter((nest: Nest) => nest.tool_id === tool.id);
+
+      if (bravoNests.length === 9) {
+        const sortedNests = [...bravoNests].sort((a, b) => {
+          if (a.row !== b.row) return a.row - b.row;
+          return a.column - b.column;
+        });
+
+        const updatedPositions: LabwarePosition[] = sortedNests.map((nest, index) => {
+          const position = (index + 1) as DeckPosition;
+          const configuredLabware = configToLoad.deck_layout[position.toString()];
+
+          return {
+            position,
+            nestId: nest.id,
+            labwareType: configuredLabware || "Empty",
+          };
+        });
+
+        setDeckPositions(updatedPositions);
+        setLoadedConfig(null); // Reset after loading
+      }
+    }
+  }, [configToLoad, nests, plates, tool.id]);
 
   // Check if nests exist for this tool and map plates to deck positions
   useEffect(() => {
@@ -430,34 +510,74 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
   return (
     <Box p={6} minH="100vh">
       <VStack spacing={6} align="stretch" maxW="1600px" mx="auto">
-        {/* Header with Status */}
-        <HStack justify="space-between" align="center" pb={2}>
-          <VStack align="start" spacing={1}>
-            <Heading size="lg">Bravo Advanced Control</Heading>
-            <Text fontSize="sm" color="gray.500">
-              Select a deck position and perform operations
-            </Text>
-          </VStack>
-          <HStack spacing={3}>
-            <Button
-              leftIcon={<FaTrash />}
-              colorScheme="red"
-              variant="outline"
-              size="sm"
-              onClick={onClearModalOpen}
-              isDisabled={!nestsInitialized || deckPositions.every((p) => !p.plateId)}>
-              Clear All Labware
-            </Button>
-            <Badge
-              colorScheme={hasTips ? "green" : "gray"}
-              fontSize="lg"
-              px={4}
-              py={2}
-              borderRadius="full">
-              {hasTips ? "✓ Tips Loaded" : "No Tips"}
-            </Badge>
-          </HStack>
-        </HStack>
+        <Card bg={headerBg} shadow="md" borderRadius="lg">
+          <CardBody>
+            <VStack spacing={4} align="stretch">
+              <PageHeader
+                title="Bravo Advanced Controls"
+                subTitle="Agilent Bravo Deck and Sequence Management"
+                titleIcon={<Icon as={FaRegListAlt} boxSize={8} color="teal.500" />}
+                mainButton={
+                  <CreateDeckConfigModal
+                    workcellId={1}
+                    currentDeckPositions={deckPositions.map((p) => ({
+                      position: p.position,
+                      labwareType: p.labwareType,
+                    }))}
+                    onConfigCreated={() => {
+                      refetchPlates();
+                    }}
+                  />
+                }
+              />
+              <Divider />
+              <StatGroup>
+                <Stat>
+                  <StatLabel>Total Deck Configs</StatLabel>
+                  <StatNumber>{}</StatNumber>
+                </Stat>
+                <Stat>
+                  <StatLabel>Total Sequences</StatLabel>
+                  <StatNumber>{}</StatNumber>
+                </Stat>
+                <Stat>
+                  <StatLabel>Selected Config</StatLabel>
+                  <StatNumber fontSize="lg">{}</StatNumber>
+                </Stat>
+                <Stat>
+                  <StatLabel>Selected Sequence</StatLabel>
+                  <StatNumber fontSize="lg">{}</StatNumber>
+                </Stat>
+              </StatGroup>
+            </VStack>
+          </CardBody>
+        </Card>
+
+        <Card bg={colors.sectionBg} shadow="md" borderRadius="lg">
+          <CardBody>
+            <VStack spacing={3} align="stretch">
+              <BravoDeckConfigSelector
+                workcellId={1}
+                currentDeckPositions={deckPositions.map((p) => ({
+                  position: p.position,
+                  labwareType: p.labwareType,
+                }))}
+                onConfigLoaded={handleConfigLoaded}
+              />
+              <CreateDeckConfigModal
+                workcellId={1}
+                currentDeckPositions={deckPositions.map((p) => ({
+                  position: p.position,
+                  labwareType: p.labwareType,
+                }))}
+                onConfigCreated={() => {
+                  // Optionally refetch configs or handle post-creation
+                  refetchPlates();
+                }}
+              />
+            </VStack>
+          </CardBody>
+        </Card>
 
         {/* Warning for missing nests */}
         {!nestsInitialized && (
@@ -473,167 +593,8 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
           </Alert>
         )}
 
-        {/* Main Layout */}
         <HStack spacing={6} align="stretch">
-          {/* Left Sidebar - Controls */}
-          <VStack width="320px" flexShrink={0} spacing={4} align="stretch">
-            <ToolStatusCard toolId={tool.name} customWidth="100%" />
-
-            {/* System Controls */}
-            <Card>
-              <CardHeader pb={2}>
-                <Heading size="sm">System Controls</Heading>
-              </CardHeader>
-              <CardBody pt={3}>
-                <VStack spacing={3}>
-                  <Button
-                    leftIcon={<BsGearFill />}
-                    onClick={handleShowDiagnostics}
-                    width="100%"
-                    size="md"
-                    colorScheme="blue"
-                    isLoading={showDiagnosticsMutation.isLoading}>
-                    Show Diagnostics
-                  </Button>
-                  <Divider />
-                  <Button
-                    onClick={() => selectedPosition && handleMoveToPosition(selectedPosition)}
-                    width="100%"
-                    size="md"
-                    colorScheme="purple"
-                    isDisabled={!selectedPosition || !nestsInitialized}
-                    isLoading={moveToLocationMutation.isLoading}>
-                    {selectedPosition
-                      ? `Move to Position ${selectedPosition}`
-                      : "Select Position to Move"}
-                  </Button>
-                </VStack>
-              </CardBody>
-            </Card>
-
-            {/* Tip Management */}
-            <Card>
-              <CardHeader pb={2}>
-                <Heading size="sm">Tip Management</Heading>
-              </CardHeader>
-              <CardBody pt={3}>
-                <HStack spacing={2}>
-                  <Button
-                    leftIcon={<RiArrowUpDoubleFill fontSize="20px" />}
-                    onClick={handleTipsOn}
-                    flex={1}
-                    colorScheme="green"
-                    isDisabled={hasTips || !selectedPosition || !nestsInitialized}
-                    isLoading={tipsOnMutation.isLoading}>
-                    Pick Up
-                  </Button>
-                  <Button
-                    leftIcon={<RiArrowDownDoubleFill fontSize="20px" />}
-                    onClick={handleTipsOff}
-                    flex={1}
-                    colorScheme="red"
-                    isDisabled={!hasTips || !selectedPosition || !nestsInitialized}
-                    isLoading={tipsOffMutation.isLoading}>
-                    Eject
-                  </Button>
-                </HStack>
-                {!selectedPosition && (
-                  <Text fontSize="xs" color="gray.500" mt={2} textAlign="center">
-                    Select a position first
-                  </Text>
-                )}
-              </CardBody>
-            </Card>
-
-            {/* Liquid Handling */}
-            <Card>
-              <CardHeader pb={2}>
-                <Heading size="sm">Liquid Handling</Heading>
-              </CardHeader>
-              <CardBody pt={3}>
-                <VStack spacing={4}>
-                  {/* Volume Input */}
-                  <FormControl>
-                    <FormLabel fontSize="sm" fontWeight="semibold">
-                      Volume (µL)
-                    </FormLabel>
-                    <NumberInput
-                      value={volume}
-                      onChange={(_, val) => setVolume(val)}
-                      min={1}
-                      max={1000}
-                      size="md">
-                      <NumberInputField />
-                    </NumberInput>
-                  </FormControl>
-
-                  {/* Liquid Class */}
-                  <FormControl>
-                    <FormLabel fontSize="sm" fontWeight="semibold">
-                      Liquid Class
-                    </FormLabel>
-                    <Select
-                      value={liquidClass}
-                      onChange={(e) => setLiquidClass(e.target.value)}
-                      size="md">
-                      <option value="Water">Water</option>
-                      <option value="DMSO">DMSO</option>
-                      <option value="Serum">Serum</option>
-                      <option value="Ethanol">Ethanol</option>
-                    </Select>
-                    <Button
-                      size="sm"
-                      mt={2}
-                      width="100%"
-                      variant="outline"
-                      onClick={handleSetLiquidClass}
-                      isLoading={setLiquidClassMutation.isLoading}>
-                      Apply Liquid Class
-                    </Button>
-                  </FormControl>
-
-                  <Divider />
-
-                  {/* Action Buttons */}
-                  <VStack spacing={2} width="100%">
-                    <Button
-                      leftIcon={<FaEyeDropper />}
-                      onClick={handleAspirate}
-                      width="100%"
-                      size="lg"
-                      colorScheme="teal"
-                      isDisabled={!hasTips || !selectedPosition || !nestsInitialized}
-                      isLoading={aspirateMutation.isLoading}>
-                      Aspirate {volume}µL
-                    </Button>
-                    <Button
-                      leftIcon={<FaVial />}
-                      onClick={handleDispense}
-                      width="100%"
-                      size="lg"
-                      colorScheme="orange"
-                      isDisabled={!hasTips || !selectedPosition || !nestsInitialized}
-                      isLoading={dispenseMutation.isLoading}>
-                      Dispense {volume}µL
-                    </Button>
-                  </VStack>
-                </VStack>
-              </CardBody>
-            </Card>
-          </VStack>
-
-          {/* Right Panel - Deck Grid */}
           <Card flex={1} display="flex" flexDirection="column">
-            <CardHeader pb={4}>
-              <VStack align="center" spacing={1}>
-                <Heading size="lg">Bravo Deck Layout</Heading>
-                <Text fontSize="sm" color="gray.500">
-                  {selectedPosition
-                    ? `Position ${selectedPosition} selected - ${deckPositions.find((p) => p.position === selectedPosition)?.labwareType}`
-                    : "Click a position to select it"}
-                </Text>
-              </VStack>
-            </CardHeader>
             <CardBody
               display="flex"
               flexDirection="column"
@@ -641,8 +602,31 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
               justifyContent="start"
               flex={1}
               pt={8}>
+              <HStack spacing={2} justifyContent="space-between">
+                <HStack>
+                  <Text whiteSpace="nowrap" fontWeight="bold" fontSize="lg">
+                    Select Deck Config:
+                  </Text>
+                  <Select
+                    placeholder="Select a configuration"
+                    value={selectedConfigId || ""}
+                    onChange={(e) => {
+                      const configId = e.target.value ? Number(e.target.value) : null;
+                      setSelectedConfigId(configId);
+                    }}
+                    width="300px"
+                    size="sm">
+                    {configs?.map((config) => (
+                      <option key={config.id} value={config.id}>
+                        {config.name} ({Object.values(config.deck_layout).filter(Boolean).length}{" "}
+                        positions)
+                      </option>
+                    ))}
+                  </Select>
+                </HStack>
+              </HStack>
               <Grid
-                bg={useColorModeValue("gray.100", "gray.800")}
+                bg={deckBgColor}
                 border="1px solid"
                 borderColor="gray.200"
                 borderRadius="lg"
@@ -664,7 +648,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                       border="3px solid"
                       borderColor={borderColor}
                       borderRadius="lg"
-                      p={6}
+                      p={4}
                       cursor="pointer"
                       onClick={() => nestsInitialized && setSelectedPosition(labware.position)}
                       _hover={{
@@ -679,8 +663,8 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                       }}
                       transition="all 0.2s"
                       position="relative"
-                      height="160px"
-                      width="250px"
+                      height="140px"
+                      width="220px"
                       display="flex"
                       flexDirection="column"
                       alignItems="center"
@@ -708,7 +692,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                       {nestsInitialized && (
                         <Button
                           size="xs"
-                          leftIcon={<FaSave />}
+                          leftIcon={<RiEdit2Line />}
                           colorScheme="purple"
                           variant="ghost"
                           onClick={(e) => {

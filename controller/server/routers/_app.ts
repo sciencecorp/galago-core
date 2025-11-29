@@ -15,6 +15,7 @@ import { csharpRouter } from "./cSharpRouter";
 import { formRouter } from "./form";
 import { bravoRouter } from "./bravo";
 import { bravoSequenceRouter } from "./bravo-sequence";
+import { bravoDeckConfigRouter } from "./bravo-deck-config";
 
 export const appRouter = router({
   inventory: inventoryRouter,
@@ -32,6 +33,7 @@ export const appRouter = router({
   form: formRouter,
   bravo: bravoRouter,
   bravoSequence: bravoSequenceRouter,
+  bravoDeckConfig: bravoDeckConfigRouter,
 });
 
 export type AppRouter = typeof appRouter;

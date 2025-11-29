@@ -28,3 +28,24 @@ export interface BravoSequenceStep {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface BravoDeckConfig {
+  id: number;
+  name: string;
+  deck_layout: DeckLayout;
+  workcell_id: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface DeckLayout {
+  "1": string | null | undefined;
+  "2": string | null | undefined;
+  "3": string | null | undefined;
+  "4": string | null | undefined;
+  "5": string | null | undefined;
+  "6": string | null | undefined;
+  "7": string | null | undefined;
+  "8": string | null | undefined;
+  "9": string | null | undefined;
+}
