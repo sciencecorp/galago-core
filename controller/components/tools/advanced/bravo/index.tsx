@@ -36,6 +36,8 @@ import {
   StatLabel,
   StatNumber,
   Icon,
+  Spacer,
+  ButtonGroup,
 } from "@chakra-ui/react";
 import { FaEyeDropper, FaVial, FaSave, FaTrash } from "react-icons/fa";
 import { trpc } from "@/utils/trpc";
@@ -50,7 +52,8 @@ import { successToast } from "@/components/ui/Toast";
 import { RiDeleteBin5Line, RiEdit2Line } from "react-icons/ri";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { FaRegListAlt } from "react-icons/fa";
-
+import { RiAddFill, RiDeleteBin6Line, RiSaveLine } from "react-icons/ri";
+import { DeleteWithConfirmation } from "@/components/ui/Delete";
 interface BravoAdvancedProps {
   tool: Tool;
 }
@@ -556,15 +559,15 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
         <Card bg={colors.sectionBg} shadow="md" borderRadius="lg">
           <CardBody>
             <VStack spacing={3} align="stretch">
-              <BravoDeckConfigSelector
+              {/*<BravoDeckConfigSelector
                 workcellId={1}
                 currentDeckPositions={deckPositions.map((p) => ({
                   position: p.position,
                   labwareType: p.labwareType,
                 }))}
                 onConfigLoaded={handleConfigLoaded}
-              />
-              <CreateDeckConfigModal
+              />*/}
+              {/*<CreateDeckConfigModal
                 workcellId={1}
                 currentDeckPositions={deckPositions.map((p) => ({
                   position: p.position,
@@ -574,7 +577,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                   // Optionally refetch configs or handle post-creation
                   refetchPlates();
                 }}
-              />
+              />*/}
             </VStack>
           </CardBody>
         </Card>
@@ -602,123 +605,149 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
               justifyContent="start"
               flex={1}
               pt={8}>
-              <HStack spacing={2} justifyContent="space-between">
-                <HStack>
-                  <Text whiteSpace="nowrap" fontWeight="bold" fontSize="lg">
-                    Select Deck Config:
-                  </Text>
-                  <Select
-                    placeholder="Select a configuration"
-                    value={selectedConfigId || ""}
-                    onChange={(e) => {
-                      const configId = e.target.value ? Number(e.target.value) : null;
-                      setSelectedConfigId(configId);
-                    }}
-                    width="300px"
-                    size="sm">
-                    {configs?.map((config) => (
-                      <option key={config.id} value={config.id}>
-                        {config.name} ({Object.values(config.deck_layout).filter(Boolean).length}{" "}
-                        positions)
-                      </option>
-                    ))}
-                  </Select>
+              <VStack spacing={4}>
+                <HStack spacing={2} justifyContent="space-between" width="100%">
+                  <HStack>
+                    <Text whiteSpace="nowrap" fontWeight="bold" fontSize="lg">
+                      Select Deck Config:
+                    </Text>
+                    <Select
+                      width="300px"
+                      fontSize="lg"
+                      placeholder="Select a configuration"
+                      value={selectedConfigId || ""}
+                      onChange={(e) => {
+                        const configId = e.target.value ? Number(e.target.value) : null;
+                        setSelectedConfigId(configId);
+                      }}>
+                      {configs?.map((config) => (
+                        <option key={config.id} value={config.id}>
+                          {config.name} ({Object.values(config.deck_layout).filter(Boolean).length}{" "}
+                          positions)
+                        </option>
+                      ))}
+                    </Select>
+                  </HStack>
+                  <Spacer />
+                  <ButtonGroup spacing={2}>
+                    <Button
+                      leftIcon={<RiSaveLine />}
+                      colorScheme="teal"
+                      // onClick={saveForm}
+                      // isLoading={isSaving}
+                      loadingText="Saving..."
+                      // isDisabled={!formName.trim() || !selectedForm}
+                      flex={1}>
+                      Save
+                    </Button>
+                    {selectedDeckConfig && (
+                      <DeleteWithConfirmation
+                        label={`${selectedForm.name}`}
+                        onDelete={handleDeleteForm}
+                        variant="button"
+                      />
+                    )}
+                  </ButtonGroup>
                 </HStack>
-              </HStack>
-              <Grid
-                bg={deckBgColor}
-                border="1px solid"
-                borderColor="gray.200"
-                borderRadius="lg"
-                p={8}
-                templateColumns="repeat(3, 1fr)"
-                gap={6}>
-                {deckPositions.map((labware) => {
-                  const isSelected = selectedPosition === labware.position;
-                  const hasPlate = !!labware.plateId;
-                  const bgColor = isSelected
-                    ? useColorModeValue("blue.50", "blue.900")
-                    : useColorModeValue("gray.50", "gray.700");
-                  const borderColor = isSelected ? "blue.500" : hasPlate ? "green.400" : "gray.300";
+                <Grid
+                  bg={deckBgColor}
+                  border="1px solid"
+                  borderColor="gray.200"
+                  borderRadius="lg"
+                  p={8}
+                  templateColumns="repeat(3, 1fr)"
+                  gap={6}>
+                  {deckPositions.map((labware) => {
+                    const isSelected = selectedPosition === labware.position;
+                    const hasPlate = !!labware.plateId;
+                    const bgColor = isSelected
+                      ? useColorModeValue("blue.50", "blue.900")
+                      : useColorModeValue("gray.50", "gray.700");
+                    const borderColor = isSelected
+                      ? "blue.500"
+                      : hasPlate
+                        ? "green.400"
+                        : "gray.300";
 
-                  return (
-                    <GridItem
-                      key={labware.position}
-                      bg={bgColor}
-                      border="3px solid"
-                      borderColor={borderColor}
-                      borderRadius="lg"
-                      p={4}
-                      cursor="pointer"
-                      onClick={() => nestsInitialized && setSelectedPosition(labware.position)}
-                      _hover={{
-                        transform: nestsInitialized ? "translateY(-4px)" : "none",
-                        shadow: nestsInitialized ? "lg" : "none",
-                        borderColor: nestsInitialized
-                          ? isSelected
-                            ? "blue.600"
-                            : "blue.300"
-                          : borderColor,
-                        transition: "all 0.2s",
-                      }}
-                      transition="all 0.2s"
-                      position="relative"
-                      height="140px"
-                      width="220px"
-                      display="flex"
-                      flexDirection="column"
-                      alignItems="center"
-                      justifyContent="center"
-                      opacity={nestsInitialized ? 1 : 0.5}>
-                      <VStack spacing={3} flex={1} justify="center">
-                        <Text
-                          fontWeight="bold"
-                          fontSize="4xl"
-                          color={isSelected ? "blue.600" : "gray.500"}>
-                          {labware.position}
-                        </Text>
-                        <Badge
-                          colorScheme={isSelected ? "blue" : hasPlate ? "green" : "gray"}
-                          fontSize="sm"
-                          px={3}
-                          py={1}
-                          borderRadius="md">
-                          <Text isTruncated maxW="150px">
-                            {labware.labwareType}
+                    return (
+                      <GridItem
+                        key={labware.position}
+                        bg={bgColor}
+                        border="3px solid"
+                        borderColor={borderColor}
+                        borderRadius="lg"
+                        p={4}
+                        cursor="pointer"
+                        onClick={() => nestsInitialized && setSelectedPosition(labware.position)}
+                        _hover={{
+                          transform: nestsInitialized ? "translateY(-4px)" : "none",
+                          shadow: nestsInitialized ? "lg" : "none",
+                          borderColor: nestsInitialized
+                            ? isSelected
+                              ? "blue.600"
+                              : "blue.300"
+                            : borderColor,
+                          transition: "all 0.2s",
+                        }}
+                        transition="all 0.2s"
+                        position="relative"
+                        height="140px"
+                        width="220px"
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="center"
+                        justifyContent="center"
+                        opacity={nestsInitialized ? 1 : 0.5}>
+                        <VStack spacing={3} flex={1} justify="center">
+                          <Text
+                            fontWeight="bold"
+                            fontSize="4xl"
+                            color={isSelected ? "blue.600" : "gray.500"}>
+                            {labware.position}
                           </Text>
-                        </Badge>
-                      </VStack>
+                          <Badge
+                            colorScheme={isSelected ? "blue" : hasPlate ? "green" : "gray"}
+                            fontSize="sm"
+                            px={3}
+                            py={1}
+                            borderRadius="md">
+                            <Text isTruncated maxW="150px">
+                              {labware.labwareType}
+                            </Text>
+                          </Badge>
+                        </VStack>
 
-                      {nestsInitialized && (
-                        <Button
-                          size="xs"
-                          leftIcon={<RiEdit2Line />}
-                          colorScheme="purple"
-                          variant="ghost"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditLabware(labware.position);
-                          }}
-                          width="100%">
-                          {hasPlate ? "Edit" : "Set"} Labware
-                        </Button>
-                      )}
+                        {nestsInitialized && (
+                          <Button
+                            size="xs"
+                            leftIcon={<RiEdit2Line />}
+                            colorScheme="purple"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditLabware(labware.position);
+                            }}
+                            width="100%">
+                            {hasPlate ? "Edit" : "Set"} Labware
+                          </Button>
+                        )}
 
-                      {isSelected && (
-                        <Box
-                          position="absolute"
-                          top={2}
-                          right={2}
-                          w={3}
-                          h={3}
-                          bg="blue.500"
-                          borderRadius="full"
-                        />
-                      )}
-                    </GridItem>
-                  );
-                })}
-              </Grid>
+                        {isSelected && (
+                          <Box
+                            position="absolute"
+                            top={2}
+                            right={2}
+                            w={3}
+                            h={3}
+                            bg="blue.500"
+                            borderRadius="full"
+                          />
+                        )}
+                      </GridItem>
+                    );
+                  })}
+                </Grid>
+              </VStack>
             </CardBody>
           </Card>
         </HStack>
