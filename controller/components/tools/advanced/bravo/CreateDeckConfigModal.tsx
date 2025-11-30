@@ -20,7 +20,6 @@ import { successToast, errorToast } from "@/components/ui/Toast";
 import { RiAddFill } from "react-icons/ri";
 
 interface CreateDeckConfigModalProps {
-  workcellId: number;
   currentDeckPositions: Array<{
     position: number;
     labwareType: string;
@@ -29,7 +28,6 @@ interface CreateDeckConfigModalProps {
 }
 
 export const CreateDeckConfigModal: React.FC<CreateDeckConfigModalProps> = ({
-  workcellId,
   currentDeckPositions,
   onConfigCreated,
 }) => {
@@ -61,7 +59,6 @@ export const CreateDeckConfigModal: React.FC<CreateDeckConfigModalProps> = ({
 
       await createConfig.mutateAsync({
         name: configName.trim(),
-        workcell_id: workcellId,
         deck_layout: deckLayout,
       });
 

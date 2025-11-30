@@ -41,19 +41,19 @@ import {
 } from "@chakra-ui/react";
 import { FaEyeDropper, FaVial, FaSave, FaTrash } from "react-icons/fa";
 import { trpc } from "@/utils/trpc";
-import { Tool, Plate, Nest } from "@/types/api";
+import { Tool } from "@/types/api";
 import { loadingToast } from "@/components/ui/Toast";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import { BsGearFill } from "react-icons/bs";
-import { BravoDeckConfigSelector } from "./BravoDeckSelector";
 import { CreateDeckConfigModal } from "./CreateDeckConfigModal";
 import { useCommonColors, useTextColors } from "@/components/ui/Theme";
-import { successToast } from "@/components/ui/Toast";
+import { successToast, errorToast } from "@/components/ui/Toast";
 import { RiDeleteBin5Line, RiEdit2Line } from "react-icons/ri";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { FaRegListAlt } from "react-icons/fa";
 import { RiAddFill, RiDeleteBin6Line, RiSaveLine } from "react-icons/ri";
 import { DeleteWithConfirmation } from "@/components/ui/Delete";
+
 interface BravoAdvancedProps {
   tool: Tool;
 }
@@ -63,30 +63,23 @@ type DeckPosition = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 interface LabwarePosition {
   position: DeckPosition;
   labwareType: string;
-  nestId?: number;
-  plateId?: number;
 }
 
-const DEFAULT_LABWARE_TYPES = [
-  "Empty",
-  "Empty",
-  "Empty",
-  "Empty",
-  "Empty",
-  "Empty",
-  "Empty",
-  "Empty",
-  "Empty",
-];
+const EMPTY_DECK_LAYOUT: Record<string, string | null> = {
+  "1": null,
+  "2": null,
+  "3": null,
+  "4": null,
+  "5": null,
+  "6": null,
+  "7": null,
+  "8": null,
+  "9": null,
+};
 
 export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const {
-    isOpen: isClearModalOpen,
-    onOpen: onClearModalOpen,
-    onClose: onClearModalClose,
-  } = useDisclosure();
 
   const [selectedPosition, setSelectedPosition] = useState<DeckPosition | null>(null);
   const [volume, setVolume] = useState<number>(100);
@@ -95,71 +88,25 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
   const [deckPositions, setDeckPositions] = useState<LabwarePosition[]>([]);
   const [editingPosition, setEditingPosition] = useState<DeckPosition | null>(null);
   const [selectedLabware, setSelectedLabware] = useState<string>("");
-  const [nestsInitialized, setNestsInitialized] = useState<boolean>(false);
-  const SelectedWorkcellName = trpc.workcell.getSelectedWorkcell.useQuery();
-  const {
-    data: nests = [],
-    refetch: refetchNests,
-    isLoading: nestsLoading,
-  } = trpc.inventory.getNests.useQuery<Nest[]>(SelectedWorkcellName.data ?? "", {
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-  });
-  const headerBg = useColorModeValue("white", "gray.700");
   const [selectedConfigId, setSelectedConfigId] = useState<number | null>(null);
-  // Inside BravoAdvanced component, add this state:
-  const [loadedConfig, setLoadedConfig] = useState<number | null>(null);
+
+  const headerBg = useColorModeValue("white", "gray.700");
   const colors = useCommonColors();
   const deckBgColor = useColorModeValue("gray.100", "gray.800");
-  const [selectedDeckConfig, setSelectedDeckConfig] = useState<string>("");
-
-  const { data: configs, refetch: refetchConfigs } = trpc.bravoDeckConfig.getAll.useQuery({
-    workcellId: 1,
-  });
-  const [selectedDeckConfigId, setSelectedDeckConfigId] = useState<number | null>(null);
-
-  const handleConfigLoaded = (config: BravoDeckConfig) => {
-    if (nests && plates) {
-      const bravoNests = nests.filter((nest: Nest) => nest.tool_id === tool.id);
-
-      if (bravoNests.length === 9) {
-        const sortedNests = [...bravoNests].sort((a, b) => {
-          if (a.row !== b.row) return a.row - b.row;
-          return a.column - b.column;
-        });
-
-        const updatedPositions: LabwarePosition[] = sortedNests.map((nest, index) => {
-          const position = (index + 1) as DeckPosition;
-          const configuredLabware = config.deck_layout[position.toString()];
-
-          return {
-            position,
-            nestId: nest.id,
-            labwareType: configuredLabware || "Empty",
-          };
-        });
-
-        setDeckPositions(updatedPositions);
-        successToast("Config loaded", `Loaded configuration "${config.name}"`);
-      }
-    }
-  };
 
   const {
-    data: plates,
-    isLoading: platesLoading,
-    refetch: refetchPlates,
-  } = trpc.inventory.getPlates.useQuery(SelectedWorkcellName.data ?? "", {
-    enabled: !!SelectedWorkcellName.data,
-  });
+    data: configs,
+    refetch: refetchConfigs,
+    isLoading: configsLoading,
+  } = trpc.bravoDeckConfig.getAll.useQuery();
 
   const { data: allLabware, isLoading: labwareLoading } = trpc.labware.getAll.useQuery();
 
-  const createPlateMutation = trpc.inventory.createPlate.useMutation();
-  const updatePlateMutation = trpc.inventory.updatePlate.useMutation();
-  const deletePlateMutation = trpc.inventory.deletePlate.useMutation();
+  const createConfig = trpc.bravoDeckConfig.create.useMutation();
+  const updateConfig = trpc.bravoDeckConfig.update.useMutation();
+  const deleteConfig = trpc.bravoDeckConfig.delete.useMutation();
 
-  // Existing mutations
+  // Bravo control mutations
   const moveToLocationMutation = trpc.bravo.moveToLocation.useMutation();
   const aspirateMutation = trpc.bravo.aspirate.useMutation();
   const dispenseMutation = trpc.bravo.dispense.useMutation();
@@ -168,83 +115,121 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
   const setLiquidClassMutation = trpc.bravo.setLiquidClass.useMutation();
   const showDiagnosticsMutation = trpc.bravo.showDiagnostics.useMutation();
 
-  const { data: configToLoad, refetch: refetchConfigToLoad } = trpc.bravoDeckConfig.get.useQuery(
-    loadedConfig!,
-    {
-      enabled: !!loadedConfig,
-    },
-  );
-  // Effect to apply loaded config
+  // Initialize with empty deck on mount
   useEffect(() => {
-    if (configToLoad && nests && plates) {
-      // Apply the config to deck positions
-      const bravoNests = nests.filter((nest: Nest) => nest.tool_id === tool.id);
+    const emptyDeck: LabwarePosition[] = Array.from({ length: 9 }, (_, i) => ({
+      position: (i + 1) as DeckPosition,
+      labwareType: "Empty",
+    }));
+    setDeckPositions(emptyDeck);
+  }, []);
 
-      if (bravoNests.length === 9) {
-        const sortedNests = [...bravoNests].sort((a, b) => {
-          if (a.row !== b.row) return a.row - b.row;
-          return a.column - b.column;
-        });
-
-        const updatedPositions: LabwarePosition[] = sortedNests.map((nest, index) => {
-          const position = (index + 1) as DeckPosition;
-          const configuredLabware = configToLoad.deck_layout[position.toString()];
-
-          return {
-            position,
-            nestId: nest.id,
-            labwareType: configuredLabware || "Empty",
-          };
-        });
-
-        setDeckPositions(updatedPositions);
-        setLoadedConfig(null); // Reset after loading
+  // Load selected config when it changes
+  useEffect(() => {
+    if (selectedConfigId && configs) {
+      const selectedConfig = configs.find((c) => c.id === selectedConfigId);
+      if (selectedConfig) {
+        loadConfigToDeck(selectedConfig);
       }
     }
-  }, [configToLoad, nests, plates, tool.id]);
+  }, [selectedConfigId, configs]);
 
-  // Check if nests exist for this tool and map plates to deck positions
-  useEffect(() => {
-    if (nests && plates && tool.id) {
-      const bravoNests = nests.filter((nest: Nest) => nest.tool_id === tool.id);
+  const loadConfigToDeck = (config: any) => {
+    const newDeckPositions: LabwarePosition[] = Array.from({ length: 9 }, (_, i) => {
+      const position = (i + 1) as DeckPosition;
+      const labware = config.deck_layout[position.toString()];
+      return {
+        position,
+        labwareType: labware || "Empty",
+      };
+    });
+    setDeckPositions(newDeckPositions);
+    successToast("Config loaded", `Loaded configuration "${config.name}"`);
+  };
 
-      if (bravoNests.length === 9) {
-        setNestsInitialized(true);
-
-        // Sort nests by row, then column (positions 1-9)
-        const sortedNests = [...bravoNests].sort((a, b) => {
-          if (a.row !== b.row) return a.row - b.row;
-          return a.column - b.column;
-        });
-
-        // Map plates to positions
-        const updatedPositions: LabwarePosition[] = sortedNests.map((nest, index) => {
-          const position = (index + 1) as DeckPosition;
-
-          // Find plate in this nest
-          const plateInNest = plates.find((plate: Plate) => plate.nest_id === nest.id);
-
-          return {
-            position,
-            nestId: nest.id,
-            plateId: plateInNest?.id,
-            labwareType: plateInNest?.plate_type || DEFAULT_LABWARE_TYPES[index],
-          };
-        });
-
-        setDeckPositions(updatedPositions);
-      } else {
-        setNestsInitialized(false);
-        // Set default positions without nest data
-        setDeckPositions(
-          DEFAULT_LABWARE_TYPES.map((type, index) => ({
-            position: (index + 1) as DeckPosition,
-            labwareType: type,
-          })),
-        );
-      }
+  const handleSaveCurrentConfig = async () => {
+    if (!selectedConfigId) {
+      errorToast("No config selected", "Please select a configuration to update");
+      return;
     }
-  }, [nests, plates, tool.id]);
+
+    const deckLayout: Record<string, string | null> = {};
+    for (let i = 1; i <= 9; i++) {
+      const position = deckPositions.find((p) => p.position === i);
+      deckLayout[i.toString()] =
+        position?.labwareType && position.labwareType !== "Empty" ? position.labwareType : null;
+    }
+
+    try {
+      await updateConfig.mutateAsync({
+        id: selectedConfigId,
+        deck_layout: deckLayout,
+      });
+      successToast("Config saved", "Deck configuration has been updated");
+      refetchConfigs();
+    } catch (error) {
+      errorToast("Error", `Failed to save configuration: ${error.message}`);
+    }
+  };
+
+  const handleDeleteConfig = async () => {
+    if (!selectedConfigId) return;
+
+    try {
+      await deleteConfig.mutateAsync(selectedConfigId);
+      successToast("Config deleted", "Deck configuration has been deleted");
+      setSelectedConfigId(null);
+      setDeckPositions(
+        Array.from({ length: 9 }, (_, i) => ({
+          position: (i + 1) as DeckPosition,
+          labwareType: "Empty",
+        })),
+      );
+      refetchConfigs();
+    } catch (error) {
+      errorToast("Error", `Failed to delete configuration: ${error.message}`);
+    }
+  };
+
+  const handleEditLabware = (position: DeckPosition) => {
+    setEditingPosition(position);
+    const currentLabware = deckPositions.find((p) => p.position === position);
+    setSelectedLabware(currentLabware?.labwareType || "");
+    onOpen();
+  };
+
+  const handleSaveLabware = () => {
+    if (!editingPosition || !selectedLabware) return;
+
+    setDeckPositions((prev) =>
+      prev.map((pos) =>
+        pos.position === editingPosition ? { ...pos, labwareType: selectedLabware } : pos,
+      ),
+    );
+
+    toast({
+      title: "Labware updated",
+      description: `Position ${editingPosition} now has ${selectedLabware}`,
+      status: "success",
+      duration: 3000,
+    });
+
+    onClose();
+  };
+
+  const handleClearAllLabware = () => {
+    const emptyDeck: LabwarePosition[] = Array.from({ length: 9 }, (_, i) => ({
+      position: (i + 1) as DeckPosition,
+      labwareType: "Empty",
+    }));
+    setDeckPositions(emptyDeck);
+    toast({
+      title: "Deck cleared",
+      description: "All labware has been removed from the deck",
+      status: "success",
+      duration: 3000,
+    });
+  };
 
   const executeWithToast = async (mutationFn: () => Promise<any>, actionName: string) => {
     const promise = mutationFn();
@@ -259,247 +244,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
     return promise;
   };
 
-  const handleShowDiagnostics = () => {
-    executeWithToast(
-      () => showDiagnosticsMutation.mutateAsync({ toolId: tool.name }),
-      "Show Diagnostics",
-    );
-  };
-
-  const handleMoveToPosition = (position: DeckPosition) => {
-    executeWithToast(
-      () =>
-        moveToLocationMutation.mutateAsync({
-          toolId: tool.name,
-          params: { plate_location: position },
-        }),
-      `Move to Position ${position}`,
-    );
-  };
-
-  const handleAspirate = () => {
-    if (!selectedPosition) {
-      toast({
-        title: "No position selected",
-        description: "Please select a deck position first",
-        status: "warning",
-        duration: 3000,
-      });
-      return;
-    }
-
-    if (!hasTips) {
-      toast({
-        title: "No tips loaded",
-        description: "Please pick up tips first",
-        status: "warning",
-        duration: 3000,
-      });
-      return;
-    }
-
-    executeWithToast(
-      () =>
-        aspirateMutation.mutateAsync({
-          toolId: tool.name,
-          params: {
-            volume,
-            plate_location: selectedPosition,
-            distance_from_well_bottom: 2.0,
-          },
-        }),
-      `Aspirate ${volume}µL from Position ${selectedPosition}`,
-    );
-  };
-
-  const handleDispense = () => {
-    if (!selectedPosition) {
-      toast({
-        title: "No position selected",
-        description: "Please select a deck position first",
-        status: "warning",
-        duration: 3000,
-      });
-      return;
-    }
-
-    if (!hasTips) {
-      toast({
-        title: "No tips loaded",
-        description: "Please pick up tips first",
-        status: "warning",
-        duration: 3000,
-      });
-      return;
-    }
-
-    executeWithToast(
-      () =>
-        dispenseMutation.mutateAsync({
-          toolId: tool.name,
-          params: {
-            volume,
-            empty_tips: false,
-            blow_out_volume: 0,
-            plate_location: selectedPosition,
-            distance_from_well_bottom: 2.0,
-          },
-        }),
-      `Dispense ${volume}µL to Position ${selectedPosition}`,
-    );
-  };
-
-  const handleTipsOn = () => {
-    if (!selectedPosition) {
-      toast({
-        title: "No position selected",
-        description: "Please select a tip rack position first",
-        status: "warning",
-        duration: 3000,
-      });
-      return;
-    }
-
-    executeWithToast(
-      () =>
-        tipsOnMutation.mutateAsync({
-          toolId: tool.name,
-          params: { plate_location: selectedPosition },
-        }),
-      `Pick up tips from Position ${selectedPosition}`,
-    ).then(() => setHasTips(true));
-  };
-
-  const handleTipsOff = () => {
-    if (!selectedPosition) {
-      toast({
-        title: "No position selected",
-        description: "Please select a position for tip disposal",
-        status: "warning",
-        duration: 3000,
-      });
-      return;
-    }
-
-    executeWithToast(
-      () =>
-        tipsOffMutation.mutateAsync({
-          toolId: tool.name,
-          params: { plate_location: selectedPosition },
-        }),
-      `Eject tips to Position ${selectedPosition}`,
-    ).then(() => setHasTips(false));
-  };
-
-  const handleSetLiquidClass = () => {
-    executeWithToast(
-      () =>
-        setLiquidClassMutation.mutateAsync({
-          toolId: tool.name,
-          params: { liquid_class: liquidClass },
-        }),
-      `Set Liquid Class to ${liquidClass}`,
-    );
-  };
-
-  const handleEditLabware = (position: DeckPosition) => {
-    setEditingPosition(position);
-    const currentLabware = deckPositions.find((p) => p.position === position);
-    setSelectedLabware(currentLabware?.labwareType || "");
-    onOpen();
-  };
-
-  const handleSaveLabware = async () => {
-    if (!editingPosition || !selectedLabware) return;
-
-    const positionData = deckPositions.find((p) => p.position === editingPosition);
-    if (!positionData?.nestId) {
-      toast({
-        title: "Error",
-        description: "Nest not initialized for this position",
-        status: "error",
-        duration: 3000,
-      });
-      return;
-    }
-
-    try {
-      // Check if plate already exists for this nest
-      if (positionData.plateId) {
-        // Update existing plate
-        await updatePlateMutation.mutateAsync({
-          id: positionData.plateId,
-          name: `${tool.name}_Pos${editingPosition}`,
-          barcode: `${tool.name}_${editingPosition}_${Date.now()}`,
-          plate_type: selectedLabware,
-          nest_id: positionData.nestId,
-        });
-      } else {
-        // Create new plate
-        await createPlateMutation.mutateAsync({
-          name: `${tool.name}_Pos${editingPosition}`,
-          barcode: `${tool.name}_${editingPosition}_${Date.now()}`,
-          plate_type: selectedLabware,
-          nest_id: positionData.nestId,
-        });
-      }
-
-      toast({
-        title: "Labware updated",
-        description: `Position ${editingPosition} now has ${selectedLabware}`,
-        status: "success",
-        duration: 3000,
-      });
-
-      onClose();
-      refetchPlates();
-    } catch (error) {
-      toast({
-        title: "Error updating labware",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
-  };
-
-  const handleClearAllLabware = async () => {
-    try {
-      const platesToDelete = deckPositions.filter((pos) => pos.plateId).map((pos) => pos.plateId!);
-
-      if (platesToDelete.length === 0) {
-        toast({
-          title: "No labware to clear",
-          description: "All positions are already empty",
-          status: "info",
-          duration: 3000,
-        });
-        return;
-      }
-
-      // Delete all plates
-      await Promise.all(platesToDelete.map((plateId) => deletePlateMutation.mutateAsync(plateId)));
-
-      toast({
-        title: "Labware cleared",
-        description: `Removed ${platesToDelete.length} plate(s) from deck`,
-        status: "success",
-        duration: 3000,
-      });
-
-      onClearModalClose();
-      refetchPlates();
-    } catch (error) {
-      toast({
-        title: "Error clearing labware",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
-  };
-
-  if (nestsLoading || labwareLoading || platesLoading) {
+  if (configsLoading || labwareLoading) {
     return (
       <Box p={6} minH="100vh" display="flex" alignItems="center" justifyContent="center">
         <VStack spacing={4}>
@@ -509,6 +254,8 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
       </Box>
     );
   }
+
+  const selectedConfig = configs?.find((c) => c.id === selectedConfigId);
 
   return (
     <Box p={6} minH="100vh">
@@ -522,13 +269,12 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                 titleIcon={<Icon as={FaRegListAlt} boxSize={8} color="teal.500" />}
                 mainButton={
                   <CreateDeckConfigModal
-                    workcellId={1}
                     currentDeckPositions={deckPositions.map((p) => ({
                       position: p.position,
                       labwareType: p.labwareType,
                     }))}
                     onConfigCreated={() => {
-                      refetchPlates();
+                      refetchConfigs();
                     }}
                   />
                 }
@@ -537,64 +283,24 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
               <StatGroup>
                 <Stat>
                   <StatLabel>Total Deck Configs</StatLabel>
-                  <StatNumber>{}</StatNumber>
+                  <StatNumber>{configs?.length || 0}</StatNumber>
                 </Stat>
                 <Stat>
                   <StatLabel>Total Sequences</StatLabel>
-                  <StatNumber>{}</StatNumber>
+                  <StatNumber>0</StatNumber>
                 </Stat>
                 <Stat>
                   <StatLabel>Selected Config</StatLabel>
-                  <StatNumber fontSize="lg">{}</StatNumber>
+                  <StatNumber fontSize="lg">{selectedConfig?.name || "None"}</StatNumber>
                 </Stat>
                 <Stat>
                   <StatLabel>Selected Sequence</StatLabel>
-                  <StatNumber fontSize="lg">{}</StatNumber>
+                  <StatNumber fontSize="lg">None</StatNumber>
                 </Stat>
               </StatGroup>
             </VStack>
           </CardBody>
         </Card>
-
-        <Card bg={colors.sectionBg} shadow="md" borderRadius="lg">
-          <CardBody>
-            <VStack spacing={3} align="stretch">
-              {/*<BravoDeckConfigSelector
-                workcellId={1}
-                currentDeckPositions={deckPositions.map((p) => ({
-                  position: p.position,
-                  labwareType: p.labwareType,
-                }))}
-                onConfigLoaded={handleConfigLoaded}
-              />*/}
-              {/*<CreateDeckConfigModal
-                workcellId={1}
-                currentDeckPositions={deckPositions.map((p) => ({
-                  position: p.position,
-                  labwareType: p.labwareType,
-                }))}
-                onConfigCreated={() => {
-                  // Optionally refetch configs or handle post-creation
-                  refetchPlates();
-                }}
-              />*/}
-            </VStack>
-          </CardBody>
-        </Card>
-
-        {/* Warning for missing nests */}
-        {!nestsInitialized && (
-          <Alert status="warning" borderRadius="md">
-            <AlertIcon />
-            <Box flex="1">
-              <AlertTitle>Nests Not Initialized</AlertTitle>
-              <AlertDescription>
-                This Bravo tool requires 9 inventory nests (3x3 grid) to be created. Please contact
-                an administrator to initialize the inventory nests for this tool.
-              </AlertDescription>
-            </Box>
-          </Alert>
-        )}
 
         <HStack spacing={6} align="stretch">
           <Card flex={1} display="flex" flexDirection="column">
@@ -605,7 +311,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
               justifyContent="start"
               flex={1}
               pt={8}>
-              <VStack spacing={4}>
+              <VStack spacing={4} width="100%">
                 <HStack spacing={2} justifyContent="space-between" width="100%">
                   <HStack>
                     <Text whiteSpace="nowrap" fontWeight="bold" fontSize="lg">
@@ -633,20 +339,27 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                     <Button
                       leftIcon={<RiSaveLine />}
                       colorScheme="teal"
-                      // onClick={saveForm}
-                      // isLoading={isSaving}
+                      onClick={handleSaveCurrentConfig}
+                      isLoading={updateConfig.isLoading}
                       loadingText="Saving..."
-                      // isDisabled={!formName.trim() || !selectedForm}
+                      isDisabled={!selectedConfigId}
                       flex={1}>
                       Save
                     </Button>
-                    {selectedDeckConfig && (
+                    {selectedConfigId && (
                       <DeleteWithConfirmation
-                        label={`${selectedForm.name}`}
-                        onDelete={handleDeleteForm}
+                        label={selectedConfig?.name || "Config"}
+                        onDelete={handleDeleteConfig}
                         variant="button"
                       />
                     )}
+                    <Button
+                      leftIcon={<RiDeleteBin6Line />}
+                      colorScheme="red"
+                      variant="outline"
+                      onClick={handleClearAllLabware}>
+                      Clear Deck
+                    </Button>
                   </ButtonGroup>
                 </HStack>
                 <Grid
@@ -659,13 +372,13 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                   gap={6}>
                   {deckPositions.map((labware) => {
                     const isSelected = selectedPosition === labware.position;
-                    const hasPlate = !!labware.plateId;
+                    const hasLabware = labware.labwareType !== "Empty";
                     const bgColor = isSelected
                       ? useColorModeValue("blue.50", "blue.900")
                       : useColorModeValue("gray.50", "gray.700");
                     const borderColor = isSelected
                       ? "blue.500"
-                      : hasPlate
+                      : hasLabware
                         ? "green.400"
                         : "gray.300";
 
@@ -678,15 +391,11 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                         borderRadius="lg"
                         p={4}
                         cursor="pointer"
-                        onClick={() => nestsInitialized && setSelectedPosition(labware.position)}
+                        onClick={() => setSelectedPosition(labware.position)}
                         _hover={{
-                          transform: nestsInitialized ? "translateY(-4px)" : "none",
-                          shadow: nestsInitialized ? "lg" : "none",
-                          borderColor: nestsInitialized
-                            ? isSelected
-                              ? "blue.600"
-                              : "blue.300"
-                            : borderColor,
+                          transform: "translateY(-4px)",
+                          shadow: "lg",
+                          borderColor: isSelected ? "blue.600" : "blue.300",
                           transition: "all 0.2s",
                         }}
                         transition="all 0.2s"
@@ -696,8 +405,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                         display="flex"
                         flexDirection="column"
                         alignItems="center"
-                        justifyContent="center"
-                        opacity={nestsInitialized ? 1 : 0.5}>
+                        justifyContent="center">
                         <VStack spacing={3} flex={1} justify="center">
                           <Text
                             fontWeight="bold"
@@ -706,7 +414,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                             {labware.position}
                           </Text>
                           <Badge
-                            colorScheme={isSelected ? "blue" : hasPlate ? "green" : "gray"}
+                            colorScheme={isSelected ? "blue" : hasLabware ? "green" : "gray"}
                             fontSize="sm"
                             px={3}
                             py={1}
@@ -717,20 +425,18 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                           </Badge>
                         </VStack>
 
-                        {nestsInitialized && (
-                          <Button
-                            size="xs"
-                            leftIcon={<RiEdit2Line />}
-                            colorScheme="purple"
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditLabware(labware.position);
-                            }}
-                            width="100%">
-                            {hasPlate ? "Edit" : "Set"} Labware
-                          </Button>
-                        )}
+                        <Button
+                          size="xs"
+                          leftIcon={<RiEdit2Line />}
+                          colorScheme="purple"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditLabware(labware.position);
+                          }}
+                          width="100%">
+                          {hasLabware ? "Edit" : "Set"} Labware
+                        </Button>
 
                         {isSelected && (
                           <Box
@@ -766,6 +472,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                 value={selectedLabware}
                 onChange={(e) => setSelectedLabware(e.target.value)}
                 placeholder="Select labware">
+                <option value="Empty">Empty</option>
                 {allLabware?.map((labware) => (
                   <option key={labware.id} value={labware.name}>
                     {labware.name}
@@ -778,38 +485,8 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
             <Button variant="ghost" mr={3} onClick={onClose}>
               Cancel
             </Button>
-            <Button
-              colorScheme="blue"
-              onClick={handleSaveLabware}
-              isDisabled={!selectedLabware}
-              isLoading={updatePlateMutation.isLoading || createPlateMutation.isLoading}>
+            <Button colorScheme="blue" onClick={handleSaveLabware} isDisabled={!selectedLabware}>
               Save
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      {/* Clear All Confirmation Modal */}
-      <Modal isOpen={isClearModalOpen} onClose={onClearModalClose} size="md">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Clear All Labware</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
-            <Text>
-              Are you sure you want to remove all labware from the Bravo deck? This will delete all
-              plate records for this tool.
-            </Text>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onClearModalClose}>
-              Cancel
-            </Button>
-            <Button
-              colorScheme="red"
-              onClick={handleClearAllLabware}
-              isLoading={deletePlateMutation.isLoading}>
-              Clear All
             </Button>
           </ModalFooter>
         </ModalContent>

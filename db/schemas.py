@@ -1091,6 +1091,7 @@ class ReorderBravoStepsRequest(BaseModel):
 
 
 # Bravo Deck Config Schemas
+# Bravo Deck Config Schemas
 class BravoDeckConfigBase(BaseModel):
     name: str
     deck_layout: Dict[str, Optional[str]]
@@ -1134,14 +1135,23 @@ class BravoDeckConfigBase(BaseModel):
         return data
 
 
-class BravoDeckConfigCreate(BravoDeckConfigBase):
-    pass
+# CREATE schema - workcell_id is NOT required (injected by backend)
+class BravoDeckConfigCreate(BaseModel):
+    name: str
+    deck_layout: Dict[str, Optional[str]]
+    # workcell_id is intentionally NOT here - it's injected by the backend
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_deck_layout(cls, data: t.Any) -> t.Any:
+        return BravoDeckConfigBase.validate_deck_layout(data)
 
 
+# UPDATE schema - workcell_id should not be updated
 class BravoDeckConfigUpdate(BaseModel):
     name: t.Optional[str] = None
     deck_layout: t.Optional[Dict[str, Optional[str]]] = None
-    workcell_id: t.Optional[int] = None
+    # workcell_id is intentionally NOT here - should not be changed after creation
 
     @model_validator(mode="before")
     @classmethod
@@ -1156,6 +1166,7 @@ class BravoDeckConfigUpdate(BaseModel):
         return data
 
 
+# Response schema - includes workcell_id
 class BravoDeckConfig(BravoDeckConfigBase, TimestampMixin):
     id: int
     model_config = ConfigDict(from_attributes=True)

@@ -8,7 +8,6 @@ import { BravoDeckConfig } from "@/types";
 import { DeleteWithConfirmation } from "@/components/ui/Delete";
 
 interface BravoDeckConfigSelectorProps {
-  workcellId: number;
   currentDeckPositions: Array<{
     position: number;
     labwareType: string;
@@ -17,16 +16,13 @@ interface BravoDeckConfigSelectorProps {
 }
 
 export const BravoDeckConfigSelector: React.FC<BravoDeckConfigSelectorProps> = ({
-  workcellId,
   currentDeckPositions,
   onConfigLoaded,
 }) => {
   const [selectedConfigId, setSelectedConfigId] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const { data: configs, refetch: refetchConfigs } = trpc.bravoDeckConfig.getAll.useQuery({
-    workcellId,
-  });
+  const { data: configs, refetch: refetchConfigs } = trpc.bravoDeckConfig.getAll.useQuery();
 
   const updateConfig = trpc.bravoDeckConfig.update.useMutation();
   const deleteConfig = trpc.bravoDeckConfig.delete.useMutation();

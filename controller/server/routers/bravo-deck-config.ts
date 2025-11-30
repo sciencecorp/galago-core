@@ -16,7 +16,7 @@ const zDeckLayout = z.object({
 });
 
 const zBravoDeckConfig = z.object({
-  id: z.number().optional(),
+  id: z.number(),
   name: z.string().min(1, "Name is required"),
   deck_layout: zDeckLayout,
   workcell_id: z.number(),
@@ -24,17 +24,16 @@ const zBravoDeckConfig = z.object({
   updated_at: z.string().optional(),
 });
 
-// Input schemas for mutations
-const zBravoDeckConfigCreate = zBravoDeckConfig.omit({
-  id: true,
-  workcell_id: true,
-  created_at: true,
-  updated_at: true,
+// Input schemas for mutations - workcell_id handled by backend
+const zBravoDeckConfigCreate = z.object({
+  name: z.string().min(1, "Name is required"),
+  deck_layout: zDeckLayout,
 });
 
-const zBravoDeckConfigUpdate = zBravoDeckConfig
-  .partial()
-  .omit({ created_at: true, updated_at: true, workcell_id: true });
+const zBravoDeckConfigUpdate = z.object({
+  name: z.string().min(1, "Name is required").optional(),
+  deck_layout: zDeckLayout.optional(),
+});
 
 // Export types
 export type BravoDeckConfig = z.infer<typeof zBravoDeckConfig>;
@@ -44,11 +43,11 @@ export type DeckLayout = z.infer<typeof zDeckLayout>;
 
 export const bravoDeckConfigRouter = router({
   getAll: procedure.query(async () => {
-    const response = await get<BravoDeckConfig[]>(`/bravo-deck-configs`);
+    const response = await get<BravoDeckConfig[]>("/bravo-deck-configs");
     return response;
   }),
 
-  get: procedure.input(z.string()).query(async ({ input }) => {
+  get: procedure.input(z.number()).query(async ({ input }) => {
     const response = await get<BravoDeckConfig>(`/bravo-deck-configs/${input}`);
     return response;
   }),
@@ -59,7 +58,7 @@ export const bravoDeckConfigRouter = router({
     logAction({
       level: "info",
       action: "Bravo Deck Config Created",
-      details: `Bravo deck configuration "${input.name}" created successfully for workcell ID ${input.workcell_id}.`,
+      details: `Bravo deck configuration "${input.name}" created successfully.`,
     });
     return response;
   }),
