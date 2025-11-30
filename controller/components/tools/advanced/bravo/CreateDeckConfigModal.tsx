@@ -83,7 +83,7 @@ export const CreateDeckConfigModal: React.FC<CreateDeckConfigModalProps> = ({
 
   return (
     <>
-      <Button onClick={onOpen} colorScheme="purple" leftIcon={<RiAddFill />} size="sm">
+      <Button onClick={onOpen} colorScheme="teal" leftIcon={<RiAddFill />}>
         New Config
       </Button>
 

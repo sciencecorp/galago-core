@@ -53,6 +53,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { FaRegListAlt } from "react-icons/fa";
 import { RiAddFill, RiDeleteBin6Line, RiSaveLine } from "react-icons/ri";
 import { DeleteWithConfirmation } from "@/components/ui/Delete";
+import { BiSolidEraser } from "react-icons/bi";
 
 interface BravoAdvancedProps {
   tool: Tool;
@@ -347,6 +348,13 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                       flex={1}>
                       Save
                     </Button>
+                    <Button
+                      leftIcon={<BiSolidEraser />}
+                      colorScheme="yellow"
+                      // variant="ghost"
+                      onClick={handleClearAllLabware}>
+                      Clear
+                    </Button>
                     {selectedConfigId && (
                       <DeleteWithConfirmation
                         label={selectedConfig?.name || "Config"}
@@ -354,13 +362,6 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                         variant="button"
                       />
                     )}
-                    <Button
-                      leftIcon={<RiDeleteBin6Line />}
-                      colorScheme="red"
-                      variant="outline"
-                      onClick={handleClearAllLabware}>
-                      Clear Deck
-                    </Button>
                   </ButtonGroup>
                 </HStack>
                 <Grid
