@@ -3,7 +3,6 @@ import { procedure, router } from "@/server/trpc";
 import { get, post, put, del } from "../utils/api";
 import { logAction } from "@/server/logger";
 
-// Zod schema for deck layout - exactly 9 locations with optional labware
 const zDeckLayout = z.object({
   "1": z.string().nullish(),
   "2": z.string().nullish(),
@@ -16,7 +15,6 @@ const zDeckLayout = z.object({
   "9": z.string().nullish(),
 });
 
-// Zod schema for Bravo deck config
 const zBravoDeckConfig = z.object({
   id: z.number().optional(),
   name: z.string().min(1, "Name is required"),
@@ -29,13 +27,14 @@ const zBravoDeckConfig = z.object({
 // Input schemas for mutations
 const zBravoDeckConfigCreate = zBravoDeckConfig.omit({
   id: true,
+  workcell_id: true,
   created_at: true,
   updated_at: true,
 });
 
 const zBravoDeckConfigUpdate = zBravoDeckConfig
   .partial()
-  .omit({ created_at: true, updated_at: true });
+  .omit({ created_at: true, updated_at: true, workcell_id: true });
 
 // Export types
 export type BravoDeckConfig = z.infer<typeof zBravoDeckConfig>;
@@ -44,36 +43,12 @@ export type BravoDeckConfigUpdate = z.infer<typeof zBravoDeckConfigUpdate>;
 export type DeckLayout = z.infer<typeof zDeckLayout>;
 
 export const bravoDeckConfigRouter = router({
-  // Get all deck configs
-  getAll: procedure
-    .input(
-      z
-        .object({
-          workcellId: z.number().optional(),
-          workcellName: z.string().optional(),
-        })
-        .optional(),
-    )
-    .query(async ({ input }) => {
-      let url = "/bravo-deck-configs";
-      const params = new URLSearchParams();
+  getAll: procedure.query(async () => {
+    const response = await get<BravoDeckConfig[]>(`/bravo-deck-configs`);
+    return response;
+  }),
 
-      if (input?.workcellId) {
-        params.append("workcell_id", input.workcellId.toString());
-      } else if (input?.workcellName) {
-        params.append("workcell_name", input.workcellName);
-      }
-
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-
-      const response = await get<BravoDeckConfig[]>(url);
-      return response;
-    }),
-
-  // Get a specific deck config by ID
-  get: procedure.input(z.number()).query(async ({ input }) => {
+  get: procedure.input(z.string()).query(async ({ input }) => {
     const response = await get<BravoDeckConfig>(`/bravo-deck-configs/${input}`);
     return response;
   }),
