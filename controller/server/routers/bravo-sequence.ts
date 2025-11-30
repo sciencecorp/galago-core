@@ -235,18 +235,5 @@ export const bravoSequenceRouter = router({
       });
       return response;
     }),
-
-    // Bulk delete steps
-    bulkDelete: procedure.input(z.array(z.number())).mutation(async ({ input }) => {
-      const response = await del("/bravo-sequence-steps/bulk-delete", {
-        step_ids: input,
-      });
-      logAction({
-        level: "info",
-        action: "Bravo Steps Bulk Deleted",
-        details: `Deleted ${input.length} Bravo steps in bulk.`,
-      });
-      return response;
-    }),
   }),
 });

@@ -4,7 +4,6 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-import db.models.inventory_models as models
 from db import crud, schemas
 
 from ..dependencies import get_db, get_selected_workcell_id
@@ -54,11 +53,12 @@ def create_bravo_deck_config(
             detail=f"Bravo deck configuration with name '{config.name}' already exists in this workcell",
         )
 
-    # Create config with workcell_id
-    config_data = config.dict()
+    # Create config with workcell_id - use model_dump() instead of deprecated dict()
+    config_data = config.model_dump()
     config_data["workcell_id"] = workcell_id
 
-    new_config = crud.bravo_deck_config.create(db, obj_in=config_data)
+    # Pass dict to create - CRUD.create() uses jsonable_encoder internally
+    new_config = crud.bravo_deck_config.create(db, obj_in=config_data)  # type: ignore[arg-type]
     return new_config
 
 

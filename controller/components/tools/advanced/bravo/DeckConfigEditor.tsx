@@ -308,7 +308,7 @@ export const DeckConfigEditor: React.FC<DeckConfigEditorProps> = ({ onDeckPositi
                         {labware.position}
                       </Text>
                       <Badge
-                        colorScheme={isSelected ? "blue" : hasLabware ? "green" : "gray"}
+                        colorScheme={hasLabware ? "green" : "gray"}
                         fontSize="sm"
                         px={3}
                         py={1}
