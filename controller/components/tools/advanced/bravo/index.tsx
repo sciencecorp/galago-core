@@ -144,7 +144,6 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
       };
     });
     setDeckPositions(newDeckPositions);
-    successToast("Config loaded", `Loaded configuration "${config.name}"`);
   };
 
   const handleSaveCurrentConfig = async () => {
@@ -163,7 +162,9 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
     try {
       await updateConfig.mutateAsync({
         id: selectedConfigId,
-        deck_layout: deckLayout,
+        data: {
+          deck_layout: deckLayout,
+        },
       });
       successToast("Config saved", "Deck configuration has been updated");
       refetchConfigs();
