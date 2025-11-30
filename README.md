@@ -1,5 +1,10 @@
 # Galago
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Python Version](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
+[![GitHub Issues](https://img.shields.io/github/issues/sciencecorp/galago-core)](https://github.com/sciencecorp/galago-tools/issues)
+
+
 **Galago** is a comprehensive laboratory automation platform that orchestrates and manages laboratory equipment through a unified interface. It provides protocol execution, device management, and real-time monitoring for automated laboratory workflows.
 
 ## Architecture
@@ -29,14 +34,26 @@ Galago consists of several distinct modules:
 - **Docker** and **Docker Compose** (recommended for development)
 - **Redis** (for queue management)
 
-### Quick Start with Docker (Recommended)
+### Fork the Repository (Recommended)
 
-1. **Clone the repository**
+If you plan to contribute or customize Galago, start by forking the repository:
 
-   ```bash
-   git clone https://github.com/your-org/galago-core.git
+1. **Fork on GitHub**: Click the "Fork" button at the top right of the [repository page](https://github.com/sciencecopr/galago-core), or use this direct link:
+   
+   **[Fork Galago →](https://github.com/sciencecorp/galago-core/fork)**
+
+2. **Clone your fork** (replace `your-username` with your GitHub username):
+```bash
+   git clone https://github.com/your-username/galago-core.git
    cd galago-core
-   ```
+```
+
+3. **Add upstream remote** (to keep your fork updated):
+```bash
+   git remote add upstream https://github.com/your-org/galago-core.git
+```
+
+### Quick Start with Docker (Recommended)
 
 2. **Install grpcio dependencies on a local environment (for proto files, testing, linting, etc)**
 
@@ -105,7 +122,7 @@ For production deployment:
 ```bash
 
 # Launch production stack
-docker-compose -f docker-compose.yml up -d --force-recreate
+docker-compose up -d
 ```
 
 ## Other docker commands
