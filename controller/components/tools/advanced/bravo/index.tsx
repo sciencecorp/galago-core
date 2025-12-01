@@ -16,6 +16,7 @@ import {
   Stat,
   StatLabel,
   StatNumber,
+  Image,
   useDisclosure,
 } from "@chakra-ui/react";
 import { Tool } from "@/types/api";
@@ -156,7 +157,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
               <PageHeader
                 title="Bravo Advanced Controls"
                 subTitle="Agilent Bravo Deck and Sequence Management"
-                titleIcon={<Icon as={FaRegListAlt} boxSize={8} color="teal.500" />}
+                titleIcon={<Image src="/tool_icons/bravo.png" alt="Bravo Logo" boxSize={12} />}
                 mainButton={
                   <CreateDeckConfigModal
                     currentDeckPositions={currentDeckPositions}
