@@ -69,7 +69,7 @@ export const ActionIcons = {
 } as const;
 
 // Robot Command Icons
-export const CommandIcons = {
+export const PF400CommandIcons = {
   Move: MdArrowOutward,
   GraspPlate: FaGripHorizontal,
   ReleasePlate: FaHandPaper,

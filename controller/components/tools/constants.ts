@@ -360,7 +360,7 @@ export const commandFields: CommandFields = {
 };
 
 // Command icons mapping - separate object for cleaner organization
-export const commandIcons: Record<string, Record<string, string>> = {
+export const PF400CommandIcons: Record<string, Record<string, string>> = {
   toolbox: {
     user_form: "📝",
     run_script: "⚡",

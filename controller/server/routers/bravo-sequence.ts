@@ -114,6 +114,43 @@ export const bravoSequenceRouter = router({
         return response;
       }),
 
+    // Update sequence steps
+    updateSteps: procedure
+      .input(
+        z.object({
+          id: z.number(),
+          steps: z.array(
+            z.object({
+              command_name: z.enum([
+                "home",
+                "mix",
+                "aspirate",
+                "dispense",
+                "tips_on",
+                "tips_off",
+                "move_to_location",
+                "configure_deck",
+                "show_diagnostics",
+              ]),
+              label: z.string(),
+              params: z.record(z.any()),
+              position: z.number(),
+              sequence_id: z.number(),
+            }),
+          ),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const { id, steps } = input;
+        const response = await put<BravoSequenceStep[]>(`/bravo-sequences/${id}/steps`, steps);
+        logAction({
+          level: "info",
+          action: "Bravo Sequence Steps Updated",
+          details: `Updated ${steps.length} steps for sequence ID ${id}.`,
+        });
+        return response;
+      }),
+
     // Delete sequence
     delete: procedure.input(z.number()).mutation(async ({ input }) => {
       // Get sequence details before deletion for logging

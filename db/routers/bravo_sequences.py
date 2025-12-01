@@ -101,3 +101,42 @@ async def delete_bravo_sequence(id: int, db: Session = Depends(get_db)):
 
     crud.bravo_sequence.remove(db=db, id=id)
     return {"success": True, "message": "Bravo sequence deleted successfully"}
+
+
+@router.put("/{id}/steps", response_model=List[schemas.BravoSequenceStep])
+async def update_sequence_steps(
+    id: int, steps: List[schemas.BravoSequenceStepCreate], db: Session = Depends(get_db)
+):
+    """Replace all steps for a sequence."""
+    try:
+        # Verify sequence exists
+        db_sequence = crud.bravo_sequence.get(db=db, id=id)
+        if not db_sequence:
+            raise HTTPException(status_code=404, detail="Bravo sequence not found")
+
+        # Delete existing steps
+        existing_steps = crud.bravo_sequence_step.get_all_by(
+            db=db, obj_in={"sequence_id": id}
+        )
+        for step in existing_steps:
+            crud.bravo_sequence_step.remove(db=db, id=step.id)
+
+        # Create new steps
+        created_steps = []
+        for step_data in steps:
+            step_dict = step_data.dict()
+            step_dict["sequence_id"] = id
+            db_step = crud.bravo_sequence_step.create(
+                db=db, obj_in=schemas.BravoSequenceStepCreate(**step_dict)
+            )
+            created_steps.append(db_step)
+
+        return created_steps
+
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
+        logging.error(f"Error updating sequence steps: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error updating steps: {str(e)}")
