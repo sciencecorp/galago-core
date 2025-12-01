@@ -54,6 +54,13 @@ export const commandColors = {
   release: "teal",
   unwind: "pink",
   default: "gray",
+  mix: "yellow",
+  aspirate: "blue",
+  dispense: "green",
+  move_to_location: "red",
+  home: "orange",
+  tips_on: "teal",
+  tips_off: "red",
 };
 
 // Get command color by command name

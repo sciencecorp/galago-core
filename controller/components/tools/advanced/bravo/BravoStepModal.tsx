@@ -36,8 +36,6 @@ const BRAVO_COMMANDS = [
   { value: "tips_on", label: "Tips On" },
   { value: "tips_off", label: "Tips Off" },
   { value: "move_to_location", label: "Move to Location" },
-  { value: "configure_deck", label: "Configure Deck" },
-  { value: "show_diagnostics", label: "Show Diagnostics" },
 ];
 
 export const BravoStepModal: React.FC<BravoStepModalProps> = ({

@@ -23,7 +23,7 @@ import {
 import { useState, useEffect } from "react";
 import { Tool } from "@/types/api";
 import { trpc } from "@/utils/trpc";
-import { PF400CommandIcons } from "@/components/ui/Icons";
+import { BravoCommandIcons } from "@/components/ui/Icons";
 import { getCommandColor, getCommandColorHex } from "@/components/ui/Theme";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { SaveIcon, EditIcon } from "@/components/ui/Icons";
@@ -445,9 +445,9 @@ export const BravoCommandList: React.FC<BravoCommandListProps> = ({
     const iconKey = commandName
       .split("_")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join("") as keyof typeof PF400CommandIcons;
+      .join("") as keyof typeof BravoCommandIcons;
 
-    const IconComponent = PF400CommandIcons[iconKey] || PF400CommandIcons.Move;
+    const IconComponent = BravoCommandIcons[iconKey] || BravoCommandIcons.Mix;
     return <IconComponent color={getCommandColorHex(commandName)} />;
   };
 
