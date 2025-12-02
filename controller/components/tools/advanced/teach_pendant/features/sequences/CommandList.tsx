@@ -39,7 +39,7 @@ import { CommandModal } from "./CommandModal";
 import { TeachPoint, MotionProfile, GripParams } from "../../types/";
 import { Tool } from "@/types/api";
 import { trpc } from "@/utils/trpc";
-import { CommandIcons } from "@/components/ui/Icons";
+import { PF400CommandIcons } from "@/components/ui/Icons";
 import { getCommandColor, getCommandColorHex } from "@/components/ui/Theme";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { SaveIcon, EditIcon } from "@/components/ui/Icons";
@@ -681,14 +681,14 @@ export const CommandList: React.FC<CommandListProps> = ({
   };
 
   const getCommandIcon = (commandName: string) => {
-    // Convert snake_case command name to PascalCase for CommandIcons
+    // Convert snake_case command name to PascalCase for PF400CommandIcons
     const iconKey = commandName
       .split("_")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join("") as keyof typeof CommandIcons;
+      .join("") as keyof typeof PF400CommandIcons;
 
-    // Check if the icon exists in CommandIcons, otherwise use Move as fallback
-    const IconComponent = CommandIcons[iconKey] || CommandIcons.Move;
+    // Check if the icon exists in PF400CommandIcons, otherwise use Move as fallback
+    const IconComponent = PF400CommandIcons[iconKey] || PF400CommandIcons.Move;
 
     return <IconComponent color={getCommandColorHex(commandName)} />;
   };

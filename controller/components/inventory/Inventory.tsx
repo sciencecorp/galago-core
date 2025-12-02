@@ -35,12 +35,11 @@ import {
   NumberDecrementStepper,
   Heading,
 } from "@chakra-ui/react";
-import { Inventory, Plate, Reagent, Nest, Tool, NestStatus, Hotel } from "@/types/api";
+import { Plate, Reagent, Nest, Tool, NestStatus, Hotel } from "@/types/api";
 import { PageHeader } from "@/components/ui/PageHeader";
 import InventorySearch from "./search/InventorySearch";
 import { InventoryToolCard } from "./cards/InventoryToolCard";
 import { InventoryHotelCard } from "./cards/InventoryHotelCard";
-import AlertComponent from "@/components/ui/AlertComponent";
 import { trpc } from "@/utils/trpc";
 import { BsBoxSeam } from "react-icons/bs";
 import InventoryModal from "./modals/InventoryModal";

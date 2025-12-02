@@ -128,9 +128,63 @@ export const commandFields: CommandFields = {
     stage_out: [],
     show_diagnostics: [],
   },
-  bravo: {
+  vworks: {
     run_protocol: [{ name: "protocol_file", type: "text" }],
     run_runset: [{ name: "runset_file", type: "text" }],
+  },
+  bravo: {
+    home: [
+      { name: "axis", type: "text", defaultValue: "X" },
+      { name: "force_initialize", type: "boolean", defaultValue: true },
+    ],
+    mix: [
+      { name: "location", type: "number", defaultValue: 1 },
+      { name: "volume", type: "number", defaultValue: 100 },
+      { name: "pre_aspirate_volume", type: "number", defaultValue: 0 },
+      { name: "blow_out_volume", type: "number", defaultValue: 0 },
+      { name: "liquid_class", type: "text", defaultValue: "" },
+      { name: "cycles", type: "number", defaultValue: 3 },
+      { name: "retract_distance_per_microliter", type: "number", defaultValue: 0 },
+      { name: "pipette_technique", type: "text", defaultValue: "" },
+      { name: "aspirate_distance", type: "number", defaultValue: 2.0 },
+      { name: "dispense_distance", type: "number", defaultValue: 2.0 },
+      { name: "perform_tip_touch", type: "boolean", defaultValue: false },
+      { name: "tip_touch_side", type: "text", defaultValue: "None" },
+      { name: "tip_touch_retract_distance", type: "number", defaultValue: 0 },
+      { name: "tip_touch_horizonal_offset", type: "number", defaultValue: 0 },
+    ],
+    aspirate: [
+      { name: "location", type: "number", defaultValue: 1 },
+      { name: "volume", type: "number", defaultValue: 100 },
+      { name: "pre_aspirate_volume", type: "number", defaultValue: 0 },
+      { name: "post_aspirate_volume", type: "number", defaultValue: 0 },
+      { name: "liquid_class", type: "text", defaultValue: "" },
+      { name: "distance_from_well_bottom", type: "number", defaultValue: 2.0 },
+      { name: "retract_distance_per_microliter", type: "number", defaultValue: 0 },
+      { name: "pipette_technique", type: "text", defaultValue: "" },
+      { name: "perform_tip_touch", type: "boolean", defaultValue: false },
+      { name: "tip_touch_side", type: "text", defaultValue: "None" },
+      { name: "tip_touch_retract_distance", type: "number", defaultValue: 0 },
+      { name: "tip_touch_horizonal_offset", type: "number", defaultValue: 0 },
+    ],
+    dispense: [
+      { name: "location", type: "number", defaultValue: 1 },
+      { name: "empty_tips", type: "boolean", defaultValue: false },
+      { name: "volume", type: "number", defaultValue: 100 },
+      { name: "blow_out_volume", type: "number", defaultValue: 0 },
+      { name: "liquid_class", type: "text", defaultValue: "" },
+      { name: "distance_from_well_bottom", type: "number", defaultValue: 2.0 },
+      { name: "retract_distance_per_microliter", type: "number", defaultValue: 0 },
+      { name: "pipette_technique", type: "text", defaultValue: "" },
+      { name: "perform_tip_touch", type: "boolean", defaultValue: false },
+      { name: "tip_touch_side", type: "text", defaultValue: "None" },
+      { name: "tip_touch_retract_distance", type: "number", defaultValue: 0 },
+      { name: "tip_touch_horizonal_offset", type: "number", defaultValue: 0 },
+    ],
+    tips_on: [{ name: "plate_location", type: "number", defaultValue: 1 }],
+    tips_off: [{ name: "plate_location", type: "number", defaultValue: 1 }],
+    move_to_location: [{ name: "plate_location", type: "number", defaultValue: 1 }],
+    show_diagnostics: [],
   },
   vprep: {
     run_protocol: [{ name: "protocol_file", type: "text" }],
@@ -306,7 +360,7 @@ export const commandFields: CommandFields = {
 };
 
 // Command icons mapping - separate object for cleaner organization
-export const commandIcons: Record<string, Record<string, string>> = {
+export const PF400CommandIcons: Record<string, Record<string, string>> = {
   toolbox: {
     user_form: "📝",
     run_script: "⚡",
@@ -328,7 +382,7 @@ export const commandIcons: Record<string, Record<string, string>> = {
     stage_out: "📤",
     show_diagnostics: "🔍",
   },
-  bravo: {
+  vworks: {
     run_protocol: "🏃",
     run_runset: "📋",
   },
@@ -418,5 +472,25 @@ export const commandIcons: Record<string, Record<string, string>> = {
     unwind: "🔄",
     go_to: "➡️",
     send_raw_command: "💻",
+  },
+  bravo: {
+    initialize: "🚀",
+    close: "🔒",
+    home_w: "🏠",
+    home_xyz: "🏠",
+    mix: "🌀",
+    wash: "🧼",
+    aspirate: "⬆️",
+    dispense: "⬇️",
+    tips_on: "📌",
+    tips_off: "📍",
+    move_to_location: "➡️",
+    set_labware_at_location: "🧪",
+    set_liquid_class: "💧",
+    pick_and_place: "🤖",
+    get_device_configuration: "⚙️",
+    get_firmware_version: "📋",
+    enumerate_profiles: "📝",
+    show_diagnostics: "🔍",
   },
 };

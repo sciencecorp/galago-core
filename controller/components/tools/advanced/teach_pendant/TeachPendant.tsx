@@ -450,8 +450,6 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
       overflow="hidden"
       bgColor={bgColor}
       borderColor={borderColor}
-      width="1500px"
-      minW="1200px"
       boxShadow={useColorModeValue(
         "0 4px 12px rgba(0, 0, 0, 0.1)",
         "0 4px 16px rgba(0, 0, 0, 0.6)",

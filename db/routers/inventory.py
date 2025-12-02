@@ -1,18 +1,25 @@
-from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.orm import Session
 import typing as t
 
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
 from db import crud, schemas
-from ..dependencies import get_db
+
+from ..dependencies import get_db, get_selected_workcell_name
 
 router = APIRouter()
 
 
 @router.get("/inventory", response_model=schemas.Inventory)
-def get_inventory(workcell_name: str, db: Session = Depends(get_db)) -> t.Any:
-    # Get workcell by name
+def get_inventory(
+    workcell_name: t.Optional[str] = None, db: Session = Depends(get_db)
+) -> t.Any:
+    # If no workcell_name provided, use the selected workcell
+    if workcell_name is None:
+        workcell_name = get_selected_workcell_name(db)
+
     workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
-    if workcell is None:
+    if not workcell:
         raise HTTPException(status_code=404, detail="Workcell not found")
 
     # Get all tools for the workcell
@@ -49,8 +56,6 @@ def get_inventory(workcell_name: str, db: Session = Depends(get_db)) -> t.Any:
         reagents.extend(crud.reagent.get_all_by(db, obj_in={"well_id": well.id}))
 
     return schemas.Inventory(
-        workcell=workcell,
-        instruments=[tool for tool in tools],
         hotels=[hotel for hotel in hotels],
         nests=[nest for nest in nests],
         plates=[plate for plate in plates],

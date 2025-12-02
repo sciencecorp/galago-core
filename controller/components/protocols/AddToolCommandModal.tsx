@@ -40,7 +40,7 @@ import {
 import { useState, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
 import { RiSearchLine } from "react-icons/ri";
-import { commandFields, commandIcons } from "../tools/constants";
+import { commandFields, PF400CommandIcons } from "../tools/constants";
 import { capitalizeFirst } from "@/utils/parser";
 import { PiToolbox } from "react-icons/pi";
 import { warningToast } from "../ui/Toast";
@@ -91,7 +91,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
 
   // Helper function to get command icon
   const getCommandIcon = (toolType: string, command: string): string => {
-    return commandIcons[toolType]?.[command] || "⚙️";
+    return PF400CommandIcons[toolType]?.[command] || "⚙️";
   };
 
   useEffect(() => {

@@ -24,9 +24,22 @@ import {
   RiArrowTurnBackLine,
   RiArrowTurnForwardLine,
 } from "react-icons/ri";
-import { MdArrowOutward, MdOutlineSwapHoriz } from "react-icons/md";
+import {
+  MdArrowOutward,
+  MdOutlineSwapHoriz,
+  MdHome,
+  MdOutlineWaterDrop,
+  MdWaterDrop,
+  MdRotateRight,
+  MdPlace,
+  MdLocationOn,
+  MdSettings,
+  MdSearch,
+} from "react-icons/md";
 import { IoLockClosedOutline, IoLockOpenOutline } from "react-icons/io5";
 import { HiArrowsPointingIn } from "react-icons/hi2";
+import { BiTransfer } from "react-icons/bi";
+import { TbDropletUp, TbDropletDown } from "react-icons/tb";
 
 // Types
 interface IconBaseProps extends ChakraIconProps {
@@ -68,8 +81,8 @@ export const ActionIcons = {
   Menu: HamburgerIcon,
 } as const;
 
-// Robot Command Icons
-export const CommandIcons = {
+// Robot Command Icons - PF400
+export const PF400CommandIcons = {
   Move: MdArrowOutward,
   GraspPlate: FaGripHorizontal,
   ReleasePlate: FaHandPaper,
@@ -78,6 +91,42 @@ export const CommandIcons = {
   Engage: IoLockClosedOutline,
   Release: IoLockOpenOutline,
   Unwind: HiArrowsPointingIn,
+} as const;
+
+// Robot Command Icons - Bravo
+export const BravoCommandIcons = {
+  Home: MdHome,
+  Mix: MdRotateRight,
+  Aspirate: TbDropletUp,
+  Dispense: TbDropletDown,
+  TipsOn: MdPlace,
+  TipsOff: MdLocationOn,
+  MoveToLocation: MdArrowOutward,
+  ConfigureDeck: MdSettings,
+  ShowDiagnostics: MdSearch,
+} as const;
+
+// Command Icons mapping object for easy lookup
+export const CommandIcons = {
+  // PF400
+  Move: MdArrowOutward,
+  GraspPlate: FaGripHorizontal,
+  ReleasePlate: FaHandPaper,
+  RetrievePlate: RiArrowTurnBackLine,
+  DropoffPlate: RiArrowTurnForwardLine,
+  Engage: IoLockClosedOutline,
+  Release: IoLockOpenOutline,
+  Unwind: HiArrowsPointingIn,
+  // Bravo
+  Home: MdHome,
+  Mix: MdRotateRight,
+  Aspirate: TbDropletUp,
+  Dispense: TbDropletDown,
+  TipsOn: MdPlace,
+  TipsOff: MdLocationOn,
+  MoveToLocation: MdArrowOutward,
+  ConfigureDeck: MdSettings,
+  ShowDiagnostics: MdSearch,
 } as const;
 
 // Individual Icon Exports with Consistent Naming
@@ -95,13 +144,22 @@ export {
   RiFolderAddLine as FolderAddLineIcon,
   HamburgerIcon as MenuIcon,
   FaFileCirclePlus as FileAddIcon,
-  // Robot Command Icons
+  // PF400 Robot Command Icons
   MdArrowOutward as MoveIcon,
   FaGripHorizontal as GraspPlateIcon,
   FaHandPaper as ReleasePlateIcon,
   RiArrowTurnBackLine as RetrievePlateIcon,
   RiArrowTurnForwardLine as DropoffPlateIcon,
   HiArrowsPointingIn as UnwindIcon,
+  // Bravo Robot Command Icons
+  MdHome as HomeIcon,
+  MdRotateRight as MixIcon,
+  TbDropletUp as AspirateIcon,
+  TbDropletDown as DispenseIcon,
+  MdPlace as TipsOnIcon,
+  MdLocationOn as TipsOffIcon,
+  MdSettings as ConfigureDeckIcon,
+  MdSearch as ShowDiagnosticsIcon,
 };
 
 // Custom Icon Components

@@ -19,7 +19,7 @@ services:
       - "9229:9229" # Node.js debug port
     volumes:
       - ./controller:/app:cached
-      - /app/node_modules # Persist node_modules
+      - /app/node_modules # Prevent overwriting node_modules
     environment:
       - NODE_ENV=development
       - PORT=3010
@@ -28,7 +28,7 @@ services:
       - REDIS_HOST=redis://queue:6379/1
     stdin_open: true # for debugging
     tty: true # for debugging
-    #network_mode: "host"
+    # network_mode: "host"
     networks:
       - app-network
     depends_on:

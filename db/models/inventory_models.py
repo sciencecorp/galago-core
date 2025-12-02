@@ -1,21 +1,24 @@
 from __future__ import annotations
+
 import enum
+from typing import List, Optional
+
 from sqlalchemy import (
+    JSON,
+    Boolean,
+    CheckConstraint,
     Column,
+    Date,
+    Float,
     ForeignKey,
     Integer,
     String,
-    JSON,
-    Boolean,
-    Float,
-    CheckConstraint,
-    Enum as SQLEnum,
-    Date,
-    UniqueConstraint
+    UniqueConstraint,
 )
-from sqlalchemy.orm import relationship, RelationshipProperty
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy.orm import RelationshipProperty, relationship
 from sqlalchemy.sql import func
-from typing import List, Optional
+
 from .db_session import Base
 from .utils import TimestampMixin
 
@@ -50,7 +53,9 @@ class Workcell(Base, TimestampMixin):
     script_folders: RelationshipProperty[List["ScriptFolder"]] = relationship(
         "ScriptFolder", back_populates="workcell", cascade="all, delete-orphan"
     )
-
+    bravo_deck_configs: RelationshipProperty[List["BravoDeckConfig"]] = relationship(
+        "BravoDeckConfig", back_populates="workcell", cascade="all, delete-orphan"
+    )
     __table_args__ = (CheckConstraint("name <> ''", name="check_non_empty_name"),)
 
 
@@ -77,16 +82,16 @@ class Tool(Base, TimestampMixin):
     robot_arm_sequences: RelationshipProperty[List["RobotArmSequence"]] = relationship(
         "RobotArmSequence", back_populates="tool"
     )
-    robot_arm_motion_profiles: RelationshipProperty[
-        List["RobotArmMotionProfile"]
-    ] = relationship("RobotArmMotionProfile", back_populates="tool")
-    robot_arm_grip_params: RelationshipProperty[
-        List["RobotArmGripParams"]
-    ] = relationship("RobotArmGripParams", back_populates="tool")
+    robot_arm_motion_profiles: RelationshipProperty[List["RobotArmMotionProfile"]] = (
+        relationship("RobotArmMotionProfile", back_populates="tool")
+    )
+    robot_arm_grip_params: RelationshipProperty[List["RobotArmGripParams"]] = (
+        relationship("RobotArmGripParams", back_populates="tool")
+    )
 
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
-        UniqueConstraint('name', 'workcell_id', name='unique_tool_name_per_workcell')
+        UniqueConstraint("name", "workcell_id", name="unique_tool_name_per_workcell"),
     )
 
 
@@ -110,9 +115,8 @@ class Hotel(Base, TimestampMixin):
 
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
-        UniqueConstraint('name', 'workcell_id', name='unique_hotel_name_per_workcell')
+        UniqueConstraint("name", "workcell_id", name="unique_hotel_name_per_workcell"),
     )
-
 
 
 class NestStatus(str, enum.Enum):
@@ -240,7 +244,9 @@ class Variable(Base, TimestampMixin):
 
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
-        UniqueConstraint('name', 'workcell_id', name='unique_variable_name_per_workcell')
+        UniqueConstraint(
+            "name", "workcell_id", name="unique_variable_name_per_workcell"
+        ),
     )
 
 
@@ -266,7 +272,9 @@ class Labware(Base, TimestampMixin):
 
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
-        UniqueConstraint('name', 'workcell_id', name='unique_labware_name_per_workcell')
+        UniqueConstraint(
+            "name", "workcell_id", name="unique_labware_name_per_workcell"
+        ),
     )
 
 
@@ -291,8 +299,11 @@ class ScriptFolder(Base, TimestampMixin):
 
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
-        UniqueConstraint('name', 'workcell_id', name='unique_script_folder_name_per_workcell')
+        UniqueConstraint(
+            "name", "workcell_id", name="unique_script_folder_name_per_workcell"
+        ),
     )
+
 
 class Script(Base, TimestampMixin):
     __tablename__ = "scripts"
@@ -315,7 +326,7 @@ class Script(Base, TimestampMixin):
 
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
-        UniqueConstraint('name', 'workcell_id', name='unique_script_name_per_workcell')
+        UniqueConstraint("name", "workcell_id", name="unique_script_name_per_workcell"),
     )
 
 
@@ -341,7 +352,7 @@ class RobotArmLocation(Base, TimestampMixin):
 
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
-        UniqueConstraint('name', 'tool_id', name='unique_name_per_tool')
+        UniqueConstraint("name", "tool_id", name="unique_name_per_tool"),
     )
 
 
@@ -402,7 +413,7 @@ class Protocol(Base, TimestampMixin):
     category = Column(String, nullable=False)
     workcell_id = Column(Integer, ForeignKey("workcells.id"))
     description = Column(String, nullable=True)
-    commands = Column(JSON, nullable=False) 
+    commands = Column(JSON, nullable=False)
 
     workcell: RelationshipProperty[Optional["Workcell"]] = relationship(
         "Workcell", back_populates="protocols"
@@ -410,7 +421,9 @@ class Protocol(Base, TimestampMixin):
 
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
-        UniqueConstraint('name', 'workcell_id', name='unique_protocol_name_per_workcell')
+        UniqueConstraint(
+            "name", "workcell_id", name="unique_protocol_name_per_workcell"
+        ),
     )
 
 
@@ -418,7 +431,7 @@ class Form(Base, TimestampMixin):
     __tablename__ = "forms"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    fields = Column(JSON, nullable=False)  
+    fields = Column(JSON, nullable=False)
     background_color = Column(String, nullable=True)
     font_color = Column(String, nullable=True)
     workcell_id = Column(Integer, ForeignKey("workcells.id"))
@@ -428,5 +441,99 @@ class Form(Base, TimestampMixin):
 
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
-        UniqueConstraint('name', 'workcell_id', name='unique_form_name_per_workcell')
+        UniqueConstraint("name", "workcell_id", name="unique_form_name_per_workcell"),
+    )
+
+
+class BravoProtocol(Base, TimestampMixin):
+    __tablename__ = "bravo_protocols"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    tool_id = Column(Integer, ForeignKey("tools.id"))
+
+    # Relationships
+    tool: RelationshipProperty[Optional["Tool"]] = relationship(
+        "Tool", foreign_keys=[tool_id]
+    )
+    commands: RelationshipProperty[List["BravoProtocolCommand"]] = relationship(
+        "BravoProtocolCommand",
+        back_populates="protocol",
+        cascade="all, delete-orphan",
+        order_by="BravoProtocolCommand.position",
+    )
+
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+        UniqueConstraint("name", "tool_id", name="unique_bravo_protocol_name_per_tool"),
+    )
+
+
+class BravoCommandType(str, enum.Enum):
+    # Basic commands
+    home = "home"
+    mix = "mix"
+    aspirate = "aspirate"
+    dispense = "dispense"
+    tips_on = "tips_on"
+    tips_off = "tips_off"
+    move_to_location = "move_to_location"
+    configure_deck = "configure_deck"
+    show_diagnostics = "show_diagnostics"
+
+    # Control flow commands
+    loop = "loop"
+    group = "group"
+
+
+class BravoProtocolCommand(Base, TimestampMixin):
+    __tablename__ = "bravo_protocol_commands"
+    id = Column(Integer, primary_key=True)
+    command_type = Column(SQLEnum(BravoCommandType), nullable=False)
+    label = Column(String, nullable=False)
+    params = Column(JSON, nullable=False)
+    position = Column(Integer, nullable=False)
+    protocol_id = Column(Integer, ForeignKey("bravo_protocols.id"))
+
+    # For nested commands (loops/groups)
+    parent_command_id = Column(
+        Integer, ForeignKey("bravo_protocol_commands.id"), nullable=True
+    )
+
+    # Relationships
+    protocol: RelationshipProperty[Optional["BravoProtocol"]] = relationship(
+        "BravoProtocol", back_populates="commands"
+    )
+    parent_command: RelationshipProperty[Optional["BravoProtocolCommand"]] = (
+        relationship(
+            "BravoProtocolCommand", remote_side=[id], back_populates="child_commands"
+        )
+    )
+    child_commands: RelationshipProperty[List["BravoProtocolCommand"]] = relationship(
+        "BravoProtocolCommand",
+        back_populates="parent_command",
+        cascade="all, delete-orphan",
+        order_by="BravoProtocolCommand.position",
+    )
+
+    __table_args__ = (CheckConstraint("label <> ''", name="check_non_empty_label"),)
+
+
+class BravoDeckConfig(Base, TimestampMixin):
+    __tablename__ = "bravo_deck_configs"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    deck_layout = Column(JSON, nullable=False)
+    workcell_id = Column(Integer, ForeignKey("workcells.id"))
+
+    # Relationships
+    workcell: RelationshipProperty[Optional["Workcell"]] = relationship(
+        "Workcell", back_populates="bravo_deck_configs"
+    )
+
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="check_non_empty_name"),
+        UniqueConstraint(
+            "name", "workcell_id", name="unique_bravo_deck_config_name_per_workcell"
+        ),
     )
