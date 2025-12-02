@@ -23,12 +23,12 @@ import { Tool } from "@/types/api";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { FaRegListAlt } from "react-icons/fa";
 import { DeckConfigEditor } from "./DeckConfigEditor";
-import { BravoSequencesPanel } from "./BravoSequencesPanel";
-import { BravoSequenceModal } from "./BravoSequenceModal";
+import { BravoProtocolsPanel } from "./BravoProtocolsPanel";
+import { BravoProtocolModal } from "./BravoProtocolModal";
 import { trpc } from "@/utils/trpc";
 import { CreateDeckConfigModal } from "./CreateDeckConfigModal";
 import { successToast, errorToast } from "@/components/ui/Toast";
-import { BravoSequence, BravoSequenceStep } from "@/server/schemas";
+import { BravoProtocol, BravoProtocolCommand } from "@/server/schemas/bravo";
 
 interface BravoAdvancedProps {
   tool: Tool;
@@ -41,111 +41,112 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
   const [currentDeckPositions, setCurrentDeckPositions] = useState<any[]>([]);
 
   const {
-    isOpen: isSequenceModalOpen,
-    onOpen: onSequenceModalOpen,
-    onClose: onSequenceModalClose,
+    isOpen: isProtocolModalOpen,
+    onOpen: onProtocolModalOpen,
+    onClose: onProtocolModalClose,
   } = useDisclosure();
 
   const { data: configs, refetch: refetchConfigs } = trpc.bravoDeckConfig.getAll.useQuery();
 
-  const { data: sequences, refetch: refetchSequences } =
-    trpc.bravoSequence.sequence.getAll.useQuery({ toolId: tool.id });
+  const { data: protocols, refetch: refetchProtocols } =
+    trpc.bravoProtocol.protocol.getAll.useQuery({ toolId: tool.id });
 
-  const createSequenceMutation = trpc.bravoSequence.sequence.create.useMutation();
-  const updateSequenceMutation = trpc.bravoSequence.sequence.update.useMutation();
-  const deleteSequenceMutation = trpc.bravoSequence.sequence.delete.useMutation();
-  const updateStepsMutation = trpc.bravoSequence.sequence.updateSteps.useMutation();
+  const createProtocolMutation = trpc.bravoProtocol.protocol.create.useMutation();
+  const updateProtocolMutation = trpc.bravoProtocol.protocol.update.useMutation();
+  const deleteProtocolMutation = trpc.bravoProtocol.protocol.delete.useMutation();
+  const updateCommandsMutation = trpc.bravoProtocol.protocol.updateCommands.useMutation();
 
-  const handleCreateSequence = async (sequenceData: Omit<BravoSequence, "id">) => {
+  const handleCreateProtocol = async (protocolData: Omit<BravoProtocol, "id">) => {
     try {
-      await createSequenceMutation.mutateAsync(sequenceData);
-      successToast("Success", "Sequence created successfully");
-      refetchSequences();
+      await createProtocolMutation.mutateAsync(protocolData);
+      successToast("Success", "Protocol created successfully");
+      refetchProtocols();
     } catch (error) {
-      errorToast("Error", "Failed to create sequence");
+      errorToast("Error", "Failed to create protocol");
       console.error(error);
     }
   };
 
-  const handleUpdateSequence = async (sequence: BravoSequence) => {
+  const handleUpdateProtocol = async (protocol: BravoProtocol) => {
     try {
-      // Update sequence metadata
-      await updateSequenceMutation.mutateAsync({
-        id: sequence.id!,
+      // Update protocol metadata
+      await updateProtocolMutation.mutateAsync({
+        id: protocol.id!,
         data: {
-          name: sequence.name,
-          description: sequence.description,
+          name: protocol.name,
+          description: protocol.description,
         },
       });
 
-      // Update steps if provided
-      if (sequence.steps) {
-        const stepsToUpdate = sequence.steps.map((step, index) => ({
-          command_name: step.command_name,
-          label: step.label,
-          params: step.params,
+      // Update commands if provided
+      if (protocol.commands) {
+        const commandsToUpdate = protocol.commands.map((command, index) => ({
+          command_type: command.command_type,
+          label: command.label,
+          params: command.params,
           position: index,
-          sequence_id: sequence.id!,
+          protocol_id: protocol.id!,
+          parent_command_id: command.parent_command_id,
         }));
 
-        await updateStepsMutation.mutateAsync({
-          id: sequence.id!,
-          steps: stepsToUpdate,
+        await updateCommandsMutation.mutateAsync({
+          id: protocol.id!,
+          commands: commandsToUpdate,
         });
       }
 
-      successToast("Success", "Sequence updated successfully");
-      refetchSequences();
+      successToast("Success", "Protocol updated successfully");
+      refetchProtocols();
     } catch (error) {
-      errorToast("Error", "Failed to update sequence");
+      errorToast("Error", "Failed to update protocol");
       console.error(error);
     }
   };
 
-  const handleDeleteSequence = async (id: number) => {
+  const handleDeleteProtocol = async (id: number) => {
     try {
-      await deleteSequenceMutation.mutateAsync(id);
-      successToast("Success", "Sequence deleted successfully");
-      refetchSequences();
+      await deleteProtocolMutation.mutateAsync(id);
+      successToast("Success", "Protocol deleted successfully");
+      refetchProtocols();
     } catch (error) {
-      errorToast("Error", "Failed to delete sequence");
+      errorToast("Error", "Failed to delete protocol");
       console.error(error);
     }
   };
 
-  const handleDeleteAllSequences = async () => {
-    if (!sequences) return;
+  const handleDeleteAllProtocols = async () => {
+    if (!protocols) return;
 
     try {
-      for (const seq of sequences) {
-        if (seq.id) {
-          await deleteSequenceMutation.mutateAsync(seq.id);
+      for (const protocol of protocols) {
+        if (protocol.id) {
+          await deleteProtocolMutation.mutateAsync(protocol.id);
         }
       }
-      successToast("Success", "All sequences deleted successfully");
-      refetchSequences();
+      successToast("Success", "All protocols deleted successfully");
+      refetchProtocols();
     } catch (error) {
-      errorToast("Error", "Failed to delete all sequences");
+      errorToast("Error", "Failed to delete all protocols");
       console.error(error);
     }
   };
 
-  const handleCloneSequence = async (sequence: BravoSequence) => {
+  const handleCloneProtocol = async (protocol: BravoProtocol) => {
     try {
-      const { id, ...sequenceData } = sequence;
-      await createSequenceMutation.mutateAsync(sequenceData);
-      successToast("Success", "Sequence cloned successfully");
-      refetchSequences();
+      const { id, ...protocolData } = protocol;
+      await createProtocolMutation.mutateAsync(protocolData);
+      successToast("Success", "Protocol cloned successfully");
+      refetchProtocols();
     } catch (error) {
-      errorToast("Error", "Failed to clone sequence");
+      errorToast("Error", "Failed to clone protocol");
       console.error(error);
     }
   };
 
-  const handleRunSequence = (sequence: BravoSequence) => {
-    // TODO: Implement sequence execution
-    console.log("Running sequence:", sequence);
-    successToast("Info", `Running sequence: ${sequence.name}`);
+  const handleRunProtocol = (protocol: BravoProtocol) => {
+    // TODO: Implement protocol execution
+    console.log("Running protocol:", protocol);
+    successToast("Info", `Running protocol: ${protocol.name}`);
   };
 
   return (
@@ -156,7 +157,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
             <VStack spacing={4} align="stretch">
               <PageHeader
                 title="Bravo Advanced Controls"
-                subTitle="Agilent Bravo Deck and Sequence Management"
+                subTitle="Agilent Bravo Deck and Protocol Management"
                 titleIcon={<Image src="/tool_icons/bravo.png" alt="Bravo Logo" boxSize={12} />}
                 mainButton={
                   <CreateDeckConfigModal
@@ -175,7 +176,7 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                 </Stat>
                 <Stat>
                   <StatLabel>Total Protocols</StatLabel>
-                  <StatNumber>{sequences?.length || 0}</StatNumber>
+                  <StatNumber>{protocols?.length || 0}</StatNumber>
                 </Stat>
               </StatGroup>
             </VStack>
@@ -195,14 +196,14 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
                   <DeckConfigEditor onDeckPositionsChange={setCurrentDeckPositions} />
                 </TabPanel>
                 <TabPanel px={0}>
-                  <BravoSequencesPanel
-                    sequences={sequences || []}
-                    onRun={handleRunSequence}
-                    onDelete={handleDeleteSequence}
-                    onDeleteAll={handleDeleteAllSequences}
-                    onCreateNew={onSequenceModalOpen}
-                    onUpdateSequence={handleUpdateSequence}
-                    onCloneSequence={handleCloneSequence}
+                  <BravoProtocolsPanel
+                    protocols={protocols || []}
+                    onRun={handleRunProtocol}
+                    onDelete={handleDeleteProtocol}
+                    onDeleteAll={handleDeleteAllProtocols}
+                    onCreateNew={onProtocolModalOpen}
+                    onUpdateProtocol={handleUpdateProtocol}
+                    onCloneProtocol={handleCloneProtocol}
                     bgColor={bgColor}
                     bgColorAlpha={bgColorAlpha}
                     config={tool}
@@ -214,11 +215,11 @@ export const BravoAdvanced: React.FC<BravoAdvancedProps> = ({ tool }) => {
         </Card>
       </VStack>
 
-      <BravoSequenceModal
+      <BravoProtocolModal
         config={tool}
-        isOpen={isSequenceModalOpen}
-        onClose={onSequenceModalClose}
-        onSave={handleCreateSequence}
+        isOpen={isProtocolModalOpen}
+        onClose={onProtocolModalClose}
+        onSave={handleCreateProtocol}
       />
     </Box>
   );

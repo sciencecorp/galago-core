@@ -15,32 +15,32 @@ import {
 } from "@chakra-ui/react";
 import { Tool } from "@/types/api";
 import { errorToast } from "@/components/ui/Toast";
-import { BravoSequence } from "@/server/schemas";
+import { BravoProtocol } from "@/server/schemas/bravo";
 
-interface BravoSequenceModalProps {
+interface BravoProtocolModalProps {
   config: Tool;
   isOpen: boolean;
   onClose: () => void;
-  sequence?: BravoSequence;
-  onSave: (sequence: Omit<BravoSequence, "id">) => void;
+  protocol?: BravoProtocol;
+  onSave: (protocol: Omit<BravoProtocol, "id">) => void;
 }
 
-export const BravoSequenceModal: React.FC<BravoSequenceModalProps> = ({
+export const BravoProtocolModal: React.FC<BravoProtocolModalProps> = ({
   config,
   isOpen,
   onClose,
-  sequence,
+  protocol,
   onSave,
 }) => {
-  const [name, setName] = useState(sequence?.name ?? "");
-  const [description, setDescription] = useState(sequence?.description ?? "");
+  const [name, setName] = useState(protocol?.name ?? "");
+  const [description, setDescription] = useState(protocol?.description ?? "");
 
   useEffect(() => {
     if (isOpen) {
-      setName(sequence?.name ?? "");
-      setDescription(sequence?.description ?? "");
+      setName(protocol?.name ?? "");
+      setDescription(protocol?.description ?? "");
     }
-  }, [isOpen, sequence]);
+  }, [isOpen, protocol]);
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -48,14 +48,14 @@ export const BravoSequenceModal: React.FC<BravoSequenceModalProps> = ({
       return;
     }
 
-    const sequenceData = {
+    const protocolData = {
       name,
       description: description || undefined,
       tool_id: config.id,
-      steps: sequence?.steps || [],
+      commands: protocol?.commands || [],
     };
 
-    onSave(sequenceData);
+    onSave(protocolData);
     onClose();
   };
 
@@ -63,7 +63,7 @@ export const BravoSequenceModal: React.FC<BravoSequenceModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} size="xl">
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>{sequence ? "Edit Sequence" : "New Sequence"}</ModalHeader>
+        <ModalHeader>{protocol ? "Edit Protocol" : "New Protocol"}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={4} align="stretch">
@@ -72,10 +72,9 @@ export const BravoSequenceModal: React.FC<BravoSequenceModalProps> = ({
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Enter sequence name"
+                placeholder="Enter protocol name"
               />
             </FormControl>
-
             <FormControl>
               <FormLabel>Description</FormLabel>
               <Input
@@ -86,7 +85,6 @@ export const BravoSequenceModal: React.FC<BravoSequenceModalProps> = ({
             </FormControl>
           </VStack>
         </ModalBody>
-
         <ModalFooter>
           <Button variant="ghost" mr={3} onClick={onClose}>
             Cancel

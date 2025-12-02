@@ -445,8 +445,8 @@ class Form(Base, TimestampMixin):
     )
 
 
-class BravoSequence(Base, TimestampMixin):
-    __tablename__ = "bravo_sequences"
+class BravoProtocol(Base, TimestampMixin):
+    __tablename__ = "bravo_protocols"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
@@ -456,37 +456,67 @@ class BravoSequence(Base, TimestampMixin):
     tool: RelationshipProperty[Optional["Tool"]] = relationship(
         "Tool", foreign_keys=[tool_id]
     )
-    steps: RelationshipProperty[List["BravoSequenceStep"]] = relationship(
-        "BravoSequenceStep",
-        back_populates="sequence",
+    commands: RelationshipProperty[List["BravoProtocolCommand"]] = relationship(
+        "BravoProtocolCommand",
+        back_populates="protocol",
         cascade="all, delete-orphan",
-        order_by="BravoSequenceStep.position",
+        order_by="BravoProtocolCommand.position",
     )
 
     __table_args__ = (
         CheckConstraint("name <> ''", name="check_non_empty_name"),
-        UniqueConstraint("name", "tool_id", name="unique_bravo_sequence_name_per_tool"),
+        UniqueConstraint("name", "tool_id", name="unique_bravo_protocol_name_per_tool"),
     )
 
 
-class BravoSequenceStep(Base, TimestampMixin):
-    __tablename__ = "bravo_sequence_steps"
+class BravoCommandType(str, enum.Enum):
+    # Basic commands
+    home = "home"
+    mix = "mix"
+    aspirate = "aspirate"
+    dispense = "dispense"
+    tips_on = "tips_on"
+    tips_off = "tips_off"
+    move_to_location = "move_to_location"
+    configure_deck = "configure_deck"
+    show_diagnostics = "show_diagnostics"
+
+    # Control flow commands
+    loop = "loop"
+    group = "group"
+
+
+class BravoProtocolCommand(Base, TimestampMixin):
+    __tablename__ = "bravo_protocol_commands"
     id = Column(Integer, primary_key=True)
-    command_name = Column(String, nullable=False)
+    command_type = Column(SQLEnum(BravoCommandType), nullable=False)
     label = Column(String, nullable=False)
     params = Column(JSON, nullable=False)
     position = Column(Integer, nullable=False)
-    sequence_id = Column(Integer, ForeignKey("bravo_sequences.id"))
+    protocol_id = Column(Integer, ForeignKey("bravo_protocols.id"))
+
+    # For nested commands (loops/groups)
+    parent_command_id = Column(
+        Integer, ForeignKey("bravo_protocol_commands.id"), nullable=True
+    )
 
     # Relationships
-    sequence: RelationshipProperty[Optional["BravoSequence"]] = relationship(
-        "BravoSequence", back_populates="steps"
+    protocol: RelationshipProperty[Optional["BravoProtocol"]] = relationship(
+        "BravoProtocol", back_populates="commands"
+    )
+    parent_command: RelationshipProperty[Optional["BravoProtocolCommand"]] = (
+        relationship(
+            "BravoProtocolCommand", remote_side=[id], back_populates="child_commands"
+        )
+    )
+    child_commands: RelationshipProperty[List["BravoProtocolCommand"]] = relationship(
+        "BravoProtocolCommand",
+        back_populates="parent_command",
+        cascade="all, delete-orphan",
+        order_by="BravoProtocolCommand.position",
     )
 
-    __table_args__ = (
-        CheckConstraint("command_name <> ''", name="check_non_empty_command_name"),
-        CheckConstraint("label <> ''", name="check_non_empty_label"),
-    )
+    __table_args__ = (CheckConstraint("label <> ''", name="check_non_empty_label"),)
 
 
 class BravoDeckConfig(Base, TimestampMixin):

@@ -984,12 +984,13 @@ class Form(TimestampMixin, FormCreate):
 
 
 # Bravo Sequence Step Schemas
-class BravoSequenceStepBase(BaseModel):
-    command_name: str
+class BravoProtocolCommandBase(BaseModel):
+    command_type: str  # Will be validated as enum
     label: str
     params: Dict[str, Any]
     position: int
-    sequence_id: int
+    protocol_id: int
+    parent_command_id: Optional[int] = None
 
     @model_validator(mode="before")
     @classmethod
@@ -997,10 +998,10 @@ class BravoSequenceStepBase(BaseModel):
         if not isinstance(data, dict):
             return data
 
-        command_name = data.get("command_name", "")
+        command_type = data.get("command_type", "")
         params = data.get("params", {})
 
-        # Valid Bravo commands based on proto interface
+        # Valid Bravo commands
         valid_commands = [
             "home",
             "mix",
@@ -1011,19 +1012,28 @@ class BravoSequenceStepBase(BaseModel):
             "move_to_location",
             "configure_deck",
             "show_diagnostics",
+            "loop",
+            "group",
         ]
 
-        if command_name and command_name not in valid_commands:
+        if command_type and command_type not in valid_commands:
             raise ValueError(
-                f"Invalid command_name '{command_name}'. Must be one of: {', '.join(valid_commands)}"
+                f"Invalid command_type '{command_type}'. Must be one of: {', '.join(valid_commands)}"
             )
 
         # Validate params is a dictionary
         if not isinstance(params, dict):
             raise ValueError("params must be a dictionary")
 
-        # Basic validation for common parameters
-        if command_name in ["aspirate", "dispense", "mix"]:
+        # Validate loop-specific params
+        if command_type == "loop":
+            if "iterations" not in params:
+                raise ValueError("Loop command must have 'iterations' parameter")
+            if not isinstance(params["iterations"], int) or params["iterations"] < 1:
+                raise ValueError("Loop iterations must be a positive integer")
+
+        # Validate basic command params
+        if command_type in ["aspirate", "dispense", "mix"]:
             if "location" in params and not isinstance(params["location"], int):
                 raise ValueError("location must be an integer")
             if "volume" in params and not isinstance(params["volume"], (int, float)):
@@ -1032,16 +1042,17 @@ class BravoSequenceStepBase(BaseModel):
         return data
 
 
-class BravoSequenceStepCreate(BravoSequenceStepBase):
+class BravoProtocolCommandCreate(BravoProtocolCommandBase):
     pass
 
 
-class BravoSequenceStepUpdate(BaseModel):
-    command_name: t.Optional[str] = None
-    label: t.Optional[str] = None
-    params: t.Optional[Dict[str, Any]] = None
-    position: t.Optional[int] = None
-    sequence_id: t.Optional[int] = None
+class BravoProtocolCommandUpdate(BaseModel):
+    command_type: Optional[str] = None
+    label: Optional[str] = None
+    params: Optional[Dict[str, Any]] = None
+    position: Optional[int] = None
+    protocol_id: Optional[int] = None
+    parent_command_id: Optional[int] = None
 
     @model_validator(mode="before")
     @classmethod
@@ -1049,10 +1060,9 @@ class BravoSequenceStepUpdate(BaseModel):
         if not isinstance(data, dict):
             return data
 
-        command_name = data.get("command_name")
+        command_type = data.get("command_type")
         params = data.get("params")
 
-        # Valid Bravo commands based on proto interface
         valid_commands = [
             "home",
             "mix",
@@ -1063,66 +1073,62 @@ class BravoSequenceStepUpdate(BaseModel):
             "move_to_location",
             "configure_deck",
             "show_diagnostics",
+            "loop",
+            "group",
         ]
 
-        if command_name is not None and command_name not in valid_commands:
+        if command_type is not None and command_type not in valid_commands:
             raise ValueError(
-                f"Invalid command_name '{command_name}'. Must be one of: {', '.join(valid_commands)}"
+                f"Invalid command_type '{command_type}'. Must be one of: {', '.join(valid_commands)}"
             )
 
-        # Validate params is a dictionary if provided
         if params is not None and not isinstance(params, dict):
             raise ValueError("params must be a dictionary")
 
-        # Basic validation for common parameters
-        if command_name in ["aspirate", "dispense", "mix"] and params:
-            if "location" in params and not isinstance(params["location"], int):
-                raise ValueError("location must be an integer")
-            if "volume" in params and not isinstance(params["volume"], (int, float)):
-                raise ValueError("volume must be a number")
+        if command_type == "loop" and params:
+            if "iterations" in params:
+                if (
+                    not isinstance(params["iterations"], int)
+                    or params["iterations"] < 1
+                ):
+                    raise ValueError("Loop iterations must be a positive integer")
 
         return data
 
 
-class BravoSequenceStep(BravoSequenceStepBase, TimestampMixin):
+class BravoProtocolCommand(BravoProtocolCommandBase, TimestampMixin):
     id: int
+    child_commands: List["BravoProtocolCommand"] = []
     model_config = ConfigDict(from_attributes=True)
 
 
-# Bravo Sequence Schemas
-class BravoSequenceBase(BaseModel):
+# Bravo Protocol Schemas
+class BravoProtocolBase(BaseModel):
     name: str
-    description: t.Optional[str] = None
+    description: Optional[str] = None
     tool_id: int
 
-    @model_validator(mode="before")
-    @classmethod
-    def validate_tool_type(cls, data: t.Any) -> t.Any:
-        # Note: We can't validate tool type here without DB access
-        # This will be validated in the router
-        return data
 
-
-class BravoSequenceCreate(BravoSequenceBase):
+class BravoProtocolCreate(BravoProtocolBase):
     pass
 
 
-class BravoSequenceUpdate(BaseModel):
-    name: t.Optional[str] = None
-    description: t.Optional[str] = None
-    tool_id: t.Optional[int] = None
+class BravoProtocolUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    tool_id: Optional[int] = None
 
 
-class BravoSequence(BravoSequenceBase, TimestampMixin):
+class BravoProtocol(BravoProtocolBase, TimestampMixin):
     id: int
-    steps: t.List[BravoSequenceStep] = []
+    commands: List[BravoProtocolCommand] = []
     model_config = ConfigDict(from_attributes=True)
 
 
-# Request model for reordering steps
-class ReorderBravoStepsRequest(BaseModel):
-    sequence_id: int
-    step_ids: List[int]
+# Request model for reordering commands
+class ReorderBravoCommandsRequest(BaseModel):
+    protocol_id: int
+    command_ids: List[int]
 
 
 # Bravo Deck Config Schemas

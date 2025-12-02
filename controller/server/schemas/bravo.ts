@@ -109,10 +109,9 @@ export const zBravoDeckConfigUpdate = z.object({
   deck_layout: zDeckLayout.optional(),
 });
 
-// Zod schema for Bravo sequence step
-const zBravoSequenceStep = z.object({
+const zBravoProtocolCommand = z.object({
   id: z.number().optional(),
-  command_name: z.enum([
+  command_type: z.enum([
     "home",
     "mix",
     "aspirate",
@@ -122,44 +121,49 @@ const zBravoSequenceStep = z.object({
     "move_to_location",
     "configure_deck",
     "show_diagnostics",
+    "loop",
+    "group",
   ]),
   label: z.string().min(1, "Label is required"),
   params: z.record(z.any()),
   position: z.number(),
-  sequence_id: z.number(),
+  protocol_id: z.number(),
+  parent_command_id: z.number().optional().nullable(),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
 });
 
 // Zod schema for Bravo sequence
-const zBravoSequence = z.object({
+const zBravoProtocol = z.object({
   id: z.number().optional(),
   name: z.string().min(1, "Name is required"),
   description: z.string().nullish(),
   tool_id: z.number(),
-  steps: z.array(zBravoSequenceStep).optional().default([]),
+  commands: z
+    .array(z.lazy(() => zBravoProtocolCommand))
+    .optional()
+    .default([]),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
 });
-
-export const zBravoSequenceCreate = zBravoSequence.omit({
+export const zBravoProtocolCreate = zBravoProtocol.omit({
   id: true,
-  steps: true,
+  commands: true,
   created_at: true,
   updated_at: true,
 });
 
-export const zBravoSequenceUpdate = zBravoSequence
+export const zBravoProtocolUpdate = zBravoProtocol
   .partial()
-  .omit({ created_at: true, updated_at: true, steps: true });
+  .omit({ created_at: true, updated_at: true, commands: true });
 
-export const zBravoSequenceStepCreate = zBravoSequenceStep.omit({
+export const zBravoProtocolCommandCreate = zBravoProtocolCommand.omit({
   id: true,
   created_at: true,
   updated_at: true,
 });
 
-export const zBravoSequenceStepUpdate = zBravoSequenceStep
+export const zBravoProtocolCommandUpdate = zBravoProtocolCommand
   .partial()
   .omit({ created_at: true, updated_at: true });
 
@@ -169,9 +173,11 @@ export type BravoDeckConfigCreate = z.infer<typeof zBravoDeckConfigCreate>;
 export type BravoDeckConfigUpdate = z.infer<typeof zBravoDeckConfigUpdate>;
 export type DeckLayout = z.infer<typeof zDeckLayout>;
 
-export type BravoSequence = z.infer<typeof zBravoSequence>;
-export type BravoSequenceStep = z.infer<typeof zBravoSequenceStep>;
-export type BravoSequenceCreate = z.infer<typeof zBravoSequenceCreate>;
-export type BravoSequenceUpdate = z.infer<typeof zBravoSequenceUpdate>;
-export type BravoSequenceStepCreate = z.infer<typeof zBravoSequenceStepCreate>;
-export type BravoSequenceStepUpdate = z.infer<typeof zBravoSequenceStepUpdate>;
+export type BravoProtocol = z.infer<typeof zBravoProtocol>;
+export type BravoProtocolCreate = z.infer<typeof zBravoProtocolCreate>;
+export type BravoProtocolUpdate = z.infer<typeof zBravoProtocolUpdate>;
+export type BravoProtocolCommandCreate = z.infer<typeof zBravoProtocolCommandCreate>;
+export type BravoProtocolCommandUpdate = z.infer<typeof zBravoProtocolCommandUpdate>;
+export type BravoProtocolCommand = z.infer<typeof zBravoProtocolCommand> & {
+  child_commands?: BravoProtocolCommand[];
+};

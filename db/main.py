@@ -12,8 +12,8 @@ from db.models.db_session import Base, LogBase, LogsSessionLocal, SessionLocal
 from .exceptions import setup_exception_handlers
 from .routers import (
     bravo_deck_configs,
-    bravo_sequence_steps,
-    bravo_sequences,
+    bravo_protocol_commands,
+    bravo_protocols,
     forms,
     hotels,
     inventory,
@@ -105,12 +105,14 @@ def create_app() -> FastAPI:
     app.include_router(forms.router, prefix="/forms", tags=["forms"])
     app.include_router(robot_arm.router, prefix="/robot-arm", tags=["robot-arm"])
     app.include_router(
-        bravo_sequence_steps.router,
-        prefix="/bravo-sequence-steps",
-        tags=["bravo-sequence-steps"],
+        bravo_protocols.router,
+        prefix="/bravo-protocols",  # was /bravo-sequences
+        tags=["bravo-protocols"],
     )
     app.include_router(
-        bravo_sequences.router, prefix="/bravo-sequences", tags=["bravo-sequences"]
+        bravo_protocol_commands.router,
+        prefix="/bravo-protocol-commands",  # was /bravo-sequence-steps
+        tags=["bravo-protocol-commands"],
     )
     app.include_router(
         bravo_deck_configs.router,

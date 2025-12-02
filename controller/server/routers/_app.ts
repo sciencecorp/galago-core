@@ -14,7 +14,7 @@ import { robotArmRouter } from "./robot-arm";
 import { csharpRouter } from "./cSharpRouter";
 import { formRouter } from "./form";
 import { bravoRouter } from "./bravo";
-import { bravoSequenceRouter } from "./bravo-sequence";
+import { bravoProtocolRouter } from "./bravo-protocol";
 import { bravoDeckConfigRouter } from "./bravo-deck-config";
 
 export const appRouter = router({
@@ -32,7 +32,7 @@ export const appRouter = router({
   cSharp: csharpRouter,
   form: formRouter,
   bravo: bravoRouter,
-  bravoSequence: bravoSequenceRouter,
+  bravoProtocol: bravoProtocolRouter,
   bravoDeckConfig: bravoDeckConfigRouter,
 });
 

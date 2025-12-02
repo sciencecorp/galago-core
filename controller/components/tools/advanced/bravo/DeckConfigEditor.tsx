@@ -188,12 +188,6 @@ export const DeckConfigEditor: React.FC<DeckConfigEditorProps> = ({ onDeckPositi
     }));
     setDeckPositions(emptyDeck);
     onDeckPositionsChange?.(emptyDeck);
-    toast({
-      title: "Deck cleared",
-      description: "All labware has been removed from the deck",
-      status: "success",
-      duration: 3000,
-    });
   };
 
   if (configsLoading || labwareLoading) {

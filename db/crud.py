@@ -422,15 +422,15 @@ class CRUDHotel(CRUDBase[models.Hotel, schemas.HotelCreate, schemas.HotelUpdate]
 
 hotel = CRUDHotel(models.Hotel)
 
-bravo_sequence = CRUDBase[
-    models.BravoSequence, schemas.BravoSequenceCreate, schemas.BravoSequenceUpdate
-](models.BravoSequence)
+bravo_protocol = CRUDBase[
+    models.BravoProtocol, schemas.BravoProtocolCreate, schemas.BravoProtocolUpdate
+](models.BravoProtocol)
 
-bravo_sequence_step = CRUDBase[
-    models.BravoSequenceStep,
-    schemas.BravoSequenceStepCreate,
-    schemas.BravoSequenceStepUpdate,
-](models.BravoSequenceStep)
+bravo_protocol_command = CRUDBase[
+    models.BravoProtocolCommand,
+    schemas.BravoProtocolCommandCreate,
+    schemas.BravoProtocolCommandUpdate,
+](models.BravoProtocolCommand)
 
 bravo_deck_config = CRUDBase[
     models.BravoDeckConfig, schemas.BravoDeckConfigCreate, schemas.BravoDeckConfigUpdate
