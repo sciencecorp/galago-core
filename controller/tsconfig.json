@@ -17,10 +17,10 @@
     "baseUrl": ".",
     "types": ["node"],
     "paths": {
+      "@/schemas/*": ["server/schemas/*"],
+      "@/schemas": ["server/schemas/index.ts"],
       "@/types/*": ["types/*"],
       "@/types": ["types/index.ts"],
-      "react": ["node_modules/@types/react/index.d.ts"],
-      "gen-interfaces/*": ["./gen-interfaces/*"],
       "@/*": ["./*"]
     },
     "jsxImportSource": "@emotion/react" // Add this line

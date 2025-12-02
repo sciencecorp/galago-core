@@ -28,7 +28,7 @@ import { getCommandColor, getCommandColorHex } from "@/components/ui/Theme";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { SaveIcon, EditIcon } from "@/components/ui/Icons";
 import { ArrowForwardIcon } from "@chakra-ui/icons";
-import { BravoSequenceStep } from "@/server/routers/bravoSequence";
+import { BravoSequenceStep } from "@/server/schemas";
 import { BravoStepModal } from "./BravoStepModal";
 
 // Centralized command styling hook

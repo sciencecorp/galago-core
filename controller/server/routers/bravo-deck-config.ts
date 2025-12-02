@@ -2,44 +2,8 @@ import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { get, post, put, del } from "../utils/api";
 import { logAction } from "@/server/logger";
-
-const zDeckLayout = z.object({
-  "1": z.string().nullish(),
-  "2": z.string().nullish(),
-  "3": z.string().nullish(),
-  "4": z.string().nullish(),
-  "5": z.string().nullish(),
-  "6": z.string().nullish(),
-  "7": z.string().nullish(),
-  "8": z.string().nullish(),
-  "9": z.string().nullish(),
-});
-
-const zBravoDeckConfig = z.object({
-  id: z.number(),
-  name: z.string().min(1, "Name is required"),
-  deck_layout: zDeckLayout,
-  workcell_id: z.number(),
-  created_at: z.string().optional(),
-  updated_at: z.string().optional(),
-});
-
-// Input schemas for mutations - workcell_id handled by backend
-const zBravoDeckConfigCreate = z.object({
-  name: z.string().min(1, "Name is required"),
-  deck_layout: zDeckLayout,
-});
-
-const zBravoDeckConfigUpdate = z.object({
-  name: z.string().min(1, "Name is required").optional(),
-  deck_layout: zDeckLayout.optional(),
-});
-
+import { BravoDeckConfig, zBravoDeckConfigCreate, zBravoDeckConfigUpdate } from "@/server/schemas";
 // Export types
-export type BravoDeckConfig = z.infer<typeof zBravoDeckConfig>;
-export type BravoDeckConfigCreate = z.infer<typeof zBravoDeckConfigCreate>;
-export type BravoDeckConfigUpdate = z.infer<typeof zBravoDeckConfigUpdate>;
-export type DeckLayout = z.infer<typeof zDeckLayout>;
 
 export const bravoDeckConfigRouter = router({
   getAll: procedure.query(async () => {

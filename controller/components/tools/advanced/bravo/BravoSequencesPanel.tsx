@@ -38,7 +38,7 @@ import { PaginationControls } from "@/components/tools/advanced/teach_pendant/sh
 import { EmptyState } from "@/components/ui/EmptyState";
 import { trpc } from "@/utils/trpc";
 import { EditableText } from "@/components/ui/Form";
-import { BravoSequence, BravoSequenceStep } from "@/server/routers/bravo-sequence";
+import { BravoSequence, BravoSequenceStep } from "@/server/schemas";
 
 interface BravoSequencesPanelProps {
   sequences: BravoSequence[];

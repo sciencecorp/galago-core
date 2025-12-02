@@ -28,7 +28,7 @@ import { BravoSequenceModal } from "./BravoSequenceModal";
 import { trpc } from "@/utils/trpc";
 import { CreateDeckConfigModal } from "./CreateDeckConfigModal";
 import { successToast, errorToast } from "@/components/ui/Toast";
-import { BravoSequence, BravoSequenceStep } from "@/server/routers/bravo-sequence";
+import { BravoSequence, BravoSequenceStep } from "@/server/schemas";
 
 interface BravoAdvancedProps {
   tool: Tool;

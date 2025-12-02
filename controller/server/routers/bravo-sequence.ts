@@ -2,69 +2,14 @@ import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { get, post, put, del } from "../utils/api";
 import { logAction } from "@/server/logger";
-
-// Zod schema for Bravo sequence step
-const zBravoSequenceStep = z.object({
-  id: z.number().optional(),
-  command_name: z.enum([
-    "home",
-    "mix",
-    "aspirate",
-    "dispense",
-    "tips_on",
-    "tips_off",
-    "move_to_location",
-    "configure_deck",
-    "show_diagnostics",
-  ]),
-  label: z.string().min(1, "Label is required"),
-  params: z.record(z.any()),
-  position: z.number(),
-  sequence_id: z.number(),
-  created_at: z.string().optional(),
-  updated_at: z.string().optional(),
-});
-
-// Zod schema for Bravo sequence
-const zBravoSequence = z.object({
-  id: z.number().optional(),
-  name: z.string().min(1, "Name is required"),
-  description: z.string().nullish(),
-  tool_id: z.number(),
-  steps: z.array(zBravoSequenceStep).optional().default([]),
-  created_at: z.string().optional(),
-  updated_at: z.string().optional(),
-});
-
-// Input schemas for mutations
-const zBravoSequenceCreate = zBravoSequence.omit({
-  id: true,
-  steps: true,
-  created_at: true,
-  updated_at: true,
-});
-
-const zBravoSequenceUpdate = zBravoSequence
-  .partial()
-  .omit({ created_at: true, updated_at: true, steps: true });
-
-const zBravoSequenceStepCreate = zBravoSequenceStep.omit({
-  id: true,
-  created_at: true,
-  updated_at: true,
-});
-
-const zBravoSequenceStepUpdate = zBravoSequenceStep
-  .partial()
-  .omit({ created_at: true, updated_at: true });
-
-// Export types
-export type BravoSequence = z.infer<typeof zBravoSequence>;
-export type BravoSequenceStep = z.infer<typeof zBravoSequenceStep>;
-export type BravoSequenceCreate = z.infer<typeof zBravoSequenceCreate>;
-export type BravoSequenceUpdate = z.infer<typeof zBravoSequenceUpdate>;
-export type BravoSequenceStepCreate = z.infer<typeof zBravoSequenceStepCreate>;
-export type BravoSequenceStepUpdate = z.infer<typeof zBravoSequenceStepUpdate>;
+import {
+  BravoSequence,
+  zBravoSequenceCreate,
+  zBravoSequenceUpdate,
+  BravoSequenceStep,
+  zBravoSequenceStepCreate,
+  zBravoSequenceStepUpdate,
+} from "@/server/schemas";
 
 export const bravoSequenceRouter = router({
   // ===== Sequence Operations =====

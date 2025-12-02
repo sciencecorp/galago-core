@@ -15,7 +15,7 @@ import {
 } from "@chakra-ui/react";
 import { Tool } from "@/types/api";
 import { errorToast } from "@/components/ui/Toast";
-import { BravoSequence } from "@/server/routers/bravoSequence";
+import { BravoSequence } from "@/server/schemas";
 
 interface BravoSequenceModalProps {
   config: Tool;

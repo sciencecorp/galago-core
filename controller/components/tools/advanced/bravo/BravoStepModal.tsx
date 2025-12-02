@@ -18,7 +18,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { errorToast } from "@/components/ui/Toast";
-import { BravoSequenceStep } from "@/server/routers/bravoSequence";
+import { BravoSequenceStep } from "@/server/schemas";
 
 interface BravoStepModalProps {
   isOpen: boolean;
