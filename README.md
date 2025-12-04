@@ -38,7 +38,7 @@ Galago consists of several distinct modules:
 
 If you plan to contribute or customize Galago, start by forking the repository:
 
-1. **Fork on GitHub**: Click the "Fork" button at the top right of the [repository page](https://github.com/sciencecopr/galago-core), or use this direct link:
+1. **Fork on GitHub**: Click the "Fork" button at the top right of the [repository page](https://github.com/sciencecorp/galago-core), or use this direct link:
    
    **[Fork Galago →](https://github.com/sciencecorp/galago-core/fork)**
 
