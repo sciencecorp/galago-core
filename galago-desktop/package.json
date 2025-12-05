@@ -1,0 +1,116 @@
+{
+  "name": "galago-desktop",
+  "version": "1.0.0",
+  "description": "Galago Lab Automation Desktop Application",
+  "main": "dist/main/index.js",
+  "author": {
+    "name": "Science Corp",
+    "email": "support@sciencecorp.com"
+  },
+  "license": "MIT",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:electron\" \"npm run dev:next\"",
+    "dev:electron": "tsc -p tsconfig.main.json && electron .",
+    "dev:next": "cd ../controller && npm run dev",
+    "build": "npm run build:main && npm run build:renderer",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:renderer": "cd ../controller && npm run build && npm run export",
+    "build:preload": "tsc src/main/preload.ts --outDir dist/main --module commonjs --esModuleInterop",
+    "package": "npm run build && electron-builder",
+    "package:win": "npm run build && electron-builder --win",
+    "package:mac": "npm run build && electron-builder --mac",
+    "package:linux": "npm run build && electron-builder --linux",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "electron-is-dev": "^2.0.0",
+    "electron-log": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "concurrently": "^8.2.2",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
+    "typescript": "^5.3.2"
+  },
+  "build": {
+    "appId": "com.sciencecorp.galago",
+    "productName": "Galago",
+    "copyright": "Copyright © 2024 Science Corp",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/binaries",
+        "to": "binaries",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "build/icon.icns",
+      "category": "public.app-category.developer-tools",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "build/icons",
+      "category": "Development",
+      "artifactName": "${productName}-${version}.${ext}"
+    }
+  }
+}
+

@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+release/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+
+# Binaries (built from PyInstaller - not committed)
+resources/binaries/galago-core/
+resources/binaries/galago-tools/
+
+# Package lock (we commit package-lock.json but ignore yarn.lock if present)
+yarn.lock
+

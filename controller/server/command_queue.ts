@@ -2,8 +2,7 @@ import { Run, RunQueue } from "@/types";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import RunStore from "./runs";
 import Tool from "./tools";
-import redis from "./utils/redis";
-import RedisQueue, { StoredRunCommand } from "./utils/RedisQueue";
+import { createQueue, ICommandQueue, StoredRunCommand } from "./utils/QueueFactory";
 import { Console, log } from "console";
 import { logger } from "@/logger"; // our logger import
 import { ToolType } from "gen-interfaces/controller";
@@ -45,10 +44,10 @@ export class CommandQueue {
   private _messageResolve?: () => void;
   private _timerTimeout?: NodeJS.Timeout;
 
-  commands: RedisQueue;
+  commands: ICommandQueue;
 
   constructor(public runStore: RunStore) {
-    this.commands = new RedisQueue(redis, "command_queue_2");
+    this.commands = createQueue("command_queue_2");
   }
 
   fail(error: any) {

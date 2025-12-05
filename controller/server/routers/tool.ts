@@ -126,6 +126,10 @@ export const toolRouter = router({
       }),
     )
     .query(async ({ input }) => {
+      // Guard against empty toolId (can happen during initial page render)
+      if (!input.toolId || input.toolId.trim() === "") {
+        return null;
+      }
       const tool = Tool.forId(input.toolId.toLocaleLowerCase().replaceAll(" ", "_"));
       return await tool.fetchStatus();
     }),
@@ -137,6 +141,10 @@ export const toolRouter = router({
       }),
     )
     .query(({ input }) => {
+      // Guard against empty toolId (can happen during initial page render)
+      if (!input.toolId || input.toolId.trim() === "") {
+        return null;
+      }
       const tool = Tool.forId(input.toolId.toLocaleLowerCase().replaceAll(" ", "_"));
       return tool.info;
     }),

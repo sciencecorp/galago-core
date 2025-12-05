@@ -1,0 +1,59 @@
+{
+  "$schema": "./tools-config.schema.json",
+  "description": "Tool driver configuration for Galago Desktop. Copy this to your data directory as 'tools-config.json' and customize.",
+  "tools": [
+    {
+      "name": "pf400",
+      "binaryName": "pf400",
+      "port": 50051,
+      "managed": true,
+      "is32bit": true,
+      "description": "PreciseFlex PF400 Robot Arm"
+    },
+    {
+      "name": "opentrons2",
+      "binaryName": "opentrons2",
+      "port": 50052,
+      "managed": true,
+      "is32bit": false,
+      "description": "Opentrons OT-2 Liquid Handler"
+    },
+    {
+      "name": "hamilton",
+      "binaryName": "hamilton",
+      "port": 50053,
+      "managed": true,
+      "is32bit": true,
+      "description": "Hamilton STAR/Vantage"
+    },
+    {
+      "name": "cytation",
+      "binaryName": "cytation",
+      "port": 50054,
+      "managed": false,
+      "description": "BioTek Cytation Plate Reader (external driver)"
+    },
+    {
+      "name": "liconic",
+      "binaryName": "liconic",
+      "port": 50055,
+      "managed": true,
+      "is32bit": true,
+      "description": "Liconic Incubator"
+    },
+    {
+      "name": "bravo",
+      "binaryName": "bravo",
+      "port": 50056,
+      "managed": true,
+      "is32bit": true,
+      "description": "Agilent Bravo Liquid Handler"
+    }
+  ],
+  "notes": {
+    "managed": "If true, Electron will start/stop this tool driver automatically",
+    "is32bit": "If true, the tool driver binary should be compiled with 32-bit Python for hardware compatibility",
+    "port": "Default gRPC port. Will auto-increment if port is in use"
+  }
+}
+

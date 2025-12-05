@@ -1,6 +1,58 @@
 import axios from "axios";
 
-const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000/api";
+/**
+ * Get the API base URL based on environment
+ * 
+ * Priority:
+ * 1. Environment variable API_BASE_URL (works for both server and client)
+ * 2. URL query parameters (apiPort, apiHost) - client only
+ * 3. Default localhost:8000
+ */
+function getApiBaseUrl(): string {
+  // Check environment variable first (works on both server and client)
+  if (process.env.API_BASE_URL) {
+    return process.env.API_BASE_URL;
+  }
+  
+  // Also check NEXT_PUBLIC variant for client-side
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  }
+
+  // Server-side: use default
+  if (typeof window === "undefined") {
+    return "http://localhost:8000/api";
+  }
+
+  // Check for cached URL to avoid repeated calculations
+  const cachedUrl = (window as any).__GALAGO_API_BASE_URL__;
+  if (cachedUrl) {
+    return cachedUrl;
+  }
+
+  let baseUrl: string;
+
+  // Check URL query parameters (useful for development and Electron)
+  const urlParams = new URLSearchParams(window.location.search);
+  const apiPort = urlParams.get("apiPort");
+  const apiHost = urlParams.get("apiHost");
+
+  if (apiPort) {
+    // Use localhost (not 127.0.0.1) to match the page origin and avoid CORS
+    baseUrl = `http://localhost:${apiPort}/api`;
+  } else {
+    // Fall back to default
+    baseUrl = "http://localhost:8000/api";
+  }
+
+  // Cache the URL
+  (window as any).__GALAGO_API_BASE_URL__ = baseUrl;
+  console.log(`[API] Using base URL: ${baseUrl}`);
+
+  return baseUrl;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -10,6 +62,17 @@ export const api = axios.create({
     Accept: "application/json",
   },
 });
+
+/**
+ * Update the API base URL dynamically (e.g., after Electron IPC call)
+ */
+export function updateApiBaseUrl(newBaseUrl: string): void {
+  api.defaults.baseURL = newBaseUrl;
+  if (typeof window !== "undefined") {
+    (window as any).__GALAGO_API_BASE_URL__ = newBaseUrl;
+  }
+  console.log(`[API] Base URL updated to: ${newBaseUrl}`);
+}
 
 export const unpackError = (error: any): string => {
   let errorMessage = "Unknown error";
