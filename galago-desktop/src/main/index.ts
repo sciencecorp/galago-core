@@ -22,6 +22,7 @@ const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 let mainWindow: BrowserWindow | null = null;
 let coreProcess: ChildProcess | null = null;
 let toolProcesses: Map<string, ChildProcess> = new Map();
+let toolPorts: Map<string, number> = new Map();
 
 // Port configuration
 let corePort = 8000;
@@ -132,22 +133,51 @@ async function startToolDriver(config: ToolDriverConfig): Promise<number> {
 async function startToolDrivers(): Promise<Map<string, number>> {
   const toolPorts = new Map<string, number>();
   
-  // Check for tools config file
-  const toolsConfigPath = path.join(getDataDirectory(), 'tools-config.json');
+  // Check for user tools config file first
+  const userToolsConfigPath = path.join(getDataDirectory(), 'tools-config.json');
   
-  if (fs.existsSync(toolsConfigPath)) {
+  // Fall back to default config bundled with the app
+  const defaultToolsConfigPath = getResourcePath('default-tools-config.json');
+  
+  let configPath: string | null = null;
+  
+  if (fs.existsSync(userToolsConfigPath)) {
+    configPath = userToolsConfigPath;
+    console.log('[Tools] Loading user tools config from:', configPath);
+  } else if (fs.existsSync(defaultToolsConfigPath)) {
+    configPath = defaultToolsConfigPath;
+    console.log('[Tools] Loading default tools config from:', configPath);
+    
+    // Copy default config to user data directory for future customization
     try {
-      const config = JSON.parse(fs.readFileSync(toolsConfigPath, 'utf-8'));
+      const defaultConfig = fs.readFileSync(defaultToolsConfigPath, 'utf-8');
+      fs.writeFileSync(userToolsConfigPath, defaultConfig);
+      console.log('[Tools] Copied default config to user data directory');
+    } catch (err) {
+      console.warn('[Tools] Could not copy default config:', err);
+    }
+  }
+  
+  if (configPath) {
+    try {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
       
       for (const tool of config.tools || []) {
         if (tool.managed) {  // Only start tools marked as managed by Electron
-          const port = await startToolDriver({
-            name: tool.name,
-            binaryName: tool.binaryName || tool.name.toLowerCase(),
-            defaultPort: tool.port || 50051,
-            is32bit: tool.is32bit,
-          });
-          toolPorts.set(tool.name, port);
+          const binaryPath = getToolBinaryPath(tool.binaryName || tool.name.toLowerCase());
+          
+          // Only try to start if the binary exists
+          if (fs.existsSync(binaryPath)) {
+            const port = await startToolDriver({
+              name: tool.name,
+              binaryName: tool.binaryName || tool.name.toLowerCase(),
+              defaultPort: tool.port || 50051,
+              is32bit: tool.is32bit,
+            });
+            toolPorts.set(tool.name, port);
+          } else {
+            console.log(`[Tools] Skipping ${tool.name}: binary not found at ${binaryPath}`);
+          }
         }
       }
     } catch (error) {
@@ -158,6 +188,72 @@ async function startToolDrivers(): Promise<Map<string, number>> {
   }
   
   return toolPorts;
+}
+
+/**
+ * Start tools that are already configured in workcells
+ * Queries the backend API for existing tools and starts their drivers
+ */
+async function startWorkcellTools(): Promise<void> {
+  console.log('[Tools] Checking for existing workcell tools...');
+  
+  try {
+    // Query the backend for all tools
+    const response = await fetch(`http://127.0.0.1:${corePort}/api/tools`);
+    if (!response.ok) {
+      console.warn('[Tools] Failed to fetch tools from backend');
+      return;
+    }
+    
+    const tools = await response.json() as Array<{ name?: string; port?: number }>;
+    console.log(`[Tools] Found ${tools.length} tools in database`);
+    
+    // Load tools config to get binary mappings
+    const toolsConfigPath = path.join(getDataDirectory(), 'tools-config.json');
+    const defaultToolsConfigPath = getResourcePath('default-tools-config.json');
+    
+    let toolsConfig: any = { tools: [] };
+    if (fs.existsSync(toolsConfigPath)) {
+      toolsConfig = JSON.parse(fs.readFileSync(toolsConfigPath, 'utf-8'));
+    } else if (fs.existsSync(defaultToolsConfigPath)) {
+      toolsConfig = JSON.parse(fs.readFileSync(defaultToolsConfigPath, 'utf-8'));
+    }
+    
+    // Start each tool that has a binary available
+    for (const tool of tools) {
+      const toolName = tool.name?.toLowerCase();
+      if (!toolName) continue;
+      
+      // Find config for this tool
+      const config = toolsConfig.tools?.find((t: any) => 
+        t.name?.toLowerCase() === toolName || t.binaryName?.toLowerCase() === toolName
+      );
+      
+      const binaryName = config?.binaryName || toolName;
+      const binaryPath = getToolBinaryPath(binaryName);
+      
+      // Only start if binary exists
+      if (fs.existsSync(binaryPath)) {
+        console.log(`[Tools] Starting ${toolName} (port: ${tool.port || config?.port || 50051})`);
+        try {
+          const port = await startToolDriver({
+            name: toolName,
+            binaryName,
+            defaultPort: tool.port || config?.port || 50051,
+          });
+          console.log(`[Tools] ${toolName} started on port ${port}`);
+        } catch (error) {
+          console.error(`[Tools] Failed to start ${toolName}:`, error);
+        }
+      } else {
+        console.log(`[Tools] Skipping ${toolName}: binary not found at ${binaryPath}`);
+      }
+    }
+    
+    console.log(`[Tools] Started ${toolPorts.size} tool drivers`);
+  } catch (error) {
+    console.error('[Tools] Error starting workcell tools:', error);
+  }
 }
 
 /**
@@ -439,6 +535,9 @@ app.whenReady().then(async () => {
     // Start backend services
     await startCoreService();
     
+    // Start tools that are already configured in workcells
+    await startWorkcellTools();
+    
     // Create the window
     await createWindow();
   } catch (error) {
@@ -506,5 +605,84 @@ ipcMain.handle('restart-core-service', async () => {
   
   await startCoreService();
   return { success: true, port: corePort };
+});
+
+ipcMain.handle('get-tool-ports', () => {
+  const ports: Record<string, number> = {};
+  for (const [name, port] of toolPorts) {
+    ports[name] = port;
+  }
+  return ports;
+});
+
+ipcMain.handle('get-tools-config-path', () => {
+  return path.join(getDataDirectory(), 'tools-config.json');
+});
+
+// Start a specific tool driver on-demand
+ipcMain.handle('start-tool', async (_event, toolName: string, port?: number) => {
+  console.log(`[IPC] Request to start tool: ${toolName}`);
+  
+  // Check if already running
+  if (toolProcesses.has(toolName)) {
+    const existingPort = toolPorts.get(toolName);
+    console.log(`[IPC] Tool ${toolName} already running on port ${existingPort}`);
+    return { success: true, port: existingPort, alreadyRunning: true };
+  }
+  
+  // Load tools config to get binary name and default port
+  const toolsConfigPath = path.join(getDataDirectory(), 'tools-config.json');
+  let toolConfig: any = null;
+  
+  if (fs.existsSync(toolsConfigPath)) {
+    try {
+      const config = JSON.parse(fs.readFileSync(toolsConfigPath, 'utf-8'));
+      toolConfig = config.tools?.find((t: any) => t.name === toolName);
+    } catch (error) {
+      console.error('[IPC] Failed to load tools config:', error);
+    }
+  }
+  
+  const binaryName = toolConfig?.binaryName || toolName.toLowerCase();
+  const defaultPort = port || toolConfig?.port || 50051;
+  
+  try {
+    const actualPort = await startToolDriver({
+      name: toolName,
+      binaryName,
+      defaultPort,
+    });
+    return { success: true, port: actualPort };
+  } catch (error) {
+    console.error(`[IPC] Failed to start tool ${toolName}:`, error);
+    return { success: false, error: String(error) };
+  }
+});
+
+// Stop a specific tool driver
+ipcMain.handle('stop-tool', async (_event, toolName: string) => {
+  console.log(`[IPC] Request to stop tool: ${toolName}`);
+  
+  const toolProcess = toolProcesses.get(toolName);
+  if (!toolProcess) {
+    console.log(`[IPC] Tool ${toolName} is not running`);
+    return { success: true, wasRunning: false };
+  }
+  
+  toolProcess.kill('SIGTERM');
+  toolProcesses.delete(toolName);
+  toolPorts.delete(toolName);
+  
+  console.log(`[IPC] Tool ${toolName} stopped`);
+  return { success: true, wasRunning: true };
+});
+
+// Get status of all running tools
+ipcMain.handle('get-running-tools', () => {
+  const running: Record<string, { port: number }> = {};
+  for (const [name, port] of toolPorts) {
+    running[name] = { port };
+  }
+  return running;
 });
 

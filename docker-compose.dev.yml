@@ -26,6 +26,7 @@ services:
       - GRPC_SERVER_IP=host.docker.internal
       - API_BASE_URL=http://db:8000/api
       - REDIS_HOST=redis://queue:6379/1
+      - RUNNING_IN_DOCKER=true
     stdin_open: true # for debugging
     tty: true # for debugging
     #network_mode: "host"

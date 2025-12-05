@@ -24,6 +24,7 @@ services:
       - GRPC_SERVER_IP=localhost
       - API_BASE_URL=http://db:8000/api
       - REDIS_HOST=redis://queue:6379/1
+      - RUNNING_IN_DOCKER=true
     depends_on:
       - queue
       - db

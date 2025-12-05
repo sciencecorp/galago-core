@@ -25,8 +25,8 @@ def get_reagents(
             reagents += well.reagents
         return reagents
     
-    # If no workcell_name provided, use the selected workcell
-    if workcell_name is None:
+    # If no workcell_name provided or empty, use the selected workcell
+    if not workcell_name:
         workcell_name = get_selected_workcell_name(db)
         
     workcell = crud.workcell.get_by(db=db, obj_in={"name": workcell_name})

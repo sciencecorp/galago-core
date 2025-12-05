@@ -23,6 +23,7 @@ Thumbs.db
 # Binaries (built from PyInstaller - not committed)
 resources/binaries/galago-core/
 resources/binaries/galago-tools/
+resources/binaries/tools/
 
 # Package lock (we commit package-lock.json but ignore yarn.lock if present)
 yarn.lock

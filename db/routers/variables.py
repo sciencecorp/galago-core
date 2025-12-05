@@ -12,8 +12,8 @@ router = APIRouter()
 
 @router.get("", response_model=list[schemas.Variable])
 def get_variables(db: Session = Depends(get_db), workcell_name: Optional[str] = None) -> t.Any:
-    # If no workcell_name provided, use the selected workcell
-    if workcell_name is None:
+    # If no workcell_name provided or empty, use the selected workcell
+    if not workcell_name:
         workcell_name = get_selected_workcell_name(db)
         
     workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})

@@ -14,7 +14,7 @@ router = APIRouter()
 def get_nests(
     db: Session = Depends(get_db), workcell_name: Optional[str] = None
 ) -> t.Any:
-    if workcell_name is None:
+    if not workcell_name:
         workcell_name = get_selected_workcell_name(db)
     workcell = crud.workcell.get_by(db=db, obj_in={"name": workcell_name})
     if not workcell:

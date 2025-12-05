@@ -15,7 +15,7 @@ export function ToolStatusTag({
   if (statusQuery.isError || statusQuery.isLoadingError) {
     return <Tag colorScheme="red">Could not load tool status</Tag>;
   }
-  if (!statusQuery.isSuccess) {
+  if (!statusQuery.isSuccess || !statusQuery.data) {
     return <Spinner />;
   }
   const { status, uptime } = statusQuery.data;

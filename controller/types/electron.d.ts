@@ -31,6 +31,31 @@ interface GalagoDesktopAPI {
   restartCoreService: () => Promise<{ success: boolean; port: number }>;
 
   /**
+   * Start a tool driver on-demand
+   */
+  startTool: (toolName: string, port?: number) => Promise<{ 
+    success: boolean; 
+    port?: number; 
+    error?: string; 
+    alreadyRunning?: boolean 
+  }>;
+
+  /**
+   * Stop a tool driver
+   */
+  stopTool: (toolName: string) => Promise<{ success: boolean; wasRunning: boolean }>;
+
+  /**
+   * Get all running tools and their ports
+   */
+  getRunningTools: () => Promise<Record<string, { port: number }>>;
+
+  /**
+   * Get tool ports
+   */
+  getToolPorts: () => Promise<Record<string, number>>;
+
+  /**
    * Whether running in Electron
    */
   isElectron: boolean;

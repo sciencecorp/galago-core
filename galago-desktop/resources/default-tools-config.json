@@ -1,0 +1,139 @@
+{
+  "description": "Default tool configuration for Galago Desktop. Tools marked as 'managed: true' will be started automatically by Electron.",
+  "tools": [
+    {
+      "name": "pf400",
+      "binaryName": "pf400",
+      "port": 50051,
+      "managed": true,
+      "description": "PreciseFlex PF400 Robot Arm"
+    },
+    {
+      "name": "toolbox",
+      "binaryName": "toolbox",
+      "port": 1010,
+      "managed": true,
+      "description": "General Toolbox utilities"
+    },
+    {
+      "name": "cytation",
+      "binaryName": "cytation",
+      "port": 50052,
+      "managed": true,
+      "description": "BioTek Cytation Plate Reader"
+    },
+    {
+      "name": "opentrons2",
+      "binaryName": "opentrons2",
+      "port": 50053,
+      "managed": true,
+      "description": "Opentrons OT-2 Liquid Handler"
+    },
+    {
+      "name": "hamilton",
+      "binaryName": "hamilton",
+      "port": 50054,
+      "managed": true,
+      "description": "Hamilton STAR/Vantage"
+    },
+    {
+      "name": "bravo",
+      "binaryName": "bravo",
+      "port": 50055,
+      "managed": true,
+      "description": "Agilent Bravo Liquid Handler"
+    },
+    {
+      "name": "liconic",
+      "binaryName": "liconic",
+      "port": 50056,
+      "managed": true,
+      "description": "Liconic Incubator"
+    },
+    {
+      "name": "plateloc",
+      "binaryName": "plateloc",
+      "port": 50057,
+      "managed": true,
+      "description": "Agilent PlateLoc Sealer"
+    },
+    {
+      "name": "xpeel",
+      "binaryName": "xpeel",
+      "port": 50058,
+      "managed": true,
+      "description": "Brooks XPeel Desealer"
+    },
+    {
+      "name": "alps3000",
+      "binaryName": "alps3000",
+      "port": 50059,
+      "managed": true,
+      "description": "ALPS 3000 Plate Sealer"
+    },
+    {
+      "name": "bioshake",
+      "binaryName": "bioshake",
+      "port": 50060,
+      "managed": true,
+      "description": "QInstruments BioShake"
+    },
+    {
+      "name": "spectramax",
+      "binaryName": "spectramax",
+      "port": 50061,
+      "managed": true,
+      "description": "Molecular Devices SpectraMax"
+    },
+    {
+      "name": "hig_centrifuge",
+      "binaryName": "hig_centrifuge",
+      "port": 50062,
+      "managed": true,
+      "description": "HiG Centrifuge"
+    },
+    {
+      "name": "dataman70",
+      "binaryName": "dataman70",
+      "port": 50063,
+      "managed": true,
+      "description": "Cognex DataMan 70 Barcode Reader"
+    },
+    {
+      "name": "vcode",
+      "binaryName": "vcode",
+      "port": 50064,
+      "managed": true,
+      "description": "VCode System"
+    },
+    {
+      "name": "vprep",
+      "binaryName": "vprep",
+      "port": 50065,
+      "managed": true,
+      "description": "Velocity Prep"
+    },
+    {
+      "name": "microserve",
+      "binaryName": "microserve",
+      "port": 50066,
+      "managed": true,
+      "description": "MicroServe System"
+    },
+    {
+      "name": "plr",
+      "binaryName": "plr",
+      "port": 50067,
+      "managed": true,
+      "description": "PLR System"
+    },
+    {
+      "name": "pyhamilton",
+      "binaryName": "pyhamilton",
+      "port": 50068,
+      "managed": true,
+      "description": "PyHamilton Interface"
+    }
+  ]
+}
+
