@@ -18,7 +18,7 @@ COPY controller/ ./
 RUN npm run build
 
 # Stage 3: Production runtime with minimal .NET dependencies
-FROM --platform=$TARGETPLATFORM node:18.20.3-alpine AS runner
+FROM --platform=$TARGETPLATFORM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV production
 
