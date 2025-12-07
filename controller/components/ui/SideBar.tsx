@@ -1,4 +1,4 @@
-import React, { useState, ReactNode, useEffect } from "react";
+import React, { useState, ReactNode } from "react";
 import {
   Box,
   Flex,
@@ -8,12 +8,10 @@ import {
   VStack,
   Drawer,
   DrawerContent,
-  Spacer,
   useDisclosure,
   useBreakpointValue,
   Image,
   HStack,
-  useColorMode,
   DrawerOverlay,
   Tooltip,
   useColorModeValue,
@@ -28,7 +26,7 @@ import { TbVariable } from "react-icons/tb";
 import { MdOutlineIntegrationInstructions } from "react-icons/md";
 import { RiCalendarCheckLine } from "react-icons/ri";
 import { PiPathBold } from "react-icons/pi";
-import { MoonIcon, SunIcon } from "@chakra-ui/icons";
+import { SettingsIcon } from "@chakra-ui/icons";
 import { FiBook } from "react-icons/fi";
 import { BsTools } from "react-icons/bs";
 import { FaChartGantt } from "react-icons/fa6";
@@ -69,18 +67,26 @@ const sidebarItems: SidebarItem[] = [
   // { name: "Logout", icon: FiLogOut, path: "/logout" },
 ];
 
-function DarkModeToggle() {
-  const { colorMode, toggleColorMode } = useColorMode();
+function SettingsButton() {
+  const router = useRouter();
+  const isActive = router.pathname === "/settings";
+  const theme = useSidebarTheme();
+  
   return (
-    <IconButton
-      onClick={toggleColorMode}
-      icon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
-      aria-label="Toggle dark mode"
-      position="fixed"
-      bottom="20px"
-      left="20px"
-      bg="transparent"
-    />
+    <Tooltip label="Settings" placement="right">
+      <IconButton
+        onClick={() => router.push("/settings")}
+        icon={<SettingsIcon boxSize={5} color={isActive ? theme.activeIconColor : undefined} />}
+        aria-label="Settings"
+        position="fixed"
+        bottom="20px"
+        left="20px"
+        bg={isActive ? theme.activeBg : "transparent"}
+        _hover={{ bg: theme.hoverBg }}
+        borderRadius="md"
+        size="lg"
+      />
+    </Tooltip>
   );
 }
 
@@ -121,12 +127,12 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       height="100%"
       {...transitionProps}>
       <VStack left={0} p={1} spacing={4} align="stretch" width="100%">
-        <HStack pb={10} pl={2} pt={2} width="100%" position="relative">
+        <HStack pb={8} pl={2} pt={6} width="100%" position="relative">
           <Image
             onClick={toggleSidebar}
             width="60px"
             paddingLeft="0"
-            src="/site_logo.svg"
+            src="./site_logo.svg"
             alt="logo"
             filter={logoFilter}></Image>
         </HStack>
@@ -174,7 +180,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             )}
           </Link>
         ))}
-        <DarkModeToggle />
+        <SettingsButton />
       </VStack>
     </Box>
   );
@@ -205,7 +211,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                 onClick={toggleSidebar}
                 width="55px"
                 paddingLeft="0"
-                src="/site_logo.svg"
+                src="./site_logo.svg"
                 alt="logo"
                 filter={logoFilter}></Image>
             </Box>

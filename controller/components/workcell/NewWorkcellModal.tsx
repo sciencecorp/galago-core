@@ -38,11 +38,26 @@ export const NewWorkcellModal: React.FC = () => {
     setIsLoading(true);
     try {
       await createWorkcell.mutateAsync(workcell);
-      successToast("", "Workcell created successfully");
+      successToast("Workcell created", "");
       onClose();
       await refetch();
+      
+      // If running in Electron, start the Tool Box server
+      if (typeof window !== "undefined" && window.galagoDesktop?.isElectron) {
+        try {
+          const isInstalled = await window.galagoDesktop.isToolInstalled("toolbox");
+          if (isInstalled) {
+            const result = await window.galagoDesktop.startTool("toolbox", 51010);
+            if (result.success && !result.alreadyRunning) {
+              successToast("Tool Box started", `Running on port ${result.port}`);
+            }
+          }
+        } catch (electronError) {
+          console.error("Failed to start Tool Box:", electronError);
+        }
+      }
     } catch (error) {
-      errorToast("", "Error creating workcell");
+      errorToast("Error creating workcell", "");
     }
     setIsLoading(false);
     clearForm();

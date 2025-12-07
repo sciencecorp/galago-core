@@ -111,15 +111,45 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
 
     setIsLoading(true);
     try {
-      await addTool.mutateAsync(tool);
+      const addedTool = await addTool.mutateAsync(tool);
       await refetch();
-      successToast(`Tool added successfully`, "");
+      
+      // Close the modal immediately - tool server will start in background
       onDetailsClose();
       clearForm();
+      setIsLoading(false);
+      
+      // If running in Electron, try to start the tool server (in background)
+      if (typeof window !== "undefined" && window.galagoDesktop?.isElectron) {
+        const toolName = selectedTool.toLowerCase();
+        
+        // Start server in background - don't block the UI
+        window.galagoDesktop.isToolInstalled(toolName).then(async (isInstalled) => {
+          if (isInstalled) {
+            try {
+              const result = await window.galagoDesktop!.startTool(toolName, addedTool?.port);
+              if (result.success) {
+                successToast(`${name} server started`, `Running on port ${result.port}`);
+              } else {
+                warningToast(`Tool added`, "Server could not start automatically. Click the status tag to retry.");
+              }
+            } catch (electronError) {
+              console.error("Failed to start tool server:", electronError);
+            }
+          } else {
+            successToast(`Tool added`, "Install tool drivers in Settings to enable the server");
+          }
+        }).catch((err) => {
+          console.error("Error checking tool installation:", err);
+          successToast(`Tool added successfully`, "");
+        });
+      } else {
+        successToast(`Tool added successfully`, "");
+      }
     } catch (error) {
       errorToast("Error creating tool", `Please try again. ${error}`);
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const clearForm = () => {

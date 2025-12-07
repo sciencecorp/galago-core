@@ -74,3 +74,20 @@ app_config.json
 
 tools/build/*
 .cursor/rules/
+
+# Electron desktop app build artifacts
+galago-desktop/build/
+galago-desktop/release/
+galago-desktop/dist/
+galago-desktop/resources/binaries/
+galago-desktop/resources/renderer/
+galago-desktop/resources/node/
+galago-desktop/tools-package/*.zip
+galago-desktop/tools-package/*.dmg
+
+# Python build artifacts
+db/build/
+db/dist/
+db/__pycache__/
+venv/
+.venv/

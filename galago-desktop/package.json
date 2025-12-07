@@ -14,7 +14,7 @@
     "dev:next": "cd ../controller && npm run dev",
     "build": "npm run build:main && npm run build:renderer",
     "build:main": "tsc -p tsconfig.main.json",
-    "build:renderer": "cd ../controller && npm run build && npm run export",
+    "build:renderer": "cd ../controller && ELECTRON_BUILD=true npm run build && rm -rf ../galago-desktop/resources/renderer && cp -r .next/standalone ../galago-desktop/resources/renderer && cp -r .next/static ../galago-desktop/resources/renderer/.next/ && cp -r public ../galago-desktop/resources/renderer/",
     "build:preload": "tsc src/main/preload.ts --outDir dist/main --module commonjs --esModuleInterop",
     "package": "npm run build && electron-builder",
     "package:win": "npm run build && electron-builder --win",
@@ -47,11 +47,29 @@
     ],
     "extraResources": [
       {
-        "from": "resources/binaries",
-        "to": "binaries",
+        "from": "resources/binaries/galago-core",
+        "to": "binaries/galago-core",
         "filter": [
           "**/*"
         ]
+      },
+      {
+        "from": "resources/binaries/node",
+        "to": "binaries/node",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "resources/renderer",
+        "to": "renderer",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "resources/default-tools-config.json",
+        "to": "default-tools-config.json"
       }
     ],
     "win": {

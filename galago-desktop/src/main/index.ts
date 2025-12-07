@@ -21,6 +21,7 @@ const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 // Store references to child processes
 let mainWindow: BrowserWindow | null = null;
 let coreProcess: ChildProcess | null = null;
+let rendererProcess: ChildProcess | null = null;
 let toolProcesses: Map<string, ChildProcess> = new Map();
 let toolPorts: Map<string, number> = new Map();
 
@@ -47,6 +48,36 @@ function getResourcePath(resourceName: string): string {
 }
 
 /**
+ * Get the path to the bundled Node.js binary
+ */
+function getBundledNodePath(): string {
+  const platform = process.platform;
+  const arch = process.arch;
+  const binaryDir = getResourcePath('binaries/node');
+  
+  let nodeBinary: string;
+  
+  if (platform === 'win32') {
+    nodeBinary = 'node-win32-x64.exe';
+  } else if (platform === 'darwin') {
+    nodeBinary = arch === 'arm64' ? 'node-darwin-arm64' : 'node-darwin-x64';
+  } else {
+    // Linux
+    nodeBinary = arch === 'arm64' ? 'node-linux-arm64' : 'node-linux-x64';
+  }
+  
+  const nodePath = path.join(binaryDir, nodeBinary);
+  
+  // Fall back to system node if bundled not found
+  if (!fs.existsSync(nodePath)) {
+    console.warn(`[Node] Bundled Node.js not found at ${nodePath}, falling back to system node`);
+    return platform === 'win32' ? 'node.exe' : 'node';
+  }
+  
+  return nodePath;
+}
+
+/**
  * Get the path to the Python executable
  */
 function getPythonBinaryPath(): string {
@@ -63,14 +94,35 @@ function getPythonBinaryPath(): string {
 }
 
 /**
+ * Get the tools directory path (user data or bundled)
+ */
+function getToolsDirectory(): string {
+  // First check user data directory (for downloaded tools)
+  const userToolsDir = path.join(getDataDirectory(), 'tools');
+  if (fs.existsSync(userToolsDir)) {
+    return userToolsDir;
+  }
+  
+  // Fall back to bundled tools
+  return path.join(getResourcePath('binaries'), 'tools');
+}
+
+/**
  * Get the path to a tool driver binary
  */
 function getToolBinaryPath(toolName: string): string {
   const platform = process.platform;
-  const binaryDir = getResourcePath('binaries');
   const ext = platform === 'win32' ? '.exe' : '';
   
-  return path.join(binaryDir, 'tools', toolName, `${toolName}${ext}`);
+  // First check user data directory (for downloaded tools)
+  const userToolPath = path.join(getDataDirectory(), 'tools', toolName, `${toolName}${ext}`);
+  if (fs.existsSync(userToolPath)) {
+    return userToolPath;
+  }
+  
+  // Fall back to bundled tools
+  const bundledToolPath = path.join(getResourcePath('binaries'), 'tools', toolName, `${toolName}${ext}`);
+  return bundledToolPath;
 }
 
 /**
@@ -111,9 +163,11 @@ async function startToolDriver(config: ToolDriverConfig): Promise<number> {
   toolProcess.on('exit', (code) => {
     console.log(`[Tool:${config.name}] Process exited with code ${code}`);
     toolProcesses.delete(config.name);
+    toolPorts.delete(config.name);
   });
   
   toolProcesses.set(config.name, toolProcess);
+  toolPorts.set(config.name, port);
   
   // Wait for the service to be ready
   try {
@@ -131,8 +185,6 @@ async function startToolDriver(config: ToolDriverConfig): Promise<number> {
  * Tools can be loaded from a config file or environment
  */
 async function startToolDrivers(): Promise<Map<string, number>> {
-  const toolPorts = new Map<string, number>();
-  
   // Check for user tools config file first
   const userToolsConfigPath = path.join(getDataDirectory(), 'tools-config.json');
   
@@ -168,13 +220,13 @@ async function startToolDrivers(): Promise<Map<string, number>> {
           
           // Only try to start if the binary exists
           if (fs.existsSync(binaryPath)) {
-            const port = await startToolDriver({
+            await startToolDriver({
               name: tool.name,
               binaryName: tool.binaryName || tool.name.toLowerCase(),
               defaultPort: tool.port || 50051,
               is32bit: tool.is32bit,
             });
-            toolPorts.set(tool.name, port);
+            // Note: toolPorts is updated inside startToolDriver
           } else {
             console.log(`[Tools] Skipping ${tool.name}: binary not found at ${binaryPath}`);
           }
@@ -198,6 +250,39 @@ async function startWorkcellTools(): Promise<void> {
   console.log('[Tools] Checking for existing workcell tools...');
   
   try {
+    // First check if any workcells exist
+    const workcellResponse = await fetch(`http://127.0.0.1:${corePort}/api/workcells`);
+    if (!workcellResponse.ok) {
+      console.warn('[Tools] Failed to fetch workcells from backend');
+      return;
+    }
+    
+    const workcells = await workcellResponse.json() as Array<any>;
+    if (!workcells || workcells.length === 0) {
+      console.log('[Tools] No workcells exist yet, skipping tool startup');
+      return;
+    }
+    
+    console.log(`[Tools] Found ${workcells.length} workcell(s), starting tools...`);
+    
+    // Start the Tool Box - it's needed when any workcell exists
+    const toolboxBinaryPath = getToolBinaryPath('toolbox');
+    if (fs.existsSync(toolboxBinaryPath)) {
+      console.log('[Tools] Starting built-in Tool Box server...');
+      try {
+        await startToolDriver({
+          name: 'toolbox',
+          binaryName: 'toolbox',
+          defaultPort: 51010,
+        });
+        console.log('[Tools] Tool Box started');
+      } catch (error) {
+        console.error('[Tools] Failed to start Tool Box:', error);
+      }
+    } else {
+      console.log(`[Tools] Tool Box binary not found at ${toolboxBinaryPath}`);
+    }
+    
     // Query the backend for all tools
     const response = await fetch(`http://127.0.0.1:${corePort}/api/tools`);
     if (!response.ok) {
@@ -408,6 +493,78 @@ async function startCoreService(): Promise<void> {
 }
 
 /**
+ * Start the Next.js renderer server (production only)
+ */
+async function startRendererServer(): Promise<void> {
+  if (isDev) {
+    // In development, Next.js dev server should be started separately
+    console.log('[Renderer] Development mode - expecting external Next.js dev server');
+    return;
+  }
+  
+  // Find available port for renderer
+  rendererPort = await findAvailablePort(3010);
+  console.log(`[Renderer] Starting on port ${rendererPort}`);
+  
+  // In production, use the standalone server.js
+  const rendererDir = getResourcePath('renderer');
+  const serverPath = path.join(rendererDir, 'server.js');
+  
+  // Check if standalone server exists
+  if (!fs.existsSync(serverPath)) {
+    console.error(`[Renderer] Server not found at ${serverPath}`);
+    throw new Error(`Next.js server not found at ${serverPath}`);
+  }
+  
+  // Use bundled Node.js binary
+  const nodePath = getBundledNodePath();
+  console.log(`[Renderer] Using Node.js at: ${nodePath}`);
+  
+  // Start Next.js standalone server
+  const dataDir = getDataDirectory();
+  rendererProcess = spawn(nodePath, [serverPath], {
+    cwd: rendererDir,
+    env: {
+      ...process.env,
+      PORT: rendererPort.toString(),
+      HOSTNAME: '127.0.0.1',
+      API_BASE_URL: `http://127.0.0.1:${corePort}/api`,
+      // Force SQLite queue for Electron (no Redis available)
+      USE_SQLITE_QUEUE: 'true',
+      QUEUE_DB_PATH: path.join(dataDir, 'queue.db'),
+      NODE_ENV: 'production',
+    },
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
+  
+  rendererProcess.stdout?.on('data', (data) => {
+    console.log(`[Renderer] ${data.toString().trim()}`);
+  });
+  
+  rendererProcess.stderr?.on('data', (data) => {
+    console.error(`[Renderer Error] ${data.toString().trim()}`);
+  });
+  
+  rendererProcess.on('error', (error) => {
+    console.error('[Renderer] Failed to start:', error);
+  });
+  
+  rendererProcess.on('exit', (code) => {
+    console.log(`[Renderer] Process exited with code ${code}`);
+    rendererProcess = null;
+  });
+  
+  // Wait for the renderer to be ready
+  try {
+    await waitForService(rendererPort, 60000);
+    console.log('[Renderer] Service is ready');
+  } catch (error) {
+    console.error('[Renderer] Service failed to start:', error);
+    throw error;
+  }
+}
+
+/**
  * Create the main application window
  */
 async function createWindow(): Promise<void> {
@@ -432,16 +589,8 @@ async function createWindow(): Promise<void> {
     mainWindow?.show();
   });
   
-  // Determine the URL to load
-  let loadUrl: string;
-  
-  if (isDev) {
-    // Development: Connect to the Next.js dev server
-    loadUrl = `http://localhost:${rendererPort}`;
-  } else {
-    // Production: Load the exported Next.js app
-    loadUrl = `file://${path.join(__dirname, '../renderer/out/index.html')}`;
-  }
+  // Always use HTTP URL (both dev and production run a server)
+  const loadUrl = `http://localhost:${rendererPort}`;
   
   // Add query parameters for API configuration
   const urlWithParams = `${loadUrl}?apiPort=${corePort}&apiHost=127.0.0.1`;
@@ -499,6 +648,26 @@ async function cleanup(): Promise<void> {
   }
   toolProcesses.clear();
   
+  // Kill renderer process
+  if (rendererProcess) {
+    console.log('[Renderer] Stopping service...');
+    rendererProcess.kill('SIGTERM');
+    await new Promise<void>((resolve) => {
+      const timeout = setTimeout(() => {
+        if (rendererProcess) {
+          rendererProcess.kill('SIGKILL');
+        }
+        resolve();
+      }, 3000);
+      
+      rendererProcess?.on('exit', () => {
+        clearTimeout(timeout);
+        resolve();
+      });
+    });
+    rendererProcess = null;
+  }
+  
   // Kill core process
   if (coreProcess) {
     console.log('[Core] Stopping service...');
@@ -534,6 +703,9 @@ app.whenReady().then(async () => {
   try {
     // Start backend services
     await startCoreService();
+    
+    // Start Next.js renderer server (production only)
+    await startRendererServer();
     
     // Start tools that are already configured in workcells
     await startWorkcellTools();
@@ -684,5 +856,146 @@ ipcMain.handle('get-running-tools', () => {
     running[name] = { port };
   }
   return running;
+});
+
+// Get list of installed tools
+ipcMain.handle('get-installed-tools', () => {
+  const toolsDir = path.join(getDataDirectory(), 'tools');
+  const bundledToolsDir = path.join(getResourcePath('binaries'), 'tools');
+  
+  const installedTools: { name: string; source: 'user' | 'bundled'; path: string }[] = [];
+  
+  // Check user-installed tools
+  if (fs.existsSync(toolsDir)) {
+    const dirs = fs.readdirSync(toolsDir, { withFileTypes: true });
+    for (const dir of dirs) {
+      if (dir.isDirectory()) {
+        installedTools.push({
+          name: dir.name,
+          source: 'user',
+          path: path.join(toolsDir, dir.name),
+        });
+      }
+    }
+  }
+  
+  // Check bundled tools (if not already in user tools)
+  if (fs.existsSync(bundledToolsDir)) {
+    const dirs = fs.readdirSync(bundledToolsDir, { withFileTypes: true });
+    for (const dir of dirs) {
+      if (dir.isDirectory() && !installedTools.find(t => t.name === dir.name)) {
+        installedTools.push({
+          name: dir.name,
+          source: 'bundled',
+          path: path.join(bundledToolsDir, dir.name),
+        });
+      }
+    }
+  }
+  
+  return installedTools;
+});
+
+// Get tools directory path
+ipcMain.handle('get-tools-directory', () => {
+  const toolsDir = path.join(getDataDirectory(), 'tools');
+  if (!fs.existsSync(toolsDir)) {
+    fs.mkdirSync(toolsDir, { recursive: true });
+  }
+  return toolsDir;
+});
+
+// Install tools from a ZIP file
+ipcMain.handle('install-tools-from-zip', async (_event, zipPath: string) => {
+  const toolsDir = path.join(getDataDirectory(), 'tools');
+  
+  console.log(`[Tools] Installing tools from ${zipPath} to ${toolsDir}`);
+  
+  try {
+    // Ensure tools directory exists
+    if (!fs.existsSync(toolsDir)) {
+      fs.mkdirSync(toolsDir, { recursive: true });
+    }
+    
+    // Use unzip command (cross-platform with fallback)
+    const { exec } = require('child_process');
+    const util = require('util');
+    const execPromise = util.promisify(exec);
+    
+    // Extract ZIP
+    const platform = process.platform;
+    let extractCmd: string;
+    
+    if (platform === 'win32') {
+      // Use PowerShell on Windows
+      extractCmd = `powershell -command "Expand-Archive -Path '${zipPath}' -DestinationPath '${toolsDir}' -Force"`;
+    } else {
+      // Use unzip on macOS/Linux
+      extractCmd = `unzip -o "${zipPath}" -d "${toolsDir}"`;
+    }
+    
+    await execPromise(extractCmd);
+    
+    // The ZIP contains a 'tools' folder, so we need to move contents up
+    const extractedToolsDir = path.join(toolsDir, 'tools');
+    if (fs.existsSync(extractedToolsDir)) {
+      const toolDirs = fs.readdirSync(extractedToolsDir, { withFileTypes: true });
+      for (const dir of toolDirs) {
+        if (dir.isDirectory()) {
+          const src = path.join(extractedToolsDir, dir.name);
+          const dest = path.join(toolsDir, dir.name);
+          
+          // Remove existing if present
+          if (fs.existsSync(dest)) {
+            fs.rmSync(dest, { recursive: true });
+          }
+          
+          // Move the directory
+          fs.renameSync(src, dest);
+          
+          // Make binary executable on Unix
+          if (platform !== 'win32') {
+            const binaryPath = path.join(dest, dir.name);
+            if (fs.existsSync(binaryPath)) {
+              fs.chmodSync(binaryPath, '755');
+            }
+          }
+        }
+      }
+      
+      // Remove the empty extracted tools folder
+      fs.rmSync(extractedToolsDir, { recursive: true });
+    }
+    
+    console.log('[Tools] Installation complete');
+    return { success: true, toolsDir };
+  } catch (error) {
+    console.error('[Tools] Installation failed:', error);
+    return { success: false, error: String(error) };
+  }
+});
+
+// Open file dialog to select tools ZIP
+ipcMain.handle('select-tools-zip', async () => {
+  const result = await dialog.showOpenDialog({
+    title: 'Select Galago Tools Package',
+    filters: [
+      { name: 'ZIP Archive', extensions: ['zip'] },
+      { name: 'All Files', extensions: ['*'] },
+    ],
+    properties: ['openFile'],
+  });
+  
+  if (result.canceled || result.filePaths.length === 0) {
+    return { success: false, canceled: true };
+  }
+  
+  return { success: true, path: result.filePaths[0] };
+});
+
+// Check if a specific tool is installed
+ipcMain.handle('is-tool-installed', (_event, toolName: string) => {
+  const binaryPath = getToolBinaryPath(toolName.toLowerCase());
+  return fs.existsSync(binaryPath);
 });
 

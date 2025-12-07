@@ -18,11 +18,15 @@ project_root = spec_dir.parent
 block_cipher = None
 
 # Collect all Python files from the db package
-datas = [
-    # Include alembic migrations
-    (str(spec_dir / 'alembic'), 'db/alembic'),
-    (str(spec_dir / 'alembic.ini'), 'db'),
-]
+datas = []
+
+# Include alembic migrations if they exist
+alembic_dir = spec_dir / 'alembic'
+alembic_ini = spec_dir / 'alembic.ini'
+if alembic_dir.exists():
+    datas.append((str(alembic_dir), 'db/alembic'))
+if alembic_ini.exists():
+    datas.append((str(alembic_ini), 'db'))
 
 # Hidden imports that PyInstaller might miss
 hiddenimports = [

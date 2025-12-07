@@ -25,6 +25,8 @@ import {
   AlertTitle,
   AlertDescription,
   Tag,
+  Button,
+  Tooltip,
 } from "@chakra-ui/react";
 import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import Link from "next/link";
@@ -34,12 +36,13 @@ import { HamburgerIcon } from "@chakra-ui/icons";
 import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
 import { PiToolbox } from "react-icons/pi";
+import { FaPlay, FaStop, FaServer } from "react-icons/fa";
 import { EditMenu } from "@/components/ui/EditMenu";
 import { EditToolModal } from "./EditToolConfig";
 import { useRouter } from "next/router";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
 import ToolLogs from "@/pages/advanced";
-import { successToast, errorToast } from "../ui/Toast";
+import { successToast, errorToast, infoToast } from "../ui/Toast";
 const StyledCard = styled(Card)`
   display: flex;
   flex-direction: column;
@@ -67,6 +70,11 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [isConfiguring, setIsConfiguring] = useState(false);
+  const [isElectron, setIsElectron] = useState(false);
+  const [serverRunning, setServerRunning] = useState(false);
+  const [serverPort, setServerPort] = useState<number | null>(null);
+  const [isToolInstalled, setIsToolInstalled] = useState(false);
+  const [isStartingServer, setIsStartingServer] = useState(false);
   const cardBg = useColorModeValue("white", "gray.900");
   const borderColor = useColorModeValue("gray.200", "gray.700");
 
@@ -86,6 +94,94 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
     onOpen: openDeleteConfirm,
     onClose: closeDeleteConfirm,
   } = useDisclosure();
+
+  // Check if running in Electron and get server status
+  useEffect(() => {
+    const checkElectronStatus = async () => {
+      if (typeof window === "undefined" || !window.galagoDesktop?.isElectron) {
+        return;
+      }
+      
+      setIsElectron(true);
+      
+      if (!toolData?.type) {
+        console.log(`[ToolStatusCard] ${toolId}: No toolData.type, skipping status check`);
+        return;
+      }
+      
+      // Tool Box is a special built-in tool, use "toolbox" as the key
+      const toolType = toolId === "tool_box" ? "toolbox" : toolData.type.toLowerCase();
+      
+      // Check if tool driver is installed
+      try {
+        const installed = await window.galagoDesktop.isToolInstalled(toolType);
+        setIsToolInstalled(installed);
+        
+        // Check if server is running
+        const runningTools = await window.galagoDesktop.getRunningTools();
+        console.log(`[ToolStatusCard] ${toolId}: Looking for "${toolType}" in running tools:`, Object.keys(runningTools));
+        
+        if (runningTools[toolType]) {
+          console.log(`[ToolStatusCard] ${toolId}: Found running on port ${runningTools[toolType].port}`);
+          setServerRunning(true);
+          setServerPort(runningTools[toolType].port);
+        } else {
+          setServerRunning(false);
+          setServerPort(null);
+        }
+      } catch (error) {
+        console.error("Error checking tool status:", error);
+      }
+    };
+    
+    checkElectronStatus();
+    
+    // Poll for status every 5 seconds
+    const interval = setInterval(checkElectronStatus, 5000);
+    return () => clearInterval(interval);
+  }, [toolData, toolId]);
+
+  const handleStartServer = async () => {
+    if (!window.galagoDesktop || !toolData?.type) return;
+    
+    // Tool Box is a special built-in tool, use "toolbox" as the key
+    const toolType = toolId === "tool_box" ? "toolbox" : toolData.type.toLowerCase();
+    const defaultPort = toolId === "tool_box" ? 1010 : toolData.port;
+    setIsStartingServer(true);
+    
+    try {
+      const result = await window.galagoDesktop.startTool(toolType, defaultPort);
+      if (result.success) {
+        setServerRunning(true);
+        setServerPort(result.port || null);
+        successToast("Server Started", `${name} server started on port ${result.port}`);
+      } else {
+        errorToast("Failed to Start Server", result.error || "Unknown error");
+      }
+    } catch (error) {
+      errorToast("Failed to Start Server", String(error));
+    } finally {
+      setIsStartingServer(false);
+    }
+  };
+
+  const handleStopServer = async () => {
+    if (!window.galagoDesktop || !toolData?.type) return;
+    
+    // Tool Box is a special built-in tool, use "toolbox" as the key
+    const toolType = toolId === "tool_box" ? "toolbox" : toolData.type.toLowerCase();
+    
+    try {
+      const result = await window.galagoDesktop.stopTool(toolType);
+      if (result.success) {
+        setServerRunning(false);
+        setServerPort(null);
+        infoToast("Server Stopped", `${name} server has been stopped`);
+      }
+    } catch (error) {
+      errorToast("Failed to Stop Server", String(error));
+    }
+  };
 
   if (infoQuery.isLoading) {
     return <Spinner size="lg" />;
@@ -183,7 +279,41 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
         </CardHeader>
         <CardBody mt="0px">
           <VStack align="stretch" spacing={4} mb={2}>
-            <ToolStatusTag toolId={toolId} isConfiguring={isConfiguring} />
+            <HStack justify="space-between" align="center">
+              <ToolStatusTag toolId={toolId} isConfiguring={isConfiguring} />
+              {isElectron && (
+                <HStack spacing={1}>
+                  {isToolInstalled ? (
+                    serverRunning ? (
+                      <Tooltip label={`Server running on port ${serverPort}`}>
+                        <Tag size="sm" colorScheme="green" cursor="pointer" onClick={handleStopServer}>
+                          <Icon as={FaServer} mr={1} /> On
+                        </Tag>
+                      </Tooltip>
+                    ) : (
+                      <Tooltip label="Start tool server">
+                        <Tag 
+                          size="sm" 
+                          colorScheme="gray" 
+                          cursor="pointer" 
+                          onClick={handleStartServer}
+                          opacity={isStartingServer ? 0.5 : 1}
+                        >
+                          {isStartingServer ? <Spinner size="xs" mr={1} /> : <Icon as={FaPlay} mr={1} />}
+                          {isStartingServer ? "..." : "Off"}
+                        </Tag>
+                      </Tooltip>
+                    )
+                  ) : (
+                    <Tooltip label="Tool driver not installed. Go to Settings to install tools.">
+                      <Tag size="sm" colorScheme="orange">
+                        <Icon as={FaServer} mr={1} /> N/A
+                      </Tag>
+                    </Tooltip>
+                  )}
+                </HStack>
+              )}
+            </HStack>
 
             {/* Always render the ToolConfigEditor but manage its visibility with CSS */}
             <Flex position="relative" width="100%" height="120px">

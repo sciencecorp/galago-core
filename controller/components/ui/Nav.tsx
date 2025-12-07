@@ -80,7 +80,7 @@ export default function Nav() {
         bg={bgColor}
         color={textColor}>
         <Link href="/" passHref>
-          <Image width="50px" paddingLeft="5" src="/site_logo.svg" alt="logo" />
+          <Image width="50px" paddingLeft="5" src="./site_logo.svg" alt="logo" />
         </Link>
         <Breadcrumb alignContent="left" p={1} separator={"›"} width="15%">
           {breadcrumbs.map((breadcrumb) => {

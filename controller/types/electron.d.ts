@@ -56,6 +56,31 @@ interface GalagoDesktopAPI {
   getToolPorts: () => Promise<Record<string, number>>;
 
   /**
+   * Get list of installed tools
+   */
+  getInstalledTools: () => Promise<{ name: string; source: 'user' | 'bundled'; path: string }[]>;
+
+  /**
+   * Get tools directory path
+   */
+  getToolsDirectory: () => Promise<string>;
+
+  /**
+   * Install tools from a ZIP file
+   */
+  installToolsFromZip: (zipPath: string) => Promise<{ success: boolean; toolsDir?: string; error?: string }>;
+
+  /**
+   * Open dialog to select tools ZIP
+   */
+  selectToolsZip: () => Promise<{ success: boolean; path?: string; canceled?: boolean }>;
+
+  /**
+   * Check if a specific tool is installed
+   */
+  isToolInstalled: (toolName: string) => Promise<boolean>;
+
+  /**
    * Whether running in Electron
    */
   isElectron: boolean;

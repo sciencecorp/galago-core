@@ -50,6 +50,31 @@ contextBridge.exposeInMainWorld('galagoDesktop', {
   getToolPorts: () => ipcRenderer.invoke('get-tool-ports'),
   
   /**
+   * Get list of installed tools
+   */
+  getInstalledTools: () => ipcRenderer.invoke('get-installed-tools'),
+  
+  /**
+   * Get tools directory path
+   */
+  getToolsDirectory: () => ipcRenderer.invoke('get-tools-directory'),
+  
+  /**
+   * Install tools from a ZIP file
+   */
+  installToolsFromZip: (zipPath: string) => ipcRenderer.invoke('install-tools-from-zip', zipPath),
+  
+  /**
+   * Open dialog to select tools ZIP
+   */
+  selectToolsZip: () => ipcRenderer.invoke('select-tools-zip'),
+  
+  /**
+   * Check if a specific tool is installed
+   */
+  isToolInstalled: (toolName: string) => ipcRenderer.invoke('is-tool-installed', toolName),
+  
+  /**
    * Check if running in Electron
    */
   isElectron: true,
@@ -76,6 +101,11 @@ declare global {
       stopTool: (toolName: string) => Promise<{ success: boolean; wasRunning: boolean }>;
       getRunningTools: () => Promise<Record<string, { port: number }>>;
       getToolPorts: () => Promise<Record<string, number>>;
+      getInstalledTools: () => Promise<{ name: string; source: 'user' | 'bundled'; path: string }[]>;
+      getToolsDirectory: () => Promise<string>;
+      installToolsFromZip: (zipPath: string) => Promise<{ success: boolean; toolsDir?: string; error?: string }>;
+      selectToolsZip: () => Promise<{ success: boolean; path?: string; canceled?: boolean }>;
+      isToolInstalled: (toolName: string) => Promise<boolean>;
       isElectron: boolean;
       platform: NodeJS.Platform;
     };

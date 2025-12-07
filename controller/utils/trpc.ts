@@ -6,8 +6,8 @@ import type { AppRouter } from "../server/routers/_app";
 /**
  * Get the base URL for tRPC requests
  * 
- * tRPC requests should always use relative paths on the client to avoid CORS issues.
- * The browser will automatically use the same origin as the page.
+ * For Electron production mode (file:// protocol), we need absolute URLs.
+ * For web mode, relative paths work fine.
  */
 function getBaseUrl() {
   if (typeof window === "undefined") {
@@ -18,8 +18,15 @@ function getBaseUrl() {
     return `http://127.0.0.1:${process.env.PORT ?? 3010}`;
   }
 
-  // Client-side: Always use relative paths to avoid CORS issues
-  // This works for both web mode and Electron (when loaded via http://localhost)
+  // Check if we're in Electron production mode (file:// protocol)
+  if (window.location.protocol === "file:") {
+    // Get API port from URL query params or use default
+    const urlParams = new URLSearchParams(window.location.search);
+    const apiPort = urlParams.get("apiPort") || "8000";
+    return `http://127.0.0.1:${apiPort}`;
+  }
+
+  // Client-side web mode: Use relative paths to avoid CORS issues
   return "";
 }
 

@@ -548,7 +548,7 @@ export default class Tool {
       description: "General Tools",
       image_url: "/tool_icons/toolbox.png",
       ip: isDocker ? "host.docker.internal" : "localhost",
-      port: 1010,
+      port: 51010,
       config: {
         toolId: "Tool Box",
         simulated: false,

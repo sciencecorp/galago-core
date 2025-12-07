@@ -157,6 +157,77 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
     }
   }, [selectedWorkcellData]);
 
+  // Auto-start tool servers in Electron when tools are loaded
+  useEffect(() => {
+    const startToolServers = async () => {
+      if (typeof window === "undefined" || !window.galagoDesktop?.isElectron) {
+        return;
+      }
+
+      // Only start tools if a workcell is selected
+      if (!selectedWorkcell) {
+        return;
+      }
+
+      console.log("[Tools] Starting tool servers for workcell tools...");
+      
+      // Always try to start the Tool Box first when a workcell exists
+      try {
+        const toolboxInstalled = await window.galagoDesktop.isToolInstalled("toolbox");
+        if (toolboxInstalled) {
+          const runningTools = await window.galagoDesktop.getRunningTools();
+          if (!runningTools["toolbox"]) {
+            console.log("[Tools] Starting Tool Box server...");
+            const result = await window.galagoDesktop.startTool("toolbox", 51010);
+            if (result.success) {
+              console.log(`[Tools] Tool Box started on port ${result.port}`);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("[Tools] Error starting Tool Box:", error);
+      }
+      
+      // Start other tools
+      if (!allTools || allTools.length === 0) {
+        return;
+      }
+      
+      for (const tool of allTools) {
+        const toolType = tool.type?.toLowerCase();
+        if (!toolType || toolType === "toolbox") continue;
+
+        try {
+          // Check if tool driver is installed
+          const isInstalled = await window.galagoDesktop.isToolInstalled(toolType);
+          if (!isInstalled) {
+            console.log(`[Tools] Tool driver not installed: ${toolType}`);
+            continue;
+          }
+
+          // Check if already running
+          const runningTools = await window.galagoDesktop.getRunningTools();
+          if (runningTools[toolType]) {
+            console.log(`[Tools] Tool already running: ${toolType} on port ${runningTools[toolType].port}`);
+            continue;
+          }
+
+          // Start the tool server
+          const result = await window.galagoDesktop.startTool(toolType, tool.port);
+          if (result.success) {
+            console.log(`[Tools] Started ${toolType} on port ${result.port}`);
+          } else {
+            console.warn(`[Tools] Failed to start ${toolType}: ${result.error}`);
+          }
+        } catch (error) {
+          console.error(`[Tools] Error starting ${toolType}:`, error);
+        }
+      }
+    };
+
+    startToolServers();
+  }, [allTools, selectedWorkcell]);
+
   return (
     <Box maxW="100%">
       <VStack spacing={4} align="stretch">
