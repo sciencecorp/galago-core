@@ -59,7 +59,7 @@
     "log-timestamp": "^0.3.0",
     "luxon": "^3.3.0",
     "moment-timezone": "^0.5.40",
-    "next": "15.0.3",
+    "next": "^14.2.18",
     "papaparse": "^5.4.1",
     "pluralize": "^8.0.0",
     "prettier": "^3.3.3",

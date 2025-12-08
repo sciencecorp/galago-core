@@ -2,6 +2,25 @@ import { logAction } from "@/server/logger";
 import * as vm from "vm";
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosInstance } from "axios";
 
+// Define allowed modules that can be required
+const ALLOWED_MODULES: Record<string, any> = {
+  // Add any safe modules you want to allow user scripts to require
+  // Example: 'lodash': require('lodash'),
+  // Example: 'date-fns': require('date-fns'),
+};
+
+/**
+ * Safe require function that only allows whitelisted modules
+ */
+function safeRequire(moduleName: string): any {
+  if (ALLOWED_MODULES[moduleName]) {
+    return ALLOWED_MODULES[moduleName];
+  }
+  throw new Error(
+    `Module '${moduleName}' is not available in this environment. Allowed modules: ${Object.keys(ALLOWED_MODULES).join(", ") || "none"}`,
+  );
+}
+
 /**
  * Static service class that provides methods for managing variables through API calls
  */
@@ -228,7 +247,7 @@ export class JavaScriptExecutor {
             });
           },
         },
-        require: require,
+        require: safeRequire, // ✅ Changed from require: require
         setTimeout,
         clearTimeout,
         setInterval,
