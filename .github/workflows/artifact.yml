@@ -1,0 +1,71 @@
+name: Build Next.js Artifact
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "controller/**"
+      - ".github/workflows/build-nextjs-artifact.yml"
+  workflow_dispatch:
+
+jobs:
+  build-nextjs:
+    runs-on: ubuntu-latest
+    if: github.repository == 'sciencecorp/galago-core'
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: controller/package-lock.json
+
+      - name: Install dependencies
+        working-directory: controller
+        run: npm ci
+
+      - name: Build Next.js app
+        working-directory: controller
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Create artifact bundle
+        working-directory: controller
+        run: |
+          # Create a clean artifact with only what's needed to run
+          mkdir -p ../nextjs-artifact
+          cp -r .next ../nextjs-artifact/
+          cp -r node_modules ../nextjs-artifact/
+          cp package.json ../nextjs-artifact/
+          cp package-lock.json ../nextjs-artifact/
+          # Copy any other necessary files (public, config files, etc.)
+          if [ -d "public" ]; then cp -r public ../nextjs-artifact/; fi
+          if [ -f "next.config.js" ]; then cp next.config.js ../nextjs-artifact/; fi
+          if [ -f "next.config.mjs" ]; then cp next.config.mjs ../nextjs-artifact/; fi
+
+      - name: Create zip archive
+        run: |
+          cd nextjs-artifact
+          zip -r ../nextjs-production-win-x64.zip .
+          cd ..
+          echo "Artifact size: $(du -h nextjs-production-win-x64.zip)"
+
+      - name: Upload to GitHub Packages
+        run: |
+          # Upload as a release asset or to GitHub Packages
+          # Using GitHub CLI for simplicity
+          gh release create "nextjs-build-${{ github.sha }}" \
+            nextjs-production-win-x64.zip \
+            --title "Next.js Production Build" \
+            --notes "Pre-built Next.js artifact from commit ${{ github.sha }}" \
+            --latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
