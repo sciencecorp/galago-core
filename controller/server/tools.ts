@@ -14,8 +14,50 @@ import { Labware } from "@/types/api";
 import { logAction } from "./logger";
 import { JavaScriptExecutor } from "@/server/scripting/javascript/javascript-executor";
 import { CSharpExecutor } from "@/server/scripting/csharp/csharp-executor";
+import * as cytation_proto from "gen-interfaces/tools/grpc_interfaces/cytation";
+import * as opentrons2_proto from "gen-interfaces/tools/grpc_interfaces/opentrons2";
+import * as pf400_proto from "gen-interfaces/tools/grpc_interfaces/pf400";
+import * as liconic_proto from "gen-interfaces/tools/grpc_interfaces/liconic";
+import * as dataman70_proto from "gen-interfaces/tools/grpc_interfaces/dataman70";
+import * as spectramax_proto from "gen-interfaces/tools/grpc_interfaces/spectramax";
+import * as bioshake_proto from "gen-interfaces/tools/grpc_interfaces/bioshake";
+import * as hig_centrifuge_proto from "gen-interfaces/tools/grpc_interfaces/hig_centrifuge";
+import * as bravo_proto from "gen-interfaces/tools/grpc_interfaces/bravo";
+import * as vcode_proto from "gen-interfaces/tools/grpc_interfaces/vcode";
+import * as plateloc_proto from "gen-interfaces/tools/grpc_interfaces/plateloc";
+import * as xpeel_proto from "gen-interfaces/tools/grpc_interfaces/xpeel";
+import * as alps3000_proto from "gen-interfaces/tools/grpc_interfaces/alps3000";
+import * as toolbox_proto from "gen-interfaces/tools/grpc_interfaces/toolbox";
+import * as hamilton_proto from "gen-interfaces/tools/grpc_interfaces/hamilton";
+import * as microserve_proto from "gen-interfaces/tools/grpc_interfaces/microserve";
+import * as vprep_proto from "gen-interfaces/tools/grpc_interfaces/vprep";
+import * as plr_proto from "gen-interfaces/tools/grpc_interfaces/plr";
+import * as pyhamilton_proto from "gen-interfaces/tools/grpc_interfaces/pyhamilton";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
+
+// Create the static registry mapping ToolType enum to proto modules
+const TOOL_CONFIG_REGISTRY: Partial<Record<ToolType, any>> = {
+  [ToolType.cytation]: cytation_proto,
+  [ToolType.opentrons2]: opentrons2_proto,
+  [ToolType.pf400]: pf400_proto,
+  [ToolType.liconic]: liconic_proto,
+  [ToolType.dataman70]: dataman70_proto,
+  [ToolType.spectramax]: spectramax_proto,
+  [ToolType.bioshake]: bioshake_proto,
+  [ToolType.hig_centrifuge]: hig_centrifuge_proto,
+  [ToolType.bravo]: bravo_proto,
+  [ToolType.vcode]: vcode_proto,
+  [ToolType.plateloc]: plateloc_proto,
+  [ToolType.xpeel]: xpeel_proto,
+  [ToolType.alps3000]: alps3000_proto,
+  [ToolType.toolbox]: toolbox_proto,
+  [ToolType.hamilton]: hamilton_proto,
+  [ToolType.microserve]: microserve_proto,
+  [ToolType.vprep]: vprep_proto,
+  [ToolType.plr]: plr_proto,
+  [ToolType.pyhamilton]: pyhamilton_proto,
+};
 
 export default class Tool {
   info: controller_protos.ToolConfig;
@@ -451,29 +493,46 @@ export default class Tool {
     this.allTools = tools;
   }
 
+  // Replace the getToolConfigDefinition method
   static async getToolConfigDefinition(toolType: ToolType) {
     if (toolType === ToolType.UNRECOGNIZED || toolType === ToolType.unknown) {
       console.warn(`Received unsupported or unknown ToolType: ${toolType}`);
-      return {}; // Return a default or empty config object
+      return {};
     }
-    const toolTypeName = ToolType[toolType];
-    if (!toolTypeName) {
-      throw new Error(`Unsupported ToolType: ${toolType}`);
+
+    const toolModule = TOOL_CONFIG_REGISTRY[toolType];
+
+    if (!toolModule || !toolModule.Config) {
+      const toolTypeName = ToolType[toolType];
+      throw new Error(`Config not found for ToolType: ${toolTypeName}`);
     }
-    const modulePath = `gen-interfaces/tools/grpc_interfaces/${toolType.toLowerCase()}`;
-    try {
-      // Dynamically import the module
-      const toolModule = await import(
-        /* webpackInclude: /\.ts$/ */ `gen-interfaces/tools/grpc_interfaces/${toolType}`
-      );
-      if (!toolModule || !toolModule.Config) {
-        throw new Error(`Config type not found in module: ${modulePath}`);
-      }
-      return toolModule.Config.create({});
-    } catch (error) {
-      throw new Error(`Failed to load config for ToolType: ${toolTypeName}. Error: ${error}`);
-    }
+
+    return toolModule.Config.create({});
   }
+
+  // static async getToolConfigDefinition(toolType: ToolType) {
+  //   if (toolType === ToolType.UNRECOGNIZED || toolType === ToolType.unknown) {
+  //     console.warn(`Received unsupported or unknown ToolType: ${toolType}`);
+  //     return {}; // Return a default or empty config object
+  //   }
+  //   const toolTypeName = ToolType[toolType];
+  //   if (!toolTypeName) {
+  //     throw new Error(`Unsupported ToolType: ${toolType}`);
+  //   }
+  //   const modulePath = `gen-interfaces/tools/grpc_interfaces/${toolType.toLowerCase()}`;
+  //   try {
+  //     // Dynamically import the module
+  //     const toolModule = await import(
+  //       /* webpackInclude: /\.ts$/ */ `gen-interfaces/tools/grpc_interfaces/${toolType}`
+  //     );
+  //     if (!toolModule || !toolModule.Config) {
+  //       throw new Error(`Config type not found in module: ${modulePath}`);
+  //     }
+  //     return toolModule.Config.create({});
+  //   } catch (error) {
+  //     throw new Error(`Failed to load config for ToolType: ${toolTypeName}. Error: ${error}`);
+  //   }
+  // }
 
   static async reloadSingleToolConfig(tool: controller_protos.ToolConfig) {
     const normalizedName = Tool.normalizeToolId(tool.name);
