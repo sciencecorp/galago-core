@@ -2,15 +2,24 @@ name: Build Next.js Artifact
 
 on:
   push:
-    branches: [main]
+    branches: [main, production-asset-artifact] # Add dev branch
     paths:
       - "controller/**"
       - ".github/workflows/build-nextjs-artifact.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "controller/**"
   workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to build from"
+        required: false
+        default: "main"
 
 jobs:
   build-nextjs:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest # Use Windows for Windows-specific node_modules
     if: github.repository == 'sciencecorp/galago-core'
     permissions:
       contents: write
@@ -19,53 +28,118 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "22"
+          node-version: "22.11"
           cache: "npm"
           cache-dependency-path: controller/package-lock.json
 
       - name: Install dependencies
         working-directory: controller
         run: npm ci
+        shell: bash
 
       - name: Build Next.js app
         working-directory: controller
         run: npm run build
         env:
           NODE_ENV: production
+        shell: bash
+
+      - name: Prune dev dependencies
+        working-directory: controller
+        run: npm prune --production
+        shell: bash
 
       - name: Create artifact bundle
         working-directory: controller
         run: |
-          # Create a clean artifact with only what's needed to run
+          # Create artifact directory
           mkdir -p ../nextjs-artifact
+
+          # Copy built Next.js app
           cp -r .next ../nextjs-artifact/
+
+          # Copy production node_modules
           cp -r node_modules ../nextjs-artifact/
+
+          # Copy necessary config and package files
           cp package.json ../nextjs-artifact/
           cp package-lock.json ../nextjs-artifact/
-          # Copy any other necessary files (public, config files, etc.)
+
+          # Copy public assets if they exist
           if [ -d "public" ]; then cp -r public ../nextjs-artifact/; fi
+
+          # Copy gen-interfaces if it exists
+          if [ -d "gen-interfaces" ]; then cp -r gen-interfaces ../nextjs-artifact/; fi
+
+          # Copy Next.js config files
           if [ -f "next.config.js" ]; then cp next.config.js ../nextjs-artifact/; fi
           if [ -f "next.config.mjs" ]; then cp next.config.mjs ../nextjs-artifact/; fi
+          if [ -f "next.config.ts" ]; then cp next.config.ts ../nextjs-artifact/; fi
+
+          # Copy standalone server if using output: 'standalone'
+          if [ -d ".next/standalone" ]; then
+            cp -r .next/standalone/* ../nextjs-artifact/
+          fi
+        shell: bash
 
       - name: Create zip archive
         run: |
           cd nextjs-artifact
-          zip -r ../nextjs-production-win-x64.zip .
+          7z a -tzip ../nextjs-production-win-x64.zip . -mx=9
           cd ..
-          echo "Artifact size: $(du -h nextjs-production-win-x64.zip)"
+          ls -lh nextjs-production-win-x64.zip
+        shell: bash
 
-      - name: Upload to GitHub Packages
+      - name: Calculate checksum
         run: |
-          # Upload as a release asset or to GitHub Packages
-          # Using GitHub CLI for simplicity
-          gh release create "nextjs-build-${{ github.sha }}" \
-            nextjs-production-win-x64.zip \
-            --title "Next.js Production Build" \
-            --notes "Pre-built Next.js artifact from commit ${{ github.sha }}" \
-            --latest
+          certutil -hashfile nextjs-production-win-x64.zip SHA256 > nextjs-production-win-x64.zip.sha256
+          cat nextjs-production-win-x64.zip.sha256
+        shell: bash
+
+      - name: Determine release tag
+        id: release_tag
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          if [ "$BRANCH_NAME" = "main" ]; then
+            TAG="nextjs-latest"
+          else
+            TAG="nextjs-${BRANCH_NAME}-latest"
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Upload artifact (for testing)
+        uses: actions/upload-artifact@v3
+        with:
+          name: nextjs-production-${{ steps.release_tag.outputs.branch }}
+          path: |
+            nextjs-production-win-x64.zip
+            nextjs-production-win-x64.zip.sha256
+          retention-days: 30
+
+      - name: Delete existing release (if exists)
+        continue-on-error: true
+        run: |
+          gh release delete ${{ steps.release_tag.outputs.tag }} --yes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+
+      - name: Create or update release
+        run: |
+          gh release create ${{ steps.release_tag.outputs.tag }} \
+            nextjs-production-win-x64.zip \
+            nextjs-production-win-x64.zip.sha256 \
+            --title "Next.js Production Build (${{ steps.release_tag.outputs.branch }})" \
+            --notes "Pre-built Next.js artifact from branch ${{ steps.release_tag.outputs.branch }} (commit: ${{ github.sha }})" \
+            ${{ steps.release_tag.outputs.branch == 'main' && '--latest' || '--prerelease' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
