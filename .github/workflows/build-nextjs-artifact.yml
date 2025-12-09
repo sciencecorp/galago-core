@@ -2,7 +2,7 @@ name: Build Next.js Artifact
 
 on:
   push:
-    branches: [main, production-asset-artifact] # Add dev branch
+    branches: [main, production-asset-artifact]
     paths:
       - "controller/**"
       - ".github/workflows/build-nextjs-artifact.yml"
@@ -19,7 +19,7 @@ on:
 
 jobs:
   build-nextjs:
-    runs-on: windows-latest # Use Windows for Windows-specific node_modules
+    runs-on: windows-latest
     if: github.repository == 'sciencecorp/galago-core'
     permissions:
       contents: write
@@ -50,42 +50,83 @@ jobs:
           NODE_ENV: production
         shell: bash
 
-      - name: Prune dev dependencies
-        working-directory: controller
-        run: npm prune --production
-        shell: bash
-
       - name: Create artifact bundle
         working-directory: controller
         run: |
           # Create artifact directory
           mkdir -p ../nextjs-artifact
 
-          # Copy built Next.js app
-          cp -r .next ../nextjs-artifact/
-
-          # Copy production node_modules
-          cp -r node_modules ../nextjs-artifact/
-
-          # Copy necessary config and package files
-          cp package.json ../nextjs-artifact/
-          cp package-lock.json ../nextjs-artifact/
-
-          # Copy public assets if they exist
-          if [ -d "public" ]; then cp -r public ../nextjs-artifact/; fi
-
-          # Copy gen-interfaces if it exists
-          if [ -d "gen-interfaces" ]; then cp -r gen-interfaces ../nextjs-artifact/; fi
-
-          # Copy Next.js config files
-          if [ -f "next.config.js" ]; then cp next.config.js ../nextjs-artifact/; fi
-          if [ -f "next.config.mjs" ]; then cp next.config.mjs ../nextjs-artifact/; fi
-          if [ -f "next.config.ts" ]; then cp next.config.ts ../nextjs-artifact/; fi
-
-          # Copy standalone server if using output: 'standalone'
-          if [ -d ".next/standalone" ]; then
-            cp -r .next/standalone/* ../nextjs-artifact/
+          # Verify standalone build exists
+          if [ ! -d ".next/standalone" ]; then
+            echo "ERROR: Standalone build not found!"
+            echo "Make sure next.config.js has: output: 'standalone'"
+            exit 1
           fi
+
+          echo "=== Creating artifact from standalone build ==="
+
+          # Copy everything from standalone (includes minimal node_modules, server.js, etc.)
+          cp -r .next/standalone/* ../nextjs-artifact/
+
+          # Standalone doesn't include static files - add them
+          echo "Adding static files..."
+          mkdir -p ../nextjs-artifact/.next
+          cp -r .next/static ../nextjs-artifact/.next/static
+
+          # Copy public assets
+          if [ -d "public" ]; then 
+            echo "Adding public assets..."
+            cp -r public ../nextjs-artifact/public
+          fi
+
+          # Copy gen-interfaces
+          if [ -d "gen-interfaces" ]; then 
+            echo "Adding gen-interfaces..."
+            cp -r gen-interfaces ../nextjs-artifact/gen-interfaces
+          fi
+
+          # === VERIFICATION ===
+          echo ""
+          echo "=== Artifact Structure ==="
+          ls -la ../nextjs-artifact/
+          
+          echo ""
+          echo "=== Size Breakdown ==="
+          du -sh ../nextjs-artifact/* 2>/dev/null || true
+          
+          echo ""
+          echo "=== .next folder contents ==="
+          if [ -d "../nextjs-artifact/.next" ]; then
+            ls -la ../nextjs-artifact/.next/
+            du -sh ../nextjs-artifact/.next/* 2>/dev/null || true
+          else
+            echo "ERROR: .next folder not found!"
+            exit 1
+          fi
+          
+          echo ""
+          echo "=== node_modules size ==="
+          if [ -d "../nextjs-artifact/node_modules" ]; then
+            du -sh ../nextjs-artifact/node_modules
+          else
+            echo "WARNING: node_modules not found!"
+          fi
+          
+          echo ""
+          echo "=== Total artifact size ==="
+          du -sh ../nextjs-artifact
+          
+          echo ""
+          echo "=== Verifying required files ==="
+          if [ ! -f "../nextjs-artifact/server.js" ]; then
+            echo "ERROR: server.js not found!"
+            exit 1
+          fi
+          if [ ! -d "../nextjs-artifact/.next/static" ]; then
+            echo "ERROR: .next/static not found!"
+            exit 1
+          fi
+          echo "✓ All required files present"
         shell: bash
 
       - name: Create zip archive
@@ -93,6 +134,8 @@ jobs:
           cd nextjs-artifact
           7z a -tzip ../nextjs-production-win-x64.zip . -mx=9
           cd ..
+          echo ""
+          echo "=== Final artifact size ==="
           ls -lh nextjs-production-win-x64.zip
         shell: bash
 
