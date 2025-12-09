@@ -1,32 +1,26 @@
 import React from "react";
 import { Box, Tooltip, Icon as ChakraIcon, IconProps as ChakraIconProps } from "@chakra-ui/react";
 import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
-import { SiPython } from "react-icons/si";
-import { VscCode } from "react-icons/vsc";
 import {
-  FaPlay,
-  FaFolder,
-  FaFolderOpen,
-  FaGripHorizontal,
-  FaArrowDown,
-  FaArrowUp,
-  FaHandPaper,
-  FaRobot,
-  FaCompressArrowsAlt,
-} from "react-icons/fa";
-import { IoIosSave } from "react-icons/io";
-import { FaFileCirclePlus } from "react-icons/fa6";
-import { TbFolderPlus } from "react-icons/tb";
-import {
-  RiEdit2Line,
-  RiDeleteBinLine,
-  RiFolderAddLine,
-  RiArrowTurnBackLine,
-  RiArrowTurnForwardLine,
-} from "react-icons/ri";
-import { MdArrowOutward, MdOutlineSwapHoriz } from "react-icons/md";
-import { IoLockClosedOutline, IoLockOpenOutline } from "react-icons/io5";
-import { HiArrowsPointingIn } from "react-icons/hi2";
+  Terminal,
+  Code2,
+  Play,
+  Save,
+  Folder,
+  FolderOpen,
+  FolderPlus,
+  Edit2,
+  Trash2,
+  GripHorizontal,
+  Hand,
+  CornerUpLeft,
+  CornerUpRight,
+  Lock,
+  LockOpen,
+  Minimize2,
+  ArrowUpRight,
+  FilePlus,
+} from "lucide-react";
 
 // Types
 interface IconBaseProps extends ChakraIconProps {
@@ -47,61 +41,61 @@ export const Icon = ({ as, ...props }: IconBaseProps & { as: React.ElementType }
 
 // Categorized Icon Groups
 export const ScriptIcons = {
-  Python: SiPython,
-  Code: VscCode,
-  Play: FaPlay,
-  Save: IoIosSave,
+  Python: Terminal,
+  Code: Code2,
+  Play: Play,
+  Save: Save,
   Close: CloseIcon,
-  FileAdd: FaFileCirclePlus,
+  FileAdd: FilePlus,
 } as const;
 
 export const FolderIcons = {
-  Folder: FaFolder,
-  FolderOpen: FaFolderOpen,
-  FolderAdd: TbFolderPlus,
-  FolderAddLine: RiFolderAddLine,
+  Folder: Folder,
+  FolderOpen: FolderOpen,
+  FolderAdd: FolderPlus,
+  FolderAddLine: FolderPlus,
 } as const;
 
 export const ActionIcons = {
-  Edit: RiEdit2Line,
-  Delete: RiDeleteBinLine,
+  Edit: Edit2,
+  Delete: Trash2,
   Menu: HamburgerIcon,
 } as const;
 
 // Robot Command Icons
 export const CommandIcons = {
-  Move: MdArrowOutward,
-  GraspPlate: FaGripHorizontal,
-  ReleasePlate: FaHandPaper,
-  RetrievePlate: RiArrowTurnBackLine,
-  DropoffPlate: RiArrowTurnForwardLine,
-  Engage: IoLockClosedOutline,
-  Release: IoLockOpenOutline,
-  Unwind: HiArrowsPointingIn,
+  Move: ArrowUpRight,
+  GraspPlate: GripHorizontal,
+  ReleasePlate: Hand,
+  RetrievePlate: CornerUpLeft,
+  DropoffPlate: CornerUpRight,
+  Engage: Lock,
+  Release: LockOpen,
+  Unwind: Minimize2,
 } as const;
 
 // Individual Icon Exports with Consistent Naming
 export {
-  SiPython as PythonIcon,
-  VscCode as CodeIcon,
-  FaPlay as PlayIcon,
-  IoIosSave as SaveIcon,
+  Terminal as PythonIcon,
+  Code2 as CodeIcon,
+  Play as PlayIcon,
+  Save as SaveIcon,
   CloseIcon,
-  FaFolder as FolderIcon,
-  FaFolderOpen as FolderOpenIcon,
-  TbFolderPlus as FolderAddIcon,
-  RiEdit2Line as EditIcon,
-  RiDeleteBinLine as DeleteIcon,
-  RiFolderAddLine as FolderAddLineIcon,
+  Folder as FolderIcon,
+  FolderOpen as FolderOpenIcon,
+  FolderPlus as FolderAddIcon,
+  Edit2 as EditIcon,
+  Trash2 as DeleteIcon,
+  FolderPlus as FolderAddLineIcon,
   HamburgerIcon as MenuIcon,
-  FaFileCirclePlus as FileAddIcon,
+  FilePlus as FileAddIcon,
   // Robot Command Icons
-  MdArrowOutward as MoveIcon,
-  FaGripHorizontal as GraspPlateIcon,
-  FaHandPaper as ReleasePlateIcon,
-  RiArrowTurnBackLine as RetrievePlateIcon,
-  RiArrowTurnForwardLine as DropoffPlateIcon,
-  HiArrowsPointingIn as UnwindIcon,
+  ArrowUpRight as MoveIcon,
+  GripHorizontal as GraspPlateIcon,
+  Hand as ReleasePlateIcon,
+  CornerUpLeft as RetrievePlateIcon,
+  CornerUpRight as DropoffPlateIcon,
+  Minimize2 as UnwindIcon,
 };
 
 // Custom Icon Components

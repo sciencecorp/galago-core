@@ -34,32 +34,34 @@ import {
   Icon,
   Portal,
 } from "@chakra-ui/react";
-import { RiAddFill, RiDeleteBin6Line, RiSaveLine } from "react-icons/ri";
 import { ChevronDownIcon } from "@chakra-ui/icons";
 import {
-  MdTextFields,
-  MdNumbers,
-  MdSubject,
-  MdArrowDropDownCircle,
-  MdRadioButtonChecked,
-  MdCheckBox,
-  MdCalendarToday,
-  MdAccessTime,
-  MdUploadFile,
-  MdLabel,
-} from "react-icons/md";
-import { FaRegListAlt } from "react-icons/fa";
+  Settings,
+  Type,
+  Hash,
+  AlignLeft,
+  ChevronDown,
+  Circle,
+  CheckSquare,
+  Calendar,
+  Clock,
+  Upload,
+  Tag,
+  Plus,
+  Trash2,
+  Save,
+  Download,
+  List,
+} from "lucide-react";
 import { CloseIcon } from "@chakra-ui/icons";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { trpc } from "@/utils/trpc";
 import { successToast, errorToast } from "../ui/Toast";
-import { IoSettingsSharp } from "react-icons/io5";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { FormField, Form, FIELD_TYPES, DEFAULT_EDITING_FIELD } from "@/types";
 import { ColorPicker } from "./colorPicker";
 import { FormFieldComponent } from "./formFieldComponent";
 import { FieldTypeSelector } from "./fieldTypeSelector";
-import { MdDownload } from "react-icons/md";
 import { downloadFile } from "@/server/utils/api";
 import { useCommonColors, useTextColors } from "../ui/Theme";
 
@@ -365,7 +367,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
         <Spacer />
         <ButtonGroup spacing={2}>
           <Button
-            leftIcon={<RiSaveLine />}
+            leftIcon={<Save size={16} />}
             colorScheme="teal"
             onClick={saveForm}
             isLoading={isSaving}
@@ -407,18 +409,17 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
               <Tooltip label="Download Form" openDelay={1000} hasArrow>
                 <IconButton
                   aria-label="Download Form"
-                  icon={<MdDownload />}
+                  icon={<Download size={16} />}
                   variant="outline"
                   onClick={onExportForm}
                   size="sm"
                   borderColor={FORM_DEFAULTS.placeholderColor}
                   color={fontColor || FORM_DEFAULTS.fontColor}
-                  _hover={{ bg: FORM_DEFAULTS.buttonColors.ghost.hoverBg }}
                 />
               </Tooltip>
               <IconButton
                 aria-label="Form settings"
-                icon={<IoSettingsSharp />}
+                icon={<Settings size={16} />} // Changed from IoSettingsSharp
                 size="sm"
                 variant="ghost"
                 onClick={onSettingsOpen}
@@ -460,7 +461,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                           {/* Empty state when no fields */}
                           {fields.length === 0 && (
                             <VStack spacing={3} py={8} opacity={0.7}>
-                              <Icon as={RiAddFill} boxSize={12} color="gray.400" />
+                              <Plus size={48} color="gray.400" />
                               <Text
                                 fontSize="lg"
                                 fontWeight="medium"
@@ -477,7 +478,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                           <Menu placement="left-end">
                             <MenuButton
                               as={Button}
-                              leftIcon={<RiAddFill />}
+                              leftIcon={<Plus size={16} />}
                               variant="outline"
                               size="lg"
                               py={8}
@@ -499,52 +500,52 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                                 bg={menuBg}
                                 borderColor={menuBorderColor}>
                                 <MenuItem
-                                  icon={<MdTextFields size={20} />}
+                                  icon={<Type size={20} />}
                                   onClick={() => addField("text")}>
                                   Text Input
                                 </MenuItem>
                                 <MenuItem
-                                  icon={<MdNumbers size={20} />}
+                                  icon={<Hash size={20} />}
                                   onClick={() => addField("number")}>
                                   Number
                                 </MenuItem>
                                 <MenuItem
-                                  icon={<MdSubject size={20} />}
+                                  icon={<AlignLeft size={20} />}
                                   onClick={() => addField("textarea")}>
                                   Textarea
                                 </MenuItem>
                                 <MenuItem
-                                  icon={<MdArrowDropDownCircle size={20} />}
+                                  icon={<ChevronDown size={20} />}
                                   onClick={() => addField("select")}>
                                   Dropdown
                                 </MenuItem>
                                 <MenuItem
-                                  icon={<MdRadioButtonChecked size={20} />}
+                                  icon={<Circle size={20} />}
                                   onClick={() => addField("radio")}>
                                   Radio Buttons
                                 </MenuItem>
                                 <MenuItem
-                                  icon={<MdCheckBox size={20} />}
+                                  icon={<CheckSquare size={20} />}
                                   onClick={() => addField("checkbox")}>
                                   Checkbox
                                 </MenuItem>
                                 <MenuItem
-                                  icon={<MdCalendarToday size={20} />}
+                                  icon={<Calendar size={20} />}
                                   onClick={() => addField("date")}>
                                   Date
                                 </MenuItem>
                                 <MenuItem
-                                  icon={<MdAccessTime size={20} />}
+                                  icon={<Clock size={20} />}
                                   onClick={() => addField("time")}>
                                   Time
                                 </MenuItem>
                                 <MenuItem
-                                  icon={<MdUploadFile size={20} />}
+                                  icon={<Upload size={20} />}
                                   onClick={() => addField("file")}>
                                   File Upload
                                 </MenuItem>
                                 <MenuItem
-                                  icon={<MdLabel size={20} />}
+                                  icon={<Tag size={20} />}
                                   onClick={() => addField("label")}>
                                   Static Text
                                 </MenuItem>
@@ -716,7 +717,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
                               <IconButton
                                 aria-label="Remove option"
-                                icon={<RiDeleteBin6Line />}
+                                icon={<Trash2 size={16} />}
                                 size="sm"
                                 colorScheme="red"
                                 variant="ghost"
@@ -727,7 +728,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                           <Button
                             size="sm"
                             onClick={addOption}
-                            leftIcon={<RiAddFill />}
+                            leftIcon={<Plus size={16} />}
                             colorScheme="blue">
                             Add Option
                           </Button>
@@ -791,7 +792,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
             justifyContent="center">
             <VStack spacing={4}>
               <Box p={4} borderRadius="full" bg={colors.alternateBg}>
-                <FaRegListAlt size={48} color={textColors.secondary} />
+                <List size={48} color={textColors.secondary} />
               </Box>
               <VStack spacing={2}>
                 <Text fontSize="2xl" fontWeight="bold" color={textColors.primary}>
