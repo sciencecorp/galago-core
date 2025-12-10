@@ -38,12 +38,12 @@ import {
   JavaScriptIcon,
   CSharpIcon,
   DownloadIcon,
+  UploadIcon,
 } from "../ui/Icons";
 import * as monaco from "monaco-editor";
 import { editor } from "monaco-editor";
 import { useScriptIO } from "@/hooks/useScriptIO";
 import { errorToast } from "../ui/Toast";
-import { FaFileImport, FaFileExport } from "react-icons/fa";
 
 import { fileTypeToExtensionMap } from "./utils";
 import { Console } from "./Console";
@@ -624,7 +624,7 @@ Original Error: ${error.message}`;
   // Define Import and Export buttons
   const importButton = (
     <Button
-      leftIcon={<FaFileImport />}
+      leftIcon={<UploadIcon size={14} />}
       colorScheme="blue"
       variant="outline"
       onClick={handleImportClick}
@@ -637,7 +637,7 @@ Original Error: ${error.message}`;
 
   const exportButton = (
     <Button
-      leftIcon={<FaFileExport />}
+      leftIcon={<DownloadIcon size={14} />}
       colorScheme="green"
       variant="outline"
       onClick={onExportConfig}

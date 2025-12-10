@@ -3,7 +3,6 @@ import {
   VStack,
   HStack,
   Button,
-  Input,
   Modal,
   ModalOverlay,
   ModalContent,

@@ -6,34 +6,23 @@ import {
   CardHeader,
   Heading,
   Text,
-  HStack,
   Spinner,
   VStack,
   Flex,
   Image,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
   IconButton,
-  Icon,
   useDisclosure,
-  Modal,
   useColorModeValue,
   Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
   Tag,
 } from "@chakra-ui/react";
 import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import Link from "next/link";
 import { ToolConfigEditor } from "./ToolConfigEditor";
 import { ToolStatusTag } from "./ToolStatusTag";
-import { HamburgerIcon } from "@chakra-ui/icons";
 import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
-import { PiToolbox } from "react-icons/pi";
+import { ToolCase } from "lucide-react";
 import { EditMenu } from "@/components/ui/EditMenu";
 import { EditToolModal } from "./EditToolConfig";
 import { useRouter } from "next/router";
@@ -113,7 +102,7 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
         <Box display="flex" justifyContent="center" alignItems="center">
           <IconButton
             aria-label="Tool Box"
-            icon={<PiToolbox style={{ width: "100%", height: "100%" }} />} // Ensure the icon fills the button
+            icon={<ToolCase style={{ width: "100%", height: "100%" }} />} // Ensure the icon fills the button
             variant="ghost"
             colorScheme="teal"
             isRound

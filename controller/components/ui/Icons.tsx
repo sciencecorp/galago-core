@@ -27,6 +27,7 @@ import {
   ArrowUpRight,
   FilePlus,
   Download,
+  Upload,
 } from "lucide-react";
 
 // Types
@@ -103,6 +104,7 @@ export {
   CornerUpRight as DropoffPlateIcon,
   Minimize2 as UnwindIcon,
   Download as DownloadIcon,
+  Upload as UploadIcon,
 };
 
 // Custom Icon Components

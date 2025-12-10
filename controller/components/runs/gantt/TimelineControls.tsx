@@ -15,7 +15,7 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { ArrowLeftIcon, ArrowRightIcon, ChevronDownIcon } from "@chakra-ui/icons";
-import { BiTime } from "react-icons/bi";
+import { Clock } from "lucide-react";
 import moment from "moment";
 // import { TimeScale } from '@/types';
 
@@ -146,7 +146,7 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
             <MenuButton
               as={Button}
               rightIcon={<ChevronDownIcon />}
-              leftIcon={<BiTime />}
+              leftIcon={<Clock size={14} />}
               size="sm"
               variant="outline"
               colorScheme="blue"

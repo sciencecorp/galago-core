@@ -23,9 +23,8 @@ import {
 } from "@chakra-ui/react";
 import { NewToolModal } from "./NewToolModal";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { SearchIcon } from "@chakra-ui/icons";
-import { FaPlugCircleCheck } from "react-icons/fa6";
-import { BsTools } from "react-icons/bs";
+import { Search } from "lucide-react";
+import { Power, Wrench } from "lucide-react";
 import { successToast, errorToast, infoToast } from "../ui/Toast";
 import { Tool } from "@/types/api";
 
@@ -164,7 +163,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
           <CardBody>
             <VStack spacing={4} align="stretch">
               <PageHeader
-                titleIcon={<Icon as={BsTools} boxSize={8} color="teal.500" />}
+                titleIcon={<Icon as={Wrench} boxSize={8} color="teal.500" />}
                 title="Tools"
                 subTitle="Manage and monitor your connected tools"
                 mainButton={
@@ -173,7 +172,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
                     disabled={toolIds.length === 0}
                     onClick={connectAllTools}
                     variant="outline"
-                    leftIcon={<Icon as={FaPlugCircleCheck} />}>
+                    leftIcon={<Icon as={Power} size={14} />}>
                     Connect All
                   </Button>
                 }
@@ -194,7 +193,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
               <HStack spacing={4} width="100%">
                 <InputGroup maxW="400px">
                   <InputLeftElement pointerEvents="none">
-                    <SearchIcon color="gray.300" />
+                    <Search size={14} />
                   </InputLeftElement>
                   <Input
                     placeholder="Search tools..."
