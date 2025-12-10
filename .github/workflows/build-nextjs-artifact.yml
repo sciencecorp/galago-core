@@ -188,7 +188,16 @@ jobs:
       - name: Create zip archive
         run: |
           cd nextjs-artifact
-          7z a -tzip ../nextjs-production-win-x64.zip . -mx=9
+
+          # List what we're about to zip (including hidden folders)
+          echo "=== Contents to be zipped ==="
+          ls -la
+          echo ""
+
+          # Use 7zip with explicit inclusion of hidden files
+          # -r = recursive, -tzip = zip format, -mx=9 = max compression
+          7z a -tzip -r ../nextjs-production-win-x64.zip * .next
+
           cd ..
 
           # Move to a clean directory for upload
@@ -198,6 +207,11 @@ jobs:
           echo ""
           echo "=== Final artifact size ==="
           ls -lh artifacts-for-upload/nextjs-production-win-x64.zip
+
+          # Verify .next is in the zip
+          echo ""
+          echo "=== Verifying zip contents ==="
+          7z l artifacts-for-upload/nextjs-production-win-x64.zip | grep -E "(\.next|server\.js|node_modules)" | head -20
         shell: bash
 
       - name: Calculate checksum
@@ -240,7 +254,13 @@ jobs:
       - name: Delete existing release (if exists)
         continue-on-error: true
         run: |
-          gh release delete ${{ steps.release_tag.outputs.tag }} --yes
+          # Check if release exists before trying to delete
+          if gh release view ${{ steps.release_tag.outputs.tag }} >/dev/null 2>&1; then
+            echo "Deleting existing release: ${{ steps.release_tag.outputs.tag }}"
+            gh release delete ${{ steps.release_tag.outputs.tag }} --yes
+          else
+            echo "No existing release found, skipping delete"
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
