@@ -1,5 +1,3 @@
-const withTM = require("next-transpile-modules")(["@emotion/react"]);
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
@@ -7,6 +5,7 @@ const nextConfig = {
   compiler: {
     emotion: true,
   },
+  transpilePackages: ["@emotion/react"],
 };
 
-module.exports = withTM(nextConfig);
+module.exports = nextConfig;

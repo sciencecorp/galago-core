@@ -44,7 +44,6 @@
     "moment-timezone": "^0.5.40",
     "monaco-editor": "^0.55.1",
     "next": "13.1.2",
-    "next-transpile-modules": "^10.0.1",
     "prettier": "^3.3.3",
     "protobufjs": "^7.5.4",
     "react": "^18.2.0",
