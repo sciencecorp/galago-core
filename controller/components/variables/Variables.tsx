@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   VStack,
   Box,
-  Button,
   HStack,
   Input,
   Table,
@@ -32,16 +31,10 @@ import { VariableModal } from "./VariableModal";
 import { DeleteWithConfirmation } from "@/components/ui/Delete";
 import { renderDatetime } from "@/components/ui/Time";
 import { EditableText } from "../ui/Form";
-import { VscSymbolString } from "react-icons/vsc";
-import { MdOutlineNumbers } from "react-icons/md";
-import { VscSymbolBoolean } from "react-icons/vsc";
-import { TbVariable } from "react-icons/tb";
+import { Type, Hash, ToggleLeft, Variable as TbVariable, Braces, Brackets } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { successToast, errorToast } from "../ui/Toast";
-import { VscJson } from "react-icons/vsc";
-import { MdOutlineDataArray } from "react-icons/md";
 
-// Function to truncate text to a maximum length
 const truncateText = (text: string, maxLength: number = 50) => {
   if (!text || text.length <= maxLength) return text;
   return text.substring(0, maxLength) + "...";
@@ -79,7 +72,6 @@ export const Variables: React.FC = () => {
     }
   };
 
-  // Calculate stats
   const totalVariables = variables.length;
   const typeStats = useMemo(() => {
     const stats = variables.reduce(
@@ -103,15 +95,15 @@ export const Variables: React.FC = () => {
   const renderTypeIcon = (type: string) => {
     switch (type) {
       case "string":
-        return <VscSymbolString />;
+        return <Type size={16} />;
       case "number":
-        return <MdOutlineNumbers />;
+        return <Hash size={16} />;
       case "boolean":
-        return <VscSymbolBoolean />;
+        return <ToggleLeft size={16} />;
       case "array":
-        return <MdOutlineDataArray />;
+        return <Brackets size={16} />;
       case "json":
-        return <VscJson />;
+        return <Braces size={16} />;
       default:
         return null;
     }
@@ -139,9 +131,7 @@ export const Variables: React.FC = () => {
                 titleIcon={<Icon as={TbVariable} boxSize={8} color="teal.500" />}
                 mainButton={<VariableModal />}
               />
-
               <Divider />
-
               <StatGroup>
                 <Stat>
                   <StatLabel>Total Variables</StatLabel>

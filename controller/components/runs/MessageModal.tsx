@@ -15,7 +15,11 @@ import {
   Badge,
   Box,
 } from "@chakra-ui/react";
-import { MdPause, MdInfo, MdAccessTime } from "react-icons/md";
+import {
+  Pause, // replaces MdPause
+  Info, // replaces MdInfo
+  Clock, // replaces MdAccessTime
+} from "lucide-react";
 
 // Interface that matches the UIMessage from CommandQueue
 interface MessageProps {
@@ -123,7 +127,7 @@ export const MessageModal: React.FC<MessageProps> = ({ isOpen, messageData, onCo
         </ModalHeader>
         {messageData.type === "pause" && messageData.pausedAt && (
           <HStack px={4} py={2} justify="center" spacing={2}>
-            <Icon as={MdAccessTime} color={pauseIconColor} />
+            <Icon as={Clock} boxSize={12} color={pauseIconColor} />
             <Text fontSize="sm" fontWeight="medium">
               Paused for:{" "}
               <Badge colorScheme="orange" fontSize="sm">
@@ -136,9 +140,9 @@ export const MessageModal: React.FC<MessageProps> = ({ isOpen, messageData, onCo
           <VStack spacing={4} py={2}>
             {/* Only show icon for pause type */}
             {messageData.type === "pause" ? (
-              <Icon as={MdPause} boxSize={12} color={pauseIconColor} />
+              <Icon as={Pause} boxSize={12} color={pauseIconColor} />
             ) : (
-              <Icon as={MdInfo} boxSize={12} color={messageIconColor} />
+              <Icon as={Info} boxSize={12} color={messageIconColor} />
             )}
             <Box textAlign="center">
               <FormatText text={messageData.message} />

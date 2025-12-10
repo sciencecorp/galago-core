@@ -1,7 +1,5 @@
 import { useDisclosure, IconButton, Text, Button, HStack } from "@chakra-ui/react";
-import React from "react";
-import { RiDeleteBin5Line } from "react-icons/ri";
-
+import { Trash2 } from "lucide-react";
 import { ConfirmationModal } from "./ConfirmationModal";
 
 export interface DeleteButtonProps {
@@ -30,7 +28,7 @@ export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
               borderRadius="0"
               aria-label={`Delete ${label}`}
               disabled={!!disabled}
-              icon={<RiDeleteBin5Line />}
+              icon={<Trash2 size={14} />}
               size={size}
               bg="transparent"
               onClick={onOpen}
@@ -48,7 +46,7 @@ export const DeleteWithConfirmation = (props: DeleteButtonProps) => {
       )}
       {variant === "button" && (
         <Button
-          leftIcon={<RiDeleteBin5Line />}
+          leftIcon={<Trash2 size={14} />}
           isDisabled={disabled}
           onClick={onOpen}
           colorScheme="red"

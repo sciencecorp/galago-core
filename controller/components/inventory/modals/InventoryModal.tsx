@@ -33,9 +33,10 @@ import {
   NumberDecrementStepper,
   RadioGroup,
   Radio,
+  Grid,
 } from "@chakra-ui/react";
 import { Nest, Plate, Tool, PlateStatus } from "@/types/api";
-import { BsBoxSeam, BsGrid3X3, BsLightningCharge } from "react-icons/bs";
+import { Package, Grid3x3 } from "lucide-react";
 import NestModal from "./NestModal";
 import { FileAddIcon } from "@/components/ui/Icons";
 import { errorToast } from "@/components/ui/Toast";
@@ -822,7 +823,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
                     <FormControl isRequired>
                       <FormLabel color={labelColor}>Select from Inventory</FormLabel>
                       <Button
-                        leftIcon={<Icon as={BsGrid3X3} />}
+                        leftIcon={<Icon as={Grid3x3} />}
                         colorScheme="teal"
                         variant="outline"
                         size="md"
@@ -878,7 +879,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
         <ModalContent>
           <ModalHeader borderBottomWidth="1px" py={4}>
             <HStack spacing={3}>
-              <Icon as={BsBoxSeam} boxSize={5} color="teal.500" />
+              <Icon as={Package} boxSize={5} color="teal.500" />
               <Text>{mode === "check-in" ? "Check In Plate(s)" : "Check Out Plate"}</Text>
             </HStack>
           </ModalHeader>

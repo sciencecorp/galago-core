@@ -12,7 +12,7 @@ import {
   HStack,
   Input,
 } from "@chakra-ui/react";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CalendarProps {
   onDateSelect?: (date: Date) => void;
@@ -125,15 +125,11 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
   return (
     <VStack spacing={2} p={2}>
       <HStack justifyContent="space-between" width="100%">
-        <Button size="sm" color={bgColor} onClick={handlePrevMonth} variant="ghost">
-          <FiChevronLeft color="gray" />
-        </Button>
+        <Button size="sm" color={bgColor} onClick={handlePrevMonth} variant="ghost"></Button>
         <Heading size="sm" suppressHydrationWarning={true}>
           {currentDate.toLocaleString("default", { month: "long" })} {currentDate.getFullYear()}
         </Heading>
-        <Button size="sm" onClick={handleNextMonth} color={bgColor} variant="ghost">
-          <FiChevronRight color="gray" />
-        </Button>
+        <Button size="sm" onClick={handleNextMonth} color={bgColor} variant="ghost"></Button>
       </HStack>
       <Grid templateColumns="repeat(7, minmax(35px, 1fr))" gap={0.5} width="fit-content">
         {daysOfWeek.map((day) => (

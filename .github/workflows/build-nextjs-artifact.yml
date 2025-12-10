@@ -1,0 +1,179 @@
+name: Build Next.js Artifact
+
+on:
+  push:
+    branches: [main, production-asset-artifact]
+    paths:
+      - "controller/**"
+      - ".github/workflows/build-nextjs-artifact.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "controller/**"
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to build from"
+        required: false
+        default: "main"
+
+jobs:
+  build-nextjs:
+    runs-on: windows-latest
+    if: github.repository == 'sciencecorp/galago-core'
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.11"
+          cache: "npm"
+          cache-dependency-path: controller/package-lock.json
+
+      - name: Install dependencies
+        working-directory: controller
+        run: npm ci
+        shell: bash
+
+      - name: Build Next.js app
+        working-directory: controller
+        run: npm run build
+        env:
+          NODE_ENV: production
+        shell: bash
+
+      - name: Create artifact bundle
+        working-directory: controller
+        run: |
+          # Create artifact directory
+          mkdir -p ../nextjs-artifact
+
+          # Verify standalone build exists
+          if [ ! -d ".next/standalone" ]; then
+            echo "ERROR: Standalone build not found!"
+            echo "Make sure next.config.js has: output: 'standalone'"
+            exit 1
+          fi
+
+          echo "Creating artifact from standalone build..."
+
+          # Enable dotglob to copy hidden folders
+          shopt -s dotglob 2>/dev/null || true
+          cp -r .next/standalone/* ../nextjs-artifact/
+          shopt -u dotglob 2>/dev/null || true
+
+          # Fallback: explicitly copy .next if it wasn't copied
+          if [ ! -d "../nextjs-artifact/.next" ]; then
+            cp -r .next/standalone/.next ../nextjs-artifact/
+          fi
+
+          # Add static files (standalone doesn't include these)
+          echo "Adding static files..."
+          mkdir -p ../nextjs-artifact/.next/static
+          cp -r .next/static/* ../nextjs-artifact/.next/static/
+
+          # Copy public assets
+          if [ -d "public" ]; then
+            echo "Adding public assets..."
+            cp -r public ../nextjs-artifact/public
+          fi
+
+          # Copy gen-interfaces
+          if [ -d "gen-interfaces" ]; then
+            echo "Adding gen-interfaces..."
+            cp -r gen-interfaces ../nextjs-artifact/gen-interfaces
+          fi
+
+          echo "✓ Artifact created successfully"
+          echo ""
+          echo "Artifact size: $(du -sh ../nextjs-artifact | cut -f1)"
+        shell: bash
+
+      - name: Create zip archive
+        run: |
+          cd nextjs-artifact
+
+          # Create zip with all files (including hidden .next folder)
+          7z a -tzip -mx=9 -r ../nextjs-production-win-x64.zip .
+
+          cd ..
+
+          # Move to upload directory
+          mkdir -p artifacts-for-upload
+          mv nextjs-production-win-x64.zip artifacts-for-upload/
+
+          echo ""
+          echo "✓ Artifact created: $(ls -lh artifacts-for-upload/nextjs-production-win-x64.zip | awk '{print $5}')"
+        shell: bash
+
+      - name: Calculate checksum
+        run: |
+          cd artifacts-for-upload
+          certutil -hashfile nextjs-production-win-x64.zip SHA256 > nextjs-production-win-x64.zip.sha256
+          cat nextjs-production-win-x64.zip.sha256
+        shell: bash
+
+      - name: Determine release tag
+        id: release_tag
+        run: |
+          # Get branch name and sanitize it for artifact names
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          BRANCH_NAME="${BRANCH_NAME#refs/pull/}"
+          BRANCH_NAME="${BRANCH_NAME%/merge}"
+
+          # Replace invalid characters for artifact names (/, :, <, >, |, *, ?, \r, \n, \, ")
+          SAFE_BRANCH_NAME=$(echo "$BRANCH_NAME" | sed 's/[\/:<>|*?\\"]/-/g')
+
+          if [ "$BRANCH_NAME" = "main" ]; then
+            TAG="nextjs-latest"
+          else
+            TAG="nextjs-${BRANCH_NAME}-latest"
+          fi
+
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "safe_branch=$SAFE_BRANCH_NAME" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Upload artifact (for testing)
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextjs-production-${{ steps.release_tag.outputs.safe_branch }}
+          path: artifacts-for-upload/*
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Delete existing release (if exists)
+        continue-on-error: true
+        run: |
+          # Check if release exists before trying to delete
+          if gh release view ${{ steps.release_tag.outputs.tag }} >/dev/null 2>&1; then
+            echo "Deleting existing release: ${{ steps.release_tag.outputs.tag }}"
+            gh release delete ${{ steps.release_tag.outputs.tag }} --yes
+          else
+            echo "No existing release found, skipping delete"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+
+      - name: Create or update release
+        run: |
+          cd artifacts-for-upload
+          gh release create ${{ steps.release_tag.outputs.tag }} \
+            nextjs-production-win-x64.zip \
+            nextjs-production-win-x64.zip.sha256 \
+            --title "Next.js Production Build (${{ steps.release_tag.outputs.branch }})" \
+            --notes "Pre-built Next.js artifact from branch ${{ steps.release_tag.outputs.branch }} (commit: ${{ github.sha }})" \
+            ${{ steps.release_tag.outputs.branch == 'main' && '--latest' || '--prerelease' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash

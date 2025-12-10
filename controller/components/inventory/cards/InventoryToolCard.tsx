@@ -22,10 +22,13 @@ import { Nest, Plate, Reagent } from "@/types/api";
 import NestModal from "../modals/NestModal";
 import styled from "@emotion/styled";
 import { trpc } from "@/utils/trpc";
-import { PiToolbox } from "react-icons/pi";
 import { useColorModeValue } from "@chakra-ui/react";
-import { BsGrid3X3, BsBoxSeam } from "react-icons/bs";
-import { FaFlask } from "react-icons/fa";
+import {
+  Wrench, // replaces PiToolbox
+  Grid3x3, // replaces BsGrid3X3
+  Package, // replaces BsBoxSeam
+  FlaskConical, // replaces FaFlask
+} from "lucide-react";
 import { Icon } from "@/components/ui/Icons";
 import { useCommonColors, useTextColors } from "@/components/ui/Theme";
 
@@ -118,7 +121,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
         <Box display="flex" justifyContent="center" alignItems="center">
           <IconButton
             aria-label="Tool Box"
-            icon={<PiToolbox style={{ width: "100%", height: "100%" }} />}
+            icon={<Wrench style={{ width: "100%", height: "100%" }} />}
             variant="ghost"
             colorScheme="teal"
             isRound
@@ -176,7 +179,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
             <SimpleGrid columns={3} spacing={2}>
               <Tooltip label="Total Nests" placement="top">
                 <Box p={2} bg={statBg} borderRadius="md" textAlign="center">
-                  <Icon as={BsGrid3X3} color={iconColor} mb={1} />
+                  <Icon as={Grid3x3} color={iconColor} mb={1} />
                   <Text fontWeight="bold" fontSize="md">
                     {toolNests.length}
                   </Text>
@@ -188,7 +191,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
 
               <Tooltip label="Total Plates" placement="top">
                 <Box p={2} bg={statBg} borderRadius="md" textAlign="center">
-                  <Icon as={BsBoxSeam} color={iconColor} mb={1} />
+                  <Icon as={Package} color={iconColor} mb={1} />
                   <Text fontWeight="bold" fontSize="md">
                     {toolPlates.length}
                   </Text>
@@ -200,7 +203,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
 
               <Tooltip label="Total Reagents" placement="top">
                 <Box p={2} bg={statBg} borderRadius="md" textAlign="center">
-                  <Icon as={FaFlask} color={iconColor} mb={1} />
+                  <Icon as={FlaskConical} color={iconColor} mb={1} />
                   <Text fontWeight="bold" fontSize="md">
                     {reagentCount}
                   </Text>

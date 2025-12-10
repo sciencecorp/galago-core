@@ -25,10 +25,11 @@ import {
   DeleteIcon,
   FolderIcon,
   FolderOpenIcon,
+  JavaScriptIcon,
+  CSharpIcon,
 } from "../ui/Icons";
 import { InlineFolderCreation } from "./NewFolder";
 import { fileTypeToExtensionMap } from "./utils";
-import { AiOutlineJavaScript } from "react-icons/ai";
 
 interface FolderTreeProps {
   folders: ScriptFolder[];
@@ -238,9 +239,9 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
       cursor="pointer"
       position="relative">
       {script.language === "javascript" ? (
-        <AiOutlineJavaScript color={isActive ? "teal" : jsIconColor} />
+        <JavaScriptIcon color={isActive ? "teal" : jsIconColor} />
       ) : script.language === "csharp" ? (
-        <Image src="/tool_icons/csharp.svg" alt="C# Icon" height="18px" width="18px" />
+        <CSharpIcon color={isActive ? "teal" : "lightblue"} />
       ) : (
         <PythonIcon color={isActive ? "teal" : "lightblue"} />
       )}
@@ -287,7 +288,7 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
         />
         <MenuList minW="auto">
           <MenuItem
-            icon={<EditIcon />}
+            icon={<EditIcon size={12} />}
             onClick={(e) => {
               e.stopPropagation();
               setIsEditing(true);
@@ -295,7 +296,7 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
             Rename
           </MenuItem>
           <MenuItem
-            icon={<DeleteIcon />}
+            icon={<DeleteIcon size={12} />}
             onClick={(e) => {
               e.stopPropagation();
               onDelete(script);

@@ -1,10 +1,5 @@
-import { HStack, Button, Text, Select, Box, IconButton, useColorModeValue } from "@chakra-ui/react";
-import {
-  RiArrowDownSLine,
-  RiArrowLeftSLine,
-  RiArrowRightSLine,
-  RiArrowUpSLine,
-} from "react-icons/ri";
+import { HStack, Text, Select, IconButton, useColorModeValue } from "@chakra-ui/react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface PaginationControlsProps {
   currentPage: number;
@@ -58,7 +53,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
 
       <HStack spacing={2}>
         <IconButton
-          icon={<RiArrowLeftSLine />}
+          icon={<ChevronLeft size={14} />}
           size="sm"
           aria-label="Previous Page"
           isDisabled={currentPage === 1}
@@ -84,7 +79,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           ))}
         </Select>
         <IconButton
-          icon={<RiArrowRightSLine />}
+          icon={<ChevronRight size={14} />}
           size="sm"
           aria-label="Next Page"
           isDisabled={currentPage === totalPages}

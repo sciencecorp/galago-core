@@ -37,8 +37,7 @@ import { EditableText } from "../ui/Form";
 import { WellPlateIcon } from "../ui/Icons";
 import { SearchIcon } from "@chakra-ui/icons";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { HiOutlineRectangleStack } from "react-icons/hi2";
-import { FaFileImport, FaFileExport } from "react-icons/fa";
+import { Layers, Upload, Download } from "lucide-react";
 import { successToast, errorToast, warningToast } from "@/components/ui/Toast";
 import { useLabwareIO } from "@/hooks/useLabwareIO";
 import { useCommonColors } from "@/components/ui/Theme";
@@ -166,7 +165,7 @@ export const Labware: React.FC = () => {
   // Create the Import button (regular size to match LabwareModal button)
   const importButton = (
     <Button
-      leftIcon={<FaFileImport />}
+      leftIcon={<Upload size={14} />}
       colorScheme="blue"
       variant="outline"
       onClick={handleImportClick}
@@ -179,7 +178,7 @@ export const Labware: React.FC = () => {
   // Create the Export button (regular size to match LabwareModal button)
   const exportButton = (
     <Button
-      leftIcon={<FaFileExport />}
+      leftIcon={<Download size={14} />}
       colorScheme="green"
       variant="outline"
       onClick={onExportConfig}
@@ -198,7 +197,7 @@ export const Labware: React.FC = () => {
               <PageHeader
                 title="Labware"
                 subTitle="Manage and configure your labware definitions"
-                titleIcon={<Icon as={HiOutlineRectangleStack} boxSize={8} color="teal.500" />}
+                titleIcon={<Icon as={Layers} boxSize={8} color="teal.500" />}
                 mainButton={importButton}
                 secondaryButton={exportButton}
                 tertiaryButton={<LabwareModal />}

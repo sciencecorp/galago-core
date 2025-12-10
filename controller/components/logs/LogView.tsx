@@ -1,9 +1,7 @@
 import { trpc } from "@/utils/trpc";
 import {
   Table,
-  Tag,
   Tbody,
-  Text,
   Th,
   Thead,
   Tr,
@@ -30,8 +28,7 @@ import { CloseIcon, WarningIcon, QuestionOutlineIcon, SearchIcon } from "@chakra
 import { useEffect, useState, useMemo } from "react";
 import { Log } from "@/types/api";
 import { renderDatetime } from "../ui/Time";
-import { FiInfo } from "react-icons/fi";
-import { FiBook } from "react-icons/fi";
+import { Info, Book } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 
 interface LogViewProps {}
@@ -54,7 +51,7 @@ function getIconFromLogType(logType: string) {
     case "debug":
       return <QuestionOutlineIcon color="yellow" style={iconStyle} />;
     case "info":
-      return <FiInfo style={iconStyle} />;
+      return <Info style={iconStyle} />;
   }
 }
 
@@ -114,7 +111,7 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
               <PageHeader
                 title="Logs"
                 subTitle="Monitor and analyze system logs"
-                titleIcon={<Icon as={FiBook} boxSize={8} color="teal.500" />}
+                titleIcon={<Icon as={Book} boxSize={8} color="teal.500" />}
               />
               <Divider />
               <StatGroup>

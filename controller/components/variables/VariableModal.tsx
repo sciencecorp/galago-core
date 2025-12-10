@@ -1,10 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   VStack,
-  Box,
   Button,
-  HStack,
-  Heading,
   Input,
   Modal,
   ModalOverlay,
@@ -20,7 +17,7 @@ import {
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { Variable } from "./types";
-import { RiAddFill } from "react-icons/ri";
+import { Plus } from "lucide-react";
 import { successToast, errorToast } from "../ui/Toast";
 
 export const VariableModal: React.FC = () => {
@@ -31,7 +28,7 @@ export const VariableModal: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const addVariable = trpc.variable.add.useMutation();
 
-  const { data: fetchedVariables, refetch } = trpc.variable.getAll.useQuery();
+  const { refetch } = trpc.variable.getAll.useQuery();
 
   const clearForm = () => {
     setName("");
@@ -56,8 +53,8 @@ export const VariableModal: React.FC = () => {
 
   return (
     <>
-      <Button onClick={onOpen} colorScheme="teal" leftIcon={<RiAddFill />}>
-        New Variable
+      <Button onClick={onOpen} colorScheme="teal" leftIcon={<Plus />}>
+        New
       </Button>
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />

@@ -38,17 +38,13 @@ import { AddToolCommandModal } from "./AddToolCommandModal";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
 import { capitalizeFirst } from "@/utils/parser";
-import { VscRunBelow } from "react-icons/vsc";
-import { FaPlay } from "react-icons/fa6";
-import { FaFileExport } from "react-icons/fa";
-import { SaveIcon } from "@/components/ui/Icons";
-import { SiPlatformdotsh } from "react-icons/si";
+import { Play, Download, LogOut } from "lucide-react";
+
 import { ConfirmationModal } from "../ui/ConfirmationModal";
-import { MdOutlineExitToApp } from "react-icons/md";
+import { SaveIcon } from "@/components/ui/Icons";
 import { CommandDetailsDrawer } from "./CommandDetailsDrawer";
 import CommandImage from "@/components/tools/CommandImage";
 import { successToast, errorToast } from "../ui/Toast";
-import { useCommonColors } from "@/components/ui/Theme";
 import { downloadFile } from "@/server/utils/api";
 
 const handleWheel = (e: WheelEvent) => {
@@ -59,7 +55,6 @@ const handleWheel = (e: WheelEvent) => {
   }
 };
 
-//TODO:
 //This should be reused by the runs component, (there is already one there.)
 const ProtocolSwimLaneCommandComponent: React.FC<{
   command: any;
@@ -111,7 +106,7 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
                     variant="outline"
                   />
                   <MenuList>
-                    <MenuItem onClick={() => onRunCommand(command)} icon={<VscRunBelow />}>
+                    <MenuItem onClick={() => onRunCommand(command)} icon={<Play size={14} />}>
                       Run Command
                     </MenuItem>
                     {isEditing && (
@@ -489,17 +484,14 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                   onClick={handleSaveChanges}>
                   Save
                 </Button>
-                <Button
-                  leftIcon={<MdOutlineExitToApp />}
-                  variant="outline"
-                  onClick={() => setIsEditing(false)}>
+                <Button leftIcon={<LogOut />} variant="outline" onClick={() => setIsEditing(false)}>
                   Exit
                 </Button>
               </>
             ) : (
               <>
                 <Button
-                  leftIcon={<FaFileExport />}
+                  leftIcon={<Download />}
                   colorScheme="green"
                   variant="outline"
                   onClick={handleExport}
@@ -512,7 +504,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
                   onClick={() => setIsEditing(true)}>
                   Edit
                 </Button>
-                <Button leftIcon={<FaPlay />} colorScheme="green" onClick={handleRunClick}>
+                <Button leftIcon={<Play />} colorScheme="green" onClick={handleRunClick}>
                   Run
                 </Button>
               </>

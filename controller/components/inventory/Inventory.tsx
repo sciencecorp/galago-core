@@ -42,7 +42,7 @@ import { InventoryToolCard } from "./cards/InventoryToolCard";
 import { InventoryHotelCard } from "./cards/InventoryHotelCard";
 import AlertComponent from "@/components/ui/AlertComponent";
 import { trpc } from "@/utils/trpc";
-import { BsBoxSeam } from "react-icons/bs";
+import { Package } from "lucide-react";
 import InventoryModal from "./modals/InventoryModal";
 import PlateModal from "./modals/PlateModal";
 import { Icon } from "@/components/ui/Icons";
@@ -733,7 +733,7 @@ export const InventoryManager = () => {
                 <PageHeader
                   title="Inventory"
                   subTitle="Manage plates, reagents, and nests across your workcells"
-                  titleIcon={<Icon as={BsBoxSeam} boxSize={8} color="teal.500" />}
+                  titleIcon={<Icon as={Package} boxSize={8} color="teal.500" />}
                   mainButton={null}
                 />
               </HStack>

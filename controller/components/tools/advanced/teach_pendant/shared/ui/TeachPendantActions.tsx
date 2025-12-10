@@ -1,6 +1,6 @@
 import { Button, HStack, Menu, MenuButton, MenuList, MenuItem, Input } from "@chakra-ui/react";
 import { ChevronDownIcon, DownloadIcon } from "@chakra-ui/icons";
-import { FiUpload } from "react-icons/fi";
+import { Upload } from "lucide-react";
 import React, { useRef } from "react";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "../../types";
 import { successToast, errorToast } from "@/components/ui/Toast";
@@ -149,7 +149,7 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
         display="none"
       />
       <Button
-        leftIcon={<FiUpload />}
+        leftIcon={<Upload />}
         onClick={() => fileInputRef.current?.click()}
         colorScheme="blue"
         variant="outline">
