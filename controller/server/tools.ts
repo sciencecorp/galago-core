@@ -31,9 +31,7 @@ export default class Tool {
     this.info = info;
     this.config = info.config;
 
-    console.log("GRPC HOST value ", process.env.GRPC_HOST);
     const grpcServerIp = process.env.GRPC_HOST || info.ip;
-    console.log("GRPC SERVER IP value ", grpcServerIp);
     const target = `${grpcServerIp}:${info.port}`;
 
     this.grpc = promisifyGrpcClient(
