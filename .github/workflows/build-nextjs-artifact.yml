@@ -48,6 +48,8 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
+          # Skip data fetching during build in CI
+          SKIP_BUILD_STATIC_GENERATION: true
         shell: bash
 
       - name: Create artifact bundle
@@ -68,9 +70,17 @@ jobs:
           # Copy everything from standalone (includes minimal node_modules, server.js, .next with server folder)
           cp -r .next/standalone/* ../nextjs-artifact/
 
-          # Standalone doesn't include static files - add them to the existing .next folder
+          # Standalone doesn't include static files - add them
           echo "Adding static files..."
-          cp -r .next/static ../nextjs-artifact/.next/
+          # Make sure we copy the static FOLDER, not its contents
+          if [ -d ".next/static" ]; then
+            mkdir -p ../nextjs-artifact/.next/static
+            cp -r .next/static/* ../nextjs-artifact/.next/static/
+          else
+            echo "ERROR: .next/static source folder not found!"
+            ls -la .next/
+            exit 1
+          fi
 
           # Copy public assets
           if [ -d "public" ]; then
