@@ -208,10 +208,10 @@ jobs:
           echo "=== Final artifact size ==="
           ls -lh artifacts-for-upload/nextjs-production-win-x64.zip
 
-          # Verify .next is in the zip
+          # Verify .next is in the zip (suppress SIGPIPE error)
           echo ""
-          echo "=== Verifying zip contents ==="
-          7z l artifacts-for-upload/nextjs-production-win-x64.zip | grep -E "(\.next|server\.js|node_modules)" | head -20
+          echo "=== Verifying zip contents (first 20 lines) ==="
+          7z l artifacts-for-upload/nextjs-production-win-x64.zip | grep -E "(\.next|server\.js|node_modules)" | head -20 || true
         shell: bash
 
       - name: Calculate checksum
