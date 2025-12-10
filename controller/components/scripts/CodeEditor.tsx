@@ -7,15 +7,12 @@ import {
   Input,
   VStack,
   useColorModeValue,
-  Flex,
   Tooltip,
   Card,
   CardBody,
   Icon,
   useDisclosure,
   IconButton,
-  Image,
-  useToast,
 } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import { trpc } from "@/utils/trpc";
@@ -32,14 +29,22 @@ import {
   loadingToast,
 } from "../ui/Toast";
 import { useScriptColors } from "../ui/Theme";
-import { CloseIcon, PythonIcon, CodeIcon, PlayIcon, SaveIcon } from "../ui/Icons";
+import {
+  CloseIcon,
+  PythonIcon,
+  CodeIcon,
+  PlayIcon,
+  SaveIcon,
+  JavaScriptIcon,
+  CSharpIcon,
+  DownloadIcon,
+} from "../ui/Icons";
 import * as monaco from "monaco-editor";
 import { editor } from "monaco-editor";
-import { FaFileImport, FaFileExport } from "react-icons/fa";
 import { useScriptIO } from "@/hooks/useScriptIO";
-import { infoToast, errorToast } from "../ui/Toast";
-import { MdDownload } from "react-icons/md";
-import { AiOutlineJavaScript } from "react-icons/ai";
+import { errorToast } from "../ui/Toast";
+import { FaFileImport, FaFileExport } from "react-icons/fa";
+
 import { fileTypeToExtensionMap } from "./utils";
 import { Console } from "./Console";
 import { ResizablePanel } from "./ResizablePanel";
@@ -83,7 +88,6 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const monacoRef = useRef<typeof monaco | null>(null);
   const [editorLanguage, setEditorLanguage] = useState<string>("python");
   const jsIconColor = useColorModeValue("orange", "yellow");
-  const toast = useToast();
 
   // Define refreshData function here
   const refreshData = async () => {
@@ -445,20 +449,9 @@ Original Error: ${error.message}`;
   const getTabIcon = (tabName: string) => {
     const extension = tabName.split(".").pop();
     if (extension === "js") {
-      return (
-        <AiOutlineJavaScript fontSize="13px" color={activeTab === tabName ? jsIconColor : "gray"} />
-      );
+      return <JavaScriptIcon color={activeTab === tabName ? jsIconColor : "gray"} />;
     } else if (extension === "cs" || extension === "csharp") {
-      return (
-        <Image
-          src="/tool_icons/csharp.svg"
-          alt="C# Icon"
-          height={"20px"}
-          style={{
-            filter: activeTab === tabName ? "none" : "grayscale(100%)",
-          }}
-        />
-      );
+      return <CSharpIcon color={activeTab === tabName ? jsIconColor : "gray"} />;
     } else {
       return <PythonIcon fontSize="13px" color={activeTab === tabName ? "teal" : "gray"} />;
     }
@@ -751,7 +744,7 @@ Original Error: ${error.message}`;
                       <Tooltip label="Download Script" openDelay={1000} hasArrow>
                         <IconButton
                           aria-label="Download Script"
-                          icon={<MdDownload />}
+                          icon={<DownloadIcon size={14} />}
                           colorScheme="gray"
                           variant="outline"
                           onClick={onExportConfig}

@@ -39,10 +39,9 @@ import {
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
-import { RiSearchLine } from "react-icons/ri";
 import { commandFields, commandIcons } from "../tools/constants";
 import { capitalizeFirst } from "@/utils/parser";
-import { PiToolbox } from "react-icons/pi";
+import { ToolCase, Search } from "lucide-react";
 import { warningToast } from "../ui/Toast";
 
 interface AddToolCommandModalProps {
@@ -614,7 +613,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           {tool.type === "toolbox" ? (
             <IconButton
               aria-label="Tool Box"
-              icon={<PiToolbox style={{ width: "90px", height: "90px" }} />}
+              icon={<ToolCase style={{ width: "90px", height: "90px" }} />}
               variant="ghost"
               colorScheme="teal"
               isRound
@@ -676,7 +675,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
           <VStack spacing={6} align="stretch">
             <InputGroup>
               <InputLeftElement pointerEvents="none">
-                <RiSearchLine color="gray.300" />
+                <Search color="gray.300" />
               </InputLeftElement>
               <Input
                 placeholder="Search for a tool..."

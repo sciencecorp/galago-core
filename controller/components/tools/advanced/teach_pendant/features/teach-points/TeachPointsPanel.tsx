@@ -19,13 +19,12 @@ import {
   MenuDivider,
   Select,
 } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon, EditIcon, CheckIcon, HamburgerIcon } from "@chakra-ui/icons";
+import { AddIcon, DeleteIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { Tool } from "@/types/api";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "../../types";
-import { FaPlay, FaArrowRight, FaArrowLeft } from "react-icons/fa";
-import { MdOutlineReplay } from "react-icons/md";
-import { BsRecordCircle } from "react-icons/bs";
-import { useState, useRef, useEffect, useMemo } from "react";
+import { Play, Circle } from "lucide-react";
+
+import { useState, useRef, useMemo } from "react";
 import { usePagination } from "../../hooks/usePagination";
 import { PaginationControls } from "../../shared/ui/PaginationControls";
 import { EditableText } from "@/components/ui/Form";
@@ -75,7 +74,6 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   const headerBgColor = useColorModeValue("gray.50", "gray.700");
   const hoverBgColor = useColorModeValue("gray.50", "gray.700");
   const textColor = useColorModeValue("gray.800", "gray.100");
-  const [editingPoint, setEditingPoint] = useState<EditablePoint | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
 
   // Get the number of joints from the config
@@ -247,11 +245,11 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                           minW="32px"
                         />
                         <MenuList>
-                          <MenuItem icon={<FaPlay />} onClick={() => onMove(point)}>
+                          <MenuItem icon={<Play size={14} />} onClick={() => onMove(point)}>
                             Move to point
                           </MenuItem>
                           {isConnected && (
-                            <MenuItem icon={<BsRecordCircle />} onClick={() => onTeach(point)}>
+                            <MenuItem icon={<Circle size={14} />} onClick={() => onTeach(point)}>
                               Teach current position
                             </MenuItem>
                           )}

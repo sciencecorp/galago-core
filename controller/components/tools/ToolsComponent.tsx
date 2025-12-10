@@ -23,9 +23,9 @@ import {
 } from "@chakra-ui/react";
 import { NewToolModal } from "./NewToolModal";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { BsTools } from "react-icons/bs";
 import { SearchIcon } from "@chakra-ui/icons";
 import { FaPlugCircleCheck } from "react-icons/fa6";
+import { BsTools } from "react-icons/bs";
 import { successToast, errorToast, infoToast } from "../ui/Toast";
 import { Tool } from "@/types/api";
 

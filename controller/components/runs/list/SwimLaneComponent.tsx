@@ -1,7 +1,7 @@
-import { VStack, Box, HStack, useDisclosure, Text, Center } from "@chakra-ui/react";
+import { Box, HStack, useDisclosure, Text, Center } from "@chakra-ui/react";
 import SwimLaneCommandComponent from "./SwimLaneCommandComponent";
 import { RunCommand } from "@/types";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { CommandDetailsDrawer } from "@/components/protocols/CommandDetailsDrawer"; // Import the CommandDetailsDrawer component
 
 interface SwimLaneProps {

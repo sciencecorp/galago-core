@@ -19,8 +19,7 @@ import { useEffect, useState } from "react";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { Workcell } from "@/types/api";
 import { EditableText } from "../ui/Form";
-import { BsTools } from "react-icons/bs";
-import { MdLocationOn } from "react-icons/md";
+import { Wrench, MapPin } from "lucide-react";
 import Avvvatars from "avvvatars-react";
 import { errorToast } from "../ui/Toast";
 interface WorkcellCardProps {
@@ -119,7 +118,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
                   }}
                 />
                 <HStack fontSize="sm" color="gray.500">
-                  <Icon as={MdLocationOn} />
+                  <Icon as={MapPin} />
                   <EditableText
                     defaultValue={workcell.location || ""}
                     preview={<Text>{workcell.location || "No location"}</Text>}
@@ -150,7 +149,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
 
           <HStack justify="space-between" align="center">
             <HStack>
-              <Icon as={BsTools} />
+              <Icon as={Wrench} />
               <Text fontSize="sm">{workcell.tools.length} Tools</Text>
             </HStack>
             <Badge colorScheme={isSelected ? "teal" : "gray"}>

@@ -13,16 +13,12 @@ import {
   useColorModeValue,
   Center,
 } from "@chakra-ui/react";
-import { HamburgerIcon, CheckIcon } from "@chakra-ui/icons";
-import { IoPlaySkipForward } from "react-icons/io5";
-import { BsSkipForwardFill } from "react-icons/bs";
-import { VscRunBelow } from "react-icons/vsc";
+import { HamburgerIcon } from "@chakra-ui/icons";
+import { SkipForward, Play, CheckCircle, RedoDot } from "lucide-react";
 import { useRef } from "react";
 import { capitalizeFirst } from "@/utils/parser";
 import { RunCommand } from "@/types";
 import CommandImage from "@/components/tools/CommandImage";
-import { FaCheckCircle } from "react-icons/fa";
-import { GoSkip } from "react-icons/go";
 
 interface LaneCommandComponentProps {
   command: RunCommand;
@@ -103,8 +99,8 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
           <HStack spacing={2}>
             <Box width="90%">
               <HStack py={command.status === "COMPLETED" || command.status === "SKIPPED" ? 1 : 0}>
-                {command.status === "COMPLETED" && <FaCheckCircle color="green.500" />}
-                {command.status === "SKIPPED" && <GoSkip color="orange" />}
+                {command.status === "COMPLETED" && <CheckCircle color="green.500" />}
+                {command.status === "SKIPPED" && <SkipForward color="orange" />}
                 <Text as="b">{toolName}</Text>
               </HStack>
             </Box>
@@ -122,7 +118,7 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
                   <MenuList>
                     {queued ? (
                       <MenuItem onClick={() => skipMutation.mutate(queueId)}>
-                        <IoPlaySkipForward />{" "}
+                        <SkipForward />{" "}
                         <Box as="span" ml={2}>
                           Skip
                         </Box>
@@ -130,14 +126,14 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
                     ) : null}
                     {queued ? (
                       <MenuItem onClick={() => skipUntilMutation.mutate(queueId)}>
-                        <BsSkipForwardFill />{" "}
+                        <RedoDot />{" "}
                         <Box as="span" ml={2}>
                           Skip to this command
                         </Box>
                       </MenuItem>
                     ) : null}
                     <MenuItem onClick={() => execMutation.mutate(command.commandInfo)}>
-                      <VscRunBelow />{" "}
+                      <Play />{" "}
                       <Box as="span" ml={2}>
                         Send to Tool
                       </Box>

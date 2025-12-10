@@ -12,12 +12,10 @@ import {
   NumberIncrementStepper,
   NumberDecrementStepper,
   Box,
-  Heading,
 } from "@chakra-ui/react";
 import { GripParams } from "../../types";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
-import { FaArrowsAlt, FaHandPaper } from "react-icons/fa";
-import { PiCirclesThreeFill } from "react-icons/pi";
+import { Move, Hand, MoreHorizontal } from "lucide-react";
 
 interface ControlPanelProps {
   onFree: () => void;
@@ -72,7 +70,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       <Card width="100%" borderColor={borderColor} borderWidth="1px" borderRadius="lg" bg={bgColor}>
         <CardHeader fontWeight="semibold" fontSize="md">
           <HStack>
-            <PiCirclesThreeFill />
+            <MoreHorizontal />
             <Box>State Control</Box>
           </HStack>
         </CardHeader>
@@ -109,7 +107,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       <Card width="100%" borderColor={borderColor} borderWidth="1px" borderRadius="lg" bg={bgColor}>
         <CardHeader fontWeight="semibold" fontSize="md">
           <HStack>
-            <FaArrowsAlt />
+            <Move />
             <Box>Jog Control</Box>
           </HStack>
         </CardHeader>
@@ -149,7 +147,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       <Card width="100%" borderColor={borderColor} borderWidth="1px" borderRadius="lg" bg={bgColor}>
         <CardHeader fontWeight="semibold" fontSize="md">
           <HStack>
-            <FaHandPaper />
+            <Hand />
             <Box>Gripper Control</Box>
           </HStack>
         </CardHeader>

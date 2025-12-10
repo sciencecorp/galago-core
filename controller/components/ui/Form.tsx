@@ -10,14 +10,12 @@ import {
   Tooltip,
   VStack,
 } from "@chakra-ui/react";
-import { RiCheckFill, RiCloseFill, RiEdit2Line } from "react-icons/ri";
+import { Check, X, Edit2 } from "lucide-react";
 import {
   AutoComplete,
-  AutoCompleteCreatable,
   AutoCompleteInput,
   AutoCompleteItem,
   AutoCompleteList,
-  Item,
 } from "@choc-ui/chakra-autocomplete";
 
 export const inputStyles = {
@@ -74,13 +72,13 @@ export const Editable = (props: {
       {renderInput(value, setValue, submit)}
       <ButtonGroup justifyContent="center" ml={0} size="xs">
         <IconButton
-          icon={<RiCheckFill />}
+          icon={<Check size={10} />}
           aria-label="Save Edits"
           onClick={() => submit()}
           colorScheme="blue"
         />
         <IconButton
-          icon={<RiCloseFill />}
+          icon={<X size={10} />}
           aria-label="Cancel Edits"
           onMouseDown={(e) => {
             e.preventDefault();
@@ -102,7 +100,7 @@ export const Editable = (props: {
           <IconButton
             className={props.persistentEdit ? "" : "editable__button"}
             size="xs"
-            icon={<RiEdit2Line />}
+            icon={<Edit2 size={12} />}
             aria-label="Start Editing"
             onClick={startEditing}
             disabled={disabled}

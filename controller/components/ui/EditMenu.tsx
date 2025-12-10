@@ -1,7 +1,7 @@
 import React from "react";
-import { Box, Menu, MenuButton, MenuList, MenuItem, IconButton } from "@chakra-ui/react";
+import { Menu, MenuButton, MenuList, MenuItem, IconButton } from "@chakra-ui/react";
 import { HamburgerIcon } from "@chakra-ui/icons";
-import { RiDeleteBin5Line, RiEdit2Line } from "react-icons/ri";
+import { Trash2, Edit2 } from "lucide-react";
 
 // Define interface for custom menu items
 interface CustomMenuItem {
@@ -31,14 +31,14 @@ export const EditMenu: React.FC<EditMenuProps> = (props) => {
         ))}
 
         {onEdit && (
-          <MenuItem icon={<RiEdit2Line />} onClick={onEdit}>
+          <MenuItem icon={<Edit2 size={14} />} onClick={onEdit}>
             Edit
           </MenuItem>
         )}
 
         {/* Conditionally render the delete option */}
         {onDelete && (
-          <MenuItem icon={<RiDeleteBin5Line />} onClick={onDelete}>
+          <MenuItem icon={<Trash2 size={14} />} onClick={onDelete}>
             Delete
           </MenuItem>
         )}

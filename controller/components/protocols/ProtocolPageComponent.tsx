@@ -55,9 +55,12 @@ import { useRouter } from "next/router";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { PiPathBold } from "react-icons/pi";
-import { RiAddFill } from "react-icons/ri";
-import { FaFileImport, FaPlay } from "react-icons/fa";
+import {
+  GitBranch, // replaces PiPathBold
+  Plus, // replaces RiAddFill
+  Upload, // replaces FaFileImport
+  Play, // replaces FaPlay
+} from "lucide-react";
 import { EditableText } from "../ui/Form";
 import { errorToast, successToast } from "../ui/Toast";
 import { downloadFile, uploadFile } from "@/server/utils/api";
@@ -289,19 +292,22 @@ export const ProtocolPageComponent: React.FC = () => {
             <PageHeader
               title="Protocols"
               subTitle="Manage and run your automation protocols"
-              titleIcon={<Icon as={PiPathBold} boxSize={8} color="teal.500" />}
+              titleIcon={<Icon as={GitBranch} boxSize={8} color="teal.500" />}
               mainButton={
                 <HStack>
                   <Button
                     colorScheme="blue"
                     variant="outline"
-                    leftIcon={<FaFileImport />}
+                    leftIcon={<Upload size={14} />}
                     onClick={handleImportClick}
                     isLoading={isImporting}
                     isDisabled={isImporting}>
                     Import
                   </Button>
-                  <Button colorScheme="teal" leftIcon={<RiAddFill />} onClick={onNewProtocolOpen}>
+                  <Button
+                    colorScheme="teal"
+                    leftIcon={<Plus size={14} />}
+                    onClick={onNewProtocolOpen}>
                     New Protocol
                   </Button>
                 </HStack>
@@ -505,7 +511,7 @@ export const ProtocolPageComponent: React.FC = () => {
                             <MenuItem
                               onClick={() => handleRunClick(protocol.id.toString())}
                               color="green.500"
-                              icon={<Icon as={FaPlay} />}>
+                              icon={<Icon as={Play} />}>
                               Run
                             </MenuItem>
                             <MenuItem

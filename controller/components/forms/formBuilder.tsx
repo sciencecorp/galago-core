@@ -791,9 +791,6 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
             alignItems="center"
             justifyContent="center">
             <VStack spacing={4}>
-              <Box p={4} borderRadius="full" bg={colors.alternateBg}>
-                <List size={48} color={textColors.secondary} />
-              </Box>
               <VStack spacing={2}>
                 <Text fontSize="2xl" fontWeight="bold" color={textColors.primary}>
                   No Form Selected

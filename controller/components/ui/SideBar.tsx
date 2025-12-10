@@ -8,7 +8,6 @@ import {
   VStack,
   Drawer,
   DrawerContent,
-  Spacer,
   useDisclosure,
   useBreakpointValue,
   Image,
@@ -18,31 +17,33 @@ import {
   Tooltip,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { FiMenu, FiHome } from "react-icons/fi";
-import { BsLayoutSidebarInset } from "react-icons/bs";
-import { IconType } from "react-icons";
-import { useRouter } from "next/router";
-import { MdOutlineTransitEnterexit } from "react-icons/md";
-import { FaToolbox } from "react-icons/fa";
-import { TbVariable } from "react-icons/tb";
-import { MdOutlineIntegrationInstructions } from "react-icons/md";
-import { RiCalendarCheckLine } from "react-icons/ri";
-import { PiPathBold } from "react-icons/pi";
-import { MoonIcon, SunIcon } from "@chakra-ui/icons";
-import { FiBook } from "react-icons/fi";
-import { BsTools } from "react-icons/bs";
-import { FaChartGantt } from "react-icons/fa6";
+import {
+  Home,
+  PanelLeftClose,
+  ArrowRightLeft,
+  Wrench,
+  Variable,
+  Code2,
+  CalendarCheck,
+  GitBranch,
+  Book,
+  GanttChart,
+  Package,
+  Layers,
+  Codepen,
+  List,
+  FileText,
+  Moon,
+  Sun,
+} from "lucide-react";
+import { LucideIcon } from "lucide-react";
 import { capitalizeFirst } from "@/utils/parser";
-import { BsBoxSeam } from "react-icons/bs";
-import { HiOutlineRectangleStack } from "react-icons/hi2";
-import { GiChaingun } from "react-icons/gi";
+import { useRouter } from "next/router";
 import { useSidebarTheme } from "./Theme";
-import { FaRegListAlt } from "react-icons/fa";
-import { SiReacthookform } from "react-icons/si";
 
 interface SidebarItem {
   name: string;
-  icon: IconType;
+  icon: LucideIcon;
   path: string;
 }
 
@@ -50,23 +51,19 @@ interface SidebarProps {
   children: ReactNode;
 }
 
-// Sidebar menu items
 const sidebarItems: SidebarItem[] = [
-  { name: "Home", icon: FiHome, path: "/" },
-  { name: "Runs", icon: FaChartGantt, path: "/runs" },
-  { name: "Workcells", icon: GiChaingun, path: "/workcells" },
-  { name: "Tools", icon: BsTools, path: "/tools" },
-  { name: "Protocols", icon: PiPathBold, path: "/protocols" },
-  { name: "Forms", icon: FaRegListAlt, path: "/forms" },
-  { name: "Inventory", icon: BsBoxSeam, path: "/inventory" },
-  // { name: "Schedule", icon: RiCalendarCheckLine, path: "/schedule" },
-  { name: "Labware", icon: HiOutlineRectangleStack, path: "/labware" },
-  // { name: "Tables", icon: LuTableProperties, path: "/tables" }, //Will keep thinking about this one, not sure we want to give users so much complexity/abstraction
-  { name: "Logs", icon: FiBook, path: "/logs" },
-  { name: "Variables", icon: TbVariable, path: "/variables" },
-  { name: "Scripts", icon: MdOutlineIntegrationInstructions, path: "/scripts" },
-  // { name: "Settings", icon: FiSettings, path: "/settings" },
-  // { name: "Logout", icon: FiLogOut, path: "/logout" },
+  { name: "Home", icon: Home, path: "/" },
+  { name: "Runs", icon: GanttChart, path: "/runs" },
+  { name: "Workcells", icon: Codepen, path: "/workcells" },
+  { name: "Tools", icon: Wrench, path: "/tools" },
+  { name: "Protocols", icon: GitBranch, path: "/protocols" },
+  { name: "Forms", icon: List, path: "/forms" },
+  { name: "Inventory", icon: Package, path: "/inventory" },
+  // { name: "Schedule", icon: CalendarCheck, path: "/schedule" },
+  { name: "Labware", icon: Layers, path: "/labware" },
+  { name: "Logs", icon: Book, path: "/logs" },
+  { name: "Variables", icon: Variable, path: "/variables" },
+  { name: "Scripts", icon: Code2, path: "/scripts" },
 ];
 
 function DarkModeToggle() {
@@ -74,7 +71,7 @@ function DarkModeToggle() {
   return (
     <IconButton
       onClick={toggleColorMode}
-      icon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
+      icon={colorMode === "light" ? <Moon /> : <Sun />}
       aria-label="Toggle dark mode"
       position="fixed"
       bottom="20px"
@@ -153,7 +150,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
               <Tooltip label={item.name} placement="right">
                 <Box>
                   <item.icon
-                    size="26"
+                    size={26}
                     color={router.pathname === item.path ? theme.activeIconColor : undefined}
                   />
                 </Box>
@@ -161,7 +158,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             ) : (
               <>
                 <item.icon
-                  size="26"
+                  size={26}
                   color={router.pathname === item.path ? theme.activeIconColor : undefined}
                 />
                 <Text

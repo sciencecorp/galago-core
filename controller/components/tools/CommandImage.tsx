@@ -1,18 +1,20 @@
 import { trpc } from "@/utils/trpc";
 import React, { useEffect, memo } from "react";
 import { Box, IconButton, Image, Center } from "@chakra-ui/react";
-import { PiToolbox } from "react-icons/pi";
-import { FaRegFileCode } from "react-icons/fa6";
+import {
+  Wrench,
+  FileCode,
+  MessageSquare,
+  PauseCircle,
+  AlarmClock,
+  StickyNote,
+  StopCircle,
+  Repeat,
+  Variable,
+  FormInput,
+  Volume2,
+} from "lucide-react";
 import { RunCommand } from "@/types";
-import { TbMessageReport } from "react-icons/tb";
-import { MdOutlinePauseCircleOutline } from "react-icons/md";
-import { MdAlarm } from "react-icons/md";
-import { FaRegStickyNote } from "react-icons/fa";
-import { GoStop } from "react-icons/go";
-import { TiArrowRepeat } from "react-icons/ti";
-import { TbVariable } from "react-icons/tb";
-import { SiReacthookform } from "react-icons/si";
-import { PiUserSoundBold } from "react-icons/pi";
 
 interface CommandImageProps {
   config: any;
@@ -25,18 +27,18 @@ const CommandImage: React.FC<CommandImageProps> = (props) => {
 
   const ToolBoxCommandIconMap = (commandName: string) => {
     const commandIconMap = {
-      run_script: <FaRegFileCode style={{ width: "100%", height: "50px" }} />,
-      show_message: <TbMessageReport style={{ width: "100%", height: "50px" }} />,
-      pause: <MdOutlinePauseCircleOutline style={{ width: "100%", height: "50px" }} />,
-      timer: <MdAlarm style={{ width: "100%", height: "50px" }} />,
-      note: <FaRegStickyNote style={{ width: "100%", height: "50px" }} />,
-      stop_run: <GoStop style={{ width: "100%", height: "50px", color: "red" }} />,
-      goto: <TiArrowRepeat style={{ width: "100%", height: "70px" }} />,
-      variable_assignment: <TbVariable style={{ width: "100%", height: "50px" }} />,
-      user_form: <SiReacthookform style={{ width: "100%", height: "50px", strokeWidth: 1 }} />,
-      text_to_speech: <PiUserSoundBold style={{ width: "100%", height: "50px" }} />,
+      run_script: <FileCode style={{ width: "100%", height: "50px" }} />,
+      show_message: <MessageSquare style={{ width: "100%", height: "50px" }} />,
+      pause: <PauseCircle style={{ width: "100%", height: "50px" }} />,
+      timer: <AlarmClock style={{ width: "100%", height: "50px" }} />,
+      note: <StickyNote style={{ width: "100%", height: "50px" }} />,
+      stop_run: <StopCircle style={{ width: "100%", height: "50px", color: "red" }} />,
+      goto: <Repeat style={{ width: "100%", height: "50px" }} />,
+      variable_assignment: <Variable style={{ width: "100%", height: "50px" }} />,
+      user_form: <FormInput style={{ width: "100%", height: "50px" }} />,
+      text_to_speech: <Volume2 style={{ width: "100%", height: "50px" }} />,
     } as Record<string, JSX.Element>;
-    return commandIconMap[commandName] || <PiToolbox style={{ width: "100%", height: "65px" }} />;
+    return commandIconMap[commandName] || <Wrench style={{ width: "100%", height: "65px" }} />;
   };
 
   const renderToolImage = (config: any) => {

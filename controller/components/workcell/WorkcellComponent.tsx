@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
-  Flex,
-  Container,
   VStack,
   useColorModeValue,
   Icon,
@@ -15,7 +13,6 @@ import {
   SimpleGrid,
   Card,
   CardBody,
-  HStack,
   Input,
 } from "@chakra-ui/react";
 import { PageHeader } from "../ui/PageHeader";
@@ -23,8 +20,7 @@ import { NewWorkcellModal } from "./NewWorkcellModal";
 import { trpc } from "@/utils/trpc";
 import { Workcell } from "@/types/api";
 import { WorkcellCard } from "./WorkcellCard";
-import { GiChaingun } from "react-icons/gi";
-import { FaFileImport, FaFileExport } from "react-icons/fa";
+import { Codepen, Upload, Download } from "lucide-react";
 import { useWorkcellIO } from "@/hooks/useWorkcellIO";
 import { successToast, warningToast, errorToast } from "@/components/ui/Toast";
 
@@ -34,9 +30,7 @@ export const WorkcellComponent = () => {
   const { data: selectedWorkcellName, refetch: refetchSelected } =
     trpc.workcell.getSelectedWorkcell.useQuery();
 
-  const containerBg = useColorModeValue("white", "gray.800");
   const headerBg = useColorModeValue("white", "gray.700");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
 
   // Use the custom hook for import/export
   const {
@@ -81,10 +75,9 @@ export const WorkcellComponent = () => {
     return workcells.filter((w) => selectedWorkcellName && w.name === selectedWorkcellName).length;
   };
 
-  // Create the Import button (regular size to match NewWorkcellModal button)
   const importButton = (
     <Button
-      leftIcon={<FaFileImport />}
+      leftIcon={<Upload size={16} />}
       colorScheme="blue"
       variant="outline"
       onClick={handleImportClick}
@@ -94,10 +87,9 @@ export const WorkcellComponent = () => {
     </Button>
   );
 
-  // Create the Export button (regular size to match NewWorkcellModal button)
   const exportButton = (
     <Button
-      leftIcon={<FaFileExport />}
+      leftIcon={<Download size={16} />}
       colorScheme="green"
       variant="outline"
       onClick={onExportConfig}
@@ -116,12 +108,11 @@ export const WorkcellComponent = () => {
               <PageHeader
                 title="Workcells"
                 subTitle="Manage and configure your workcells"
-                titleIcon={<Icon as={GiChaingun} boxSize={8} color="teal.500" />}
+                titleIcon={<Icon as={Codepen} boxSize={8} color="teal.500" />}
                 mainButton={importButton}
                 secondaryButton={exportButton}
                 tertiaryButton={<NewWorkcellModal />}
               />
-
               <Divider />
 
               <StatGroup>

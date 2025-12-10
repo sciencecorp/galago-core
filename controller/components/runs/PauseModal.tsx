@@ -12,7 +12,7 @@ import {
   VStack,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { MdPause } from "react-icons/md";
+import { Pause } from "lucide-react";
 
 interface PauseModalProps {
   isOpen: boolean;
@@ -31,7 +31,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({ isOpen, pauseMessage, on
         <ModalHeader textAlign="center">Run Paused</ModalHeader>
         <ModalBody>
           <VStack spacing={4} py={2}>
-            <Icon as={MdPause} boxSize={12} color={iconColor} />
+            <Icon as={Pause} boxSize={12} color={iconColor} />
             <Text textAlign="center">{pauseMessage}</Text>
           </VStack>
         </ModalBody>

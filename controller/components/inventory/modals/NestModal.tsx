@@ -24,8 +24,12 @@ import {
 import { Nest, Plate, NestStatus, PlateStatus } from "@/types/api";
 import { AddIcon, MinusIcon } from "@chakra-ui/icons";
 import { WellPlateIcon } from "@/components/ui/Icons";
-import { RiCheckFill } from "react-icons/ri";
-import { BsGrid3X3, BsBoxSeam, BsLightningCharge } from "react-icons/bs";
+import {
+  Check, // replaces RiCheckFill
+  Grid3x3, // replaces BsGrid3X3
+  Package, // replaces BsBoxSeam
+  Zap, // replaces BsLightningCharge
+} from "lucide-react";
 import { warningToast, errorToast } from "@/components/ui/Toast";
 import { useCommonColors, useTextColors } from "@/components/ui/Theme";
 
@@ -272,7 +276,7 @@ const NestModal: React.FC<NestModalProps> = ({
             borderRadius="full"
             p="0.5"
             fontSize="xs">
-            <Icon as={RiCheckFill} boxSize={3} />
+            <Icon as={Check} boxSize={3} />
           </Badge>
         )}
       </Box>
@@ -298,7 +302,7 @@ const NestModal: React.FC<NestModalProps> = ({
           <VStack spacing={2} align="stretch">
             <HStack spacing={3} justify="space-between">
               <HStack spacing={3}>
-                <Icon as={BsGrid3X3} boxSize={5} color="teal.500" />
+                <Icon as={Grid3x3} boxSize={5} color="teal.500" />
                 <VStack align="start" spacing={0}>
                   <Text>{toolName}</Text>
                   <Text fontSize="sm" color="gray.500">
@@ -309,7 +313,7 @@ const NestModal: React.FC<NestModalProps> = ({
 
               {onCheckIn && (
                 <Button
-                  leftIcon={<Icon as={BsBoxSeam} />}
+                  leftIcon={<Icon as={Package} />}
                   colorScheme="teal"
                   size="sm"
                   onClick={() => {
@@ -331,9 +335,9 @@ const NestModal: React.FC<NestModalProps> = ({
                   variant="ghost"
                   rightIcon={
                     dimensionMode === "column" ? (
-                      <Icon as={BsGrid3X3} />
+                      <Icon as={Grid3x3} />
                     ) : (
-                      <Icon as={BsGrid3X3} transform="rotate(90deg)" />
+                      <Icon as={Grid3x3} transform="rotate(90deg)" />
                     )
                   }
                   onClick={() => setDimensionMode((prev) => (prev === "column" ? "row" : "column"))}
@@ -367,7 +371,7 @@ const NestModal: React.FC<NestModalProps> = ({
             {isLiconic && containerType === "tool" && (
               <HStack spacing={2} justify="flex-end">
                 <HStack spacing={2}>
-                  <Icon as={BsLightningCharge} color="orange.400" />
+                  <Icon as={Zap} color="orange.400" />
                   <Text fontSize="sm" color={textColor}>
                     Trigger Tool Command
                   </Text>

@@ -33,9 +33,9 @@ import { DeleteWithConfirmation } from "../ui/Delete";
 import { PlusSquareIcon, ChevronUpIcon, TimeIcon } from "@chakra-ui/icons";
 import { QueueStatusComponent } from "./status/QueueStatuscomponent";
 import { getRunAttributes, groupCommandsByRun } from "@/utils/runUtils";
-import { SiGithubactions } from "react-icons/si";
+import { Workflow } from "lucide-react";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
-import { BsInbox } from "react-icons/bs";
+import { Inbox } from "lucide-react";
 import { MessageModal } from "./MessageModal";
 import { TimerModal } from "./TimerModal";
 import { StopRunModal } from "./StopRunModal";
@@ -508,7 +508,7 @@ export const RunsComponent: React.FC = () => {
             <VStack spacing={6} align="stretch">
               <Flex justify="space-between" align="center">
                 <HStack spacing={4}>
-                  <Icon as={SiGithubactions} boxSize={8} color="teal.500" />
+                  <Icon as={Workflow} boxSize={8} color="teal.500" />
                   <VStack align="start" spacing={1}>
                     <Heading size="lg">Run Queue</Heading>
                     <HStack>
@@ -594,7 +594,7 @@ export const RunsComponent: React.FC = () => {
                 renderRunsList()
               ) : (
                 <VStack spacing={3} py={4}>
-                  <Icon as={BsInbox} boxSize={8} color="gray.400" />
+                  <Icon as={Inbox} boxSize={8} color="gray.400" />
                   <Heading size="md" color="gray.400" fontWeight="medium">
                     Queue is Empty
                   </Heading>
