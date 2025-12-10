@@ -76,7 +76,7 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
       <Tooltip label="Create New Script" placement="top">
         <IconButton
           aria-label="New Script"
-          icon={<FileAddIcon />}
+          icon={<FileAddIcon size={16} />}
           colorScheme="teal"
           variant="ghost"
           size="md"

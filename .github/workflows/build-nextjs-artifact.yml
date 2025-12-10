@@ -65,22 +65,21 @@ jobs:
 
           echo "=== Creating artifact from standalone build ==="
 
-          # Copy everything from standalone (includes minimal node_modules, server.js, etc.)
+          # Copy everything from standalone (includes minimal node_modules, server.js, partial .next, etc.)
           cp -r .next/standalone/* ../nextjs-artifact/
 
-          # Standalone doesn't include static files - add them
+          # Standalone doesn't include static files - add them to the existing .next folder
           echo "Adding static files..."
-          mkdir -p ../nextjs-artifact/.next
-          cp -r .next/static ../nextjs-artifact/.next/static
+          cp -r .next/static ../nextjs-artifact/.next/
 
           # Copy public assets
-          if [ -d "public" ]; then 
+          if [ -d "public" ]; then
             echo "Adding public assets..."
             cp -r public ../nextjs-artifact/public
           fi
 
           # Copy gen-interfaces
-          if [ -d "gen-interfaces" ]; then 
+          if [ -d "gen-interfaces" ]; then
             echo "Adding gen-interfaces..."
             cp -r gen-interfaces ../nextjs-artifact/gen-interfaces
           fi
@@ -89,21 +88,23 @@ jobs:
           echo ""
           echo "=== Artifact Structure ==="
           ls -la ../nextjs-artifact/
-          
+
           echo ""
           echo "=== Size Breakdown ==="
           du -sh ../nextjs-artifact/* 2>/dev/null || true
-          
+
           echo ""
           echo "=== .next folder contents ==="
           if [ -d "../nextjs-artifact/.next" ]; then
             ls -la ../nextjs-artifact/.next/
+            echo ""
+            echo "=== .next subdirectories ==="
             du -sh ../nextjs-artifact/.next/* 2>/dev/null || true
           else
             echo "ERROR: .next folder not found!"
             exit 1
           fi
-          
+
           echo ""
           echo "=== node_modules size ==="
           if [ -d "../nextjs-artifact/node_modules" ]; then
@@ -111,11 +112,11 @@ jobs:
           else
             echo "WARNING: node_modules not found!"
           fi
-          
+
           echo ""
           echo "=== Total artifact size ==="
           du -sh ../nextjs-artifact
-          
+
           echo ""
           echo "=== Verifying required files ==="
           if [ ! -f "../nextjs-artifact/server.js" ]; then
@@ -124,6 +125,10 @@ jobs:
           fi
           if [ ! -d "../nextjs-artifact/.next/static" ]; then
             echo "ERROR: .next/static not found!"
+            exit 1
+          fi
+          if [ ! -d "../nextjs-artifact/.next/server" ]; then
+            echo "ERROR: .next/server not found (should be from standalone)!"
             exit 1
           fi
           echo "✓ All required files present"
@@ -148,20 +153,29 @@ jobs:
       - name: Determine release tag
         id: release_tag
         run: |
+          # Get branch name and sanitize it for artifact names
           BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          BRANCH_NAME="${BRANCH_NAME#refs/pull/}"
+          BRANCH_NAME="${BRANCH_NAME%/merge}"
+
+          # Replace invalid characters for artifact names (/, :, <, >, |, *, ?, \r, \n, \, ")
+          SAFE_BRANCH_NAME=$(echo "$BRANCH_NAME" | sed 's/[\/:<>|*?\\"]/-/g')
+
           if [ "$BRANCH_NAME" = "main" ]; then
             TAG="nextjs-latest"
           else
             TAG="nextjs-${BRANCH_NAME}-latest"
           fi
+
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "safe_branch=$SAFE_BRANCH_NAME" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: Upload artifact (for testing)
         uses: actions/upload-artifact@v4
         with:
-          name: nextjs-production-${{ steps.release_tag.outputs.branch }}
+          name: nextjs-production-${{ steps.release_tag.outputs.safe_branch }}
           path: |
             nextjs-production-win-x64.zip
             nextjs-production-win-x64.zip.sha256

@@ -288,7 +288,7 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
         />
         <MenuList minW="auto">
           <MenuItem
-            icon={<EditIcon />}
+            icon={<EditIcon size={12} />}
             onClick={(e) => {
               e.stopPropagation();
               setIsEditing(true);
@@ -296,7 +296,7 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
             Rename
           </MenuItem>
           <MenuItem
-            icon={<DeleteIcon />}
+            icon={<DeleteIcon size={12} />}
             onClick={(e) => {
               e.stopPropagation();
               onDelete(script);
