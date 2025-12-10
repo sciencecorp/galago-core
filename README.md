@@ -18,7 +18,7 @@ Galago consists of several distinct modules:
 
 ## Features
 
-- 🔬 **Multi-device orchestration** - Coordinate multiple laboratory instruments simultaneously
+- 🔬 **Multi-device orchestration** - Coordinate multiple laboratory instruments.
 - 📋 **Protocol management** - Create, edit, and execute complex laboratory protocols
 - 📊 **Real-time monitoring** - Live status updates and logging of all device operations
 - 🗄️ **Inventory tracking** - Manage labware, samples, and consumables
@@ -29,12 +29,14 @@ Galago consists of several distinct modules:
 
 ### Prerequisites
 
-- **Node.js** 18.13 or higher
+- **Node.js** 18
 - **Python** 3.11
-- **Docker** and **Docker Compose** (recommended for development)
+- **Docker** and **Docker Compose**
 - **Redis** (for queue management)
 
-### Fork the Repository (Recommended)
+## 📦 Installation
+
+### Option 1: Fork the Repository (For contributors)
 
 If you plan to contribute or customize Galago, start by forking the repository:
 
@@ -53,30 +55,29 @@ If you plan to contribute or customize Galago, start by forking the repository:
    git remote add upstream https://github.com/your-org/galago-core.git
 ```
 
-### Quick Start with Docker (Recommended)
+4.  **Install grpcio dependencies on a local environment (for proto files, testing, linting, etc)**
 
-2. **Install grpcio dependencies on a local environment (for proto files, testing, linting, etc)**
-   ```bash
+```bash 
    bin/make deps 
-   ```
+```
 
-3. **Generate proto files**
-   ```bash 
+5. **Generate proto files**
+```bash 
    bin/make proto
-   ```
+```
 
-2. **Launch development environment**
-
-   ```bash
+6. **Launch development environment**
+```bash
    docker-compose -f docker-compose.dev.yml up --build
-   ```
+```
 
-3. **Access the application**
+8. **Access the application**
    - Web Interface: http://localhost:3010
    - Database API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
 
-### Manual Setup
+
+### Option 2: Manual Setup
 
 If you prefer to run without Docker:
 
@@ -113,15 +114,14 @@ npm install
 npm run dev
 ```
 
-## Production Deployment
+### Option 3: Production Deployment
 
-For production deployment:
+If you just need to get started without making changes to the codebase you can launch the production images directly using docker compose. 
 
-```bash
-
-# Launch production stack
+```bash 
 docker-compose up -d
 ```
+
 
 ## Other docker commands
 
@@ -143,23 +143,6 @@ docker-compose -f docker-compose.dev.yml up --build db
 
 #add npm deps to dev environment
 docker exec -it galago-web-dev npm install <package name>
-```
-
-## Using conda
-
-### Build the base environmnent
-
-```
-conda create -n galago
-conda activate galago #mac
-source activate galago #windows
-```
-
-### Build dependencies
-
-```
-bin/make deps
-bin/make proto
 ```
 
 ## Redis
@@ -189,17 +172,16 @@ sudo apt-get install redis
 sudo service redis-server start
 ```
 
-## Contributing
+## 🤝 Contributing
 
-We welcome contributions to Galago! Please follow these guidelines:
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
-### Development Workflow
+1. **[Fork Galago Core →](https://github.com/sciencecorp/galago-core/fork)**
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-1. **Fork the repository** and create a feature branch
-2. **Set up development environment** using Docker Compose
-3. **Make your changes** following the existing code style
-4. **Test your changes** thoroughly
-5. **Submit a pull request** with a clear description
 
 ### Code Style
 
@@ -216,12 +198,6 @@ To integrate a new laboratory instrument:
 3. Update the controller to recognize the new tool type
 4. Add appropriate UI components for tool-specific operations
 
-## Security
-
-- **Never commit sensitive information** (API keys, passwords, etc.)
-- **Use environment variables** for configuration
-- **Keep dependencies updated** regularly
-- **Report security issues** privately to the maintainers
 
 ## Troubleshooting
 
@@ -239,36 +215,9 @@ docker-compose -f docker-compose.dev.yml down --rmi all
 docker-compose -f docker-compose.dev.yml up --build
 ```
 
-**Redis connection issues:**
-
-```bash
-# Verify Redis is running
-redis-cli ping
-
-# Check Redis logs
-docker-compose logs queue
-```
-
 **Port conflicts:**
-
 - Web interface (3010), Database API (8000), Redis (1203)
 - Modify port mappings in docker-compose files if needed
-
-## Architecture Details
-
-### Data Flow
-
-1. **User Interface** (Next.js) → tRPC calls → **Controller Server**
-2. **Controller Server** → HTTP API calls → **Database Service**
-3. **Controller Server** → gRPC calls → **Tool Drivers**
-4. **Queue System** (Redis) manages asynchronous protocol execution
-
-### Database Schema
-
-- **Inventory**: Labware, samples, and consumables tracking
-- **Protocols**: Stored procedures and execution templates
-- **Runs**: Execution history and results
-- **Logs**: System events and device communications
 
 ## License
 
