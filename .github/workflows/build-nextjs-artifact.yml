@@ -73,19 +73,27 @@ jobs:
           ls -la .next/standalone/.next/
           echo ""
 
-          # Copy everything from standalone (includes minimal node_modules, server.js, .next with server folder)
+          # Copy everything from standalone INCLUDING hidden folders
           echo "Copying standalone files..."
+          # Use shopt to include hidden files, or use a different approach
+          shopt -s dotglob 2>/dev/null || true
           cp -r .next/standalone/* ../nextjs-artifact/
+          shopt -u dotglob 2>/dev/null || true
+
+          # Alternative: explicitly copy .next folder if it wasn't copied
+          if [ ! -d "../nextjs-artifact/.next" ]; then
+            echo "WARNING: .next folder wasn't copied, copying explicitly..."
+            cp -r .next/standalone/.next ../nextjs-artifact/
+          fi
 
           # Debug: Check what was copied
           echo ""
           echo "DEBUG: What's in artifact/.next after standalone copy?"
-          ls -la ../nextjs-artifact/.next/
+          ls -la ../nextjs-artifact/.next/ || echo "ERROR: .next folder not found!"
           echo ""
 
           # Standalone doesn't include static files - add them
           echo "Adding static files..."
-          # Make sure we copy the static FOLDER, not its contents
           if [ -d ".next/static" ]; then
             mkdir -p ../nextjs-artifact/.next/static
             cp -r .next/static/* ../nextjs-artifact/.next/static/
