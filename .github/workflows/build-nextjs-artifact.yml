@@ -67,8 +67,21 @@ jobs:
 
           echo "=== Creating artifact from standalone build ==="
 
+          # Debug: Check what's in standalone before copying
+          echo ""
+          echo "DEBUG: What's in standalone/.next before copy?"
+          ls -la .next/standalone/.next/
+          echo ""
+
           # Copy everything from standalone (includes minimal node_modules, server.js, .next with server folder)
+          echo "Copying standalone files..."
           cp -r .next/standalone/* ../nextjs-artifact/
+
+          # Debug: Check what was copied
+          echo ""
+          echo "DEBUG: What's in artifact/.next after standalone copy?"
+          ls -la ../nextjs-artifact/.next/
+          echo ""
 
           # Standalone doesn't include static files - add them
           echo "Adding static files..."
@@ -81,6 +94,12 @@ jobs:
             ls -la .next/
             exit 1
           fi
+
+          # Debug: Final state
+          echo ""
+          echo "DEBUG: What's in artifact/.next after static copy?"
+          ls -la ../nextjs-artifact/.next/
+          echo ""
 
           # Copy public assets
           if [ -d "public" ]; then
