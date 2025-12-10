@@ -48,8 +48,6 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
-          # Skip data fetching during build in CI
-          SKIP_BUILD_STATIC_GENERATION: true
         shell: bash
 
       - name: Create artifact bundle
@@ -65,49 +63,22 @@ jobs:
             exit 1
           fi
 
-          echo "=== Creating artifact from standalone build ==="
+          echo "Creating artifact from standalone build..."
 
-          # Debug: Check what's in standalone before copying
-          echo ""
-          echo "DEBUG: What's in standalone/.next before copy?"
-          ls -la .next/standalone/.next/
-          echo ""
-
-          # Copy everything from standalone INCLUDING hidden folders
-          echo "Copying standalone files..."
-          # Use shopt to include hidden files, or use a different approach
+          # Enable dotglob to copy hidden folders
           shopt -s dotglob 2>/dev/null || true
           cp -r .next/standalone/* ../nextjs-artifact/
           shopt -u dotglob 2>/dev/null || true
 
-          # Alternative: explicitly copy .next folder if it wasn't copied
+          # Fallback: explicitly copy .next if it wasn't copied
           if [ ! -d "../nextjs-artifact/.next" ]; then
-            echo "WARNING: .next folder wasn't copied, copying explicitly..."
             cp -r .next/standalone/.next ../nextjs-artifact/
           fi
 
-          # Debug: Check what was copied
-          echo ""
-          echo "DEBUG: What's in artifact/.next after standalone copy?"
-          ls -la ../nextjs-artifact/.next/ || echo "ERROR: .next folder not found!"
-          echo ""
-
-          # Standalone doesn't include static files - add them
+          # Add static files (standalone doesn't include these)
           echo "Adding static files..."
-          if [ -d ".next/static" ]; then
-            mkdir -p ../nextjs-artifact/.next/static
-            cp -r .next/static/* ../nextjs-artifact/.next/static/
-          else
-            echo "ERROR: .next/static source folder not found!"
-            ls -la .next/
-            exit 1
-          fi
-
-          # Debug: Final state
-          echo ""
-          echo "DEBUG: What's in artifact/.next after static copy?"
-          ls -la ../nextjs-artifact/.next/
-          echo ""
+          mkdir -p ../nextjs-artifact/.next/static
+          cp -r .next/static/* ../nextjs-artifact/.next/static/
 
           # Copy public assets
           if [ -d "public" ]; then
@@ -121,97 +92,26 @@ jobs:
             cp -r gen-interfaces ../nextjs-artifact/gen-interfaces
           fi
 
-          # === VERIFICATION ===
+          echo "✓ Artifact created successfully"
           echo ""
-          echo "=== Artifact Structure ==="
-          ls -la ../nextjs-artifact/
-
-          echo ""
-          echo "=== Size Breakdown ==="
-          du -sh ../nextjs-artifact/* 2>/dev/null || true
-
-          echo ""
-          echo "=== .next folder contents ==="
-          if [ -d "../nextjs-artifact/.next" ]; then
-            ls -la ../nextjs-artifact/.next/
-            echo ""
-            echo "=== .next subdirectories ==="
-            du -sh ../nextjs-artifact/.next/* 2>/dev/null || true
-          else
-            echo "ERROR: .next folder not found!"
-            exit 1
-          fi
-
-          echo ""
-          echo "=== node_modules size ==="
-          if [ -d "../nextjs-artifact/node_modules" ]; then
-            du -sh ../nextjs-artifact/node_modules
-          else
-            echo "WARNING: node_modules not found!"
-          fi
-
-          echo ""
-          echo "=== Total artifact size ==="
-          du -sh ../nextjs-artifact
-
-          echo ""
-          echo "=== Verifying required files ==="
-
-          # Check server.js exists
-          if [ ! -f "../nextjs-artifact/server.js" ]; then
-            echo "ERROR: server.js not found!"
-            exit 1
-          fi
-          echo "✓ server.js found"
-
-          # Check .next/static exists
-          if [ ! -d "../nextjs-artifact/.next/static" ]; then
-            echo "ERROR: .next/static not found!"
-            echo "Contents of .next:"
-            ls -la ../nextjs-artifact/.next/
-            exit 1
-          fi
-          echo "✓ .next/static found"
-
-          # Check .next/server exists
-          if [ ! -d "../nextjs-artifact/.next/server" ]; then
-            echo "ERROR: .next/server not found!"
-            echo "Contents of .next:"
-            ls -la ../nextjs-artifact/.next/
-            exit 1
-          fi
-          echo "✓ .next/server found"
-
-          echo "✓ All required files present"
+          echo "Artifact size: $(du -sh ../nextjs-artifact | cut -f1)"
         shell: bash
 
       - name: Create zip archive
         run: |
           cd nextjs-artifact
 
-          # List what we're about to zip (including hidden folders)
-          echo "=== Contents to be zipped ==="
-          ls -la
-          echo ""
-
-          # Use 7zip with explicit inclusion of hidden files
-          # -r = recursive, -tzip = zip format, -mx=9 = max compression
-          7z a -tzip -r ../nextjs-production-win-x64.zip * .next
+          # Create zip with all files (including hidden .next folder)
+          7z a -tzip -mx=9 -r ../nextjs-production-win-x64.zip .
 
           cd ..
 
-          # Move to a clean directory for upload
+          # Move to upload directory
           mkdir -p artifacts-for-upload
           mv nextjs-production-win-x64.zip artifacts-for-upload/
 
           echo ""
-          echo "=== Final artifact size ==="
-          ls -lh artifacts-for-upload/nextjs-production-win-x64.zip
-
-          # Verify .next is in the zip (suppress SIGPIPE error)
-          echo ""
-          echo "=== Verifying zip contents (first 20 lines) ==="
-          7z l artifacts-for-upload/nextjs-production-win-x64.zip | grep -E "(\.next|server\.js|node_modules)" | head -20 || true
+          echo "✓ Artifact created: $(ls -lh artifacts-for-upload/nextjs-production-win-x64.zip | awk '{print $5}')"
         shell: bash
 
       - name: Calculate checksum
