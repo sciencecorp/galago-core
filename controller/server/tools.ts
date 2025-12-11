@@ -30,7 +30,8 @@ export default class Tool {
   constructor(info: controller_protos.ToolConfig) {
     this.info = info;
     this.config = info.config;
-    const grpcServerIp = info.ip === "localhost" ? "host.docker.internal" : info.ip;
+
+    const grpcServerIp = process.env.GRPC_HOST || info.ip;
     const target = `${grpcServerIp}:${info.port}`;
 
     this.grpc = promisifyGrpcClient(
@@ -540,7 +541,7 @@ export default class Tool {
       type: "toolbox" as ToolType,
       description: "General Tools",
       image_url: "/tool_icons/toolbox.png",
-      ip: "host.docker.internal",
+      ip: "localhost",
       port: 1010,
       config: {
         toolId: "Tool Box",
