@@ -89,13 +89,6 @@ bin/make proto
 
 #### 2. Start Redis (if not using Docker)
 
-```bash
-# macOS
-bin/make redis
-
-# Or install manually
-redis-server
-```
 
 #### 3. Start the database service
 
@@ -168,26 +161,11 @@ Local install (if not using docker)
 
 ### For Mac (zsh)
 
-```zsh
-#Install and start redis
-bin/make redis
-
-#Confirm that the server is up
-redis-cli ping
-```
-
 ### For Windows (using WSL)
 
 1. Install Ubuntu via WSL following [these instructions](https://learn.microsoft.com/en-us/windows/wsl/install).
 2. Inside WSL:
 
-```
-curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
-echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
-sudo apt-get update
-sudo apt-get install redis
-sudo service redis-server start
-```
 
 ## Contributing
 
@@ -237,16 +215,6 @@ docker-compose logs galago-db-dev
 # Rebuild containers
 docker-compose -f docker-compose.dev.yml down --rmi all
 docker-compose -f docker-compose.dev.yml up --build
-```
-
-**Redis connection issues:**
-
-```bash
-# Verify Redis is running
-redis-cli ping
-
-# Check Redis logs
-docker-compose logs queue
 ```
 
 **Port conflicts:**
