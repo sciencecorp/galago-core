@@ -2,10 +2,11 @@ import { Run, RunQueue } from "@/types";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import RunStore from "./runs";
 import Tool from "./tools";
-import redis from "./utils/redis";
-import RedisQueue, { StoredRunCommand } from "./utils/RedisQueue";
+import SqliteQueue, { StoredRunCommand } from "./utils/SqliteQueue";
+import path from "path";
+import fs from "fs";
 import { Console, log } from "console";
-import { logger } from "@/logger"; // our logger import
+import { logger } from "@/logger";
 import { ToolType } from "gen-interfaces/controller";
 import { logAction } from "./logger";
 import { get, put } from "@/server/utils/api";
@@ -45,10 +46,17 @@ export class CommandQueue {
   private _messageResolve?: () => void;
   private _timerTimeout?: NodeJS.Timeout;
 
-  commands: RedisQueue;
+  commands: SqliteQueue;
 
   constructor(public runStore: RunStore) {
-    this.commands = new RedisQueue(redis, "command_queue_2");
+    const dbPath = process.env.SQLITE_DB_PATH || path.join(process.cwd(), "data", "queue.db");
+
+    const dir = path.dirname(dbPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    this.commands = new SqliteQueue(dbPath, "command_queue_2");
   }
 
   fail(error: any) {
