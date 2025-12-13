@@ -18,11 +18,10 @@ export const GlobalQueueStatusIndicator: React.FC = () => {
 
   const isRunning = stateQuery.data === ToolStatus.BUSY;
   const isFailed = stateQuery.data === ToolStatus.FAILED;
-  const hasError = getError.data && getError.data.length > 0;
 
   // Determine status - check error state OR failed status
   const getStatusConfig = () => {
-    if (hasError || isFailed) {
+    if (isFailed) {
       return {
         color: "#ef4444",
         icon: AlertTriangle,
@@ -62,7 +61,7 @@ export const GlobalQueueStatusIndicator: React.FC = () => {
       px={3}
       py={2}>
       <HStack spacing={2}>
-        {hasError || isFailed ? (
+        {isFailed ? (
           <AlertTriangle size={18} color={status.color} />
         ) : (
           <Box
