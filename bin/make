@@ -2,7 +2,7 @@
 
 PROTOC_GEN_TS_PATH=".\\controller\\node_modules\\.bin\\protoc-gen-ts_proto"
 PROTO_SRC="./interfaces"
-ENV_NAME="galago-core" 
+ENV_NAME="galago-core"
 
 # Install dependencies for tool servers, controller, and protobuf generator
 deps() {
@@ -23,34 +23,12 @@ python_deps() {
   python -m pip install grpcio-tools
   python -m pip install black
   echo "Python Dependencies Installed"
-} 
+}
 
 npm_deps() {
   echo "Installing Node Dependencies"
   (cd controller && npm install)
   echo "Node Dependencies Installed"
-}
-
-#create local redis database for local dev (mac only)
-redis() {
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-  # Check if Homebrew is installed
-  if ! command -v brew &> /dev/null; then
-    echo "Homebrew not found. Installing Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  else
-    echo "Homebrew is already installed."
-  fi
-
-  # Install Redis
-  if ! command -v redis-server &> /dev/null; then
-    echo "Installing Redis..."
-    brew install redis
-    brew services start redis
-    echo "Redis service is running."
-  else
-    echo "Redis is already installed and running."
-  fi
 }
 
 test() {
@@ -76,7 +54,7 @@ test_py() {
   echo "Ruff Check"
   ruff check .
   echo "Mypy Check Db"
-  mypy db 
+  mypy db
 }
 
 unittest_py() {

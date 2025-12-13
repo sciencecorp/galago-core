@@ -13,16 +13,16 @@ controller/out/
 controller/build
 controller/gen-interfaces/
 controller/app.log
-stdout.txt 
-tmp_file.py 
+stdout.txt
+tmp_file.py
 
-#tools 
+#tools
 tools/pf400/config/*.json
 
 # misc
 .DS_Store
 *.pem
-.vscode/ 
+.vscode/
 trace_log.log
 *log
 workcells/*.log
@@ -45,7 +45,7 @@ controller/app.log
 Procfile.*
 Procfile.tools
 
-*.pdf 
+*.pdf
 
 # vercel
 .vercel
@@ -62,6 +62,10 @@ next-env.d.ts
 **/inventory.db
 **/*.egg-info
 .mypy_cache
+# SQLite files
+*.db
+*.db-wal
+*.db-shm
 
 #windows exe in root folder
 

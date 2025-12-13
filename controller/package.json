@@ -30,11 +30,11 @@
     "avvvatars-react": "^0.4.2",
     "axios": "^1.4.0",
     "base32": "^0.0.7",
+    "better-sqlite3": "^12.5.0",
     "eslint": "8.32.0",
     "eslint-config-next": "13.1.2",
     "framer-motion": "^8.5.5",
     "google-protobuf": "^3.21.2",
-    "ioredis": "^5.3.0",
     "jsbarcode": "^3.11.6",
     "log-timestamp": "^0.3.0",
     "lucide-react": "^0.556.0",
@@ -57,6 +57,7 @@
     "zod": "^3.20.2"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/google-protobuf": "~3.15.12",
     "@types/luxon": "^3.3.0",
     "@types/minimist": "^1.2.2",
