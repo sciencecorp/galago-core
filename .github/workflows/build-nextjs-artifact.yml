@@ -2,14 +2,10 @@ name: Build Next.js Artifact
 
 on:
   push:
-    branches: [main, production-asset-artifact]
-    paths:
-      - "controller/**"
-      - ".github/workflows/build-nextjs-artifact.yml"
-  pull_request:
     branches: [main]
     paths:
       - "controller/**"
+      - ".github/workflows/build-nextjs-artifact.yml"
   workflow_dispatch:
     inputs:
       branch:

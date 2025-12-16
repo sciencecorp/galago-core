@@ -104,7 +104,7 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
             colorScheme="orange"
             variant="solid"
             onClick={() => pause()}>
-            Pause Queue
+            Pause
           </Button>
         ) : (
           <Button
@@ -113,7 +113,7 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
             variant="solid"
             onClick={() => onOpen()}
             isDisabled={totalRuns === 0}>
-            Start Queue
+            Start
           </Button>
         )}
         <Button

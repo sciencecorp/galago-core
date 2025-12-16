@@ -1,14 +1,4 @@
 services:
-  queue:
-    image: redis:6.2-alpine
-    restart: unless-stopped
-    container_name: redis
-    command: redis-server --save 20 1 --loglevel warning
-    ports:
-      - "1203:6379"
-    networks:
-      - app-network
-
   galago-web-dev:
     build:
       context: .
@@ -26,7 +16,6 @@ services:
       - GRPC_SERVER_IP=host.docker.internal
       - API_BASE_URL=http://db:8000/api
       - GRPC_HOST=host.docker.internal
-      - REDIS_HOST=redis://queue:6379/1
     stdin_open: true # for debugging
     tty: true # for debugging
     #network_mode: "host"
@@ -60,7 +49,6 @@ services:
 
 volumes:
   sqlite_data:
-  redis_data:
   node_modules:
   npm_cache:
 

@@ -1,17 +1,5 @@
 #Production docker-compose file
 services:
-  queue:
-    image: redis:6.2-alpine
-    restart: always
-    container_name: redis
-    command: redis-server --save 20 1 --loglevel warning
-    volumes:
-      - redis_data:/data
-    ports:
-      - "1203:6379"
-    networks:
-      - app-network
-
   galago-web:
     # image: ghcr.io/sciencecorp/galago-web:latest
     build:
@@ -26,7 +14,6 @@ services:
       - PORT=3010
       - GRPC_SERVER_IP=localhost
       - API_BASE_URL=http://db:8000/api
-      - REDIS_HOST=redis://queue:6379/1
     depends_on:
       - queue
       - db
@@ -55,7 +42,6 @@ services:
       retries: 3
 
 volumes:
-  redis_data:
   sqlite_data:
 
 networks:

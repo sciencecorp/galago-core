@@ -23,6 +23,7 @@ import { WorkcellCard } from "./WorkcellCard";
 import { Codepen, Upload, Download } from "lucide-react";
 import { useWorkcellIO } from "@/hooks/useWorkcellIO";
 import { successToast, warningToast, errorToast } from "@/components/ui/Toast";
+import { WorkcellIcon } from "@/components/ui/Icons";
 
 export const WorkcellComponent = () => {
   const { data: fetchedWorkcells, refetch } = trpc.workcell.getAll.useQuery();
@@ -108,7 +109,7 @@ export const WorkcellComponent = () => {
               <PageHeader
                 title="Workcells"
                 subTitle="Manage and configure your workcells"
-                titleIcon={<Icon as={Codepen} boxSize={8} color="teal.500" />}
+                titleIcon={<Icon as={WorkcellIcon} boxSize={8} color="teal.500" />}
                 mainButton={importButton}
                 secondaryButton={exportButton}
                 tertiaryButton={<NewWorkcellModal />}

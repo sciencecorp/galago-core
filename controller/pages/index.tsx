@@ -33,6 +33,7 @@ import {
 import Link from "next/link";
 import { Plate } from "@/types/api";
 import { Calendar } from "@/components/calendar/Calendar";
+import { WorkcellIcon } from "../components/ui/Icons";
 
 export default function Page() {
   useEffect(() => {
@@ -239,7 +240,7 @@ export default function Page() {
                         <Heading size="md">Workcells</Heading>
                         <Text color="gray.500">Automation cells</Text>
                       </VStack>
-                      <Icon as={Cpu} boxSize={8} color={iconColor} />
+                      <Icon as={WorkcellIcon} boxSize={8} color={iconColor} />
                     </HStack>
                     <Divider />
                     <Stat>
