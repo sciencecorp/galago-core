@@ -1,4 +1,4 @@
-import React, { useState, ReactNode, useEffect } from "react";
+import React, { useState, ReactNode } from "react";
 import {
   Box,
   Flex,
@@ -19,8 +19,6 @@ import {
 } from "@chakra-ui/react";
 import {
   Home,
-  PanelLeftClose,
-  ArrowRightLeft,
   Wrench,
   Variable,
   Code2,
@@ -30,9 +28,7 @@ import {
   GanttChart,
   Package,
   Layers,
-  Codepen,
   List,
-  FileText,
   Moon,
   Sun,
 } from "lucide-react";
@@ -57,7 +53,7 @@ const sidebarItems: SidebarItem[] = [
   { name: "Runs", icon: GanttChart, path: "/runs" },
   { name: "Workcells", icon: WorkcellIcon, path: "/workcells" },
   { name: "Tools", icon: Wrench, path: "/tools" },
-  { name: "Protocols", icon: GitBranch, path: "/protocols" },
+  { name: "Runs", icon: GitBranch, path: "/protocols" },
   { name: "Forms", icon: List, path: "/forms" },
   { name: "Inventory", icon: Package, path: "/inventory" },
   // { name: "Schedule", icon: CalendarCheck, path: "/schedule" },

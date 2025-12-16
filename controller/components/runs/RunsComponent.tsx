@@ -510,7 +510,7 @@ export const RunsComponent: React.FC = () => {
                 <HStack spacing={4}>
                   <Icon as={Workflow} boxSize={8} color="teal.500" />
                   <VStack align="start" spacing={1}>
-                    <Heading size="lg">Run Queue</Heading>
+                    <Heading size="lg">Protocol Runs</Heading>
                     <HStack>
                       <Badge
                         colorScheme={
