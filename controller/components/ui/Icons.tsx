@@ -28,6 +28,7 @@ import {
   FilePlus,
   Download,
   Upload,
+  Cpu,
 } from "lucide-react";
 
 // Types
@@ -105,6 +106,7 @@ export {
   Minimize2 as UnwindIcon,
   Download as DownloadIcon,
   Upload as UploadIcon,
+  Cpu as WorkcellIcon,
 };
 
 // Custom Icon Components

@@ -40,6 +40,7 @@ import { LucideIcon } from "lucide-react";
 import { capitalizeFirst } from "@/utils/parser";
 import { useRouter } from "next/router";
 import { useSidebarTheme } from "./Theme";
+import { WorkcellIcon } from "./Icons";
 
 interface SidebarItem {
   name: string;
@@ -54,7 +55,7 @@ interface SidebarProps {
 const sidebarItems: SidebarItem[] = [
   { name: "Home", icon: Home, path: "/" },
   { name: "Runs", icon: GanttChart, path: "/runs" },
-  { name: "Workcells", icon: Codepen, path: "/workcells" },
+  { name: "Workcells", icon: WorkcellIcon, path: "/workcells" },
   { name: "Tools", icon: Wrench, path: "/tools" },
   { name: "Protocols", icon: GitBranch, path: "/protocols" },
   { name: "Forms", icon: List, path: "/forms" },

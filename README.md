@@ -14,7 +14,6 @@ Galago consists of several distinct modules:
 - **Controller**: A Next.js + tRPC web application that provides the user interface, manages device orchestration, protocol execution, and scheduling
 - **Database API**: A FastAPI-based service that handles data persistence for inventory, protocols, and logs
 - **Tool Drivers**: [Separate repository](https://github.com/sciencecorp/galago-tools) containing gRPC-based drivers for laboratory equipment
-- **Queue System**: Redis-based task queue for managing protocol execution and device coordination
 
 ## Features
 
@@ -87,10 +86,7 @@ bin/make deps
 bin/make proto
 ```
 
-#### 2. Start Redis (if not using Docker)
-
-
-#### 3. Start the database service
+#### 2. Start the database service
 
 ```bash
 cd db
@@ -98,7 +94,7 @@ pip install -r requirements.txt
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-#### 4. Start the web controller
+#### 3. Start the web controller
 
 ```bash
 cd controller
@@ -154,18 +150,6 @@ source activate galago #windows
 bin/make deps
 bin/make proto
 ```
-
-## Redis
-
-Local install (if not using docker)
-
-### For Mac (zsh)
-
-### For Windows (using WSL)
-
-1. Install Ubuntu via WSL following [these instructions](https://learn.microsoft.com/en-us/windows/wsl/install).
-2. Inside WSL:
-
 
 ## Contributing
 
