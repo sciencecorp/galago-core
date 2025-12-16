@@ -53,7 +53,7 @@ const sidebarItems: SidebarItem[] = [
   { name: "Runs", icon: GanttChart, path: "/runs" },
   { name: "Workcells", icon: WorkcellIcon, path: "/workcells" },
   { name: "Tools", icon: Wrench, path: "/tools" },
-  { name: "Runs", icon: GitBranch, path: "/protocols" },
+  { name: "runs", icon: GitBranch, path: "/protocols" },
   { name: "Forms", icon: List, path: "/forms" },
   { name: "Inventory", icon: Package, path: "/inventory" },
   // { name: "Schedule", icon: CalendarCheck, path: "/schedule" },
@@ -123,6 +123,11 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             src="/site_logo.svg"
             alt="logo"
             filter={logoFilter}></Image>
+          {isSidebarExpanded && (
+            <Text fontWeight="bold" fontSize="2xl">
+              Galago
+            </Text>
+          )}
         </HStack>
 
         {sidebarItems.map((item) => (
