@@ -124,7 +124,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             alt="logo"
             filter={logoFilter}></Image>
           {isSidebarExpanded && (
-            <Text fontWeight="bold" fontSize="2xl">
+            <Text fontWeight="bold" fontSize="2xl" fontFamily="monospace">
               Galago
             </Text>
           )}
