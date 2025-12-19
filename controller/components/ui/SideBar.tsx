@@ -1,4 +1,4 @@
-import React, { useState, ReactNode, useEffect } from "react";
+import React, { useState, ReactNode } from "react";
 import {
   Box,
   Flex,
@@ -19,12 +19,9 @@ import {
 } from "@chakra-ui/react";
 import {
   Home,
-  PanelLeftClose,
-  ArrowRightLeft,
   Wrench,
   Variable,
   Code2,
-  CalendarCheck,
   GitBranch,
   Book,
   GanttChart,
@@ -32,14 +29,15 @@ import {
   Layers,
   Codepen,
   List,
-  FileText,
   Moon,
   Sun,
+  Settings,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import { capitalizeFirst } from "@/utils/parser";
 import { useRouter } from "next/router";
 import { useSidebarTheme } from "./Theme";
+import SettingsModal from "@/components/settings/Settings"; // Import the settings modal
 
 interface SidebarItem {
   name: string;
@@ -59,7 +57,6 @@ const sidebarItems: SidebarItem[] = [
   { name: "Protocols", icon: GitBranch, path: "/protocols" },
   { name: "Forms", icon: List, path: "/forms" },
   { name: "Inventory", icon: Package, path: "/inventory" },
-  // { name: "Schedule", icon: CalendarCheck, path: "/schedule" },
   { name: "Labware", icon: Layers, path: "/labware" },
   { name: "Logs", icon: Book, path: "/logs" },
   { name: "Variables", icon: Variable, path: "/variables" },
@@ -74,16 +71,45 @@ function DarkModeToggle() {
       icon={colorMode === "light" ? <Moon /> : <Sun />}
       aria-label="Toggle dark mode"
       position="fixed"
-      bottom="20px"
+      bottom="60px"
       left="20px"
       bg="transparent"
+      _hover={{ bg: useColorModeValue("gray.200", "gray.700") }}
     />
+  );
+}
+
+function SettingsButton({ onClick }: { onClick: () => void }) {
+  const hoverBg = useColorModeValue("gray.200", "gray.700");
+
+  return (
+    <Tooltip label="Settings" placement="right">
+      <IconButton
+        onClick={onClick}
+        icon={<Settings size={20} />}
+        aria-label="Open settings"
+        position="fixed"
+        bottom="20px"
+        left="20px"
+        bg="transparent"
+        _hover={{
+          bg: hoverBg,
+          transform: "rotate(90deg)",
+        }}
+        transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+      />
+    </Tooltip>
   );
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isSettingsOpen,
+    onOpen: onSettingsOpen,
+    onClose: onSettingsClose,
+  } = useDisclosure();
   const isMobile = useBreakpointValue({ base: true, md: false });
   const router = useRouter();
   const theme = useSidebarTheme();
@@ -97,10 +123,9 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
     } else if (isMobile && isSidebarExpanded) {
       onClose();
     }
-    setIsSidebarExpanded((prev) => !prev); // Toggle the expanded state on larger screens
+    setIsSidebarExpanded((prev) => !prev);
   };
 
-  // Move the hook outside of conditional rendering
   const logoFilter = useColorModeValue("none", "invert(1)");
 
   const transitionProps = {
@@ -117,7 +142,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       borderColor={theme.borderColor}
       height="100%"
       {...transitionProps}>
-      <VStack left={0} p={1} spacing={4} align="stretch" width="100%">
+      <VStack left={0} p={1} spacing={2} align="stretch" width="100%">
         <HStack pb={10} pl={2} pt={2} width="100%" position="relative">
           <Image
             onClick={toggleSidebar}
@@ -125,7 +150,9 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             paddingLeft="0"
             src="/site_logo.svg"
             alt="logo"
-            filter={logoFilter}></Image>
+            filter={logoFilter}
+            cursor="pointer"
+          />
         </HStack>
 
         {sidebarItems.map((item) => (
@@ -145,7 +172,8 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             alignItems="center"
             justifyContent={isSidebarExpanded ? "start" : "center"}
             bg={router.pathname === item.path ? theme.activeBg : "transparent"}
-            width={isMobile ? "100%" : "auto"}>
+            width={isMobile ? "100%" : "auto"}
+            cursor="pointer">
             {!isSidebarExpanded ? (
               <Tooltip label={item.name} placement="right">
                 <Box>
@@ -171,7 +199,6 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             )}
           </Link>
         ))}
-        <DarkModeToggle />
       </VStack>
     </Box>
   );
@@ -204,7 +231,9 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                 paddingLeft="0"
                 src="/site_logo.svg"
                 alt="logo"
-                filter={logoFilter}></Image>
+                filter={logoFilter}
+                cursor="pointer"
+              />
             </Box>
             <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
               <DrawerOverlay />
@@ -224,6 +253,12 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
           </VStack>
         </>
       )}
+
+      {/* Fixed bottom buttons */}
+      <SettingsButton onClick={onSettingsOpen} />
+
+      {/* Settings Modal */}
+      <SettingsModal isOpen={isSettingsOpen} onClose={onSettingsClose} />
 
       {/* Content Area */}
       <Box
