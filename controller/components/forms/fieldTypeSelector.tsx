@@ -1,17 +1,17 @@
 import React from "react";
 import { Box, SimpleGrid, Text, VStack, Icon } from "@chakra-ui/react";
 import {
-  MdTextFields,
-  MdNumbers,
-  MdSubject,
-  MdArrowDropDownCircle,
-  MdRadioButtonChecked,
-  MdCheckBox,
-  MdCalendarToday,
-  MdAccessTime,
-  MdUploadFile,
-  MdLabel,
-} from "react-icons/md";
+  Type,
+  Hash,
+  AlignLeft,
+  ChevronDown,
+  Circle,
+  CheckSquare,
+  Calendar,
+  Clock,
+  Upload,
+  Tag,
+} from "lucide-react";
 import { FormField } from "@/types";
 import { useCommonColors } from "../ui/Theme";
 
@@ -21,21 +21,21 @@ interface FieldTypeSelectorProps {
 }
 
 const FIELD_TYPE_OPTIONS = [
-  { value: "text", label: "Text Input", icon: MdTextFields, description: "Single line text" },
-  { value: "number", label: "Number", icon: MdNumbers, description: "Numeric input" },
-  { value: "textarea", label: "Textarea", icon: MdSubject, description: "Multi-line text" },
+  { value: "text", label: "Text Input", icon: Type, description: "Single line text" },
+  { value: "number", label: "Number", icon: Hash, description: "Numeric input" },
+  { value: "textarea", label: "Textarea", icon: AlignLeft, description: "Multi-line text" },
   {
     value: "select",
     label: "Dropdown",
-    icon: MdArrowDropDownCircle,
+    icon: ChevronDown,
     description: "Select one option",
   },
-  { value: "radio", label: "Radio Buttons", icon: MdRadioButtonChecked, description: "Choose one" },
-  { value: "checkbox", label: "Checkbox", icon: MdCheckBox, description: "Toggle option" },
-  { value: "date", label: "Date", icon: MdCalendarToday, description: "Date picker" },
-  { value: "time", label: "Time", icon: MdAccessTime, description: "Time picker" },
-  { value: "file", label: "File Upload", icon: MdUploadFile, description: "Upload files" },
-  { value: "label", label: "Static Text", icon: MdLabel, description: "Display only text" },
+  { value: "radio", label: "Radio Buttons", icon: Circle, description: "Choose one" },
+  { value: "checkbox", label: "Checkbox", icon: CheckSquare, description: "Toggle option" },
+  { value: "date", label: "Date", icon: Calendar, description: "Date picker" },
+  { value: "time", label: "Time", icon: Clock, description: "Time picker" },
+  { value: "file", label: "File Upload", icon: Upload, description: "Upload files" },
+  { value: "label", label: "Static Text", icon: Tag, description: "Display only text" },
 ] as const;
 
 export const FieldTypeSelector: React.FC<FieldTypeSelectorProps> = ({ selectedType, onSelect }) => {

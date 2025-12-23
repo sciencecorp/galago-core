@@ -14,8 +14,7 @@ import {
   RadioGroup,
   Stack,
 } from "@chakra-ui/react";
-import { RiDeleteBin6Line, RiFileCopyLine } from "react-icons/ri";
-import { IoSettingsSharp } from "react-icons/io5";
+import { Trash2, Copy, Settings } from "lucide-react";
 import { Draggable } from "react-beautiful-dnd";
 import { FormField } from "@/types";
 
@@ -116,7 +115,7 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
             {/* Action Buttons */}
             <IconButton
               aria-label="Edit field"
-              icon={<IoSettingsSharp />}
+              icon={<Settings size={14} />}
               size="xs"
               variant="ghost"
               position="absolute"
@@ -131,7 +130,7 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
             />
             <IconButton
               aria-label="Duplicate field"
-              icon={<RiFileCopyLine />}
+              icon={<Copy size={14} />}
               size="xs"
               variant="ghost"
               position="absolute"
@@ -146,7 +145,7 @@ const FormFieldComponentBase: React.FC<FormFieldComponentProps> = ({
             />
             <IconButton
               aria-label="Delete field"
-              icon={<RiDeleteBin6Line />}
+              icon={<Trash2 size={14} />}
               size="xs"
               variant="ghost"
               position="absolute"

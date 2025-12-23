@@ -1,9 +1,8 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import {
   VStack,
   HStack,
   Button,
-  Input,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -14,8 +13,6 @@ import {
   useDisclosure,
   FormControl,
   FormLabel,
-  Grid,
-  GridItem,
   Box,
   Text,
   Flex,
@@ -25,10 +22,11 @@ import {
   Tag,
   SimpleGrid,
   Divider,
+  Input,
   useColorModeValue,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
-import { RiAddFill, RiSearchLine } from "react-icons/ri";
+import { Plus, Search } from "lucide-react";
 import { ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
 import { errorToast, warningToast } from "../ui/Toast";
@@ -167,7 +165,7 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
       <Button
         onClick={onSelectOpen}
         colorScheme="teal"
-        leftIcon={<RiAddFill />}
+        leftIcon={<Plus size={14} />}
         isDisabled={isDisabled}>
         New Tool
       </Button>
@@ -182,7 +180,7 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
             <VStack spacing={6} align="stretch">
               <InputGroup>
                 <InputLeftElement pointerEvents="none">
-                  <RiSearchLine color="gray.300" />
+                  <Search size={14} color="gray.300" />
                 </InputLeftElement>
                 <Input
                   placeholder="Search for a tool..."

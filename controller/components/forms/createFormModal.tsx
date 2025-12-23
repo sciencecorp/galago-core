@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { successToast, errorToast } from "../ui/Toast";
-import { RiAddFill } from "react-icons/ri";
+import { Plus } from "lucide-react";
 
 export const CreateFormModal: React.FC = () => {
   const [formName, setFormName] = useState("");
@@ -61,7 +61,7 @@ export const CreateFormModal: React.FC = () => {
 
   return (
     <>
-      <Button onClick={onOpen} colorScheme="teal" leftIcon={<RiAddFill />}>
+      <Button onClick={onOpen} colorScheme="teal" leftIcon={<Plus size={16} />}>
         New Form
       </Button>
 

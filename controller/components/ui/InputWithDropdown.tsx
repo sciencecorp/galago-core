@@ -15,7 +15,7 @@ import {
   Box,
   Portal,
 } from "@chakra-ui/react";
-import { RiArrowDownSLine } from "react-icons/ri";
+import { ChevronDown } from "lucide-react";
 
 interface Option {
   value: string;
@@ -123,7 +123,7 @@ export const InputWithDropdown: React.FC<InputWithDropdownProps> = ({
                 as={IconButton}
                 size="sm"
                 aria-label="Select option"
-                icon={customIcon || <RiArrowDownSLine />}
+                icon={customIcon || <ChevronDown />}
                 variant="ghost"
               />
             </Tooltip>
@@ -132,7 +132,7 @@ export const InputWithDropdown: React.FC<InputWithDropdownProps> = ({
               as={IconButton}
               size="sm"
               aria-label="Select option"
-              icon={customIcon || <RiArrowDownSLine />}
+              icon={customIcon || <ChevronDown />}
               variant="ghost"
             />
           )}

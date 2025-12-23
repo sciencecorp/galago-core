@@ -1,11 +1,7 @@
-import React, { use, useState, useEffect } from "react";
+import React from "react";
 import {
-  Heading,
-  HStack,
   Spinner,
   Button,
-  VStack,
-  Center,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -15,12 +11,6 @@ import {
   ModalCloseButton,
   Text,
   useDisclosure,
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
-  Box,
-  CloseButton,
   ButtonGroup,
   Icon,
 } from "@chakra-ui/react";
@@ -30,11 +20,11 @@ import { ExecuteCommandReply, ResponseCode } from "gen-interfaces/tools/grpc_int
 import { ToolCommandInfo } from "@/types";
 import { ToolType } from "gen-interfaces/controller";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
-import { FaPlay, FaPause, FaStop, FaTrash } from "react-icons/fa";
-
-import { getegid } from "process";
-import { get } from "http";
-import { PageHeader } from "@/components/ui/PageHeader";
+import {
+  Play, // replaces FaPlay
+  Pause, // replaces FaPause
+  Trash2, // replaces FaTrash
+} from "lucide-react";
 
 interface QueueStatusComponent {
   totalRuns: number;
@@ -100,8 +90,6 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
   if (stateQuery.isLoading || commandsQuery.isLoading) return <Spinner />;
 
   const isRunning = stateQuery.data === ToolStatus.BUSY;
-  const isStopped = stateQuery.data === ToolStatus.OFFLINE;
-  const hasFailed = stateQuery.data === ToolStatus.FAILED;
 
   // Check if there are any commands (including completed ones) to clear
   const hasCommandsToClear = commandsQuery.data && commandsQuery.data.length > 0;
@@ -112,24 +100,24 @@ export const QueueStatusComponent: React.FC<QueueStatusComponent> = ({ totalRuns
       <ButtonGroup spacing={2}>
         {isRunning ? (
           <Button
-            leftIcon={<Icon as={FaPause} />}
+            leftIcon={<Icon as={Pause} size={14} />}
             colorScheme="orange"
             variant="solid"
             onClick={() => pause()}>
-            Pause Queue
+            Pause
           </Button>
         ) : (
           <Button
-            leftIcon={<Icon as={FaPlay} />}
+            leftIcon={<Icon as={Play} size={14} />}
             colorScheme="green"
             variant="solid"
             onClick={() => onOpen()}
             isDisabled={totalRuns === 0}>
-            Start Queue
+            Start
           </Button>
         )}
         <Button
-          leftIcon={<Icon as={FaTrash} />}
+          leftIcon={<Icon as={Trash2} size={14} />}
           colorScheme="red"
           variant="outline"
           onClick={() => clear()}

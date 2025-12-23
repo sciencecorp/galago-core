@@ -18,7 +18,7 @@ import {
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { Labware as LabwareResponse } from "@/types/api";
-import { RiAddFill } from "react-icons/ri";
+import { Plus } from "lucide-react";
 import { successToast, errorToast } from "../ui/Toast";
 
 export const LabwareModal: React.FC = () => {
@@ -69,7 +69,7 @@ export const LabwareModal: React.FC = () => {
 
   return (
     <>
-      <Button onClick={onOpen} colorScheme="teal" leftIcon={<RiAddFill />}>
+      <Button onClick={onOpen} colorScheme="teal" leftIcon={<Plus size={14} />}>
         New Labware
       </Button>
       <Modal isOpen={isOpen} onClose={onClose} size="lg">

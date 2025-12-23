@@ -15,7 +15,7 @@ import {
   SimpleGrid,
   Tooltip,
 } from "@chakra-ui/react";
-import { RiPaletteLine } from "react-icons/ri";
+import { Palette } from "lucide-react";
 
 const COLOR_PALETTE = [
   // Light colors
@@ -171,7 +171,7 @@ export const ColorPicker: React.FC<{
           <PopoverTrigger>
             <Button
               size="sm"
-              leftIcon={<RiPaletteLine />}
+              leftIcon={<Palette size={16} />}
               rightIcon={
                 <Box
                   w="20px"

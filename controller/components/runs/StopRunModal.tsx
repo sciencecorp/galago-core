@@ -16,7 +16,7 @@ import {
   CircularProgressLabel,
   Center,
 } from "@chakra-ui/react";
-import { MdStop, MdWarning } from "react-icons/md";
+import { StopCircle, TriangleAlert } from "lucide-react";
 
 interface StopRunModalProps {
   isOpen: boolean;
@@ -76,7 +76,7 @@ export const StopRunModal: React.FC<StopRunModalProps> = ({
         <ModalBody>
           {countdown === null ? (
             <VStack spacing={2} py={2}>
-              <Icon as={MdWarning} boxSize={12} color={warningIconColor} />
+              <Icon as={TriangleAlert} boxSize={12} color={warningIconColor} />
               <Text textAlign="center">{messageData.message}</Text>
             </VStack>
           ) : (
@@ -112,7 +112,7 @@ export const StopRunModal: React.FC<StopRunModalProps> = ({
             <Button
               colorScheme="red"
               onClick={handleConfirm}
-              leftIcon={<MdStop />}
+              leftIcon={<StopCircle size={14} />}
               isDisabled={countdown !== null}>
               Stop Run
             </Button>

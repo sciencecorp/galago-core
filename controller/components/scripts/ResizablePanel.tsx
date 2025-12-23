@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Box, Flex, Icon } from "@chakra-ui/react";
-import { MdDragIndicator } from "react-icons/md";
+import { Box, Flex } from "@chakra-ui/react";
 
 interface ResizablePanelProps {
   initialWidth?: string;

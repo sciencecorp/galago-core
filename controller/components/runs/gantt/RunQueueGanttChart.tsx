@@ -23,7 +23,7 @@ import "@/styles/Home.module.css";
 import { useColorModeValue } from "@chakra-ui/react";
 import { ToolType } from "gen-interfaces/controller";
 import { RunCommand } from "@/types";
-import { PiToolbox } from "react-icons/pi";
+import { ToolCase } from "lucide-react";
 import { getToolColor } from "@/utils/colorUtils";
 
 interface GanttChartProps {
@@ -371,7 +371,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
                 boxShadow="sm">
                 {isToolbox ? (
                   <Box width="30px" height="30px" color={getToolColor("toolbox" as ToolType)}>
-                    <PiToolbox style={{ width: "100%", height: "100%" }} />
+                    <ToolCase style={{ width: "100%", height: "100%" }} />
                   </Box>
                 ) : imageUrl ? (
                   <Image

@@ -5,9 +5,7 @@ import {
   CardBody,
   CardHeader,
   Heading,
-  Spinner,
   Text,
-  Flex,
   useDisclosure,
   SimpleGrid,
   VStack,
@@ -16,14 +14,11 @@ import {
   Tooltip,
   useColorModeValue,
   IconButton,
-  Button,
 } from "@chakra-ui/react";
-import { Nest, Plate, Reagent, Hotel } from "@/types/api";
+import { Nest, Plate, Reagent } from "@/types/api";
 import NestModal from "../modals/NestModal";
 import { trpc } from "@/utils/trpc";
-import { BsGrid3X3, BsBoxSeam } from "react-icons/bs";
-import { FaFlask, FaHotel } from "react-icons/fa";
-import { BiBuilding } from "react-icons/bi";
+import { Grid3x3, Package, FlaskConical, Building } from "lucide-react";
 import { Icon } from "@/components/ui/Icons";
 import { useCommonColors, useTextColors } from "@/components/ui/Theme";
 import { DeleteIcon, RepeatIcon } from "@chakra-ui/icons";
@@ -124,7 +119,7 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
           <VStack align="stretch" spacing={2}>
             <HStack spacing={3} justify="space-between">
               <HStack spacing={3}>
-                <Icon as={BiBuilding} boxSize={6} color="orange.400" />
+                <Icon as={Building} boxSize={6} color="orange.400" />
                 <Box>
                   <Heading size="md">{hotel?.name}</Heading>
                   <Text fontSize="sm" color="gray.500">
@@ -157,7 +152,7 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
             <SimpleGrid columns={3} spacing={2}>
               <Tooltip label="Total Nests" placement="top">
                 <Box p={2} bg={statBg} borderRadius="md" textAlign="center">
-                  <Icon as={BsGrid3X3} color={iconColor} mb={1} />
+                  <Icon as={Grid3x3} color={iconColor} mb={1} />
                   <Text fontWeight="bold" fontSize="md">
                     {hotelNests.length}
                   </Text>
@@ -169,7 +164,7 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
 
               <Tooltip label="Total Plates" placement="top">
                 <Box p={2} bg={statBg} borderRadius="md" textAlign="center">
-                  <Icon as={BsBoxSeam} color={iconColor} mb={1} />
+                  <Icon as={Package} color={iconColor} mb={1} />
                   <Text fontWeight="bold" fontSize="md">
                     {hotelPlates.length}
                   </Text>
@@ -181,7 +176,7 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
 
               <Tooltip label="Total Reagents" placement="top">
                 <Box p={2} bg={statBg} borderRadius="md" textAlign="center">
-                  <Icon as={FaFlask} color={iconColor} mb={1} />
+                  <Icon as={FlaskConical} color={iconColor} mb={1} />
                   <Text fontWeight="bold" fontSize="md">
                     0
                   </Text>

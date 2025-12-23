@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   VStack,
   Button,
@@ -13,13 +13,10 @@ import {
   useDisclosure,
   FormControl,
   FormLabel,
-  Select,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
-import { RiAddFill } from "react-icons/ri";
-import { ToolType } from "gen-interfaces/controller";
-import { capitalizeFirst } from "@/utils/parser";
-import { Tool, Workcell } from "@/types/api";
+import { Plus } from "lucide-react";
+import { Workcell } from "@/types/api";
 import { successToast, errorToast } from "../ui/Toast";
 
 export const NewWorkcellModal: React.FC = () => {
@@ -56,8 +53,8 @@ export const NewWorkcellModal: React.FC = () => {
 
   return (
     <>
-      <Button onClick={onOpen} colorScheme="teal" leftIcon={<RiAddFill />}>
-        New Workcell
+      <Button onClick={onOpen} colorScheme="teal" leftIcon={<Plus />}>
+        New
       </Button>
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />

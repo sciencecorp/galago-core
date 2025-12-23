@@ -17,20 +17,23 @@ import {
   Divider,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
-import { BsTools } from "react-icons/bs";
-import { HiOutlineRectangleStack } from "react-icons/hi2";
-import { BsBoxSeam } from "react-icons/bs";
-import { PiPathBold } from "react-icons/pi";
-import { GiChaingun } from "react-icons/gi";
-import { TbVariable } from "react-icons/tb";
-import { FiBook } from "react-icons/fi";
-import { FaBookOpen } from "react-icons/fa6";
-import { BsCalendarWeek } from "react-icons/bs";
-import { VscCode } from "react-icons/vsc";
-import { FaChartGantt } from "react-icons/fa6";
+import {
+  Wrench,
+  Layers,
+  Package,
+  GitBranch,
+  Cpu,
+  Variable,
+  Book,
+  BookOpen,
+  Calendar as CalendarIcon,
+  Code,
+  GanttChart,
+} from "lucide-react";
 import Link from "next/link";
 import { Plate } from "@/types/api";
 import { Calendar } from "@/components/calendar/Calendar";
+import { WorkcellIcon } from "../components/ui/Icons";
 
 export default function Page() {
   useEffect(() => {
@@ -94,7 +97,7 @@ export default function Page() {
                       <Heading size="md">Calendar</Heading>
                       <Text color="gray.500">Schedule overview</Text>
                     </VStack>
-                    <Icon as={BsCalendarWeek} boxSize={8} color={iconColor} />
+                    <Icon as={CalendarIcon} boxSize={8} color={iconColor} />
                   </HStack>
                   <Divider />
                   <Box display="flex" justifyContent="center">
@@ -123,7 +126,7 @@ export default function Page() {
                         <Heading size="md">Documentation</Heading>
                         <Text color="gray.500">Learn more about Galago</Text>
                       </VStack>
-                      <Icon as={FaBookOpen} boxSize={8} color={iconColor} />
+                      <Icon as={BookOpen} boxSize={8} color={iconColor} />
                     </HStack>
                     <Divider />
                     <Text fontSize="sm">
@@ -153,7 +156,7 @@ export default function Page() {
                         <Heading size="md">Tools</Heading>
                         <Text color="gray.500">Connected devices</Text>
                       </VStack>
-                      <Icon as={BsTools} boxSize={8} color={iconColor} />
+                      <Icon as={Wrench} boxSize={8} color={iconColor} />
                     </HStack>
                     <Divider />
                     <Stat>
@@ -181,7 +184,7 @@ export default function Page() {
                         <Heading size="md">Runs</Heading>
                         <Text color="gray.500">Protocol executions</Text>
                       </VStack>
-                      <Icon as={FaChartGantt} boxSize={8} color={iconColor} />
+                      <Icon as={GanttChart} boxSize={8} color={iconColor} />
                     </HStack>
                     <Divider />
                     <Stat>
@@ -209,7 +212,7 @@ export default function Page() {
                         <Heading size="md">Scripts</Heading>
                         <Text color="gray.500">Python automation</Text>
                       </VStack>
-                      <Icon as={VscCode} boxSize={8} color={iconColor} />
+                      <Icon as={Code} boxSize={8} color={iconColor} />
                     </HStack>
                     <Divider />
                     <Stat>
@@ -237,7 +240,7 @@ export default function Page() {
                         <Heading size="md">Workcells</Heading>
                         <Text color="gray.500">Automation cells</Text>
                       </VStack>
-                      <Icon as={GiChaingun} boxSize={8} color={iconColor} />
+                      <Icon as={WorkcellIcon} boxSize={8} color={iconColor} />
                     </HStack>
                     <Divider />
                     <Stat>
@@ -265,7 +268,7 @@ export default function Page() {
                         <Heading size="md">Protocols</Heading>
                         <Text color="gray.500">Automation sequences</Text>
                       </VStack>
-                      <Icon as={PiPathBold} boxSize={8} color={iconColor} />
+                      <Icon as={GitBranch} boxSize={8} color={iconColor} />
                     </HStack>
                     <Divider />
                     <Stat>
@@ -293,7 +296,7 @@ export default function Page() {
                         <Heading size="md">Inventory</Heading>
                         <Text color="gray.500">Lab materials</Text>
                       </VStack>
-                      <Icon as={BsBoxSeam} boxSize={8} color={iconColor} />
+                      <Icon as={Package} boxSize={8} color={iconColor} />
                     </HStack>
                     <Divider />
                     <Stat>
@@ -321,7 +324,7 @@ export default function Page() {
                         <Heading size="md">Labware</Heading>
                         <Text color="gray.500">Lab equipment</Text>
                       </VStack>
-                      <Icon as={HiOutlineRectangleStack} boxSize={8} color={iconColor} />
+                      <Icon as={Layers} boxSize={8} color={iconColor} />
                     </HStack>
                     <Divider />
                     <Stat>
@@ -349,7 +352,7 @@ export default function Page() {
                         <Heading size="md">Variables</Heading>
                         <Text color="gray.500">System configuration</Text>
                       </VStack>
-                      <Icon as={TbVariable} boxSize={8} color={iconColor} />
+                      <Icon as={Variable} boxSize={8} color={iconColor} />
                     </HStack>
                     <Divider />
                     <Stat>
@@ -377,7 +380,7 @@ export default function Page() {
                         <Heading size="md">Logs</Heading>
                         <Text color="gray.500">System activity</Text>
                       </VStack>
-                      <Icon as={FiBook} boxSize={8} color={iconColor} />
+                      <Icon as={Book} boxSize={8} color={iconColor} />
                     </HStack>
                     <Divider />
                     <Stat>

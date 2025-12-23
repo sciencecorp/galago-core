@@ -31,7 +31,7 @@ import {
   Select,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon, CopyIcon } from "@chakra-ui/icons";
-import { FaPlay } from "react-icons/fa";
+import { PlayIcon } from "@/components/ui/Icons";
 import { Tool } from "@/types/api";
 import { CommandList } from "./CommandList";
 import { useState, useEffect, useRef } from "react";
@@ -313,7 +313,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
                                 />
                                 <MenuList onClick={(e) => e.stopPropagation()}>
                                   <MenuItem
-                                    icon={<FaPlay />}
+                                    icon={<PlayIcon size={14} />}
                                     onClick={() => setSequenceToRun(sequence)}>
                                     Run Sequence
                                   </MenuItem>

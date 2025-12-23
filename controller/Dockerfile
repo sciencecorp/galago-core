@@ -3,7 +3,7 @@
 FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/sdk:7.0-alpine AS dotnet-compiler
 
 # Stage 2: Node.js build environment
-FROM --platform=$TARGETPLATFORM node:18.20.3-alpine AS builder
+FROM --platform=$TARGETPLATFORM node:22.11-alpine3.19 AS builder
 WORKDIR /app
 
 # Copy package files and install dependencies
@@ -18,12 +18,12 @@ COPY controller/ ./
 RUN npm run build
 
 # Stage 3: Production runtime with minimal .NET dependencies
-FROM --platform=$TARGETPLATFORM node:18.20.3-alpine AS runner
+FROM --platform=$TARGETPLATFORM node:22.11-alpine3.19 AS runner
 WORKDIR /app
-ENV NODE_ENV production
+
+ENV NODE_ENV=production
 
 # Install minimal dependencies for .NET runtime
-# Updated packages for Alpine 3.21
 RUN apk add --no-cache \
     libstdc++ \
     libintl \

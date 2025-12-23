@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   VStack,
   Button,
@@ -10,7 +10,6 @@ import {
   ModalFooter,
   ModalBody,
   ModalCloseButton,
-  useDisclosure,
   FormControl,
   FormLabel,
   Select,
@@ -19,11 +18,6 @@ import {
   InputRightElement,
   Tooltip,
   Box,
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
   Accordion,
   AccordionItem,
   AccordionButton,
@@ -31,10 +25,8 @@ import {
   AccordionIcon,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
-import { RiAddFill, RiFolderOpenLine, RiArrowDownSLine } from "react-icons/ri";
-import { ToolConfig, ToolType } from "gen-interfaces/controller";
+import { ToolType } from "gen-interfaces/controller";
 import { capitalizeFirst } from "@/utils/parser";
-import { Tool } from "@/types/api";
 import { successToast, errorToast } from "../ui/Toast";
 import { InputWithDropdown } from "../ui/InputWithDropdown";
 
@@ -53,7 +45,6 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
   const editTool = trpc.tool.edit.useMutation();
   const getTool = trpc.tool.info.useQuery({ toolId: toolId });
   const { description, config, type, ip, port } = getTool.data || {};
-  const context = trpc.useContext();
 
   const comPorts = Array.from({ length: 20 }, (_, i) => `COM${i + 1}`);
 

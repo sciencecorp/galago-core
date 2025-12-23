@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Box, Flex, Text, Icon } from "@chakra-ui/react";
-import { MdDragIndicator } from "react-icons/md";
+import { GripVertical } from "lucide-react";
 
 interface ConsoleProps {
   consoleText: string;
@@ -121,7 +121,7 @@ export const Console: React.FC<ConsoleProps> = ({
         }}
         cursor="ns-resize">
         <Flex align="center">
-          <Icon as={MdDragIndicator} mr={2} />
+          <Icon as={GripVertical} size={14} mr={2} />
           <Text userSelect="none">Output Console</Text>
         </Flex>
       </Flex>
