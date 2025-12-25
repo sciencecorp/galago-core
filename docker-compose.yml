@@ -15,7 +15,6 @@ services:
       - GRPC_SERVER_IP=localhost
       - API_BASE_URL=http://db:8000/api
     depends_on:
-      - queue
       - db
     networks:
       - app-network
