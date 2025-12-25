@@ -115,10 +115,10 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       height="100%"
       {...transitionProps}>
       <VStack left={0} p={1} spacing={4} align="stretch" width="100%">
-        <HStack pb={10} pl={2} pt={2} width="100%" position="relative">
+        <HStack py={2} pl={2} width="100%" position="relative">
           <Image
             onClick={toggleSidebar}
-            width="60px"
+            width="50px"
             paddingLeft="0"
             src="/site_logo.svg"
             alt="logo"
@@ -142,7 +142,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             }}
             _hover={{ background: theme.hoverBg }}
             borderRadius="md"
-            p={2}
+            p={1}
             display="flex"
             alignItems="center"
             justifyContent={isSidebarExpanded ? "start" : "center"}
@@ -152,7 +152,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
               <Tooltip label={item.name} placement="right">
                 <Box>
                   <item.icon
-                    size={26}
+                    size={20}
                     color={router.pathname === item.path ? theme.activeIconColor : undefined}
                   />
                 </Box>
@@ -160,7 +160,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             ) : (
               <>
                 <item.icon
-                  size={26}
+                  size={20}
                   color={router.pathname === item.path ? theme.activeIconColor : undefined}
                 />
                 <Text
