@@ -22,7 +22,6 @@ import {
   Wrench,
   Variable,
   Code2,
-  CalendarCheck,
   GitBranch,
   Book,
   GanttChart,

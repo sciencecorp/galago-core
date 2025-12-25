@@ -68,9 +68,9 @@ import { useCommonColors, useTextColors } from "../ui/Theme";
 // Static form defaults - these should NOT change with dark mode
 // Forms are "locked" to their designed appearance regardless of theme
 const FORM_DEFAULTS = {
-  backgroundColor: "white",
-  fontColor: "gray.800",
-  borderColor: "gray.200",
+  backgroundColor: "",
+  fontColor: "",
+  borderColor: "gray.500",
   placeholderColor: "gray.400",
   buttonColors: {
     primary: {
@@ -179,7 +179,6 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
     // Auto-open the drawer to edit the new field
     setEditingField(newField);
     setSelectedFieldIndex(fields.length); // The index of the new field
-    onOpen();
   };
 
   const editField = useCallback(
@@ -401,16 +400,21 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
           <CardBody display="flex" flexDirection="column" position="relative">
             <HStack spacing={2} mb={4}>
               <VStack flex={1} spacing={1} textAlign="center">
-                <Text fontSize="xl" fontWeight="bold" color={fontColor || FORM_DEFAULTS.fontColor}>
-                  {formName.trim() || "Untitled Form"}
-                </Text>
+                <Box position="relative" border="1px solid #ccc">
+                  <Text
+                    fontSize="xl"
+                    fontWeight="bold"
+                    color={fontColor || FORM_DEFAULTS.fontColor}>
+                    {formName.trim() || "Untitled Form"}
+                  </Text>
+                </Box>
               </VStack>
 
               <Tooltip label="Download Form" openDelay={1000} hasArrow>
                 <IconButton
                   aria-label="Download Form"
                   icon={<Download size={16} />}
-                  variant="outline"
+                  variant="ghost"
                   onClick={onExportForm}
                   size="sm"
                   borderColor={FORM_DEFAULTS.placeholderColor}
@@ -563,7 +567,6 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                     <Button
                       minW="120px"
                       variant="ghost"
-                      color={fontColor || FORM_DEFAULTS.buttonColors.ghost.color}
                       _hover={{ bg: FORM_DEFAULTS.buttonColors.ghost.hoverBg }}>
                       Cancel
                     </Button>

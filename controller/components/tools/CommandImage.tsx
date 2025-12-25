@@ -13,6 +13,7 @@ import {
   Variable,
   FormInput,
   Volume2,
+  List,
 } from "lucide-react";
 import { RunCommand } from "@/types";
 
@@ -35,7 +36,7 @@ const CommandImage: React.FC<CommandImageProps> = (props) => {
       stop_run: <StopCircle style={{ width: "100%", height: "50px", color: "red" }} />,
       goto: <Repeat style={{ width: "100%", height: "50px" }} />,
       variable_assignment: <Variable style={{ width: "100%", height: "50px" }} />,
-      user_form: <FormInput style={{ width: "100%", height: "50px" }} />,
+      user_form: <List style={{ width: "100%", height: "50px" }} />,
       text_to_speech: <Volume2 style={{ width: "100%", height: "50px" }} />,
     } as Record<string, JSX.Element>;
     return commandIconMap[commandName] || <Wrench style={{ width: "100%", height: "65px" }} />;
