@@ -22,7 +22,6 @@ import {
   Wrench,
   Variable,
   Code2,
-  CalendarCheck,
   GitBranch,
   Book,
   GanttChart,
@@ -68,7 +67,7 @@ function DarkModeToggle() {
   return (
     <IconButton
       onClick={toggleColorMode}
-      icon={colorMode === "light" ? <Moon /> : <Sun />}
+      icon={colorMode === "light" ? <Moon size={20} /> : <Sun size={20} />}
       aria-label="Toggle dark mode"
       position="fixed"
       bottom="20px"
@@ -97,9 +96,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
     setIsSidebarExpanded((prev) => !prev); // Toggle the expanded state on larger screens
   };
 
-  // Move the hook outside of conditional rendering
   const logoFilter = useColorModeValue("none", "invert(1)");
-
   const transitionProps = {
     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
   };
