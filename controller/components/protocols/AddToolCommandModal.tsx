@@ -39,9 +39,23 @@ import {
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
-import { commandFields, commandIcons } from "../tools/constants";
+import { commandFields } from "../tools/constants";
 import { capitalizeFirst } from "@/utils/parser";
-import { ToolCase, Search } from "lucide-react";
+import {
+  ToolCase,
+  Search,
+  Wrench,
+  FileCode,
+  MessageSquare,
+  PauseCircle,
+  AlarmClock,
+  StickyNote,
+  StopCircle,
+  Repeat,
+  Variable,
+  List,
+  Volume2,
+} from "lucide-react";
 import { warningToast } from "../ui/Toast";
 
 interface AddToolCommandModalProps {
@@ -49,6 +63,23 @@ interface AddToolCommandModalProps {
   onClose: () => void;
   onCommandAdded: (newCommand: any) => void;
 }
+
+// Icon mapping for toolbox commands
+const getToolBoxCommandIcon = (commandName: string) => {
+  const iconMap: Record<string, JSX.Element> = {
+    run_script: <FileCode style={{ width: "100%", height: "50px" }} />,
+    show_message: <MessageSquare style={{ width: "100%", height: "50px" }} />,
+    pause: <PauseCircle style={{ width: "100%", height: "50px" }} />,
+    timer: <AlarmClock style={{ width: "100%", height: "50px" }} />,
+    note: <StickyNote style={{ width: "100%", height: "50px" }} />,
+    stop_run: <StopCircle style={{ width: "100%", height: "50px", color: "red" }} />,
+    goto: <Repeat style={{ width: "100%", height: "50px" }} />,
+    variable_assignment: <Variable style={{ width: "100%", height: "50px" }} />,
+    user_form: <List style={{ width: "100%", height: "50px" }} />,
+    text_to_speech: <Volume2 style={{ width: "100%", height: "50px" }} />,
+  };
+  return iconMap[commandName] || <Wrench style={{ width: "100%", height: "50px" }} />;
+};
 
 export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   isOpen,
@@ -87,11 +118,6 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
     { toolId: selectedToolData?.id || 0 },
     { enabled: !!selectedToolData?.id && selectedToolType === "pf400" },
   );
-
-  // Helper function to get command icon
-  const getCommandIcon = (toolType: string, command: string): string => {
-    return commandIcons[toolType]?.[command] || "⚙️";
-  };
 
   useEffect(() => {
     if (selectedToolType && selectedCommand) {
@@ -638,7 +664,30 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
 
   const CommandCard = ({ command }: { command: string }) => {
     const isSelected = selectedCommand === command;
-    const icon = getCommandIcon(selectedToolType, command);
+
+    // Render icon based on tool type
+    const renderCommandIcon = () => {
+      if (selectedToolType === "toolbox") {
+        return (
+          <Box display="flex" justifyContent="center" alignItems="center">
+            {getToolBoxCommandIcon(command)}
+          </Box>
+        );
+      } else {
+        // For other tools, use the tool's icon image
+        return (
+          <Box display="flex" justifyContent="center" alignItems="center">
+            <Image
+              src={`/tool_icons/${selectedToolType}.png`}
+              alt={command}
+              objectFit="contain"
+              height="50px"
+              width="50px"
+            />
+          </Box>
+        );
+      }
+    };
 
     return (
       <Box
@@ -653,9 +702,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
         onClick={() => setSelectedCommand(command)}
         minH="100px">
         <VStack spacing={3} align="center" justify="center" h="100%">
-          <Text fontSize="2xl" role="img" aria-label={command}>
-            {icon}
-          </Text>
+          {renderCommandIcon()}
           <Text
             fontSize="sm"
             fontWeight={isSelected ? "bold" : "normal"}
