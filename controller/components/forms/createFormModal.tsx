@@ -13,12 +13,17 @@ import {
   Input,
   VStack,
   useDisclosure,
+  Tooltip,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { successToast, errorToast } from "../ui/Toast";
 import { Plus } from "lucide-react";
 
-export const CreateFormModal: React.FC = () => {
+interface CreateFormModalProps {
+  isDisabled: boolean;
+}
+
+export const CreateFormModal: React.FC<CreateFormModalProps> = ({ isDisabled }) => {
   const [formName, setFormName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -61,9 +66,19 @@ export const CreateFormModal: React.FC = () => {
 
   return (
     <>
-      <Button onClick={onOpen} colorScheme="teal" leftIcon={<Plus size={16} />}>
-        New Form
-      </Button>
+      <Tooltip
+        label={isDisabled ? "Create or Select a Workcell to create a form" : ""}
+        placement="top"
+        hasArrow>
+        <Button
+          size="sm"
+          onClick={onOpen}
+          colorScheme="teal"
+          leftIcon={<Plus size={16} />}
+          isDisabled={isDisabled}>
+          New Form
+        </Button>
+      </Tooltip>
 
       <Modal isOpen={isOpen} onClose={handleClose}>
         <ModalOverlay />

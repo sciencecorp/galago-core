@@ -399,15 +399,11 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
           borderWidth="1px">
           <CardBody display="flex" flexDirection="column" position="relative">
             <HStack spacing={2} mb={4}>
+              <Box w="60px" />
               <VStack flex={1} spacing={1} textAlign="center">
-                <Box position="relative" border="1px solid #ccc">
-                  <Text
-                    fontSize="xl"
-                    fontWeight="bold"
-                    color={fontColor || FORM_DEFAULTS.fontColor}>
-                    {formName.trim() || "Untitled Form"}
-                  </Text>
-                </Box>
+                <Text fontSize="xl" fontWeight="bold" color={fontColor || FORM_DEFAULTS.fontColor}>
+                  {formName.trim() || "Untitled Form"}
+                </Text>
               </VStack>
 
               <Tooltip label="Download Form" openDelay={1000} hasArrow>

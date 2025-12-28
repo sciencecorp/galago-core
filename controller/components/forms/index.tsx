@@ -22,10 +22,20 @@ import { Form } from "@/types";
 import { CreateFormModal } from "./createFormModal";
 
 export const Forms = () => {
-  const { data: forms, isLoading, refetch } = trpc.form.getAll.useQuery();
+  const { data: fetchedForms, isLoading, refetch } = trpc.form.getAll.useQuery();
 
   const headerBg = useColorModeValue("white", "gray.700");
+  const [forms, setForms] = useState<Form[]>([]);
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
+
+  const { data: selectedWorkcell, refetch: refetchWorkcell } =
+    trpc.workcell.getSelectedWorkcell.useQuery();
+
+  useEffect(() => {
+    if (fetchedForms) {
+      setForms(fetchedForms);
+    }
+  }, [fetchedForms]);
 
   const handleFormCancel = () => {
     setSelectedForm(null);
@@ -33,20 +43,12 @@ export const Forms = () => {
 
   const stats = useMemo(
     () => ({
-      totalForms: forms?.length || 0,
+      totalForms: forms.length,
       activeFields: selectedForm?.fields?.length || 0,
       selectedFormName: selectedForm?.name || "None",
     }),
-    [forms?.length, selectedForm?.fields?.length, selectedForm?.name],
+    [forms.length, selectedForm?.fields?.length, selectedForm?.name],
   );
-
-  if (isLoading) {
-    return (
-      <Center>
-        <Spinner />
-      </Center>
-    );
-  }
 
   return (
     <Box width="100%">
@@ -58,7 +60,7 @@ export const Forms = () => {
                 title="Forms"
                 subTitle="Create and manage your forms"
                 titleIcon={<Icon as={List} boxSize={8} color="teal.500" />}
-                mainButton={<CreateFormModal />}
+                mainButton={<CreateFormModal isDisabled={!selectedWorkcell} />}
               />
               <Divider />
               <StatGroup>
@@ -78,16 +80,18 @@ export const Forms = () => {
             </VStack>
           </CardBody>
         </Card>
-        <Card bg={headerBg} shadow="md" borderRadius="lg">
-          <CardBody>
-            <FormBuilder
-              forms={forms}
-              onCancel={handleFormCancel}
-              onUpdate={refetch}
-              onSelectForm={setSelectedForm}
-            />
-          </CardBody>
-        </Card>
+        {selectedWorkcell && (
+          <Card bg={headerBg} shadow="md" borderRadius="lg">
+            <CardBody>
+              <FormBuilder
+                forms={forms}
+                onCancel={handleFormCancel}
+                onUpdate={refetch}
+                onSelectForm={setSelectedForm}
+              />
+            </CardBody>
+          </Card>
+        )}
       </VStack>
     </Box>
   );
