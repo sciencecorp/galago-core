@@ -22,17 +22,10 @@ import { Form } from "@/types";
 import { CreateFormModal } from "./createFormModal";
 
 export const Forms = () => {
-  const { data: fetchedForms, isLoading, refetch } = trpc.form.getAll.useQuery();
+  const { data: forms, isLoading, refetch } = trpc.form.getAll.useQuery();
 
   const headerBg = useColorModeValue("white", "gray.700");
-  const [forms, setForms] = useState<Form[]>([]);
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
-
-  useEffect(() => {
-    if (fetchedForms) {
-      setForms(fetchedForms);
-    }
-  }, [fetchedForms]);
 
   const handleFormCancel = () => {
     setSelectedForm(null);
@@ -40,11 +33,11 @@ export const Forms = () => {
 
   const stats = useMemo(
     () => ({
-      totalForms: forms.length,
+      totalForms: forms?.length || 0,
       activeFields: selectedForm?.fields?.length || 0,
       selectedFormName: selectedForm?.name || "None",
     }),
-    [forms.length, selectedForm?.fields?.length, selectedForm?.name],
+    [forms?.length, selectedForm?.fields?.length, selectedForm?.name],
   );
 
   if (isLoading) {

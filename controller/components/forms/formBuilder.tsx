@@ -341,7 +341,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
             value={selectedForm?.name || ""}
             onChange={(e) => {
               const formName = e.target.value;
-              const form = forms.find((f) => f.name === formName);
+              const form = forms?.find((f) => f.name === formName);
               if (form) {
                 onSelectForm?.(form);
                 setSelectedForm(form);
@@ -355,7 +355,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
               }
             }}
             width="300px">
-            {forms.map((form) => (
+            {forms?.map((form) => (
               <option key={form.id} value={form.name}>
                 {form.name}
               </option>

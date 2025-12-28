@@ -42,7 +42,7 @@ export const zFormUpdate = zForm.partial().omit({ created_at: true, updated_at: 
 export const formRouter = router({
   // Get all forms
   getAll: procedure.query(async () => {
-    const response = await get<Form[]>(`/forms`);
+    const response = await get<Form[]>("/forms");
     return response;
   }),
 
@@ -54,7 +54,7 @@ export const formRouter = router({
 
   // New form
   add: procedure.input(zFormCreate).mutation(async ({ input }) => {
-    const response = await post<Form>(`/forms`, input);
+    const response = await post<Form>("/forms", input);
     logAction({
       level: "info",
       action: "New Form Created",
