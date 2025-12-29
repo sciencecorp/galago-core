@@ -34,6 +34,7 @@ import { EditableText } from "../ui/Form";
 import { Type, Hash, ToggleLeft, Variable as TbVariable, Braces, Brackets } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { successToast, errorToast } from "../ui/Toast";
+import { EmptyState } from "../ui/EmptyState";
 
 const truncateText = (text: string, maxLength: number = 50) => {
   if (!text || text.length <= maxLength) return text;
@@ -195,66 +196,67 @@ export const Variables: React.FC = () => {
         <Card bg={headerBg} shadow="md">
           <CardBody>
             <VStack spacing={4} align="stretch">
-              <Box overflowX="auto">
-                <Table
-                  variant="simple"
-                  sx={{
-                    th: {
-                      borderColor: useColorModeValue("gray.200", "gray.600"),
-                    },
-                    td: {
-                      borderColor: useColorModeValue("gray.200", "gray.600"),
-                    },
-                  }}>
-                  <Thead>
-                    <Tr>
-                      <Th>Name</Th>
-                      <Th>Type</Th>
-                      <Th>Value</Th>
-                      <Th>Created On</Th>
-                      <Th>Updated On</Th>
-                      <Th>Actions</Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {filteredVariables.map((variable) => (
-                      <Tr key={variable.id} _hover={{ bg: hoverBgColor }}>
-                        <Td>
-                          <EditableText
-                            onSubmit={async (value) => {
-                              value && (await handleVariableUpdate({ ...variable, name: value }));
-                            }}
-                            defaultValue={variable.name}
-                          />
-                        </Td>
-                        <Td>
-                          <HStack>
-                            {renderTypeIcon(variable.type)}
-                            <Text>{variable.type}</Text>
-                          </HStack>
-                        </Td>
-                        <Td maxWidth="300px">
-                          <EditableText
-                            onSubmit={async (value) => {
-                              value && (await handleVariableUpdate({ ...variable, value: value }));
-                            }}
-                            defaultValue={variable.value}
-                            displayValue={truncateText(variable.value, 60)}
-                          />
-                        </Td>
-                        <Td>{renderDatetime(String(variable.created_at))}</Td>
-                        <Td>{renderDatetime(String(variable.updated_at))}</Td>
-                        <Td>
-                          <DeleteWithConfirmation
-                            onDelete={() => handleDelete(variable)}
-                            label="variable"
-                          />
-                        </Td>
+              {filteredVariables.length === 0 ? (
+                <>
+                  <EmptyState
+                    title="No Variables Found"
+                    description="Create a new variable to get started."
+                  />
+                </>
+              ) : (
+                <Box overflowX="auto">
+                  <Table variant="simple" size="sm">
+                    <Thead>
+                      <Tr>
+                        <Th>Name</Th>
+                        <Th>Type</Th>
+                        <Th>Value</Th>
+                        <Th>Created On</Th>
+                        <Th>Updated On</Th>
+                        <Th>Actions</Th>
                       </Tr>
-                    ))}
-                  </Tbody>
-                </Table>
-              </Box>
+                    </Thead>
+                    <Tbody>
+                      {filteredVariables.map((variable) => (
+                        <Tr key={variable.id} _hover={{ bg: hoverBgColor }}>
+                          <Td>
+                            <EditableText
+                              onSubmit={async (value) => {
+                                value && (await handleVariableUpdate({ ...variable, name: value }));
+                              }}
+                              defaultValue={variable.name}
+                            />
+                          </Td>
+                          <Td>
+                            <HStack>
+                              {renderTypeIcon(variable.type)}
+                              <Text>{variable.type}</Text>
+                            </HStack>
+                          </Td>
+                          <Td maxWidth="300px">
+                            <EditableText
+                              onSubmit={async (value) => {
+                                value &&
+                                  (await handleVariableUpdate({ ...variable, value: value }));
+                              }}
+                              defaultValue={variable.value}
+                              displayValue={truncateText(variable.value, 60)}
+                            />
+                          </Td>
+                          <Td>{renderDatetime(String(variable.created_at))}</Td>
+                          <Td>{renderDatetime(String(variable.updated_at))}</Td>
+                          <Td>
+                            <DeleteWithConfirmation
+                              onDelete={() => handleDelete(variable)}
+                              label="variable"
+                            />
+                          </Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                </Box>
+              )}
             </VStack>
           </CardBody>
         </Card>

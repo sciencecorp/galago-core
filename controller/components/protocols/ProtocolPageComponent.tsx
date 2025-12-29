@@ -59,7 +59,7 @@ import { GitBranch, Plus, Upload, Play } from "lucide-react";
 import { EditableText } from "../ui/Form";
 import { errorToast, successToast } from "../ui/Toast";
 import { downloadFile, uploadFile } from "@/server/utils/api";
-
+import { EmptyState } from "@/components/ui/EmptyState";
 type SortField = "name" | "category";
 type SortOrder = "asc" | "desc";
 
@@ -111,9 +111,7 @@ export const ProtocolPageComponent: React.FC = () => {
   // Get unique workcells and categories for filters
   const uniqueWorkcells = useMemo(() => {
     if (!protocols || !workcells) return [];
-    // Get unique workcell IDs from protocols
     const workcellIds = new Set(protocols.map((p) => p.workcell_id));
-    // Filter workcells to only include those that are actually in use
     const usedWorkcells = workcells.filter((w) => workcellIds.has(w.id));
     return usedWorkcells;
   }, [protocols, workcells]);
@@ -127,7 +125,6 @@ export const ProtocolPageComponent: React.FC = () => {
 
   const categories = ["development", "qc", "production"];
 
-  // Enhanced filtering
   const filteredProtocols = useMemo(() => {
     return protocols?.filter((protocol) => {
       const matchesSearch =
@@ -138,7 +135,7 @@ export const ProtocolPageComponent: React.FC = () => {
 
       return matchesSearch && matchesCategory;
     });
-  }, [protocols, searchQuery, categoryFilter, workcellFilter]);
+  }, [protocols, searchQuery, categoryFilter]);
 
   // Sorting
   const sortedProtocols = useMemo(() => {
@@ -365,165 +362,166 @@ export const ProtocolPageComponent: React.FC = () => {
         </CardBody>
       </Card>
 
-      <Card bg={headerBg} shadow="md" flex={1}>
+      <Card bg={headerBg} shadow="md">
         <CardBody>
-          <VStack align="stretch" spacing={4} height="100%">
-            <Box overflowX="auto" flex={1}>
-              <Table
-                variant="simple"
-                sx={{
-                  th: {
-                    borderColor: useColorModeValue("gray.200", "gray.600"),
-                  },
-                  td: {
-                    borderColor: useColorModeValue("gray.200", "gray.600"),
-                  },
-                }}>
-                <Thead>
-                  <Tr>
-                    <Th cursor="pointer" onClick={() => handleSort("name")}>
-                      <HStack spacing={2}>
-                        <span>Name</span>
-                        {sortField === "name" && (
-                          <ArrowUpDownIcon
-                            transform={sortOrder === "desc" ? "rotate(180deg)" : undefined}
-                          />
-                        )}
-                      </HStack>
-                    </Th>
-                    <Th>Category</Th>
-                    <Th>Workcell</Th>
-                    <Th>Description</Th>
-                    <Th>Commands</Th>
-                    <Th>Actions</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {sortedProtocols.map((protocol, index) => (
-                    <Tr key={index} _hover={{ bg: hoverBgColor }}>
-                      <Td>
-                        <EditableText
-                          defaultValue={protocol.name}
-                          preview={<Link href={`/protocols/${protocol.id}`}>{protocol.name}</Link>}
-                          onSubmit={(value) => {
-                            if (value && value !== protocol.name) {
-                              handleUpdateProtocol(protocol.id, { name: value });
-                            }
-                          }}
-                        />
-                      </Td>
-                      <Td>
-                        <Popover placement="bottom" closeOnBlur={true}>
-                          <PopoverTrigger>
-                            <Tag
-                              colorScheme={getCategoryColor(protocol.category)}
-                              cursor="pointer"
-                              _hover={{ opacity: 0.8 }}>
-                              {protocol.category}
-                            </Tag>
-                          </PopoverTrigger>
-                          <PopoverContent width="fit-content">
-                            <PopoverBody>
-                              <VStack align="stretch" spacing={2}>
-                                {categories.map((category) => (
-                                  <Button
-                                    key={category}
-                                    size="sm"
-                                    variant={category === protocol.category ? "solid" : "ghost"}
-                                    colorScheme={getCategoryColor(category)}
-                                    onClick={() => {
-                                      if (category !== protocol.category) {
-                                        handleUpdateProtocol(protocol.id, { category });
-                                      }
-                                    }}>
-                                    {category}
-                                  </Button>
-                                ))}
-                              </VStack>
-                            </PopoverBody>
-                          </PopoverContent>
-                        </Popover>
-                      </Td>
-                      <Td>
-                        <Popover placement="bottom" closeOnBlur={true}>
-                          <PopoverTrigger>
-                            <Text cursor="pointer" _hover={{ color: "blue.500" }}>
-                              {getWorkcellName(protocol.workcell_id)}
-                            </Text>
-                          </PopoverTrigger>
-                          <PopoverContent width="fit-content">
-                            <PopoverBody>
-                              <VStack align="stretch" spacing={2}>
-                                {workcells?.map((workcell) => (
-                                  <Button
-                                    key={workcell.id}
-                                    size="sm"
-                                    variant={
-                                      workcell.id === protocol.workcell_id ? "solid" : "ghost"
-                                    }
-                                    onClick={() => {
-                                      if (workcell.id !== protocol.workcell_id) {
-                                        handleUpdateProtocol(protocol.id, {
-                                          workcell_id: workcell.id,
-                                        });
-                                      }
-                                    }}>
-                                    {workcell.name}
-                                  </Button>
-                                ))}
-                              </VStack>
-                            </PopoverBody>
-                          </PopoverContent>
-                        </Popover>
-                      </Td>
-                      <Td>
-                        <EditableText
-                          defaultValue={protocol.description || ""}
-                          preview={<Text>{protocol.description || "-"}</Text>}
-                          onSubmit={(value) => {
-                            if (value !== protocol.description) {
-                              handleUpdateProtocol(protocol.id, { description: value });
-                            }
-                          }}
-                        />
-                      </Td>
-                      <Td>{protocol.commands.length}</Td>
-                      <Td>
-                        <Menu>
-                          <MenuButton
-                            as={IconButton}
-                            icon={<HamburgerIcon />}
-                            variant="ghost"
-                            size="sm"
-                          />
-                          <MenuList>
-                            <MenuItem
-                              onClick={() => handleRunClick(protocol.id.toString())}
-                              color="green.500"
-                              icon={<Icon as={Play} />}>
-                              Run
-                            </MenuItem>
-                            <MenuItem
-                              onClick={() => handleExportProtocol(protocol.id)}
-                              color="blue.500"
-                              icon={<DownloadIcon />}>
-                              Export
-                            </MenuItem>
-                            <MenuItem
-                              color="red.500"
-                              onClick={() => handleDelete(protocol.id)}
-                              icon={<DeleteIcon />}>
-                              Delete
-                            </MenuItem>
-                          </MenuList>
-                        </Menu>
-                      </Td>
-                    </Tr>
-                  ))}
-                </Tbody>
-              </Table>
-            </Box>
-          </VStack>
+          {!protocols ||
+            (protocols.length === 0 ? (
+              <EmptyState
+                title="No Protocols"
+                description="Create a new protocol to get started."
+              />
+            ) : (
+              <VStack align="stretch" spacing={4}>
+                <Box overflowX="auto" flex={1}>
+                  <Table variant="simple">
+                    <Thead>
+                      <Tr>
+                        <Th cursor="pointer" onClick={() => handleSort("name")}>
+                          <HStack spacing={2}>
+                            <span>Name</span>
+                            {sortField === "name" && (
+                              <ArrowUpDownIcon
+                                transform={sortOrder === "desc" ? "rotate(180deg)" : undefined}
+                              />
+                            )}
+                          </HStack>
+                        </Th>
+                        <Th>Category</Th>
+                        <Th>Workcell</Th>
+                        <Th>Description</Th>
+                        <Th>Commands</Th>
+                        <Th>Actions</Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      {sortedProtocols.map((protocol, index) => (
+                        <Tr key={index} _hover={{ bg: hoverBgColor }}>
+                          <Td>
+                            <EditableText
+                              defaultValue={protocol.name}
+                              preview={
+                                <Link href={`/protocols/${protocol.id}`}>{protocol.name}</Link>
+                              }
+                              onSubmit={(value) => {
+                                if (value && value !== protocol.name) {
+                                  handleUpdateProtocol(protocol.id, { name: value });
+                                }
+                              }}
+                            />
+                          </Td>
+                          <Td>
+                            <Popover placement="bottom" closeOnBlur={true}>
+                              <PopoverTrigger>
+                                <Tag
+                                  colorScheme={getCategoryColor(protocol.category)}
+                                  cursor="pointer"
+                                  _hover={{ opacity: 0.8 }}>
+                                  {protocol.category}
+                                </Tag>
+                              </PopoverTrigger>
+                              <PopoverContent width="fit-content">
+                                <PopoverBody>
+                                  <VStack align="stretch" spacing={2}>
+                                    {categories.map((category) => (
+                                      <Button
+                                        key={category}
+                                        size="sm"
+                                        variant={category === protocol.category ? "solid" : "ghost"}
+                                        colorScheme={getCategoryColor(category)}
+                                        onClick={() => {
+                                          if (category !== protocol.category) {
+                                            handleUpdateProtocol(protocol.id, { category });
+                                          }
+                                        }}>
+                                        {category}
+                                      </Button>
+                                    ))}
+                                  </VStack>
+                                </PopoverBody>
+                              </PopoverContent>
+                            </Popover>
+                          </Td>
+                          <Td>
+                            <Popover placement="bottom" closeOnBlur={true}>
+                              <PopoverTrigger>
+                                <Text cursor="pointer" _hover={{ color: "blue.500" }}>
+                                  {getWorkcellName(protocol.workcell_id)}
+                                </Text>
+                              </PopoverTrigger>
+                              <PopoverContent width="fit-content">
+                                <PopoverBody>
+                                  <VStack align="stretch" spacing={2}>
+                                    {workcells?.map((workcell) => (
+                                      <Button
+                                        key={workcell.id}
+                                        size="sm"
+                                        variant={
+                                          workcell.id === protocol.workcell_id ? "solid" : "ghost"
+                                        }
+                                        onClick={() => {
+                                          if (workcell.id !== protocol.workcell_id) {
+                                            handleUpdateProtocol(protocol.id, {
+                                              workcell_id: workcell.id,
+                                            });
+                                          }
+                                        }}>
+                                        {workcell.name}
+                                      </Button>
+                                    ))}
+                                  </VStack>
+                                </PopoverBody>
+                              </PopoverContent>
+                            </Popover>
+                          </Td>
+                          <Td>
+                            <EditableText
+                              defaultValue={protocol.description || ""}
+                              preview={<Text>{protocol.description || "-"}</Text>}
+                              onSubmit={(value) => {
+                                if (value !== protocol.description) {
+                                  handleUpdateProtocol(protocol.id, { description: value });
+                                }
+                              }}
+                            />
+                          </Td>
+                          <Td>{protocol.commands.length}</Td>
+                          <Td>
+                            <Menu>
+                              <MenuButton
+                                as={IconButton}
+                                icon={<HamburgerIcon />}
+                                variant="ghost"
+                                size="sm"
+                              />
+                              <MenuList>
+                                <MenuItem
+                                  onClick={() => handleRunClick(protocol.id.toString())}
+                                  color="green.500"
+                                  icon={<Icon as={Play} />}>
+                                  Run
+                                </MenuItem>
+                                <MenuItem
+                                  onClick={() => handleExportProtocol(protocol.id)}
+                                  color="blue.500"
+                                  icon={<DownloadIcon />}>
+                                  Export
+                                </MenuItem>
+                                <MenuItem
+                                  color="red.500"
+                                  onClick={() => handleDelete(protocol.id)}
+                                  icon={<DeleteIcon />}>
+                                  Delete
+                                </MenuItem>
+                              </MenuList>
+                            </Menu>
+                          </Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                </Box>
+              </VStack>
+            ))}
         </CardBody>
       </Card>
 

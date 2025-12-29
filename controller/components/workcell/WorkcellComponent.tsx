@@ -20,10 +20,11 @@ import { NewWorkcellModal } from "./NewWorkcellModal";
 import { trpc } from "@/utils/trpc";
 import { Workcell } from "@/types/api";
 import { WorkcellCard } from "./WorkcellCard";
-import { Codepen, Upload, Download } from "lucide-react";
+import { Upload, Download } from "lucide-react";
 import { useWorkcellIO } from "@/hooks/useWorkcellIO";
 import { successToast, warningToast, errorToast } from "@/components/ui/Toast";
 import { WorkcellIcon } from "@/components/ui/Icons";
+import { EmptyState } from "../ui/EmptyState";
 
 export const WorkcellComponent = () => {
   const { data: fetchedWorkcells, refetch } = trpc.workcell.getAll.useQuery();
@@ -33,7 +34,6 @@ export const WorkcellComponent = () => {
 
   const headerBg = useColorModeValue("white", "gray.700");
 
-  // Use the custom hook for import/export
   const {
     fileInputRef,
     handleExportConfig,
@@ -43,7 +43,6 @@ export const WorkcellComponent = () => {
     isExporting,
   } = useWorkcellIO(workcells, selectedWorkcellName, refetch, refetchSelected);
 
-  // Wrapped handlers to add toast notifications
   const onExportConfig = async () => {
     const result = await handleExportConfig();
     if (result.success) {
@@ -71,10 +70,6 @@ export const WorkcellComponent = () => {
       setWorkcells(fetchedWorkcells);
     }
   }, [fetchedWorkcells]);
-
-  const getActiveWorkcells = () => {
-    return workcells.filter((w) => selectedWorkcellName && w.name === selectedWorkcellName).length;
-  };
 
   const importButton = (
     <Button
@@ -143,6 +138,12 @@ export const WorkcellComponent = () => {
 
         <Card bg={headerBg} shadow="md">
           <CardBody>
+            {workcells.length === 0 && (
+              <EmptyState
+                title="No Workcells"
+                description="Create a new workcell to get started."
+              />
+            )}
             <SimpleGrid
               columns={{ base: 1, md: 1, lg: 2, xl: 3 }}
               spacing={10}
