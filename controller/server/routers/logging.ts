@@ -1,8 +1,9 @@
+// server/routers/logging.ts
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { db } from "@/db/client";
 import { logs } from "@/db/schema";
-import { desc, asc, eq, and, sql } from "drizzle-orm";
+import { desc, asc, eq, and, sql, like } from "drizzle-orm";
 
 const LogCreateSchema = z.object({
   level: z.string().min(1),
@@ -34,33 +35,35 @@ export const loggingRouter = router({
     .query(async ({ input }) => {
       const { skip, limit, descending, orderBy, filters } = input;
 
-      let query = db.select().from(logs);
-
-      // Apply filters
-      if (filters) {
-        const conditions = [];
-        if (filters.level) {
-          conditions.push(eq(logs.level, filters.level));
-        }
-        if (filters.action) {
-          conditions.push(eq(logs.action, filters.action));
-        }
-        if (conditions.length > 0) {
-          query = query.where(and(...conditions));
-        }
+      // Build conditions array
+      const conditions = [];
+      if (filters?.level) {
+        conditions.push(eq(logs.level, filters.level));
       }
+      if (filters?.action) {
+        conditions.push(like(logs.action, `%${filters.action}%`));
+      }
+
+      // Build query with conditions
+      const query =
+        conditions.length > 0
+          ? db
+              .select()
+              .from(logs)
+              .where(and(...conditions))
+          : db.select().from(logs);
 
       // Apply ordering
       const orderCol = logs[orderBy];
-      query = query.orderBy(descending ? desc(orderCol) : asc(orderCol));
+      const orderedQuery = query.orderBy(descending ? desc(orderCol) : asc(orderCol));
 
       // Apply pagination
-      const result = await query.limit(limit).offset(skip);
+      const result = await orderedQuery.limit(limit).offset(skip);
 
       return result;
     }),
 
-  // NEW: Add count query
+  // Count query
   count: procedure
     .input(
       z.object({
@@ -75,23 +78,25 @@ export const loggingRouter = router({
     .query(async ({ input }) => {
       const { filters } = input;
 
-      let query = db.select({ count: sql<number>`count(*)` }).from(logs);
-
-      // Apply same filters as getPaginated
-      if (filters) {
-        const conditions = [];
-        if (filters.level) {
-          conditions.push(eq(logs.level, filters.level));
-        }
-        if (filters.action) {
-          conditions.push(eq(logs.action, filters.action));
-        }
-        if (conditions.length > 0) {
-          query = query.where(and(...conditions));
-        }
+      // Build conditions array
+      const conditions = [];
+      if (filters?.level) {
+        conditions.push(eq(logs.level, filters.level));
+      }
+      if (filters?.action) {
+        conditions.push(like(logs.action, `%${filters.action}%`));
       }
 
-      const result = await query;
+      // Build count query with conditions
+      const countQuery =
+        conditions.length > 0
+          ? db
+              .select({ count: sql<number>`count(*)` })
+              .from(logs)
+              .where(and(...conditions))
+          : db.select({ count: sql<number>`count(*)` }).from(logs);
+
+      const result = await countQuery;
       return result[0].count;
     }),
 

@@ -232,23 +232,6 @@ class PlateInfo(Plate):
     wells: t.List["Well"]
 
 
-# Log schemas
-class LogCreate(BaseModel):
-    level: str
-    action: str
-    details: str
-
-
-class LogUpdate(BaseModel):
-    id: t.Optional[int] = None
-    name: t.Optional[str] = None
-
-
-class Log(TimestampMixin, LogCreate):
-    id: int
-    model_config = ConfigDict(from_attributes=True)
-
-
 class VariableBase(BaseModel):
     name: str
     value: str
@@ -652,7 +635,7 @@ class ProtocolBase(BaseModel):
 class ProtocolCreate(BaseModel):
     name: str
     category: str
-    workcell_id: Optional[int] = None
+    workcell_id: int
     description: Optional[str] = None
     commands: List[Dict[str, Any]]
 

@@ -57,9 +57,9 @@ const sidebarItems: SidebarItem[] = [
   { name: "Inventory", icon: Package, path: "/inventory" },
   // { name: "Schedule", icon: CalendarCheck, path: "/schedule" },
   { name: "Labware", icon: Layers, path: "/labware" },
-  { name: "Logs", icon: Book, path: "/logs" },
   { name: "Variables", icon: Variable, path: "/variables" },
   { name: "Scripts", icon: Code2, path: "/scripts" },
+  { name: "Logs", icon: Book, path: "/logs" },
 ];
 
 function DarkModeToggle() {

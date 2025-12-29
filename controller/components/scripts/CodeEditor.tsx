@@ -48,7 +48,6 @@ import { errorToast } from "../ui/Toast";
 import { fileTypeToExtensionMap } from "./utils";
 import { Console } from "./Console";
 import { ResizablePanel } from "./ResizablePanel";
-import { logAction } from "@/server/logger";
 
 export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
@@ -256,16 +255,7 @@ Original Error: ${error.message}`;
         },
       },
     );
-
-    try {
-      await runScriptPromise;
-    } catch (error) {
-      logAction({
-        level: "error",
-        action: "Script Execution Failed",
-        details: `Error executing script ${activeTab}: ${error}`,
-      });
-    }
+    await runScriptPromise;
   };
 
   const handleSave = async () => {
