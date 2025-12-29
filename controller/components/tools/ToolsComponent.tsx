@@ -26,11 +26,17 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Search } from "lucide-react";
 import { Power, Wrench } from "lucide-react";
 import { successToast, errorToast, infoToast } from "../ui/Toast";
+import { Tool } from "@/types/api";
 
-export const ToolStatusCardsComponent: React.FC = () => {
+interface ToolStatusCardsProps {
+  showAsGrid?: boolean;
+}
+
+export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) => {
   const [toolIds, setToolIds] = useState<string[]>([]);
-  const { data: selectedWorkcell, refetch: refetchWorkcell } =
+  const { data: selectedWorkcellData, refetch: refetchWorkcell } =
     trpc.workcell.getSelectedWorkcell.useQuery();
+  const [selectedWorkcell, setSelectedWorkcell] = useState<string | null>(null);
   const [connectingLoading, setConnectingLoading] = useState(false);
   const headerBg = useColorModeValue("white", "gray.700");
   const tableBgColor = useColorModeValue("white", "gray.700");
@@ -38,8 +44,9 @@ export const ToolStatusCardsComponent: React.FC = () => {
   const configureMutation = trpc.tool.configure.useMutation();
   const { data: workcells } = trpc.workcell.getAll.useQuery();
 
+  const [thisWorkcellTools, setThisWorkcellTools] = useState<Tool[]>([]);
   const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({
-    workcellId: workcells?.find((workcell) => workcell.name === selectedWorkcell)?.id,
+    workcellId: workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id,
   });
 
   const connectAllTools = async () => {
@@ -58,11 +65,13 @@ export const ToolStatusCardsComponent: React.FC = () => {
         const configureToolWithErrorHandling = async (tool: (typeof allTools)[0]) => {
           const toolId = tool.name.toLocaleLowerCase().replaceAll(" ", "_");
 
+          // Skip tool_box and tools without configs
           if (toolId === "tool_box" || !tool.config) {
             return { status: "skipped", toolId };
           }
 
           try {
+            // Use mutateAsync to properly catch errors for this specific tool
             await configureMutation.mutateAsync({
               toolId: toolId,
               config: {
@@ -72,18 +81,25 @@ export const ToolStatusCardsComponent: React.FC = () => {
               },
             });
 
+            // Record successful configuration
             results.success.push(toolId);
             return { status: "fulfilled", toolId };
           } catch (error: any) {
+            // Get detailed error message
             let errorMessage = "Unknown error occurred";
+
             if (error.message) {
               errorMessage = error.message;
             } else if (typeof error === "string") {
               errorMessage = error;
             }
 
+            // Record the failure with detailed error
             results.failed.push({ toolId, error: errorMessage });
+
+            // Show individual error toast for each failed tool
             errorToast(`Failed to connect ${tool.name}`, errorMessage);
+
             return { status: "rejected", toolId, error: errorMessage };
           }
         };
@@ -111,6 +127,7 @@ export const ToolStatusCardsComponent: React.FC = () => {
           );
         }
 
+        // Refresh all data
         await refetch();
         await refetchWorkcell();
         await refetchAllTools();
@@ -132,6 +149,12 @@ export const ToolStatusCardsComponent: React.FC = () => {
       setToolIds(fetchedIds);
     }
   }, [fetchedIds]);
+
+  useEffect(() => {
+    if (selectedWorkcellData) {
+      setSelectedWorkcell(selectedWorkcellData);
+    }
+  }, [selectedWorkcellData]);
 
   return (
     <Box maxW="100%">
