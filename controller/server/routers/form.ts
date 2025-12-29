@@ -58,7 +58,7 @@ export const formRouter = router({
     logAction({
       level: "info",
       action: "New Form Created",
-      details: `Form "${input.name}" created successfully with ${input.fields.length} fields.`,
+      details: `Form "${input.name}" created successfully.`,
     });
     return response;
   }),

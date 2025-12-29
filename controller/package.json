@@ -10,7 +10,8 @@
     "build": "next build",
     "test": "npx tsc --noEmit",
     "test:fmt": "npx prettier --config .prettierrc --ignore-unknow --check '**/*",
-    "start": "next start -p 3010"
+    "start": "next start -p 3010",
+    "db:studio": "npx drizzle-kit studio"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
@@ -31,6 +32,7 @@
     "axios": "^1.4.0",
     "base32": "^0.0.7",
     "better-sqlite3": "^12.5.0",
+    "drizzle-orm": "^0.45.1",
     "eslint": "8.32.0",
     "eslint-config-next": "13.1.2",
     "framer-motion": "^8.5.5",
@@ -64,6 +66,7 @@
     "@types/node": "^22.7.5",
     "@types/react-beautiful-dnd": "^13.1.8",
     "@types/react-dom": "^18.3.7",
+    "drizzle-kit": "^0.31.8",
     "typescript": "^5.5.3"
   }
 }

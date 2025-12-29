@@ -1,39 +1,105 @@
+// server/routers/logging.ts
 import { z } from "zod";
-
-import Tool from "@/server/tools";
-import { Config } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { procedure, router } from "@/server/trpc";
-import { ToolType } from "gen-interfaces/controller";
-import axios from "axios";
-import { add } from "winston";
-import { get, post, put, del } from "@/server/utils/api";
-import { idText } from "typescript";
-const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
-import { Log } from "@/types/api";
+import { db } from "@/db/client";
+import { logs } from "@/db/schema";
+import { desc, asc, eq, and, sql, like } from "drizzle-orm";
+
+const LogCreateSchema = z.object({
+  level: z.string().min(1),
+  action: z.string().min(1),
+  details: z.string().min(1),
+});
 
 export const loggingRouter = router({
   getAll: procedure.query(async () => {
-    const response = await get<Log[]>(`/logs`);
-    return response;
+    const result = await db.select().from(logs).orderBy(desc(logs.createdAt));
+    return result;
   }),
 
   getPaginated: procedure
-    .input(z.object({ skip: z.number(), limit: z.number(), descending: z.boolean() }))
+    .input(
+      z.object({
+        skip: z.number().default(0),
+        limit: z.number().default(100),
+        descending: z.boolean().default(false),
+        orderBy: z.enum(["id", "level", "action", "createdAt", "updatedAt"]).default("createdAt"),
+        filters: z
+          .object({
+            level: z.string().optional(),
+            action: z.string().optional(),
+          })
+          .optional(),
+      }),
+    )
     .query(async ({ input }) => {
-      const { skip, limit, descending } = input;
-      const response = await get<Log[]>(
-        `/logs?skip=${skip}&limit=${limit}&descending=${descending}`,
-      );
-      return response;
+      const { skip, limit, descending, orderBy, filters } = input;
+
+      // Build conditions array
+      const conditions = [];
+      if (filters?.level) {
+        conditions.push(eq(logs.level, filters.level));
+      }
+      if (filters?.action) {
+        conditions.push(like(logs.action, `%${filters.action}%`));
+      }
+
+      // Build query with conditions
+      const query =
+        conditions.length > 0
+          ? db
+              .select()
+              .from(logs)
+              .where(and(...conditions))
+          : db.select().from(logs);
+
+      const orderCol = logs[orderBy];
+      const orderedQuery = query.orderBy(descending ? desc(orderCol) : asc(orderCol));
+      const result = await orderedQuery.limit(limit).offset(skip);
+      return result;
     }),
 
-  clearAll: procedure.mutation(async () => {
-    await del(`/logs`);
-    return { message: "Logs cleared successfully" };
+  count: procedure
+    .input(
+      z.object({
+        filters: z
+          .object({
+            level: z.string().optional(),
+            action: z.string().optional(),
+          })
+          .optional(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { filters } = input;
+
+      const conditions = [];
+      if (filters?.level) {
+        conditions.push(eq(logs.level, filters.level));
+      }
+      if (filters?.action) {
+        conditions.push(like(logs.action, `%${filters.action}%`));
+      }
+
+      const countQuery =
+        conditions.length > 0
+          ? db
+              .select({ count: sql<number>`count(*)` })
+              .from(logs)
+              .where(and(...conditions))
+          : db.select({ count: sql<number>`count(*)` }).from(logs);
+
+      const result = await countQuery;
+      return result[0].count;
+    }),
+
+  add: procedure.input(LogCreateSchema).mutation(async ({ input }) => {
+    const result = await db.insert(logs).values(input).returning();
+    return result[0];
   }),
 
-  add: procedure.mutation(async ({ input }) => {
-    const response = await post<Log>(`/logs`, input);
-    return response;
+  clearAll: procedure.mutation(async () => {
+    await db.delete(logs);
+    return { message: "Logs cleared successfully" };
   }),
 });

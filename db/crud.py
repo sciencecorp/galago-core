@@ -1,14 +1,13 @@
+import typing as t
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from db import schemas
 import db.models.inventory_models as models
-import db.models.log_models as log_model
-import typing as t
-from sqlalchemy import func
+from db import schemas
 
 ModelType = TypeVar("ModelType", bound=models.Base)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
@@ -372,7 +371,6 @@ reagent = CRUDBase[models.Reagent, schemas.ReagentCreate, schemas.ReagentUpdate]
     models.Reagent
 )
 tool = CRUDBase[models.Tool, schemas.ToolCreate, schemas.ToolUpdate](models.Tool)
-logs = CRUDBase[log_model.Log, schemas.LogCreate, schemas.LogUpdate](log_model.Log)
 variables = CRUDBase[models.Variable, schemas.VariableCreate, schemas.VariableUpdate](
     models.Variable
 )
@@ -411,6 +409,7 @@ robot_arm_grip_params = CRUDBase[
 ](models.RobotArmGripParams)
 
 form = CRUDBase[models.Form, schemas.FormCreate, schemas.FormUpdate](models.Form)
+
 
 class CRUDHotel(CRUDBase[models.Hotel, schemas.HotelCreate, schemas.HotelUpdate]):
     pass
