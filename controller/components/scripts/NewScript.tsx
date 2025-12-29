@@ -20,6 +20,7 @@ import {
 import { trpc } from "@/utils/trpc";
 import { validateScriptName, showErrorToast, showSuccessToast } from "./utils";
 import { FileAddIcon } from "../ui/Icons";
+
 interface NewScriptProps {
   isDisabled?: boolean;
   activeFolderId?: number;
@@ -34,7 +35,7 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
   const [description, setDescription] = useState("");
   const addScript = trpc.script.add.useMutation();
   const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
-  const [selectedLanguage, setSelectedLanguage] = useState<string>("python"); // This can be dynamic based on user selection
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("python");
 
   const handleSave = async () => {
     const isNotValid = validateScriptName(scriptName);

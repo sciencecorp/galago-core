@@ -27,6 +27,7 @@ import { Search } from "lucide-react";
 import { Power, Wrench } from "lucide-react";
 import { successToast, errorToast, infoToast } from "../ui/Toast";
 import { Tool } from "@/types/api";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 interface ToolStatusCardsProps {
   showAsGrid?: boolean;
@@ -168,6 +169,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
                 subTitle="Manage and monitor your connected tools"
                 mainButton={
                   <Button
+                    isDisabled={toolIds.length === 0}
                     size="sm"
                     isLoading={connectingLoading}
                     disabled={toolIds.length === 0}
@@ -214,6 +216,9 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
         </Card>
         <Card bg={headerBg} shadow="md">
           <CardBody>
+            {toolIds.length === 0 && (
+              <EmptyState title="No Tools" description="Create a new tool to get started." />
+            )}
             <Flex wrap="wrap" justify="space-evenly" mt={4} align="stretch" gap={4}>
               {toolIds.map((toolId, index) => (
                 <ToolStatusCard key={`${toolId}-${index}`} toolId={toolId} />
