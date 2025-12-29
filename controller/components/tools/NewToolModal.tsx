@@ -24,6 +24,7 @@ import {
   Divider,
   Input,
   useColorModeValue,
+  Tooltip,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { Plus, Search } from "lucide-react";
@@ -162,13 +163,19 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
 
   return (
     <>
-      <Button
-        onClick={onSelectOpen}
-        colorScheme="teal"
-        leftIcon={<Plus size={14} />}
-        isDisabled={isDisabled}>
-        New Tool
-      </Button>
+      <Tooltip
+        label={isDisabled ? "Create or Select a Workcell to add new tool." : ""}
+        placement="top"
+        hasArrow>
+        <Button
+          size="sm"
+          onClick={onSelectOpen}
+          colorScheme="teal"
+          leftIcon={<Plus size={14} />}
+          isDisabled={isDisabled}>
+          New
+        </Button>
+      </Tooltip>
 
       {/* Tool Selection Modal */}
       <Modal isOpen={isSelectOpen} onClose={onSelectClose} size="xl">

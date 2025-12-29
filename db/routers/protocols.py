@@ -1,40 +1,53 @@
-
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
-from fastapi.responses import FileResponse
-from starlette.background import BackgroundTask
-from sqlalchemy.orm import Session
-from datetime import datetime
-import typing as t
-from typing import Optional, List
 import json
-import tempfile
-import os
 import logging
+import os
+import tempfile
+import typing as t
+from datetime import datetime
+from typing import List, Optional
 
-from db import  schemas
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse
+from sqlalchemy.orm import Session
+from starlette.background import BackgroundTask
+
 import db.models.inventory_models as models
-from ..dependencies import get_db
+from db import schemas
+
+from ..dependencies import get_db, get_selected_workcell_id
 
 router = APIRouter()
 
 
 @router.post("", response_model=schemas.Protocol)
-async def create_protocol(protocol: schemas.ProtocolCreate, db: Session = Depends(get_db)):
+async def create_protocol(
+    protocol: schemas.ProtocolCreate, db: Session = Depends(get_db)
+):
     try:
+        # If no workcell_id provided, use the selected workcell
+        workcell_id = protocol.workcell_id
+        if workcell_id is None:
+            workcell_id = get_selected_workcell_id(db)
+            if workcell_id is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="No workcell selected. Please select a workcell or provide workcell_id.",
+                )
+
         # Check if workcell exists
-        workcell = db.query(models.Workcell).get(protocol.workcell_id)
+        workcell = db.query(models.Workcell).get(workcell_id)
         if not workcell:
-            logging.error(f"Workcell with ID {protocol.workcell_id} not found")
+            logging.error(f"Workcell with ID {workcell_id} not found")
             raise HTTPException(
                 status_code=400,
-                detail=f"Workcell with ID {protocol.workcell_id} not found",
+                detail=f"Workcell with ID {workcell_id} not found",
             )
 
         # Create new protocol with validated data
         db_protocol = models.Protocol(
             name=protocol.name,
             category=protocol.category,
-            workcell_id=protocol.workcell_id,
+            workcell_id=workcell_id,
             description=protocol.description,
             commands=protocol.commands or [],
         )

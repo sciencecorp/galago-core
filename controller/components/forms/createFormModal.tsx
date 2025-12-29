@@ -76,7 +76,7 @@ export const CreateFormModal: React.FC<CreateFormModalProps> = ({ isDisabled }) 
           colorScheme="teal"
           leftIcon={<Plus size={16} />}
           isDisabled={isDisabled}>
-          New Form
+          New
         </Button>
       </Tooltip>
 

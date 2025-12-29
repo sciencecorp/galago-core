@@ -41,6 +41,7 @@ import {
   PopoverContent,
   PopoverBody,
   Text,
+  Tooltip,
 } from "@chakra-ui/react";
 import {
   SearchIcon,
@@ -51,7 +52,6 @@ import {
 } from "@chakra-ui/icons";
 import { useState, useMemo, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -89,12 +89,9 @@ export const ProtocolPageComponent: React.FC = () => {
   const hoverBgColor = useColorModeValue("gray.50", "gray.600");
 
   const { data: workcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
-  const {
-    data: protocols,
-    isLoading,
-    isError,
-    refetch,
-  } = trpc.protocol.allNames.useQuery({ workcellName: workcellName || "" });
+  const { data: protocols, refetch } = trpc.protocol.allNames.useQuery({
+    workcellName: workcellName || "",
+  });
   const { data: workcells } = trpc.workcell.getAll.useQuery();
   const deleteMutation = trpc.protocol.delete.useMutation({
     onSuccess: () => {
@@ -200,21 +197,8 @@ export const ProtocolPageComponent: React.FC = () => {
     setRunModalProtocolId(null);
   };
 
-  const handleDelete = async (protocolId: string) => {
-    // Check if it's a TypeScript protocol (non-numeric ID)
-    if (isNaN(parseInt(protocolId))) {
-      errorToast(
-        "Cannot Delete",
-        "TypeScript-based protocols cannot be deleted as they are part of the codebase. Only database protocols can be deleted.",
-      );
-      return;
-    }
-
-    try {
-      await deleteMutation.mutateAsync({ id: parseInt(protocolId) });
-    } catch (error) {
-      // Error is handled in onError callback above
-    }
+  const handleDelete = async (protocolId: number) => {
+    await deleteMutation.mutateAsync({ id: protocolId });
   };
 
   const getWorkcellName = (workcellId: number) => {
@@ -272,7 +256,6 @@ export const ProtocolPageComponent: React.FC = () => {
         throw new Error("Protocol not found");
       }
 
-      // Use the downloadFile utility
       const filename = `${protocol.name.replace(/\s+/g, "_")}-protocol.json`;
       await downloadFile(`/protocols/${protocolId}/export`, filename);
 
@@ -296,6 +279,7 @@ export const ProtocolPageComponent: React.FC = () => {
               mainButton={
                 <HStack>
                   <Button
+                    size="sm"
                     colorScheme="blue"
                     variant="outline"
                     leftIcon={<Upload size={14} />}
@@ -304,17 +288,22 @@ export const ProtocolPageComponent: React.FC = () => {
                     isDisabled={isImporting}>
                     Import
                   </Button>
-                  <Button
-                    colorScheme="teal"
-                    leftIcon={<Plus size={14} />}
-                    onClick={onNewProtocolOpen}>
-                    New Protocol
-                  </Button>
+                  <Tooltip
+                    label={!workcellName ? "Create or Select a Workcell to create a protocol" : ""}
+                    placement="top"
+                    hasArrow>
+                    <Button
+                      size="sm"
+                      isDisabled={!workcellName}
+                      colorScheme="teal"
+                      leftIcon={<Plus size={14} />}
+                      onClick={onNewProtocolOpen}>
+                      New
+                    </Button>
+                  </Tooltip>
                 </HStack>
               }
             />
-
-            <Divider />
 
             <StatGroup>
               <Stat>
@@ -522,7 +511,7 @@ export const ProtocolPageComponent: React.FC = () => {
                             </MenuItem>
                             <MenuItem
                               color="red.500"
-                              onClick={() => handleDelete(protocol.id.toString())}
+                              onClick={() => handleDelete(protocol.id)}
                               icon={<DeleteIcon />}>
                               Delete
                             </MenuItem>

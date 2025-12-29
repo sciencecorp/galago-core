@@ -78,6 +78,7 @@ export const WorkcellComponent = () => {
 
   const importButton = (
     <Button
+      size="sm"
       leftIcon={<Upload size={16} />}
       colorScheme="blue"
       variant="outline"
@@ -90,6 +91,7 @@ export const WorkcellComponent = () => {
 
   const exportButton = (
     <Button
+      size="sm"
       leftIcon={<Download size={16} />}
       colorScheme="green"
       variant="outline"

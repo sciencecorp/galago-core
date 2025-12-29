@@ -53,7 +53,7 @@ export const NewWorkcellModal: React.FC = () => {
 
   return (
     <>
-      <Button onClick={onOpen} colorScheme="teal" leftIcon={<Plus />}>
+      <Button onClick={onOpen} colorScheme="teal" leftIcon={<Plus size={16} />} size="sm">
         New
       </Button>
       <Modal isOpen={isOpen} onClose={onClose}>

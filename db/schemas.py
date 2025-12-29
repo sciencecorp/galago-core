@@ -1,12 +1,12 @@
+import json
 import typing as t
-from pydantic import BaseModel, model_validator, ConfigDict
-from datetime import datetime, date
+from datetime import date, datetime
 from enum import Enum as PyEnum
-from typing import List, Dict, Any, Optional, Union
-import json 
+from typing import Any, Dict, List, Optional, Union
+
+from pydantic import BaseModel, ConfigDict, model_validator
 
 
-        
 class TimestampMixin(BaseModel):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
@@ -248,6 +248,7 @@ class Log(TimestampMixin, LogCreate):
     id: int
     model_config = ConfigDict(from_attributes=True)
 
+
 class VariableBase(BaseModel):
     name: str
     value: str
@@ -257,12 +258,16 @@ class VariableBase(BaseModel):
     def validate_value_type(cls, data: t.Any) -> t.Any:
         if not isinstance(data, dict):
             return data
-            
+
         model_dictionary = data.copy()
-        
+
         # Validate type field first
         if "type" in model_dictionary and model_dictionary["type"] not in [
-            "string", "number", "boolean", "array", "json"
+            "string",
+            "number",
+            "boolean",
+            "array",
+            "json",
         ]:
             raise ValueError(
                 "Type must be one of: string, number, boolean, array, json"
@@ -271,18 +276,18 @@ class VariableBase(BaseModel):
         # Only validate value if both type and value are present
         if "type" not in model_dictionary or "value" not in model_dictionary:
             return data
-            
+
         value_type = model_dictionary["type"]
         value = model_dictionary["value"]
-        
+
         # Ensure value is always a string (this is how they're stored)
         if not isinstance(value, str):
             raise ValueError("All values must be provided as strings")
-        
+
         if value_type == "string":
             # String values are always valid
             pass
-                
+
         elif value_type == "number":
             if value.strip() == "":
                 raise ValueError("Number value cannot be empty")
@@ -290,24 +295,26 @@ class VariableBase(BaseModel):
                 float(value)
             except (ValueError, TypeError):
                 raise ValueError(f"Value '{value}' is not a valid number")
-                
+
         elif value_type == "boolean":
             if value.strip().lower() not in ["true", "false"]:
-                raise ValueError("Boolean value must be 'true' or 'false' (case insensitive)")
-                
+                raise ValueError(
+                    "Boolean value must be 'true' or 'false' (case insensitive)"
+                )
+
         elif value_type == "array":
             # Arrays must start with [ and end with ]
-            if not value.strip().startswith('[') or not value.strip().endswith(']'):
+            if not value.strip().startswith("[") or not value.strip().endswith("]"):
                 raise ValueError("Array must start with [ and end with ]")
-            
+
             try:
                 # Parse as JSON to validate structure
                 parsed_array = json.loads(value)
-                
+
                 # Must be a list
                 if not isinstance(parsed_array, list):
                     raise ValueError("Array value must be a JSON array")
-                
+
                 # Empty arrays are valid
                 if len(parsed_array) == 0:
                     pass
@@ -315,29 +322,34 @@ class VariableBase(BaseModel):
                     # Check that all elements are the same type
                     first_element = parsed_array[0]
                     first_type = type(first_element)
-                    
+
                     # Only allow string, number (int/float), or boolean
                     if first_type not in [str, int, float, bool]:
-                        raise ValueError("Array elements must be strings, numbers, or booleans only")
-                    
+                        raise ValueError(
+                            "Array elements must be strings, numbers, or booleans only"
+                        )
+
                     # Check all elements are same type (treat int and float as same type)
                     for i, element in enumerate(parsed_array):
                         element_type = type(element)
-                        
+
                         # Reject nested arrays or objects
                         if isinstance(element, (list, dict)):
-                            raise ValueError("Nested arrays and objects are not allowed")
-                        
+                            raise ValueError(
+                                "Nested arrays and objects are not allowed"
+                            )
+
                         # Check type consistency (treat int/float as numbers)
                         if first_type in [int, float] and element_type in [int, float]:
                             continue  # Both are numbers, OK
                         elif element_type != first_type:
-                            raise ValueError(f"All array elements must be the same type. Found {first_type.__name__} and {element_type.__name__}")
-                                
+                            raise ValueError(
+                                f"All array elements must be the same type. Found {first_type.__name__} and {element_type.__name__}"
+                            )
+
             except json.JSONDecodeError as e:
                 raise ValueError(f"Array must be valid JSON: {str(e)}")
 
-                
         elif value_type == "json":
             if value.strip() == "":
                 raise ValueError("JSON value cannot be empty")
@@ -352,8 +364,8 @@ class VariableBase(BaseModel):
 class VariableCreate(VariableBase):
     name: str
     type: str
-    workcell_id: t.Optional[int] = None 
-    
+    workcell_id: t.Optional[int] = None
+
     @model_validator(mode="before")
     @classmethod
     def check_value_type(cls, data: t.Any) -> t.Any:
@@ -376,18 +388,19 @@ class VariableUpdate(BaseModel):
     def check_value_type(cls, data: t.Any) -> t.Any:
         return VariableBase.validate_value_type(data)
 
+
 # Helper functions for working with variables
 class VariableHelpers:
     @staticmethod
     def parse_array_value(value: str) -> list[str]:
         """Parse comma-separated string into list of strings.
-        
+
         Args:
             value: Comma-separated string (e.g., "item1, item2, item3")
-            
+
         Returns:
             List of strings with whitespace stripped
-            
+
         Examples:
             parse_array_value("a, b, c") -> ["a", "b", "c"]
             parse_array_value("") -> []
@@ -395,93 +408,95 @@ class VariableHelpers:
         """
         if not value or value.strip() == "":
             return []
-        
+
         # Split by comma and strip whitespace from each item
         items = [item.strip() for item in value.split(",")]
         # Filter out empty strings that might result from consecutive commas
         return [item for item in items if item != ""]
-    
+
     @staticmethod
     def parse_json_value(value: str) -> t.Any:
         """Parse JSON string into Python object.
-        
+
         Raises:
             json.JSONDecodeError: If the string is not valid JSON
         """
         if not value or value.strip() == "":
             raise ValueError("JSON value cannot be empty")
         return json.loads(value)
-    
+
     @staticmethod
     def parse_boolean_value(value: str) -> bool:
         """Parse string boolean into Python boolean.
-        
+
         Args:
             value: String representation of boolean ("true", "false", case-insensitive)
-            
+
         Returns:
             Boolean value
-            
+
         Raises:
             ValueError: If value is not a valid boolean string
         """
         if not isinstance(value, str):
             raise ValueError("Boolean value must be a string")
-        
+
         lower_value = value.strip().lower()
         if lower_value == "true":
             return True
         elif lower_value == "false":
             return False
         else:
-            raise ValueError("Boolean value must be 'true' or 'false' (case insensitive)")
-    
+            raise ValueError(
+                "Boolean value must be 'true' or 'false' (case insensitive)"
+            )
+
     @staticmethod
     def parse_number_value(value: str) -> float:
         """Parse string number into Python float.
-        
+
         Raises:
             ValueError: If the string cannot be converted to a number
         """
         if not value or value.strip() == "":
             raise ValueError("Number value cannot be empty")
         return float(value.strip())
-    
+
     @staticmethod
     def format_array_value(items: list[str]) -> str:
         """Format list of strings into comma-separated string.
-        
+
         Args:
             items: List of strings to join
-            
+
         Returns:
             Comma-separated string with spaces after commas
         """
         return ", ".join(str(item) for item in items)
-    
+
     @staticmethod
     def format_json_value(obj: t.Any) -> str:
         """Format Python object into compact JSON string.
-        
+
         Args:
             obj: Python object to serialize to JSON
-            
+
         Returns:
             Compact JSON string (no extra whitespace)
         """
         return json.dumps(obj, separators=(",", ":"))
-    
+
     @staticmethod
     def get_parsed_value(variable: Variable) -> t.Any:
         """Get the parsed value based on the variable type.
-        
+
         Args:
             variable: Variable instance with type and string value
-            
+
         Returns:
             Parsed value in appropriate Python type:
             - string -> str
-            - number -> float  
+            - number -> float
             - boolean -> bool
             - array -> list[str]
             - json -> Any (parsed JSON)
@@ -499,20 +514,20 @@ class VariableHelpers:
         else:
             # Unknown type, return as string
             return variable.value
-    
+
     @staticmethod
     def validate_and_format_value(value: str, variable_type: str) -> str:
         """Validate a value for a given type and return formatted string.
-        
+
         This is useful for preprocessing values before creating/updating variables.
-        
+
         Args:
             value: Raw value as string
             variable_type: Type to validate against
-            
+
         Returns:
             Formatted string value ready for storage
-            
+
         Raises:
             ValueError: If value is invalid for the given type
         """
@@ -527,7 +542,7 @@ class VariableHelpers:
             parsed = VariableHelpers.parse_boolean_value(value)
             return "true" if parsed else "false"
         elif variable_type == "array":
-            # Validate by parsing, then return normalized format  
+            # Validate by parsing, then return normalized format
             items = VariableHelpers.parse_array_value(value)
             return VariableHelpers.format_array_value(items)
         elif variable_type == "json":
@@ -536,7 +551,8 @@ class VariableHelpers:
             return VariableHelpers.format_json_value(obj)
         else:
             raise ValueError(f"Unknown variable type: {variable_type}")
-        
+
+
 class LabwareCreate(BaseModel):
     name: str
     description: str
@@ -573,6 +589,7 @@ class LabwareUpdate(BaseModel):
     image_url: t.Optional[str] = None
     workcell_id: t.Optional[int] = None
 
+
 # Schemas for waypoint data
 class TeachPoint(BaseModel):
     name: str
@@ -580,6 +597,7 @@ class TeachPoint(BaseModel):
     type: str = "location"
     loc_type: str = "j"
     orientation: Optional[str] = "landscape"
+
 
 class Command(BaseModel):
     command: str
@@ -622,6 +640,7 @@ class WaypointData(BaseModel):
     motion_profiles: Optional[List[MotionProfile]] = None
     grip_params: Optional[List[GripParam]] = None
 
+
 class ProtocolBase(BaseModel):
     name: str
     category: str
@@ -633,15 +652,17 @@ class ProtocolBase(BaseModel):
 class ProtocolCreate(BaseModel):
     name: str
     category: str
-    workcell_id: int
+    workcell_id: Optional[int] = None
     description: Optional[str] = None
     commands: List[Dict[str, Any]]
+
 
 class ProtocolUpdate(BaseModel):
     name: t.Optional[str] = None
     category: t.Optional[str] = None
     description: t.Optional[str] = None
     commands: t.Optional[t.List[t.Dict[str, t.Any]]] = None
+
 
 class Protocol(ProtocolBase):
     id: int
@@ -722,6 +743,7 @@ class ScriptFolderUpdate(BaseModel):
     description: t.Optional[str] = None
     parent_id: t.Optional[int] = None
     workcell_id: t.Optional[int] = None
+
 
 class ScriptFolder(ScriptFolderBase):
     model_config = ConfigDict(from_attributes=True)
@@ -903,8 +925,10 @@ class PlateNestHistoryBase(BaseModel):
 class PlateNestHistoryCreate(PlateNestHistoryBase):
     pass
 
+
 class PlateNestHistoryUpdate(PlateNestHistoryBase):
     pass
+
 
 class PlateNestHistory(PlateNestHistoryBase):
     id: int
@@ -929,8 +953,9 @@ class FormFieldOption(BaseModel):
     value: str
     label: str
 
+
 class FormField(BaseModel):
-    type: str  
+    type: str
     label: str
     required: Optional[bool] = False
     placeholder: Optional[str] = None
@@ -938,7 +963,7 @@ class FormField(BaseModel):
     default_value: Optional[Union[str, List[str]]] = None
     mapped_variable: Optional[str] = None
 
-    
+
 class FormCreate(BaseModel):
     name: str
     fields: Optional[List[FormField]] = None
@@ -946,12 +971,14 @@ class FormCreate(BaseModel):
     font_color: t.Optional[str] = None
     workcell_id: t.Optional[int] = None
 
+
 class FormUpdate(BaseModel):
     name: t.Optional[str] = None
     fields: Optional[List[FormField]] = None
     background_color: t.Optional[str] = None
     font_color: t.Optional[str] = None
     workcell_id: t.Optional[int] = None
+
 
 class Form(TimestampMixin, FormCreate):
     id: int

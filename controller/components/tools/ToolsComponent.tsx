@@ -145,6 +145,7 @@ export const ToolStatusCardsComponent: React.FC = () => {
                 subTitle="Manage and monitor your connected tools"
                 mainButton={
                   <Button
+                    size="sm"
                     isLoading={connectingLoading}
                     disabled={toolIds.length === 0}
                     onClick={connectAllTools}

@@ -10,7 +10,6 @@ const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
 const protocolSchema = z.object({
   name: z.string().min(1),
   category: z.string().min(1),
-  workcell_id: z.number(),
   description: z.string().optional(),
   commands: z.array(z.any()),
 });

@@ -3,7 +3,6 @@ import {
   VStack,
   Box,
   HStack,
-  Heading,
   Input,
   Table,
   Thead,
@@ -12,7 +11,6 @@ import {
   Th,
   Td,
   Switch,
-  InputRightElement,
   InputGroup,
   InputLeftElement,
   Card,
@@ -24,10 +22,10 @@ import {
   StatLabel,
   StatNumber,
   useColorModeValue,
-  Text,
   Select,
   Spacer,
   Button,
+  Tooltip,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { Labware as LabwareResponse } from "@/types/api";
@@ -38,7 +36,7 @@ import { WellPlateIcon } from "../ui/Icons";
 import { SearchIcon } from "@chakra-ui/icons";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Layers, Upload, Download } from "lucide-react";
-import { successToast, errorToast, warningToast } from "@/components/ui/Toast";
+import { successToast, errorToast } from "@/components/ui/Toast";
 import { useLabwareIO } from "@/hooks/useLabwareIO";
 import { useCommonColors } from "@/components/ui/Theme";
 
@@ -53,7 +51,9 @@ export const Labware: React.FC = () => {
   const deleteLabware = trpc.labware.delete.useMutation();
   const exportAllLabware = trpc.labware.exportAllConfig.useMutation();
 
-  // Use the custom hook for import/export
+  const { data: selectedWorkcell, refetch: refetchWorkcell } =
+    trpc.workcell.getSelectedWorkcell.useQuery();
+
   const {
     fileInputRef,
     handleExportConfig,
@@ -101,14 +101,11 @@ export const Labware: React.FC = () => {
     }
   };
 
-  // Wrapped handlers to add toast notifications for import/export
   const onExportConfig = async () => {
     if (!selectedLabwareId) {
-      // Export all labware when no specific labware is selected
       try {
         const allLabware = await exportAllLabware.mutateAsync();
         if (allLabware) {
-          // Create a download with a filename that indicates this is all labware
           const dataStr = JSON.stringify(allLabware, null, 2);
           const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
 
@@ -164,28 +161,40 @@ export const Labware: React.FC = () => {
 
   // Create the Import button (regular size to match LabwareModal button)
   const importButton = (
-    <Button
-      leftIcon={<Upload size={14} />}
-      colorScheme="blue"
-      variant="outline"
-      onClick={handleImportClick}
-      isLoading={isImporting}
-      isDisabled={isImporting}>
-      Import
-    </Button>
+    <Tooltip
+      label={!selectedWorkcell ? "Create or Select a Workcell to import labware" : ""}
+      placement="top"
+      hasArrow>
+      <Button
+        size="sm"
+        isDisabled={!selectedWorkcell}
+        leftIcon={<Upload size={14} />}
+        colorScheme="blue"
+        variant="outline"
+        onClick={handleImportClick}
+        isLoading={isImporting}>
+        Import
+      </Button>
+    </Tooltip>
   );
 
   // Create the Export button (regular size to match LabwareModal button)
   const exportButton = (
-    <Button
-      leftIcon={<Download size={14} />}
-      colorScheme="green"
-      variant="outline"
-      onClick={onExportConfig}
-      isDisabled={isExporting}
-      isLoading={isExporting}>
-      {selectedLabwareId ? "Export Selected" : "Export All"}
-    </Button>
+    <Tooltip
+      label={!selectedWorkcell ? "Create or Select a Workcell to export labware" : ""}
+      placement="top"
+      hasArrow>
+      <Button
+        size="sm"
+        isDisabled={!selectedWorkcell}
+        leftIcon={<Download size={14} />}
+        colorScheme="green"
+        variant="outline"
+        onClick={onExportConfig}
+        isLoading={isExporting}>
+        {selectedLabwareId ? "Export Selected" : "Export All"}
+      </Button>
+    </Tooltip>
   );
 
   return (
@@ -198,9 +207,9 @@ export const Labware: React.FC = () => {
                 title="Labware"
                 subTitle="Manage and configure your labware definitions"
                 titleIcon={<Icon as={Layers} boxSize={8} color="teal.500" />}
-                mainButton={importButton}
-                secondaryButton={exportButton}
-                tertiaryButton={<LabwareModal />}
+                // mainButton={importButton}
+                // secondaryButton={exportButton}
+                tertiaryButton={<LabwareModal isDisabled={!selectedWorkcell} />}
               />
 
               {/* Hidden file input for import */}

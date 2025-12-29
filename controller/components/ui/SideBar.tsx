@@ -52,7 +52,7 @@ const sidebarItems: SidebarItem[] = [
   { name: "Runs", icon: GanttChart, path: "/runs" },
   { name: "Workcells", icon: WorkcellIcon, path: "/workcells" },
   { name: "Tools", icon: Wrench, path: "/tools" },
-  { name: "runs", icon: GitBranch, path: "/protocols" },
+  { name: "Protocols", icon: GitBranch, path: "/protocols" },
   { name: "Forms", icon: List, path: "/forms" },
   { name: "Inventory", icon: Package, path: "/inventory" },
   // { name: "Schedule", icon: CalendarCheck, path: "/schedule" },
@@ -111,17 +111,17 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       borderColor={theme.borderColor}
       height="100%"
       {...transitionProps}>
-      <VStack left={0} p={1} spacing={4} align="stretch" width="100%">
-        <HStack py={2} pl={2} width="100%" position="relative">
+      <VStack left={0} p={1} spacing={3} align="stretch" width="100%">
+        <HStack py={2} pl={4} width="100%" position="relative">
           <Image
             onClick={toggleSidebar}
-            width="50px"
+            width="40px"
             paddingLeft="0"
             src="/site_logo.svg"
             alt="logo"
             filter={logoFilter}></Image>
           {isSidebarExpanded && (
-            <Text fontWeight="bold" fontSize="2xl" fontFamily="monospace">
+            <Text fontWeight="bold" fontSize="xl" fontFamily="monospace">
               Galago
             </Text>
           )}
