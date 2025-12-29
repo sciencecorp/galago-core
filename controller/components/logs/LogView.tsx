@@ -23,9 +23,11 @@ import {
   InputGroup,
   InputLeftElement,
   Input,
+  Text,
+  Badge,
 } from "@chakra-ui/react";
 import { CloseIcon, WarningIcon, QuestionOutlineIcon, SearchIcon } from "@chakra-ui/icons";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Log } from "@/types/api";
 import { renderDatetime } from "../ui/Time";
 import { Info, Book } from "lucide-react";
@@ -66,15 +68,27 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
   const tableBgColor = useColorModeValue("white", "gray.700");
   const hoverBgColor = useColorModeValue("gray.50", "gray.600");
 
-  const hasPrevious = offset > 0;
-  const hasNext = logs.length === limit || false;
+  // Get filters object for queries
+  const filters = {
+    level: selectedLevel || undefined,
+    action: searchQuery || undefined,
+  };
 
   const { data: fetchedLogs, refetch } = trpc.logging.getPaginated.useQuery(
     {
       limit: limit,
       skip: offset,
       descending: true,
+      filters: filters,
     },
+    {
+      refetchInterval: 1000,
+    },
+  );
+
+  // Get total count with same filters
+  const { data: totalCount } = trpc.logging.count.useQuery(
+    { filters: filters },
     {
       refetchInterval: 1000,
     },
@@ -84,23 +98,44 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
     if (fetchedLogs) {
       setLogs(fetchedLogs);
     }
-  }, [fetchedLogs, offset, limit]);
+  }, [fetchedLogs]);
 
-  // Calculate stats
-  const totalLogs = logs.length;
+  // Reset offset when filters change
+  useEffect(() => {
+    setOffset(0);
+  }, [searchQuery, selectedLevel, limit]);
+
+  // Calculate pagination info
+  const total = totalCount || 0;
+  const currentPage = Math.floor(offset / limit) + 1;
+  const totalPages = Math.ceil(total / limit);
+  const startRecord = total === 0 ? 0 : offset + 1;
+  const endRecord = Math.min(offset + limit, total);
+
+  const hasPrevious = offset > 0;
+  const hasNext = offset + limit < total;
+
+  // Calculate stats from current page
   const errorCount = logs.filter((log) => log.level === "error").length;
   const warningCount = logs.filter((log) => log.level === "warning").length;
 
-  // Filter logs based on search and level
-  const filteredLogs = useMemo(() => {
-    return logs.filter((log) => {
-      const matchesSearch =
-        log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        log.details.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesLevel = !selectedLevel || log.level === selectedLevel;
-      return matchesSearch && matchesLevel;
-    });
-  }, [logs, searchQuery, selectedLevel]);
+  const handlePrevious = () => {
+    setOffset(Math.max(offset - limit, 0));
+  };
+
+  const handleNext = () => {
+    if (hasNext) {
+      setOffset(offset + limit);
+    }
+  };
+
+  const handleFirstPage = () => {
+    setOffset(0);
+  };
+
+  const handleLastPage = () => {
+    setOffset((totalPages - 1) * limit);
+  };
 
   return (
     <Box maxW="100%">
@@ -117,15 +152,21 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
               <StatGroup>
                 <Stat>
                   <StatLabel>Total Logs</StatLabel>
-                  <StatNumber>{totalLogs}</StatNumber>
+                  <StatNumber>{total}</StatNumber>
                 </Stat>
                 <Stat>
-                  <StatLabel>Errors</StatLabel>
+                  <StatLabel>Errors (Page)</StatLabel>
                   <StatNumber color="red.500">{errorCount}</StatNumber>
                 </Stat>
                 <Stat>
-                  <StatLabel>Warnings</StatLabel>
+                  <StatLabel>Warnings (Page)</StatLabel>
                   <StatNumber color="orange.500">{warningCount}</StatNumber>
+                </Stat>
+                <Stat>
+                  <StatLabel>Current Page</StatLabel>
+                  <StatNumber>
+                    {currentPage} / {totalPages || 1}
+                  </StatNumber>
                 </Stat>
               </StatGroup>
               <Divider />
@@ -159,6 +200,17 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
         <Card bg={headerBg} shadow="md">
           <CardBody>
             <VStack spacing={4} align="stretch">
+              <HStack justify="space-between">
+                <Text fontSize="sm" color="gray.500">
+                  Showing {startRecord} - {endRecord} of {total} logs
+                </Text>
+                {(searchQuery || selectedLevel) && (
+                  <Badge colorScheme="blue">
+                    Filtered {selectedLevel && `by ${selectedLevel}`}
+                  </Badge>
+                )}
+              </HStack>
+
               <Box overflowX="auto">
                 <Table
                   variant="simple"
@@ -180,41 +232,66 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {filteredLogs.map((log, index) => (
-                      <Tr key={index} _hover={{ bg: hoverBgColor }}>
-                        <Td p={1}>{getIconFromLogType(log.level)}</Td>
-                        <Td p={1}>{log.level}</Td>
-                        <Td p={1}>{log.action}</Td>
-                        <Td maxWidth={"900px"} p={1}>
-                          {log.details}
+                    {logs.length === 0 ? (
+                      <Tr>
+                        <Td colSpan={5} textAlign="center" py={8}>
+                          <Text color="gray.500">No logs found</Text>
                         </Td>
-                        <Td p={1}>{renderDatetime(String(log.created_at))}</Td>
                       </Tr>
-                    ))}
+                    ) : (
+                      logs.map((log, index) => (
+                        <Tr key={log.id || index} _hover={{ bg: hoverBgColor }}>
+                          <Td p={1}>{getIconFromLogType(log.level)}</Td>
+                          <Td p={1}>{log.level}</Td>
+                          <Td p={1}>{log.action}</Td>
+                          <Td maxWidth={"900px"} p={1}>
+                            {log.details}
+                          </Td>
+                          <Td p={1}>{renderDatetime(String(log.createdAt))}</Td>
+                        </Tr>
+                      ))
+                    )}
                   </Tbody>
                 </Table>
               </Box>
 
-              <HStack justify="flex-end" spacing={4}>
-                <Box>Per Page:</Box>
-                <Select
-                  value={limit}
-                  width="75px"
-                  size="sm"
-                  onChange={(e) => setLimit(Number(e.target.value))}>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </Select>
-                <Button
-                  size="sm"
-                  disabled={!hasPrevious}
-                  onClick={() => setOffset(Math.max(offset - limit, 0))}>
-                  Previous
-                </Button>
-                <Button size="sm" disabled={!hasNext} onClick={() => setOffset(offset + limit)}>
-                  Next
-                </Button>
+              <HStack justify="space-between">
+                <HStack spacing={2}>
+                  <Text fontSize="sm">Per Page:</Text>
+                  <Select
+                    value={limit}
+                    width="75px"
+                    size="sm"
+                    onChange={(e) => setLimit(Number(e.target.value))}>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                  </Select>
+                </HStack>
+
+                <HStack spacing={2}>
+                  <Button
+                    size="sm"
+                    isDisabled={!hasPrevious}
+                    onClick={handleFirstPage}
+                    variant="ghost">
+                    First
+                  </Button>
+                  <Button size="sm" isDisabled={!hasPrevious} onClick={handlePrevious}>
+                    Previous
+                  </Button>
+
+                  <Text fontSize="sm" px={2}>
+                    Page {currentPage} of {totalPages || 1}
+                  </Text>
+
+                  <Button size="sm" isDisabled={!hasNext} onClick={handleNext}>
+                    Next
+                  </Button>
+                  <Button size="sm" isDisabled={!hasNext} onClick={handleLastPage} variant="ghost">
+                    Last
+                  </Button>
+                </HStack>
               </HStack>
             </VStack>
           </CardBody>

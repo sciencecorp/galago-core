@@ -233,14 +233,7 @@ export interface LogType {
   updated_at: DateTime;
 }
 
-export interface Log {
-  id: number;
-  level: string;
-  action: string;
-  details: string;
-  created_at: Date;
-  updated_at: Date;
-}
+export type { Log, NewLog } from "@/db/schema";
 
 export interface AppSettings {
   id: number;

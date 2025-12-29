@@ -1,12 +1,9 @@
-import { z } from "zod";
-import axios from "axios";
-import { procedure, router } from "@/server/trpc";
-import { post } from "@/server/utils/api";
-import { Log } from "@/types/api";
+import { db } from "@/db/client";
+import { logs } from "@/db/schema";
 
-export const logAction = async (log: Partial<Log>) => {
+export const logAction = async (log: { level: string; action: string; details: string }) => {
   try {
-    await post<Log>(`/logs`, log);
+    await db.insert(logs).values(log);
   } catch (error) {
     console.error("Failed to log action:", error);
   }
