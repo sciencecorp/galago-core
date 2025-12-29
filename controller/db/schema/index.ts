@@ -1,7 +1,6 @@
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
-// Reusable timestamp fields
 export const timestamps = {
   createdAt: text("created_at")
     .notNull()
