@@ -53,17 +53,12 @@ export const loggingRouter = router({
               .where(and(...conditions))
           : db.select().from(logs);
 
-      // Apply ordering
       const orderCol = logs[orderBy];
       const orderedQuery = query.orderBy(descending ? desc(orderCol) : asc(orderCol));
-
-      // Apply pagination
       const result = await orderedQuery.limit(limit).offset(skip);
-
       return result;
     }),
 
-  // Count query
   count: procedure
     .input(
       z.object({
@@ -78,7 +73,6 @@ export const loggingRouter = router({
     .query(async ({ input }) => {
       const { filters } = input;
 
-      // Build conditions array
       const conditions = [];
       if (filters?.level) {
         conditions.push(eq(logs.level, filters.level));
@@ -87,7 +81,6 @@ export const loggingRouter = router({
         conditions.push(like(logs.action, `%${filters.action}%`));
       }
 
-      // Build count query with conditions
       const countQuery =
         conditions.length > 0
           ? db
