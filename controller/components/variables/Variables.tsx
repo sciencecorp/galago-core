@@ -52,6 +52,8 @@ export const Variables: React.FC = () => {
   const { data: fetchedVariables, refetch } = trpc.variable.getAll.useQuery();
   const editVariable = trpc.variable.edit.useMutation();
   const deleteVariable = trpc.variable.delete.useMutation();
+  const { data: selectedWorkcell, refetch: refetchWorkcell } =
+    trpc.workcell.getSelectedWorkcell.useQuery();
 
   useEffect(() => {
     if (fetchedVariables) {
@@ -129,7 +131,7 @@ export const Variables: React.FC = () => {
                 title="Variables"
                 subTitle="Manage system-wide variables and configurations"
                 titleIcon={<Icon as={TbVariable} boxSize={8} color="teal.500" />}
-                mainButton={<VariableModal />}
+                mainButton={<VariableModal isDisabled={!selectedWorkcell} />}
               />
               <Divider />
               <StatGroup>

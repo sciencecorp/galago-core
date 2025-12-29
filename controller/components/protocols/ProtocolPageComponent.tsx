@@ -55,12 +55,7 @@ import Link from "next/link";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
 import { PageHeader } from "@/components/ui/PageHeader";
-import {
-  GitBranch, // replaces PiPathBold
-  Plus, // replaces RiAddFill
-  Upload, // replaces FaFileImport
-  Play, // replaces FaPlay
-} from "lucide-react";
+import { GitBranch, Plus, Upload, Play } from "lucide-react";
 import { EditableText } from "../ui/Form";
 import { errorToast, successToast } from "../ui/Toast";
 import { downloadFile, uploadFile } from "@/server/utils/api";
@@ -278,16 +273,21 @@ export const ProtocolPageComponent: React.FC = () => {
               titleIcon={<Icon as={GitBranch} boxSize={8} color="teal.500" />}
               mainButton={
                 <HStack>
-                  <Button
-                    size="sm"
-                    colorScheme="blue"
-                    variant="outline"
-                    leftIcon={<Upload size={14} />}
-                    onClick={handleImportClick}
-                    isLoading={isImporting}
-                    isDisabled={isImporting}>
-                    Import
-                  </Button>
+                  <Tooltip
+                    label={!workcellName ? "Create or Select a Workcell to import a protocol" : ""}
+                    placement="top"
+                    hasArrow>
+                    <Button
+                      isDisabled={!workcellName}
+                      size="sm"
+                      colorScheme="blue"
+                      variant="outline"
+                      leftIcon={<Upload size={14} />}
+                      onClick={handleImportClick}
+                      isLoading={isImporting}>
+                      Import
+                    </Button>
+                  </Tooltip>
                   <Tooltip
                     label={!workcellName ? "Create or Select a Workcell to create a protocol" : ""}
                     placement="top"

@@ -9,12 +9,10 @@ import {
   Stat,
   StatLabel,
   StatNumber,
-  useColorModeValue,
   HStack,
   Text,
   SimpleGrid,
   Button,
-  ButtonGroup,
   useColorMode,
   CardHeader,
   Flex,
@@ -34,13 +32,13 @@ import {
   NumberIncrementStepper,
   NumberDecrementStepper,
   Heading,
+  Tooltip,
 } from "@chakra-ui/react";
 import { Inventory, Plate, Reagent, Nest, Tool, NestStatus, Hotel } from "@/types/api";
 import { PageHeader } from "@/components/ui/PageHeader";
 import InventorySearch from "./search/InventorySearch";
 import { InventoryToolCard } from "./cards/InventoryToolCard";
 import { InventoryHotelCard } from "./cards/InventoryHotelCard";
-import AlertComponent from "@/components/ui/AlertComponent";
 import { trpc } from "@/utils/trpc";
 import { Package } from "lucide-react";
 import InventoryModal from "./modals/InventoryModal";
@@ -49,7 +47,6 @@ import { Icon } from "@/components/ui/Icons";
 import {
   successToast,
   errorToast,
-  infoToast,
   loadingToast,
   warningToast,
   progressToast,
@@ -59,6 +56,7 @@ import { AddIcon } from "@chakra-ui/icons";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { ToolType } from "gen-interfaces/controller";
 import { actionToast } from "@/components/ui/Toast";
+import { EmptyState } from "../ui/EmptyState";
 
 export const InventoryManager = () => {
   const [search, setSearch] = useState("");
@@ -86,9 +84,9 @@ export const InventoryManager = () => {
   const isDarkMode = colorMode === "dark";
 
   const workcells = trpc.workcell.getAll.useQuery();
-  const SelectedWorkcellName = trpc.workcell.getSelectedWorkcell.useQuery();
+  const selectedWorkcellName = trpc.workcell.getSelectedWorkcell.useQuery();
   const selectedWorkcell = workcells.data?.find(
-    (workcell) => workcell.name === SelectedWorkcellName.data,
+    (workcell) => workcell.name === selectedWorkcellName.data,
   );
 
   // Add a specific query for hotels
@@ -100,7 +98,7 @@ export const InventoryManager = () => {
   );
 
   const { data: nests = [], refetch: refetchNests } = trpc.inventory.getNests.useQuery<Nest[]>(
-    SelectedWorkcellName.data ?? "",
+    selectedWorkcellName.data ?? "",
     {
       refetchOnMount: true,
       refetchOnWindowFocus: true,
@@ -108,13 +106,6 @@ export const InventoryManager = () => {
       cacheTime: 0, // Don't cache results
     },
   );
-
-  // Force an initial fetch to make sure we have the latest data
-  useEffect(() => {
-    if (selectedWorkcell?.name) {
-      refetchNests();
-    }
-  }, [selectedWorkcell?.name, refetchNests]);
 
   const { data: plates = [], refetch: refetchPlates } = trpc.inventory.getPlates.useQuery<Plate[]>(
     selectedWorkcell?.name || "",
@@ -822,25 +813,31 @@ export const InventoryManager = () => {
           <CardHeader pb={0}>
             <Flex justifyContent="space-between" alignItems="center">
               <Heading size="md">Hotels</Heading>
-              <Button
-                leftIcon={<AddIcon />}
-                colorScheme="teal"
-                size="sm"
-                onClick={() => setShowAddHotelModal(true)}>
-                Add Hotel
-              </Button>
+              <Tooltip
+                label={!selectedWorkcell ? "Create or Select a Workcell to add new hotel" : ""}
+                placement="top"
+                hasArrow>
+                <Button
+                  isDisabled={!selectedWorkcell}
+                  leftIcon={<AddIcon />}
+                  colorScheme="teal"
+                  size="sm"
+                  onClick={() => setShowAddHotelModal(true)}>
+                  Add Hotel
+                </Button>
+              </Tooltip>
             </Flex>
           </CardHeader>
           <CardBody>
-            <SimpleGrid
-              columns={{ base: 1, sm: 2, md: 3, lg: 4, xl: 4 }}
-              spacing={6}
-              w="100%"
-              alignItems="start"
-              px={2}
-              py={2}>
-              {hotels.length > 0 ? (
-                hotels.map((hotel) => (
+            {hotels.length > 0 ? (
+              <SimpleGrid
+                columns={{ base: 1, sm: 2, md: 3, lg: 4, xl: 4 }}
+                spacing={6}
+                w="100%"
+                alignItems="start"
+                px={2}
+                py={2}>
+                {hotels.map((hotel) => (
                   <Box key={hotel.id}>
                     <InventoryHotelCard
                       hotelId={hotel.id}
@@ -869,11 +866,17 @@ export const InventoryManager = () => {
                       }}
                     />
                   </Box>
-                ))
-              ) : (
-                <Text>No hotels found. Add a hotel to get started.</Text>
-              )}
-            </SimpleGrid>
+                ))}
+              </SimpleGrid>
+            ) : (
+              <Box width="100%">
+                <EmptyState
+                  size="lg"
+                  title="No hotels found"
+                  description="Add a hotel to get started."
+                />
+              </Box>
+            )}
           </CardBody>
         </Card>
       </VStack>
@@ -975,10 +978,16 @@ export const InventoryManager = () => {
           </ModalBody>
           <ModalFooter>
             <Button
+              isDisabled={
+                newHotelName === "" ||
+                newHotelDescription === "" ||
+                newHotelRows === 0 ||
+                newHotelColumns === 0
+              }
               colorScheme="teal"
               mr={3}
-              onClick={() => {
-                handleCreateHotel({
+              onClick={async () => {
+                await handleCreateHotel({
                   name: newHotelName,
                   description: newHotelDescription,
                   rows: newHotelRows,

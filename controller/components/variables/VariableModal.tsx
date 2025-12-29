@@ -14,19 +14,22 @@ import {
   FormControl,
   FormLabel,
   Select,
+  Tooltip,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { Variable } from "./types";
 import { Plus } from "lucide-react";
 import { successToast, errorToast } from "../ui/Toast";
 
-export const VariableModal: React.FC = () => {
+export const VariableModal: React.FC<{ isDisabled: boolean }> = ({ isDisabled }) => {
   const [name, setName] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [value, setValue] = useState("");
   const [type, setType] = useState("string" as Variable["type"]);
   const [isLoading, setIsLoading] = useState(false);
   const addVariable = trpc.variable.add.useMutation();
+  const { data: selectedWorkcell, refetch: refetchWorkcell } =
+    trpc.workcell.getSelectedWorkcell.useQuery();
 
   const { refetch } = trpc.variable.getAll.useQuery();
 
@@ -53,9 +56,19 @@ export const VariableModal: React.FC = () => {
 
   return (
     <>
-      <Button onClick={onOpen} colorScheme="teal" leftIcon={<Plus />}>
-        New
-      </Button>
+      <Tooltip
+        label={isDisabled ? "Create or Select a Workcell to create new variables" : ""}
+        placement="top"
+        hasArrow>
+        <Button
+          size="sm"
+          isDisabled={isDisabled}
+          onClick={onOpen}
+          colorScheme="teal"
+          leftIcon={<Plus size={16} />}>
+          New
+        </Button>
+      </Tooltip>
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
