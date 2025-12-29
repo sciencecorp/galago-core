@@ -621,30 +621,16 @@ Original Error: ${error.message}`;
     setActiveTab(fullName);
   };
 
-  // Define Import and Export buttons
   const importButton = (
     <Button
+      isDisabled={!selectedWorkcellName}
       leftIcon={<UploadIcon size={14} />}
       colorScheme="blue"
       variant="outline"
       onClick={handleImportClick}
       isLoading={isImporting}
-      isDisabled={isImporting}
       size="sm">
       Import
-    </Button>
-  );
-
-  const exportButton = (
-    <Button
-      leftIcon={<DownloadIcon size={14} />}
-      colorScheme="green"
-      variant="outline"
-      onClick={onExportConfig}
-      isDisabled={!activeTab || isExporting}
-      isLoading={isExporting}
-      size="sm">
-      Export Active Script
     </Button>
   );
 
@@ -709,8 +695,10 @@ Original Error: ${error.message}`;
                     <NewScript
                       activeFolderId={openFolders.size > 0 ? activeFolder?.id : undefined}
                       onScriptCreated={refreshData}
+                      isDisabled={!selectedWorkcellName}
                     />
                     <NewFolder
+                      isDisabled={!selectedWorkcellName}
                       isCreatingRoot={folderCreating}
                       onCancel={() => setFolderCreating(false)}
                       onFolderCreated={refreshData}
