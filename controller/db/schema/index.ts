@@ -2,9 +2,6 @@ import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 import { relations } from "drizzle-orm";
 
-// ============================================================================
-// Reusable timestamp fields
-// ============================================================================
 export const timestamps = {
   created_at: text("created_at")
     .notNull()
@@ -15,9 +12,6 @@ export const timestamps = {
     .$onUpdate(() => sql`(datetime('now'))`),
 };
 
-// ============================================================================
-// Workcells Table
-// ============================================================================
 export const workcells = sqliteTable("workcells", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull().unique(),
@@ -26,9 +20,6 @@ export const workcells = sqliteTable("workcells", {
   ...timestamps,
 });
 
-// ============================================================================
-// Tools Table
-// ============================================================================
 export const tools = sqliteTable("tools", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   type: text("type").notNull(),
@@ -42,9 +33,6 @@ export const tools = sqliteTable("tools", {
   ...timestamps,
 });
 
-// ============================================================================
-// Hotels Table
-// ============================================================================
 export const hotels = sqliteTable("hotels", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -56,9 +44,6 @@ export const hotels = sqliteTable("hotels", {
   ...timestamps,
 });
 
-// ============================================================================
-// Nests Table
-// ============================================================================
 export const nests = sqliteTable("nests", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name"),
@@ -70,9 +55,6 @@ export const nests = sqliteTable("nests", {
   ...timestamps,
 });
 
-// ============================================================================
-// Plates Table
-// ============================================================================
 export const plates = sqliteTable("plates", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name"),
@@ -83,9 +65,6 @@ export const plates = sqliteTable("plates", {
   ...timestamps,
 });
 
-// ============================================================================
-// Wells Table
-// ============================================================================
 export const wells = sqliteTable("wells", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   row: text("row").notNull(),
@@ -94,47 +73,35 @@ export const wells = sqliteTable("wells", {
   ...timestamps,
 });
 
-// ============================================================================
-// Reagents Table
-// ============================================================================
 export const reagents = sqliteTable("reagents", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
-  expiration_date: text("expiration_date").notNull(), // Store as ISO date string
+  expiration_date: text("expiration_date").notNull(),
   volume: real("volume").notNull(),
   well_id: integer("well_id").references(() => wells.id),
   ...timestamps,
 });
 
-// ============================================================================
-// Plate Nest History Table
-// ============================================================================
 export const plate_nest_history = sqliteTable("plate_nest_history", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   plate_id: integer("plate_id").references(() => plates.id),
   nest_id: integer("nest_id").references(() => nests.id),
-  action: text("action").notNull(), // enum: check_in, check_out, transfer
+  action: text("action").notNull(),
   timestamp: text("timestamp")
     .notNull()
     .default(sql`(datetime('now'))`),
   ...timestamps,
 });
 
-// ============================================================================
-// Variables Table
-// ============================================================================
 export const variables = sqliteTable("variables", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   value: text("value").notNull(),
-  type: text("type").notNull(), // string, number, boolean, array, json
+  type: text("type").notNull(),
   workcell_id: integer("workcell_id").references(() => workcells.id),
   ...timestamps,
 });
 
-// ============================================================================
-// Labware Table
-// ============================================================================
 export const labware = sqliteTable("labware", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -153,9 +120,6 @@ export const labware = sqliteTable("labware", {
   ...timestamps,
 });
 
-// ============================================================================
-// Script Folders Table
-// ============================================================================
 export const script_folders = sqliteTable("script_folders", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -165,9 +129,6 @@ export const script_folders = sqliteTable("script_folders", {
   ...timestamps,
 });
 
-// ============================================================================
-// Scripts Table
-// ============================================================================
 export const scripts = sqliteTable("scripts", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -180,9 +141,6 @@ export const scripts = sqliteTable("scripts", {
   ...timestamps,
 });
 
-// ============================================================================
-// Protocols Table
-// ============================================================================
 export const protocols = sqliteTable("protocols", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -193,9 +151,6 @@ export const protocols = sqliteTable("protocols", {
   ...timestamps,
 });
 
-// ============================================================================
-// Forms Table
-// ============================================================================
 export const forms = sqliteTable("forms", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -206,9 +161,6 @@ export const forms = sqliteTable("forms", {
   ...timestamps,
 });
 
-// ============================================================================
-// App Settings Table
-// ============================================================================
 export const app_settings = sqliteTable("app_settings", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -217,9 +169,6 @@ export const app_settings = sqliteTable("app_settings", {
   ...timestamps,
 });
 
-// ============================================================================
-// Robot Arm Location Table
-// ============================================================================
 export const robot_arm_locations = sqliteTable("robot_arm_locations", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -230,9 +179,6 @@ export const robot_arm_locations = sqliteTable("robot_arm_locations", {
   ...timestamps,
 });
 
-// ============================================================================
-// Robot Arm Sequences Table
-// ============================================================================
 export const robot_arm_sequences = sqliteTable("robot_arm_sequences", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -243,9 +189,6 @@ export const robot_arm_sequences = sqliteTable("robot_arm_sequences", {
   ...timestamps,
 });
 
-// ============================================================================
-// Robot Arm Motion Profiles Table
-// ============================================================================
 export const robot_arm_motion_profiles = sqliteTable("robot_arm_motion_profiles", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -261,9 +204,6 @@ export const robot_arm_motion_profiles = sqliteTable("robot_arm_motion_profiles"
   ...timestamps,
 });
 
-// ============================================================================
-// Robot Arm Grip Params Table
-// ============================================================================
 export const robot_arm_grip_params = sqliteTable("robot_arm_grip_params", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -274,9 +214,6 @@ export const robot_arm_grip_params = sqliteTable("robot_arm_grip_params", {
   ...timestamps,
 });
 
-// ============================================================================
-// Logs Table (already created)
-// ============================================================================
 export const logs = sqliteTable("logs", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   level: text("level").notNull(),
@@ -285,10 +222,7 @@ export const logs = sqliteTable("logs", {
   ...timestamps,
 });
 
-// ============================================================================
 // TypeScript Types - Auto-generated from schema
-// ============================================================================
-
 // Workcells
 export type Workcell = typeof workcells.$inferSelect;
 export type NewWorkcell = typeof workcells.$inferInsert;

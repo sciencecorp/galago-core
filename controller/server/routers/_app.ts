@@ -5,7 +5,6 @@ import { runRouter } from "./run";
 import { toolRouter } from "./tool";
 import { variableRouter } from "./variable";
 import { loggingRouter } from "./logging";
-import { log } from "console";
 import { workcellRouter } from "./workcell";
 import { labwareRouter } from "./labware";
 import { scriptRouter } from "./script";
@@ -13,6 +12,7 @@ import { inventoryRouter } from "./inventory";
 import { robotArmRouter } from "./robot-arm";
 import { csharpRouter } from "./cSharpRouter";
 import { formRouter } from "./form";
+import { appSettingsRouter } from "./appSettings";
 
 export const appRouter = router({
   inventory: inventoryRouter,
@@ -28,6 +28,7 @@ export const appRouter = router({
   robotArm: robotArmRouter,
   cSharp: csharpRouter,
   form: formRouter,
+  appSettings: appSettingsRouter,
 });
 
 export type AppRouter = typeof appRouter;
