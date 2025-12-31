@@ -308,21 +308,12 @@ export const Labware: React.FC = () => {
           <CardBody>
             <VStack spacing={4} align="stretch">
               <Box overflowX="auto">
-                <Table
-                  variant="simple"
-                  sx={{
-                    th: {
-                      borderColor: colors.borderColor,
-                    },
-                    td: {
-                      borderColor: colors.borderColor,
-                    },
-                  }}>
+                <Table size="sm">
                   <Thead>
                     <Tr>
                       <Th></Th>
                       <Th>Name</Th>
-                      <Th>Desc</Th>
+                      <Th>Desription</Th>
                       <Th>Rows</Th>
                       <Th>Cols</Th>
                       <Th>Z-Off</Th>

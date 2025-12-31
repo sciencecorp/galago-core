@@ -43,7 +43,6 @@ export const LabwareModal: React.FC<LabwareModalProps> = ({ isDisabled }) => {
     setDescription("");
     setNumberOfRows(0);
     setNumberOfColumns(0);
-    setImageUrl("");
   };
 
   const handleSave = async () => {
@@ -52,7 +51,6 @@ export const LabwareModal: React.FC<LabwareModalProps> = ({ isDisabled }) => {
       description,
       number_of_rows: numberOfRows,
       number_of_columns: numberOfColumns,
-      image_url: imageUrl,
     } as LabwareResponse;
 
     setIsLoading(true);
@@ -118,10 +116,6 @@ export const LabwareModal: React.FC<LabwareModalProps> = ({ isDisabled }) => {
                   onChange={(_, val) => setNumberOfColumns(val)}>
                   <NumberInputField />
                 </NumberInput>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Image URL</FormLabel>
-                <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
               </FormControl>
             </VStack>
           </ModalBody>

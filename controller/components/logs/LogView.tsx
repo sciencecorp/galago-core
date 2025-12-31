@@ -247,7 +247,7 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                           <Td maxWidth={"900px"} p={1}>
                             {log.details}
                           </Td>
-                          <Td p={1}>{renderDatetime(String(log.createdAt))}</Td>
+                          <Td p={1}>{renderDatetime(String(log.created_at))}</Td>
                         </Tr>
                       ))
                     )}

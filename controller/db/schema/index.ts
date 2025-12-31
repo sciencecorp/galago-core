@@ -1,12 +1,11 @@
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
-import { relations } from "drizzle-orm";
 
 export const timestamps = {
-  created_at: text("created_at")
+  createdAt: text("created_at")
     .notNull()
     .default(sql`(datetime('now'))`),
-  updated_at: text("updated_at")
+  updatedAt: text("updated_at")
     .notNull()
     .default(sql`(datetime('now'))`)
     .$onUpdate(() => sql`(datetime('now'))`),
@@ -25,11 +24,11 @@ export const tools = sqliteTable("tools", {
   type: text("type").notNull(),
   name: text("name").notNull(),
   description: text("description"),
-  image_url: text("image_url"),
+  imageUrl: text("image_url"),
   ip: text("ip").notNull(),
   port: integer("port").notNull(),
-  config: text("config", { mode: "json" }), // JSON stored as text
-  workcell_id: integer("workcell_id").references(() => workcells.id),
+  config: text("config", { mode: "json" }),
+  workcellId: integer("workcell_id").references(() => workcells.id),
   ...timestamps,
 });
 
@@ -37,10 +36,10 @@ export const hotels = sqliteTable("hotels", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   description: text("description"),
-  image_url: text("image_url"),
+  imageUrl: text("image_url"),
   rows: integer("rows").notNull(),
   columns: integer("columns").notNull(),
-  workcell_id: integer("workcell_id").references(() => workcells.id),
+  workcellId: integer("workcell_id").references(() => workcells.id),
   ...timestamps,
 });
 
@@ -49,9 +48,9 @@ export const nests = sqliteTable("nests", {
   name: text("name"),
   row: integer("row"),
   column: integer("column"),
-  tool_id: integer("tool_id").references(() => tools.id),
-  hotel_id: integer("hotel_id").references(() => hotels.id),
-  status: text("status").notNull().default("empty"), // enum: empty, occupied, reserved, error
+  toolId: integer("tool_id").references(() => tools.id),
+  hotelId: integer("hotel_id").references(() => hotels.id),
+  status: text("status").notNull().default("empty"),
   ...timestamps,
 });
 
@@ -59,9 +58,9 @@ export const plates = sqliteTable("plates", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name"),
   barcode: text("barcode").notNull(),
-  plate_type: text("plate_type").notNull(),
-  nest_id: integer("nest_id").references(() => nests.id),
-  status: text("status").notNull().default("stored"), // enum: stored, checked_out, completed, disposed
+  plateType: text("plate_type").notNull(),
+  nestId: integer("nest_id").references(() => nests.id),
+  status: text("status").notNull().default("stored"),
   ...timestamps,
 });
 
@@ -69,23 +68,23 @@ export const wells = sqliteTable("wells", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   row: text("row").notNull(),
   column: integer("column").notNull(),
-  plate_id: integer("plate_id").references(() => plates.id),
+  plateId: integer("plate_id").references(() => plates.id),
   ...timestamps,
 });
 
 export const reagents = sqliteTable("reagents", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
-  expiration_date: text("expiration_date").notNull(),
+  expirationDate: text("expiration_date").notNull(),
   volume: real("volume").notNull(),
-  well_id: integer("well_id").references(() => wells.id),
+  wellId: integer("well_id").references(() => wells.id),
   ...timestamps,
 });
 
-export const plate_nest_history = sqliteTable("plate_nest_history", {
+export const plateNestHistory = sqliteTable("plate_nest_history", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  plate_id: integer("plate_id").references(() => plates.id),
-  nest_id: integer("nest_id").references(() => nests.id),
+  plateId: integer("plate_id").references(() => plates.id),
+  nestId: integer("nest_id").references(() => nests.id),
   action: text("action").notNull(),
   timestamp: text("timestamp")
     .notNull()
@@ -98,34 +97,33 @@ export const variables = sqliteTable("variables", {
   name: text("name").notNull(),
   value: text("value").notNull(),
   type: text("type").notNull(),
-  workcell_id: integer("workcell_id").references(() => workcells.id),
+  workcellId: integer("workcell_id").references(() => workcells.id),
   ...timestamps,
 });
 
 export const labware = sqliteTable("labware", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
-  image_url: text("image_url"),
   description: text("description").notNull(),
-  number_of_rows: integer("number_of_rows").notNull(),
-  number_of_columns: integer("number_of_columns").notNull(),
-  z_offset: real("z_offset").notNull().default(0),
+  numberOfRows: integer("number_of_rows").notNull(),
+  numberOfColumns: integer("number_of_columns").notNull(),
+  zOffset: real("z_offset").notNull().default(0),
   width: real("width").default(127.8),
   height: real("height").default(14.5),
-  plate_lid_offset: real("plate_lid_offset").default(0),
-  lid_offset: real("lid_offset").default(0),
-  stack_height: real("stack_height").default(0),
-  has_lid: integer("has_lid", { mode: "boolean" }).default(false),
-  workcell_id: integer("workcell_id").references(() => workcells.id),
+  plateLidOffset: real("plate_lid_offset").default(0),
+  lidOffset: real("lid_offset").default(0),
+  stackHeight: real("stack_height").default(0),
+  hasLid: integer("has_lid", { mode: "boolean" }).default(false),
+  workcellId: integer("workcell_id").references(() => workcells.id),
   ...timestamps,
 });
 
-export const script_folders = sqliteTable("script_folders", {
+export const scriptFolders = sqliteTable("script_folders", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
-  parent_id: integer("parent_id").references((): any => script_folders.id),
+  parentId: integer("parent_id").references((): any => scriptFolders.id),
   description: text("description"),
-  workcell_id: integer("workcell_id").references(() => workcells.id),
+  workcellId: integer("workcell_id").references(() => workcells.id),
   ...timestamps,
 });
 
@@ -135,9 +133,9 @@ export const scripts = sqliteTable("scripts", {
   description: text("description"),
   content: text("content").notNull().default(""),
   language: text("language").notNull().default("python"),
-  is_blocking: integer("is_blocking", { mode: "boolean" }).notNull().default(true),
-  folder_id: integer("folder_id").references(() => script_folders.id),
-  workcell_id: integer("workcell_id").references(() => workcells.id),
+  isBlocking: integer("is_blocking", { mode: "boolean" }).notNull().default(true),
+  folderId: integer("folder_id").references(() => scriptFolders.id),
+  workcellId: integer("workcell_id").references(() => workcells.id),
   ...timestamps,
 });
 
@@ -145,72 +143,72 @@ export const protocols = sqliteTable("protocols", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   category: text("category").notNull(),
-  workcell_id: integer("workcell_id").references(() => workcells.id),
+  workcellId: integer("workcell_id").references(() => workcells.id),
   description: text("description"),
-  commands: text("commands", { mode: "json" }).notNull(), // JSON array
+  commands: text("commands", { mode: "json" }).notNull(),
   ...timestamps,
 });
 
 export const forms = sqliteTable("forms", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
-  fields: text("fields", { mode: "json" }).notNull(), // JSON array
-  background_color: text("background_color"),
-  font_color: text("font_color"),
-  workcell_id: integer("workcell_id").references(() => workcells.id),
+  fields: text("fields", { mode: "json" }).notNull(),
+  backgroundColor: text("background_color"),
+  fontColor: text("font_color"),
+  workcellId: integer("workcell_id").references(() => workcells.id),
   ...timestamps,
 });
 
-export const app_settings = sqliteTable("app_settings", {
+export const appSettings = sqliteTable("app_settings", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   value: text("value").notNull(),
-  is_active: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
   ...timestamps,
 });
 
-export const robot_arm_locations = sqliteTable("robot_arm_locations", {
+export const robotArmLocations = sqliteTable("robot_arm_locations", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
-  location_type: text("location_type").notNull(), // 'j' or 'c'
+  locationType: text("location_type").notNull(),
   coordinates: text("coordinates").notNull(),
-  tool_id: integer("tool_id").references(() => tools.id),
-  orientation: text("orientation").notNull(), // 'portrait' or 'landscape'
+  toolId: integer("tool_id").references(() => tools.id),
+  orientation: text("orientation").notNull(),
   ...timestamps,
 });
 
-export const robot_arm_sequences = sqliteTable("robot_arm_sequences", {
+export const robotArmSequences = sqliteTable("robot_arm_sequences", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   description: text("description"),
   commands: text("commands", { mode: "json" }).notNull(),
-  tool_id: integer("tool_id").references(() => tools.id),
+  toolId: integer("tool_id").references(() => tools.id),
   labware: text("labware"),
   ...timestamps,
 });
 
-export const robot_arm_motion_profiles = sqliteTable("robot_arm_motion_profiles", {
+export const robotArmMotionProfiles = sqliteTable("robot_arm_motion_profiles", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   speed: real("speed").notNull(),
   speed2: real("speed2").notNull(),
   acceleration: real("acceleration").notNull(),
   deceleration: real("deceleration").notNull(),
-  accel_ramp: real("accel_ramp").notNull(),
-  decel_ramp: real("decel_ramp").notNull(),
+  accelRamp: real("accel_ramp").notNull(),
+  decelRamp: real("decel_ramp").notNull(),
   inrange: real("inrange").notNull(),
   straight: integer("straight").notNull(),
-  tool_id: integer("tool_id").references(() => tools.id),
+  toolId: integer("tool_id").references(() => tools.id),
   ...timestamps,
 });
 
-export const robot_arm_grip_params = sqliteTable("robot_arm_grip_params", {
+export const robotArmGripParams = sqliteTable("robot_arm_grip_params", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   width: integer("width").notNull(),
   speed: integer("speed").notNull(),
   force: integer("force").notNull(),
-  tool_id: integer("tool_id").references(() => tools.id),
+  toolId: integer("tool_id").references(() => tools.id),
   ...timestamps,
 });
 
@@ -222,90 +220,48 @@ export const logs = sqliteTable("logs", {
   ...timestamps,
 });
 
-// TypeScript Types - Auto-generated from schema
-// Workcells
+// TypeScript Types
 export type Workcell = typeof workcells.$inferSelect;
 export type NewWorkcell = typeof workcells.$inferInsert;
-
-// Tools
 export type Tool = typeof tools.$inferSelect;
 export type NewTool = typeof tools.$inferInsert;
-
-// Hotels
 export type Hotel = typeof hotels.$inferSelect;
 export type NewHotel = typeof hotels.$inferInsert;
-
-// Nests
 export type Nest = typeof nests.$inferSelect;
 export type NewNest = typeof nests.$inferInsert;
-
-// Plates
 export type Plate = typeof plates.$inferSelect;
 export type NewPlate = typeof plates.$inferInsert;
-
-// Wells
 export type Well = typeof wells.$inferSelect;
 export type NewWell = typeof wells.$inferInsert;
-
-// Reagents
 export type Reagent = typeof reagents.$inferSelect;
 export type NewReagent = typeof reagents.$inferInsert;
-
-// Plate Nest History
-export type PlateNestHistory = typeof plate_nest_history.$inferSelect;
-export type NewPlateNestHistory = typeof plate_nest_history.$inferInsert;
-
-// Variables
+export type PlateNestHistory = typeof plateNestHistory.$inferSelect;
+export type NewPlateNestHistory = typeof plateNestHistory.$inferInsert;
 export type Variable = typeof variables.$inferSelect;
 export type NewVariable = typeof variables.$inferInsert;
-
-// Labware
 export type Labware = typeof labware.$inferSelect;
 export type NewLabware = typeof labware.$inferInsert;
-
-// Script Folders
-export type ScriptFolder = typeof script_folders.$inferSelect;
-export type NewScriptFolder = typeof script_folders.$inferInsert;
-
-// Scripts
+export type ScriptFolder = typeof scriptFolders.$inferSelect;
+export type NewScriptFolder = typeof scriptFolders.$inferInsert;
 export type Script = typeof scripts.$inferSelect;
 export type NewScript = typeof scripts.$inferInsert;
-
-// Protocols
 export type Protocol = typeof protocols.$inferSelect;
 export type NewProtocol = typeof protocols.$inferInsert;
-
-// Forms
 export type Form = typeof forms.$inferSelect;
 export type NewForm = typeof forms.$inferInsert;
-
-// App Settings
-export type AppSettings = typeof app_settings.$inferSelect;
-export type NewAppSettings = typeof app_settings.$inferInsert;
-
-// Robot Arm Location
-export type RobotArmLocation = typeof robot_arm_locations.$inferSelect;
-export type NewRobotArmLocation = typeof robot_arm_locations.$inferInsert;
-
-// Robot Arm Sequences
-export type RobotArmSequence = typeof robot_arm_sequences.$inferSelect;
-export type NewRobotArmSequence = typeof robot_arm_sequences.$inferInsert;
-
-// Robot Arm Motion Profiles
-export type RobotArmMotionProfile = typeof robot_arm_motion_profiles.$inferSelect;
-export type NewRobotArmMotionProfile = typeof robot_arm_motion_profiles.$inferInsert;
-
-// Robot Arm Grip Params
-export type RobotArmGripParams = typeof robot_arm_grip_params.$inferSelect;
-export type NewRobotArmGripParams = typeof robot_arm_grip_params.$inferInsert;
-
-// Logs
+export type AppSettings = typeof appSettings.$inferSelect;
+export type NewAppSettings = typeof appSettings.$inferInsert;
+export type RobotArmLocation = typeof robotArmLocations.$inferSelect;
+export type NewRobotArmLocation = typeof robotArmLocations.$inferInsert;
+export type RobotArmSequence = typeof robotArmSequences.$inferSelect;
+export type NewRobotArmSequence = typeof robotArmSequences.$inferInsert;
+export type RobotArmMotionProfile = typeof robotArmMotionProfiles.$inferSelect;
+export type NewRobotArmMotionProfile = typeof robotArmMotionProfiles.$inferInsert;
+export type RobotArmGripParams = typeof robotArmGripParams.$inferSelect;
+export type NewRobotArmGripParams = typeof robotArmGripParams.$inferInsert;
 export type Log = typeof logs.$inferSelect;
 export type NewLog = typeof logs.$inferInsert;
 
-// ============================================================================
-// Export all schemas for Drizzle
-// ============================================================================
 export const schema = {
   workcells,
   tools,
@@ -314,17 +270,17 @@ export const schema = {
   plates,
   wells,
   reagents,
-  plate_nest_history,
+  plateNestHistory,
   variables,
   labware,
-  script_folders,
+  scriptFolders,
   scripts,
   protocols,
   forms,
-  app_settings,
-  robot_arm_locations,
-  robot_arm_sequences,
-  robot_arm_motion_profiles,
-  robot_arm_grip_params,
+  appSettings,
+  robotArmLocations,
+  robotArmSequences,
+  robotArmMotionProfiles,
+  robotArmGripParams,
   logs,
 };
