@@ -130,26 +130,36 @@ export const labware = sqliteTable(
   },
   (t) => [unique("unique_labware_name_per_workcell").on(t.name, t.workcellId)],
 );
-export const scriptFolders = sqliteTable("script_folders", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull(),
-  parentId: integer("parent_id").references((): any => scriptFolders.id),
-  description: text("description"),
-  workcellId: integer("workcell_id").references(() => workcells.id),
-  ...timestamps,
-});
 
-export const scripts = sqliteTable("scripts", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull(),
-  description: text("description"),
-  content: text("content").notNull().default(""),
-  language: text("language").notNull().default("python"),
-  isBlocking: integer("is_blocking", { mode: "boolean" }).notNull().default(true),
-  folderId: integer("folder_id").references(() => scriptFolders.id),
-  workcellId: integer("workcell_id").references(() => workcells.id),
-  ...timestamps,
-});
+export const scriptFolders = sqliteTable(
+  "script_folders",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    name: text("name").notNull(),
+    description: text("description"),
+    parentId: integer("parent_id").references((): any => scriptFolders.id),
+    workcellId: integer("workcell_id")
+      .references(() => workcells.id)
+      .notNull(),
+    ...timestamps,
+  },
+  (t) => [unique("unique_folder_name_per_workcell").on(t.name, t.parentId, t.workcellId)],
+);
+
+export const scripts = sqliteTable(
+  "scripts",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    name: text("name").notNull(),
+    description: text("description"),
+    content: text("content").notNull().default(""),
+    language: text("language").notNull().default("python"),
+    folderId: integer("folder_id").references(() => scriptFolders.id),
+    workcellId: integer("workcell_id").references(() => workcells.id),
+    ...timestamps,
+  },
+  (t) => [unique("unique_script_name_per_workcell").on(t.name, t.workcellId)],
+);
 
 export const protocols = sqliteTable("protocols", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -161,15 +171,19 @@ export const protocols = sqliteTable("protocols", {
   ...timestamps,
 });
 
-export const forms = sqliteTable("forms", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull(),
-  fields: text("fields", { mode: "json" }).notNull(),
-  backgroundColor: text("background_color"),
-  fontColor: text("font_color"),
-  workcellId: integer("workcell_id").references(() => workcells.id),
-  ...timestamps,
-});
+export const forms = sqliteTable(
+  "forms",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    name: text("name").notNull(),
+    fields: text("fields", { mode: "json" }).notNull(), // JSON array of FormField objects
+    backgroundColor: text("background_color"),
+    fontColor: text("font_color"),
+    workcellId: integer("workcell_id").references(() => workcells.id),
+    ...timestamps,
+  },
+  (t) => [unique("unique_form_name_per_workcell").on(t.name, t.workcellId)],
+);
 
 export const appSettings = sqliteTable("app_settings", {
   id: integer("id").primaryKey({ autoIncrement: true }),
