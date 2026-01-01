@@ -17,10 +17,9 @@ export interface PageProps {
   description: string;
 }
 
-export interface Protocol {
-  id: number;
-  name: string;
-  description?: string;
-  icon?: any;
-  params: Record<string, string>;
+export type { Labware, Variable, Log, Tool } from "@/db/schema";
+import type { Workcell, Tool, Hotel } from "@/db/schema";
+
+export interface WorkcellResponse extends Workcell {
+  tools: Tool[];
 }

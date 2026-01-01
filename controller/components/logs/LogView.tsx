@@ -28,7 +28,7 @@ import {
 } from "@chakra-ui/react";
 import { CloseIcon, WarningIcon, QuestionOutlineIcon, SearchIcon } from "@chakra-ui/icons";
 import { useEffect, useState } from "react";
-import { Log } from "@/types/api";
+import { Log } from "@/types";
 import { renderDatetime } from "../ui/Time";
 import { Info, Book } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -247,7 +247,7 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                           <Td maxWidth={"900px"} p={1}>
                             {log.details}
                           </Td>
-                          <Td p={1}>{renderDatetime(String(log.created_at))}</Td>
+                          <Td p={1}>{renderDatetime(String(log.createdAt))}</Td>
                         </Tr>
                       ))
                     )}

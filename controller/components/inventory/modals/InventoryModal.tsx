@@ -31,11 +31,9 @@ import {
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper,
-  RadioGroup,
-  Radio,
-  Grid,
 } from "@chakra-ui/react";
-import { Nest, Plate, Tool, PlateStatus } from "@/types/api";
+import { Nest, Plate, PlateStatus } from "@/types/api";
+import { Tool } from "@/types";
 import { Package, Grid3x3 } from "lucide-react";
 import NestModal from "./NestModal";
 import { FileAddIcon } from "@/components/ui/Icons";

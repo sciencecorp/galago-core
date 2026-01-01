@@ -1,4 +1,4 @@
-import { Tool } from "@/types/api";
+import { Tool } from "@/types";
 import { JointConfig } from "../shared/utils/robotArmUtils";
 import { RobotArmSequence as RobotArmSequenceType } from "@/server/routers/robot-arm";
 

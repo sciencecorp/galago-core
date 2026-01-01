@@ -13,14 +13,14 @@ export const zLabware = z.object({
   description: z.string(),
   numberOfRows: z.number(),
   numberOfColumns: z.number(),
-  zOffset: z.number().optional(),
-  width: z.number().optional(),
-  height: z.number().optional(),
-  plateLidOffset: z.number().optional(),
-  lidOffset: z.number().optional(),
-  stackHeight: z.number().optional(),
-  hasLid: z.boolean().optional(),
-  workcellId: z.number().optional(),
+  zOffset: z.number().default(0),
+  width: z.number().nullable().default(127.8),
+  height: z.number().nullable().default(14.5),
+  plateLidOffset: z.number().nullable().default(0),
+  lidOffset: z.number().nullable().default(0),
+  stackHeight: z.number().nullable().default(0),
+  hasLid: z.boolean().nullable().default(false),
+  workcellId: z.number().nullable().optional(),
 });
 
 async function getSelectedWorkcellId(): Promise<number> {
@@ -96,19 +96,6 @@ export const labwareRouter = router({
 
   add: procedure.input(zLabware.omit({ id: true })).mutation(async ({ input }) => {
     const workcellId = input.workcellId || (await getSelectedWorkcellId());
-
-    const existing = await findOne(
-      labware,
-      and(eq(labware.name, input.name), eq(labware.workcellId, workcellId)),
-    );
-
-    if (existing) {
-      throw new TRPCError({
-        code: "CONFLICT",
-        message: `Labware with name '${input.name}' already exists in this workcell`,
-      });
-    }
-
     try {
       const result = await db
         .insert(labware)
@@ -223,7 +210,7 @@ export const labwareRouter = router({
 
   importConfig: procedure.input(z.object({ file: z.any() })).mutation(async ({ input }) => {
     throw new TRPCError({
-      code: "NOT_IMPLEMENTED",
+      code: "NOT_FOUND",
       message: "Import functionality to be implemented",
     });
   }),

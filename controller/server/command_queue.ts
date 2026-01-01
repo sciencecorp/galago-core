@@ -10,7 +10,7 @@ import { logger } from "@/logger";
 import { ToolType } from "gen-interfaces/controller";
 import { logAction } from "./logger";
 import { get, put } from "@/server/utils/api";
-import { Variable } from "@/types/api";
+import { Variable } from "@/types";
 
 export type CommandQueueState = ToolStatus;
 

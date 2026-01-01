@@ -17,13 +17,14 @@ import {
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { DeleteWithConfirmation } from "../ui/Delete";
-import { Workcell } from "@/types/api";
+import { WorkcellResponse } from "@/types";
 import { EditableText } from "../ui/Form";
 import { Wrench, MapPin } from "lucide-react";
 import Avvvatars from "avvvatars-react";
 import { errorToast } from "../ui/Toast";
+
 interface WorkcellCardProps {
-  workcell: Workcell;
+  workcell: WorkcellResponse;
   onChange?: () => void;
 }
 
@@ -74,7 +75,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
     }
   };
 
-  const handleEdit = async (editedWorkcell: Workcell) => {
+  const handleEdit = async (editedWorkcell: WorkcellResponse) => {
     try {
       await editWorkcell.mutateAsync(editedWorkcell);
       props.onChange && props.onChange();
@@ -163,7 +164,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
                 <Tooltip key={tool.id} label={tool.name}>
                   <Avatar
                     name={tool.name}
-                    src={tool.image_url}
+                    src={tool.imageUrl ? tool.imageUrl : undefined}
                     bg={`${getWorkcellColor(tool.name)}.500`}
                     p={1}
                     borderWidth={2}

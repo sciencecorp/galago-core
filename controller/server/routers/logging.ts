@@ -23,9 +23,7 @@ export const loggingRouter = router({
         skip: z.number().default(0),
         limit: z.number().default(100),
         descending: z.boolean().default(false),
-        orderBy: z
-          .enum(["id", "level", "action", "created_at", "updated_at"])
-          .default("created_at"),
+        orderBy: z.enum(["id", "level", "action", "createdAt", "updatedAt"]).default("createdAt"),
         filters: z
           .object({
             level: z.string().optional(),

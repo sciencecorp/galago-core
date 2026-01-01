@@ -9,8 +9,8 @@ import { PromisifiedGrpcClient, promisifyGrpcClient } from "./utils/promisifyGrp
 import { setInterval, clearInterval } from "timers";
 import { get } from "@/server/utils/api";
 import { Script } from "@/types/api";
-import { Variable } from "@/types/api";
-import { Labware } from "@/types/api";
+import { Variable } from "@/types";
+import { Labware } from "@/types";
 import { logAction } from "./logger";
 import { JavaScriptExecutor } from "@/server/scripting/javascript/javascript-executor";
 import { CSharpExecutor } from "@/server/scripting/csharp/csharp-executor";

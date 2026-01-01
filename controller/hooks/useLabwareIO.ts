@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { trpc } from "@/utils/trpc";
-import { Labware } from "@/types/api";
+import { Labware } from "@/types";
 
 /**
  * React hook for labware import/export functionality

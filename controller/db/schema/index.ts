@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real, unique, index } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
 export const timestamps = {
@@ -92,32 +92,44 @@ export const plateNestHistory = sqliteTable("plate_nest_history", {
   ...timestamps,
 });
 
-export const variables = sqliteTable("variables", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull(),
-  value: text("value").notNull(),
-  type: text("type").notNull(),
-  workcellId: integer("workcell_id").references(() => workcells.id),
-  ...timestamps,
-});
+export const variables = sqliteTable(
+  "variables",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    name: text("name").notNull(),
+    value: text("value").notNull(),
+    type: text("type", { enum: ["string", "number", "boolean", "array", "json"] })
+      .$type<"string" | "number" | "boolean" | "array" | "json">()
+      .notNull(),
+    workcellId: integer("workcell_id").references(() => workcells.id, { onDelete: "cascade" }),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`),
+  },
+  (table) => ({
+    nameWorkcellIdx: index("unique_variable_name_per_workcell").on(table.name, table.workcellId),
+  }),
+);
 
-export const labware = sqliteTable("labware", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  numberOfRows: integer("number_of_rows").notNull(),
-  numberOfColumns: integer("number_of_columns").notNull(),
-  zOffset: real("z_offset").notNull().default(0),
-  width: real("width").default(127.8),
-  height: real("height").default(14.5),
-  plateLidOffset: real("plate_lid_offset").default(0),
-  lidOffset: real("lid_offset").default(0),
-  stackHeight: real("stack_height").default(0),
-  hasLid: integer("has_lid", { mode: "boolean" }).default(false),
-  workcellId: integer("workcell_id").references(() => workcells.id),
-  ...timestamps,
-});
-
+export const labware = sqliteTable(
+  "labware",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    name: text("name").notNull(),
+    description: text("description").notNull(),
+    numberOfRows: integer("number_of_rows").notNull(),
+    numberOfColumns: integer("number_of_columns").notNull(),
+    zOffset: real("z_offset").notNull().default(0),
+    width: real("width").default(127.8),
+    height: real("height").default(14.5),
+    plateLidOffset: real("plate_lid_offset").default(0),
+    lidOffset: real("lid_offset").default(0),
+    stackHeight: real("stack_height").default(0),
+    hasLid: integer("has_lid", { mode: "boolean" }).default(false),
+    workcellId: integer("workcell_id").references(() => workcells.id),
+    ...timestamps,
+  },
+  (t) => [unique("unique_labware_name_per_workcell").on(t.name, t.workcellId)],
+);
 export const scriptFolders = sqliteTable("script_folders", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),

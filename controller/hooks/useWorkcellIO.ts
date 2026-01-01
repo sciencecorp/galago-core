@@ -1,13 +1,14 @@
 import { useRef } from "react";
 import { trpc } from "@/utils/trpc";
-import { Workcell } from "@/types/api";
+import { WorkcellResponse } from "@/types";
 import { uploadFile, downloadFile } from "@/server/utils/api";
+
 /**
  * React hook for workcell import/export functionality
  * Provides an interface to the server-side import/export operations
  */
 export const useWorkcellIO = (
-  workcells: Workcell[],
+  workcells: WorkcellResponse[],
   selectedWorkcellName: string | undefined,
   refetch: () => Promise<unknown>,
   refetchSelected: () => Promise<unknown>,

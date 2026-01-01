@@ -199,17 +199,6 @@ export interface ToolCommand {
   params: Record<string, any>;
 }
 
-export interface Variable {
-  id: number;
-  name: string;
-  value: string;
-  type: VariableType;
-  created_at: Date;
-  updated_at: Date;
-}
-
-type VariableType = "string" | "number" | "boolean";
-
 export interface Tool {
   id: number;
   name: string;
@@ -232,8 +221,6 @@ export interface LogType {
   created_at: DateTime;
   updated_at: DateTime;
 }
-
-export type { Log, NewLog } from "@/db/schema";
 
 export interface AppSettings {
   id: number;
@@ -267,24 +254,6 @@ export interface Script {
   folder?: ScriptFolder;
   created_at: Date;
   updated_at: Date;
-}
-
-export interface Labware {
-  id?: number;
-  name: string;
-  description: string;
-  number_of_rows: number;
-  number_of_columns: number;
-  z_offset: number;
-  width: number;
-  height: number;
-  plate_lid_offset: number;
-  lid_offset: number;
-  stack_height: number;
-  has_lid: boolean;
-  image_url: string;
-  created_at?: string;
-  updated_at?: string;
 }
 
 export interface HotelCreate {

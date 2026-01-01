@@ -8,8 +8,8 @@ import { TRPCError } from "@trpc/server";
 export const zWorkcell = z.object({
   id: z.number().optional(),
   name: z.string(),
-  location: z.string().optional(),
-  description: z.string().optional(),
+  location: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
 });
 
 export const workcellRouter = router({

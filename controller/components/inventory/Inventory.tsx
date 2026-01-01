@@ -34,7 +34,7 @@ import {
   Heading,
   Tooltip,
 } from "@chakra-ui/react";
-import { Inventory, Plate, Reagent, Nest, Tool, NestStatus, Hotel } from "@/types/api";
+import { Inventory, Plate, Reagent, Nest, NestStatus, Hotel } from "@/types/api";
 import { PageHeader } from "@/components/ui/PageHeader";
 import InventorySearch from "./search/InventorySearch";
 import { InventoryToolCard } from "./cards/InventoryToolCard";
@@ -779,7 +779,7 @@ export const InventoryManager = () => {
               alignItems="start"
               px={2}
               py={2}>
-              {workcellTools.map((tool: Tool) => (
+              {workcellTools.map((tool) => (
                 <Box key={tool.id}>
                   <InventoryToolCard
                     toolId={tool.id}

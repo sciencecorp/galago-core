@@ -18,7 +18,7 @@ import {
 import { PageHeader } from "../ui/PageHeader";
 import { NewWorkcellModal } from "./NewWorkcellModal";
 import { trpc } from "@/utils/trpc";
-import { Workcell } from "@/types/api";
+import { WorkcellResponse } from "@/types";
 import { WorkcellCard } from "./WorkcellCard";
 import { Upload, Download } from "lucide-react";
 import { useWorkcellIO } from "@/hooks/useWorkcellIO";
@@ -27,8 +27,7 @@ import { WorkcellIcon } from "@/components/ui/Icons";
 import { EmptyState } from "../ui/EmptyState";
 
 export const WorkcellComponent = () => {
-  const { data: fetchedWorkcells, refetch } = trpc.workcell.getAll.useQuery();
-  const [workcells, setWorkcells] = useState<Workcell[]>([]);
+  const { data: workcells, refetch } = trpc.workcell.getAll.useQuery();
   const { data: selectedWorkcellName, refetch: refetchSelected } =
     trpc.workcell.getSelectedWorkcell.useQuery();
 
@@ -41,7 +40,12 @@ export const WorkcellComponent = () => {
     handleFileChange,
     isImporting,
     isExporting,
-  } = useWorkcellIO(workcells, selectedWorkcellName, refetch, refetchSelected);
+  } = useWorkcellIO(
+    workcells as WorkcellResponse[],
+    selectedWorkcellName,
+    refetch,
+    refetchSelected,
+  );
 
   const onExportConfig = async () => {
     const result = await handleExportConfig();
@@ -64,12 +68,6 @@ export const WorkcellComponent = () => {
       errorToast("Import Failed", result.message);
     }
   };
-
-  useEffect(() => {
-    if (fetchedWorkcells) {
-      setWorkcells(fetchedWorkcells);
-    }
-  }, [fetchedWorkcells]);
 
   const importButton = (
     <Button
@@ -116,7 +114,7 @@ export const WorkcellComponent = () => {
               <StatGroup>
                 <Stat>
                   <StatLabel>Total Workcells</StatLabel>
-                  <StatNumber>{workcells.length}</StatNumber>
+                  <StatNumber>{workcells?.length}</StatNumber>
                 </Stat>
                 <Stat>
                   <StatLabel>Active Workcell</StatLabel>
@@ -138,21 +136,26 @@ export const WorkcellComponent = () => {
 
         <Card bg={headerBg} shadow="md">
           <CardBody>
-            {workcells.length === 0 && (
+            {!workcells ? (
               <EmptyState
                 title="No Workcells"
                 description="Create a new workcell to get started."
               />
+            ) : (
+              <SimpleGrid
+                columns={{ base: 1, md: 1, lg: 2, xl: 3 }}
+                spacing={10}
+                w="100%"
+                alignItems="stretch">
+                {workcells.map((workcell) => (
+                  <WorkcellCard
+                    key={workcell.id}
+                    onChange={refetch}
+                    workcell={workcell as WorkcellResponse}
+                  />
+                ))}
+              </SimpleGrid>
             )}
-            <SimpleGrid
-              columns={{ base: 1, md: 1, lg: 2, xl: 3 }}
-              spacing={10}
-              w="100%"
-              alignItems="stretch">
-              {workcells.map((workcell) => (
-                <WorkcellCard key={workcell.id} onChange={refetch} workcell={workcell} />
-              ))}
-            </SimpleGrid>
           </CardBody>
         </Card>
       </VStack>

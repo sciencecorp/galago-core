@@ -140,6 +140,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             _hover={{ background: theme.hoverBg }}
             borderRadius="md"
             p={1}
+            pl={isSidebarExpanded ? 4 : 0}
             display="flex"
             alignItems="center"
             justifyContent={isSidebarExpanded ? "start" : "center"}
