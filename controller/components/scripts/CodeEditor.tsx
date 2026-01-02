@@ -45,7 +45,6 @@ import { editor } from "monaco-editor";
 import { useScriptIO } from "@/hooks/useScriptIO";
 import { errorToast } from "../ui/Toast";
 
-import { fileTypeToExtensionMap } from "./utils";
 import { Console } from "./Console";
 import { ResizablePanel } from "./ResizablePanel";
 
@@ -59,10 +58,9 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const { hoverBg, bgColor, borderColor, consoleHeaderBg, consoleBg } = useScriptColors();
   const [scripts, setScripts] = useState<Script[]>([]);
   const [folders, setFolders] = useState<ScriptFolder[]>([]);
-  const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
+  const { data: fetchedScripts, refetch } = trpc.script.getAll.useQuery();
   const { data: fetchedFolders, refetch: refetchFolders } = trpc.script.getAllFolders.useQuery();
   const { data: selectedWorkcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
-  const { data: workcells } = trpc.workcell.getAll.useQuery();
   const editScript = trpc.script.edit.useMutation();
   const deleteScript = trpc.script.delete.useMutation();
   const addFolder = trpc.script.addFolder.useMutation();
@@ -79,7 +77,6 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const headerBg = useColorModeValue("white", "gray.700");
   const tabBg = useColorModeValue("gray.50", "gray.700");
   const activeTabBg = useColorModeValue("white", "gray.800");
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const [scriptToDelete, setScriptToDelete] = useState<Script | null>(null);
   const [editingScriptName, setEditingScriptName] = useState<Script | null>(null);
   const [folderCreating, setFolderCreating] = useState(false);
@@ -89,16 +86,65 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const jsIconColor = useColorModeValue("orange", "yellow");
   const [draggedScript, setDraggedScript] = useState<Script | null>(null);
 
-  // Define refreshData function here
+  const {
+    isOpen: isScriptDeleteOpen,
+    onOpen: onScriptDeleteOpen,
+    onClose: onScriptDeleteClose,
+  } = useDisclosure();
+  const {
+    isOpen: isFolderDeleteOpen,
+    onOpen: onFolderDeleteOpen,
+    onClose: onFolderDeleteClose,
+  } = useDisclosure();
+
+  const [folderToDelete, setFolderToDelete] = useState<ScriptFolder | null>(null);
+
   const refreshData = async () => {
     await refetch();
     await refetchFolders();
   };
 
+  const handleDeleteFolder = async () => {
+    if (!folderToDelete) return;
+    try {
+      await deleteFolder.mutateAsync(folderToDelete.id);
+      await refreshData();
+      onFolderDeleteClose();
+      setFolderToDelete(null);
+      showSuccessToast(
+        "Folder deleted",
+        `${folderToDelete.name} and its contents deleted successfully`,
+      );
+    } catch (error) {
+      showErrorToast("Error deleting folder", String(error));
+    }
+  };
+
+  const folderHasChildren = (folderId: number): boolean => {
+    const hasChildFolders = folders.some((folder) => folder.parentId === folderId);
+    const hasScripts = fetchedScripts?.some((script) => script.folderId === folderId) || false;
+    return hasChildFolders || hasScripts;
+  };
+
+  const handleFolderDeleteClick = async (folder: ScriptFolder) => {
+    if (folderHasChildren(folder.id)) {
+      setFolderToDelete(folder);
+      onFolderDeleteOpen();
+    } else {
+      try {
+        await deleteFolder.mutateAsync(folder.id);
+        await refreshData();
+        showSuccessToast("Folder deleted", `${folder.name} deleted successfully`);
+      } catch (error) {
+        showErrorToast("Error deleting folder", String(error));
+      }
+    }
+  };
+
   // Get active script based on activeTab name
   const getActiveScript = () => {
-    if (!activeTab) return null;
-    return scripts.find((s) => `${s.name}.${fileTypeToExtensionMap[s.language]}` === activeTab);
+    if (!activeTab || !fetchedScripts) return null;
+    return fetchedScripts.find((s) => `${s.name}` === activeTab);
   };
 
   // Get active script ID based on activeTab name
@@ -349,15 +395,16 @@ Original Error: ${error.message}`;
     try {
       await deleteScript.mutateAsync(scriptToDelete.id);
 
-      const tabName = `${scriptToDelete.name}.${fileTypeToExtensionMap[scriptToDelete.language]}`;
+      const tabName = `${scriptToDelete.name}`;
       if (openTabs.includes(tabName)) {
-        removeTab(tabName);
+        const newTabs = openTabs.filter((t) => t !== tabName);
+        setOpenTabs(newTabs);
+
         if (activeTab === tabName) {
-          setActiveTab(openTabs[0] || null);
+          setActiveTab(newTabs.length > 0 ? newTabs[newTabs.length - 1] : null);
         }
       }
 
-      // Clear any edited content for this script
       if (scriptToDelete.id) {
         setEditedContents((prev) => {
           const newState = { ...prev };
@@ -367,7 +414,7 @@ Original Error: ${error.message}`;
       }
 
       await refreshData();
-      onClose();
+      onScriptDeleteClose();
       setScriptToDelete(null);
     } catch (error) {
       showErrorToast("Error deleting script", String(error));
@@ -381,15 +428,15 @@ Original Error: ${error.message}`;
   }, [openTabs, activeTab]);
 
   useEffect(() => {
-    if (fetchedScript) {
+    if (fetchedScripts) {
       // Only filter by search query, and only show root-level scripts
       setScripts(
-        fetchedScript
+        fetchedScripts
           .filter((script) => !script.folderId) // Root level only
           .filter((script) => script.name.toLowerCase().includes(searchQuery.toLowerCase())),
       );
     }
-  }, [fetchedScript, searchQuery]);
+  }, [fetchedScripts, searchQuery]);
 
   const handleRename = async (script: Script, newName: string) => {
     const cleanNewName = newName.trim();
@@ -400,8 +447,8 @@ Original Error: ${error.message}`;
       });
 
       // Update tabs if the renamed script was open
-      const oldTabName = `${script.name}.${fileTypeToExtensionMap[script.language]}`;
-      const newTabName = `${cleanNewName}.${fileTypeToExtensionMap[script.language]}`;
+      const oldTabName = `${script.name}`;
+      const newTabName = `${cleanNewName}`;
 
       if (openTabs.includes(oldTabName)) {
         setOpenTabs(openTabs.map((tab) => (tab === oldTabName ? newTabName : tab)));
@@ -447,7 +494,7 @@ Original Error: ${error.message}`;
 
   const handleScriptClick = (script: Script) => {
     setActiveFolder(null);
-    const fullName = `${script.name}.${fileTypeToExtensionMap[script.language]}`;
+    const fullName = `${script.name}`;
     handleScriptClicked(fullName, script);
   };
 
@@ -549,7 +596,8 @@ Original Error: ${error.message}`;
             onFolderClick={handleFolderClick}
             onScriptRename={handleRename}
             onScriptDelete={(script) => {
-              onOpen();
+              onScriptDeleteOpen();
+              console.log("SCRIPT TO DELETE:", script);
               setScriptToDelete(script);
             }}
             onFolderCreate={(name, parentId) => {
@@ -557,7 +605,7 @@ Original Error: ${error.message}`;
               setFolderCreating(false);
             }}
             onFolderRename={handleFolderRename}
-            onFolderDelete={handleFolderDelete}
+            onFolderDelete={handleFolderDeleteClick}
             openFolders={openFolders}
             isCreatingRootFolder={folderCreating}
             onCancelRootFolderCreation={() => setFolderCreating(false)}
@@ -664,20 +712,31 @@ Original Error: ${error.message}`;
         colorScheme="red"
         confirmText={"Delete"}
         header={`Delete Script?`}
-        isOpen={isOpen}
+        isOpen={isScriptDeleteOpen}
         onClick={() => {
           handleDeleteScript();
         }}
-        onClose={onClose}>
+        onClose={onScriptDeleteClose}>
         {`Are you sure you want to delete ${scriptToDelete?.name}?`}
       </ConfirmationModal>
+
+      <ConfirmationModal
+        colorScheme="red"
+        confirmText="Delete"
+        header="Delete Folder?"
+        isOpen={isFolderDeleteOpen}
+        onClick={handleDeleteFolder}
+        onClose={onFolderDeleteClose}>
+        Are you sure you want to delete the folder? This will delete all scripts within the folder.
+      </ConfirmationModal>
+
       <VStack spacing={4} align="stretch" width="100%">
         <Card bg={headerBg} shadow="md">
           <CardBody>
             <VStack spacing={4} align="stretch">
               <PageHeader
                 title="Scripts"
-                subTitle="Create and manage Python and JavaScript scripts"
+                subTitle="Create and manage custom python, javascript or C# scripts."
                 titleIcon={<Icon as={CodeIcon} boxSize={8} color="teal.500" />}
                 mainButton={importButton}
               />

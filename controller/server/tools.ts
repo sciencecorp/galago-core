@@ -8,7 +8,7 @@ import { ToolType } from "gen-interfaces/controller";
 import { PromisifiedGrpcClient, promisifyGrpcClient } from "./utils/promisifyGrpcCall";
 import { setInterval, clearInterval } from "timers";
 import { get } from "@/server/utils/api";
-import { Script } from "@/types/api";
+import { Script } from "@/types";
 import { Variable } from "@/types";
 import { Labware } from "@/types";
 import { logAction } from "./logger";

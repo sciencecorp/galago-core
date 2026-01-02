@@ -22,13 +22,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Get existing variable first
       const existing = await caller.variable.get(name);
 
-      // Update with new data
+      // Update with new data - workcellId is NOT included (it never changes)
       const updated = await caller.variable.edit({
         id: existing.id!,
         name: req.body.name || existing.name,
         value: req.body.value !== undefined ? req.body.value : existing.value,
         type: req.body.type || existing.type,
-        workcellId: req.body.workcellId || existing.workcellId,
       });
 
       return res.status(200).json(updated);
@@ -51,7 +50,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           : error.code === "BAD_REQUEST"
             ? 400
             : 500;
-
     return res.status(statusCode).json({
       error: error.message || "Internal server error",
     });

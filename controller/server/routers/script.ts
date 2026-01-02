@@ -7,10 +7,10 @@ import { eq, and, isNull } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import Tool from "@/server/tools";
 import { ToolType } from "gen-interfaces/controller";
+
 // Script schemas
 const zScriptBase = z.object({
   name: z.string().min(1),
-  description: z.string().nullable().optional(),
   content: z.string().default(""),
   language: z.string().default("python"),
   folderId: z.number().nullable().optional(),
@@ -29,7 +29,6 @@ export const zScriptUpdate = zScriptBase
 // Script folder schemas
 const zScriptFolderBase = z.object({
   name: z.string().min(1),
-  description: z.string().nullable().optional(),
   parentId: z.number().nullable().optional(),
   workcellId: z.number().nullable().optional(),
 });
@@ -66,39 +65,7 @@ async function getSelectedWorkcellId(): Promise<number> {
   return workcell.id;
 }
 
-async function getFolderTree(workcellId: number, parentId: number | null = null): Promise<any[]> {
-  const folders = await db
-    .select()
-    .from(scriptFolders)
-    .where(
-      and(
-        eq(scriptFolders.workcellId, workcellId),
-        parentId === null ? isNull(scriptFolders.parentId) : eq(scriptFolders.parentId, parentId),
-      ),
-    );
-
-  const foldersWithData = await Promise.all(
-    folders.map(async (folder) => {
-      const [folderScripts, subfolders] = await Promise.all([
-        db.select().from(scripts).where(eq(scripts.folderId, folder.id)),
-        getFolderTree(workcellId, folder.id), // Recursive call
-      ]);
-
-      return {
-        ...folder,
-        scripts: folderScripts,
-        subfolders: subfolders,
-      };
-    }),
-  );
-
-  return foldersWithData;
-}
-
 export const scriptRouter = router({
-  // ==================== SCRIPTS ====================
-
-  // Get all scripts for selected workcell
   getAll: procedure.query(async () => {
     const workcellId = await getSelectedWorkcellId();
     const allScripts = await findMany(scripts, eq(scripts.workcellId, workcellId));
@@ -108,23 +75,29 @@ export const scriptRouter = router({
   // Get script by ID or name
   get: procedure.input(z.string()).query(async ({ input }) => {
     const numericId = parseInt(input);
-
     if (!isNaN(numericId)) {
       const script = await findOne(scripts, eq(scripts.id, numericId));
-
       if (!script) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Script not found",
         });
       }
-
       return script;
     } else {
       const workcellId = await getSelectedWorkcellId();
+
+      // Handle the case where workcellId might be undefined/null
+      if (!workcellId) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No workcell selected",
+        });
+      }
+
       const script = await findOne(
         scripts,
-        and(eq(scripts.name, input), eq(scripts.workcellId, workcellId)),
+        and(eq(scripts.name, input), eq(scripts.workcellId, workcellId))!,
       );
 
       if (!script) {
@@ -133,14 +106,23 @@ export const scriptRouter = router({
           message: "Script not found",
         });
       }
-
       return script;
     }
   }),
 
-  // Create script
   add: procedure.input(zScriptCreate).mutation(async ({ input }) => {
     const workcellId = input.workcellId || (await getSelectedWorkcellId());
+
+    //Validate script language.
+    if (
+      !input.language ||
+      !["javascript", "python", "csharp"].includes(input.language.toLocaleLowerCase())
+    ) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Invalid script type",
+      });
+    }
 
     try {
       const result = await db
@@ -172,20 +154,16 @@ export const scriptRouter = router({
     }
   }),
 
-  // In scripts router
   run: procedure.input(z.string()).mutation(async ({ input }) => {
     const workcellId = await getSelectedWorkcellId();
-    const scriptName = input.replaceAll(".js", "").replaceAll(".py", "").replaceAll(".cs", "");
+    const whereClause = and(eq(scripts.name, input), eq(scripts.workcellId, workcellId));
 
-    const script = await findOne(
-      scripts,
-      and(eq(scripts.name, scriptName), eq(scripts.workcellId, workcellId)),
-    );
+    const script = await findOne(scripts, whereClause!);
 
     if (!script) {
       throw new TRPCError({
         code: "NOT_FOUND",
-        message: `Script ${scriptName} not found`,
+        message: `Script ${input} not found`,
       });
     }
 
@@ -194,9 +172,9 @@ export const scriptRouter = router({
       toolType: ToolType.toolbox,
       command: "run_script",
       params: {
-        name: scriptName,
-        script_content: script.content, // Pass content directly
-        language: script.language, // Pass language directly
+        name: input,
+        script_content: script.content,
+        language: script.language,
         blocking: true,
       },
     };
@@ -271,7 +249,6 @@ export const scriptRouter = router({
   // Export script
   exportConfig: procedure.input(z.number()).mutation(async ({ input }) => {
     const script = await findOne(scripts, eq(scripts.id, input));
-
     if (!script) {
       throw new TRPCError({
         code: "NOT_FOUND",
@@ -282,10 +259,18 @@ export const scriptRouter = router({
     return script;
   }),
 
-  // ==================== SCRIPT FOLDERS ====================
+  importConfig: procedure.input(z.number()).mutation(async ({ input }) => {
+    const script = await findOne(scripts, eq(scripts.id, input));
+    if (!script) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Script not found",
+      });
+    }
 
-  // Get all folders for selected workcell (root folders only)
-  // Get all folders for selected workcell with nested scripts and subfolders
+    return script;
+  }),
+
   getAllFolders: procedure.query(async () => {
     const workcellId = await getSelectedWorkcellId();
 
@@ -322,7 +307,6 @@ export const scriptRouter = router({
     return await buildFolderTree();
   }),
 
-  // Get folder by ID
   getFolder: procedure.input(z.number()).query(async ({ input }) => {
     const folder = await findOne(scriptFolders, eq(scriptFolders.id, input));
 
@@ -336,7 +320,6 @@ export const scriptRouter = router({
     return folder;
   }),
 
-  // Create folder
   addFolder: procedure.input(zScriptFolderCreate).mutation(async ({ input }) => {
     const workcellId = input.workcellId || (await getSelectedWorkcellId());
 
@@ -371,6 +354,7 @@ export const scriptRouter = router({
   }),
 
   // Update folder
+  // Update folder
   editFolder: procedure.input(zScriptFolderUpdate).mutation(async ({ input }) => {
     const { id, ...updateData } = input;
 
@@ -384,12 +368,14 @@ export const scriptRouter = router({
     }
 
     try {
+      // Filter out undefined values from updateData
+      const cleanUpdateData = Object.fromEntries(
+        Object.entries(updateData).filter(([_, value]) => value !== undefined),
+      );
+
       const updated = await db
         .update(scriptFolders)
-        .set({
-          ...updateData,
-          updatedAt: new Date().toISOString(),
-        })
+        .set(cleanUpdateData)
         .where(eq(scriptFolders.id, id))
         .returning();
 

@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { trpc } from "@/utils/trpc";
-import { Script } from "@/types/api"; // Assuming Script type exists or will be created
+import { Script } from "@/types"; // Assuming Script type exists or will be created
 import { fileTypeToExtensionMap } from "@/components/scripts/utils"; // Assuming this is the correct path
 /**
  * React hook for script import/export functionality

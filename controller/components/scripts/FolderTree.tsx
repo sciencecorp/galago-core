@@ -11,11 +11,9 @@ import {
   Input,
   VStack,
   Icon,
-  Tooltip,
   useColorModeValue,
-  Image,
 } from "@chakra-ui/react";
-import { ScriptFolder, Script } from "@/types/api";
+import { FolderResponse, ScriptFolder, Script } from "@/types";
 import { validateFolderName, removeFileExtension, showErrorToast } from "./utils";
 import { useScriptColors } from "../ui/Theme";
 import {
@@ -29,10 +27,9 @@ import {
   CSharpIcon,
 } from "../ui/Icons";
 import { InlineFolderCreation } from "./NewFolder";
-import { fileTypeToExtensionMap } from "./utils";
 
 interface FolderTreeProps {
-  folders: ScriptFolder[];
+  folders: FolderResponse;
   scripts: Script[];
   activeScript: string | null;
   activeFolder?: ScriptFolder | null;
@@ -79,6 +76,7 @@ const FolderNode: React.FC<FolderNodeProps> = ({
   const [newName, setNewName] = useState(folder.name);
   const { selectedBg, hoverBg, selectedColor } = useScriptColors();
   const [isDragOver, setIsDragOver] = useState(false);
+
   const handleRename = () => {
     const validationError = validateFolderName(newName);
     if (validationError) {
@@ -103,11 +101,13 @@ const FolderNode: React.FC<FolderNodeProps> = ({
         px={2}
         py={1}
         borderRadius="md"
-        bg={isDragOver ? "teal.100" : isActive ? selectedBg : "transparent"} // ✅ Show when dragging over
+        bg={isDragOver ? selectedBg : "transparent"}
+        opacity={isDragOver ? 0.5 : 1}
         _hover={{ bg: isActive ? selectedBg : hoverBg }}
         onClick={() => onFolderClick?.(folder)}
         cursor="pointer"
         position="relative"
+        transition="opacity 0.2s"
         onDragOver={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -170,13 +170,6 @@ const FolderNode: React.FC<FolderNodeProps> = ({
               icon={<DeleteIcon size={12} />}
               onClick={(e) => {
                 e.stopPropagation();
-                // if (folder.scripts.length > 0 || folder.subfolders.length > 0) {
-                //   showErrorToast(
-                //     "Cannot delete non-empty folder",
-                //     "Please move or delete the contents of the folder first.",
-                //   );
-                //   return;
-                // }
                 onFolderDelete(folder);
               }}>
               Delete
@@ -203,9 +196,9 @@ const FolderNode: React.FC<FolderNodeProps> = ({
               onFolderRename={onFolderRename}
               onFolderDelete={onFolderDelete}
               openFolders={openFolders}
-              onDragStart={onDragStart} // ✅ Add this
-              onDropOnFolder={onDropOnFolder} // ✅ Add this
-              onDropOnRoot={onDropOnRoot} // ✅ Add this
+              onDragStart={onDragStart}
+              onDropOnFolder={onDropOnFolder}
+              onDropOnRoot={onDropOnRoot}
             />
           ))}
           {folder?.scripts?.map((script) => (
@@ -216,7 +209,7 @@ const FolderNode: React.FC<FolderNodeProps> = ({
               onClick={() => onScriptClick(script)}
               onRename={onScriptRename}
               onDelete={onScriptDelete}
-              onDragStart={onDragStart} // ✅ Pass through
+              onDragStart={onDragStart}
             />
           ))}
         </Box>
@@ -246,6 +239,8 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
   const [newName, setNewName] = useState(removeFileExtension(script.name));
   const { selectedBg, hoverBg, selectedColor } = useScriptColors();
   const jsIconColor = useColorModeValue("orange", "yellow");
+  const [isDragging, setIsDragging] = useState(false);
+  const dragImageRef = React.useRef<HTMLDivElement | null>(null);
 
   const handleRename = () => {
     if (newName.trim() && newName !== script.name.replace(/\.py$/, "")) {
@@ -254,94 +249,131 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
     setIsEditing(false);
   };
 
+  // ✅ Get the icon component based on language
+  const getIcon = () => {
+    if (script.language === "javascript") {
+      return <JavaScriptIcon color={jsIconColor} />;
+    } else if (script.language === "csharp") {
+      return <CSharpIcon color="lightblue" />;
+    } else {
+      return <PythonIcon color="lightblue" />;
+    }
+  };
+
   return (
-    <HStack
-      spacing={1}
-      mb={1}
-      px={2}
-      py={1}
-      borderRadius="md"
-      border={isActive ? "1px solid teal" : "none"}
-      bg={isActive ? selectedBg : "transparent"}
-      _hover={{ bg: isActive ? selectedBg : hoverBg }}
-      onClick={onClick}
-      cursor="pointer"
-      position="relative"
-      draggable={!isEditing}
-      onDragStart={(e) => {
-        if (!isEditing) {
-          onDragStart?.(script);
-        }
-      }}
-      opacity={isEditing ? 1 : undefined}>
-      {script.language === "javascript" ? (
-        <JavaScriptIcon color={isActive ? "teal" : jsIconColor} />
-      ) : script.language === "csharp" ? (
-        <CSharpIcon color={isActive ? "teal" : "lightblue"} />
-      ) : (
-        <PythonIcon color={isActive ? "teal" : "lightblue"} />
-      )}
-      {isEditing ? (
-        <Input
-          size="sm"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          onBlur={handleRename}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleRename();
-            if (e.key === "Escape") setIsEditing(false);
-          }}
-          onClick={(e) => e.stopPropagation()}
-          autoFocus
-        />
-      ) : (
-        <Tooltip
-          label={script.description || "No description available"}
-          openDelay={1000}
-          placement="right"
-          hasArrow>
+    <>
+      {/* ✅ Hidden drag preview element */}
+      <Box
+        ref={dragImageRef}
+        position="fixed"
+        top="-1000px"
+        left="-1000px"
+        pointerEvents="none"
+        zIndex={9999}>
+        <HStack
+          spacing={2}
+          px={3}
+          py={2}
+          bg={useColorModeValue("white", "gray.700")}
+          borderRadius="md"
+          boxShadow="lg"
+          border="1px solid"
+          borderColor={useColorModeValue("gray.300", "gray.600")}>
+          {getIcon()}
+          <Text fontSize="14px" fontWeight="medium">
+            {script.name}
+          </Text>
+        </HStack>
+      </Box>
+
+      <HStack
+        spacing={1}
+        mb={1}
+        px={2}
+        py={1}
+        borderRadius="md"
+        border={isActive ? "1px solid teal" : "none"}
+        bg={isActive ? selectedBg : "transparent"}
+        _hover={{ bg: isActive ? selectedBg : hoverBg }}
+        onClick={onClick}
+        cursor="pointer"
+        position="relative"
+        draggable={!isEditing}
+        onDragStart={(e) => {
+          if (!isEditing && dragImageRef.current) {
+            setIsDragging(true);
+            onDragStart?.(script);
+
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setDragImage(dragImageRef.current, 20, 20);
+          }
+        }}
+        onDragEnd={() => {
+          setIsDragging(false);
+        }}
+        opacity={isDragging ? 0.4 : 1}
+        transition="opacity 0.5s">
+        {script.language === "javascript" ? (
+          <JavaScriptIcon color={isActive ? "teal" : jsIconColor} />
+        ) : script.language === "csharp" ? (
+          <CSharpIcon color={isActive ? "teal" : "lightblue"} />
+        ) : (
+          <PythonIcon color={isActive ? "teal" : "lightblue"} />
+        )}
+        {isEditing ? (
+          <Input
+            size="sm"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onBlur={handleRename}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleRename();
+              if (e.key === "Escape") setIsEditing(false);
+            }}
+            onClick={(e) => e.stopPropagation()}
+            autoFocus
+          />
+        ) : (
           <Text
             flex={1}
             fontSize="14px"
             fontWeight={isActive ? "medium" : "normal"}
             color={isActive ? selectedColor : "inherit"}>
-            {`${script.name}.${fileTypeToExtensionMap[script.language]}`.length > 15
-              ? `${`${script.name}.${fileTypeToExtensionMap[script.language]}`.substring(0, 15)}...`
-              : `${script.name}.${fileTypeToExtensionMap[script.language]}`}
+            {`${script.name}`.length > 15 ? `${script.name.substring(0, 15)}...` : script.name}
           </Text>
-        </Tooltip>
-      )}
-      <Menu>
-        <MenuButton
-          as={IconButton}
-          aria-label="Script options"
-          icon={<MenuIcon />}
-          variant="unstyled"
-          size="sm"
-          onClick={(e) => e.stopPropagation()}
-          position="absolute"
-          right={2}
-        />
-        <MenuList minW="auto">
-          <MenuItem
-            icon={<EditIcon size={12} />}
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsEditing(true);
-            }}>
-            Rename
-          </MenuItem>
-          <MenuItem
-            icon={<DeleteIcon size={12} />}
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(script);
-            }}>
-            Delete
-          </MenuItem>
-        </MenuList>
-      </Menu>
-    </HStack>
+        )}
+        <Menu>
+          <MenuButton
+            as={IconButton}
+            aria-label="Script options"
+            icon={<MenuIcon />}
+            variant="unstyled"
+            size="sm"
+            onClick={(e) => e.stopPropagation()}
+            position="absolute"
+            right={2}
+          />
+          <MenuList minW="auto">
+            <MenuItem
+              icon={<EditIcon size={12} />}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditing(true);
+              }}>
+              Rename
+            </MenuItem>
+            <MenuItem
+              icon={<DeleteIcon size={12} />}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(script);
+              }}>
+              Delete
+            </MenuItem>
+          </MenuList>
+        </Menu>
+      </HStack>
+    </>
   );
 };
 
@@ -360,9 +392,9 @@ export const ScriptFolderTree: React.FC<FolderTreeProps> = ({
   openFolders,
   isCreatingRootFolder,
   onCancelRootFolderCreation,
-  onDragStart, // ✅ Add these
-  onDropOnFolder, // ✅ Add these
-  onDropOnRoot, // ✅ Add these
+  onDragStart,
+  onDropOnFolder,
+  onDropOnRoot,
 }) => {
   return (
     <VStack align="stretch" width="100%" spacing={1}>
@@ -389,8 +421,8 @@ export const ScriptFolderTree: React.FC<FolderTreeProps> = ({
           onFolderRename={onFolderRename}
           onFolderDelete={onFolderDelete}
           openFolders={openFolders}
-          onDragStart={onDragStart} // ✅ Pass through
-          onDropOnFolder={onDropOnFolder} // ✅ Pass through
+          onDragStart={onDragStart}
+          onDropOnFolder={onDropOnFolder}
           onDropOnRoot={onDropOnRoot}
         />
       ))}

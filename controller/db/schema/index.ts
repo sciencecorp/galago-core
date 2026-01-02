@@ -136,8 +136,9 @@ export const scriptFolders = sqliteTable(
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
     name: text("name").notNull(),
-    description: text("description"),
-    parentId: integer("parent_id").references((): any => scriptFolders.id),
+    parentId: integer("parent_id").references((): any => scriptFolders.id, {
+      onDelete: "cascade",
+    }),
     workcellId: integer("workcell_id")
       .references(() => workcells.id)
       .notNull(),
@@ -151,10 +152,11 @@ export const scripts = sqliteTable(
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
     name: text("name").notNull(),
-    description: text("description"),
     content: text("content").notNull().default(""),
     language: text("language").notNull().default("python"),
-    folderId: integer("folder_id").references(() => scriptFolders.id),
+    folderId: integer("folder_id").references(() => scriptFolders.id, {
+      onDelete: "cascade",
+    }),
     workcellId: integer("workcell_id").references(() => workcells.id),
     ...timestamps,
   },

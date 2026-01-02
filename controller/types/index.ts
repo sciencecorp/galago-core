@@ -27,8 +27,14 @@ export type {
   ScriptFolder,
   NewScriptFolder,
 } from "@/db/schema";
-import type { Workcell, Tool, Hotel } from "@/db/schema";
+
+import type { Workcell, Tool, ScriptFolder, Script } from "@/db/schema";
 
 export interface WorkcellResponse extends Workcell {
   tools: Tool[];
+}
+
+export interface FolderResponse extends ScriptFolder {
+  scripts: Script[];
+  subFolders: FolderResponse[];
 }
