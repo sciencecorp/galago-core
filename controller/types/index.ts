@@ -26,6 +26,8 @@ export type {
   NewScript,
   ScriptFolder,
   NewScriptFolder,
+  Form,
+  NewForm,
 } from "@/db/schema";
 
 import type { Workcell, Tool, ScriptFolder, Script } from "@/db/schema";

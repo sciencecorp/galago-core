@@ -1,10 +1,10 @@
 #Production docker-compose file
 services:
   galago-web:
-    # image: ghcr.io/sciencecorp/galago-web:latest
-    build:
-      context: .
-      dockerfile: controller/Dockerfile
+    image: ghcr.io/sciencecorp/galago-web:latest
+    # build:
+    #   context: .
+    #   dockerfile: controller/Dockerfile
     container_name: galago-web
     ports:
       - "3010:3010"
@@ -20,10 +20,10 @@ services:
       - app-network
 
   db:
-    # image: ghcr.io/sciencecorp/galago-db:latest
-    build:
-      context: ./db
-      dockerfile: Dockerfile
+    image: ghcr.io/sciencecorp/galago-db:latest
+    # build:
+    #   context: ./db
+    #   dockerfile: Dockerfile
     container_name: galago-db
     ports:
       - "8000:8000"
