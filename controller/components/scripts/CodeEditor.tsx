@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import { trpc } from "@/utils/trpc";
-import { Script, ScriptFolder } from "@/types";
+import { FolderResponse, Script, ScriptFolder } from "@/types";
 import { NewScript } from "./NewScript";
 import { NewFolder } from "./NewFolder";
 import { PageHeader } from "../ui/PageHeader";
@@ -57,7 +57,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const { hoverBg, bgColor, borderColor, consoleHeaderBg, consoleBg } = useScriptColors();
   const [scripts, setScripts] = useState<Script[]>([]);
-  const [folders, setFolders] = useState<ScriptFolder[]>([]);
+  const [folders, setFolders] = useState<FolderResponse[]>([]);
   const { data: fetchedScripts, refetch } = trpc.script.getAll.useQuery();
   const { data: fetchedFolders, refetch: refetchFolders } = trpc.script.getAllFolders.useQuery();
   const { data: selectedWorkcellName } = trpc.workcell.getSelectedWorkcell.useQuery();

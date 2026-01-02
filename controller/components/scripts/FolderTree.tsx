@@ -29,7 +29,7 @@ import {
 import { InlineFolderCreation } from "./NewFolder";
 
 interface FolderTreeProps {
-  folders: FolderResponse;
+  folders: FolderResponse[];
   scripts: Script[];
   activeScript: string | null;
   activeFolder?: ScriptFolder | null;
@@ -51,7 +51,7 @@ interface FolderTreeProps {
 }
 
 interface FolderNodeProps extends FolderTreeProps {
-  folder: ScriptFolder;
+  folder: FolderResponse;
   level: number;
 }
 
@@ -179,7 +179,7 @@ const FolderNode: React.FC<FolderNodeProps> = ({
       </HStack>
       {isOpen && (
         <Box ml={4}>
-          {folder?.subfolders?.map((subfolder) => (
+          {folder?.subFolders?.map((subfolder) => (
             <FolderNode
               key={subfolder.id}
               folder={subfolder}
