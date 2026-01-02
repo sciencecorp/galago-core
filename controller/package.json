@@ -18,6 +18,7 @@
     "@chakra-ui/icons": "^2.0.19",
     "@chakra-ui/react": "^2.8.2",
     "@choc-ui/chakra-autocomplete": "^5.7.0",
+    "drizzle-kit": "^0.31.8",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@grpc/grpc-js": "^1.8.4",
