@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import { trpc } from "@/utils/trpc";
-import { Script, ScriptFolder } from "@/types/api";
+import { Script, ScriptFolder } from "@/types";
 import { NewScript } from "./NewScript";
 import { NewFolder } from "./NewFolder";
 import { PageHeader } from "../ui/PageHeader";
@@ -87,6 +87,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const monacoRef = useRef<typeof monaco | null>(null);
   const [editorLanguage, setEditorLanguage] = useState<string>("python");
   const jsIconColor = useColorModeValue("orange", "yellow");
+  const [draggedScript, setDraggedScript] = useState<Script | null>(null);
 
   // Define refreshData function here
   const refreshData = async () => {
@@ -103,6 +104,39 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   // Get active script ID based on activeTab name
   const activeScriptId = getActiveScript()?.id;
 
+  const handleDropOnFolder = async (folder: ScriptFolder) => {
+    if (!draggedScript) return;
+
+    try {
+      await editScript.mutateAsync({
+        ...draggedScript,
+        folderId: folder.id,
+      });
+
+      setDraggedScript(null);
+      await refreshData();
+      showSuccessToast("Script moved", `Moved ${draggedScript.name} to ${folder.name}`);
+    } catch (error) {
+      showErrorToast("Error moving script", String(error));
+    }
+  };
+
+  const handleDropOnRoot = async () => {
+    if (!draggedScript) return;
+
+    try {
+      await editScript.mutateAsync({
+        ...draggedScript,
+        folderId: null,
+      });
+
+      setDraggedScript(null);
+      await refreshData();
+      showSuccessToast("Script moved", `Moved ${draggedScript.name} to root`);
+    } catch (error) {
+      showErrorToast("Error moving script", String(error));
+    }
+  };
   // Instantiate the useScriptIO hook
   const {
     fileInputRef,
@@ -112,6 +146,10 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
     isImporting,
     isExporting,
   } = useScriptIO(scripts, activeScriptId, refetch, refetchFolders);
+
+  const handleDragStart = (script: Script) => {
+    setDraggedScript(script);
+  };
 
   // Wrapped handlers to add toast notifications
   const onExportConfig = async () => {
@@ -344,10 +382,11 @@ Original Error: ${error.message}`;
 
   useEffect(() => {
     if (fetchedScript) {
+      // Only filter by search query, and only show root-level scripts
       setScripts(
-        fetchedScript.filter((script) =>
-          script.name.toLowerCase().includes(searchQuery.toLowerCase()),
-        ),
+        fetchedScript
+          .filter((script) => !script.folderId) // Root level only
+          .filter((script) => script.name.toLowerCase().includes(searchQuery.toLowerCase())),
       );
     }
   }, [fetchedScript, searchQuery]);
@@ -378,17 +417,9 @@ Original Error: ${error.message}`;
   };
 
   const handleFolderCreate = async (name: string, parentId?: number) => {
-    // Get the workcell ID from the selected workcell name
-    const selectedWorkcell = workcells?.find((wc) => wc.name === selectedWorkcellName);
-    if (!selectedWorkcell) {
-      showErrorToast("Error creating folder", "No workcell selected");
-      return;
-    }
-
     await addFolder.mutateAsync({
       name,
-      parent_id: parentId,
-      workcell_id: selectedWorkcell.id,
+      parentId: parentId,
     });
     await refetchFolders();
   };
@@ -461,7 +492,7 @@ Original Error: ${error.message}`;
             maxW="280px"
             height="36px"
             mr={1}
-            borderWidth="1px"
+            borderWidth="1px solid"
             borderColor={activeTab === tab ? borderColor : "transparent"}
             borderRadius="md"
             bg={activeTab === tab ? activeTabBg : tabBg}
@@ -522,7 +553,7 @@ Original Error: ${error.message}`;
               setScriptToDelete(script);
             }}
             onFolderCreate={(name, parentId) => {
-              handleFolderCreate(name, activeOpenFolder?.id || parentId);
+              handleFolderCreate(name, activeFolder?.id || parentId);
               setFolderCreating(false);
             }}
             onFolderRename={handleFolderRename}
@@ -530,6 +561,9 @@ Original Error: ${error.message}`;
             openFolders={openFolders}
             isCreatingRootFolder={folderCreating}
             onCancelRootFolderCreation={() => setFolderCreating(false)}
+            onDragStart={handleDragStart}
+            onDropOnFolder={handleDropOnFolder}
+            onDropOnRoot={handleDropOnRoot}
           />
         </VStack>
       </Box>
@@ -646,7 +680,6 @@ Original Error: ${error.message}`;
                 subTitle="Create and manage Python and JavaScript scripts"
                 titleIcon={<Icon as={CodeIcon} boxSize={8} color="teal.500" />}
                 mainButton={importButton}
-                // secondaryButton={exportButton}
               />
             </VStack>
           </CardBody>
@@ -683,7 +716,7 @@ Original Error: ${error.message}`;
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                     <NewScript
-                      activeFolderId={openFolders.size > 0 ? activeFolder?.id : undefined}
+                      activeFolderId={activeFolder?.id}
                       onScriptCreated={refreshData}
                       isDisabled={!selectedWorkcellName}
                     />
@@ -695,7 +728,20 @@ Original Error: ${error.message}`;
                       parentId={activeOpenFolder?.id}
                     />
                   </HStack>
-                  <Box width="100%" flex={1} overflowY="auto" position="relative">
+                  <Box
+                    width="100%"
+                    flex={1}
+                    overflowY="auto"
+                    position="relative"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleDropOnRoot();
+                    }}>
                     <Scripts />
                   </Box>
                 </VStack>
@@ -722,34 +768,34 @@ Original Error: ${error.message}`;
                       <Tooltip label="Download Script" openDelay={1000} hasArrow>
                         <IconButton
                           aria-label="Download Script"
-                          icon={<DownloadIcon size={14} />}
+                          icon={<DownloadIcon size={12} />}
                           colorScheme="gray"
                           variant="outline"
                           onClick={onExportConfig}
                           isDisabled={!activeTab || isExporting}
                           isLoading={isExporting}
-                          size="sm"
+                          size="xs"
                         />
                       </Tooltip>
                       <Tooltip label="Save script" openDelay={1000} hasArrow>
                         <IconButton
                           aria-label="Save Script"
-                          icon={<SaveIcon />}
+                          icon={<SaveIcon size={12} />}
                           colorScheme="gray"
                           variant="outline"
                           onClick={handleSave}
-                          size="sm"
+                          size="xs"
                         />
                       </Tooltip>
                       <Tooltip label="Run Script" openDelay={1000} hasArrow>
                         <IconButton
                           aria-label="Run Script"
-                          icon={<PlayIcon />}
+                          icon={<PlayIcon size={12} />}
                           variant="outline"
                           onClick={() => {
                             handleRunScript();
                           }}
-                          size="sm"
+                          size="xs"
                         />
                       </Tooltip>
                     </HStack>

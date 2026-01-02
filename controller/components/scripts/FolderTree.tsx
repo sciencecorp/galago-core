@@ -47,6 +47,9 @@ interface FolderTreeProps {
   openFolders: Set<number>;
   isCreatingRootFolder?: boolean;
   onCancelRootFolderCreation?: () => void;
+  onDragStart?: (script: Script) => void;
+  onDropOnFolder?: (folder: ScriptFolder) => void;
+  onDropOnRoot?: () => void;
   children?: React.ReactNode;
 }
 
@@ -68,11 +71,14 @@ const FolderNode: React.FC<FolderNodeProps> = ({
   onFolderRename,
   onFolderDelete,
   openFolders,
+  onDragStart,
+  onDropOnFolder,
+  onDropOnRoot,
 }): JSX.Element => {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(folder.name);
   const { selectedBg, hoverBg, selectedColor } = useScriptColors();
-
+  const [isDragOver, setIsDragOver] = useState(false);
   const handleRename = () => {
     const validationError = validateFolderName(newName);
     if (validationError) {
@@ -97,11 +103,27 @@ const FolderNode: React.FC<FolderNodeProps> = ({
         px={2}
         py={1}
         borderRadius="md"
-        bg={isActive ? selectedBg : "transparent"}
+        bg={isDragOver ? "teal.100" : isActive ? selectedBg : "transparent"} // ✅ Show when dragging over
         _hover={{ bg: isActive ? selectedBg : hoverBg }}
         onClick={() => onFolderClick?.(folder)}
         cursor="pointer"
-        position="relative">
+        position="relative"
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsDragOver(true);
+        }}
+        onDragLeave={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsDragOver(false);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsDragOver(false);
+          onDropOnFolder?.(folder);
+        }}>
         <Icon
           as={isOpen ? FolderOpenIcon : FolderIcon}
           color={isActive ? selectedColor : "gray.500"}
@@ -137,7 +159,7 @@ const FolderNode: React.FC<FolderNodeProps> = ({
           />
           <MenuList minW="auto">
             <MenuItem
-              icon={<EditIcon />}
+              icon={<EditIcon size={12} />}
               onClick={(e) => {
                 e.stopPropagation();
                 setIsEditing(true);
@@ -145,16 +167,16 @@ const FolderNode: React.FC<FolderNodeProps> = ({
               Rename
             </MenuItem>
             <MenuItem
-              icon={<DeleteIcon />}
+              icon={<DeleteIcon size={12} />}
               onClick={(e) => {
                 e.stopPropagation();
-                if (folder.scripts.length > 0 || folder.subfolders.length > 0) {
-                  showErrorToast(
-                    "Cannot delete non-empty folder",
-                    "Please move or delete the contents of the folder first.",
-                  );
-                  return;
-                }
+                // if (folder.scripts.length > 0 || folder.subfolders.length > 0) {
+                //   showErrorToast(
+                //     "Cannot delete non-empty folder",
+                //     "Please move or delete the contents of the folder first.",
+                //   );
+                //   return;
+                // }
                 onFolderDelete(folder);
               }}>
               Delete
@@ -164,7 +186,7 @@ const FolderNode: React.FC<FolderNodeProps> = ({
       </HStack>
       {isOpen && (
         <Box ml={4}>
-          {folder.subfolders.map((subfolder) => (
+          {folder?.subfolders?.map((subfolder) => (
             <FolderNode
               key={subfolder.id}
               folder={subfolder}
@@ -181,9 +203,12 @@ const FolderNode: React.FC<FolderNodeProps> = ({
               onFolderRename={onFolderRename}
               onFolderDelete={onFolderDelete}
               openFolders={openFolders}
+              onDragStart={onDragStart} // ✅ Add this
+              onDropOnFolder={onDropOnFolder} // ✅ Add this
+              onDropOnRoot={onDropOnRoot} // ✅ Add this
             />
           ))}
-          {folder.scripts.map((script) => (
+          {folder?.scripts?.map((script) => (
             <ScriptNode
               key={script.id}
               script={script}
@@ -191,6 +216,7 @@ const FolderNode: React.FC<FolderNodeProps> = ({
               onClick={() => onScriptClick(script)}
               onRename={onScriptRename}
               onDelete={onScriptDelete}
+              onDragStart={onDragStart} // ✅ Pass through
             />
           ))}
         </Box>
@@ -205,6 +231,7 @@ interface ScriptNodeProps {
   onClick: () => void;
   onRename: (script: Script, newName: string) => void;
   onDelete: (script: Script) => void;
+  onDragStart?: (script: Script) => void;
 }
 
 const ScriptNode: React.FC<ScriptNodeProps> = ({
@@ -213,11 +240,13 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
   onClick,
   onRename,
   onDelete,
+  onDragStart,
 }): JSX.Element => {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(removeFileExtension(script.name));
   const { selectedBg, hoverBg, selectedColor } = useScriptColors();
   const jsIconColor = useColorModeValue("orange", "yellow");
+
   const handleRename = () => {
     if (newName.trim() && newName !== script.name.replace(/\.py$/, "")) {
       onRename(script, newName);
@@ -237,7 +266,14 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
       _hover={{ bg: isActive ? selectedBg : hoverBg }}
       onClick={onClick}
       cursor="pointer"
-      position="relative">
+      position="relative"
+      draggable={!isEditing}
+      onDragStart={(e) => {
+        if (!isEditing) {
+          onDragStart?.(script);
+        }
+      }}
+      opacity={isEditing ? 1 : undefined}>
       {script.language === "javascript" ? (
         <JavaScriptIcon color={isActive ? "teal" : jsIconColor} />
       ) : script.language === "csharp" ? (
@@ -324,6 +360,9 @@ export const ScriptFolderTree: React.FC<FolderTreeProps> = ({
   openFolders,
   isCreatingRootFolder,
   onCancelRootFolderCreation,
+  onDragStart, // ✅ Add these
+  onDropOnFolder, // ✅ Add these
+  onDropOnRoot, // ✅ Add these
 }) => {
   return (
     <VStack align="stretch" width="100%" spacing={1}>
@@ -350,20 +389,22 @@ export const ScriptFolderTree: React.FC<FolderTreeProps> = ({
           onFolderRename={onFolderRename}
           onFolderDelete={onFolderDelete}
           openFolders={openFolders}
+          onDragStart={onDragStart} // ✅ Pass through
+          onDropOnFolder={onDropOnFolder} // ✅ Pass through
+          onDropOnRoot={onDropOnRoot}
         />
       ))}
-      {scripts
-        .filter((script) => !script.folder_id)
-        .map((script) => (
-          <ScriptNode
-            key={script.id}
-            script={script}
-            isActive={activeScript?.split(".")[0] === script.name}
-            onClick={() => onScriptClick(script)}
-            onRename={onScriptRename}
-            onDelete={onScriptDelete}
-          />
-        ))}
+      {scripts.map((script) => (
+        <ScriptNode
+          key={script.id}
+          script={script}
+          isActive={activeScript?.split(".")[0] === script.name}
+          onClick={() => onScriptClick(script)}
+          onRename={onScriptRename}
+          onDelete={onScriptDelete}
+          onDragStart={onDragStart}
+        />
+      ))}
     </VStack>
   );
 };

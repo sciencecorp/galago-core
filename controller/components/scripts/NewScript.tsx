@@ -49,8 +49,7 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
       description,
       content: "",
       language: selectedLanguage,
-      is_blocking: true,
-      folder_id: activeFolderId,
+      folderId: activeFolderId,
     };
 
     setIsLoading(true);

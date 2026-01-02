@@ -247,6 +247,7 @@ export default class Tool {
     }
 
     //Handle script execution
+    //Handle script execution
     if (
       command.command === "run_script" &&
       (command.toolType === ToolType.toolbox ||
@@ -257,76 +258,63 @@ export default class Tool {
         throw new Error("Script name is required for run_script command");
       }
 
-      const scriptName = command.params.name
-        .replaceAll(".js", "")
-        .replaceAll(".py", "")
-        .replaceAll(".cs", "");
+      // Script content and language should already be provided by the tRPC router
+      if (!command.params.script_content || !command.params.language) {
+        throw new Error("Script content and language must be provided");
+      }
 
-      try {
-        const script = await get<Script>(`/scripts/${scriptName}`);
-        if (command.toolType === ToolType.plr && script.language !== "python") {
-          throw new Error("PLR tool only supports Python scripts");
-        }
-        if (script.language === "javascript") {
-          const result = await JavaScriptExecutor.executeScript(script.content);
-          if (!result.success) {
-            const errorMessage = result.output;
-            logAction({
-              level: "error",
-              action: "JavaScript Execution Error",
-              details: `JavaScript execution failed: ${errorMessage}`,
-            });
+      const scriptLanguage = command.params.language;
+      const scriptContent = command.params.script_content;
+      const scriptName = command.params.name;
 
-            // Throw a ToolCommandExecutionError to ensure proper error propagation
-            throw new ToolCommandExecutionError(
-              errorMessage || "JavaScript execution failed",
-              tool_base.ResponseCode.ERROR_FROM_TOOL,
-            );
-          }
-          return {
-            response: tool_base.ResponseCode.SUCCESS,
-            return_reply: true,
-            meta_data: { response: result.output } as any,
-          } as tool_base.ExecuteCommandReply;
-        } else if (script.language === "csharp") {
-          // Execute C# script
-          const result = await CSharpExecutor.executeScript(script.content);
-          if (!result.success) {
-            const errorMessage = result.output;
-            logAction({
-              level: "error",
-              action: "C# Execution Error",
-              details: `C# execution failed: ${errorMessage}`,
-            });
+      // Validate language for specific tool types
+      if (command.toolType === ToolType.plr && scriptLanguage !== "python") {
+        throw new Error("PLR tool only supports Python scripts");
+      }
 
-            // Throw a ToolCommandExecutionError to ensure proper error propagation
-            throw new ToolCommandExecutionError(
-              errorMessage || "C# execution failed",
-              tool_base.ResponseCode.ERROR_FROM_TOOL,
-            );
-          }
-          return {
-            response: tool_base.ResponseCode.SUCCESS,
-            return_reply: true,
-            meta_data: { response: result.output } as any,
-          } as tool_base.ExecuteCommandReply;
-        } else if (script.language === "python") {
-          command.params.script_content = script.content;
-          command.params.blocking = true;
-        } else {
-          throw new Error(`Unsupported script language: ${script.language}`);
+      if (scriptLanguage === "javascript") {
+        const result = await JavaScriptExecutor.executeScript(scriptContent);
+        if (!result.success) {
+          const errorMessage = result.output;
+          logAction({
+            level: "error",
+            action: "JavaScript Execution Error",
+            details: `JavaScript execution failed: ${errorMessage}`,
+          });
+          throw new ToolCommandExecutionError(
+            errorMessage || "JavaScript execution failed",
+            tool_base.ResponseCode.ERROR_FROM_TOOL,
+          );
         }
-      } catch (e: any) {
-        console.warn("Error at fetching script", e);
-        logAction({
-          level: "error",
-          action: "Script Error",
-          details: `Failed to fetch ${scriptName}. ${e}`,
-        });
-        if (e.status === 404) {
-          throw new Error(`Script ${scriptName} not found`);
+        return {
+          response: tool_base.ResponseCode.SUCCESS,
+          return_reply: true,
+          meta_data: { response: result.output } as any,
+        } as tool_base.ExecuteCommandReply;
+      } else if (scriptLanguage === "csharp") {
+        const result = await CSharpExecutor.executeScript(scriptContent);
+        if (!result.success) {
+          const errorMessage = result.output;
+          logAction({
+            level: "error",
+            action: "C# Execution Error",
+            details: `C# execution failed: ${errorMessage}`,
+          });
+          throw new ToolCommandExecutionError(
+            errorMessage || "C# execution failed",
+            tool_base.ResponseCode.ERROR_FROM_TOOL,
+          );
         }
-        throw new Error(`Failed to fetch ${scriptName}. ${e}`);
+        return {
+          response: tool_base.ResponseCode.SUCCESS,
+          return_reply: true,
+          meta_data: { response: result.output } as any,
+        } as tool_base.ExecuteCommandReply;
+      } else if (scriptLanguage === "python") {
+        // For Python scripts, the content is already in params.script_content
+        command.params.blocking = true;
+      } else {
+        throw new Error(`Unsupported script language: ${scriptLanguage}`);
       }
     }
 

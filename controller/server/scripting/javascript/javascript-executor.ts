@@ -7,7 +7,7 @@ import axios, { AxiosRequestConfig, AxiosResponse, AxiosInstance } from "axios";
  */
 class Variables {
   private static axiosInstance: AxiosInstance = axios.create();
-  private static defaultApiUrl: string = "http://db:8000";
+  private static defaultApiUrl: string = "http://localhost:3010/api";
 
   /**
    * Configure the default API URL and optionally a custom axios instance

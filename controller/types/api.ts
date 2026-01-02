@@ -231,31 +231,6 @@ export interface AppSettings {
   updated_at: Date;
 }
 
-export interface ScriptFolder {
-  id: number;
-  name: string;
-  description?: string;
-  parent_id?: number;
-  workcell_id: number;
-  subfolders: ScriptFolder[];
-  scripts: Script[];
-  created_at: Date;
-  updated_at: Date;
-}
-
-export interface Script {
-  id: number;
-  name: string;
-  content: string;
-  description: string;
-  is_blocking: boolean;
-  language: string;
-  folder_id?: number;
-  folder?: ScriptFolder;
-  created_at: Date;
-  updated_at: Date;
-}
-
 export interface HotelCreate {
   name: string;
   description?: string;

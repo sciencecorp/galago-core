@@ -17,7 +17,16 @@ export interface PageProps {
   description: string;
 }
 
-export type { Labware, Variable, Log, Tool } from "@/db/schema";
+export type {
+  Labware,
+  Variable,
+  Log,
+  Tool,
+  Script,
+  NewScript,
+  ScriptFolder,
+  NewScriptFolder,
+} from "@/db/schema";
 import type { Workcell, Tool, Hotel } from "@/db/schema";
 
 export interface WorkcellResponse extends Workcell {

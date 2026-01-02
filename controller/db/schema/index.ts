@@ -1,5 +1,5 @@
 import { sqliteTable, text, integer, real, unique, index } from "drizzle-orm/sqlite-core";
-import { sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 
 export const timestamps = {
   createdAt: text("created_at")
@@ -160,6 +160,33 @@ export const scripts = sqliteTable(
   },
   (t) => [unique("unique_script_name_per_workcell").on(t.name, t.workcellId)],
 );
+
+export const scriptFoldersRelations = relations(scriptFolders, ({ one, many }) => ({
+  parent: one(scriptFolders, {
+    fields: [scriptFolders.parentId],
+    references: [scriptFolders.id],
+    relationName: "subfolders",
+  }),
+  subfolders: many(scriptFolders, {
+    relationName: "subfolders",
+  }),
+  scripts: many(scripts),
+  workcell: one(workcells, {
+    fields: [scriptFolders.workcellId],
+    references: [workcells.id],
+  }),
+}));
+
+export const scriptsRelations = relations(scripts, ({ one }) => ({
+  folder: one(scriptFolders, {
+    fields: [scripts.folderId],
+    references: [scriptFolders.id],
+  }),
+  workcell: one(workcells, {
+    fields: [scripts.workcellId],
+    references: [workcells.id],
+  }),
+}));
 
 export const protocols = sqliteTable("protocols", {
   id: integer("id").primaryKey({ autoIncrement: true }),
