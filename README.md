@@ -134,6 +134,11 @@ docker-compose -f docker-compose.dev.yml up --build db
 docker exec -it galago-web-dev npm install <package name>
 ```
 
+## Drizzle 
+We are starting to move all CRUD operations to Drizzle ORM. After updating the schemas files, 
+run `npx drizzle-kit generate` to generate the migration files.
+
+
 ## Using conda
 
 ### Build the base environmnent
