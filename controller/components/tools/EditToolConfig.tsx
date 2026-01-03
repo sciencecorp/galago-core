@@ -45,7 +45,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
   const editTool = trpc.tool.edit.useMutation();
   const getTool = trpc.tool.info.useQuery({ toolId: toolId });
   const { description, config, type, ip, port } = getTool.data || {};
-
+  const clearToolStore = trpc.tool.clearToolStore.useMutation();
   const comPorts = Array.from({ length: 20 }, (_, i) => `COM${i + 1}`);
 
   // Supported GPL versions for PF400
@@ -105,6 +105,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
       };
 
       await editTool.mutateAsync(editedTool);
+      await clearToolStore.mutate();
       successToast("Tool updated successfully", "");
       onClose();
     } catch (error) {
