@@ -1,4 +1,3 @@
-import CommandButton from "./commandButton";
 import { ChangeEvent, useEffect, useState } from "react";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import {
@@ -27,7 +26,7 @@ import Head from "next/head";
 import { TeachPendant } from "@/components/tools/advanced/teach_pendant/TeachPendant";
 import { commandFields } from "@/components/tools/constants";
 import { errorToast, loadingToast, successToast } from "@/components/ui/Toast";
-import { Tool } from "@/types/api";
+import { Tool } from "@/types";
 
 // Inside your component
 type AtomicFormValues = string | number | boolean | string[];

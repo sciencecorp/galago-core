@@ -15,7 +15,7 @@ import {
   AvatarGroup,
   Tooltip,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { WorkcellResponse } from "@/types";
 import { EditableText } from "../ui/Form";
@@ -41,7 +41,6 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
       refetch();
     },
   });
-  const [selectedWorkcell, setSelectedWorkcell] = useState<string | null>(null);
   const { data: selectedWorkcellData, refetch } = trpc.workcell.getSelectedWorkcell.useQuery();
 
   const handleSelect = async () => {
@@ -52,7 +51,6 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
 
   useEffect(() => {
     if (selectedWorkcellData) {
-      setSelectedWorkcell(selectedWorkcellData);
       if (selectedWorkcellData === workcell.name) {
         document.title = `Workcell - ${workcell.name}`;
       }

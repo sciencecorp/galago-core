@@ -5,8 +5,46 @@ import CommandQueue from "./command_queue";
 import { Protocols } from "./protocols";
 import Tool from "./tools";
 import Protocol from "@/protocols/protocol";
+import { db } from "@/db/client";
+import { tools, workcells, appSettings } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
-// Right now, just an in-memory store wrapping a Map.
+// Helper function to get tool from database
+async function getToolFromDB(toolId: string) {
+  // Get selected workcell
+  const setting = await db
+    .select()
+    .from(appSettings)
+    .where(eq(appSettings.name, "workcell"))
+    .limit(1);
+
+  if (!setting || setting.length === 0 || !setting[0].isActive) {
+    throw new Error("No workcell selected");
+  }
+
+  const workcell = await db
+    .select()
+    .from(workcells)
+    .where(eq(workcells.name, setting[0].value))
+    .limit(1);
+
+  if (!workcell || workcell.length === 0) {
+    throw new Error("Selected workcell not found");
+  }
+
+  // Find tool by name
+  const searchName = toolId.replace(/_/g, " ");
+  const allTools = await db.select().from(tools).where(eq(tools.workcellId, workcell[0].id));
+
+  const tool = allTools.find((t) => t.name.toLowerCase() === searchName.toLowerCase());
+
+  if (!tool) {
+    throw new Error(`Tool '${toolId}' not found`);
+  }
+
+  return tool;
+}
+
 export default class RunStore {
   nextRunId = 1;
   runs = new Map<string, Run>();
@@ -37,11 +75,14 @@ export default class RunStore {
     const durationEstimates: Promise<void>[] = [];
 
     for (const c of run.commands) {
-      // estimate the duration for each command and then update the command when
-      // it's known, this will run them all in parallel because we are not
-      // awaiting in the loop
-      const tool = Tool.forId(c.commandInfo.toolId);
-      // This doesn't need to be awaited because it will update the command
+      // Get tool info from database first
+      const toolRecord = await getToolFromDB(c.commandInfo.toolId);
+      const normalizedId = Tool.normalizeToolId(toolRecord.name);
+
+      // Create Tool instance with all required parameters
+      const tool = Tool.forId(normalizedId, toolRecord.ip, toolRecord.port, toolRecord.type as any);
+
+      // Estimate duration
       durationEstimates.push(
         tool.estimateDuration(c.commandInfo).then((duration) => {
           c.estimatedDuration = duration;
@@ -55,19 +96,16 @@ export default class RunStore {
 
   async createFromProtocol(protocolId: string): Promise<Run> {
     const protocol = await Protocol.loadFromDatabase(protocolId);
-
     if (!protocol) {
       throw new ProtocolNotFoundError(protocolId);
     }
 
     const commands = protocol._generateCommands();
-
     if (!commands) {
       throw new ProtocolGenerationFailedError(protocolId);
     }
 
     const runId = snowflakeIdGenerator.nextId();
-
     const runCommands: RunCommand[] = commands.map((c) => ({
       runId: runId,
       commandInfo: c,
@@ -84,7 +122,6 @@ export default class RunStore {
     };
 
     RunStore.global.set(runId, run);
-
     await CommandQueue.global.enqueueRun(run);
     return run;
   }

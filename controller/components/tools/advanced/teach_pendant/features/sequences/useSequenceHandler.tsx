@@ -23,7 +23,7 @@ import {
 import { DeleteIcon } from "@chakra-ui/icons";
 import { RobotArmSequence } from "@/server/routers/robot-arm";
 import { ToolCommandInfo } from "@/types";
-import { Tool } from "@/types/api";
+import { Tool } from "@/types";
 import { CommandModal } from "./CommandModal";
 import { ToolType } from "gen-interfaces/controller";
 import { TeachPoint, MotionProfile, GripParams } from "../../types";

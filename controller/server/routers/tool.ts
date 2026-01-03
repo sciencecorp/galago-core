@@ -14,11 +14,9 @@ import {
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import Tool from "@/server/tools";
-import { Tool as ToolResponse } from "@/types/api";
+import { Tool as ToolResponse } from "@/types";
 import { Config } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { ToolType } from "gen-interfaces/controller";
-import { get } from "@/server/utils/api";
-import * as controller_protos from "gen-interfaces/controller";
 
 const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
 
@@ -92,6 +90,24 @@ async function getSelectedWorkcellId(): Promise<number> {
   }
 
   return workcell.id;
+}
+
+// Helper function to get tool from DB by toolId (handles underscore/space conversion)
+async function getToolFromDB(toolId: string) {
+  const searchName = toolId.replace(/_/g, " ");
+  const workcellId = await getSelectedWorkcellId();
+
+  const allTools = await findMany(tools, eq(tools.workcellId, workcellId));
+  const tool = allTools.find((t) => t.name.toLowerCase() === searchName.toLowerCase());
+
+  if (!tool) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: `Tool '${toolId}' not found`,
+    });
+  }
+
+  return tool;
 }
 
 // Helper function to get next available port
@@ -222,21 +238,8 @@ export const toolRouter = router({
 
       return tool;
     } else {
-      // Search by name (case-insensitive, handle underscores)
-      const searchName = input.toLowerCase().replace(/_/g, " ");
-      const workcellId = await getSelectedWorkcellId();
-
-      const allTools = await findMany(tools, eq(tools.workcellId, workcellId));
-      const tool = allTools.find((t) => t.name.toLowerCase() === searchName);
-
-      if (!tool) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Tool not found",
-        });
-      }
-
-      return tool;
+      // Use helper function
+      return await getToolFromDB(input);
     }
   }),
 
@@ -325,23 +328,9 @@ export const toolRouter = router({
 
       const updatedTool = updated[0];
 
-      // Update Tool class cache
+      // Clean up Tool class cache
       const toolId = Tool.normalizeToolId(updatedTool.name);
       await Tool.removeTool(toolId);
-
-      const updatedToolConfig: controller_protos.ToolConfig = {
-        name: updatedTool.name,
-        type: updatedTool.type as ToolType,
-        description: updatedTool.description || "",
-        image_url: updatedTool.imageUrl || "",
-        ip: updatedTool.ip || "localhost",
-        port: updatedTool.port || 0,
-        config: (updatedTool.config as Config) || {},
-      };
-
-      await Tool.reloadSingleToolConfig(updatedToolConfig);
-      await Tool.clearToolStore();
-      Tool.forId(toolId);
 
       await db.insert(logs).values({
         level: "info",
@@ -364,8 +353,24 @@ export const toolRouter = router({
     }
   }),
 
-  delete: procedure.input(z.number()).mutation(async ({ input }) => {
-    const deleted = await db.delete(tools).where(eq(tools.id, input)).returning();
+  delete: procedure.input(z.union([z.number(), z.string()])).mutation(async ({ input }) => {
+    let toolId: number;
+
+    // Handle both string and numeric input
+    if (typeof input === "string") {
+      const numericId = parseInt(input);
+      if (!isNaN(numericId)) {
+        toolId = numericId;
+      } else {
+        // If not numeric, look up by name
+        const tool = await getToolFromDB(input);
+        toolId = tool.id;
+      }
+    } else {
+      toolId = input;
+    }
+
+    const deleted = await db.delete(tools).where(eq(tools.id, toolId)).returning();
 
     if (!deleted || deleted.length === 0) {
       throw new TRPCError({
@@ -375,8 +380,8 @@ export const toolRouter = router({
     }
 
     // Clean up Tool class cache
-    const toolId = Tool.normalizeToolId(deleted[0].name);
-    await Tool.removeTool(toolId);
+    const normalizedToolId = Tool.normalizeToolId(deleted[0].name);
+    await Tool.removeTool(normalizedToolId);
 
     await db.insert(logs).values({
       level: "info",
@@ -387,27 +392,21 @@ export const toolRouter = router({
     return { message: "Tool deleted successfully" };
   }),
 
-  // ============================================================================
-  // EXISTING OPERATIONS (keep unchanged)
-  // ============================================================================
-
   getToolBox: procedure.query(() => {
     const toolbox = Tool.toolBoxConfig();
     return {
-      id: -1,
+      id: 228629,
       name: "tool_box",
       type: toolbox.type,
       ip: toolbox.ip,
       port: toolbox.port,
       description: toolbox.description,
-      image_url: "/tool_icons/toolbox.png",
-      status: "READY",
-      last_updated: new Date(),
-      created_at: new Date(),
+      imageUrl: "/tool_icons/toolbox.png",
       config: toolbox.config || { simulated: false, toolbox: {} },
-      workcell_id: 1,
-      joints: 0,
-    } as ToolResponse;
+      workcellId: 1,
+      createdAt: new Date().toISOString(), // Changed to string
+      updatedAt: new Date().toISOString(), // Changed to string
+    };
   }),
 
   getProtoConfigDefinitions: procedure.input(zToolType).query(async ({ input }) => {
@@ -431,19 +430,6 @@ export const toolRouter = router({
 
       const workcellTools = await findMany(tools, eq(tools.workcellId, workcellId));
 
-      // Convert to ToolConfig format for Tool class
-      const toolConfigs: controller_protos.ToolConfig[] = workcellTools.map((tool) => ({
-        name: tool.name,
-        type: tool.type as ToolType,
-        description: tool.description || "",
-        image_url: tool.imageUrl || "",
-        ip: tool.ip || "localhost",
-        port: tool.port || 0,
-        config: (tool.config as Config) || {},
-      }));
-
-      Tool.reloadWorkcellConfig(toolConfigs);
-
       // Return tool IDs as lowercase with underscores (matching the format used in components)
       const toolIds = workcellTools.map((tool) => tool.name.toLowerCase().replace(/\s+/g, "_"));
       toolIds.push("tool_box");
@@ -458,7 +444,25 @@ export const toolRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      const tool = Tool.forId(input.toolId.toLocaleLowerCase().replaceAll(" ", "_"));
+      // Special case for tool_box
+      if (input.toolId === "tool_box") {
+        const toolbox = Tool.toolBoxConfig();
+        const tool = Tool.forId("tool_box", toolbox.ip, toolbox.port, toolbox.type as ToolType);
+        return await tool.fetchStatus();
+      }
+
+      // Get tool metadata from DB first
+      const toolRecord = await getToolFromDB(input.toolId);
+
+      // Then get runtime status from Tool class
+      const normalizedId = Tool.normalizeToolId(toolRecord.name);
+      const tool = Tool.forId(
+        normalizedId,
+        toolRecord.ip,
+        toolRecord.port,
+        toolRecord.type as ToolType,
+      );
+
       return await tool.fetchStatus();
     }),
 
@@ -468,13 +472,41 @@ export const toolRouter = router({
         toolId: z.string(),
       }),
     )
-    .query(({ input }) => {
-      const tool = Tool.forId(input.toolId.toLocaleLowerCase().replaceAll(" ", "_"));
-      return tool.info;
+    .query(async ({ input }) => {
+      // Special case for tool_box
+      if (input.toolId === "tool_box") {
+        const toolbox = Tool.toolBoxConfig();
+        return {
+          id: -1,
+          name: "Tool Box",
+          type: toolbox.type,
+          description: toolbox.description,
+          imageUrl: toolbox.image_url,
+          ip: toolbox.ip,
+          port: toolbox.port,
+          config: toolbox.config,
+        };
+      }
+
+      // Get from database
+      const tool = await getToolFromDB(input.toolId);
+
+      // Return database tool with proper format
+      return {
+        id: tool.id,
+        name: tool.name,
+        type: tool.type,
+        description: tool.description,
+        imageUrl: tool.imageUrl,
+        ip: tool.ip,
+        port: tool.port,
+        config: tool.config,
+        workcellId: tool.workcellId,
+      };
     }),
 
   clearToolStore: procedure.mutation(async () => {
-    Tool.clearToolStore();
+    await Tool.clearToolStore();
     return { message: "Tool store cleared successfully" };
   }),
 
@@ -487,9 +519,28 @@ export const toolRouter = router({
     )
     .mutation(async ({ input }) => {
       const { toolId, config } = input;
-      const tool = Tool.forId(toolId);
-      const resp = await tool.configure(config);
-      return resp;
+
+      // Special case for tool_box
+      if (toolId === "tool_box") {
+        const toolbox = Tool.toolBoxConfig();
+        const tool = Tool.forId("tool_box", toolbox.ip, toolbox.port, toolbox.type as ToolType);
+        return await tool.configure(config);
+      }
+
+      // Get tool metadata from DB
+      const toolRecord = await getToolFromDB(toolId);
+
+      // Get/create Tool instance
+      const normalizedId = Tool.normalizeToolId(toolRecord.name);
+      const tool = Tool.forId(
+        normalizedId,
+        toolRecord.ip,
+        toolRecord.port,
+        toolRecord.type as ToolType,
+      );
+
+      // Execute configuration
+      return await tool.configure(config);
     }),
 
   runCommand: procedure

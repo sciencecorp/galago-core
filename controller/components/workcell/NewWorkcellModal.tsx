@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { Plus } from "lucide-react";
-import { Workcell } from "@/types/api";
+import { Workcell } from "@/types";
 import { successToast, errorToast } from "../ui/Toast";
 
 export const NewWorkcellModal: React.FC = () => {

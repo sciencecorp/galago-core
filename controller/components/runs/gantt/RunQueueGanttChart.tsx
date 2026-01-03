@@ -342,7 +342,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
         zIndex={1}>
         {toolTypes.map((toolType, index) => {
           const toolInfo = toolInfoQuery.data?.find((t) => t.type === toolType);
-          const imageUrl = toolInfo?.image_url;
+          const imageUrl = toolInfo?.imageUrl;
           const isToolbox = toolType.toLowerCase() === "toolbox";
 
           return (

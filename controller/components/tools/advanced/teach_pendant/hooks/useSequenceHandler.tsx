@@ -21,9 +21,8 @@ import {
   HStack,
 } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
-import { RobotArmSequence, Sequence, SequenceCommand } from "../types/";
-import { ToolCommandInfo } from "@/types";
-import { Tool } from "@/types/api";
+import { RobotArmSequence, Sequence } from "../types/";
+import { Tool } from "@/types";
 import { CommandModal } from "../features/sequences/CommandModal";
 import { ToolType } from "gen-interfaces/controller";
 import { TeachPoint, MotionProfile, GripParams } from "../types";

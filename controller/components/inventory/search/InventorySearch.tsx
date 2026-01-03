@@ -15,7 +15,7 @@ import {
 } from "@chakra-ui/react";
 import { SearchIcon } from "@chakra-ui/icons";
 import { Plate, Reagent } from "@/types/api";
-import { Icon, CloseIcon } from "@/components/ui/Icons";
+import { CloseIcon } from "@/components/ui/Icons";
 import { useCommonColors } from "@/components/ui/Theme";
 
 type InventorySearchProps = {

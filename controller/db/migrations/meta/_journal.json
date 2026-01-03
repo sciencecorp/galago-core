@@ -15,6 +15,13 @@
       "when": 1767421517174,
       "tag": "0001_daily_blindfold",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1767465456292,
+      "tag": "0002_worried_smasher",
+      "breakpoints": true
     }
   ]
 }

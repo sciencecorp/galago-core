@@ -580,7 +580,9 @@ export const RunsComponent: React.FC = () => {
           <CardBody>
             <VStack spacing={4} align="stretch">
               <HStack justify="space-between" width="100%">
-                <Heading size="lg">Runs List</Heading>
+                <Heading size="lg">
+                  {commandsAll.data && commandsAll.data.length > 0 ? "Runs List" : ""}
+                </Heading>
                 <Spacer />
                 <Text color="GrayText">Show Completed:</Text>
                 <Switch
@@ -596,11 +598,8 @@ export const RunsComponent: React.FC = () => {
                 <VStack spacing={3} py={4}>
                   <Icon as={Inbox} boxSize={8} color="gray.400" />
                   <Heading size="md" color="gray.400" fontWeight="medium">
-                    Queue is Empty
+                    Runs Queue is Empty
                   </Heading>
-                  <Text color="gray.500" fontSize="sm">
-                    No protocols are currently queued for execution
-                  </Text>
                 </VStack>
               )}
             </VStack>

@@ -1,10 +1,8 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { get, post, put, del } from "../utils/api";
-import { TRPCError } from "@trpc/server";
-import { Workcell, AppSettings, Nest, Plate, Reagent, Hotel } from "@/types/api";
+import { Hotel } from "@/types/api";
 
-// Zod schemas for validation
 const zNest = z.object({
   id: z.number().optional(),
   name: z.string(),
@@ -32,7 +30,6 @@ const zReagent = z.object({
   well_id: z.number(),
 });
 
-// Add Hotel schema
 const zHotel = z.object({
   id: z.number().optional(),
   name: z.string(),
@@ -44,7 +41,6 @@ const zHotel = z.object({
 });
 
 export const inventoryRouter = router({
-  // Nest endpoints
   getNests: procedure.input(z.string()).query(async ({ input: workcellName }) => {
     // Explicitly set cache-control headers to no-cache
     const response = await get(`/nests?workcell_name=${workcellName}`, {

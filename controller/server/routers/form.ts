@@ -6,13 +6,41 @@ import { forms, workcells, appSettings, logs } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
+const zFormFieldOption = z.object({
+  value: z.string(),
+  label: z.string(),
+});
+
+const zFormField = z.object({
+  type: z.enum([
+    "text",
+    "select",
+    "radio",
+    "checkbox",
+    "textarea",
+    "number",
+    "date",
+    "time",
+    "file",
+    "label",
+  ]),
+  label: z.string(),
+  required: z.boolean().optional(),
+  placeholder: z.string().nullable().optional(),
+  options: z.array(zFormFieldOption).nullable().optional(),
+  default_value: z
+    .union([z.string(), z.array(z.string())])
+    .nullable()
+    .optional(),
+  mapped_variable: z.string().nullable().optional(),
+});
+
 // Form schemas
 const zFormBase = z.object({
   name: z.string().min(1, "Name is required"),
-  fields: z.any(), // JSON array of FormField objects
+  fields: z.array(zFormField), // Now properly typed!
   backgroundColor: z.string().nullable().optional(),
   fontColor: z.string().nullable().optional(),
-  workcellId: z.number().nullable().optional(),
 });
 
 export const zFormCreate = zFormBase;
@@ -89,14 +117,17 @@ export const formRouter = router({
 
   // Create new form
   add: procedure.input(zFormCreate).mutation(async ({ input }) => {
-    const workcellId = input.workcellId || (await getSelectedWorkcellId());
+    const workcellId = await getSelectedWorkcellId();
 
     try {
       const result = await db
         .insert(forms)
         .values({
-          ...input,
-          workcellId,
+          name: input.name,
+          fields: input.fields,
+          backgroundColor: input.backgroundColor ?? null,
+          fontColor: input.fontColor ?? null,
+          workcellId: workcellId,
         })
         .returning();
 

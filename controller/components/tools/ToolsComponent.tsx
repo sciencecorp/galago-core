@@ -26,7 +26,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Search } from "lucide-react";
 import { Power, Wrench } from "lucide-react";
 import { successToast, errorToast, infoToast } from "../ui/Toast";
-import { Tool } from "@/types/api";
+import { Tool } from "@/types";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 interface ToolStatusCardsProps {

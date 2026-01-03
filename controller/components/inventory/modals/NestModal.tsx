@@ -21,7 +21,7 @@ import {
   Divider,
   Switch,
 } from "@chakra-ui/react";
-import { Nest, Plate, NestStatus, PlateStatus } from "@/types/api";
+import { Nest, Plate } from "@/types/api";
 import { AddIcon, MinusIcon } from "@chakra-ui/icons";
 import { WellPlateIcon } from "@/components/ui/Icons";
 import {

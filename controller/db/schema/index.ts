@@ -19,18 +19,22 @@ export const workcells = sqliteTable("workcells", {
   ...timestamps,
 });
 
-export const tools = sqliteTable("tools", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  type: text("type").notNull(),
-  name: text("name").notNull(),
-  description: text("description"),
-  imageUrl: text("image_url"),
-  ip: text("ip").notNull(),
-  port: integer("port").notNull(),
-  config: text("config", { mode: "json" }),
-  workcellId: integer("workcell_id").references(() => workcells.id),
-  ...timestamps,
-});
+export const tools = sqliteTable(
+  "tools",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    type: text("type").notNull(),
+    name: text("name").notNull(),
+    description: text("description"),
+    imageUrl: text("image_url"),
+    ip: text("ip").notNull(),
+    port: integer("port").notNull(),
+    config: text("config", { mode: "json" }),
+    workcellId: integer("workcell_id").references(() => workcells.id),
+    ...timestamps,
+  },
+  (t) => [unique("unique_tool_name_per_workcell").on(t.name, t.workcellId)],
+);
 
 export const hotels = sqliteTable("hotels", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -48,7 +52,7 @@ export const nests = sqliteTable("nests", {
   name: text("name"),
   row: integer("row"),
   column: integer("column"),
-  toolId: integer("tool_id").references(() => tools.id),
+  toolId: integer("tool_id").references(() => tools.id, { onDelete: "cascade" }),
   hotelId: integer("hotel_id").references(() => hotels.id),
   status: text("status").notNull().default("empty"),
   ...timestamps,
@@ -227,7 +231,7 @@ export const robotArmLocations = sqliteTable("robot_arm_locations", {
   name: text("name").notNull(),
   locationType: text("location_type").notNull(),
   coordinates: text("coordinates").notNull(),
-  toolId: integer("tool_id").references(() => tools.id),
+  toolId: integer("tool_id").references(() => tools.id, { onDelete: "cascade" }),
   orientation: text("orientation").notNull(),
   ...timestamps,
 });
@@ -237,7 +241,7 @@ export const robotArmSequences = sqliteTable("robot_arm_sequences", {
   name: text("name").notNull(),
   description: text("description"),
   commands: text("commands", { mode: "json" }).notNull(),
-  toolId: integer("tool_id").references(() => tools.id),
+  toolId: integer("tool_id").references(() => tools.id, { onDelete: "cascade" }),
   labware: text("labware"),
   ...timestamps,
 });
@@ -253,7 +257,7 @@ export const robotArmMotionProfiles = sqliteTable("robot_arm_motion_profiles", {
   decelRamp: real("decel_ramp").notNull(),
   inrange: real("inrange").notNull(),
   straight: integer("straight").notNull(),
-  toolId: integer("tool_id").references(() => tools.id),
+  toolId: integer("tool_id").references(() => tools.id, { onDelete: "cascade" }),
   ...timestamps,
 });
 
@@ -263,10 +267,9 @@ export const robotArmGripParams = sqliteTable("robot_arm_grip_params", {
   width: integer("width").notNull(),
   speed: integer("speed").notNull(),
   force: integer("force").notNull(),
-  toolId: integer("tool_id").references(() => tools.id),
+  toolId: integer("tool_id").references(() => tools.id, { onDelete: "cascade" }),
   ...timestamps,
 });
-
 export const logs = sqliteTable("logs", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   level: text("level").notNull(),

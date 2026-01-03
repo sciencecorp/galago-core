@@ -173,7 +173,7 @@ export interface Protocol {
   id: number;
   name: string;
   category: string;
-  workcell_id: number;
+  workcellId: number;
   description?: string;
   commands: ToolCommand[];
   created_at?: string;

@@ -91,7 +91,7 @@ export const ProtocolPageComponent: React.FC = () => {
   const deleteMutation = trpc.protocol.delete.useMutation({
     onSuccess: () => {
       successToast("Protocol deleted", "");
-      refetch(); // Refresh the protocols list
+      refetch();
     },
     onError: (error) => {
       errorToast("Error deleting protocol", error.message);
@@ -111,7 +111,7 @@ export const ProtocolPageComponent: React.FC = () => {
   // Get unique workcells and categories for filters
   const uniqueWorkcells = useMemo(() => {
     if (!protocols || !workcells) return [];
-    const workcellIds = new Set(protocols.map((p) => p.workcell_id));
+    const workcellIds = new Set(protocols.map((p) => p.workcellId));
     const usedWorkcells = workcells.filter((w) => workcellIds.has(w.id));
     return usedWorkcells;
   }, [protocols, workcells]);
@@ -352,7 +352,7 @@ export const ProtocolPageComponent: React.FC = () => {
                 maxW="200px"
                 bg={tableBgColor}>
                 {uniqueWorkcells.map((workcell) => (
-                  <option key={workcell.id} value={workcell.id.toString()}>
+                  <option key={workcell.id} value={workcell.name}>
                     {workcell.name}
                   </option>
                 ))}
@@ -445,7 +445,7 @@ export const ProtocolPageComponent: React.FC = () => {
                             <Popover placement="bottom" closeOnBlur={true}>
                               <PopoverTrigger>
                                 <Text cursor="pointer" _hover={{ color: "blue.500" }}>
-                                  {getWorkcellName(protocol.workcell_id)}
+                                  {getWorkcellName(protocol.workcellId)}
                                 </Text>
                               </PopoverTrigger>
                               <PopoverContent width="fit-content">
@@ -456,12 +456,12 @@ export const ProtocolPageComponent: React.FC = () => {
                                         key={workcell.id}
                                         size="sm"
                                         variant={
-                                          workcell.id === protocol.workcell_id ? "solid" : "ghost"
+                                          workcell.id === protocol.workcellId ? "solid" : "ghost"
                                         }
                                         onClick={() => {
-                                          if (workcell.id !== protocol.workcell_id) {
+                                          if (workcell.id !== protocol.workcellId) {
                                             handleUpdateProtocol(protocol.id, {
-                                              workcell_id: workcell.id,
+                                              workcellId: workcell.id,
                                             });
                                           }
                                         }}>

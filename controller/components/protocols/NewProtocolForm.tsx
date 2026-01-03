@@ -17,7 +17,7 @@ import { successToast, errorToast } from "../ui/Toast";
 
 type ProtocolFormData = Omit<
   Protocol,
-  "version" | "id" | "created_at" | "updated_at" | "params" | "number_of_commands" | "workcell_id"
+  "version" | "id" | "createdAt" | "updatedAt" | "params" | "numberOfCommands" | "workcellId"
 >;
 
 export const NewProtocolForm = () => {

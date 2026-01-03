@@ -32,7 +32,7 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon, CopyIcon } from "@chakra-ui/icons";
 import { PlayIcon } from "@/components/ui/Icons";
-import { Tool } from "@/types/api";
+import { Tool } from "@/types";
 import { CommandList } from "./CommandList";
 import { useState, useEffect, useRef } from "react";
 import { usePagination } from "../../hooks/usePagination";

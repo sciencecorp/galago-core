@@ -87,17 +87,26 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
 
   const handleSave = async () => {
     try {
-      let id = toolId;
+      const toolInfo = getTool.data;
+      if (!toolInfo || !toolInfo.id) {
+        errorToast("Error", "Could not find tool ID");
+        return;
+      }
+
       const editedTool = {
-        description: newDescription || description,
-        ip: newIp || ip,
-        port: typeof newPort === "string" && newPort !== "" ? parseInt(newPort) : port,
+        id: toolInfo.id,
+        name: toolInfo.name,
+        type: toolInfo.type,
+        description: newDescription || description || null,
+        ip: newIp || ip || "localhost",
+        port: typeof newPort === "string" && newPort !== "" ? parseInt(newPort) : port || 0,
         config: newConfig || config,
+        imageUrl: toolInfo.imageUrl || null,
       };
-      await editTool.mutateAsync({ id: id, config: editedTool });
+
+      await editTool.mutateAsync(editedTool);
       successToast("Tool updated successfully", "");
       onClose();
-      // context.tool.info.invalidate({ toolId });
     } catch (error) {
       errorToast("Error updating tool", `Please try again. ${error}`);
     }

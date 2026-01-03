@@ -200,7 +200,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         label: cmd.label || "",
         tool_info: cmd.tool_info || {
           type: cmd.toolType,
-          image_url: cmd.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
+          imageUrl: cmd.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
         },
         advancedParameters: cmd.advancedParameters || {
           skipExecutionVariable: {
@@ -318,7 +318,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       // Add tool info for UI
       tool_info: {
         type: cmd.commandInfo.toolType,
-        image_url: cmd.commandInfo.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
+        imageUrl: cmd.commandInfo.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
       },
       //Add advanced parameters for UI
       advancedParameters: cmd.commandInfo.advancedParameters || {

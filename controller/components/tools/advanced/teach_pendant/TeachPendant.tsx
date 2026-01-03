@@ -15,12 +15,11 @@ import {
   Card,
 } from "@chakra-ui/react";
 import { Search2Icon } from "@chakra-ui/icons";
-import { Tool } from "@/types/api";
+import { Tool } from "@/types";
 import { useEffect, useState, useMemo } from "react";
 import { validateJointCount } from "./shared/utils/robotArmUtils";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "./types";
-import { z } from "zod";
 import { ToolType } from "gen-interfaces/controller";
 import { successToast, warningToast, errorToast } from "@/components/ui/Toast";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
