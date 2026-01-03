@@ -88,6 +88,16 @@ jobs:
             cp -r gen-interfaces ../nextjs-artifact/gen-interfaces
           fi
 
+          #Copy the db folder with migrations.
+          if [ -d "db" ]; then
+            echo "Adding db folder with migrations..."
+            cp -r db ../nextjs-artifact/db
+            # Verify
+            if [ -f "../nextjs-artifact/db/migrations/meta/_journal.json" ]; then
+              echo "✓ Migrations verified"
+            fi
+          fi
+
           echo "✓ Artifact created successfully"
           echo ""
           echo "Artifact size: $(du -sh ../nextjs-artifact | cut -f1)"
