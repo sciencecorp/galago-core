@@ -4,7 +4,6 @@
 [![Python Version](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
 [![GitHub Issues](https://img.shields.io/github/issues/sciencecorp/galago-core)](https://github.com/sciencecorp/galago-tools/issues)
 
-
 **Galago** is a comprehensive laboratory automation platform that orchestrates and manages laboratory equipment through a unified interface. It provides protocol execution, device management, and real-time monitoring for automated laboratory workflows.
 
 ## Architecture
@@ -38,16 +37,18 @@ Galago consists of several distinct modules:
 If you plan to contribute or customize Galago, start by forking the repository:
 
 1. **Fork on GitHub**: Click the "Fork" button at the top right of the [repository page](https://github.com/sciencecorp/galago-core), or use this direct link:
-   
+
    **[Fork Galago →](https://github.com/sciencecorp/galago-core/fork)**
 
 2. **Clone your fork** (replace `your-username` with your GitHub username):
+
 ```bash
    git clone https://github.com/your-username/galago-core.git
    cd galago-core
 ```
 
 3. **Add upstream remote** (to keep your fork updated):
+
 ```bash
    git remote add upstream https://github.com/your-org/galago-core.git
 ```
@@ -55,22 +56,24 @@ If you plan to contribute or customize Galago, start by forking the repository:
 ### Quick Start with Docker (Recommended)
 
 2. **Install grpcio dependencies on a local environment (for proto files, testing, linting, etc)**
+
    ```bash
-   bin/make deps 
+   bin/make deps
    ```
 
 3. **Generate proto files**
-   ```bash 
+
+   ```bash
    bin/make proto
    ```
 
-2. **Launch development environment**
+4. **Launch development environment**
 
    ```bash
    docker-compose -f docker-compose.dev.yml up --build
    ```
 
-3. **Access the application**
+5. **Access the application**
    - Web Interface: http://localhost:3010
 
 ### Manual Setup
@@ -132,24 +135,29 @@ docker-compose -f docker-compose.dev.yml up --build db
 docker exec -it galago-web-dev npm install <package name>
 ```
 
-## SQlite commands 
+## SQlite commands
 
 ```
-#See all tables 
+#See all tables
 sqlite3 data/app.db ".tables"
 
-#See schema for a specific table 
+#See schema for a specific table
 sqlite3 data/app.db ".schema workcells"
 
 #See all table schemas
 sqlite3 data/app.db ".schema"
 
-#Interactive mode. 
+#Interactive mode.
 sqlite3 data/app.db
-  
+
   #Query a table
   SELECT * FROM logs LIMIT 5;
 ```
+
+## Drizzle
+
+We are starting to move all CRUD operations to Drizzle ORM. After updating the schemas files,
+run `npx drizzle-kit generate` to generate the migration files.
 
 ## Using conda
 

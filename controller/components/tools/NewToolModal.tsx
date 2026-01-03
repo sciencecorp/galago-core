@@ -99,12 +99,12 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
     let image_url = `/tool_icons/${selectedTool}.png`;
 
     const tool = {
-      name,
+      name: name,
       type: selectedTool,
-      workcell_id: workcellId,
-      ip,
-      image_url,
-      description,
+      workcellId: workcellId,
+      ip: ip,
+      imageUrl: image_url,
+      description: description,
       config: { [selectedTool]: configData || {} },
     };
 
