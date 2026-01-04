@@ -34,7 +34,7 @@ import {
   Heading,
   Tooltip,
 } from "@chakra-ui/react";
-import { Plate, Reagent, Nest, NestStatus, Hotel } from "@/types/api";
+import { Plate, Reagent, Nest, NestStatus, Hotel } from "@/types";
 import { PageHeader } from "@/components/ui/PageHeader";
 import InventorySearch from "./search/InventorySearch";
 import { InventoryToolCard } from "./cards/InventoryToolCard";
@@ -74,8 +74,8 @@ export const InventoryManager = () => {
   const [showAddHotelModal, setShowAddHotelModal] = useState(false);
   const [newHotelName, setNewHotelName] = useState("");
   const [newHotelDescription, setNewHotelDescription] = useState("");
-  const [newHotelRows, setNewHotelRows] = useState(8);
-  const [newHotelColumns, setNewHotelColumns] = useState(12);
+  const [newHotelRows, setNewHotelRows] = useState(10);
+  const [newHotelColumns, setNewHotelColumns] = useState(1);
   const [showDeleteHotelModal, setShowDeleteHotelModal] = useState(false);
   const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null);
   const [nestTriggerToolCommand, setNestTriggerToolCommand] = useState(false);
@@ -142,7 +142,7 @@ export const InventoryManager = () => {
   const totalPlates = typedPlates.length;
   const totalReagents = typedReagents.length;
   const totalNests = typedNests.length;
-  const occupiedNests = typedPlates.filter((plate) => plate.nest_id !== null).length;
+  const occupiedNests = typedPlates.filter((plate) => plate.nestId !== null).length;
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const searchTerm = e.target.value.toLowerCase();
@@ -155,9 +155,9 @@ export const InventoryManager = () => {
 
   const handlePlateClick = (plate: Plate) => {
     // Check if the plate is already in a nest
-    if (plate.nest_id) {
+    if (plate.nestId) {
       // Get the nest
-      const nest = typedNests.find((n) => n.id === plate.nest_id);
+      const nest = typedNests.find((n) => n.id === plate.nestId);
       const nestName = nest ? nest.name : "Unknown location";
 
       // Use action toast to provide quick actions for the selected plate
@@ -233,8 +233,8 @@ export const InventoryManager = () => {
         name: nestName,
         row: nestRow,
         column: nestColumn,
-        // If it's a hotel, use hotel_id instead of tool_id
-        ...(isHotel ? { hotel_id: parentId } : { tool_id: parentId }),
+        // If it's a hotel, use hotelId instead of toolId
+        ...(isHotel ? { hotelId: parentId } : { toolId: parentId }),
       });
 
       // If this is a hotel nest, immediately update hotel dimensions if needed
@@ -249,10 +249,9 @@ export const InventoryManager = () => {
               id: parentId,
               name: hotel.name,
               description: hotel.description || "",
-              workcell_id: hotel.workcell_id,
               rows: Math.max(hotel.rows, nestRow + 1),
               columns: Math.max(hotel.columns, nestColumn + 1),
-              image_url: hotel.image_url,
+              imageUrl: hotel.imageUrl,
             });
           }
         }
@@ -284,8 +283,8 @@ export const InventoryManager = () => {
       await createPlateMutation.mutateAsync({
         name: plateData.name,
         barcode: plateData.barcode,
-        plate_type: plateData.plate_type,
-        nest_id: nestId,
+        plateType: plateData.plate_type,
+        nestId: nestId,
       });
       refetchPlates();
     } catch (error) {
@@ -300,7 +299,7 @@ export const InventoryManager = () => {
     try {
       await createReagentMutation.mutateAsync({
         ...reagentData,
-        well_id: wellId,
+        wellId: wellId,
       });
       refetchReagents();
     } catch (error) {
@@ -334,13 +333,13 @@ export const InventoryManager = () => {
         const emptyNests = typedNests.filter((nest) => {
           // First filter by container type and ID if specified
           if (containerType === "tool" && containerId) {
-            if (nest.tool_id !== containerId) return false;
+            if (nest.toolId !== containerId) return false;
           } else if (containerType === "hotel" && containerId) {
-            if (nest.hotel_id !== containerId) return false;
+            if (nest.hotelId !== containerId) return false;
           }
 
           // Then check if the nest is empty
-          return !typedPlates.some((p) => p.nest_id === nest.id) && nest.status === "empty";
+          return !typedPlates.some((p) => p.nestId === nest.id) && nest.status === "empty";
         });
 
         if (emptyNests.length === 0) {
@@ -368,7 +367,7 @@ export const InventoryManager = () => {
       }
 
       // Check if the nest already has a plate
-      const nestHasPlate = typedPlates.some((p) => p.nest_id === nestId);
+      const nestHasPlate = typedPlates.some((p) => p.nestId === nestId);
       if (nestHasPlate) {
         throw new Error("Selected nest is already occupied");
       }
@@ -386,7 +385,7 @@ export const InventoryManager = () => {
         try {
           await createPlateMutation.mutateAsync({
             ...plateData,
-            nest_id: nestId,
+            nestId: nestId,
           });
         } catch (error) {
           // If a specific error about duplicate barcode happens, try to generate a new one
@@ -399,7 +398,7 @@ export const InventoryManager = () => {
             await createPlateMutation.mutateAsync({
               ...plateData,
               barcode: newBarcode,
-              nest_id: nestId,
+              nestId: nestId,
             });
           } else {
             // Re-throw other errors
@@ -411,7 +410,7 @@ export const InventoryManager = () => {
       // If tool command is requested and it's a single plate for a Liconic tool
       if (triggerToolCommand && newPlates.length === 1 && !isStatic) {
         // Find the tool associated with this nest
-        const tool = workcellTools.find((t) => t.id === targetNest.tool_id);
+        const tool = workcellTools.find((t) => t.id === targetNest.toolId);
 
         if (tool && tool.type.toLowerCase() === "liconic") {
           try {
@@ -480,12 +479,12 @@ export const InventoryManager = () => {
         throw new Error("Plate not found");
       }
 
-      if (!plateToCheckOut.nest_id) {
+      if (!plateToCheckOut.nestId) {
         throw new Error("Plate is not checked into any nest");
       }
 
       // Get the nest to determine if this is a tool or hotel
-      const nestId = plateToCheckOut.nest_id;
+      const nestId = plateToCheckOut.nestId;
       const nest = typedNests.find((n) => n.id === nestId);
       if (!nest) {
         throw new Error("Nest not found for this plate");
@@ -500,8 +499,8 @@ export const InventoryManager = () => {
         column: nest.column,
         status: "empty" as NestStatus,
         // Only include non-null IDs
-        ...(nest.tool_id ? { tool_id: nest.tool_id } : {}),
-        ...(nest.hotel_id ? { hotel_id: nest.hotel_id } : {}),
+        ...(nest.toolId ? { toolId: nest.toolId } : {}),
+        ...(nest.hotelId ? { hotelId: nest.toolId } : {}),
       };
       await updateNestMutation.mutateAsync(updatedNest);
 
@@ -510,14 +509,14 @@ export const InventoryManager = () => {
         id: plateToCheckOut.id,
         barcode: plateToCheckOut.barcode,
         name: plateToCheckOut.name,
-        plate_type: plateToCheckOut.plate_type,
-        nest_id: null,
+        plate_type: plateToCheckOut.plateType,
+        nestId: null,
       } as any); // Type assertion to bypass type checking for this update
 
       // If tool command is requested and it's not a static hotel
       if (triggerToolCommand && !isStatic) {
         // Find the tool associated with this nest
-        const tool = workcellTools.find((t) => t.id === nest.tool_id);
+        const tool = workcellTools.find((t) => t.id === nest.toolId);
 
         if (tool && tool.type.toLowerCase() === "liconic") {
           try {
@@ -584,9 +583,8 @@ export const InventoryManager = () => {
       // Step 1: Create the hotel first
       const result = (await createHotelMutation.mutateAsync({
         ...hotelData,
-        workcell_id: selectedWorkcell.id,
         description: hotelData.description || "",
-        image_url: null,
+        imageUrl: null,
       })) as Hotel;
 
       // Get the hotel ID from the response
@@ -605,8 +603,7 @@ export const InventoryManager = () => {
                 name: `${hotelData.name}-R${row + 1}C${col + 1}`,
                 row: row,
                 column: col,
-                // Only include hotel_id
-                hotel_id: hotelId,
+                hotelId: hotelId,
               });
               createdNests++;
             } catch (nestError) {
@@ -652,7 +649,7 @@ export const InventoryManager = () => {
   const handleDeleteHotel = async (hotelId: number) => {
     try {
       // First, get all nests associated with this hotel
-      const hotelNests = typedNests.filter((nest) => nest.hotel_id === hotelId);
+      const hotelNests = typedNests.filter((nest) => nest.hotelId === hotelId);
       const totalNests = hotelNests.length;
 
       // Create a progress toast to show deletion progress
@@ -783,7 +780,7 @@ export const InventoryManager = () => {
                 <Box key={tool.id}>
                   <InventoryToolCard
                     toolId={tool.id}
-                    nests={typedNests.filter((n: Nest) => n.tool_id === tool.id)}
+                    nests={typedNests.filter((n: Nest) => n.toolId === tool.id)}
                     plates={typedPlates}
                     onCreateNest={(toolId, name, row, col) =>
                       handleCreateNest(toolId, name, row, col, false)
@@ -841,7 +838,7 @@ export const InventoryManager = () => {
                   <Box key={hotel.id}>
                     <InventoryHotelCard
                       hotelId={hotel.id}
-                      nests={typedNests.filter((n: Nest) => n.hotel_id === hotel.id)}
+                      nests={typedNests.filter((n: Nest) => n.hotelId === hotel.id)}
                       plates={typedPlates}
                       onCreateNest={(hotelId, name, row, col) =>
                         handleCreateNest(hotelId, name, row, col, true)
@@ -996,8 +993,8 @@ export const InventoryManager = () => {
                 setShowAddHotelModal(false);
                 setNewHotelName("");
                 setNewHotelDescription("");
-                setNewHotelRows(8);
-                setNewHotelColumns(12);
+                setNewHotelRows(10);
+                setNewHotelColumns(1);
               }}>
               Create
             </Button>

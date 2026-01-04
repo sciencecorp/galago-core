@@ -30,7 +30,7 @@ export const tools = sqliteTable(
     ip: text("ip").notNull(),
     port: integer("port").notNull(),
     config: text("config", { mode: "json" }),
-    workcellId: integer("workcell_id").references(() => workcells.id),
+    workcellId: integer("workcell_id").references(() => workcells.id, { onDelete: "cascade" }),
     ...timestamps,
   },
   (t) => [unique("unique_tool_name_per_workcell").on(t.name, t.workcellId)],
@@ -43,7 +43,7 @@ export const hotels = sqliteTable("hotels", {
   imageUrl: text("image_url"),
   rows: integer("rows").notNull(),
   columns: integer("columns").notNull(),
-  workcellId: integer("workcell_id").references(() => workcells.id),
+  workcellId: integer("workcell_id").references(() => workcells.id, { onDelete: "cascade" }),
   ...timestamps,
 });
 
@@ -53,7 +53,7 @@ export const nests = sqliteTable("nests", {
   row: integer("row"),
   column: integer("column"),
   toolId: integer("tool_id").references(() => tools.id, { onDelete: "cascade" }),
-  hotelId: integer("hotel_id").references(() => hotels.id),
+  hotelId: integer("hotel_id").references(() => hotels.id, { onDelete: "cascade" }),
   status: text("status").notNull().default("empty"),
   ...timestamps,
 });
@@ -63,7 +63,7 @@ export const plates = sqliteTable("plates", {
   name: text("name"),
   barcode: text("barcode").notNull(),
   plateType: text("plate_type").notNull(),
-  nestId: integer("nest_id").references(() => nests.id),
+  nestId: integer("nest_id").references(() => nests.id, { onDelete: "set null" }),
   status: text("status").notNull().default("stored"),
   ...timestamps,
 });
@@ -72,7 +72,7 @@ export const wells = sqliteTable("wells", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   row: text("row").notNull(),
   column: integer("column").notNull(),
-  plateId: integer("plate_id").references(() => plates.id),
+  plateId: integer("plate_id").references(() => plates.id, { onDelete: "cascade" }),
   ...timestamps,
 });
 
@@ -81,14 +81,14 @@ export const reagents = sqliteTable("reagents", {
   name: text("name").notNull(),
   expirationDate: text("expiration_date").notNull(),
   volume: real("volume").notNull(),
-  wellId: integer("well_id").references(() => wells.id),
+  wellId: integer("well_id").references(() => wells.id, { onDelete: "cascade" }),
   ...timestamps,
 });
 
 export const plateNestHistory = sqliteTable("plate_nest_history", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  plateId: integer("plate_id").references(() => plates.id),
-  nestId: integer("nest_id").references(() => nests.id),
+  plateId: integer("plate_id").references(() => plates.id, { onDelete: "cascade" }),
+  nestId: integer("nest_id").references(() => nests.id, { onDelete: "cascade" }),
   action: text("action").notNull(),
   timestamp: text("timestamp")
     .notNull()
@@ -129,7 +129,7 @@ export const labware = sqliteTable(
     lidOffset: real("lid_offset").default(0),
     stackHeight: real("stack_height").default(0),
     hasLid: integer("has_lid", { mode: "boolean" }).default(false),
-    workcellId: integer("workcell_id").references(() => workcells.id),
+    workcellId: integer("workcell_id").references(() => workcells.id, { onDelete: "cascade" }),
     ...timestamps,
   },
   (t) => [unique("unique_labware_name_per_workcell").on(t.name, t.workcellId)],
@@ -144,7 +144,7 @@ export const scriptFolders = sqliteTable(
       onDelete: "cascade",
     }),
     workcellId: integer("workcell_id")
-      .references(() => workcells.id)
+      .references(() => workcells.id, { onDelete: "cascade" })
       .notNull(),
     ...timestamps,
   },
@@ -161,7 +161,7 @@ export const scripts = sqliteTable(
     folderId: integer("folder_id").references(() => scriptFolders.id, {
       onDelete: "cascade",
     }),
-    workcellId: integer("workcell_id").references(() => workcells.id),
+    workcellId: integer("workcell_id").references(() => workcells.id, { onDelete: "cascade" }),
     ...timestamps,
   },
   (t) => [unique("unique_script_name_per_workcell").on(t.name, t.workcellId)],
@@ -198,7 +198,7 @@ export const protocols = sqliteTable("protocols", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   category: text("category").notNull(),
-  workcellId: integer("workcell_id").references(() => workcells.id),
+  workcellId: integer("workcell_id").references(() => workcells.id, { onDelete: "cascade" }),
   description: text("description"),
   commands: text("commands", { mode: "json" }).notNull(),
   ...timestamps,
@@ -209,15 +209,14 @@ export const forms = sqliteTable(
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
     name: text("name").notNull(),
-    fields: text("fields", { mode: "json" }).notNull(), // JSON array of FormField objects
+    fields: text("fields", { mode: "json" }).notNull(),
     backgroundColor: text("background_color"),
     fontColor: text("font_color"),
-    workcellId: integer("workcell_id").references(() => workcells.id),
+    workcellId: integer("workcell_id").references(() => workcells.id, { onDelete: "cascade" }),
     ...timestamps,
   },
   (t) => [unique("unique_form_name_per_workcell").on(t.name, t.workcellId)],
 );
-
 export const appSettings = sqliteTable("app_settings", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),

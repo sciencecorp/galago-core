@@ -18,38 +18,13 @@ import {
   Divider,
   Tooltip,
 } from "@chakra-ui/react";
-import { Nest, Plate, Reagent } from "@/types/api";
+import { Nest, Plate, Reagent } from "@/types";
 import NestModal from "../modals/NestModal";
-import styled from "@emotion/styled";
 import { trpc } from "@/utils/trpc";
 import { useColorModeValue } from "@chakra-ui/react";
-import {
-  Wrench, // replaces PiToolbox
-  Grid3x3, // replaces BsGrid3X3
-  Package, // replaces BsBoxSeam
-  FlaskConical, // replaces FaFlask
-} from "lucide-react";
+import { Wrench, Grid3x3, Package, FlaskConical } from "lucide-react";
 import { Icon } from "@/components/ui/Icons";
 import { useCommonColors, useTextColors } from "@/components/ui/Theme";
-
-const StyledCard = styled(Card)`
-  display: flex;
-  flex-direction: column;
-  height: 280px;
-  width: 280px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: 0.3s ease-out;
-  margin: 0 15px;
-  margin-top: 10px;
-  margin-bottom: 20px;
-  overflow: hidden;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  }
-`;
 
 interface InventoryToolCardProps {
   toolId: number;
@@ -84,8 +59,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   onPlateClick,
   onCheckIn,
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const { cardBg, borderColor, hoverBg } = useCommonColors();
+  const { cardBg, borderColor } = useCommonColors();
   const { secondary: iconColor } = useTextColors();
   const statBg = useColorModeValue("gray.50", "gray.800");
 
@@ -99,8 +73,8 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   const toolData = workcellTools?.find((tool) => tool.id === toolId);
   const { name, type } = toolData || {};
 
-  const toolNests = nests.filter((nest) => nest.tool_id === toolId);
-  const toolPlates = plates.filter((plate) => toolNests.some((nest) => nest.id === plate.nest_id));
+  const toolNests = nests.filter((nest) => nest.toolId === toolId);
+  const toolPlates = plates.filter((plate) => toolNests.some((nest) => nest.id === plate.nestId));
 
   // Get reagent count for this tool's plates
   const { data: plateReagents = [] } = trpc.inventory.getReagents.useQuery<Reagent[]>(
@@ -114,7 +88,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
   const reagentCount = (plateReagents as Reagent[]).length || 0;
 
   const renderToolImage = (config: any) => {
-    if (!config?.image_url) {
+    if (!config?.imageUrl) {
       return <Box></Box>;
     } else if (config.name === "Tool Box") {
       return (

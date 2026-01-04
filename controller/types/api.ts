@@ -1,17 +1,6 @@
 import { DateTime } from "luxon";
 import { Config } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 
-export interface Workcell {
-  id: number;
-  name: string;
-  location: string;
-  description: string;
-  tools: Tool[];
-  hotels?: Hotel[];
-  last_updated: Date;
-  created_at: Date;
-}
-
 export interface WorkcellCreate {
   name: string;
 }
@@ -197,38 +186,6 @@ export interface ToolCommand {
   command: string;
   label?: string;
   params: Record<string, any>;
-}
-
-export interface Tool {
-  id: number;
-  name: string;
-  ip: string;
-  port: number;
-  type: string;
-  workcell_id: number;
-  description: string;
-  image_url: string;
-  status: string;
-  last_updated: Date;
-  created_at: Date;
-  config: Config;
-  joints: number;
-}
-
-export interface LogType {
-  id: number;
-  name: string;
-  created_at: DateTime;
-  updated_at: DateTime;
-}
-
-export interface AppSettings {
-  id: number;
-  name: string;
-  value: string;
-  is_active: boolean;
-  created_at: Date;
-  updated_at: Date;
 }
 
 export interface HotelCreate {

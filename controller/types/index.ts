@@ -2,6 +2,8 @@
 export * from "./form";
 export * from "./run";
 
+export type NestStatus = "empty" | "occupied" | "reserved" | "error";
+
 export interface ParameterSchema {
   type: string;
   description?: string;
@@ -27,12 +29,17 @@ export type {
   ScriptFolder,
   NewScriptFolder,
   Workcell,
+  Hotel,
+  Plate,
+  Reagent,
+  Nest,
 } from "@/db/schema";
 
-import type { Workcell, Tool, ScriptFolder, Script } from "@/db/schema";
+import type { Workcell, Tool, ScriptFolder, Script, Hotel } from "@/db/schema";
 
 export interface WorkcellResponse extends Workcell {
   tools: Tool[];
+  hotels: Hotel[];
 }
 
 export interface FolderResponse extends ScriptFolder {

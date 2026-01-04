@@ -66,10 +66,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
       await clearToolStore.mutate();
       props.onChange && props.onChange();
     } catch (error) {
-      errorToast(
-        "Error deleting workcell",
-        `Can't delete a workcell with active protocols. ${error}. `,
-      );
+      errorToast("Error deleting workcell", `${error}. `);
     }
   };
 

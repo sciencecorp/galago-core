@@ -14,7 +14,7 @@ import {
   HStack,
 } from "@chakra-ui/react";
 import { SearchIcon } from "@chakra-ui/icons";
-import { Plate, Reagent } from "@/types/api";
+import { Plate, Reagent } from "@/types";
 import { CloseIcon } from "@/components/ui/Icons";
 import { useCommonColors } from "@/components/ui/Theme";
 
