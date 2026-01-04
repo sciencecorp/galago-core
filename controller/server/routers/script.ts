@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { db } from "@/db/client";
-import { findOne, findMany } from "@/db/helpers";
-import { scripts, scriptFolders, workcells, appSettings, logs } from "@/db/schema";
+import { findOne, findMany, getSelectedWorkcellId } from "@/db/helpers";
+import { scripts, scriptFolders, logs } from "@/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import Tool from "@/server/tools";
@@ -41,29 +41,6 @@ export const zScriptFolderUpdate = zScriptFolderBase
   })
   .partial()
   .required({ id: true });
-
-// Helper to get selected workcell ID
-async function getSelectedWorkcellId(): Promise<number> {
-  const setting = await findOne(appSettings, eq(appSettings.name, "workcell"));
-
-  if (!setting || !setting.isActive) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "No workcell is currently selected. Please select a workcell in settings.",
-    });
-  }
-
-  const workcell = await findOne(workcells, eq(workcells.name, setting.value));
-
-  if (!workcell) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `Selected workcell '${setting.value}' not found`,
-    });
-  }
-
-  return workcell.id;
-}
 
 export const scriptRouter = router({
   getAll: procedure.query(async () => {

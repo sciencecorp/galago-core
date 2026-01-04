@@ -105,7 +105,7 @@ export const EditToolModal: React.FC<EditToolModalProps> = (props) => {
       };
 
       await editTool.mutateAsync(editedTool);
-      await clearToolStore.mutate();
+      await clearToolStore.mutateAsync();
       successToast("Tool updated successfully", "");
       onClose();
     } catch (error) {

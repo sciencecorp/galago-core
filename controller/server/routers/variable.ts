@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { db } from "@/db/client";
-import { findOne, findMany } from "@/db/helpers";
-import { variables, workcells, appSettings, logs } from "@/db/schema";
+import { findOne, findMany, getSelectedWorkcellId } from "@/db/helpers";
+import { variables, logs } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
@@ -155,32 +155,9 @@ export const zVariableUpdate = zVariableBase
     },
   );
 
-// Full schema for responses
 export const zVariable = zVariableBase.extend({
   id: z.number().optional(),
 });
-
-async function getSelectedWorkcellId(): Promise<number> {
-  const setting = await findOne(appSettings, eq(appSettings.name, "workcell"));
-
-  if (!setting || !setting.isActive) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "No workcell is currently selected. Please select a workcell in settings.",
-    });
-  }
-
-  const workcell = await findOne(workcells, eq(workcells.name, setting.value));
-
-  if (!workcell) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `Selected workcell '${setting.value}' not found`,
-    });
-  }
-
-  return workcell.id;
-}
 
 // Helper functions for parsing variable values
 export const VariableHelpers = {
