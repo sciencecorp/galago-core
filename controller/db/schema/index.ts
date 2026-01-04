@@ -1,3 +1,6 @@
+// schema.ts - Replace your current schema with this
+// Key changes: Added onDelete: "cascade" to ALL foreign keys that should cascade
+
 import { sqliteTable, text, integer, real, unique, index } from "drizzle-orm/sqlite-core";
 import { sql, relations } from "drizzle-orm";
 
@@ -19,6 +22,7 @@ export const workcells = sqliteTable("workcells", {
   ...timestamps,
 });
 
+// CASCADE: tools → workcells
 export const tools = sqliteTable(
   "tools",
   {
@@ -36,6 +40,7 @@ export const tools = sqliteTable(
   (t) => [unique("unique_tool_name_per_workcell").on(t.name, t.workcellId)],
 );
 
+// CASCADE: hotels → workcells
 export const hotels = sqliteTable("hotels", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -47,6 +52,7 @@ export const hotels = sqliteTable("hotels", {
   ...timestamps,
 });
 
+// CASCADE: nests → tools AND nests → hotels
 export const nests = sqliteTable("nests", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name"),
@@ -58,6 +64,7 @@ export const nests = sqliteTable("nests", {
   ...timestamps,
 });
 
+// SET NULL: plates → nests (plates can exist without nests)
 export const plates = sqliteTable("plates", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name"),
@@ -68,6 +75,7 @@ export const plates = sqliteTable("plates", {
   ...timestamps,
 });
 
+// CASCADE: wells → plates
 export const wells = sqliteTable("wells", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   row: text("row").notNull(),
@@ -76,6 +84,7 @@ export const wells = sqliteTable("wells", {
   ...timestamps,
 });
 
+// CASCADE: reagents → wells
 export const reagents = sqliteTable("reagents", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -85,6 +94,7 @@ export const reagents = sqliteTable("reagents", {
   ...timestamps,
 });
 
+// CASCADE: plateNestHistory → plates AND plateNestHistory → nests
 export const plateNestHistory = sqliteTable("plate_nest_history", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   plateId: integer("plate_id").references(() => plates.id, { onDelete: "cascade" }),
@@ -96,6 +106,7 @@ export const plateNestHistory = sqliteTable("plate_nest_history", {
   ...timestamps,
 });
 
+// CASCADE: variables → workcells
 export const variables = sqliteTable(
   "variables",
   {
@@ -114,6 +125,7 @@ export const variables = sqliteTable(
   }),
 );
 
+// CASCADE: labware → workcells
 export const labware = sqliteTable(
   "labware",
   {
@@ -135,6 +147,7 @@ export const labware = sqliteTable(
   (t) => [unique("unique_labware_name_per_workcell").on(t.name, t.workcellId)],
 );
 
+// CASCADE: scriptFolders → workcells AND scriptFolders → scriptFolders (parent)
 export const scriptFolders = sqliteTable(
   "script_folders",
   {
@@ -151,6 +164,7 @@ export const scriptFolders = sqliteTable(
   (t) => [unique("unique_folder_name_per_workcell").on(t.name, t.parentId, t.workcellId)],
 );
 
+// CASCADE: scripts → scriptFolders AND scripts → workcells
 export const scripts = sqliteTable(
   "scripts",
   {
@@ -194,6 +208,7 @@ export const scriptsRelations = relations(scripts, ({ one }) => ({
   }),
 }));
 
+// CASCADE: protocols → workcells
 export const protocols = sqliteTable("protocols", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -204,6 +219,7 @@ export const protocols = sqliteTable("protocols", {
   ...timestamps,
 });
 
+// CASCADE: forms → workcells
 export const forms = sqliteTable(
   "forms",
   {
@@ -217,6 +233,7 @@ export const forms = sqliteTable(
   },
   (t) => [unique("unique_form_name_per_workcell").on(t.name, t.workcellId)],
 );
+
 export const appSettings = sqliteTable("app_settings", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -225,6 +242,7 @@ export const appSettings = sqliteTable("app_settings", {
   ...timestamps,
 });
 
+// CASCADE: robotArmLocations → tools
 export const robotArmLocations = sqliteTable("robot_arm_locations", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -235,6 +253,7 @@ export const robotArmLocations = sqliteTable("robot_arm_locations", {
   ...timestamps,
 });
 
+// CASCADE: robotArmSequences → tools
 export const robotArmSequences = sqliteTable("robot_arm_sequences", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -245,6 +264,7 @@ export const robotArmSequences = sqliteTable("robot_arm_sequences", {
   ...timestamps,
 });
 
+// CASCADE: robotArmMotionProfiles → tools
 export const robotArmMotionProfiles = sqliteTable("robot_arm_motion_profiles", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -260,6 +280,7 @@ export const robotArmMotionProfiles = sqliteTable("robot_arm_motion_profiles", {
   ...timestamps,
 });
 
+// CASCADE: robotArmGripParams → tools
 export const robotArmGripParams = sqliteTable("robot_arm_grip_params", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -269,6 +290,7 @@ export const robotArmGripParams = sqliteTable("robot_arm_grip_params", {
   toolId: integer("tool_id").references(() => tools.id, { onDelete: "cascade" }),
   ...timestamps,
 });
+
 export const logs = sqliteTable("logs", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   level: text("level").notNull(),

@@ -127,7 +127,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
               onDelete={handleDelete}
               label="workcell"
               variant="icon"
-              customText="Are you sure? This will delete all tools in this workcell."
+              customText="Are you sure? This will delete all data belonging to this workcell."
             />
           </HStack>
 
