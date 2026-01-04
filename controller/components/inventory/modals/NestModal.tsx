@@ -33,6 +33,7 @@ import {
   FormControl,
   FormLabel,
   useDisclosure,
+  Divider,
 } from "@chakra-ui/react";
 import { Nest, Plate } from "@/types/api";
 import { AddIcon, MinusIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
@@ -353,159 +354,65 @@ const NestModal: React.FC<NestModalProps> = ({
   };
 
   const renderGridView = () => (
-    <Flex direction="column" gap={6}>
-      {/* Grid Controls */}
-      {onCreateNest && onDeleteNest && (
-        <HStack spacing={2} justify="flex-end">
-          <Button
-            size="sm"
-            variant="ghost"
-            rightIcon={
-              dimensionMode === "column" ? (
-                <Icon as={Grid3x3} />
-              ) : (
-                <Icon as={Grid3x3} transform="rotate(90deg)" />
-              )
-            }
-            onClick={() => setDimensionMode((prev) => (prev === "column" ? "row" : "column"))}>
-            {dimensionMode === "column" ? "Adding Columns" : "Adding Rows"}
-          </Button>
-          <Tooltip label={`Add ${dimensionMode}`}>
-            <IconButton
-              aria-label={`Add ${dimensionMode}`}
-              icon={<AddIcon />}
-              size="sm"
-              onClick={() => handleDimensionChange(dimensionMode, "add")}
-              colorScheme="teal"
-            />
-          </Tooltip>
-          {(dimensionMode === "row" ? maxRows : maxColumns) > 1 && (
-            <Tooltip label={`Remove ${dimensionMode}`}>
-              <IconButton
-                aria-label={`Remove ${dimensionMode}`}
-                icon={<MinusIcon />}
-                size="sm"
-                onClick={() => handleDimensionChange(dimensionMode, "remove")}
-                colorScheme="teal"
-              />
-            </Tooltip>
-          )}
-        </HStack>
-      )}
-
-      {/* Grid Display */}
-      <Flex justify="center" align="center" w="100%">
-        <Flex>
-          {/* Row labels */}
-          <VStack spacing={0} pt={14} pr={2} minW={labelWidth} justify="flex-start">
-            {Array.from({ length: maxRows }, (_, i) => (
-              <Box
-                key={`row-${i}`}
-                h={cellSize}
-                mb={i < maxRows - 1 ? "8px" : 0}
-                display="flex"
-                alignItems="center"
-                justifyContent="flex-end">
-                <Box
-                  bg={labelBg}
-                  px={2}
-                  py={1}
-                  borderRadius="md"
-                  fontSize="xs"
-                  fontWeight="bold"
-                  minW="30px"
-                  textAlign="center">
-                  {i + 1}
-                </Box>
-              </Box>
-            ))}
-          </VStack>
-
-          <VStack spacing={0} align="stretch">
-            {/* Column labels */}
-            <HStack spacing={2} px={2} pb={2} minH="40px" align="flex-end" justify="center">
-              {Array.from({ length: maxColumns }, (_, i) => (
-                <Flex key={`col-${i}`} w={cellSize} justify="center">
-                  <Box
-                    bg={labelBg}
-                    px={2}
-                    py={1}
-                    borderRadius="md"
-                    fontSize="xs"
-                    fontWeight="bold"
-                    minW="30px"
-                    textAlign="center">
-                    {i + 1}
-                  </Box>
-                </Flex>
-              ))}
-            </HStack>
-
-            {/* Grid */}
-            <Grid
-              templateColumns={`repeat(${maxColumns}, ${cellSize})`}
-              gap={2}
-              p={3}
-              bg={ghostNestBg}
-              borderRadius="lg">
-              {Array.from({ length: maxRows }, (_, rowIndex) =>
-                Array.from({ length: maxColumns }, (_, colIndex) => {
-                  const nest = nests.find((n) => n.row === rowIndex && n.column === colIndex);
-
-                  if (!nest) {
-                    return (
-                      <Box
-                        key={`empty-${rowIndex}-${colIndex}`}
-                        height={cellSize}
-                        width={cellSize}
-                        borderWidth="1px"
-                        borderStyle="dashed"
-                        borderColor={ghostNestBorder}
-                        borderRadius="md"
-                        opacity={0.4}
-                      />
-                    );
-                  }
-
-                  return renderNestContent(nest);
-                }),
-              )}
-            </Grid>
-          </VStack>
-        </Flex>
-      </Flex>
-
-      {/* Add Plate Form */}
-      {selectedNest && (
-        <Box bg={nestBg} p={4} borderRadius="md" borderWidth="1px" borderColor={nestBorderColor}>
+    <Flex gap={6} height="100%">
+      {/* Left side - Add Plate Form */}
+      <Box flex="1" minW="300px">
+        <Box
+          bg={nestBg}
+          p={4}
+          borderRadius="md"
+          borderWidth="1px"
+          borderColor={nestBorderColor}
+          position="sticky"
+          top="0"
+          height="fit-content">
           <VStack spacing={4} align="stretch">
-            <Text fontWeight="bold" fontSize="lg">
-              Add Plate to Nest {selectedNest.row + 1}-{selectedNest.column + 1}
-            </Text>
+            <VStack align="start" spacing={1}>
+              <Text fontWeight="bold" fontSize="lg">
+                Add Plate to Nest
+              </Text>
+              {selectedNest ? (
+                <Badge colorScheme="teal" fontSize="sm">
+                  Nest {selectedNest.row + 1}-{selectedNest.column + 1}
+                </Badge>
+              ) : (
+                <Text fontSize="sm" color="gray.500">
+                  Select a nest from the grid
+                </Text>
+              )}
+            </VStack>
 
-            <FormControl isRequired>
+            <Divider />
+
+            <FormControl isRequired isDisabled={!selectedNest}>
               <FormLabel>Barcode</FormLabel>
               <Input
                 value={plateBarcode}
                 onChange={(e) => setPlateBarcode(e.target.value)}
                 placeholder="Scan or enter barcode"
                 bg={inputBg}
+                isDisabled={!selectedNest}
               />
             </FormControl>
 
-            <FormControl isRequired>
+            <FormControl isRequired isDisabled={!selectedNest}>
               <FormLabel>Plate Name</FormLabel>
               <Input
                 value={plateName}
                 onChange={(e) => setPlateName(e.target.value)}
                 placeholder="Enter plate name"
                 bg={inputBg}
+                isDisabled={!selectedNest}
               />
             </FormControl>
 
-            <FormControl isRequired>
+            <FormControl isRequired isDisabled={!selectedNest}>
               <FormLabel>Plate Type</FormLabel>
-              <Select value={plateType} onChange={(e) => setPlateType(e.target.value)} bg={inputBg}>
+              <Select
+                value={plateType}
+                onChange={(e) => setPlateType(e.target.value)}
+                bg={inputBg}
+                isDisabled={!selectedNest}>
                 <option value="6 well">6 Well</option>
                 <option value="24 well">24 Well</option>
                 <option value="96 well">96 Well</option>
@@ -513,17 +420,149 @@ const NestModal: React.FC<NestModalProps> = ({
               </Select>
             </FormControl>
 
-            <HStack>
-              <Button colorScheme="teal" onClick={handleAddPlate} flex={1}>
-                Add Plate
+            <Button
+              colorScheme="teal"
+              onClick={handleAddPlate}
+              isDisabled={!selectedNest || !plateBarcode || !plateName}
+              width="100%"
+              size="lg">
+              Add Plate
+            </Button>
+
+            {selectedNest && (
+              <Button variant="ghost" onClick={() => setSelectedNest(null)} width="100%" size="sm">
+                Clear Selection
               </Button>
-              <Button variant="ghost" onClick={() => setSelectedNest(null)}>
-                Cancel
-              </Button>
-            </HStack>
+            )}
           </VStack>
         </Box>
-      )}
+      </Box>
+
+      {/* Right side - Grid */}
+      <Box flex="2">
+        <VStack spacing={4} align="stretch">
+          {/* Grid Controls */}
+          {onCreateNest && onDeleteNest && (
+            <HStack spacing={2} justify="flex-end">
+              <Button
+                size="sm"
+                variant="ghost"
+                rightIcon={
+                  dimensionMode === "column" ? (
+                    <Icon as={Grid3x3} />
+                  ) : (
+                    <Icon as={Grid3x3} transform="rotate(90deg)" />
+                  )
+                }
+                onClick={() => setDimensionMode((prev) => (prev === "column" ? "row" : "column"))}>
+                {dimensionMode === "column" ? "Adding Columns" : "Adding Rows"}
+              </Button>
+              <Tooltip label={`Add ${dimensionMode}`}>
+                <IconButton
+                  aria-label={`Add ${dimensionMode}`}
+                  icon={<AddIcon />}
+                  size="sm"
+                  onClick={() => handleDimensionChange(dimensionMode, "add")}
+                  colorScheme="teal"
+                />
+              </Tooltip>
+              {(dimensionMode === "row" ? maxRows : maxColumns) > 1 && (
+                <Tooltip label={`Remove ${dimensionMode}`}>
+                  <IconButton
+                    aria-label={`Remove ${dimensionMode}`}
+                    icon={<MinusIcon />}
+                    size="sm"
+                    onClick={() => handleDimensionChange(dimensionMode, "remove")}
+                    colorScheme="teal"
+                  />
+                </Tooltip>
+              )}
+            </HStack>
+          )}
+
+          {/* Grid Display */}
+          <Flex justify="center" align="center" w="100%">
+            <Flex>
+              {/* Row labels */}
+              <VStack spacing={0} pt={14} pr={2} minW={labelWidth} justify="flex-start">
+                {Array.from({ length: maxRows }, (_, i) => (
+                  <Box
+                    key={`row-${i}`}
+                    h={cellSize}
+                    mb={i < maxRows - 1 ? "8px" : 0}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="flex-end">
+                    <Box
+                      bg={labelBg}
+                      px={2}
+                      py={1}
+                      borderRadius="md"
+                      fontSize="xs"
+                      fontWeight="bold"
+                      minW="30px"
+                      textAlign="center">
+                      {i + 1}
+                    </Box>
+                  </Box>
+                ))}
+              </VStack>
+
+              <VStack spacing={0} align="stretch">
+                {/* Column labels */}
+                <HStack spacing={2} px={2} pb={2} minH="40px" align="flex-end" justify="center">
+                  {Array.from({ length: maxColumns }, (_, i) => (
+                    <Flex key={`col-${i}`} w={cellSize} justify="center">
+                      <Box
+                        bg={labelBg}
+                        px={2}
+                        py={1}
+                        borderRadius="md"
+                        fontSize="xs"
+                        fontWeight="bold"
+                        minW="30px"
+                        textAlign="center">
+                        {i + 1}
+                      </Box>
+                    </Flex>
+                  ))}
+                </HStack>
+
+                {/* Grid */}
+                <Grid
+                  templateColumns={`repeat(${maxColumns}, ${cellSize})`}
+                  gap={2}
+                  p={3}
+                  bg={ghostNestBg}
+                  borderRadius="lg">
+                  {Array.from({ length: maxRows }, (_, rowIndex) =>
+                    Array.from({ length: maxColumns }, (_, colIndex) => {
+                      const nest = nests.find((n) => n.row === rowIndex && n.column === colIndex);
+
+                      if (!nest) {
+                        return (
+                          <Box
+                            key={`empty-${rowIndex}-${colIndex}`}
+                            height={cellSize}
+                            width={cellSize}
+                            borderWidth="1px"
+                            borderStyle="dashed"
+                            borderColor={ghostNestBorder}
+                            borderRadius="md"
+                            opacity={0.4}
+                          />
+                        );
+                      }
+
+                      return renderNestContent(nest);
+                    }),
+                  )}
+                </Grid>
+              </VStack>
+            </Flex>
+          </Flex>
+        </VStack>
+      </Box>
     </Flex>
   );
 
@@ -538,7 +577,7 @@ const NestModal: React.FC<NestModalProps> = ({
             <Th>Plate Name</Th>
             <Th>Plate Type</Th>
             <Th>Status</Th>
-            <Th>Actions</Th>
+            <Th width="120px">Actions</Th>
           </Tr>
         </Thead>
         <Tbody>
@@ -547,49 +586,36 @@ const NestModal: React.FC<NestModalProps> = ({
             const isEditing = editingPlateId === plate?.id;
 
             return (
-              <Tr key={nest.id}>
-                <Td>{nest.row + 1}</Td>
-                <Td>{nest.column + 1}</Td>
-                <Td>
-                  {isEditing ? (
+              <Tr key={nest.id} _hover={{ bg: nestBg }}>
+                <Td fontWeight="medium">{nest.row + 1}</Td>
+                <Td fontWeight="medium">{nest.column + 1}</Td>
+                <Td minW="200px">
+                  {plate && isEditing ? (
                     <Input
                       size="sm"
                       value={editBarcode}
                       onChange={(e) => setEditBarcode(e.target.value)}
                       bg={inputBg}
+                      placeholder="Enter barcode"
                     />
                   ) : (
-                    plate?.barcode || "-"
+                    <Text>{plate?.barcode || "-"}</Text>
                   )}
                 </Td>
-                <Td>
-                  {isEditing ? (
+                <Td minW="200px">
+                  {plate && isEditing ? (
                     <Input
                       size="sm"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
                       bg={inputBg}
+                      placeholder="Enter name"
                     />
                   ) : (
-                    plate?.name || "-"
+                    <Text>{plate?.name || "-"}</Text>
                   )}
                 </Td>
-                <Td>
-                  {isEditing ? (
-                    <Select
-                      size="sm"
-                      value={editType}
-                      onChange={(e) => setEditType(e.target.value)}
-                      bg={inputBg}>
-                      <option value="6 well">6 Well</option>
-                      <option value="24 well">24 Well</option>
-                      <option value="96 well">96 Well</option>
-                      <option value="384 well">384 Well</option>
-                    </Select>
-                  ) : (
-                    plate?.plate_type || "-"
-                  )}
-                </Td>
+                <Td minW="120px">{plate ? <Text>{plate.plate_type}</Text> : <Text>-</Text>}</Td>
                 <Td>
                   <Badge colorScheme={nest.status === "empty" ? "gray" : "green"}>
                     {nest.status}
@@ -600,38 +626,46 @@ const NestModal: React.FC<NestModalProps> = ({
                     <HStack spacing={1}>
                       {isEditing ? (
                         <>
-                          <IconButton
-                            aria-label="Save"
-                            icon={<Check size={16} />}
-                            size="sm"
-                            colorScheme="teal"
-                            onClick={() => handleSaveEdit(plate.id)}
-                          />
-                          <IconButton
-                            aria-label="Cancel"
-                            icon={<X size={16} />}
-                            size="sm"
-                            variant="ghost"
-                            onClick={handleCancelEdit}
-                          />
+                          <Tooltip label="Save changes">
+                            <IconButton
+                              aria-label="Save"
+                              icon={<Icon as={Check} boxSize={4} />}
+                              size="sm"
+                              colorScheme="teal"
+                              onClick={() => handleSaveEdit(plate.id)}
+                            />
+                          </Tooltip>
+                          <Tooltip label="Cancel">
+                            <IconButton
+                              aria-label="Cancel"
+                              icon={<Icon as={X} boxSize={4} />}
+                              size="sm"
+                              variant="ghost"
+                              onClick={handleCancelEdit}
+                            />
+                          </Tooltip>
                         </>
                       ) : (
                         <>
-                          <IconButton
-                            aria-label="Edit"
-                            icon={<EditIcon />}
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleStartEdit(plate)}
-                          />
-                          <IconButton
-                            aria-label="Delete"
-                            icon={<DeleteIcon />}
-                            size="sm"
-                            variant="ghost"
-                            colorScheme="red"
-                            onClick={() => handleDeletePlate(plate.id)}
-                          />
+                          <Tooltip label="Edit plate">
+                            <IconButton
+                              aria-label="Edit"
+                              icon={<EditIcon />}
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleStartEdit(plate)}
+                            />
+                          </Tooltip>
+                          <Tooltip label="Delete plate">
+                            <IconButton
+                              aria-label="Delete"
+                              icon={<DeleteIcon />}
+                              size="sm"
+                              variant="ghost"
+                              colorScheme="red"
+                              onClick={() => handleDeletePlate(plate.id)}
+                            />
+                          </Tooltip>
                         </>
                       )}
                     </HStack>

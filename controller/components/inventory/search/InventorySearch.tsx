@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  FormControl,
   InputGroup,
   Input,
   InputLeftElement,
@@ -40,7 +39,7 @@ const InventorySearch: React.FC<InventorySearchProps> = ({
   const { cardBg, hoverBg, alternateBg } = useCommonColors();
 
   const isPlate = (element: Plate | Reagent): element is Plate => {
-    return (element as Plate).plate_type !== undefined;
+    return (element as Plate).plateType !== undefined;
   };
 
   const isReagent = (element: Plate | Reagent): element is Reagent => {
@@ -88,8 +87,8 @@ const InventorySearch: React.FC<InventorySearchProps> = ({
                 {isPlate(result) && (
                   <Tooltip label="Click to find corresponding plate">
                     <Text onClick={() => onPlateSelect(result)} cursor="pointer">
-                      Plate: {result.name} | {result.plate_type} | {result.barcode} |{" "}
-                      {result.nest_id ? "Checked in" : "Not checked in"}
+                      Plate: {result.name} | {result.plateType} | {result.barcode} |{" "}
+                      {result.nestId ? "Checked in" : "Not checked in"}
                     </Text>
                   </Tooltip>
                 )}
@@ -97,9 +96,9 @@ const InventorySearch: React.FC<InventorySearchProps> = ({
                   <Tooltip label="Click to find corresponding plate">
                     <Text onClick={() => onReagentSelect(result)} cursor="pointer">
                       {isNumber(result.name)
-                        ? `Culture: ${result.name} | creation: ${result.expiration_date} | `
-                        : `Reagent: ${result.name} | ${result.volume} µL | expiry: ${result.expiration_date} | `}
-                      inventory well ID {result.well_id}
+                        ? `Culture: ${result.name} | creation: ${result.expirationDate} | `
+                        : `Reagent: ${result.name} | ${result.volume} µL | expiry: ${result.expirationDate} | `}
+                      inventory well ID {result.wellId}
                     </Text>
                   </Tooltip>
                 )}
