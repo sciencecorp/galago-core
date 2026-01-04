@@ -124,10 +124,7 @@
       "indexes": {
         "unique_form_name_per_workcell": {
           "name": "unique_form_name_per_workcell",
-          "columns": [
-            "name",
-            "workcell_id"
-          ],
+          "columns": ["name", "workcell_id"],
           "isUnique": true
         }
       },
@@ -136,12 +133,8 @@
           "name": "forms_workcell_id_workcells_id_fk",
           "tableFrom": "forms",
           "tableTo": "workcells",
-          "columnsFrom": [
-            "workcell_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workcell_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -225,12 +218,8 @@
           "name": "hotels_workcell_id_workcells_id_fk",
           "tableFrom": "hotels",
           "tableTo": "workcells",
-          "columnsFrom": [
-            "workcell_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workcell_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -360,10 +349,7 @@
       "indexes": {
         "unique_labware_name_per_workcell": {
           "name": "unique_labware_name_per_workcell",
-          "columns": [
-            "name",
-            "workcell_id"
-          ],
+          "columns": ["name", "workcell_id"],
           "isUnique": true
         }
       },
@@ -372,12 +358,8 @@
           "name": "labware_workcell_id_workcells_id_fk",
           "tableFrom": "labware",
           "tableTo": "workcells",
-          "columnsFrom": [
-            "workcell_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workcell_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -516,12 +498,8 @@
           "name": "nests_tool_id_tools_id_fk",
           "tableFrom": "nests",
           "tableTo": "tools",
-          "columnsFrom": [
-            "tool_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tool_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -529,12 +507,8 @@
           "name": "nests_hotel_id_hotels_id_fk",
           "tableFrom": "nests",
           "tableTo": "hotels",
-          "columnsFrom": [
-            "hotel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["hotel_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -605,12 +579,8 @@
           "name": "plate_nest_history_plate_id_plates_id_fk",
           "tableFrom": "plate_nest_history",
           "tableTo": "plates",
-          "columnsFrom": [
-            "plate_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["plate_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -618,12 +588,8 @@
           "name": "plate_nest_history_nest_id_nests_id_fk",
           "tableFrom": "plate_nest_history",
           "tableTo": "nests",
-          "columnsFrom": [
-            "nest_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["nest_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -701,12 +667,8 @@
           "name": "plates_nest_id_nests_id_fk",
           "tableFrom": "plates",
           "tableTo": "nests",
-          "columnsFrom": [
-            "nest_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["nest_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -783,12 +745,8 @@
           "name": "protocols_workcell_id_workcells_id_fk",
           "tableFrom": "protocols",
           "tableTo": "workcells",
-          "columnsFrom": [
-            "workcell_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workcell_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -858,12 +816,8 @@
           "name": "reagents_well_id_wells_id_fk",
           "tableFrom": "reagents",
           "tableTo": "wells",
-          "columnsFrom": [
-            "well_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["well_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -940,12 +894,8 @@
           "name": "robot_arm_grip_params_tool_id_tools_id_fk",
           "tableFrom": "robot_arm_grip_params",
           "tableTo": "tools",
-          "columnsFrom": [
-            "tool_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tool_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1022,12 +972,8 @@
           "name": "robot_arm_locations_tool_id_tools_id_fk",
           "tableFrom": "robot_arm_locations",
           "tableTo": "tools",
-          "columnsFrom": [
-            "tool_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tool_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1139,12 +1085,8 @@
           "name": "robot_arm_motion_profiles_tool_id_tools_id_fk",
           "tableFrom": "robot_arm_motion_profiles",
           "tableTo": "tools",
-          "columnsFrom": [
-            "tool_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tool_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1221,12 +1163,8 @@
           "name": "robot_arm_sequences_tool_id_tools_id_fk",
           "tableFrom": "robot_arm_sequences",
           "tableTo": "tools",
-          "columnsFrom": [
-            "tool_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tool_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1286,11 +1224,7 @@
       "indexes": {
         "unique_folder_name_per_workcell": {
           "name": "unique_folder_name_per_workcell",
-          "columns": [
-            "name",
-            "parent_id",
-            "workcell_id"
-          ],
+          "columns": ["name", "parent_id", "workcell_id"],
           "isUnique": true
         }
       },
@@ -1299,12 +1233,8 @@
           "name": "script_folders_parent_id_script_folders_id_fk",
           "tableFrom": "script_folders",
           "tableTo": "script_folders",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1312,12 +1242,8 @@
           "name": "script_folders_workcell_id_workcells_id_fk",
           "tableFrom": "script_folders",
           "tableTo": "workcells",
-          "columnsFrom": [
-            "workcell_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workcell_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1393,10 +1319,7 @@
       "indexes": {
         "unique_script_name_per_workcell": {
           "name": "unique_script_name_per_workcell",
-          "columns": [
-            "name",
-            "workcell_id"
-          ],
+          "columns": ["name", "workcell_id"],
           "isUnique": true
         }
       },
@@ -1405,12 +1328,8 @@
           "name": "scripts_folder_id_script_folders_id_fk",
           "tableFrom": "scripts",
           "tableTo": "script_folders",
-          "columnsFrom": [
-            "folder_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["folder_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1418,12 +1337,8 @@
           "name": "scripts_workcell_id_workcells_id_fk",
           "tableFrom": "scripts",
           "tableTo": "workcells",
-          "columnsFrom": [
-            "workcell_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workcell_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1518,10 +1433,7 @@
       "indexes": {
         "unique_tool_name_per_workcell": {
           "name": "unique_tool_name_per_workcell",
-          "columns": [
-            "name",
-            "workcell_id"
-          ],
+          "columns": ["name", "workcell_id"],
           "isUnique": true
         }
       },
@@ -1530,12 +1442,8 @@
           "name": "tools_workcell_id_workcells_id_fk",
           "tableFrom": "tools",
           "tableTo": "workcells",
-          "columnsFrom": [
-            "workcell_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workcell_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1602,10 +1510,7 @@
       "indexes": {
         "unique_variable_name_per_workcell": {
           "name": "unique_variable_name_per_workcell",
-          "columns": [
-            "name",
-            "workcell_id"
-          ],
+          "columns": ["name", "workcell_id"],
           "isUnique": false
         }
       },
@@ -1614,12 +1519,8 @@
           "name": "variables_workcell_id_workcells_id_fk",
           "tableFrom": "variables",
           "tableTo": "workcells",
-          "columnsFrom": [
-            "workcell_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workcell_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1682,12 +1583,8 @@
           "name": "wells_plate_id_plates_id_fk",
           "tableFrom": "wells",
           "tableTo": "plates",
-          "columnsFrom": [
-            "plate_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["plate_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1747,9 +1644,7 @@
       "indexes": {
         "workcells_name_unique": {
           "name": "workcells_name_unique",
-          "columns": [
-            "name"
-          ],
+          "columns": ["name"],
           "isUnique": true
         }
       },

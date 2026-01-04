@@ -228,7 +228,6 @@ export const InventoryManager = () => {
     isHotel: boolean = false,
   ) => {
     try {
-      // Use tRPC for all nest creation
       await createNestMutation.mutateAsync({
         name: nestName,
         row: nestRow,
@@ -314,52 +313,11 @@ export const InventoryManager = () => {
   const handleCheckIn = async ({
     nestId,
     plates: newPlates,
-    triggerToolCommand,
-    isStatic,
-    containerId,
-    containerType,
   }: {
     nestId: number;
-    plates: Array<{ barcode: string; name: string; plate_type: string }>;
-    triggerToolCommand: boolean;
-    isStatic?: boolean;
-    containerId?: number;
-    containerType?: "tool" | "hotel" | "";
+    plates: Array<{ barcode: string; name: string; plateType: string }>;
   }) => {
     try {
-      // Handle automatic placement (nestId = -1)
-      if (nestId === -1) {
-        // Find available empty nests for the selected container
-        const emptyNests = typedNests.filter((nest) => {
-          // First filter by container type and ID if specified
-          if (containerType === "tool" && containerId) {
-            if (nest.toolId !== containerId) return false;
-          } else if (containerType === "hotel" && containerId) {
-            if (nest.hotelId !== containerId) return false;
-          }
-
-          // Then check if the nest is empty
-          return !typedPlates.some((p) => p.nestId === nest.id) && nest.status === "empty";
-        });
-
-        if (emptyNests.length === 0) {
-          throw new Error(
-            `No empty nests available for automatic placement${containerType ? ` in the selected ${containerType}` : ""}`,
-          );
-        }
-
-        // Sort by row and column to get the first available nest in reading order
-        const sortedNests = [...emptyNests].sort((a, b) => {
-          if (a.row === b.row) {
-            return a.column - b.column;
-          }
-          return a.row - b.row;
-        });
-
-        // Use the first available nest
-        nestId = sortedNests[0].id;
-      }
-
       // Get the nest to check capacity
       const targetNest = typedNests.find((n: Nest) => n.id === nestId);
       if (!targetNest) {
@@ -388,57 +346,7 @@ export const InventoryManager = () => {
             nestId: nestId,
           });
         } catch (error) {
-          // If a specific error about duplicate barcode happens, try to generate a new one
-          if (
-            error instanceof Error &&
-            error.message.includes("barcode") &&
-            error.message.includes("already exists")
-          ) {
-            const newBarcode = `${plateData.barcode}-${Date.now().toString().slice(-6)}`;
-            await createPlateMutation.mutateAsync({
-              ...plateData,
-              barcode: newBarcode,
-              nestId: nestId,
-            });
-          } else {
-            // Re-throw other errors
-            throw error;
-          }
-        }
-      }
-
-      // If tool command is requested and it's a single plate for a Liconic tool
-      if (triggerToolCommand && newPlates.length === 1 && !isStatic) {
-        // Find the tool associated with this nest
-        const tool = workcellTools.find((t) => t.id === targetNest.toolId);
-
-        if (tool && tool.type.toLowerCase() === "liconic") {
-          try {
-            // Extract row and column (level) information from the nest
-            const { row, column } = targetNest;
-
-            // Call your tool API here
-            const commandMutation = trpc.tool.runCommand.useMutation();
-
-            await commandMutation.mutateAsync({
-              toolId: tool.id.toString(),
-              toolType: "liconic" as ToolType,
-              command: "store_plate",
-              params: {
-                cassette: 1,
-                level: row + 1,
-              },
-            });
-            successToast(
-              "Tool command triggered",
-              `Physical check-in command sent to ${tool.name} for position R${row + 1}C${column + 1}`,
-            );
-          } catch (cmdError) {
-            errorToast(
-              "Warning: Plate stored but tool command failed",
-              cmdError instanceof Error ? cmdError.message : "Unknown error",
-            );
-          }
+          errorToast("Error creating plate", error.message);
         }
       }
 
@@ -446,10 +354,10 @@ export const InventoryManager = () => {
       setSelectedPlate(null);
       setIsCheckInModalOpen(false);
 
-      successToast("Check-in successful", `${newPlates.length} plate(s) checked in successfully`);
+      successToast("Success", `Plate registered successfully`);
     } catch (error) {
       errorToast(
-        "Error checking in plate(s)",
+        "Error adding in plate(s)",
         error instanceof Error ? error.message : "Unknown error",
       );
     }
@@ -569,22 +477,11 @@ export const InventoryManager = () => {
     }
   };
 
-  const handleCreateHotel = async (hotelData: {
-    name: string;
-    description?: string;
-    rows: number;
-    columns: number;
-  }) => {
+  const handleCreateHotel = async (hotelData: { name: string; rows: number; columns: number }) => {
     try {
-      if (!selectedWorkcell?.id) {
-        throw new Error("No workcell selected");
-      }
-
       // Step 1: Create the hotel first
       const result = (await createHotelMutation.mutateAsync({
         ...hotelData,
-        description: hotelData.description || "",
-        imageUrl: null,
       })) as Hotel;
 
       // Get the hotel ID from the response
@@ -611,7 +508,6 @@ export const InventoryManager = () => {
             }
           }
         }
-
         // Return success data that includes counts
         return {
           successCount: createdNests,
@@ -975,18 +871,12 @@ export const InventoryManager = () => {
           </ModalBody>
           <ModalFooter>
             <Button
-              isDisabled={
-                newHotelName === "" ||
-                newHotelDescription === "" ||
-                newHotelRows === 0 ||
-                newHotelColumns === 0
-              }
+              isDisabled={newHotelName === "" || newHotelRows === 0 || newHotelColumns === 0}
               colorScheme="teal"
               mr={3}
               onClick={async () => {
                 await handleCreateHotel({
                   name: newHotelName,
-                  description: newHotelDescription,
                   rows: newHotelRows,
                   columns: newHotelColumns,
                 });

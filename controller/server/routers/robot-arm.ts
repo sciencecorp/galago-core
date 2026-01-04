@@ -2,7 +2,7 @@ import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { get, post, put, del } from "../utils/api";
 import Tool from "../tools";
-import { Tool as ToolResponse } from "@/types/api";
+import { Tool as ToolResponse } from "@/types";
 
 const zRobotArmLocation = z.object({
   id: z.number().optional(),

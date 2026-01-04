@@ -19,24 +19,15 @@ import {
   TabPanel,
   Text,
   Switch,
-  FormHelperText,
   HStack,
-  IconButton,
   Box,
-  Divider,
   Badge,
   Icon,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  NumberIncrementStepper,
-  NumberDecrementStepper,
 } from "@chakra-ui/react";
 import { Nest, Plate, PlateStatus } from "@/types/api";
 import { Tool } from "@/types";
 import { Package, Grid3x3 } from "lucide-react";
 import NestModal from "./NestModal";
-import { FileAddIcon } from "@/components/ui/Icons";
 import { errorToast } from "@/components/ui/Toast";
 import { useCommonColors, useTextColors } from "@/components/ui/Theme";
 
@@ -299,144 +290,6 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
     }
   };
 
-  const handleCheckIn = async () => {
-    if (!onCheckIn) return;
-
-    try {
-      setIsSubmitting(true);
-
-      // Determine container type and ID before processing
-      let containerInfo = {
-        containerId: selectedContainerId !== "" ? Number(selectedContainerId) : undefined,
-        containerType: selectedContainerType || undefined,
-      };
-
-      // If initial settings were saved, use those for container info
-      if (initialSettings.containerId && initialSettings.containerType) {
-        containerInfo = {
-          containerId: initialSettings.containerId,
-          containerType: initialSettings.containerType,
-        };
-      }
-
-      // Add more information for debugging purposes
-      let containerDetails = "unknown";
-      if (containerInfo.containerType === "tool") {
-        const tool = tools.find((t) => t.id === containerInfo.containerId);
-        containerDetails = tool?.name || "unknown tool";
-      } else if (containerInfo.containerType === "hotel") {
-        const hotel = staticHotels.find((h) => h.id === containerInfo.containerId);
-        containerDetails = hotel?.name || "unknown hotel";
-      }
-
-      // For batch check-in with multiple plates
-      if (numberOfPlates > 1 || uploadedFile) {
-        // Prepare plates to check in
-        let platesToCheckIn: Array<{
-          barcode: string;
-          name: string;
-          plate_type: string;
-          status: PlateStatus;
-        }> = [];
-
-        if (uploadedFile) {
-          // Process CSV file
-          const text = await uploadedFile.text();
-          const rows = text
-            .split("\n")
-            .slice(1)
-            .filter((row) => row.trim()); // Skip header row
-          platesToCheckIn = rows.map((row) => {
-            const [barcode, name, plate_type] = row.split(",").map((cell) => cell.trim());
-            return { barcode, name, plate_type, status: "stored" as PlateStatus };
-          });
-        } else {
-          if (!manualPlateName || !manualPlateType) {
-            throw new Error("Please fill in plate name and type");
-          }
-
-          // Generate plates for batch entry with unique names
-          platesToCheckIn = Array.from({ length: numberOfPlates }, (_, index) => ({
-            barcode: manualBarcode ? `${manualBarcode}-${index + 1}` : generateBarcode(index),
-            name: `${manualPlateName}-${index + 1}`,
-            plate_type: manualPlateType,
-            status: "stored" as PlateStatus,
-          }));
-        }
-
-        // Determine if we're using automatic or manual nest selection
-        if (nestSelections.length === 0) {
-          // For automatic selection, we need to use -1 to indicate auto placement
-          await onCheckIn({
-            nestId: -1, // -1 indicates auto placement
-            plates: platesToCheckIn,
-            triggerToolCommand: false, // Never trigger commands for batch operations
-            isStatic: selectedContainerType === "hotel",
-            ...containerInfo,
-          });
-        } else if (nestSelections.length < numberOfPlates) {
-          // For manual selection, we need enough nests selected
-          throw new Error(
-            `Not enough nests selected. Need ${numberOfPlates} but only selected ${nestSelections.length}.`,
-          );
-        } else {
-          // For manual nest selection with multiple plates, we need to submit them one by one
-          for (let i = 0; i < platesToCheckIn.length; i++) {
-            await onCheckIn({
-              nestId: Number(nestSelections[i]),
-              plates: [platesToCheckIn[i]],
-              triggerToolCommand: false, // Never trigger commands for batch operations
-              isStatic: selectedContainerType === "hotel",
-              // Don't need container info for specific nest selection
-            });
-          }
-        }
-
-        // Reset form after all submissions
-        resetState();
-        onClose();
-        return;
-      }
-
-      // Regular processing for single plate
-      // Use nestSelections if available, otherwise use -1 for auto-placement
-      let targetNestId = nestSelections.length > 0 ? nestSelections[0] : -1;
-
-      // Create single plate
-      if (!manualPlateName || !manualPlateType) {
-        throw new Error("Please fill in plate name and type");
-      }
-
-      const singlePlate = {
-        barcode: manualBarcode || generateBarcode(),
-        name: manualPlateName,
-        plate_type: manualPlateType,
-        status: "stored" as PlateStatus,
-      };
-
-      // Submit for single plate
-      await onCheckIn({
-        nestId: Number(targetNestId),
-        plates: [singlePlate],
-        triggerToolCommand:
-          selectedContainerType === "tool" &&
-          tools.find((t) => t.id === selectedContainerId)?.type?.toLowerCase() === "liconic" &&
-          triggerToolCommand,
-        isStatic: selectedContainerType === "hotel",
-        containerId: Number(selectedContainerId),
-        containerType: selectedContainerType,
-      });
-
-      // Reset form
-      resetState();
-      onClose();
-    } catch (error) {
-      errorToast("Error", error instanceof Error ? error.message : "An error occurred");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleCheckOut = async () => {
     if (!onCheckOut) return;
 
@@ -504,229 +357,110 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
     setSelectionMode("manual");
   };
 
+  // Simplified InventoryModal - Replace the check-in related parts
+
   const renderCheckInContent = () => (
     <VStack spacing={4} align="stretch">
       {/* Plate Information Section */}
       <Box>
         <Text fontWeight="medium" mb={3} color={textColor}>
-          1. Enter Plate Information
+          Enter Plate Information
         </Text>
-        <Tabs
-          isFitted
-          variant="enclosed"
-          bg={sectionBg}
-          p={4}
-          borderRadius="md"
-          borderColor={borderColor}>
-          <TabList mb="1em">
-            <Tab _selected={{ bg: selectedBg, borderColor: borderColor }} color={textColor}>
-              <HStack>
-                <Text>Single Entry</Text>
-                <Badge colorScheme="blue">1 Plate</Badge>
-              </HStack>
-            </Tab>
-            <Tab _selected={{ bg: selectedBg, borderColor: borderColor }} color={textColor}>
-              <HStack>
-                <Text>Batch Entry</Text>
-                <Badge colorScheme="purple">Multiple</Badge>
-              </HStack>
-            </Tab>
-          </TabList>
-          <TabPanels>
-            <TabPanel p={0}>
-              <HStack spacing={4} align="start">
-                <VStack spacing={4} flex="1">
-                  <FormControl isRequired>
-                    <HStack justify="space-between" align="center" mb={2}>
-                      <FormLabel color={labelColor} mb={0}>
-                        Barcode
-                      </FormLabel>
-                      <HStack spacing={2} align="center">
-                        <Text fontSize="sm" color={textColor}>
-                          Auto
-                        </Text>
-                        <Switch
-                          id="auto-barcode"
-                          isChecked={useAutoBarcode}
-                          onChange={(e) => {
-                            setUseAutoBarcode(e.target.checked);
-                            if (e.target.checked) {
-                              setManualBarcode("");
-                            }
-                          }}
-                          colorScheme="teal"
-                          size="sm"
-                        />
-                      </HStack>
-                    </HStack>
-                    <Input
-                      value={manualBarcode}
-                      onChange={(e) => setManualBarcode(e.target.value)}
-                      placeholder={
-                        useAutoBarcode ? "Will be auto-generated" : "Enter plate barcode"
-                      }
-                      bg={inputBg}
-                      isDisabled={useAutoBarcode}
-                    />
-                    <FormHelperText color={textColor}>
-                      {useAutoBarcode ? "Auto-generate barcode" : "Enter barcode manually"}
-                    </FormHelperText>
-                  </FormControl>
-                  <FormControl isRequired>
-                    <FormLabel color={labelColor}>Plate Name</FormLabel>
-                    <Input
-                      value={manualPlateName}
-                      onChange={(e) => setManualPlateName(e.target.value)}
-                      placeholder="Enter plate name"
-                      bg={inputBg}
-                    />
-                  </FormControl>
-                </VStack>
-                <FormControl isRequired flex="1">
-                  <FormLabel color={labelColor}>Plate Type</FormLabel>
-                  <Select
-                    value={manualPlateType}
-                    onChange={(e) => setManualPlateType(e.target.value)}
-                    placeholder="Select plate type"
-                    bg={inputBg}>
-                    <option value="6 well">6 Well</option>
-                    <option value="24 well">24 Well</option>
-                    <option value="96 well">96 Well</option>
-                    <option value="384 well">384 Well</option>
-                  </Select>
-                </FormControl>
-              </HStack>
-            </TabPanel>
-            <TabPanel p={0}>
-              <VStack spacing={4}>
-                <HStack spacing={4} width="100%">
-                  <FormControl isRequired flex="1">
-                    <FormLabel color={labelColor}>Number of Plates</FormLabel>
-                    <NumberInput
-                      min={1}
-                      value={numberOfPlates}
-                      onChange={(_, value) => setNumberOfPlates(value)}
-                      bg={inputBg}>
-                      <NumberInputField />
-                      <NumberInputStepper>
-                        <NumberIncrementStepper />
-                        <NumberDecrementStepper />
-                      </NumberInputStepper>
-                    </NumberInput>
-                  </FormControl>
-                  <FormControl isRequired flex="2">
-                    <FormLabel color={labelColor}>Plate Type</FormLabel>
-                    <Select
-                      value={manualPlateType}
-                      onChange={(e) => setManualPlateType(e.target.value)}
-                      placeholder="Select plate type"
-                      bg={inputBg}>
-                      <option value="6 well">6 Well</option>
-                      <option value="24 well">24 Well</option>
-                      <option value="96 well">96 Well</option>
-                      <option value="384 well">384 Well</option>
-                    </Select>
-                  </FormControl>
-                </HStack>
+        <VStack spacing={4} bg={sectionBg} p={4} borderRadius="md" borderColor={borderColor}>
+          <FormControl isRequired>
+            <FormLabel color={labelColor}>Plate Name</FormLabel>
+            <Input
+              value={manualPlateName}
+              onChange={(e) => setManualPlateName(e.target.value)}
+              placeholder="Enter plate name"
+              bg={inputBg}
+            />
+          </FormControl>
 
-                <HStack spacing={4} width="100%">
-                  <FormControl isRequired flex="1">
-                    <HStack justify="space-between" align="center" mb={2}>
-                      <FormLabel color={labelColor} mb={0}>
-                        Base Barcode
-                      </FormLabel>
-                      <HStack spacing={2} align="center">
-                        <Text fontSize="sm" color={textColor}>
-                          Auto
-                        </Text>
-                        <Switch
-                          id="auto-barcode-batch"
-                          isChecked={useAutoBarcode}
-                          onChange={(e) => {
-                            setUseAutoBarcode(e.target.checked);
-                            if (e.target.checked) {
-                              setManualBarcode("");
-                            }
-                          }}
-                          colorScheme="teal"
-                          size="sm"
-                        />
-                      </HStack>
-                    </HStack>
-                    <Input
-                      value={manualBarcode}
-                      onChange={(e) => setManualBarcode(e.target.value)}
-                      placeholder={
-                        useAutoBarcode
-                          ? "Will be auto-generated"
-                          : "Will be suffixed (-1, -2, etc.)"
-                      }
-                      bg={inputBg}
-                      isDisabled={useAutoBarcode}
-                    />
-                    <FormHelperText color={textColor}>
-                      {useAutoBarcode ? "Auto-generate barcodes" : "Enter base barcode manually"}
-                    </FormHelperText>
-                  </FormControl>
-                  <FormControl isRequired flex="1">
-                    <FormLabel color={labelColor}>Base Plate Name</FormLabel>
-                    <Input
-                      value={manualPlateName}
-                      onChange={(e) => setManualPlateName(e.target.value)}
-                      placeholder="Will be suffixed (-1, -2, etc.)"
-                      bg={inputBg}
-                    />
-                  </FormControl>
-                </HStack>
+          <FormControl isRequired>
+            <FormLabel color={labelColor}>Barcode</FormLabel>
+            <Input
+              value={manualBarcode}
+              onChange={(e) => setManualBarcode(e.target.value)}
+              placeholder="Enter plate barcode"
+              bg={inputBg}
+            />
+          </FormControl>
 
-                <Divider />
-
-                <FormControl>
-                  <FormLabel color={labelColor}>Or Upload CSV File</FormLabel>
-                  <HStack width="100%">
-                    <Input
-                      type="text"
-                      readOnly
-                      value={uploadedFile?.name || ""}
-                      placeholder="No file selected"
-                      bg={inputBg}
-                    />
-                    <IconButton
-                      aria-label="Upload file"
-                      icon={<FileAddIcon />}
-                      onClick={() => fileInputRef.current?.click()}
-                      colorScheme="teal"
-                    />
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileUpload}
-                      style={{ display: "none" }}
-                      accept=".csv"
-                    />
-                  </HStack>
-                  <FormHelperText color={textColor}>
-                    CSV format: barcode,name,plate_type
-                  </FormHelperText>
-                </FormControl>
-              </VStack>
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
+          <FormControl isRequired>
+            <FormLabel color={labelColor}>Plate Type</FormLabel>
+            <Select
+              value={manualPlateType}
+              onChange={(e) => setManualPlateType(e.target.value)}
+              placeholder="Select plate type"
+              bg={inputBg}>
+              <option value="6 well">6 Well</option>
+              <option value="24 well">24 Well</option>
+              <option value="96 well">96 Well</option>
+              <option value="384 well">384 Well</option>
+            </Select>
+          </FormControl>
+        </VStack>
       </Box>
 
-      {/* Display the selected container information */}
+      {/* Nest Selection Section */}
       <Box>
         <Text fontWeight="medium" mb={3} color={textColor}>
-          2. Storage Location
+          Select Nest Location
         </Text>
-        <Box bg={sectionBg} p={4} borderRadius="md">
-          <Text>
-            {selectedContainerType === "tool"
-              ? `Selected Tool: ${tools.find((t) => t.id === Number(selectedContainerId))?.name || "Unknown"}`
-              : `Selected Hotel: ${staticHotels.find((h) => h.id === Number(selectedContainerId))?.name || "Unknown"}`}
-          </Text>
-        </Box>
+        <VStack spacing={4} bg={sectionBg} p={4} borderRadius="md" borderColor={borderColor}>
+          <FormControl isRequired>
+            <FormLabel color={labelColor}>Container</FormLabel>
+            <Select
+              value={
+                selectedContainerId !== "" ? `${selectedContainerType}:${selectedContainerId}` : ""
+              }
+              onChange={handleContainerSelect}
+              placeholder="Select tool or hotel"
+              bg={inputBg}>
+              {storageContainers.map((container) => (
+                <option
+                  key={`${container.type}:${container.id}`}
+                  value={`${container.type}:${container.id}`}>
+                  {container.name} ({container.type === "tool" ? "Tool" : "Hotel"})
+                </option>
+              ))}
+            </Select>
+          </FormControl>
+
+          {selectedContainerId && (
+            <FormControl isRequired>
+              <FormLabel color={labelColor}>Select Nest</FormLabel>
+              <Button
+                leftIcon={<Icon as={Grid3x3} />}
+                colorScheme="teal"
+                variant="outline"
+                size="md"
+                width="100%"
+                onClick={() => setIsNestModalOpen(true)}>
+                {nestSelections.length > 0
+                  ? `Selected: ${filteredNests.find((n) => n.id === nestSelections[0])?.name || "Unknown"}`
+                  : "Open Inventory Grid"}
+              </Button>
+            </FormControl>
+          )}
+
+          {/* Tool Command Toggle - only for Liconic tools */}
+          {selectedContainerType === "tool" &&
+            tools.find((t) => t.id === selectedContainerId)?.type?.toLowerCase() === "liconic" && (
+              <FormControl display="flex" alignItems="center">
+                <FormLabel htmlFor="trigger-command" mb="0" color={labelColor}>
+                  Trigger Physical Check-in
+                </FormLabel>
+                <Switch
+                  id="trigger-command"
+                  isChecked={triggerToolCommand}
+                  onChange={(e) => setTriggerToolCommand(e.target.checked)}
+                  colorScheme="teal"
+                />
+              </FormControl>
+            )}
+        </VStack>
       </Box>
 
       {/* Submit Button */}
@@ -739,13 +473,60 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
         size="lg"
         mt={2}
         isDisabled={
-          !uploadedFile &&
-          ((!useAutoBarcode && !manualBarcode) || !manualPlateName || !manualPlateType)
+          !manualPlateName || !manualBarcode || !manualPlateType || nestSelections.length === 0
         }>
-        Auto Check In
+        Check In Plate
       </Button>
     </VStack>
   );
+
+  // Simplified handleCheckIn function
+  const handleCheckIn = async () => {
+    if (!onCheckIn) return;
+
+    try {
+      setIsSubmitting(true);
+
+      // Validate inputs
+      if (!manualPlateName || !manualBarcode || !manualPlateType) {
+        throw new Error("Please fill in all plate information");
+      }
+
+      if (nestSelections.length === 0) {
+        throw new Error("Please select a nest");
+      }
+
+      const nestId = nestSelections[0];
+
+      // Create the plate data
+      const plateData = {
+        name: manualPlateName,
+        barcode: manualBarcode,
+        plateType: manualPlateType,
+      };
+
+      // Call the onCheckIn handler from parent
+      await onCheckIn({
+        nestId,
+        plates: [plateData],
+        triggerToolCommand:
+          selectedContainerType === "tool" &&
+          tools.find((t) => t.id === selectedContainerId)?.type?.toLowerCase() === "liconic" &&
+          triggerToolCommand,
+        isStatic: selectedContainerType === "hotel",
+        containerId: Number(selectedContainerId),
+        containerType: selectedContainerType,
+      });
+
+      // Reset form and close
+      resetState();
+      onClose();
+    } catch (error) {
+      errorToast("Error", error instanceof Error ? error.message : "An error occurred");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const renderCheckOutContent = () => (
     <VStack spacing={4} align="stretch">

@@ -15,7 +15,6 @@ import {
 import { eq, and, inArray, isNull } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
-// Zod schemas - using camelCase
 const zNest = z.object({
   id: z.number().optional(),
   name: z.string(),
@@ -35,13 +34,6 @@ const zPlate = z.object({
   status: z.enum(["stored", "checked_out", "completed", "disposed"]).optional(),
 });
 
-const zWell = z.object({
-  id: z.number().optional(),
-  row: z.string(),
-  column: z.number(),
-  plateId: z.number(),
-});
-
 const zReagent = z.object({
   id: z.number().optional(),
   name: z.string(),
@@ -53,8 +45,6 @@ const zReagent = z.object({
 const zHotel = z.object({
   id: z.number().optional(),
   name: z.string(),
-  description: z.string().nullable().optional(),
-  imageUrl: z.string().nullable().optional(),
   rows: z.number(),
   columns: z.number(),
 });
@@ -853,8 +843,6 @@ export const inventoryRouter = router({
       .insert(hotels)
       .values({
         name: input.name,
-        description: input.description || null,
-        imageUrl: input.imageUrl || null,
         workcellId: workcellId,
         rows: input.rows,
         columns: input.columns,
@@ -878,9 +866,6 @@ export const inventoryRouter = router({
       .update(hotels)
       .set({
         name: updateData.name,
-        description: updateData.description || null,
-        imageUrl: updateData.imageUrl || null,
-        workcellId: updateData.workcellId,
         rows: updateData.rows,
         columns: updateData.columns,
         updatedAt: new Date().toISOString(),
