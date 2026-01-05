@@ -25,7 +25,7 @@ import { capitalizeFirst } from "@/utils/parser";
 import Head from "next/head";
 import { TeachPendant } from "@/components/tools/advanced/teach_pendant/TeachPendant";
 import { commandFields } from "@/components/tools/constants";
-import { errorToast, loadingToast, successToast } from "@/components/ui/Toast";
+import { loadingToast } from "@/components/ui/Toast";
 import { Tool } from "@/types";
 
 // Inside your component

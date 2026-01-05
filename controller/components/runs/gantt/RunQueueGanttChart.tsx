@@ -1,23 +1,7 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  VStack,
-  HStack,
-  Text,
-  Progress,
-  Tooltip,
-  Flex,
-  Spinner,
-  Image,
-} from "@chakra-ui/react";
+import { Box, VStack, Text, Tooltip, Flex, Spinner, Image } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import moment from "moment";
-import {
-  getRunAttributes,
-  calculateRunTimes,
-  groupCommandsByRun,
-  calculateRunCompletion,
-} from "@/utils/runUtils";
 import { TimelineControls } from "./TimelineControls";
 import "@/styles/Home.module.css";
 import { useColorModeValue } from "@chakra-ui/react";

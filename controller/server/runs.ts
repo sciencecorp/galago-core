@@ -1,12 +1,10 @@
-import { Run, RunCommand } from "@/types";
+import { Run, RunCommand, ToolCommandInfo } from "@/types";
 import snowflakeIdGenerator from "@/utils/snowflake";
 import { ZodError } from "zod";
 import CommandQueue from "./command_queue";
-import { Protocols } from "./protocols";
 import Tool from "./tools";
-import Protocol from "@/protocols/protocol";
 import { db } from "@/db/client";
-import { tools, workcells, appSettings } from "@/db/schema";
+import { tools, workcells, appSettings, protocols } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 // Helper function to get tool from database
@@ -43,6 +41,49 @@ async function getToolFromDB(toolId: string) {
   }
 
   return tool;
+}
+
+// Helper function to load protocol from database
+async function loadProtocolFromDatabase(protocolId: string) {
+  const id = parseInt(protocolId);
+
+  if (isNaN(id)) {
+    throw new ProtocolNotFoundError(`Invalid protocol ID: ${protocolId}`);
+  }
+
+  const protocolResult = await db.select().from(protocols).where(eq(protocols.id, id)).limit(1);
+
+  if (!protocolResult || protocolResult.length === 0) {
+    throw new ProtocolNotFoundError(`Protocol with ID ${protocolId} not found`);
+  }
+
+  return protocolResult[0];
+}
+
+// Helper function to generate commands from protocol data
+function generateCommandsFromProtocol(protocol: any): ToolCommandInfo[] {
+  if (!protocol.commands || protocol.commands.length === 0) {
+    throw new ProtocolGenerationFailedError(`Protocol ${protocol.id} has no commands`);
+  }
+
+  return protocol.commands.map((cmd: any) => ({
+    toolId: cmd.toolId,
+    toolType: cmd.toolType,
+    command: cmd.command,
+    params: cmd.params || {},
+    label: cmd.label || "",
+    tool_info: cmd.tool_info || {
+      type: cmd.toolType,
+      imageUrl: cmd.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
+    },
+    advancedParameters: cmd.advancedParameters || {
+      skipExecutionVariable: {
+        variable: null,
+        value: "",
+      },
+      runAsynchronously: false,
+    },
+  }));
 }
 
 export default class RunStore {
@@ -95,38 +136,59 @@ export default class RunStore {
   }
 
   async createFromProtocol(protocolId: string): Promise<Run> {
-    const protocol = await Protocol.loadFromDatabase(protocolId);
-    if (!protocol) {
-      throw new ProtocolNotFoundError(protocolId);
+    try {
+      // Load protocol from database
+      const protocol = await loadProtocolFromDatabase(protocolId);
+
+      // Generate commands from protocol
+      const commands = generateCommandsFromProtocol(protocol);
+
+      // Create run ID
+      const runId = snowflakeIdGenerator.nextId();
+
+      // Create run commands
+      const runCommands: RunCommand[] = commands.map((c) => ({
+        runId: runId,
+        commandInfo: c,
+        status: "CREATED",
+        createdAt: new Date(),
+      }));
+
+      // Create run object
+      const run: Run = {
+        id: runId,
+        protocolId,
+        commands: runCommands,
+        status: "CREATED",
+        createdAt: new Date(),
+      };
+
+      // Store run
+      RunStore.global.set(runId, run);
+
+      // Enqueue run
+      await CommandQueue.global.enqueueRun(run);
+
+      return run;
+    } catch (error) {
+      // Re-throw our custom errors
+      if (
+        error instanceof ProtocolNotFoundError ||
+        error instanceof ProtocolGenerationFailedError ||
+        error instanceof ProtocolParamsInvalidError
+      ) {
+        throw error;
+      }
+
+      // Wrap unexpected errors
+      throw new ProtocolGenerationFailedError(
+        `Failed to create run: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
-
-    const commands = protocol._generateCommands();
-    if (!commands) {
-      throw new ProtocolGenerationFailedError(protocolId);
-    }
-
-    const runId = snowflakeIdGenerator.nextId();
-    const runCommands: RunCommand[] = commands.map((c) => ({
-      runId: runId,
-      commandInfo: c,
-      status: "CREATED",
-      createdAt: new Date(),
-    }));
-
-    const run: Run = {
-      id: runId,
-      protocolId,
-      commands: runCommands,
-      status: "CREATED",
-      createdAt: new Date(),
-    };
-
-    RunStore.global.set(runId, run);
-    await CommandQueue.global.enqueueRun(run);
-    return run;
   }
 }
 
+// Error classes
 export class ProtocolParamsInvalidError extends Error {
   constructor(
     public protocolId: string,

@@ -32,6 +32,7 @@ export type {
   Well,
   Reagent,
   Nest,
+  Protocol,
 } from "@/db/schema";
 
 import type {

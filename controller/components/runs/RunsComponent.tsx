@@ -32,7 +32,7 @@ import {
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { PlusSquareIcon, ChevronUpIcon, TimeIcon } from "@chakra-ui/icons";
 import { QueueStatusComponent } from "./status/QueueStatuscomponent";
-import { getRunAttributes, groupCommandsByRun } from "@/utils/runUtils";
+import { groupCommandsByRun, getRunAttributes } from "./utils";
 import { Workflow } from "lucide-react";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { Inbox } from "lucide-react";

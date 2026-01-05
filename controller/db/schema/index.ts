@@ -193,14 +193,13 @@ export const scriptsRelations = relations(scripts, ({ one }) => ({
   }),
 }));
 
-// CASCADE: protocols → workcells
 export const protocols = sqliteTable("protocols", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   category: text("category").notNull(),
   workcellId: integer("workcell_id").references(() => workcells.id, { onDelete: "cascade" }),
   description: text("description"),
-  commands: text("commands", { mode: "json" }).notNull(),
+  commands: text("commands", { mode: "json" }).notNull().$type<any[]>(),
   ...timestamps,
 });
 

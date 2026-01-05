@@ -69,7 +69,7 @@ export const ProtocolPageComponent: React.FC = () => {
   const [workcellFilter, setWorkcellFilter] = useState<string>("");
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
-  const [runModalProtocolId, setRunModalProtocolId] = useState<string | null>(null);
+  const [runModalProtocolId, setRunModalProtocolId] = useState<number | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,7 +84,7 @@ export const ProtocolPageComponent: React.FC = () => {
   const hoverBgColor = useColorModeValue("gray.50", "gray.600");
 
   const { data: workcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
-  const { data: protocols, refetch } = trpc.protocol.allNames.useQuery({
+  const { data: protocols, refetch } = trpc.protocol.getAll.useQuery({
     workcellName: workcellName || "",
   });
   const { data: workcells } = trpc.workcell.getAll.useQuery();
@@ -181,7 +181,7 @@ export const ProtocolPageComponent: React.FC = () => {
     }
   };
 
-  const handleRunClick = (protocolId: string) => {
+  const handleRunClick = (protocolId: number) => {
     setRunModalProtocolId(protocolId);
   };
 
@@ -190,7 +190,7 @@ export const ProtocolPageComponent: React.FC = () => {
   };
 
   const handleDelete = async (protocolId: number) => {
-    await deleteMutation.mutateAsync({ id: protocolId });
+    await deleteMutation.mutateAsync(protocolId);
   };
 
   const getWorkcellName = (workcellId: number) => {
@@ -201,7 +201,7 @@ export const ProtocolPageComponent: React.FC = () => {
   const handleUpdateProtocol = (protocolId: number, updates: any) => {
     updateProtocol.mutate({
       id: protocolId,
-      data: updates,
+      ...updates,
     });
   };
 
@@ -445,7 +445,9 @@ export const ProtocolPageComponent: React.FC = () => {
                             <Popover placement="bottom" closeOnBlur={true}>
                               <PopoverTrigger>
                                 <Text cursor="pointer" _hover={{ color: "blue.500" }}>
-                                  {getWorkcellName(protocol.workcellId)}
+                                  {protocol.workcellId
+                                    ? getWorkcellName(protocol.workcellId)
+                                    : "N/A"}
                                 </Text>
                               </PopoverTrigger>
                               <PopoverContent width="fit-content">
@@ -495,7 +497,7 @@ export const ProtocolPageComponent: React.FC = () => {
                               />
                               <MenuList>
                                 <MenuItem
-                                  onClick={() => handleRunClick(protocol.id.toString())}
+                                  onClick={() => handleRunClick(protocol.id)}
                                   color="green.500"
                                   icon={<Icon as={Play} />}>
                                   Run

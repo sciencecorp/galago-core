@@ -12,7 +12,7 @@ import {
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { useRouter } from "next/router";
-import { Protocol } from "@/types/api";
+import { Protocol } from "@/types";
 import { successToast, errorToast } from "../ui/Toast";
 
 type ProtocolFormData = Omit<

@@ -47,7 +47,7 @@ export default function Page() {
   // Fetch data from different sections
   const { data: tools } = trpc.tool.getAll.useQuery();
   const { data: workcells } = trpc.workcell.getAll.useQuery();
-  const { data: protocols } = trpc.protocol.allNames.useQuery({ workcellName: "" });
+  const { data: protocols } = trpc.protocol.getAll.useQuery();
   const { data: labware } = trpc.labware.getAll.useQuery();
   const { data: variables } = trpc.variable.getAll.useQuery();
   const { data: logs } = trpc.logging.getPaginated.useQuery({
