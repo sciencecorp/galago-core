@@ -31,7 +31,7 @@ import {
   GanttChart,
 } from "lucide-react";
 import Link from "next/link";
-import { Plate } from "@/types/api";
+import { Plate } from "@/types";
 import { Calendar } from "@/components/calendar/Calendar";
 import { WorkcellIcon } from "../components/ui/Icons";
 

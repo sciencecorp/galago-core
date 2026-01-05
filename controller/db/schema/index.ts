@@ -60,8 +60,8 @@ export const nests = sqliteTable("nests", {
 
 export const plates = sqliteTable("plates", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name"),
-  barcode: text("barcode").notNull(),
+  name: text("name").unique(),
+  barcode: text("barcode").unique(),
   plateType: text("plate_type").notNull(),
   nestId: integer("nest_id").references(() => nests.id, { onDelete: "set null" }),
   ...timestamps,

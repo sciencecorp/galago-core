@@ -117,7 +117,6 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({ toolId, ne
     }
   };
 
-  // Handler functions for modal
   const handleCreateNest = async (row: number, column: number) => {
     await createNestMutation.mutateAsync({
       name: `Nest ${row + 1}-${column + 1}`,
@@ -125,7 +124,6 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({ toolId, ne
       column,
       toolId,
       hotelId: null,
-      status: "empty",
     });
   };
 
@@ -144,7 +142,6 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({ toolId, ne
       name: params.name,
       plateType: params.plateType,
       nestId: params.nestId,
-      status: "stored",
     });
   };
 

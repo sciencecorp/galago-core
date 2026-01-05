@@ -68,7 +68,7 @@ export const InventoryManager = () => {
   const [newHotelColumns, setNewHotelColumns] = useState(1);
   const [showDeleteHotelModal, setShowDeleteHotelModal] = useState(false);
   const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null);
-
+  const [selectedReagent, setSelectedReagent] = useState<number | null>(null);
   const { colorMode } = useColorMode();
   const isDarkMode = colorMode === "dark";
 
@@ -78,7 +78,6 @@ export const InventoryManager = () => {
     (workcell) => workcell.name === selectedWorkcellName.data,
   );
 
-  // Add a specific query for hotels
   const { data: hotels = [], refetch: refetchHotels } = trpc.inventory.getHotels.useQuery(
     selectedWorkcell?.name || "",
     {
@@ -86,15 +85,9 @@ export const InventoryManager = () => {
     },
   );
 
-  const { data: nests = [], refetch: refetchNests } = trpc.inventory.getNests.useQuery<Nest[]>(
-    selectedWorkcellName.data ?? "",
-    {
-      refetchOnMount: true,
-      refetchOnWindowFocus: true,
-      staleTime: 0, // Always refetch data
-      cacheTime: 0, // Don't cache results
-    },
-  );
+  const { data: nests = [] } = trpc.inventory.getNests.useQuery(undefined, {
+    enabled: !!selectedWorkcellName.data,
+  });
 
   const { data: plates = [], refetch: refetchPlates } = trpc.inventory.getPlates.useQuery<Plate[]>(
     selectedWorkcell?.name || "",
@@ -103,12 +96,12 @@ export const InventoryManager = () => {
     },
   );
 
-  const { data: reagents = [], refetch: refetchReagents } = trpc.inventory.getReagents.useQuery<
-    Reagent[]
-  >(selectedWorkcell?.id ?? 0, {
-    enabled: !!plates && Array.isArray(plates) && plates.length > 0,
-  });
-
+  const { data: reagents = [] } = trpc.inventory.getReagents.useQuery(
+    { workcellName: selectedWorkcellName.data },
+    {
+      enabled: !!selectedWorkcellName.data,
+    },
+  );
   const createNestMutation = trpc.inventory.createNest.useMutation();
   const deleteNestMutation = trpc.inventory.deleteNest.useMutation();
   const createReagentMutation = trpc.inventory.createReagent.useMutation();
@@ -138,21 +131,14 @@ export const InventoryManager = () => {
 
   const handleCreateReagent = async (
     wellId: number,
-    reagentData: Omit<Reagent, "id" | "well_id">,
+    reagentData: { name: string; expirationDate: string; volume: number },
   ) => {
-    try {
-      await createReagentMutation.mutateAsync({
-        ...reagentData,
-        wellId: wellId,
-      });
-      refetchReagents();
-    } catch (error) {
-      errorToast(
-        "Error creating reagent",
-        error instanceof Error ? error.message : "Unknown error",
-      );
-      throw error;
-    }
+    await createReagentMutation.mutateAsync({
+      name: reagentData.name,
+      expirationDate: reagentData.expirationDate,
+      volume: reagentData.volume,
+      wellId: wellId,
+    });
   };
 
   const handleCreateHotel = async (hotelData: { name: string; rows: number; columns: number }) => {
@@ -214,7 +200,6 @@ export const InventoryManager = () => {
 
       // Step 3: Refresh the data
       await refetchHotels();
-      await refetchNests();
     } catch (error) {
       errorToast("Error creating hotel", error instanceof Error ? error.message : "Unknown error");
     }
@@ -275,18 +260,16 @@ export const InventoryManager = () => {
 
       // Always refresh the data regardless of errors
       await refetchHotels();
-      await refetchNests();
     } catch (error) {
       errorToast("Error deleting hotel", error instanceof Error ? error.message : "Unknown error");
 
       // Still refresh data even after errors
       await refetchHotels();
-      await refetchNests();
     }
   };
 
-  const handleReagentSelect = (reagentId: string) => {
-    setSelectedReagent(reagentId);
+  const handleReagentSelect = (reagent: Reagent) => {
+    setSelectedReagent(reagent.id);
   };
 
   return (

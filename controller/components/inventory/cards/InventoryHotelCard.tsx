@@ -15,14 +15,13 @@ import {
   useColorModeValue,
   IconButton,
 } from "@chakra-ui/react";
-import { Nest, Plate } from "@/types/api";
+import { Nest, Plate } from "@/types";
 import NestModal from "../modals/NestModal";
 import { trpc } from "@/utils/trpc";
 import { Grid3x3, Package, FlaskConical, Building } from "lucide-react";
 import { Icon } from "@/components/ui/Icons";
 import { useCommonColors, useTextColors } from "@/components/ui/Theme";
 import { DeleteIcon } from "@chakra-ui/icons";
-import { successToast, errorToast } from "@/components/ui/Toast";
 
 interface InventoryHotelCardProps {
   hotelId: number;
@@ -49,20 +48,12 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
   const createNestMutation = trpc.inventory.createNest.useMutation({
     onSuccess: () => {
       utils.inventory.getNests.invalidate();
-      successToast("Success", "Nest created successfully");
-    },
-    onError: (error) => {
-      errorToast("Error", error.message || "Failed to create nest");
     },
   });
 
   const deleteNestMutation = trpc.inventory.deleteNest.useMutation({
     onSuccess: () => {
       utils.inventory.getNests.invalidate();
-      successToast("Success", "Nest deleted successfully");
-    },
-    onError: (error) => {
-      errorToast("Error", error.message || "Failed to delete nest");
     },
   });
 
@@ -70,20 +61,12 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
     onSuccess: () => {
       utils.inventory.getPlates.invalidate();
       utils.inventory.getNests.invalidate();
-      successToast("Success", "Plate created successfully");
-    },
-    onError: (error) => {
-      errorToast("Error", error.message || "Failed to create plate");
     },
   });
 
   const updatePlateMutation = trpc.inventory.updatePlate.useMutation({
     onSuccess: () => {
       utils.inventory.getPlates.invalidate();
-      successToast("Success", "Plate updated successfully");
-    },
-    onError: (error) => {
-      errorToast("Error", error.message || "Failed to update plate");
     },
   });
 
@@ -91,14 +74,10 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
     onSuccess: () => {
       utils.inventory.getPlates.invalidate();
       utils.inventory.getNests.invalidate();
-      successToast("Success", "Plate deleted successfully");
-    },
-    onError: (error) => {
-      errorToast("Error", error.message || "Failed to delete plate");
     },
   });
 
-  const hotelNests = nests.filter((nest) => nest.hotel_id === hotelId);
+  const hotelNests = nests.filter((nest) => nest.hotelId === hotelId);
   const hotelPlates = plates.filter((plate) => hotelNests.some((nest) => nest.id === plate.nestId));
 
   useEffect(() => {
@@ -116,7 +95,6 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
       column,
       toolId: null,
       hotelId,
-      status: "empty",
     });
   };
 
@@ -135,7 +113,6 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
       name: params.name,
       plateType: params.plateType,
       nestId: params.nestId,
-      status: "stored",
     });
   };
 
@@ -247,8 +224,6 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
         isOpen={isOpen}
         onClose={onClose}
         containerName={hotel?.name || "Hotel"}
-        containerType="hotel"
-        containerId={hotelId}
         nests={hotelNests}
         plates={hotelPlates}
         onCreateNest={handleCreateNest}

@@ -17,12 +17,18 @@ const zNest = z.object({
 
 const zPlate = z.object({
   id: z.number().optional(),
+  name: z.string().nullable().optional(),
+  barcode: z.string().optional(),
+  plateType: z.string().optional(),
+  nestId: z.number().nullable().optional(),
+});
+
+const zPlateCreate = z.object({
   name: z.string().nullable(),
   barcode: z.string(),
   plateType: z.string(),
   nestId: z.number().nullable().optional(),
 });
-
 const zReagent = z.object({
   id: z.number().optional(),
   name: z.string(),
@@ -254,51 +260,54 @@ export const inventoryRouter = router({
     };
   }),
 
-  createPlate: procedure.input(zPlate.omit({ id: true })).mutation(async ({ input }) => {
-    // Check for existing plate
-    if (input.name) {
-      const existing = await findOne(plates, eq(plates.name, input.name));
-      if (existing) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: "Plate with that name already exists",
-        });
-      }
-    }
+  createPlate: procedure.input(zPlateCreate).mutation(async ({ input }) => {
+    try {
+      // Create plate - database will enforce uniqueness
+      const newPlate = await db
+        .insert(plates)
+        .values({
+          name: input.name,
+          barcode: input.barcode,
+          plateType: input.plateType,
+          nestId: input.nestId || null,
+        })
+        .returning();
 
-    // Create plate
-    const newPlate = await db
-      .insert(plates)
-      .values({
-        name: input.name,
-        barcode: input.barcode,
-        plateType: input.plateType,
-        nestId: input.nestId || null,
-      })
-      .returning();
+      const plate = newPlate[0];
 
-    const plate = newPlate[0];
+      // Create wells based on plate type
+      const config = getPlateWellConfig(plate.plateType);
+      if (config.columns.length > 0 && config.rows.length > 0) {
+        const wellsToCreate = [];
+        for (const column of config.columns) {
+          for (const row of config.rows) {
+            wellsToCreate.push({
+              plateId: plate.id,
+              row,
+              column,
+            });
+          }
+        }
 
-    // Create wells based on plate type
-    const config = getPlateWellConfig(plate.plateType);
-    if (config.columns.length > 0 && config.rows.length > 0) {
-      const wellsToCreate = [];
-      for (const column of config.columns) {
-        for (const row of config.rows) {
-          wellsToCreate.push({
-            plateId: plate.id,
-            row,
-            column,
-          });
+        if (wellsToCreate.length > 0) {
+          await db.insert(wells).values(wellsToCreate);
         }
       }
 
-      if (wellsToCreate.length > 0) {
-        await db.insert(wells).values(wellsToCreate);
+      return plate;
+    } catch (error: any) {
+      // Check if it's a unique constraint violation
+      if (
+        error.code === "SQLITE_CONSTRAINT" ||
+        error.message?.includes("UNIQUE constraint failed")
+      ) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "A plate with this barcode or name already exists",
+        });
       }
+      throw error;
     }
-
-    return plate;
   }),
 
   updatePlate: procedure.input(zPlate).mutation(async ({ input }) => {
@@ -644,10 +653,6 @@ export const inventoryRouter = router({
 
     return { message: "Reagent deleted successfully" };
   }),
-
-  // ============================================================================
-  // HOTEL OPERATIONS
-  // ============================================================================
 
   getHotels: procedure.input(z.string().optional()).query(async ({ input: workcellName }) => {
     const name =

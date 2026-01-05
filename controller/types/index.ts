@@ -29,11 +29,22 @@ export type {
   Workcell,
   Hotel,
   Plate,
+  Well,
   Reagent,
   Nest,
 } from "@/db/schema";
 
-import type { Workcell, Tool, ScriptFolder, Script, Hotel } from "@/db/schema";
+import type {
+  Workcell,
+  Tool,
+  ScriptFolder,
+  Script,
+  Hotel,
+  Nest,
+  Plate,
+  Well,
+  Reagent,
+} from "@/db/schema";
 
 export interface WorkcellResponse extends Workcell {
   tools: Tool[];
@@ -43,4 +54,14 @@ export interface WorkcellResponse extends Workcell {
 export interface FolderResponse extends ScriptFolder {
   scripts: Script[];
   subFolders: FolderResponse[];
+}
+
+export interface Inventory {
+  workcell: Workcell;
+  instruments: Tool[];
+  hotels?: Hotel[];
+  nests: Nest[];
+  plates: Plate[];
+  wells: Well[];
+  reagents: Reagent[];
 }
