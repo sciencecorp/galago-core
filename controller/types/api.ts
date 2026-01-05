@@ -27,7 +27,6 @@ export interface Instrument extends InstrumentCreate {
   id: number;
 }
 
-export type NestStatus = "empty" | "occupied" | "reserved" | "error";
 export type PlateStatus = "stored" | "checked_out" | "completed" | "disposed";
 export type PlateNestAction = "check_in" | "check_out" | "transfer";
 

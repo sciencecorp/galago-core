@@ -24,7 +24,6 @@ import { useColorModeValue } from "@chakra-ui/react";
 import { Wrench, Grid3x3, Package, FlaskConical } from "lucide-react";
 import { Icon } from "@/components/ui/Icons";
 import { useCommonColors, useTextColors } from "@/components/ui/Theme";
-import { successToast, errorToast } from "@/components/ui/Toast";
 
 interface InventoryToolCardProps {
   toolId: number;
@@ -59,52 +58,26 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({ toolId, ne
   const createNestMutation = trpc.inventory.createNest.useMutation({
     onSuccess: () => {
       utils.inventory.getNests.invalidate();
-      successToast("Success", "Nest created successfully");
-    },
-    onError: (error) => {
-      errorToast("Error", error.message || "Failed to create nest");
     },
   });
-
   const deleteNestMutation = trpc.inventory.deleteNest.useMutation({
     onSuccess: () => {
       utils.inventory.getNests.invalidate();
-      successToast("Success", "Nest deleted successfully");
-    },
-    onError: (error) => {
-      errorToast("Error", error.message || "Failed to delete nest");
     },
   });
-
   const createPlateMutation = trpc.inventory.createPlate.useMutation({
     onSuccess: () => {
       utils.inventory.getPlates.invalidate();
-      utils.inventory.getNests.invalidate();
-      successToast("Success", "Plate created successfully");
-    },
-    onError: (error) => {
-      errorToast("Error", error.message || "Failed to create plate");
     },
   });
-
   const updatePlateMutation = trpc.inventory.updatePlate.useMutation({
     onSuccess: () => {
       utils.inventory.getPlates.invalidate();
-      successToast("Success", "Plate updated successfully");
-    },
-    onError: (error) => {
-      errorToast("Error", error.message || "Failed to update plate");
     },
   });
-
   const deletePlateMutation = trpc.inventory.deletePlate.useMutation({
     onSuccess: () => {
       utils.inventory.getPlates.invalidate();
-      utils.inventory.getNests.invalidate();
-      successToast("Success", "Plate deleted successfully");
-    },
-    onError: (error) => {
-      errorToast("Error", error.message || "Failed to delete plate");
     },
   });
 
@@ -271,8 +244,6 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({ toolId, ne
         isOpen={isOpen}
         onClose={onClose}
         containerName={name || ""}
-        containerType="tool"
-        containerId={toolId}
         nests={toolNests}
         plates={toolPlates}
         onCreateNest={handleCreateNest}

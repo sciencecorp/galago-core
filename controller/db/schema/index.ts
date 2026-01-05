@@ -51,11 +51,10 @@ export const hotels = sqliteTable("hotels", {
 export const nests = sqliteTable("nests", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name"),
-  row: integer("row"),
-  column: integer("column"),
+  row: integer("row").notNull(),
+  column: integer("column").notNull(),
   toolId: integer("tool_id").references(() => tools.id, { onDelete: "cascade" }),
   hotelId: integer("hotel_id").references(() => hotels.id, { onDelete: "cascade" }),
-  status: text("status").notNull().default("empty"),
   ...timestamps,
 });
 
@@ -65,7 +64,6 @@ export const plates = sqliteTable("plates", {
   barcode: text("barcode").notNull(),
   plateType: text("plate_type").notNull(),
   nestId: integer("nest_id").references(() => nests.id, { onDelete: "set null" }),
-  status: text("status").notNull().default("stored"),
   ...timestamps,
 });
 

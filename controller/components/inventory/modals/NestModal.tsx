@@ -16,7 +16,6 @@ import {
   HStack,
   Badge,
   Tooltip,
-  Icon,
   Flex,
   Select,
   Tabs,
@@ -32,22 +31,20 @@ import {
   Td,
   FormControl,
   FormLabel,
-  useDisclosure,
   Divider,
 } from "@chakra-ui/react";
-import { Nest, Plate } from "@/types/api";
-import { AddIcon, MinusIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
-import { WellPlateIcon } from "@/components/ui/Icons";
-import { Check, Grid3x3, X } from "lucide-react";
+import { Nest, Plate } from "@/types";
+import { AddIcon, MinusIcon, DeleteIcon } from "@chakra-ui/icons";
+import { WellPlateIcon, Icon } from "@/components/ui/Icons";
+import { Check, Grid3x3 } from "lucide-react";
 import { successToast, errorToast, warningToast } from "@/components/ui/Toast";
 import { useCommonColors, useTextColors } from "@/components/ui/Theme";
+import { EditableText, EditableSelect } from "@/components/ui/Form";
 
 interface NestModalProps {
   isOpen: boolean;
   onClose: () => void;
   containerName: string;
-  containerType: "tool" | "hotel";
-  containerId: number;
   nests: Nest[];
   plates: Plate[];
   onCreateNest?: (row: number, column: number) => Promise<void>;
@@ -69,12 +66,35 @@ interface NestModalProps {
   onDeletePlate?: (plateId: number) => Promise<void>;
 }
 
+const PLATE_TYPE_OPTIONS = [
+  { label: "6 Well", value: "6 well" },
+  { label: "24 Well", value: "24 well" },
+  { label: "96 Well", value: "96 well" },
+  { label: "384 Well", value: "384 well" },
+];
+
+const getPlateTypeInfo = (plateType: string) => {
+  const rows = plateType?.includes("384")
+    ? 16
+    : plateType?.includes("96")
+      ? 8
+      : plateType?.includes("24")
+        ? 4
+        : 2;
+  const cols = plateType?.includes("384")
+    ? 24
+    : plateType?.includes("96")
+      ? 12
+      : plateType?.includes("24")
+        ? 6
+        : 3;
+  return { rows, cols };
+};
+
 const NestModal: React.FC<NestModalProps> = ({
   isOpen,
   onClose,
   containerName,
-  containerType,
-  containerId,
   nests,
   plates,
   onCreateNest,
@@ -85,18 +105,22 @@ const NestModal: React.FC<NestModalProps> = ({
 }) => {
   const [selectedNest, setSelectedNest] = useState<Nest | null>(null);
   const [dimensionMode, setDimensionMode] = useState<"row" | "column">("column");
-  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
-
-  // Plate form state
-  const [plateBarcode, setPlateBarcode] = useState("");
-  const [plateName, setPlateName] = useState("");
-  const [plateType, setPlateType] = useState("96 well");
-
-  // Edit state
-  const [editingPlateId, setEditingPlateId] = useState<number | null>(null);
-  const [editBarcode, setEditBarcode] = useState("");
-  const [editName, setEditName] = useState("");
-  const [editType, setEditType] = useState("");
+  const [plateForm, setPlateForm] = useState({
+    barcode: "",
+    name: "",
+    plateType: "96 well",
+  });
+  // Separate state for table view - keyed by nest ID
+  const [tablePlateInputs, setTablePlateInputs] = useState<
+    Record<
+      number,
+      {
+        barcode: string;
+        name: string;
+        plateType: string;
+      }
+    >
+  >({});
 
   const maxRows = nests.length > 0 ? Math.max(...nests.map((n) => n.row)) + 1 : 1;
   const maxColumns = nests.length > 0 ? Math.max(...nests.map((n) => n.column)) + 1 : 1;
@@ -110,17 +134,13 @@ const NestModal: React.FC<NestModalProps> = ({
     inputBg,
   } = useCommonColors();
   const { primary: textColor } = useTextColors();
-  const ghostNestBorder = nestBorderColor;
-  const labelBg = nestBg;
 
   // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
       setSelectedNest(null);
-      setPlateBarcode("");
-      setPlateName("");
-      setPlateType("96 well");
-      setEditingPlateId(null);
+      setPlateForm({ barcode: "", name: "", plateType: "96 well" });
+      setTablePlateInputs({});
     }
   }, [isOpen]);
 
@@ -134,24 +154,6 @@ const NestModal: React.FC<NestModalProps> = ({
 
   const cellSize = calculateCellSize();
   const labelWidth = maxRows >= 10 ? "45px" : "40px";
-
-  const getPlateTypeInfo = (plateType: string) => {
-    const rows = plateType.includes("384")
-      ? 16
-      : plateType.includes("96")
-        ? 8
-        : plateType.includes("24")
-          ? 4
-          : 2;
-    const cols = plateType.includes("384")
-      ? 24
-      : plateType.includes("96")
-        ? 12
-        : plateType.includes("24")
-          ? 6
-          : 3;
-    return { rows, cols };
-  };
 
   const handleDimensionChange = async (type: "row" | "column", operation: "add" | "remove") => {
     try {
@@ -194,13 +196,20 @@ const NestModal: React.FC<NestModalProps> = ({
     }
   };
 
-  const handleAddPlate = async () => {
-    if (!selectedNest) {
+  const handleAddPlate = async (nestId?: number) => {
+    const targetNest = nestId ? nests.find((n) => n.id === nestId) : selectedNest;
+
+    if (!targetNest) {
       warningToast("No nest selected", "Please select a nest first");
       return;
     }
 
-    if (!plateBarcode || !plateName) {
+    // Get form data from table inputs or grid form
+    const formData = nestId
+      ? tablePlateInputs[nestId] || { barcode: "", name: "", plateType: "96 well" }
+      : plateForm;
+
+    if (!formData.barcode || !formData.name) {
       warningToast("Missing information", "Please fill in barcode and name");
       return;
     }
@@ -212,53 +221,43 @@ const NestModal: React.FC<NestModalProps> = ({
 
     try {
       await onCreatePlate({
-        barcode: plateBarcode,
-        name: plateName,
-        plateType: plateType,
-        nestId: selectedNest.id,
+        barcode: formData.barcode,
+        name: formData.name,
+        plateType: formData.plateType,
+        nestId: targetNest.id,
       });
 
       successToast("Success", "Plate added successfully");
-      setPlateBarcode("");
-      setPlateName("");
-      setPlateType("96 well");
-      setSelectedNest(null);
+
+      // Clear appropriate form
+      if (nestId) {
+        setTablePlateInputs((prev) => {
+          const newInputs = { ...prev };
+          delete newInputs[nestId];
+          return newInputs;
+        });
+      } else {
+        setPlateForm({ barcode: "", name: "", plateType: "96 well" });
+        setSelectedNest(null);
+      }
     } catch (error) {
       errorToast("Error", error instanceof Error ? error.message : "Failed to add plate");
     }
   };
 
-  const handleStartEdit = (plate: Plate) => {
-    setEditingPlateId(plate.id);
-    setEditBarcode(plate.barcode || "");
-    setEditName(plate.name || "");
-    setEditType(plate.plate_type || "");
-  };
-
-  const handleSaveEdit = async (plateId: number) => {
-    if (!onUpdatePlate) {
-      errorToast("Error", "Plate update not configured");
-      return;
-    }
+  const handleUpdatePlateField = async (
+    plateId: number,
+    field: "barcode" | "name" | "plateType",
+    value: string | null | undefined,
+  ) => {
+    if (!onUpdatePlate || !value) return;
 
     try {
-      await onUpdatePlate(plateId, {
-        barcode: editBarcode,
-        name: editName,
-        plateType: editType,
-      });
-      successToast("Success", "Plate updated successfully");
-      setEditingPlateId(null);
+      await onUpdatePlate(plateId, { [field]: value });
+      successToast("Success", `Plate ${field} updated successfully`);
     } catch (error) {
-      errorToast("Error", error instanceof Error ? error.message : "Failed to update plate");
+      errorToast("Error", error instanceof Error ? error.message : `Failed to update ${field}`);
     }
-  };
-
-  const handleCancelEdit = () => {
-    setEditingPlateId(null);
-    setEditBarcode("");
-    setEditName("");
-    setEditType("");
   };
 
   const handleDeletePlate = async (plateId: number) => {
@@ -271,6 +270,7 @@ const NestModal: React.FC<NestModalProps> = ({
       try {
         await onDeletePlate(plateId);
         successToast("Success", "Plate deleted successfully");
+        setSelectedNest(null);
       } catch (error) {
         errorToast("Error", error instanceof Error ? error.message : "Failed to delete plate");
       }
@@ -278,7 +278,7 @@ const NestModal: React.FC<NestModalProps> = ({
   };
 
   const renderNestContent = (nest: Nest) => {
-    const plate = plates.find((p) => p.nest_id === nest.id);
+    const plate = plates.find((p) => p.nestId === nest.id);
     const isSelected = selectedNest?.id === nest.id;
 
     return (
@@ -303,43 +303,34 @@ const NestModal: React.FC<NestModalProps> = ({
           shadow: "md",
           borderColor: selectedNestBorder,
         }}>
-        {plate && (
-          <Tooltip label={`${plate.name || "Unnamed Plate"}`}>
-            <Box>
-              <WellPlateIcon
-                rows={getPlateTypeInfo(plate.plate_type).rows}
-                columns={getPlateTypeInfo(plate.plate_type).cols}
-                size={`calc(${cellSize} - 20px)`}
-              />
-            </Box>
-          </Tooltip>
-        )}
-        {!plate && (
-          <Badge
-            position="absolute"
-            top="-2"
-            left="-2"
-            colorScheme={
-              nest.status === "empty" ? "gray" : nest.status === "reserved" ? "yellow" : "red"
-            }
-            borderRadius="full"
-            px="1.5"
-            fontSize="2xs">
-            {nest.status.charAt(0).toUpperCase()}
-          </Badge>
-        )}
-        {isSelected && (
-          <Badge
-            position="absolute"
-            top="-2"
-            right="-2"
-            colorScheme="teal"
-            borderRadius="full"
-            p="0.5"
-            fontSize="xs">
-            <Icon as={Check} boxSize={3} />
-          </Badge>
-        )}
+        {plate ? (
+          <>
+            <Tooltip label={`${plate.name || "Unnamed Plate"}`}>
+              <Box>
+                <WellPlateIcon
+                  rows={getPlateTypeInfo(plate.plateType).rows}
+                  columns={getPlateTypeInfo(plate.plateType).cols}
+                  size={`calc(${cellSize} - 20px)`}
+                />
+              </Box>
+            </Tooltip>
+
+            <Badge
+              position="absolute"
+              top="-2"
+              right="-2"
+              colorScheme="teal"
+              borderRadius="full"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              w="6"
+              h="6"
+              p="0">
+              <Icon as={Check} boxSize="3" />
+            </Badge>
+          </>
+        ) : null}
       </Box>
     );
   };
@@ -353,168 +344,184 @@ const NestModal: React.FC<NestModalProps> = ({
     return "3xl";
   };
 
-  const renderGridView = () => (
-    <Flex gap={6} height="100%">
-      {/* Left side - Add Plate Form */}
-      <Box flex="1" minW="300px">
-        <Box
-          bg={nestBg}
-          p={4}
-          borderRadius="md"
-          borderWidth="1px"
-          borderColor={nestBorderColor}
-          position="sticky"
-          top="0"
-          height="fit-content">
-          <VStack spacing={4} align="stretch">
-            <VStack align="start" spacing={1}>
-              <Text fontWeight="bold" fontSize="lg">
-                Add Plate to Nest
-              </Text>
-              {selectedNest ? (
-                <Badge colorScheme="teal" fontSize="sm">
-                  Nest {selectedNest.row + 1}-{selectedNest.column + 1}
-                </Badge>
-              ) : (
-                <Text fontSize="sm" color="gray.500">
-                  Select a nest from the grid
+  const renderPlateForm = (nestId?: number) => (
+    <VStack spacing={4} align="stretch">
+      <FormControl isRequired>
+        <FormLabel>Barcode</FormLabel>
+        <Input
+          value={plateForm.barcode}
+          onChange={(e) => setPlateForm({ ...plateForm, barcode: e.target.value })}
+          placeholder="Scan or enter barcode"
+          bg={inputBg}
+        />
+      </FormControl>
+
+      <FormControl isRequired>
+        <FormLabel>Plate Name</FormLabel>
+        <Input
+          value={plateForm.name}
+          onChange={(e) => setPlateForm({ ...plateForm, name: e.target.value })}
+          placeholder="Enter plate name"
+          bg={inputBg}
+        />
+      </FormControl>
+
+      <FormControl isRequired>
+        <FormLabel>Plate Type</FormLabel>
+        <Select
+          value={plateForm.plateType}
+          onChange={(e) => setPlateForm({ ...plateForm, plateType: e.target.value })}
+          bg={inputBg}>
+          {PLATE_TYPE_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </Select>
+      </FormControl>
+
+      <Button
+        colorScheme="teal"
+        onClick={() => handleAddPlate(nestId)}
+        isDisabled={!plateForm.barcode || !plateForm.name}
+        width="100%"
+        size="lg">
+        Add Plate
+      </Button>
+    </VStack>
+  );
+
+  const renderGridView = () => {
+    const selectedPlate = selectedNest ? plates.find((p) => p.nestId === selectedNest.id) : null;
+
+    return (
+      <Flex gap={6} height="100%">
+        {/* Left side - Add Plate Form */}
+        <Box flex="1" minW="300px">
+          <Box
+            bg={nestBg}
+            p={4}
+            borderRadius="md"
+            borderWidth="1px"
+            borderColor={nestBorderColor}
+            position="sticky"
+            top="0"
+            height="fit-content">
+            <VStack spacing={4} align="stretch">
+              <VStack align="start" spacing={1}>
+                <Text fontWeight="bold" fontSize="lg">
+                  {selectedPlate ? "Manage Plate" : "Add Plate to Nest"}
                 </Text>
+                {selectedNest ? (
+                  <Badge colorScheme="teal" fontSize="sm">
+                    Nest {selectedNest.row + 1}-{selectedNest.column + 1}
+                  </Badge>
+                ) : (
+                  <Text fontSize="sm" color="gray.500">
+                    Select a nest from the grid
+                  </Text>
+                )}
+              </VStack>
+              <Divider />
+              {selectedNest && !selectedPlate && renderPlateForm()}
+              {selectedPlate && (
+                <VStack spacing={3} align="stretch">
+                  <Box p={3} bg={ghostNestBg} borderRadius="md">
+                    <VStack align="start" spacing={2}>
+                      <Text fontSize="sm">
+                        <strong>Name:</strong> {selectedPlate.name}
+                      </Text>
+                      <Text fontSize="sm">
+                        <strong>Barcode:</strong> {selectedPlate.barcode}
+                      </Text>
+                      <Text fontSize="sm">
+                        <strong>Type:</strong> {selectedPlate.plateType}
+                      </Text>
+                    </VStack>
+                  </Box>
+                  <Button
+                    colorScheme="red"
+                    variant="outline"
+                    onClick={() => handleDeletePlate(selectedPlate.id)}
+                    leftIcon={<DeleteIcon />}
+                    width="100%">
+                    Remove Plate
+                  </Button>
+                </VStack>
+              )}
+
+              {selectedNest && (
+                <Button
+                  variant="ghost"
+                  onClick={() => setSelectedNest(null)}
+                  width="100%"
+                  size="sm">
+                  Clear Selection
+                </Button>
               )}
             </VStack>
-
-            <Divider />
-
-            <FormControl isRequired isDisabled={!selectedNest}>
-              <FormLabel>Barcode</FormLabel>
-              <Input
-                value={plateBarcode}
-                onChange={(e) => setPlateBarcode(e.target.value)}
-                placeholder="Scan or enter barcode"
-                bg={inputBg}
-                isDisabled={!selectedNest}
-              />
-            </FormControl>
-
-            <FormControl isRequired isDisabled={!selectedNest}>
-              <FormLabel>Plate Name</FormLabel>
-              <Input
-                value={plateName}
-                onChange={(e) => setPlateName(e.target.value)}
-                placeholder="Enter plate name"
-                bg={inputBg}
-                isDisabled={!selectedNest}
-              />
-            </FormControl>
-
-            <FormControl isRequired isDisabled={!selectedNest}>
-              <FormLabel>Plate Type</FormLabel>
-              <Select
-                value={plateType}
-                onChange={(e) => setPlateType(e.target.value)}
-                bg={inputBg}
-                isDisabled={!selectedNest}>
-                <option value="6 well">6 Well</option>
-                <option value="24 well">24 Well</option>
-                <option value="96 well">96 Well</option>
-                <option value="384 well">384 Well</option>
-              </Select>
-            </FormControl>
-
-            <Button
-              colorScheme="teal"
-              onClick={handleAddPlate}
-              isDisabled={!selectedNest || !plateBarcode || !plateName}
-              width="100%"
-              size="lg">
-              Add Plate
-            </Button>
-
-            {selectedNest && (
-              <Button variant="ghost" onClick={() => setSelectedNest(null)} width="100%" size="sm">
-                Clear Selection
-              </Button>
-            )}
-          </VStack>
+          </Box>
         </Box>
-      </Box>
 
-      {/* Right side - Grid */}
-      <Box flex="2">
-        <VStack spacing={4} align="stretch">
-          {/* Grid Controls */}
-          {onCreateNest && onDeleteNest && (
-            <HStack spacing={2} justify="flex-end">
-              <Button
-                size="sm"
-                variant="ghost"
-                rightIcon={
-                  dimensionMode === "column" ? (
-                    <Icon as={Grid3x3} />
-                  ) : (
-                    <Icon as={Grid3x3} transform="rotate(90deg)" />
-                  )
-                }
-                onClick={() => setDimensionMode((prev) => (prev === "column" ? "row" : "column"))}>
-                {dimensionMode === "column" ? "Adding Columns" : "Adding Rows"}
-              </Button>
-              <Tooltip label={`Add ${dimensionMode}`}>
-                <IconButton
-                  aria-label={`Add ${dimensionMode}`}
-                  icon={<AddIcon />}
+        {/* Right side - Grid */}
+        <Box flex="2">
+          <VStack spacing={4} align="stretch">
+            {/* Grid Controls */}
+            {onCreateNest && onDeleteNest && (
+              <HStack spacing={2} justify="flex-end">
+                <Button
                   size="sm"
-                  onClick={() => handleDimensionChange(dimensionMode, "add")}
-                  colorScheme="teal"
-                />
-              </Tooltip>
-              {(dimensionMode === "row" ? maxRows : maxColumns) > 1 && (
-                <Tooltip label={`Remove ${dimensionMode}`}>
+                  variant="ghost"
+                  rightIcon={
+                    dimensionMode === "column" ? (
+                      <Icon as={Grid3x3} />
+                    ) : (
+                      <Icon as={Grid3x3} transform="rotate(90deg)" />
+                    )
+                  }
+                  onClick={() =>
+                    setDimensionMode((prev) => (prev === "column" ? "row" : "column"))
+                  }>
+                  {dimensionMode === "column" ? "Adding Columns" : "Adding Rows"}
+                </Button>
+                <Tooltip label={`Add ${dimensionMode}`}>
                   <IconButton
-                    aria-label={`Remove ${dimensionMode}`}
-                    icon={<MinusIcon />}
+                    aria-label={`Add ${dimensionMode}`}
+                    icon={<AddIcon />}
                     size="sm"
-                    onClick={() => handleDimensionChange(dimensionMode, "remove")}
+                    onClick={() => handleDimensionChange(dimensionMode, "add")}
                     colorScheme="teal"
                   />
                 </Tooltip>
-              )}
-            </HStack>
-          )}
+                {(dimensionMode === "row" ? maxRows : maxColumns) > 1 && (
+                  <Tooltip label={`Remove ${dimensionMode}`}>
+                    <IconButton
+                      aria-label={`Remove ${dimensionMode}`}
+                      icon={<MinusIcon />}
+                      size="sm"
+                      onClick={() => handleDimensionChange(dimensionMode, "remove")}
+                      colorScheme="teal"
+                    />
+                  </Tooltip>
+                )}
+              </HStack>
+            )}
 
-          {/* Grid Display */}
-          <Flex justify="center" align="center" w="100%">
-            <Flex>
-              {/* Row labels */}
-              <VStack spacing={0} pt={14} pr={2} minW={labelWidth} justify="flex-start">
-                {Array.from({ length: maxRows }, (_, i) => (
-                  <Box
-                    key={`row-${i}`}
-                    h={cellSize}
-                    mb={i < maxRows - 1 ? "8px" : 0}
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="flex-end">
+            {/* Grid Display */}
+            <Flex justify="center" align="center" w="100%">
+              <Flex>
+                {/* Row labels */}
+                <VStack spacing={0} pt={14} pr={2} minW={labelWidth} justify="flex-start">
+                  {Array.from({ length: maxRows }, (_, i) => (
                     <Box
-                      bg={labelBg}
-                      px={2}
-                      py={1}
-                      borderRadius="md"
-                      fontSize="xs"
-                      fontWeight="bold"
-                      minW="30px"
-                      textAlign="center">
-                      {i + 1}
-                    </Box>
-                  </Box>
-                ))}
-              </VStack>
-
-              <VStack spacing={0} align="stretch">
-                {/* Column labels */}
-                <HStack spacing={2} px={2} pb={2} minH="40px" align="flex-end" justify="center">
-                  {Array.from({ length: maxColumns }, (_, i) => (
-                    <Flex key={`col-${i}`} w={cellSize} justify="center">
+                      key={`row-${i}`}
+                      h={cellSize}
+                      mb={i < maxRows - 1 ? "8px" : 0}
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="flex-end">
                       <Box
-                        bg={labelBg}
+                        bg={nestBg}
                         px={2}
                         py={1}
                         borderRadius="md"
@@ -524,47 +531,68 @@ const NestModal: React.FC<NestModalProps> = ({
                         textAlign="center">
                         {i + 1}
                       </Box>
-                    </Flex>
+                    </Box>
                   ))}
-                </HStack>
+                </VStack>
 
-                {/* Grid */}
-                <Grid
-                  templateColumns={`repeat(${maxColumns}, ${cellSize})`}
-                  gap={2}
-                  p={3}
-                  bg={ghostNestBg}
-                  borderRadius="lg">
-                  {Array.from({ length: maxRows }, (_, rowIndex) =>
-                    Array.from({ length: maxColumns }, (_, colIndex) => {
-                      const nest = nests.find((n) => n.row === rowIndex && n.column === colIndex);
+                <VStack spacing={0} align="stretch">
+                  {/* Column labels */}
+                  <HStack spacing={2} px={2} pb={2} minH="40px" align="flex-end" justify="center">
+                    {Array.from({ length: maxColumns }, (_, i) => (
+                      <Flex key={`col-${i}`} w={cellSize} justify="center">
+                        <Box
+                          bg={nestBg}
+                          px={2}
+                          py={1}
+                          borderRadius="md"
+                          fontSize="xs"
+                          fontWeight="bold"
+                          minW="30px"
+                          textAlign="center">
+                          {i + 1}
+                        </Box>
+                      </Flex>
+                    ))}
+                  </HStack>
 
-                      if (!nest) {
-                        return (
-                          <Box
-                            key={`empty-${rowIndex}-${colIndex}`}
-                            height={cellSize}
-                            width={cellSize}
-                            borderWidth="1px"
-                            borderStyle="dashed"
-                            borderColor={ghostNestBorder}
-                            borderRadius="md"
-                            opacity={0.4}
-                          />
-                        );
-                      }
+                  {/* Grid */}
+                  <Grid
+                    templateColumns={`repeat(${maxColumns}, ${cellSize})`}
+                    gap={2}
+                    p={3}
+                    bg={ghostNestBg}
+                    borderRadius="lg">
+                    {Array.from({ length: maxRows }, (_, rowIndex) =>
+                      Array.from({ length: maxColumns }, (_, colIndex) => {
+                        const nest = nests.find((n) => n.row === rowIndex && n.column === colIndex);
 
-                      return renderNestContent(nest);
-                    }),
-                  )}
-                </Grid>
-              </VStack>
+                        if (!nest) {
+                          return (
+                            <Box
+                              key={`empty-${rowIndex}-${colIndex}`}
+                              height={cellSize}
+                              width={cellSize}
+                              borderWidth="1px"
+                              borderStyle="dashed"
+                              borderColor={nestBorderColor}
+                              borderRadius="md"
+                              opacity={0.4}
+                            />
+                          );
+                        }
+
+                        return renderNestContent(nest);
+                      }),
+                    )}
+                  </Grid>
+                </VStack>
+              </Flex>
             </Flex>
-          </Flex>
-        </VStack>
-      </Box>
-    </Flex>
-  );
+          </VStack>
+        </Box>
+      </Flex>
+    );
+  };
 
   const renderTableView = () => (
     <Box overflowX="auto">
@@ -577,98 +605,138 @@ const NestModal: React.FC<NestModalProps> = ({
             <Th>Plate Name</Th>
             <Th>Plate Type</Th>
             <Th>Status</Th>
-            <Th width="120px">Actions</Th>
+            <Th width="80px">Actions</Th>
           </Tr>
         </Thead>
         <Tbody>
           {nests.map((nest) => {
-            const plate = plates.find((p) => p.nest_id === nest.id);
-            const isEditing = editingPlateId === plate?.id;
+            const plate = plates.find((p) => p.nestId === nest.id);
+            const nestInput = tablePlateInputs[nest.id] || {
+              barcode: "",
+              name: "",
+              plateType: "96 well",
+            };
 
             return (
               <Tr key={nest.id} _hover={{ bg: nestBg }}>
                 <Td fontWeight="medium">{nest.row + 1}</Td>
                 <Td fontWeight="medium">{nest.column + 1}</Td>
                 <Td minW="200px">
-                  {plate && isEditing ? (
-                    <Input
-                      size="sm"
-                      value={editBarcode}
-                      onChange={(e) => setEditBarcode(e.target.value)}
-                      bg={inputBg}
+                  {plate ? (
+                    <EditableText
+                      defaultValue={plate.barcode || ""}
                       placeholder="Enter barcode"
+                      onSubmit={(value) => handleUpdatePlateField(plate.id, "barcode", value)}
+                      minWidth={150}
                     />
                   ) : (
-                    <Text>{plate?.barcode || "-"}</Text>
+                    <Input
+                      placeholder="Enter barcode"
+                      size="sm"
+                      bg={inputBg}
+                      value={nestInput.barcode}
+                      onChange={(e) =>
+                        setTablePlateInputs((prev) => ({
+                          ...prev,
+                          [nest.id]: { ...nestInput, barcode: e.target.value },
+                        }))
+                      }
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter" && nestInput.barcode && nestInput.name) {
+                          handleAddPlate(nest.id);
+                        }
+                      }}
+                    />
                   )}
                 </Td>
                 <Td minW="200px">
-                  {plate && isEditing ? (
-                    <Input
-                      size="sm"
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      bg={inputBg}
+                  {plate ? (
+                    <EditableText
+                      defaultValue={plate.name || ""}
                       placeholder="Enter name"
+                      onSubmit={(value) => handleUpdatePlateField(plate.id, "name", value)}
+                      minWidth={150}
                     />
                   ) : (
-                    <Text>{plate?.name || "-"}</Text>
+                    <Input
+                      placeholder="Enter name"
+                      size="sm"
+                      bg={inputBg}
+                      value={nestInput.name}
+                      onChange={(e) =>
+                        setTablePlateInputs((prev) => ({
+                          ...prev,
+                          [nest.id]: { ...nestInput, name: e.target.value },
+                        }))
+                      }
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter" && nestInput.barcode && nestInput.name) {
+                          handleAddPlate(nest.id);
+                        }
+                      }}
+                    />
                   )}
                 </Td>
-                <Td minW="120px">{plate ? <Text>{plate.plate_type}</Text> : <Text>-</Text>}</Td>
+                <Td minW="150px">
+                  {plate ? (
+                    <EditableSelect
+                      options={PLATE_TYPE_OPTIONS}
+                      preview={
+                        <Text fontSize="sm" color={textColor}>
+                          {plate.plateType}
+                        </Text>
+                      }
+                      onSubmit={(value) => handleUpdatePlateField(plate.id, "plateType", value)}
+                      dropDownWidth={150}
+                    />
+                  ) : (
+                    <Select
+                      size="sm"
+                      bg={inputBg}
+                      value={nestInput.plateType}
+                      onChange={(e) =>
+                        setTablePlateInputs((prev) => ({
+                          ...prev,
+                          [nest.id]: { ...nestInput, plateType: e.target.value },
+                        }))
+                      }>
+                      {PLATE_TYPE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </Select>
+                  )}
+                </Td>
                 <Td>
-                  <Badge colorScheme={nest.status === "empty" ? "gray" : "green"}>
-                    {nest.status}
+                  <Badge colorScheme={plate ? "green" : "gray"}>
+                    {plate ? "occupied" : "empty"}
                   </Badge>
                 </Td>
                 <Td>
-                  {plate && (
-                    <HStack spacing={1}>
-                      {isEditing ? (
-                        <>
-                          <Tooltip label="Save changes">
-                            <IconButton
-                              aria-label="Save"
-                              icon={<Icon as={Check} boxSize={4} />}
-                              size="sm"
-                              colorScheme="teal"
-                              onClick={() => handleSaveEdit(plate.id)}
-                            />
-                          </Tooltip>
-                          <Tooltip label="Cancel">
-                            <IconButton
-                              aria-label="Cancel"
-                              icon={<Icon as={X} boxSize={4} />}
-                              size="sm"
-                              variant="ghost"
-                              onClick={handleCancelEdit}
-                            />
-                          </Tooltip>
-                        </>
-                      ) : (
-                        <>
-                          <Tooltip label="Edit plate">
-                            <IconButton
-                              aria-label="Edit"
-                              icon={<EditIcon />}
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleStartEdit(plate)}
-                            />
-                          </Tooltip>
-                          <Tooltip label="Delete plate">
-                            <IconButton
-                              aria-label="Delete"
-                              icon={<DeleteIcon />}
-                              size="sm"
-                              variant="ghost"
-                              colorScheme="red"
-                              onClick={() => handleDeletePlate(plate.id)}
-                            />
-                          </Tooltip>
-                        </>
-                      )}
-                    </HStack>
+                  {plate ? (
+                    <Tooltip label="Delete plate">
+                      <IconButton
+                        aria-label="Delete"
+                        icon={<DeleteIcon />}
+                        size="sm"
+                        variant="ghost"
+                        colorScheme="red"
+                        onClick={() => handleDeletePlate(plate.id)}
+                      />
+                    </Tooltip>
+                  ) : (
+                    <Tooltip label="Add plate">
+                      <IconButton
+                        aria-label="Add plate"
+                        icon={<AddIcon />}
+                        size="sm"
+                        variant="ghost"
+                        colorScheme="teal"
+                        onClick={() => handleAddPlate(nest.id)}
+                        isDisabled={!nestInput.barcode || !nestInput.name}
+                      />
+                    </Tooltip>
                   )}
                 </Td>
               </Tr>

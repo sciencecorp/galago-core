@@ -2,16 +2,7 @@ import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { db } from "@/db/client";
 import { findOne, findMany, getSelectedWorkcellId } from "@/db/helpers";
-import {
-  nests,
-  plates,
-  wells,
-  reagents,
-  hotels,
-  tools,
-  workcells,
-  plateNestHistory,
-} from "@/db/schema";
+import { nests, plates, wells, reagents, hotels, tools, workcells } from "@/db/schema";
 import { eq, and, inArray, isNull } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
@@ -22,7 +13,6 @@ const zNest = z.object({
   column: z.number(),
   toolId: z.number().nullable().optional(),
   hotelId: z.number().nullable().optional(),
-  status: z.enum(["empty", "occupied", "reserved", "error"]).optional(),
 });
 
 const zPlate = z.object({
@@ -31,7 +21,6 @@ const zPlate = z.object({
   barcode: z.string(),
   plateType: z.string(),
   nestId: z.number().nullable().optional(),
-  status: z.enum(["stored", "checked_out", "completed", "disposed"]).optional(),
 });
 
 const zReagent = z.object({
@@ -65,7 +54,6 @@ async function getWorkcellByName(workcellName: string) {
 function getPlateWellConfig(plateType: string): { columns: number[]; rows: string[] } {
   const configs: Record<string, { columns: number[]; rows: string[] }> = {
     "6 well": { columns: [1, 2, 3], rows: ["A", "B"] },
-    "6 well with organoid inserts": { columns: [1, 2, 3], rows: ["A", "B"] },
     "12 well": { columns: [1, 2, 3, 4], rows: ["A", "B", "C"] },
     "24 well": { columns: [1, 2, 3, 4, 5, 6], rows: ["A", "B", "C", "D"] },
     "96 well": {
@@ -82,47 +70,26 @@ function getPlateWellConfig(plateType: string): { columns: number[]; rows: strin
 }
 
 export const inventoryRouter = router({
-  // ============================================================================
-  // NEST OPERATIONS
-  // ============================================================================
+  getNests: procedure.query(async () => {
+    const workcellId = await getSelectedWorkcellId();
 
-  getNests: procedure.input(z.string().optional()).query(async ({ input: workcellName }) => {
-    let workcell;
-
-    if (workcellName) {
-      workcell = await getWorkcellByName(workcellName);
-    } else {
-      const workcellId = await getSelectedWorkcellId();
-      workcell = await findOne(workcells, eq(workcells.id, workcellId));
-      if (!workcell) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Workcell not found",
-        });
-      }
-    }
-
-    // Get all tool IDs for this workcell
     const workcellTools = await db
       .select({ id: tools.id })
       .from(tools)
-      .where(eq(tools.workcellId, workcell.id));
+      .where(eq(tools.workcellId, workcellId));
 
     const toolIds = workcellTools.map((t) => t.id);
 
-    // Get all hotel IDs for this workcell
     const workcellHotels = await db
       .select({ id: hotels.id })
       .from(hotels)
-      .where(eq(hotels.workcellId, workcell.id));
+      .where(eq(hotels.workcellId, workcellId));
 
     const hotelIds = workcellHotels.map((h) => h.id);
 
-    // Get nests from tools
     const toolNests =
       toolIds.length > 0 ? await db.select().from(nests).where(inArray(nests.toolId, toolIds)) : [];
 
-    // Get nests from hotels
     const hotelNests =
       hotelIds.length > 0
         ? await db.select().from(nests).where(inArray(nests.hotelId, hotelIds))
@@ -151,7 +118,6 @@ export const inventoryRouter = router({
         column: input.column,
         toolId: input.toolId || null,
         hotelId: input.hotelId || null,
-        status: input.status || "empty",
       })
       .returning();
 
@@ -176,7 +142,6 @@ export const inventoryRouter = router({
         column: updateData.column,
         toolId: updateData.toolId || null,
         hotelId: updateData.hotelId || null,
-        status: updateData.status || "empty",
         updatedAt: new Date().toISOString(),
       })
       .where(eq(nests.id, id))
@@ -205,43 +170,30 @@ export const inventoryRouter = router({
     return { message: "Nest deleted successfully" };
   }),
 
-  // ============================================================================
-  // PLATE OPERATIONS
-  // ============================================================================
-
   getPlates: procedure.input(z.string().optional()).query(async ({ input: workcellName }) => {
-    let workcell;
+    let workcellId: number;
 
     if (workcellName) {
-      workcell = await getWorkcellByName(workcellName);
+      const workcell = await getWorkcellByName(workcellName);
+      workcellId = workcell.id;
     } else {
-      const workcellId = await getSelectedWorkcellId();
-      workcell = await findOne(workcells, eq(workcells.id, workcellId));
-      if (!workcell) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Workcell not found",
-        });
-      }
+      workcellId = await getSelectedWorkcellId();
     }
 
-    // Get all tool IDs for this workcell
     const workcellTools = await db
       .select({ id: tools.id })
       .from(tools)
-      .where(eq(tools.workcellId, workcell.id));
+      .where(eq(tools.workcellId, workcellId));
 
     const toolIds = workcellTools.map((t) => t.id);
 
-    // Get all hotel IDs for this workcell
     const workcellHotels = await db
       .select({ id: hotels.id })
       .from(hotels)
-      .where(eq(hotels.workcellId, workcell.id));
+      .where(eq(hotels.workcellId, workcellId));
 
     const hotelIds = workcellHotels.map((h) => h.id);
 
-    // Get nest IDs from tools and hotels
     const toolNestIds =
       toolIds.length > 0
         ? (await db.select({ id: nests.id }).from(nests).where(inArray(nests.toolId, toolIds))).map(
@@ -258,13 +210,11 @@ export const inventoryRouter = router({
 
     const nestIds = [...toolNestIds, ...hotelNestIds];
 
-    // Get plates in these nests
     const workcellPlates =
       nestIds.length > 0
         ? await db.select().from(plates).where(inArray(plates.nestId, nestIds))
         : [];
 
-    // Get unassigned plates
     const unassignedPlates = await db.select().from(plates).where(isNull(plates.nestId));
 
     return [...workcellPlates, ...unassignedPlates];
@@ -324,23 +274,10 @@ export const inventoryRouter = router({
         barcode: input.barcode,
         plateType: input.plateType,
         nestId: input.nestId || null,
-        status: input.status || "stored",
       })
       .returning();
 
     const plate = newPlate[0];
-
-    // Update nest status if assigned
-    if (plate.nestId !== null) {
-      await db.update(nests).set({ status: "occupied" }).where(eq(nests.id, plate.nestId));
-
-      // Create history record
-      await db.insert(plateNestHistory).values({
-        plateId: plate.id,
-        nestId: plate.nestId,
-        action: "check_in",
-      });
-    }
 
     // Create wells based on plate type
     const config = getPlateWellConfig(plate.plateType);
@@ -382,82 +319,6 @@ export const inventoryRouter = router({
       });
     }
 
-    // Check if this is a checkout operation
-    const isCheckout = plate.nestId !== null && updateData.nestId === null;
-
-    // Check if this is a check-in operation
-    const isCheckin =
-      plate.nestId === null && updateData.nestId !== null && updateData.nestId !== undefined;
-
-    if (isCheckout) {
-      // Update plate status to checked_out
-      const updated = await db
-        .update(plates)
-        .set({
-          nestId: null,
-          status: "checked_out",
-          updatedAt: new Date().toISOString(),
-        })
-        .where(eq(plates.id, id))
-        .returning();
-
-      // Update old nest status
-      if (plate.nestId) {
-        await db.update(nests).set({ status: "empty" }).where(eq(nests.id, plate.nestId));
-
-        // Create history record
-        await db.insert(plateNestHistory).values({
-          plateId: id,
-          nestId: plate.nestId,
-          action: "check_out",
-        });
-      }
-
-      return updated[0];
-    }
-
-    if (isCheckin && updateData.nestId !== null) {
-      // Check if nest is available
-      const nest = await findOne(nests, eq(nests.id, updateData.nestId));
-      if (!nest) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Nest not found",
-        });
-      }
-
-      if (nest.status !== "empty") {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Nest is already occupied",
-        });
-      }
-
-      // Update plate
-      const updated = await db
-        .update(plates)
-        .set({
-          nestId: updateData.nestId,
-          status: "stored",
-          updatedAt: new Date().toISOString(),
-        })
-        .where(eq(plates.id, id))
-        .returning();
-
-      // Update nest status
-      await db.update(nests).set({ status: "occupied" }).where(eq(nests.id, updateData.nestId));
-
-      // Create history record
-      await db.insert(plateNestHistory).values({
-        plateId: id,
-        nestId: updateData.nestId,
-        action: "check_in",
-      });
-
-      return updated[0];
-    }
-
-    // Regular update
     const updated = await db
       .update(plates)
       .set({
@@ -465,8 +326,6 @@ export const inventoryRouter = router({
         barcode: updateData.barcode,
         plateType: updateData.plateType,
         nestId: updateData.nestId,
-        status: updateData.status || "stored",
-        updatedAt: new Date().toISOString(),
       })
       .where(eq(plates.id, id))
       .returning();
@@ -486,10 +345,6 @@ export const inventoryRouter = router({
 
     return { message: "Plate deleted successfully" };
   }),
-
-  // ============================================================================
-  // WELL OPERATIONS
-  // ============================================================================
 
   getWells: procedure
     .input(
@@ -513,30 +368,24 @@ export const inventoryRouter = router({
       }
 
       // Get by workcell
-      let workcell;
+      let workcellId: number;
       if (input?.workcellName) {
-        workcell = await getWorkcellByName(input.workcellName);
+        const workcell = await getWorkcellByName(input.workcellName);
+        workcellId = workcell.id;
       } else {
-        const workcellId = await getSelectedWorkcellId();
-        workcell = await findOne(workcells, eq(workcells.id, workcellId));
-        if (!workcell) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Workcell not found",
-          });
-        }
+        workcellId = await getSelectedWorkcellId();
       }
 
       // Get all plates in workcell, then their wells
       const workcellTools = await db
         .select({ id: tools.id })
         .from(tools)
-        .where(eq(tools.workcellId, workcell.id));
+        .where(eq(tools.workcellId, workcellId));
 
       const workcellHotels = await db
         .select({ id: hotels.id })
         .from(hotels)
-        .where(eq(hotels.workcellId, workcell.id));
+        .where(eq(hotels.workcellId, workcellId));
 
       const toolIds = workcellTools.map((t) => t.id);
       const hotelIds = workcellHotels.map((h) => h.id);
@@ -571,10 +420,6 @@ export const inventoryRouter = router({
       return await db.select().from(wells).where(inArray(wells.plateId, plateIds));
     }),
 
-  // ============================================================================
-  // REAGENT OPERATIONS
-  // ============================================================================
-
   getReagents: procedure
     .input(
       z
@@ -605,30 +450,24 @@ export const inventoryRouter = router({
       }
 
       // Get by workcell
-      let workcell;
+      let workcellId: number;
       if (input?.workcellName) {
-        workcell = await getWorkcellByName(input.workcellName);
+        const workcell = await getWorkcellByName(input.workcellName);
+        workcellId = workcell.id;
       } else {
-        const workcellId = await getSelectedWorkcellId();
-        workcell = await findOne(workcells, eq(workcells.id, workcellId));
-        if (!workcell) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Workcell not found",
-          });
-        }
+        workcellId = await getSelectedWorkcellId();
       }
 
       // Get all nests -> plates -> wells -> reagents
       const workcellTools = await db
         .select({ id: tools.id })
         .from(tools)
-        .where(eq(tools.workcellId, workcell.id));
+        .where(eq(tools.workcellId, workcellId));
 
       const workcellHotels = await db
         .select({ id: hotels.id })
         .from(hotels)
-        .where(eq(hotels.workcellId, workcell.id));
+        .where(eq(hotels.workcellId, workcellId));
 
       const toolIds = workcellTools.map((t) => t.id);
       const hotelIds = workcellHotels.map((h) => h.id);

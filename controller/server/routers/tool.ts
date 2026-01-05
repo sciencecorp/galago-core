@@ -6,7 +6,6 @@ import { tools, logs, robotArmMotionProfiles, robotArmGripParams, nests } from "
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import Tool from "@/server/tools";
-import { Tool as ToolResponse } from "@/types";
 import { Config } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { ToolType } from "gen-interfaces/controller";
 

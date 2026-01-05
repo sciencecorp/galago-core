@@ -2,8 +2,6 @@
 export * from "./form";
 export * from "./run";
 
-export type NestStatus = "empty" | "occupied" | "reserved" | "error";
-
 export interface ParameterSchema {
   type: string;
   description?: string;
