@@ -85,7 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   const theme = useSidebarTheme();
 
   const collapsedWidth = "80px";
-  const expandedWidth = "230px";
+  const expandedWidth = "200px";
 
   const toggleSidebar = () => {
     if (isMobile && !isSidebarExpanded) {
@@ -200,7 +200,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             <Box pl={3} pt={3}>
               <Image
                 onClick={toggleSidebar}
-                width="55px"
+                width="40px"
                 paddingLeft="0"
                 src="/site_logo.svg"
                 alt="logo"
@@ -209,7 +209,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
               <DrawerOverlay />
               <DrawerContent
-                maxW="220px"
+                maxW="200px"
                 overflow="hidden"
                 _focus={{ outline: "none" }}
                 bg={theme.bg}
