@@ -13,32 +13,9 @@ services:
       - NODE_ENV=production
       - PORT=3010
       - GRPC_SERVER_IP=localhost
-      - API_BASE_URL=http://db:8000/api
-    depends_on:
-      - db
-    networks:
-      - app-network
 
-  db:
-    image: ghcr.io/sciencecorp/galago-db:latest
-    # build:
-    #   context: ./db
-    #   dockerfile: Dockerfile
-    container_name: galago-db
-    ports:
-      - "8000:8000"
-    environment:
-      - ENVIRONMENT=production
-    restart: always
-    volumes:
-      - sqlite_data:/data
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
 
 volumes:
   sqlite_data:
