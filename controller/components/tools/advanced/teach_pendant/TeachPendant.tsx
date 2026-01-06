@@ -50,7 +50,7 @@ interface TeachPendantProps {
 
 // Define the location update type to match the API requirements
 interface LocationUpdate {
-  id?: number;
+  id: number;
   name: string;
   locationType: "j" | "c";
   coordinates: string;
@@ -151,6 +151,12 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
       return;
     }
 
+    // Check if point has an id before proceeding
+    if (!point.id) {
+      errorToast("Error", "Cannot teach a point without an ID");
+      return;
+    }
+
     try {
       const response = await robotArmCommandMutation.mutateAsync({
         toolId: tool.name,
@@ -163,13 +169,11 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
         const coordinates = response.meta_data.location.split(" ").slice(1);
         const numJoints = (tool.config as any)?.pf400?.joints || 6;
 
-        // Ensure we have enough coordinates (pad with zeros if needed)
         const paddedCoordinates = [...coordinates];
         while (paddedCoordinates.length < parseInt(numJoints.toString())) {
           paddedCoordinates.push("0");
         }
 
-        // Limit coordinates to the configured number of joints
         const limitedCoordinates = paddedCoordinates.slice(0, parseInt(numJoints.toString()));
 
         if (!validateJointCount(response.meta_data.location, parseInt(numJoints.toString()))) {
@@ -181,7 +185,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
         }
 
         const locationUpdate: LocationUpdate = {
-          id: point.id,
+          id: point.id, // Now TypeScript knows this is definitely a number
           name: point.name,
           locationType: "j",
           coordinates: limitedCoordinates.join(" "),
@@ -192,7 +196,6 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
         await updateLocationMutation.mutateAsync(locationUpdate);
         robotArmLocationsQuery.refetch();
 
-        // Add success toast
         successToast("Point Updated", `Successfully taught new position to point "${point.name}"`);
       } else {
         throw new Error("No location data received from robot");
@@ -749,7 +752,13 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       gripParamsModal.onOpen();
                     }}
                     onInlineEdit={async (params: GripParams) => {
+                      // Add validation
+                      if (!params.id) {
+                        errorToast("Error", "Cannot update grip parameters without an ID");
+                        return;
+                      }
                       await updateGripParamsMutation.mutateAsync({
+                        id: params.id, // Now guaranteed to be a number
                         ...params,
                         toolId: tool.id,
                       });
@@ -868,8 +877,11 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
             ...(selectedTeachPoint?.id ? { id: selectedTeachPoint.id } : {}),
           };
 
-          if (selectedTeachPoint) {
-            await updateLocationMutation.mutateAsync(location);
+          if (selectedTeachPoint?.id) {
+            await updateLocationMutation.mutateAsync({
+              ...location,
+              id: selectedTeachPoint.id,
+            } as Parameters<typeof updateLocationMutation.mutateAsync>[0]);
           } else {
             await createLocationMutation.mutateAsync(location);
           }

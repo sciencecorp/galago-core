@@ -69,8 +69,8 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
       setSpeed2(profile.speed2);
       setAcceleration(profile.acceleration);
       setDeceleration(profile.deceleration);
-      setAccelRamp(profile.accel_ramp);
-      setDecelRamp(profile.decel_ramp);
+      setAccelRamp(profile.accelRamp);
+      setDecelRamp(profile.decelRamp);
       setInrange(profile.inrange);
       setStraight(profile.straight);
     }

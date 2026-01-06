@@ -22,16 +22,16 @@ const zRobotArmLocationBase = z.object({
   locationType: z.enum(["j", "c"]),
   coordinates: z.string(),
   orientation: z.string(),
-  toolId: z.number(),
+  toolId: z.number().nullable().optional(),
 });
 
 export const zRobotArmLocationCreate = zRobotArmLocationBase;
 
 export const zRobotArmLocationUpdate = zRobotArmLocationBase
+  .partial()
   .extend({
     id: z.number(),
   })
-  .partial()
   .required({ id: true });
 
 // Robot Arm Sequence schemas
@@ -45,17 +45,17 @@ const zRobotArmSequenceBase = z.object({
       order: z.number(),
     }),
   ),
-  toolId: z.number(),
+  toolId: z.number().nullable().optional(),
   labware: z.string().nullable().optional(),
 });
 
 export const zRobotArmSequenceCreate = zRobotArmSequenceBase;
 
 export const zRobotArmSequenceUpdate = zRobotArmSequenceBase
+  .partial()
   .extend({
     id: z.number(),
   })
-  .partial()
   .required({ id: true });
 
 // Robot Arm Motion Profile schemas
@@ -69,16 +69,16 @@ const zRobotArmMotionProfileBase = z.object({
   decelRamp: z.number(),
   inrange: z.number(),
   straight: z.number(),
-  toolId: z.number(),
+  toolId: z.number().nullable().optional(),
 });
 
 export const zRobotArmMotionProfileCreate = zRobotArmMotionProfileBase;
 
 export const zRobotArmMotionProfileUpdate = zRobotArmMotionProfileBase
+  .partial()
   .extend({
     id: z.number(),
   })
-  .partial()
   .required({ id: true });
 
 // Robot Arm Grip Params schemas
@@ -87,16 +87,16 @@ const zRobotArmGripParamsBase = z.object({
   width: z.number(),
   speed: z.number(),
   force: z.number(),
-  toolId: z.number(),
+  toolId: z.number().nullable().optional(),
 });
 
 export const zRobotArmGripParamsCreate = zRobotArmGripParamsBase;
 
 export const zRobotArmGripParamsUpdate = zRobotArmGripParamsBase
+  .partial()
   .extend({
     id: z.number(),
   })
-  .partial()
   .required({ id: true });
 
 // ==================== TYPES ====================
@@ -137,6 +137,14 @@ export const robotArmRouter = router({
       }),
 
     create: procedure.input(zRobotArmLocationCreate).mutation(async ({ input }) => {
+      // Validate that toolId is provided
+      if (!input.toolId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "toolId is required",
+        });
+      }
+
       try {
         const result = await db.insert(robotArmLocations).values(input).returning();
 
@@ -263,6 +271,14 @@ export const robotArmRouter = router({
       }),
 
     create: procedure.input(zRobotArmSequenceCreate).mutation(async ({ input }) => {
+      // Validate that toolId is provided
+      if (!input.toolId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "toolId is required",
+        });
+      }
+
       try {
         const result = await db.insert(robotArmSequences).values(input).returning();
 
@@ -380,6 +396,14 @@ export const robotArmRouter = router({
       }),
 
     create: procedure.input(zRobotArmMotionProfileCreate).mutation(async ({ input }) => {
+      // Validate that toolId is provided
+      if (!input.toolId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "toolId is required",
+        });
+      }
+
       try {
         const result = await db.insert(robotArmMotionProfiles).values(input).returning();
 
@@ -497,6 +521,14 @@ export const robotArmRouter = router({
       }),
 
     create: procedure.input(zRobotArmGripParamsCreate).mutation(async ({ input }) => {
+      // Validate that toolId is provided
+      if (!input.toolId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "toolId is required",
+        });
+      }
+
       try {
         const result = await db.insert(robotArmGripParams).values(input).returning();
 
