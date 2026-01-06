@@ -48,7 +48,6 @@ message WorkcellConfig {
 message AppConfig {
   string workcell = 1;
   string host_ip = 2;
-  string redis_ip = 3;
   string slack_bot_tocken = 4;
   string slack_channel_id = 5;
   bool enable_slack_error = 6;

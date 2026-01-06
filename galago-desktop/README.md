@@ -137,13 +137,13 @@ npm run package:linux
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `USE_SQLITE_QUEUE` | Force SQLite queue (vs Redis) | `true` in Electron |
+| `USE_SQLITE_QUEUE` | Use SQLite queue | `true` in Electron |
 | `PORT` | FastAPI server port | `8000` |
 | `NODE_ENV` | Node environment | `production` |
 
-## Replacing Redis with SQLite
+## Queue System
 
-The desktop version uses SQLite instead of Redis for the command queue. This is automatically enabled when running in Electron or when `USE_SQLITE_QUEUE=true`.
+The application uses SQLite for the command queue, which is automatically enabled when running in Electron or when `USE_SQLITE_QUEUE=true`.
 
 The queue database is stored in the user's app data directory:
 - **Windows**: `%LOCALAPPDATA%\Galago\data\queue.db`

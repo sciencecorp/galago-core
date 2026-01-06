@@ -9,7 +9,7 @@ const isElectronBuild = process.env.ELECTRON_BUILD === "true";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-  // Always use standalone for both Electron and Docker (server mode)
+  // Use standalone output for server mode
   output: "standalone",
   compiler: {
     emotion: true,

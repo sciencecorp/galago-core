@@ -529,7 +529,7 @@ async function startRendererServer(): Promise<void> {
       PORT: rendererPort.toString(),
       HOSTNAME: '127.0.0.1',
       API_BASE_URL: `http://127.0.0.1:${corePort}/api`,
-      // Force SQLite queue for Electron (no Redis available)
+      // Use SQLite queue for Electron
       USE_SQLITE_QUEUE: 'true',
       QUEUE_DB_PATH: path.join(dataDir, 'queue.db'),
       NODE_ENV: 'production',

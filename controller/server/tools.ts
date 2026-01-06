@@ -31,12 +31,7 @@ export default class Tool {
     this.info = info;
     this.config = info.config;
     
-    // In Docker, localhost needs to be converted to host.docker.internal
-    // In Electron/native mode, use localhost directly
-    // Check if we're in Docker by looking for DOCKER_HOST or if host.docker.internal resolves
-    const isDocker = process.env.DOCKER_HOST || process.env.RUNNING_IN_DOCKER;
-    const grpcServerIp = (info.ip === "localhost" && isDocker) ? "host.docker.internal" : info.ip;
-    const target = `${grpcServerIp}:${info.port}`;
+    const target = `${info.ip}:${info.port}`;
 
     this.grpc = promisifyGrpcClient(
       new tool_driver.ToolDriverClient(target, grpc.credentials.createInsecure()),
@@ -540,14 +535,12 @@ export default class Tool {
   }
 
   static toolBoxConfig(): controller_protos.ToolConfig {
-    // Use localhost for native/Electron mode, Docker will set RUNNING_IN_DOCKER env var
-    const isDocker = process.env.DOCKER_HOST || process.env.RUNNING_IN_DOCKER;
     return {
       name: "Tool Box",
       type: "toolbox" as ToolType,
       description: "General Tools",
       image_url: "/tool_icons/toolbox.png",
-      ip: isDocker ? "host.docker.internal" : "localhost",
+      ip: "localhost",
       port: 51010,
       config: {
         toolId: "Tool Box",

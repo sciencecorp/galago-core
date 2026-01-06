@@ -31,28 +31,6 @@ npm_deps() {
   echo "Node Dependencies Installed"
 }
 
-#create local redis database for local dev (mac only)
-redis() {
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-  # Check if Homebrew is installed
-  if ! command -v brew &> /dev/null; then
-    echo "Homebrew not found. Installing Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  else
-    echo "Homebrew is already installed."
-  fi
-
-  # Install Redis
-  if ! command -v redis-server &> /dev/null; then
-    echo "Installing Redis..."
-    brew install redis
-    brew services start redis
-    echo "Redis service is running."
-  else
-    echo "Redis is already installed and running."
-  fi
-}
-
 test() {
   test_ts
   test_py

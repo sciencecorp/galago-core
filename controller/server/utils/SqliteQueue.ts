@@ -11,8 +11,7 @@ import fs from "fs";
 export type StoredRunCommand = Readonly<RunCommand & Required<Pick<RunCommand, "queueId">>>;
 
 /**
- * A Queue stored in SQLite. This is a drop-in replacement for RedisQueue
- * designed for the Electron desktop application where Redis is not available.
+ * A Queue stored in SQLite for managing protocol execution and device coordination.
  * 
  * Database schema:
  * - queued_ids: stores the order of commands to be processed

@@ -14,7 +14,7 @@ Galago consists of several distinct modules:
 - **Controller**: A Next.js + tRPC web application that provides the user interface, manages device orchestration, protocol execution, and scheduling
 - **Database API**: A FastAPI-based service that handles data persistence for inventory, protocols, and logs
 - **Tool Drivers**: [Separate repository](https://github.com/sciencecorp/galago-tools) containing gRPC-based drivers for laboratory equipment
-- **Queue System**: Redis-based task queue for managing protocol execution and device coordination
+- **Queue System**: SQLite-based task queue for managing protocol execution and device coordination
 
 ## Features
 
@@ -31,8 +31,6 @@ Galago consists of several distinct modules:
 
 - **Node.js** 18.13 or higher
 - **Python** 3.11
-- **Docker** and **Docker Compose** (recommended for development)
-- **Redis** (for queue management)
 
 ### Fork the Repository (Recommended)
 
@@ -53,32 +51,7 @@ If you plan to contribute or customize Galago, start by forking the repository:
    git remote add upstream https://github.com/your-org/galago-core.git
 ```
 
-### Quick Start with Docker (Recommended)
-
-2. **Install grpcio dependencies on a local environment (for proto files, testing, linting, etc)**
-   ```bash
-   bin/make deps 
-   ```
-
-3. **Generate proto files**
-   ```bash 
-   bin/make proto
-   ```
-
-2. **Launch development environment**
-
-   ```bash
-   docker-compose -f docker-compose.dev.yml up --build
-   ```
-
-3. **Access the application**
-   - Web Interface: http://localhost:3010
-   - Database API: http://localhost:8000
-   - API Documentation: http://localhost:8000/docs
-
-### Manual Setup
-
-If you prefer to run without Docker:
+### Setup
 
 #### 1. Build dependencies and interfaces
 
@@ -87,17 +60,7 @@ bin/make deps
 bin/make proto
 ```
 
-#### 2. Start Redis (if not using Docker)
-
-```bash
-# macOS
-bin/make redis
-
-# Or install manually
-redis-server
-```
-
-#### 3. Start the database service
+#### 2. Start the database service
 
 ```bash
 cd db
@@ -113,37 +76,10 @@ npm install
 npm run dev
 ```
 
-## Production Deployment
-
-For production deployment:
-
-```bash
-
-# Launch production stack
-docker-compose up -d
-```
-
-## Other docker commands
-
-```
-#Stop containters
-docker-compose -f docker-compose.dev.yml down
-
-#remove existing images
-docker-compose -f docker-compose.dev.yml down --rmi all
-
-#Remove orphans
-docker compose -f docker-compose.dev.yml down --rmi all --remove-orphans
-
-#rebuild a specific service
-docker-compose up -d --force-recreate --no-deps --build service_name
-
-#e.g
-docker-compose -f docker-compose.dev.yml up --build db
-
-#add npm deps to dev environment
-docker exec -it galago-web-dev npm install <package name>
-```
+#### 4. Access the application
+- Web Interface: http://localhost:3010
+- Database API: http://localhost:8000
+- API Documentation: http://localhost:8000/docs
 
 ## Using conda
 
@@ -162,32 +98,6 @@ bin/make deps
 bin/make proto
 ```
 
-## Redis
-
-Local install (if not using docker)
-
-### For Mac (zsh)
-
-```zsh
-#Install and start redis
-bin/make redis
-
-#Confirm that the server is up
-redis-cli ping
-```
-
-### For Windows (using WSL)
-
-1. Install Ubuntu via WSL following [these instructions](https://learn.microsoft.com/en-us/windows/wsl/install).
-2. Inside WSL:
-
-```
-curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
-echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
-sudo apt-get update
-sudo apt-get install redis
-sudo service redis-server start
-```
 
 ## Contributing
 
@@ -196,7 +106,7 @@ We welcome contributions to Galago! Please follow these guidelines:
 ### Development Workflow
 
 1. **Fork the repository** and create a feature branch
-2. **Set up development environment** using Docker Compose
+2. **Set up development environment** following the Setup instructions
 3. **Make your changes** following the existing code style
 4. **Test your changes** thoroughly
 5. **Submit a pull request** with a clear description
@@ -227,32 +137,17 @@ To integrate a new laboratory instrument:
 
 ### Common Issues
 
-**Container fails to start:**
-
-```bash
-# Check logs
-docker-compose logs galago-web-dev
-docker-compose logs galago-db-dev
-
-# Rebuild containers
-docker-compose -f docker-compose.dev.yml down --rmi all
-docker-compose -f docker-compose.dev.yml up --build
-```
-
-**Redis connection issues:**
-
-```bash
-# Verify Redis is running
-redis-cli ping
-
-# Check Redis logs
-docker-compose logs queue
-```
-
 **Port conflicts:**
 
-- Web interface (3010), Database API (8000), Redis (1203)
-- Modify port mappings in docker-compose files if needed
+- Web interface (3010), Database API (8000)
+- Modify port numbers in your startup commands if needed
+
+**Database connection issues:**
+
+```bash
+# Check if the database service is running
+curl http://localhost:8000/health
+```
 
 ## Architecture Details
 
@@ -261,7 +156,7 @@ docker-compose logs queue
 1. **User Interface** (Next.js) → tRPC calls → **Controller Server**
 2. **Controller Server** → HTTP API calls → **Database Service**
 3. **Controller Server** → gRPC calls → **Tool Drivers**
-4. **Queue System** (Redis) manages asynchronous protocol execution
+4. **Queue System** (SQLite) manages asynchronous protocol execution
 
 ### Database Schema
 
