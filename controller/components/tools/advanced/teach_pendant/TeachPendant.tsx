@@ -52,9 +52,9 @@ interface TeachPendantProps {
 interface LocationUpdate {
   id?: number;
   name: string;
-  location_type: "j" | "c";
+  locationType: "j" | "c";
   coordinates: string;
-  tool_id: number;
+  toolId: number;
   orientation: "landscape" | "portrait";
 }
 
@@ -183,9 +183,9 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
         const locationUpdate: LocationUpdate = {
           id: point.id,
           name: point.name,
-          location_type: "j",
+          locationType: "j",
           coordinates: limitedCoordinates.join(" "),
-          tool_id: tool.id,
+          toolId: tool.id,
           orientation: point.orientation,
         };
 
@@ -313,21 +313,21 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
   const deleteTeachPoint = async (id: number) => {
     await deleteLocationMutation.mutateAsync({
       id,
-      tool_id: tool.id,
+      toolId: tool.id,
     });
   };
 
   const deleteMotionProfile = async (id: number) => {
     await deleteMotionProfileMutation.mutateAsync({
       id,
-      tool_id: tool.id,
+      toolId: tool.id,
     });
   };
 
   const deleteGripParam = async (id: number) => {
     await deleteGripParamsMutation.mutateAsync({
       id,
-      tool_id: tool.id,
+      toolId: tool.id,
     });
   };
 
@@ -489,7 +489,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                     {
                       id: 0,
                       name: "Default",
-                      tool_id: tool.id,
+                      toolId: tool.id,
                       width: 0, // Server will override with its defaults
                       speed: 0, // Server will override with its defaults
                       force: 0, // Server will override with its defaults
@@ -517,7 +517,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                     {
                       id: 0,
                       name: "Default",
-                      tool_id: tool.id,
+                      toolId: tool.id,
                       width: 0, // Server will override with its defaults
                       speed: 0, // Server will override with its defaults
                       force: 0, // Server will override with its defaults
@@ -675,9 +675,9 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       const location = {
                         id: point.id,
                         name: point.name,
-                        location_type: "j" as const,
+                        locationType: "j" as const,
                         coordinates: point.coordinates,
-                        tool_id: tool.id,
+                        toolId: tool.id,
                         orientation: point.orientation,
                       };
                       updateLocationMutation.mutateAsync(location).then(() => {
@@ -687,7 +687,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                     onDelete={async (point: TeachPoint) => {
                       await deleteLocationMutation.mutateAsync({
                         id: point.id,
-                        tool_id: tool.id,
+                        toolId: tool.id,
                       });
                       robotArmLocationsQuery.refetch();
                     }}
@@ -710,7 +710,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       if (profile.id) {
                         await updateMotionProfileMutation.mutateAsync({
                           ...profile,
-                          tool_id: tool.id,
+                          toolId: tool.id,
                         });
                       } else {
                         setSelectedMotionProfile(profile);
@@ -718,7 +718,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       }
                     }}
                     onDelete={async (id: number) => {
-                      await deleteMotionProfileMutation.mutateAsync({ id, tool_id: tool.id });
+                      await deleteMotionProfileMutation.mutateAsync({ id, toolId: tool.id });
                       motionProfilesQuery.refetch();
                     }}
                     onDeleteAll={() => showDeleteConfirm("motionProfiles")}
@@ -740,7 +740,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       gripParamsModal.onOpen();
                     }}
                     onDelete={async (id) => {
-                      await deleteGripParamsMutation.mutateAsync({ id, tool_id: tool.id });
+                      await deleteGripParamsMutation.mutateAsync({ id, toolId: tool.id });
                       gripParamsQuery.refetch();
                     }}
                     onDeleteAll={() => showDeleteConfirm("gripParams")}
@@ -751,7 +751,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                     onInlineEdit={async (params: GripParams) => {
                       await updateGripParamsMutation.mutateAsync({
                         ...params,
-                        tool_id: tool.id,
+                        toolId: tool.id,
                       });
                       gripParamsQuery.refetch();
                     }}
@@ -794,12 +794,12 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
               await updateMotionProfileMutation.mutateAsync({
                 id: selectedMotionProfile.id,
                 ...profile,
-                tool_id: tool.id,
+                toolId: tool.id,
               });
             } else {
               await createMotionProfileMutation.mutateAsync({
                 ...profile,
-                tool_id: tool.id,
+                toolId: tool.id,
               });
             }
             await motionProfilesQuery.refetch();
@@ -822,12 +822,12 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
               await updateGripParamsMutation.mutateAsync({
                 id: selectedGripParams.id,
                 ...params,
-                tool_id: tool.id,
+                toolId: tool.id,
               });
             } else {
               await createGripParamsMutation.mutateAsync({
                 ...params,
-                tool_id: tool.id,
+                toolId: tool.id,
               });
             }
             await gripParamsQuery.refetch();
@@ -861,10 +861,10 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
 
           const location = {
             name: point.name,
-            location_type: "j" as const,
+            locationType: "j" as const,
             orientation: orientation,
             coordinates: limitedCoords.join(" "),
-            tool_id: tool.id,
+            toolId: tool.id,
             ...(selectedTeachPoint?.id ? { id: selectedTeachPoint.id } : {}),
           };
 

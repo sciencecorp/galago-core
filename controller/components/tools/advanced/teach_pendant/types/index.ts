@@ -18,7 +18,6 @@ export interface TeachPoint {
   locType: "j";
   joints?: JointConfig;
   orientation: "portrait" | "landscape";
-  safe_loc?: number;
 }
 
 export interface MotionProfile {
@@ -28,11 +27,11 @@ export interface MotionProfile {
   speed2: number;
   acceleration: number;
   deceleration: number;
-  accel_ramp: number;
-  decel_ramp: number;
+  accelRamp: number;
+  decelRamp: number;
   inrange: number;
   straight: number;
-  tool_id: number;
+  toolId: number;
 }
 
 export interface GripParams {
@@ -41,7 +40,7 @@ export interface GripParams {
   width: number;
   speed: number;
   force: number;
-  tool_id: number;
+  toolId: number;
 }
 
 export interface MoveModalProps {
@@ -62,7 +61,7 @@ export interface Sequence {
   name: string;
   description?: string;
   commands: SequenceCommand[];
-  tool_id: number;
+  toolId: number;
   labware?: string;
 }
 

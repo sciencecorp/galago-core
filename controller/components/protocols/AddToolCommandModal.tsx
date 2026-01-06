@@ -708,7 +708,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
             fontWeight={isSelected ? "bold" : "normal"}
             textAlign="center"
             wordBreak="break-word">
-            {command}
+            {capitalizeFirst(command.replaceAll("_", " "))}
           </Text>
         </VStack>
       </Box>

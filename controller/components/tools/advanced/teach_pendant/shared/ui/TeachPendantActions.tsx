@@ -95,7 +95,7 @@ export const TeachPendantActions: React.FC<TeachPendantActionsProps> = ({
       for (let i = 0; i < files.length; i++) {
         const formData = new FormData();
         formData.append("file", files[i]);
-        formData.append("tool_id", String(toolId));
+        formData.append("toolId", String(toolId));
 
         const response = await fetch("http://localhost:8000/api/robot-arm/waypoints/upload", {
           method: "POST",

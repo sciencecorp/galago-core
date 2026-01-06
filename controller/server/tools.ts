@@ -103,7 +103,7 @@ export default class Tool {
     const normalizedId = Tool.normalizeToolId(toolId);
 
     try {
-      const waypointsResponse = await get<any>(`/robot-arm-waypoints?tool_id=${toolId}`);
+      const waypointsResponse = await get<any>(`/robot-arm-waypoints?toolId=${toolId}`);
 
       // Need to get tool from store to execute command
       const store = getGlobalStore();

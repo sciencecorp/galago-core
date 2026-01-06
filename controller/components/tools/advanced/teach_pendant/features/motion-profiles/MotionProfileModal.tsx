@@ -95,9 +95,9 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
         speed2,
         acceleration,
         deceleration,
-        tool_id: toolId,
-        accel_ramp: accelRamp,
-        decel_ramp: decelRamp,
+        toolId: toolId,
+        accelRamp: accelRamp,
+        decelRamp: decelRamp,
         inrange,
         straight,
       });

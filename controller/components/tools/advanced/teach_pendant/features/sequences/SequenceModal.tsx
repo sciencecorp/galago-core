@@ -73,7 +73,7 @@ export const SequenceModal: React.FC<SequenceModalProps> = ({
       name,
       description,
       commands,
-      tool_id: config.id,
+      toolId: config.id,
       labware,
     };
 

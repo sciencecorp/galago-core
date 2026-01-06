@@ -27,7 +27,7 @@ const zProtocolUpdate = z.object({
   id: z.number(),
   name: z.string().optional(),
   category: z.string().optional(),
-  description: z.string().optional(),
+  description: z.string().nullable().optional(),
   commands: z.array(z.any()).optional(),
 });
 
