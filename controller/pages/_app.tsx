@@ -13,7 +13,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     <ChakraProvider>
       <Sidebar>
         <GlobalQueueStatusIndicator />
-        <VStack spacing={0} pt={5} mt={8} pl={2} align="stretch">
+        <VStack align="stretch">
           <Component {...pageProps} />
         </VStack>
       </Sidebar>

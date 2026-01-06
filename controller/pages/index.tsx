@@ -22,7 +22,6 @@ import {
   Layers,
   Package,
   GitBranch,
-  Cpu,
   Variable,
   Book,
   BookOpen,
