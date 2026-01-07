@@ -18,7 +18,7 @@ def get_hotels(
     # If no workcell_name provided, use the selected workcell
     if workcell_name is None:
         workcell_name = get_selected_workcell_name(db)
-        
+
     workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
     if not workcell:
         raise HTTPException(status_code=404, detail="Workcell not found")

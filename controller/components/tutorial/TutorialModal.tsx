@@ -121,7 +121,7 @@ export function TutorialModal() {
                   isDisabled={isBusy}
                 />
               </Tooltip>
-              <MenuList> 
+              <MenuList>
                 <MenuItem onClick={minimize} isDisabled={isBusy}>
                   Minimize
                 </MenuItem>
@@ -185,9 +185,7 @@ export function TutorialModal() {
                   <br />
                   Tools:{" "}
                   <b>
-                    {(demoData.tools || [])
-                      .map((t) => `${t.name} (${t.type})`)
-                      .join(", ") || "—"}
+                    {(demoData.tools || []).map((t) => `${t.name} (${t.type})`).join(", ") || "—"}
                   </b>
                   <br />
                   Inventory:{" "}
@@ -197,7 +195,8 @@ export function TutorialModal() {
                       : "—"}
                   </b>
                   <br />
-                  Variables: <b>{(demoData.variables || []).map((v) => v.name).join(", ") || "—"}</b>
+                  Variables:{" "}
+                  <b>{(demoData.variables || []).map((v) => v.name).join(", ") || "—"}</b>
                   <br />
                   Scripts: <b>{(demoData.scripts || []).map((s) => s.name).join(", ") || "—"}</b>
                   <br />
@@ -205,7 +204,8 @@ export function TutorialModal() {
                   <br />
                   Forms: <b>{(demoData.forms || []).map((f) => f.name).join(", ") || "—"}</b>
                   <br />
-                  Protocols: <b>{(demoData.protocols || []).map((p) => p.name).join(", ") || "—"}</b>
+                  Protocols:{" "}
+                  <b>{(demoData.protocols || []).map((p) => p.name).join(", ") || "—"}</b>
                 </Text>
               </Box>
             )}
@@ -229,5 +229,3 @@ export function TutorialModal() {
     </Modal>
   );
 }
-
-

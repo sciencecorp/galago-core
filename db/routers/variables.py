@@ -11,11 +11,13 @@ router = APIRouter()
 
 
 @router.get("", response_model=list[schemas.Variable])
-def get_variables(db: Session = Depends(get_db), workcell_name: Optional[str] = None) -> t.Any:
+def get_variables(
+    db: Session = Depends(get_db), workcell_name: Optional[str] = None
+) -> t.Any:
     # If no workcell_name provided, use the selected workcell
     if workcell_name is None:
         workcell_name = get_selected_workcell_name(db)
-        
+
     workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
     if not workcell:
         raise HTTPException(status_code=404, detail="Workcell not found")
@@ -37,7 +39,7 @@ def get_variable(
         existing_variable = crud.variables.get_by(
             db, obj_in={"name": variable_name, "workcell_id": selected_workcell_id}
         )
-    
+
     if not existing_variable:
         raise HTTPException(status_code=404, detail="Variable not found")
     return existing_variable
@@ -48,20 +50,21 @@ def create_variable(
     variable: schemas.VariableCreate, db: Session = Depends(get_db)
 ) -> t.Any:
     # If no workcell_id provided, use the selected workcell
-    if not hasattr(variable, 'workcell_id') or variable.workcell_id is None:
+    if not hasattr(variable, "workcell_id") or variable.workcell_id is None:
         variable.workcell_id = get_selected_workcell_id(db)
-    
+
     existing_variable = (
         db.query(models.Variable)
         .filter(
             models.Variable.name == variable.name,
-            models.Variable.workcell_id == variable.workcell_id
+            models.Variable.workcell_id == variable.workcell_id,
         )
         .first()
     )
     if existing_variable:
         raise HTTPException(
-            status_code=400, detail="Variable with that name already exists in this workcell"
+            status_code=400,
+            detail="Variable with that name already exists in this workcell",
         )
     return crud.variables.create(db, obj_in=variable)
 

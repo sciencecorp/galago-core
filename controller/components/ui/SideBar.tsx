@@ -237,5 +237,3 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
 };
 
 export default Sidebar;
-
- 

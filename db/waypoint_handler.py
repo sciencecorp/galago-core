@@ -19,6 +19,7 @@ def get_unique_name(db: Session, name: str, table, tool_id: int) -> str:
         counter += 1
     return name
 
+
 def is_valid_location_name(name):
     return bool(re.search(r"[a-zA-Z]", name))  # Ensure at least one letter is present
 

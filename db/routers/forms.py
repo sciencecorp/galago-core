@@ -18,12 +18,14 @@ router = APIRouter()
 
 
 @router.get("", response_model=list[schemas.Form])
-def get_forms(db: Session = Depends(get_db), workcell_name: Optional[str] = None) -> t.Any:
+def get_forms(
+    db: Session = Depends(get_db), workcell_name: Optional[str] = None
+) -> t.Any:
     """Get all forms, optionally filtered by workcell."""
     # If no workcell_name provided, use the selected workcell
     if workcell_name is None:
         workcell_name = get_selected_workcell_name(db)
-        
+
     workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
     if not workcell:
         raise HTTPException(status_code=404, detail="Workcell not found")
@@ -35,38 +37,36 @@ def export_all_forms(db: Session = Depends(get_db)) -> t.Any:
     """Export all forms as a single downloadable JSON file."""
     # Get all forms from the database
     forms = crud.form.get_all(db)
-    
+
     if not forms:
         raise HTTPException(status_code=404, detail="No forms found to export")
-    
+
     # Create a temporary file for the JSON content
     with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
         temp_file_path = temp_file.name
-        
+
         # Serialize all forms to JSON
         forms_json = {
             "forms": jsonable_encoder(forms),
             "export_metadata": {
                 "export_date": datetime.now().isoformat(),
                 "total_forms": len(forms),
-                "version": "1.0"
-            }
+                "version": "1.0",
+            },
         }
-        
+
         temp_file.write(json.dumps(forms_json, indent=2).encode("utf-8"))
-    
+
     # Set the filename for download with timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"all_forms_export_{timestamp}.json"
-    
+
     # Return the file response which will trigger download in the browser
     return FileResponse(
         path=temp_file_path,
         filename=filename,
         media_type="application/json",
-        background=BackgroundTask(
-            lambda: os.unlink(temp_file_path)
-        ),
+        background=BackgroundTask(lambda: os.unlink(temp_file_path)),
     )
 
 
@@ -79,8 +79,10 @@ def get_form(form_name: str, db: Session = Depends(get_db)) -> t.Any:
     else:
         # It's a name, filter by selected workcell
         selected_workcell_id = get_selected_workcell_id(db)
-        form = crud.form.get_by(db, obj_in={"name": form_name, "workcell_id": selected_workcell_id})
-    
+        form = crud.form.get_by(
+            db, obj_in={"name": form_name, "workcell_id": selected_workcell_id}
+        )
+
     if not form:
         raise HTTPException(status_code=404, detail="Form not found")
     return form
@@ -90,17 +92,19 @@ def get_form(form_name: str, db: Session = Depends(get_db)) -> t.Any:
 def create_form(form: schemas.FormCreate, db: Session = Depends(get_db)) -> t.Any:
     """Create a new form."""
     # If no workcell_id provided, use the selected workcell
-    if not hasattr(form, 'workcell_id') or form.workcell_id is None:
+    if not hasattr(form, "workcell_id") or form.workcell_id is None:
         form.workcell_id = get_selected_workcell_id(db)
-    
+
     # Check if form with same name already exists in the same workcell
-    existing_form = crud.form.get_by(db, obj_in={"name": form.name, "workcell_id": form.workcell_id})
+    existing_form = crud.form.get_by(
+        db, obj_in={"name": form.name, "workcell_id": form.workcell_id}
+    )
     if existing_form:
         raise HTTPException(
-            status_code=400, 
-            detail=f"Form with name '{form.name}' already exists in this workcell"
+            status_code=400,
+            detail=f"Form with name '{form.name}' already exists in this workcell",
         )
-    
+
     return crud.form.create(db, obj_in=form)
 
 
@@ -112,16 +116,16 @@ def update_form(
     form = crud.form.get(db, id=form_id)
     if not form:
         raise HTTPException(status_code=404, detail="Form not found")
-    
+
     # Check if name is being updated and if it conflicts with existing forms
     if form_update.name and form_update.name != form.name:
         existing_form = crud.form.get_by(db, obj_in={"name": form_update.name})
         if existing_form:
             raise HTTPException(
-                status_code=400, 
-                detail=f"Form with name '{form_update.name}' already exists"
+                status_code=400,
+                detail=f"Form with name '{form_update.name}' already exists",
             )
-    
+
     return crud.form.update(db, db_obj=form, obj_in=form_update)
 
 
@@ -131,7 +135,7 @@ def delete_form(form_id: int, db: Session = Depends(get_db)) -> t.Any:
     form = crud.form.get(db, id=form_id)
     if not form:
         raise HTTPException(status_code=404, detail="Form not found")
-    
+
     return crud.form.remove(db, id=form_id)
 
 
@@ -157,9 +161,7 @@ def export_form_config(form_id: int, db: Session = Depends(get_db)) -> t.Any:
         path=temp_file_path,
         filename=filename,
         media_type="application/json",
-        background=BackgroundTask(
-            lambda: os.unlink(temp_file_path)
-        ),
+        background=BackgroundTask(lambda: os.unlink(temp_file_path)),
     )
 
 
@@ -188,9 +190,7 @@ async def import_form_config(
             )
 
         # Check if a form with this name already exists
-        existing_form = crud.form.get_by(
-            db, obj_in={"name": form_data["name"]}
-        )
+        existing_form = crud.form.get_by(db, obj_in={"name": form_data["name"]})
 
         # Extract form fields
         form_fields = {
@@ -213,9 +213,7 @@ async def import_form_config(
             )
         else:
             # Create new form
-            form = crud.form.create(
-                db, obj_in=schemas.FormCreate(**form_fields)
-            )
+            form = crud.form.create(db, obj_in=schemas.FormCreate(**form_fields))
 
         # Commit all changes
         db.commit()

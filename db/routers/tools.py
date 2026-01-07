@@ -19,7 +19,9 @@ router = APIRouter()
 
 
 @router.get("", response_model=list[schemas.Tool])
-def get_tools(db: Session = Depends(get_db), workcell_name: Optional[str] = None) -> t.Any:
+def get_tools(
+    db: Session = Depends(get_db), workcell_name: Optional[str] = None
+) -> t.Any:
     if workcell_name is None:
         workcell_name = get_selected_workcell_name(db)
     workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
@@ -61,9 +63,13 @@ def create_tool(tool: schemas.ToolCreate, db: Session = Depends(get_db)) -> t.An
     try:
         nests = create_default_inventory_nests(db, created_tool.id)
         if nests:
-            logger.info(f"Created {len(nests)} inventory nests for tool: {created_tool.name}")
+            logger.info(
+                f"Created {len(nests)} inventory nests for tool: {created_tool.name}"
+            )
     except Exception as e:
-        logger.error(f"Failed to create inventory nests for tool {created_tool.name}: {e}")
+        logger.error(
+            f"Failed to create inventory nests for tool {created_tool.name}: {e}"
+        )
         # Don't fail the entire operation if nest creation fails
 
     return created_tool

@@ -77,7 +77,6 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
     _ = workcell.protocols
     _ = workcell.hotels
 
-
     # Get all nests for the workcell (from both tools and hotels)
     nests = crud.nest.get_all_nests_by_workcell_id(db=db, workcell_id=workcell.id)
 
@@ -104,7 +103,9 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
     variables = crud.variables.get_all_by(db, obj_in={"workcell_id": workcell.id})
     labware = crud.labware.get_all_by(db, obj_in={"workcell_id": workcell.id})
     forms = crud.form.get_all_by(db, obj_in={"workcell_id": workcell.id})
-    script_folders = crud.script_folders.get_all_by(db, obj_in={"workcell_id": workcell.id})
+    script_folders = crud.script_folders.get_all_by(
+        db, obj_in={"workcell_id": workcell.id}
+    )
 
     # Create a temporary file for the JSON content
     with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
@@ -121,11 +122,19 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
         for tool in workcell.tools:
             if tool.type == "pf400":
                 # Get all robot arm data for this tool
-                tool_locations = crud.robot_arm_location.get_all_by(db, obj_in={"tool_id": tool.id})
-                tool_sequences = crud.robot_arm_sequence.get_all_by(db, obj_in={"tool_id": tool.id})
-                tool_motion_profiles = crud.robot_arm_motion_profile.get_all_by(db, obj_in={"tool_id": tool.id})
-                tool_grip_params = crud.robot_arm_grip_params.get_all_by(db, obj_in={"tool_id": tool.id})
-                
+                tool_locations = crud.robot_arm_location.get_all_by(
+                    db, obj_in={"tool_id": tool.id}
+                )
+                tool_sequences = crud.robot_arm_sequence.get_all_by(
+                    db, obj_in={"tool_id": tool.id}
+                )
+                tool_motion_profiles = crud.robot_arm_motion_profile.get_all_by(
+                    db, obj_in={"tool_id": tool.id}
+                )
+                tool_grip_params = crud.robot_arm_grip_params.get_all_by(
+                    db, obj_in={"tool_id": tool.id}
+                )
+
                 robot_arm_locations.extend(tool_locations)
                 robot_arm_sequences.extend(tool_sequences)
                 robot_arm_motion_profiles.extend(tool_motion_profiles)
@@ -134,7 +143,9 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
         # Add the robot arm data to the export JSON (after adding other data):
         workcell_json["robot_arm_locations"] = jsonable_encoder(robot_arm_locations)
         workcell_json["robot_arm_sequences"] = jsonable_encoder(robot_arm_sequences)
-        workcell_json["robot_arm_motion_profiles"] = jsonable_encoder(robot_arm_motion_profiles)
+        workcell_json["robot_arm_motion_profiles"] = jsonable_encoder(
+            robot_arm_motion_profiles
+        )
         workcell_json["robot_arm_grip_params"] = jsonable_encoder(robot_arm_grip_params)
         # Add the inventory and entity data to the export
         workcell_json["nests"] = jsonable_encoder(nests)
@@ -157,14 +168,11 @@ def export_workcell_config(workcell_id: int, db: Session = Depends(get_db)) -> t
         path=temp_file_path,
         filename=filename,
         media_type="application/json",
-        background=BackgroundTask(
-            lambda: os.unlink(temp_file_path)
-        ),
+        background=BackgroundTask(lambda: os.unlink(temp_file_path)),
     )
 
 
-
-#TODO: This function is insanely long, break it up into smaller functions.
+# TODO: This function is insanely long, break it up into smaller functions.
 @router.post("/import", response_model=schemas.Workcell)
 async def import_workcell_config(
     file: UploadFile = File(...), db: Session = Depends(get_db)
@@ -255,7 +263,9 @@ async def import_workcell_config(
                 else:
                     # Create new hotel
                     hotel_create = {k: v for k, v in hotel_data.items() if k != "id"}
-                    new_hotel = crud.hotel.create(db, obj_in=schemas.HotelCreate(**hotel_create))
+                    new_hotel = crud.hotel.create(
+                        db, obj_in=schemas.HotelCreate(**hotel_create)
+                    )
                     if old_hotel_id:
                         hotel_id_mapping[old_hotel_id] = new_hotel.id
 
@@ -296,7 +306,7 @@ async def import_workcell_config(
                     )
                     if old_tool_id:
                         tool_id_mapping[old_tool_id] = new_tool.id
-                    
+
                     # Create default motion profile and grip params if it's a pf400
                     if new_tool.type == "pf400":
                         create_default_motion_profile(db, new_tool.id)
@@ -304,105 +314,177 @@ async def import_workcell_config(
                         logging.info(
                             f"Created default profiles for imported PF400 tool: {new_tool.name}"
                         )
-# Process robot arm locations if they exist in the import data
-        if "robot_arm_locations" in workcell_data and isinstance(workcell_data["robot_arm_locations"], list):
+        # Process robot arm locations if they exist in the import data
+        if "robot_arm_locations" in workcell_data and isinstance(
+            workcell_data["robot_arm_locations"], list
+        ):
             for location_data in workcell_data["robot_arm_locations"]:
-                if not isinstance(location_data, dict) or "name" not in location_data or "tool_id" not in location_data:
+                if (
+                    not isinstance(location_data, dict)
+                    or "name" not in location_data
+                    or "tool_id" not in location_data
+                ):
                     continue
 
                 # Remap tool_id using the mapping dictionary
-                if location_data.get("tool_id") and location_data["tool_id"] in tool_id_mapping:
+                if (
+                    location_data.get("tool_id")
+                    and location_data["tool_id"] in tool_id_mapping
+                ):
                     location_data["tool_id"] = tool_id_mapping[location_data["tool_id"]]
                 elif location_data.get("tool_id"):
-                    logging.warning(f"Could not map tool_id {location_data['tool_id']} for robot arm location {location_data['name']}")
+                    logging.warning(
+                        f"Could not map tool_id {location_data['tool_id']} for robot arm location {location_data['name']}"
+                    )
                     continue  # Skip if we can't map the tool
 
                 existing_location = crud.robot_arm_location.get_by(
-                    db, obj_in={"name": location_data["name"], "tool_id": location_data["tool_id"]}
+                    db,
+                    obj_in={
+                        "name": location_data["name"],
+                        "tool_id": location_data["tool_id"],
+                    },
                 )
 
                 if existing_location:
-                    location_update = {k: v for k, v in location_data.items() if k != "id"}
+                    location_update = {
+                        k: v for k, v in location_data.items() if k != "id"
+                    }
                     crud.robot_arm_location.update(
                         db,
                         db_obj=existing_location,
                         obj_in=schemas.RobotArmLocationUpdate(**location_update),
                     )
                 else:
-                    location_create = {k: v for k, v in location_data.items() if k != "id"}
-                    crud.robot_arm_location.create(db, obj_in=schemas.RobotArmLocationCreate(**location_create))
+                    location_create = {
+                        k: v for k, v in location_data.items() if k != "id"
+                    }
+                    crud.robot_arm_location.create(
+                        db, obj_in=schemas.RobotArmLocationCreate(**location_create)
+                    )
 
         # Process robot arm sequences if they exist in the import data
-        if "robot_arm_sequences" in workcell_data and isinstance(workcell_data["robot_arm_sequences"], list):
+        if "robot_arm_sequences" in workcell_data and isinstance(
+            workcell_data["robot_arm_sequences"], list
+        ):
             for sequence_data in workcell_data["robot_arm_sequences"]:
-                if not isinstance(sequence_data, dict) or "name" not in sequence_data or "tool_id" not in sequence_data:
+                if (
+                    not isinstance(sequence_data, dict)
+                    or "name" not in sequence_data
+                    or "tool_id" not in sequence_data
+                ):
                     continue
 
                 # Remap tool_id using the mapping dictionary
-                if sequence_data.get("tool_id") and sequence_data["tool_id"] in tool_id_mapping:
+                if (
+                    sequence_data.get("tool_id")
+                    and sequence_data["tool_id"] in tool_id_mapping
+                ):
                     sequence_data["tool_id"] = tool_id_mapping[sequence_data["tool_id"]]
                 elif sequence_data.get("tool_id"):
-                    logging.warning(f"Could not map tool_id {sequence_data['tool_id']} for robot arm sequence {sequence_data['name']}")
+                    logging.warning(
+                        f"Could not map tool_id {sequence_data['tool_id']} for robot arm sequence {sequence_data['name']}"
+                    )
                     continue  # Skip if we can't map the tool
 
                 existing_sequence = crud.robot_arm_sequence.get_by(
-                    db, obj_in={"name": sequence_data["name"], "tool_id": sequence_data["tool_id"]}
+                    db,
+                    obj_in={
+                        "name": sequence_data["name"],
+                        "tool_id": sequence_data["tool_id"],
+                    },
                 )
 
                 if existing_sequence:
-                    sequence_update = {k: v for k, v in sequence_data.items() if k != "id"}
+                    sequence_update = {
+                        k: v for k, v in sequence_data.items() if k != "id"
+                    }
                     crud.robot_arm_sequence.update(
                         db,
                         db_obj=existing_sequence,
                         obj_in=schemas.RobotArmSequenceUpdate(**sequence_update),
                     )
                 else:
-                    sequence_create = {k: v for k, v in sequence_data.items() if k != "id"}
-                    crud.robot_arm_sequence.create(db, obj_in=schemas.RobotArmSequenceCreate(**sequence_create))
+                    sequence_create = {
+                        k: v for k, v in sequence_data.items() if k != "id"
+                    }
+                    crud.robot_arm_sequence.create(
+                        db, obj_in=schemas.RobotArmSequenceCreate(**sequence_create)
+                    )
 
         # Process robot arm motion profiles if they exist in the import data
-        if "robot_arm_motion_profiles" in workcell_data and isinstance(workcell_data["robot_arm_motion_profiles"], list):
+        if "robot_arm_motion_profiles" in workcell_data and isinstance(
+            workcell_data["robot_arm_motion_profiles"], list
+        ):
             for profile_data in workcell_data["robot_arm_motion_profiles"]:
-                if not isinstance(profile_data, dict) or "name" not in profile_data or "tool_id" not in profile_data:
+                if (
+                    not isinstance(profile_data, dict)
+                    or "name" not in profile_data
+                    or "tool_id" not in profile_data
+                ):
                     continue
 
                 # Remap tool_id using the mapping dictionary
-                if profile_data.get("tool_id") and profile_data["tool_id"] in tool_id_mapping:
+                if (
+                    profile_data.get("tool_id")
+                    and profile_data["tool_id"] in tool_id_mapping
+                ):
                     profile_data["tool_id"] = tool_id_mapping[profile_data["tool_id"]]
                 elif profile_data.get("tool_id"):
-                    logging.warning(f"Could not map tool_id {profile_data['tool_id']} for robot arm motion profile {profile_data['name']}")
+                    logging.warning(
+                        f"Could not map tool_id {profile_data['tool_id']} for robot arm motion profile {profile_data['name']}"
+                    )
                     continue  # Skip if we can't map the tool
 
                 existing_profile = crud.robot_arm_motion_profile.get_by(
-                    db, obj_in={"name": profile_data["name"], "tool_id": profile_data["tool_id"]}
+                    db,
+                    obj_in={
+                        "name": profile_data["name"],
+                        "tool_id": profile_data["tool_id"],
+                    },
                 )
 
                 if existing_profile:
-                    profile_update = {k: v for k, v in profile_data.items() if k != "id"}
+                    profile_update = {
+                        k: v for k, v in profile_data.items() if k != "id"
+                    }
                     crud.robot_arm_motion_profile.update(
                         db,
                         db_obj=existing_profile,
                         obj_in=schemas.RobotArmMotionProfileUpdate(**profile_update),
                     )
                 else:
-                    profile_create = {k: v for k, v in profile_data.items() if k != "id"}
-                    crud.robot_arm_motion_profile.create(db, obj_in=schemas.RobotArmMotionProfileCreate(**profile_create))
+                    profile_create = {
+                        k: v for k, v in profile_data.items() if k != "id"
+                    }
+                    crud.robot_arm_motion_profile.create(
+                        db, obj_in=schemas.RobotArmMotionProfileCreate(**profile_create)
+                    )
 
         # Process robot arm grip params if they exist in the import data
-        if "robot_arm_grip_params" in workcell_data and isinstance(workcell_data["robot_arm_grip_params"], list):
+        if "robot_arm_grip_params" in workcell_data and isinstance(
+            workcell_data["robot_arm_grip_params"], list
+        ):
             for grip_data in workcell_data["robot_arm_grip_params"]:
-                if not isinstance(grip_data, dict) or "name" not in grip_data or "tool_id" not in grip_data:
+                if (
+                    not isinstance(grip_data, dict)
+                    or "name" not in grip_data
+                    or "tool_id" not in grip_data
+                ):
                     continue
 
                 # Remap tool_id using the mapping dictionary
                 if grip_data.get("tool_id") and grip_data["tool_id"] in tool_id_mapping:
                     grip_data["tool_id"] = tool_id_mapping[grip_data["tool_id"]]
                 elif grip_data.get("tool_id"):
-                    logging.warning(f"Could not map tool_id {grip_data['tool_id']} for robot arm grip params {grip_data['name']}")
+                    logging.warning(
+                        f"Could not map tool_id {grip_data['tool_id']} for robot arm grip params {grip_data['name']}"
+                    )
                     continue  # Skip if we can't map the tool
 
                 existing_grip_params = crud.robot_arm_grip_params.get_by(
-                    db, obj_in={"name": grip_data["name"], "tool_id": grip_data["tool_id"]}
+                    db,
+                    obj_in={"name": grip_data["name"], "tool_id": grip_data["tool_id"]},
                 )
 
                 if existing_grip_params:
@@ -414,8 +496,10 @@ async def import_workcell_config(
                     )
                 else:
                     grip_create = {k: v for k, v in grip_data.items() if k != "id"}
-                    crud.robot_arm_grip_params.create(db, obj_in=schemas.RobotArmGripParamsCreate(**grip_create))
-                    
+                    crud.robot_arm_grip_params.create(
+                        db, obj_in=schemas.RobotArmGripParamsCreate(**grip_create)
+                    )
+
         # Process nests THIRD (depends on tools and hotels)
         if "nests" in workcell_data and isinstance(workcell_data["nests"], list):
             for nest_data in workcell_data["nests"]:
@@ -425,18 +509,25 @@ async def import_workcell_config(
                 old_nest_id = nest_data.get("id")
 
                 # Remap foreign keys using the mapping dictionaries
-                if nest_data.get("hotel_id") and nest_data["hotel_id"] in hotel_id_mapping:
+                if (
+                    nest_data.get("hotel_id")
+                    and nest_data["hotel_id"] in hotel_id_mapping
+                ):
                     nest_data["hotel_id"] = hotel_id_mapping[nest_data["hotel_id"]]
                 elif nest_data.get("hotel_id"):
                     # If we can't map it, set to null to avoid FK constraint
-                    logging.warning(f"Could not map hotel_id {nest_data['hotel_id']} for nest {nest_data['name']}")
+                    logging.warning(
+                        f"Could not map hotel_id {nest_data['hotel_id']} for nest {nest_data['name']}"
+                    )
                     nest_data["hotel_id"] = None
 
                 if nest_data.get("tool_id") and nest_data["tool_id"] in tool_id_mapping:
                     nest_data["tool_id"] = tool_id_mapping[nest_data["tool_id"]]
                 elif nest_data.get("tool_id"):
                     # If we can't map it, set to null to avoid FK constraint
-                    logging.warning(f"Could not map tool_id {nest_data['tool_id']} for nest {nest_data['name']}")
+                    logging.warning(
+                        f"Could not map tool_id {nest_data['tool_id']} for nest {nest_data['name']}"
+                    )
                     nest_data["tool_id"] = None
 
                 # Check if this nest already exists
@@ -460,7 +551,9 @@ async def import_workcell_config(
                 else:
                     # Create new nest
                     nest_create = {k: v for k, v in nest_data.items() if k != "id"}
-                    new_nest = crud.nest.create(db, obj_in=schemas.NestCreate(**nest_create))
+                    new_nest = crud.nest.create(
+                        db, obj_in=schemas.NestCreate(**nest_create)
+                    )
                     if old_nest_id:
                         nest_id_mapping[old_nest_id] = new_nest.id
 
@@ -473,10 +566,15 @@ async def import_workcell_config(
                 old_plate_id = plate_data.get("id")
 
                 # Remap nest_id
-                if plate_data.get("nest_id") and plate_data["nest_id"] in nest_id_mapping:
+                if (
+                    plate_data.get("nest_id")
+                    and plate_data["nest_id"] in nest_id_mapping
+                ):
                     plate_data["nest_id"] = nest_id_mapping[plate_data["nest_id"]]
                 elif plate_data.get("nest_id"):
-                    logging.warning(f"Could not map nest_id {plate_data['nest_id']} for plate {plate_data.get('name')}")
+                    logging.warning(
+                        f"Could not map nest_id {plate_data['nest_id']} for plate {plate_data.get('name')}"
+                    )
                     plate_data["nest_id"] = None
 
                 # Check if this plate already exists
@@ -504,7 +602,9 @@ async def import_workcell_config(
                 else:
                     # Create new plate
                     plate_create = {k: v for k, v in plate_data.items() if k != "id"}
-                    new_plate = crud.plate.create(db, obj_in=schemas.PlateCreate(**plate_create))
+                    new_plate = crud.plate.create(
+                        db, obj_in=schemas.PlateCreate(**plate_create)
+                    )
                     if old_plate_id:
                         plate_id_mapping[old_plate_id] = new_plate.id
 
@@ -517,10 +617,15 @@ async def import_workcell_config(
                 old_well_id = well_data.get("id")
 
                 # Remap plate_id
-                if well_data.get("plate_id") and well_data["plate_id"] in plate_id_mapping:
+                if (
+                    well_data.get("plate_id")
+                    and well_data["plate_id"] in plate_id_mapping
+                ):
                     well_data["plate_id"] = plate_id_mapping[well_data["plate_id"]]
                 elif well_data.get("plate_id"):
-                    logging.warning(f"Could not map plate_id {well_data['plate_id']} for well")
+                    logging.warning(
+                        f"Could not map plate_id {well_data['plate_id']} for well"
+                    )
                     continue  # Skip this well if we can't map the plate
 
                 # Check if this well already exists
@@ -553,7 +658,9 @@ async def import_workcell_config(
                 else:
                     # Create new well
                     well_create = {k: v for k, v in well_data.items() if k != "id"}
-                    new_well = crud.well.create(db, obj_in=schemas.WellCreate(**well_create))
+                    new_well = crud.well.create(
+                        db, obj_in=schemas.WellCreate(**well_create)
+                    )
                     if old_well_id:
                         well_id_mapping[old_well_id] = new_well.id
 
@@ -568,10 +675,15 @@ async def import_workcell_config(
                     continue
 
                 # Remap well_id
-                if reagent_data.get("well_id") and reagent_data["well_id"] in well_id_mapping:
+                if (
+                    reagent_data.get("well_id")
+                    and reagent_data["well_id"] in well_id_mapping
+                ):
                     reagent_data["well_id"] = well_id_mapping[reagent_data["well_id"]]
                 elif reagent_data.get("well_id"):
-                    logging.warning(f"Could not map well_id {reagent_data['well_id']} for reagent {reagent_data['name']}")
+                    logging.warning(
+                        f"Could not map well_id {reagent_data['well_id']} for reagent {reagent_data['name']}"
+                    )
                     continue  # Skip this reagent if we can't map the well
 
                 # Check if this reagent already exists
@@ -630,29 +742,40 @@ async def import_workcell_config(
                     )
                 else:
                     script_create = {k: v for k, v in script_data.items() if k != "id"}
-                    crud.scripts.create(db, obj_in=schemas.ScriptCreate(**script_create))
+                    crud.scripts.create(
+                        db, obj_in=schemas.ScriptCreate(**script_create)
+                    )
 
         # Process variables if they exist in the import data
-        if "variables" in workcell_data and isinstance(workcell_data["variables"], list):
+        if "variables" in workcell_data and isinstance(
+            workcell_data["variables"], list
+        ):
             for variable_data in workcell_data["variables"]:
                 if not isinstance(variable_data, dict) or "name" not in variable_data:
                     continue
 
                 variable_data["workcell_id"] = workcell.id
                 existing_variable = crud.variables.get_by(
-                    db, obj_in={"name": variable_data["name"], "workcell_id": workcell.id}
+                    db,
+                    obj_in={"name": variable_data["name"], "workcell_id": workcell.id},
                 )
 
                 if existing_variable:
-                    variable_update = {k: v for k, v in variable_data.items() if k != "id"}
+                    variable_update = {
+                        k: v for k, v in variable_data.items() if k != "id"
+                    }
                     crud.variables.update(
                         db,
                         db_obj=existing_variable,
                         obj_in=schemas.VariableUpdate(**variable_update),
                     )
                 else:
-                    variable_create = {k: v for k, v in variable_data.items() if k != "id"}
-                    crud.variables.create(db, obj_in=schemas.VariableCreate(**variable_create))
+                    variable_create = {
+                        k: v for k, v in variable_data.items() if k != "id"
+                    }
+                    crud.variables.create(
+                        db, obj_in=schemas.VariableCreate(**variable_create)
+                    )
 
         # Process labware if they exist in the import data
         if "labware" in workcell_data and isinstance(workcell_data["labware"], list):
@@ -662,7 +785,8 @@ async def import_workcell_config(
 
                 labware_data["workcell_id"] = workcell.id
                 existing_labware = crud.labware.get_by(
-                    db, obj_in={"name": labware_data["name"], "workcell_id": workcell.id}
+                    db,
+                    obj_in={"name": labware_data["name"], "workcell_id": workcell.id},
                 )
 
                 labware_fields = {
@@ -693,7 +817,9 @@ async def import_workcell_config(
                     )
 
         # Process script folders if they exist in the import data
-        if "script_folders" in workcell_data and isinstance(workcell_data["script_folders"], list):
+        if "script_folders" in workcell_data and isinstance(
+            workcell_data["script_folders"], list
+        ):
             for folder_data in workcell_data["script_folders"]:
                 if not isinstance(folder_data, dict) or "name" not in folder_data:
                     continue
@@ -712,8 +838,10 @@ async def import_workcell_config(
                     )
                 else:
                     folder_create = {k: v for k, v in folder_data.items() if k != "id"}
-                    crud.script_folders.create(db, obj_in=schemas.ScriptFolderCreate(**folder_create))
-        
+                    crud.script_folders.create(
+                        db, obj_in=schemas.ScriptFolderCreate(**folder_create)
+                    )
+
         # Process forms if they exist in the import data
         if "forms" in workcell_data and isinstance(workcell_data["forms"], list):
             for form_data in workcell_data["forms"]:
@@ -740,9 +868,7 @@ async def import_workcell_config(
                         obj_in=schemas.FormUpdate(**form_fields),
                     )
                 else:
-                    crud.form.create(
-                        db, obj_in=schemas.FormCreate(**form_fields)
-                    )
+                    crud.form.create(db, obj_in=schemas.FormCreate(**form_fields))
 
         # Process and create/update protocols if they exist in the import data
         if "protocols" in workcell_data and isinstance(
@@ -788,9 +914,9 @@ async def import_workcell_config(
                         "is_active",
                     ]
                 }
-                protocol_data_cleaned[
-                    "workcell_id"
-                ] = workcell.id  # Ensure correct workcell id
+                protocol_data_cleaned["workcell_id"] = (
+                    workcell.id
+                )  # Ensure correct workcell id
 
                 protocol_name = protocol_data_cleaned.get("name")
                 if protocol_name:

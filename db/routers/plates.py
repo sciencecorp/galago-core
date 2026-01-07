@@ -18,7 +18,7 @@ def get_plates(
     # If no workcell_name provided, use the selected workcell
     if workcell_name is None:
         workcell_name = get_selected_workcell_name(db)
-        
+
     workcell = crud.workcell.get_by(db=db, obj_in={"name": workcell_name})
     if not workcell:
         raise HTTPException(status_code=404, detail="Workcell not found")
@@ -120,7 +120,22 @@ def create_plate(plate: schemas.PlateCreate, db: Session = Depends(get_db)) -> t
     elif plate_type == "384 well":
         columns = list(range(1, 25))
         rows = [
-            "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P",
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H",
+            "I",
+            "J",
+            "K",
+            "L",
+            "M",
+            "N",
+            "O",
+            "P",
         ]
 
     for column in columns:

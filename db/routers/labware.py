@@ -18,11 +18,13 @@ router = APIRouter()
 
 
 @router.get("", response_model=list[schemas.Labware])
-def get_labwares(db: Session = Depends(get_db), workcell_name: Optional[str] = None) -> t.Any:
+def get_labwares(
+    db: Session = Depends(get_db), workcell_name: Optional[str] = None
+) -> t.Any:
     # If no workcell_name provided, use the selected workcell
     if workcell_name is None:
         workcell_name = get_selected_workcell_name(db)
-        
+
     workcell = crud.workcell.get_by(db, obj_in={"name": workcell_name})
     if not workcell:
         raise HTTPException(status_code=404, detail="Workcell not found")
@@ -34,9 +36,9 @@ def create_labware(
     labware: schemas.LabwareCreate, db: Session = Depends(get_db)
 ) -> t.Any:
     # If no workcell_id provided, use the selected workcell
-    if not hasattr(labware, 'workcell_id') or labware.workcell_id is None:
+    if not hasattr(labware, "workcell_id") or labware.workcell_id is None:
         labware.workcell_id = get_selected_workcell_id(db)
-    
+
     # Check for existing labware with same name in the same workcell
     existing_labware = crud.labware.get_by(
         db, obj_in={"name": labware.name, "workcell_id": labware.workcell_id}
@@ -44,9 +46,9 @@ def create_labware(
     if existing_labware:
         raise HTTPException(
             status_code=400,
-            detail=f"Labware with name '{labware.name}' already exists in this workcell"
+            detail=f"Labware with name '{labware.name}' already exists in this workcell",
         )
-    
+
     return crud.labware.create(db, obj_in=labware)
 
 
@@ -97,9 +99,7 @@ def export_labware_config(labware_id: int, db: Session = Depends(get_db)) -> t.A
         path=temp_file_path,
         filename=filename,
         media_type="application/json",
-        background=BackgroundTask(
-            lambda: os.unlink(temp_file_path)
-        ),
+        background=BackgroundTask(lambda: os.unlink(temp_file_path)),
     )
 
 

@@ -256,7 +256,9 @@ export function TutorialProvider({
         ].join("\n"),
       });
 
-      const scripts = [{ id: helloScript?.id, name: helloScript?.name ?? `tutorial_hello_${suffix}` }];
+      const scripts = [
+        { id: helloScript?.id, name: helloScript?.name ?? `tutorial_hello_${suffix}` },
+      ];
 
       // Labware: a simple 96-well plate definition (safe to delete)
       const tutorialLabware = await addLabware.mutateAsync({
@@ -275,7 +277,10 @@ export function TutorialProvider({
         image_url: "/tool_icons/labware.png",
       });
       const labware = [
-        { id: tutorialLabware?.id, name: tutorialLabware?.name ?? `Tutorial 96 Well Plate ${suffix}` },
+        {
+          id: tutorialLabware?.id,
+          name: tutorialLabware?.name ?? `Tutorial 96 Well Plate ${suffix}`,
+        },
       ];
 
       // Forms: a simple operator input form (safe to delete)
@@ -319,7 +324,12 @@ export function TutorialProvider({
           },
         ],
       });
-      const forms = [{ id: tutorialForm?.id, name: tutorialForm?.name ?? `Tutorial Operator Check-in ${suffix}` }];
+      const forms = [
+        {
+          id: tutorialForm?.id,
+          name: tutorialForm?.name ?? `Tutorial Operator Check-in ${suffix}`,
+        },
+      ];
 
       // Protocol: Media Exchange (uses real command schema + variable references like {{var}})
       const toolIdByType = (type: string) =>
@@ -409,7 +419,10 @@ export function TutorialProvider({
       });
 
       const protocols = [
-        { id: mediaExchangeProtocol?.id, name: mediaExchangeProtocol?.name ?? `Tutorial Media Exchange ${suffix}` },
+        {
+          id: mediaExchangeProtocol?.id,
+          name: mediaExchangeProtocol?.name ?? `Tutorial Media Exchange ${suffix}`,
+        },
       ];
 
       return {
@@ -424,7 +437,13 @@ export function TutorialProvider({
           hotel: { id: hotel?.id, name: hotel?.name ?? `Tutorial Static Hotel ${suffix}` },
           nests,
           plates: plate
-            ? [{ id: (plate as any)?.id, name: (plate as any)?.name ?? `Tutorial Culture Plate ${suffix}`, barcode: plateBarcode }]
+            ? [
+                {
+                  id: (plate as any)?.id,
+                  name: (plate as any)?.name ?? `Tutorial Culture Plate ${suffix}`,
+                  barcode: plateBarcode,
+                },
+              ]
             : [],
         },
       };
@@ -491,7 +510,8 @@ export function TutorialProvider({
           if (n.id != null) await deleteNest.mutateAsync(n.id);
         }
       }
-      if (demoData.inventory?.hotel?.id != null) await deleteHotel.mutateAsync(demoData.inventory.hotel.id);
+      if (demoData.inventory?.hotel?.id != null)
+        await deleteHotel.mutateAsync(demoData.inventory.hotel.id);
 
       if (demoData.tools?.length) {
         for (const t of demoData.tools) {
@@ -580,7 +600,10 @@ export function TutorialProvider({
 
   const skip = useCallback(() => {
     try {
-      localStorage.setItem(TUTORIAL_STORAGE_KEY, JSON.stringify({ completed: true, at: Date.now() }));
+      localStorage.setItem(
+        TUTORIAL_STORAGE_KEY,
+        JSON.stringify({ completed: true, at: Date.now() }),
+      );
     } catch {
       // ignore
     }
@@ -636,5 +659,3 @@ export function useTutorial() {
   if (!ctx) throw new Error("useTutorial must be used within TutorialProvider");
   return ctx;
 }
-
-

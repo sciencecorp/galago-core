@@ -21,15 +21,11 @@ export const tutorialSteps: TutorialStep[] = [
           then you build <b>Protocols</b> and run them.
         </Text>
         <UnorderedList mt={3} spacing={1}>
-          <ListItem>
-            Use Workcells to create/import the environment you’re running in.
-          </ListItem>
+          <ListItem>Use Workcells to create/import the environment you’re running in.</ListItem>
           <ListItem>
             Use Tools to add tools from the driver library and connect them (incl. Tool Box).
           </ListItem>
-          <ListItem>
-            Build Protocols, then monitor Runs (Gantt), and debug via Logs.
-          </ListItem>
+          <ListItem>Build Protocols, then monitor Runs (Gantt), and debug via Logs.</ListItem>
         </UnorderedList>
       </Box>
     ),
@@ -41,16 +37,12 @@ export const tutorialSteps: TutorialStep[] = [
     body: (
       <Box>
         <Text>
-          Create or import a <b>workcell</b>. This is the top-level container that ties tools, labware
-          context, and automation configuration together.
+          Create or import a <b>workcell</b>. This is the top-level container that ties tools,
+          labware context, and automation configuration together.
         </Text>
         <UnorderedList mt={3} spacing={1}>
-          <ListItem>
-            If you’re new, start by creating a workcell, then set it as selected.
-          </ListItem>
-          <ListItem>
-            Import is useful when you’re loading an existing cell configuration.
-          </ListItem>
+          <ListItem>If you’re new, start by creating a workcell, then set it as selected.</ListItem>
+          <ListItem>Import is useful when you’re loading an existing cell configuration.</ListItem>
         </UnorderedList>
       </Box>
     ),
@@ -63,17 +55,15 @@ export const tutorialSteps: TutorialStep[] = [
       <Box>
         <Text>
           Add tools from the tool driver library and connect them. In this tutorial we seed four
-          common tools: <b>pf400</b>, <b>opentrons2</b>, <b>cytation</b>, and <b>liconic</b>.
-          After adding, configuration typically happens in the separate <b>Galago Tools</b> app
-          (physical instrument ↔ digital representation), then you return here to connect.
+          common tools: <b>pf400</b>, <b>opentrons2</b>, <b>cytation</b>, and <b>liconic</b>. After
+          adding, configuration typically happens in the separate <b>Galago Tools</b> app (physical
+          instrument ↔ digital representation), then you return here to connect.
         </Text>
         <UnorderedList mt={3} spacing={1}>
           <ListItem>
             Click <b>Connect All</b> to connect every tool with a config.
           </ListItem>
-          <ListItem>
-            Click a tool card to open its dedicated command page.
-          </ListItem>
+          <ListItem>Click a tool card to open its dedicated command page.</ListItem>
           <ListItem>
             The built-in <b>Tool Box</b> tool provides utilities like running scripts and sending
             messages (email/Slack/etc).
@@ -103,11 +93,12 @@ export const tutorialSteps: TutorialStep[] = [
     body: (
       <Box>
         <Text>
-          Write scripts in supported languages (Python, JavaScript, C#). Scripts are great for “glue”
-          logic: calling a LIMS, doing math mid-protocol, and reading/updating variables.
+          Write scripts in supported languages (Python, JavaScript, C#). Scripts are great for
+          “glue” logic: calling a LIMS, doing math mid-protocol, and reading/updating variables.
         </Text>
         <Text mt={3} color="gray.600">
-          Tip: scripts can be executed directly, or invoked from a protocol step (often via Tool Box).
+          Tip: scripts can be executed directly, or invoked from a protocol step (often via Tool
+          Box).
         </Text>
       </Box>
     ),
@@ -127,9 +118,7 @@ export const tutorialSteps: TutorialStep[] = [
           Liconic → run an Opentrons program → read on Cytation → store plate back).
         </Text>
         <UnorderedList mt={3} spacing={1}>
-          <ListItem>
-            Add tool commands (including script steps) to build the workflow.
-          </ListItem>
+          <ListItem>Add tool commands (including script steps) to build the workflow.</ListItem>
           <ListItem>
             Run the protocol to create a run that appears in <b>Runs</b>.
           </ListItem>
@@ -144,8 +133,8 @@ export const tutorialSteps: TutorialStep[] = [
     body: (
       <Box>
         <Text>
-          Runs are protocol executions. Use this page to monitor progress (including the Gantt chart)
-          and understand what’s currently happening.
+          Runs are protocol executions. Use this page to monitor progress (including the Gantt
+          chart) and understand what’s currently happening.
         </Text>
       </Box>
     ),
@@ -196,8 +185,8 @@ export const tutorialSteps: TutorialStep[] = [
     body: (
       <Box>
         <Text>
-          Logs show what happened across the system. If something fails during a run or tool connect,
-          this is the first place to check.
+          Logs show what happened across the system. If something fails during a run or tool
+          connect, this is the first place to check.
         </Text>
         <Text mt={3}>
           You’re done — you now have the map of how Galago fits together end-to-end.
@@ -212,9 +201,7 @@ export const tutorialSteps: TutorialStep[] = [
           <ListItem>
             Build a protocol that calls tool commands + scripts + variables, then monitor the run.
           </ListItem>
-          <ListItem>
-            Use logs as your audit/debug trail.
-          </ListItem>
+          <ListItem>Use logs as your audit/debug trail.</ListItem>
         </UnorderedList>
         <Text mt={3} color="gray.500" fontSize="sm">
           (If you enabled demo data, you can remove it from the panel above.)
@@ -223,5 +210,3 @@ export const tutorialSteps: TutorialStep[] = [
     ),
   },
 ];
-
-
