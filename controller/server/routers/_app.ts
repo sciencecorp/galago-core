@@ -5,7 +5,6 @@ import { runRouter } from "./run";
 import { toolRouter } from "./tool";
 import { variableRouter } from "./variable";
 import { loggingRouter } from "./logging";
-import { log } from "console";
 import { workcellRouter } from "./workcell";
 import { labwareRouter } from "./labware";
 import { scriptRouter } from "./script";

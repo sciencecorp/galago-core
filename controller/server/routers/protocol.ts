@@ -1,15 +1,17 @@
-import { Protocol } from "@/types/api";
+import { AppSettings, Protocol, Workcell } from "@/types/api";
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import axios from "axios";
 import { logAction } from "@/server/logger";
 import { get, post } from "../utils/api";
 
-const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
+const API_BASE_URL = (process.env.API_BASE_URL || "http://127.0.0.1:8000").replace(/\/api\/?$/, "");
 
 const protocolSchema = z.object({
   name: z.string().min(1),
   category: z.string().min(1),
+  // Optional here because some UI flows don't provide it; we'll infer from selected workcell.
+  workcell_id: z.number().optional(),
   description: z.string().optional(),
   commands: z.array(z.any()),
 });
@@ -35,8 +37,20 @@ export const protocolRouter = router({
   }),
 
   create: procedure.input(protocolSchema).mutation(async ({ input }) => {
+    let workcell_id = input.workcell_id;
+    if (workcell_id == null) {
+      // Infer from selected workcell setting
+      const selected = await get<AppSettings>(`/settings/workcell`);
+      const selectedName = (selected?.value ?? "").toString();
+      if (selectedName) {
+        const wc = await get<Workcell>(`/workcells/${encodeURIComponent(selectedName)}`);
+        workcell_id = wc?.id;
+      }
+    }
+
     const protocolData = {
       ...input,
+      workcell_id,
       commands: input.commands || [],
     };
     const response = await post<Protocol>(`${API_BASE_URL}/protocols`, protocolData);

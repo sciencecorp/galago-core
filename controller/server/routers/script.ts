@@ -1,13 +1,10 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
-import { get, post, put, del } from "../utils/api";
-import { getHTTPStatusCodeFromError } from "@trpc/server/http";
+import { get, getOrEmptyArray, post, put, del } from "../utils/api";
 import { Script, ScriptFolder } from "@/types/api";
-import { run } from "node:test";
 import Tool from "@/server/tools";
 import { ToolType } from "gen-interfaces/controller";
 import { logAction } from "@/server/logger";
-import { log } from "console";
 
 const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
 
@@ -38,8 +35,7 @@ export const zScriptFolderUpdate = z.object({
 
 export const scriptRouter = router({
   getAll: procedure.query(async () => {
-    const response = await get<Script[]>(`/scripts`);
-    return response;
+    return await getOrEmptyArray<Script>(`/scripts`);
   }),
 
   get: procedure.input(z.string()).query(async ({ input }) => {
@@ -95,8 +91,7 @@ export const scriptRouter = router({
   }),
 
   getAllFolders: procedure.query(async () => {
-    const response = await get<ScriptFolder[]>(`/script-folders`);
-    return response;
+    return await getOrEmptyArray<ScriptFolder>(`/script-folders`);
   }),
 
   getFolder: procedure.input(z.number()).query(async ({ input }) => {
@@ -122,16 +117,9 @@ export const scriptRouter = router({
 
   // Export script content
   exportConfig: procedure.input(z.number()).mutation(async ({ input }) => {
-    try {
-      const scriptId = input;
-      // Directly fetch script content from the backend API (assuming an endpoint exists or will be created)
-      const response = await get<Script>(`/scripts/${scriptId}/export`); // Using GET for simplicity, adjust if needed
-      // Return the content or the whole script object as needed by the frontend hook
-      return response; // Assuming the backend returns { id, name, content, language, ... }
-    } catch (error) {
-      console.error("Export failed:", error);
-      throw error;
-    }
+    const scriptId = input;
+    // Directly fetch script content from the backend API (assuming an endpoint exists or will be created)
+    return await get<Script>(`/scripts/${scriptId}/export`); // Using GET for simplicity, adjust if needed
   }),
 
   // Import script (Placeholder - Needs backend implementation)

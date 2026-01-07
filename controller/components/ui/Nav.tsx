@@ -126,7 +126,7 @@ export default function Nav() {
             <MenuDivider />
             <MenuGroup title="Help">
               <MenuItem>About</MenuItem>
-              <MenuItem as="a" href="/docs/changelog">
+              <MenuItem as="a" href="/ChangeLog.md" target="_blank" rel="noreferrer">
                 Change Log
               </MenuItem>
             </MenuGroup>

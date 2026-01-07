@@ -1,5 +1,5 @@
 # db/inventory_config.py
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 # Format: tool_type -> (rows, columns)
 INVENTORY_TOOL_MAP: Dict[str, Tuple[int, int]] = {
@@ -19,6 +19,6 @@ INVENTORY_TOOL_MAP: Dict[str, Tuple[int, int]] = {
     "xpeel": (1, 1),
 }
 
-def get_inventory_config(tool_type: str) -> Tuple[int, int] | None:
+def get_inventory_config(tool_type: str) -> Optional[Tuple[int, int]]:
     """Get the inventory configuration for a tool type."""
     return INVENTORY_TOOL_MAP.get(tool_type.lower())

@@ -4,7 +4,7 @@ import { Tool as ToolResponse } from "@/types/api";
 import { Config } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { procedure, router } from "@/server/trpc";
 import { ToolType } from "gen-interfaces/controller";
-import { get, post, put, del } from "@/server/utils/api";
+import { get, getOrEmptyArray, post, put, del } from "@/server/utils/api";
 import * as controller_protos from "gen-interfaces/controller";
 
 const zToolType = z.enum(Object.values(ToolType) as [ToolType, ...ToolType[]]);
@@ -18,7 +18,8 @@ export const zTool = z.object({
   ip: z.string().optional(),
   port: z.number().optional(),
   image_url: z.string().optional(),
-  config: z.record(z.any()).optional(),
+  // The tutorial flow sometimes sends config: null; treat that as "no config".
+  config: z.union([z.record(z.any()), z.null()]).optional(),
 });
 
 export const toolRouter = router({
@@ -28,14 +29,13 @@ export const toolRouter = router({
   }),
 
   getAll: procedure.query(async () => {
-    const response = await get<ToolResponse[]>(`/tools`, {
+    return await getOrEmptyArray<ToolResponse>(`/tools`, {
       timeout: 1000,
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
       },
     });
-    return response;
   }),
 
   getToolBox: procedure.query(() => {
@@ -58,7 +58,11 @@ export const toolRouter = router({
   }),
 
   add: procedure.input(zTool.omit({ id: true, port: true })).mutation(async ({ input }) => {
-    const response = post<ToolResponse>(`/tools`, input);
+    const normalizedInput = {
+      ...input,
+      config: input.config ?? {},
+    };
+    const response = post<ToolResponse>(`/tools`, normalizedInput);
     return response;
   }),
 

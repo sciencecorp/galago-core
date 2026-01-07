@@ -1,6 +1,10 @@
 import axios from "axios";
 
-const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000/api";
+const rawBaseUrl = process.env.API_BASE_URL || "http://127.0.0.1:8000";
+// Some envs (e.g. docker-compose) set API_BASE_URL to ".../api", but the FastAPI app
+// routes are mounted at the root (e.g. "/protocols", "/variables"). Normalize here.
+const API_BASE_URL = rawBaseUrl.replace(/\/api\/?$/, "");
+const DEBUG_API = process.env.DEBUG_API === "true";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -14,6 +18,7 @@ export const api = axios.create({
 export const unpackError = (error: any): string => {
   let errorMessage = "Unknown error";
   if (!error.response) {
+    // Keep user-facing errors stable/clean; avoid noisy debug-only URL details.
     errorMessage = "Network error";
   } else if (error.response?.data?.error) {
     const { title, message } = error.response.data.error;
@@ -34,13 +39,13 @@ export const get = async <T>(url: string, params?: any): Promise<T> => {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const errorMsg = unpackError(error);
-      console.error("Request error:", errorMsg);
+      if (DEBUG_API) console.error("Request error:", errorMsg);
       const err = new Error(`${error.response?.status} - ${errorMsg}`);
       // Attach the status code to the error
       (err as any).status = error.response?.status;
       throw err;
     } else {
-      console.error("Unexpected error:", error);
+      if (DEBUG_API) console.error("Unexpected error:", error);
       throw new Error("An unexpected error occurred");
     }
   }
@@ -53,12 +58,12 @@ export const post = async <T>(url: string, data: any): Promise<T | null> => {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const errorMsg = unpackError(error);
-      console.error("Request error:", errorMsg);
+      if (DEBUG_API) console.error("Request error:", errorMsg);
       throw new Error(
         `${error.response?.status} - ${errorMsg} - ${JSON.stringify(error.response?.data?.detail)}`,
       );
     } else {
-      console.error("Unexpected error:", error);
+      if (DEBUG_API) console.error("Unexpected error:", error);
       throw new Error("An unexpected error occurred");
     }
   }
@@ -71,12 +76,12 @@ export const put = async <T>(url: string, data: any): Promise<T> => {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const errorMsg = unpackError(error);
-      console.error("Request error:", errorMsg);
+      if (DEBUG_API) console.error("Request error:", errorMsg);
       throw new Error(
         `Error: ${error.response?.status} - ${errorMsg} - ${JSON.stringify(error.response?.data?.detail)}`,
       );
     } else {
-      console.error("Unexpected error:", error);
+      if (DEBUG_API) console.error("Unexpected error:", error);
       throw new Error("An unexpected error occurred");
     }
   }
@@ -89,13 +94,42 @@ export const del = async <T>(url: string): Promise<T> => {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const errorMsg = unpackError(error);
-      console.error("Request error:", errorMsg);
+      if (DEBUG_API) console.error("Request error:", errorMsg);
       throw new Error(`Error: ${error.response?.status} - ${errorMsg}`);
     } else {
-      console.error("Unexpected error:", error);
+      if (DEBUG_API) console.error("Unexpected error:", error);
       throw new Error("An unexpected error occurred");
     }
   }
+};
+
+/**
+ * Helpers to reduce repetitive try/catch in routers for common "empty result" cases.
+ */
+export const getOrDefault = async <T>(
+  url: string,
+  defaultValue: T,
+  params?: any,
+  opts?: { onStatus?: number | number[] },
+): Promise<T> => {
+  try {
+    return await get<T>(url, params);
+  } catch (e: any) {
+    const onStatus = opts?.onStatus;
+    const statuses = Array.isArray(onStatus) ? onStatus : onStatus != null ? [onStatus] : [];
+    if (statuses.length > 0 && statuses.includes(e?.status)) {
+      return defaultValue;
+    }
+    throw e;
+  }
+};
+
+export const getOrEmptyArray = async <TItem>(url: string, params?: any): Promise<TItem[]> => {
+  return await getOrDefault<TItem[]>(url, [], params, { onStatus: 404 });
+};
+
+export const getOrNull = async <T>(url: string, params?: any): Promise<T | null> => {
+  return await getOrDefault<T | null>(url, null, params, { onStatus: 404 });
 };
 
 /**

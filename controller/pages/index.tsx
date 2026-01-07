@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import {
   Box,
+  Button,
   SimpleGrid,
   Card,
   CardBody,
@@ -34,6 +35,7 @@ import Link from "next/link";
 import { Plate } from "@/types/api";
 import { Calendar } from "@/components/calendar/Calendar";
 import { WorkcellIcon } from "../components/ui/Icons";
+import { useTutorial } from "@/components/tutorial/TutorialContext";
 
 export default function Page() {
   useEffect(() => {
@@ -75,9 +77,16 @@ export default function Page() {
     ? runs.filter((run) => run.status === "CREATED" || run.status === "STARTED").length
     : 0;
 
+  const tutorial = useTutorial();
+
   return (
     <Box maxW="100%" p={4}>
       <VStack spacing={6} align="stretch">
+        <HStack justify="flex-end">
+          <Button variant="outline" leftIcon={<Icon as={BookOpen} />} onClick={tutorial.open}>
+            Start walkthrough
+          </Button>
+        </HStack>
         <HStack align="start" spacing={6}>
           {/* Left Side Cards */}
           <VStack spacing={6} display={{ base: "none", md: "flex" }}>
