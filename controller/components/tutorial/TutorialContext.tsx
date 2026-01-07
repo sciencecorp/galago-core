@@ -18,6 +18,10 @@ export type TutorialDemoData = {
   };
 };
 
+type TutorialTool = NonNullable<TutorialDemoData["tools"]>[number];
+type TutorialVariable = NonNullable<TutorialDemoData["variables"]>[number];
+type IdName = { id?: number; name?: string };
+
 export type TutorialStep = {
   id: string;
   route: string;
@@ -160,9 +164,9 @@ export function TutorialProvider({
         },
       ];
 
-      const tools = [];
+      const tools: TutorialTool[] = [];
       for (const spec of toolSpecs) {
-        const created = await addTool.mutateAsync({
+        const created = (await addTool.mutateAsync({
           type: spec.type as any,
           name: spec.name,
           description: "Auto-created for the in-app walkthrough. Safe to delete.",
@@ -170,7 +174,7 @@ export function TutorialProvider({
           ip: "localhost",
           workcell_id: workcell?.id,
           config: null,
-        });
+        })) as IdName & { type?: string };
         tools.push({
           id: created?.id,
           name: created?.name ?? spec.name,
@@ -192,13 +196,13 @@ export function TutorialProvider({
       const nests: Array<{ id?: number; name: string }> = [];
       for (let r = 1; r <= 4; r++) {
         for (let c = 1; c <= 6; c++) {
-          const nest = await createNest.mutateAsync({
+          const nest = (await createNest.mutateAsync({
             name: `H${r}-${c}`,
             row: r,
             column: c,
             hotel_id: hotel?.id,
             status: "empty",
-          });
+          })) as IdName;
           nests.push({ id: nest?.id, name: nest?.name ?? `H${r}-${c}` });
         }
       }
@@ -234,9 +238,9 @@ export function TutorialProvider({
         },
       ];
 
-      const variables = [];
+      const variables: TutorialVariable[] = [];
       for (const v of variableSpecs) {
-        const created = await addVariable.mutateAsync(v);
+        const created = (await addVariable.mutateAsync(v)) as IdName;
         variables.push({ id: created?.id, name: created?.name ?? v.name });
       }
 
@@ -332,8 +336,7 @@ export function TutorialProvider({
       ];
 
       // Protocol: Media Exchange (uses real command schema + variable references like {{var}})
-      const toolIdByType = (type: string) =>
-        tools.find((t: any) => t.type === type)?.toolId ?? type;
+      const toolIdByType = (type: string) => tools.find((t) => t.type === type)?.toolId ?? type;
 
       const protocolCommands = [
         {
