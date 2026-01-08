@@ -1,5 +1,14 @@
 import React, { useEffect, useRef } from "react";
-import { Box, Button, Heading, HStack, Link, ListItem, Text, UnorderedList } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Heading,
+  HStack,
+  Link,
+  ListItem,
+  Text,
+  UnorderedList,
+} from "@chakra-ui/react";
 import type { TutorialStep } from "./TutorialContext";
 import { useTutorial } from "./TutorialContext";
 
@@ -65,9 +74,7 @@ export const tutorialSteps: TutorialStep[] = [
         </Text>
         <UnorderedList mt={3} spacing={1}>
           <ListItem>Use Workcells to create/import the environment you’re running in.</ListItem>
-          <ListItem>
-            Use Tools to add tools from the driver library and connect them.
-          </ListItem>
+          <ListItem>Use Tools to add tools from the driver library and connect them.</ListItem>
           <ListItem>Build Protocols, then monitor Runs (Gantt), and debug via Logs.</ListItem>
         </UnorderedList>
       </Box>

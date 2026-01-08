@@ -386,7 +386,7 @@ export function TutorialProvider({
           "for var in variables_to_create:",
           '    exists = get_variable(var["name"])',
           "    if not exists:",
-          '        print(f"Variable {var[\'name\']} does not exist. Will create it")',
+          "        print(f\"Variable {var['name']} does not exist. Will create it\")",
           "        create_variable(var)",
         ].join("\n"),
       });
@@ -520,7 +520,9 @@ export function TutorialProvider({
           toolId: "tool_box",
           toolType: "toolbox",
           command: "note",
-          params: { message: "Tutorial protocol complete. Check Variables / Runs / Logs for details." },
+          params: {
+            message: "Tutorial protocol complete. Check Variables / Runs / Logs for details.",
+          },
           label: "Finish note",
         },
       ];
@@ -610,7 +612,10 @@ export function TutorialProvider({
           numberOfRuns,
         });
         setHasQueuedTutorialRun(true);
-        successToast("Tutorial run queued", `Queued ${numberOfRuns} run${numberOfRuns > 1 ? "s" : ""}.`);
+        successToast(
+          "Tutorial run queued",
+          `Queued ${numberOfRuns} run${numberOfRuns > 1 ? "s" : ""}.`,
+        );
       } catch (e: any) {
         // If this was an auto-queue attempt, allow a later retry.
         if (!opts?.force) setHasQueuedTutorialRun(false);
