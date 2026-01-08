@@ -35,10 +35,11 @@ import { EditableText } from "../ui/Form";
 import { WellPlateIcon } from "../ui/Icons";
 import { SearchIcon } from "@chakra-ui/icons";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Layers, Upload, Download } from "lucide-react";
+import { Upload, Download } from "lucide-react";
 import { successToast, errorToast } from "@/components/ui/Toast";
 import { useLabwareIO } from "@/hooks/useLabwareIO";
 import { useCommonColors } from "@/components/ui/Theme";
+import { SixWellPlateIcon } from "@/components/ui/Icons";
 
 export const Labware: React.FC = () => {
   const [labware, setLabware] = useState<LabwareResponse[]>([]);
@@ -206,7 +207,7 @@ export const Labware: React.FC = () => {
               <PageHeader
                 title="Labware"
                 subTitle="Manage and configure your labware definitions"
-                titleIcon={<Icon as={Layers} boxSize={8} color="teal.500" />}
+                titleIcon={<Icon as={SixWellPlateIcon} boxSize={8} color="teal.500" />}
                 // mainButton={importButton}
                 // secondaryButton={exportButton}
                 tertiaryButton={<LabwareModal isDisabled={!selectedWorkcell} />}

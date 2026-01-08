@@ -85,15 +85,7 @@ export const NewProtocolForm = () => {
       commands: formData.commands || [],
     };
 
-    try {
-      await createProtocol.mutateAsync(protocolData);
-    } catch (error: any) {
-      console.error("Error details:", {
-        message: error.message,
-        cause: error.cause,
-        data: error.data,
-      });
-    }
+    await createProtocol.mutateAsync(protocolData);
   };
 
   const handleChange = (

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import {
   Box,
+  Button,
   SimpleGrid,
   Card,
   CardBody,
@@ -19,21 +20,20 @@ import {
 import { trpc } from "@/utils/trpc";
 import {
   Wrench,
-  Layers,
   Package,
   GitBranch,
-  Cpu,
   Variable,
   Book,
   BookOpen,
   Calendar as CalendarIcon,
   Code,
-  GanttChart,
+  ChartGantt,
 } from "lucide-react";
 import Link from "next/link";
 import { Plate } from "@/types/api";
 import { Calendar } from "@/components/calendar/Calendar";
-import { WorkcellIcon } from "../components/ui/Icons";
+import { SixWellPlateIcon, WorkcellIcon } from "../components/ui/Icons";
+import { useTutorial } from "@/components/tutorial/TutorialContext";
 
 export default function Page() {
   useEffect(() => {
@@ -75,9 +75,16 @@ export default function Page() {
     ? runs.filter((run) => run.status === "CREATED" || run.status === "STARTED").length
     : 0;
 
+  const tutorial = useTutorial();
+
   return (
     <Box maxW="100%" p={4}>
       <VStack spacing={6} align="stretch">
+        <HStack justify="flex-end">
+          <Button variant="outline" leftIcon={<Icon as={BookOpen} />} onClick={tutorial.open}>
+            Start walkthrough
+          </Button>
+        </HStack>
         <HStack align="start" spacing={6}>
           {/* Left Side Cards */}
           <VStack spacing={6} display={{ base: "none", md: "flex" }}>
@@ -184,7 +191,7 @@ export default function Page() {
                         <Heading size="md">Runs</Heading>
                         <Text color="gray.500">Protocol executions</Text>
                       </VStack>
-                      <Icon as={GanttChart} boxSize={8} color={iconColor} />
+                      <Icon as={ChartGantt} boxSize={8} color={iconColor} />
                     </HStack>
                     <Divider />
                     <Stat>
@@ -324,7 +331,7 @@ export default function Page() {
                         <Heading size="md">Labware</Heading>
                         <Text color="gray.500">Lab equipment</Text>
                       </VStack>
-                      <Icon as={Layers} boxSize={8} color={iconColor} />
+                      <Icon as={SixWellPlateIcon} boxSize={8} color={iconColor} />
                     </HStack>
                     <Divider />
                     <Stat>

@@ -29,6 +29,7 @@ import {
   Download,
   Upload,
   Cpu,
+  LucideProps,
 } from "lucide-react";
 
 // Types
@@ -184,6 +185,44 @@ export const WellPlateIcon: React.FC<WellPlateIconProps> = ({ rows, columns, siz
     </Tooltip>
   );
 };
+
+/**
+ * Lucide-style 6-well plate icon (2x3).
+ * Useful anywhere we expect a `LucideIcon` (e.g. sidebar items / page headers).
+ */
+export const SixWellPlateIcon = React.forwardRef<SVGSVGElement, LucideProps>(
+  ({ color = "currentColor", size = 24, strokeWidth = 2, ...props }, ref) => {
+    // LucideIcon is a ForwardRefExoticComponent; we mirror that to satisfy typing in sidebar items.
+    const sw = typeof strokeWidth === "number" ? strokeWidth : Number(strokeWidth);
+    const wellStrokeWidth = Number.isFinite(sw) ? Math.max(1, sw - 1) : 1;
+
+    return (
+      <svg
+        ref={ref}
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}>
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        {/* Top row (3 wells) */}
+        <circle cx="7.5" cy="9" r="1.6" strokeWidth={wellStrokeWidth} />
+        <circle cx="12" cy="9" r="1.6" strokeWidth={wellStrokeWidth} />
+        <circle cx="16.5" cy="9" r="1.6" strokeWidth={wellStrokeWidth} />
+        {/* Bottom row (3 wells) */}
+        <circle cx="7.5" cy="15" r="1.6" strokeWidth={wellStrokeWidth} />
+        <circle cx="12" cy="15" r="1.6" strokeWidth={wellStrokeWidth} />
+        <circle cx="16.5" cy="15" r="1.6" strokeWidth={wellStrokeWidth} />
+      </svg>
+    );
+  },
+);
+
+SixWellPlateIcon.displayName = "SixWellPlateIcon";
 
 export const PythonIcon = createIcon({
   displayName: "PythonIcon",

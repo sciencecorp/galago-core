@@ -4,7 +4,10 @@ from sqlalchemy.orm import Session
 import typing as t
 from typing import Optional
 from db import crud, schemas
-from db.utils.inventory_utils import create_default_inventory_nests, recreate_inventory_nests
+from db.utils.inventory_utils import (
+    create_default_inventory_nests,
+    recreate_inventory_nests,
+)
 from ..dependencies import get_db, get_selected_workcell_name
 
 router = APIRouter()
@@ -73,13 +76,11 @@ def get_next_available_nest(tool_id: int, db: Session = Depends(get_db)) -> t.An
 
 @router.post("/initialize/{tool_id}", response_model=list[schemas.Nest])
 def initialize_tool_inventory(
-    tool_id: int, 
-    force: bool = False,
-    db: Session = Depends(get_db)
+    tool_id: int, force: bool = False, db: Session = Depends(get_db)
 ) -> t.Any:
     """
     Initialize or recreate inventory nests for a tool.
-    
+
     Args:
         tool_id: ID of the tool
         force: If True, delete existing nests and recreate them
@@ -93,4 +94,6 @@ def initialize_tool_inventory(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to initialize inventory: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to initialize inventory: {str(e)}"
+        )

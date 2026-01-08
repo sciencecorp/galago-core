@@ -1,8 +1,7 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { Variable } from "@/types/api";
-import { get, post, put, del } from "../utils/api";
-import { getHTTPStatusCodeFromError } from "@trpc/server/http";
+import { get, getOrEmptyArray, post, put, del } from "../utils/api";
 import { logAction } from "@/server/logger";
 
 export const zVariable = z.object({
@@ -15,8 +14,7 @@ export const zVariable = z.object({
 export const variableRouter = router({
   // Get all variables
   getAll: procedure.query(async () => {
-    const response = await get<Variable[]>(`/variables`);
-    return response;
+    return await getOrEmptyArray<Variable>(`/variables`);
   }),
 
   // Get a specific variable

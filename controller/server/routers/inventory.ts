@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
-import { get, post, put, del } from "../utils/api";
+import { get, getOrEmptyArray, post, put, del } from "../utils/api";
 import { TRPCError } from "@trpc/server";
 import { Workcell, AppSettings, Nest, Plate, Reagent, Hotel } from "@/types/api";
 
@@ -80,8 +80,7 @@ export const inventoryRouter = router({
   // Plate endpoints
   getPlates: procedure.input(z.string()).query(async ({ input: workcellName }) => {
     const encodedName = encodeURIComponent(workcellName);
-    const response = await get(`/plates?workcell_name=${encodedName}`);
-    return response;
+    return await getOrEmptyArray(`/plates?workcell_name=${encodedName}`);
   }),
 
   getPlate: procedure.input(z.number()).query(async ({ input: plateId }) => {
@@ -118,13 +117,11 @@ export const inventoryRouter = router({
 
   // Reagent endpoints
   getReagents: procedure.input(z.number()).query(async ({ input: plateId }) => {
-    const response = await get(`/reagents?plate_id=${plateId}`);
-    return response;
+    return await getOrEmptyArray(`/reagents?plate_id=${plateId}`);
   }),
 
   getWorkcellReagents: procedure.input(z.string()).query(async ({ input: workcellName }) => {
-    const response = await get(`/reagents?workcell_name=${workcellName}`);
-    return response;
+    return await getOrEmptyArray(`/reagents?workcell_name=${workcellName}`);
   }),
 
   createReagent: procedure.input(zReagent.omit({ id: true })).mutation(async ({ input }) => {

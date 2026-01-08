@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { Labware } from "@/types/api";
-import { get, post, put, del, uploadFile } from "../utils/api";
+import { get, getOrEmptyArray, post, put, del, uploadFile } from "../utils/api";
 import Tool from "../tools";
 import { logAction } from "@/server/logger";
 import { Tool as ToolResponse } from "@/types/api";
@@ -24,8 +24,7 @@ export const zLabware = z.object({
 
 export const labwareRouter = router({
   getAll: procedure.query(async () => {
-    const response = await get<Labware[]>(`/labware`);
-    return response;
+    return await getOrEmptyArray<Labware>(`/labware`);
   }),
 
   // Get a specific labware
@@ -45,15 +44,12 @@ export const labwareRouter = router({
     const allTools = await get<ToolResponse[]>(`/tools`);
     const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
     if (allToolswithLabware.length > 0) {
-      try {
-        await Promise.all(
-          allToolswithLabware.map(async (tool) => {
-            await Tool.loadLabwareToPF400(tool.name);
-          }),
-        );
-      } catch (error) {
-        console.error("Error loading labware to PF400 tools:", error);
-      }
+      // best-effort; don't fail the mutation if one tool can't reload labware
+      await Promise.all(
+        allToolswithLabware.map(async (tool) => {
+          await Tool.loadLabwareToPF400(tool.name);
+        }),
+      ).catch(() => {});
     }
     return response;
   }),
@@ -70,15 +66,11 @@ export const labwareRouter = router({
     const allTools = await get<ToolResponse[]>(`/tools`);
     const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
     if (allToolswithLabware.length > 0) {
-      try {
-        await Promise.all(
-          allToolswithLabware.map(async (tool) => {
-            await Tool.loadLabwareToPF400(tool.name);
-          }),
-        );
-      } catch (error) {
-        console.error("Error loading labware to PF400 tools:", error);
-      }
+      await Promise.all(
+        allToolswithLabware.map(async (tool) => {
+          await Tool.loadLabwareToPF400(tool.name);
+        }),
+      ).catch(() => {});
     }
     return response;
   }),
@@ -89,40 +81,24 @@ export const labwareRouter = router({
     const allTools = await get<ToolResponse[]>(`/tools`);
     const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
     if (allToolswithLabware.length > 0) {
-      try {
-        await Promise.all(
-          allToolswithLabware.map(async (tool) => {
-            await Tool.loadLabwareToPF400(tool.name);
-          }),
-        );
-      } catch (error) {
-        console.error("Error loading labware to PF400 tools:", error);
-      }
+      await Promise.all(
+        allToolswithLabware.map(async (tool) => {
+          await Tool.loadLabwareToPF400(tool.name);
+        }),
+      ).catch(() => {});
     }
     return { message: "Labware deleted successfully" };
   }),
 
   // Export labware config - returns the labware data for download
   exportConfig: procedure.input(z.number()).mutation(async ({ input }) => {
-    try {
-      const labwareId = input;
-      const response = await get<Labware>(`/labware/${labwareId}/export`);
-      return response;
-    } catch (error) {
-      console.error("Export failed:", error);
-      throw error;
-    }
+    const labwareId = input;
+    return await get<Labware>(`/labware/${labwareId}/export`);
   }),
 
   // Export all labware configs
   exportAllConfig: procedure.mutation(async () => {
-    try {
-      const response = await get<Labware[]>(`/labware/export-all`);
-      return response;
-    } catch (error) {
-      console.error("Export all failed:", error);
-      throw error;
-    }
+    return await get<Labware[]>(`/labware/export-all`);
   }),
 
   // Import labware config using file upload via api utility
@@ -133,26 +109,21 @@ export const labwareRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
-      try {
-        const { file } = input;
-        // Use the uploadFile utility
-        const response = await uploadFile<Labware>("/labware/import", file);
+      const { file } = input;
+      // Use the uploadFile utility
+      const response = await uploadFile<Labware>("/labware/import", file);
 
-        // Reload labware in all PF400 tools
-        const allTools = await get<ToolResponse[]>(`/tools`);
-        const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
-        if (allToolswithLabware.length > 0) {
-          await Promise.all(
-            allToolswithLabware.map(async (tool) => {
-              await Tool.loadLabwareToPF400(tool.name);
-            }),
-          );
-        }
-
-        return response;
-      } catch (error) {
-        console.error("Import failed:", error);
-        throw error;
+      // Best-effort reload labware in all PF400 tools
+      const allTools = await get<ToolResponse[]>(`/tools`);
+      const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
+      if (allToolswithLabware.length > 0) {
+        await Promise.all(
+          allToolswithLabware.map(async (tool) => {
+            await Tool.loadLabwareToPF400(tool.name);
+          }),
+        ).catch(() => {});
       }
+
+      return response;
     }),
 });

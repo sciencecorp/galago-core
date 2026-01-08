@@ -14,7 +14,7 @@ def create_temp_json_file(data: Dict[str, Any], filename: str) -> str:
 
 def sanitize_filename(filename: str) -> str:
     """Sanitize a filename by replacing spaces and special characters."""
-    return filename.replace(' ', '_').replace('/', '_').replace('\\', '_')
+    return filename.replace(" ", "_").replace("/", "_").replace("\\", "_")
 
 
 def cleanup_temp_file(file_path: str) -> None:

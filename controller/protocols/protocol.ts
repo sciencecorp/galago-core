@@ -11,7 +11,7 @@ import {
 } from "./zodHelpers";
 import axios from "axios";
 
-const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
+const API_BASE_URL = (process.env.API_BASE_URL || "http://127.0.0.1:8000").replace(/\/api\/?$/, "");
 
 export default class Protocol<
   ParamSchema extends MaybeWrappedZodType<AnyZodObject> = MaybeWrappedZodType<AnyZodObject>,

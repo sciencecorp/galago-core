@@ -24,18 +24,18 @@ import {
   Code2,
   GitBranch,
   Book,
-  GanttChart,
+  ChartGantt,
   Package,
-  Layers,
-  List,
+  Boxes,
   Moon,
   Sun,
+  ClipboardPenLine,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import { capitalizeFirst } from "@/utils/parser";
 import { useRouter } from "next/router";
 import { useSidebarTheme } from "./Theme";
-import { WorkcellIcon } from "./Icons";
+import { SixWellPlateIcon, WorkcellIcon } from "./Icons";
 
 interface SidebarItem {
   name: string;
@@ -49,14 +49,14 @@ interface SidebarProps {
 
 const sidebarItems: SidebarItem[] = [
   { name: "Home", icon: Home, path: "/" },
-  { name: "Runs", icon: GanttChart, path: "/runs" },
-  { name: "Workcells", icon: WorkcellIcon, path: "/workcells" },
+  { name: "Runs", icon: ChartGantt, path: "/runs" },
+  { name: "Workcells", icon: Boxes, path: "/workcells" },
   { name: "Tools", icon: Wrench, path: "/tools" },
   { name: "Protocols", icon: GitBranch, path: "/protocols" },
-  { name: "Forms", icon: List, path: "/forms" },
+  { name: "Forms", icon: ClipboardPenLine, path: "/forms" },
   { name: "Inventory", icon: Package, path: "/inventory" },
   // { name: "Schedule", icon: CalendarCheck, path: "/schedule" },
-  { name: "Labware", icon: Layers, path: "/labware" },
+  { name: "Labware", icon: SixWellPlateIcon, path: "/labware" },
   { name: "Variables", icon: Variable, path: "/variables" },
   { name: "Scripts", icon: Code2, path: "/scripts" },
   { name: "Logs", icon: Book, path: "/logs" },

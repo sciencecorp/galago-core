@@ -25,6 +25,7 @@ import {
   InputGroup,
   InputLeftElement,
   Tag,
+  Tooltip,
   useColorModeValue,
   useSteps,
   Stepper,
@@ -654,9 +655,23 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
               height={"85px"}
             />
           )}
-          <Text fontSize="sm" fontWeight={isSelected ? "bold" : "normal"}>
-            {tool.name}
-          </Text>
+          <Tooltip
+            label={tool.name}
+            placement="top"
+            hasArrow
+            openDelay={300}
+            isDisabled={!tool.name || tool.name.length < 18}
+            shouldWrapChildren>
+            <Box width="100%">
+              <Text
+                fontSize="sm"
+                fontWeight={isSelected ? "bold" : "normal"}
+                isTruncated
+                textAlign="center">
+                {tool.name}
+              </Text>
+            </Box>
+          </Tooltip>
         </VStack>
       </Box>
     );

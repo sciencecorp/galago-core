@@ -55,14 +55,8 @@ export const workcellRouter = router({
 
   // Export workcell config - returns the URL for direct download
   exportConfig: procedure.input(z.number()).mutation(async ({ input }) => {
-    try {
-      const workcellId = input;
-      const response = await get<Workcell>(`/workcells/${workcellId}/export`);
-      return response;
-    } catch (error) {
-      console.error("Export failed:", error);
-      throw error;
-    }
+    const workcellId = input;
+    return await get<Workcell>(`/workcells/${workcellId}/export`);
   }),
 
   // Import workcell config using file upload via api utility
@@ -73,14 +67,8 @@ export const workcellRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
-      try {
-        const { file } = input;
-        // Use the uploadFile utility
-        const response = await uploadFile<Workcell>("/workcells/import", file);
-        return response;
-      } catch (error) {
-        console.error("Import failed:", error);
-        throw error;
-      }
+      const { file } = input;
+      // Use the uploadFile utility
+      return await uploadFile<Workcell>("/workcells/import", file);
     }),
 });

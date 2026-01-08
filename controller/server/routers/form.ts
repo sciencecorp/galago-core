@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { Form, FormField } from "@/types";
-import { get, post, put, del, uploadFile } from "../utils/api";
+import { get, getOrNull, post, put, del, uploadFile } from "../utils/api";
 import { logAction } from "@/server/logger";
 
 // Zod schema for form field options
@@ -84,13 +84,8 @@ export const formRouter = router({
   // Delete form
   delete: procedure.input(z.number()).mutation(async ({ input }) => {
     // Get form details before deletion for logging
-    let formName = `ID: ${input}`;
-    try {
-      const form = await get<Form>(`/forms/${input}`);
-      formName = form.name;
-    } catch (error) {
-      console.warn("Could not fetch form name for logging:", error);
-    }
+    const form = await getOrNull<Form>(`/forms/${input}`);
+    const formName = form?.name ?? `ID: ${input}`;
 
     await del(`/forms/${input}`);
     logAction({
