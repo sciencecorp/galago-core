@@ -20,10 +20,9 @@ import { NewWorkcellModal } from "./NewWorkcellModal";
 import { trpc } from "@/utils/trpc";
 import { Workcell } from "@/types/api";
 import { WorkcellCard } from "./WorkcellCard";
-import { Upload, Download } from "lucide-react";
+import { Upload, Download, Boxes } from "lucide-react";
 import { useWorkcellIO } from "@/hooks/useWorkcellIO";
 import { successToast, warningToast, errorToast } from "@/components/ui/Toast";
-import { WorkcellIcon } from "@/components/ui/Icons";
 import { EmptyState } from "../ui/EmptyState";
 
 export const WorkcellComponent = () => {
@@ -106,7 +105,7 @@ export const WorkcellComponent = () => {
               <PageHeader
                 title="Workcells"
                 subTitle="Manage and configure your workcells"
-                titleIcon={<Icon as={WorkcellIcon} boxSize={8} color="teal.500" />}
+                titleIcon={<Icon as={Boxes} boxSize={8} color="teal.500" />}
                 mainButton={importButton}
                 secondaryButton={exportButton}
                 tertiaryButton={<NewWorkcellModal />}

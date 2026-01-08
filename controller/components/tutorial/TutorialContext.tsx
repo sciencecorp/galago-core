@@ -37,6 +37,7 @@ type TutorialContextValue = {
   isBusy: boolean;
   useDemoData: boolean;
   demoData?: TutorialDemoData;
+  hasQueuedTutorialRun: boolean;
   open: () => void;
   start: (opts?: { useDemoData?: boolean }) => Promise<void>;
   close: () => void;
@@ -46,6 +47,7 @@ type TutorialContextValue = {
   back: () => void;
   skip: () => void;
   resetDemoData: () => Promise<void>;
+  queueTutorialRun: (opts?: { numberOfRuns?: number; force?: boolean }) => Promise<void>;
   setUseDemoData: (v: boolean) => void;
 };
 
@@ -86,7 +88,9 @@ export function TutorialProvider({
   const [useDemoData, setUseDemoData] = useState(true);
   const [demoData, setDemoData] = useState<TutorialDemoData | undefined>(undefined);
   const [isBusy, setIsBusy] = useState(false);
+  const [hasQueuedTutorialRun, setHasQueuedTutorialRun] = useState(false);
   const lastNavRef = useRef<string | null>(null);
+  const isQueueingTutorialRunRef = useRef(false);
 
   const addWorkcell = trpc.workcell.add.useMutation();
   const setSelectedWorkcell = trpc.workcell.setSelectedWorkcell.useMutation();
@@ -99,6 +103,7 @@ export function TutorialProvider({
   const createHotel = trpc.inventory.createHotel.useMutation();
   const createNest = trpc.inventory.createNest.useMutation();
   const createPlate = trpc.inventory.createPlate.useMutation();
+  const createRun = trpc.run.create.useMutation();
 
   const deleteWorkcell = trpc.workcell.delete.useMutation();
   const deleteVariable = trpc.variable.delete.useMutation();
@@ -166,6 +171,29 @@ export function TutorialProvider({
 
       const tools: TutorialTool[] = [];
       for (const spec of toolSpecs) {
+        const hardcodedConfigByType: Record<string, any> = {
+          pf400: {
+            host: "127.0.0.1",
+            port: 10000,
+            joints: 6,
+            gpl_version: "v2",
+          },
+          opentrons2: {
+            robot_ip: "127.0.0.1",
+            // Common OT-2 HTTP API port; drivers may ignore this when simulated
+            robot_port: 31950,
+          },
+          cytation: {
+            protocol_dir: "C://protocols",
+            experiment_dir: "C://experiments",
+            reader_type: "CYTATION_READER_CYTATION5",
+          },
+          liconic: {
+            // Serial port is driver-specific; keep a clear placeholder for demo/sim
+            com_port: "SIMULATED",
+          },
+        };
+
         const created = (await addTool.mutateAsync({
           type: spec.type as any,
           name: spec.name,
@@ -173,7 +201,13 @@ export function TutorialProvider({
           image_url: spec.image_url,
           ip: "localhost",
           workcell_id: workcell?.id,
-          config: null,
+          // Provide a valid config shape so "Connect All" and the tutorial run can work end-to-end.
+          // We default to simulated so the demo is functional without hardware.
+          config: {
+            toolId: normalizeToolId(spec.name),
+            simulated: true,
+            [spec.type]: hardcodedConfigByType[spec.type] ?? {},
+          },
         })) as IdName & { type?: string };
         tools.push({
           id: created?.id,
@@ -248,20 +282,117 @@ export function TutorialProvider({
         variables.find((v) => v.name.startsWith(prefix + "_"))?.name ?? `${prefix}_${suffix}`;
 
       // Scripts
-      const helloScript = await addScript.mutateAsync({
-        name: `tutorial_hello_${suffix}`,
-        description: "Tutorial example script (safe to delete).",
+      const createVariablesScript = await addScript.mutateAsync({
+        name: "create_variables",
+        description: "Tutorial script: create commonly-used variables (safe to delete).",
         language: "python",
         folder_id: null,
         content: [
-          "# Tutorial example",
-          "print('Hello from Galago tutorial!')",
-          "print('You can use scripts to call a LIMS, do math, update variables, etc.')",
+          "from tools.toolbox.variables import get_variable, update_variable, create_variable",
+          "",
+          "variables_to_create = [",
+          "    {",
+          '        "name":"counter",',
+          '        "value":"0",',
+          '        "type":"number",',
+          "    },",
+          "    {",
+          '        "name":"confirm_message",',
+          '        "value":"",',
+          '        "type":"string",',
+          "    },",
+          "    {",
+          '        "name":"total_plates",',
+          '        "value":"0",',
+          '        "type":"number",',
+          "    },",
+          "    {",
+          '        "name":"tmp_file",',
+          '        "value":"",',
+          '        "type":"string",',
+          "    },",
+          "    {",
+          '        "name":"current_barcode",',
+          '        "value":"",',
+          '        "type":"string",',
+          "    },",
+          "    {",
+          '        "name":"all_barcodes",',
+          '        "value":"",',
+          '        "type":"string",',
+          "    },",
+          "    {",
+          '        "name":"plate_type",',
+          '        "value":"",',
+          '        "type":"string",',
+          "    },",
+          "    {",
+          '        "name":"media_lot",',
+          '        "value":"",',
+          '        "type":"string",',
+          "    },",
+          "    {",
+          '        "name":"media_type",',
+          '        "value":"",',
+          '        "type":"string",',
+          "    },",
+          "    {",
+          '        "name":"label_date",',
+          '        "value":"",',
+          '        "type":"string",',
+          "    },",
+          "    {",
+          '        "name":"seal_plate",',
+          '        "value":"False",',
+          '        "type":"boolean",',
+          "    },",
+          "    {",
+          '        "name":"fill_plate",',
+          '        "value":"False",',
+          '        "type":"boolean",',
+          "    },",
+          "    {",
+          '        "name":"dispense_volume",',
+          '        "value":"100",',
+          '        "type":"number",',
+          "    },",
+          "    {",
+          '        "name":"current_source_stack",',
+          '        "value":"1",',
+          '        "type":"number"',
+          "    },",
+          "    {",
+          '        "name":"current_dest_stack",',
+          '        "value":"14",',
+          '        "type":"number"',
+          "    },",
+          "    {",
+          '        "name":"plate_height",',
+          '        "value":"14",',
+          '        "type":"number"',
+          "    },",
+          "    {",
+          '        "name":"stack_height",',
+          '        "value":"14",',
+          '        "type":"number"',
+          "    },",
+          "    {",
+          '        "name":"stack_thickness",',
+          '        "value":"14",',
+          '        "type":"number"',
+          "    }",
+          "]",
+          "",
+          "for var in variables_to_create:",
+          '    exists = get_variable(var["name"])',
+          "    if not exists:",
+          '        print(f"Variable {var[\'name\']} does not exist. Will create it")',
+          "        create_variable(var)",
         ].join("\n"),
       });
 
       const scripts = [
-        { id: helloScript?.id, name: helloScript?.name ?? `tutorial_hello_${suffix}` },
+        { id: createVariablesScript?.id, name: createVariablesScript?.name ?? "create_variables" },
       ];
 
       // Labware: a simple 96-well plate definition (safe to delete)
@@ -338,85 +469,67 @@ export function TutorialProvider({
       // Protocol: Media Exchange (uses real command schema + variable references like {{var}})
       const toolIdByType = (type: string) => tools.find((t) => t.type === type)?.toolId ?? type;
 
+      // Protocol: keep it self-contained so the tutorial is functional even without instrument programs/files.
       const protocolCommands = [
         {
           toolId: "tool_box",
           toolType: "toolbox",
           command: "show_message",
           params: {
-            title: "Tutorial: Media Exchange",
-            message: `Starting media exchange for plate {{${varName("tutorial_plate_barcode")}}}`,
+            title: "Tutorial: Create Variables",
+            message: "This run will create a small set of demo variables (if they do not exist).",
           },
-          label: "Operator prompt",
+          label: "Tutorial: overview",
         },
         {
           toolId: toolIdByType("liconic"),
           toolType: "liconic",
-          command: "fetch_plate",
-          params: {
-            cassette: `{{${varName("tutorial_liconic_cassette")}}}`,
-            level: `{{${varName("tutorial_liconic_level")}}}`,
-          },
-          label: "Fetch plate from hotel",
+          command: "reset",
+          params: {},
+          label: "Liconic: reset (demo)",
         },
         {
           toolId: toolIdByType("pf400"),
           toolType: "pf400",
           command: "move",
           params: { location: "home", motion_profile: "Default" },
-          label: "Robot arm: move to safe position",
+          label: "PF400: move home (demo)",
         },
         {
-          toolId: toolIdByType("opentrons2"),
-          toolType: "opentrons2",
-          command: "run_program",
-          params: {
-            script_name: `{{${varName("tutorial_opentrons_program")}}}`,
-          },
-          label: "Opentrons: run media exchange program",
+          toolId: toolIdByType("cytation"),
+          toolType: "cytation",
+          command: "open_carrier",
+          params: {},
+          label: "Cytation: open carrier (demo)",
         },
         {
           toolId: "tool_box",
           toolType: "toolbox",
           command: "run_script",
-          params: { name: scripts[0].name },
-          label: "Tool Box: run a script step",
+          params: { name: scripts[0].name, blocking: true },
+          label: "Create variables",
         },
         {
           toolId: toolIdByType("cytation"),
           toolType: "cytation",
-          command: "start_read",
-          params: {
-            protocol_file: `{{${varName("tutorial_cytation_protocol")}}}`,
-            experiment_name: `Tutorial_{{${varName("tutorial_plate_barcode")}}}`,
-            well_addresses: ["A1", "B2"],
-          },
-          label: "Cytation: read plate",
-        },
-        {
-          toolId: toolIdByType("liconic"),
-          toolType: "liconic",
-          command: "store_plate",
-          params: {
-            cassette: `{{${varName("tutorial_liconic_cassette")}}}`,
-            level: `{{${varName("tutorial_liconic_level")}}}`,
-          },
-          label: "Store plate back into hotel",
+          command: "close_carrier",
+          params: {},
+          label: "Cytation: close carrier (demo)",
         },
         {
           toolId: "tool_box",
           toolType: "toolbox",
           command: "note",
-          params: { message: "Tutorial protocol complete. Check Runs and Logs for details." },
+          params: { message: "Tutorial protocol complete. Check Variables / Runs / Logs for details." },
           label: "Finish note",
         },
       ];
 
       const mediaExchangeProtocol = await createProtocol.mutateAsync({
-        name: `Tutorial Media Exchange ${suffix}`,
+        name: `Tutorial Create Variables ${suffix}`,
         category: "development",
         description:
-          "Media exchange walkthrough protocol using pf400 + opentrons + cytation + liconic (safe to delete).",
+          "Tutorial walkthrough protocol that creates demo variables via Tool Box (safe to delete).",
         workcell_id: workcell?.id,
         commands: protocolCommands,
       });
@@ -467,6 +580,48 @@ export function TutorialProvider({
     createProtocol,
     setSelectedWorkcell,
   ]);
+
+  const queueTutorialRun = useCallback(
+    async (opts?: { numberOfRuns?: number; force?: boolean }) => {
+      const numberOfRuns = Math.max(1, opts?.numberOfRuns ?? 1);
+
+      if (!demoData?.protocols?.length) {
+        errorToast("Queue tutorial run", "No tutorial protocol found. Enable demo data first.");
+        return;
+      }
+
+      if (hasQueuedTutorialRun && !opts?.force) return;
+      if (isQueueingTutorialRunRef.current) return;
+
+      const protocolIdRaw = demoData.protocols[0]?.id;
+      if (protocolIdRaw == null) {
+        errorToast("Queue tutorial run", "Tutorial protocol is missing an id.");
+        return;
+      }
+
+      setIsBusy(true);
+      isQueueingTutorialRunRef.current = true;
+      try {
+        // Mark as queued immediately to avoid repeat auto-queues while the request is in flight.
+        if (!opts?.force) setHasQueuedTutorialRun(true);
+
+        await createRun.mutateAsync({
+          protocolId: String(protocolIdRaw),
+          numberOfRuns,
+        });
+        setHasQueuedTutorialRun(true);
+        successToast("Tutorial run queued", `Queued ${numberOfRuns} run${numberOfRuns > 1 ? "s" : ""}.`);
+      } catch (e: any) {
+        // If this was an auto-queue attempt, allow a later retry.
+        if (!opts?.force) setHasQueuedTutorialRun(false);
+        errorToast("Queue tutorial run", e?.message ?? "Failed to queue tutorial run");
+      } finally {
+        isQueueingTutorialRunRef.current = false;
+        setIsBusy(false);
+      }
+    },
+    [createRun, demoData, hasQueuedTutorialRun],
+  );
 
   const resetDemoData = useCallback(async () => {
     if (!demoData) return;
@@ -524,6 +679,7 @@ export function TutorialProvider({
 
       if (demoData.workcell?.id != null) await deleteWorkcell.mutateAsync(demoData.workcell.id);
       setDemoData(undefined);
+      setHasQueuedTutorialRun(false);
       successToast("Tutorial demo data removed", "");
     } catch (e: any) {
       errorToast("Tutorial cleanup", e?.message ?? "Failed to remove demo data");
@@ -549,6 +705,7 @@ export function TutorialProvider({
       setIsOpen(true);
       setIsMinimized(false);
       setStepIndex(0);
+      setHasQueuedTutorialRun(false);
 
       const shouldSeed = opts?.useDemoData ?? useDemoData;
       setUseDemoData(shouldSeed);
@@ -623,6 +780,7 @@ export function TutorialProvider({
       isBusy,
       useDemoData,
       demoData,
+      hasQueuedTutorialRun,
       open,
       start,
       close,
@@ -632,12 +790,14 @@ export function TutorialProvider({
       back,
       skip,
       resetDemoData,
+      queueTutorialRun,
       setUseDemoData,
     }),
     [
       back,
       close,
       demoData,
+      hasQueuedTutorialRun,
       isBusy,
       isMinimized,
       isOpen,
@@ -646,6 +806,7 @@ export function TutorialProvider({
       open,
       resume,
       resetDemoData,
+      queueTutorialRun,
       skip,
       start,
       stepIndex,

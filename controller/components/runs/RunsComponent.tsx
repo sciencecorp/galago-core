@@ -33,7 +33,7 @@ import { DeleteWithConfirmation } from "../ui/Delete";
 import { PlusSquareIcon, ChevronUpIcon, TimeIcon } from "@chakra-ui/icons";
 import { QueueStatusComponent } from "./status/QueueStatuscomponent";
 import { getRunAttributes, groupCommandsByRun } from "@/utils/runUtils";
-import { Workflow } from "lucide-react";
+import { ChartGantt } from "lucide-react";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { Inbox } from "lucide-react";
 import { MessageModal } from "./MessageModal";
@@ -508,7 +508,7 @@ export const RunsComponent: React.FC = () => {
             <VStack spacing={6} align="stretch">
               <Flex justify="space-between" align="center">
                 <HStack spacing={4}>
-                  <Icon as={Workflow} boxSize={8} color="teal.500" />
+                  <Icon as={ChartGantt} boxSize={8} color="teal.500" />
                   <VStack align="start" spacing={1}>
                     <Heading size="lg">Protocol Runs</Heading>
                     <HStack>

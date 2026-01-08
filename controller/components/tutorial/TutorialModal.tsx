@@ -56,6 +56,28 @@ export function TutorialModal() {
   const subtleText = useColorModeValue("gray.500", "gray.400");
   const demoPanelText = useColorModeValue("gray.600", "gray.300");
 
+  const getDemoDataSummary = () => {
+    if (!demoData) return "";
+
+    const toolTypes = new Set((demoData.tools || []).map((t) => t.type));
+    const hasOT2 = toolTypes.has("opentrons2");
+    const hasCytation = toolTypes.has("cytation");
+
+    // Keep this intentionally short and human, but include useful extra context if available.
+    const extras: string[] = [];
+    if (toolTypes.has("liconic")) extras.push("Liconic");
+    if (toolTypes.has("pf400")) extras.push("PF400");
+
+    const workflow =
+      hasOT2 && hasCytation
+        ? "a simple media exchange + plate imaging workflow using an OT-2 and Cytation"
+        : "a simple end-to-end workflow using the seeded demo tools";
+
+    const extrasText = extras.length ? ` (plus ${extras.join(" and ")})` : "";
+    const wcName = demoData.workcell?.name ? ` “${demoData.workcell.name}”` : "";
+    return `Created demo workcell${wcName} for ${workflow}${extrasText} — you can remove it anytime.`;
+  };
+
   // When minimized, show a small floating widget so the underlying page is fully usable.
   if (isOpen && isMinimized) {
     return (
@@ -181,31 +203,7 @@ export function TutorialModal() {
                   </Button>
                 </HStack>
                 <Text mt={2} fontSize="sm" color={demoPanelText}>
-                  Workcell: <b>{demoData.workcell?.name}</b>
-                  <br />
-                  Tools:{" "}
-                  <b>
-                    {(demoData.tools || []).map((t) => `${t.name} (${t.type})`).join(", ") || "—"}
-                  </b>
-                  <br />
-                  Inventory:{" "}
-                  <b>
-                    {demoData.inventory?.hotel?.name
-                      ? `${demoData.inventory.hotel.name} (${demoData.inventory?.nests?.length || 0} nests)`
-                      : "—"}
-                  </b>
-                  <br />
-                  Variables:{" "}
-                  <b>{(demoData.variables || []).map((v) => v.name).join(", ") || "—"}</b>
-                  <br />
-                  Scripts: <b>{(demoData.scripts || []).map((s) => s.name).join(", ") || "—"}</b>
-                  <br />
-                  Labware: <b>{(demoData.labware || []).map((l) => l.name).join(", ") || "—"}</b>
-                  <br />
-                  Forms: <b>{(demoData.forms || []).map((f) => f.name).join(", ") || "—"}</b>
-                  <br />
-                  Protocols:{" "}
-                  <b>{(demoData.protocols || []).map((p) => p.name).join(", ") || "—"}</b>
+                  {getDemoDataSummary()}
                 </Text>
               </Box>
             )}

@@ -20,21 +20,19 @@ import {
 import { trpc } from "@/utils/trpc";
 import {
   Wrench,
-  Layers,
   Package,
   GitBranch,
-  Cpu,
   Variable,
   Book,
   BookOpen,
   Calendar as CalendarIcon,
   Code,
-  GanttChart,
+  ChartGantt,
 } from "lucide-react";
 import Link from "next/link";
 import { Plate } from "@/types/api";
 import { Calendar } from "@/components/calendar/Calendar";
-import { WorkcellIcon } from "../components/ui/Icons";
+import { SixWellPlateIcon, WorkcellIcon } from "../components/ui/Icons";
 import { useTutorial } from "@/components/tutorial/TutorialContext";
 
 export default function Page() {
@@ -193,7 +191,7 @@ export default function Page() {
                         <Heading size="md">Runs</Heading>
                         <Text color="gray.500">Protocol executions</Text>
                       </VStack>
-                      <Icon as={GanttChart} boxSize={8} color={iconColor} />
+                      <Icon as={ChartGantt} boxSize={8} color={iconColor} />
                     </HStack>
                     <Divider />
                     <Stat>
@@ -333,7 +331,7 @@ export default function Page() {
                         <Heading size="md">Labware</Heading>
                         <Text color="gray.500">Lab equipment</Text>
                       </VStack>
-                      <Icon as={Layers} boxSize={8} color={iconColor} />
+                      <Icon as={SixWellPlateIcon} boxSize={8} color={iconColor} />
                     </HStack>
                     <Divider />
                     <Stat>

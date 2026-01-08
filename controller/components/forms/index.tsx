@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { FormBuilder } from "./formBuilder";
 import { trpc } from "@/utils/trpc";
-import { List } from "lucide-react";
+import { ClipboardPenLine } from "lucide-react";
 import { PageHeader } from "../ui/PageHeader";
 import { Form } from "@/types";
 import { CreateFormModal } from "./createFormModal";
@@ -59,7 +59,7 @@ export const Forms = () => {
               <PageHeader
                 title="Forms"
                 subTitle="Create and manage your forms"
-                titleIcon={<Icon as={List} boxSize={8} color="teal.500" />}
+                titleIcon={<Icon as={ClipboardPenLine} boxSize={8} color="teal.500" />}
                 mainButton={<CreateFormModal isDisabled={!selectedWorkcell} />}
               />
               <Divider />
