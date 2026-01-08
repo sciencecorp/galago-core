@@ -104,7 +104,9 @@ def create_robot_arm_motion_profile(
     return crud.robot_arm_motion_profile.create(db, obj_in=profile)
 
 
-@router.put("/motion-profiles/{profile_id}", response_model=schemas.RobotArmMotionProfile)
+@router.put(
+    "/motion-profiles/{profile_id}", response_model=schemas.RobotArmMotionProfile
+)
 def update_robot_arm_motion_profile(
     profile_id: int,
     profile: schemas.RobotArmMotionProfileUpdate,
@@ -116,7 +118,9 @@ def update_robot_arm_motion_profile(
     return crud.robot_arm_motion_profile.update(db, db_obj=db_profile, obj_in=profile)
 
 
-@router.delete("/motion-profiles/{profile_id}", response_model=schemas.RobotArmMotionProfile)
+@router.delete(
+    "/motion-profiles/{profile_id}", response_model=schemas.RobotArmMotionProfile
+)
 def delete_robot_arm_motion_profile(
     profile_id: int, db: Session = Depends(get_db)
 ) -> t.Any:
@@ -181,7 +185,7 @@ def get_robot_arm_waypoints(
         db, obj_in={"tool_id": tool.id}
     )
     grip_params = crud.robot_arm_grip_params.get_all_by(db, obj_in={"tool_id": tool.id})
-    
+
     return {
         "tool_name": tool.name,
         "name": f"Waypoints for Tool {tool_id}",
@@ -199,4 +203,5 @@ async def upload_waypoints(
     db: Session = Depends(get_db),
 ):
     from db.waypoint_handler import handle_waypoint_upload
+
     return await handle_waypoint_upload(file, tool_id, db)

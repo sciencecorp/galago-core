@@ -38,7 +38,8 @@ export const zTool = z.object({
   ip: z.string().optional(),
   port: z.number().optional(),
   image_url: z.string().optional(),
-  config: z.record(z.any()).optional(),
+  // The tutorial flow sometimes sends config: null; treat that as "no config".
+  config: z.union([z.record(z.any()), z.null()]).optional(),
 });
 
 // Helper function to get tool from DB by toolId (handles underscore/space conversion)

@@ -153,9 +153,23 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
             loading="lazy"
             height={"90px"}
           />
-          <Text fontSize="sm" fontWeight={isSelected ? "bold" : "normal"}>
-            {displayName}
-          </Text>
+          <Tooltip
+            label={displayName}
+            placement="top"
+            hasArrow
+            openDelay={300}
+            isDisabled={displayName.length < 18}
+            shouldWrapChildren>
+            <Box width="100%">
+              <Text
+                fontSize="sm"
+                fontWeight={isSelected ? "bold" : "normal"}
+                isTruncated
+                textAlign="center">
+                {displayName}
+              </Text>
+            </Box>
+          </Tooltip>
         </VStack>
       </Box>
     );

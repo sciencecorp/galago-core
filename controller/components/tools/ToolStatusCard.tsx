@@ -141,14 +141,18 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}>
         <CardHeader pb="0px">
-          <Flex justifyContent="space-between" alignItems="center">
-            <Box>
+          <Flex position="relative" alignItems="flex-start">
+            <Box flex="1" minW={0} pr={10} maxW="100%">
               <Link href={`/tools/${toolId}`} passHref>
-                <Heading size="md">{name}</Heading>
+                <Heading size="md" isTruncated maxW="100%" title={name}>
+                  {name}
+                </Heading>
               </Link>
-              <Text fontSize="sm">{description}</Text>
+              <Text fontSize="sm" isTruncated maxW="100%" title={description}>
+                {description}
+              </Text>
             </Box>
-            <Box top={-5} right={-5} position="relative">
+            <Box position="absolute" top={0} right={0} zIndex={1}>
               {toolId !== "tool_box" && <EditMenu onEdit={onOpen} onDelete={openDeleteConfirm} />}
             </Box>
           </Flex>

@@ -9,6 +9,6 @@ def setup_exception_handlers(app: FastAPI):
         request: Request, exc: IntegrityError
     ) -> JSONResponse:
         return JSONResponse(
-            status_code=400, 
-            content={"message": "Integrity error", "detail": str(exc.orig)}
+            status_code=400,
+            content={"message": "Integrity error", "detail": str(exc.orig)},
         )

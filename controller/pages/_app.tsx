@@ -1,4 +1,3 @@
-// pages/_app.tsx
 import "@/styles/globals.css";
 import { ChakraProvider, VStack, Box } from "@chakra-ui/react";
 import { trpc } from "../utils/trpc";
