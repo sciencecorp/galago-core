@@ -26,7 +26,6 @@ import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { createBatchHandlerForIds } from "./shared/utils/batchUtils";
 
 // Components
-import { TeachPendantActions } from "./shared/ui/TeachPendantActions";
 import { TeachPointsPanel } from "./features/teach-points/TeachPointsPanel";
 import { MotionProfilesPanel } from "./features/motion-profiles/MotionProfilesPanel";
 import { GripParametersPanel } from "./features/grip-parameters/GripParametersPanel";
@@ -560,41 +559,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
 
           {/* Right Side - Main Content */}
           <VStack flex={1} align="stretch" spacing={4}>
-            {/* Search and Import/Export Section */}
-            <HStack justify="flex-end">
-              <TeachPendantActions
-                teachPoints={teachPoints}
-                motionProfiles={motionProfiles}
-                gripParams={gripParams}
-                sequences={sequences || []}
-                onImport={handleImport}
-                toolId={tool.id}
-                onTeach={() => handleTeach(selectedTeachPoint!)}
-                onMove={handleMove}
-                onUnwind={() =>
-                  commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")
-                }
-                onGripperOpen={() =>
-                  commandHandlers.handleGripperCommand(
-                    robotArmCommandMutation,
-                    "open",
-                    selectedGripParams!,
-                    false,
-                    gripParams,
-                  )
-                }
-                onGripperClose={() =>
-                  commandHandlers.handleGripperCommand(
-                    robotArmCommandMutation,
-                    "close",
-                    selectedGripParams!,
-                    false,
-                    gripParams,
-                  )
-                }
-                jogEnabled={jogEnabled}
-              />
-            </HStack>
+            {/* Search Section */}
             <InputGroup>
               <InputLeftElement pointerEvents="none">
                 <Search2Icon color="gray.400" />
