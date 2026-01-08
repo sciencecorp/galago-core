@@ -738,7 +738,7 @@ Original Error: ${error.message}`;
                 title="Scripts"
                 subTitle="Create and manage custom python, javascript or C# scripts."
                 titleIcon={<Icon as={CodeIcon} boxSize={8} color="teal.500" />}
-                mainButton={importButton}
+                // mainButton={importButton}
               />
             </VStack>
           </CardBody>

@@ -399,7 +399,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                 </Text>
               </VStack>
 
-              <Tooltip label="Download Form" openDelay={1000} hasArrow>
+              {/*<Tooltip label="Download Form" openDelay={1000} hasArrow>
                 <IconButton
                   aria-label="Download Form"
                   icon={<Download size={16} />}
@@ -409,7 +409,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                   borderColor={FORM_DEFAULTS.placeholderColor}
                   color={fontColor || FORM_DEFAULTS.fontColor}
                 />
-              </Tooltip>
+              </Tooltip>*/}
               <IconButton
                 aria-label="Form settings"
                 icon={<Settings size={16} />} // Changed from IoSettingsSharp

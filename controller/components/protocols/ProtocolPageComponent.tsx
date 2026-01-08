@@ -270,7 +270,7 @@ export const ProtocolPageComponent: React.FC = () => {
               titleIcon={<Icon as={GitBranch} boxSize={8} color="teal.500" />}
               mainButton={
                 <HStack>
-                  <Tooltip
+                  {/*<Tooltip
                     label={!workcellName ? "Create or Select a Workcell to import a protocol" : ""}
                     placement="top"
                     hasArrow>
@@ -284,7 +284,7 @@ export const ProtocolPageComponent: React.FC = () => {
                       isLoading={isImporting}>
                       Import
                     </Button>
-                  </Tooltip>
+                  </Tooltip>*/}
                   <Tooltip
                     label={!workcellName ? "Create or Select a Workcell to create a protocol" : ""}
                     placement="top"
