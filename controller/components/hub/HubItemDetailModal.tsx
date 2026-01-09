@@ -35,6 +35,7 @@ export function HubItemDetailModal({
   onLoad,
   onDelete,
   onDownload,
+  canDelete,
   isLoading,
 }: {
   isOpen: boolean;
@@ -43,6 +44,7 @@ export function HubItemDetailModal({
   onLoad: (item: HubItem) => Promise<void>;
   onDelete: (item: HubItem) => Promise<void>;
   onDownload: (item: HubItem) => Promise<void>;
+  canDelete?: boolean;
   isLoading?: boolean;
 }): JSX.Element {
   const bg = useColorModeValue("white", "gray.900");
@@ -135,15 +137,19 @@ export function HubItemDetailModal({
         </ModalBody>
         <ModalFooter>
           <HStack spacing={2} width="100%">
-            <Button
-              leftIcon={<Trash2 size={16} />}
-              variant="outline"
-              colorScheme="red"
-              isDisabled={!item}
-              isLoading={!!isLoading}
-              onClick={() => item && onDelete(item)}>
-              Delete
-            </Button>
+            {canDelete === false ? (
+              <Box />
+            ) : (
+              <Button
+                leftIcon={<Trash2 size={16} />}
+                variant="outline"
+                colorScheme="red"
+                isDisabled={!item}
+                isLoading={!!isLoading}
+                onClick={() => item && onDelete(item)}>
+                Delete
+              </Button>
+            )}
             <Spacer />
             <Button
               leftIcon={<Download size={16} />}

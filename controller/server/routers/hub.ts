@@ -20,6 +20,8 @@ export const zHubItemSummary = z.object({
   tags: z.array(z.string()).optional().default([]),
   created_at: z.string(),
   updated_at: z.string(),
+  // Optional source marker for items not coming from FastAPI hub storage
+  source: z.enum(["hub", "library"]).optional(),
 });
 
 export type HubItemSummary = z.infer<typeof zHubItemSummary>;

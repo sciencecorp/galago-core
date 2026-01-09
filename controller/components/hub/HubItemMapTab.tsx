@@ -49,21 +49,21 @@ type Node = {
   details?: any;
 };
 
-function extractNodes(item: HubItem): { centerLabel: string; nodes: Node[] } {
-  const p = item.payload;
-  const nodes: Node[] = [];
+function extractInventoryRoot(payload: any): any {
+  if (!isRecord(payload)) return payload;
+  // Some payloads may wrap inventory under an `inventory` property.
+  if (isRecord(payload.inventory)) return payload.inventory;
+  return payload;
+}
 
-  // Always show a node that corresponds to the item type (so "Forms" items always show a Forms bubble, etc.)
+function buildSingleTypeNode(item: HubItem): Node {
+  const p = item.payload;
+
   if (item.type === "forms") {
     const fields = isRecord(p) && Array.isArray(p.fields) ? p.fields : [];
-    nodes.push({
-      key: "forms",
-      label: "Forms",
-      count: 1,
-      colorScheme: "yellow",
-      details: { fields },
-    });
+    return { key: "forms", label: "Forms", count: 1, colorScheme: "yellow", details: { fields } };
   }
+
   if (item.type === "variables") {
     const vars = Array.isArray(p)
       ? p
@@ -72,56 +72,144 @@ function extractNodes(item: HubItem): { centerLabel: string; nodes: Node[] } {
         : isRecord(p)
           ? [p]
           : [];
-    nodes.push({
+    return {
       key: "variables",
       label: "Variables",
       count: vars.length,
       colorScheme: "red",
       details: { vars },
-    });
+    };
   }
+
   if (item.type === "protocols") {
     const commands = isRecord(p) && Array.isArray(p.commands) ? p.commands : [];
-    nodes.push({
+    return {
       key: "protocols",
       label: "Protocols",
       count: 1,
       colorScheme: "green",
       details: { commands },
-    });
+    };
   }
+
   if (item.type === "scripts") {
     const name = isRecord(p) && typeof p.name === "string" ? p.name : item.name;
     const language = isRecord(p) && typeof p.language === "string" ? p.language : "";
     const content = isRecord(p) && typeof p.content === "string" ? p.content : "";
-    nodes.push({
+    return {
       key: "scripts",
       label: "Scripts",
       count: 1,
       colorScheme: "purple",
       details: { name, language, content },
-    });
+    };
   }
+
   if (item.type === "labware") {
-    nodes.push({
+    return {
       key: "labware",
       label: "Labware",
       count: 1,
       colorScheme: "teal",
       details: { labware: p },
-    });
+    };
   }
+
   if (item.type === "inventory") {
-    nodes.push({
+    return {
       key: "inventory",
       label: "Inventory",
       count: 1,
       colorScheme: "orange",
       details: { inventory: p },
-    });
+    };
   }
 
-  // Workcell-like
+  // Fallback (shouldn't happen given HubItemType union)
+  return {
+    key: item.type,
+    label: item.type,
+    count: 1,
+    colorScheme: "gray",
+    details: { payload: p },
+  };
+}
+
+function extractNodes(item: HubItem): { centerLabel: string; nodes: Node[] } {
+  const p = item.payload;
+  const nodes: Node[] = [];
+
+  const centerLabel = (isRecord(p) && typeof p.name === "string" && p.name) || item.name;
+
+  // Non-workcell items: keep the "map" simple — just one bubble is enough.
+  // Inventory is the exception (it benefits from nesting breakdown).
+  if (item.type !== "workcells" && item.type !== "inventory") {
+    return { centerLabel, nodes: [buildSingleTypeNode(item)] };
+  }
+
+  // Inventory: show nesting breakdown (plates -> wells -> reagents, etc.)
+  if (item.type === "inventory") {
+    const inv = extractInventoryRoot(p);
+    const hotelsArr = isRecord(inv) && Array.isArray(inv.hotels) ? inv.hotels : [];
+    const nestsArr = isRecord(inv) && Array.isArray(inv.nests) ? inv.nests : [];
+    const platesArr = isRecord(inv) && Array.isArray(inv.plates) ? inv.plates : [];
+    const wellsArr = isRecord(inv) && Array.isArray(inv.wells) ? inv.wells : [];
+    const reagentsArr = isRecord(inv) && Array.isArray(inv.reagents) ? inv.reagents : [];
+
+    if (
+      hotelsArr.length === 0 &&
+      nestsArr.length === 0 &&
+      platesArr.length === 0 &&
+      wellsArr.length === 0 &&
+      reagentsArr.length === 0
+    ) {
+      // Fallback to a single bubble if we can't detect nested arrays.
+      return { centerLabel, nodes: [buildSingleTypeNode(item)] };
+    }
+
+    return {
+      centerLabel,
+      nodes: [
+        {
+          key: "inventory_hotels",
+          label: "Hotels",
+          count: hotelsArr.length,
+          colorScheme: "orange",
+          details: { items: hotelsArr },
+        },
+        {
+          key: "inventory_nests",
+          label: "Nests",
+          count: nestsArr.length,
+          colorScheme: "orange",
+          details: { items: nestsArr },
+        },
+        {
+          key: "inventory_plates",
+          label: "Plates",
+          count: platesArr.length,
+          colorScheme: "orange",
+          details: { items: platesArr },
+        },
+        {
+          key: "inventory_wells",
+          label: "Wells",
+          count: wellsArr.length,
+          colorScheme: "orange",
+          details: { items: wellsArr },
+        },
+        {
+          key: "inventory_reagents",
+          label: "Reagents",
+          count: reagentsArr.length,
+          colorScheme: "orange",
+          details: { items: reagentsArr },
+        },
+      ].filter((n) => (n.count ?? 0) > 0),
+    };
+  }
+
+  // Workcells: show the richer multi-node breakdown.
   if (isRecord(p)) {
     const toolsArr = Array.isArray(p.tools) ? p.tools : null;
     if (toolsArr)
@@ -133,7 +221,7 @@ function extractNodes(item: HubItem): { centerLabel: string; nodes: Node[] } {
         details: { tools: toolsArr },
       });
 
-    // Inventory grouping: hotels, nests, plates, wells, reagents
+    // Inventory grouping: hotels, nests, plates, wells, reagents (within a workcell setup)
     const hotelsArr = Array.isArray(p.hotels) ? p.hotels : null;
     const nestsArr = Array.isArray(p.nests) ? p.nests : null;
     const platesArr = Array.isArray(p.plates) ? p.plates : null;
@@ -207,16 +295,9 @@ function extractNodes(item: HubItem): { centerLabel: string; nodes: Node[] } {
       });
   }
 
-  // Array payloads
-  if (Array.isArray(p)) {
-    nodes.push({ key: "items", label: "Items", count: p.length, colorScheme: "teal" });
-  }
-
   // Keep it tidy
   const dedup = new Map<string, Node>();
   for (const n of nodes) dedup.set(n.key, n);
-
-  const centerLabel = (isRecord(p) && typeof p.name === "string" && p.name) || item.name;
 
   return { centerLabel, nodes: Array.from(dedup.values()).slice(0, 10) };
 }
@@ -580,6 +661,60 @@ export function HubItemMapTab({ item }: { item: HubItem }): JSX.Element {
                   </Box>
                 ) : null}
 
+                {/* Inventory nodes (hub inventory items): list a best-effort preview */}
+                {selectedNode.key.startsWith("inventory_") &&
+                selectedNode.key !== "inventory_group" &&
+                Array.isArray(selectedNode.details?.items) ? (
+                  <Box border="1px" borderColor={border} borderRadius="md" overflow="hidden">
+                    <Box px={3} py={2} bg={panelHeaderBg}>
+                      <HStack>
+                        <Text fontSize="sm" fontWeight="bold">
+                          Items
+                        </Text>
+                        <Spacer />
+                        <Text fontSize="xs" color="gray.500">
+                          Showing up to 200.
+                        </Text>
+                      </HStack>
+                    </Box>
+                    <Table size="sm">
+                      <Thead>
+                        <Tr>
+                          <Th>Name</Th>
+                          <Th>Type</Th>
+                          <Th>ID</Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody>
+                        {selectedNode.details.items.slice(0, 200).map((it: any, i: number) => {
+                          const name =
+                            (isRecord(it) && typeof it.name === "string" && it.name) ||
+                            (isRecord(it) && typeof it.label === "string" && it.label) ||
+                            `Item ${i + 1}`;
+                          const type = isRecord(it) && typeof it.type === "string" ? it.type : "";
+                          const id =
+                            isRecord(it) && (typeof it.id === "string" || typeof it.id === "number")
+                              ? String(it.id)
+                              : "";
+                          return (
+                            <Tr key={`${id || name}-${i}`}>
+                              <Td maxW="260px">
+                                <Text noOfLines={1} fontWeight="semibold">
+                                  {name}
+                                </Text>
+                              </Td>
+                              <Td>{type}</Td>
+                              <Td maxW="280px">
+                                <Text noOfLines={1}>{id}</Text>
+                              </Td>
+                            </Tr>
+                          );
+                        })}
+                      </Tbody>
+                    </Table>
+                  </Box>
+                ) : null}
+
                 {/* Forms: show fields */}
                 {(selectedNode.key === "forms" || selectedNode.key === "fields") &&
                 Array.isArray(selectedNode.details?.fields) ? (
@@ -681,6 +816,7 @@ export function HubItemMapTab({ item }: { item: HubItem }): JSX.Element {
                 selectedNode.key !== "content" &&
                 selectedNode.key !== "variables" &&
                 selectedNode.key !== "inventory_group" &&
+                !selectedNode.key.startsWith("inventory_") &&
                 selectedNode.key !== "forms" &&
                 selectedNode.key !== "forms_bundle" &&
                 selectedNode.key !== "fields" ? (

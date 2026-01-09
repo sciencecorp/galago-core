@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Badge,
   Box,
@@ -49,6 +49,7 @@ export function HubComponent(): JSX.Element {
   const subtleBg = useColorModeValue("gray.50", "gray.800");
   const border = useColorModeValue("gray.200", "gray.700");
 
+  const [source, setSource] = useState<"hub" | "library">("hub");
   const [selectedType, setSelectedType] = useState<HubItemType | "all">("all");
   const [q, setQ] = useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -56,14 +57,32 @@ export function HubComponent(): JSX.Element {
   const uploadModal = useDisclosure();
   const detailModal = useDisclosure();
 
-  const listQuery = trpc.hub.list.useQuery({
-    type: selectedType === "all" ? undefined : selectedType,
-    q: q.trim() ? q.trim() : undefined,
-  });
+  const hubListQuery = trpc.hub.list.useQuery(
+    {
+      type: selectedType === "all" ? undefined : selectedType,
+      q: q.trim() ? q.trim() : undefined,
+    },
+    { enabled: source === "hub" },
+  );
 
-  const activeItemQuery = trpc.hub.get.useQuery(
+  const libraryListQuery = trpc.hubLibrary.list.useQuery(
+    {
+      type: selectedType === "all" ? undefined : selectedType,
+      q: q.trim() ? q.trim() : undefined,
+    },
+    { enabled: source === "library" },
+  );
+
+  const listQuery = source === "hub" ? hubListQuery : libraryListQuery;
+
+  const activeHubItemQuery = trpc.hub.get.useQuery(
     { id: activeId || "", type: selectedType === "all" ? undefined : selectedType },
-    { enabled: !!activeId },
+    { enabled: !!activeId && source === "hub" },
+  );
+
+  const activeLibraryItemQuery = trpc.hubLibrary.get.useQuery(
+    { id: activeId || "" },
+    { enabled: !!activeId && source === "library" },
   );
 
   const hubDelete = trpc.hub.delete.useMutation();
@@ -80,7 +99,14 @@ export function HubComponent(): JSX.Element {
 
   const scriptAdd = trpc.script.add.useMutation();
 
-  const items = useMemo(() => (listQuery.data ?? []) as HubItemSummary[], [listQuery.data]);
+  const items = useMemo(
+    () =>
+      ((listQuery.data ?? []) as HubItemSummary[]).map((i) => ({
+        ...i,
+        source: i.source || (source === "hub" ? "hub" : "library"),
+      })),
+    [listQuery.data, source],
+  );
 
   const stats = useMemo(() => {
     const byType: Record<string, number> = {};
@@ -93,6 +119,13 @@ export function HubComponent(): JSX.Element {
     setActiveId(id);
     detailModal.onOpen();
   };
+
+  useEffect(() => {
+    // Switching sources should reset the active detail state to avoid mixing fetches.
+    detailModal.onClose();
+    setActiveId(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [source]);
 
   const handleUpload = async (args: {
     file: File;
@@ -122,6 +155,7 @@ export function HubComponent(): JSX.Element {
 
   const handleDelete = async (item: HubItem) => {
     try {
+      if (item.source === "library") return;
       await hubDelete.mutateAsync({ id: item.id, type: item.type });
       successToast("Deleted", "Hub item removed.");
       detailModal.onClose();
@@ -134,6 +168,19 @@ export function HubComponent(): JSX.Element {
 
   const handleDownload = async (item: HubItem) => {
     try {
+      if (item.source === "library") {
+        const f = hubItemToJsonFile(item);
+        const blobUrl = window.URL.createObjectURL(f);
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = f.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+        successToast("Download started", "Your browser should begin downloading the JSON file.");
+        return;
+      }
       await downloadFile(
         `/hub/items/${item.id}/download?item_type=${encodeURIComponent(item.type)}`,
         `${item.name.replace(/\s+/g, "_") || item.id}.json`,
@@ -274,14 +321,16 @@ export function HubComponent(): JSX.Element {
     listQuery.isLoading ||
     hubDelete.isLoading ||
     isUploadingToHub ||
-    activeItemQuery.isFetching ||
+    activeHubItemQuery.isFetching ||
+    activeLibraryItemQuery.isFetching ||
     workcellSetSelected.isLoading ||
     toolClearStore.isLoading ||
     variableAdd.isLoading ||
     variableEdit.isLoading ||
     scriptAdd.isLoading;
 
-  const activeItem = (activeItemQuery.data || null) as HubItem | null;
+  const activeItem = ((source === "hub" ? activeHubItemQuery.data : activeLibraryItemQuery.data) ||
+    null) as HubItem | null;
 
   return (
     <VStack spacing={4} align="stretch" minH="100vh" pb={10}>
@@ -293,13 +342,15 @@ export function HubComponent(): JSX.Element {
               subTitle="Save, browse, and load workcells, protocols, variables, scripts, labware, forms, and more."
               titleIcon={<Icon as={LibraryBig} boxSize={8} color="teal.500" />}
               mainButton={
-                <Button
-                  size="sm"
-                  colorScheme="teal"
-                  leftIcon={<UploadCloud size={18} />}
-                  onClick={uploadModal.onOpen}>
-                  Upload JSON
-                </Button>
+                source === "hub" ? (
+                  <Button
+                    size="sm"
+                    colorScheme="teal"
+                    leftIcon={<UploadCloud size={18} />}
+                    onClick={uploadModal.onOpen}>
+                    Upload JSON
+                  </Button>
+                ) : null
               }
             />
             <Divider />
@@ -329,6 +380,21 @@ export function HubComponent(): JSX.Element {
         <CardBody>
           <Flex gap={3} wrap="wrap" align="center">
             <HStack spacing={2} wrap="wrap">
+              <Button
+                size="sm"
+                variant={source === "hub" ? "solid" : "outline"}
+                colorScheme="teal"
+                onClick={() => setSource("hub")}>
+                My Hub
+              </Button>
+              <Button
+                size="sm"
+                variant={source === "library" ? "solid" : "outline"}
+                colorScheme="teal"
+                onClick={() => setSource("library")}>
+                Library
+              </Button>
+              <Box w={2} />
               <Button
                 size="sm"
                 variant={selectedType === "all" ? "solid" : "outline"}
@@ -436,6 +502,7 @@ export function HubComponent(): JSX.Element {
         onDelete={handleDelete}
         onDownload={handleDownload}
         onLoad={handleLoad}
+        canDelete={activeItem?.source !== "library"}
         isLoading={isBusy}
       />
     </VStack>

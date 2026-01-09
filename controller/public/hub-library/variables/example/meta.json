@@ -1,0 +1,7 @@
+{
+  "type": "variables",
+  "name": "Example Variables",
+  "description": "A small starter set of variables for testing the Hub Library flow.",
+  "tags": ["example", "starter"],
+  "payload": "payload.json"
+}
