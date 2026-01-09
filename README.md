@@ -94,6 +94,11 @@ bin/make proto
 ```bash
 cd db
 pip install -r requirements.txt
+#
+# Required for encrypted secrets storage (Slack webhooks, SMTP passwords, etc.)
+# Generate with:
+#   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+export GALAGO_SECRETS_KEY="...your generated key..."
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 

@@ -677,6 +677,34 @@ class AppSettings(TimestampMixin, AppSettingsCreate):
         from_attributes = True
 
 
+class AppSecretMeta(BaseModel):
+    name: str
+    is_active: bool = True
+    is_set: bool = True
+    created_at: t.Optional[datetime] = None
+    updated_at: t.Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AppSecretSet(BaseModel):
+    value: str
+    is_active: bool = True
+
+
+class AppAuditEvent(BaseModel):
+    id: int
+    actor: str
+    action: str
+    target_type: str
+    target_name: t.Optional[str] = None
+    details: t.Optional[dict] = None
+    created_at: t.Optional[datetime] = None
+    updated_at: t.Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ScriptBase(BaseModel):
     name: str
     description: t.Optional[str] = None

@@ -333,6 +333,30 @@ class AppSettings(Base, TimestampMixin):
     is_active = Column(Boolean, nullable=False)
 
 
+class AppSecret(Base, TimestampMixin):
+    """
+    Encrypted-at-rest secrets (API keys, webhooks, passwords).
+
+    NOTE: plaintext is never stored; use db/utils/crypto.py to encrypt/decrypt.
+    """
+
+    __tablename__ = "app_secrets"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False, unique=True)
+    encrypted_value = Column(String, nullable=False)
+    is_active = Column(Boolean, nullable=False, default=True)
+
+
+class AppAuditEvent(Base, TimestampMixin):
+    __tablename__ = "app_audit_events"
+    id = Column(Integer, primary_key=True, index=True)
+    actor = Column(String, nullable=False, default="local")
+    action = Column(String, nullable=False)
+    target_type = Column(String, nullable=False)
+    target_name = Column(String, nullable=True)
+    details = Column(JSON, nullable=True)
+
+
 class RobotArmLocation(Base, TimestampMixin):
     __tablename__ = "robot_arm_locations"
     id = Column(Integer, primary_key=True)

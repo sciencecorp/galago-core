@@ -29,6 +29,9 @@ services:
       - "8000:8000"
     environment:
       - ENVIRONMENT=production
+      # Required for encrypted secrets at rest (Slack bot token, SMTP password, etc.).
+      # Provide this via your deployment environment (.env / secrets manager).
+      - GALAGO_SECRETS_KEY=${GALAGO_SECRETS_KEY}
     restart: always
     volumes:
       - sqlite_data:/data

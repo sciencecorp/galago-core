@@ -1,33 +1,45 @@
 import { procedure, router } from "@/server/trpc";
-import { get, post, put, del } from "@/server/utils/api";
+import { get, post, put } from "@/server/utils/api";
 import { AppSettings } from "@/types/api";
 import { zAppSettings } from "./types";
 import { z } from "zod";
 
-export const workcellRouter = router({
+/**
+ * FastAPI routes:
+ * - GET  /settings
+ * - GET  /settings/{name}
+ * - POST /settings
+ * - PUT  /settings/{name}   (upsert)
+ */
+export const settingsRouter = router({
   getAll: procedure.query(async () => {
-    const response = await get<AppSettings[]>(`/settings`);
-    return response;
+    return await get<AppSettings[]>(`/settings`);
   }),
 
-  get: procedure.input(z.string()).mutation(async ({ input }) => {
-    const response = await get<AppSettings>(`/settings/${input}`);
-    return response;
+  getByName: procedure.input(z.string()).query(async ({ input }) => {
+    return await get<AppSettings>(`/settings/${input}`);
   }),
 
-  add: procedure.input(zAppSettings.omit({ id: true })).mutation(async ({ input }) => {
-    const response = await post<AppSettings>(`/settings`, input);
-    return response;
-  }),
+  /**
+   * Upsert a setting by name.
+   */
+  set: procedure
+    .input(
+      z.object({
+        name: z.string(),
+        value: z.string(),
+        is_active: z.boolean().optional(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { name, value, is_active } = input;
+      return await put<AppSettings>(`/settings/${name}`, { value, is_active: is_active ?? true });
+    }),
 
-  edit: procedure.input(zAppSettings).mutation(async ({ input }) => {
-    const { id } = input;
-    const response = await put<AppSettings>(`/settings/${id}`, input);
-    return response;
-  }),
-
-  delete: procedure.input(z.number()).mutation(async ({ input }) => {
-    await del(`/settings/${input}`);
-    return { message: "Workcell deleted successfully" };
+  /**
+   * Create a setting (rarely needed since `set` is an upsert).
+   */
+  create: procedure.input(zAppSettings.omit({ id: true })).mutation(async ({ input }) => {
+    return await post<AppSettings>(`/settings`, input);
   }),
 });

@@ -24,6 +24,12 @@ export const unpackError = (error: any): string => {
     const { title, message } = error.response.data.error;
     errorMessage =
       title && message ? `${title}: ${message}` : JSON.stringify(error.response.data.error);
+  } else if (error.response?.data?.detail) {
+    // FastAPI typically returns errors as { detail: "..." } or { detail: [...] }
+    errorMessage =
+      typeof error.response.data.detail === "string"
+        ? error.response.data.detail
+        : JSON.stringify(error.response.data.detail);
   } else if (error.response?.data?.message) {
     errorMessage = error.response.data.message;
   } else if (error.message) {
@@ -59,9 +65,10 @@ export const post = async <T>(url: string, data: any): Promise<T | null> => {
     if (axios.isAxiosError(error)) {
       const errorMsg = unpackError(error);
       if (DEBUG_API) console.error("Request error:", errorMsg);
-      throw new Error(
-        `${error.response?.status} - ${errorMsg} - ${JSON.stringify(error.response?.data?.detail)}`,
-      );
+      const err = new Error(`${error.response?.status} - ${errorMsg}`);
+      (err as any).status = error.response?.status;
+      (err as any).detail = error.response?.data?.detail;
+      throw err;
     } else {
       if (DEBUG_API) console.error("Unexpected error:", error);
       throw new Error("An unexpected error occurred");
@@ -77,9 +84,10 @@ export const put = async <T>(url: string, data: any): Promise<T> => {
     if (axios.isAxiosError(error)) {
       const errorMsg = unpackError(error);
       if (DEBUG_API) console.error("Request error:", errorMsg);
-      throw new Error(
-        `Error: ${error.response?.status} - ${errorMsg} - ${JSON.stringify(error.response?.data?.detail)}`,
-      );
+      const err = new Error(`${error.response?.status} - ${errorMsg}`);
+      (err as any).status = error.response?.status;
+      (err as any).detail = error.response?.data?.detail;
+      throw err;
     } else {
       if (DEBUG_API) console.error("Unexpected error:", error);
       throw new Error("An unexpected error occurred");
@@ -95,7 +103,10 @@ export const del = async <T>(url: string): Promise<T> => {
     if (axios.isAxiosError(error)) {
       const errorMsg = unpackError(error);
       if (DEBUG_API) console.error("Request error:", errorMsg);
-      throw new Error(`Error: ${error.response?.status} - ${errorMsg}`);
+      const err = new Error(`${error.response?.status} - ${errorMsg}`);
+      (err as any).status = error.response?.status;
+      (err as any).detail = error.response?.data?.detail;
+      throw err;
     } else {
       if (DEBUG_API) console.error("Unexpected error:", error);
       throw new Error("An unexpected error occurred");

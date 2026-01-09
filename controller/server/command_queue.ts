@@ -9,8 +9,8 @@ import { Console, log } from "console";
 import { logger } from "@/logger";
 import { ToolType } from "gen-interfaces/controller";
 import { logAction } from "./logger";
-import { get, put } from "@/server/utils/api";
-import { Variable } from "@/types/api";
+import { get, getOrNull, post, put } from "@/server/utils/api";
+import { AppSettings, Variable } from "@/types/api";
 
 export type CommandQueueState = ToolStatus;
 
@@ -35,6 +35,8 @@ export class CommandQueue {
   private _state: CommandQueueState = ToolStatus.OFFLINE;
   private _runningPromise?: Promise<any>;
   error?: Error;
+  private _lastAlertKey?: string;
+  private _lastAlertAtMs?: number;
 
   // Message handling state variables
   private _isWaitingForInput: boolean = false;
@@ -66,6 +68,81 @@ export class CommandQueue {
     this._setState(ToolStatus.FAILED);
     this.error = error;
     logger.error("CommandQueue failed:", error);
+  }
+
+  private async _getSettingBool(name: string, fallback: boolean): Promise<boolean> {
+    try {
+      const s = await getOrNull<AppSettings>(`/settings/${name}`);
+      if (!s?.value) return fallback;
+      const v = String(s.value).trim().toLowerCase();
+      if (["true", "1", "yes", "on"].includes(v)) return true;
+      if (["false", "0", "no", "off"].includes(v)) return false;
+      return fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private async _notifyFailure(opts: {
+    error: Error;
+    runId?: string;
+    toolId?: string;
+    toolType?: ToolType;
+    command?: string;
+    label?: string;
+  }) {
+    try {
+      const errMsg = opts.error?.message || "Unknown error";
+      const runId = opts.runId || "unknown";
+      const toolId = opts.toolId || "unknown";
+      const cmd = opts.command || "unknown";
+
+      const key = `${runId}|${toolId}|${cmd}|${errMsg}`;
+      const now = Date.now();
+      if (this._lastAlertKey === key && this._lastAlertAtMs && now - this._lastAlertAtMs < 60_000) {
+        return;
+      }
+      this._lastAlertKey = key;
+      this._lastAlertAtMs = now;
+
+      const slackEnabled = this.slackNotificationsEnabled
+        ? await this._getSettingBool("enable_slack_alerts_on_failure", true)
+        : false;
+      const emailEnabled = await this._getSettingBool("enable_email_alerts_on_failure", false);
+
+      if (!slackEnabled && !emailEnabled) return;
+
+      const selectedWorkcell = await getOrNull<AppSettings>(`/settings/workcell`);
+      const workcellName = selectedWorkcell?.value || "unknown";
+
+      const header = `Galago alert: run failure`;
+      const lines = [
+        `Workcell: ${workcellName}`,
+        `Run: ${runId}`,
+        `Tool: ${opts.toolType != null ? ToolType[opts.toolType] : "unknown"} (${toolId})`,
+        `Command: ${cmd}${opts.label ? ` (${opts.label})` : ""}`,
+        `Error: ${errMsg}`,
+      ];
+      const body = `${header}\n\n${lines.join("\n")}`;
+
+      if (slackEnabled) {
+        try {
+          await post(`/integrations/slack/send`, { message: body });
+        } catch (e: any) {
+          logger.warn("Slack alert failed:", e?.message || e);
+        }
+      }
+
+      if (emailEnabled) {
+        try {
+          await post(`/integrations/email/send`, { subject: header, message: body });
+        } catch (e: any) {
+          logger.warn("Email alert failed:", e?.message || e);
+        }
+      }
+    } catch (e: any) {
+      logger.warn("Failure notification handler failed:", e?.message || e);
+    }
   }
 
   get state(): CommandQueueState {
@@ -496,6 +573,7 @@ export class CommandQueue {
       });
       this.error = e instanceof Error ? e : new Error("Execution failed");
       this._setState(ToolStatus.FAILED);
+      await this._notifyFailure({ error: this.error });
     } finally {
       this._runningPromise = undefined;
       if (this.state === ToolStatus.BUSY) {
@@ -783,6 +861,15 @@ export class CommandQueue {
           level: "error",
           action: "Command Failed",
           details: `Command failed: ${e instanceof Error ? e.message : e}`,
+        });
+
+        await this._notifyFailure({
+          error: this.error,
+          runId: nextCommand.runId,
+          toolId: nextCommand.commandInfo?.toolId,
+          toolType: nextCommand.commandInfo?.toolType,
+          command: nextCommand.commandInfo?.command,
+          label: nextCommand.commandInfo?.label,
         });
 
         // Exit the busy loop but keep the error state
