@@ -17,6 +17,7 @@ import { secretsRouter } from "./secrets";
 import { integrationsRouter } from "./integrations";
 import { auditRouter } from "./audit";
 import { backupRouter } from "./backup";
+import { appSettingsRouter } from "./appSettings";
 
 export const appRouter = router({
   inventory: inventoryRouter,
@@ -37,6 +38,7 @@ export const appRouter = router({
   robotArm: robotArmRouter,
   cSharp: csharpRouter,
   form: formRouter,
+  appSettings: appSettingsRouter,
 });
 
 export type AppRouter = typeof appRouter;

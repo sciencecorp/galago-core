@@ -1,23 +1,23 @@
 import { procedure, router } from "@/server/trpc";
-import { get, post, put } from "@/server/utils/api";
-import { AppSettings } from "@/types/api";
-import { zAppSettings } from "./types";
+import { db } from "@/db/client";
+import { appSettings } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 /**
- * FastAPI routes:
- * - GET  /settings
- * - GET  /settings/{name}
- * - POST /settings
- * - PUT  /settings/{name}   (upsert)
+ * Drizzle-backed app settings (local controller DB).
+ *
+ * This router intentionally preserves the older `trpc.settings.*` surface area used by the UI,
+ * while storing data in the `app_settings` table.
  */
 export const settingsRouter = router({
   getAll: procedure.query(async () => {
-    return await get<AppSettings[]>(`/settings`);
+    return await db.select().from(appSettings);
   }),
 
   getByName: procedure.input(z.string()).query(async ({ input }) => {
-    return await get<AppSettings>(`/settings/${input}`);
+    const rows = await db.select().from(appSettings).where(eq(appSettings.name, input)).limit(1);
+    return rows[0] ?? null;
   }),
 
   /**
@@ -26,20 +26,28 @@ export const settingsRouter = router({
   set: procedure
     .input(
       z.object({
-        name: z.string(),
-        value: z.string(),
+        name: z.string().min(1),
+        value: z.string(), // allow empty values
         is_active: z.boolean().optional(),
       }),
     )
     .mutation(async ({ input }) => {
       const { name, value, is_active } = input;
-      return await put<AppSettings>(`/settings/${name}`, { value, is_active: is_active ?? true });
-    }),
+      const existing = await db.select().from(appSettings).where(eq(appSettings.name, name)).limit(1);
 
-  /**
-   * Create a setting (rarely needed since `set` is an upsert).
-   */
-  create: procedure.input(zAppSettings.omit({ id: true })).mutation(async ({ input }) => {
-    return await post<AppSettings>(`/settings`, input);
-  }),
+      if (!existing[0]) {
+        const inserted = await db
+          .insert(appSettings)
+          .values({ name, value, isActive: is_active ?? true })
+          .returning();
+        return inserted[0];
+      }
+
+      const updated = await db
+        .update(appSettings)
+        .set({ value, isActive: is_active ?? true, updatedAt: new Date().toISOString() })
+        .where(eq(appSettings.name, name))
+        .returning();
+      return updated[0];
+    }),
 });

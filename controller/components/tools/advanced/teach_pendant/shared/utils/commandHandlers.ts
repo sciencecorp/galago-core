@@ -2,7 +2,7 @@ import { MotionProfile, GripParams } from "../../types/";
 import { ToolCommandInfo } from "@/types";
 import { ToolType } from "gen-interfaces/controller";
 import { UseMutationResult } from "@tanstack/react-query";
-import { Tool } from "@/types/api";
+import { Tool } from "@/types";
 import { successToast, errorToast } from "@/components/ui/Toast";
 import { validateGripParamsExists } from "./commandValidation";
 

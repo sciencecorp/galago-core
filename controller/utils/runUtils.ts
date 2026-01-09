@@ -1,7 +1,30 @@
 import moment from "moment";
 import { RunQueue, RunCommand, GroupedCommand } from "@/types";
-import { Protocols } from "@/server/protocols";
-import Protocol from "@/protocols/protocol";
+import { Protocols, findProtocol, getProtocolById } from "@/server/protocols";
+
+// Helper function to load protocol name
+async function getProtocolName(protocolId: string): Promise<string> {
+  // Try to find in loaded protocols first
+  const protocol = findProtocol(protocolId);
+  if (protocol) {
+    return protocol.name;
+  }
+
+  // If not found in cache, try to load from database
+  try {
+    const id = parseInt(protocolId);
+    if (!isNaN(id)) {
+      const dbProtocol = await getProtocolById(id);
+      if (dbProtocol) {
+        return dbProtocol.name;
+      }
+    }
+  } catch (error) {
+    console.warn("Failed to load protocol name:", error);
+  }
+
+  return protocolId;
+}
 
 export async function getRunAttributes(
   runInfo: any,
@@ -29,25 +52,9 @@ export async function getRunAttributes(
     };
   }
 
-  // Try to find protocol in TypeScript protocols first
-  let protocolName = runInfo.run_type;
-  const tsProtocol = Protocols.find((p) => p.protocolId === runInfo.run_type);
-  if (tsProtocol) {
-    protocolName = tsProtocol.name;
-  } else {
-    // If not found in TypeScript protocols, try to load from database
-    try {
-      const dbProtocol = await Protocol.loadFromDatabase(runInfo.run_type);
-      if (dbProtocol) {
-        protocolName = dbProtocol.name;
-      }
-    } catch (error) {
-      console.warn("Failed to load protocol name:", error);
-      // Fallback to using run_type if protocol not found
-    }
-  }
-
-  let runName = protocolName;
+  // Get protocol name
+  const protocolName = await getProtocolName(runInfo.run_type);
+  const runName = protocolName;
 
   let status = "CREATED";
   let startedAt = "";
@@ -89,6 +96,7 @@ export async function getRunAttributes(
   };
 }
 
+// ... rest of your functions remain the same
 export function calculateRunTimes(
   runAttributes: any,
   currentTime: moment.Moment,
@@ -98,7 +106,6 @@ export function calculateRunTimes(
   let runEnd: moment.Moment;
   let isActive = false;
 
-  // Check if all commands are completed
   const isCompleted =
     runCommands.length > 0 && runCommands[runCommands.length - 1].status === "COMPLETED";
 
@@ -121,24 +128,6 @@ export function calculateRunTimes(
 
   const expectedDuration = runEnd.diff(runStart, "seconds");
   return { runStart, runEnd, expectedDuration, isActive, isCompleted };
-}
-
-export function groupCommandsByRun(commands: RunCommand[]): GroupedCommand[] {
-  const groupedCommands: GroupedCommand[] = [];
-  const runIds: string[] = [];
-
-  commands.forEach((command) => {
-    if (!runIds.includes(command.runId)) {
-      runIds.push(command.runId);
-      groupedCommands.push({
-        Id: command.runId,
-        Commands: [],
-      });
-    }
-    groupedCommands[runIds.indexOf(command.runId)].Commands.push(command);
-  });
-
-  return groupedCommands;
 }
 
 export function calculateRunCompletion(commands: RunCommand[]): number {

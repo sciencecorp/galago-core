@@ -14,8 +14,8 @@ services:
       - NODE_ENV=development
       - PORT=3010
       - GRPC_SERVER_IP=host.docker.internal
-      - API_BASE_URL=http://db:8000/api
       - GRPC_HOST=host.docker.internal
+      - API_BASE_URL=http://db:8000/api
     stdin_open: true # for debugging
     tty: true # for debugging
     #network_mode: "host"

@@ -50,9 +50,9 @@ export interface Form {
   id: number;
   name: string;
   description?: string;
-  background_color: string | null;
-  font_color: string | null;
+  backgroundColor: string | null;
+  fontColor: string | null;
   fields: FormField[];
-  created_at?: string;
-  updated_at?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }

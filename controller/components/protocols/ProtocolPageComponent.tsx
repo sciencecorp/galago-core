@@ -69,7 +69,7 @@ export const ProtocolPageComponent: React.FC = () => {
   const [workcellFilter, setWorkcellFilter] = useState<string>("");
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
-  const [runModalProtocolId, setRunModalProtocolId] = useState<string | null>(null);
+  const [runModalProtocolId, setRunModalProtocolId] = useState<number | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,14 +84,14 @@ export const ProtocolPageComponent: React.FC = () => {
   const hoverBgColor = useColorModeValue("gray.50", "gray.600");
 
   const { data: workcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
-  const { data: protocols, refetch } = trpc.protocol.allNames.useQuery({
+  const { data: protocols, refetch } = trpc.protocol.getAll.useQuery({
     workcellName: workcellName || "",
   });
   const { data: workcells } = trpc.workcell.getAll.useQuery();
   const deleteMutation = trpc.protocol.delete.useMutation({
     onSuccess: () => {
       successToast("Protocol deleted", "");
-      refetch(); // Refresh the protocols list
+      refetch();
     },
     onError: (error) => {
       errorToast("Error deleting protocol", error.message);
@@ -111,7 +111,7 @@ export const ProtocolPageComponent: React.FC = () => {
   // Get unique workcells and categories for filters
   const uniqueWorkcells = useMemo(() => {
     if (!protocols || !workcells) return [];
-    const workcellIds = new Set(protocols.map((p) => p.workcell_id));
+    const workcellIds = new Set(protocols.map((p) => p.workcellId));
     const usedWorkcells = workcells.filter((w) => workcellIds.has(w.id));
     return usedWorkcells;
   }, [protocols, workcells]);
@@ -181,7 +181,7 @@ export const ProtocolPageComponent: React.FC = () => {
     }
   };
 
-  const handleRunClick = (protocolId: string) => {
+  const handleRunClick = (protocolId: number) => {
     setRunModalProtocolId(protocolId);
   };
 
@@ -190,7 +190,7 @@ export const ProtocolPageComponent: React.FC = () => {
   };
 
   const handleDelete = async (protocolId: number) => {
-    await deleteMutation.mutateAsync({ id: protocolId });
+    await deleteMutation.mutateAsync(protocolId);
   };
 
   const getWorkcellName = (workcellId: number) => {
@@ -201,7 +201,7 @@ export const ProtocolPageComponent: React.FC = () => {
   const handleUpdateProtocol = (protocolId: number, updates: any) => {
     updateProtocol.mutate({
       id: protocolId,
-      data: updates,
+      ...updates,
     });
   };
 
@@ -270,7 +270,7 @@ export const ProtocolPageComponent: React.FC = () => {
               titleIcon={<Icon as={GitBranch} boxSize={8} color="teal.500" />}
               mainButton={
                 <HStack>
-                  <Tooltip
+                  {/*<Tooltip
                     label={!workcellName ? "Create or Select a Workcell to import a protocol" : ""}
                     placement="top"
                     hasArrow>
@@ -284,7 +284,7 @@ export const ProtocolPageComponent: React.FC = () => {
                       isLoading={isImporting}>
                       Import
                     </Button>
-                  </Tooltip>
+                  </Tooltip>*/}
                   <Tooltip
                     label={!workcellName ? "Create or Select a Workcell to create a protocol" : ""}
                     placement="top"
@@ -352,7 +352,7 @@ export const ProtocolPageComponent: React.FC = () => {
                 maxW="200px"
                 bg={tableBgColor}>
                 {uniqueWorkcells.map((workcell) => (
-                  <option key={workcell.id} value={workcell.id.toString()}>
+                  <option key={workcell.id} value={workcell.name}>
                     {workcell.name}
                   </option>
                 ))}
@@ -445,7 +445,9 @@ export const ProtocolPageComponent: React.FC = () => {
                             <Popover placement="bottom" closeOnBlur={true}>
                               <PopoverTrigger>
                                 <Text cursor="pointer" _hover={{ color: "blue.500" }}>
-                                  {getWorkcellName(protocol.workcell_id)}
+                                  {protocol.workcellId
+                                    ? getWorkcellName(protocol.workcellId)
+                                    : "N/A"}
                                 </Text>
                               </PopoverTrigger>
                               <PopoverContent width="fit-content">
@@ -456,12 +458,12 @@ export const ProtocolPageComponent: React.FC = () => {
                                         key={workcell.id}
                                         size="sm"
                                         variant={
-                                          workcell.id === protocol.workcell_id ? "solid" : "ghost"
+                                          workcell.id === protocol.workcellId ? "solid" : "ghost"
                                         }
                                         onClick={() => {
-                                          if (workcell.id !== protocol.workcell_id) {
+                                          if (workcell.id !== protocol.workcellId) {
                                             handleUpdateProtocol(protocol.id, {
-                                              workcell_id: workcell.id,
+                                              workcellId: workcell.id,
                                             });
                                           }
                                         }}>
@@ -495,7 +497,7 @@ export const ProtocolPageComponent: React.FC = () => {
                               />
                               <MenuList>
                                 <MenuItem
-                                  onClick={() => handleRunClick(protocol.id.toString())}
+                                  onClick={() => handleRunClick(protocol.id)}
                                   color="green.500"
                                   icon={<Icon as={Play} />}>
                                   Run

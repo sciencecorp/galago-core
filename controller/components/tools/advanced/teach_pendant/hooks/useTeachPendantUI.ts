@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useDisclosure } from "@chakra-ui/react";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "../types/";
-import { Tool } from "@/types/api";
+import { Tool } from "@/types";
 
 export const useTeachPendantUI = (config: Tool) => {
   // Modal states using useDisclosure

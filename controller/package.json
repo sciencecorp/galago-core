@@ -11,7 +11,10 @@
     "test": "npx tsc --noEmit",
     "test:fmt": "npx prettier --config .prettierrc --ignore-unknow --check '**/*",
     "start": "next start -p 3010",
-    "db:studio": "npx drizzle-kit studio"
+    "db:studio": "npx drizzle-kit studio",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",

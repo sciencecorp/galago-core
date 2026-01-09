@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Box,
   Button,
@@ -31,10 +31,8 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
-  Icon,
   Portal,
 } from "@chakra-ui/react";
-import { ChevronDownIcon } from "@chakra-ui/icons";
 import {
   Settings,
   Type,
@@ -53,7 +51,6 @@ import {
   Download,
   List,
 } from "lucide-react";
-import { CloseIcon } from "@chakra-ui/icons";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { trpc } from "@/utils/trpc";
 import { successToast, errorToast } from "../ui/Toast";
@@ -65,8 +62,6 @@ import { FieldTypeSelector } from "./fieldTypeSelector";
 import { downloadFile } from "@/server/utils/api";
 import { useCommonColors, useTextColors } from "../ui/Theme";
 
-// Static form defaults - these should NOT change with dark mode
-// Forms are "locked" to their designed appearance regardless of theme
 const FORM_DEFAULTS = {
   backgroundColor: "",
   fontColor: "",
@@ -134,16 +129,18 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
   // Update form data when a form is selected
   const updateFormData = (form: Form) => {
     setFormName(form.name || "");
-    setBackgroundColor(form.background_color || null);
-    setFontColor(form.font_color || null);
+    setBackgroundColor(form.backgroundColor || null);
+    setFontColor(form.fontColor || null);
 
-    // Update fields with proper IDs
-    if (form.fields && form.fields.length > 0) {
-      const fieldsWithIds = form.fields.map((field, index) => ({
+    // Type assert fields as FormField array
+    const formFields = (form.fields as FormField[]) || [];
+
+    if (formFields && formFields.length > 0) {
+      const fieldsWithIds = formFields.map((field, index) => ({
         ...field,
         id: field.label + "_" + index,
       }));
-      setFields(fieldsWithIds as FormField[]);
+      setFields(fieldsWithIds);
     } else {
       setFields([]);
     }
@@ -241,21 +238,17 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
           : null,
       }));
 
-      const formData = {
-        name: formName,
-        background_color: backgroundColor,
-        font_color: fontColor,
-        fields: cleanedFields,
-      };
-
       await updateForm.mutateAsync({
         id: selectedForm.id,
-        data: formData,
+        name: formName,
+        backgroundColor: backgroundColor,
+        fontColor: fontColor,
+        fields: cleanedFields,
       });
-      successToast("Success", "Form saved successfully");
 
+      successToast("Success", "Form saved successfully");
       if (onUpdate) {
-        onUpdate(); // Call the onUpdate callback if provided
+        onUpdate();
       }
     } catch (error) {
       console.error("Failed to save form:", error);
@@ -406,7 +399,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                 </Text>
               </VStack>
 
-              <Tooltip label="Download Form" openDelay={1000} hasArrow>
+              {/*<Tooltip label="Download Form" openDelay={1000} hasArrow>
                 <IconButton
                   aria-label="Download Form"
                   icon={<Download size={16} />}
@@ -416,7 +409,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                   borderColor={FORM_DEFAULTS.placeholderColor}
                   color={fontColor || FORM_DEFAULTS.fontColor}
                 />
-              </Tooltip>
+              </Tooltip>*/}
               <IconButton
                 aria-label="Form settings"
                 icon={<Settings size={16} />} // Changed from IoSettingsSharp
@@ -560,20 +553,26 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
                 <CardFooter>
                   <ButtonGroup spacing={3} justifyContent="center" width="100%">
-                    <Button
-                      minW="120px"
-                      variant="ghost"
-                      _hover={{ bg: FORM_DEFAULTS.buttonColors.ghost.hoverBg }}>
-                      Cancel
-                    </Button>
-                    <Button
-                      minW="120px"
-                      mr={3}
-                      bg={FORM_DEFAULTS.buttonColors.primary.bg}
-                      color={FORM_DEFAULTS.buttonColors.primary.color}
-                      _hover={{ bg: FORM_DEFAULTS.buttonColors.primary.hoverBg }}>
-                      Submit
-                    </Button>
+                    <Tooltip label="Buttons are disabled. Please run this form from a protocol to test.">
+                      <Button
+                        isDisabled={true}
+                        minW="120px"
+                        variant="ghost"
+                        _hover={{ bg: FORM_DEFAULTS.buttonColors.ghost.hoverBg }}>
+                        Cancel
+                      </Button>
+                    </Tooltip>
+                    <Tooltip label="Buttons are disabled. Please run this form from a protocol to test.">
+                      <Button
+                        isDisabled={true}
+                        minW="120px"
+                        mr={3}
+                        bg={FORM_DEFAULTS.buttonColors.primary.bg}
+                        color={FORM_DEFAULTS.buttonColors.primary.color}
+                        _hover={{ bg: FORM_DEFAULTS.buttonColors.primary.hoverBg }}>
+                        Submit
+                      </Button>
+                    </Tooltip>
                   </ButtonGroup>
                 </CardFooter>
               </VStack>

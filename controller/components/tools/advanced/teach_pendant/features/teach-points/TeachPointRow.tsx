@@ -16,7 +16,7 @@ import {
   Th,
 } from "@chakra-ui/react";
 import { ChevronUpIcon, ChevronDownIcon, HamburgerIcon } from "@chakra-ui/icons";
-import { Tool } from "@/types/api";
+import { Tool } from "@/types";
 import { TeachPoint } from "../../types";
 
 interface TeachPointRowProps {

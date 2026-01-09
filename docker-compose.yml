@@ -1,10 +1,10 @@
 #Production docker-compose file
 services:
   galago-web:
-    # image: ghcr.io/sciencecorp/galago-web:latest
-    build:
-      context: .
-      dockerfile: controller/Dockerfile
+    image: ghcr.io/sciencecorp/galago-web:latest
+    # build:
+    #   context: .
+    #   dockerfile: controller/Dockerfile
     container_name: galago-web
     ports:
       - "3010:3010"
@@ -16,8 +16,6 @@ services:
       - API_BASE_URL=http://db:8000/api
     depends_on:
       - db
-    networks:
-      - app-network
 
   db:
     # image: ghcr.io/sciencecorp/galago-db:latest
@@ -37,11 +35,6 @@ services:
       - sqlite_data:/data
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
 
 volumes:
   sqlite_data:

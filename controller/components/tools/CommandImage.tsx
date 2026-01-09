@@ -44,7 +44,7 @@ const CommandImage: React.FC<CommandImageProps> = (props) => {
 
   const renderToolImage = (config: any) => {
     if (!config) return;
-    if (!config.image_url) {
+    if (!config.imageUrl) {
       return <Box></Box>;
     } else if (config.name == "Tool Box") {
       return (
@@ -63,7 +63,7 @@ const CommandImage: React.FC<CommandImageProps> = (props) => {
       return (
         <Box display="flex" justifyContent="center" alignItems="center">
           <Image
-            src={config.image_url}
+            src={config.imageUrl}
             alt={config.name}
             objectFit="contain"
             height="65px"
