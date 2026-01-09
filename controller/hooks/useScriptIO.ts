@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { trpc } from "@/utils/trpc";
-import { Script } from "@/types/api"; // Assuming Script type exists or will be created
+import { Script } from "@/types"; // Assuming Script type exists or will be created
 import { fileTypeToExtensionMap } from "@/components/scripts/utils"; // Assuming this is the correct path
 /**
  * React hook for script import/export functionality
@@ -77,7 +77,7 @@ export const useScriptIO = (
 
       // Make a direct fetch call to the FastAPI endpoint
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/scripts/import`,
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3010"}/api/scripts/import`,
         {
           method: "POST",
           body: formData,

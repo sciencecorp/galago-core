@@ -217,19 +217,19 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                     </Td>
                     <Td>
                       <EditableText
-                        defaultValue={(profile.accel_ramp ?? 0).toString()}
+                        defaultValue={(profile.accelRamp ?? 0).toString()}
                         onSubmit={(value) => {
                           const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(profile, "accel_ramp", numValue);
+                          !isNaN(numValue) && handleSaveValue(profile, "accelRamp", numValue);
                         }}
                       />
                     </Td>
                     <Td>
                       <EditableText
-                        defaultValue={(profile.decel_ramp ?? 0).toString()}
+                        defaultValue={(profile.decelRamp ?? 0).toString()}
                         onSubmit={(value) => {
                           const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(profile, "decel_ramp", numValue);
+                          !isNaN(numValue) && handleSaveValue(profile, "decelRamp", numValue);
                         }}
                       />
                     </Td>

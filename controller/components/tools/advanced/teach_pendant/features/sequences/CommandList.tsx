@@ -37,7 +37,7 @@ import { useState, useEffect } from "react";
 import { SequenceCommand } from "../../types/";
 import { CommandModal } from "./CommandModal";
 import { TeachPoint, MotionProfile, GripParams } from "../../types/";
-import { Tool } from "@/types/api";
+import { Tool } from "@/types";
 import { trpc } from "@/utils/trpc";
 import { CommandIcons } from "@/components/ui/Icons";
 import { getCommandColor, getCommandColorHex } from "@/components/ui/Theme";
