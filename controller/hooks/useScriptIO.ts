@@ -77,7 +77,7 @@ export const useScriptIO = (
 
       // Make a direct fetch call to the FastAPI endpoint
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/scripts/import`,
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3010"}/api/scripts/import`,
         {
           method: "POST",
           body: formData,

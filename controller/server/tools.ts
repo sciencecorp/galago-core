@@ -6,13 +6,24 @@ import * as tool_driver from "gen-interfaces/tools/grpc_interfaces/tool_driver";
 import { ToolType } from "gen-interfaces/controller";
 import { PromisifiedGrpcClient, promisifyGrpcClient } from "./utils/promisifyGrpcCall";
 import { setInterval, clearInterval } from "timers";
-import { get } from "@/server/utils/api";
 import { Script } from "@/types";
 import { Variable } from "@/types";
 import { Labware } from "@/types";
 import { logAction } from "./logger";
 import { JavaScriptExecutor } from "@/server/scripting/javascript/javascript-executor";
 import { CSharpExecutor } from "@/server/scripting/csharp/csharp-executor";
+import { db } from "@/db/client";
+import {
+  robotArmLocations,
+  robotArmSequences,
+  robotArmMotionProfiles,
+  robotArmGripParams,
+  labware,
+  tools,
+  variables,
+  scripts,
+} from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 
@@ -103,9 +114,46 @@ export default class Tool {
     const normalizedId = Tool.normalizeToolId(toolId);
 
     try {
-      const waypointsResponse = await get<any>(`/robot-arm-waypoints?toolId=${toolId}`);
+      // Fetch the tool from database to get the numeric ID
+      const toolRecord = await db.select().from(tools).where(eq(tools.name, normalizedId)).limit(1);
 
-      // Need to get tool from store to execute command
+      if (!toolRecord || toolRecord.length === 0) {
+        throw new Error(`Tool ${normalizedId} not found in database`);
+      }
+
+      const toolDbId = toolRecord[0].id;
+
+      // Fetch waypoints data using Drizzle
+      const locations = await db
+        .select()
+        .from(robotArmLocations)
+        .where(eq(robotArmLocations.toolId, toolDbId));
+
+      const sequences = await db
+        .select()
+        .from(robotArmSequences)
+        .where(eq(robotArmSequences.toolId, toolDbId));
+
+      const motionProfiles = await db
+        .select()
+        .from(robotArmMotionProfiles)
+        .where(eq(robotArmMotionProfiles.toolId, toolDbId));
+
+      const gripParams = await db
+        .select()
+        .from(robotArmGripParams)
+        .where(eq(robotArmGripParams.toolId, toolDbId));
+
+      const waypointsData = {
+        tool_name: toolRecord[0].name,
+        name: `Waypoints for Tool ${toolId}`,
+        locations: locations,
+        sequences: sequences,
+        motion_profiles: motionProfiles,
+        grip_params: gripParams,
+      };
+
+      // Get tool from store to execute command
       const store = getGlobalStore();
       const tool = store.get(normalizedId);
 
@@ -122,7 +170,7 @@ export default class Tool {
         toolType: ToolType.pf400,
         command: "load_waypoints",
         params: {
-          waypoints: waypointsResponse,
+          waypoints: waypointsData,
         },
       });
 
@@ -138,19 +186,48 @@ export default class Tool {
         details: `Failed to load waypoints for PF400 tool: ${toolId}. Error: ${error}`,
       });
       console.error(`Failed to load waypoints for PF400 tool: ${toolId}`, error);
+      throw error;
     }
   }
 
   static async loadLabwareToPF400(toolId: string) {
-    const labwareResponse = await get<Labware>(`/labware`);
-    await this.executeCommand({
-      toolId: Tool.normalizeToolId(toolId),
-      toolType: ToolType.pf400,
-      command: "load_labware",
-      params: {
-        labwares: { labwares: labwareResponse },
-      },
-    });
+    const normalizedId = Tool.normalizeToolId(toolId);
+
+    try {
+      // Fetch all labware using Drizzle
+      const labwareRecords = await db.select().from(labware);
+
+      // Need to get tool from store to execute command
+      const store = getGlobalStore();
+      const tool = store.get(normalizedId);
+
+      if (!tool) {
+        throw new Error(`Tool ${normalizedId} not found in store. Must be configured first.`);
+      }
+
+      await tool.executeCommand({
+        toolId: normalizedId,
+        toolType: ToolType.pf400,
+        command: "load_labware",
+        params: {
+          labwares: { labwares: labwareRecords },
+        },
+      });
+
+      logAction({
+        level: "info",
+        action: "PF400 Configuration",
+        details: `Successfully loaded labware for PF400 tool: ${toolId}`,
+      });
+    } catch (error) {
+      logAction({
+        level: "error",
+        action: "PF400 Configuration Error",
+        details: `Failed to load labware for PF400 tool: ${toolId}. Error: ${error}`,
+      });
+      console.error(`Failed to load labware for PF400 tool: ${toolId}`, error);
+      throw error;
+    }
   }
 
   async configure(config: tool_base.Config) {
@@ -176,8 +253,8 @@ export default class Tool {
     }
 
     if (config.pf400) {
-      await this.loadLabwareToPF400();
-      await this.loadPF400Waypoints();
+      await Tool.loadLabwareToPF400(this.toolId);
+      await Tool.loadPF400Waypoints(this.toolId);
     }
   }
 
@@ -210,14 +287,24 @@ export default class Tool {
   async executeCommand(command: ToolCommandInfo) {
     const params = command.params;
 
-    // Substitute params with variables
+    // Substitute params with variables using Drizzle
     for (const key in params) {
       if (params[key] == null) continue;
       const paramValue = String(params[key]);
       if (paramValue.startsWith("{{") && paramValue.endsWith("}}")) {
         try {
-          const varValue = await get<Variable>(`/variables/${paramValue.slice(2, -2)}`);
-          params[key] = varValue.value;
+          const varName = paramValue.slice(2, -2);
+          const varRecords = await db
+            .select()
+            .from(variables)
+            .where(eq(variables.name, varName))
+            .limit(1);
+
+          if (!varRecords || varRecords.length === 0) {
+            throw new Error(`Variable ${varName} not found`);
+          }
+
+          params[key] = varRecords[0].value;
         } catch (e) {
           logAction({
             level: "error",
@@ -241,7 +328,7 @@ export default class Tool {
       }
     }
 
-    // Handle opentrons2 run_program command
+    // Handle opentrons2 run_program command using Drizzle
     if (command.toolType === ToolType.opentrons2 && command.command === "run_program") {
       if (!params.script_name || params.script_name.trim() === "") {
         throw new Error("Script name is required for run_program command");
@@ -251,12 +338,26 @@ export default class Tool {
         .replaceAll(".py", "")
         .replaceAll(".cs", "");
       try {
-        const script = await get<Script>(`/scripts/${scriptName}`);
+        const scriptRecords = await db
+          .select()
+          .from(scripts)
+          .where(eq(scripts.name, scriptName))
+          .limit(1);
+
+        if (!scriptRecords || scriptRecords.length === 0) {
+          throw new Error(`Script ${scriptName} not found`);
+        }
+
+        const script = scriptRecords[0];
         if (script.language !== "python") {
           throw new Error("Opentrons2 tool only supports Python scripts");
         }
+
         params.script_content = script.content;
-        params.variables = await get<Variable[]>(`/variables`);
+
+        // Fetch all variables
+        const allVariables = await db.select().from(variables);
+        params.variables = allVariables;
       } catch (e: any) {
         console.warn("Error at fetching script", e);
         logAction({
@@ -264,9 +365,6 @@ export default class Tool {
           action: "Script Error",
           details: `Failed to fetch ${scriptName}. ${e}`,
         });
-        if (e.status === 404) {
-          throw new Error(`Script ${scriptName} not found`);
-        }
         throw new Error(`Failed to fetch ${scriptName}. ${e}`);
       }
     }
@@ -278,16 +376,16 @@ export default class Tool {
         command.toolType === ToolType.plr ||
         command.toolType === ToolType.pyhamilton)
     ) {
-      if (!command.params.name || command.params.name.trim() === "") {
+      if (!params.name || params.name.trim() === "") {
         throw new Error("Script name is required for run_script command");
       }
 
-      if (!command.params.script_content || !command.params.language) {
+      if (!params.script_content || !params.language) {
         throw new Error("Script content and language must be provided");
       }
 
-      const scriptLanguage = command.params.language;
-      const scriptContent = command.params.script_content;
+      const scriptLanguage = params.language;
+      const scriptContent = params.script_content;
 
       if (command.toolType === ToolType.plr && scriptLanguage !== "python") {
         throw new Error("PLR tool only supports Python scripts");
@@ -332,7 +430,7 @@ export default class Tool {
           meta_data: { response: result.output } as any,
         } as tool_base.ExecuteCommandReply;
       } else if (scriptLanguage === "python") {
-        command.params.blocking = true;
+        params.blocking = true;
       } else {
         throw new Error(`Unsupported script language: ${scriptLanguage}`);
       }
