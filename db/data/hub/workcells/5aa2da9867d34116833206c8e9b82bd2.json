@@ -1,0 +1,1306 @@
+{
+  "id": "5aa2da9867d34116833206c8e9b82bd2",
+  "type": "workcells",
+  "name": "sd",
+  "description": "asdas",
+  "tags": [
+    "asdsa"
+  ],
+  "created_at": "2026-01-09T04:01:32.750961+00:00",
+  "updated_at": "2026-01-09T04:01:32.750961+00:00",
+  "payload": {
+    "name": "Tutorial Workcell 529",
+    "updated_at": "2026-01-08T03:56:44",
+    "id": 1,
+    "location": "Tutorial",
+    "description": "Auto-created for the in-app walkthrough. Safe to delete.",
+    "created_at": "2026-01-08T03:56:44",
+    "tools": [
+      {
+        "type": "pf400",
+        "name": "Tutorial PF400 529",
+        "image_url": "/tool_icons/pf400.png",
+        "port": 40000,
+        "config": {},
+        "created_at": "2026-01-08T03:56:44",
+        "id": 1,
+        "description": "Auto-created for the in-app walkthrough. Safe to delete.",
+        "ip": "localhost",
+        "workcell_id": "1",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "type": "opentrons2",
+        "name": "Tutorial Opentrons 529",
+        "image_url": "/tool_icons/opentrons2.png",
+        "port": 40001,
+        "config": {},
+        "created_at": "2026-01-08T03:56:44",
+        "id": 2,
+        "description": "Auto-created for the in-app walkthrough. Safe to delete.",
+        "ip": "localhost",
+        "workcell_id": "1",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "type": "cytation",
+        "name": "Tutorial Cytation 529",
+        "image_url": "/tool_icons/cytation.png",
+        "port": 40002,
+        "config": {},
+        "created_at": "2026-01-08T03:56:44",
+        "id": 3,
+        "description": "Auto-created for the in-app walkthrough. Safe to delete.",
+        "ip": "localhost",
+        "workcell_id": "1",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "type": "liconic",
+        "name": "Tutorial Liconic 529",
+        "image_url": "/tool_icons/liconic.png",
+        "port": 40003,
+        "config": {},
+        "created_at": "2026-01-08T03:56:44",
+        "id": 4,
+        "description": "Auto-created for the in-app walkthrough. Safe to delete.",
+        "ip": "localhost",
+        "workcell_id": "1",
+        "updated_at": "2026-01-08T03:56:44"
+      }
+    ],
+    "protocols": [
+      {
+        "workcell_id": 1,
+        "id": 1,
+        "commands": [
+          {
+            "toolId": "tool_box",
+            "toolType": "toolbox",
+            "command": "show_message",
+            "params": {
+              "title": "Tutorial: Media Exchange",
+              "message": "Starting media exchange for plate {{tutorial_plate_barcode_529}}"
+            },
+            "label": "Operator prompt"
+          },
+          {
+            "toolId": "tutorial_liconic_529",
+            "toolType": "liconic",
+            "command": "fetch_plate",
+            "params": {
+              "cassette": "{{tutorial_liconic_cassette_529}}",
+              "level": "{{tutorial_liconic_level_529}}"
+            },
+            "label": "Fetch plate from hotel"
+          },
+          {
+            "toolId": "tutorial_pf400_529",
+            "toolType": "pf400",
+            "command": "move",
+            "params": {
+              "location": "home",
+              "motion_profile": "Default"
+            },
+            "label": "Robot arm: move to safe position"
+          },
+          {
+            "toolId": "tutorial_opentrons_529",
+            "toolType": "opentrons2",
+            "command": "run_program",
+            "params": {
+              "script_name": "{{tutorial_opentrons_program_529}}"
+            },
+            "label": "Opentrons: run media exchange program"
+          },
+          {
+            "toolId": "tool_box",
+            "toolType": "toolbox",
+            "command": "run_script",
+            "params": {
+              "name": "tutorial_hello_529"
+            },
+            "label": "Tool Box: run a script step"
+          },
+          {
+            "toolId": "tutorial_cytation_529",
+            "toolType": "cytation",
+            "command": "start_read",
+            "params": {
+              "protocol_file": "{{tutorial_cytation_protocol_529}}",
+              "experiment_name": "Tutorial_{{tutorial_plate_barcode_529}}",
+              "well_addresses": [
+                "A1",
+                "B2"
+              ]
+            },
+            "label": "Cytation: read plate"
+          },
+          {
+            "toolId": "tutorial_liconic_529",
+            "toolType": "liconic",
+            "command": "store_plate",
+            "params": {
+              "cassette": "{{tutorial_liconic_cassette_529}}",
+              "level": "{{tutorial_liconic_level_529}}"
+            },
+            "label": "Store plate back into hotel"
+          },
+          {
+            "toolId": "tool_box",
+            "toolType": "toolbox",
+            "command": "note",
+            "params": {
+              "message": "Tutorial protocol complete. Check Runs and Logs for details."
+            },
+            "label": "Finish note"
+          }
+        ],
+        "updated_at": "2026-01-08T03:56:46",
+        "category": "development",
+        "name": "Tutorial Media Exchange 529",
+        "description": "Media exchange walkthrough protocol using pf400 + opentrons + cytation + liconic (safe to delete).",
+        "created_at": "2026-01-08T03:56:46"
+      }
+    ],
+    "hotels": [
+      {
+        "name": "Tutorial Static Hotel 529",
+        "description": "Static hotel for storing plates during the walkthrough (safe to delete).",
+        "rows": 4,
+        "workcell_id": 1,
+        "updated_at": "2026-01-08T03:56:44",
+        "id": 1,
+        "image_url": "/tool_icons/hotel.png",
+        "columns": 6,
+        "created_at": "2026-01-08T03:56:44"
+      }
+    ],
+    "robot_arm_locations": [],
+    "robot_arm_sequences": [],
+    "robot_arm_motion_profiles": [],
+    "robot_arm_grip_params": [],
+    "nests": [
+      {
+        "id": 368,
+        "column": 0,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Opentrons 529_R0C0",
+        "row": 0,
+        "tool_id": 2,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 369,
+        "column": 1,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Opentrons 529_R0C1",
+        "row": 0,
+        "tool_id": 2,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 370,
+        "column": 2,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Opentrons 529_R0C2",
+        "row": 0,
+        "tool_id": 2,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 371,
+        "column": 0,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Opentrons 529_R1C0",
+        "row": 1,
+        "tool_id": 2,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 372,
+        "column": 1,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Opentrons 529_R1C1",
+        "row": 1,
+        "tool_id": 2,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 373,
+        "column": 2,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Opentrons 529_R1C2",
+        "row": 1,
+        "tool_id": 2,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 374,
+        "column": 0,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Opentrons 529_R2C0",
+        "row": 2,
+        "tool_id": 2,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 375,
+        "column": 1,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Opentrons 529_R2C1",
+        "row": 2,
+        "tool_id": 2,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 376,
+        "column": 2,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Opentrons 529_R2C2",
+        "row": 2,
+        "tool_id": 2,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 377,
+        "column": 0,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Opentrons 529_R3C0",
+        "row": 3,
+        "tool_id": 2,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 378,
+        "column": 1,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Opentrons 529_R3C1",
+        "row": 3,
+        "tool_id": 2,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 379,
+        "column": 2,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Opentrons 529_R3C2",
+        "row": 3,
+        "tool_id": 2,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 380,
+        "column": 0,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Cytation 529_R0C0",
+        "row": 0,
+        "tool_id": 3,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 381,
+        "column": 0,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R0C0",
+        "row": 0,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 382,
+        "column": 1,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R0C1",
+        "row": 0,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 383,
+        "column": 2,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R0C2",
+        "row": 0,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 384,
+        "column": 3,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R0C3",
+        "row": 0,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 385,
+        "column": 4,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R0C4",
+        "row": 0,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 386,
+        "column": 0,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R1C0",
+        "row": 1,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 387,
+        "column": 1,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R1C1",
+        "row": 1,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 388,
+        "column": 2,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R1C2",
+        "row": 1,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 389,
+        "column": 3,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R1C3",
+        "row": 1,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 390,
+        "column": 4,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R1C4",
+        "row": 1,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 391,
+        "column": 0,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R2C0",
+        "row": 2,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 392,
+        "column": 1,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R2C1",
+        "row": 2,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 393,
+        "column": 2,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R2C2",
+        "row": 2,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 394,
+        "column": 3,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R2C3",
+        "row": 2,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 395,
+        "column": 4,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R2C4",
+        "row": 2,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 396,
+        "column": 0,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R3C0",
+        "row": 3,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 397,
+        "column": 1,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R3C1",
+        "row": 3,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 398,
+        "column": 2,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R3C2",
+        "row": 3,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 399,
+        "column": 3,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R3C3",
+        "row": 3,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 400,
+        "column": 4,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R3C4",
+        "row": 3,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 401,
+        "column": 0,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R4C0",
+        "row": 4,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 402,
+        "column": 1,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R4C1",
+        "row": 4,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 403,
+        "column": 2,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R4C2",
+        "row": 4,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 404,
+        "column": 3,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R4C3",
+        "row": 4,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 405,
+        "column": 4,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R4C4",
+        "row": 4,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 406,
+        "column": 0,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R5C0",
+        "row": 5,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 407,
+        "column": 1,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R5C1",
+        "row": 5,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 408,
+        "column": 2,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R5C2",
+        "row": 5,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 409,
+        "column": 3,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R5C3",
+        "row": 5,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 410,
+        "column": 4,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R5C4",
+        "row": 5,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 411,
+        "column": 0,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R6C0",
+        "row": 6,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 412,
+        "column": 1,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R6C1",
+        "row": 6,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 413,
+        "column": 2,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R6C2",
+        "row": 6,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 414,
+        "column": 3,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R6C3",
+        "row": 6,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 415,
+        "column": 4,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R6C4",
+        "row": 6,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 416,
+        "column": 0,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R7C0",
+        "row": 7,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 417,
+        "column": 1,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R7C1",
+        "row": 7,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 418,
+        "column": 2,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R7C2",
+        "row": 7,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 419,
+        "column": 3,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R7C3",
+        "row": 7,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 420,
+        "column": 4,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R7C4",
+        "row": 7,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 421,
+        "column": 0,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R8C0",
+        "row": 8,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 422,
+        "column": 1,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R8C1",
+        "row": 8,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 423,
+        "column": 2,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R8C2",
+        "row": 8,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 424,
+        "column": 3,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R8C3",
+        "row": 8,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 425,
+        "column": 4,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R8C4",
+        "row": 8,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 426,
+        "column": 0,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R9C0",
+        "row": 9,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 427,
+        "column": 1,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R9C1",
+        "row": 9,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 428,
+        "column": 2,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R9C2",
+        "row": 9,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 429,
+        "column": 3,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R9C3",
+        "row": 9,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 430,
+        "column": 4,
+        "hotel_id": null,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "Tutorial Liconic 529_R9C4",
+        "row": 9,
+        "tool_id": 4,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 431,
+        "column": 1,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "H1-1",
+        "row": 1,
+        "tool_id": null,
+        "status": "occupied",
+        "updated_at": "2026-01-08T03:56:46"
+      },
+      {
+        "id": 432,
+        "column": 2,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "H1-2",
+        "row": 1,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 433,
+        "column": 3,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "H1-3",
+        "row": 1,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 434,
+        "column": 4,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "H1-4",
+        "row": 1,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 435,
+        "column": 5,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "H1-5",
+        "row": 1,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 436,
+        "column": 6,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "H1-6",
+        "row": 1,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 437,
+        "column": 1,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "H2-1",
+        "row": 2,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 438,
+        "column": 2,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:44",
+        "name": "H2-2",
+        "row": 2,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:44"
+      },
+      {
+        "id": 439,
+        "column": 3,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:45",
+        "name": "H2-3",
+        "row": 2,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:45"
+      },
+      {
+        "id": 440,
+        "column": 4,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:45",
+        "name": "H2-4",
+        "row": 2,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:45"
+      },
+      {
+        "id": 441,
+        "column": 5,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:45",
+        "name": "H2-5",
+        "row": 2,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:45"
+      },
+      {
+        "id": 442,
+        "column": 6,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:45",
+        "name": "H2-6",
+        "row": 2,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:45"
+      },
+      {
+        "id": 443,
+        "column": 1,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:45",
+        "name": "H3-1",
+        "row": 3,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:45"
+      },
+      {
+        "id": 444,
+        "column": 2,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:45",
+        "name": "H3-2",
+        "row": 3,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:45"
+      },
+      {
+        "id": 445,
+        "column": 3,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:45",
+        "name": "H3-3",
+        "row": 3,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:45"
+      },
+      {
+        "id": 446,
+        "column": 4,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:45",
+        "name": "H3-4",
+        "row": 3,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:45"
+      },
+      {
+        "id": 447,
+        "column": 5,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:45",
+        "name": "H3-5",
+        "row": 3,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:45"
+      },
+      {
+        "id": 448,
+        "column": 6,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:45",
+        "name": "H3-6",
+        "row": 3,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:45"
+      },
+      {
+        "id": 449,
+        "column": 1,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:45",
+        "name": "H4-1",
+        "row": 4,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:45"
+      },
+      {
+        "id": 450,
+        "column": 2,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:45",
+        "name": "H4-2",
+        "row": 4,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:45"
+      },
+      {
+        "id": 451,
+        "column": 3,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:45",
+        "name": "H4-3",
+        "row": 4,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:45"
+      },
+      {
+        "id": 452,
+        "column": 4,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:45",
+        "name": "H4-4",
+        "row": 4,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:45"
+      },
+      {
+        "id": 453,
+        "column": 5,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:45",
+        "name": "H4-5",
+        "row": 4,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:45"
+      },
+      {
+        "id": 454,
+        "column": 6,
+        "hotel_id": 1,
+        "created_at": "2026-01-08T03:56:45",
+        "name": "H4-6",
+        "row": 4,
+        "tool_id": null,
+        "status": "empty",
+        "updated_at": "2026-01-08T03:56:45"
+      }
+    ],
+    "plates": [
+      {
+        "id": 4,
+        "plate_type": "96_well_plate",
+        "status": "stored",
+        "updated_at": "2026-01-08T03:56:46",
+        "name": "Tutorial Culture Plate 529",
+        "barcode": "TUTORIAL-PLATE-529",
+        "nest_id": 431,
+        "created_at": "2026-01-08T03:56:46"
+      }
+    ],
+    "wells": [],
+    "reagents": [],
+    "scripts": [
+      {
+        "description": "Tutorial example script (safe to delete).",
+        "name": "tutorial_hello_529",
+        "language": "python",
+        "folder_id": null,
+        "created_at": "2026-01-08T03:56:46",
+        "id": 1,
+        "content": "# Tutorial example\nprint('Hello from Galago tutorial!')\nprint('You can use scripts to call a LIMS, do math, update variables, etc.')",
+        "is_blocking": true,
+        "workcell_id": 1,
+        "updated_at": "2026-01-08T03:56:46"
+      }
+    ],
+    "variables": [
+      {
+        "type": "string",
+        "id": 1,
+        "created_at": "2026-01-08T03:56:46",
+        "name": "tutorial_plate_barcode_529",
+        "value": "TUTORIAL-PLATE-529",
+        "workcell_id": 1,
+        "updated_at": "2026-01-08T03:56:46"
+      },
+      {
+        "type": "number",
+        "id": 2,
+        "created_at": "2026-01-08T03:56:46",
+        "name": "tutorial_media_volume_ul_529",
+        "value": "200",
+        "workcell_id": 1,
+        "updated_at": "2026-01-08T03:56:46"
+      },
+      {
+        "type": "number",
+        "id": 3,
+        "created_at": "2026-01-08T03:56:46",
+        "name": "tutorial_exchange_fraction_529",
+        "value": "0.5",
+        "workcell_id": 1,
+        "updated_at": "2026-01-08T03:56:46"
+      },
+      {
+        "type": "number",
+        "id": 4,
+        "created_at": "2026-01-08T03:56:46",
+        "name": "tutorial_liconic_cassette_529",
+        "value": "1",
+        "workcell_id": 1,
+        "updated_at": "2026-01-08T03:56:46"
+      },
+      {
+        "type": "number",
+        "id": 5,
+        "created_at": "2026-01-08T03:56:46",
+        "name": "tutorial_liconic_level_529",
+        "value": "1",
+        "workcell_id": 1,
+        "updated_at": "2026-01-08T03:56:46"
+      },
+      {
+        "type": "string",
+        "id": 6,
+        "created_at": "2026-01-08T03:56:46",
+        "name": "tutorial_opentrons_program_529",
+        "value": "media_exchange_demo.py",
+        "workcell_id": 1,
+        "updated_at": "2026-01-08T03:56:46"
+      },
+      {
+        "type": "string",
+        "id": 7,
+        "created_at": "2026-01-08T03:56:46",
+        "name": "tutorial_cytation_protocol_529",
+        "value": "C://protocols//media_exchange.prt",
+        "workcell_id": 1,
+        "updated_at": "2026-01-08T03:56:46"
+      },
+      {
+        "type": "string",
+        "id": 8,
+        "created_at": "2026-01-08T04:01:20",
+        "name": "asdas",
+        "value": "",
+        "workcell_id": 1,
+        "updated_at": "2026-01-08T04:01:20"
+      }
+    ],
+    "labware": [
+      {
+        "name": "Tutorial 96 Well Plate 529",
+        "image_url": "/tool_icons/labware.png",
+        "number_of_rows": 8,
+        "z_offset": 0,
+        "height": 0,
+        "lid_offset": 0,
+        "has_lid": false,
+        "created_at": "2026-01-08T03:56:46",
+        "description": "Tutorial labware definition (safe to delete).",
+        "id": 1,
+        "number_of_columns": 12,
+        "width": 0,
+        "plate_lid_offset": 0,
+        "stack_height": 0,
+        "workcell_id": 1,
+        "updated_at": "2026-01-08T03:56:46"
+      }
+    ],
+    "forms": [
+      {
+        "background_color": null,
+        "id": 1,
+        "workcell_id": 1,
+        "updated_at": "2026-01-08T03:56:46",
+        "name": "Tutorial Operator Check-in 529",
+        "fields": [
+          {
+            "type": "label",
+            "label": "Tutorial form: confirm setup before running.",
+            "required": false,
+            "placeholder": null,
+            "options": null,
+            "default_value": null,
+            "mapped_variable": null
+          },
+          {
+            "type": "text",
+            "label": "Operator initials",
+            "required": true,
+            "placeholder": "e.g. MM",
+            "options": null,
+            "default_value": null,
+            "mapped_variable": null
+          },
+          {
+            "type": "checkbox",
+            "label": "Plate sealed",
+            "required": false,
+            "placeholder": null,
+            "options": null,
+            "default_value": null,
+            "mapped_variable": null
+          }
+        ],
+        "font_color": null,
+        "created_at": "2026-01-08T03:56:46"
+      }
+    ],
+    "script_folders": []
+  }
+}
