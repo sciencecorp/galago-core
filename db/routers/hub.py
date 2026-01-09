@@ -146,20 +146,25 @@ def list_hub_items(item_type: Optional[str] = None, q: Optional[str] = None) -> 
         tdir = _type_dir(it)
         for p in sorted(tdir.glob("*.json")):
             data = _read_json_file(p)
-            summary = {
-                "id": str(data.get("id") or p.stem),
-                "type": str(data.get("type") or it),
-                "name": str(data.get("name") or p.stem),
-                "description": str(data.get("description") or ""),
-                "tags": list(data.get("tags") or []),
-                "created_at": str(data.get("created_at") or ""),
-                "updated_at": str(data.get("updated_at") or ""),
-            }
+            tags_raw = data.get("tags") or []
+            tags_list: list[str] = (
+                [str(x) for x in tags_raw] if isinstance(tags_raw, list) else []
+            )
+
+            summary = HubItemSummary(
+                id=str(data.get("id") or p.stem),
+                type=str(data.get("type") or it),
+                name=str(data.get("name") or p.stem),
+                description=str(data.get("description") or ""),
+                tags=tags_list,
+                created_at=str(data.get("created_at") or ""),
+                updated_at=str(data.get("updated_at") or ""),
+            )
             if needle:
-                hay = f'{summary["name"]} {summary["description"]} {" ".join(summary["tags"])}'.lower()
+                hay = f"{summary.name} {summary.description} {' '.join(summary.tags)}".lower()
                 if needle not in hay:
                     continue
-            summaries.append(HubItemSummary(**summary))
+            summaries.append(summary)
 
     # Sort newest first when possible (fallback to name).
     def _sort_key(s: HubItemSummary) -> tuple:
