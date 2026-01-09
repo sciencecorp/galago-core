@@ -33,7 +33,11 @@ export const settingsRouter = router({
     )
     .mutation(async ({ input }) => {
       const { name, value, is_active } = input;
-      const existing = await db.select().from(appSettings).where(eq(appSettings.name, name)).limit(1);
+      const existing = await db
+        .select()
+        .from(appSettings)
+        .where(eq(appSettings.name, name))
+        .limit(1);
 
       if (!existing[0]) {
         const inserted = await db

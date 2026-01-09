@@ -592,7 +592,6 @@ export const Settings: React.FC = () => {
   }, [pendingFocusKey, tabIndex, systemTabIndexByKey]);
 
   const renderSettingsList = (items: SettingConfig[]) => {
-
     return (
       <VStack spacing={4} align="stretch">
         {items.map((setting, index) => (
@@ -718,7 +717,12 @@ export const Settings: React.FC = () => {
             </HStack>
 
             {normalizedSearch ? (
-              <Box mt={3} borderWidth="1px" borderColor={dividerColor} borderRadius="md" bg={cardBg}>
+              <Box
+                mt={3}
+                borderWidth="1px"
+                borderColor={dividerColor}
+                borderRadius="md"
+                bg={cardBg}>
                 <VStack align="stretch" spacing={0}>
                   {(searchResults ?? []).length === 0 ? (
                     <Box px={3} py={2}>
