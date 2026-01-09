@@ -284,12 +284,17 @@ export function HubComponent(): JSX.Element {
       const name = typeof s.name === "string" ? s.name : item.name;
       const content = typeof s.content === "string" ? s.content : "";
       const language = typeof s.language === "string" ? s.language : "python";
+      const folderId =
+        typeof (s as any).folderId === "number"
+          ? ((s as any).folderId as number)
+          : typeof (s as any).folder_id === "number"
+            ? ((s as any).folder_id as number)
+            : null;
       await scriptAdd.mutateAsync({
         name,
         content,
         language,
-        description: typeof s.description === "string" ? s.description : "Imported from Hub",
-        folder_id: (s.folder_id ?? null) as any,
+        folderId,
       });
     }
   };
