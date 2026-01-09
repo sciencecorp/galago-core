@@ -109,7 +109,7 @@ format_py() {
 }
 
 format_ts() {
-  echo "Formatting TypeScript/JavaScript files with Prettier"
+  echo "Formatting TypeScript/JavaScriptfiles with Prettier"
   (cd controller && npx prettier --write .)
 }
 

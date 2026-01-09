@@ -15,11 +15,12 @@ import {
   FormLabel,
   IconButton,
   Tooltip,
-  ButtonGroup,
+  FormHelperText,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
-import { validateScriptName, showErrorToast, showSuccessToast } from "./utils";
+import { showErrorToast, showSuccessToast } from "./utils";
 import { FileAddIcon } from "../ui/Icons";
+import { fileTypeToExtensionMap } from "./utils";
 
 interface NewScriptProps {
   isDisabled?: boolean;
@@ -32,10 +33,8 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
   const [scriptName, setScriptName] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(false);
-  const [description, setDescription] = useState("");
   const addScript = trpc.script.add.useMutation();
-  const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
-  const [selectedLanguage, setSelectedLanguage] = useState<string>("python");
+  const { refetch } = trpc.script.getAll.useQuery();
 
   const handleSave = async () => {
     const isNotValid = validateScriptName(scriptName);
@@ -46,11 +45,9 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
 
     const script = {
       name: scriptName,
-      description,
       content: "",
-      language: selectedLanguage,
-      is_blocking: true,
-      folder_id: activeFolderId,
+      language: extensionToLanguage(getFileExtensionFromName(scriptName)),
+      folderId: activeFolderId,
     };
 
     setIsLoading(true);
@@ -69,7 +66,32 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
 
   const clearForm = () => {
     setScriptName("");
-    setDescription("");
+  };
+
+  const getFileExtensionFromName = (name: string) => {
+    const parts = name.split(".");
+    return parts[parts.length - 1];
+  };
+
+  const validateScriptName = (name: string) => {
+    const extension = getFileExtensionFromName(name);
+    if (!["py", "js", "cs"].includes(extension)) {
+      return "Invalid file extension. Must be .py, .js or .cs";
+    }
+    return "";
+  };
+
+  const extensionToLanguage = (extension: string) => {
+    switch (extension) {
+      case "py":
+        return "python";
+      case "js":
+        return "javascript";
+      case "cs":
+        return "csharp";
+      default:
+        return "Unknown";
+    }
   };
 
   return (
@@ -92,35 +114,12 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4}>
-              <FormControl>
+              <FormControl isRequired>
                 <FormLabel>Name</FormLabel>
                 <Input value={scriptName} onChange={(e) => setScriptName(e.target.value)} />
-              </FormControl>
-              <FormControl>
-                <ButtonGroup>
-                  <Button
-                    size="sm"
-                    colorScheme={selectedLanguage === "python" ? "teal" : "gray"}
-                    onClick={() => setSelectedLanguage("python")}>
-                    Python
-                  </Button>
-                  <Button
-                    size="sm"
-                    colorScheme={selectedLanguage === "javascript" ? "teal" : "gray"}
-                    onClick={() => setSelectedLanguage("javascript")}>
-                    JavaScript
-                  </Button>
-                  <Button
-                    size="sm"
-                    colorScheme={selectedLanguage === "csharp" ? "teal" : "gray"}
-                    onClick={() => setSelectedLanguage("csharp")}>
-                    C#
-                  </Button>
-                </ButtonGroup>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Description</FormLabel>
-                <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+                <FormHelperText>
+                  Enter a name for your script. Must be of type .py, .js or .cs
+                </FormHelperText>
               </FormControl>
             </VStack>
           </ModalBody>
@@ -128,7 +127,12 @@ export const NewScript: React.FC<NewScriptProps> = (props) => {
             <Button variant="ghost" onClick={onClose}>
               Cancel
             </Button>
-            <Button colorScheme="teal" onClick={handleSave} mr={3} isLoading={isLoading}>
+            <Button
+              isDisabled={!scriptName || validateScriptName(scriptName) !== ""}
+              colorScheme="teal"
+              onClick={handleSave}
+              mr={3}
+              isLoading={isLoading}>
               Submit
             </Button>
           </ModalFooter>

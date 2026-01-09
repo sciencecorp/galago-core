@@ -23,7 +23,7 @@ import {
   DrawerContent,
   DrawerCloseButton,
 } from "@chakra-ui/react";
-import { Plate, Well, Reagent } from "@/types/api";
+import { Plate, Well, Reagent } from "@/types";
 import { PlateGrid } from "@/components/ui/PlateGrid";
 import { trpc } from "@/utils/trpc";
 import { successToast, errorToast, warningToast } from "@/components/ui/Toast";
@@ -32,7 +32,10 @@ interface PlateModalProps {
   isOpen: boolean;
   onClose: () => void;
   plate: Plate;
-  onCreateReagent: (nestId: number, reagentData: Omit<Reagent, "id" | "well_id">) => void;
+  onCreateReagent: (
+    wellId: number,
+    reagentData: { name: string; expirationDate: string; volume: number },
+  ) => void;
 }
 
 const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreateReagent }) => {
@@ -54,19 +57,20 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
 
   const utils = trpc.useContext();
 
-  const { data: wells = [] } = trpc.inventory.getWells.useQuery(plate.id, {
-    enabled: !!plate.id,
-  });
+  const { data: wells = [] } = trpc.inventory.getWells.useQuery(
+    { plateId: plate.id },
+    { enabled: !!plate.id },
+  );
 
-  const { data: reagents = [] } = trpc.inventory.getReagents.useQuery(plate.id, {
-    enabled: !!plate.id,
-  });
+  const { data: reagents = [] } = trpc.inventory.getReagents.useQuery(
+    { plateId: plate.id },
+    { enabled: !!plate.id },
+  );
 
   // Mutation for deleting reagents
   const deleteReagentMutation = trpc.inventory.deleteReagent.useMutation({
     onSuccess: () => {
-      // Refresh reagents data
-      utils.inventory.getReagents.invalidate(plate.id);
+      utils.inventory.getReagents.invalidate({ plateId: plate.id });
     },
     onError: (error: any) => {
       errorToast("Error clearing reagents", error.message);
@@ -94,9 +98,12 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
     }
 
     try {
-      // Create reagent for each selected well
       for (const wellId of selectedWells) {
-        await onCreateReagent(wellId, reagentData);
+        await onCreateReagent(wellId, {
+          name: reagentData.name,
+          expirationDate: reagentData.expiration_date,
+          volume: reagentData.volume,
+        });
       }
 
       setIsReagentDrawerOpen(false);
@@ -120,7 +127,9 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
 
     try {
       // Get reagents for the selected wells
-      const wellReagents = (reagents as Reagent[]).filter((r) => selectedWells.includes(r.well_id));
+      const wellReagents = (reagents as Reagent[]).filter(
+        (r) => r.wellId !== null && selectedWells.includes(r.wellId),
+      );
 
       // Delete each reagent
       for (const reagent of wellReagents) {
@@ -140,13 +149,13 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
   };
 
   const getWellTooltip = (wellId: number): string => {
-    const wellReagents = (reagents as Reagent[]).filter((r: Reagent) => r.well_id === wellId);
+    const wellReagents = (reagents as Reagent[]).filter((r: Reagent) => r.wellId === wellId);
     if (wellReagents.length === 0) return "Empty";
 
     return wellReagents
       .map(
         (r: Reagent) =>
-          `${r.name} - ${r.volume}µL - Expires: ${new Date(r.expiration_date).toLocaleDateString()}`,
+          `${r.name} - ${r.volume}µL - Expires: ${new Date(r.expirationDate).toLocaleDateString()}`,
       )
       .join("\n");
   };
@@ -157,13 +166,13 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
   };
 
   const getModalSize = () => {
-    if (plate.plate_type.includes("384") || plate.plate_type.includes("96")) {
+    if (plate.plateType.includes("384") || plate.plateType.includes("96")) {
       return "4xl"; // Much larger size for 384-well plates
-    } else if (plate.plate_type.includes("48")) {
+    } else if (plate.plateType.includes("48")) {
       return "lg"; // Larger size for 48-well plates
-    } else if (plate.plate_type.includes("24")) {
+    } else if (plate.plateType.includes("24")) {
       return "lg"; // Larger size for other plates
-    } else if (plate.plate_type.includes("6")) {
+    } else if (plate.plateType.includes("6")) {
       return "sm"; // Larger size for other plates
     } else {
       return "md"; // Larger size for other plates
@@ -178,7 +187,7 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
           <ModalHeader>
             <Text>{plate.name}</Text>
             <Text fontSize="sm" color="gray.500">
-              Type: {plate.plate_type}
+              Type: {plate.plateType}
             </Text>
             <Text fontSize="sm" color="gray.500">
               Barcode: {plate.barcode}
@@ -214,7 +223,7 @@ const PlateModal: React.FC<PlateModalProps> = ({ isOpen, onClose, plate, onCreat
 
               <Box flex="1">
                 <PlateGrid
-                  plateType={plate.plate_type}
+                  plateType={plate.plateType}
                   wells={wells as Well[]}
                   selectedWells={selectedWells}
                   onWellClick={handleWellClick}

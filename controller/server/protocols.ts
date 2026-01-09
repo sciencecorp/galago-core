@@ -1,35 +1,30 @@
-import Protocol from "@/protocols/protocol";
-
-import axios from "axios";
-
-const API_BASE_URL = (process.env.API_BASE_URL || "http://127.0.0.1:8000").replace(/\/api\/?$/, "");
+import { db } from "@/db/client";
+import { protocols } from "@/db/schema";
+import { eq } from "drizzle-orm";
+export interface ProtocolPreview {
+  id: number;
+  name: string;
+  category: string;
+  workcellId: number | null;
+  description: string | null;
+  commands: any[];
+  createdAt: string;
+  updatedAt: string;
+}
 
 // Load database protocols
-async function loadDatabaseProtocols(): Promise<Protocol[]> {
+async function loadDatabaseProtocols(): Promise<ProtocolPreview[]> {
   try {
-    const response = await axios.get(`${API_BASE_URL}/protocols`, {
-      params: { is_active: true },
-    });
-
-    const dbProtocols = await Promise.all(
-      response.data.map(async (protocolData: any) => {
-        try {
-          return new Protocol(protocolData);
-        } catch (error) {
-          console.error(`Failed to load protocol ${protocolData.id}:`, error);
-          return null;
-        }
-      }),
-    );
-
-    return dbProtocols.filter((p): p is Protocol => p !== null);
+    const allProtocols = await db.select().from(protocols);
+    return allProtocols;
   } catch (error) {
     console.error("Failed to load database protocols:", error);
     return [];
   }
 }
 
-export let Protocols: Protocol[] = [];
+// Export protocols array
+export let Protocols: ProtocolPreview[] = [];
 
 // Load database protocols and update the Protocols array
 loadDatabaseProtocols()
@@ -44,4 +39,31 @@ loadDatabaseProtocols()
 export async function reloadProtocols(): Promise<void> {
   const dbProtocols = await loadDatabaseProtocols();
   Protocols = [...dbProtocols];
+}
+
+// Helper function to get protocol by ID
+export async function getProtocolById(protocolId: number): Promise<ProtocolPreview | null> {
+  try {
+    const result = await db.select().from(protocols).where(eq(protocols.id, protocolId)).limit(1);
+    return result.length > 0 ? result[0] : null;
+  } catch (error) {
+    console.error(`Failed to load protocol ${protocolId}:`, error);
+    return null;
+  }
+}
+
+// Helper function to find protocol by name or ID
+export function findProtocol(identifier: string | number): ProtocolPreview | undefined {
+  if (typeof identifier === "number") {
+    return Protocols.find((p) => p.id === identifier);
+  }
+
+  // Try to parse as number first
+  const id = parseInt(identifier);
+  if (!isNaN(id)) {
+    return Protocols.find((p) => p.id === id);
+  }
+
+  // Fall back to name search
+  return Protocols.find((p) => p.name === identifier);
 }

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 public static class Variables
 {
     private static readonly HttpClient _httpClient = new HttpClient();
-    private static string _defaultApiUrl = "http://db:8000";
+    private static string _defaultApiUrl = "http://localhost:3010/api";
 
     /// <summary>
     /// Configure the default API URL for all operations
@@ -36,7 +36,7 @@ public static class Variables
     public static async Task<JsonElement?> GetVariableAsync(string name, string apiUrl = null)
     {
         var baseUrl = apiUrl ?? _defaultApiUrl;
-        
+
         try
         {
             var response = await _httpClient.GetAsync($"{baseUrl}/variables/{name}");
@@ -70,7 +70,7 @@ public static class Variables
     public static async Task<JsonElement> GetAllVariablesAsync(string apiUrl = null)
     {
         var baseUrl = apiUrl ?? _defaultApiUrl;
-        
+
         try
         {
             var response = await _httpClient.GetAsync($"{baseUrl}/variables");
@@ -94,20 +94,20 @@ public static class Variables
     public static async Task<JsonElement> CreateVariableAsync(object data, string apiUrl = null)
     {
         var baseUrl = apiUrl ?? _defaultApiUrl;
-        
+
         try
         {
             var json = JsonSerializer.Serialize(data);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync($"{baseUrl}/variables", content);
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
                 Console.Error.WriteLine($"API Error {response.StatusCode}: {errorContent}");
                 Console.Error.WriteLine($"Sent JSON: {json}");
             }
-            
+
             response.EnsureSuccessStatusCode();
             var responseContent = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<JsonElement>(responseContent);
@@ -129,7 +129,7 @@ public static class Variables
     public static async Task<JsonElement> UpdateVariableAsync(string name, object newValue, string apiUrl = null)
     {
         var baseUrl = apiUrl ?? _defaultApiUrl;
-        
+
         try
         {
             var variable = new { value = newValue };
@@ -156,7 +156,7 @@ public static class Variables
     public static async Task<JsonElement> DeleteVariableAsync(string name, string apiUrl = null)
     {
         var baseUrl = apiUrl ?? _defaultApiUrl;
-        
+
         try
         {
             var response = await _httpClient.DeleteAsync($"{baseUrl}/variables/{name}");

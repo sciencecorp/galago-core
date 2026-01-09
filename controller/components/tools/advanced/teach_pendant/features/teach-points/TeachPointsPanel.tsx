@@ -20,7 +20,7 @@ import {
   Select,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, HamburgerIcon } from "@chakra-ui/icons";
-import { Tool } from "@/types/api";
+import { Tool } from "@/types";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "../../types";
 import { Play, Circle } from "lucide-react";
 

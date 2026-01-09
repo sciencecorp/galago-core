@@ -1,0 +1,5 @@
+[
+  { "name": "run_id", "value": "demo", "type": "string" },
+  { "name": "mix_cycles", "value": "5", "type": "number" },
+  { "name": "enable_logging", "value": "true", "type": "boolean" }
+]

@@ -14,7 +14,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { TeachPoint } from "../../types";
-import { Tool } from "@/types/api";
+import { Tool } from "@/types";
 import { errorToast } from "@/components/ui/Toast";
 
 interface TeachPointModalProps {

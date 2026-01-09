@@ -14,6 +14,7 @@ from .routers import (
     forms,
     hotels,
     inventory,
+    hub,
     labware,
     nests,
     plates,
@@ -97,6 +98,7 @@ def create_app() -> FastAPI:
     app.include_router(hotels.router, prefix="/hotels", tags=["hotels"])
     app.include_router(forms.router, prefix="/forms", tags=["forms"])
     app.include_router(robot_arm.router, prefix="/robot-arm", tags=["robot-arm"])
+    app.include_router(hub.router, prefix="/hub", tags=["hub"])
 
     return app
 
