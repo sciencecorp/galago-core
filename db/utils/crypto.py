@@ -1,6 +1,7 @@
 import os
 
 from cryptography.fernet import Fernet
+from typing import Optional, Tuple
 
 
 def get_fernet() -> Fernet:
@@ -26,7 +27,7 @@ def get_fernet() -> Fernet:
         ) from e
 
 
-def secrets_key_status() -> tuple[bool, str | None]:
+def secrets_key_status() -> Tuple[bool, Optional[str]]:
     """
     Returns (configured, message). Never raises.
     """

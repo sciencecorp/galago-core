@@ -35,7 +35,7 @@ import { CheckCircle2, Search, Settings as SettingsIcon, Trash2, X } from "lucid
 import { trpc } from "@/utils/trpc";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { errorToast, successToast } from "@/components/ui/Toast";
-import type { Workcell } from "@/types/api";
+import type { Workcell } from "@/db/schema";
 
 interface SettingConfig {
   id: string;
