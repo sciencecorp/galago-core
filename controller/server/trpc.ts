@@ -7,6 +7,10 @@ import { ZodError } from "zod";
 // For instance, the use of a t variable
 // is common in i18n libraries.
 // const t = initTRPC.create();
+//
+export const createContext = () => ({});
+export type Context = ReturnType<typeof createContext>;
+
 const t = initTRPC.create({
   transformer: SuperJSON,
   errorFormatter({ shape, error }) {

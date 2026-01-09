@@ -12,11 +12,22 @@ import { inventoryRouter } from "./inventory";
 import { robotArmRouter } from "./robot-arm";
 import { csharpRouter } from "./cSharpRouter";
 import { formRouter } from "./form";
+import { settingsRouter } from "./settings";
+import { secretsRouter } from "./secrets";
+import { integrationsRouter } from "./integrations";
+import { auditRouter } from "./audit";
+import { backupRouter } from "./backup";
+import { appSettingsRouter } from "./appSettings";
 
 export const appRouter = router({
   inventory: inventoryRouter,
   tool: toolRouter,
   workcell: workcellRouter,
+  settings: settingsRouter,
+  secrets: secretsRouter,
+  integrations: integrationsRouter,
+  audit: auditRouter,
+  backup: backupRouter,
   protocol: protocolRouter,
   run: runRouter,
   commandQueue: commandQueueRouter,
@@ -27,6 +38,7 @@ export const appRouter = router({
   robotArm: robotArmRouter,
   cSharp: csharpRouter,
   form: formRouter,
+  appSettings: appSettingsRouter,
 });
 
 export type AppRouter = typeof appRouter;

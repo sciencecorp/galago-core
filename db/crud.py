@@ -380,6 +380,10 @@ labware = CRUDBase[models.Labware, schemas.LabwareCreate, schemas.LabwareUpdate]
 settings = CRUDBase[
     models.AppSettings, schemas.AppSettingsCreate, schemas.AppSettingsUpdate
 ](models.AppSettings)
+
+secrets = CRUDBase[models.AppSecret, schemas.AppSecretSet, schemas.AppSecretSet](
+    models.AppSecret
+)
 scripts = CRUDBase[models.Script, schemas.ScriptCreate, schemas.ScriptUpdate](
     models.Script
 )

@@ -11,9 +11,12 @@ from db.models.db_session import Base, SessionLocal
 
 from .exceptions import setup_exception_handlers
 from .routers import (
+    audit,
+    backup,
     forms,
     hotels,
     inventory,
+    integrations,
     labware,
     nests,
     plates,
@@ -22,6 +25,7 @@ from .routers import (
     robot_arm,
     script_folders,
     scripts,
+    secrets,
     settings,
     tools,
     variables,
@@ -93,6 +97,12 @@ def create_app() -> FastAPI:
     app.include_router(variables.router, prefix="/variables", tags=["variables"])
     app.include_router(labware.router, prefix="/labware", tags=["labware"])
     app.include_router(settings.router, prefix="/settings", tags=["settings"])
+    app.include_router(secrets.router, prefix="/secrets", tags=["secrets"])
+    app.include_router(
+        integrations.router, prefix="/integrations", tags=["integrations"]
+    )
+    app.include_router(audit.router, prefix="/audit", tags=["audit"])
+    app.include_router(backup.router, prefix="/backup", tags=["backup"])
     app.include_router(protocols.router, prefix="/protocols", tags=["protocols"])
     app.include_router(hotels.router, prefix="/hotels", tags=["hotels"])
     app.include_router(forms.router, prefix="/forms", tags=["forms"])

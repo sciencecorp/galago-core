@@ -3,8 +3,6 @@ import {
   Box,
   VStack,
   useColorModeValue,
-  Center,
-  Spinner,
   Icon,
   Card,
   CardBody,
@@ -28,8 +26,7 @@ export const Forms = () => {
   const [forms, setForms] = useState<Form[]>([]);
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
 
-  const { data: selectedWorkcell, refetch: refetchWorkcell } =
-    trpc.workcell.getSelectedWorkcell.useQuery();
+  const { data: selectedWorkcell } = trpc.workcell.getSelectedWorkcell.useQuery();
 
   useEffect(() => {
     if (fetchedForms) {

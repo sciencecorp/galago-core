@@ -7,9 +7,7 @@ import axios, { AxiosRequestConfig, AxiosResponse, AxiosInstance } from "axios";
  */
 class Variables {
   private static axiosInstance: AxiosInstance = axios.create();
-  private static defaultApiUrl: string = (
-    process.env.API_BASE_URL || "http://127.0.0.1:8000"
-  ).replace(/\/api\/?$/, "");
+  private static defaultApiUrl: string = "http://localhost:3010/api";
 
   /**
    * Configure the default API URL and optionally a custom axios instance

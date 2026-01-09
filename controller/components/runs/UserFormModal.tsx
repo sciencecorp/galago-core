@@ -426,8 +426,8 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
       <ModalOverlay backdropFilter="blur(4px)" bg="blackAlpha.300" />
       <ModalContent
         maxH="90vh"
-        bg={form.background_color || defaultBgColor}
-        color={form.font_color || defaultFontColor}>
+        bg={form.backgroundColor || defaultBgColor}
+        color={form.fontColor || defaultFontColor}>
         <ModalHeader textAlign="center" borderBottom="1px" borderColor={cardBorderColor}>
           {form.name}
         </ModalHeader>
@@ -439,7 +439,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
                 {form.description && (
                   <Text
                     fontSize="md"
-                    color={form.font_color || defaultFontColor}
+                    color={form.fontColor || defaultFontColor}
                     textAlign="center"
                     fontStyle="italic">
                     {form.description}
@@ -452,7 +452,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
                       field={field}
                       value={formData[field.label]}
                       onChange={(value) => handleFieldChange(field.label, value)}
-                      fontColor={form.font_color}
+                      fontColor={form.fontColor}
                       defaultFontColor={defaultFontColor}
                     />
                     {errors[field.label] && (
@@ -479,7 +479,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
               variant="ghost"
               minW="120px"
               onClick={handleCancel}
-              color={form.font_color || defaultFontColor}>
+              color={form.fontColor || defaultFontColor}>
               Cancel
             </Button>
             <Button

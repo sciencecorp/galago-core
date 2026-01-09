@@ -34,14 +34,14 @@ message ToolConfig {
   int32 port = 4;
   tools.grpc_interfaces.Config config = 5;
   string description = 7;
-  string image_url = 8;
+  string imageUrl = 8;
 }
 
 message WorkcellConfig {
   string id = 1;
   string name = 2;
-  string description =3;
-  string location =4;
+  string description = 3;
+  string location = 4;
   repeated ToolConfig tools = 5;
 }
 

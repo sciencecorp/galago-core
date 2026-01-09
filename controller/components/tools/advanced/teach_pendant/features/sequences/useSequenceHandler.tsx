@@ -23,7 +23,7 @@ import {
 import { DeleteIcon } from "@chakra-ui/icons";
 import { RobotArmSequence } from "@/server/routers/robot-arm";
 import { ToolCommandInfo } from "@/types";
-import { Tool } from "@/types/api";
+import { Tool } from "@/types";
 import { CommandModal } from "./CommandModal";
 import { ToolType } from "gen-interfaces/controller";
 import { TeachPoint, MotionProfile, GripParams } from "../../types";
@@ -42,7 +42,7 @@ export interface Sequence {
   name: string;
   description?: string;
   commands: SequenceCommand[];
-  tool_id: number;
+  toolId: number;
   labware?: string;
 }
 
@@ -97,7 +97,7 @@ const SequenceModal: React.FC<SequenceModalProps> = ({
       name,
       description,
       commands,
-      tool_id: config.id,
+      toolId: config.id,
     };
 
     if (sequence?.id) {
@@ -256,7 +256,7 @@ export function useSequenceHandler(config: Tool) {
    */
   const handleBatchDeleteSequence = async (ids: number[]) => {
     const deleteSequence = async (id: number) => {
-      await deleteSequenceMutation.mutateAsync({ id, tool_id: config.id });
+      await deleteSequenceMutation.mutateAsync({ id, toolId: config.id });
     };
 
     const batchDeleteSequences = createBatchHandlerForIds(deleteSequence, "delete", "sequences");
@@ -282,7 +282,7 @@ export function useSequenceHandler(config: Tool) {
 
   const handleDeleteSequence = async (id: number, silent: boolean = false) => {
     try {
-      await deleteSequenceMutation.mutateAsync({ id, tool_id: config.id });
+      await deleteSequenceMutation.mutateAsync({ id, toolId: config.id });
       if (!silent) {
         successToast("Success", "Sequence deleted successfully");
       }

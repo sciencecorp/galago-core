@@ -179,7 +179,10 @@ export function TutorialModal() {
                 <HStack>
                   <Button
                     colorScheme="teal"
-                    onClick={() => start({ useDemoData })}
+                    onClick={async () => {
+                      await start({ useDemoData });
+                      next(); // Add this to move to the first actual step
+                    }}
                     isLoading={isBusy}
                     loadingText="Starting…">
                     Start walkthrough

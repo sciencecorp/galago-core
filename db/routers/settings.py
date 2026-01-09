@@ -4,6 +4,7 @@ import typing as t
 
 from db import crud, schemas
 import db.models.inventory_models as models
+from db.utils.audit import log_event
 from ..dependencies import get_db
 
 router = APIRouter()
@@ -46,4 +47,15 @@ def update_setting(
                 is_active=True,
             ),
         )
-    return crud.settings.update(db, db_obj=settings, obj_in=setting_update)
+    updated = crud.settings.update(db, db_obj=settings, obj_in=setting_update)
+    log_event(
+        db,
+        action="settings.upsert",
+        target_type="setting",
+        target_name=name,
+        details={
+            "value_set": setting_update.value is not None,
+            "is_active": setting_update.is_active,
+        },
+    )
+    return updated

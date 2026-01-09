@@ -75,8 +75,6 @@ If you plan to contribute or customize Galago, start by forking the repository:
 
 5. **Access the application**
    - Web Interface: http://localhost:3010
-   - Database API: http://localhost:8000
-   - API Documentation: http://localhost:8000/docs
 
 ### Manual Setup
 
@@ -94,6 +92,11 @@ bin/make proto
 ```bash
 cd db
 pip install -r requirements.txt
+#
+# Required for encrypted secrets storage (Slack webhooks, SMTP passwords, etc.)
+# Generate with:
+#   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+export GALAGO_SECRETS_KEY="...your generated key..."
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
@@ -135,6 +138,25 @@ docker-compose -f docker-compose.dev.yml up --build db
 
 #add npm deps to dev environment
 docker exec -it galago-web-dev npm install <package name>
+```
+
+## SQlite commands
+
+```
+#See all tables
+sqlite3 data/app.db ".tables"
+
+#See schema for a specific table
+sqlite3 data/app.db ".schema workcells"
+
+#See all table schemas
+sqlite3 data/app.db ".schema"
+
+#Interactive mode.
+sqlite3 data/app.db
+
+  #Query a table
+  SELECT * FROM logs LIMIT 5;
 ```
 
 ## Drizzle

@@ -17,10 +17,52 @@ export interface PageProps {
   description: string;
 }
 
-export interface Protocol {
-  id: number;
-  name: string;
-  description?: string;
-  icon?: any;
-  params: Record<string, string>;
+export type {
+  Labware,
+  Variable,
+  Log,
+  Tool,
+  Script,
+  NewScript,
+  ScriptFolder,
+  NewScriptFolder,
+  Workcell,
+  Hotel,
+  Plate,
+  Well,
+  Reagent,
+  Nest,
+  Protocol,
+} from "@/db/schema";
+
+import type {
+  Workcell,
+  Tool,
+  ScriptFolder,
+  Script,
+  Hotel,
+  Nest,
+  Plate,
+  Well,
+  Reagent,
+} from "@/db/schema";
+
+export interface WorkcellResponse extends Workcell {
+  tools: Tool[];
+  hotels: Hotel[];
+}
+
+export interface FolderResponse extends ScriptFolder {
+  scripts: Script[];
+  subFolders: FolderResponse[];
+}
+
+export interface Inventory {
+  workcell: Workcell;
+  instruments: Tool[];
+  hotels?: Hotel[];
+  nests: Nest[];
+  plates: Plate[];
+  wells: Well[];
+  reagents: Reagent[];
 }

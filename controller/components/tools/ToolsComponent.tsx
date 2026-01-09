@@ -26,7 +26,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Search } from "lucide-react";
 import { Power, Wrench } from "lucide-react";
 import { successToast, errorToast, infoToast } from "../ui/Toast";
-import { Tool } from "@/types/api";
+import { Tool } from "@/types";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 interface ToolStatusCardsProps {
@@ -44,11 +44,15 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
   const { data: allTools, refetch: refetchAllTools } = trpc.tool.getAll.useQuery();
   const configureMutation = trpc.tool.configure.useMutation();
   const { data: workcells } = trpc.workcell.getAll.useQuery();
-
-  const [thisWorkcellTools, setThisWorkcellTools] = useState<Tool[]>([]);
+  const clearToolStore = trpc.tool.clearToolStore.useMutation();
   const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({
     workcellId: workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id,
   });
+
+  //Clear the tool store when the page mount
+  useEffect(() => {
+    clearToolStore.mutate();
+  }, []);
 
   const connectAllTools = async () => {
     setConnectingLoading(true);

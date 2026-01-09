@@ -12,7 +12,6 @@ import {
   useBreakpointValue,
   Image,
   HStack,
-  useColorMode,
   DrawerOverlay,
   Tooltip,
   useColorModeValue,
@@ -27,8 +26,7 @@ import {
   ChartGantt,
   Package,
   Boxes,
-  Moon,
-  Sun,
+  Settings,
   ClipboardPenLine,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
@@ -62,13 +60,13 @@ const sidebarItems: SidebarItem[] = [
   { name: "Logs", icon: Book, path: "/logs" },
 ];
 
-function DarkModeToggle() {
-  const { colorMode, toggleColorMode } = useColorMode();
+function SettingsButton() {
+  const router = useRouter();
   return (
     <IconButton
-      onClick={toggleColorMode}
-      icon={colorMode === "light" ? <Moon size={20} /> : <Sun size={20} />}
-      aria-label="Toggle dark mode"
+      onClick={() => router.push("/settings")}
+      icon={<Settings size={20} />}
+      aria-label="Go to settings"
       position="fixed"
       bottom="20px"
       left="20px"
@@ -85,7 +83,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   const theme = useSidebarTheme();
 
   const collapsedWidth = "80px";
-  const expandedWidth = "230px";
+  const expandedWidth = "200px";
 
   const toggleSidebar = () => {
     if (isMobile && !isSidebarExpanded) {
@@ -140,6 +138,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             _hover={{ background: theme.hoverBg }}
             borderRadius="md"
             p={1}
+            pl={isSidebarExpanded ? 4 : 0}
             display="flex"
             alignItems="center"
             justifyContent={isSidebarExpanded ? "start" : "center"}
@@ -170,7 +169,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             )}
           </Link>
         ))}
-        <DarkModeToggle />
+        <SettingsButton />
       </VStack>
     </Box>
   );
@@ -199,7 +198,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             <Box pl={3} pt={3}>
               <Image
                 onClick={toggleSidebar}
-                width="55px"
+                width="40px"
                 paddingLeft="0"
                 src="/site_logo.svg"
                 alt="logo"
@@ -208,7 +207,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
               <DrawerOverlay />
               <DrawerContent
-                maxW="220px"
+                maxW="200px"
                 overflow="hidden"
                 _focus={{ outline: "none" }}
                 bg={theme.bg}

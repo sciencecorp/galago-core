@@ -15,48 +15,26 @@ import {
   useColorModeValue,
   IconButton,
 } from "@chakra-ui/react";
-import { Nest, Plate, Reagent } from "@/types/api";
+import { Nest, Plate } from "@/types";
 import NestModal from "../modals/NestModal";
 import { trpc } from "@/utils/trpc";
 import { Grid3x3, Package, FlaskConical, Building } from "lucide-react";
 import { Icon } from "@/components/ui/Icons";
 import { useCommonColors, useTextColors } from "@/components/ui/Theme";
-import { DeleteIcon, RepeatIcon } from "@chakra-ui/icons";
+import { DeleteIcon } from "@chakra-ui/icons";
 
 interface InventoryHotelCardProps {
   hotelId: number;
   nests: Nest[];
   plates: Plate[];
-  onCreateNest: (
-    hotelId: number,
-    nestName: string,
-    nestRow: number,
-    nestColumn: number,
-  ) => Promise<void>;
-  onCreatePlate: (
-    nestId: number,
-    plateData: { name: string; barcode: string; plate_type: string },
-  ) => void;
-  onCreateReagent: (nestId: number, reagentData: Omit<Reagent, "id" | "well_id">) => void;
-  onNestClick: (nest: Nest) => void;
-  onDeleteNest: (nestId: number) => Promise<void>;
-  onPlateClick?: (plate: Plate) => void;
   onDeleteHotel?: () => void;
-  onCheckIn?: (nestId: number, triggerToolCommand?: boolean) => void;
 }
 
 export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
   hotelId,
   nests,
   plates,
-  onCreateNest,
-  onCreatePlate,
-  onCreateReagent,
-  onNestClick,
-  onDeleteNest,
-  onPlateClick,
   onDeleteHotel,
-  onCheckIn,
 }) => {
   const { cardBg, borderColor } = useCommonColors();
   const { secondary: iconColor } = useTextColors();
@@ -65,10 +43,42 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { data: hotel } = trpc.inventory.getHotelById.useQuery(hotelId);
 
-  const hotelNests = nests.filter((nest) => nest.hotel_id === hotelId);
-  const hotelPlates = plates.filter((plate) =>
-    hotelNests.some((nest) => nest.id === plate.nest_id),
-  );
+  // Mutation hooks
+  const utils = trpc.useContext();
+  const createNestMutation = trpc.inventory.createNest.useMutation({
+    onSuccess: () => {
+      utils.inventory.getNests.invalidate();
+    },
+  });
+
+  const deleteNestMutation = trpc.inventory.deleteNest.useMutation({
+    onSuccess: () => {
+      utils.inventory.getNests.invalidate();
+    },
+  });
+
+  const createPlateMutation = trpc.inventory.createPlate.useMutation({
+    onSuccess: () => {
+      utils.inventory.getPlates.invalidate();
+      utils.inventory.getNests.invalidate();
+    },
+  });
+
+  const updatePlateMutation = trpc.inventory.updatePlate.useMutation({
+    onSuccess: () => {
+      utils.inventory.getPlates.invalidate();
+    },
+  });
+
+  const deletePlateMutation = trpc.inventory.deletePlate.useMutation({
+    onSuccess: () => {
+      utils.inventory.getPlates.invalidate();
+      utils.inventory.getNests.invalidate();
+    },
+  });
+
+  const hotelNests = nests.filter((nest) => nest.hotelId === hotelId);
+  const hotelPlates = plates.filter((plate) => hotelNests.some((nest) => nest.id === plate.nestId));
 
   useEffect(() => {
     // This is to handle the case when the hotel has been deleted
@@ -77,32 +87,52 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
     }
   }, [hotel, onClose]);
 
-  // Generate the combined nests - actually present plus placeholders for empty spaces
-  const combinedNests: Nest[] = [...hotelNests];
+  // Handler functions for modal
+  const handleCreateNest = async (row: number, column: number) => {
+    await createNestMutation.mutateAsync({
+      name: `Nest ${row + 1}-${column + 1}`,
+      row,
+      column,
+      toolId: null,
+      hotelId,
+    });
+  };
 
-  // Add missing nests if needed (this helps render the grid properly)
-  for (let row = 0; row < (hotel?.rows || 0); row++) {
-    for (let col = 0; col < (hotel?.columns || 0); col++) {
-      // Check if this position already has a nest
-      const existingNest = hotelNests.find((n) => n.row === row && n.column === col);
-      if (!existingNest) {
-        // Create a placeholder nest for this position
-        const placeholderNest: Nest = {
-          id: -1 * (row * 100 + col), // Negative ID to indicate it's a placeholder
-          name: `${hotel?.name || "Hotel"} R${row + 1}C${col + 1}`,
-          row: row,
-          column: col,
-          hotel_id: hotelId,
-          tool_id: undefined,
-          status: "empty",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          current_plate_id: null,
-        };
-        combinedNests.push(placeholderNest);
-      }
-    }
-  }
+  const handleDeleteNest = async (nestId: number) => {
+    await deleteNestMutation.mutateAsync(nestId);
+  };
+
+  const handleCreatePlate = async (params: {
+    barcode: string;
+    name: string;
+    plateType: string;
+    nestId: number;
+  }) => {
+    await createPlateMutation.mutateAsync({
+      barcode: params.barcode,
+      name: params.name,
+      plateType: params.plateType,
+      nestId: params.nestId,
+    });
+  };
+
+  const handleUpdatePlate = async (
+    plateId: number,
+    params: {
+      barcode?: string;
+      name?: string;
+      plateType?: string;
+    },
+  ) => {
+    await updatePlateMutation.mutateAsync({
+      id: plateId,
+      ...params,
+    });
+  };
+
+  const handleDeletePlate = async (plateId: number) => {
+    await deletePlateMutation.mutateAsync(plateId);
+  };
 
   return (
     <>
@@ -193,23 +223,14 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
       <NestModal
         isOpen={isOpen}
         onClose={onClose}
-        toolName={hotel?.name || "Hotel"}
-        nests={combinedNests}
-        plates={plates}
-        selectedNests={[]}
-        isMultiSelect={true}
-        onNestSelect={(nestIds) => {
-          nestIds.forEach((id) => {
-            const nest = nests.find((n) => n.id === id);
-            if (nest) onNestClick(nest);
-          });
-        }}
-        onCreateNest={(row, column) => onCreateNest(hotelId, hotel?.name || "Hotel", row, column)}
-        onDeleteNest={onDeleteNest}
-        onPlateClick={onPlateClick}
-        onCheckIn={onCheckIn}
-        containerType="hotel"
-        containerId={hotelId}
+        containerName={hotel?.name || "Hotel"}
+        nests={hotelNests}
+        plates={hotelPlates}
+        onCreateNest={handleCreateNest}
+        onDeleteNest={handleDeleteNest}
+        onCreatePlate={handleCreatePlate}
+        onUpdatePlate={handleUpdatePlate}
+        onDeletePlate={handleDeletePlate}
       />
     </>
   );
