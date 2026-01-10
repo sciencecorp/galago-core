@@ -13,16 +13,8 @@ deps() {
 
 build_env() {
     echo "Creating conda environment '$ENV_NAME'..."
-    mamba create --name $ENV_NAME python=3.9.12 nodejs=18.20.3 -y
+    conda create --name $ENV_NAME python=3.11 nodejs=22 -y
     echo "Conda environment '$ENV_NAME' created."
-}
-
-python_deps() {
-  echo "Installing Python Dependencies"
-  python -m pip install -r db/requirements.txt
-  python -m pip install grpcio-tools
-  python -m pip install black
-  echo "Python Dependencies Installed"
 }
 
 npm_deps() {
@@ -31,9 +23,14 @@ npm_deps() {
   echo "Node Dependencies Installed"
 }
 
+python_deps() {
+  echo "Installing grpcio-tools"
+  python -m pip install grpcio-tools
+  echo "Python Dependencies Installed"
+}
+
 test() {
   test_ts
-  test_py
 }
 
 test_ts() {
@@ -47,18 +44,6 @@ build_prod() {
   npm_deps
   (cd controller && npm run build)
   echo "Production build complete."
-}
-
-test_py() {
-  echo "Running Python Tests"
-  echo "Ruff Check"
-  ruff check .
-  echo "Mypy Check Db"
-  mypy db
-}
-
-unittest_py() {
-  python -m unittest discover -s db/tests/ -p "*_test.py"
 }
 
 # Clean up all generated files
@@ -114,7 +99,6 @@ format_ts() {
 }
 
 format() {
-  format_py
   format_ts
   echo "All files formatted!"
 }
