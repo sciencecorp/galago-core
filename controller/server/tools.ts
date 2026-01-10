@@ -226,6 +226,25 @@ export default class Tool {
       // Fetch all labware using Drizzle
       const labwareRecords = await db.select().from(labware);
 
+      // Transform camelCase to snake_case for Python Pydantic models
+      const transformedLabware = labwareRecords.map((lw) => ({
+        id: lw.id,
+        name: lw.name,
+        description: lw.description,
+        number_of_rows: lw.numberOfRows,
+        number_of_columns: lw.numberOfColumns,
+        z_offset: lw.zOffset,
+        width: lw.width,
+        height: lw.height,
+        plate_lid_offset: lw.plateLidOffset,
+        lid_offset: lw.lidOffset,
+        stack_height: lw.stackHeight,
+        has_lid: lw.hasLid,
+        workcell_id: lw.workcellId,
+        created_at: lw.createdAt,
+        updated_at: lw.updatedAt,
+      }));
+
       // Need to get tool from store to execute command
       const store = getGlobalStore();
       const tool = store.get(toolId);
@@ -239,7 +258,7 @@ export default class Tool {
         toolType: ToolType.pf400,
         command: "load_labware",
         params: {
-          labwares: { labwares: labwareRecords },
+          labwares: { labwares: transformedLabware },
         },
       });
 

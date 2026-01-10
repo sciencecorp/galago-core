@@ -519,7 +519,7 @@ export const workcellRouter = router({
           .array(
             z.object({
               name: z.string(),
-              type: z.string(),
+              type: z.enum(["string", "number", "boolean", "array", "json"]),
               value: z.string().optional(),
             }),
           )
@@ -616,9 +616,9 @@ export const workcellRouter = router({
               await db.insert(robotArmSequences).values(
                 tool.robotArm.sequences.map((seq) => ({
                   name: seq.name,
-                  description: seq.description,
+                  description: seq.description ?? null,
                   commands: seq.commands,
-                  labware: seq.labware,
+                  labware: seq.labware ?? null,
                   toolId: newTool.id,
                 })),
               );
@@ -660,7 +660,7 @@ export const workcellRouter = router({
           if (tool.nests && tool.nests.length > 0) {
             await db.insert(nests).values(
               tool.nests.map((nest) => ({
-                name: nest.name,
+                name: nest.name ?? null,
                 row: nest.row,
                 column: nest.column,
                 toolId: newTool.id,
@@ -687,7 +687,7 @@ export const workcellRouter = router({
           if (hotel.nests && hotel.nests.length > 0) {
             await db.insert(nests).values(
               hotel.nests.map((nest) => ({
-                name: nest.name,
+                name: nest.name ?? null,
                 row: nest.row,
                 column: nest.column,
                 hotelId: newHotel.id,
@@ -702,16 +702,16 @@ export const workcellRouter = router({
         await db.insert(labware).values(
           input.labware.map((lw) => ({
             name: lw.name,
-            description: lw.description,
-            numberOfRows: lw.numberOfRows,
-            numberOfColumns: lw.numberOfColumns,
-            zOffset: lw.zOffset,
-            width: lw.width,
-            height: lw.height,
-            plateLidOffset: lw.plateLidOffset,
-            lidOffset: lw.lidOffset,
-            stackHeight: lw.stackHeight,
-            hasLid: lw.hasLid,
+            description: lw.description ?? "",
+            numberOfRows: lw.numberOfRows ?? 0,
+            numberOfColumns: lw.numberOfColumns ?? 0,
+            zOffset: lw.zOffset ?? 0,
+            width: lw.width ?? 127.8,
+            height: lw.height ?? 14.5,
+            plateLidOffset: lw.plateLidOffset ?? 0,
+            lidOffset: lw.lidOffset ?? 0,
+            stackHeight: lw.stackHeight ?? 0,
+            hasLid: lw.hasLid ?? false,
             workcellId: newWorkcell.id,
           })),
         );
@@ -722,9 +722,9 @@ export const workcellRouter = router({
         await db.insert(forms).values(
           input.forms.map((form) => ({
             name: form.name,
-            fields: form.fields,
-            backgroundColor: form.backgroundColor,
-            fontColor: form.fontColor,
+            fields: form.fields ?? {},
+            backgroundColor: form.backgroundColor ?? null,
+            fontColor: form.fontColor ?? null,
             workcellId: newWorkcell.id,
           })),
         );
@@ -736,7 +736,7 @@ export const workcellRouter = router({
           input.variables.map((v) => ({
             name: v.name,
             type: v.type,
-            value: "", // Always empty on import
+            value: v.value ?? "",
             workcellId: newWorkcell.id,
           })),
         );
@@ -747,9 +747,9 @@ export const workcellRouter = router({
         await db.insert(protocols).values(
           input.protocols.map((p) => ({
             name: p.name,
-            category: p.category,
-            description: p.description,
-            commands: p.commands,
+            category: p.category ?? "",
+            description: p.description ?? null,
+            commands: p.commands ?? [],
             workcellId: newWorkcell.id,
           })),
         );
@@ -806,8 +806,8 @@ export const workcellRouter = router({
         await db.insert(scripts).values(
           input.scripts.map((s) => ({
             name: s.name,
-            content: s.content,
-            language: s.language,
+            content: s.content ?? "",
+            language: s.language ?? "python",
             folderId: s.folderName ? folderNameToId.get(s.folderName) : undefined,
             workcellId: newWorkcell.id,
           })),
