@@ -68,7 +68,7 @@ proto_ts() {
         # --plugin=protoc-gen-ts_proto="${PROTOC_GEN_TS_PATH}.cmd" \
 }
 
-
+#Some Windows environments require this command.
 proto_ts_v2() {
   mkdir -p ./controller/gen-interfaces
   python -m grpc_tools.protoc \
