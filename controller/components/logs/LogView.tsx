@@ -25,6 +25,11 @@ import {
   Input,
   Text,
   Badge,
+  Tabs,
+  TabList,
+  TabPanels,
+  TabPanel,
+  Tab,
 } from "@chakra-ui/react";
 import { CloseIcon, WarningIcon, QuestionOutlineIcon, SearchIcon } from "@chakra-ui/icons";
 import { useEffect, useState } from "react";
@@ -55,6 +60,31 @@ function getIconFromLogType(logType: string) {
     case "info":
       return <Info style={iconStyle} />;
   }
+}
+
+function getColorForLevel(level: string): string {
+  switch (level) {
+    case "error":
+      return "red.400";
+    case "warning":
+      return "orange.400";
+    case "info":
+      return "blue.400";
+    case "debug":
+      return "gray.400";
+    default:
+      return "gray.100";
+  }
+}
+
+function formatConsoleTime(timestamp: string): string {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString("en-US", {
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 }
 
 export const LogView: React.FC<LogViewProps> = ({}) => {
@@ -211,49 +241,81 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                 )}
               </HStack>
 
-              <Box overflowX="auto">
-                <Table
-                  variant="simple"
-                  sx={{
-                    th: {
-                      borderColor: useColorModeValue("gray.200", "gray.600"),
-                    },
-                    td: {
-                      borderColor: useColorModeValue("gray.200", "gray.600"),
-                    },
-                  }}>
-                  <Thead>
-                    <Tr>
-                      <Th p={1}></Th>
-                      <Th p={1}>Level</Th>
-                      <Th p={1}>Actions</Th>
-                      <Th p={1}>Details</Th>
-                      <Th p={1}>Created On</Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {logs.length === 0 ? (
-                      <Tr>
-                        <Td colSpan={5} textAlign="center" py={8}>
-                          <Text color="gray.500">No logs found</Text>
-                        </Td>
-                      </Tr>
-                    ) : (
-                      logs.map((log, index) => (
-                        <Tr key={log.id || index} _hover={{ bg: hoverBgColor }}>
-                          <Td p={1}>{getIconFromLogType(log.level)}</Td>
-                          <Td p={1}>{log.level}</Td>
-                          <Td p={1}>{log.action}</Td>
-                          <Td maxWidth={"900px"} p={1}>
-                            {log.details}
-                          </Td>
-                          <Td p={1}>{renderDatetime(String(log.createdAt))}</Td>
-                        </Tr>
-                      ))
-                    )}
-                  </Tbody>
-                </Table>
-              </Box>
+              <Tabs variant="enclosed" colorScheme="teal">
+                <TabList>
+                  <Tab>Console</Tab>
+                  <Tab>Table</Tab>
+                </TabList>
+                <TabPanels>
+                  <TabPanel px={0}>
+                    <Box
+                      bg="gray.900"
+                      color="gray.100"
+                      fontFamily="mono"
+                      fontSize="sm"
+                      p={4}
+                      borderRadius="md"
+                      maxHeight="1000px"
+                      overflowY="auto">
+                      {logs.length === 0 ? (
+                        <Text color="gray.500">No logs found</Text>
+                      ) : (
+                        logs.map((log, index) => (
+                          <Text key={log.id || index} color={getColorForLevel(log.level)} py={0.5}>
+                            [{formatConsoleTime(String(log.createdAt))}] [
+                            {log.level.toUpperCase().padEnd(7)}] {log.action}: {log.details}
+                          </Text>
+                        ))
+                      )}
+                    </Box>
+                  </TabPanel>
+                  <TabPanel px={0}>
+                    <Box overflowX="auto">
+                      <Table
+                        variant="simple"
+                        sx={{
+                          th: {
+                            borderColor: useColorModeValue("gray.200", "gray.600"),
+                          },
+                          td: {
+                            borderColor: useColorModeValue("gray.200", "gray.600"),
+                          },
+                        }}>
+                        <Thead>
+                          <Tr>
+                            <Th p={1}></Th>
+                            <Th p={1}>Level</Th>
+                            <Th p={1}>Actions</Th>
+                            <Th p={1}>Details</Th>
+                            <Th p={1}>Created On</Th>
+                          </Tr>
+                        </Thead>
+                        <Tbody>
+                          {logs.length === 0 ? (
+                            <Tr>
+                              <Td colSpan={5} textAlign="center" py={8}>
+                                <Text color="gray.500">No logs found</Text>
+                              </Td>
+                            </Tr>
+                          ) : (
+                            logs.map((log, index) => (
+                              <Tr key={log.id || index} _hover={{ bg: hoverBgColor }}>
+                                <Td p={1}>{getIconFromLogType(log.level)}</Td>
+                                <Td p={1}>{log.level}</Td>
+                                <Td p={1}>{log.action}</Td>
+                                <Td maxWidth={"900px"} p={1}>
+                                  {log.details}
+                                </Td>
+                                <Td p={1}>{renderDatetime(String(log.createdAt))}</Td>
+                              </Tr>
+                            ))
+                          )}
+                        </Tbody>
+                      </Table>
+                    </Box>
+                  </TabPanel>
+                </TabPanels>
+              </Tabs>
 
               <HStack justify="space-between">
                 <HStack spacing={2}>

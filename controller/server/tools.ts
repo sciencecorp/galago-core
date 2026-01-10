@@ -37,6 +37,135 @@ function getGlobalStore(): Map<string, Tool> {
   return me[global_key];
 }
 
+// ==================== SNAKE_CASE CONVERSION HELPERS ====================
+// These helpers convert camelCase Drizzle schema data to snake_case for the Python gRPC server
+
+interface SnakeCaseLabware {
+  id: number;
+  name: string;
+  description: string;
+  number_of_rows: number;
+  number_of_columns: number;
+  z_offset: number;
+  width: number | null;
+  height: number | null;
+  plate_lid_offset: number | null;
+  lid_offset: number | null;
+  stack_height: number | null;
+  has_lid: boolean | null;
+  image_url?: string | null;
+}
+
+interface SnakeCaseLocation {
+  id: number;
+  name: string;
+  tool_id: number | null;
+  coordinates: string;
+  location_type: string;
+  orientation: string;
+}
+
+interface SnakeCaseMotionProfile {
+  id: number;
+  name: string;
+  speed: number;
+  speed2: number;
+  acceleration: number;
+  deceleration: number;
+  accel_ramp: number;
+  decel_ramp: number;
+  inrange: number;
+  straight: number;
+  tool_id: number | null;
+}
+
+interface SnakeCaseGripParams {
+  id: number;
+  name: string;
+  width: number;
+  speed: number;
+  force: number;
+  tool_id: number | null;
+}
+
+interface SnakeCaseSequence {
+  id: number;
+  name: string;
+  description: string | null;
+  commands: any;
+  tool_id: number | null;
+  labware: string | null;
+}
+
+function convertLabwareToSnakeCase(labwareRecord: any): SnakeCaseLabware {
+  return {
+    id: labwareRecord.id,
+    name: labwareRecord.name,
+    description: labwareRecord.description,
+    number_of_rows: labwareRecord.numberOfRows,
+    number_of_columns: labwareRecord.numberOfColumns,
+    z_offset: labwareRecord.zOffset,
+    width: labwareRecord.width,
+    height: labwareRecord.height,
+    plate_lid_offset: labwareRecord.plateLidOffset,
+    lid_offset: labwareRecord.lidOffset,
+    stack_height: labwareRecord.stackHeight,
+    has_lid: labwareRecord.hasLid,
+    image_url: labwareRecord.imageUrl ?? "",
+  };
+}
+
+function convertLocationToSnakeCase(location: any): SnakeCaseLocation {
+  return {
+    id: location.id,
+    name: location.name,
+    tool_id: location.toolId,
+    coordinates: location.coordinates,
+    location_type: location.locationType,
+    orientation: location.orientation,
+  };
+}
+
+function convertMotionProfileToSnakeCase(profile: any): SnakeCaseMotionProfile {
+  return {
+    id: profile.id,
+    name: profile.name,
+    speed: profile.speed,
+    speed2: profile.speed2,
+    acceleration: profile.acceleration,
+    deceleration: profile.deceleration,
+    accel_ramp: profile.accelRamp,
+    decel_ramp: profile.decelRamp,
+    inrange: profile.inrange,
+    straight: profile.straight,
+    tool_id: profile.toolId,
+  };
+}
+
+function convertGripParamsToSnakeCase(grip: any): SnakeCaseGripParams {
+  return {
+    id: grip.id,
+    name: grip.name,
+    width: grip.width,
+    speed: grip.speed,
+    force: grip.force,
+    tool_id: grip.toolId,
+  };
+}
+
+function convertSequenceToSnakeCase(sequence: any): SnakeCaseSequence {
+  return {
+    id: sequence.id,
+    name: sequence.name,
+    description: sequence.description,
+    commands: sequence.commands,
+    tool_id: sequence.toolId,
+    labware: sequence.labware,
+  };
+}
+
+// ==================== TOOL CLASS ====================
+
 export default class Tool {
   grpc: ToolDriverClient;
   status: ToolStatus = ToolStatus.UNKNOWN_STATUS;
@@ -144,13 +273,14 @@ export default class Tool {
         .from(robotArmGripParams)
         .where(eq(robotArmGripParams.toolId, toolDbId));
 
+      // Convert all data to snake_case for the Python gRPC server
       const waypointsData = {
         tool_name: toolRecord[0].name,
         name: `Waypoints for Tool ${toolId}`,
-        locations: locations,
-        sequences: sequences,
-        motion_profiles: motionProfiles,
-        grip_params: gripParams,
+        locations: locations.map(convertLocationToSnakeCase),
+        sequences: sequences.map(convertSequenceToSnakeCase),
+        motion_profiles: motionProfiles.map(convertMotionProfileToSnakeCase),
+        grip_params: gripParams.map(convertGripParamsToSnakeCase),
       };
 
       // Get tool from store to execute command
@@ -197,6 +327,9 @@ export default class Tool {
       // Fetch all labware using Drizzle
       const labwareRecords = await db.select().from(labware);
 
+      // Convert labware records to snake_case for the Python gRPC server
+      const snakeCaseLabwares = labwareRecords.map(convertLabwareToSnakeCase);
+
       // Need to get tool from store to execute command
       const store = getGlobalStore();
       const tool = store.get(normalizedId);
@@ -210,7 +343,7 @@ export default class Tool {
         toolType: ToolType.pf400,
         command: "load_labware",
         params: {
-          labwares: { labwares: labwareRecords },
+          labwares: { labwares: snakeCaseLabwares },
         },
       });
 
