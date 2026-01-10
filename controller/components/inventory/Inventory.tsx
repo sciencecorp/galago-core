@@ -43,12 +43,7 @@ import { trpc } from "@/utils/trpc";
 import { Package } from "lucide-react";
 import PlateModal from "./modals/PlateModal";
 import { Icon } from "@/components/ui/Icons";
-import {
-  errorToast,
-  loadingToast,
-  warningToast,
-  progressToast,
-} from "@/components/ui/Toast";
+import { errorToast, loadingToast, warningToast, progressToast } from "@/components/ui/Toast";
 import { useCommonColors } from "@/components/ui/Theme";
 import { AddIcon } from "@chakra-ui/icons";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";

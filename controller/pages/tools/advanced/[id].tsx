@@ -1,9 +1,6 @@
 // Import this at the top of your Page component file
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
-import {
-  Box,
-  VStack,
-} from "@chakra-ui/react";
+import { Box, VStack } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
 

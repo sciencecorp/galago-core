@@ -53,7 +53,8 @@ export default function Nav() {
   const tabIndex = TabPages.findIndex(({ href }) => router.route.indexOf(href) === 0);
   const selectedTab = tabIndex >= 0 ? TabPages[tabIndex] : undefined;
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
-  const { lastClickedSubtab: _lastClickedSubtab, setLastClickedSubtab: _setLastClickedSubtab } = useSidebar();
+  const { lastClickedSubtab: _lastClickedSubtab, setLastClickedSubtab: _setLastClickedSubtab } =
+    useSidebar();
 
   const handleShowModal = () => {
     setShowSettingsModal(!showSettingsModal);
