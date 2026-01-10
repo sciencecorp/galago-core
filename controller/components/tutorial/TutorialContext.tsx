@@ -67,10 +67,6 @@ function safeToIdSuffix() {
   }
 }
 
-function normalizeToolId(name: string) {
-  return name.toLocaleLowerCase().replaceAll(" ", "_");
-}
-
 export function TutorialProvider({
   children,
   steps,
@@ -198,7 +194,7 @@ export function TutorialProvider({
           description: "Auto-created for the in-app walkthrough. Safe to delete.",
           ip: "localhost",
           config: {
-            toolId: normalizeToolId(spec.name),
+            toolId: spec.name,
             simulated: true,
             [spec.type]: hardcodedConfigByType[spec.type] ?? {},
           },
@@ -207,7 +203,7 @@ export function TutorialProvider({
           id: created?.id,
           name: created?.name ?? spec.name,
           type: created?.type ?? spec.type,
-          toolId: normalizeToolId(created?.name ?? spec.name),
+          toolId: created?.name ?? spec.name,
         });
       }
 
