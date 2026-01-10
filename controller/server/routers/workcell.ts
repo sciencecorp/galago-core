@@ -215,9 +215,18 @@ export const workcellRouter = router({
     const workcellHotels = await db.select().from(hotels).where(eq(hotels.workcellId, input));
     const workcellLabware = await db.select().from(labware).where(eq(labware.workcellId, input));
     const workcellForms = await db.select().from(forms).where(eq(forms.workcellId, input));
-    const workcellVariables = await db.select().from(variables).where(eq(variables.workcellId, input));
-    const workcellProtocols = await db.select().from(protocols).where(eq(protocols.workcellId, input));
-    const workcellScriptFolders = await db.select().from(scriptFolders).where(eq(scriptFolders.workcellId, input));
+    const workcellVariables = await db
+      .select()
+      .from(variables)
+      .where(eq(variables.workcellId, input));
+    const workcellProtocols = await db
+      .select()
+      .from(protocols)
+      .where(eq(protocols.workcellId, input));
+    const workcellScriptFolders = await db
+      .select()
+      .from(scriptFolders)
+      .where(eq(scriptFolders.workcellId, input));
     const workcellScripts = await db.select().from(scripts).where(eq(scripts.workcellId, input));
 
     // Build folder name lookup for scripts (to use names instead of IDs)
@@ -240,10 +249,22 @@ export const workcellRouter = router({
     // For each tool, get robot arm data and tool nests
     const toolsWithData = await Promise.all(
       workcellTools.map(async (tool) => {
-        const locations = await db.select().from(robotArmLocations).where(eq(robotArmLocations.toolId, tool.id));
-        const sequences = await db.select().from(robotArmSequences).where(eq(robotArmSequences.toolId, tool.id));
-        const motionProfiles = await db.select().from(robotArmMotionProfiles).where(eq(robotArmMotionProfiles.toolId, tool.id));
-        const gripParams = await db.select().from(robotArmGripParams).where(eq(robotArmGripParams.toolId, tool.id));
+        const locations = await db
+          .select()
+          .from(robotArmLocations)
+          .where(eq(robotArmLocations.toolId, tool.id));
+        const sequences = await db
+          .select()
+          .from(robotArmSequences)
+          .where(eq(robotArmSequences.toolId, tool.id));
+        const motionProfiles = await db
+          .select()
+          .from(robotArmMotionProfiles)
+          .where(eq(robotArmMotionProfiles.toolId, tool.id));
+        const gripParams = await db
+          .select()
+          .from(robotArmGripParams)
+          .where(eq(robotArmGripParams.toolId, tool.id));
         const toolNests = await db.select().from(nests).where(eq(nests.toolId, tool.id));
 
         return {
@@ -257,15 +278,46 @@ export const workcellRouter = router({
           nests: toolNests.map(({ name, row, column }) => ({ name, row, column })),
           robotArm: {
             locations: locations.map(({ name, locationType, coordinates, orientation }) => ({
-              name, locationType, coordinates, orientation,
+              name,
+              locationType,
+              coordinates,
+              orientation,
             })),
             sequences: sequences.map(({ name, description, commands, labware }) => ({
-              name, description, commands, labware,
+              name,
+              description,
+              commands,
+              labware,
             })),
-            motionProfiles: motionProfiles.map(({ name, speed, speed2, acceleration, deceleration, accelRamp, decelRamp, inrange, straight }) => ({
-              name, speed, speed2, acceleration, deceleration, accelRamp, decelRamp, inrange, straight,
+            motionProfiles: motionProfiles.map(
+              ({
+                name,
+                speed,
+                speed2,
+                acceleration,
+                deceleration,
+                accelRamp,
+                decelRamp,
+                inrange,
+                straight,
+              }) => ({
+                name,
+                speed,
+                speed2,
+                acceleration,
+                deceleration,
+                accelRamp,
+                decelRamp,
+                inrange,
+                straight,
+              }),
+            ),
+            gripParams: gripParams.map(({ name, width, speed, force }) => ({
+              name,
+              width,
+              speed,
+              force,
             })),
-            gripParams: gripParams.map(({ name, width, speed, force }) => ({ name, width, speed, force })),
           },
         };
       }),
@@ -281,17 +333,49 @@ export const workcellRouter = router({
       },
       tools: toolsWithData,
       hotels: hotelsWithNests,
-      labware: workcellLabware.map(({ name, description, numberOfRows, numberOfColumns, zOffset, width, height, plateLidOffset, lidOffset, stackHeight, hasLid }) => ({
-        name, description, numberOfRows, numberOfColumns, zOffset, width, height, plateLidOffset, lidOffset, stackHeight, hasLid,
-      })),
+      labware: workcellLabware.map(
+        ({
+          name,
+          description,
+          numberOfRows,
+          numberOfColumns,
+          zOffset,
+          width,
+          height,
+          plateLidOffset,
+          lidOffset,
+          stackHeight,
+          hasLid,
+        }) => ({
+          name,
+          description,
+          numberOfRows,
+          numberOfColumns,
+          zOffset,
+          width,
+          height,
+          plateLidOffset,
+          lidOffset,
+          stackHeight,
+          hasLid,
+        }),
+      ),
       forms: workcellForms.map(({ name, fields, backgroundColor, fontColor }) => ({
-        name, fields, backgroundColor, fontColor,
+        name,
+        fields,
+        backgroundColor,
+        fontColor,
       })),
       variables: workcellVariables.map(({ name, type }) => ({
-        name, type, value: "", // Empty value on export for security
+        name,
+        type,
+        value: "", // Empty value on export for security
       })),
       protocols: workcellProtocols.map(({ name, category, description, commands }) => ({
-        name, category, description, commands,
+        name,
+        category,
+        description,
+        commands,
       })),
       scriptFolders: workcellScriptFolders.map((folder) => ({
         name: folder.name,
@@ -695,7 +779,9 @@ export const workcellRouter = router({
         while (remaining.length > 0 && maxIterations > 0) {
           const stillRemaining: typeof remaining = [];
           for (const folder of remaining) {
-            const parentId = folder.parentFolderName ? folderNameToId.get(folder.parentFolderName) : undefined;
+            const parentId = folder.parentFolderName
+              ? folderNameToId.get(folder.parentFolderName)
+              : undefined;
             if (parentId !== undefined || !folder.parentFolderName) {
               const [newFolder] = await db
                 .insert(scriptFolders)
