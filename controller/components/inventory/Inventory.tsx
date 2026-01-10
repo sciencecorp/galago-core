@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   VStack,
@@ -44,7 +44,6 @@ import { Package } from "lucide-react";
 import PlateModal from "./modals/PlateModal";
 import { Icon } from "@/components/ui/Icons";
 import {
-  successToast,
   errorToast,
   loadingToast,
   warningToast,
@@ -68,7 +67,7 @@ export const InventoryManager = () => {
   const [newHotelColumns, setNewHotelColumns] = useState(1);
   const [showDeleteHotelModal, setShowDeleteHotelModal] = useState(false);
   const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null);
-  const [selectedReagent, setSelectedReagent] = useState<number | null>(null);
+  const [_selectedReagent, setSelectedReagent] = useState<number | null>(null);
   const { colorMode } = useColorMode();
   const isDarkMode = colorMode === "dark";
 
@@ -89,7 +88,7 @@ export const InventoryManager = () => {
     enabled: !!selectedWorkcellName.data,
   });
 
-  const { data: plates = [], refetch: refetchPlates } = trpc.inventory.getPlates.useQuery<Plate[]>(
+  const { data: plates = [] } = trpc.inventory.getPlates.useQuery<Plate[]>(
     selectedWorkcell?.name || "",
     {
       enabled: !!selectedWorkcell?.id,
@@ -127,7 +126,7 @@ export const InventoryManager = () => {
     setSearch(searchTerm);
   };
 
-  const handlePlateSelect = (plate: Plate) => {};
+  const handlePlateSelect = (_plate: Plate) => {};
 
   const handleCreateReagent = async (
     wellId: number,

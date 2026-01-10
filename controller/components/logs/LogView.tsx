@@ -104,7 +104,7 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
     action: searchQuery || undefined,
   };
 
-  const { data: fetchedLogs, refetch } = trpc.logging.getPaginated.useQuery(
+  const { data: fetchedLogs } = trpc.logging.getPaginated.useQuery(
     {
       limit: limit,
       skip: offset,

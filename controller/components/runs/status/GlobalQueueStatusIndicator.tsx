@@ -11,7 +11,7 @@ const glowAnimation = keyframes`
 
 export const GlobalQueueStatusIndicator: React.FC = () => {
   const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 1000 });
-  const getError = trpc.commandQueue.getError.useQuery(undefined, { refetchInterval: 1000 });
+  // const _getError = trpc.commandQueue.getError.useQuery(undefined, { refetchInterval: 1000 });
 
   if (stateQuery.isLoading) return null;
 

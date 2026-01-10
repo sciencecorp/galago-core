@@ -38,7 +38,7 @@ import {
   JavaScriptIcon,
   CSharpIcon,
   DownloadIcon,
-  UploadIcon,
+  // UploadIcon,
 } from "../ui/Icons";
 import * as monaco from "monaco-editor";
 import { editor } from "monaco-editor";
@@ -68,7 +68,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const deleteFolder = trpc.script.deleteFolder.useMutation();
   const codeTheme = useColorModeValue("vs-light", "vs-dark");
   const [editedContents, setEditedContents] = useState<Record<string, string>>({});
-  const [scriptsEdited, setScriptsEdited] = useState<Script[]>([]);
+  const [_scriptsEdited, setScriptsEdited] = useState<Script[]>([]);
   const [currentContent, setCurrentContent] = useState<string>("");
   const [consoleText, setConsoleText] = useState<string>("");
   const activeTabFontColor = useColorModeValue("teal.600", "teal.200");
@@ -78,7 +78,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const tabBg = useColorModeValue("gray.50", "gray.700");
   const activeTabBg = useColorModeValue("white", "gray.800");
   const [scriptToDelete, setScriptToDelete] = useState<Script | null>(null);
-  const [editingScriptName, setEditingScriptName] = useState<Script | null>(null);
+  const [_editingScriptName, setEditingScriptName] = useState<Script | null>(null);
   const [folderCreating, setFolderCreating] = useState(false);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof monaco | null>(null);
@@ -187,9 +187,9 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const {
     fileInputRef,
     handleExportConfig,
-    handleImportClick,
+    handleImportClick: _handleImportClick,
     handleFileChange,
-    isImporting,
+    isImporting: _isImporting,
     isExporting,
   } = useScriptIO(scripts, activeScriptId, refetch, refetchFolders);
 
@@ -483,14 +483,14 @@ Original Error: ${error.message}`;
     }
   };
 
-  const handleFolderDelete = async (folder: ScriptFolder) => {
-    try {
-      await deleteFolder.mutateAsync(folder.id);
-      await refreshData();
-    } catch (error) {
-      errorToast("Error deleting folder", String(error));
-    }
-  };
+  // const _handleFolderDelete = async (folder: ScriptFolder) => {
+  //   try {
+  //     await deleteFolder.mutateAsync(folder.id);
+  //     await refreshData();
+  //   } catch (error) {
+  //     errorToast("Error deleting folder", String(error));
+  //   }
+  // };
 
   const handleScriptClick = (script: Script) => {
     setActiveFolder(null);
@@ -670,7 +670,7 @@ Original Error: ${error.message}`;
     });
   };
 
-  const handleScriptClicked = (fullName: string, script?: Script) => {
+  const handleScriptClicked = (fullName: string, _script?: Script) => {
     setActiveFolder(null);
 
     // If opening a new tab, make sure we sync any unsaved changes first
@@ -693,18 +693,18 @@ Original Error: ${error.message}`;
     setActiveTab(fullName);
   };
 
-  const importButton = (
-    <Button
-      isDisabled={!selectedWorkcellName}
-      leftIcon={<UploadIcon size={14} />}
-      colorScheme="blue"
-      variant="outline"
-      onClick={handleImportClick}
-      isLoading={isImporting}
-      size="sm">
-      Import
-    </Button>
-  );
+  // const _importButton = (
+  //   <Button
+  //     isDisabled={!selectedWorkcellName}
+  //     leftIcon={<UploadIcon size={14} />}
+  //     colorScheme="blue"
+  //     variant="outline"
+  //     onClick={handleImportClick}
+  //     isLoading={isImporting}
+  //     size="sm">
+  //     Import
+  //   </Button>
+  // );
 
   return (
     <Box maxW="100%">

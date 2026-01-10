@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { db } from "@/db/client";
-import { findOne, findMany, getSelectedWorkcellId } from "@/db/helpers";
+import { findOne, findMany } from "@/db/helpers";
 import {
   robotArmLocations,
   robotArmSequences,
@@ -10,7 +10,7 @@ import {
   tools,
   logs,
 } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import Tool from "../tools";
 

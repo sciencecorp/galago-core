@@ -57,7 +57,7 @@ export const PlateGrid: React.FC<PlateGridProps> = ({
   wells,
   selectedWells = [],
   onWellClick,
-  getWellContent,
+  getWellContent: _getWellContent,
   getWellTooltip,
   wellStyles = {},
 }) => {

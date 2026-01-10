@@ -6,9 +6,6 @@ import * as tool_driver from "gen-interfaces/tools/grpc_interfaces/tool_driver";
 import { ToolType } from "gen-interfaces/controller";
 import { PromisifiedGrpcClient, promisifyGrpcClient } from "./utils/promisifyGrpcCall";
 import { setInterval, clearInterval } from "timers";
-import { Script } from "@/types";
-import { Variable } from "@/types";
-import { Labware } from "@/types";
 import { logAction } from "./logger";
 import { JavaScriptExecutor } from "@/server/scripting/javascript/javascript-executor";
 import { CSharpExecutor } from "@/server/scripting/csharp/csharp-executor";
@@ -46,8 +43,8 @@ export default class Tool {
 
   constructor(
     private toolId: string,
-    private ip: string,
-    private port: number,
+    ip: string,
+    port: number,
     private toolType: ToolType,
   ) {
     const grpcServerIp = process.env.GRPC_HOST || ip;

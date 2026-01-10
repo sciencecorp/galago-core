@@ -263,8 +263,9 @@ export function TutorialProvider({
         variables.push({ id: created?.id, name: created?.name ?? v.name });
       }
 
-      const varName = (prefix: string) =>
-        variables.find((v) => v.name.startsWith(prefix + "_"))?.name ?? `${prefix}_${suffix}`;
+      // Unused helper function - commented out
+      // const __varName = (prefix: string) =>
+      //   variables.find((v) => v.name.startsWith(prefix + "_"))?.name ?? `${prefix}_${suffix}`;
 
       // Scripts
       const createVariablesScript = await addScript.mutateAsync({

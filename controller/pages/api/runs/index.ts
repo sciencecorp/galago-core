@@ -2,7 +2,7 @@ import RunStore from "@/server/runs";
 import { RunStatusList, RunSubmissionStatus } from "@/types";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-function getHandler(req: NextApiRequest, res: NextApiResponse<RunStatusList>) {
+function getHandler(_req: NextApiRequest, res: NextApiResponse<RunStatusList>) {
   const runs = RunStore.global.all();
   res.status(200).json({ count: runs.length, data: runs });
 }

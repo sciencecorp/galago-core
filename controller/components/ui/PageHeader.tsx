@@ -1,10 +1,8 @@
-import React from "react";
 import {
   Box,
   HStack,
   Heading,
   ButtonGroup,
-  useColorModeValue,
   VStack,
   Text,
   Flex,

@@ -24,11 +24,11 @@ export const NewWorkcellModal: React.FC = () => {
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [value, setValue] = useState("");
+  const [_value, _setValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [type, setType] = useState<string>("");
+  const [_type, _setType] = useState<string>("");
   const createWorkcell = trpc.workcell.add.useMutation();
-  const { data: fetchedWorkcells, refetch } = trpc.workcell.getAll.useQuery();
+  const { data: _fetchedWorkcells, refetch } = trpc.workcell.getAll.useQuery();
 
   const handleSave = async () => {
     const workcell = { name, description, location } as Workcell;
@@ -47,8 +47,8 @@ export const NewWorkcellModal: React.FC = () => {
 
   const clearForm = () => {
     setName("");
-    setValue("");
-    setType("string");
+    _setValue("");
+    _setType("string");
   };
 
   return (

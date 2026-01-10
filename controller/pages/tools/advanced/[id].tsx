@@ -1,24 +1,11 @@
 // Import this at the top of your Page component file
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import {
-  Select,
-  Button,
-  FormControl,
-  FormLabel,
   Box,
-  Grid,
   VStack,
-  Input,
-  NumberInput,
-  NumberInputField,
-  Heading,
-  Flex,
-  HStack,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
-import { ToolCommandInfo } from "@/types";
-import { ToolConfig } from "gen-interfaces/controller";
 
 export default function Page() {
   const router = useRouter();

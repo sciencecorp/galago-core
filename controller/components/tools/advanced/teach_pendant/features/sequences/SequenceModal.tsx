@@ -19,7 +19,7 @@ import {
   Switch,
 } from "@chakra-ui/react";
 import { Tool } from "@/types";
-import { Sequence, SequenceCommand, TeachPoint, MotionProfile, GripParams } from "../../types/";
+import { Sequence, SequenceCommand, TeachPoint } from "../../types/";
 import { trpc } from "@/utils/trpc";
 import { errorToast } from "@/components/ui/Toast";
 import { TemplateSelectionModal } from "./TemplateSelectionModal";

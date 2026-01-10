@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Heading, VStack, Text, FormLabel, HStack, Input, Button } from "@chakra-ui/react";
+import { Box, Heading, VStack, Text, HStack, Input, Button } from "@chakra-ui/react";
 
 export const Settings: React.FC = () => {
   return (

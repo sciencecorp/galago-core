@@ -186,7 +186,7 @@ export const labwareRouter = router({
     return allLabware;
   }),
 
-  importConfig: procedure.input(z.object({ file: z.any() })).mutation(async ({ input }) => {
+  importConfig: procedure.input(z.object({ file: z.any() })).mutation(async ({ input: _input }) => {
     throw new TRPCError({
       code: "NOT_FOUND",
       message: "Import functionality to be implemented",

@@ -44,7 +44,7 @@ import {
   Tooltip,
 } from "@chakra-ui/react";
 import { SearchIcon, ArrowUpDownIcon, HamburgerIcon, DeleteIcon } from "@chakra-ui/icons";
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
@@ -63,7 +63,7 @@ export const ProtocolPageComponent: React.FC = () => {
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [runModalProtocolId, setRunModalProtocolId] = useState<number | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // const _fileInputRef = useRef<HTMLInputElement>(null);
   const {
     isOpen: isNewProtocolOpen,
     onOpen: onNewProtocolOpen,

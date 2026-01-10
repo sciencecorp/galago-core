@@ -3,7 +3,7 @@ import { useDisclosure } from "@chakra-ui/react";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "../types/";
 import { Tool } from "@/types";
 
-export const useTeachPendantUI = (config: Tool) => {
+export const useTeachPendantUI = (_config: Tool) => {
   // Modal states using useDisclosure
   const motionProfileModal = useDisclosure();
   const gripParamsModal = useDisclosure();

@@ -1,19 +1,20 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { db } from "@/db/client";
-import { findOne, findMany, getSelectedWorkcellId } from "@/db/helpers";
+import { findOne, getSelectedWorkcellId } from "@/db/helpers";
 import { protocols, workcells } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
-const zProtocol = z.object({
-  id: z.number().optional(),
-  name: z.string(),
-  category: z.string(),
-  workcellId: z.number().optional(),
-  description: z.string().optional(),
-  commands: z.array(z.any()),
-});
+// Unused zod schema - commented out
+// const _zProtocol = z.object({
+//   id: z.number().optional(),
+//   name: z.string(),
+//   category: z.string(),
+//   workcellId: z.number().optional(),
+//   description: z.string().optional(),
+//   commands: z.array(z.any()),
+// });
 
 const zProtocolCreate = z.object({
   name: z.string(),
@@ -53,7 +54,7 @@ export const protocolRouter = router({
         .optional(),
     )
     .query(async ({ input }) => {
-      let query = db.select().from(protocols);
+      // let _query = db.select().from(protocols);
 
       if (input?.workcellId) {
         const filtered = await db

@@ -73,7 +73,7 @@ export const RunsComponent: React.FC = () => {
   // User Form Modal state
   const [isUserFormModalOpen, setIsUserFormModalOpen] = useState(false);
   const [currentForm, setCurrentForm] = useState<Form | null>(null);
-  const [userFormError, setUserFormError] = useState<string | null>(null);
+  const [_userFormError, setUserFormError] = useState<string | null>(null);
 
   // Unified message state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -200,7 +200,7 @@ export const RunsComponent: React.FC = () => {
     resumeMutation.mutate();
   };
 
-  const handleUserFormSubmit = (formData: Record<string, any>) => {
+  const handleUserFormSubmit = (_formData: Record<string, any>) => {
     // TODO: Handle form submission - for now just resume
     resumeMutation.mutate();
     setIsUserFormModalOpen(false);

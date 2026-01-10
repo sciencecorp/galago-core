@@ -55,7 +55,7 @@ export class CSharpExecutor {
       const compileCommand = `cd ${tempDir} && dotnet build -c Release -o ./bin`;
 
       try {
-        const { stdout: compileStdout, stderr: compileStderr } = await execPromise(compileCommand, {
+        const { stdout: _compileStdout, stderr: compileStderr } = await execPromise(compileCommand, {
           timeout,
         });
 

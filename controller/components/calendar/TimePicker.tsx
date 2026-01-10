@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Box, HStack, Select, Text } from "@chakra-ui/react";
+import React, { useState } from "react";
+import { HStack, Select, Text } from "@chakra-ui/react";
 
 interface CustomTimePickerProps {
   onTimeSelect?: (time: string) => void;

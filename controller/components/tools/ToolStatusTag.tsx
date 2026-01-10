@@ -1,6 +1,5 @@
 import { trpc } from "@/utils/trpc";
 import { Box, Spinner, Tag } from "@chakra-ui/react";
-import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import moment from "moment-timezone";
 import StatusTag from "./StatusTag";
 

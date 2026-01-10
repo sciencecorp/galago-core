@@ -167,9 +167,9 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
   });
 
   const {
-    isOpen: isParametersModalOpen,
-    onOpen: openParametersModal,
-    onClose: closeParametersModal,
+    isOpen: _isParametersModalOpen,
+    onOpen: _openParametersModal,
+    onClose: _closeParametersModal,
   } = useDisclosure();
 
   const handleAddCommandAtPosition = (position: number) => {
@@ -357,7 +357,7 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
 
   const renderDraggableCommands = (
     provided: DroppableProvided,
-    snapshot: DroppableStateSnapshot,
+    _snapshot: DroppableStateSnapshot,
   ) => {
     if (commands.length === 0 && isEditing) {
       return (
