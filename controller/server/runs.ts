@@ -31,10 +31,9 @@ async function getToolFromDB(toolId: string) {
   }
 
   // Find tool by name
-  const searchName = toolId.replace(/_/g, " ");
   const allTools = await db.select().from(tools).where(eq(tools.workcellId, workcell[0].id));
 
-  const tool = allTools.find((t) => t.name.toLowerCase() === searchName.toLowerCase());
+  const tool = allTools.find((t) => t.name.toLowerCase() === toolId.toLowerCase());
 
   if (!tool) {
     throw new Error(`Tool '${toolId}' not found`);

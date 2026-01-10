@@ -230,7 +230,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
         toolId:
           selectedToolType === "toolbox"
             ? "Tool Box"
-            : selectedToolData?.name?.toLocaleLowerCase().replaceAll(" ", "_"),
+            : selectedToolData?.name,
         toolType: selectedToolType,
         command: selectedCommand,
         params: finalParams, // Use the complete params

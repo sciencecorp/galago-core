@@ -42,13 +42,12 @@ export const zTool = z.object({
   config: z.union([z.record(z.any()), z.null()]).optional(),
 });
 
-// Helper function to get tool from DB by toolId (handles underscore/space conversion)
+// Helper function to get tool from DB by toolId
 async function getToolFromDB(toolId: string) {
-  const searchName = toolId.replace(/_/g, " ");
   const workcellId = await getSelectedWorkcellId();
 
   const allTools = await findMany(tools, eq(tools.workcellId, workcellId));
-  const tool = allTools.find((t) => t.name.toLowerCase() === searchName.toLowerCase());
+  const tool = allTools.find((t) => t.name.toLowerCase() === toolId.toLowerCase());
 
   if (!tool) {
     throw new TRPCError({
@@ -378,8 +377,8 @@ export const toolRouter = router({
 
       const workcellTools = await findMany(tools, eq(tools.workcellId, workcellId));
 
-      // Return tool IDs as lowercase with underscores (matching the format used in components)
-      const toolIds = workcellTools.map((tool) => tool.name.toLowerCase().replace(/\s+/g, "_"));
+      // Return tool names as-is
+      const toolIds = workcellTools.map((tool) => tool.name);
       toolIds.push("Tool Box");
 
       return toolIds;

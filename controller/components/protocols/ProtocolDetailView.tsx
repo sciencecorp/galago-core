@@ -92,7 +92,7 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
           <Box>
             <HStack spacing={2}>
               <Box width="90%">
-                <Text as="b">{capitalizeFirst(command.commandInfo.toolType)}</Text>
+                <Text as="b">{capitalizeFirst(command.commandInfo.toolId)}</Text>
               </Box>
               <Box className="command-menu">
                 <Menu>
