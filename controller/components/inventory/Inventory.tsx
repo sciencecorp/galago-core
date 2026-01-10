@@ -79,7 +79,7 @@ export const InventoryManager = () => {
     },
   );
 
-  const { data: nests = [] } = trpc.inventory.getNests.useQuery(undefined, {
+  const { data: nests = [], refetch: refetchNests } = trpc.inventory.getNests.useQuery(undefined, {
     enabled: !!selectedWorkcellName.data,
   });
 
@@ -142,15 +142,10 @@ export const InventoryManager = () => {
         ...hotelData,
       })) as Hotel;
 
-      // Get the hotel ID from the response
       const hotelId = result.id;
-
-      // Step 2: Generate all nests for the hotel using loadingToast with promise
       const nestCreationPromise = (async () => {
         const totalNests = hotelData.rows * hotelData.columns;
         let createdNests = 0;
-
-        // Create nests sequentially to avoid race conditions
         for (let row = 0; row < hotelData.rows; row++) {
           for (let col = 0; col < hotelData.columns; col++) {
             try {
@@ -194,6 +189,7 @@ export const InventoryManager = () => {
 
       // Step 3: Refresh the data
       await refetchHotels();
+      await refetchNests();
     } catch (error) {
       errorToast("Error creating hotel", error instanceof Error ? error.message : "Unknown error");
     }

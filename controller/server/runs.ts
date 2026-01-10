@@ -161,6 +161,7 @@ export default class RunStore {
       const run: Run = {
         id: runId,
         protocolId,
+        protocolName: protocol.name,
         commands: runCommands,
         status: "CREATED",
         createdAt: new Date(),

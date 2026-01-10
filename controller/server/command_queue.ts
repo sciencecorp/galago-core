@@ -796,7 +796,7 @@ export class CommandQueue {
     try {
       const runQueue: RunQueue = {
         id: run.id,
-        run_type: run.protocolId,
+        run_type: run.protocolName || run.protocolId,
         commands_count: run.commands.length,
         status: "CREATED",
       };
