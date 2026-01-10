@@ -71,7 +71,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
           const toolId = tool.name.toLocaleLowerCase().replaceAll(" ", "_");
 
           // Skip tool_box and tools without configs
-          if (toolId === "tool_box" || !tool.config) {
+          if (tool.name === "Tool Box" || !tool.config) {
             return { status: "skipped", toolId };
           }
 

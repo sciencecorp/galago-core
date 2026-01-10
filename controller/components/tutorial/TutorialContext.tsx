@@ -448,7 +448,7 @@ export function TutorialProvider({
       // Protocol: keep it self-contained so the tutorial is functional even without instrument programs/files.
       const protocolCommands = [
         {
-          toolId: "tool_box",
+          toolId: "Tool Box",
           toolType: "toolbox",
           command: "show_message",
           params: {
@@ -479,7 +479,7 @@ export function TutorialProvider({
           label: "Cytation: open carrier (demo)",
         },
         {
-          toolId: "tool_box",
+          toolId: "Tool Box",
           toolType: "toolbox",
           command: "run_script",
           params: { name: scripts[0].name, blocking: true },
@@ -493,7 +493,7 @@ export function TutorialProvider({
           label: "Cytation: close carrier (demo)",
         },
         {
-          toolId: "tool_box",
+          toolId: "Tool Box",
           toolType: "toolbox",
           command: "note",
           params: {

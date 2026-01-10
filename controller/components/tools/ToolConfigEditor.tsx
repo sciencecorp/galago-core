@@ -91,7 +91,7 @@ export function ToolConfigEditor({
     statusQuery.isSuccess &&
     statusQuery.data &&
     statusQuery.data.status !== ToolStatus.OFFLINE &&
-    toolId != "tool_box";
+    toolId != "Tool Box";
 
   const saveConfig = async (simulated: boolean) => {
     setToolConfiguring(true);

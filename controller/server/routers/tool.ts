@@ -344,7 +344,7 @@ export const toolRouter = router({
     const toolbox = Tool.toolBoxConfig();
     return {
       id: 228629,
-      name: "tool_box",
+      name: "Tool Box",
       type: toolbox.type,
       ip: toolbox.ip,
       port: toolbox.port,
@@ -380,7 +380,7 @@ export const toolRouter = router({
 
       // Return tool IDs as lowercase with underscores (matching the format used in components)
       const toolIds = workcellTools.map((tool) => tool.name.toLowerCase().replace(/\s+/g, "_"));
-      toolIds.push("tool_box");
+      toolIds.push("Tool Box");
 
       return toolIds;
     }),
@@ -392,10 +392,9 @@ export const toolRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      // Special case for tool_box
-      if (input.toolId === "tool_box") {
+      if (input.toolId === "Tool Box") {
         const toolbox = Tool.toolBoxConfig();
-        const tool = Tool.forId("tool_box", toolbox.ip, toolbox.port, toolbox.type as ToolType);
+        const tool = Tool.forId("Tool Box", toolbox.ip, toolbox.port, toolbox.type as ToolType);
         return await tool.fetchStatus();
       }
 
@@ -420,8 +419,7 @@ export const toolRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      // Special case for tool_box
-      if (input.toolId === "tool_box") {
+      if (input.toolId === "Tool Box") {
         const toolbox = Tool.toolBoxConfig();
         return {
           id: -1,
@@ -467,10 +465,9 @@ export const toolRouter = router({
     .mutation(async ({ input }) => {
       const { toolId, config } = input;
 
-      // Special case for tool_box
-      if (toolId === "tool_box") {
+      if (toolId === "Tool Box") {
         const toolbox = Tool.toolBoxConfig();
-        const tool = Tool.forId("tool_box", toolbox.ip, toolbox.port, toolbox.type as ToolType);
+        const tool = Tool.forId("Tool Box", toolbox.ip, toolbox.port, toolbox.type as ToolType);
         return await tool.configure(config);
       }
 

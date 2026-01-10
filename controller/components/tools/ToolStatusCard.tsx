@@ -153,7 +153,7 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
               </Text>
             </Box>
             <Box position="absolute" top={0} right={0} zIndex={1}>
-              {toolId !== "tool_box" && <EditMenu onEdit={onOpen} onDelete={openDeleteConfirm} />}
+              {toolId !== "Tool Box" && <EditMenu onEdit={onOpen} onDelete={openDeleteConfirm} />}
             </Box>
           </Flex>
         </CardHeader>

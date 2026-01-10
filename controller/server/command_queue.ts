@@ -610,8 +610,7 @@ export class CommandQueue {
           seconds,
         ).padStart(2, "0")} ${amOrPm}`;
 
-        // Handle special tool_box commands
-        if (nextCommand.commandInfo.toolId === "tool_box") {
+        if (nextCommand.commandInfo.toolId === "Tool Box") {
           if (nextCommand.commandInfo.command === "pause") {
             const message =
               nextCommand.commandInfo.params?.message || "Run is paused. Click Continue to resume.";
