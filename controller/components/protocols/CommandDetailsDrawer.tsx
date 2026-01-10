@@ -52,8 +52,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
   const toolId =
     selectedCommand?.commandInfo?.toolType === "pf400"
       ? toolsData?.find(
-          (t) =>
-            t.name?.toLowerCase() === selectedCommand?.commandInfo?.toolId?.toLowerCase(),
+          (t) => t.name?.toLowerCase() === selectedCommand?.commandInfo?.toolId?.toLowerCase(),
         )?.id || 0
       : 0;
 

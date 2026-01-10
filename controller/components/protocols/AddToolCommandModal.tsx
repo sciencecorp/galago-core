@@ -227,10 +227,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
 
     const newCommand = {
       commandInfo: {
-        toolId:
-          selectedToolType === "toolbox"
-            ? "Tool Box"
-            : selectedToolData?.name,
+        toolId: selectedToolType === "toolbox" ? "Tool Box" : selectedToolData?.name,
         toolType: selectedToolType,
         command: selectedCommand,
         params: finalParams, // Use the complete params
