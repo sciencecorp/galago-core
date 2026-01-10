@@ -78,9 +78,21 @@ export const protocolRouter = router({
       return await db.select().from(protocols);
     }),
 
-  // Get single protocol
+  // Get single protocol by ID
   get: procedure.input(z.number()).query(async ({ input: protocolId }) => {
     const protocol = await findOne(protocols, eq(protocols.id, protocolId));
+    if (!protocol) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Protocol not found",
+      });
+    }
+    return protocol;
+  }),
+
+  // Get single protocol by name
+  getByName: procedure.input(z.string()).query(async ({ input: protocolName }) => {
+    const protocol = await findOne(protocols, eq(protocols.name, protocolName));
     if (!protocol) {
       throw new TRPCError({
         code: "NOT_FOUND",
