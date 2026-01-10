@@ -279,8 +279,7 @@ export const toolRouter = router({
       const updatedTool = updated[0];
 
       // Clean up Tool class cache
-      const toolId = Tool.normalizeToolId(updatedTool.name);
-      await Tool.removeTool(toolId);
+      await Tool.removeTool(updatedTool.name);
 
       await db.insert(logs).values({
         level: "info",
@@ -330,8 +329,7 @@ export const toolRouter = router({
     }
 
     // Clean up Tool class cache
-    const normalizedToolId = Tool.normalizeToolId(deleted[0].name);
-    await Tool.removeTool(normalizedToolId);
+    await Tool.removeTool(deleted[0].name);
 
     await db.insert(logs).values({
       level: "info",
@@ -405,9 +403,8 @@ export const toolRouter = router({
       const toolRecord = await getToolFromDB(input.toolId);
 
       // Then get runtime status from Tool class
-      const normalizedId = Tool.normalizeToolId(toolRecord.name);
       const tool = Tool.forId(
-        normalizedId,
+        toolRecord.name,
         toolRecord.ip,
         toolRecord.port,
         toolRecord.type as ToolType,
@@ -481,9 +478,8 @@ export const toolRouter = router({
       const toolRecord = await getToolFromDB(toolId);
 
       // Get/create Tool instance
-      const normalizedId = Tool.normalizeToolId(toolRecord.name);
       const tool = Tool.forId(
-        normalizedId,
+        toolRecord.name,
         toolRecord.ip,
         toolRecord.port,
         toolRecord.type as ToolType,

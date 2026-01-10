@@ -118,10 +118,9 @@ export default class RunStore {
     for (const c of run.commands) {
       // Get tool info from database first
       const toolRecord = await getToolFromDB(c.commandInfo.toolId);
-      const normalizedId = Tool.normalizeToolId(toolRecord.name);
 
       // Create Tool instance with all required parameters
-      const tool = Tool.forId(normalizedId, toolRecord.ip, toolRecord.port, toolRecord.type as any);
+      const tool = Tool.forId(toolRecord.name, toolRecord.ip, toolRecord.port, toolRecord.type as any);
 
       // Estimate duration
       durationEstimates.push(
