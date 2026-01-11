@@ -84,7 +84,6 @@ export default class Tool {
       this.uptime = statusReply.uptime;
       return statusReply;
     } catch (e) {
-      console.error(`Failed to fetch status for tool ${this.toolId}: ${e}`);
       this.status = ToolStatus.UNKNOWN_STATUS;
       this.stopHeartbeat();
       return { uptime: 0, status: ToolStatus.UNKNOWN_STATUS } as tool_base.StatusReply;
