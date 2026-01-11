@@ -304,14 +304,18 @@ export const successToast = (title: string, description: string) => {
   });
 };
 
-export const warningToast = (title: string, description: string) => {
+export const warningToast = (
+  title: string,
+  description: string,
+  position?: "top" | "bottom" | "top-right" | "bottom-right" | "top-left" | "bottom-left",
+) => {
   toast({
     title,
     description,
     status: "warning",
     duration: defaultToastOptions.duration,
     variant: defaultToastOptions.variant,
-    position: defaultToastOptions.position,
+    position: position || defaultToastOptions.position,
     isClosable: defaultToastOptions.isClosable,
   });
 };
