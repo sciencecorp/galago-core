@@ -16,12 +16,10 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     <ChakraProvider>
       <TutorialProvider steps={tutorialSteps}>
         <Sidebar>
-          <Box height="100vh" overflow="auto" display="flex" flexDirection="column">
-            <GlobalQueueStatusIndicator />
-            <VStack align="stretch" flex="1" overflow="auto" spacing={4} p={4}>
-              <Component {...pageProps} />
-            </VStack>
-          </Box>
+          <GlobalQueueStatusIndicator />
+          <VStack align="stretch" flex="1" spacing={4} p={0}>
+            <Component {...pageProps} />
+          </VStack>
         </Sidebar>
         <TutorialModal />
       </TutorialProvider>
