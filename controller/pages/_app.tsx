@@ -1,6 +1,5 @@
-// pages/_app.tsx
 import "@/styles/globals.css";
-import { ChakraProvider, VStack, Box } from "@chakra-ui/react";
+import { ChakraProvider, VStack } from "@chakra-ui/react";
 import { trpc } from "../utils/trpc";
 import type { AppType } from "next/app";
 import Sidebar from "@/components/ui/SideBar";
