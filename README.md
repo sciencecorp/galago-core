@@ -1,7 +1,7 @@
 # Galago
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Python Version](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
+[![Node Version](https://img.shields.io/badge/node-22.11-blue.svg)](https://nodejs.org/)
 [![GitHub Issues](https://img.shields.io/github/issues/sciencecorp/galago-core)](https://github.com/sciencecorp/galago-tools/issues)
 
 **Galago** is a comprehensive laboratory automation platform that orchestrates and manages laboratory equipment through a unified interface. It provides protocol execution, device management, and real-time monitoring for automated laboratory workflows.
@@ -11,7 +11,6 @@
 Galago consists of several distinct modules:
 
 - **Controller**: A Next.js + tRPC web application that provides the user interface, manages device orchestration, protocol execution, and scheduling
-- **Database API**: A FastAPI-based service that handles data persistence for inventory, protocols, and logs
 - **Tool Drivers**: [Separate repository](https://github.com/sciencecorp/galago-tools) containing gRPC-based drivers for laboratory equipment
 
 ## Features
@@ -27,8 +26,7 @@ Galago consists of several distinct modules:
 
 ### Prerequisites
 
-- **Node.js** 18.13 or higher
-- **Python** 3.11
+- **Node.js** 22.11
 - **Docker** and **Docker Compose** (recommended for development)
 - **Redis** (for queue management)
 
@@ -87,15 +85,7 @@ bin/make deps
 bin/make proto
 ```
 
-#### 2. Start the database service
-
-```bash
-cd db
-pip install -r requirements.txt
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-#### 3. Start the web controller
+#### 2. Start the web controller
 
 ```bash
 cd controller
@@ -191,7 +181,6 @@ We welcome contributions to Galago! Please follow these guidelines:
 ### Code Style
 
 - **TypeScript/JavaScript**: Follow existing patterns, use Prettier for formatting
-- **Python**: Follow PEP 8, use type hints where possible
 - **Commit messages**: Use conventional commit format
 
 ### Adding New Tools
@@ -253,6 +242,6 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## Support
 
-- **Documentation**: Check the `/docs` endpoint when running the database API
+- **Documentation**: See the [Galago Core Documentation](https://galago.bio/)
 - **Issues**: Report bugs and feature requests via GitHub Issues
 - **Discussions**: Use GitHub Discussions for questions and community support
