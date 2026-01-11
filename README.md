@@ -242,6 +242,6 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## Support
 
-- **Documentation**: See the [Galago Core Documentation](https://galago.bio/)
+- **Documentation**: See the [Galago Documentation](https://galago.bio/)
 - **Issues**: Report bugs and feature requests via GitHub Issues
 - **Discussions**: Use GitHub Discussions for questions and community support
