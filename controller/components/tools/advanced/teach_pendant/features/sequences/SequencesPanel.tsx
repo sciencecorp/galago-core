@@ -9,7 +9,6 @@ import {
   Td,
   IconButton,
   HStack,
-  Tooltip,
   Grid,
   GridItem,
   AlertDialog,
@@ -26,13 +25,11 @@ import {
   MenuList,
   MenuItem,
   MenuDivider,
-  Badge,
   Text,
-  Select,
 } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon, CopyIcon } from "@chakra-ui/icons";
+import { AddIcon, DeleteIcon, HamburgerIcon, CopyIcon } from "@chakra-ui/icons";
 import { PlayIcon } from "@/components/ui/Icons";
-import { Tool } from "@/types/api";
+import { Tool } from "@/types";
 import { CommandList } from "./CommandList";
 import { useState, useEffect, useRef } from "react";
 import { usePagination } from "../../hooks/usePagination";
@@ -69,7 +66,7 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
   onCreateNew,
   onUpdateSequence,
   onCloneSequence, // Add this prop
-  bgColor,
+  bgColor: _bgColor,
   bgColorAlpha,
   config,
 }) => {

@@ -1,6 +1,4 @@
-import { trpc } from "@/utils/trpc";
-import React, { useEffect, memo } from "react";
-import { Box, IconButton, Image, Center } from "@chakra-ui/react";
+import { Box, IconButton, Image } from "@chakra-ui/react";
 import {
   Wrench,
   FileCode,
@@ -11,7 +9,6 @@ import {
   StopCircle,
   Repeat,
   Variable,
-  FormInput,
   Volume2,
   List,
 } from "lucide-react";
@@ -44,7 +41,7 @@ const CommandImage: React.FC<CommandImageProps> = (props) => {
 
   const renderToolImage = (config: any) => {
     if (!config) return;
-    if (!config.image_url) {
+    if (!config.imageUrl) {
       return <Box></Box>;
     } else if (config.name == "Tool Box") {
       return (
@@ -63,7 +60,7 @@ const CommandImage: React.FC<CommandImageProps> = (props) => {
       return (
         <Box display="flex" justifyContent="center" alignItems="center">
           <Image
-            src={config.image_url}
+            src={config.imageUrl}
             alt={config.name}
             objectFit="contain"
             height="65px"

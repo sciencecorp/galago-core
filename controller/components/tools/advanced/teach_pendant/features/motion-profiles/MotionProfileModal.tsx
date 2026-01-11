@@ -34,10 +34,10 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
   profile,
   onSave,
   toolId,
-  existingProfiles = [],
+  existingProfiles: _existingProfiles = [],
 }) => {
   const [name, setName] = useState("");
-  const [profileId, setProfileId] = useState(1);
+  const [_profileId, setProfileId] = useState(1);
   const [speed, setSpeed] = useState(50);
   const [speed2, setSpeed2] = useState(50);
   const [acceleration, setAcceleration] = useState(50);
@@ -69,8 +69,8 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
       setSpeed2(profile.speed2);
       setAcceleration(profile.acceleration);
       setDeceleration(profile.deceleration);
-      setAccelRamp(profile.accel_ramp);
-      setDecelRamp(profile.decel_ramp);
+      setAccelRamp(profile.accelRamp);
+      setDecelRamp(profile.decelRamp);
       setInrange(profile.inrange);
       setStraight(profile.straight);
     }
@@ -95,9 +95,9 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
         speed2,
         acceleration,
         deceleration,
-        tool_id: toolId,
-        accel_ramp: accelRamp,
-        decel_ramp: decelRamp,
+        toolId: toolId,
+        accelRamp: accelRamp,
+        decelRamp: decelRamp,
         inrange,
         straight,
       });

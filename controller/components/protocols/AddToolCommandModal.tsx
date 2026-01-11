@@ -227,10 +227,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
 
     const newCommand = {
       commandInfo: {
-        toolId:
-          selectedToolType === "toolbox"
-            ? "tool_box"
-            : selectedToolData?.name?.toLocaleLowerCase().replaceAll(" ", "_"),
+        toolId: selectedToolType === "toolbox" ? "Tool Box" : selectedToolData?.name,
         toolType: selectedToolType,
         command: selectedCommand,
         params: finalParams, // Use the complete params
@@ -723,7 +720,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
             fontWeight={isSelected ? "bold" : "normal"}
             textAlign="center"
             wordBreak="break-word">
-            {command}
+            {capitalizeFirst(command.replaceAll("_", " "))}
           </Text>
         </VStack>
       </Box>

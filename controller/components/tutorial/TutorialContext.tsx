@@ -56,11 +56,8 @@ const TutorialContext = createContext<TutorialContextValue | null>(null);
 const TUTORIAL_STORAGE_KEY = "galago_tutorial_v1";
 
 function safeToIdSuffix() {
-  // Keep tutorial-generated names readable while still reducing collisions.
-  // 000-999, always 3 digits.
   try {
     const arr = new Uint32Array(1);
-    // crypto.getRandomValues exists in modern browsers and Node 18+
     globalThis.crypto?.getRandomValues?.(arr);
     const n = Number(arr[0] % 1000);
     return String(n).padStart(3, "0");
@@ -68,10 +65,6 @@ function safeToIdSuffix() {
     const n = Math.floor(Math.random() * 1000);
     return String(n).padStart(3, "0");
   }
-}
-
-function normalizeToolId(name: string) {
-  return name.toLocaleLowerCase().replaceAll(" ", "_");
 }
 
 export function TutorialProvider({
@@ -151,21 +144,21 @@ export function TutorialProvider({
 
       // Tools for the tutorial workcell
       const toolSpecs = [
-        { type: "pf400", name: `Tutorial PF400 ${suffix}`, image_url: "/tool_icons/pf400.png" },
+        { type: "pf400", name: `Tutorial PF400 ${suffix}`, imageUrl: "/tool_icons/pf400.png" },
         {
           type: "opentrons2",
           name: `Tutorial Opentrons ${suffix}`,
-          image_url: "/tool_icons/opentrons2.png",
+          imageUrl: "/tool_icons/opentrons2.png",
         },
         {
           type: "cytation",
           name: `Tutorial Cytation ${suffix}`,
-          image_url: "/tool_icons/cytation.png",
+          imageUrl: "/tool_icons/cytation.png",
         },
         {
           type: "liconic",
           name: `Tutorial Liconic ${suffix}`,
-          image_url: "/tool_icons/liconic.png",
+          imageUrl: "/tool_icons/liconic.png",
         },
       ];
 
@@ -197,14 +190,11 @@ export function TutorialProvider({
         const created = (await addTool.mutateAsync({
           type: spec.type as any,
           name: spec.name,
+          imageUrl: spec.imageUrl,
           description: "Auto-created for the in-app walkthrough. Safe to delete.",
-          image_url: spec.image_url,
           ip: "localhost",
-          workcell_id: workcell?.id,
-          // Provide a valid config shape so "Connect All" and the tutorial run can work end-to-end.
-          // We default to simulated so the demo is functional without hardware.
           config: {
-            toolId: normalizeToolId(spec.name),
+            toolId: spec.name,
             simulated: true,
             [spec.type]: hardcodedConfigByType[spec.type] ?? {},
           },
@@ -213,16 +203,13 @@ export function TutorialProvider({
           id: created?.id,
           name: created?.name ?? spec.name,
           type: created?.type ?? spec.type,
-          toolId: normalizeToolId(created?.name ?? spec.name),
+          toolId: created?.name ?? spec.name,
         });
       }
 
       // Inventory: a static hotel with nests and a sample plate
       const hotel = await createHotel.mutateAsync({
         name: `Tutorial Static Hotel ${suffix}`,
-        description: "Static hotel for storing plates during the walkthrough (safe to delete).",
-        image_url: "/tool_icons/hotel.png",
-        workcell_id: workcell?.id ?? 1,
         rows: 4,
         columns: 6,
       });
@@ -234,8 +221,7 @@ export function TutorialProvider({
             name: `H${r}-${c}`,
             row: r,
             column: c,
-            hotel_id: hotel?.id,
-            status: "empty",
+            hotelId: hotel?.id,
           })) as IdName;
           nests.push({ id: nest?.id, name: nest?.name ?? `H${r}-${c}` });
         }
@@ -247,9 +233,8 @@ export function TutorialProvider({
         ? await createPlate.mutateAsync({
             name: `Tutorial Culture Plate ${suffix}`,
             barcode: plateBarcode,
-            plate_type: "96_well_plate",
-            nest_id: firstNestId,
-            status: "stored",
+            plateType: "96_well_plate",
+            nestId: firstNestId,
           })
         : null;
 
@@ -278,15 +263,15 @@ export function TutorialProvider({
         variables.push({ id: created?.id, name: created?.name ?? v.name });
       }
 
-      const varName = (prefix: string) =>
-        variables.find((v) => v.name.startsWith(prefix + "_"))?.name ?? `${prefix}_${suffix}`;
+      // Unused helper function - commented out
+      // const __varName = (prefix: string) =>
+      //   variables.find((v) => v.name.startsWith(prefix + "_"))?.name ?? `${prefix}_${suffix}`;
 
       // Scripts
       const createVariablesScript = await addScript.mutateAsync({
         name: "create_variables",
-        description: "Tutorial script: create commonly-used variables (safe to delete).",
         language: "python",
-        folder_id: null,
+        folderId: null,
         content: [
           "from tools.toolbox.variables import get_variable, update_variable, create_variable",
           "",
@@ -399,17 +384,15 @@ export function TutorialProvider({
       const tutorialLabware = await addLabware.mutateAsync({
         name: `Tutorial 96 Well Plate ${suffix}`,
         description: "Tutorial labware definition (safe to delete).",
-        number_of_rows: 8,
-        number_of_columns: 12,
-        // Keep required numeric fields explicit to satisfy zod/backends consistently
-        z_offset: 0,
+        numberOfRows: 8,
+        numberOfColumns: 12,
+        zOffset: 0,
         width: 0,
         height: 0,
-        plate_lid_offset: 0,
-        lid_offset: 0,
-        stack_height: 0,
-        has_lid: false,
-        image_url: "/tool_icons/labware.png",
+        plateLidOffset: 0,
+        lidOffset: 0,
+        stackHeight: 0,
+        hasLid: false,
       });
       const labware = [
         {
@@ -421,16 +404,14 @@ export function TutorialProvider({
       // Forms: a simple operator input form (safe to delete)
       const tutorialForm = await addForm.mutateAsync({
         name: `Tutorial Operator Check-in ${suffix}`,
-        background_color: null,
-        font_color: null,
+        backgroundColor: null,
+        fontColor: null,
         fields: [
           {
             type: "label",
             label: "Tutorial form: confirm setup before running.",
             required: false,
             placeholder: null,
-            description: null,
-            validation: null,
             options: null,
             default_value: null,
             mapped_variable: null,
@@ -440,8 +421,6 @@ export function TutorialProvider({
             label: "Operator initials",
             required: true,
             placeholder: "e.g. MM",
-            description: null,
-            validation: null,
             options: null,
             default_value: null,
             mapped_variable: null,
@@ -451,8 +430,6 @@ export function TutorialProvider({
             label: "Plate sealed",
             required: false,
             placeholder: null,
-            description: null,
-            validation: null,
             options: null,
             default_value: null,
             mapped_variable: null,
@@ -472,7 +449,7 @@ export function TutorialProvider({
       // Protocol: keep it self-contained so the tutorial is functional even without instrument programs/files.
       const protocolCommands = [
         {
-          toolId: "tool_box",
+          toolId: "Tool Box",
           toolType: "toolbox",
           command: "show_message",
           params: {
@@ -503,7 +480,7 @@ export function TutorialProvider({
           label: "Cytation: open carrier (demo)",
         },
         {
-          toolId: "tool_box",
+          toolId: "Tool Box",
           toolType: "toolbox",
           command: "run_script",
           params: { name: scripts[0].name, blocking: true },
@@ -517,7 +494,7 @@ export function TutorialProvider({
           label: "Cytation: close carrier (demo)",
         },
         {
-          toolId: "tool_box",
+          toolId: "Tool Box",
           toolType: "toolbox",
           command: "note",
           params: {
@@ -532,7 +509,7 @@ export function TutorialProvider({
         category: "development",
         description:
           "Tutorial walkthrough protocol that creates demo variables via Tool Box (safe to delete).",
-        workcell_id: workcell?.id,
+        workcellId: workcell?.id,
         commands: protocolCommands,
       });
 
@@ -604,11 +581,10 @@ export function TutorialProvider({
       setIsBusy(true);
       isQueueingTutorialRunRef.current = true;
       try {
-        // Mark as queued immediately to avoid repeat auto-queues while the request is in flight.
         if (!opts?.force) setHasQueuedTutorialRun(true);
 
         await createRun.mutateAsync({
-          protocolId: String(protocolIdRaw),
+          protocolId: protocolIdRaw,
           numberOfRuns,
         });
         setHasQueuedTutorialRun(true);
@@ -635,7 +611,7 @@ export function TutorialProvider({
       // Best-effort cleanup; order matters for foreign keys in some systems.
       if (demoData.protocols?.length) {
         for (const p of demoData.protocols) {
-          if (p.id != null) await deleteProtocol.mutateAsync({ id: p.id });
+          if (p.id != null) await deleteProtocol.mutateAsync(p.id);
         }
       }
 

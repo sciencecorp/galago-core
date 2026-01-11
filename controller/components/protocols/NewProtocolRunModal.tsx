@@ -17,33 +17,39 @@ import {
   Box,
   useNumberInput,
   HStack,
+  Spinner,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { z } from "zod";
 import { successToast, errorToast } from "../ui/Toast";
 
-export default function NewProtocolRunModal({ id, onClose }: { id: string; onClose: () => void }) {
+// Change id prop type to number
+export default function NewProtocolRunModal({ id, onClose }: { id: number; onClose: () => void }) {
   const router = useRouter();
   const workcellData = trpc.workcell.getSelectedWorkcell.useQuery();
   const workcellName = workcellData.data;
 
-  const protocol = trpc.protocol.get.useQuery(
-    {
-      id: id,
+  // FIX: Pass id directly as a number, not as an object
+  const {
+    data: protocol,
+    isLoading,
+    error,
+  } = trpc.protocol.get.useQuery(id, {
+    onError: (error) => {
+      console.error({
+        message: error.message,
+        data: error.data,
+      });
+      errorToast("Error loading protocol", error.message);
     },
-    {
-      onError: (error) => {
-        console.error({
-          message: error.message,
-          data: error.data,
-        });
-        errorToast("Error loading protocol", error.message);
-      },
-    },
-  );
+  });
 
-  const { isOpen, onOpen } = useDisclosure({ defaultIsOpen: true });
+  const { isOpen } = useDisclosure({ defaultIsOpen: true });
   const [formErrors, setFormErrors] = useState<z.inferFormattedError<z.AnyZodObject>>();
 
   const { getInputProps, getIncrementButtonProps, getDecrementButtonProps } = useNumberInput({
@@ -59,7 +65,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
   const numberOfRuns = getInputProps();
 
   const createRunMutation = trpc.run.create.useMutation({
-    onSuccess: (data) => {
+    onSuccess: () => {
       successToast(
         "Run queued successfully",
         `Successfully queued ${numberOfRuns.value} run${Number(numberOfRuns.value) > 1 ? "s" : ""}`,
@@ -94,61 +100,95 @@ export default function NewProtocolRunModal({ id, onClose }: { id: string; onClo
     });
   };
 
+  // Add loading state
+  if (isLoading) {
+    return (
+      <Modal isOpen={isOpen} onClose={handleClose} size="md">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Loading Protocol...</ModalHeader>
+          <ModalBody>
+            <Spinner size="xl" />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+    );
+  }
+
+  // Add error state
+  if (error || !protocol) {
+    return (
+      <Modal isOpen={isOpen} onClose={handleClose} size="md">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Error</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Alert status="error">
+              <AlertIcon />
+              <Box>
+                <AlertTitle>Error loading protocol</AlertTitle>
+                <AlertDescription>{error?.message || "Protocol not found"}</AlertDescription>
+              </Box>
+            </Alert>
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={handleClose}>Close</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    );
+  }
+
   return (
-    <>
-      {workcellName && protocol.data && (
-        <Box>
-          <Modal
-            isOpen={isOpen}
-            onClose={handleClose}
-            closeOnOverlayClick={!createRunMutation.isLoading}
-            closeOnEsc={!createRunMutation.isLoading}
-            size="md">
-            <ModalOverlay />
-            <ModalContent>
-              <ModalHeader>New Run - {protocol.data?.name || "Protocol"}</ModalHeader>
-              <ModalCloseButton onClick={handleClose} isDisabled={createRunMutation.isLoading} />
-              <ModalBody>
-                <VStack align="start" spacing={4}>
-                  <Box width="100%" borderRadius="md" p={4}>
-                    <FormControl isInvalid={!!formErrors}>
-                      <FormLabel textAlign="center">Number of Runs</FormLabel>
-                      <HStack justifyContent="center">
-                        <Button {...dec} isDisabled={createRunMutation.isLoading}>
-                          -
-                        </Button>
-                        <Input
-                          maxWidth="100px"
-                          {...numberOfRuns}
-                          textAlign="center"
-                          isDisabled={createRunMutation.isLoading}
-                        />
-                        <Button {...inc} isDisabled={createRunMutation.isLoading}>
-                          +
-                        </Button>
-                      </HStack>
-                    </FormControl>
-                  </Box>
-                </VStack>
-              </ModalBody>
-              <ModalFooter>
-                <ButtonGroup>
-                  <Button onClick={handleClose} isDisabled={createRunMutation.isLoading}>
-                    Cancel
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      closeOnOverlayClick={!createRunMutation.isLoading}
+      closeOnEsc={!createRunMutation.isLoading}
+      size="md">
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>New Run - {protocol.name || "Protocol"}</ModalHeader>
+        <ModalCloseButton onClick={handleClose} isDisabled={createRunMutation.isLoading} />
+        <ModalBody>
+          <VStack align="start" spacing={4}>
+            <Box width="100%" borderRadius="md" p={4}>
+              <FormControl isInvalid={!!formErrors}>
+                <FormLabel textAlign="center">Number of Runs</FormLabel>
+                <HStack justifyContent="center">
+                  <Button {...dec} isDisabled={createRunMutation.isLoading}>
+                    -
                   </Button>
-                  <Button
-                    isLoading={createRunMutation.isLoading}
-                    isDisabled={createRunMutation.isLoading || !workcellName}
-                    colorScheme="teal"
-                    onClick={handleQueueRun}>
-                    Queue Run{Number(numberOfRuns.value) > 1 ? "s" : ""}
+                  <Input
+                    maxWidth="100px"
+                    {...numberOfRuns}
+                    textAlign="center"
+                    isDisabled={createRunMutation.isLoading}
+                  />
+                  <Button {...inc} isDisabled={createRunMutation.isLoading}>
+                    +
                   </Button>
-                </ButtonGroup>
-              </ModalFooter>
-            </ModalContent>
-          </Modal>
-        </Box>
-      )}
-    </>
+                </HStack>
+              </FormControl>
+            </Box>
+          </VStack>
+        </ModalBody>
+        <ModalFooter>
+          <ButtonGroup>
+            <Button onClick={handleClose} isDisabled={createRunMutation.isLoading}>
+              Cancel
+            </Button>
+            <Button
+              isLoading={createRunMutation.isLoading}
+              isDisabled={createRunMutation.isLoading || !workcellName}
+              colorScheme="teal"
+              onClick={handleQueueRun}>
+              Queue Run{Number(numberOfRuns.value) > 1 ? "s" : ""}
+            </Button>
+          </ButtonGroup>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
   );
 }

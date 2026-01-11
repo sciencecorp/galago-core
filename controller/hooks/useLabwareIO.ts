@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { trpc } from "@/utils/trpc";
-import { Labware } from "@/types/api";
+import { Labware } from "@/types";
 
 /**
  * React hook for labware import/export functionality
@@ -72,7 +72,7 @@ export const useLabwareIO = (labware: Labware[], refetch: () => Promise<unknown>
 
       // Make a direct fetch call to the FastAPI endpoint instead of using tRPC
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/labware/import`,
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3010"}/api/labware/import`,
         {
           method: "POST",
           body: formData,

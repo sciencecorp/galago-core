@@ -1,4 +1,3 @@
-import React from "react";
 import {
   HStack,
   Box,
@@ -15,19 +14,17 @@ import {
   Card,
 } from "@chakra-ui/react";
 import { Search2Icon } from "@chakra-ui/icons";
-import { Tool } from "@/types/api";
+import { Tool } from "@/types";
 import { useEffect, useState, useMemo } from "react";
 import { validateJointCount } from "./shared/utils/robotArmUtils";
 import ToolStatusCard from "@/components/tools/ToolStatusCard";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "./types";
-import { z } from "zod";
 import { ToolType } from "gen-interfaces/controller";
 import { successToast, warningToast, errorToast } from "@/components/ui/Toast";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { createBatchHandlerForIds } from "./shared/utils/batchUtils";
 
 // Components
-import { TeachPendantActions } from "./shared/ui/TeachPendantActions";
 import { TeachPointsPanel } from "./features/teach-points/TeachPointsPanel";
 import { MotionProfilesPanel } from "./features/motion-profiles/MotionProfilesPanel";
 import { GripParametersPanel } from "./features/grip-parameters/GripParametersPanel";
@@ -51,11 +48,11 @@ interface TeachPendantProps {
 
 // Define the location update type to match the API requirements
 interface LocationUpdate {
-  id?: number;
+  id: number;
   name: string;
-  location_type: "j" | "c";
+  locationType: "j" | "c";
   coordinates: string;
-  tool_id: number;
+  toolId: number;
   orientation: "landscape" | "portrait";
 }
 
@@ -125,7 +122,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
     isOpen: isSequenceModalOpen,
     onClose: onSequenceModalClose,
     selectedSequence: currentSequence,
-    labwareList,
+    labwareList: _labwareList,
   } = useSequenceHandler(tool);
 
   const commandHandlers = useCommandHandlers(tool);
@@ -152,6 +149,12 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
       return;
     }
 
+    // Check if point has an id before proceeding
+    if (!point.id) {
+      errorToast("Error", "Cannot teach a point without an ID");
+      return;
+    }
+
     try {
       const response = await robotArmCommandMutation.mutateAsync({
         toolId: tool.name,
@@ -164,13 +167,11 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
         const coordinates = response.meta_data.location.split(" ").slice(1);
         const numJoints = (tool.config as any)?.pf400?.joints || 6;
 
-        // Ensure we have enough coordinates (pad with zeros if needed)
         const paddedCoordinates = [...coordinates];
         while (paddedCoordinates.length < parseInt(numJoints.toString())) {
           paddedCoordinates.push("0");
         }
 
-        // Limit coordinates to the configured number of joints
         const limitedCoordinates = paddedCoordinates.slice(0, parseInt(numJoints.toString()));
 
         if (!validateJointCount(response.meta_data.location, parseInt(numJoints.toString()))) {
@@ -182,18 +183,17 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
         }
 
         const locationUpdate: LocationUpdate = {
-          id: point.id,
+          id: point.id, // Now TypeScript knows this is definitely a number
           name: point.name,
-          location_type: "j",
+          locationType: "j",
           coordinates: limitedCoordinates.join(" "),
-          tool_id: tool.id,
+          toolId: tool.id,
           orientation: point.orientation,
         };
 
         await updateLocationMutation.mutateAsync(locationUpdate);
         robotArmLocationsQuery.refetch();
 
-        // Add success toast
         successToast("Point Updated", `Successfully taught new position to point "${point.name}"`);
       } else {
         throw new Error("No location data received from robot");
@@ -280,20 +280,21 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
   // Update toggleRow reference
   const toggleRow = toggleRowUI;
 
-  const handleImport = async (data: any) => {
-    if (data.teach_points) {
-      await robotArmLocationsQuery.refetch();
-    }
-    if (data.sequences) {
-      await robotArmLocationsQuery.refetch();
-    }
-    if (data.motion_profiles) {
-      await motionProfilesQuery.refetch();
-    }
-    if (data.grip_params) {
-      await gripParamsQuery.refetch();
-    }
-  };
+  // Unused function - commented out
+  // const __handleImport = async (data: any) => {
+  //   if (data.teach_points) {
+  //     await robotArmLocationsQuery.refetch();
+  //   }
+  //   if (data.sequences) {
+  //     await robotArmLocationsQuery.refetch();
+  //   }
+  //   if (data.motion_profiles) {
+  //     await motionProfilesQuery.refetch();
+  //   }
+  //   if (data.grip_params) {
+  //     await gripParamsQuery.refetch();
+  //   }
+  // };
 
   // Load default profile ID from localStorage
   useEffect(() => {
@@ -314,21 +315,21 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
   const deleteTeachPoint = async (id: number) => {
     await deleteLocationMutation.mutateAsync({
       id,
-      tool_id: tool.id,
+      toolId: tool.id,
     });
   };
 
   const deleteMotionProfile = async (id: number) => {
     await deleteMotionProfileMutation.mutateAsync({
       id,
-      tool_id: tool.id,
+      toolId: tool.id,
     });
   };
 
   const deleteGripParam = async (id: number) => {
     await deleteGripParamsMutation.mutateAsync({
       id,
-      tool_id: tool.id,
+      toolId: tool.id,
     });
   };
 
@@ -490,7 +491,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                     {
                       id: 0,
                       name: "Default",
-                      tool_id: tool.id,
+                      toolId: tool.id,
                       width: 0, // Server will override with its defaults
                       speed: 0, // Server will override with its defaults
                       force: 0, // Server will override with its defaults
@@ -518,7 +519,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                     {
                       id: 0,
                       name: "Default",
-                      tool_id: tool.id,
+                      toolId: tool.id,
                       width: 0, // Server will override with its defaults
                       speed: 0, // Server will override with its defaults
                       force: 0, // Server will override with its defaults
@@ -558,41 +559,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
 
           {/* Right Side - Main Content */}
           <VStack flex={1} align="stretch" spacing={4}>
-            {/* Search and Import/Export Section */}
-            <HStack justify="flex-end">
-              <TeachPendantActions
-                teachPoints={teachPoints}
-                motionProfiles={motionProfiles}
-                gripParams={gripParams}
-                sequences={sequences || []}
-                onImport={handleImport}
-                toolId={tool.id}
-                onTeach={() => handleTeach(selectedTeachPoint!)}
-                onMove={handleMove}
-                onUnwind={() =>
-                  commandHandlers.handleSimpleCommand(robotArmCommandMutation, "unwind")
-                }
-                onGripperOpen={() =>
-                  commandHandlers.handleGripperCommand(
-                    robotArmCommandMutation,
-                    "open",
-                    selectedGripParams!,
-                    false,
-                    gripParams,
-                  )
-                }
-                onGripperClose={() =>
-                  commandHandlers.handleGripperCommand(
-                    robotArmCommandMutation,
-                    "close",
-                    selectedGripParams!,
-                    false,
-                    gripParams,
-                  )
-                }
-                jogEnabled={jogEnabled}
-              />
-            </HStack>
+            {/* Search Section */}
             <InputGroup>
               <InputLeftElement pointerEvents="none">
                 <Search2Icon color="gray.400" />
@@ -676,9 +643,9 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       const location = {
                         id: point.id,
                         name: point.name,
-                        location_type: "j" as const,
+                        locationType: "j" as const,
                         coordinates: point.coordinates,
-                        tool_id: tool.id,
+                        toolId: tool.id,
                         orientation: point.orientation,
                       };
                       updateLocationMutation.mutateAsync(location).then(() => {
@@ -688,7 +655,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                     onDelete={async (point: TeachPoint) => {
                       await deleteLocationMutation.mutateAsync({
                         id: point.id,
-                        tool_id: tool.id,
+                        toolId: tool.id,
                       });
                       robotArmLocationsQuery.refetch();
                     }}
@@ -711,7 +678,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       if (profile.id) {
                         await updateMotionProfileMutation.mutateAsync({
                           ...profile,
-                          tool_id: tool.id,
+                          toolId: tool.id,
                         });
                       } else {
                         setSelectedMotionProfile(profile);
@@ -719,7 +686,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       }
                     }}
                     onDelete={async (id: number) => {
-                      await deleteMotionProfileMutation.mutateAsync({ id, tool_id: tool.id });
+                      await deleteMotionProfileMutation.mutateAsync({ id, toolId: tool.id });
                       motionProfilesQuery.refetch();
                     }}
                     onDeleteAll={() => showDeleteConfirm("motionProfiles")}
@@ -741,7 +708,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       gripParamsModal.onOpen();
                     }}
                     onDelete={async (id) => {
-                      await deleteGripParamsMutation.mutateAsync({ id, tool_id: tool.id });
+                      await deleteGripParamsMutation.mutateAsync({ id, toolId: tool.id });
                       gripParamsQuery.refetch();
                     }}
                     onDeleteAll={() => showDeleteConfirm("gripParams")}
@@ -750,9 +717,15 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       gripParamsModal.onOpen();
                     }}
                     onInlineEdit={async (params: GripParams) => {
+                      // Add validation
+                      if (!params.id) {
+                        errorToast("Error", "Cannot update grip parameters without an ID");
+                        return;
+                      }
                       await updateGripParamsMutation.mutateAsync({
+                        id: params.id, // Now guaranteed to be a number
                         ...params,
-                        tool_id: tool.id,
+                        toolId: tool.id,
                       });
                       gripParamsQuery.refetch();
                     }}
@@ -795,12 +768,12 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
               await updateMotionProfileMutation.mutateAsync({
                 id: selectedMotionProfile.id,
                 ...profile,
-                tool_id: tool.id,
+                toolId: tool.id,
               });
             } else {
               await createMotionProfileMutation.mutateAsync({
                 ...profile,
-                tool_id: tool.id,
+                toolId: tool.id,
               });
             }
             await motionProfilesQuery.refetch();
@@ -823,12 +796,12 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
               await updateGripParamsMutation.mutateAsync({
                 id: selectedGripParams.id,
                 ...params,
-                tool_id: tool.id,
+                toolId: tool.id,
               });
             } else {
               await createGripParamsMutation.mutateAsync({
                 ...params,
-                tool_id: tool.id,
+                toolId: tool.id,
               });
             }
             await gripParamsQuery.refetch();
@@ -862,15 +835,18 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
 
           const location = {
             name: point.name,
-            location_type: "j" as const,
+            locationType: "j" as const,
             orientation: orientation,
             coordinates: limitedCoords.join(" "),
-            tool_id: tool.id,
+            toolId: tool.id,
             ...(selectedTeachPoint?.id ? { id: selectedTeachPoint.id } : {}),
           };
 
-          if (selectedTeachPoint) {
-            await updateLocationMutation.mutateAsync(location);
+          if (selectedTeachPoint?.id) {
+            await updateLocationMutation.mutateAsync({
+              ...location,
+              id: selectedTeachPoint.id,
+            } as Parameters<typeof updateLocationMutation.mutateAsync>[0]);
           } else {
             await createLocationMutation.mutateAsync(location);
           }

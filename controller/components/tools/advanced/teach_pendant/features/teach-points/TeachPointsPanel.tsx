@@ -20,19 +20,19 @@ import {
   Select,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, HamburgerIcon } from "@chakra-ui/icons";
-import { Tool } from "@/types/api";
+import { Tool } from "@/types";
 import { TeachPoint, MotionProfile, GripParams, Sequence } from "../../types";
 import { Play, Circle } from "lucide-react";
 
-import { useState, useRef, useMemo } from "react";
+import { useRef, useMemo } from "react";
 import { usePagination } from "../../hooks/usePagination";
 import { PaginationControls } from "../../shared/ui/PaginationControls";
 import { EditableText } from "@/components/ui/Form";
 
-interface EditablePoint {
-  id: number;
-  coordinates: number[];
-}
+// interface _EditablePoint {
+//   id: number;
+//   coordinates: number[];
+// }
 
 interface TeachPointsPanelProps {
   teachPoints: TeachPoint[];
@@ -65,7 +65,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
   onAdd,
   onTeach,
   isConnected,
-  bgColor,
+  bgColor: _bgColor,
   bgColorAlpha,
   config,
 }) => {
@@ -195,7 +195,7 @@ export const TeachPointsPanel: React.FC<TeachPointsPanelProps> = ({
                 </Tr>
               </Thead>
               <Tbody>
-                {paginatedItems.map((point, index) => (
+                {paginatedItems.map((point, _index) => (
                   <Tr key={point.id} bg={expandedRows[point.id] ? bgColorAlpha : undefined}>
                     <Td width="200px">
                       <EditableText

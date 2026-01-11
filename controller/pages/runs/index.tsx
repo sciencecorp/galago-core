@@ -1,4 +1,3 @@
-import React from "react";
 import { RunsComponent } from "@/components/runs/RunsComponent";
 import { Box } from "@chakra-ui/react";
 

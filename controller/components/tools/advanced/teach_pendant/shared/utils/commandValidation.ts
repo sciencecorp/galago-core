@@ -1,4 +1,4 @@
-import { GripParams, MotionProfile, Sequence } from "../../types";
+import { GripParams, Sequence } from "../../types";
 import { errorToast } from "@/components/ui/Toast";
 
 /**

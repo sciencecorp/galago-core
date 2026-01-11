@@ -1,15 +1,15 @@
-import React, { useState, FC } from "react";
+import { useState, FC } from "react";
 
 interface WarningBannerProps {
   message: string;
 }
 
 const WarningBanner: FC<WarningBannerProps> = ({ message }) => {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, _setIsVisible] = useState(true);
 
-  const closeBanner = () => {
-    setIsVisible(false);
-  };
+  // const _closeBanner = () => {
+  //   _setIsVisible(false);
+  // };
 
   return (
     <>

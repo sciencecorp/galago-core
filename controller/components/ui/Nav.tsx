@@ -32,19 +32,20 @@ const TabPages = [
   { href: "/advanced", title: "Advanced" },
 ] as const;
 
-const styles = {
-  section: {
-    fontSize: "18px",
-    color: "#292b2c",
-    backgroundColor: "#fff",
-    padding: "0 20px",
-  },
-  wrapper: {
-    textAlign: "center",
-    margin: "0 auto",
-    marginTop: "50px",
-  },
-};
+// Unused styles object - commented out
+// const _styles = {
+//   section: {
+//     fontSize: "18px",
+//     color: "#292b2c",
+//     backgroundColor: "#fff",
+//     padding: "0 20px",
+//   },
+//   wrapper: {
+//     textAlign: "center",
+//     margin: "0 auto",
+//     marginTop: "50px",
+//   },
+// };
 
 export default function Nav() {
   const router = useRouter();
@@ -52,7 +53,8 @@ export default function Nav() {
   const tabIndex = TabPages.findIndex(({ href }) => router.route.indexOf(href) === 0);
   const selectedTab = tabIndex >= 0 ? TabPages[tabIndex] : undefined;
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
-  const { lastClickedSubtab, setLastClickedSubtab } = useSidebar();
+  const { lastClickedSubtab: _lastClickedSubtab, setLastClickedSubtab: _setLastClickedSubtab } =
+    useSidebar();
 
   const handleShowModal = () => {
     setShowSettingsModal(!showSettingsModal);

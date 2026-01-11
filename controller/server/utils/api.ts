@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const rawBaseUrl = process.env.API_BASE_URL || "http://127.0.0.1:8000";
+const rawBaseUrl = process.env.API_BASE_URL || "http://127.0.0.1:3010";
 // Some envs (e.g. docker-compose) set API_BASE_URL to ".../api", but the FastAPI app
 // routes are mounted at the root (e.g. "/protocols", "/variables"). Normalize here.
 const API_BASE_URL = rawBaseUrl.replace(/\/api\/?$/, "");

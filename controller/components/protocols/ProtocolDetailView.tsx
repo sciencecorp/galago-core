@@ -22,7 +22,6 @@ import {
   Center,
 } from "@chakra-ui/react";
 import { DeleteIcon, AddIcon, EditIcon, ArrowForwardIcon, HamburgerIcon } from "@chakra-ui/icons";
-import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import {
   DragDropContext,
@@ -93,7 +92,7 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
           <Box>
             <HStack spacing={2}>
               <Box width="90%">
-                <Text as="b">{capitalizeFirst(command.commandInfo.toolType)}</Text>
+                <Text as="b">{capitalizeFirst(command.commandInfo.toolId)}</Text>
               </Box>
               <Box className="command-menu">
                 <Menu>
@@ -137,7 +136,7 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
   );
 };
 
-export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
+export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
   const [commands, setCommands] = useState<any[]>([]);
   const [isAddCommandModalOpen, setIsAddCommandModalOpen] = useState(false);
   const [isRunModalOpen, setIsRunModalOpen] = useState(false);
@@ -151,17 +150,8 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
   const arrowColor = useColorModeValue("gray.500", "gray.400");
-  const {
-    data: protocol,
-    isLoading,
-    error,
-    refetch,
-  } = trpc.protocol.getById.useQuery({ id: parseInt(id) });
-  const { data: selectedWorkcellData } = trpc.workcell.getSelectedWorkcell.useQuery();
-  const { data: workcells } = trpc.workcell.getAll.useQuery();
-  const { data: fetchedIds } = trpc.tool.availableIDs.useQuery({
-    workcellId: workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id,
-  });
+  const { data: protocol, isLoading, error, refetch } = trpc.protocol.get.useQuery(id);
+
   const [commandToDeleteIndex, setCommandToDeleteIndex] = useState<any | null>(null);
   const {
     isOpen: isDeleteConfirmOpen,
@@ -177,9 +167,9 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
   });
 
   const {
-    isOpen: isParametersModalOpen,
-    onOpen: openParametersModal,
-    onClose: closeParametersModal,
+    isOpen: _isParametersModalOpen,
+    onOpen: _openParametersModal,
+    onClose: _closeParametersModal,
   } = useDisclosure();
 
   const handleAddCommandAtPosition = (position: number) => {
@@ -200,7 +190,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         label: cmd.label || "",
         tool_info: cmd.tool_info || {
           type: cmd.toolType,
-          image_url: cmd.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
+          imageUrl: cmd.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
         },
         advancedParameters: cmd.advancedParameters || {
           skipExecutionVariable: {
@@ -295,7 +285,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
 
       // Use the downloadFile utility
       const filename = `${protocol.name.replace(/\s+/g, "_")}-protocol.json`;
-      await downloadFile(`/protocols/${id}/export`, filename);
+      await downloadFile(`api/protocols/${id}/export`, filename);
 
       successToast("Protocol Exported", `${protocol.name} has been exported successfully`);
     } catch (error: any) {
@@ -318,7 +308,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
       // Add tool info for UI
       tool_info: {
         type: cmd.commandInfo.toolType,
-        image_url: cmd.commandInfo.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
+        imageUrl: cmd.commandInfo.toolType === "toolbox" ? "/tool_icons/toolbox.png" : undefined,
       },
       //Add advanced parameters for UI
       advancedParameters: cmd.commandInfo.advancedParameters || {
@@ -332,11 +322,9 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
 
     updateProtocol.mutate({
       id: protocol.id,
-      data: {
-        name: protocol.name,
-        description: protocol.description,
-        commands: newCommands,
-      },
+      name: protocol.name,
+      description: protocol.description,
+      commands: newCommands,
     });
   };
 
@@ -369,7 +357,7 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
 
   const renderDraggableCommands = (
     provided: DroppableProvided,
-    snapshot: DroppableStateSnapshot,
+    _snapshot: DroppableStateSnapshot,
   ) => {
     if (commands.length === 0 && isEditing) {
       return (
@@ -554,10 +542,9 @@ export const ProtocolDetailView: React.FC<{ id: string }> = ({ id }) => {
         onCommandAdded={handleCommandAdded}
       />
 
-      {isRunModalOpen && (
-        <NewProtocolRunModal id={protocol.id.toString()} onClose={handleRunModalClose} />
+      {isRunModalOpen && protocol && (
+        <NewProtocolRunModal id={protocol.id} onClose={handleRunModalClose} />
       )}
-
       <ConfirmationModal
         colorScheme="red"
         confirmText="Delete"

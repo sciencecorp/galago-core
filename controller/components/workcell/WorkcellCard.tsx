@@ -15,15 +15,16 @@ import {
   AvatarGroup,
   Tooltip,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { DeleteWithConfirmation } from "../ui/Delete";
-import { Workcell } from "@/types/api";
+import { WorkcellResponse } from "@/types";
 import { EditableText } from "../ui/Form";
 import { Wrench, MapPin } from "lucide-react";
 import Avvvatars from "avvvatars-react";
 import { errorToast } from "../ui/Toast";
+
 interface WorkcellCardProps {
-  workcell: Workcell;
+  workcell: WorkcellResponse;
   onChange?: () => void;
 }
 
@@ -31,7 +32,6 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
   const { workcell } = props;
   const cardBg = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
-  const selectedBg = useColorModeValue("teal.50", "teal.900");
   const deleteWorkcell = trpc.workcell.delete.useMutation();
   const clearToolStore = trpc.tool.clearToolStore.useMutation();
   const editWorkcell = trpc.workcell.edit.useMutation();
@@ -40,7 +40,6 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
       refetch();
     },
   });
-  const [selectedWorkcell, setSelectedWorkcell] = useState<string | null>(null);
   const { data: selectedWorkcellData, refetch } = trpc.workcell.getSelectedWorkcell.useQuery();
 
   const handleSelect = async () => {
@@ -51,7 +50,6 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
 
   useEffect(() => {
     if (selectedWorkcellData) {
-      setSelectedWorkcell(selectedWorkcellData);
       if (selectedWorkcellData === workcell.name) {
         document.title = `Workcell - ${workcell.name}`;
       }
@@ -67,14 +65,11 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
       await clearToolStore.mutate();
       props.onChange && props.onChange();
     } catch (error) {
-      errorToast(
-        "Error deleting workcell",
-        `Can't delete a workcell with active protocols. ${error}. `,
-      );
+      errorToast("Error deleting workcell", `${error}. `);
     }
   };
 
-  const handleEdit = async (editedWorkcell: Workcell) => {
+  const handleEdit = async (editedWorkcell: WorkcellResponse) => {
     try {
       await editWorkcell.mutateAsync(editedWorkcell);
       props.onChange && props.onChange();
@@ -94,7 +89,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
 
   return (
     <Card
-      bg={isSelected ? selectedBg : cardBg}
+      bg={cardBg}
       borderColor={borderColor}
       borderWidth="1px"
       shadow="md"
@@ -131,7 +126,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
               onDelete={handleDelete}
               label="workcell"
               variant="icon"
-              customText="Are you sure? This will delete all tools in this workcell."
+              customText="Are you sure? This will delete all data belonging to this workcell."
             />
           </HStack>
 
@@ -163,7 +158,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
                 <Tooltip key={tool.id} label={tool.name}>
                   <Avatar
                     name={tool.name}
-                    src={tool.image_url}
+                    src={tool.imageUrl ? tool.imageUrl : undefined}
                     bg={`${getWorkcellColor(tool.name)}.500`}
                     p={1}
                     borderWidth={2}

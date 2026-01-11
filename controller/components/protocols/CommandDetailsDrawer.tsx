@@ -23,12 +23,11 @@ import {
   AccordionPanel,
   AccordionIcon,
 } from "@chakra-ui/react";
-import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
 import { capitalizeFirst } from "@/utils/parser";
 import { successToast } from "../ui/Toast";
-import { ParameterSchema, AdvancedParameters, SkipExecution } from "@/types";
+import { AdvancedParameters } from "@/types";
 
 interface CommandDetailsDrawerProps {
   isOpen: boolean;
@@ -40,7 +39,6 @@ interface CommandDetailsDrawerProps {
 
 export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props) => {
   const { isOpen, onClose, selectedCommand, onSave, isEditing } = props;
-  const router = useRouter();
   const [editedParams, setEditedParams] = useState<Record<string, any>>({});
   const [editedAdvancedParams, setEditedAdvancedParams] = useState<AdvancedParameters | null>(null);
   const { data: availableVariables } = trpc.variable.getAll.useQuery();
@@ -52,12 +50,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
   const toolId =
     selectedCommand?.commandInfo?.toolType === "pf400"
       ? toolsData?.find(
-          (t) =>
-            // Try to match by toolId (which might be the tool name) or by name
-            t.name?.toLowerCase() === selectedCommand?.commandInfo?.toolId?.toLowerCase() ||
-            // Also try with underscores replaced by spaces
-            t.name?.toLowerCase() ===
-              selectedCommand?.commandInfo?.toolId?.replaceAll("_", " ")?.toLowerCase(),
+          (t) => t.name?.toLowerCase() === selectedCommand?.commandInfo?.toolId?.toLowerCase(),
         )?.id || 0
       : 0;
 

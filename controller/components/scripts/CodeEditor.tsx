@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import { trpc } from "@/utils/trpc";
-import { Script, ScriptFolder } from "@/types/api";
+import { FolderResponse, Script, ScriptFolder } from "@/types";
 import { NewScript } from "./NewScript";
 import { NewFolder } from "./NewFolder";
 import { PageHeader } from "../ui/PageHeader";
@@ -38,14 +38,13 @@ import {
   JavaScriptIcon,
   CSharpIcon,
   DownloadIcon,
-  UploadIcon,
+  // UploadIcon,
 } from "../ui/Icons";
 import * as monaco from "monaco-editor";
 import { editor } from "monaco-editor";
 import { useScriptIO } from "@/hooks/useScriptIO";
 import { errorToast } from "../ui/Toast";
 
-import { fileTypeToExtensionMap } from "./utils";
 import { Console } from "./Console";
 import { ResizablePanel } from "./ResizablePanel";
 
@@ -58,11 +57,10 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const { hoverBg, bgColor, borderColor, consoleHeaderBg, consoleBg } = useScriptColors();
   const [scripts, setScripts] = useState<Script[]>([]);
-  const [folders, setFolders] = useState<ScriptFolder[]>([]);
-  const { data: fetchedScript, refetch } = trpc.script.getAll.useQuery();
+  const [folders, setFolders] = useState<FolderResponse[]>([]);
+  const { data: fetchedScripts, refetch } = trpc.script.getAll.useQuery();
   const { data: fetchedFolders, refetch: refetchFolders } = trpc.script.getAllFolders.useQuery();
   const { data: selectedWorkcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
-  const { data: workcells } = trpc.workcell.getAll.useQuery();
   const editScript = trpc.script.edit.useMutation();
   const deleteScript = trpc.script.delete.useMutation();
   const addFolder = trpc.script.addFolder.useMutation();
@@ -70,7 +68,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const deleteFolder = trpc.script.deleteFolder.useMutation();
   const codeTheme = useColorModeValue("vs-light", "vs-dark");
   const [editedContents, setEditedContents] = useState<Record<string, string>>({});
-  const [scriptsEdited, setScriptsEdited] = useState<Script[]>([]);
+  const [_scriptsEdited, setScriptsEdited] = useState<Script[]>([]);
   const [currentContent, setCurrentContent] = useState<string>("");
   const [consoleText, setConsoleText] = useState<string>("");
   const activeTabFontColor = useColorModeValue("teal.600", "teal.200");
@@ -79,39 +77,125 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const headerBg = useColorModeValue("white", "gray.700");
   const tabBg = useColorModeValue("gray.50", "gray.700");
   const activeTabBg = useColorModeValue("white", "gray.800");
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const [scriptToDelete, setScriptToDelete] = useState<Script | null>(null);
-  const [editingScriptName, setEditingScriptName] = useState<Script | null>(null);
+  const [_editingScriptName, setEditingScriptName] = useState<Script | null>(null);
   const [folderCreating, setFolderCreating] = useState(false);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof monaco | null>(null);
   const [editorLanguage, setEditorLanguage] = useState<string>("python");
   const jsIconColor = useColorModeValue("orange", "yellow");
+  const [draggedScript, setDraggedScript] = useState<Script | null>(null);
 
-  // Define refreshData function here
+  const {
+    isOpen: isScriptDeleteOpen,
+    onOpen: onScriptDeleteOpen,
+    onClose: onScriptDeleteClose,
+  } = useDisclosure();
+  const {
+    isOpen: isFolderDeleteOpen,
+    onOpen: onFolderDeleteOpen,
+    onClose: onFolderDeleteClose,
+  } = useDisclosure();
+
+  const [folderToDelete, setFolderToDelete] = useState<ScriptFolder | null>(null);
+
   const refreshData = async () => {
     await refetch();
     await refetchFolders();
   };
 
+  const handleDeleteFolder = async () => {
+    if (!folderToDelete) return;
+    try {
+      await deleteFolder.mutateAsync(folderToDelete.id);
+      await refreshData();
+      onFolderDeleteClose();
+      setFolderToDelete(null);
+      showSuccessToast(
+        "Folder deleted",
+        `${folderToDelete.name} and its contents deleted successfully`,
+      );
+    } catch (error) {
+      showErrorToast("Error deleting folder", String(error));
+    }
+  };
+
+  const folderHasChildren = (folderId: number): boolean => {
+    const hasChildFolders = folders.some((folder) => folder.parentId === folderId);
+    const hasScripts = fetchedScripts?.some((script) => script.folderId === folderId) || false;
+    return hasChildFolders || hasScripts;
+  };
+
+  const handleFolderDeleteClick = async (folder: ScriptFolder) => {
+    if (folderHasChildren(folder.id)) {
+      setFolderToDelete(folder);
+      onFolderDeleteOpen();
+    } else {
+      try {
+        await deleteFolder.mutateAsync(folder.id);
+        await refreshData();
+        showSuccessToast("Folder deleted", `${folder.name} deleted successfully`);
+      } catch (error) {
+        showErrorToast("Error deleting folder", String(error));
+      }
+    }
+  };
+
   // Get active script based on activeTab name
   const getActiveScript = () => {
-    if (!activeTab) return null;
-    return scripts.find((s) => `${s.name}.${fileTypeToExtensionMap[s.language]}` === activeTab);
+    if (!activeTab || !fetchedScripts) return null;
+    return fetchedScripts.find((s) => `${s.name}` === activeTab);
   };
 
   // Get active script ID based on activeTab name
   const activeScriptId = getActiveScript()?.id;
 
+  const handleDropOnFolder = async (folder: ScriptFolder) => {
+    if (!draggedScript) return;
+
+    try {
+      await editScript.mutateAsync({
+        ...draggedScript,
+        folderId: folder.id,
+      });
+
+      setDraggedScript(null);
+      await refreshData();
+      showSuccessToast("Script moved", `Moved ${draggedScript.name} to ${folder.name}`);
+    } catch (error) {
+      showErrorToast("Error moving script", String(error));
+    }
+  };
+
+  const handleDropOnRoot = async () => {
+    if (!draggedScript) return;
+
+    try {
+      await editScript.mutateAsync({
+        ...draggedScript,
+        folderId: null,
+      });
+
+      setDraggedScript(null);
+      await refreshData();
+      showSuccessToast("Script moved", `Moved ${draggedScript.name} to root`);
+    } catch (error) {
+      showErrorToast("Error moving script", String(error));
+    }
+  };
   // Instantiate the useScriptIO hook
   const {
     fileInputRef,
     handleExportConfig,
-    handleImportClick,
+    handleImportClick: _handleImportClick,
     handleFileChange,
-    isImporting,
+    isImporting: _isImporting,
     isExporting,
   } = useScriptIO(scripts, activeScriptId, refetch, refetchFolders);
+
+  const handleDragStart = (script: Script) => {
+    setDraggedScript(script);
+  };
 
   // Wrapped handlers to add toast notifications
   const onExportConfig = async () => {
@@ -311,15 +395,16 @@ Original Error: ${error.message}`;
     try {
       await deleteScript.mutateAsync(scriptToDelete.id);
 
-      const tabName = `${scriptToDelete.name}.${fileTypeToExtensionMap[scriptToDelete.language]}`;
+      const tabName = `${scriptToDelete.name}`;
       if (openTabs.includes(tabName)) {
-        removeTab(tabName);
+        const newTabs = openTabs.filter((t) => t !== tabName);
+        setOpenTabs(newTabs);
+
         if (activeTab === tabName) {
-          setActiveTab(openTabs[0] || null);
+          setActiveTab(newTabs.length > 0 ? newTabs[newTabs.length - 1] : null);
         }
       }
 
-      // Clear any edited content for this script
       if (scriptToDelete.id) {
         setEditedContents((prev) => {
           const newState = { ...prev };
@@ -329,7 +414,7 @@ Original Error: ${error.message}`;
       }
 
       await refreshData();
-      onClose();
+      onScriptDeleteClose();
       setScriptToDelete(null);
     } catch (error) {
       showErrorToast("Error deleting script", String(error));
@@ -343,14 +428,15 @@ Original Error: ${error.message}`;
   }, [openTabs, activeTab]);
 
   useEffect(() => {
-    if (fetchedScript) {
+    if (fetchedScripts) {
+      // Only filter by search query, and only show root-level scripts
       setScripts(
-        fetchedScript.filter((script) =>
-          script.name.toLowerCase().includes(searchQuery.toLowerCase()),
-        ),
+        fetchedScripts
+          .filter((script) => !script.folderId) // Root level only
+          .filter((script) => script.name.toLowerCase().includes(searchQuery.toLowerCase())),
       );
     }
-  }, [fetchedScript, searchQuery]);
+  }, [fetchedScripts, searchQuery]);
 
   const handleRename = async (script: Script, newName: string) => {
     const cleanNewName = newName.trim();
@@ -361,8 +447,8 @@ Original Error: ${error.message}`;
       });
 
       // Update tabs if the renamed script was open
-      const oldTabName = `${script.name}.${fileTypeToExtensionMap[script.language]}`;
-      const newTabName = `${cleanNewName}.${fileTypeToExtensionMap[script.language]}`;
+      const oldTabName = `${script.name}`;
+      const newTabName = `${cleanNewName}`;
 
       if (openTabs.includes(oldTabName)) {
         setOpenTabs(openTabs.map((tab) => (tab === oldTabName ? newTabName : tab)));
@@ -378,17 +464,9 @@ Original Error: ${error.message}`;
   };
 
   const handleFolderCreate = async (name: string, parentId?: number) => {
-    // Get the workcell ID from the selected workcell name
-    const selectedWorkcell = workcells?.find((wc) => wc.name === selectedWorkcellName);
-    if (!selectedWorkcell) {
-      showErrorToast("Error creating folder", "No workcell selected");
-      return;
-    }
-
     await addFolder.mutateAsync({
       name,
-      parent_id: parentId,
-      workcell_id: selectedWorkcell.id,
+      parentId: parentId,
     });
     await refetchFolders();
   };
@@ -405,18 +483,18 @@ Original Error: ${error.message}`;
     }
   };
 
-  const handleFolderDelete = async (folder: ScriptFolder) => {
-    try {
-      await deleteFolder.mutateAsync(folder.id);
-      await refreshData();
-    } catch (error) {
-      errorToast("Error deleting folder", String(error));
-    }
-  };
+  // const _handleFolderDelete = async (folder: ScriptFolder) => {
+  //   try {
+  //     await deleteFolder.mutateAsync(folder.id);
+  //     await refreshData();
+  //   } catch (error) {
+  //     errorToast("Error deleting folder", String(error));
+  //   }
+  // };
 
   const handleScriptClick = (script: Script) => {
     setActiveFolder(null);
-    const fullName = `${script.name}.${fileTypeToExtensionMap[script.language]}`;
+    const fullName = `${script.name}`;
     handleScriptClicked(fullName, script);
   };
 
@@ -461,7 +539,7 @@ Original Error: ${error.message}`;
             maxW="280px"
             height="36px"
             mr={1}
-            borderWidth="1px"
+            borderWidth="1px solid"
             borderColor={activeTab === tab ? borderColor : "transparent"}
             borderRadius="md"
             bg={activeTab === tab ? activeTabBg : tabBg}
@@ -518,18 +596,22 @@ Original Error: ${error.message}`;
             onFolderClick={handleFolderClick}
             onScriptRename={handleRename}
             onScriptDelete={(script) => {
-              onOpen();
+              onScriptDeleteOpen();
+              console.log("SCRIPT TO DELETE:", script);
               setScriptToDelete(script);
             }}
             onFolderCreate={(name, parentId) => {
-              handleFolderCreate(name, activeOpenFolder?.id || parentId);
+              handleFolderCreate(name, activeFolder?.id || parentId);
               setFolderCreating(false);
             }}
             onFolderRename={handleFolderRename}
-            onFolderDelete={handleFolderDelete}
+            onFolderDelete={handleFolderDeleteClick}
             openFolders={openFolders}
             isCreatingRootFolder={folderCreating}
             onCancelRootFolderCreation={() => setFolderCreating(false)}
+            onDragStart={handleDragStart}
+            onDropOnFolder={handleDropOnFolder}
+            onDropOnRoot={handleDropOnRoot}
           />
         </VStack>
       </Box>
@@ -588,7 +670,7 @@ Original Error: ${error.message}`;
     });
   };
 
-  const handleScriptClicked = (fullName: string, script?: Script) => {
+  const handleScriptClicked = (fullName: string, _script?: Script) => {
     setActiveFolder(null);
 
     // If opening a new tab, make sure we sync any unsaved changes first
@@ -611,18 +693,18 @@ Original Error: ${error.message}`;
     setActiveTab(fullName);
   };
 
-  const importButton = (
-    <Button
-      isDisabled={!selectedWorkcellName}
-      leftIcon={<UploadIcon size={14} />}
-      colorScheme="blue"
-      variant="outline"
-      onClick={handleImportClick}
-      isLoading={isImporting}
-      size="sm">
-      Import
-    </Button>
-  );
+  // const _importButton = (
+  //   <Button
+  //     isDisabled={!selectedWorkcellName}
+  //     leftIcon={<UploadIcon size={14} />}
+  //     colorScheme="blue"
+  //     variant="outline"
+  //     onClick={handleImportClick}
+  //     isLoading={isImporting}
+  //     size="sm">
+  //     Import
+  //   </Button>
+  // );
 
   return (
     <Box maxW="100%">
@@ -630,23 +712,33 @@ Original Error: ${error.message}`;
         colorScheme="red"
         confirmText={"Delete"}
         header={`Delete Script?`}
-        isOpen={isOpen}
+        isOpen={isScriptDeleteOpen}
         onClick={() => {
           handleDeleteScript();
         }}
-        onClose={onClose}>
+        onClose={onScriptDeleteClose}>
         {`Are you sure you want to delete ${scriptToDelete?.name}?`}
       </ConfirmationModal>
+
+      <ConfirmationModal
+        colorScheme="red"
+        confirmText="Delete"
+        header="Delete Folder?"
+        isOpen={isFolderDeleteOpen}
+        onClick={handleDeleteFolder}
+        onClose={onFolderDeleteClose}>
+        Are you sure you want to delete the folder? This will delete all scripts within the folder.
+      </ConfirmationModal>
+
       <VStack spacing={4} align="stretch" width="100%">
         <Card bg={headerBg} shadow="md">
           <CardBody>
             <VStack spacing={4} align="stretch">
               <PageHeader
                 title="Scripts"
-                subTitle="Create and manage Python and JavaScript scripts"
+                subTitle="Create and manage custom python, javascript or C# scripts."
                 titleIcon={<Icon as={CodeIcon} boxSize={8} color="teal.500" />}
-                mainButton={importButton}
-                // secondaryButton={exportButton}
+                // mainButton={importButton}
               />
             </VStack>
           </CardBody>
@@ -683,7 +775,7 @@ Original Error: ${error.message}`;
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                     <NewScript
-                      activeFolderId={openFolders.size > 0 ? activeFolder?.id : undefined}
+                      activeFolderId={activeFolder?.id}
                       onScriptCreated={refreshData}
                       isDisabled={!selectedWorkcellName}
                     />
@@ -695,7 +787,20 @@ Original Error: ${error.message}`;
                       parentId={activeOpenFolder?.id}
                     />
                   </HStack>
-                  <Box width="100%" flex={1} overflowY="auto" position="relative">
+                  <Box
+                    width="100%"
+                    flex={1}
+                    overflowY="auto"
+                    position="relative"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleDropOnRoot();
+                    }}>
                     <Scripts />
                   </Box>
                 </VStack>
@@ -722,34 +827,34 @@ Original Error: ${error.message}`;
                       <Tooltip label="Download Script" openDelay={1000} hasArrow>
                         <IconButton
                           aria-label="Download Script"
-                          icon={<DownloadIcon size={14} />}
+                          icon={<DownloadIcon size={12} />}
                           colorScheme="gray"
                           variant="outline"
                           onClick={onExportConfig}
                           isDisabled={!activeTab || isExporting}
                           isLoading={isExporting}
-                          size="sm"
+                          size="xs"
                         />
                       </Tooltip>
                       <Tooltip label="Save script" openDelay={1000} hasArrow>
                         <IconButton
                           aria-label="Save Script"
-                          icon={<SaveIcon />}
+                          icon={<SaveIcon size={12} />}
                           colorScheme="gray"
                           variant="outline"
                           onClick={handleSave}
-                          size="sm"
+                          size="xs"
                         />
                       </Tooltip>
                       <Tooltip label="Run Script" openDelay={1000} hasArrow>
                         <IconButton
                           aria-label="Run Script"
-                          icon={<PlayIcon />}
+                          icon={<PlayIcon size={12} />}
                           variant="outline"
                           onClick={() => {
                             handleRunScript();
                           }}
-                          size="sm"
+                          size="xs"
                         />
                       </Tooltip>
                     </HStack>

@@ -4,7 +4,6 @@ import { AlertTriangle } from "lucide-react";
 import { trpc } from "@/utils/trpc";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 
-// Glowing animation for active state
 const glowAnimation = keyframes`
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
@@ -12,14 +11,13 @@ const glowAnimation = keyframes`
 
 export const GlobalQueueStatusIndicator: React.FC = () => {
   const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 1000 });
-  const getError = trpc.commandQueue.getError.useQuery(undefined, { refetchInterval: 1000 });
+  // const _getError = trpc.commandQueue.getError.useQuery(undefined, { refetchInterval: 1000 });
 
   if (stateQuery.isLoading) return null;
 
   const isRunning = stateQuery.data === ToolStatus.BUSY;
   const isFailed = stateQuery.data === ToolStatus.FAILED;
 
-  // Determine status - check error state OR failed status
   const getStatusConfig = () => {
     if (isFailed) {
       return {
@@ -50,7 +48,7 @@ export const GlobalQueueStatusIndicator: React.FC = () => {
   return (
     <Box
       position="fixed"
-      top="20px"
+      bottom="20px"
       right="20px"
       zIndex={1000}
       bg="rgba(255, 255, 255, 0.9)"

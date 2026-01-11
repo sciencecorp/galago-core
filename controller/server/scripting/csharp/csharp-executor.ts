@@ -55,9 +55,12 @@ export class CSharpExecutor {
       const compileCommand = `cd ${tempDir} && dotnet build -c Release -o ./bin`;
 
       try {
-        const { stdout: compileStdout, stderr: compileStderr } = await execPromise(compileCommand, {
-          timeout,
-        });
+        const { stdout: _compileStdout, stderr: compileStderr } = await execPromise(
+          compileCommand,
+          {
+            timeout,
+          },
+        );
 
         if (compileStderr) {
           logCapture.push(`Compilation warnings: ${compileStderr}`);
@@ -170,11 +173,11 @@ class Program
             // Initialize context from JSON
             var contextJson = @"${contextJson.replace(/"/g, '\\"')}";
             var context = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(contextJson);
-            
+
             // Note: Variables can now be accessed using static methods
             // Example: var allVariables = await Variables.GetAllVariablesAsync();
             // Configure API URL: Variables.Configure("https://api.example.com");
-            
+
             // Execute the user's script
             ${script}
         }
@@ -192,7 +195,7 @@ class Program
 public static class Variables
 {
     private static readonly HttpClient _httpClient = new HttpClient();
-    private static string _defaultApiUrl = "http://db:8000";
+    private static string _defaultApiUrl = "http://localhost:3010/api";
 
 
     /// <summary>
@@ -220,7 +223,7 @@ public static class Variables
     public static async Task<JsonElement?> GetVariableAsync(string name, string? apiUrl = null)
     {
         var baseUrl = apiUrl ?? _defaultApiUrl;
-        
+
         try
         {
             var response = await _httpClient.GetAsync($"{baseUrl}/variables/{name}");
@@ -254,7 +257,7 @@ public static class Variables
     public static async Task<JsonElement> GetAllVariablesAsync(string? apiUrl = null)
     {
         var baseUrl = apiUrl ?? _defaultApiUrl;
-        
+
         try
         {
             var response = await _httpClient.GetAsync($"{baseUrl}/variables");
@@ -278,20 +281,20 @@ public static class Variables
     public static async Task<JsonElement> CreateVariableAsync(object data, string? apiUrl = null)
     {
         var baseUrl = apiUrl ?? _defaultApiUrl;
-        
+
         try
         {
             var json = JsonSerializer.Serialize(data);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync($"{baseUrl}/variables", content);
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
                 Console.Error.WriteLine($"API Error {response.StatusCode}: {errorContent}");
                 Console.Error.WriteLine($"Sent JSON: {json}");
             }
-            
+
             response.EnsureSuccessStatusCode();
             var responseContent = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<JsonElement>(responseContent);
@@ -313,7 +316,7 @@ public static class Variables
     public static async Task<JsonElement> UpdateVariableAsync(string name, object newValue, string? apiUrl = null)
     {
         var baseUrl = apiUrl ?? _defaultApiUrl;
-        
+
         try
         {
             var variable = new { value = newValue };
@@ -340,7 +343,7 @@ public static class Variables
     public static async Task<JsonElement> DeleteVariableAsync(string name, string? apiUrl = null)
     {
         var baseUrl = apiUrl ?? _defaultApiUrl;
-        
+
         try
         {
             var response = await _httpClient.DeleteAsync($"{baseUrl}/variables/{name}");
@@ -369,7 +372,7 @@ public static class Variables
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>

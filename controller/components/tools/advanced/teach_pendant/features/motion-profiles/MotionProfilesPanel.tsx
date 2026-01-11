@@ -19,10 +19,9 @@ import {
   MenuItem,
   Text,
 } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon, CheckIcon } from "@chakra-ui/icons";
+import { AddIcon, DeleteIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { MotionProfile, MotionProfilesPanelProps } from "../../types/";
-import { useState, useRef } from "react";
-import { useOutsideClick } from "@chakra-ui/react";
+import { useRef } from "react";
 import { usePagination } from "../../hooks/usePagination";
 import { PaginationControls } from "../../shared/ui/PaginationControls";
 import { EditableText } from "@/components/ui/Form";
@@ -33,7 +32,7 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
   onDelete,
   onDeleteAll,
   onAdd,
-  bgColor,
+  bgColor: _bgColor,
   bgColorAlpha,
   defaultProfileId,
   onSetDefault,
@@ -217,19 +216,19 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
                     </Td>
                     <Td>
                       <EditableText
-                        defaultValue={(profile.accel_ramp ?? 0).toString()}
+                        defaultValue={(profile.accelRamp ?? 0).toString()}
                         onSubmit={(value) => {
                           const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(profile, "accel_ramp", numValue);
+                          !isNaN(numValue) && handleSaveValue(profile, "accelRamp", numValue);
                         }}
                       />
                     </Td>
                     <Td>
                       <EditableText
-                        defaultValue={(profile.decel_ramp ?? 0).toString()}
+                        defaultValue={(profile.decelRamp ?? 0).toString()}
                         onSubmit={(value) => {
                           const numValue = Number(value);
-                          !isNaN(numValue) && handleSaveValue(profile, "decel_ramp", numValue);
+                          !isNaN(numValue) && handleSaveValue(profile, "decelRamp", numValue);
                         }}
                       />
                     </Td>

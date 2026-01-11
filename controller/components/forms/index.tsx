@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Box,
   VStack,
   useColorModeValue,
-  Center,
-  Spinner,
   Icon,
   Card,
   CardBody,
@@ -22,14 +20,13 @@ import { Form } from "@/types";
 import { CreateFormModal } from "./createFormModal";
 
 export const Forms = () => {
-  const { data: fetchedForms, isLoading, refetch } = trpc.form.getAll.useQuery();
+  const { data: fetchedForms, refetch } = trpc.form.getAll.useQuery();
 
   const headerBg = useColorModeValue("white", "gray.700");
   const [forms, setForms] = useState<Form[]>([]);
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
 
-  const { data: selectedWorkcell, refetch: refetchWorkcell } =
-    trpc.workcell.getSelectedWorkcell.useQuery();
+  const { data: selectedWorkcell } = trpc.workcell.getSelectedWorkcell.useQuery();
 
   useEffect(() => {
     if (fetchedForms) {

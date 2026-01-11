@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   VStack,
   Box,
@@ -26,7 +26,6 @@ import {
 } from "@chakra-ui/react";
 import { SearchIcon } from "@chakra-ui/icons";
 import { trpc } from "@/utils/trpc";
-import { Variable } from "@/types/api";
 import { VariableModal } from "./VariableModal";
 import { DeleteWithConfirmation } from "@/components/ui/Delete";
 import { renderDatetime } from "@/components/ui/Time";
@@ -35,14 +34,10 @@ import { Type, Hash, ToggleLeft, Variable as TbVariable, Braces, Brackets } from
 import { PageHeader } from "@/components/ui/PageHeader";
 import { successToast, errorToast } from "../ui/Toast";
 import { EmptyState } from "../ui/EmptyState";
-
-const truncateText = (text: string, maxLength: number = 50) => {
-  if (!text || text.length <= maxLength) return text;
-  return text.substring(0, maxLength) + "...";
-};
+import { truncateText } from "../utils";
+import { Variable } from "@/types";
 
 export const Variables: React.FC = () => {
-  const [variables, setVariables] = useState<Variable[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("");
 
@@ -50,17 +45,11 @@ export const Variables: React.FC = () => {
   const tableBgColor = useColorModeValue("white", "gray.700");
   const hoverBgColor = useColorModeValue("gray.50", "gray.600");
 
-  const { data: fetchedVariables, refetch } = trpc.variable.getAll.useQuery();
+  const { data: variables, refetch } = trpc.variable.getAll.useQuery();
   const editVariable = trpc.variable.edit.useMutation();
   const deleteVariable = trpc.variable.delete.useMutation();
-  const { data: selectedWorkcell, refetch: refetchWorkcell } =
+  const { data: _selectedWorkcell, refetch: _refetchWorkcell } =
     trpc.workcell.getSelectedWorkcell.useQuery();
-
-  useEffect(() => {
-    if (fetchedVariables) {
-      setVariables(fetchedVariables);
-    }
-  }, [fetchedVariables]);
 
   const handleDelete = async (variable: Variable) => {
     try {
@@ -75,8 +64,9 @@ export const Variables: React.FC = () => {
     }
   };
 
-  const totalVariables = variables.length;
+  const totalVariables = variables?.length;
   const typeStats = useMemo(() => {
+    if (!variables) return {};
     const stats = variables.reduce(
       (acc, variable) => {
         acc[variable.type] = (acc[variable.type] || 0) + 1;
@@ -86,7 +76,6 @@ export const Variables: React.FC = () => {
     );
     return stats;
   }, [variables]);
-
   const filteredVariables = useMemo(() => {
     return variables?.filter(
       (variable) =>
@@ -132,7 +121,7 @@ export const Variables: React.FC = () => {
                 title="Variables"
                 subTitle="Manage system-wide variables and configurations"
                 titleIcon={<Icon as={TbVariable} boxSize={8} color="teal.500" />}
-                mainButton={<VariableModal isDisabled={!selectedWorkcell} />}
+                mainButton={<VariableModal isDisabled={!_selectedWorkcell} />}
               />
               <Divider />
               <StatGroup>
@@ -196,7 +185,7 @@ export const Variables: React.FC = () => {
         <Card bg={headerBg} shadow="md">
           <CardBody>
             <VStack spacing={4} align="stretch">
-              {filteredVariables.length === 0 ? (
+              {filteredVariables?.length === 0 ? (
                 <>
                   <EmptyState
                     title="No Variables Found"
@@ -217,7 +206,7 @@ export const Variables: React.FC = () => {
                       </Tr>
                     </Thead>
                     <Tbody>
-                      {filteredVariables.map((variable) => (
+                      {filteredVariables?.map((variable) => (
                         <Tr key={variable.id} _hover={{ bg: hoverBgColor }}>
                           <Td>
                             <EditableText
@@ -243,8 +232,8 @@ export const Variables: React.FC = () => {
                               displayValue={truncateText(variable.value, 60)}
                             />
                           </Td>
-                          <Td>{renderDatetime(String(variable.created_at))}</Td>
-                          <Td>{renderDatetime(String(variable.updated_at))}</Td>
+                          <Td>{renderDatetime(String(variable.createdAt))}</Td>
+                          <Td>{renderDatetime(String(variable.updatedAt))}</Td>
                           <Td>
                             <DeleteWithConfirmation
                               onDelete={() => handleDelete(variable)}

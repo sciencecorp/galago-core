@@ -1,13 +1,13 @@
 import { useRef } from "react";
 import { trpc } from "@/utils/trpc";
-import { Workcell } from "@/types/api";
-import { uploadFile, downloadFile } from "@/server/utils/api";
+import { WorkcellResponse } from "@/types";
+
 /**
  * React hook for workcell import/export functionality
  * Provides an interface to the server-side import/export operations
  */
 export const useWorkcellIO = (
-  workcells: Workcell[],
+  workcells: WorkcellResponse[],
   selectedWorkcellName: string | undefined,
   refetch: () => Promise<unknown>,
   refetchSelected: () => Promise<unknown>,
@@ -71,14 +71,20 @@ export const useWorkcellIO = (
     if (!file) return;
 
     try {
-      await uploadFile("/workcells/import", file);
+      // Read the file content
+      const fileContent = await file.text();
+      const configData = JSON.parse(fileContent);
+
+      // Use tRPC mutation to import
+      const result = await importConfigMutation.mutateAsync(configData);
+
       // Refresh data
       await refetch();
       await refetchSelected();
 
       return {
         success: true,
-        message: `Workcell imported successfully.`,
+        message: result.message || "Workcell imported successfully.",
       };
     } catch (error) {
       console.error("Import failed:", error);

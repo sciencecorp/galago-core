@@ -5,7 +5,6 @@ import {
   VStack,
   HStack,
   IconButton,
-  Select,
   Menu,
   MenuButton,
   MenuList,
@@ -38,7 +37,7 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
   onTimeWindowChange,
   startTime,
   endTime,
-  windowDuration = 60,
+  windowDuration: _windowDuration = 60,
   timeScale,
   onZoomChange,
 }) => {

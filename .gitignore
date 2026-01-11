@@ -12,6 +12,7 @@ controller/.next/
 controller/out/
 controller/build
 controller/gen-interfaces/
+controller/data/*
 controller/app.log
 stdout.txt
 tmp_file.py
@@ -78,3 +79,4 @@ app_config.json
 
 tools/build/*
 .cursor/rules/
+CLAUDE.md

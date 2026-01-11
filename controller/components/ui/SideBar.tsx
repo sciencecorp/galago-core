@@ -35,7 +35,7 @@ import { LucideIcon } from "lucide-react";
 import { capitalizeFirst } from "@/utils/parser";
 import { useRouter } from "next/router";
 import { useSidebarTheme } from "./Theme";
-import { SixWellPlateIcon, WorkcellIcon } from "./Icons";
+import { SixWellPlateIcon } from "./Icons";
 
 interface SidebarItem {
   name: string;
@@ -85,7 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   const theme = useSidebarTheme();
 
   const collapsedWidth = "80px";
-  const expandedWidth = "230px";
+  const expandedWidth = "200px";
 
   const toggleSidebar = () => {
     if (isMobile && !isSidebarExpanded) {
@@ -140,6 +140,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             _hover={{ background: theme.hoverBg }}
             borderRadius="md"
             p={1}
+            pl={isSidebarExpanded ? 4 : 0}
             display="flex"
             alignItems="center"
             justifyContent={isSidebarExpanded ? "start" : "center"}
@@ -199,7 +200,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             <Box pl={3} pt={3}>
               <Image
                 onClick={toggleSidebar}
-                width="55px"
+                width="40px"
                 paddingLeft="0"
                 src="/site_logo.svg"
                 alt="logo"
@@ -208,7 +209,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
               <DrawerOverlay />
               <DrawerContent
-                maxW="220px"
+                maxW="200px"
                 overflow="hidden"
                 _focus={{ outline: "none" }}
                 bg={theme.bg}

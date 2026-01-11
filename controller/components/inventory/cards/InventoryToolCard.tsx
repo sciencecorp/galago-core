@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Box,
   Card,
@@ -14,107 +14,81 @@ import {
   SimpleGrid,
   VStack,
   HStack,
-  Badge,
   Divider,
   Tooltip,
 } from "@chakra-ui/react";
-import { Nest, Plate, Reagent } from "@/types/api";
+import { Nest, Plate } from "@/types";
 import NestModal from "../modals/NestModal";
-import styled from "@emotion/styled";
 import { trpc } from "@/utils/trpc";
 import { useColorModeValue } from "@chakra-ui/react";
-import {
-  Wrench, // replaces PiToolbox
-  Grid3x3, // replaces BsGrid3X3
-  Package, // replaces BsBoxSeam
-  FlaskConical, // replaces FaFlask
-} from "lucide-react";
+import { Wrench, Grid3x3, Package, FlaskConical } from "lucide-react";
 import { Icon } from "@/components/ui/Icons";
 import { useCommonColors, useTextColors } from "@/components/ui/Theme";
-
-const StyledCard = styled(Card)`
-  display: flex;
-  flex-direction: column;
-  height: 280px;
-  width: 280px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: 0.3s ease-out;
-  margin: 0 15px;
-  margin-top: 10px;
-  margin-bottom: 20px;
-  overflow: hidden;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  }
-`;
 
 interface InventoryToolCardProps {
   toolId: number;
   nests: Nest[];
   plates: Plate[];
-  onCreateNest: (
-    toolId: number,
-    nestName: string,
-    nestRow: number,
-    nestColumn: number,
-  ) => Promise<void>;
-  onCreatePlate: (
-    nestId: number,
-    plateData: { name: string; barcode: string; plate_type: string },
-  ) => void;
-  onCreateReagent: (nestId: number, reagentData: Omit<Reagent, "id" | "well_id">) => void;
-  onNestClick: (nest: Nest) => void;
-  onDeleteNest: (nestId: number) => Promise<void>;
-  onPlateClick?: (plate: Plate) => void;
-  onCheckIn?: (nestId: number, triggerToolCommand?: boolean) => void;
 }
 
-export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
-  toolId,
-  nests,
-  plates,
-  onCreateNest,
-  onCreatePlate,
-  onCreateReagent,
-  onNestClick,
-  onDeleteNest,
-  onPlateClick,
-  onCheckIn,
-}) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const { cardBg, borderColor, hoverBg } = useCommonColors();
+export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({ toolId, nests, plates }) => {
+  const { cardBg, borderColor } = useCommonColors();
   const { secondary: iconColor } = useTextColors();
   const statBg = useColorModeValue("gray.50", "gray.800");
 
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  // Query hooks
   const workcells = trpc.workcell.getAll.useQuery();
   const SelectedWorkcellName = trpc.workcell.getSelectedWorkcell.useQuery();
   const selectedWorkcell = workcells.data?.find(
     (workcell) => workcell.name === SelectedWorkcellName.data,
   );
-  const workcellTools = selectedWorkcell?.tools;
-  const toolData = workcellTools?.find((tool) => tool.id === toolId);
-  const { name, type } = toolData || {};
 
-  const toolNests = nests.filter((nest) => nest.tool_id === toolId);
-  const toolPlates = plates.filter((plate) => toolNests.some((nest) => nest.id === plate.nest_id));
-
-  // Get reagent count for this tool's plates
-  const { data: plateReagents = [] } = trpc.inventory.getReagents.useQuery<Reagent[]>(
-    toolPlates[0]?.id || 0,
-    {
-      enabled: toolPlates.length > 0,
-    },
+  // Get reagent count
+  const toolNests = nests.filter((nest) => nest.toolId === toolId);
+  const toolPlates = plates.filter((plate) => toolNests.some((nest) => nest.id === plate.nestId));
+  const { data: plateReagents = [] } = trpc.inventory.getReagents.useQuery(
+    { plateId: toolPlates[0]?.id },
+    { enabled: toolPlates.length > 0 },
   );
 
-  // Count reagents
-  const reagentCount = (plateReagents as Reagent[]).length || 0;
+  // Mutation hooks
+  const utils = trpc.useContext();
+  const createNestMutation = trpc.inventory.createNest.useMutation({
+    onSuccess: () => {
+      utils.inventory.getNests.invalidate();
+    },
+  });
+  const deleteNestMutation = trpc.inventory.deleteNest.useMutation({
+    onSuccess: () => {
+      utils.inventory.getNests.invalidate();
+    },
+  });
+  const createPlateMutation = trpc.inventory.createPlate.useMutation({
+    onSuccess: () => {
+      utils.inventory.getPlates.invalidate();
+    },
+  });
+  const updatePlateMutation = trpc.inventory.updatePlate.useMutation({
+    onSuccess: () => {
+      utils.inventory.getPlates.invalidate();
+    },
+  });
+  const deletePlateMutation = trpc.inventory.deletePlate.useMutation({
+    onSuccess: () => {
+      utils.inventory.getPlates.invalidate();
+    },
+  });
+
+  const workcellTools = selectedWorkcell?.tools;
+  const toolData = workcellTools?.find((tool) => tool.id === toolId);
+  const { name } = toolData || {};
+
+  const reagentCount = plateReagents.length || 0;
 
   const renderToolImage = (config: any) => {
-    if (!config?.image_url) {
+    if (!config?.imageUrl) {
       return <Box></Box>;
     } else if (config.name === "Tool Box") {
       return (
@@ -141,6 +115,52 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
         />
       );
     }
+  };
+
+  const handleCreateNest = async (row: number, column: number) => {
+    await createNestMutation.mutateAsync({
+      name: `Nest ${row + 1}-${column + 1}`,
+      row,
+      column,
+      toolId,
+      hotelId: null,
+    });
+  };
+
+  const handleDeleteNest = async (nestId: number) => {
+    await deleteNestMutation.mutateAsync(nestId);
+  };
+
+  const handleCreatePlate = async (params: {
+    barcode: string;
+    name: string;
+    plateType: string;
+    nestId: number;
+  }) => {
+    await createPlateMutation.mutateAsync({
+      barcode: params.barcode,
+      name: params.name,
+      plateType: params.plateType,
+      nestId: params.nestId,
+    });
+  };
+
+  const handleUpdatePlate = async (
+    plateId: number,
+    params: {
+      barcode?: string;
+      name?: string;
+      plateType?: string;
+    },
+  ) => {
+    await updatePlateMutation.mutateAsync({
+      id: plateId,
+      ...params,
+    });
+  };
+
+  const handleDeletePlate = async (plateId: number) => {
+    await deletePlateMutation.mutateAsync(plateId);
   };
 
   return (
@@ -220,24 +240,14 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
       <NestModal
         isOpen={isOpen}
         onClose={onClose}
-        toolName={name || ""}
-        toolType={type}
+        containerName={name || ""}
         nests={toolNests}
-        plates={plates}
-        selectedNests={[]}
-        isMultiSelect={true}
-        onNestSelect={(nestIds) => {
-          nestIds.forEach((id) => {
-            const nest = nests.find((n) => n.id === id);
-            if (nest) onNestClick(nest);
-          });
-        }}
-        onCreateNest={(row, column) => onCreateNest(toolId, `${name}`, row, column)}
-        onDeleteNest={onDeleteNest}
-        onPlateClick={onPlateClick}
-        onCheckIn={onCheckIn}
-        containerType="tool"
-        containerId={toolId}
+        plates={toolPlates}
+        onCreateNest={handleCreateNest}
+        onDeleteNest={handleDeleteNest}
+        onCreatePlate={handleCreatePlate}
+        onUpdatePlate={handleUpdatePlate}
+        onDeletePlate={handleDeletePlate}
       />
     </>
   );

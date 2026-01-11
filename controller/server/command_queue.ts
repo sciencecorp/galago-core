@@ -5,12 +5,10 @@ import Tool from "./tools";
 import SqliteQueue, { StoredRunCommand } from "./utils/SqliteQueue";
 import path from "path";
 import fs from "fs";
-import { Console, log } from "console";
 import { logger } from "@/logger";
-import { ToolType } from "gen-interfaces/controller";
 import { logAction } from "./logger";
 import { get, put } from "@/server/utils/api";
-import { Variable } from "@/types/api";
+import { Variable } from "@/types";
 
 export type CommandQueueState = ToolStatus;
 
@@ -393,7 +391,7 @@ export class CommandQueue {
   }
 
   // Resume execution after pause or message
-  resume(autoResume = false) {
+  resume(_autoResume = false) {
     if (!this._isWaitingForInput) {
       return;
     }
@@ -537,7 +535,7 @@ export class CommandQueue {
     this._setState(ToolStatus.OFFLINE);
   }
 
-  private async _runBusyLoopWhileQueueNotEmpty(timeout = 120) {
+  private async _runBusyLoopWhileQueueNotEmpty(_timeout = 120) {
     this._setState(ToolStatus.BUSY);
 
     while (this.state === ToolStatus.BUSY) {
@@ -589,29 +587,27 @@ export class CommandQueue {
           }
         }
 
-        const dateString = String(nextCommand.createdAt);
-        const dateObject = new Date(dateString);
+        // Unused timestamp formatting logic - commented out
+        // const dateString = String(nextCommand.createdAt);
+        // const dateObject = new Date(dateString);
+        // const year = dateObject.getFullYear();
+        // const month = dateObject.getMonth() + 1;
+        // const day = dateObject.getDate();
+        // const hours = dateObject.getHours();
+        // const minutes = dateObject.getMinutes();
+        // const seconds = dateObject.getSeconds();
 
-        // Format timestamp logic...
-        const year = dateObject.getFullYear();
-        const month = dateObject.getMonth() + 1;
-        const day = dateObject.getDate();
-        const hours = dateObject.getHours();
-        const minutes = dateObject.getMinutes();
-        const seconds = dateObject.getSeconds();
+        // const amOrPm = hours >= 12 ? "PM" : "AM";
+        // const formattedHours = (hours % 12 || 12).toString();
 
-        const amOrPm = hours >= 12 ? "PM" : "AM";
-        const formattedHours = (hours % 12 || 12).toString();
+        // const _formattedDateTime = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
+        //   2,
+        //   "0",
+        // )} ${formattedHours.padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
+        //   seconds,
+        // ).padStart(2, "0")} ${amOrPm}`;
 
-        const formattedDateTime = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
-          2,
-          "0",
-        )} ${formattedHours.padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
-          seconds,
-        ).padStart(2, "0")} ${amOrPm}`;
-
-        // Handle special tool_box commands
-        if (nextCommand.commandInfo.toolId === "tool_box") {
+        if (nextCommand.commandInfo.toolId === "Tool Box") {
           if (nextCommand.commandInfo.command === "pause") {
             const message =
               nextCommand.commandInfo.params?.message || "Run is paused. Click Continue to resume.";
@@ -800,7 +796,7 @@ export class CommandQueue {
     try {
       const runQueue: RunQueue = {
         id: run.id,
-        run_type: run.protocolId,
+        run_type: run.protocolName || run.protocolId,
         commands_count: run.commands.length,
         status: "CREATED",
       };

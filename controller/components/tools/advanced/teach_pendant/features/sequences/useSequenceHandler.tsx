@@ -1,33 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { trpc } from "@/utils/trpc";
-import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  ModalCloseButton,
-  Button,
-  FormControl,
-  FormLabel,
-  Input,
-  VStack,
-  useDisclosure,
-  Box,
-  Heading,
-  Text,
-  IconButton,
-  HStack,
-} from "@chakra-ui/react";
-import { DeleteIcon } from "@chakra-ui/icons";
+import { useDisclosure } from "@chakra-ui/react";
 import { RobotArmSequence } from "@/server/routers/robot-arm";
-import { ToolCommandInfo } from "@/types";
-import { Tool } from "@/types/api";
-import { CommandModal } from "./CommandModal";
+import { Tool } from "@/types";
 import { ToolType } from "gen-interfaces/controller";
-import { TeachPoint, MotionProfile, GripParams } from "../../types";
-import { successToast, warningToast, errorToast, batchOperationToast } from "@/components/ui/Toast";
+// TeachPoint, MotionProfile, GripParams - unused but kept for potential future use
+// import { TeachPoint, MotionProfile, GripParams } from "../../types";
+import { successToast, errorToast } from "@/components/ui/Toast";
 import { createBatchHandler, createBatchHandlerForIds } from "../../shared/utils/batchUtils";
 import { validateSequenceExists } from "../../shared/utils/commandValidation";
 
@@ -42,146 +21,22 @@ export interface Sequence {
   name: string;
   description?: string;
   commands: SequenceCommand[];
-  tool_id: number;
+  toolId: number;
   labware?: string;
 }
 
-interface SequenceModalProps {
-  config: Tool;
-  isOpen: boolean;
-  onClose: () => void;
-  sequence?: Sequence;
-  onSave: (sequence: Omit<Sequence, "id">) => void;
-  teachPoints: TeachPoint[];
-  motionProfiles: MotionProfile[];
-  gripParams: GripParams[];
-}
-
-const SequenceModal: React.FC<SequenceModalProps> = ({
-  config,
-  isOpen,
-  onClose,
-  sequence,
-  onSave,
-  teachPoints,
-  motionProfiles,
-  gripParams,
-}) => {
-  const [name, setName] = useState(sequence?.name ?? "");
-  const [description, setDescription] = useState(sequence?.description ?? "");
-  const [commands, setCommands] = useState(sequence?.commands ?? []);
-  const [isCommandModalOpen, setIsCommandModalOpen] = useState(false);
-  const { handleUpdateSequence, handleCreateSequence } = useSequenceHandler(config);
-
-  // Reset form when sequence changes
-  useEffect(() => {
-    setName(sequence?.name ?? "");
-    setDescription(sequence?.description ?? "");
-  }, [sequence]);
-
-  const handleAddCommand = (command: { command: string; params: Record<string, any> }) => {
-    setCommands([...commands, { ...command, order: commands.length }]);
-  };
-
-  const handleRemoveCommand = (index: number) => {
-    setCommands(commands.filter((_, i) => i !== index));
-  };
-
-  const handleSave = () => {
-    if (!name.trim()) {
-      errorToast("Error", "Name is required");
-      return;
-    }
-
-    const sequenceData = {
-      name,
-      description,
-      commands,
-      tool_id: config.id,
-    };
-
-    if (sequence?.id) {
-      handleUpdateSequence({
-        ...sequenceData,
-        id: sequence.id,
-      });
-    } else {
-      handleCreateSequence(sequenceData);
-    }
-    onClose();
-  };
-
-  return (
-    <>
-      <Modal isOpen={isOpen} onClose={onClose} size="xl">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>{sequence ? "Edit Sequence" : "Create Sequence"}</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <VStack spacing={4}>
-              <FormControl isRequired>
-                <FormLabel>Name</FormLabel>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter sequence name"
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Description</FormLabel>
-                <Input
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter sequence description (optional)"
-                />
-              </FormControl>
-
-              <Box w="100%">
-                <Heading size="sm" mb={2}>
-                  Commands
-                </Heading>
-                <VStack align="stretch" spacing={2}>
-                  {commands.map((cmd, index) => (
-                    <HStack key={index} justify="space-between">
-                      <Text>{cmd.command}</Text>
-                      <IconButton
-                        aria-label="Remove command"
-                        icon={<DeleteIcon />}
-                        size="sm"
-                        onClick={() => handleRemoveCommand(index)}
-                      />
-                    </HStack>
-                  ))}
-                </VStack>
-                <Button mt={2} size="sm" onClick={() => setIsCommandModalOpen(true)}>
-                  Add Command
-                </Button>
-              </Box>
-            </VStack>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onClose}>
-              Cancel
-            </Button>
-            <Button colorScheme="blue" onClick={handleSave}>
-              Save
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      <CommandModal
-        isOpen={isCommandModalOpen}
-        onClose={() => setIsCommandModalOpen(false)}
-        onAddCommand={handleAddCommand}
-        teachPoints={teachPoints}
-        motionProfiles={motionProfiles}
-        gripParams={gripParams}
-      />
-    </>
-  );
-};
+// Unused interface and component - commented out
+// interface SequenceModalProps {
+//   config: Tool;
+//   isOpen: boolean;
+//   onClose: () => void;
+//   sequence?: Sequence;
+//   onSave: (sequence: Omit<Sequence, "id">) => void;
+//   teachPoints: TeachPoint[];
+//   motionProfiles: MotionProfile[];
+//   gripParams: GripParams[];
+// }
+// const _SequenceModal: React.FC<SequenceModalProps> = ({ ... });
 
 export function useSequenceHandler(config: Tool) {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -256,7 +111,7 @@ export function useSequenceHandler(config: Tool) {
    */
   const handleBatchDeleteSequence = async (ids: number[]) => {
     const deleteSequence = async (id: number) => {
-      await deleteSequenceMutation.mutateAsync({ id, tool_id: config.id });
+      await deleteSequenceMutation.mutateAsync({ id, toolId: config.id });
     };
 
     const batchDeleteSequences = createBatchHandlerForIds(deleteSequence, "delete", "sequences");
@@ -282,7 +137,7 @@ export function useSequenceHandler(config: Tool) {
 
   const handleDeleteSequence = async (id: number, silent: boolean = false) => {
     try {
-      await deleteSequenceMutation.mutateAsync({ id, tool_id: config.id });
+      await deleteSequenceMutation.mutateAsync({ id, toolId: config.id });
       if (!silent) {
         successToast("Success", "Sequence deleted successfully");
       }

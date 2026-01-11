@@ -18,7 +18,7 @@ export const Console: React.FC<ConsoleProps> = ({
   borderColor = "gray.300",
 }) => {
   const [consoleHeight, setConsoleHeight] = useState("20vh");
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, _setIsMinimized] = useState(false);
 
   const isDraggingRef = useRef(false);
   const startYRef = useRef(0);

@@ -93,7 +93,7 @@ export const MessageModal: React.FC<MessageProps> = ({ isOpen, messageData, onCo
   const bgColor = useColorModeValue("white", "gray.800");
   const pauseIconColor = useColorModeValue("orange.500", "orange.300");
   const messageIconColor = useColorModeValue("blue.500", "blue.300");
-  const timerBgColor = useColorModeValue("gray.100", "gray.700");
+  // const _timerBgColor = useColorModeValue("gray.100", "gray.700");
 
   // State to track elapsed time
   const [elapsedTime, setElapsedTime] = useState<string>("0s");

@@ -20,32 +20,14 @@ import { ToolConfig, ToolType } from "gen-interfaces/controller";
 import Link from "next/link";
 import { ToolConfigEditor } from "./ToolConfigEditor";
 import { ToolStatusTag } from "./ToolStatusTag";
-import styled from "@emotion/styled";
-import { useEffect, useState } from "react";
+// import styled from "@emotion/styled";
+import { useState } from "react";
 import { ToolCase } from "lucide-react";
 import { EditMenu } from "@/components/ui/EditMenu";
 import { EditToolModal } from "./EditToolConfig";
-import { useRouter } from "next/router";
+// import { useRouter } from "next/router";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
-import ToolLogs from "@/pages/advanced";
 import { successToast, errorToast } from "../ui/Toast";
-const StyledCard = styled(Card)`
-  display: flex;
-  flex-direction: column;
-  height: 280px;
-  width: 280px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: 0.3s ease-out;
-  margin: 0 15px;
-  margin-top: 10px;
-  margin-bottom: 20px;
-  overflow: hidden;
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  }
-`;
 
 interface ToolStatusCardProps {
   toolId: string;
@@ -53,7 +35,7 @@ interface ToolStatusCardProps {
 }
 
 export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardProps) {
-  const router = useRouter();
+  // const _router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [isConfiguring, setIsConfiguring] = useState(false);
   const cardBg = useColorModeValue("white", "gray.900");
@@ -65,10 +47,10 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
   const deleteTool = trpc.tool.delete.useMutation();
   const { data: selectedWorkcellData } = trpc.workcell.getSelectedWorkcell.useQuery();
   const { data: workcells } = trpc.workcell.getAll.useQuery();
-  const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({
+  const { data: _fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({
     workcellId: workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id,
   });
-  const editTool = trpc.tool.edit.useMutation();
+  // const _editTool = trpc.tool.edit.useMutation();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     isOpen: isDeleteConfirmOpen,
@@ -95,7 +77,8 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
   };
 
   function renderToolImage(config: any) {
-    if (!config.image_url) {
+    console.log("Rendering image url", config.imageUrl);
+    if (!config.imageUrl) {
       return <Box></Box>;
     } else if (config.name === "Tool Box") {
       return (
@@ -113,7 +96,7 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
     } else {
       return (
         <Image
-          src={config.image_url}
+          src={config.imageUrl}
           alt={config.name}
           objectFit="contain"
           height="120px"
@@ -170,7 +153,7 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
               </Text>
             </Box>
             <Box position="absolute" top={0} right={0} zIndex={1}>
-              {toolId !== "tool_box" && <EditMenu onEdit={onOpen} onDelete={openDeleteConfirm} />}
+              {toolId !== "Tool Box" && <EditMenu onEdit={onOpen} onDelete={openDeleteConfirm} />}
             </Box>
           </Flex>
         </CardHeader>

@@ -3,7 +3,7 @@ import { Button, HStack, Switch, Text, Tooltip, VStack } from "@chakra-ui/react"
 import { ToolConfig } from "gen-interfaces/controller";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { useState, useEffect } from "react";
-import { successToast, errorToast, infoToast } from "../ui/Toast";
+import { successToast, errorToast } from "../ui/Toast";
 
 function toolSpecificConfig(toolConfig: ToolConfig): Record<string, any> | undefined {
   const toolType = toolConfig.type;
@@ -91,7 +91,7 @@ export function ToolConfigEditor({
     statusQuery.isSuccess &&
     statusQuery.data &&
     statusQuery.data.status !== ToolStatus.OFFLINE &&
-    toolId != "tool_box";
+    toolId != "Tool Box";
 
   const saveConfig = async (simulated: boolean) => {
     setToolConfiguring(true);

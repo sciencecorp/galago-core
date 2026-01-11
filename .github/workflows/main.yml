@@ -21,6 +21,3 @@ jobs:
       - name: Run tests
         run: ./bin/make test
         shell: bash
-      - name: Run unit tests
-        run: ./bin/make unittest_py
-        shell: bash

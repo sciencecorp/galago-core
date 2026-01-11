@@ -32,7 +32,7 @@ import {
 import { DeleteWithConfirmation } from "../ui/Delete";
 import { PlusSquareIcon, ChevronUpIcon, TimeIcon } from "@chakra-ui/icons";
 import { QueueStatusComponent } from "./status/QueueStatuscomponent";
-import { getRunAttributes, groupCommandsByRun } from "@/utils/runUtils";
+import { getRunAttributes, groupCommandsByRun } from "./utils";
 import { ChartGantt } from "lucide-react";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { Inbox } from "lucide-react";
@@ -73,7 +73,7 @@ export const RunsComponent: React.FC = () => {
   // User Form Modal state
   const [isUserFormModalOpen, setIsUserFormModalOpen] = useState(false);
   const [currentForm, setCurrentForm] = useState<Form | null>(null);
-  const [userFormError, setUserFormError] = useState<string | null>(null);
+  const [_userFormError, setUserFormError] = useState<string | null>(null);
 
   // Unified message state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -200,7 +200,7 @@ export const RunsComponent: React.FC = () => {
     resumeMutation.mutate();
   };
 
-  const handleUserFormSubmit = (formData: Record<string, any>) => {
+  const handleUserFormSubmit = (_formData: Record<string, any>) => {
     // TODO: Handle form submission - for now just resume
     resumeMutation.mutate();
     setIsUserFormModalOpen(false);
@@ -580,7 +580,9 @@ export const RunsComponent: React.FC = () => {
           <CardBody>
             <VStack spacing={4} align="stretch">
               <HStack justify="space-between" width="100%">
-                <Heading size="lg">Runs List</Heading>
+                <Heading size="lg">
+                  {commandsAll.data && commandsAll.data.length > 0 ? "Runs List" : ""}
+                </Heading>
                 <Spacer />
                 <Text color="GrayText">Show Completed:</Text>
                 <Switch
@@ -596,11 +598,8 @@ export const RunsComponent: React.FC = () => {
                 <VStack spacing={3} py={4}>
                   <Icon as={Inbox} boxSize={8} color="gray.400" />
                   <Heading size="md" color="gray.400" fontWeight="medium">
-                    Queue is Empty
+                    Runs Queue is Empty
                   </Heading>
-                  <Text color="gray.500" fontSize="sm">
-                    No protocols are currently queued for execution
-                  </Text>
                 </VStack>
               )}
             </VStack>

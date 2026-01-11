@@ -112,19 +112,19 @@ export {
 
 // Custom Icon Components
 export const WellPlateIcon: React.FC<WellPlateIconProps> = ({ rows, columns, size = "48px" }) => {
-  // Determine if this matches a standard plate format
-  const getStandardFormat = (r: number, c: number): string => {
-    if (r === 1 && c === 1) return "1-well";
-    if (r === 2 && c === 3) return "6-well";
-    if (r === 3 && c === 4) return "12-well";
-    if (r === 4 && c === 6) return "24-well";
-    if (r === 6 && c === 8) return "48-well";
-    if (r === 8 && c === 12) return "96-well";
-    if (r === 16 && c === 24) return "384-well";
-    return "custom";
-  };
+  // Unused helper function - commented out
+  // const getStandardFormat = (r: number, c: number): string => {
+  //   if (r === 1 && c === 1) return "1-well";
+  //   if (r === 2 && c === 3) return "6-well";
+  //   if (r === 3 && c === 4) return "12-well";
+  //   if (r === 4 && c === 6) return "24-well";
+  //   if (r === 6 && c === 8) return "48-well";
+  //   if (r === 8 && c === 12) return "96-well";
+  //   if (r === 16 && c === 24) return "384-well";
+  //   return "custom";
+  // };
 
-  const format = getStandardFormat(rows, columns);
+  // const _format = getStandardFormat(rows, columns);
 
   // Add special case for 384-well plate
   const is384Well = rows === 16 && columns === 24;

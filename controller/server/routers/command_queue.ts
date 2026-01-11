@@ -3,8 +3,6 @@ import CommandQueue from "../command_queue";
 import { procedure, router } from "@/server/trpc";
 import { ToolCommandExecutionError } from "../tools";
 import { ResponseCode } from "gen-interfaces/tools/grpc_interfaces/tool_base";
-// type NonEmptyArray<T> = [T, ...T[]];
-// const zToolStatus = z.enum(Object.values(ToolStatus) as NonEmptyArray<ToolStatus>);
 
 export const commandQueueRouter = router({
   state: procedure.query(async () => {
@@ -81,6 +79,7 @@ export const commandQueueRouter = router({
   getAll: procedure.query(async ({}) => {
     return await CommandQueue.global.allCommands();
   }),
+
   commands: procedure
     .input(
       z.object({

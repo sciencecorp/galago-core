@@ -1,129 +1,195 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
-import { Labware } from "@/types/api";
-import { get, getOrEmptyArray, post, put, del, uploadFile } from "../utils/api";
+import { db } from "@/db/client";
+import { findOne, findMany, getSelectedWorkcellId } from "@/db/helpers";
+import { labware, tools, logs } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 import Tool from "../tools";
-import { logAction } from "@/server/logger";
-import { Tool as ToolResponse } from "@/types/api";
 
 export const zLabware = z.object({
   id: z.number().optional(),
-  name: z.string(),
+  name: z.string().min(1),
   description: z.string(),
-  number_of_rows: z.number(),
-  number_of_columns: z.number(),
-  z_offset: z.number().optional(),
-  width: z.number().optional(),
-  height: z.number().optional(),
-  plate_lid_offset: z.number().optional(),
-  lid_offset: z.number().optional(),
-  stack_height: z.number().optional(),
-  has_lid: z.boolean().optional(),
-  image_url: z.string().optional(),
+  numberOfRows: z.number(),
+  numberOfColumns: z.number(),
+  zOffset: z.number().default(0),
+  width: z.number().nullable().default(127.8),
+  height: z.number().nullable().default(14.5),
+  plateLidOffset: z.number().nullable().default(0),
+  lidOffset: z.number().nullable().default(0),
+  stackHeight: z.number().nullable().default(0),
+  hasLid: z.boolean().nullable().default(false),
+  workcellId: z.number().nullable().optional(),
 });
+
+async function reloadLabwareInPF400Tools() {
+  try {
+    const allTools = await findMany(tools);
+    const pf400Tools = allTools.filter((tool) => tool.type === "pf400");
+
+    if (pf400Tools.length > 0) {
+      await Promise.all(
+        pf400Tools.map(async (tool) => {
+          try {
+            await Tool.loadLabwareToPF400(tool.name);
+          } catch (error) {
+            console.error(`Error loading labware to ${tool.name}:`, error);
+          }
+        }),
+      );
+    }
+  } catch (error) {
+    console.error("Error reloading labware in PF400 tools:", error);
+  }
+}
 
 export const labwareRouter = router({
   getAll: procedure.query(async () => {
-    return await getOrEmptyArray<Labware>(`/labware`);
+    const workcellId = await getSelectedWorkcellId();
+    const allLabware = await findMany(labware, eq(labware.workcellId, workcellId));
+    return allLabware;
   }),
 
-  // Get a specific labware
   get: procedure.input(z.string()).query(async ({ input }) => {
-    const response = await get<Labware>(`/labware/${input}`);
-    return response;
+    const id = parseInt(input);
+    if (isNaN(id)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Invalid labware ID",
+      });
+    }
+
+    const labwareItem = await findOne(labware, eq(labware.id, id));
+
+    if (!labwareItem) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Labware not found",
+      });
+    }
+
+    return labwareItem;
   }),
 
-  // Add new labware
   add: procedure.input(zLabware.omit({ id: true })).mutation(async ({ input }) => {
-    const response = await post<Labware>(`/labware`, input);
-    logAction({
-      level: "info",
-      action: "New Labware Added",
-      details: `Labware ${input.name} added successfully.`,
-    });
-    const allTools = await get<ToolResponse[]>(`/tools`);
-    const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
-    if (allToolswithLabware.length > 0) {
-      // best-effort; don't fail the mutation if one tool can't reload labware
-      await Promise.all(
-        allToolswithLabware.map(async (tool) => {
-          await Tool.loadLabwareToPF400(tool.name);
-        }),
-      ).catch(() => {});
+    const workcellId = input.workcellId || (await getSelectedWorkcellId());
+    try {
+      const result = await db
+        .insert(labware)
+        .values({
+          ...input,
+          workcellId,
+        })
+        .returning();
+
+      await db.insert(logs).values({
+        level: "info",
+        action: "New Labware Added",
+        details: `Labware ${input.name} added successfully.`,
+      });
+
+      await reloadLabwareInPF400Tools();
+
+      return result[0];
+    } catch (error: any) {
+      if (error.message?.includes("UNIQUE constraint failed")) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `Labware with name '${input.name}' already exists in this workcell`,
+        });
+      }
+      throw error;
     }
-    return response;
   }),
 
-  // Edit existing labware
   edit: procedure.input(zLabware).mutation(async ({ input }) => {
-    const { id } = input;
-    const response = await put<Labware>(`/labware/${id}`, input);
-    logAction({
-      level: "info",
-      action: "Labware Edited",
-      details: `Labware ${input.name} updated successfully.`,
-    });
-    const allTools = await get<ToolResponse[]>(`/tools`);
-    const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
-    if (allToolswithLabware.length > 0) {
-      await Promise.all(
-        allToolswithLabware.map(async (tool) => {
-          await Tool.loadLabwareToPF400(tool.name);
-        }),
-      ).catch(() => {});
+    const { id, ...updateData } = input;
+
+    if (!id) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Labware ID is required",
+      });
     }
-    return response;
+
+    const existing = await findOne(labware, eq(labware.id, id));
+
+    if (!existing) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Labware not found",
+      });
+    }
+
+    try {
+      const updated = await db
+        .update(labware)
+        .set({
+          ...updateData,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(labware.id, id))
+        .returning();
+
+      await db.insert(logs).values({
+        level: "info",
+        action: "Labware Edited",
+        details: `Labware ${input.name} updated successfully.`,
+      });
+
+      await reloadLabwareInPF400Tools();
+
+      return updated[0];
+    } catch (error: any) {
+      if (error.message?.includes("UNIQUE constraint failed")) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `Labware with name '${input.name}' already exists in this workcell`,
+        });
+      }
+      throw error;
+    }
   }),
 
-  // Delete labware
   delete: procedure.input(z.number()).mutation(async ({ input }) => {
-    await del(`/labware/${input}`);
-    const allTools = await get<ToolResponse[]>(`/tools`);
-    const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
-    if (allToolswithLabware.length > 0) {
-      await Promise.all(
-        allToolswithLabware.map(async (tool) => {
-          await Tool.loadLabwareToPF400(tool.name);
-        }),
-      ).catch(() => {});
+    const deleted = await db.delete(labware).where(eq(labware.id, input)).returning();
+
+    if (!deleted || deleted.length === 0) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Labware not found",
+      });
     }
+
+    await reloadLabwareInPF400Tools();
+
     return { message: "Labware deleted successfully" };
   }),
 
-  // Export labware config - returns the labware data for download
   exportConfig: procedure.input(z.number()).mutation(async ({ input }) => {
-    const labwareId = input;
-    return await get<Labware>(`/labware/${labwareId}/export`);
+    const labwareItem = await findOne(labware, eq(labware.id, input));
+
+    if (!labwareItem) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Labware not found",
+      });
+    }
+
+    return labwareItem;
   }),
 
-  // Export all labware configs
   exportAllConfig: procedure.mutation(async () => {
-    return await get<Labware[]>(`/labware/export-all`);
+    const workcellId = await getSelectedWorkcellId();
+    const allLabware = await findMany(labware, eq(labware.workcellId, workcellId));
+    return allLabware;
   }),
 
-  // Import labware config using file upload via api utility
-  importConfig: procedure
-    .input(
-      z.object({
-        file: z.any(), // File object from form data
-      }),
-    )
-    .mutation(async ({ input }) => {
-      const { file } = input;
-      // Use the uploadFile utility
-      const response = await uploadFile<Labware>("/labware/import", file);
-
-      // Best-effort reload labware in all PF400 tools
-      const allTools = await get<ToolResponse[]>(`/tools`);
-      const allToolswithLabware = allTools.filter((tool) => tool.type === "pf400");
-      if (allToolswithLabware.length > 0) {
-        await Promise.all(
-          allToolswithLabware.map(async (tool) => {
-            await Tool.loadLabwareToPF400(tool.name);
-          }),
-        ).catch(() => {});
-      }
-
-      return response;
-    }),
+  importConfig: procedure.input(z.object({ file: z.any() })).mutation(async ({ input: _input }) => {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Import functionality to be implemented",
+    });
+  }),
 });

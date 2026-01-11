@@ -18,7 +18,6 @@ import {
   Tooltip,
 } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
-import { Labware as LabwareResponse } from "@/types/api";
 import { Plus } from "lucide-react";
 import { successToast, errorToast } from "../ui/Toast";
 
@@ -33,7 +32,6 @@ export const LabwareModal: React.FC<LabwareModalProps> = ({ isDisabled }) => {
   const [description, setDescription] = useState("");
   const [numberOfRows, setNumberOfRows] = useState(8);
   const [numberOfColumns, setNumberOfColumns] = useState(12);
-  const [imageUrl, setImageUrl] = useState("");
 
   const addLabware = trpc.labware.add.useMutation();
   const { refetch } = trpc.labware.getAll.useQuery();
@@ -43,17 +41,15 @@ export const LabwareModal: React.FC<LabwareModalProps> = ({ isDisabled }) => {
     setDescription("");
     setNumberOfRows(0);
     setNumberOfColumns(0);
-    setImageUrl("");
   };
 
   const handleSave = async () => {
     const labware = {
-      name,
-      description,
-      number_of_rows: numberOfRows,
-      number_of_columns: numberOfColumns,
-      image_url: imageUrl,
-    } as LabwareResponse;
+      name: name,
+      description: description,
+      numberOfRows: numberOfRows,
+      numberOfColumns: numberOfColumns,
+    };
 
     setIsLoading(true);
     try {
@@ -119,17 +115,18 @@ export const LabwareModal: React.FC<LabwareModalProps> = ({ isDisabled }) => {
                   <NumberInputField />
                 </NumberInput>
               </FormControl>
-              <FormControl>
-                <FormLabel>Image URL</FormLabel>
-                <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
-              </FormControl>
             </VStack>
           </ModalBody>
           <ModalFooter>
             <Button variant="ghost" onClick={onClose}>
               Cancel
             </Button>
-            <Button colorScheme="teal" onClick={handleSave} mr={3} isLoading={isLoading}>
+            <Button
+              isDisabled={isLoading || !name || !description || !numberOfRows || !numberOfColumns}
+              colorScheme="teal"
+              onClick={handleSave}
+              mr={3}
+              isLoading={isLoading}>
               Submit
             </Button>
           </ModalFooter>
