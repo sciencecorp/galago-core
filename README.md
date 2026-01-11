@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Node Version](https://img.shields.io/badge/node-22.11-purple.svg)](https://nodejs.org/)
 [![GitHub Issues](https://img.shields.io/github/issues/sciencecorp/galago-core)](https://github.com/sciencecorp/galago-tools/issues)
-[![Hits](https://hits.sh/github.com/sciencecorp/galago-core.svg?view=today-total&style=plastic&label=visitors&color=9059db)](https://hits.sh/github.com/sciencecorp/galago-core/)
+[![Hits](https://hits.sh/github.com/sciencecorp/galago-core.svg?view=today-total&style=flat-square&color=8e43c8)](https://hits.sh/github.com/sciencecorp/galago-core/)
 
 **Galago** is a comprehensive laboratory automation platform that orchestrates and manages laboratory equipment through a unified interface. It provides protocol execution, device management, and real-time monitoring for automated laboratory workflows.
 
