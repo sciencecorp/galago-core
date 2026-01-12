@@ -205,25 +205,15 @@ docker-compose -f docker-compose.dev.yml up --build
 ```
 
 **Port conflicts:**
-
-- Web interface (3010), Database API (8000), Redis (1203)
+- App runs at http://localhost:3010 by default.
 - Modify port mappings in docker-compose files if needed
 
 ## Architecture Details
 
 ### Data Flow
 
-1. **User Interface** (Next.js) → tRPC calls → **Controller Server**
-2. **Controller Server** → HTTP API calls → **Database Service**
-3. **Controller Server** → gRPC calls → **Tool Drivers**
-4. **Queue System** (Redis) manages asynchronous protocol execution
-
-### Database Schema
-
-- **Inventory**: Labware, samples, and consumables tracking
-- **Protocols**: Stored procedures and execution templates
-- **Runs**: Execution history and results
-- **Logs**: System events and device communications
+1. **User Interface** (Next.js) → tRPC calls → **Database Service**
+3. **User Interface** ->  tRPC calls → gRPC calls → **Tool Drivers**
 
 ## License
 
