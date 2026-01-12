@@ -6,11 +6,11 @@ This document explains how to release new versions of Galago Controller.
 
 We use [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`
 
-| Type | When to use | Example |
-|------|-------------|---------|
+| Type      | When to use                                        | Example           |
+| --------- | -------------------------------------------------- | ----------------- |
 | **PATCH** | Bug fixes, small tweaks that don't change behavior | `0.1.0` → `0.1.1` |
-| **MINOR** | New features, non-breaking changes | `0.1.0` → `0.2.0` |
-| **MAJOR** | Breaking changes, major rewrites | `0.1.0` → `1.0.0` |
+| **MINOR** | New features, non-breaking changes                 | `0.1.0` → `0.2.0` |
+| **MAJOR** | Breaking changes, major rewrites                   | `0.1.0` → `1.0.0` |
 
 ## How to Release
 
@@ -44,6 +44,7 @@ The app automatically checks for updates on startup by comparing the local versi
 ## Pre-release Checklist
 
 Before releasing:
+
 - [ ] All tests pass (`npm run test`)
 - [ ] Build succeeds (`npm run build`)
 - [ ] Changes are merged to `main`
