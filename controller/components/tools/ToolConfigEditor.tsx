@@ -1,16 +1,29 @@
 import { trpc } from "@/utils/trpc";
 import { Button, HStack, Switch, Text, Tooltip, VStack } from "@chakra-ui/react";
-import { ToolConfig } from "gen-interfaces/controller";
+import { ToolType } from "gen-interfaces/controller";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { useState, useEffect } from "react";
 import { successToast, errorToast } from "../ui/Toast";
 
-function toolSpecificConfig(toolConfig: ToolConfig): Record<string, any> | undefined {
-  const toolType = toolConfig.type;
+// Type for tool info returned by the tRPC query
+interface ToolInfo {
+  id: number;
+  name: string;
+  type: string;
+  description: string | null;
+  imageUrl: string | null;
+  ip: string;
+  port: number;
+  config: unknown;
+  workcellId?: number | null;
+}
+
+function toolSpecificConfig(toolConfig: ToolInfo): Record<string, any> | undefined {
+  const toolType = toolConfig.type as ToolType;
   const config = toolConfig.config;
-  if (!config) return;
-  if (!(toolType in config)) return;
-  return (config as any)[toolType];
+  if (!config || typeof config !== "object") return;
+  if (!(toolType in (config as Record<string, unknown>))) return;
+  return (config as Record<string, any>)[toolType];
 }
 
 export function ToolConfigEditor({
@@ -19,7 +32,7 @@ export function ToolConfigEditor({
   onConfiguring,
 }: {
   toolId: string;
-  defaultConfig: ToolConfig;
+  defaultConfig: ToolInfo;
   onConfiguring?: (isConfiguring: boolean) => void;
 }): JSX.Element {
   // Get the tRPC context once at component level
