@@ -51,46 +51,35 @@ If you plan to contribute or customize Galago, start by forking the repository:
    git remote add upstream https://github.com/your-org/galago-core.git
 ```
 
-### Quick Start with Docker (Recommended)
-
-2. **Install grpcio dependencies on a local environment (for proto files, testing, linting, etc)**
-
-   ```bash
-   bin/make deps
-   ```
-
-3. **Generate proto files**
-
-   ```bash
-   bin/make proto
-   ```
-
 4. **Launch development environment**
 
-   ```bash
-   docker-compose -f docker-compose.dev.yml up --build
-   ```
+```bash
+docker-compose -f docker-compose.dev.yml up --build
+```
 
 5. **Access the application**
    - Web Interface: http://localhost:3010
 
-### Manual Setup
+### Other useful development commands.
 
-If you prefer to run without Docker:
-
-#### 1. Build dependencies and interfaces
+2. **Install grpcio dependencies on a local environment (for proto files, testing, linting, etc)**
 
 ```bash
 bin/make deps
-bin/make proto
 ```
 
-#### 2. Start the web controller
+4. **Initialize and update submodules** (pulls the latest proto definitions from galago-tools):
 
 ```bash
-cd controller
-npm install
-npm run dev
+git submodule update --init --recursive
+```
+
+> **Note:** Run `git submodule update --remote vendor/galago-tools` anytime you need to pull the latest proto updates.
+
+5. **Generate proto files**
+
+```bash
+bin/make proto
 ```
 
 ## Production Deployment

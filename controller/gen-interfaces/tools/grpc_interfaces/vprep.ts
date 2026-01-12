@@ -21,6 +21,7 @@ export interface Command_RunRunset {
 }
 
 export interface Config {
+  device_file: string;
 }
 
 function createBaseCommand(): Command {
@@ -273,11 +274,14 @@ export const Command_RunRunset = {
 };
 
 function createBaseConfig(): Config {
-  return {};
+  return { device_file: "" };
 }
 
 export const Config = {
-  encode(_: Config, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: Config, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.device_file !== "") {
+      writer.uint32(10).string(message.device_file);
+    }
     return writer;
   },
 
@@ -288,6 +292,13 @@ export const Config = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.device_file = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -297,12 +308,13 @@ export const Config = {
     return message;
   },
 
-  fromJSON(_: any): Config {
-    return {};
+  fromJSON(object: any): Config {
+    return { device_file: isSet(object.device_file) ? String(object.device_file) : "" };
   },
 
-  toJSON(_: Config): unknown {
+  toJSON(message: Config): unknown {
     const obj: any = {};
+    message.device_file !== undefined && (obj.device_file = message.device_file);
     return obj;
   },
 
@@ -310,8 +322,9 @@ export const Config = {
     return Config.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Config>, I>>(_: I): Config {
+  fromPartial<I extends Exact<DeepPartial<Config>, I>>(object: I): Config {
     const message = createBaseConfig();
+    message.device_file = object.device_file ?? "";
     return message;
   },
 };

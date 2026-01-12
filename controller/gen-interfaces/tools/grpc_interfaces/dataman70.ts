@@ -4,11 +4,12 @@ import _m0 from "protobufjs/minimal";
 export const protobufPackage = "com.science.foundry.tools.grpc_interfaces.dataman70";
 
 export interface Command {
-  reset?: Command_Reset | undefined;
+  scan?: Command_Scan | undefined;
   assert_barcode?: Command_AssertBarcode | undefined;
 }
 
-export interface Command_Reset {
+export interface Command_Scan {
+  mapped_variable: string;
 }
 
 export interface Command_AssertBarcode {
@@ -20,13 +21,13 @@ export interface Config {
 }
 
 function createBaseCommand(): Command {
-  return { reset: undefined, assert_barcode: undefined };
+  return { scan: undefined, assert_barcode: undefined };
 }
 
 export const Command = {
   encode(message: Command, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.reset !== undefined) {
-      Command_Reset.encode(message.reset, writer.uint32(10).fork()).ldelim();
+    if (message.scan !== undefined) {
+      Command_Scan.encode(message.scan, writer.uint32(10).fork()).ldelim();
     }
     if (message.assert_barcode !== undefined) {
       Command_AssertBarcode.encode(message.assert_barcode, writer.uint32(18).fork()).ldelim();
@@ -46,7 +47,7 @@ export const Command = {
             break;
           }
 
-          message.reset = Command_Reset.decode(reader, reader.uint32());
+          message.scan = Command_Scan.decode(reader, reader.uint32());
           continue;
         case 2:
           if (tag !== 18) {
@@ -66,14 +67,14 @@ export const Command = {
 
   fromJSON(object: any): Command {
     return {
-      reset: isSet(object.reset) ? Command_Reset.fromJSON(object.reset) : undefined,
+      scan: isSet(object.scan) ? Command_Scan.fromJSON(object.scan) : undefined,
       assert_barcode: isSet(object.assert_barcode) ? Command_AssertBarcode.fromJSON(object.assert_barcode) : undefined,
     };
   },
 
   toJSON(message: Command): unknown {
     const obj: any = {};
-    message.reset !== undefined && (obj.reset = message.reset ? Command_Reset.toJSON(message.reset) : undefined);
+    message.scan !== undefined && (obj.scan = message.scan ? Command_Scan.toJSON(message.scan) : undefined);
     message.assert_barcode !== undefined &&
       (obj.assert_barcode = message.assert_barcode ? Command_AssertBarcode.toJSON(message.assert_barcode) : undefined);
     return obj;
@@ -85,8 +86,8 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.reset = (object.reset !== undefined && object.reset !== null)
-      ? Command_Reset.fromPartial(object.reset)
+    message.scan = (object.scan !== undefined && object.scan !== null)
+      ? Command_Scan.fromPartial(object.scan)
       : undefined;
     message.assert_barcode = (object.assert_barcode !== undefined && object.assert_barcode !== null)
       ? Command_AssertBarcode.fromPartial(object.assert_barcode)
@@ -95,22 +96,32 @@ export const Command = {
   },
 };
 
-function createBaseCommand_Reset(): Command_Reset {
-  return {};
+function createBaseCommand_Scan(): Command_Scan {
+  return { mapped_variable: "" };
 }
 
-export const Command_Reset = {
-  encode(_: Command_Reset, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const Command_Scan = {
+  encode(message: Command_Scan, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.mapped_variable !== "") {
+      writer.uint32(10).string(message.mapped_variable);
+    }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): Command_Reset {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Command_Scan {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCommand_Reset();
+    const message = createBaseCommand_Scan();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.mapped_variable = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -120,21 +131,23 @@ export const Command_Reset = {
     return message;
   },
 
-  fromJSON(_: any): Command_Reset {
-    return {};
+  fromJSON(object: any): Command_Scan {
+    return { mapped_variable: isSet(object.mapped_variable) ? String(object.mapped_variable) : "" };
   },
 
-  toJSON(_: Command_Reset): unknown {
+  toJSON(message: Command_Scan): unknown {
     const obj: any = {};
+    message.mapped_variable !== undefined && (obj.mapped_variable = message.mapped_variable);
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Command_Reset>, I>>(base?: I): Command_Reset {
-    return Command_Reset.fromPartial(base ?? {});
+  create<I extends Exact<DeepPartial<Command_Scan>, I>>(base?: I): Command_Scan {
+    return Command_Scan.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Command_Reset>, I>>(_: I): Command_Reset {
-    const message = createBaseCommand_Reset();
+  fromPartial<I extends Exact<DeepPartial<Command_Scan>, I>>(object: I): Command_Scan {
+    const message = createBaseCommand_Scan();
+    message.mapped_variable = object.mapped_variable ?? "";
     return message;
   },
 };
