@@ -271,13 +271,17 @@ export const Settings: React.FC = () => {
 
   const settingsByName = useMemo(() => {
     const map = new Map<string, string>();
-    (fetchedSettings ?? []).forEach((s) => map.set(s.name, s.value));
+    (fetchedSettings ?? []).forEach((s: { name: string; value: string }) =>
+      map.set(s.name, s.value),
+    );
     return map;
   }, [fetchedSettings]);
 
   const secretsByName = useMemo(() => {
     const map = new Map<string, boolean>();
-    (fetchedSecrets ?? []).forEach((s) => map.set(s.name, Boolean(s.is_set)));
+    (fetchedSecrets ?? []).forEach((s: { name: string; is_set: unknown }) =>
+      map.set(s.name, Boolean(s.is_set)),
+    );
     return map;
   }, [fetchedSecrets]);
 
