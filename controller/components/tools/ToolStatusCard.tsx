@@ -16,7 +16,7 @@ import {
   Alert,
   Tag,
 } from "@chakra-ui/react";
-import { ToolConfig, ToolType } from "gen-interfaces/controller";
+import { ToolType } from "gen-interfaces/controller";
 import Link from "next/link";
 import { ToolConfigEditor } from "./ToolConfigEditor";
 import { ToolStatusTag } from "./ToolStatusTag";
@@ -24,9 +24,9 @@ import { useState } from "react";
 import { ToolCase } from "lucide-react";
 import { EditMenu } from "@/components/ui/EditMenu";
 import { EditToolModal } from "./EditToolConfig";
-// import { useRouter } from "next/router";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
 import { successToast, errorToast } from "../ui/Toast";
+import { Tool } from "@/types";
 
 interface ToolStatusCardProps {
   toolId: string;
@@ -175,7 +175,7 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
                 <Box flex="1">
                   <ToolConfigEditor
                     toolId={toolId}
-                    defaultConfig={toolData as ToolConfig}
+                    defaultConfig={toolData as Tool}
                     onConfiguring={setIsConfiguring}
                   />
                 </Box>

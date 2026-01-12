@@ -200,7 +200,7 @@ export interface ToolConfig {
   port: number;
   config: Config | undefined;
   description: string;
-  imageUrl: string;
+  image_url: string;
 }
 
 export interface WorkcellConfig {
@@ -214,12 +214,15 @@ export interface WorkcellConfig {
 export interface AppConfig {
   workcell: string;
   host_ip: string;
+  redis_ip: string;
+  slack_bot_tocken: string;
+  slack_channel_id: string;
   enable_slack_error: boolean;
   slack_admins_ids: string[];
 }
 
 function createBaseToolConfig(): ToolConfig {
-  return { name: "", type: ToolType.unknown, ip: "", port: 0, config: undefined, description: "", imageUrl: "" };
+  return { name: "", type: ToolType.unknown, ip: "", port: 0, config: undefined, description: "", image_url: "" };
 }
 
 export const ToolConfig = {
@@ -242,8 +245,8 @@ export const ToolConfig = {
     if (message.description !== "") {
       writer.uint32(58).string(message.description);
     }
-    if (message.imageUrl !== "") {
-      writer.uint32(66).string(message.imageUrl);
+    if (message.image_url !== "") {
+      writer.uint32(66).string(message.image_url);
     }
     return writer;
   },
@@ -302,7 +305,7 @@ export const ToolConfig = {
             break;
           }
 
-          message.imageUrl = reader.string();
+          message.image_url = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -321,7 +324,7 @@ export const ToolConfig = {
       port: isSet(object.port) ? Number(object.port) : 0,
       config: isSet(object.config) ? Config.fromJSON(object.config) : undefined,
       description: isSet(object.description) ? String(object.description) : "",
-      imageUrl: isSet(object.imageUrl) ? String(object.imageUrl) : "",
+      image_url: isSet(object.image_url) ? String(object.image_url) : "",
     };
   },
 
@@ -333,7 +336,7 @@ export const ToolConfig = {
     message.port !== undefined && (obj.port = Math.round(message.port));
     message.config !== undefined && (obj.config = message.config ? Config.toJSON(message.config) : undefined);
     message.description !== undefined && (obj.description = message.description);
-    message.imageUrl !== undefined && (obj.imageUrl = message.imageUrl);
+    message.image_url !== undefined && (obj.image_url = message.image_url);
     return obj;
   },
 
@@ -351,7 +354,7 @@ export const ToolConfig = {
       ? Config.fromPartial(object.config)
       : undefined;
     message.description = object.description ?? "";
-    message.imageUrl = object.imageUrl ?? "";
+    message.image_url = object.image_url ?? "";
     return message;
   },
 };
@@ -471,7 +474,15 @@ export const WorkcellConfig = {
 };
 
 function createBaseAppConfig(): AppConfig {
-  return { workcell: "", host_ip: "", enable_slack_error: false, slack_admins_ids: [] };
+  return {
+    workcell: "",
+    host_ip: "",
+    redis_ip: "",
+    slack_bot_tocken: "",
+    slack_channel_id: "",
+    enable_slack_error: false,
+    slack_admins_ids: [],
+  };
 }
 
 export const AppConfig = {
@@ -481,6 +492,15 @@ export const AppConfig = {
     }
     if (message.host_ip !== "") {
       writer.uint32(18).string(message.host_ip);
+    }
+    if (message.redis_ip !== "") {
+      writer.uint32(26).string(message.redis_ip);
+    }
+    if (message.slack_bot_tocken !== "") {
+      writer.uint32(34).string(message.slack_bot_tocken);
+    }
+    if (message.slack_channel_id !== "") {
+      writer.uint32(42).string(message.slack_channel_id);
     }
     if (message.enable_slack_error === true) {
       writer.uint32(48).bool(message.enable_slack_error);
@@ -512,6 +532,27 @@ export const AppConfig = {
 
           message.host_ip = reader.string();
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.redis_ip = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.slack_bot_tocken = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.slack_channel_id = reader.string();
+          continue;
         case 6:
           if (tag !== 48) {
             break;
@@ -539,6 +580,9 @@ export const AppConfig = {
     return {
       workcell: isSet(object.workcell) ? String(object.workcell) : "",
       host_ip: isSet(object.host_ip) ? String(object.host_ip) : "",
+      redis_ip: isSet(object.redis_ip) ? String(object.redis_ip) : "",
+      slack_bot_tocken: isSet(object.slack_bot_tocken) ? String(object.slack_bot_tocken) : "",
+      slack_channel_id: isSet(object.slack_channel_id) ? String(object.slack_channel_id) : "",
       enable_slack_error: isSet(object.enable_slack_error) ? Boolean(object.enable_slack_error) : false,
       slack_admins_ids: Array.isArray(object?.slack_admins_ids)
         ? object.slack_admins_ids.map((e: any) => String(e))
@@ -550,6 +594,9 @@ export const AppConfig = {
     const obj: any = {};
     message.workcell !== undefined && (obj.workcell = message.workcell);
     message.host_ip !== undefined && (obj.host_ip = message.host_ip);
+    message.redis_ip !== undefined && (obj.redis_ip = message.redis_ip);
+    message.slack_bot_tocken !== undefined && (obj.slack_bot_tocken = message.slack_bot_tocken);
+    message.slack_channel_id !== undefined && (obj.slack_channel_id = message.slack_channel_id);
     message.enable_slack_error !== undefined && (obj.enable_slack_error = message.enable_slack_error);
     if (message.slack_admins_ids) {
       obj.slack_admins_ids = message.slack_admins_ids.map((e) => e);
@@ -567,6 +614,9 @@ export const AppConfig = {
     const message = createBaseAppConfig();
     message.workcell = object.workcell ?? "";
     message.host_ip = object.host_ip ?? "";
+    message.redis_ip = object.redis_ip ?? "";
+    message.slack_bot_tocken = object.slack_bot_tocken ?? "";
+    message.slack_channel_id = object.slack_channel_id ?? "";
     message.enable_slack_error = object.enable_slack_error ?? false;
     message.slack_admins_ids = object.slack_admins_ids?.map((e) => e) || [];
     return message;
