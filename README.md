@@ -60,7 +60,7 @@ docker-compose -f docker-compose.dev.yml up --build
 5. **Access the application**
    - Web Interface: http://localhost:3010
 
-### Other useful development commands. 
+### Other useful development commands.
 
 2. **Install grpcio dependencies on a local environment (for proto files, testing, linting, etc)**
 
@@ -73,9 +73,11 @@ bin/make deps
 ```bash
 git submodule update --init --recursive
 ```
+
 > **Note:** Run `git submodule update --remote vendor/galago-tools` anytime you need to pull the latest proto updates.
-  
+
 5. **Generate proto files**
+
 ```bash
 bin/make proto
 ```

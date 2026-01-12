@@ -6,7 +6,9 @@ import { useState, useEffect } from "react";
 import { successToast, errorToast } from "../ui/Toast";
 import { Tool } from "@/types";
 
-type ToolInfo = Omit<Tool, "createdAt" | "updatedAt" | "workcellId"> & { workcellId?: number | null };
+type ToolInfo = Omit<Tool, "createdAt" | "updatedAt" | "workcellId"> & {
+  workcellId?: number | null;
+};
 
 function toolSpecificConfig(toolConfig: ToolInfo): Record<string, any> | undefined {
   const toolType = toolConfig.type as ToolType;
