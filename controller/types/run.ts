@@ -55,6 +55,7 @@ export interface RunRequest {
 export interface Run extends HasRunStatus {
   id: string;
   protocolId: string;
+  protocolName?: string;
   commands: RunCommand[];
 }
 

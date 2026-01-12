@@ -31,7 +31,7 @@ export const TeachPointModal: React.FC<TeachPointModalProps> = ({
   onClose,
   point,
   onSave,
-  toolId,
+  toolId: _toolId,
   config,
 }) => {
   const [name, setName] = useState(point?.name ?? "");

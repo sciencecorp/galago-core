@@ -1,8 +1,7 @@
-import { trpc } from "@/utils/trpc";
-import { Alert, Box, Card, CardBody, Heading, Text, VStack, HStack } from "@chakra-ui/react";
+import { Box, Card, CardBody, Heading, Text, VStack, HStack } from "@chakra-ui/react";
 import { PageProps } from "@/types";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import { useState } from "react";
 import { SystemStyleObject } from "@chakra-ui/react"; // Import this for the type
 import { useColorModeValue } from "@chakra-ui/react";
 

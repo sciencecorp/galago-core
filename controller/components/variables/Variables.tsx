@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   VStack,
   Box,
@@ -48,7 +48,7 @@ export const Variables: React.FC = () => {
   const { data: variables, refetch } = trpc.variable.getAll.useQuery();
   const editVariable = trpc.variable.edit.useMutation();
   const deleteVariable = trpc.variable.delete.useMutation();
-  const { data: selectedWorkcell, refetch: refetchWorkcell } =
+  const { data: _selectedWorkcell, refetch: _refetchWorkcell } =
     trpc.workcell.getSelectedWorkcell.useQuery();
 
   const handleDelete = async (variable: Variable) => {
@@ -121,7 +121,7 @@ export const Variables: React.FC = () => {
                 title="Variables"
                 subTitle="Manage system-wide variables and configurations"
                 titleIcon={<Icon as={TbVariable} boxSize={8} color="teal.500" />}
-                mainButton={<VariableModal isDisabled={!selectedWorkcell} />}
+                mainButton={<VariableModal isDisabled={!_selectedWorkcell} />}
               />
               <Divider />
               <StatGroup>

@@ -48,19 +48,3 @@ jobs:
         run: cosign sign --yes ghcr.io/sciencecorp/galago-web:latest
         env:
           COSIGN_EXPERIMENTAL: 1
-
-      - name: Build and push galago-db
-        uses: docker/build-push-action@v4
-        with:
-          context: ./db
-          file: db/Dockerfile
-          push: true
-          tags: ghcr.io/sciencecorp/galago-db:latest
-          platforms: linux/amd64,linux/arm64
-          cache-from: type=registry,ref=ghcr.io/sciencecorp/galago-db:buildcache
-          cache-to: type=registry,ref=ghcr.io/sciencecorp/galago-db:buildcache,mode=max
-
-      - name: Sign galago-db image
-        run: cosign sign --yes ghcr.io/sciencecorp/galago-db:latest
-        env:
-          COSIGN_EXPERIMENTAL: 1

@@ -13,7 +13,7 @@ export const ResizablePanel: React.FC<ResizablePanelProps> = ({
   initialWidth = "200px",
   minWidth = "150px",
   maxWidth = "50%",
-  borderColor = "gray.300",
+  borderColor: _borderColor = "gray.300",
   children,
 }) => {
   const [panelWidth, setPanelWidth] = useState(initialWidth);

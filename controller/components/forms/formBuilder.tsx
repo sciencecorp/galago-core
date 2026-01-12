@@ -6,7 +6,6 @@ import {
   HStack,
   Text,
   Input,
-  Textarea,
   Select,
   FormControl,
   FormLabel,
@@ -48,18 +47,16 @@ import {
   Plus,
   Trash2,
   Save,
-  Download,
-  List,
 } from "lucide-react";
-import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
+import { DragDropContext, Droppable, DropResult } from "react-beautiful-dnd";
 import { trpc } from "@/utils/trpc";
 import { successToast, errorToast } from "../ui/Toast";
 import { DeleteWithConfirmation } from "../ui/Delete";
-import { FormField, Form, FIELD_TYPES, DEFAULT_EDITING_FIELD } from "@/types";
+import { FormField, Form, DEFAULT_EDITING_FIELD } from "@/types";
 import { ColorPicker } from "./colorPicker";
 import { FormFieldComponent } from "./formFieldComponent";
 import { FieldTypeSelector } from "./fieldTypeSelector";
-import { downloadFile } from "@/server/utils/api";
+// import { downloadFile } from "@/server/utils/api";
 import { useCommonColors, useTextColors } from "../ui/Theme";
 
 const FORM_DEFAULTS = {
@@ -283,13 +280,13 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
     }
   };
 
-  const onExportForm = async () => {
-    if (!selectedForm) {
-      errorToast("Error", "Please select a form to export");
-      return;
-    }
-    await downloadFile(`/forms/${selectedForm.id}/export`);
-  };
+  // const _onExportForm = async () => {
+  //   if (!selectedForm) {
+  //     errorToast("Error", "Please select a form to export");
+  //     return;
+  //   }
+  //   await downloadFile(`/forms/${selectedForm.id}/export`);
+  // };
 
   //Select/radio options
   const addOption = () => {

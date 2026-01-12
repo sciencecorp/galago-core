@@ -83,7 +83,7 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({ toolId, ne
 
   const workcellTools = selectedWorkcell?.tools;
   const toolData = workcellTools?.find((tool) => tool.id === toolId);
-  const { name, type } = toolData || {};
+  const { name } = toolData || {};
 
   const reagentCount = plateReagents.length || 0;
 

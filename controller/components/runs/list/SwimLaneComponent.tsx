@@ -1,4 +1,4 @@
-import { Box, HStack, useDisclosure, Text, Center } from "@chakra-ui/react";
+import { Box, HStack, useDisclosure, Center } from "@chakra-ui/react";
 import SwimLaneCommandComponent from "./SwimLaneCommandComponent";
 import { RunCommand } from "@/types";
 import React, { useState } from "react";
@@ -17,7 +17,7 @@ export const SwimLaneComponent: React.FC<SwimLaneProps> = ({ runCommands, showAl
     ? runCommands
     : runCommands.filter((cmd) => cmd.status !== "COMPLETED");
 
-  const handleSave = (updatedCommand: any) => {
+  const handleSave = (_updatedCommand: any) => {
     // Will be implemented later when save functionality is needed
   };
 

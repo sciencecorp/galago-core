@@ -13,26 +13,6 @@ services:
       - NODE_ENV=production
       - PORT=3010
       - GRPC_SERVER_IP=localhost
-      - API_BASE_URL=http://db:8000/api
-    depends_on:
-      - db
-
-  db:
-    # image: ghcr.io/sciencecorp/galago-db:latest
-    build:
-      context: ./db
-      dockerfile: Dockerfile
-    container_name: galago-db
-    ports:
-      - "8000:8000"
-    environment:
-      - ENVIRONMENT=production
-      # Required for encrypted secrets at rest (Slack bot token, SMTP password, etc.).
-      # Provide this via your deployment environment (.env / secrets manager).
-      - GALAGO_SECRETS_KEY=${GALAGO_SECRETS_KEY}
-    restart: always
-    volumes:
-      - sqlite_data:/data
     networks:
       - app-network
 

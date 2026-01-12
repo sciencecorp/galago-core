@@ -34,10 +34,10 @@ export const MotionProfileModal: React.FC<MotionProfileModalProps> = ({
   profile,
   onSave,
   toolId,
-  existingProfiles = [],
+  existingProfiles: _existingProfiles = [],
 }) => {
   const [name, setName] = useState("");
-  const [profileId, setProfileId] = useState(1);
+  const [_profileId, setProfileId] = useState(1);
   const [speed, setSpeed] = useState(50);
   const [speed2, setSpeed2] = useState(50);
   const [acceleration, setAcceleration] = useState(50);

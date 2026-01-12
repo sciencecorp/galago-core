@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   VStack,
@@ -43,13 +43,7 @@ import { trpc } from "@/utils/trpc";
 import { Package } from "lucide-react";
 import PlateModal from "./modals/PlateModal";
 import { Icon } from "@/components/ui/Icons";
-import {
-  successToast,
-  errorToast,
-  loadingToast,
-  warningToast,
-  progressToast,
-} from "@/components/ui/Toast";
+import { errorToast, loadingToast, warningToast, progressToast } from "@/components/ui/Toast";
 import { useCommonColors } from "@/components/ui/Theme";
 import { AddIcon } from "@chakra-ui/icons";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
@@ -68,7 +62,7 @@ export const InventoryManager = () => {
   const [newHotelColumns, setNewHotelColumns] = useState(1);
   const [showDeleteHotelModal, setShowDeleteHotelModal] = useState(false);
   const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null);
-  const [selectedReagent, setSelectedReagent] = useState<number | null>(null);
+  const [_selectedReagent, setSelectedReagent] = useState<number | null>(null);
   const { colorMode } = useColorMode();
   const isDarkMode = colorMode === "dark";
 
@@ -89,7 +83,7 @@ export const InventoryManager = () => {
     enabled: !!selectedWorkcellName.data,
   });
 
-  const { data: plates = [], refetch: refetchPlates } = trpc.inventory.getPlates.useQuery<Plate[]>(
+  const { data: plates = [] } = trpc.inventory.getPlates.useQuery<Plate[]>(
     selectedWorkcell?.name || "",
     {
       enabled: !!selectedWorkcell?.id,
@@ -127,7 +121,7 @@ export const InventoryManager = () => {
     setSearch(searchTerm);
   };
 
-  const handlePlateSelect = (plate: Plate) => {};
+  const handlePlateSelect = (_plate: Plate) => {};
 
   const handleCreateReagent = async (
     wellId: number,
@@ -148,15 +142,10 @@ export const InventoryManager = () => {
         ...hotelData,
       })) as Hotel;
 
-      // Get the hotel ID from the response
       const hotelId = result.id;
-
-      // Step 2: Generate all nests for the hotel using loadingToast with promise
       const nestCreationPromise = (async () => {
         const totalNests = hotelData.rows * hotelData.columns;
         let createdNests = 0;
-
-        // Create nests sequentially to avoid race conditions
         for (let row = 0; row < hotelData.rows; row++) {
           for (let col = 0; col < hotelData.columns; col++) {
             try {

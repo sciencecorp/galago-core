@@ -11,14 +11,15 @@ export interface ProtocolParamInfo {
 
 export const index = z.number().positive().int();
 
-type Param<T extends z.ZodTypeAny, B extends ProtocolParamType> = z.ZodBranded<T, B> & {
-  _def: { _paramType: B };
-};
+// Unused type and function - commented out
+// type _Param<T extends z.ZodTypeAny, B extends ProtocolParamType> = z.ZodBranded<T, B> & {
+//   _def: { _paramType: B };
+// };
 
-function Param<T extends z.ZodTypeAny, B extends ProtocolParamType>(name: B, type: T): Param<T, B> {
-  const branded = type.brand(name) as Param<T, B>;
-  branded._def._paramType = name;
-  return branded;
-}
+// function _Param<T extends z.ZodTypeAny, B extends ProtocolParamType>(name: B, type: T): _Param<T, B> {
+//   const branded = type.brand(name) as _Param<T, B>;
+//   branded._def._paramType = name;
+//   return branded;
+// }
 
 export const params = z.object;

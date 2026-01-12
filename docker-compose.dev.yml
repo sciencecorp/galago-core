@@ -15,39 +15,11 @@ services:
       - PORT=3010
       - GRPC_SERVER_IP=host.docker.internal
       - GRPC_HOST=host.docker.internal
-      - API_BASE_URL=http://db:8000/api
     stdin_open: true # for debugging
     tty: true # for debugging
     #network_mode: "host"
     networks:
       - app-network
-    depends_on:
-      - db
-
-  db:
-    build:
-      context: ./db
-      dockerfile: Dockerfile.dev
-    container_name: galago-db-dev
-    ports:
-      - "8000:8000"
-      - "5678:5678" # Python debug port
-    restart: unless-stopped
-    environment:
-      - ENVIRONMENT=development
-      - DEBUG=0
-      # Required for encrypted secrets at rest (Slack bot token, SMTP password, etc.).
-      # Set this in your shell or a local .env file (DO NOT commit a real key).
-      - GALAGO_SECRETS_KEY=${GALAGO_SECRETS_KEY}
-    networks:
-      - app-network
-    volumes:
-      - ./db:/app/db:cached
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
 
 volumes:
   sqlite_data:

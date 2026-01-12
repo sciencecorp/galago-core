@@ -1,19 +1,20 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { db } from "@/db/client";
-import { findOne, findMany, getSelectedWorkcellId } from "@/db/helpers";
+import { findOne, getSelectedWorkcellId } from "@/db/helpers";
 import { protocols, workcells } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
-const zProtocol = z.object({
-  id: z.number().optional(),
-  name: z.string(),
-  category: z.string(),
-  workcellId: z.number().optional(),
-  description: z.string().optional(),
-  commands: z.array(z.any()),
-});
+// Unused zod schema - commented out
+// const _zProtocol = z.object({
+//   id: z.number().optional(),
+//   name: z.string(),
+//   category: z.string(),
+//   workcellId: z.number().optional(),
+//   description: z.string().optional(),
+//   commands: z.array(z.any()),
+// });
 
 const zProtocolCreate = z.object({
   name: z.string(),
@@ -53,8 +54,6 @@ export const protocolRouter = router({
         .optional(),
     )
     .query(async ({ input }) => {
-      let query = db.select().from(protocols);
-
       if (input?.workcellId) {
         const filtered = await db
           .select()
@@ -78,7 +77,7 @@ export const protocolRouter = router({
       return await db.select().from(protocols);
     }),
 
-  // Get single protocol
+  // Get single protocol by ID
   get: procedure.input(z.number()).query(async ({ input: protocolId }) => {
     const protocol = await findOne(protocols, eq(protocols.id, protocolId));
     if (!protocol) {
@@ -90,6 +89,17 @@ export const protocolRouter = router({
     return protocol;
   }),
 
+  // Get single protocol by name
+  getByName: procedure.input(z.string()).query(async ({ input: protocolName }) => {
+    const protocol = await findOne(protocols, eq(protocols.name, protocolName));
+    if (!protocol) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Protocol not found",
+      });
+    }
+    return protocol;
+  }),
   // Create protocol
   create: procedure.input(zProtocolCreate).mutation(async ({ input }) => {
     try {

@@ -51,7 +51,7 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
   const selectedToolBg = useColorModeValue("teal.100", "teal.900");
   const { data: selectedWorkcellData } = trpc.workcell.getSelectedWorkcell.useQuery();
   const { data: workcells } = trpc.workcell.getAll.useQuery();
-  const { data: fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({
+  const { data: _fetchedIds, refetch } = trpc.tool.availableIDs.useQuery({
     workcellId: workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id,
   });
   const workcellId = workcells?.find((workcell) => workcell.name === selectedWorkcellData)?.id;
@@ -68,7 +68,7 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
     tool.toLowerCase().replace(/_/g, " ").includes(searchQuery.toLowerCase()),
   );
 
-  const { data: configData, isFetching: isConfigLoading } =
+  const { data: configData, isFetching: _isConfigLoading } =
     trpc.tool.getProtoConfigDefinitions.useQuery(selectedTool as ToolType, {
       enabled: !!selectedTool, // Only fetch when type is set
     });

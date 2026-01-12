@@ -1,5 +1,4 @@
 import { trpc } from "@/utils/trpc";
-import { TeachPoint, MotionProfile, GripParams, Sequence } from "../types/";
 
 export const useTeachPendantQueries = (toolId: string | undefined, configId: number) => {
   // Queries

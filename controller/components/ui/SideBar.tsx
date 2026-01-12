@@ -33,7 +33,7 @@ import { LucideIcon } from "lucide-react";
 import { capitalizeFirst } from "@/utils/parser";
 import { useRouter } from "next/router";
 import { useSidebarTheme } from "./Theme";
-import { SixWellPlateIcon, WorkcellIcon } from "./Icons";
+import { SixWellPlateIcon } from "./Icons";
 
 interface SidebarItem {
   name: string;

@@ -67,10 +67,6 @@ function safeToIdSuffix() {
   }
 }
 
-function normalizeToolId(name: string) {
-  return name.toLocaleLowerCase().replaceAll(" ", "_");
-}
-
 export function TutorialProvider({
   children,
   steps,
@@ -198,7 +194,7 @@ export function TutorialProvider({
           description: "Auto-created for the in-app walkthrough. Safe to delete.",
           ip: "localhost",
           config: {
-            toolId: normalizeToolId(spec.name),
+            toolId: spec.name,
             simulated: true,
             [spec.type]: hardcodedConfigByType[spec.type] ?? {},
           },
@@ -207,7 +203,7 @@ export function TutorialProvider({
           id: created?.id,
           name: created?.name ?? spec.name,
           type: created?.type ?? spec.type,
-          toolId: normalizeToolId(created?.name ?? spec.name),
+          toolId: created?.name ?? spec.name,
         });
       }
 
@@ -267,8 +263,9 @@ export function TutorialProvider({
         variables.push({ id: created?.id, name: created?.name ?? v.name });
       }
 
-      const varName = (prefix: string) =>
-        variables.find((v) => v.name.startsWith(prefix + "_"))?.name ?? `${prefix}_${suffix}`;
+      // Unused helper function - commented out
+      // const __varName = (prefix: string) =>
+      //   variables.find((v) => v.name.startsWith(prefix + "_"))?.name ?? `${prefix}_${suffix}`;
 
       // Scripts
       const createVariablesScript = await addScript.mutateAsync({
@@ -452,7 +449,7 @@ export function TutorialProvider({
       // Protocol: keep it self-contained so the tutorial is functional even without instrument programs/files.
       const protocolCommands = [
         {
-          toolId: "tool_box",
+          toolId: "Tool Box",
           toolType: "toolbox",
           command: "show_message",
           params: {
@@ -483,7 +480,7 @@ export function TutorialProvider({
           label: "Cytation: open carrier (demo)",
         },
         {
-          toolId: "tool_box",
+          toolId: "Tool Box",
           toolType: "toolbox",
           command: "run_script",
           params: { name: scripts[0].name, blocking: true },
@@ -497,7 +494,7 @@ export function TutorialProvider({
           label: "Cytation: close carrier (demo)",
         },
         {
-          toolId: "tool_box",
+          toolId: "Tool Box",
           toolType: "toolbox",
           command: "note",
           params: {

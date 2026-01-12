@@ -10,7 +10,6 @@ import {
   IconButton,
   HStack,
   Switch,
-  Tooltip,
   useColorModeValue,
   VStack,
   Heading,
@@ -18,15 +17,10 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
-  MenuDivider,
-  NumberInput,
-  NumberInputField,
-  Input,
 } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon, CheckIcon } from "@chakra-ui/icons";
+import { AddIcon, DeleteIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { GripParams } from "../../types";
-import { useState, useRef } from "react";
-import { useOutsideClick } from "@chakra-ui/react";
+import { useRef } from "react";
 import { usePagination } from "../../hooks/usePagination";
 import { PaginationControls } from "../../shared/ui/PaginationControls";
 import { EditableText } from "@/components/ui/Form";
@@ -34,12 +28,12 @@ import { GripParametersPanelProps } from "../../types";
 
 export const GripParametersPanel: React.FC<GripParametersPanelProps> = ({
   params,
-  onEdit,
+  onEdit: _onEdit,
   onInlineEdit,
   onDelete,
   onDeleteAll,
   onAdd,
-  bgColor,
+  bgColor: _bgColor,
   bgColorAlpha,
   defaultParamsId,
   onSetDefault,

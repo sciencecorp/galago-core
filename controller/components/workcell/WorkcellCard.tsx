@@ -32,7 +32,6 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
   const { workcell } = props;
   const cardBg = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
-  const selectedBg = useColorModeValue("teal.50", "teal.900");
   const deleteWorkcell = trpc.workcell.delete.useMutation();
   const clearToolStore = trpc.tool.clearToolStore.useMutation();
   const editWorkcell = trpc.workcell.edit.useMutation();
@@ -90,7 +89,7 @@ export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
 
   return (
     <Card
-      bg={isSelected ? selectedBg : cardBg}
+      bg={cardBg}
       borderColor={borderColor}
       borderWidth="1px"
       shadow="md"

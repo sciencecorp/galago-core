@@ -43,22 +43,15 @@ import {
   Text,
   Tooltip,
 } from "@chakra-ui/react";
-import {
-  SearchIcon,
-  ArrowUpDownIcon,
-  HamburgerIcon,
-  DownloadIcon,
-  DeleteIcon,
-} from "@chakra-ui/icons";
-import { useState, useMemo, useRef } from "react";
+import { SearchIcon, ArrowUpDownIcon, HamburgerIcon, DeleteIcon } from "@chakra-ui/icons";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { GitBranch, Plus, Upload, Play } from "lucide-react";
+import { GitBranch, Plus, Play } from "lucide-react";
 import { EditableText } from "../ui/Form";
 import { errorToast, successToast } from "../ui/Toast";
-import { downloadFile, uploadFile } from "@/server/utils/api";
 import { EmptyState } from "@/components/ui/EmptyState";
 type SortField = "name" | "category";
 type SortOrder = "asc" | "desc";
@@ -70,9 +63,6 @@ export const ProtocolPageComponent: React.FC = () => {
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [runModalProtocolId, setRunModalProtocolId] = useState<number | null>(null);
-  const [isImporting, setIsImporting] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const {
     isOpen: isNewProtocolOpen,
     onOpen: onNewProtocolOpen,
@@ -205,60 +195,6 @@ export const ProtocolPageComponent: React.FC = () => {
     });
   };
 
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setIsImporting(true);
-
-      // Get the current workcell ID
-      const currentWorkcell = workcells?.find((w) => w.name === workcellName);
-      if (!currentWorkcell) {
-        throw new Error("No workcell selected");
-      }
-
-      // Use the uploadFile utility
-      await uploadFile("/protocols/import", file, {
-        workcell_id: currentWorkcell.id,
-      });
-
-      successToast("Protocol Imported", "Protocol has been imported successfully");
-      refetch();
-    } catch (error: any) {
-      errorToast("Import Failed", error.message || "Failed to import protocol");
-    } finally {
-      setIsImporting(false);
-      // Reset the file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    }
-  };
-
-  const handleExportProtocol = async (protocolId: number) => {
-    try {
-      setIsExporting(true);
-      const protocol = protocols?.find((p) => p.id === protocolId);
-      if (!protocol) {
-        throw new Error("Protocol not found");
-      }
-
-      const filename = `${protocol.name.replace(/\s+/g, "_")}-protocol.json`;
-      await downloadFile(`/protocols/${protocolId}/export`, filename);
-
-      successToast("Protocol Exported", `${protocol.name} has been exported successfully`);
-    } catch (error: any) {
-      errorToast("Export Failed", error.message || "Failed to export protocol");
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
   return (
     <VStack spacing={4} align="stretch" minH="100vh" pb={8}>
       <Card bg={headerBg} shadow="md">
@@ -270,21 +206,6 @@ export const ProtocolPageComponent: React.FC = () => {
               titleIcon={<Icon as={GitBranch} boxSize={8} color="teal.500" />}
               mainButton={
                 <HStack>
-                  {/*<Tooltip
-                    label={!workcellName ? "Create or Select a Workcell to import a protocol" : ""}
-                    placement="top"
-                    hasArrow>
-                    <Button
-                      isDisabled={!workcellName}
-                      size="sm"
-                      colorScheme="blue"
-                      variant="outline"
-                      leftIcon={<Upload size={14} />}
-                      onClick={handleImportClick}
-                      isLoading={isImporting}>
-                      Import
-                    </Button>
-                  </Tooltip>*/}
                   <Tooltip
                     label={!workcellName ? "Create or Select a Workcell to create a protocol" : ""}
                     placement="top"
@@ -503,12 +424,6 @@ export const ProtocolPageComponent: React.FC = () => {
                                   Run
                                 </MenuItem>
                                 <MenuItem
-                                  onClick={() => handleExportProtocol(protocol.id)}
-                                  color="blue.500"
-                                  icon={<DownloadIcon />}>
-                                  Export
-                                </MenuItem>
-                                <MenuItem
                                   color="red.500"
                                   onClick={() => handleDelete(protocol.id)}
                                   icon={<DeleteIcon />}>
@@ -541,14 +456,6 @@ export const ProtocolPageComponent: React.FC = () => {
           </ModalBody>
         </ModalContent>
       </Modal>
-
-      <Input
-        type="file"
-        accept=".json"
-        ref={fileInputRef}
-        onChange={handleFileSelect}
-        display="none"
-      />
     </VStack>
   );
 };

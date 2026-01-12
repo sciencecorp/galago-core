@@ -6,9 +6,6 @@ import * as tool_driver from "gen-interfaces/tools/grpc_interfaces/tool_driver";
 import { ToolType } from "gen-interfaces/controller";
 import { PromisifiedGrpcClient, promisifyGrpcClient } from "./utils/promisifyGrpcCall";
 import { setInterval, clearInterval } from "timers";
-import { Script } from "@/types";
-import { Variable } from "@/types";
-import { Labware } from "@/types";
 import { logAction } from "./logger";
 import { JavaScriptExecutor } from "@/server/scripting/javascript/javascript-executor";
 import { CSharpExecutor } from "@/server/scripting/csharp/csharp-executor";
@@ -46,8 +43,8 @@ export default class Tool {
 
   constructor(
     private toolId: string,
-    private ip: string,
-    private port: number,
+    ip: string,
+    port: number,
     private toolType: ToolType,
   ) {
     const grpcServerIp = process.env.GRPC_HOST || ip;
@@ -111,14 +108,12 @@ export default class Tool {
   }
 
   static async loadPF400Waypoints(toolId: string) {
-    const normalizedId = Tool.normalizeToolId(toolId);
-
     try {
       // Fetch the tool from database to get the numeric ID
-      const toolRecord = await db.select().from(tools).where(eq(tools.name, normalizedId)).limit(1);
+      const toolRecord = await db.select().from(tools).where(eq(tools.name, toolId)).limit(1);
 
       if (!toolRecord || toolRecord.length === 0) {
-        throw new Error(`Tool ${normalizedId} not found in database`);
+        throw new Error(`Tool ${toolId} not found in database`);
       }
 
       const toolDbId = toolRecord[0].id;
@@ -144,21 +139,54 @@ export default class Tool {
         .from(robotArmGripParams)
         .where(eq(robotArmGripParams.toolId, toolDbId));
 
+      // Transform camelCase to snake_case for Python Pydantic models
+      const transformedLocations = locations.map((loc) => ({
+        id: loc.id,
+        name: loc.name,
+        location_type: loc.locationType,
+        coordinates: loc.coordinates,
+        tool_id: loc.toolId,
+        orientation: loc.orientation,
+      }));
+
+      const transformedMotionProfiles = motionProfiles.map((mp) => ({
+        id: mp.id,
+        name: mp.name,
+        speed: mp.speed,
+        speed2: mp.speed2,
+        acceleration: mp.acceleration,
+        deceleration: mp.deceleration,
+        accel_ramp: mp.accelRamp,
+        decel_ramp: mp.decelRamp,
+        inrange: mp.inrange,
+        straight: mp.straight,
+        tool_id: mp.toolId,
+      }));
+
+      const transformedGripParams = gripParams.map((gp) => ({
+        id: gp.id,
+        name: gp.name,
+        width: gp.width,
+        speed: gp.speed,
+        force: gp.force,
+        tool_id: gp.toolId,
+      }));
+
       const waypointsData = {
         tool_name: toolRecord[0].name,
         name: `Waypoints for Tool ${toolId}`,
-        locations: locations,
+        locations: transformedLocations,
         sequences: sequences,
-        motion_profiles: motionProfiles,
-        grip_params: gripParams,
+        motion_profiles: transformedMotionProfiles,
+        grip_params: transformedGripParams,
       };
 
       // Get tool from store to execute command
       const store = getGlobalStore();
-      const tool = store.get(normalizedId);
+      const tool = store.get(toolId);
 
       if (!tool) {
-        throw new Error(`Tool ${normalizedId} not found in store. Must be configured first.`);
+        throw new Error(`Tool ${toolId} not found in store. Must be configured first.`);
       }
 
       if (tool.type !== ToolType.pf400) {
@@ -166,7 +194,7 @@ export default class Tool {
       }
 
       await tool.executeCommand({
-        toolId: normalizedId,
+        toolId: toolId,
         toolType: ToolType.pf400,
         command: "load_waypoints",
         params: {
@@ -191,26 +219,43 @@ export default class Tool {
   }
 
   static async loadLabwareToPF400(toolId: string) {
-    const normalizedId = Tool.normalizeToolId(toolId);
-
     try {
       // Fetch all labware using Drizzle
       const labwareRecords = await db.select().from(labware);
 
+      // Transform camelCase to snake_case for Python Pydantic models
+      const transformedLabware = labwareRecords.map((lw) => ({
+        id: lw.id,
+        name: lw.name,
+        description: lw.description,
+        number_of_rows: lw.numberOfRows,
+        number_of_columns: lw.numberOfColumns,
+        z_offset: lw.zOffset,
+        width: lw.width,
+        height: lw.height,
+        plate_lid_offset: lw.plateLidOffset,
+        lid_offset: lw.lidOffset,
+        stack_height: lw.stackHeight,
+        has_lid: lw.hasLid,
+        workcell_id: lw.workcellId,
+        created_at: lw.createdAt,
+        updated_at: lw.updatedAt,
+      }));
+
       // Need to get tool from store to execute command
       const store = getGlobalStore();
-      const tool = store.get(normalizedId);
+      const tool = store.get(toolId);
 
       if (!tool) {
-        throw new Error(`Tool ${normalizedId} not found in store. Must be configured first.`);
+        throw new Error(`Tool ${toolId} not found in store. Must be configured first.`);
       }
 
       await tool.executeCommand({
-        toolId: normalizedId,
+        toolId: toolId,
         toolType: ToolType.pf400,
         command: "load_labware",
         params: {
-          labwares: { labwares: labwareRecords },
+          labwares: { labwares: transformedLabware },
         },
       });
 
@@ -273,12 +318,11 @@ export default class Tool {
       details: `Executing command: ${command.command}, Tool: ${command.toolId}, Params:${JSON.stringify(command.params).replaceAll("{", "").replaceAll("}", "")}`,
     });
 
-    const normalizedId = this.normalizeToolId(command.toolId);
     const store = getGlobalStore();
-    const tool = store.get(normalizedId);
+    const tool = store.get(command.toolId);
 
     if (!tool) {
-      throw new Error(`Tool ${normalizedId} not found in store. Must be configured first.`);
+      throw new Error(`Tool ${command.toolId} not found in store. Must be configured first.`);
     }
 
     return await tool.executeCommand(command);
@@ -499,14 +543,9 @@ export default class Tool {
     return reply.estimated_duration_seconds;
   }
 
-  static normalizeToolId(id: string): string {
-    return id.toLocaleLowerCase().replaceAll(" ", "_");
-  }
-
   static async removeTool(toolId: string) {
-    const normalizedId = Tool.normalizeToolId(toolId);
     const store = getGlobalStore();
-    const tool = store.get(normalizedId);
+    const tool = store.get(toolId);
     if (!tool) {
       return;
     }
@@ -515,9 +554,9 @@ export default class Tool {
       if (tool.grpc) {
         tool.grpc.close();
       }
-      store.delete(normalizedId);
+      store.delete(toolId);
     } catch (error) {
-      console.error(`Error while removing tool ${normalizedId}: ${error}`);
+      console.error(`Error while removing tool ${toolId}: ${error}`);
     }
   }
 
@@ -564,13 +603,12 @@ export default class Tool {
   }
 
   static forId(toolId: string, ip: string, port: number, type: ToolType): Tool {
-    const normalizedId = Tool.normalizeToolId(toolId);
     const store = getGlobalStore();
-    let tool = store.get(normalizedId);
+    let tool = store.get(toolId);
     if (!tool) {
-      tool = new Tool(normalizedId, ip, port, type);
+      tool = new Tool(toolId, ip, port, type);
       tool.startHeartbeat(5000);
-      store.set(normalizedId, tool);
+      store.set(toolId, tool);
     }
     return tool;
   }

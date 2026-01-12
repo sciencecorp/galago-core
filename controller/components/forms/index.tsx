@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Box,
   VStack,
@@ -20,7 +20,7 @@ import { Form } from "@/types";
 import { CreateFormModal } from "./createFormModal";
 
 export const Forms = () => {
-  const { data: fetchedForms, isLoading, refetch } = trpc.form.getAll.useQuery();
+  const { data: fetchedForms, refetch } = trpc.form.getAll.useQuery();
 
   const headerBg = useColorModeValue("white", "gray.700");
   const [forms, setForms] = useState<Form[]>([]);

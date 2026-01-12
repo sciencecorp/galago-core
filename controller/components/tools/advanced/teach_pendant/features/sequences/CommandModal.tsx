@@ -28,11 +28,11 @@ interface CommandModalProps {
   gripParams: GripParams[];
 }
 
-interface CommandField {
-  name: string;
-  type: string;
-  defaultValue?: any;
-}
+// interface _CommandField {
+//   name: string;
+//   type: string;
+//   defaultValue?: any;
+// }
 
 export const CommandModal: React.FC<CommandModalProps> = ({
   isOpen,
@@ -77,9 +77,9 @@ export const CommandModal: React.FC<CommandModalProps> = ({
   const handleSubmit = () => {
     const processedParams = { ...params };
 
-    const motionProfile = motionProfiles.find(
-      (profile) => profile.name === processedParams.motion_profile,
-    );
+    // const _motionProfile = motionProfiles.find(
+    //   (profile) => profile.name === processedParams.motion_profile,
+    // );
 
     if (processedParams.grip_params) {
       const grip = gripParams.find((g) => g.id === Number(processedParams.grip_params));

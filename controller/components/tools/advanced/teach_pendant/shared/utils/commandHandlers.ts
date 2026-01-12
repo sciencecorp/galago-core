@@ -1,4 +1,4 @@
-import { MotionProfile, GripParams } from "../../types/";
+import { GripParams } from "../../types/";
 import { ToolCommandInfo } from "@/types";
 import { ToolType } from "gen-interfaces/controller";
 import { UseMutationResult } from "@tanstack/react-query";
