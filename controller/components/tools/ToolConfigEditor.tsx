@@ -4,19 +4,9 @@ import { ToolType } from "gen-interfaces/controller";
 import { ToolStatus } from "gen-interfaces/tools/grpc_interfaces/tool_base";
 import { useState, useEffect } from "react";
 import { successToast, errorToast } from "../ui/Toast";
+import { Tool } from "@/types";
 
-// Type for tool info returned by the tRPC query
-interface ToolInfo {
-  id: number;
-  name: string;
-  type: string;
-  description: string | null;
-  imageUrl: string | null;
-  ip: string;
-  port: number;
-  config: unknown;
-  workcellId?: number | null;
-}
+type ToolInfo = Omit<Tool, "createdAt" | "updatedAt" | "workcellId"> & { workcellId?: number | null };
 
 function toolSpecificConfig(toolConfig: ToolInfo): Record<string, any> | undefined {
   const toolType = toolConfig.type as ToolType;
