@@ -20,7 +20,6 @@ import {
 import { trpc } from "@/utils/trpc";
 import { showErrorToast, showSuccessToast } from "./utils";
 import { FileAddIcon } from "../ui/Icons";
-import { fileTypeToExtensionMap } from "./utils";
 
 interface NewScriptProps {
   isDisabled?: boolean;

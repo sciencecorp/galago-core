@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Badge,
   Box,
@@ -384,7 +384,7 @@ export function HubItemMapTab({ item }: { item: HubItem }): JSX.Element {
           </Box>
 
           {/* Child bubbles */}
-          {positioned.map((n, idx) => (
+          {positioned.map((n) => (
             <Box
               key={n.key}
               position="absolute"

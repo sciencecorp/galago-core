@@ -79,7 +79,7 @@ export const InventoryManager = () => {
     },
   );
 
-  const { data: nests = [], refetch: refetchNests } = trpc.inventory.getNests.useQuery(undefined, {
+  const { data: nests = [] } = trpc.inventory.getNests.useQuery(undefined, {
     enabled: !!selectedWorkcellName.data,
   });
 
