@@ -13,7 +13,7 @@ export interface Command {
   wait_for_shake_to_finish?: Command_WaitForShakeToFinish | undefined;
   set_temperature?: Command_SetTemperature | undefined;
   temperature_on?: Command_TemperatureOn | undefined;
-  temperatrue_off?: Command_TemperatureOff | undefined;
+  temperature_off?: Command_TemperatureOff | undefined;
 }
 
 export interface Command_Grip {
@@ -66,7 +66,7 @@ function createBaseCommand(): Command {
     wait_for_shake_to_finish: undefined,
     set_temperature: undefined,
     temperature_on: undefined,
-    temperatrue_off: undefined,
+    temperature_off: undefined,
   };
 }
 
@@ -99,8 +99,8 @@ export const Command = {
     if (message.temperature_on !== undefined) {
       Command_TemperatureOn.encode(message.temperature_on, writer.uint32(74).fork()).ldelim();
     }
-    if (message.temperatrue_off !== undefined) {
-      Command_TemperatureOff.encode(message.temperatrue_off, writer.uint32(82).fork()).ldelim();
+    if (message.temperature_off !== undefined) {
+      Command_TemperatureOff.encode(message.temperature_off, writer.uint32(82).fork()).ldelim();
     }
     return writer;
   },
@@ -180,7 +180,7 @@ export const Command = {
             break;
           }
 
-          message.temperatrue_off = Command_TemperatureOff.decode(reader, reader.uint32());
+          message.temperature_off = Command_TemperatureOff.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -206,8 +206,8 @@ export const Command = {
         ? Command_SetTemperature.fromJSON(object.set_temperature)
         : undefined,
       temperature_on: isSet(object.temperature_on) ? Command_TemperatureOn.fromJSON(object.temperature_on) : undefined,
-      temperatrue_off: isSet(object.temperatrue_off)
-        ? Command_TemperatureOff.fromJSON(object.temperatrue_off)
+      temperature_off: isSet(object.temperature_off)
+        ? Command_TemperatureOff.fromJSON(object.temperature_off)
         : undefined,
     };
   },
@@ -230,8 +230,8 @@ export const Command = {
       : undefined);
     message.temperature_on !== undefined &&
       (obj.temperature_on = message.temperature_on ? Command_TemperatureOn.toJSON(message.temperature_on) : undefined);
-    message.temperatrue_off !== undefined && (obj.temperatrue_off = message.temperatrue_off
-      ? Command_TemperatureOff.toJSON(message.temperatrue_off)
+    message.temperature_off !== undefined && (obj.temperature_off = message.temperature_off
+      ? Command_TemperatureOff.toJSON(message.temperature_off)
       : undefined);
     return obj;
   },
@@ -270,8 +270,8 @@ export const Command = {
     message.temperature_on = (object.temperature_on !== undefined && object.temperature_on !== null)
       ? Command_TemperatureOn.fromPartial(object.temperature_on)
       : undefined;
-    message.temperatrue_off = (object.temperatrue_off !== undefined && object.temperatrue_off !== null)
-      ? Command_TemperatureOff.fromPartial(object.temperatrue_off)
+    message.temperature_off = (object.temperature_off !== undefined && object.temperature_off !== null)
+      ? Command_TemperatureOff.fromPartial(object.temperature_off)
       : undefined;
     return message;
   },
