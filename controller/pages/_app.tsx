@@ -7,12 +7,19 @@ import { GlobalQueueStatusIndicator } from "@/components/runs/status/GlobalQueue
 import { TutorialProvider } from "@/components/tutorial/TutorialContext";
 import { tutorialSteps } from "@/components/tutorial/tutorialSteps";
 import { TutorialModal } from "@/components/tutorial/TutorialModal";
+import { useVersionCheck } from "@/hooks/useVersionCheck";
 
 require("log-timestamp");
+
+const VersionChecker = () => {
+  useVersionCheck();
+  return null;
+};
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <ChakraProvider>
+      <VersionChecker />
       <TutorialProvider steps={tutorialSteps}>
         <Sidebar>
           <GlobalQueueStatusIndicator />
