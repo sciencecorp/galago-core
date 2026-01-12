@@ -1,0 +1,3 @@
+[submodule "vendor/galago-tools"]
+	path = vendor/galago-tools
+	url = https://github.com/sciencecorp/galago-tools

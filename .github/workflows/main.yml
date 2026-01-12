@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - name: Setup dependencies
         uses: ./.github/actions/setup
       - name: Build protobufs

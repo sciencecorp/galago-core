@@ -321,7 +321,7 @@ function createBaseCommand_SetSealTime(): Command_SetSealTime {
 export const Command_SetSealTime = {
   encode(message: Command_SetSealTime, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.time !== 0) {
-      writer.uint32(8).int32(message.time);
+      writer.uint32(13).float(message.time);
     }
     return writer;
   },
@@ -334,11 +334,11 @@ export const Command_SetSealTime = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 8) {
+          if (tag !== 13) {
             break;
           }
 
-          message.time = reader.int32();
+          message.time = reader.float();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -355,7 +355,7 @@ export const Command_SetSealTime = {
 
   toJSON(message: Command_SetSealTime): unknown {
     const obj: any = {};
-    message.time !== undefined && (obj.time = Math.round(message.time));
+    message.time !== undefined && (obj.time = message.time);
     return obj;
   },
 

@@ -27,19 +27,15 @@ npm version minor
 npm version major
 ```
 
-This automatically:
+This updates `version` in `package.json` and creates a local git commit.
 
-1. Updates `version` in `package.json`
-2. Creates a git commit with the version
-3. Creates a git tag (e.g., `v0.2.0`)
-
-Then push the changes:
+Then push to main:
 
 ```bash
-git push && git push --tags
+git push
 ```
 
-## You can configure git to always push tags by running `git config --global push.followTags true`
+**Tags are created automatically** - A GitHub Actions workflow creates and pushes the tag when version changes are pushed to `main`.
 
 ## Version Checking
 
