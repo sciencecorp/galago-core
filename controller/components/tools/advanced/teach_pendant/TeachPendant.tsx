@@ -1,4 +1,3 @@
-import React from "react";
 import {
   HStack,
   Box,
@@ -123,7 +122,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
     isOpen: isSequenceModalOpen,
     onClose: onSequenceModalClose,
     selectedSequence: currentSequence,
-    labwareList,
+    labwareList: _labwareList,
   } = useSequenceHandler(tool);
 
   const commandHandlers = useCommandHandlers(tool);
@@ -281,20 +280,21 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
   // Update toggleRow reference
   const toggleRow = toggleRowUI;
 
-  const handleImport = async (data: any) => {
-    if (data.teach_points) {
-      await robotArmLocationsQuery.refetch();
-    }
-    if (data.sequences) {
-      await robotArmLocationsQuery.refetch();
-    }
-    if (data.motion_profiles) {
-      await motionProfilesQuery.refetch();
-    }
-    if (data.grip_params) {
-      await gripParamsQuery.refetch();
-    }
-  };
+  // Unused function - commented out
+  // const __handleImport = async (data: any) => {
+  //   if (data.teach_points) {
+  //     await robotArmLocationsQuery.refetch();
+  //   }
+  //   if (data.sequences) {
+  //     await robotArmLocationsQuery.refetch();
+  //   }
+  //   if (data.motion_profiles) {
+  //     await motionProfilesQuery.refetch();
+  //   }
+  //   if (data.grip_params) {
+  //     await gripParamsQuery.refetch();
+  //   }
+  // };
 
   // Load default profile ID from localStorage
   useEffect(() => {

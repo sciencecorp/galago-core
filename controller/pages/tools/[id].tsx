@@ -37,15 +37,16 @@ export default function Page() {
   const [id, setId] = useState<string | null>(null);
   const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
   const config = infoQuery.data;
-  const [commandExecutionStatus, setCommandExecutionStatus] = useState<CommandStatus>({});
+  const [_commandExecutionStatus, setCommandExecutionStatus] = useState<CommandStatus>({});
   const [selectedCommand, setSelectedCommand] = useState<string | undefined>();
   const [formValues, setFormValues] = useState<FormValues>({});
 
-  const doesCommandHaveParameters = (commandName: string) => {
-    if (!config) return false;
-    const fields = commandFields[config?.type][commandName];
-    return fields && fields.length > 0;
-  };
+  // Unused function - commented out (was used by __handleSelectCommand)
+  // const doesCommandHaveParameters = (commandName: string) => {
+  //   if (!config) return false;
+  //   const fields = commandFields[config?.type][commandName];
+  //   return fields && fields.length > 0;
+  // };
   const toolCommandsDefined = Object.keys(commandFields).includes(String(config?.type));
   const commandOptions = config ? commandFields[config.type] : {};
 
@@ -141,18 +142,19 @@ export default function Page() {
     executeCommandWithToast(selectedCommand, toolCommand);
   };
 
-  const executeCommand = (commandName: string, params: FormValues) => {
-    if (!config) return;
+  // Unused function - commented out (was used by __handleSelectCommand)
+  // const executeCommand = (commandName: string, params: FormValues) => {
+  //   if (!config) return;
 
-    const toolCommand: ToolCommandInfo = {
-      toolId: config.name,
-      toolType: config.type,
-      command: commandName,
-      params: params,
-    };
+  //   const toolCommand: ToolCommandInfo = {
+  //     toolId: config.name,
+  //     toolType: config.type,
+  //     command: commandName,
+  //     params: params,
+  //   };
 
-    executeCommandWithToast(commandName, toolCommand);
-  };
+  //   executeCommandWithToast(commandName, toolCommand);
+  // };
 
   const handleInputChange = (
     fieldName: string,
@@ -183,16 +185,17 @@ export default function Page() {
     });
   };
 
-  const handleSelectCommand = (commandName: string) => {
-    // Check if the command has parameters
-    if (doesCommandHaveParameters(commandName)) {
-      // If it has parameters, set up for additional input
-      setSelectedCommand(commandName);
-    } else {
-      // If it doesn't have parameters, execute it immediately
-      executeCommand(commandName, {});
-    }
-  };
+  // Unused function - commented out
+  // const __handleSelectCommand = (commandName: string) => {
+  //   // Check if the command has parameters
+  //   if (doesCommandHaveParameters(commandName)) {
+  //     // If it has parameters, set up for additional input
+  //     setSelectedCommand(commandName);
+  //   } else {
+  //     // If it doesn't have parameters, execute it immediately
+  //     executeCommand(commandName, {});
+  //   }
+  // };
   const renderFields = (fields: Field[], parentField?: string) => {
     return fields.map((field) => {
       if (Array.isArray(field.type)) {
@@ -260,7 +263,7 @@ export default function Page() {
                       0
                     : formValues[field.name]) || 0,
                 )}
-                onChange={(valueString, valueNumber) =>
+                onChange={(_valueString, valueNumber) =>
                   handleInputChange(field.name, field.type, valueNumber, parentField)
                 }>
                 <NumberInputField />

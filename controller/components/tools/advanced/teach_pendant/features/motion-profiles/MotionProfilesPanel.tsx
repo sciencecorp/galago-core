@@ -19,10 +19,9 @@ import {
   MenuItem,
   Text,
 } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon, EditIcon, HamburgerIcon, CheckIcon } from "@chakra-ui/icons";
+import { AddIcon, DeleteIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { MotionProfile, MotionProfilesPanelProps } from "../../types/";
-import { useState, useRef } from "react";
-import { useOutsideClick } from "@chakra-ui/react";
+import { useRef } from "react";
 import { usePagination } from "../../hooks/usePagination";
 import { PaginationControls } from "../../shared/ui/PaginationControls";
 import { EditableText } from "@/components/ui/Form";
@@ -33,7 +32,7 @@ export const MotionProfilesPanel: React.FC<MotionProfilesPanelProps> = ({
   onDelete,
   onDeleteAll,
   onAdd,
-  bgColor,
+  bgColor: _bgColor,
   bgColorAlpha,
   defaultProfileId,
   onSetDefault,

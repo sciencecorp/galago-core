@@ -82,16 +82,16 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
   const totalDuration = endTime.diff(startTime, "seconds");
   const timeIntervals = 12;
 
-  const getTimeFormat = (scale: TimeScale) => {
-    switch (scale) {
-      case TimeScale.SECONDS:
-        return "mm:ss";
-      case TimeScale.HOURS:
-        return "HH:mm";
-      default:
-        return "h:mm A";
-    }
-  };
+  // const getTimeFormat = (scale: TimeScale) => {
+  //   switch (scale) {
+  //     case TimeScale.SECONDS:
+  //       return "mm:ss";
+  //     case TimeScale.HOURS:
+  //       return "HH:mm";
+  //     default:
+  //       return "h:mm A";
+  //   }
+  // };
 
   const getIntervalDuration = (scale: TimeScale) => {
     switch (scale) {
@@ -110,9 +110,9 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
     setEndTime(newEnd);
   };
 
-  const resetToAutoScroll = () => {
-    setIsAutoScrolling(true);
-  };
+  // const resetToAutoScroll = () => {
+  //   setIsAutoScrolling(true);
+  // };
 
   const handleZoomChange = (newScale: TimeScale) => {
     setTimeScale(newScale);

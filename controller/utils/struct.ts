@@ -1,20 +1,20 @@
-interface IStructValue {
+interface _IStructValue {
   [key: string]: any;
 }
 
-interface IValue {
+interface _IValue {
   numberValue?: number;
   stringValue?: string;
   boolValue?: boolean;
-  structValue?: IStructValue;
-  listValue?: IListValue;
+  structValue?: _IStructValue;
+  listValue?: _IListValue;
 }
 
-interface IListValue {
-  values: IValue[];
+interface _IListValue {
+  values: _IValue[];
 }
 
-export function buildGoogleStructValue(val: any, sub: boolean = false): any {
+export function buildGoogleStructValue(val: any, _sub: boolean = false): any {
   const typeofVal = typeof val;
   const baseValueTypes: { [key: string]: string } = {
     number: "numberValue",

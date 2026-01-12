@@ -49,7 +49,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: number; onClo
     },
   });
 
-  const { isOpen, onOpen } = useDisclosure({ defaultIsOpen: true });
+  const { isOpen } = useDisclosure({ defaultIsOpen: true });
   const [formErrors, setFormErrors] = useState<z.inferFormattedError<z.AnyZodObject>>();
 
   const { getInputProps, getIncrementButtonProps, getDecrementButtonProps } = useNumberInput({
@@ -65,7 +65,7 @@ export default function NewProtocolRunModal({ id, onClose }: { id: number; onClo
   const numberOfRuns = getInputProps();
 
   const createRunMutation = trpc.run.create.useMutation({
-    onSuccess: (data) => {
+    onSuccess: () => {
       successToast(
         "Run queued successfully",
         `Successfully queued ${numberOfRuns.value} run${Number(numberOfRuns.value) > 1 ? "s" : ""}`,

@@ -28,7 +28,7 @@ export const VariableModal: React.FC<{ isDisabled: boolean }> = ({ isDisabled })
   const [type, setType] = useState("string" as Variable["type"]);
   const [isLoading, setIsLoading] = useState(false);
   const addVariable = trpc.variable.add.useMutation();
-  const { data: selectedWorkcell, refetch: refetchWorkcell } =
+  const { data: _selectedWorkcell, refetch: _refetchWorkcell } =
     trpc.workcell.getSelectedWorkcell.useQuery();
 
   const { refetch } = trpc.variable.getAll.useQuery();

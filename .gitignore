@@ -79,3 +79,4 @@ app_config.json
 
 tools/build/*
 .cursor/rules/
+CLAUDE.md

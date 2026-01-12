@@ -14,7 +14,7 @@ interface CommandButtonProps {
 const CommandButton: React.FC<CommandButtonProps> = ({
   commandName,
   onSelectCommand,
-  status = "idle",
+  status: _status = "idle",
 }) => {
   // const colorScheme = status === 'success' ? 'green' : status === 'error' ? 'red' : 'gray';
 

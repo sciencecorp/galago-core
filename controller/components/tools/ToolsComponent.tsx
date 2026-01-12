@@ -26,14 +26,13 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Search } from "lucide-react";
 import { Power, Wrench } from "lucide-react";
 import { successToast, errorToast, infoToast } from "../ui/Toast";
-import { Tool } from "@/types";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 interface ToolStatusCardsProps {
   showAsGrid?: boolean;
 }
 
-export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) => {
+export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (_props) => {
   const [toolIds, setToolIds] = useState<string[]>([]);
   const { data: selectedWorkcellData, refetch: refetchWorkcell } =
     trpc.workcell.getSelectedWorkcell.useQuery();
@@ -68,27 +67,25 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
       if (allTools) {
         // Create a separate configuration instance for each tool to properly handle errors
         const configureToolWithErrorHandling = async (tool: (typeof allTools)[0]) => {
-          const toolId = tool.name.toLocaleLowerCase().replaceAll(" ", "_");
-
-          // Skip tool_box and tools without configs
-          if (toolId === "tool_box" || !tool.config) {
-            return { status: "skipped", toolId };
+          // Skip Tool Box and tools without configs
+          if (tool.name === "Tool Box" || !tool.config) {
+            return { status: "skipped", toolId: tool.name };
           }
 
           try {
             // Use mutateAsync to properly catch errors for this specific tool
             await configureMutation.mutateAsync({
-              toolId: toolId,
+              toolId: tool.name,
               config: {
-                toolId: toolId,
+                toolId: tool.name,
                 simulated: tool.config.simulated,
                 [tool.type]: tool.config,
               },
             });
 
             // Record successful configuration
-            results.success.push(toolId);
-            return { status: "fulfilled", toolId };
+            results.success.push(tool.name);
+            return { status: "fulfilled", toolId: tool.name };
           } catch (error: any) {
             // Get detailed error message
             let errorMessage = "Unknown error occurred";
@@ -100,12 +97,12 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (props) 
             }
 
             // Record the failure with detailed error
-            results.failed.push({ toolId, error: errorMessage });
+            results.failed.push({ toolId: tool.name, error: errorMessage });
 
             // Show individual error toast for each failed tool
             errorToast(`Failed to connect ${tool.name}`, errorMessage);
 
-            return { status: "rejected", toolId, error: errorMessage };
+            return { status: "rejected", toolId: tool.name, error: errorMessage };
           }
         };
 

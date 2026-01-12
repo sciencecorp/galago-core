@@ -67,8 +67,8 @@ export const NewFolder: React.FC<NewFolderProps> = ({
   isDisabled,
   parentId,
   onFolderCreated,
-  isCreatingRoot,
-  onCancel,
+  isCreatingRoot: _isCreatingRoot,
+  onCancel: _onCancel,
 }) => {
   const addFolder = trpc.script.addFolder.useMutation();
   const { refetch: refetchFolders } = trpc.script.getAllFolders.useQuery();

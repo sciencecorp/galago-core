@@ -31,10 +31,9 @@ async function getToolFromDB(toolId: string) {
   }
 
   // Find tool by name
-  const searchName = toolId.replace(/_/g, " ");
   const allTools = await db.select().from(tools).where(eq(tools.workcellId, workcell[0].id));
 
-  const tool = allTools.find((t) => t.name.toLowerCase() === searchName.toLowerCase());
+  const tool = allTools.find((t) => t.name.toLowerCase() === toolId.toLowerCase());
 
   if (!tool) {
     throw new Error(`Tool '${toolId}' not found`);
@@ -118,10 +117,14 @@ export default class RunStore {
     for (const c of run.commands) {
       // Get tool info from database first
       const toolRecord = await getToolFromDB(c.commandInfo.toolId);
-      const normalizedId = Tool.normalizeToolId(toolRecord.name);
 
       // Create Tool instance with all required parameters
-      const tool = Tool.forId(normalizedId, toolRecord.ip, toolRecord.port, toolRecord.type as any);
+      const tool = Tool.forId(
+        toolRecord.name,
+        toolRecord.ip,
+        toolRecord.port,
+        toolRecord.type as any,
+      );
 
       // Estimate duration
       durationEstimates.push(
@@ -158,6 +161,7 @@ export default class RunStore {
       const run: Run = {
         id: runId,
         protocolId,
+        protocolName: protocol.name,
         commands: runCommands,
         status: "CREATED",
         createdAt: new Date(),

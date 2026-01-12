@@ -1,6 +1,4 @@
-import React, { useEffect } from "react";
 import {
-  Box,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -22,7 +20,7 @@ interface UserMessageProps {
 export const UserMessage: React.FC<UserMessageProps> = ({
   title,
   message,
-  type,
+  type: _type,
   isOpen,
   onClose,
 }) => {

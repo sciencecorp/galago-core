@@ -7,8 +7,6 @@ import {
   useColorModeValue,
   Collapse,
   Input,
-  FormControl,
-  FormLabel,
   Center,
   SlideFade,
   Table,
@@ -21,7 +19,6 @@ import {
   NumberInputField,
   Select,
   Badge,
-  Button,
   ButtonGroup,
   Tooltip,
 } from "@chakra-ui/react";
@@ -31,7 +28,6 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   ArrowDownIcon,
-  DragHandleIcon,
 } from "@chakra-ui/icons";
 import { useState, useEffect } from "react";
 import { SequenceCommand } from "../../types/";
@@ -136,7 +132,7 @@ const CommandItem: React.FC<CommandItemProps> = ({
   handleEditCommand,
   setExpandedCommand,
   onCommandClick,
-  getDisplayValue,
+  getDisplayValue: _getDisplayValue,
   formatParamKey,
   getCommandIcon,
   localCommands,
@@ -149,7 +145,7 @@ const CommandItem: React.FC<CommandItemProps> = ({
   const styles = useCommandStyles(command.command, isExpanded);
 
   // Helper function to determine parameter type
-  const getParamFieldType = (key: string, commandName: string) => {
+  const getParamFieldType = (key: string, _commandName: string) => {
     if (key === "labware") return "labware";
     if (
       key === "location" ||
@@ -536,7 +532,7 @@ export const CommandList: React.FC<CommandListProps> = ({
   motionProfiles,
   gripParams,
   config,
-  onDelete,
+  onDelete: _onDelete,
   onCommandsChange,
   onSequenceNameChange,
   onLabwareChange,
@@ -559,7 +555,7 @@ export const CommandList: React.FC<CommandListProps> = ({
 
   const bgColor = useColorModeValue("white", isEditing ? "gray.700" : "gray.900");
   const borderColor = useColorModeValue("gray.200", "gray.700");
-  const arrowColor = useColorModeValue("gray.400", "gray.600");
+  // const _arrowColor = useColorModeValue("gray.400", "gray.600");
 
   // Update local state when props change
   useEffect(() => {

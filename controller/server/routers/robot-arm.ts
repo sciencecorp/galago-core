@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { db } from "@/db/client";
-import { findOne, findMany, getSelectedWorkcellId } from "@/db/helpers";
+import { findOne, findMany } from "@/db/helpers";
 import {
   robotArmLocations,
   robotArmSequences,
@@ -10,7 +10,7 @@ import {
   tools,
   logs,
 } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import Tool from "../tools";
 
@@ -106,6 +106,26 @@ export type RobotArmSequence = z.infer<typeof zRobotArmSequenceCreate> & { id: n
 export type RobotArmMotionProfile = z.infer<typeof zRobotArmMotionProfileCreate> & { id: number };
 export type RobotArmGripParams = z.infer<typeof zRobotArmGripParamsCreate> & { id: number };
 
+// ==================== HELPER FUNCTION ====================
+
+/**
+ * Safely reload PF400 waypoints - doesn't throw if tool isn't connected
+ */
+async function safeReloadWaypoints(toolId: number | null | undefined): Promise<void> {
+  if (!toolId) return;
+
+  try {
+    const tool = await findOne(tools, eq(tools.id, toolId));
+    if (tool) {
+      await Tool.loadPF400Waypoints(tool.name);
+    }
+  } catch (error) {
+    // Log the error but don't fail the request - the database operation already succeeded
+    console.warn(
+      `Failed to reload PF400 waypoints (tool may not be connected): ${error instanceof Error ? error.message : error}`,
+    );
+  }
+}
 // ==================== ROUTER ====================
 
 export const robotArmRouter = router({
@@ -154,11 +174,8 @@ export const robotArmRouter = router({
           details: `Location ${input.name} created successfully.`,
         });
 
-        // Reload waypoints for the tool
-        const tool = await findOne(tools, eq(tools.id, input.toolId));
-        if (tool) {
-          await Tool.loadPF400Waypoints(tool.name);
-        }
+        // Reload waypoints for the tool (non-blocking, won't fail the request)
+        await safeReloadWaypoints(input.toolId);
 
         return result[0];
       } catch (error: any) {
@@ -207,11 +224,8 @@ export const robotArmRouter = router({
           details: `Location ${input.name || existing.name} updated successfully.`,
         });
 
-        // Reload waypoints for the tool
-        const tool = await findOne(tools, eq(tools.id, existing.toolId));
-        if (tool) {
-          await Tool.loadPF400Waypoints(tool.name);
-        }
+        // Reload waypoints for the tool (non-blocking, won't fail the request)
+        await safeReloadWaypoints(existing.toolId);
 
         return updated[0];
       } catch (error: any) {
@@ -248,12 +262,9 @@ export const robotArmRouter = router({
           details: `Location deleted successfully.`,
         });
 
-        // Reload waypoints for the tool
+        // Reload waypoints for the tool (non-blocking, won't fail the request)
         const toolId = input.toolId || location.toolId;
-        const tool = await findOne(tools, eq(tools.id, toolId));
-        if (tool) {
-          await Tool.loadPF400Waypoints(tool.name);
-        }
+        await safeReloadWaypoints(toolId);
 
         return { message: "Location deleted successfully" };
       }),
@@ -288,11 +299,8 @@ export const robotArmRouter = router({
           details: `Sequence ${input.name} created successfully.`,
         });
 
-        // Reload waypoints for the tool
-        const tool = await findOne(tools, eq(tools.id, input.toolId));
-        if (tool) {
-          await Tool.loadPF400Waypoints(tool.name);
-        }
+        // Reload waypoints for the tool (non-blocking, won't fail the request)
+        await safeReloadWaypoints(input.toolId);
 
         return result[0];
       } catch (error: any) {
@@ -335,11 +343,8 @@ export const robotArmRouter = router({
           details: `Sequence ${input.name || existing.name} updated successfully.`,
         });
 
-        // Reload waypoints for the tool
-        const tool = await findOne(tools, eq(tools.id, existing.toolId));
-        if (tool) {
-          await Tool.loadPF400Waypoints(tool.name);
-        }
+        // Reload waypoints for the tool (non-blocking, won't fail the request)
+        await safeReloadWaypoints(existing.toolId);
 
         return updated[0];
       } catch (error: any) {
@@ -370,12 +375,9 @@ export const robotArmRouter = router({
           details: `Sequence deleted successfully.`,
         });
 
-        // Reload waypoints for the tool
+        // Reload waypoints for the tool (non-blocking, won't fail the request)
         const toolId = input.toolId || sequence.toolId;
-        const tool = await findOne(tools, eq(tools.id, toolId));
-        if (tool) {
-          await Tool.loadPF400Waypoints(tool.name);
-        }
+        await safeReloadWaypoints(toolId);
 
         return { message: "Sequence deleted successfully" };
       }),
@@ -413,11 +415,8 @@ export const robotArmRouter = router({
           details: `Motion profile ${input.name} created successfully.`,
         });
 
-        // Reload waypoints for the tool
-        const tool = await findOne(tools, eq(tools.id, input.toolId));
-        if (tool) {
-          await Tool.loadPF400Waypoints(tool.name);
-        }
+        // Reload waypoints for the tool (non-blocking, won't fail the request)
+        await safeReloadWaypoints(input.toolId);
 
         return result[0];
       } catch (error: any) {
@@ -460,11 +459,8 @@ export const robotArmRouter = router({
           details: `Motion profile ${input.name || existing.name} updated successfully.`,
         });
 
-        // Reload waypoints for the tool
-        const tool = await findOne(tools, eq(tools.id, existing.toolId));
-        if (tool) {
-          await Tool.loadPF400Waypoints(tool.name);
-        }
+        // Reload waypoints for the tool (non-blocking, won't fail the request)
+        await safeReloadWaypoints(existing.toolId);
 
         return updated[0];
       } catch (error: any) {
@@ -498,12 +494,9 @@ export const robotArmRouter = router({
           details: `Motion profile deleted successfully.`,
         });
 
-        // Reload waypoints for the tool
+        // Reload waypoints for the tool (non-blocking, won't fail the request)
         const toolId = input.toolId || profile.toolId;
-        const tool = await findOne(tools, eq(tools.id, toolId));
-        if (tool) {
-          await Tool.loadPF400Waypoints(tool.name);
-        }
+        await safeReloadWaypoints(toolId);
 
         return { message: "Motion profile deleted successfully" };
       }),
@@ -538,11 +531,8 @@ export const robotArmRouter = router({
           details: `Grip params ${input.name} created successfully.`,
         });
 
-        // Reload waypoints for the tool
-        const tool = await findOne(tools, eq(tools.id, input.toolId));
-        if (tool) {
-          await Tool.loadPF400Waypoints(tool.name);
-        }
+        // Reload waypoints for the tool (non-blocking, won't fail the request)
+        await safeReloadWaypoints(input.toolId);
 
         return result[0];
       } catch (error: any) {
@@ -585,11 +575,8 @@ export const robotArmRouter = router({
           details: `Grip params ${input.name || existing.name} updated successfully.`,
         });
 
-        // Reload waypoints for the tool
-        const tool = await findOne(tools, eq(tools.id, existing.toolId));
-        if (tool) {
-          await Tool.loadPF400Waypoints(tool.name);
-        }
+        // Reload waypoints for the tool (non-blocking, won't fail the request)
+        await safeReloadWaypoints(existing.toolId);
 
         return updated[0];
       } catch (error: any) {
@@ -620,12 +607,9 @@ export const robotArmRouter = router({
           details: `Grip params deleted successfully.`,
         });
 
-        // Reload waypoints for the tool
+        // Reload waypoints for the tool (non-blocking, won't fail the request)
         const toolId = input.toolId || params.toolId;
-        const tool = await findOne(tools, eq(tools.id, toolId));
-        if (tool) {
-          await Tool.loadPF400Waypoints(tool.name);
-        }
+        await safeReloadWaypoints(toolId);
 
         return { message: "Grip params deleted successfully" };
       }),

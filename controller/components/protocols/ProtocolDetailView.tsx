@@ -92,7 +92,7 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
           <Box>
             <HStack spacing={2}>
               <Box width="90%">
-                <Text as="b">{capitalizeFirst(command.commandInfo.toolType)}</Text>
+                <Text as="b">{capitalizeFirst(command.commandInfo.toolId)}</Text>
               </Box>
               <Box className="command-menu">
                 <Menu>
@@ -167,9 +167,9 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
   });
 
   const {
-    isOpen: isParametersModalOpen,
-    onOpen: openParametersModal,
-    onClose: closeParametersModal,
+    isOpen: _isParametersModalOpen,
+    onOpen: _openParametersModal,
+    onClose: _closeParametersModal,
   } = useDisclosure();
 
   const handleAddCommandAtPosition = (position: number) => {
@@ -357,7 +357,7 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
 
   const renderDraggableCommands = (
     provided: DroppableProvided,
-    snapshot: DroppableStateSnapshot,
+    _snapshot: DroppableStateSnapshot,
   ) => {
     if (commands.length === 0 && isEditing) {
       return (

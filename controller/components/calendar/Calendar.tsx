@@ -6,13 +6,10 @@ import {
   Heading,
   VStack,
   Text,
-  useBreakpointValue,
   useColorModeValue,
-  Flex,
   HStack,
   Input,
 } from "@chakra-ui/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CalendarProps {
   onDateSelect?: (date: Date) => void;
@@ -21,9 +18,8 @@ interface CalendarProps {
 }
 
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const paddingMap = { sm: 5, md: 5, lg: 5, xl: 5, "2xl": 7 };
 
-export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, size = "md" }) => {
+export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect }) => {
   // Initialize with a static date to prevent hydration mismatch
   const [currentDate, setCurrentDate] = useState(() => new Date(2024, 9, 1)); // October 1, 2024
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -32,7 +28,7 @@ export const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onTimeSelect, 
   const bgColor = useColorModeValue("gray.500", "gray.200");
   const todayBg = useColorModeValue("teal.100", "teal.800");
   const hoverColor = useColorModeValue("teal.300", "teal.900");
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [_selectedDate, setSelectedDate] = useState<Date | null>(null);
   const fontColor = useColorModeValue("black", "white");
 
   // Set to current date only after client hydration

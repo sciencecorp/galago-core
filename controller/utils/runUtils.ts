@@ -1,6 +1,6 @@
 import moment from "moment";
-import { RunQueue, RunCommand, GroupedCommand } from "@/types";
-import { Protocols, findProtocol, getProtocolById } from "@/server/protocols";
+import { RunCommand } from "@/types";
+import { findProtocol, getProtocolById } from "@/server/protocols";
 
 // Helper function to load protocol name
 async function getProtocolName(protocolId: string): Promise<string> {

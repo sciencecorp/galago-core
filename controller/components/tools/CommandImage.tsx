@@ -1,6 +1,4 @@
-import { trpc } from "@/utils/trpc";
-import React, { useEffect, memo } from "react";
-import { Box, IconButton, Image, Center } from "@chakra-ui/react";
+import { Box, IconButton, Image } from "@chakra-ui/react";
 import {
   Wrench,
   FileCode,
@@ -11,7 +9,6 @@ import {
   StopCircle,
   Repeat,
   Variable,
-  FormInput,
   Volume2,
   List,
 } from "lucide-react";

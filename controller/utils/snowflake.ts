@@ -1,10 +1,10 @@
-import { encode } from "base32";
+// import { encode } from "base32";
 import { Worker as SnowflakeIdWorker } from "snowflake-uuid";
 
 class SnowflakeIdGenerator {
   private readonly worker: SnowflakeIdWorker;
 
-  constructor(private workerId: number) {
+  constructor(workerId: number) {
     this.worker = new SnowflakeIdWorker(workerId, 0, {
       workerIdBits: 10,
       sequenceBits: 12,

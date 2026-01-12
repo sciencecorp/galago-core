@@ -21,7 +21,6 @@ import {
   Stat,
   StatLabel,
   StatNumber,
-  useColorModeValue,
   Select,
   Spacer,
   Button,
@@ -52,8 +51,7 @@ export const LabwareComponent: React.FC = () => {
   const deleteLabware = trpc.labware.delete.useMutation();
   const exportAllLabware = trpc.labware.exportAllConfig.useMutation();
 
-  const { data: selectedWorkcell, refetch: refetchWorkcell } =
-    trpc.workcell.getSelectedWorkcell.useQuery();
+  const { data: selectedWorkcell } = trpc.workcell.getSelectedWorkcell.useQuery();
 
   const {
     fileInputRef,
@@ -207,8 +205,8 @@ export const LabwareComponent: React.FC = () => {
                 title="Labware"
                 subTitle="Manage and configure your labware definitions"
                 titleIcon={<Icon as={SixWellPlateIcon} boxSize={8} color="teal.500" />}
-                // mainButton={importButton}
-                // secondaryButton={exportButton}
+                mainButton={importButton}
+                secondaryButton={exportButton}
                 tertiaryButton={<LabwareModal isDisabled={!selectedWorkcell} />}
               />
 

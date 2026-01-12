@@ -31,7 +31,7 @@ const SwimLaneCommandComponent: React.FC<LaneCommandComponentProps> = (props) =>
   const skipMutation = trpc.commandQueue.skipCommand.useMutation();
   const skipUntilMutation = trpc.commandQueue.skipCommandsUntil.useMutation();
   const execMutation = trpc.tool.runCommand.useMutation();
-  const { queueId, commandInfo, estimatedDuration, status } = command;
+  const { queueId } = command;
   let toolName = infoQuery.data?.name || "undefined";
   const bgColor = useColorModeValue("gray.50", "gray.700");
   const errorColor = useColorModeValue("red.200", "red.800");

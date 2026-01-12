@@ -1,4 +1,3 @@
-import { ToolStatusCardsComponent } from "../../components/tools/ToolsComponent";
 import { ScriptsEditor } from "../../components/scripts/CodeEditor";
 import { useEffect } from "react";
 

@@ -42,13 +42,12 @@ export const zTool = z.object({
   config: z.union([z.record(z.any()), z.null()]).optional(),
 });
 
-// Helper function to get tool from DB by toolId (handles underscore/space conversion)
+// Helper function to get tool from DB by toolId
 async function getToolFromDB(toolId: string) {
-  const searchName = toolId.replace(/_/g, " ");
   const workcellId = await getSelectedWorkcellId();
 
   const allTools = await findMany(tools, eq(tools.workcellId, workcellId));
-  const tool = allTools.find((t) => t.name.toLowerCase() === searchName.toLowerCase());
+  const tool = allTools.find((t) => t.name.toLowerCase() === toolId.toLowerCase());
 
   if (!tool) {
     throw new TRPCError({
@@ -279,8 +278,7 @@ export const toolRouter = router({
       const updatedTool = updated[0];
 
       // Clean up Tool class cache
-      const toolId = Tool.normalizeToolId(updatedTool.name);
-      await Tool.removeTool(toolId);
+      await Tool.removeTool(updatedTool.name);
 
       await db.insert(logs).values({
         level: "info",
@@ -330,8 +328,7 @@ export const toolRouter = router({
     }
 
     // Clean up Tool class cache
-    const normalizedToolId = Tool.normalizeToolId(deleted[0].name);
-    await Tool.removeTool(normalizedToolId);
+    await Tool.removeTool(deleted[0].name);
 
     await db.insert(logs).values({
       level: "info",
@@ -346,7 +343,7 @@ export const toolRouter = router({
     const toolbox = Tool.toolBoxConfig();
     return {
       id: 228629,
-      name: "tool_box",
+      name: "Tool Box",
       type: toolbox.type,
       ip: toolbox.ip,
       port: toolbox.port,
@@ -380,9 +377,9 @@ export const toolRouter = router({
 
       const workcellTools = await findMany(tools, eq(tools.workcellId, workcellId));
 
-      // Return tool IDs as lowercase with underscores (matching the format used in components)
-      const toolIds = workcellTools.map((tool) => tool.name.toLowerCase().replace(/\s+/g, "_"));
-      toolIds.push("tool_box");
+      // Return tool names as-is
+      const toolIds = workcellTools.map((tool) => tool.name);
+      toolIds.push("Tool Box");
 
       return toolIds;
     }),
@@ -394,10 +391,9 @@ export const toolRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      // Special case for tool_box
-      if (input.toolId === "tool_box") {
+      if (input.toolId === "Tool Box") {
         const toolbox = Tool.toolBoxConfig();
-        const tool = Tool.forId("tool_box", toolbox.ip, toolbox.port, toolbox.type as ToolType);
+        const tool = Tool.forId("Tool Box", toolbox.ip, toolbox.port, toolbox.type as ToolType);
         return await tool.fetchStatus();
       }
 
@@ -405,9 +401,8 @@ export const toolRouter = router({
       const toolRecord = await getToolFromDB(input.toolId);
 
       // Then get runtime status from Tool class
-      const normalizedId = Tool.normalizeToolId(toolRecord.name);
       const tool = Tool.forId(
-        normalizedId,
+        toolRecord.name,
         toolRecord.ip,
         toolRecord.port,
         toolRecord.type as ToolType,
@@ -423,8 +418,7 @@ export const toolRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      // Special case for tool_box
-      if (input.toolId === "tool_box") {
+      if (input.toolId === "Tool Box") {
         const toolbox = Tool.toolBoxConfig();
         return {
           id: -1,
@@ -470,10 +464,9 @@ export const toolRouter = router({
     .mutation(async ({ input }) => {
       const { toolId, config } = input;
 
-      // Special case for tool_box
-      if (toolId === "tool_box") {
+      if (toolId === "Tool Box") {
         const toolbox = Tool.toolBoxConfig();
-        const tool = Tool.forId("tool_box", toolbox.ip, toolbox.port, toolbox.type as ToolType);
+        const tool = Tool.forId("Tool Box", toolbox.ip, toolbox.port, toolbox.type as ToolType);
         return await tool.configure(config);
       }
 
@@ -481,9 +474,8 @@ export const toolRouter = router({
       const toolRecord = await getToolFromDB(toolId);
 
       // Get/create Tool instance
-      const normalizedId = Tool.normalizeToolId(toolRecord.name);
       const tool = Tool.forId(
-        normalizedId,
+        toolRecord.name,
         toolRecord.ip,
         toolRecord.port,
         toolRecord.type as ToolType,
