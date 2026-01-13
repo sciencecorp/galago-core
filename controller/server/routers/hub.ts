@@ -121,7 +121,8 @@ export const hubRouter = router({
           });
 
           if (needle) {
-            const hay = `${summary.name} ${summary.description || ""} ${(summary.tags || []).join(" ")}`.toLowerCase();
+            const hay =
+              `${summary.name} ${summary.description || ""} ${(summary.tags || []).join(" ")}`.toLowerCase();
             if (!hay.includes(needle)) continue;
           }
 
@@ -130,7 +131,9 @@ export const hubRouter = router({
       }
 
       // Newest first (fallback stable)
-      summaries.sort((a, b) => (a.updated_at < b.updated_at ? 1 : a.updated_at > b.updated_at ? -1 : 0));
+      summaries.sort((a, b) =>
+        a.updated_at < b.updated_at ? 1 : a.updated_at > b.updated_at ? -1 : 0,
+      );
       return summaries;
     }),
 

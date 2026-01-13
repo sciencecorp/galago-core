@@ -30,7 +30,13 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { errorToast, successToast, warningToast } from "@/components/ui/Toast";
 import { HubItemDetailModal } from "./HubItemDetailModal";
 import type { HubItem, HubItemSummary, HubItemType } from "./hubTypes";
-import { HUB_TYPES, formatHubTimestamp, hubItemToJsonFile, itemTypeLabel, normalizeTags } from "./hubUtils";
+import {
+  HUB_TYPES,
+  formatHubTimestamp,
+  hubItemToJsonFile,
+  itemTypeLabel,
+  normalizeTags,
+} from "./hubUtils";
 // Hub runs fully via tRPC + local storage; downloads are done client-side from payload.
 
 function isRecord(v: any): v is Record<string, any> {
@@ -91,12 +97,10 @@ export function HubComponent(): JSX.Element {
 
   const detailModal = useDisclosure();
 
-  const libraryListQuery = trpc.hubLibrary.list.useQuery(
-    {
-      type: selectedType === "all" ? undefined : selectedType,
-      q: q.trim() ? q.trim() : undefined,
-    },
-  );
+  const libraryListQuery = trpc.hubLibrary.list.useQuery({
+    type: selectedType === "all" ? undefined : selectedType,
+    q: q.trim() ? q.trim() : undefined,
+  });
 
   const activeLibraryItemQuery = trpc.hubLibrary.get.useQuery(
     { id: activeId || "" },
@@ -173,7 +177,9 @@ export function HubComponent(): JSX.Element {
         isRecord((unwrapped as any).workcell) &&
         typeof (unwrapped as any).workcell.name === "string" &&
         (unwrapped as any).workcell.name) ||
-      (isRecord(unwrapped) && typeof (unwrapped as any).name === "string" && (unwrapped as any).name) ||
+      (isRecord(unwrapped) &&
+        typeof (unwrapped as any).name === "string" &&
+        (unwrapped as any).name) ||
       item.name;
     await workcellSetSelected.mutateAsync(importedName);
     await toolClearStore.mutateAsync();
@@ -199,7 +205,9 @@ export function HubComponent(): JSX.Element {
       throw new Error("No workcell selected. Select a workcell first, then load this protocol.");
     }
     const p = unwrapHubPayload<any>(item.payload);
-    const protocolPayload = (isRecord(p) && isRecord((p as any).protocol) ? (p as any).protocol : p) as any;
+    const protocolPayload = (
+      isRecord(p) && isRecord((p as any).protocol) ? (p as any).protocol : p
+    ) as any;
     await protocolImport.mutateAsync({ workcellId: wcId, protocol: protocolPayload });
   };
 
