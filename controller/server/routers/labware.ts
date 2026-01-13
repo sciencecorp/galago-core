@@ -243,7 +243,7 @@ export const labwareRouter = router({
             results.push(created[0]);
           } catch (error: any) {
             if (error.message?.includes("UNIQUE constraint failed")) {
-    throw new TRPCError({
+              throw new TRPCError({
                 code: "CONFLICT",
                 message: `Labware with name '${data.name}' already exists in this workcell`,
               });
@@ -262,5 +262,5 @@ export const labwareRouter = router({
       await reloadLabwareInPF400Tools();
 
       return results.length === 1 ? results[0] : { imported: results };
-  }),
+    }),
 });
