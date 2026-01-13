@@ -30,6 +30,7 @@ import {
   Moon,
   Sun,
   ClipboardPenLine,
+  LibraryBig,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import { capitalizeFirst } from "@/utils/parser";
@@ -49,6 +50,7 @@ interface SidebarProps {
 
 const sidebarItems: SidebarItem[] = [
   { name: "Home", icon: Home, path: "/" },
+  { name: "Hub", icon: LibraryBig, path: "/hub" },
   { name: "Runs", icon: ChartGantt, path: "/runs" },
   { name: "Workcells", icon: Boxes, path: "/workcells" },
   { name: "Tools", icon: Wrench, path: "/tools" },

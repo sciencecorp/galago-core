@@ -54,8 +54,6 @@ export const protocolRouter = router({
         .optional(),
     )
     .query(async ({ input }) => {
-      // let _query = db.select().from(protocols);
-
       if (input?.workcellId) {
         const filtered = await db
           .select()
@@ -102,7 +100,6 @@ export const protocolRouter = router({
     }
     return protocol;
   }),
-
   // Create protocol
   create: procedure.input(zProtocolCreate).mutation(async ({ input }) => {
     try {

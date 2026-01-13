@@ -126,7 +126,6 @@ async function safeReloadWaypoints(toolId: number | null | undefined): Promise<v
     );
   }
 }
-
 // ==================== ROUTER ====================
 
 export const robotArmRouter = router({

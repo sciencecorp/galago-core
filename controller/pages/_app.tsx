@@ -1,5 +1,5 @@
 import "@/styles/globals.css";
-import { ChakraProvider, VStack } from "@chakra-ui/react";
+import { ChakraProvider, VStack, Box } from "@chakra-ui/react";
 import { trpc } from "../utils/trpc";
 import type { AppType } from "next/app";
 import Sidebar from "@/components/ui/SideBar";
@@ -22,10 +22,12 @@ const MyApp: AppType = ({ Component, pageProps }) => {
       <VersionChecker />
       <TutorialProvider steps={tutorialSteps}>
         <Sidebar>
-          <GlobalQueueStatusIndicator />
-          <VStack align="stretch" flex="1" spacing={4} p={0}>
-            <Component {...pageProps} />
-          </VStack>
+          <Box height="100vh" overflow="auto" display="flex" flexDirection="column">
+            <GlobalQueueStatusIndicator />
+            <VStack align="stretch" flex="1" overflow="auto" spacing={4} p={4}>
+              <Component {...pageProps} />
+            </VStack>
+          </Box>
         </Sidebar>
         <TutorialModal />
       </TutorialProvider>

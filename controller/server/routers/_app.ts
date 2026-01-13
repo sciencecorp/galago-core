@@ -12,6 +12,7 @@ import { inventoryRouter } from "./inventory";
 import { robotArmRouter } from "./robot-arm";
 import { csharpRouter } from "./cSharpRouter";
 import { formRouter } from "./form";
+import { hubLibraryRouter } from "./hubLibrary";
 import { appSettingsRouter } from "./appSettings";
 
 export const appRouter = router({
@@ -28,6 +29,7 @@ export const appRouter = router({
   robotArm: robotArmRouter,
   cSharp: csharpRouter,
   form: formRouter,
+  hubLibrary: hubLibraryRouter,
   appSettings: appSettingsRouter,
 });
 

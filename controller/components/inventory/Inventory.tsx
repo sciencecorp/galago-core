@@ -79,7 +79,7 @@ export const InventoryManager = () => {
     },
   );
 
-  const { data: nests = [], refetch: refetchNests } = trpc.inventory.getNests.useQuery(undefined, {
+  const { data: nests = [] } = trpc.inventory.getNests.useQuery(undefined, {
     enabled: !!selectedWorkcellName.data,
   });
 
@@ -189,7 +189,6 @@ export const InventoryManager = () => {
 
       // Step 3: Refresh the data
       await refetchHotels();
-      await refetchNests();
     } catch (error) {
       errorToast("Error creating hotel", error instanceof Error ? error.message : "Unknown error");
     }

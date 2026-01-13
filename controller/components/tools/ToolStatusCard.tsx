@@ -40,7 +40,12 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
   const cardBg = useColorModeValue("white", "gray.900");
   const borderColor = useColorModeValue("gray.200", "gray.700");
 
-  const infoQuery = trpc.tool.info.useQuery({ toolId: toolId || "" });
+  const infoQuery = trpc.tool.info.useQuery(
+    { toolId },
+    {
+      enabled: !!toolId,
+    },
+  );
   const toolData = infoQuery.data;
   const { description, name } = infoQuery.data || {};
   const deleteTool = trpc.tool.delete.useMutation();
@@ -56,6 +61,10 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
     onOpen: openDeleteConfirm,
     onClose: closeDeleteConfirm,
   } = useDisclosure();
+
+  if (!toolId) {
+    return <Alert status="warning">No tool selected</Alert>;
+  }
 
   if (infoQuery.isLoading) {
     return <Spinner size="lg" />;
@@ -76,10 +85,7 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
   };
 
   function renderToolImage(config: any) {
-    console.log("Rendering image url", config.imageUrl);
-    if (!config.imageUrl) {
-      return <Box></Box>;
-    } else if (config.name === "Tool Box") {
+    if (config.name === "Tool Box") {
       return (
         <Box display="flex" justifyContent="center" alignItems="center">
           <IconButton
@@ -92,10 +98,18 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
           />
         </Box>
       );
+    }
+
+    const fallback =
+      config?.type && typeof config.type === "string" ? `/tool_icons/${config.type}.png` : null;
+    const src = config?.imageUrl || fallback;
+
+    if (!src) {
+      return <Box />;
     } else {
       return (
         <Image
-          src={config.imageUrl}
+          src={src}
           alt={config.name}
           objectFit="contain"
           height="120px"
