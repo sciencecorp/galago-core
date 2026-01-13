@@ -38,37 +38,38 @@ If you plan to contribute or customize Galago, start by forking the repository:
 
    **[Fork Galago →](https://github.com/sciencecorp/galago-core/fork)**
 
-2. **Clone your fork** (replace `your-username` with your GitHub username):
+1. **Clone your fork** (replace `your-username` with your GitHub username):
 
 ```bash
    git clone https://github.com/your-username/galago-core.git
    cd galago-core
 ```
 
-3. **Add upstream remote** (to keep your fork updated):
+1. **Add upstream remote** (to keep your fork updated):
 
 ```bash
    git remote add upstream https://github.com/your-org/galago-core.git
 ```
 
-4. **Launch development environment**
+1. **Launch development environment**
 
 ```bash
 docker-compose -f docker-compose.dev.yml up --build
 ```
 
-5. **Access the application**
-   - Web Interface: http://localhost:3010
+1. **Access the application**
 
-### Other useful development commands.
+   - Web Interface: `http://localhost:3010`
 
-2. **Install grpcio dependencies on a local environment (for proto files, testing, linting, etc)**
+### Other useful development commands
+
+1. **Install grpcio dependencies on a local environment (for proto files, testing, linting, etc)**
 
 ```bash
 bin/make deps
 ```
 
-4. **Initialize and update submodules** (pulls the latest proto definitions from galago-tools):
+1. **Initialize and update submodules** (pulls the latest proto definitions from galago-tools):
 
 ```bash
 git submodule update --init --recursive
@@ -76,7 +77,7 @@ git submodule update --init --recursive
 
 > **Note:** Run `git submodule update --remote vendor/galago-tools` anytime you need to pull the latest proto updates.
 
-5. **Generate proto files**
+1. **Generate proto files**
 
 ```bash
 bin/make proto
@@ -87,14 +88,13 @@ bin/make proto
 For production deployment:
 
 ```bash
-
 # Launch production stack
 docker-compose up -d
 ```
 
 ## Other docker commands
 
-```
+```bash
 #Stop containters
 docker-compose -f docker-compose.dev.yml down
 
@@ -116,7 +116,7 @@ docker exec -it galago-web-dev npm install <package name>
 
 ## SQlite commands
 
-```
+```bash
 #See all tables
 sqlite3 data/app.db ".tables"
 
@@ -142,7 +142,7 @@ run `npx drizzle-kit generate` to generate the migration files.
 
 ### Build the base environmnent
 
-```
+```bash
 conda create -n galago
 conda activate galago #mac
 source activate galago #windows
@@ -150,7 +150,7 @@ source activate galago #windows
 
 ### Build dependencies
 
-```
+```bash
 bin/make deps
 bin/make proto
 ```
@@ -188,6 +188,38 @@ To integrate a new laboratory instrument:
 - **Keep dependencies updated** regularly
 - **Report security issues** privately to the maintainers
 
+### Secrets encryption (`GALAGO_SECRETS_KEY`)
+
+Galago stores **Secrets** (Slack webhook/bot token, SMTP password) encrypted at rest in SQLite.
+To enable this, you must set the environment variable **`GALAGO_SECRETS_KEY`** for the **controller
+server process**.
+
+- **Required format**: a **32-byte key** provided as either:
+  - **hex**: 64 hex characters (recommended), e.g. output of `openssl rand -hex 32`
+  - **base64**: standard base64 encoding of 32 bytes
+
+Generate a key:
+
+```bash
+# Recommended (hex)
+export GALAGO_SECRETS_KEY="$(openssl rand -hex 32)"
+
+# Alternative (hex, via node)
+export GALAGO_SECRETS_KEY="$(node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\")"
+```
+
+Set it for Docker Compose (dev/prod):
+
+```yaml
+services:
+  galago-web-dev:
+    environment:
+      - GALAGO_SECRETS_KEY=your_64_char_hex_key
+```
+
+After setting it, open **Settings → Secrets** and save a secret. If the key is missing/invalid,
+the UI will show “Secrets encryption is not configured”.
+
 ## Troubleshooting
 
 ### Common Issues
@@ -205,7 +237,8 @@ docker-compose -f docker-compose.dev.yml up --build
 ```
 
 **Port conflicts:**
-- App runs at http://localhost:3010 by default.
+
+- App runs at `http://localhost:3010` by default.
 - Modify port mappings in docker-compose files if needed
 
 ## Architecture Details
@@ -213,7 +246,7 @@ docker-compose -f docker-compose.dev.yml up --build
 ### Data Flow
 
 1. **User Interface** (Next.js) → tRPC calls → **Database Service**
-3. **User Interface** ->  tRPC calls → gRPC calls → **Tool Drivers**
+2. **User Interface** → tRPC calls → gRPC calls → **Tool Drivers**
 
 ## License
 

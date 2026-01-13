@@ -666,7 +666,7 @@ export const Settings: React.FC = () => {
               <AlertTitle>Secrets encryption is not configured</AlertTitle>
               <AlertDescription>
                 Secret fields (Slack webhook/token, SMTP password) won’t save or work until{" "}
-                <Code>GALAGO_SECRETS_KEY</Code> is set for the DB service.
+                <Code>GALAGO_SECRETS_KEY</Code> is set for the controller service.
               </AlertDescription>
             </Box>
           </Alert>
