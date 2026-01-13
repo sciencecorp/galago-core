@@ -225,6 +225,31 @@ export const appSettings = sqliteTable("app_settings", {
   ...timestamps,
 });
 
+export const appSecrets = sqliteTable("app_secrets", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  encryptedValue: text("encrypted_value").notNull(),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  ...timestamps,
+});
+
+export const appAuditEvents = sqliteTable(
+  "app_audit_events",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    actor: text("actor").notNull(),
+    action: text("action").notNull(),
+    targetType: text("target_type").notNull(),
+    targetName: text("target_name"),
+    details: text("details", { mode: "json" }).$type<Record<string, any> | null>(),
+    ...timestamps,
+  },
+  (t) => ({
+    actionIdx: index("app_audit_events_action_idx").on(t.action),
+    createdAtIdx: index("app_audit_events_created_at_idx").on(t.createdAt),
+  }),
+);
+
 export const robotArmLocations = sqliteTable("robot_arm_locations", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -309,6 +334,10 @@ export type Form = typeof forms.$inferSelect;
 export type NewForm = typeof forms.$inferInsert;
 export type AppSettings = typeof appSettings.$inferSelect;
 export type NewAppSettings = typeof appSettings.$inferInsert;
+export type AppSecret = typeof appSecrets.$inferSelect;
+export type NewAppSecret = typeof appSecrets.$inferInsert;
+export type AppAuditEvent = typeof appAuditEvents.$inferSelect;
+export type NewAppAuditEvent = typeof appAuditEvents.$inferInsert;
 export type RobotArmLocation = typeof robotArmLocations.$inferSelect;
 export type NewRobotArmLocation = typeof robotArmLocations.$inferInsert;
 export type RobotArmSequence = typeof robotArmSequences.$inferSelect;
@@ -336,6 +365,8 @@ export const schema = {
   protocols,
   forms,
   appSettings,
+  appSecrets,
+  appAuditEvents,
   robotArmLocations,
   robotArmSequences,
   robotArmMotionProfiles,

@@ -1,7 +1,7 @@
 import { procedure, router } from "@/server/trpc";
-import { post } from "@/server/utils/api";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { sendEmailMessage, sendSlackMessage } from "@/server/utils/integrationsLocal";
 
 export const integrationsRouter = router({
   slackTest: procedure
@@ -15,19 +15,15 @@ export const integrationsRouter = router({
     )
     .mutation(async ({ input }) => {
       try {
-        return await post<{ ok: boolean }>(`/integrations/slack/test`, input ?? {});
+        await sendSlackMessage({
+          message: input?.message || "Galago: Slack test message ✅",
+          channel: input?.channel,
+          auditAction: "integrations.slack.test",
+        });
+        return { ok: true };
       } catch (e: any) {
-        const status = e?.status;
         const msg = typeof e?.message === "string" ? e.message : "Slack test failed";
-        const cleanMsg = msg.replace(/^\d+\s*-\s*/, "");
-
-        if (status === 400) throw new TRPCError({ code: "BAD_REQUEST", message: cleanMsg });
-        if (status === 401) throw new TRPCError({ code: "UNAUTHORIZED", message: cleanMsg });
-        if (status === 403) throw new TRPCError({ code: "FORBIDDEN", message: cleanMsg });
-        if (status === 404) throw new TRPCError({ code: "NOT_FOUND", message: cleanMsg });
-        if (status === 409) throw new TRPCError({ code: "CONFLICT", message: cleanMsg });
-
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: cleanMsg });
+        throw new TRPCError({ code: "BAD_REQUEST", message: msg });
       }
     }),
 
@@ -42,19 +38,47 @@ export const integrationsRouter = router({
     )
     .mutation(async ({ input }) => {
       try {
-        return await post<{ ok: boolean }>(`/integrations/email/test`, input ?? {});
+        await sendEmailMessage({
+          subject: input?.subject || "Galago: Email test",
+          message: input?.message || "This is a test email from Galago.",
+          auditAction: "integrations.email.test",
+        });
+        return { ok: true };
       } catch (e: any) {
-        const status = e?.status;
         const msg = typeof e?.message === "string" ? e.message : "Email test failed";
-        const cleanMsg = msg.replace(/^\d+\s*-\s*/, "");
+        throw new TRPCError({ code: "BAD_REQUEST", message: msg });
+      }
+    }),
 
-        if (status === 400) throw new TRPCError({ code: "BAD_REQUEST", message: cleanMsg });
-        if (status === 401) throw new TRPCError({ code: "UNAUTHORIZED", message: cleanMsg });
-        if (status === 403) throw new TRPCError({ code: "FORBIDDEN", message: cleanMsg });
-        if (status === 404) throw new TRPCError({ code: "NOT_FOUND", message: cleanMsg });
-        if (status === 409) throw new TRPCError({ code: "CONFLICT", message: cleanMsg });
+  slackSend: procedure
+    .input(z.object({ message: z.string().min(1), channel: z.string().optional() }))
+    .mutation(async ({ input }) => {
+      try {
+        await sendSlackMessage({
+          message: input.message,
+          channel: input.channel,
+          auditAction: "integrations.slack.send",
+        });
+        return { ok: true };
+      } catch (e: any) {
+        const msg = typeof e?.message === "string" ? e.message : "Slack send failed";
+        throw new TRPCError({ code: "BAD_REQUEST", message: msg });
+      }
+    }),
 
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: cleanMsg });
+  emailSend: procedure
+    .input(z.object({ subject: z.string().min(1), message: z.string().min(1) }))
+    .mutation(async ({ input }) => {
+      try {
+        await sendEmailMessage({
+          subject: input.subject,
+          message: input.message,
+          auditAction: "integrations.email.send",
+        });
+        return { ok: true };
+      } catch (e: any) {
+        const msg = typeof e?.message === "string" ? e.message : "Email send failed";
+        throw new TRPCError({ code: "BAD_REQUEST", message: msg });
       }
     }),
 });

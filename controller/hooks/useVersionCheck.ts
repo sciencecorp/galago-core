@@ -18,10 +18,12 @@ function isNewerVersion(localVersion: string, remoteVersion: string): boolean {
   return false;
 }
 
-export function useVersionCheck() {
+export function useVersionCheck(enabled: boolean = true) {
   const hasChecked = useRef(false);
 
   useEffect(() => {
+    if (!enabled) return;
+
     // Only run once per component lifecycle
     if (hasChecked.current) return;
     hasChecked.current = true;
@@ -62,5 +64,5 @@ export function useVersionCheck() {
       .catch(() => {
         // Fail silently - don't bother the user if we can't check
       });
-  }, []);
+  }, [enabled]);
 }

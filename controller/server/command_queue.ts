@@ -8,10 +8,10 @@ import fs from "fs";
 import { ToolType } from "gen-interfaces/controller";
 import { logger } from "@/logger";
 import { logAction } from "./logger";
-import { post } from "@/server/utils/api";
 import { db } from "@/db/client";
 import { appSettings, variables, workcells } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
+import { sendEmailMessage, sendSlackMessage } from "@/server/utils/integrationsLocal";
 
 export type CommandQueueState = ToolStatus;
 
@@ -161,7 +161,7 @@ export class CommandQueue {
 
       if (slackEnabled) {
         try {
-          await post(`/integrations/slack/send`, { message: body });
+          await sendSlackMessage({ message: body, auditAction: "integrations.slack.send" });
         } catch (e: any) {
           logger.warn("Slack alert failed:", e?.message || e);
         }
@@ -169,7 +169,11 @@ export class CommandQueue {
 
       if (emailEnabled) {
         try {
-          await post(`/integrations/email/send`, { subject: header, message: body });
+          await sendEmailMessage({
+            subject: header,
+            message: body,
+            auditAction: "integrations.email.send",
+          });
         } catch (e: any) {
           logger.warn("Email alert failed:", e?.message || e);
         }

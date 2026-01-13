@@ -3,6 +3,7 @@ import { db } from "@/db/client";
 import { appSettings } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { logAuditEvent } from "@/server/utils/auditLog";
 
 export interface AppSettingRow {
   id: number;
@@ -55,6 +56,12 @@ export const settingsRouter = router({
           .returning();
 
         const r = updated[0];
+        await logAuditEvent({
+          action: "settings.set",
+          targetType: "setting",
+          targetName: input.name,
+          details: { value: input.value, is_active: input.is_active ?? true },
+        });
         return {
           id: r.id,
           name: r.name,
@@ -75,6 +82,12 @@ export const settingsRouter = router({
         .returning();
 
       const r = created[0];
+      await logAuditEvent({
+        action: "settings.set",
+        targetType: "setting",
+        targetName: input.name,
+        details: { value: input.value, is_active: input.is_active ?? true },
+      });
       return {
         id: r.id,
         name: r.name,

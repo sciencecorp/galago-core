@@ -1,6 +1,9 @@
 import { procedure, router } from "@/server/trpc";
-import { get, post } from "@/server/utils/api";
+import { db } from "@/db/client";
+import { appSecrets, appSettings } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { logAuditEvent } from "@/server/utils/auditLog";
 
 export interface BackupSetting {
   name: string;
@@ -21,7 +24,17 @@ export interface SecretMeta {
 
 export const backupRouter = router({
   exportSettings: procedure.query(async () => {
-    return await get<BackupSetting[]>(`/backup/settings`);
+    const rows = await db.select().from(appSettings);
+    return rows.map(
+      (r): BackupSetting => ({
+        id: r.id,
+        name: r.name,
+        value: r.value,
+        is_active: Boolean(r.isActive),
+        created_at: r.createdAt ? new Date(r.createdAt) : undefined,
+        updated_at: r.updatedAt ? new Date(r.updatedAt) : undefined,
+      }),
+    );
   }),
 
   importSettings: procedure
@@ -37,12 +50,46 @@ export const backupRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
-      return await post<{ ok: boolean; count: number }>(`/backup/settings`, {
-        settings: input.settings.map((s) => ({ ...s, is_active: s.is_active ?? true })),
+      let upserted = 0;
+      for (const s of input.settings) {
+        const name = String(s.name || "").trim();
+        if (!name) continue;
+        const value = String(s.value ?? "");
+        const isActive = s.is_active ?? true;
+
+        const existing = await db
+          .select()
+          .from(appSettings)
+          .where(eq(appSettings.name, name))
+          .limit(1);
+        if (existing.length > 0) {
+          await db.update(appSettings).set({ value, isActive }).where(eq(appSettings.name, name));
+        } else {
+          await db.insert(appSettings).values({ name, value, isActive });
+        }
+        upserted++;
+      }
+
+      await logAuditEvent({
+        action: "backup.settings.import",
+        targetType: "backup",
+        targetName: "settings",
+        details: { count: upserted },
       });
+
+      return { ok: true, count: upserted };
     }),
 
   exportSecretsMeta: procedure.query(async () => {
-    return await get<SecretMeta[]>(`/backup/secrets/meta`);
+    const rows = await db.select().from(appSecrets);
+    return rows.map(
+      (r): SecretMeta => ({
+        name: r.name,
+        is_active: Boolean(r.isActive),
+        is_set: true,
+        created_at: r.createdAt ? new Date(r.createdAt) : undefined,
+        updated_at: r.updatedAt ? new Date(r.updatedAt) : undefined,
+      }),
+    );
   }),
 });

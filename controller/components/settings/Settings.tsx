@@ -28,7 +28,6 @@ import {
   Tabs,
   Text,
   VStack,
-  useColorMode,
   useColorModeValue,
 } from "@chakra-ui/react";
 import { CheckCircle2, Search, Settings as SettingsIcon, Trash2, X } from "lucide-react";
@@ -215,8 +214,6 @@ export const Settings: React.FC = () => {
   const tabSelectedBg = useColorModeValue("white", "gray.700");
   const tabSelectedBorder = useColorModeValue("teal.500", "teal.300");
 
-  const { colorMode, toggleColorMode } = useColorMode();
-
   const {
     data: fetchedSettings,
     isLoading: isLoadingSettings,
@@ -324,22 +321,6 @@ export const Settings: React.FC = () => {
       setSlackChannelsDirty(false);
     }
   }, [fetchedSettings, settingsByName]);
-
-  // Keep Chakra's color mode in sync when user explicitly chooses Light/Dark/System
-  useEffect(() => {
-    // Avoid a flash on first mount: we don't know the user's saved preference yet,
-    // so don't force a mode based on DEFAULT_SETTINGS ("System") before settings load.
-    if (!fetchedSettings) return;
-    const theme = String(settings.theme ?? "System");
-    if (theme === "Light" && colorMode !== "light") toggleColorMode();
-    if (theme === "Dark" && colorMode !== "dark") toggleColorMode();
-    if (theme === "System" && typeof window !== "undefined") {
-      const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches;
-      const target = prefersDark ? "dark" : "light";
-      if (colorMode !== target) toggleColorMode();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.theme]);
 
   const persistSetting = async (name: string, value: string) => {
     try {
