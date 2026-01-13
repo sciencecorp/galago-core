@@ -17,6 +17,7 @@ import { secretsRouter } from "./secrets";
 import { integrationsRouter } from "./integrations";
 import { auditRouter } from "./audit";
 import { backupRouter } from "./backup";
+import { hubLibraryRouter } from "./hubLibrary";
 import { appSettingsRouter } from "./appSettings";
 
 export const appRouter = router({
@@ -38,6 +39,7 @@ export const appRouter = router({
   robotArm: robotArmRouter,
   cSharp: csharpRouter,
   form: formRouter,
+  hubLibrary: hubLibraryRouter,
   appSettings: appSettingsRouter,
 });
 

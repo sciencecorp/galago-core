@@ -31,7 +31,6 @@ export const WorkcellComponent = () => {
     trpc.workcell.getSelectedWorkcell.useQuery();
 
   const headerBg = useColorModeValue("white", "gray.700");
-  console.log("Workcells", workcells);
   const {
     fileInputRef,
     handleExportConfig,

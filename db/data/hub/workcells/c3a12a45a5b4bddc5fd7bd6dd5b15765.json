@@ -1,0 +1,767 @@
+{
+  "id": "c3a12a45a5b4bddc5fd7bd6dd5b15765",
+  "type": "workcells",
+  "name": "Tutorial Workcell 118-config",
+  "description": "",
+  "tags": [],
+  "created_at": "2026-01-13T20:36:58.162Z",
+  "updated_at": "2026-01-13T20:36:58.162Z",
+  "payload": {
+    "version": 2,
+    "exportedAt": "2026-01-13T20:36:39.821Z",
+    "workcell": {
+      "name": "Tutorial Workcell 118",
+      "location": "Tutorial",
+      "description": "Auto-created for the in-app walkthrough. Safe to delete."
+    },
+    "tools": [
+      {
+        "type": "pf400",
+        "name": "Tutorial PF400 118",
+        "description": "Auto-created for the in-app walkthrough. Safe to delete.",
+        "imageUrl": "/tool_icons/pf400.png",
+        "ip": "localhost",
+        "port": 40000,
+        "config": {
+          "toolId": "Tutorial PF400 118",
+          "simulated": true,
+          "pf400": {
+            "host": "127.0.0.1",
+            "port": 10000,
+            "joints": 6,
+            "gpl_version": "v2"
+          }
+        },
+        "nests": [
+          {
+            "name": "Tutorial PF400 118_R0C0",
+            "row": 0,
+            "column": 0
+          }
+        ],
+        "robotArm": {
+          "locations": [],
+          "sequences": [],
+          "motionProfiles": [
+            {
+              "name": "Default",
+              "speed": 50,
+              "speed2": 50,
+              "acceleration": 100,
+              "deceleration": 100,
+              "accelRamp": 100,
+              "decelRamp": 100,
+              "inrange": 1,
+              "straight": 0
+            }
+          ],
+          "gripParams": [
+            {
+              "name": "Default",
+              "width": 100,
+              "speed": 50,
+              "force": 50
+            }
+          ]
+        }
+      },
+      {
+        "type": "opentrons2",
+        "name": "Tutorial Opentrons 118",
+        "description": "Auto-created for the in-app walkthrough. Safe to delete.",
+        "imageUrl": "/tool_icons/opentrons2.png",
+        "ip": "localhost",
+        "port": 40001,
+        "config": {
+          "toolId": "Tutorial Opentrons 118",
+          "simulated": true,
+          "opentrons2": {
+            "robot_ip": "127.0.0.1",
+            "robot_port": 31950
+          }
+        },
+        "nests": [
+          {
+            "name": "Tutorial Opentrons 118_R0C0",
+            "row": 0,
+            "column": 0
+          },
+          {
+            "name": "Tutorial Opentrons 118_R0C1",
+            "row": 0,
+            "column": 1
+          },
+          {
+            "name": "Tutorial Opentrons 118_R0C2",
+            "row": 0,
+            "column": 2
+          },
+          {
+            "name": "Tutorial Opentrons 118_R1C0",
+            "row": 1,
+            "column": 0
+          },
+          {
+            "name": "Tutorial Opentrons 118_R1C1",
+            "row": 1,
+            "column": 1
+          },
+          {
+            "name": "Tutorial Opentrons 118_R1C2",
+            "row": 1,
+            "column": 2
+          },
+          {
+            "name": "Tutorial Opentrons 118_R2C0",
+            "row": 2,
+            "column": 0
+          },
+          {
+            "name": "Tutorial Opentrons 118_R2C1",
+            "row": 2,
+            "column": 1
+          },
+          {
+            "name": "Tutorial Opentrons 118_R2C2",
+            "row": 2,
+            "column": 2
+          },
+          {
+            "name": "Tutorial Opentrons 118_R3C0",
+            "row": 3,
+            "column": 0
+          },
+          {
+            "name": "Tutorial Opentrons 118_R3C1",
+            "row": 3,
+            "column": 1
+          },
+          {
+            "name": "Tutorial Opentrons 118_R3C2",
+            "row": 3,
+            "column": 2
+          }
+        ],
+        "robotArm": {
+          "locations": [],
+          "sequences": [],
+          "motionProfiles": [],
+          "gripParams": []
+        }
+      },
+      {
+        "type": "cytation",
+        "name": "Tutorial Cytation 118",
+        "description": "Auto-created for the in-app walkthrough. Safe to delete.",
+        "imageUrl": "/tool_icons/cytation.png",
+        "ip": "localhost",
+        "port": 40002,
+        "config": {
+          "toolId": "Tutorial Cytation 118",
+          "simulated": true,
+          "cytation": {
+            "protocol_dir": "C://protocols",
+            "experiment_dir": "C://experiments",
+            "reader_type": "CYTATION_READER_CYTATION5"
+          }
+        },
+        "nests": [
+          {
+            "name": "Tutorial Cytation 118_R0C0",
+            "row": 0,
+            "column": 0
+          }
+        ],
+        "robotArm": {
+          "locations": [],
+          "sequences": [],
+          "motionProfiles": [],
+          "gripParams": []
+        }
+      },
+      {
+        "type": "liconic",
+        "name": "Tutorial Liconic 118",
+        "description": "Auto-created for the in-app walkthrough. Safe to delete.",
+        "imageUrl": "/tool_icons/liconic.png",
+        "ip": "localhost",
+        "port": 40003,
+        "config": {
+          "toolId": "Tutorial Liconic 118",
+          "simulated": true,
+          "liconic": {
+            "com_port": "SIMULATED"
+          }
+        },
+        "nests": [
+          {
+            "name": "Tutorial Liconic 118_R0C0",
+            "row": 0,
+            "column": 0
+          },
+          {
+            "name": "Tutorial Liconic 118_R0C1",
+            "row": 0,
+            "column": 1
+          },
+          {
+            "name": "Tutorial Liconic 118_R0C2",
+            "row": 0,
+            "column": 2
+          },
+          {
+            "name": "Tutorial Liconic 118_R0C3",
+            "row": 0,
+            "column": 3
+          },
+          {
+            "name": "Tutorial Liconic 118_R0C4",
+            "row": 0,
+            "column": 4
+          },
+          {
+            "name": "Tutorial Liconic 118_R1C0",
+            "row": 1,
+            "column": 0
+          },
+          {
+            "name": "Tutorial Liconic 118_R1C1",
+            "row": 1,
+            "column": 1
+          },
+          {
+            "name": "Tutorial Liconic 118_R1C2",
+            "row": 1,
+            "column": 2
+          },
+          {
+            "name": "Tutorial Liconic 118_R1C3",
+            "row": 1,
+            "column": 3
+          },
+          {
+            "name": "Tutorial Liconic 118_R1C4",
+            "row": 1,
+            "column": 4
+          },
+          {
+            "name": "Tutorial Liconic 118_R2C0",
+            "row": 2,
+            "column": 0
+          },
+          {
+            "name": "Tutorial Liconic 118_R2C1",
+            "row": 2,
+            "column": 1
+          },
+          {
+            "name": "Tutorial Liconic 118_R2C2",
+            "row": 2,
+            "column": 2
+          },
+          {
+            "name": "Tutorial Liconic 118_R2C3",
+            "row": 2,
+            "column": 3
+          },
+          {
+            "name": "Tutorial Liconic 118_R2C4",
+            "row": 2,
+            "column": 4
+          },
+          {
+            "name": "Tutorial Liconic 118_R3C0",
+            "row": 3,
+            "column": 0
+          },
+          {
+            "name": "Tutorial Liconic 118_R3C1",
+            "row": 3,
+            "column": 1
+          },
+          {
+            "name": "Tutorial Liconic 118_R3C2",
+            "row": 3,
+            "column": 2
+          },
+          {
+            "name": "Tutorial Liconic 118_R3C3",
+            "row": 3,
+            "column": 3
+          },
+          {
+            "name": "Tutorial Liconic 118_R3C4",
+            "row": 3,
+            "column": 4
+          },
+          {
+            "name": "Tutorial Liconic 118_R4C0",
+            "row": 4,
+            "column": 0
+          },
+          {
+            "name": "Tutorial Liconic 118_R4C1",
+            "row": 4,
+            "column": 1
+          },
+          {
+            "name": "Tutorial Liconic 118_R4C2",
+            "row": 4,
+            "column": 2
+          },
+          {
+            "name": "Tutorial Liconic 118_R4C3",
+            "row": 4,
+            "column": 3
+          },
+          {
+            "name": "Tutorial Liconic 118_R4C4",
+            "row": 4,
+            "column": 4
+          },
+          {
+            "name": "Tutorial Liconic 118_R5C0",
+            "row": 5,
+            "column": 0
+          },
+          {
+            "name": "Tutorial Liconic 118_R5C1",
+            "row": 5,
+            "column": 1
+          },
+          {
+            "name": "Tutorial Liconic 118_R5C2",
+            "row": 5,
+            "column": 2
+          },
+          {
+            "name": "Tutorial Liconic 118_R5C3",
+            "row": 5,
+            "column": 3
+          },
+          {
+            "name": "Tutorial Liconic 118_R5C4",
+            "row": 5,
+            "column": 4
+          },
+          {
+            "name": "Tutorial Liconic 118_R6C0",
+            "row": 6,
+            "column": 0
+          },
+          {
+            "name": "Tutorial Liconic 118_R6C1",
+            "row": 6,
+            "column": 1
+          },
+          {
+            "name": "Tutorial Liconic 118_R6C2",
+            "row": 6,
+            "column": 2
+          },
+          {
+            "name": "Tutorial Liconic 118_R6C3",
+            "row": 6,
+            "column": 3
+          },
+          {
+            "name": "Tutorial Liconic 118_R6C4",
+            "row": 6,
+            "column": 4
+          },
+          {
+            "name": "Tutorial Liconic 118_R7C0",
+            "row": 7,
+            "column": 0
+          },
+          {
+            "name": "Tutorial Liconic 118_R7C1",
+            "row": 7,
+            "column": 1
+          },
+          {
+            "name": "Tutorial Liconic 118_R7C2",
+            "row": 7,
+            "column": 2
+          },
+          {
+            "name": "Tutorial Liconic 118_R7C3",
+            "row": 7,
+            "column": 3
+          },
+          {
+            "name": "Tutorial Liconic 118_R7C4",
+            "row": 7,
+            "column": 4
+          },
+          {
+            "name": "Tutorial Liconic 118_R8C0",
+            "row": 8,
+            "column": 0
+          },
+          {
+            "name": "Tutorial Liconic 118_R8C1",
+            "row": 8,
+            "column": 1
+          },
+          {
+            "name": "Tutorial Liconic 118_R8C2",
+            "row": 8,
+            "column": 2
+          },
+          {
+            "name": "Tutorial Liconic 118_R8C3",
+            "row": 8,
+            "column": 3
+          },
+          {
+            "name": "Tutorial Liconic 118_R8C4",
+            "row": 8,
+            "column": 4
+          },
+          {
+            "name": "Tutorial Liconic 118_R9C0",
+            "row": 9,
+            "column": 0
+          },
+          {
+            "name": "Tutorial Liconic 118_R9C1",
+            "row": 9,
+            "column": 1
+          },
+          {
+            "name": "Tutorial Liconic 118_R9C2",
+            "row": 9,
+            "column": 2
+          },
+          {
+            "name": "Tutorial Liconic 118_R9C3",
+            "row": 9,
+            "column": 3
+          },
+          {
+            "name": "Tutorial Liconic 118_R9C4",
+            "row": 9,
+            "column": 4
+          }
+        ],
+        "robotArm": {
+          "locations": [],
+          "sequences": [],
+          "motionProfiles": [],
+          "gripParams": []
+        }
+      }
+    ],
+    "hotels": [
+      {
+        "name": "Tutorial Static Hotel 118",
+        "rows": 4,
+        "columns": 6,
+        "nests": [
+          {
+            "name": "H1-1",
+            "row": 1,
+            "column": 1
+          },
+          {
+            "name": "H1-2",
+            "row": 1,
+            "column": 2
+          },
+          {
+            "name": "H1-3",
+            "row": 1,
+            "column": 3
+          },
+          {
+            "name": "H1-4",
+            "row": 1,
+            "column": 4
+          },
+          {
+            "name": "H1-5",
+            "row": 1,
+            "column": 5
+          },
+          {
+            "name": "H1-6",
+            "row": 1,
+            "column": 6
+          },
+          {
+            "name": "H2-1",
+            "row": 2,
+            "column": 1
+          },
+          {
+            "name": "H2-2",
+            "row": 2,
+            "column": 2
+          },
+          {
+            "name": "H2-3",
+            "row": 2,
+            "column": 3
+          },
+          {
+            "name": "H2-4",
+            "row": 2,
+            "column": 4
+          },
+          {
+            "name": "H2-5",
+            "row": 2,
+            "column": 5
+          },
+          {
+            "name": "H2-6",
+            "row": 2,
+            "column": 6
+          },
+          {
+            "name": "H3-1",
+            "row": 3,
+            "column": 1
+          },
+          {
+            "name": "H3-2",
+            "row": 3,
+            "column": 2
+          },
+          {
+            "name": "H3-3",
+            "row": 3,
+            "column": 3
+          },
+          {
+            "name": "H3-4",
+            "row": 3,
+            "column": 4
+          },
+          {
+            "name": "H3-5",
+            "row": 3,
+            "column": 5
+          },
+          {
+            "name": "H3-6",
+            "row": 3,
+            "column": 6
+          },
+          {
+            "name": "H4-1",
+            "row": 4,
+            "column": 1
+          },
+          {
+            "name": "H4-2",
+            "row": 4,
+            "column": 2
+          },
+          {
+            "name": "H4-3",
+            "row": 4,
+            "column": 3
+          },
+          {
+            "name": "H4-4",
+            "row": 4,
+            "column": 4
+          },
+          {
+            "name": "H4-5",
+            "row": 4,
+            "column": 5
+          },
+          {
+            "name": "H4-6",
+            "row": 4,
+            "column": 6
+          }
+        ]
+      }
+    ],
+    "labware": [
+      {
+        "name": "Tutorial 96 Well Plate 118",
+        "description": "Tutorial labware definition (safe to delete).",
+        "numberOfRows": 8,
+        "numberOfColumns": 12,
+        "zOffset": 0,
+        "width": 0,
+        "height": 0,
+        "plateLidOffset": 0,
+        "lidOffset": 0,
+        "stackHeight": 0,
+        "hasLid": false
+      }
+    ],
+    "forms": [
+      {
+        "name": "Tutorial Operator Check-in 118",
+        "fields": [
+          {
+            "type": "label",
+            "label": "Tutorial form: confirm setup before running.",
+            "required": false,
+            "placeholder": null,
+            "options": null,
+            "default_value": null,
+            "mapped_variable": null
+          },
+          {
+            "type": "text",
+            "label": "Operator initials",
+            "required": true,
+            "placeholder": "e.g. MM",
+            "options": null,
+            "default_value": null,
+            "mapped_variable": null
+          },
+          {
+            "type": "checkbox",
+            "label": "Plate sealed",
+            "required": false,
+            "placeholder": null,
+            "options": null,
+            "default_value": null,
+            "mapped_variable": null
+          }
+        ],
+        "backgroundColor": null,
+        "fontColor": null
+      }
+    ],
+    "variables": [
+      {
+        "name": "tutorial_plate_barcode_118",
+        "type": "string",
+        "value": ""
+      },
+      {
+        "name": "tutorial_media_volume_ul_118",
+        "type": "number",
+        "value": ""
+      },
+      {
+        "name": "tutorial_exchange_fraction_118",
+        "type": "number",
+        "value": ""
+      },
+      {
+        "name": "tutorial_liconic_cassette_118",
+        "type": "number",
+        "value": ""
+      },
+      {
+        "name": "tutorial_liconic_level_118",
+        "type": "number",
+        "value": ""
+      },
+      {
+        "name": "tutorial_opentrons_program_118",
+        "type": "string",
+        "value": ""
+      },
+      {
+        "name": "tutorial_cytation_protocol_118",
+        "type": "string",
+        "value": ""
+      },
+      {
+        "name": "run_id",
+        "type": "string",
+        "value": ""
+      },
+      {
+        "name": "mix_cycles",
+        "type": "number",
+        "value": ""
+      },
+      {
+        "name": "enable_logging",
+        "type": "boolean",
+        "value": ""
+      }
+    ],
+    "protocols": [
+      {
+        "name": "Tutorial Create Variables 118",
+        "category": "development",
+        "description": "Tutorial walkthrough protocol that creates demo variables via Tool Box (safe to delete).",
+        "commands": [
+          {
+            "toolId": "Tool Box",
+            "toolType": "toolbox",
+            "command": "show_message",
+            "params": {
+              "title": "Tutorial: Create Variables",
+              "message": "This run will create a small set of demo variables (if they do not exist)."
+            },
+            "label": "Tutorial: overview"
+          },
+          {
+            "toolId": "Tutorial Liconic 118",
+            "toolType": "liconic",
+            "command": "reset",
+            "params": {},
+            "label": "Liconic: reset (demo)"
+          },
+          {
+            "toolId": "Tutorial PF400 118",
+            "toolType": "pf400",
+            "command": "move",
+            "params": {
+              "location": "home",
+              "motion_profile": "Default"
+            },
+            "label": "PF400: move home (demo)"
+          },
+          {
+            "toolId": "Tutorial Cytation 118",
+            "toolType": "cytation",
+            "command": "open_carrier",
+            "params": {},
+            "label": "Cytation: open carrier (demo)"
+          },
+          {
+            "toolId": "Tool Box",
+            "toolType": "toolbox",
+            "command": "run_script",
+            "params": {
+              "name": "create_variables",
+              "blocking": true
+            },
+            "label": "Create variables"
+          },
+          {
+            "toolId": "Tutorial Cytation 118",
+            "toolType": "cytation",
+            "command": "close_carrier",
+            "params": {},
+            "label": "Cytation: close carrier (demo)"
+          },
+          {
+            "toolId": "Tool Box",
+            "toolType": "toolbox",
+            "command": "note",
+            "params": {
+              "message": "Tutorial protocol complete. Check Variables / Runs / Logs for details."
+            },
+            "label": "Finish note"
+          }
+        ]
+      }
+    ],
+    "scriptFolders": [],
+    "scripts": [
+      {
+        "name": "create_variables",
+        "content": "from tools.toolbox.variables import get_variable, update_variable, create_variable\n\nvariables_to_create = [\n    {\n        \"name\":\"counter\",\n        \"value\":\"0\",\n        \"type\":\"number\",\n    },\n    {\n        \"name\":\"confirm_message\",\n        \"value\":\"\",\n        \"type\":\"string\",\n    },\n    {\n        \"name\":\"total_plates\",\n        \"value\":\"0\",\n        \"type\":\"number\",\n    },\n    {\n        \"name\":\"tmp_file\",\n        \"value\":\"\",\n        \"type\":\"string\",\n    },\n    {\n        \"name\":\"current_barcode\",\n        \"value\":\"\",\n        \"type\":\"string\",\n    },\n    {\n        \"name\":\"all_barcodes\",\n        \"value\":\"\",\n        \"type\":\"string\",\n    },\n    {\n        \"name\":\"plate_type\",\n        \"value\":\"\",\n        \"type\":\"string\",\n    },\n    {\n        \"name\":\"media_lot\",\n        \"value\":\"\",\n        \"type\":\"string\",\n    },\n    {\n        \"name\":\"media_type\",\n        \"value\":\"\",\n        \"type\":\"string\",\n    },\n    {\n        \"name\":\"label_date\",\n        \"value\":\"\",\n        \"type\":\"string\",\n    },\n    {\n        \"name\":\"seal_plate\",\n        \"value\":\"False\",\n        \"type\":\"boolean\",\n    },\n    {\n        \"name\":\"fill_plate\",\n        \"value\":\"False\",\n        \"type\":\"boolean\",\n    },\n    {\n        \"name\":\"dispense_volume\",\n        \"value\":\"100\",\n        \"type\":\"number\",\n    },\n    {\n        \"name\":\"current_source_stack\",\n        \"value\":\"1\",\n        \"type\":\"number\"\n    },\n    {\n        \"name\":\"current_dest_stack\",\n        \"value\":\"14\",\n        \"type\":\"number\"\n    },\n    {\n        \"name\":\"plate_height\",\n        \"value\":\"14\",\n        \"type\":\"number\"\n    },\n    {\n        \"name\":\"stack_height\",\n        \"value\":\"14\",\n        \"type\":\"number\"\n    },\n    {\n        \"name\":\"stack_thickness\",\n        \"value\":\"14\",\n        \"type\":\"number\"\n    }\n]\n\nfor var in variables_to_create:\n    exists = get_variable(var[\"name\"])\n    if not exists:\n        print(f\"Variable {var['name']} does not exist. Will create it\")\n        create_variable(var)",
+        "language": "python",
+        "folderName": null
+      }
+    ]
+  }
+}

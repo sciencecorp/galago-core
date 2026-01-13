@@ -582,13 +582,16 @@ export const workcellRouter = router({
       // Create tools and their robot arm data
       if (input.tools && input.tools.length > 0) {
         for (const tool of input.tools) {
+          const fallbackImageUrl =
+            tool.imageUrl ??
+            (tool.type ? `/tool_icons/${String(tool.type).toLowerCase()}.png` : null);
           const [newTool] = await db
             .insert(tools)
             .values({
               type: tool.type,
               name: tool.name,
               description: tool.description,
-              imageUrl: tool.imageUrl,
+              imageUrl: fallbackImageUrl,
               ip: tool.ip,
               port: tool.port,
               config: tool.config,

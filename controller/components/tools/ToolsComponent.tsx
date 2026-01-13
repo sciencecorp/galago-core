@@ -67,7 +67,7 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (_props)
       if (allTools) {
         // Create a separate configuration instance for each tool to properly handle errors
         const configureToolWithErrorHandling = async (tool: (typeof allTools)[0]) => {
-          // Skip tool_box and tools without configs
+          // Skip Tool Box and tools without configs
           if (tool.name === "Tool Box" || !tool.config) {
             return { status: "skipped", toolId: tool.name };
           }
