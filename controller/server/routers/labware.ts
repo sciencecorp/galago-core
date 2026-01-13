@@ -3,7 +3,7 @@ import { procedure, router } from "@/server/trpc";
 import { db } from "@/db/client";
 import { findOne, findMany, getSelectedWorkcellId } from "@/db/helpers";
 import { labware, tools, logs } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import Tool from "../tools";
 
@@ -186,10 +186,81 @@ export const labwareRouter = router({
     return allLabware;
   }),
 
-  importConfig: procedure.input(z.object({ file: z.any() })).mutation(async ({ input: _input }) => {
+  importConfig: procedure
+    .input(
+      z
+        .union([
+          // Exported labware object (may include id/workcellId/timestamps/etc)
+          zLabware.passthrough(),
+          // Exported array of labware objects
+          z.array(zLabware.passthrough()),
+          // Wrapper formats (e.g. { labware: [...] })
+          z.object({ labware: z.array(zLabware.passthrough()) }).passthrough(),
+        ])
+        .transform((v) => {
+          if (Array.isArray(v)) return v;
+          if (v && typeof v === "object" && "labware" in v && Array.isArray((v as any).labware)) {
+            return (v as any).labware as any[];
+          }
+          return [v as any];
+        }),
+    )
+    .mutation(async ({ input }) => {
+      const workcellId = await getSelectedWorkcellId();
+
+      const results: any[] = [];
+
+      for (const raw of input) {
+        // Re-parse each item to ensure we have defaults applied.
+        const parsed = zLabware.parse(raw);
+        const { id: _id, workcellId: _wc, ...data } = parsed;
+
+        const existing = await findOne(
+          labware,
+          and(eq(labware.name, data.name), eq(labware.workcellId, workcellId))!,
+        );
+
+        if (existing?.id) {
+          const updated = await db
+            .update(labware)
+            .set({
+              ...data,
+              workcellId,
+              updatedAt: new Date().toISOString(),
+            })
+            .where(eq(labware.id, existing.id))
+            .returning();
+          results.push(updated[0]);
+        } else {
+          try {
+            const created = await db
+              .insert(labware)
+              .values({
+                ...data,
+                workcellId,
+              })
+              .returning();
+            results.push(created[0]);
+          } catch (error: any) {
+            if (error.message?.includes("UNIQUE constraint failed")) {
     throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Import functionality to be implemented",
-    });
+                code: "CONFLICT",
+                message: `Labware with name '${data.name}' already exists in this workcell`,
+              });
+            }
+            throw error;
+          }
+        }
+      }
+
+      await db.insert(logs).values({
+        level: "info",
+        action: "Labware Imported",
+        details: `Imported ${results.length} labware item(s).`,
+      });
+
+      await reloadLabwareInPF400Tools();
+
+      return results.length === 1 ? results[0] : { imported: results };
   }),
 });

@@ -44,7 +44,6 @@ import { SaveIcon } from "@/components/ui/Icons";
 import { CommandDetailsDrawer } from "./CommandDetailsDrawer";
 import CommandImage from "@/components/tools/CommandImage";
 import { successToast, errorToast } from "../ui/Toast";
-import { downloadFile } from "@/server/utils/api";
 
 const handleWheel = (e: WheelEvent) => {
   const container = e.currentTarget as HTMLElement;
@@ -151,6 +150,7 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
   const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
   const arrowColor = useColorModeValue("gray.500", "gray.400");
   const { data: protocol, isLoading, error, refetch } = trpc.protocol.get.useQuery(id);
+  const protocolExportQuery = trpc.protocol.export.useQuery(id, { enabled: false });
 
   const [commandToDeleteIndex, setCommandToDeleteIndex] = useState<any | null>(null);
   const {
@@ -283,9 +283,20 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
         throw new Error("Protocol not found");
       }
 
-      // Use the downloadFile utility
+      const res = await protocolExportQuery.refetch();
+      const exported = res.data;
+      if (!exported) throw new Error("Export failed (no data returned)");
+
       const filename = `${protocol.name.replace(/\s+/g, "_")}-protocol.json`;
-      await downloadFile(`api/protocols/${id}/export`, filename);
+      const blob = new Blob([JSON.stringify(exported, null, 2)], { type: "application/json" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
 
       successToast("Protocol Exported", `${protocol.name} has been exported successfully`);
     } catch (error: any) {

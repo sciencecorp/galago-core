@@ -23,25 +23,61 @@ import {
   useDisclosure,
   VStack,
 } from "@chakra-ui/react";
-import { Search, UploadCloud, LibraryBig } from "lucide-react";
+import { Search, LibraryBig } from "lucide-react";
 import { trpc } from "@/utils/trpc";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { errorToast, successToast, warningToast } from "@/components/ui/Toast";
-import { HubUploadModal } from "./HubUploadModal";
 import { HubItemDetailModal } from "./HubItemDetailModal";
 import type { HubItem, HubItemSummary, HubItemType } from "./hubTypes";
-import {
-  HUB_TYPES,
-  formatHubTimestamp,
-  hubItemToJsonFile,
-  itemTypeLabel,
-  normalizeTags,
-} from "./hubUtils";
-import { uploadFile, downloadFile } from "@/server/utils/api";
+import { HUB_TYPES, formatHubTimestamp, hubItemToJsonFile, itemTypeLabel, normalizeTags } from "./hubUtils";
+// Hub runs fully via tRPC + local storage; downloads are done client-side from payload.
 
 function isRecord(v: any): v is Record<string, any> {
   return !!v && typeof v === "object" && !Array.isArray(v);
+}
+
+function unwrapHubPayload<T = any>(payload: any): T {
+  // Some users may upload a "hub item JSON" that itself wraps the real payload under `payload`.
+  // Prefer unwrapping once when it looks like a hub item envelope.
+  if (
+    isRecord(payload) &&
+    "payload" in payload &&
+    isRecord((payload as any).payload) &&
+    // heuristics: hub envelope usually has some of these
+    ("id" in payload || "type" in payload || "created_at" in payload || "updated_at" in payload)
+  ) {
+    return (payload as any).payload as T;
+  }
+  return payload as T;
+}
+
+function normalizeWorkcellImportPayload(raw: any): any {
+  const p = unwrapHubPayload<any>(raw);
+  if (isRecord(p) && isRecord((p as any).workcell)) return p;
+
+  // Accept a flat-ish workcell payload and wrap it
+  if (isRecord(p) && typeof (p as any).name === "string") {
+    return {
+      version: (p as any).version,
+      exportedAt: (p as any).exportedAt,
+      workcell: {
+        name: (p as any).name,
+        location: (p as any).location ?? null,
+        description: (p as any).description ?? null,
+      },
+      tools: (p as any).tools,
+      hotels: (p as any).hotels,
+      labware: (p as any).labware,
+      forms: (p as any).forms,
+      variables: (p as any).variables,
+      protocols: (p as any).protocols,
+      scriptFolders: (p as any).scriptFolders,
+      scripts: (p as any).scripts,
+    };
+  }
+
+  return p;
 }
 
 export function HubComponent(): JSX.Element {
@@ -49,63 +85,42 @@ export function HubComponent(): JSX.Element {
   const subtleBg = useColorModeValue("gray.50", "gray.800");
   const border = useColorModeValue("gray.200", "gray.700");
 
-  const [source, setSource] = useState<"hub" | "library">("hub");
   const [selectedType, setSelectedType] = useState<HubItemType | "all">("all");
   const [q, setQ] = useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  const uploadModal = useDisclosure();
   const detailModal = useDisclosure();
-
-  const hubListQuery = trpc.hub.list.useQuery(
-    {
-      type: selectedType === "all" ? undefined : selectedType,
-      q: q.trim() ? q.trim() : undefined,
-    },
-    { enabled: source === "hub" },
-  );
 
   const libraryListQuery = trpc.hubLibrary.list.useQuery(
     {
       type: selectedType === "all" ? undefined : selectedType,
       q: q.trim() ? q.trim() : undefined,
     },
-    { enabled: source === "library" },
-  );
-
-  const listQuery = source === "hub" ? hubListQuery : libraryListQuery;
-
-  const activeHubItemQuery = trpc.hub.get.useQuery(
-    { id: activeId || "", type: selectedType === "all" ? undefined : selectedType },
-    { enabled: !!activeId && source === "hub" },
   );
 
   const activeLibraryItemQuery = trpc.hubLibrary.get.useQuery(
     { id: activeId || "" },
-    { enabled: !!activeId && source === "library" },
+    { enabled: !!activeId },
   );
-
-  const hubDelete = trpc.hub.delete.useMutation();
-  const [isUploadingToHub, setIsUploadingToHub] = useState(false);
 
   const workcellGetSelected = trpc.workcell.getSelectedWorkcell.useQuery();
   const workcellGet = trpc.workcell.get.useMutation();
   const workcellSetSelected = trpc.workcell.setSelectedWorkcell.useMutation();
   const toolClearStore = trpc.tool.clearToolStore.useMutation();
 
-  const variableGetAll = trpc.variable.getAll.useQuery();
+  const variableGetAll = trpc.variable.getAll.useQuery(undefined, { enabled: false });
   const variableAdd = trpc.variable.add.useMutation();
   const variableEdit = trpc.variable.edit.useMutation();
 
   const scriptAdd = trpc.script.add.useMutation();
+  const workcellImport = trpc.workcell.importConfig.useMutation();
+  const labwareImport = trpc.labware.importConfig.useMutation();
+  const formImport = trpc.form.importConfig.useMutation();
+  const protocolImport = trpc.protocol.import.useMutation();
 
   const items = useMemo(
-    () =>
-      ((listQuery.data ?? []) as HubItemSummary[]).map((i) => ({
-        ...i,
-        source: i.source || (source === "hub" ? "hub" : "library"),
-      })),
-    [listQuery.data, source],
+    () => (libraryListQuery.data ?? []) as HubItemSummary[],
+    [libraryListQuery.data],
   );
 
   const stats = useMemo(() => {
@@ -120,55 +135,10 @@ export function HubComponent(): JSX.Element {
     detailModal.onOpen();
   };
 
-  useEffect(() => {
-    // Switching sources should reset the active detail state to avoid mixing fetches.
-    detailModal.onClose();
-    setActiveId(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [source]);
-
-  const handleUpload = async (args: {
-    file: File;
-    type: HubItemType;
-    name?: string;
-    description?: string;
-    tagsCsv?: string;
-  }) => {
-    try {
-      // IMPORTANT: do not send File through tRPC (it is JSON-serialized and will break).
-      // Upload directly to FastAPI as multipart/form-data.
-      setIsUploadingToHub(true);
-      await uploadFile(`/hub/items/upload`, args.file, {
-        item_type: args.type,
-        name: args.name ?? "",
-        description: args.description ?? "",
-        tags: args.tagsCsv ?? "",
-      });
-      successToast("Uploaded to Hub", "Your item is now available to load.");
-      await listQuery.refetch();
-    } catch (e: any) {
-      errorToast("Upload failed", e?.message || String(e));
-    } finally {
-      setIsUploadingToHub(false);
-    }
-  };
-
-  const handleDelete = async (item: HubItem) => {
-    try {
-      if (item.source === "library") return;
-      await hubDelete.mutateAsync({ id: item.id, type: item.type });
-      successToast("Deleted", "Hub item removed.");
-      detailModal.onClose();
-      setActiveId(null);
-      await listQuery.refetch();
-    } catch (e: any) {
-      errorToast("Delete failed", e?.message || String(e));
-    }
-  };
-
   const handleDownload = async (item: HubItem) => {
     try {
-      if (item.source === "library") {
+      // Download directly from the in-memory payload (works for both library + hub).
+      if (item.source === "library" || item.source === "hub") {
         const f = hubItemToJsonFile(item);
         const blobUrl = window.URL.createObjectURL(f);
         const link = document.createElement("a");
@@ -181,11 +151,6 @@ export function HubComponent(): JSX.Element {
         successToast("Download started", "Your browser should begin downloading the JSON file.");
         return;
       }
-      await downloadFile(
-        `/hub/items/${item.id}/download?item_type=${encodeURIComponent(item.type)}`,
-        `${item.name.replace(/\s+/g, "_") || item.id}.json`,
-      );
-      successToast("Download started", "Your browser should begin downloading the JSON file.");
     } catch (e: any) {
       errorToast("Download failed", e?.message || String(e));
     }
@@ -199,24 +164,33 @@ export function HubComponent(): JSX.Element {
   };
 
   const loadWorkcell = async (item: HubItem) => {
-    const f = hubItemToJsonFile(item);
-    await uploadFile("/workcells/import", f);
+    const payload = normalizeWorkcellImportPayload(item.payload);
+    await workcellImport.mutateAsync(payload);
     // Best-effort: select the imported workcell (prefer payload.name)
+    const unwrapped = unwrapHubPayload<any>(item.payload);
     const importedName =
-      (isRecord(item.payload) && typeof item.payload.name === "string" && item.payload.name) ||
+      (isRecord(unwrapped) &&
+        isRecord((unwrapped as any).workcell) &&
+        typeof (unwrapped as any).workcell.name === "string" &&
+        (unwrapped as any).workcell.name) ||
+      (isRecord(unwrapped) && typeof (unwrapped as any).name === "string" && (unwrapped as any).name) ||
       item.name;
     await workcellSetSelected.mutateAsync(importedName);
     await toolClearStore.mutateAsync();
   };
 
   const loadLabware = async (item: HubItem) => {
-    const f = hubItemToJsonFile(item);
-    await uploadFile("/labware/import", f);
+    await labwareImport.mutateAsync(unwrapHubPayload(item.payload) as any);
   };
 
   const loadForm = async (item: HubItem) => {
-    const f = hubItemToJsonFile(item);
-    await uploadFile("/forms/import", f);
+    // Accept either raw form or wrapper { form: ... } / { forms: [...] }
+    const p = unwrapHubPayload<any>(item.payload);
+    const formPayload =
+      (isRecord(p) && isRecord((p as any).form) && (p as any).form) ||
+      (isRecord(p) && Array.isArray((p as any).forms) && (p as any).forms?.[0]) ||
+      p;
+    await formImport.mutateAsync(formPayload);
   };
 
   const loadProtocol = async (item: HubItem) => {
@@ -224,12 +198,13 @@ export function HubComponent(): JSX.Element {
     if (!wcId) {
       throw new Error("No workcell selected. Select a workcell first, then load this protocol.");
     }
-    const f = hubItemToJsonFile(item);
-    await uploadFile("/protocols/import", f, { workcell_id: wcId });
+    const p = unwrapHubPayload<any>(item.payload);
+    const protocolPayload = (isRecord(p) && isRecord((p as any).protocol) ? (p as any).protocol : p) as any;
+    await protocolImport.mutateAsync({ workcellId: wcId, protocol: protocolPayload });
   };
 
   const loadVariables = async (item: HubItem) => {
-    const vars = item.payload;
+    const vars = unwrapHubPayload<any>(item.payload);
     const incoming: any[] = Array.isArray(vars)
       ? vars
       : isRecord(vars) && Array.isArray(vars.variables)
@@ -242,7 +217,8 @@ export function HubComponent(): JSX.Element {
       throw new Error("No variables found in payload.");
     }
 
-    const existing = variableGetAll.data || [];
+    const existingRes = await variableGetAll.refetch();
+    const existing = existingRes.data || [];
     for (const v of incoming) {
       if (!isRecord(v) || typeof v.name !== "string") continue;
       const name = v.name;
@@ -266,7 +242,7 @@ export function HubComponent(): JSX.Element {
   };
 
   const loadScripts = async (item: HubItem) => {
-    const payload = item.payload;
+    const payload = unwrapHubPayload<any>(item.payload);
     const incoming: any[] = Array.isArray(payload)
       ? payload
       : isRecord(payload) && Array.isArray(payload.scripts)
@@ -323,19 +299,19 @@ export function HubComponent(): JSX.Element {
   };
 
   const isBusy =
-    listQuery.isLoading ||
-    hubDelete.isLoading ||
-    isUploadingToHub ||
-    activeHubItemQuery.isFetching ||
+    libraryListQuery.isLoading ||
     activeLibraryItemQuery.isFetching ||
+    workcellImport.isLoading ||
+    labwareImport.isLoading ||
+    formImport.isLoading ||
+    protocolImport.isLoading ||
     workcellSetSelected.isLoading ||
     toolClearStore.isLoading ||
     variableAdd.isLoading ||
     variableEdit.isLoading ||
     scriptAdd.isLoading;
 
-  const activeItem = ((source === "hub" ? activeHubItemQuery.data : activeLibraryItemQuery.data) ||
-    null) as HubItem | null;
+  const activeItem = (activeLibraryItemQuery.data || null) as HubItem | null;
 
   return (
     <VStack spacing={4} align="stretch" minH="100vh" pb={10}>
@@ -344,19 +320,8 @@ export function HubComponent(): JSX.Element {
           <VStack spacing={4} align="stretch">
             <PageHeader
               title="Galago Hub"
-              subTitle="Save, browse, and load workcells, protocols, variables, scripts, labware, forms, and more."
+              subTitle="Browse and load workcells, protocols, variables, scripts, labware, forms, and more."
               titleIcon={<Icon as={LibraryBig} boxSize={8} color="teal.500" />}
-              mainButton={
-                source === "hub" ? (
-                  <Button
-                    size="sm"
-                    colorScheme="teal"
-                    leftIcon={<UploadCloud size={18} />}
-                    onClick={uploadModal.onOpen}>
-                    Upload JSON
-                  </Button>
-                ) : null
-              }
             />
             <Divider />
             <StatGroup>
@@ -385,20 +350,9 @@ export function HubComponent(): JSX.Element {
         <CardBody>
           <Flex gap={3} wrap="wrap" align="center">
             <HStack spacing={2} wrap="wrap">
-              <Button
-                size="sm"
-                variant={source === "hub" ? "solid" : "outline"}
-                colorScheme="teal"
-                onClick={() => setSource("hub")}>
-                My Hub
-              </Button>
-              <Button
-                size="sm"
-                variant={source === "library" ? "solid" : "outline"}
-                colorScheme="teal"
-                onClick={() => setSource("library")}>
+              <Badge colorScheme="teal" variant="subtle">
                 Library
-              </Button>
+              </Badge>
               <Box w={2} />
               <Button
                 size="sm"
@@ -428,14 +382,14 @@ export function HubComponent(): JSX.Element {
         </CardBody>
       </Card>
 
-      {listQuery.isLoading ? (
+      {libraryListQuery.isLoading ? (
         <Box border="1px" borderColor={border} borderRadius="md" p={6} bg={subtleBg}>
           <Text color="gray.500">Loading Hub items…</Text>
         </Box>
       ) : items.length === 0 ? (
         <EmptyState
-          title="No Hub items yet"
-          description="Upload JSON exports from Workcells, Protocols, Labware, Forms, or bring your own configs to load later."
+          title="No library items found"
+          description="No matching Hub library items were found for your current filters."
           size="220px"
         />
       ) : (
@@ -490,13 +444,6 @@ export function HubComponent(): JSX.Element {
         </SimpleGrid>
       )}
 
-      <HubUploadModal
-        isOpen={uploadModal.isOpen}
-        onClose={uploadModal.onClose}
-        onUpload={handleUpload}
-        isUploading={isUploadingToHub}
-      />
-
       <HubItemDetailModal
         isOpen={detailModal.isOpen}
         onClose={() => {
@@ -504,10 +451,10 @@ export function HubComponent(): JSX.Element {
           setActiveId(null);
         }}
         item={activeItem}
-        onDelete={handleDelete}
+        onDelete={async () => {}}
         onDownload={handleDownload}
         onLoad={handleLoad}
-        canDelete={activeItem?.source !== "library"}
+        canDelete={false}
         isLoading={isBusy}
       />
     </VStack>

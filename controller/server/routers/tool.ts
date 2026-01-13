@@ -47,7 +47,12 @@ async function getToolFromDB(toolId: string) {
   const workcellId = await getSelectedWorkcellId();
 
   const allTools = await findMany(tools, eq(tools.workcellId, workcellId));
-  const tool = allTools.find((t) => t.name.toLowerCase() === toolId.toLowerCase());
+
+  const normalize = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const needle = normalize(toolId);
+
+  // Match by normalized name to handle ids like "tool_box" vs "Tool Box" and tutorial ids with underscores.
+  const tool = allTools.find((t) => normalize(String(t.name || "")) === needle);
 
   if (!tool) {
     throw new TRPCError({
@@ -391,7 +396,8 @@ export const toolRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      if (input.toolId === "Tool Box") {
+      const normalize = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (normalize(input.toolId) === normalize("Tool Box")) {
         const toolbox = Tool.toolBoxConfig();
         const tool = Tool.forId("Tool Box", toolbox.ip, toolbox.port, toolbox.type as ToolType);
         return await tool.fetchStatus();
@@ -418,7 +424,8 @@ export const toolRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      if (input.toolId === "Tool Box") {
+      const normalize = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (normalize(input.toolId) === normalize("Tool Box")) {
         const toolbox = Tool.toolBoxConfig();
         return {
           id: -1,

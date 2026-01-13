@@ -34,6 +34,24 @@ function getGlobalStore(): Map<string, Tool> {
   return me[global_key];
 }
 
+function normalizeToolKey(id: string): string {
+  return (id || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function getToolFromStore(store: Map<string, Tool>, toolId: string): Tool | undefined {
+  if (!toolId) return undefined;
+
+  const direct = store.get(toolId);
+  if (direct) return direct;
+
+  const needle = normalizeToolKey(toolId);
+  for (const [k, v] of store.entries()) {
+    if (normalizeToolKey(k) === needle) return v;
+  }
+
+  return undefined;
+}
+
 export default class Tool {
   grpc: ToolDriverClient;
   status: ToolStatus = ToolStatus.UNKNOWN_STATUS;
@@ -183,7 +201,7 @@ export default class Tool {
 
       // Get tool from store to execute command
       const store = getGlobalStore();
-      const tool = store.get(toolId);
+      const tool = getToolFromStore(store, toolId);
 
       if (!tool) {
         throw new Error(`Tool ${toolId} not found in store. Must be configured first.`);
@@ -244,7 +262,7 @@ export default class Tool {
 
       // Need to get tool from store to execute command
       const store = getGlobalStore();
-      const tool = store.get(toolId);
+      const tool = getToolFromStore(store, toolId);
 
       if (!tool) {
         throw new Error(`Tool ${toolId} not found in store. Must be configured first.`);
@@ -319,7 +337,7 @@ export default class Tool {
     });
 
     const store = getGlobalStore();
-    const tool = store.get(command.toolId);
+    const tool = getToolFromStore(store, command.toolId);
 
     if (!tool) {
       throw new Error(`Tool ${command.toolId} not found in store. Must be configured first.`);
@@ -605,6 +623,9 @@ export default class Tool {
   static forId(toolId: string, ip: string, port: number, type: ToolType): Tool {
     const store = getGlobalStore();
     let tool = store.get(toolId);
+    if (!tool) {
+      tool = getToolFromStore(store, toolId);
+    }
     if (!tool) {
       tool = new Tool(toolId, ip, port, type);
       tool.startHeartbeat(5000);

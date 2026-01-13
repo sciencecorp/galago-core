@@ -23,7 +23,7 @@ import {
   VStack,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { Download, Play, Trash2 } from "lucide-react";
+import { Download, Plus, Trash2 } from "lucide-react";
 import type { HubItem } from "./hubTypes";
 import { formatHubTimestamp } from "./hubUtils";
 import { HubItemMapTab } from "./HubItemMapTab";
@@ -160,12 +160,12 @@ export function HubItemDetailModal({
               Download
             </Button>
             <Button
-              leftIcon={<Play size={16} />}
+              leftIcon={<Plus size={16} />}
               colorScheme="teal"
               isDisabled={!item}
               isLoading={!!isLoading}
               onClick={() => item && onLoad(item)}>
-              Load into setup
+              Add to Galago
             </Button>
           </HStack>
         </ModalFooter>
