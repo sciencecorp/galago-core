@@ -259,7 +259,13 @@ export const robotArmRouter = router({
     }),
 
     delete: procedure
-      .input(z.object({ id: z.number(), toolId: z.number().optional(), reloadWaypoints: z.boolean().optional() }))
+      .input(
+        z.object({
+          id: z.number(),
+          toolId: z.number().optional(),
+          reloadWaypoints: z.boolean().optional(),
+        }),
+      )
       .mutation(async ({ input }) => {
         const location = await findOne(robotArmLocations, eq(robotArmLocations.id, input.id));
 
@@ -378,7 +384,13 @@ export const robotArmRouter = router({
     }),
 
     delete: procedure
-      .input(z.object({ id: z.number(), toolId: z.number().optional(), reloadWaypoints: z.boolean().optional() }))
+      .input(
+        z.object({
+          id: z.number(),
+          toolId: z.number().optional(),
+          reloadWaypoints: z.boolean().optional(),
+        }),
+      )
       .mutation(async ({ input }) => {
         const sequence = await findOne(robotArmSequences, eq(robotArmSequences.id, input.id));
 
@@ -500,7 +512,13 @@ export const robotArmRouter = router({
     }),
 
     delete: procedure
-      .input(z.object({ id: z.number(), toolId: z.number().optional(), reloadWaypoints: z.boolean().optional() }))
+      .input(
+        z.object({
+          id: z.number(),
+          toolId: z.number().optional(),
+          reloadWaypoints: z.boolean().optional(),
+        }),
+      )
       .mutation(async ({ input }) => {
         const profile = await findOne(
           robotArmMotionProfiles,
@@ -622,7 +640,13 @@ export const robotArmRouter = router({
     }),
 
     delete: procedure
-      .input(z.object({ id: z.number(), toolId: z.number().optional(), reloadWaypoints: z.boolean().optional() }))
+      .input(
+        z.object({
+          id: z.number(),
+          toolId: z.number().optional(),
+          reloadWaypoints: z.boolean().optional(),
+        }),
+      )
       .mutation(async ({ input }) => {
         const params = await findOne(robotArmGripParams, eq(robotArmGripParams.id, input.id));
 

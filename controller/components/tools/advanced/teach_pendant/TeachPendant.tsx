@@ -692,7 +692,11 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       }
                     }}
                     onDelete={async (id: number) => {
-                      await deleteMotionProfileMutation.mutateAsync({ id, toolId: tool.id, reloadWaypoints: true });
+                      await deleteMotionProfileMutation.mutateAsync({
+                        id,
+                        toolId: tool.id,
+                        reloadWaypoints: true,
+                      });
                       motionProfilesQuery.refetch();
                     }}
                     onDeleteAll={() => showDeleteConfirm("motionProfiles")}
@@ -714,7 +718,11 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       gripParamsModal.onOpen();
                     }}
                     onDelete={async (id) => {
-                      await deleteGripParamsMutation.mutateAsync({ id, toolId: tool.id, reloadWaypoints: true });
+                      await deleteGripParamsMutation.mutateAsync({
+                        id,
+                        toolId: tool.id,
+                        reloadWaypoints: true,
+                      });
                       gripParamsQuery.refetch();
                     }}
                     onDeleteAll={() => showDeleteConfirm("gripParams")}
