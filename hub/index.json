@@ -1,0 +1,14 @@
+{
+  "version": "1.0.0",
+  "updated_at": "2024-01-15T10:00:00Z",
+  "items": [
+    {
+      "id": "variables/example",
+      "type": "variables",
+      "name": "Example Variables",
+      "description": "A small starter set of variables for testing the Hub flow.",
+      "tags": ["example", "starter"],
+      "updated_at": "2024-01-15T10:00:00Z"
+    }
+  ]
+}

@@ -97,12 +97,12 @@ export function HubComponent(): JSX.Element {
 
   const detailModal = useDisclosure();
 
-  const libraryListQuery = trpc.hubLibrary.list.useQuery({
+  const libraryListQuery = trpc.githubHub.list.useQuery({
     type: selectedType === "all" ? undefined : selectedType,
     q: q.trim() ? q.trim() : undefined,
   });
 
-  const activeLibraryItemQuery = trpc.hubLibrary.get.useQuery(
+  const activeLibraryItemQuery = trpc.githubHub.get.useQuery(
     { id: activeId || "" },
     { enabled: !!activeId },
   );

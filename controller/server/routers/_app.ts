@@ -13,6 +13,7 @@ import { robotArmRouter } from "./robot-arm";
 import { csharpRouter } from "./cSharpRouter";
 import { formRouter } from "./form";
 import { hubLibraryRouter } from "./hubLibrary";
+import { githubHubRouter } from "./githubHub";
 import { appSettingsRouter } from "./appSettings";
 
 export const appRouter = router({
@@ -30,6 +31,7 @@ export const appRouter = router({
   cSharp: csharpRouter,
   form: formRouter,
   hubLibrary: hubLibraryRouter,
+  githubHub: githubHubRouter,
   appSettings: appSettingsRouter,
 });
 
