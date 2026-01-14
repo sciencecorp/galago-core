@@ -25,12 +25,15 @@ const zRobotArmLocationBase = z.object({
   toolId: z.number().nullable().optional(),
 });
 
-export const zRobotArmLocationCreate = zRobotArmLocationBase;
+export const zRobotArmLocationCreate = zRobotArmLocationBase.extend({
+  reloadWaypoints: z.boolean().optional(),
+});
 
 export const zRobotArmLocationUpdate = zRobotArmLocationBase
   .partial()
   .extend({
     id: z.number(),
+    reloadWaypoints: z.boolean().optional(),
   })
   .required({ id: true });
 
@@ -49,12 +52,15 @@ const zRobotArmSequenceBase = z.object({
   labware: z.string().nullable().optional(),
 });
 
-export const zRobotArmSequenceCreate = zRobotArmSequenceBase;
+export const zRobotArmSequenceCreate = zRobotArmSequenceBase.extend({
+  reloadWaypoints: z.boolean().optional(),
+});
 
 export const zRobotArmSequenceUpdate = zRobotArmSequenceBase
   .partial()
   .extend({
     id: z.number(),
+    reloadWaypoints: z.boolean().optional(),
   })
   .required({ id: true });
 
@@ -72,12 +78,15 @@ const zRobotArmMotionProfileBase = z.object({
   toolId: z.number().nullable().optional(),
 });
 
-export const zRobotArmMotionProfileCreate = zRobotArmMotionProfileBase;
+export const zRobotArmMotionProfileCreate = zRobotArmMotionProfileBase.extend({
+  reloadWaypoints: z.boolean().optional(),
+});
 
 export const zRobotArmMotionProfileUpdate = zRobotArmMotionProfileBase
   .partial()
   .extend({
     id: z.number(),
+    reloadWaypoints: z.boolean().optional(),
   })
   .required({ id: true });
 
@@ -90,12 +99,15 @@ const zRobotArmGripParamsBase = z.object({
   toolId: z.number().nullable().optional(),
 });
 
-export const zRobotArmGripParamsCreate = zRobotArmGripParamsBase;
+export const zRobotArmGripParamsCreate = zRobotArmGripParamsBase.extend({
+  reloadWaypoints: z.boolean().optional(),
+});
 
 export const zRobotArmGripParamsUpdate = zRobotArmGripParamsBase
   .partial()
   .extend({
     id: z.number(),
+    reloadWaypoints: z.boolean().optional(),
   })
   .required({ id: true });
 
@@ -174,8 +186,10 @@ export const robotArmRouter = router({
           details: `Location ${input.name} created successfully.`,
         });
 
-        // Reload waypoints for the tool (non-blocking, won't fail the request)
-        await safeReloadWaypoints(input.toolId);
+        // Reload waypoints for the tool only if explicitly requested (non-blocking, won't fail the request)
+        if (input.reloadWaypoints) {
+          await safeReloadWaypoints(input.toolId);
+        }
 
         return result[0];
       } catch (error: any) {
@@ -224,8 +238,10 @@ export const robotArmRouter = router({
           details: `Location ${input.name || existing.name} updated successfully.`,
         });
 
-        // Reload waypoints for the tool (non-blocking, won't fail the request)
-        await safeReloadWaypoints(existing.toolId);
+        // Reload waypoints for the tool only if explicitly requested (non-blocking, won't fail the request)
+        if (input.reloadWaypoints) {
+          await safeReloadWaypoints(existing.toolId);
+        }
 
         return updated[0];
       } catch (error: any) {
@@ -243,7 +259,7 @@ export const robotArmRouter = router({
     }),
 
     delete: procedure
-      .input(z.object({ id: z.number(), toolId: z.number().optional() }))
+      .input(z.object({ id: z.number(), toolId: z.number().optional(), reloadWaypoints: z.boolean().optional() }))
       .mutation(async ({ input }) => {
         const location = await findOne(robotArmLocations, eq(robotArmLocations.id, input.id));
 
@@ -262,9 +278,11 @@ export const robotArmRouter = router({
           details: `Location deleted successfully.`,
         });
 
-        // Reload waypoints for the tool (non-blocking, won't fail the request)
-        const toolId = input.toolId || location.toolId;
-        await safeReloadWaypoints(toolId);
+        // Reload waypoints for the tool only if explicitly requested (non-blocking, won't fail the request)
+        if (input.reloadWaypoints) {
+          const toolId = input.toolId || location.toolId;
+          await safeReloadWaypoints(toolId);
+        }
 
         return { message: "Location deleted successfully" };
       }),
@@ -299,8 +317,10 @@ export const robotArmRouter = router({
           details: `Sequence ${input.name} created successfully.`,
         });
 
-        // Reload waypoints for the tool (non-blocking, won't fail the request)
-        await safeReloadWaypoints(input.toolId);
+        // Reload waypoints for the tool only if explicitly requested (non-blocking, won't fail the request)
+        if (input.reloadWaypoints) {
+          await safeReloadWaypoints(input.toolId);
+        }
 
         return result[0];
       } catch (error: any) {
@@ -343,8 +363,10 @@ export const robotArmRouter = router({
           details: `Sequence ${input.name || existing.name} updated successfully.`,
         });
 
-        // Reload waypoints for the tool (non-blocking, won't fail the request)
-        await safeReloadWaypoints(existing.toolId);
+        // Reload waypoints for the tool only if explicitly requested (non-blocking, won't fail the request)
+        if (input.reloadWaypoints) {
+          await safeReloadWaypoints(existing.toolId);
+        }
 
         return updated[0];
       } catch (error: any) {
@@ -356,7 +378,7 @@ export const robotArmRouter = router({
     }),
 
     delete: procedure
-      .input(z.object({ id: z.number(), toolId: z.number().optional() }))
+      .input(z.object({ id: z.number(), toolId: z.number().optional(), reloadWaypoints: z.boolean().optional() }))
       .mutation(async ({ input }) => {
         const sequence = await findOne(robotArmSequences, eq(robotArmSequences.id, input.id));
 
@@ -375,9 +397,11 @@ export const robotArmRouter = router({
           details: `Sequence deleted successfully.`,
         });
 
-        // Reload waypoints for the tool (non-blocking, won't fail the request)
-        const toolId = input.toolId || sequence.toolId;
-        await safeReloadWaypoints(toolId);
+        // Reload waypoints for the tool only if explicitly requested (non-blocking, won't fail the request)
+        if (input.reloadWaypoints) {
+          const toolId = input.toolId || sequence.toolId;
+          await safeReloadWaypoints(toolId);
+        }
 
         return { message: "Sequence deleted successfully" };
       }),
@@ -415,8 +439,10 @@ export const robotArmRouter = router({
           details: `Motion profile ${input.name} created successfully.`,
         });
 
-        // Reload waypoints for the tool (non-blocking, won't fail the request)
-        await safeReloadWaypoints(input.toolId);
+        // Reload waypoints for the tool only if explicitly requested (non-blocking, won't fail the request)
+        if (input.reloadWaypoints) {
+          await safeReloadWaypoints(input.toolId);
+        }
 
         return result[0];
       } catch (error: any) {
@@ -459,8 +485,10 @@ export const robotArmRouter = router({
           details: `Motion profile ${input.name || existing.name} updated successfully.`,
         });
 
-        // Reload waypoints for the tool (non-blocking, won't fail the request)
-        await safeReloadWaypoints(existing.toolId);
+        // Reload waypoints for the tool only if explicitly requested (non-blocking, won't fail the request)
+        if (input.reloadWaypoints) {
+          await safeReloadWaypoints(existing.toolId);
+        }
 
         return updated[0];
       } catch (error: any) {
@@ -472,7 +500,7 @@ export const robotArmRouter = router({
     }),
 
     delete: procedure
-      .input(z.object({ id: z.number(), toolId: z.number().optional() }))
+      .input(z.object({ id: z.number(), toolId: z.number().optional(), reloadWaypoints: z.boolean().optional() }))
       .mutation(async ({ input }) => {
         const profile = await findOne(
           robotArmMotionProfiles,
@@ -494,9 +522,11 @@ export const robotArmRouter = router({
           details: `Motion profile deleted successfully.`,
         });
 
-        // Reload waypoints for the tool (non-blocking, won't fail the request)
-        const toolId = input.toolId || profile.toolId;
-        await safeReloadWaypoints(toolId);
+        // Reload waypoints for the tool only if explicitly requested (non-blocking, won't fail the request)
+        if (input.reloadWaypoints) {
+          const toolId = input.toolId || profile.toolId;
+          await safeReloadWaypoints(toolId);
+        }
 
         return { message: "Motion profile deleted successfully" };
       }),
@@ -531,8 +561,10 @@ export const robotArmRouter = router({
           details: `Grip params ${input.name} created successfully.`,
         });
 
-        // Reload waypoints for the tool (non-blocking, won't fail the request)
-        await safeReloadWaypoints(input.toolId);
+        // Reload waypoints for the tool only if explicitly requested (non-blocking, won't fail the request)
+        if (input.reloadWaypoints) {
+          await safeReloadWaypoints(input.toolId);
+        }
 
         return result[0];
       } catch (error: any) {
@@ -575,8 +607,10 @@ export const robotArmRouter = router({
           details: `Grip params ${input.name || existing.name} updated successfully.`,
         });
 
-        // Reload waypoints for the tool (non-blocking, won't fail the request)
-        await safeReloadWaypoints(existing.toolId);
+        // Reload waypoints for the tool only if explicitly requested (non-blocking, won't fail the request)
+        if (input.reloadWaypoints) {
+          await safeReloadWaypoints(existing.toolId);
+        }
 
         return updated[0];
       } catch (error: any) {
@@ -588,7 +622,7 @@ export const robotArmRouter = router({
     }),
 
     delete: procedure
-      .input(z.object({ id: z.number(), toolId: z.number().optional() }))
+      .input(z.object({ id: z.number(), toolId: z.number().optional(), reloadWaypoints: z.boolean().optional() }))
       .mutation(async ({ input }) => {
         const params = await findOne(robotArmGripParams, eq(robotArmGripParams.id, input.id));
 
@@ -607,9 +641,11 @@ export const robotArmRouter = router({
           details: `Grip params deleted successfully.`,
         });
 
-        // Reload waypoints for the tool (non-blocking, won't fail the request)
-        const toolId = input.toolId || params.toolId;
-        await safeReloadWaypoints(toolId);
+        // Reload waypoints for the tool only if explicitly requested (non-blocking, won't fail the request)
+        if (input.reloadWaypoints) {
+          const toolId = input.toolId || params.toolId;
+          await safeReloadWaypoints(toolId);
+        }
 
         return { message: "Grip params deleted successfully" };
       }),
