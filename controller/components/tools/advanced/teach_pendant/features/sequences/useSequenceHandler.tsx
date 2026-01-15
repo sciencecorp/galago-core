@@ -81,7 +81,7 @@ export function useSequenceHandler(config: Tool) {
    */
   const handleBatchCreateSequence = async (sequences: Omit<RobotArmSequence, "id">[]) => {
     const createSequence = async (sequence: Omit<RobotArmSequence, "id">) => {
-      await createSequenceMutation.mutateAsync(sequence);
+      await createSequenceMutation.mutateAsync({ ...sequence, reloadWaypoints: true });
     };
 
     const batchCreateSequences = createBatchHandler(createSequence, "create", "sequences");
@@ -96,7 +96,7 @@ export function useSequenceHandler(config: Tool) {
    */
   const handleBatchUpdateSequence = async (sequences: RobotArmSequence[]) => {
     const updateSequence = async (sequence: RobotArmSequence) => {
-      await updateSequenceMutation.mutateAsync(sequence);
+      await updateSequenceMutation.mutateAsync({ ...sequence, reloadWaypoints: true });
     };
 
     const batchUpdateSequences = createBatchHandler(updateSequence, "update", "sequences");
@@ -111,7 +111,7 @@ export function useSequenceHandler(config: Tool) {
    */
   const handleBatchDeleteSequence = async (ids: number[]) => {
     const deleteSequence = async (id: number) => {
-      await deleteSequenceMutation.mutateAsync({ id, toolId: config.id });
+      await deleteSequenceMutation.mutateAsync({ id, toolId: config.id, reloadWaypoints: true });
     };
 
     const batchDeleteSequences = createBatchHandlerForIds(deleteSequence, "delete", "sequences");
@@ -121,7 +121,7 @@ export function useSequenceHandler(config: Tool) {
 
   const handleCreateSequence = async (sequence: Omit<RobotArmSequence, "id">) => {
     try {
-      await createSequenceMutation.mutateAsync(sequence);
+      await createSequenceMutation.mutateAsync({ ...sequence, reloadWaypoints: true });
     } catch (error) {
       errorToast("Failed to create sequence", "An error occurred while creating the sequence");
     }
@@ -129,7 +129,7 @@ export function useSequenceHandler(config: Tool) {
 
   const handleUpdateSequence = async (sequence: RobotArmSequence) => {
     try {
-      await updateSequenceMutation.mutateAsync(sequence);
+      await updateSequenceMutation.mutateAsync({ ...sequence, reloadWaypoints: true });
     } catch (error) {
       errorToast("Failed to update sequence", "An error occurred while updating the sequence");
     }
@@ -137,7 +137,7 @@ export function useSequenceHandler(config: Tool) {
 
   const handleDeleteSequence = async (id: number, silent: boolean = false) => {
     try {
-      await deleteSequenceMutation.mutateAsync({ id, toolId: config.id });
+      await deleteSequenceMutation.mutateAsync({ id, toolId: config.id, reloadWaypoints: true });
       if (!silent) {
         successToast("Success", "Sequence deleted successfully");
       }

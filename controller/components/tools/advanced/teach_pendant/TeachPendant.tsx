@@ -191,7 +191,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
           orientation: point.orientation,
         };
 
-        await updateLocationMutation.mutateAsync(locationUpdate);
+        await updateLocationMutation.mutateAsync({ ...locationUpdate, reloadWaypoints: true });
         robotArmLocationsQuery.refetch();
 
         successToast("Point Updated", `Successfully taught new position to point "${point.name}"`);
@@ -316,6 +316,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
     await deleteLocationMutation.mutateAsync({
       id,
       toolId: tool.id,
+      reloadWaypoints: true,
     });
   };
 
@@ -323,6 +324,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
     await deleteMotionProfileMutation.mutateAsync({
       id,
       toolId: tool.id,
+      reloadWaypoints: true,
     });
   };
 
@@ -330,6 +332,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
     await deleteGripParamsMutation.mutateAsync({
       id,
       toolId: tool.id,
+      reloadWaypoints: true,
     });
   };
 
@@ -647,6 +650,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                         coordinates: point.coordinates,
                         toolId: tool.id,
                         orientation: point.orientation,
+                        reloadWaypoints: true,
                       };
                       updateLocationMutation.mutateAsync(location).then(() => {
                         robotArmLocationsQuery.refetch();
@@ -656,6 +660,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       await deleteLocationMutation.mutateAsync({
                         id: point.id,
                         toolId: tool.id,
+                        reloadWaypoints: true,
                       });
                       robotArmLocationsQuery.refetch();
                     }}
@@ -679,6 +684,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                         await updateMotionProfileMutation.mutateAsync({
                           ...profile,
                           toolId: tool.id,
+                          reloadWaypoints: true,
                         });
                       } else {
                         setSelectedMotionProfile(profile);
@@ -686,7 +692,11 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       }
                     }}
                     onDelete={async (id: number) => {
-                      await deleteMotionProfileMutation.mutateAsync({ id, toolId: tool.id });
+                      await deleteMotionProfileMutation.mutateAsync({
+                        id,
+                        toolId: tool.id,
+                        reloadWaypoints: true,
+                      });
                       motionProfilesQuery.refetch();
                     }}
                     onDeleteAll={() => showDeleteConfirm("motionProfiles")}
@@ -708,7 +718,11 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                       gripParamsModal.onOpen();
                     }}
                     onDelete={async (id) => {
-                      await deleteGripParamsMutation.mutateAsync({ id, toolId: tool.id });
+                      await deleteGripParamsMutation.mutateAsync({
+                        id,
+                        toolId: tool.id,
+                        reloadWaypoints: true,
+                      });
                       gripParamsQuery.refetch();
                     }}
                     onDeleteAll={() => showDeleteConfirm("gripParams")}
@@ -726,6 +740,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                         id: params.id, // Now guaranteed to be a number
                         ...params,
                         toolId: tool.id,
+                        reloadWaypoints: true,
                       });
                       gripParamsQuery.refetch();
                     }}
@@ -769,11 +784,13 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                 id: selectedMotionProfile.id,
                 ...profile,
                 toolId: tool.id,
+                reloadWaypoints: true,
               });
             } else {
               await createMotionProfileMutation.mutateAsync({
                 ...profile,
                 toolId: tool.id,
+                reloadWaypoints: true,
               });
             }
             await motionProfilesQuery.refetch();
@@ -797,11 +814,13 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                 id: selectedGripParams.id,
                 ...params,
                 toolId: tool.id,
+                reloadWaypoints: true,
               });
             } else {
               await createGripParamsMutation.mutateAsync({
                 ...params,
                 toolId: tool.id,
+                reloadWaypoints: true,
               });
             }
             await gripParamsQuery.refetch();
@@ -839,6 +858,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
             orientation: orientation,
             coordinates: limitedCoords.join(" "),
             toolId: tool.id,
+            reloadWaypoints: true,
             ...(selectedTeachPoint?.id ? { id: selectedTeachPoint.id } : {}),
           };
 
