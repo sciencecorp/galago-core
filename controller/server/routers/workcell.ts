@@ -20,6 +20,7 @@ import {
 } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { logAuditEvent } from "@/server/utils/auditLog";
 
 export const zWorkcell = z.object({
   id: z.number().optional(),
@@ -167,6 +168,12 @@ export const workcellRouter = router({
         .where(eq(appSettings.name, "workcell"))
         .returning();
 
+      await logAuditEvent({
+        action: "workcell.setSelectedWorkcell",
+        targetType: "workcell",
+        targetName: input,
+        details: null,
+      });
       return updated[0];
     } else {
       const created = await db
@@ -178,6 +185,12 @@ export const workcellRouter = router({
         })
         .returning();
 
+      await logAuditEvent({
+        action: "workcell.setSelectedWorkcell",
+        targetType: "workcell",
+        targetName: input,
+        details: null,
+      });
       return created[0];
     }
   }),

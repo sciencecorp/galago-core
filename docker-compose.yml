@@ -13,7 +13,6 @@ services:
       - NODE_ENV=production
       - PORT=3010
       - GRPC_SERVER_IP=localhost
-
     networks:
       - app-network
 

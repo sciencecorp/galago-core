@@ -8,17 +8,30 @@ import { TutorialProvider } from "@/components/tutorial/TutorialContext";
 import { tutorialSteps } from "@/components/tutorial/tutorialSteps";
 import { TutorialModal } from "@/components/tutorial/TutorialModal";
 import { useVersionCheck } from "@/hooks/useVersionCheck";
+import { ThemeSync } from "@/components/settings/ThemeSync";
+import { SessionSync } from "@/components/settings/SessionSync";
+import { TelemetrySync } from "@/components/settings/TelemetrySync";
+import customTheme from "@/themes/customTheme";
 
 require("log-timestamp");
 
 const VersionChecker = () => {
-  useVersionCheck();
+  const { data: settings } = trpc.settings.getAll.useQuery();
+  const autoUpdate =
+    settings?.find((s: { name: string; value: string }) => s.name === "auto_update")?.value ??
+    "true";
+  const enabled = !["false", "0", "no", "off"].includes(String(autoUpdate).trim().toLowerCase());
+
+  useVersionCheck(enabled);
   return null;
 };
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
-    <ChakraProvider>
+    <ChakraProvider theme={customTheme}>
+      <ThemeSync />
+      <SessionSync />
+      <TelemetrySync />
       <VersionChecker />
       <TutorialProvider steps={tutorialSteps}>
         <Sidebar>

@@ -63,7 +63,6 @@ export const ProtocolPageComponent: React.FC = () => {
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [runModalProtocolId, setRunModalProtocolId] = useState<number | null>(null);
-  // const _fileInputRef = useRef<HTMLInputElement>(null);
   const {
     isOpen: isNewProtocolOpen,
     onOpen: onNewProtocolOpen,

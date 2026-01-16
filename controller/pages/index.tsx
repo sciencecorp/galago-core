@@ -24,6 +24,7 @@ import {
   GitBranch,
   Variable,
   Book,
+  Boxes,
   BookOpen,
   Calendar as CalendarIcon,
   Code,
@@ -32,7 +33,7 @@ import {
 import Link from "next/link";
 import { Plate } from "@/types";
 import { Calendar } from "@/components/calendar/Calendar";
-import { SixWellPlateIcon, WorkcellIcon } from "../components/ui/Icons";
+import { SixWellPlateIcon } from "../components/ui/Icons";
 import { useTutorial } from "@/components/tutorial/TutorialContext";
 
 export default function Page() {
@@ -245,15 +246,15 @@ export default function Page() {
                     <HStack justify="space-between">
                       <VStack align="start" spacing={0}>
                         <Heading size="md">Workcells</Heading>
-                        <Text color="gray.500">Automation cells</Text>
+                        <Text color="gray.500">Workcell Management</Text>
                       </VStack>
-                      <Icon as={WorkcellIcon} boxSize={8} color={iconColor} />
+                      <Icon as={Boxes} boxSize={8} color={iconColor} />
                     </HStack>
                     <Divider />
                     <Stat>
                       <StatLabel>Active Workcells</StatLabel>
                       <StatNumber>{workcellCount}</StatNumber>
-                      <StatHelpText>Configured automation cells</StatHelpText>
+                      <StatHelpText>Configured Workcells</StatHelpText>
                     </Stat>
                   </VStack>
                 </CardBody>

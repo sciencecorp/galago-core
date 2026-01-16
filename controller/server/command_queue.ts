@@ -5,10 +5,13 @@ import Tool from "./tools";
 import SqliteQueue, { StoredRunCommand } from "./utils/SqliteQueue";
 import path from "path";
 import fs from "fs";
+import { ToolType } from "gen-interfaces/controller";
 import { logger } from "@/logger";
 import { logAction } from "./logger";
-import { get, put } from "@/server/utils/api";
-import { Variable } from "@/types";
+import { db } from "@/db/client";
+import { appSettings, variables, workcells } from "@/db/schema";
+import { and, eq } from "drizzle-orm";
+import { sendEmailMessage, sendSlackMessage } from "@/server/utils/integrationsLocal";
 
 export type CommandQueueState = ToolStatus;
 
@@ -33,6 +36,8 @@ export class CommandQueue {
   private _state: CommandQueueState = ToolStatus.OFFLINE;
   private _runningPromise?: Promise<any>;
   error?: Error;
+  private _lastAlertKey?: string;
+  private _lastAlertAtMs?: number;
 
   // Message handling state variables
   private _isWaitingForInput: boolean = false;
@@ -64,6 +69,118 @@ export class CommandQueue {
     this._setState(ToolStatus.FAILED);
     this.error = error;
     logger.error("CommandQueue failed:", error);
+  }
+
+  private async _getAppSettingValue(name: string): Promise<string | null> {
+    const rows = await db.select().from(appSettings).where(eq(appSettings.name, name)).limit(1);
+    const s = rows[0];
+    if (!s || s.isActive === false) return null;
+    return (s.value ?? "").toString();
+  }
+
+  private async _getSelectedWorkcellId(): Promise<number> {
+    const selectedWorkcellName = await this._getAppSettingValue("workcell");
+    if (!selectedWorkcellName) {
+      throw new Error("No workcell selected");
+    }
+    const wc = await db
+      .select()
+      .from(workcells)
+      .where(eq(workcells.name, selectedWorkcellName))
+      .limit(1);
+    const id = wc[0]?.id;
+    if (!id) {
+      throw new Error(`Selected workcell '${selectedWorkcellName}' not found`);
+    }
+    return id;
+  }
+
+  private async _getVariableByName(varName: string) {
+    const workcellId = await this._getSelectedWorkcellId();
+    const rows = await db
+      .select()
+      .from(variables)
+      .where(and(eq(variables.name, varName), eq(variables.workcellId, workcellId)))
+      .limit(1);
+    return rows[0] || null;
+  }
+
+  private async _getSettingBool(name: string, fallback: boolean): Promise<boolean> {
+    try {
+      const raw = await this._getAppSettingValue(name);
+      if (!raw) return fallback;
+      const v = String(raw).trim().toLowerCase();
+      if (["true", "1", "yes", "on"].includes(v)) return true;
+      if (["false", "0", "no", "off"].includes(v)) return false;
+      return fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private async _notifyFailure(opts: {
+    error: Error;
+    runId?: string;
+    toolId?: string;
+    toolType?: ToolType;
+    command?: string;
+    label?: string;
+  }) {
+    try {
+      const errMsg = opts.error?.message || "Unknown error";
+      const runId = opts.runId || "unknown";
+      const toolId = opts.toolId || "unknown";
+      const cmd = opts.command || "unknown";
+
+      const key = `${runId}|${toolId}|${cmd}|${errMsg}`;
+      const now = Date.now();
+      if (this._lastAlertKey === key && this._lastAlertAtMs && now - this._lastAlertAtMs < 60_000) {
+        return;
+      }
+      this._lastAlertKey = key;
+      this._lastAlertAtMs = now;
+
+      const slackEnabled = this.slackNotificationsEnabled
+        ? await this._getSettingBool("enable_slack_alerts_on_failure", true)
+        : false;
+      const emailEnabled = await this._getSettingBool("enable_email_alerts_on_failure", false);
+
+      if (!slackEnabled && !emailEnabled) return;
+
+      const workcellName = (await this._getAppSettingValue("workcell")) || "unknown";
+
+      const header = `Galago alert: run failure`;
+      const lines = [
+        `Workcell: ${workcellName}`,
+        `Run: ${runId}`,
+        `Tool: ${opts.toolType != null ? ToolType[opts.toolType] : "unknown"} (${toolId})`,
+        `Command: ${cmd}${opts.label ? ` (${opts.label})` : ""}`,
+        `Error: ${errMsg}`,
+      ];
+      const body = `${header}\n\n${lines.join("\n")}`;
+
+      if (slackEnabled) {
+        try {
+          await sendSlackMessage({ message: body, auditAction: "integrations.slack.send" });
+        } catch (e: any) {
+          logger.warn("Slack alert failed:", e?.message || e);
+        }
+      }
+
+      if (emailEnabled) {
+        try {
+          await sendEmailMessage({
+            subject: header,
+            message: body,
+            auditAction: "integrations.email.send",
+          });
+        } catch (e: any) {
+          logger.warn("Email alert failed:", e?.message || e);
+        }
+      }
+    } catch (e: any) {
+      logger.warn("Failure notification handler failed:", e?.message || e);
+    }
   }
 
   get state(): CommandQueueState {
@@ -105,11 +222,21 @@ export class CommandQueue {
     const variablePattern = /\${([^{}]+)}/g;
     let match;
     let resolvedExpression = expression;
-    let variables: Record<string, any> = {};
+    let resolvedVars: Record<string, any> = {};
 
     // Find all variable references in the expression
     const variablePromises: Promise<void>[] = [];
     const variableMatches: { fullMatch: string; varName: string }[] = [];
+    const selectedWorkcellName = (await this._getAppSettingValue("workcell")) || "";
+    let selectedWorkcellId: number | null = null;
+    if (selectedWorkcellName) {
+      const wc = await db
+        .select()
+        .from(workcells)
+        .where(eq(workcells.name, selectedWorkcellName))
+        .limit(1);
+      selectedWorkcellId = wc[0]?.id ?? null;
+    }
 
     // First, collect all variable references
     while ((match = variablePattern.exec(expression)) !== null) {
@@ -118,20 +245,25 @@ export class CommandQueue {
       variableMatches.push({ fullMatch, varName });
 
       // Create a promise to fetch each variable
-      const promise = get<Variable>(`/variables/${varName}`)
-        .then((varResponse) => {
-          // Convert value based on type
-          let value: any = varResponse.value;
-
-          // Store both the value and type for later use
-          variables[varName] = {
-            value,
-            type: varResponse.type || typeof value,
-          };
-        })
-        .catch((e) => {
-          throw new Error(`Failed to fetch variable ${varName}: ${e}`);
-        });
+      const promise = (async () => {
+        if (!selectedWorkcellId) {
+          throw new Error("No workcell selected (required to resolve variables)");
+        }
+        const rows = await db
+          .select()
+          .from(variables)
+          .where(and(eq(variables.name, varName), eq(variables.workcellId, selectedWorkcellId)))
+          .limit(1);
+        const varResponse = rows[0];
+        if (!varResponse) {
+          throw new Error(`Variable ${varName} not found`);
+        }
+        const value: any = varResponse.value;
+        resolvedVars[varName] = {
+          value,
+          type: (varResponse.type as any) || typeof value,
+        };
+      })();
 
       variablePromises.push(promise);
     }
@@ -141,11 +273,11 @@ export class CommandQueue {
 
     // Now replace each variable reference with its value, handling types appropriately
     for (const { fullMatch, varName } of variableMatches) {
-      if (!variables[varName]) {
+      if (!resolvedVars[varName]) {
         throw new Error(`Variable ${varName} not found`);
       }
 
-      const varInfo = variables[varName];
+      const varInfo = resolvedVars[varName];
 
       // For direct assignment (the expression is just a variable reference)
       if (expression.trim() === fullMatch) {
@@ -494,6 +626,7 @@ export class CommandQueue {
       });
       this.error = e instanceof Error ? e : new Error("Execution failed");
       this._setState(ToolStatus.FAILED);
+      await this._notifyFailure({ error: this.error });
     } finally {
       this._runningPromise = undefined;
       if (this.state === ToolStatus.BUSY) {
@@ -559,15 +692,14 @@ export class CommandQueue {
             let expectedValue =
               nextCommand.commandInfo.advancedParameters.skipExecutionVariable.value;
             if (expectedValue.startsWith("{{") && expectedValue.endsWith("}}")) {
-              expectedValue = (
-                await get<Variable>(`/variables/${expectedValue.slice(2, -2).trim()}`)
-              ).value;
+              const v = await this._getVariableByName(expectedValue.slice(2, -2).trim());
+              expectedValue = v?.value ?? "";
             }
 
             // Fetch the variable from the database
-            const varResponse = await get<Variable>(`/variables/${varName}`);
+            const varResponse = await this._getVariableByName(varName);
             // If variable value matches expected value, skip this command
-            if (varResponse.value === expectedValue) {
+            if (varResponse && varResponse.value === expectedValue) {
               logAction({
                 level: "info",
                 action: "Command Skipped",
@@ -634,11 +766,9 @@ export class CommandQueue {
             // Check if message is a variable reference
             if (message.startsWith("{{") && message.endsWith("}}")) {
               try {
-                const variableResponse = await get<Variable>(
-                  `/variables/${message.slice(2, -2).trim()}`,
-                );
+                const variableResponse = await this._getVariableByName(message.slice(2, -2).trim());
                 // Use just the value property of the variable
-                message = variableResponse.value;
+                message = variableResponse?.value ?? message;
               } catch (e) {
                 logAction({
                   level: "warning",
@@ -702,7 +832,7 @@ export class CommandQueue {
             }
             try {
               // First, fetch the target variable to get its type
-              const targetVariable = await get<Variable>(`/variables/${variableName}`);
+              const targetVariable = await this._getVariableByName(variableName);
 
               if (!targetVariable) {
                 throw new Error(`Target variable ${variableName} not found`);
@@ -729,10 +859,10 @@ export class CommandQueue {
               }
 
               // Update the variable in the database
-              await put<Variable>(`/variables/${targetVariable.id}`, {
-                ...targetVariable,
-                value: String(finalValue),
-              });
+              await db
+                .update(variables)
+                .set({ value: String(finalValue), updatedAt: new Date() })
+                .where(eq(variables.id, targetVariable.id));
 
               logAction({
                 level: "info",
@@ -779,6 +909,15 @@ export class CommandQueue {
           level: "error",
           action: "Command Failed",
           details: `Command failed: ${e instanceof Error ? e.message : e}`,
+        });
+
+        await this._notifyFailure({
+          error: this.error,
+          runId: nextCommand.runId,
+          toolId: nextCommand.commandInfo?.toolId,
+          toolType: nextCommand.commandInfo?.toolType,
+          command: nextCommand.commandInfo?.command,
+          label: nextCommand.commandInfo?.label,
         });
 
         // Exit the busy loop but keep the error state

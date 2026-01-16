@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Box,
   Button,
@@ -61,6 +61,7 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const { data: fetchedScripts, refetch } = trpc.script.getAll.useQuery();
   const { data: fetchedFolders, refetch: refetchFolders } = trpc.script.getAllFolders.useQuery();
   const { data: selectedWorkcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
+  const { data: appSettings } = trpc.settings.getAll.useQuery();
   const editScript = trpc.script.edit.useMutation();
   const deleteScript = trpc.script.delete.useMutation();
   const addFolder = trpc.script.addFolder.useMutation();
@@ -85,6 +86,23 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const [editorLanguage, setEditorLanguage] = useState<string>("python");
   const jsIconColor = useColorModeValue("orange", "yellow");
   const [draggedScript, setDraggedScript] = useState<Script | null>(null);
+
+  const restoreMode = useMemo(() => {
+    const v = appSettings?.find((s: any) => s.name === "restore_on_startup")?.value;
+    return (v as string) || "Last Session";
+  }, [appSettings]);
+
+  const restoreUnsavedBuffers = useMemo(() => {
+    const raw = appSettings?.find((s: any) => s.name === "restore_unsaved_buffers")?.value;
+    const v = String(raw ?? "true")
+      .trim()
+      .toLowerCase();
+    return ["true", "1", "yes", "on"].includes(v);
+  }, [appSettings]);
+
+  const scriptsSessionKey = useMemo(() => {
+    return `galago:scripts:session:${selectedWorkcellName ?? "global"}`;
+  }, [selectedWorkcellName]);
 
   const {
     isOpen: isScriptDeleteOpen,
@@ -257,6 +275,77 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
       setFolders(fetchedFolders);
     }
   }, [fetchedFolders]);
+
+  // Restore open tabs + unsaved buffers on startup (driven by Settings)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!fetchedScripts) return;
+
+    // Only restore when the user explicitly opted in AND wants to restore last session.
+    const shouldRestore = restoreUnsavedBuffers && restoreMode === "Last Session";
+    if (!shouldRestore) {
+      if (restoreMode === "New Session" || restoreMode === "None" || !restoreUnsavedBuffers) {
+        try {
+          localStorage.removeItem(scriptsSessionKey);
+        } catch {
+          // ignore
+        }
+      }
+      return;
+    }
+
+    try {
+      const raw = localStorage.getItem(scriptsSessionKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as {
+        openTabs?: string[];
+        activeTab?: string | null;
+        editedContents?: Record<string, string>;
+      };
+      const openTabs = Array.isArray(parsed.openTabs) ? parsed.openTabs.filter(Boolean) : [];
+      const activeTab = parsed.activeTab ?? null;
+      const editedContents =
+        parsed.editedContents && typeof parsed.editedContents === "object"
+          ? parsed.editedContents
+          : {};
+
+      // Validate tabs still exist by name
+      const scriptNames = new Set((fetchedScripts as any[]).map((s) => String(s.name)));
+      const filteredTabs = openTabs.filter((t) => scriptNames.has(String(t)));
+      const nextActive =
+        activeTab && scriptNames.has(String(activeTab))
+          ? String(activeTab)
+          : (filteredTabs[0] ?? null);
+
+      if (filteredTabs.length) setOpenTabs(filteredTabs);
+      if (nextActive) setActiveTab(nextActive);
+      if (editedContents) setEditedContents(editedContents);
+    } catch {
+      // ignore malformed storage
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchedScripts, scriptsSessionKey, restoreUnsavedBuffers, restoreMode]);
+
+  // Persist open tabs + unsaved buffers during session (if enabled)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!restoreUnsavedBuffers) return;
+    if (restoreMode === "None") return;
+
+    try {
+      localStorage.setItem(
+        scriptsSessionKey,
+        JSON.stringify({
+          openTabs,
+          activeTab,
+          editedContents,
+          updatedAt: new Date().toISOString(),
+        }),
+      );
+    } catch {
+      // ignore
+    }
+  }, [openTabs, activeTab, editedContents, restoreUnsavedBuffers, restoreMode, scriptsSessionKey]);
 
   const handleRunScript = async () => {
     setRunError(false);

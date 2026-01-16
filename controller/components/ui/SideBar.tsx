@@ -12,7 +12,6 @@ import {
   useBreakpointValue,
   Image,
   HStack,
-  useColorMode,
   DrawerOverlay,
   Tooltip,
   useColorModeValue,
@@ -27,8 +26,7 @@ import {
   ChartGantt,
   Package,
   Boxes,
-  Moon,
-  Sun,
+  Settings,
   ClipboardPenLine,
   LibraryBig,
 } from "lucide-react";
@@ -64,13 +62,13 @@ const sidebarItems: SidebarItem[] = [
   { name: "Logs", icon: Book, path: "/logs" },
 ];
 
-function DarkModeToggle() {
-  const { colorMode, toggleColorMode } = useColorMode();
+function SettingsButton() {
+  const router = useRouter();
   return (
     <IconButton
-      onClick={toggleColorMode}
-      icon={colorMode === "light" ? <Moon size={20} /> : <Sun size={20} />}
-      aria-label="Toggle dark mode"
+      onClick={() => router.push("/settings")}
+      icon={<Settings size={20} />}
+      aria-label="Go to settings"
       position="fixed"
       bottom="20px"
       left="20px"
@@ -173,7 +171,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             )}
           </Link>
         ))}
-        <DarkModeToggle />
+        <SettingsButton />
       </VStack>
     </Box>
   );

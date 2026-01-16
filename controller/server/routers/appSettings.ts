@@ -4,6 +4,7 @@ import { db } from "@/db/client";
 import { appSettings } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { logAuditEvent } from "@/server/utils/auditLog";
 
 const zAppSettings = z.object({
   id: z.number().optional(),
@@ -33,6 +34,12 @@ export const appSettingsRouter = router({
 
   add: procedure.input(zAppSettings.omit({ id: true })).mutation(async ({ input }) => {
     const result = await db.insert(appSettings).values(input).returning();
+    await logAuditEvent({
+      action: "appSettings.add",
+      targetType: "setting",
+      targetName: input.name,
+      details: { value: input.value, is_active: input.isActive },
+    });
     return result[0];
   }),
 
@@ -62,6 +69,12 @@ export const appSettingsRouter = router({
       });
     }
 
+    await logAuditEvent({
+      action: "appSettings.edit",
+      targetType: "setting",
+      targetName: updateData.name,
+      details: { id, value: updateData.value, is_active: updateData.isActive },
+    });
     return updated[0];
   }),
 
@@ -75,6 +88,12 @@ export const appSettingsRouter = router({
       });
     }
 
+    await logAuditEvent({
+      action: "appSettings.delete",
+      targetType: "setting",
+      targetName: deleted[0]?.name ?? null,
+      details: { id: input },
+    });
     return { message: "Setting deleted successfully" };
   }),
 });

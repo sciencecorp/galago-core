@@ -27,19 +27,6 @@ const customTheme = extendTheme({
       baseStyle: {
         fontWeight: "bold",
       },
-      variants: {
-        solid: (props: { colorMode: string }) => ({
-          bg: props.colorMode === "dark" ? "blue.600" : "blue.500",
-          color: "white",
-          _hover: {
-            bg: props.colorMode === "dark" ? "blue.500" : "blue.600",
-          },
-        }),
-        outline: (props: { colorMode: string }) => ({
-          borderColor: props.colorMode === "dark" ? "blue.400" : "blue.500",
-          color: props.colorMode === "dark" ? "blue.400" : "blue.500",
-        }),
-      },
     },
     Box: {
       baseStyle: (props: { colorMode: string }) => ({
