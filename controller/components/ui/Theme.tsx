@@ -86,8 +86,12 @@ export const useSidebarTheme = () => {
     textColor: useColorModeValue("gray.800", "white"),
     hoverBg: useColorModeValue("gray.100", "gray.700"),
     activeBg: useColorModeValue("teal.50", "gray.700"),
-    borderColor: useColorModeValue("gray.200", "gray.700"),
-    shadow: useColorModeValue("0 0 10px rgba(0, 0, 0, 0.1)", "none"),
+    // Dark mode needs a higher-contrast separator (Edge renders subtle borders very softly).
+    borderColor: useColorModeValue("gray.200", "whiteAlpha.200"),
+    shadow: useColorModeValue(
+      "0 0 10px rgba(0, 0, 0, 0.1)",
+      "0 0 0 1px rgba(255, 255, 255, 0.06), 8px 0 24px rgba(0, 0, 0, 0.45)",
+    ),
     activeTextColor: "teal.500",
     activeIconColor: "teal",
   };
