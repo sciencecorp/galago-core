@@ -238,7 +238,7 @@ docker-compose -f docker-compose.dev.yml up --build
 
 **Port conflicts:**
 
-- App runs at `http://localhost:3010` by default.
+- App runs at http://localhost:3010 by default.
 - Modify port mappings in docker-compose files if needed
 
 ## Architecture Details
@@ -246,7 +246,7 @@ docker-compose -f docker-compose.dev.yml up --build
 ### Data Flow
 
 1. **User Interface** (Next.js) → tRPC calls → **Database Service**
-2. **User Interface** → tRPC calls → gRPC calls → **Tool Drivers**
+2. **User Interface** -> tRPC calls → gRPC calls → **Tool Drivers**
 
 ## License
 
