@@ -219,6 +219,7 @@ export const Settings: React.FC = () => {
     isLoading: isLoadingSettings,
     refetch: refetchSettings,
   } = trpc.settings.getAll.useQuery();
+  const utils = trpc.useContext();
   const setSetting = trpc.settings.set.useMutation();
 
   const { data: fetchedWorkcells } = trpc.workcell.getAll.useQuery();
@@ -323,9 +324,31 @@ export const Settings: React.FC = () => {
   }, [fetchedSettings, settingsByName]);
 
   const persistSetting = async (name: string, value: string) => {
+    // Optimistically update the shared settings cache so other app-level syncs
+    // (e.g. ThemeSync) react immediately, without waiting for a refetch.
+    const previous = utils.settings.getAll.getData();
+    utils.settings.getAll.setData(undefined, (old) => {
+      const list = old ? [...old] : [];
+      const idx = list.findIndex((s: { name: string }) => s.name === name);
+      const nextRow = {
+        ...(idx >= 0 ? list[idx] : {}),
+        name,
+        value,
+        is_active: true,
+      };
+      if (idx >= 0) list[idx] = nextRow as any;
+      else list.push(nextRow as any);
+      return list as any;
+    });
+
     try {
       await setSetting.mutateAsync({ name, value, is_active: true });
+      // Ensure we reconcile with DB truth (e.g. for timestamps / is_active).
+      await utils.settings.getAll.invalidate();
     } catch (e: any) {
+      // Roll back optimistic cache update.
+      if (previous) utils.settings.getAll.setData(undefined, previous);
+      else await utils.settings.getAll.invalidate();
       errorToast("Failed to save setting", e?.message || "Unknown error");
     }
   };
