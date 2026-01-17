@@ -76,10 +76,12 @@ jobs:
           mkdir -p ../nextjs-artifact/.next/static
           cp -r .next/static/* ../nextjs-artifact/.next/static/
 
-          # Copy public assets
+          # Copy public assets (remove incomplete standalone public first to avoid merge issues)
           if [ -d "public" ]; then
             echo "Adding public assets..."
+            rm -rf ../nextjs-artifact/public
             cp -r public ../nextjs-artifact/public
+            echo "✓ Public folder copied ($(ls ../nextjs-artifact/public | wc -l) items)"
           fi
 
           # Copy gen-interfaces
