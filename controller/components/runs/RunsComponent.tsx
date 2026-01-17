@@ -135,12 +135,12 @@ export const RunsComponent: React.FC = () => {
     }
   }, [formQuery.data, formQuery.error, messageData.type]);
 
-  const commandBgColor = useColorModeValue("gray.50", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
-  const hoverBgColor = useColorModeValue("gray.100", "gray.600");
+  const commandBgColor = useColorModeValue("gray.50", "surface.panel");
+  const borderColor = useColorModeValue("gray.200", "whiteAlpha.200");
+  const hoverBgColor = useColorModeValue("gray.100", "surface.hover");
   const textColor = useColorModeValue("gray.800", "gray.100");
-  const cardBg = useColorModeValue("white", "gray.700");
-  const expandedRunBg = useColorModeValue("white", "gray.800");
+  const cardBg = useColorModeValue("white", "surface.section");
+  const expandedRunBg = useColorModeValue("white", "surface.panel");
   const boxShadowValue = useColorModeValue("md", "none");
   const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
   const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });

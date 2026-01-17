@@ -37,8 +37,10 @@ export default function ToolStatusCard({ toolId, style = {} }: ToolStatusCardPro
   // const _router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [isConfiguring, setIsConfiguring] = useState(false);
-  const cardBg = useColorModeValue("white", "gray.900");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
+  // Tools page cards: slightly warmer/neutral dark gray (less blue).
+  // Give cards a distinct surface to contrast with the page section background.
+  const cardBg = useColorModeValue("white", "surface.card");
+  const borderColor = useColorModeValue("gray.200", "border.subtle");
 
   const infoQuery = trpc.tool.info.useQuery(
     { toolId },

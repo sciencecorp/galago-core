@@ -34,7 +34,7 @@ interface InventoryToolCardProps {
 export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({ toolId, nests, plates }) => {
   const { cardBg, borderColor } = useCommonColors();
   const { secondary: iconColor } = useTextColors();
-  const statBg = useColorModeValue("gray.50", "gray.800");
+  const statBg = useColorModeValue("gray.50", "surface.panel");
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 

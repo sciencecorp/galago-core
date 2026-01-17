@@ -50,7 +50,7 @@ export function TutorialModal() {
   const isFirst = stepIndex === 0;
   const isLast = stepIndex === steps.length - 1;
 
-  const floatingBg = useColorModeValue("white", "gray.800");
+  const floatingBg = useColorModeValue("white", "surface.section");
   const floatingBorder = useColorModeValue("gray.200", "whiteAlpha.300");
   const subtleText = useColorModeValue("gray.500", "gray.400");
   const demoPanelText = useColorModeValue("gray.600", "gray.300");

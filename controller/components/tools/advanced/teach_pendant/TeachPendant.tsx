@@ -57,11 +57,11 @@ interface LocationUpdate {
 }
 
 export const TeachPendant = ({ tool }: TeachPendantProps) => {
-  const bgColor = useColorModeValue("white", "gray.900");
+  const bgColor = useColorModeValue("white", "surface.section");
   const bgColorAlpha = useColorModeValue("blackAlpha.50", "whiteAlpha.100");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const tabBgColor = useColorModeValue("gray.50", "gray.800");
-  const tabActiveBgColor = useColorModeValue("white", "gray.700");
+  const borderColor = useColorModeValue("gray.200", "whiteAlpha.200");
+  const tabBgColor = useColorModeValue("gray.50", "surface.panel");
+  const tabActiveBgColor = useColorModeValue("white", "surface.section");
 
   // Hooks
   const {

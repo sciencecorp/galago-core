@@ -75,9 +75,9 @@ export const ScriptsEditor: React.FC = (): JSX.Element => {
   const activeTabFontColor = useColorModeValue("teal.600", "teal.200");
   const runScript = trpc.script.run.useMutation();
   const [runError, setRunError] = useState<boolean>(false);
-  const headerBg = useColorModeValue("white", "gray.700");
-  const tabBg = useColorModeValue("gray.50", "gray.700");
-  const activeTabBg = useColorModeValue("white", "gray.800");
+  const headerBg = useColorModeValue("white", "surface.section");
+  const tabBg = useColorModeValue("gray.50", "surface.panel");
+  const activeTabBg = useColorModeValue("white", "surface.section");
   const [scriptToDelete, setScriptToDelete] = useState<Script | null>(null);
   const [_editingScriptName, setEditingScriptName] = useState<Script | null>(null);
   const [folderCreating, setFolderCreating] = useState(false);

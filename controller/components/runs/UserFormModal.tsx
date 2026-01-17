@@ -51,8 +51,8 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
   fontColor,
   defaultFontColor,
 }) => {
-  const inputBg = useColorModeValue("white", "gray.700");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
+  const inputBg = useColorModeValue("white", "surface.panel");
+  const borderColor = useColorModeValue("gray.200", "border.subtle");
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

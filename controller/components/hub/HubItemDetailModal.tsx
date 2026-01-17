@@ -47,9 +47,9 @@ export function HubItemDetailModal({
   canDelete?: boolean;
   isLoading?: boolean;
 }): JSX.Element {
-  const bg = useColorModeValue("white", "gray.900");
-  const codeBg = useColorModeValue("gray.50", "gray.800");
-  const border = useColorModeValue("gray.200", "gray.700");
+  const bg = useColorModeValue("white", "surface.section");
+  const codeBg = useColorModeValue("gray.50", "surface.panel");
+  const border = useColorModeValue("gray.200", "border.subtle");
 
   const payloadPretty = useMemo(() => {
     if (!item) return "";

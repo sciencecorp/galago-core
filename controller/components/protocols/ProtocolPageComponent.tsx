@@ -69,9 +69,9 @@ export const ProtocolPageComponent: React.FC = () => {
     onClose: onNewProtocolClose,
   } = useDisclosure();
 
-  const headerBg = useColorModeValue("white", "gray.700");
-  const tableBgColor = useColorModeValue("white", "gray.700");
-  const hoverBgColor = useColorModeValue("gray.50", "gray.600");
+  const headerBg = useColorModeValue("white", "surface.section");
+  const tableBgColor = useColorModeValue("white", "surface.section");
+  const hoverBgColor = useColorModeValue("gray.50", "surface.hover");
 
   const { data: workcellName } = trpc.workcell.getSelectedWorkcell.useQuery();
   const { data: protocols, refetch } = trpc.protocol.getAll.useQuery({

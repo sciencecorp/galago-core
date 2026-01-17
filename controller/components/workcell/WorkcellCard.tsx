@@ -30,8 +30,8 @@ interface WorkcellCardProps {
 
 export const WorkcellCard: React.FC<WorkcellCardProps> = (props) => {
   const { workcell } = props;
-  const cardBg = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const cardBg = useColorModeValue("white", "surface.section");
+  const borderColor = useColorModeValue("gray.200", "border.subtle");
   const deleteWorkcell = trpc.workcell.delete.useMutation();
   const clearToolStore = trpc.tool.clearToolStore.useMutation();
   const editWorkcell = trpc.workcell.edit.useMutation();

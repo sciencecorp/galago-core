@@ -18,7 +18,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     minHeight={size}
     justify="center"
     borderRadius="md"
-    bg={useColorModeValue("gray.50", "gray.700")}
+    bg={useColorModeValue("gray.50", "surface.panel")}
     opacity="0.7"
     spacing={5}>
     <Icon as={Inbox} boxSize={8} color="gray.400" />

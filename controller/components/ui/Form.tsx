@@ -126,8 +126,8 @@ export const EditableText = (props: {
 }) => {
   const textColor = useColorModeValue("gray.800", "gray.100");
   const placeholderColor = useColorModeValue("gray.400", "gray.500");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
-  const inputBg = useColorModeValue("white", "gray.700");
+  const borderColor = useColorModeValue("gray.200", "whiteAlpha.200");
+  const inputBg = useColorModeValue("white", "surface.panel");
 
   // If displayValue is provided, use it for display but keep defaultValue for editing
   const displayText = props.displayValue !== undefined ? props.displayValue : props.defaultValue;

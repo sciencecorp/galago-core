@@ -39,7 +39,7 @@ const formatTimeDisplay = (totalSeconds: number): string => {
 };
 
 export const TimerModal: React.FC<TimerModalProps> = ({ isOpen, messageData, onSkip }) => {
-  const bgColor = useColorModeValue("white", "gray.800");
+  const bgColor = useColorModeValue("white", "surface.section");
   const timerColor = useColorModeValue("purple.500", "purple.300");
 
   // State to track remaining time

@@ -28,40 +28,42 @@ export function getColorForInstrument(instrument: string): string {
   return instrumentColors[instrument.toLowerCase()] || "gray";
 }
 
-// Chakra UI color palette (excluding grays)
+// Curated "interesting" palette (keeps good contrast with white text).
+// Intentionally wide hue coverage; values are mostly deeper midtones.
 const colorPalette = [
-  // Blues
-  "#4299E1",
-  "#3182CE",
-  "#2B6CB0",
+  // Blues / Indigos
+  "#2563EB", // blue 600
+  "#1D4ED8", // blue 700
+  "#4F46E5", // indigo 600
+  "#4338CA", // indigo 700
+  "#7C3AED", // violet 600
+  "#9333EA", // purple 600
+
+  // Cyans / Teals
+  "#0284C7", // sky 600
+  "#0891B2", // cyan 600
+  "#0D9488", // teal 600
+  "#0F766E", // teal 700
+
   // Greens
-  "#48BB78",
-  "#38A169",
-  "#2F855A",
-  // Teals
-  "#38B2AC",
-  "#319795",
-  "#2C7A7B",
-  // Purples
-  "#9F7AEA",
-  "#805AD5",
-  "#6B46C1",
-  // Pinks
-  "#ED64A6",
-  "#D53F8C",
-  "#B83280",
-  // Oranges
-  "#F6AD55",
-  "#DD6B20",
-  "#C05621",
-  // Reds
-  "#FC8181",
-  "#E53E3E",
-  "#C53030",
-  // Yellows
-  "#F6E05E",
-  "#ECC94B",
-  "#D69E2E",
+  "#059669", // emerald 600
+  "#16A34A", // green 600
+  "#15803D", // green 700
+  "#65A30D", // lime 600
+
+  // Warm tones
+  "#CA8A04", // yellow 600 (darker for contrast)
+  "#D97706", // amber 600
+  "#EA580C", // orange 600
+  "#C2410C", // orange 700
+
+  // Reds / Pinks
+  "#DC2626", // red 600
+  "#E11D48", // rose 600
+  "#BE123C", // rose 700
+  "#DB2777", // pink 600
+  "#C026D3", // fuchsia 600
+  "#A21CAF", // fuchsia 700
 ];
 
 // Hash function to generate a consistent index for a given string

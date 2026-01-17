@@ -38,8 +38,9 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (_props)
     trpc.workcell.getSelectedWorkcell.useQuery();
   const [selectedWorkcell, setSelectedWorkcell] = useState<string | null>(null);
   const [connectingLoading, setConnectingLoading] = useState(false);
-  const headerBg = useColorModeValue("white", "gray.700");
-  const tableBgColor = useColorModeValue("white", "gray.700");
+  // Tools page: use a more neutral dark gray (less blue) for surfaces.
+  const headerBg = useColorModeValue("white", "surface.section");
+  const tableBgColor = useColorModeValue("white", "surface.panel");
   const { data: allTools, refetch: refetchAllTools } = trpc.tool.getAll.useQuery();
   const configureMutation = trpc.tool.configure.useMutation();
   const { data: workcells } = trpc.workcell.getAll.useQuery();

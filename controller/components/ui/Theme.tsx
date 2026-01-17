@@ -1,14 +1,22 @@
 import { useColorModeValue } from "@chakra-ui/react";
 
+// Theme hooks should return semantic tokens, not hardcoded hex.
+// Tokens are defined in `themes/customTheme.ts`.
+const SURFACE_CANVAS = "surface.canvas";
+const SURFACE_PANEL = "surface.panel";
+const SURFACE_SECTION = "surface.section";
+const SURFACE_HOVER = "surface.hover";
+const BORDER_SUBTLE = "border.subtle";
+
 // Script editor colors
 export const useScriptColors = () => {
   return {
     selectedBg: useColorModeValue("teal.50", "teal.900"),
-    hoverBg: useColorModeValue("gray.100", "gray.600"),
+    hoverBg: useColorModeValue("gray.100", SURFACE_HOVER),
     selectedColor: useColorModeValue("teal.600", "teal.200"),
-    bgColor: useColorModeValue("gray.50", "gray.700"),
-    borderColor: useColorModeValue("gray.200", "gray.600"),
-    consoleHeaderBg: useColorModeValue("gray.100", "gray.800"),
+    bgColor: useColorModeValue("gray.50", SURFACE_PANEL),
+    borderColor: useColorModeValue("gray.200", BORDER_SUBTLE),
+    consoleHeaderBg: useColorModeValue("gray.100", SURFACE_SECTION),
     consoleBg: useColorModeValue("white", "#222324"),
   };
 };
@@ -16,19 +24,19 @@ export const useScriptColors = () => {
 // Common UI colors
 export const useCommonColors = () => {
   return {
-    cardBg: useColorModeValue("white", "gray.900"),
+    cardBg: useColorModeValue("white", SURFACE_SECTION),
     textColor: useColorModeValue("gray.800", "white"),
-    bgColor: useColorModeValue("gray.50", "gray.900"),
+    bgColor: useColorModeValue("gray.50", SURFACE_CANVAS),
     selectedBg: useColorModeValue("teal.50", "teal.900"),
-    headerBg: useColorModeValue("white", "gray.700"),
-    tabBg: useColorModeValue("gray.50", "gray.700"),
-    activeTabBg: useColorModeValue("white", "gray.800"),
-    hoverBg: useColorModeValue("gray.100", "gray.600"),
+    headerBg: useColorModeValue("white", SURFACE_SECTION),
+    tabBg: useColorModeValue("gray.50", SURFACE_PANEL),
+    activeTabBg: useColorModeValue("white", SURFACE_SECTION),
+    hoverBg: useColorModeValue("gray.100", SURFACE_HOVER),
     accentColor: useColorModeValue("teal.600", "teal.200"),
-    borderColor: useColorModeValue("gray.200", "gray.900"),
-    inputBg: useColorModeValue("white", "gray.800"),
-    sectionBg: useColorModeValue("gray.50", "gray.800"),
-    alternateBg: useColorModeValue("gray.100", "gray.800"),
+    borderColor: useColorModeValue("gray.200", BORDER_SUBTLE),
+    inputBg: useColorModeValue("white", SURFACE_PANEL),
+    sectionBg: useColorModeValue("gray.50", SURFACE_PANEL),
+    alternateBg: useColorModeValue("gray.100", SURFACE_PANEL),
     selectedBorder: useColorModeValue("teal.500", "teal.400"),
     arrowColor: useColorModeValue("gray.500", "gray.400"),
   };
@@ -82,17 +90,20 @@ export const getCommandColorHex = (commandName: string): string => {
 // Add sidebar theme configuration
 export const useSidebarTheme = () => {
   return {
-    bg: useColorModeValue("white", "gray.900"),
+    // Match app-level neutral dark surfaces (see `themes/customTheme.ts`).
+    bg: useColorModeValue("white", SURFACE_PANEL),
     textColor: useColorModeValue("gray.800", "white"),
-    hoverBg: useColorModeValue("gray.100", "gray.700"),
-    activeBg: useColorModeValue("teal.50", "gray.700"),
+    hoverBg: useColorModeValue("gray.100", SURFACE_HOVER),
+    activeBg: useColorModeValue("teal.50", SURFACE_HOVER),
     // Dark mode needs a higher-contrast separator (Edge renders subtle borders very softly).
-    borderColor: useColorModeValue("gray.200", "whiteAlpha.200"),
+    borderColor: useColorModeValue("gray.200", BORDER_SUBTLE),
     shadow: useColorModeValue(
       "0 0 10px rgba(0, 0, 0, 0.1)",
       "0 0 0 1px rgba(255, 255, 255, 0.06), 8px 0 24px rgba(0, 0, 0, 0.45)",
     ),
     activeTextColor: "teal.500",
-    activeIconColor: "teal",
+    // Lucide icons need a real CSS color; use Chakra's CSS variable for teal.500.
+    // This follows our custom `teal` palette (teal.500 = #44518e).
+    activeIconColor: "var(--chakra-colors-teal-500)",
   };
 };

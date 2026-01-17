@@ -44,7 +44,7 @@ import { ArrowForwardIcon } from "@chakra-ui/icons";
 // Centralized command styling hook
 const useCommandStyles = (commandName: string, isExpanded: boolean) => {
   const isDarkMode = useColorModeValue(false, true);
-  const borderColor = useColorModeValue("gray.200", "gray.600");
+  const borderColor = useColorModeValue("gray.200", "whiteAlpha.200");
   const commandColor = getCommandColor(commandName);
 
   return {
@@ -553,8 +553,8 @@ export const CommandList: React.FC<CommandListProps> = ({
     enabled: isEditing,
   });
 
-  const bgColor = useColorModeValue("white", isEditing ? "gray.700" : "gray.900");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const bgColor = useColorModeValue("white", isEditing ? "surface.section" : "surface.panel");
+  const borderColor = useColorModeValue("gray.200", "whiteAlpha.200");
   // const _arrowColor = useColorModeValue("gray.400", "gray.600");
 
   // Update local state when props change

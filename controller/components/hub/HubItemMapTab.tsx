@@ -303,11 +303,11 @@ function extractNodes(item: HubItem): { centerLabel: string; nodes: Node[] } {
 }
 
 export function HubItemMapTab({ item }: { item: HubItem }): JSX.Element {
-  const bg = useColorModeValue("gray.50", "gray.900");
-  const border = useColorModeValue("gray.200", "gray.700");
-  const centerBg = useColorModeValue("white", "gray.800");
+  const bg = useColorModeValue("gray.50", "#15171c");
+  const border = useColorModeValue("gray.200", "whiteAlpha.200");
+  const centerBg = useColorModeValue("white", "surface.section");
   const lineColor = useColorModeValue("#CBD5E0", "#4A5568");
-  const panelHeaderBg = useColorModeValue("gray.100", "gray.700");
+  const panelHeaderBg = useColorModeValue("gray.100", "surface.section");
 
   const { centerLabel, nodes } = useMemo(() => extractNodes(item), [item]);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);

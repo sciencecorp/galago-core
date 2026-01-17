@@ -69,7 +69,7 @@ export default function Nav() {
     }
   }
 
-  const bgColor = useColorModeValue("white", "gray.800");
+  const bgColor = useColorModeValue("white", "surface.section");
   const textColor = useColorModeValue("gray.800", "white");
 
   return (

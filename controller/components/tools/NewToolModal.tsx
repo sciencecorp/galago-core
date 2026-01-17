@@ -128,7 +128,10 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
     setSearchQuery("");
   };
 
-  const toolCardBg = useColorModeValue("white", "gray.800");
+  // Use semantic tokens (defined in `themes/customTheme.ts`).
+  const toolCardBg = useColorModeValue("white", "surface.card");
+  const modalBg = useColorModeValue("white", "surface.section");
+  const modalBorderColor = useColorModeValue("gray.200", "border.subtle");
 
   const ToolCard = ({ tool }: { tool: ToolType }) => {
     const isSelected = selectedTool === tool;
@@ -194,7 +197,7 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
       {/* Tool Selection Modal */}
       <Modal isOpen={isSelectOpen} onClose={onSelectClose} size="xl">
         <ModalOverlay />
-        <ModalContent maxW="900px">
+        <ModalContent maxW="900px" bg={modalBg} borderWidth="1px" borderColor={modalBorderColor}>
           <ModalHeader>Select a Tool</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
@@ -255,7 +258,7 @@ export const NewToolModal: React.FC<AddToolCommandModalProps> = (props) => {
       {/* Tool Details Modal */}
       <Modal isOpen={isDetailsOpen} onClose={onDetailsClose}>
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent bg={modalBg} borderWidth="1px" borderColor={modalBorderColor}>
           <ModalHeader>Configure Tool</ModalHeader>
           <ModalCloseButton />
           <ModalBody>

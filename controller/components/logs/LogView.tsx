@@ -94,9 +94,9 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedLevel, setSelectedLevel] = useState<string>("");
 
-  const headerBg = useColorModeValue("white", "gray.700");
-  const tableBgColor = useColorModeValue("white", "gray.700");
-  const hoverBgColor = useColorModeValue("gray.50", "gray.600");
+  const headerBg = useColorModeValue("white", "surface.section");
+  const tableBgColor = useColorModeValue("white", "surface.section");
+  const hoverBgColor = useColorModeValue("gray.50", "surface.hover");
 
   // Get filters object for queries
   const filters = {

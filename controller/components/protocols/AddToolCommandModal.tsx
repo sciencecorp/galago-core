@@ -617,7 +617,7 @@ export const AddToolCommandModal: React.FC<AddToolCommandModalProps> = ({
   };
 
   // Tool card component
-  const toolCardBg = useColorModeValue("white", "gray.800");
+  const toolCardBg = useColorModeValue("white", "surface.section");
   const selectedToolBg = useColorModeValue("teal.100", "teal.900");
 
   const ToolCard = ({ tool }: { tool: { id: number | string; type: string; name: string } }) => {

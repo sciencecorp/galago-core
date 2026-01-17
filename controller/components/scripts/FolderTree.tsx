@@ -274,11 +274,11 @@ const ScriptNode: React.FC<ScriptNodeProps> = ({
           spacing={2}
           px={3}
           py={2}
-          bg={useColorModeValue("white", "gray.700")}
+          bg={useColorModeValue("white", "surface.section")}
           borderRadius="md"
           boxShadow="lg"
           border="1px solid"
-          borderColor={useColorModeValue("gray.300", "gray.600")}>
+          borderColor={useColorModeValue("gray.300", "whiteAlpha.200")}>
           {getIcon()}
           <Text fontSize="14px" fontWeight="medium">
             {script.name}

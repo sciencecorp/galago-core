@@ -21,7 +21,7 @@ interface PauseModalProps {
 }
 
 export const PauseModal: React.FC<PauseModalProps> = ({ isOpen, pauseMessage, onContinue }) => {
-  const bgColor = useColorModeValue("white", "gray.800");
+  const bgColor = useColorModeValue("white", "surface.section");
   const iconColor = useColorModeValue("orange.500", "orange.300");
 
   return (

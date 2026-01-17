@@ -90,7 +90,7 @@ const FormatText = ({ text }: { text: string }) => {
 };
 
 export const MessageModal: React.FC<MessageProps> = ({ isOpen, messageData, onContinue }) => {
-  const bgColor = useColorModeValue("white", "gray.800");
+  const bgColor = useColorModeValue("white", "surface.section");
   const pauseIconColor = useColorModeValue("orange.500", "orange.300");
   const messageIconColor = useColorModeValue("blue.500", "blue.300");
   // const _timerBgColor = useColorModeValue("gray.100", "gray.700");
