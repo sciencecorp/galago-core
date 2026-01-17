@@ -506,8 +506,19 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
               <Box position="relative" zIndex={3}>
                 {renderCommands()}
               </Box>
-              <CurrentTimeLine position={currentTimePosition} />
             </Box>
+          </Box>
+          {/* Render above the scroll container so the marker can overflow (no clipping). */}
+          <Box
+            position="absolute"
+            top={-1}
+            bottom={0}
+            left={`${LABEL_COLUMN_WIDTH_PX}px`}
+            right={0}
+            pointerEvents="none"
+            overflow="visible"
+            zIndex={5}>
+            <CurrentTimeLine position={currentTimePosition} />
           </Box>
           {renderToolLabels()}
         </Box>
