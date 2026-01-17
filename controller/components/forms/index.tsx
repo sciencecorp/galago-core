@@ -22,7 +22,7 @@ import { CreateFormModal } from "./createFormModal";
 export const Forms = () => {
   const { data: fetchedForms, refetch } = trpc.form.getAll.useQuery();
 
-  const headerBg = useColorModeValue("white", "gray.700");
+  const headerBg = useColorModeValue("white", "surface.section");
   const [forms, setForms] = useState<Form[]>([]);
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
 

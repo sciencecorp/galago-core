@@ -98,8 +98,8 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
   const headerTextColor = textColors.primary;
 
   // Dark mode compatible menu colors
-  const menuBg = useColorModeValue("white", "gray.700");
-  const menuBorderColor = useColorModeValue("gray.200", "gray.600");
+  const menuBg = useColorModeValue("white", "surface.section");
+  const menuBorderColor = useColorModeValue("gray.200", "border.subtle");
 
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
   const [formName, setFormName] = useState("");

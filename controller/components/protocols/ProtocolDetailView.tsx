@@ -83,9 +83,9 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
         borderLeftRadius="15"
         borderRightRadius="15"
         padding="6px"
-        background={useColorModeValue("gray.50", "gray.700")}
+        background={useColorModeValue("gray.50", "surface.panel")}
         border="1px"
-        borderColor={useColorModeValue("gray.200", "gray.600")}
+        borderColor={useColorModeValue("gray.200", "whiteAlpha.200")}
         boxShadow={useColorModeValue("md", "none")}>
         <VStack alignItems="stretch">
           <Box>
@@ -145,8 +145,8 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
   const [selectedCommand, setSelectedCommand] = useState<any | null>(null);
   const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
   const execMutation = trpc.tool.runCommand.useMutation();
-  const bgColor = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const bgColor = useColorModeValue("white", "surface.section");
+  const borderColor = useColorModeValue("gray.200", "whiteAlpha.200");
   const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
   const arrowColor = useColorModeValue("gray.500", "gray.400");
   const { data: protocol, isLoading, error, refetch } = trpc.protocol.get.useQuery(id);

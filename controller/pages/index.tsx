@@ -41,9 +41,9 @@ export default function Page() {
     document.title = "Home";
   }, []);
 
-  const headerBg = useColorModeValue("white", "gray.700");
+  const headerBg = useColorModeValue("white", "surface.section");
   const iconColor = "teal.500";
-  const hoverBg = useColorModeValue("gray.50", "gray.600");
+  const hoverBg = useColorModeValue("gray.50", "surface.hover");
 
   // Fetch data from different sections
   const { data: tools } = trpc.tool.getAll.useQuery();

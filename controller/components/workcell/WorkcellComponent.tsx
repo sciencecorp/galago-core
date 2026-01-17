@@ -30,7 +30,7 @@ export const WorkcellComponent = () => {
   const { data: selectedWorkcellName, refetch: refetchSelected } =
     trpc.workcell.getSelectedWorkcell.useQuery();
 
-  const headerBg = useColorModeValue("white", "gray.700");
+  const headerBg = useColorModeValue("white", "surface.section");
   const {
     fileInputRef,
     handleExportConfig,

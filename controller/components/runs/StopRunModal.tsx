@@ -39,7 +39,7 @@ export const StopRunModal: React.FC<StopRunModalProps> = ({
   onConfirm,
   messageData,
 }) => {
-  const bgColor = useColorModeValue("white", "gray.800");
+  const bgColor = useColorModeValue("white", "surface.section");
   const warningIconColor = useColorModeValue("red.500", "red.300");
   const [countdown, setCountdown] = useState<number | null>(null);
 

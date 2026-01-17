@@ -43,14 +43,17 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
 }) => {
   const timeIntervals = 12;
   const totalDuration = endTime.diff(startTime, "seconds");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
+  const borderColor = useColorModeValue("gray.200", "whiteAlpha.200");
   const labelColor = useColorModeValue("gray.600", "gray.300");
-  const menuBg = useColorModeValue("white", "gray.700");
-  const menuHoverBg = useColorModeValue("gray.100", "gray.600");
+  const menuBg = useColorModeValue("white", "surface.section");
+  const menuHoverBg = useColorModeValue("gray.100", "surface.hover");
   const selectedBg = useColorModeValue("blue.50", "blue.900");
-  const textBg = useColorModeValue("gray.50", "gray.700");
-  const hoverBg = useColorModeValue("gray.50", "gray.700");
+  const textBg = useColorModeValue("whiteAlpha.900", "blackAlpha.400");
+  const hoverBg = useColorModeValue("white", "surface.panel");
   const hoverBorderColor = useColorModeValue("gray.300", "gray.500");
+  const LABEL_COLUMN_WIDTH_PX = 200;
+  const axisBg = useColorModeValue("gray.50", "surface.panel");
+
   const handleShift = (direction: "forward" | "backward") => {
     const shiftAmount = totalDuration / 4;
     const newStart =
@@ -91,7 +94,7 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
           color={labelColor}
           bg={textBg}
           px={1}
-          rounded="sm"
+          rounded="full"
           borderWidth="1px"
           borderColor={borderColor}
           _hover={{
@@ -119,8 +122,8 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
   };
 
   return (
-    <VStack spacing={4} width="100%" align="stretch">
-      <Flex justify="space-between" align="center">
+    <VStack spacing={3} width="100%" align="stretch">
+      <Flex justify="space-between" align="center" gap={4}>
         <HStack>
           <IconButton
             aria-label="Move backward"
@@ -140,7 +143,7 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
           />
         </HStack>
 
-        <Box marginLeft="200px" flex={1}>
+        <Box marginLeft={`${LABEL_COLUMN_WIDTH_PX}px`} flex={1}>
           <Menu>
             <MenuButton
               as={Button}
@@ -210,10 +213,16 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
       <Box
         position="relative"
         width="calc(100% - 200px)"
-        height="24px"
-        mt={2}
-        marginLeft="200px"
-        paddingX={4}>
+        height="28px"
+        mt={1}
+        marginLeft={`${LABEL_COLUMN_WIDTH_PX}px`}
+        paddingX={4}
+        bg={axisBg}
+        borderWidth="1px"
+        borderColor={borderColor}
+        borderRadius="md"
+        display="flex"
+        alignItems="center">
         {renderTimeLabels()}
       </Box>
     </VStack>

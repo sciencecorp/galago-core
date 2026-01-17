@@ -205,13 +205,13 @@ const parseBool = (value: string | undefined, fallback: boolean) => {
 };
 
 export const Settings: React.FC = () => {
-  const headerBg = useColorModeValue("white", "gray.700");
-  const cardBg = useColorModeValue("white", "gray.800");
+  const headerBg = useColorModeValue("white", "surface.section");
+  const cardBg = useColorModeValue("white", "surface.section");
   const mutedText = useColorModeValue("gray.600", "gray.400");
-  const dividerColor = useColorModeValue("gray.200", "gray.700");
-  const inputBg = useColorModeValue("gray.50", "gray.700");
-  const tabHoverBg = useColorModeValue("gray.50", "gray.700");
-  const tabSelectedBg = useColorModeValue("white", "gray.700");
+  const dividerColor = useColorModeValue("gray.200", "border.subtle");
+  const inputBg = useColorModeValue("gray.50", "surface.panel");
+  const tabHoverBg = useColorModeValue("gray.50", "surface.hover");
+  const tabSelectedBg = useColorModeValue("white", "surface.section");
   const tabSelectedBorder = useColorModeValue("teal.500", "teal.300");
 
   const {

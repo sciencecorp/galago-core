@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Box, VStack, Text, Tooltip, Flex, Spinner, Image } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import moment from "moment";
 import { TimelineControls } from "./TimelineControls";
+import { CurrentTimeLine } from "./CurrentTimeLine";
 import "@/styles/Home.module.css";
 import { useColorModeValue } from "@chakra-ui/react";
 import { ToolType } from "gen-interfaces/controller";
@@ -32,13 +33,43 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
   const runsQuery = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
   const toolInfoQuery = trpc.tool.getAll.useQuery();
 
-  const borderColor = useColorModeValue("gray.300", "gray.700");
-  const borderColorAlpha = useColorModeValue("gray.300", "gray.600");
-  const mainBgColor = useColorModeValue("white", "gray.800");
-  const toolLabelsBgColor = useColorModeValue("gray.50", "gray.900");
-  const toolLabelHoverBg = useColorModeValue("gray.100", "gray.700");
-  const toolIconBg = useColorModeValue("white", "gray.800");
-  const commandBorderColor = useColorModeValue("gray.200", "gray.600");
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const toolLabelsInnerRef = useRef<HTMLDivElement | null>(null);
+
+  const LABEL_COLUMN_WIDTH_PX = 200;
+  const ROW_HEIGHT_PX = 60;
+  const BLOCK_HEIGHT_PX = 45;
+
+  const borderColor = useColorModeValue("gray.300", "whiteAlpha.200");
+  const gridLineColor = useColorModeValue("blackAlpha.200", "whiteAlpha.200");
+  const mainBgColor = useColorModeValue("white", "surface.section");
+  const toolLabelsBgColor = useColorModeValue("gray.50", "#15171c");
+  const toolLabelHoverBg = useColorModeValue("gray.100", "surface.hover");
+  const toolIconBg = useColorModeValue("white", "surface.panel");
+  const commandBorderColor = useColorModeValue("gray.200", "whiteAlpha.200");
+  const rowStripeA = useColorModeValue("blackAlpha.50", "whiteAlpha.50");
+  const rowStripeB = useColorModeValue("transparent", "transparent");
+  const selectedRingColor = useColorModeValue("teal.500", "teal.300");
+  const commandTextShadow = useColorModeValue(
+    "0 1px 2px rgba(0,0,0,0.35)",
+    "0 1px 2px rgba(0,0,0,0.55)",
+  );
+  const commandCoolFilter = useColorModeValue(
+    "saturate(1.05) brightness(0.98) hue-rotate(-10deg)",
+    "saturate(1.05) brightness(0.82) contrast(1.05) hue-rotate(-8deg)",
+  );
+  const commandGloss = useColorModeValue(
+    "linear-gradient(135deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.05) 45%, rgba(0,0,0,0.08) 100%)",
+    "linear-gradient(135deg, rgba(0,0,0,0.14) 0%, rgba(0,0,0,0.24) 55%, rgba(255,255,255,0.03) 100%)",
+  );
+
+  const toolTypes = useMemo(
+    () =>
+      commandsAll.data
+        ? Array.from(new Set(commandsAll.data.map((cmd) => cmd.commandInfo.toolType)))
+        : [],
+    [commandsAll.data],
+  );
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -70,6 +101,32 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
       setEndTime(lastCommandTime.add(1, "hour"));
     }
   }, [commandsAll.data, isAutoScrolling]);
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    const labelsInner = toolLabelsInnerRef.current;
+    if (!el || !labelsInner) return;
+
+    let rafId: number | null = null;
+    const sync = () => {
+      rafId = null;
+      // Keep the left labels visually aligned with the scrolled rows.
+      labelsInner.style.transform = `translateY(-${el.scrollTop}px)`;
+    };
+
+    const onScroll = () => {
+      if (rafId != null) return;
+      rafId = window.requestAnimationFrame(sync);
+    };
+
+    // Initial sync in case we render mid-scroll.
+    sync();
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      if (rafId != null) window.cancelAnimationFrame(rafId);
+    };
+  }, []);
 
   if (!commandsAll.data || !runsQuery.data) {
     return (
@@ -137,13 +194,32 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
           top={0}
           bottom={0}
           width="1px"
-          borderLeft="1px dashed"
-          borderColor={borderColorAlpha}
+          borderLeft="1px solid"
+          borderColor={gridLineColor}
           zIndex={1}
         />,
       );
     }
     return lines;
+  };
+
+  const renderRowStripes = () => {
+    if (!toolTypes.length) return null;
+    return toolTypes.map((toolType, index) => (
+      <Box
+        key={toolType}
+        position="absolute"
+        left={0}
+        right={0}
+        top={`${index * ROW_HEIGHT_PX}px`}
+        height={`${ROW_HEIGHT_PX}px`}
+        bg={index % 2 === 0 ? rowStripeA : rowStripeB}
+        borderBottom="1px solid"
+        borderColor={borderColor}
+        zIndex={0}
+        pointerEvents="none"
+      />
+    ));
   };
 
   const renderCommands = () => {
@@ -168,9 +244,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
     );
 
     const toolTypes = Object.keys(commandsByTool);
-    const rowHeight = 60;
-    const blockHeight = 45;
-    const verticalPadding = 0;
+    const verticalPadding = 8;
 
     let lastEndTime = moment(0);
 
@@ -231,8 +305,8 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
             label={`Tool: ${command.commandInfo.toolType} | Command: ${command.commandInfo.command} | Status: ${command.status}`}>
             <Box
               position="absolute"
-              height={`${blockHeight}px`}
-              top={`${toolIndex * rowHeight + verticalPadding}px`}
+              height={`${BLOCK_HEIGHT_PX}px`}
+              top={`${toolIndex * ROW_HEIGHT_PX + verticalPadding}px`}
               left={left}
               width={`calc(${width} - 4px)`}
               marginLeft="2px"
@@ -246,9 +320,15 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
               opacity={opacity}
               _hover={{ opacity: 1, transform: "translateY(-1px)" }}
               transition="all 0.2s"
-              zIndex={2}
-              boxShadow={isSelected ? "md" : "none"}
-              backgroundImage={pattern}
+              zIndex={3}
+              boxShadow={
+                isSelected
+                  ? `0 0 0 2px ${selectedRingColor}, 0 10px 25px rgba(0,0,0,0.20)`
+                  : "0 6px 16px rgba(0,0,0,0.12)"
+              }
+              backgroundImage={pattern === "none" ? commandGloss : `${pattern}, ${commandGloss}`}
+              backgroundBlendMode={pattern === "none" ? "normal" : "overlay, normal"}
+              filter={commandCoolFilter}
               animation={command.status === "STARTED" ? "pulse 2s infinite" : undefined}
               sx={{
                 "@keyframes pulse": {
@@ -287,10 +367,11 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
                 left="5px"
                 top="50%"
                 transform="translateY(-50%)"
-                fontSize="md"
-                fontWeight="bold"
-                letterSpacing="wide"
+                fontSize="sm"
+                fontWeight="semibold"
+                letterSpacing="0.02em"
                 color="white"
+                textShadow={commandTextShadow}
                 isTruncated
                 maxWidth="90%">
                 {command.commandInfo.command
@@ -308,9 +389,6 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
   const renderToolLabels = () => {
     if (!commandsAll.data) return null;
 
-    const toolTypes = Array.from(new Set(commandsAll.data.map((cmd) => cmd.commandInfo.toolType)));
-    const rowHeight = 60;
-
     if (toolInfoQuery.isLoading) return null;
 
     return (
@@ -318,73 +396,73 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
         position="absolute"
         left="0"
         top="0"
-        width="200px"
+        width={`${LABEL_COLUMN_WIDTH_PX}px`}
         height="100%"
         borderRight="1px solid"
         borderColor={borderColor}
         bg={toolLabelsBgColor}
-        zIndex={1}>
-        {toolTypes.map((toolType, index) => {
-          const toolInfo = toolInfoQuery.data?.find((t) => t.type === toolType);
-          const imageUrl = toolInfo?.imageUrl;
-          const isToolbox = toolType.toLowerCase() === "toolbox";
+        zIndex={2}
+        overflow="hidden">
+        <Box ref={toolLabelsInnerRef} position="relative" willChange="transform">
+          {toolTypes.map((toolType, index) => {
+            const toolInfo = toolInfoQuery.data?.find((t) => t.type === toolType);
+            const imageUrl = toolInfo?.imageUrl;
+            const isToolbox = toolType.toLowerCase() === "toolbox";
 
-          return (
-            <Box
-              key={toolType}
-              position="absolute"
-              top={`${index * rowHeight}px`}
-              left="0"
-              width="100%"
-              height={`${rowHeight}px`}
-              padding="10px"
-              borderBottom="1px solid"
-              borderColor={borderColor}
-              display="flex"
-              alignItems="center"
-              gap="3"
-              _hover={{ bg: toolLabelHoverBg }}
-              transition="background 0.2s">
-              <Flex
-                width="40px"
-                height="40px"
-                bg={toolIconBg}
-                borderRadius="md"
-                justifyContent="center"
+            return (
+              <Box
+                key={toolType}
+                position="absolute"
+                top={`${index * ROW_HEIGHT_PX}px`}
+                left="0"
+                width="100%"
+                height={`${ROW_HEIGHT_PX}px`}
+                padding="10px"
+                borderBottom="1px solid"
+                borderColor={borderColor}
+                display="flex"
                 alignItems="center"
-                boxShadow="sm">
-                {isToolbox ? (
-                  <Box width="30px" height="30px" color={getToolColor("toolbox" as ToolType)}>
-                    <ToolCase style={{ width: "100%", height: "100%" }} />
-                  </Box>
-                ) : imageUrl ? (
-                  <Image
-                    src={imageUrl}
-                    alt={toolType}
-                    width="30px"
-                    height="30px"
-                    objectFit="contain"
-                  />
-                ) : (
-                  <Box
-                    width="30px"
-                    height="30px"
-                    bg={getToolColor(toolType as ToolType)}
-                    borderRadius="md"
-                  />
-                )}
-              </Flex>
-              <VStack align="start" spacing="0" flex="1">
-                <Text fontSize="md" fontWeight="bold" isTruncated>
-                  {toolType}
-                </Text>
-                <Text fontSize="xs" color="gray.500" isTruncated>
-                  {toolInfo?.description || "Tool"}
-                </Text>
-              </VStack>
-            </Box>
-          );
-        })}
+                gap="3"
+                _hover={{ bg: toolLabelHoverBg }}
+                transition="background 0.2s">
+                <Flex
+                  width="40px"
+                  height="40px"
+                  bg={toolIconBg}
+                  borderRadius="md"
+                  justifyContent="center"
+                  alignItems="center"
+                  boxShadow="sm">
+                  {isToolbox ? (
+                    <Box width="30px" height="30px" color={getToolColor("toolbox" as ToolType)}>
+                      <ToolCase style={{ width: "100%", height: "100%" }} />
+                    </Box>
+                  ) : imageUrl ? (
+                    <Image
+                      src={imageUrl}
+                      alt={toolType}
+                      width="30px"
+                      height="30px"
+                      objectFit="contain"
+                    />
+                  ) : (
+                    <Box
+                      width="30px"
+                      height="30px"
+                      bg={getToolColor(toolType as ToolType)}
+                      borderRadius="md"
+                    />
+                  )}
+                </Flex>
+                <VStack align="start" spacing="0" flex="1" justify="center">
+                  <Text fontSize="sm" fontWeight="bold" isTruncated>
+                    {toolType}
+                  </Text>
+                </VStack>
+              </Box>
+            );
+          })}
+        </Box>
       </Box>
     );
   };
@@ -394,40 +472,7 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
     const currentDuration = currentTime.diff(startTime, "seconds");
     return (currentDuration / totalDuration) * 100;
   })();
-
-  const CurrentTimeLine = ({ position }: { position: number }) => (
-    <Box
-      position="absolute"
-      left={`${position}%`}
-      top="0"
-      bottom="0"
-      width="2px"
-      bg="red.500"
-      opacity={0.8}
-      zIndex={4}
-      pointerEvents="none"
-      transition="left 0.1s linear"
-      mt="10px"
-      _before={{
-        content: '""',
-        position: "absolute",
-        top: "-8px",
-        left: "-5px",
-        width: "12px",
-        height: "12px",
-        borderRadius: "50%",
-        backgroundColor: "red.500",
-        boxShadow: "0 0 0 2px white",
-        transition: "left 0.1s linear",
-        zIndex: 10,
-      }}
-    />
-  );
-
-  const toolTypes = commandsAll.data
-    ? Array.from(new Set(commandsAll.data.map((cmd) => cmd.commandInfo.toolType)))
-    : [];
-  const totalHeight = toolTypes.length * 60;
+  const totalHeight = toolTypes.length * ROW_HEIGHT_PX;
 
   return (
     <Box width="100%" p={4}>
@@ -443,15 +488,22 @@ const RunQueueGanttChart: React.FC<GanttChartProps> = ({ onRunClick, selectedRun
           <Box
             position="relative"
             height="100%"
-            marginLeft="200px"
+            marginLeft={`${LABEL_COLUMN_WIDTH_PX}px`}
             overflowY="auto"
             overflowX="hidden"
             bg={mainBgColor}
             border="1px solid"
-            borderColor={borderColor}>
-            <Box position="relative" minHeight="100%" height={`${totalHeight}px`} pt="10px">
+            borderColor={borderColor}
+            ref={scrollContainerRef}
+            sx={{
+              "&::-webkit-scrollbar": { width: "10px" },
+              "&::-webkit-scrollbar-thumb": { background: "rgba(0,0,0,0.25)", borderRadius: "8px" },
+              "&::-webkit-scrollbar-track": { background: "transparent" },
+            }}>
+            <Box position="relative" minHeight="100%" height={`${totalHeight}px`}>
+              {renderRowStripes()}
               {renderGridLines()}
-              <Box position="relative" zIndex={2}>
+              <Box position="relative" zIndex={3}>
                 {renderCommands()}
               </Box>
               <CurrentTimeLine position={currentTimePosition} />

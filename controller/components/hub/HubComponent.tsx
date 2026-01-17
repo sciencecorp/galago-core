@@ -87,9 +87,9 @@ function normalizeWorkcellImportPayload(raw: any): any {
 }
 
 export function HubComponent(): JSX.Element {
-  const headerBg = useColorModeValue("white", "gray.700");
-  const subtleBg = useColorModeValue("gray.50", "gray.800");
-  const border = useColorModeValue("gray.200", "gray.700");
+  const headerBg = useColorModeValue("white", "surface.section");
+  const subtleBg = useColorModeValue("gray.50", "surface.panel");
+  const border = useColorModeValue("gray.200", "border.subtle");
 
   const [selectedType, setSelectedType] = useState<HubItemType | "all">("all");
   const [q, setQ] = useState("");

@@ -31,10 +31,10 @@ interface ErrorModalProps {
 }
 
 export const ErrorModal: React.FC<ErrorModalProps> = ({ isOpen, onClose, errorData }) => {
-  const bgColor = useColorModeValue("white", "gray.800");
+  const bgColor = useColorModeValue("white", "surface.section");
   const errorBadgeBg = useColorModeValue("red.100", "red.900");
   const errorBadgeColor = useColorModeValue("red.800", "red.200");
-  const codeBg = useColorModeValue("gray.100", "gray.700");
+  const codeBg = useColorModeValue("gray.100", "surface.panel");
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg" isCentered>

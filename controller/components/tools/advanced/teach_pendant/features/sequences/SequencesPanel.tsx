@@ -185,10 +185,10 @@ export const SequencesPanel: React.FC<SequencesPanelProps> = ({
     }
   };
 
-  const borderColor = useColorModeValue("gray.200", "gray.600");
-  const tableBgColor = useColorModeValue("white", "gray.800");
-  const headerBgColor = useColorModeValue("gray.50", "gray.700");
-  const hoverBgColor = useColorModeValue("gray.50", "gray.700");
+  const borderColor = useColorModeValue("gray.200", "whiteAlpha.200");
+  const tableBgColor = useColorModeValue("white", "surface.panel");
+  const headerBgColor = useColorModeValue("gray.50", "surface.section");
+  const hoverBgColor = useColorModeValue("gray.50", "surface.hover");
   const textColor = useColorModeValue("gray.800", "gray.100");
   const panelShadowColor = useColorModeValue(
     "0 1px 3px rgba(0, 0, 0, 0.1)",

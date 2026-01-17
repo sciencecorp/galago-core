@@ -38,7 +38,7 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
 }) => {
   const { cardBg, borderColor } = useCommonColors();
   const { secondary: iconColor } = useTextColors();
-  const statBg = useColorModeValue("gray.50", "gray.800");
+  const statBg = useColorModeValue("gray.50", "surface.panel");
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { data: hotel } = trpc.inventory.getHotelById.useQuery(hotelId);

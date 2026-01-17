@@ -36,9 +36,9 @@ export function HubFormPreview({
   title?: string;
   description?: string;
 }): JSX.Element {
-  const panelBg = useColorModeValue("white", "gray.800");
-  const border = useColorModeValue("gray.200", "gray.700");
-  const labelBg = useColorModeValue("gray.50", "gray.900");
+  const panelBg = useColorModeValue("white", "surface.section");
+  const border = useColorModeValue("gray.200", "border.subtle");
+  const labelBg = useColorModeValue("gray.50", "surface.panel");
 
   return (
     <Box border="1px" borderColor={border} borderRadius="md" bg={panelBg} p={4}>
