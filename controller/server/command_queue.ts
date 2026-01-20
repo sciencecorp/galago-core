@@ -825,7 +825,9 @@ export class CommandQueue {
             if (typeof minutesValue === "string") {
               if (minutesValue.startsWith("{{") && minutesValue.endsWith("}}")) {
                 try {
-                  const varResponse = await this._getVariableByName(minutesValue.slice(2, -2).trim());
+                  const varResponse = await this._getVariableByName(
+                    minutesValue.slice(2, -2).trim(),
+                  );
                   minutesValue = varResponse?.value ?? minutesValue;
                 } catch (e) {
                   logAction({
@@ -836,7 +838,9 @@ export class CommandQueue {
                 }
               } else if (minutesValue.startsWith("${") && minutesValue.endsWith("}")) {
                 try {
-                  const varResponse = await this._getVariableByName(minutesValue.slice(2, -1).trim());
+                  const varResponse = await this._getVariableByName(
+                    minutesValue.slice(2, -1).trim(),
+                  );
                   minutesValue = varResponse?.value ?? minutesValue;
                 } catch (e) {
                   logAction({
@@ -852,7 +856,9 @@ export class CommandQueue {
             if (typeof secondsValue === "string") {
               if (secondsValue.startsWith("{{") && secondsValue.endsWith("}}")) {
                 try {
-                  const varResponse = await this._getVariableByName(secondsValue.slice(2, -2).trim());
+                  const varResponse = await this._getVariableByName(
+                    secondsValue.slice(2, -2).trim(),
+                  );
                   secondsValue = varResponse?.value ?? secondsValue;
                 } catch (e) {
                   logAction({
@@ -863,7 +869,9 @@ export class CommandQueue {
                 }
               } else if (secondsValue.startsWith("${") && secondsValue.endsWith("}")) {
                 try {
-                  const varResponse = await this._getVariableByName(secondsValue.slice(2, -1).trim());
+                  const varResponse = await this._getVariableByName(
+                    secondsValue.slice(2, -1).trim(),
+                  );
                   secondsValue = varResponse?.value ?? secondsValue;
                 } catch (e) {
                   logAction({
