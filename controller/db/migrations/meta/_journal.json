@@ -43,6 +43,13 @@
       "when": 1768300000000,
       "tag": "0007_quiet_settings_security",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1768889833726,
+      "tag": "0008_lame_black_cat",
+      "breakpoints": true
     }
   ]
 }

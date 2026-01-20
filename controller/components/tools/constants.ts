@@ -303,4 +303,12 @@ export const commandFields: CommandFields = {
     go_to: [{ name: "stack_id", type: "number", defaultValue: 1 }],
     send_raw_command: [{ name: "command", type: "text" }],
   },
+  spectramax: {
+    open_drawer: [],
+    close_drawer: [],
+    start_read: [
+      { name: "protocol_file", type: "text" },
+      { name: "experiment_name", type: "text" },
+    ],
+  },
 };
