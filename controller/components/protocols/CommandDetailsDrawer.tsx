@@ -89,17 +89,11 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
 
   const handleVariableSelect = (fieldName: string, variableName: string) => {
     if (variableName === "") {
-      const valueWithoutVariable = editedParams[fieldName];
-      if (
-        typeof valueWithoutVariable === "string" &&
-        valueWithoutVariable.startsWith("{{") &&
-        valueWithoutVariable.endsWith("}}")
-      ) {
-        // If it was a variable reference, clear it completely
-        const newParams = { ...editedParams };
-        delete newParams[fieldName];
-        setEditedParams(newParams);
-      }
+      // Clear the variable - set to empty string to override original value
+      setEditedParams({
+        ...editedParams,
+        [fieldName]: "",
+      });
     } else {
       // Set the parameter value to the variable reference format
       setEditedParams({
