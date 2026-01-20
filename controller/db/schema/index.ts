@@ -64,7 +64,7 @@ export const nests = sqliteTable("nests", {
   referenceNestId: integer("reference_nest_id").references((): any => nests.id, {
     onDelete: "set null",
   }),
-  robotArmLocationId: integer("robot_arm_location_id").references(() => robotArmLocations.id, {
+  robotArmLocationId: integer("robot_arm_location_id").references((): any => robotArmLocations.id, {
     onDelete: "set null",
   }),
   ...timestamps,

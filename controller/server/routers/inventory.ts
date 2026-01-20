@@ -25,6 +25,16 @@ const zNest = z.object({
   hotelId: z.number().nullable().optional(),
 });
 
+const zNestUpdate = z.object({
+  id: z.number(),
+  name: z.string().optional(),
+  row: z.number().optional(),
+  column: z.number().optional(),
+  toolId: z.number().nullable().optional(),
+  hotelId: z.number().nullable().optional(),
+  nestType: z.string().optional(),
+});
+
 const zPlate = z.object({
   id: z.number().optional(),
   name: z.string().nullable().optional(),
@@ -155,7 +165,7 @@ export const inventoryRouter = router({
     return result[0];
   }),
 
-  updateNest: procedure.input(zNest).mutation(async ({ input }) => {
+  updateNest: procedure.input(zNestUpdate).mutation(async ({ input }) => {
     const { id, ...updateData } = input;
 
     if (!id) {
@@ -995,9 +1005,11 @@ export const inventoryRouter = router({
         .select({
           nest: nests,
           location: robotArmLocations,
+          tool: tools,
         })
         .from(nests)
-        .leftJoin(robotArmLocations, eq(nests.robotArmLocationId, robotArmLocations.id));
+        .leftJoin(robotArmLocations, eq(nests.robotArmLocationId, robotArmLocations.id))
+        .leftJoin(tools, eq(nests.toolId, tools.id));
 
       if (input.toolId) {
         query = query.where(eq(nests.toolId, input.toolId)) as any;
