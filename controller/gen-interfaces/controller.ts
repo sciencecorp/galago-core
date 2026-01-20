@@ -25,11 +25,6 @@ export enum ToolType {
   vprep = "vprep",
   plr = "plr",
   pyhamilton = "pyhamilton",
-  vspin_with_loader = "vspin_with_loader",
-  vspin = "vspin",
-  benchcel = "benchcel",
-  minihub = "minihub",
-  vstack = "vstack",
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
@@ -95,21 +90,6 @@ export function toolTypeFromJSON(object: any): ToolType {
     case 20:
     case "pyhamilton":
       return ToolType.pyhamilton;
-    case 21:
-    case "vspin_with_loader":
-      return ToolType.vspin_with_loader;
-    case 22:
-    case "vspin":
-      return ToolType.vspin;
-    case 23:
-    case "benchcel":
-      return ToolType.benchcel;
-    case 24:
-    case "minihub":
-      return ToolType.minihub;
-    case 25:
-    case "vstack":
-      return ToolType.vstack;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -159,16 +139,6 @@ export function toolTypeToJSON(object: ToolType): string {
       return "plr";
     case ToolType.pyhamilton:
       return "pyhamilton";
-    case ToolType.vspin_with_loader:
-      return "vspin_with_loader";
-    case ToolType.vspin:
-      return "vspin";
-    case ToolType.benchcel:
-      return "benchcel";
-    case ToolType.minihub:
-      return "minihub";
-    case ToolType.vstack:
-      return "vstack";
     case ToolType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -217,16 +187,6 @@ export function toolTypeToNumber(object: ToolType): number {
       return 19;
     case ToolType.pyhamilton:
       return 20;
-    case ToolType.vspin_with_loader:
-      return 21;
-    case ToolType.vspin:
-      return 22;
-    case ToolType.benchcel:
-      return 23;
-    case ToolType.minihub:
-      return 24;
-    case ToolType.vstack:
-      return 25;
     case ToolType.UNRECOGNIZED:
     default:
       return -1;
