@@ -28,6 +28,9 @@ interface InventoryHotelCardProps {
   nests: Nest[];
   plates: Plate[];
   onDeleteHotel?: () => void;
+  onToggleRobotAccessible?: (nestId: number, accessible: boolean) => Promise<void>;
+  onInferPositions?: (hotelId: number, referenceNestId: number, zOffset: number) => Promise<void>;
+  onUpdateNest?: (nestId: number, updates: { nestType?: string; name?: string }) => Promise<void>;
 }
 
 export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
@@ -35,6 +38,9 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
   nests,
   plates,
   onDeleteHotel,
+  onToggleRobotAccessible,
+  onInferPositions,
+  onUpdateNest,
 }) => {
   const { cardBg, borderColor } = useCommonColors();
   const { secondary: iconColor } = useTextColors();
@@ -231,6 +237,10 @@ export const InventoryHotelCard: React.FC<InventoryHotelCardProps> = ({
         onCreatePlate={handleCreatePlate}
         onUpdatePlate={handleUpdatePlate}
         onDeletePlate={handleDeletePlate}
+        onUpdateNest={onUpdateNest}
+        hotelId={hotelId}
+        onToggleRobotAccessible={onToggleRobotAccessible}
+        onInferPositions={onInferPositions}
       />
     </>
   );

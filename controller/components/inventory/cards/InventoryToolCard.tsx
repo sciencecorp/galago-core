@@ -24,14 +24,25 @@ import { useColorModeValue } from "@chakra-ui/react";
 import { Wrench, Grid3x3, Package, FlaskConical } from "lucide-react";
 import { Icon } from "@/components/ui/Icons";
 import { useCommonColors, useTextColors } from "@/components/ui/Theme";
+import { TransferStationButton } from "../TransferStationButton";
 
 interface InventoryToolCardProps {
   toolId: number;
   nests: Nest[];
   plates: Plate[];
+  onToggleRobotAccessible?: (nestId: number, accessible: boolean) => Promise<void>;
+  onCreateTransferStation?: (toolId: number, name: string) => Promise<void>;
+  onUpdateNest?: (nestId: number, updates: { nestType?: string; name?: string }) => Promise<void>;
 }
 
-export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({ toolId, nests, plates }) => {
+export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({
+  toolId,
+  nests,
+  plates,
+  onToggleRobotAccessible,
+  onCreateTransferStation,
+  onUpdateNest,
+}) => {
   const { cardBg, borderColor } = useCommonColors();
   const { secondary: iconColor } = useTextColors();
   const statBg = useColorModeValue("gray.50", "surface.panel");
@@ -233,6 +244,15 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({ toolId, ne
                 </Box>
               </Tooltip>
             </SimpleGrid>
+
+            {onCreateTransferStation && (
+              <Box mt={2} onClick={(e) => e.stopPropagation()}>
+                <TransferStationButton
+                  toolId={toolId}
+                  onCreate={(name) => onCreateTransferStation(toolId, name)}
+                />
+              </Box>
+            )}
           </VStack>
         </CardBody>
       </Card>
@@ -248,6 +268,8 @@ export const InventoryToolCard: React.FC<InventoryToolCardProps> = ({ toolId, ne
         onCreatePlate={handleCreatePlate}
         onUpdatePlate={handleUpdatePlate}
         onDeletePlate={handleDeletePlate}
+        onUpdateNest={onUpdateNest}
+        onToggleRobotAccessible={onToggleRobotAccessible}
       />
     </>
   );

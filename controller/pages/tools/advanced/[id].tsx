@@ -8,7 +8,10 @@ export default function Page() {
   const router = useRouter();
   const id = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
 
-  const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
+  const infoQuery = trpc.tool.info.useQuery(
+    { toolId: id || "" },
+    { enabled: !!id }
+  );
   const configDefault = infoQuery.data;
 
   if (configDefault != undefined) {

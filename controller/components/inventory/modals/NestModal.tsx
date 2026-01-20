@@ -37,9 +37,11 @@ import { Nest, Plate } from "@/types";
 import { AddIcon, MinusIcon, DeleteIcon } from "@chakra-ui/icons";
 import { WellPlateIcon, Icon } from "@/components/ui/Icons";
 import { Check, Grid3x3 } from "lucide-react";
-import { successToast, errorToast, warningToast } from "@/components/ui/Toast";
+import { successToast, errorToast, warningToast, progressToast } from "@/components/ui/Toast";
 import { useCommonColors, useTextColors } from "@/components/ui/Theme";
 import { EditableText, EditableSelect } from "@/components/ui/Form";
+import { RobotAccessibleToggle } from "../RobotAccessibleToggle";
+import { InferPositionsModal } from "../InferPositionsModal";
 
 interface NestModalProps {
   isOpen: boolean;
@@ -64,6 +66,15 @@ interface NestModalProps {
     },
   ) => Promise<void>;
   onDeletePlate?: (plateId: number) => Promise<void>;
+  onUpdateNest?: (nestId: number, updates: { nestType?: string; name?: string }) => Promise<void>;
+  // Robot integration props
+  hotelId?: number;
+  onToggleRobotAccessible?: (
+    nestId: number,
+    accessible: boolean,
+    suppressToast?: boolean,
+  ) => Promise<void>;
+  onInferPositions?: (hotelId: number, referenceNestId: number, zOffset: number) => Promise<void>;
 }
 
 const PLATE_TYPE_OPTIONS = [
@@ -102,8 +113,15 @@ const NestModal: React.FC<NestModalProps> = ({
   onCreatePlate,
   onUpdatePlate,
   onDeletePlate,
+  onUpdateNest,
+  hotelId,
+  onToggleRobotAccessible,
+  onInferPositions,
 }) => {
   const [selectedNest, setSelectedNest] = useState<Nest | null>(null);
+  const [selectedNests, setSelectedNests] = useState<Set<number>>(new Set());
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartNest, setDragStartNest] = useState<Nest | null>(null);
   const [dimensionMode, setDimensionMode] = useState<"row" | "column">("column");
   const [plateForm, setPlateForm] = useState({
     barcode: "",
@@ -121,6 +139,19 @@ const NestModal: React.FC<NestModalProps> = ({
       }
     >
   >({});
+  // Robot integration state
+  const [showInferModal, setShowInferModal] = useState(false);
+  const [referenceNest, setReferenceNest] = useState<Nest | null>(null);
+
+  // Sync selectedNest with updated nests data after query refetch
+  useEffect(() => {
+    if (selectedNest) {
+      const updatedNest = nests.find((n) => n.id === selectedNest.id);
+      if (updatedNest) {
+        setSelectedNest(updatedNest);
+      }
+    }
+  }, [nests]);
 
   const maxRows = nests.length > 0 ? Math.max(...nests.map((n) => n.row)) + 1 : 1;
   const maxColumns = nests.length > 0 ? Math.max(...nests.map((n) => n.column)) + 1 : 1;
@@ -139,10 +170,156 @@ const NestModal: React.FC<NestModalProps> = ({
   useEffect(() => {
     if (!isOpen) {
       setSelectedNest(null);
+      setSelectedNests(new Set());
       setPlateForm({ barcode: "", name: "", plateType: "96 well" });
       setTablePlateInputs({});
     }
   }, [isOpen]);
+
+  // Drag selection helpers
+  const getNestsInRectangle = (start: Nest, end: Nest): Set<number> => {
+    const minRow = Math.min(start.row, end.row);
+    const maxRow = Math.max(start.row, end.row);
+    const minCol = Math.min(start.column, end.column);
+    const maxCol = Math.max(start.column, end.column);
+
+    const selectedIds = new Set<number>();
+    nests.forEach((nest) => {
+      if (
+        nest.row >= minRow &&
+        nest.row <= maxRow &&
+        nest.column >= minCol &&
+        nest.column <= maxCol
+      ) {
+        selectedIds.add(nest.id);
+      }
+    });
+    return selectedIds;
+  };
+
+  const handleMouseDown = (nest: Nest, e: React.MouseEvent) => {
+    // Only start drag selection if not clicking on action buttons
+    if ((e.target as HTMLElement).closest("button, [role='button']")) {
+      return;
+    }
+
+    setIsDragging(true);
+    setDragStartNest(nest);
+    setSelectedNests(new Set([nest.id]));
+  };
+
+  const handleMouseEnter = (nest: Nest) => {
+    if (isDragging && dragStartNest) {
+      const newSelection = getNestsInRectangle(dragStartNest, nest);
+      setSelectedNests(newSelection);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Add global mouse up listener
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener("mouseup", handleMouseUp);
+      return () => window.removeEventListener("mouseup", handleMouseUp);
+    }
+  }, [isDragging]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && selectedNests.size > 0) {
+        setSelectedNests(new Set());
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [isOpen, selectedNests.size]);
+
+  // Batch operations
+  const handleBatchDelete = async () => {
+    if (!onDeleteNest || selectedNests.size === 0) return;
+
+    const total = selectedNests.size;
+    const progress = progressToast(`Deleting ${total} nest${total > 1 ? "s" : ""}...`, 0);
+
+    let completed = 0;
+    let failed = 0;
+
+    try {
+      for (const nestId of selectedNests) {
+        try {
+          await onDeleteNest(nestId);
+          completed++;
+        } catch (error) {
+          failed++;
+        }
+        const percent = Math.round(((completed + failed) / total) * 100);
+        progress.updateProgress(percent, `${completed} of ${total} deleted...`);
+      }
+
+      setSelectedNests(new Set());
+
+      if (failed === 0) {
+        progress.complete("Success", `Deleted ${completed} nest${completed > 1 ? "s" : ""}`);
+      } else {
+        progress.error(
+          "Partially completed",
+          `Deleted ${completed} nest${completed > 1 ? "s" : ""}, ${failed} failed`,
+        );
+      }
+    } catch (error) {
+      progress.error("Error", "Failed to delete nests");
+    }
+  };
+
+  const handleBatchToggleRobotAccess = async (accessible: boolean) => {
+    if (!onToggleRobotAccessible || selectedNests.size === 0) return;
+
+    const total = selectedNests.size;
+    const action = accessible ? "Enabling" : "Disabling";
+    const progress = progressToast(
+      `${action} robot access for ${total} nest${total > 1 ? "s" : ""}...`,
+      0,
+    );
+
+    let completed = 0;
+    let failed = 0;
+
+    try {
+      for (const nestId of selectedNests) {
+        try {
+          await onToggleRobotAccessible(nestId, accessible, true); // Suppress individual toasts
+          completed++;
+        } catch (error) {
+          failed++;
+        }
+        const percent = Math.round(((completed + failed) / total) * 100);
+        progress.updateProgress(percent, `${completed} of ${total} processed...`);
+      }
+
+      setSelectedNests(new Set());
+
+      if (failed === 0) {
+        progress.complete(
+          "Success",
+          `${accessible ? "Enabled" : "Disabled"} robot access for ${completed} nest${completed > 1 ? "s" : ""}`,
+        );
+      } else {
+        progress.error(
+          "Partially completed",
+          `Updated ${completed} nest${completed > 1 ? "s" : ""}, ${failed} failed`,
+        );
+      }
+    } catch (error) {
+      progress.error("Error", "Failed to update robot access");
+    }
+  };
 
   const calculateCellSize = () => {
     if (maxRows <= 3 && maxColumns <= 3) return "80px";
@@ -280,17 +457,30 @@ const NestModal: React.FC<NestModalProps> = ({
   const renderNestContent = (nest: Nest) => {
     const plate = plates.find((p) => p.nestId === nest.id);
     const isSelected = selectedNest?.id === nest.id;
+    const isMultiSelected = selectedNests.has(nest.id);
+    const isTransferStation = nest.nestType === "transfer_station";
+    const isRobotAccessible = nest.robotAccessible;
 
     return (
       <Box
         key={nest.id}
         p={2}
-        bg={isSelected ? selectedNestBg : nestBg}
+        bg={isMultiSelected ? "blue.100" : isSelected ? selectedNestBg : nestBg}
         borderWidth="2px"
-        borderColor={isSelected ? selectedNestBorder : nestBorderColor}
+        borderColor={
+          isMultiSelected
+            ? "blue.400"
+            : isTransferStation
+              ? "orange.400"
+              : isSelected
+                ? selectedNestBorder
+                : nestBorderColor
+        }
         borderRadius="md"
         cursor="pointer"
         onClick={() => setSelectedNest(nest)}
+        onMouseDown={(e) => handleMouseDown(nest, e)}
+        onMouseEnter={() => handleMouseEnter(nest)}
         position="relative"
         height={cellSize}
         width={cellSize}
@@ -298,10 +488,11 @@ const NestModal: React.FC<NestModalProps> = ({
         alignItems="center"
         justifyContent="center"
         transition="all 0.2s"
+        userSelect="none"
         _hover={{
           transform: "scale(1.05)",
           shadow: "md",
-          borderColor: selectedNestBorder,
+          borderColor: isMultiSelected ? "blue.500" : selectedNestBorder,
         }}>
         {plate ? (
           <>
@@ -331,6 +522,53 @@ const NestModal: React.FC<NestModalProps> = ({
             </Badge>
           </>
         ) : null}
+
+        {/* Robot accessibility indicator */}
+        {onToggleRobotAccessible && isRobotAccessible && (
+          <Box
+            position="absolute"
+            top="1"
+            left="1"
+            bg="teal.500"
+            borderRadius="full"
+            w="3"
+            h="3"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleRobotAccessible(nest.id, false);
+            }}
+            cursor="pointer"
+            title="Robot Arm Accessible (click to disable)"
+          />
+        )}
+
+        {/* Transfer station badge */}
+        {isTransferStation && (
+          <Badge
+            position="absolute"
+            bottom="1"
+            left="1"
+            colorScheme="orange"
+            fontSize="8px"
+            px="1"
+            py="0">
+            TS
+          </Badge>
+        )}
+
+        {/* Inferred position indicator */}
+        {nest.referenceNestId && (
+          <Badge
+            position="absolute"
+            bottom="1"
+            right="1"
+            colorScheme="blue"
+            fontSize="8px"
+            px="1"
+            py="0">
+            Inf
+          </Badge>
+        )}
       </Box>
     );
   };
@@ -413,9 +651,21 @@ const NestModal: React.FC<NestModalProps> = ({
                   {selectedPlate ? "Manage Plate" : "Add Plate to Nest"}
                 </Text>
                 {selectedNest ? (
-                  <Badge colorScheme="teal" fontSize="sm">
-                    Nest {selectedNest.row + 1}-{selectedNest.column + 1}
-                  </Badge>
+                  <HStack spacing={2}>
+                    <Badge colorScheme="teal" fontSize="sm">
+                      Nest {selectedNest.row + 1}-{selectedNest.column + 1}
+                    </Badge>
+                    {selectedNest.nestType === "transfer_station" && (
+                      <Badge colorScheme="orange" fontSize="xs">
+                        Transfer
+                      </Badge>
+                    )}
+                    {selectedNest.referenceNestId && (
+                      <Badge colorScheme="blue" fontSize="xs">
+                        Inferred
+                      </Badge>
+                    )}
+                  </HStack>
                 ) : (
                   <Text fontSize="sm" color="gray.500">
                     Select a nest from the grid
@@ -423,6 +673,18 @@ const NestModal: React.FC<NestModalProps> = ({
                 )}
               </VStack>
               <Divider />
+              {selectedNest && onToggleRobotAccessible && (
+                <Box>
+                  <Text fontSize="sm" fontWeight="medium" mb={2}>
+                    Robot Arm Access
+                  </Text>
+                  <RobotAccessibleToggle
+                    nestId={selectedNest.id}
+                    isAccessible={selectedNest.robotAccessible || false}
+                    onToggle={onToggleRobotAccessible}
+                  />
+                </Box>
+              )}
               {selectedNest && !selectedPlate && renderPlateForm()}
               {selectedPlate && (
                 <VStack spacing={3} align="stretch">
@@ -466,6 +728,12 @@ const NestModal: React.FC<NestModalProps> = ({
         {/* Right side - Grid */}
         <Box flex="2">
           <VStack spacing={4} align="stretch">
+            {/* Instruction Text */}
+            <Text fontSize="xs" color="gray.600" fontStyle="italic">
+              💡 Tip: Click and drag to select multiple nests for batch operations{" "}
+              {selectedNests.size > 0 && "(Press ESC to clear)"}
+            </Text>
+
             {/* Grid Controls */}
             {onCreateNest && onDeleteNest && (
               <HStack spacing={2} justify="flex-end">
@@ -507,8 +775,60 @@ const NestModal: React.FC<NestModalProps> = ({
               </HStack>
             )}
 
+            {/* Batch Actions */}
+            {selectedNests.size > 0 && (
+              <HStack
+                spacing={2}
+                p={3}
+                bg="blue.50"
+                borderRadius="md"
+                borderWidth="1px"
+                borderColor="blue.200">
+                <Text fontSize="sm" fontWeight="medium" color="blue.700">
+                  {selectedNests.size} nest{selectedNests.size > 1 ? "s" : ""} selected
+                </Text>
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  colorScheme="blue"
+                  onClick={() => setSelectedNests(new Set())}>
+                  Clear Selection
+                </Button>
+                {onToggleRobotAccessible && (
+                  <>
+                    <Button
+                      size="xs"
+                      colorScheme="teal"
+                      leftIcon={<Icon as={Check} />}
+                      onClick={() => handleBatchToggleRobotAccess(true)}>
+                      Enable Robot Access
+                    </Button>
+                    <Button
+                      size="xs"
+                      colorScheme="gray"
+                      onClick={() => handleBatchToggleRobotAccess(false)}>
+                      Disable Robot Access
+                    </Button>
+                  </>
+                )}
+                {onDeleteNest && (
+                  <Button
+                    size="xs"
+                    colorScheme="red"
+                    leftIcon={<DeleteIcon />}
+                    onClick={handleBatchDelete}>
+                    Delete Selected
+                  </Button>
+                )}
+              </HStack>
+            )}
+
             {/* Grid Display */}
-            <Flex justify="center" align="center" w="100%">
+            <Flex
+              justify="center"
+              align="center"
+              w="100%"
+              cursor={isDragging ? "crosshair" : "default"}>
               <Flex>
                 {/* Row labels */}
                 <VStack spacing={0} pt={14} pr={2} minW={labelWidth} justify="flex-start">
@@ -601,6 +921,8 @@ const NestModal: React.FC<NestModalProps> = ({
           <Tr>
             <Th>Row</Th>
             <Th>Column</Th>
+            <Th>Nest Type</Th>
+            <Th>Robot Arm Access</Th>
             <Th>Barcode</Th>
             <Th>Plate Name</Th>
             <Th>Plate Type</Th>
@@ -621,6 +943,53 @@ const NestModal: React.FC<NestModalProps> = ({
               <Tr key={nest.id} _hover={{ bg: nestBg }}>
                 <Td fontWeight="medium">{nest.row + 1}</Td>
                 <Td fontWeight="medium">{nest.column + 1}</Td>
+                <Td>
+                  {onUpdateNest ? (
+                    <Select
+                      size="sm"
+                      value={nest.nestType || "storage"}
+                      onChange={(e) => {
+                        onUpdateNest(nest.id, { nestType: e.target.value });
+                      }}
+                      bg={inputBg}
+                      width="140px"
+                    >
+                      <option value="storage">Storage</option>
+                      <option value="transfer_station">Transfer Station</option>
+                      <option value="interface">Interface</option>
+                    </Select>
+                  ) : (
+                    <Badge
+                      colorScheme={
+                        nest.nestType === "transfer_station"
+                          ? "orange"
+                          : nest.nestType === "interface"
+                            ? "purple"
+                            : "gray"
+                      }
+                    >
+                      {nest.nestType === "transfer_station"
+                        ? "Transfer"
+                        : nest.nestType === "interface"
+                          ? "Interface"
+                          : "Storage"}
+                    </Badge>
+                  )}
+                </Td>
+                <Td>
+                  {onToggleRobotAccessible && (
+                    <RobotAccessibleToggle
+                      nestId={nest.id}
+                      isAccessible={nest.robotAccessible || false}
+                      onToggle={onToggleRobotAccessible}
+                    />
+                  )}
+                  {nest.referenceNestId && (
+                    <Badge colorScheme="blue" ml={2}>
+                      Inferred
+                    </Badge>
+                  )}
+                </Td>
                 <Td minW="200px">
                   {plate ? (
                     <EditableText
@@ -762,6 +1131,26 @@ const NestModal: React.FC<NestModalProps> = ({
                 </Text>
               </VStack>
             </HStack>
+            {hotelId && onInferPositions && (
+              <Button
+                size="sm"
+                colorScheme="blue"
+                onClick={() => {
+                  const accessibleNests = nests.filter((n) => n.robotAccessible);
+                  if (accessibleNests.length > 0) {
+                    setReferenceNest(accessibleNests[0]);
+                    setShowInferModal(true);
+                  } else {
+                    warningToast(
+                      "No Reference Nest",
+                      "Please mark at least one nest as robot-accessible to use as a reference.",
+                    );
+                  }
+                }}
+              >
+                Infer Positions
+              </Button>
+            )}
           </HStack>
         </ModalHeader>
         <ModalCloseButton />
@@ -780,6 +1169,19 @@ const NestModal: React.FC<NestModalProps> = ({
           </Tabs>
         </ModalBody>
       </ModalContent>
+
+      {/* Infer Positions Modal */}
+      {showInferModal && referenceNest && hotelId && onInferPositions && (
+        <InferPositionsModal
+          isOpen={showInferModal}
+          onClose={() => setShowInferModal(false)}
+          hotelId={hotelId}
+          referenceNest={referenceNest}
+          onInfer={async (zOffset) => {
+            await onInferPositions(hotelId, referenceNest.id, zOffset);
+          }}
+        />
+      )}
     </Modal>
   );
 };

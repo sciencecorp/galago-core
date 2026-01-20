@@ -23,7 +23,7 @@ export const useTeachPendantQueries = (toolId: string | undefined, configId: num
   );
 
   const robotArmLocationsQuery = trpc.robotArm.location.getAll.useQuery(
-    { toolId: configId },
+    {}, // Fetch all teachpoints for all instruments (PF400 accesses all positions)
     { enabled: !!configId && configId !== 0 },
   );
 

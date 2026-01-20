@@ -2,9 +2,10 @@ import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { db } from "@/db/client";
 import { findOne, findMany, getSelectedWorkcellId } from "@/db/helpers";
-import { nests, plates, wells, reagents, hotels, tools, workcells } from "@/db/schema";
+import { nests, plates, wells, reagents, hotels, tools, workcells, robotArmLocations } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import Tool from "../tools";
 
 const zNest = z.object({
   id: z.number().optional(),
@@ -43,6 +44,21 @@ const zHotel = z.object({
   rows: z.number(),
   columns: z.number(),
 });
+
+// Helper function to safely reload PF400 waypoints
+async function safeReloadWaypoints(toolId: number | null | undefined): Promise<void> {
+  if (!toolId) return;
+
+  try {
+    const tool = await findOne(tools, eq(tools.id, toolId));
+    if (tool) {
+      await Tool.loadPF400Waypoints(tool.name);
+    }
+  } catch (error) {
+    // Log the error but don't fail the request - the database operation already succeeded
+    console.warn(`Failed to reload waypoints for tool ${toolId}:`, error);
+  }
+}
 
 // Helper function to get workcell by name
 async function getWorkcellByName(workcellName: string) {
@@ -140,6 +156,22 @@ export const inventoryRouter = router({
       });
     }
 
+    const existingNest = await findOne(nests, eq(nests.id, id));
+    if (!existingNest) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Nest not found",
+      });
+    }
+
+    // Sync name change to robot_arm_location if exists
+    if (updateData.name && existingNest.robotArmLocationId) {
+      await db
+        .update(robotArmLocations)
+        .set({ name: updateData.name })
+        .where(eq(robotArmLocations.id, existingNest.robotArmLocationId));
+    }
+
     const updated = await db
       .update(nests)
       .set({
@@ -159,6 +191,8 @@ export const inventoryRouter = router({
         message: "Nest not found",
       });
     }
+
+    if (existingNest.toolId) await safeReloadWaypoints(existingNest.toolId);
 
     return updated[0];
   }),
@@ -708,4 +742,263 @@ export const inventoryRouter = router({
 
     return { message: "Hotel deleted successfully" };
   }),
+
+  // ==================== ROBOT INTEGRATION ====================
+
+  toggleRobotAccessible: procedure
+    .input(
+      z.object({
+        nestId: z.number(),
+        accessible: z.boolean(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const nest = await findOne(nests, eq(nests.id, input.nestId));
+      if (!nest) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Nest not found" });
+      }
+
+      console.log(
+        `Toggle request for nest ${nest.id}: accessible=${input.accessible}, current robotArmLocationId=${nest.robotArmLocationId}, current robotAccessible=${nest.robotAccessible}`,
+      );
+
+      if (input.accessible && !nest.robotArmLocationId) {
+        // Create teachpoint with default zero coordinates
+        const numJoints = 6; // Default for PF400
+        const defaultCoords = Array(numJoints).fill(0).join(" ");
+
+        const location = await db
+          .insert(robotArmLocations)
+          .values({
+            name: nest.name || `Nest_${nest.id}`,
+            locationType: "j",
+            coordinates: defaultCoords,
+            orientation: "landscape",
+            toolId: nest.toolId || null, // Explicitly allow null for hotel nests
+            sourceNestId: nest.id,
+          })
+          .returning();
+
+        await db
+          .update(nests)
+          .set({
+            robotAccessible: true,
+            robotArmLocationId: location[0].id,
+          })
+          .where(eq(nests.id, input.nestId));
+
+        if (nest.toolId) await safeReloadWaypoints(nest.toolId);
+
+        console.log(
+          `Created teachpoint ${location[0].id} for nest ${nest.id} (toolId: ${nest.toolId || "null"})`,
+        );
+
+        return { success: true, created: true, locationId: location[0].id };
+      } else if (!input.accessible && nest.robotArmLocationId) {
+        // Update nest first to remove foreign key reference
+        await db
+          .update(nests)
+          .set({
+            robotAccessible: false,
+            robotArmLocationId: null,
+          })
+          .where(eq(nests.id, input.nestId));
+
+        // Then delete teachpoint
+        await db.delete(robotArmLocations).where(eq(robotArmLocations.id, nest.robotArmLocationId));
+
+        if (nest.toolId) await safeReloadWaypoints(nest.toolId);
+
+        return { success: true, created: false };
+      } else if (input.accessible && nest.robotArmLocationId) {
+        // Already has a teachpoint, just ensure it's marked as accessible
+        await db
+          .update(nests)
+          .set({
+            robotAccessible: true,
+          })
+          .where(eq(nests.id, input.nestId));
+
+        console.log(
+          `Nest ${nest.id} already has teachpoint ${nest.robotArmLocationId}, just updating accessibility`,
+        );
+
+        return { success: true, created: false, locationId: nest.robotArmLocationId };
+      } else if (!input.accessible && !nest.robotArmLocationId) {
+        // Already not accessible and no teachpoint
+        await db
+          .update(nests)
+          .set({
+            robotAccessible: false,
+          })
+          .where(eq(nests.id, input.nestId));
+
+        return { success: true, created: false };
+      }
+
+      return { success: true, created: false };
+    }),
+
+  inferHotelPositions: procedure
+    .input(
+      z.object({
+        hotelId: z.number(),
+        referenceNestId: z.number(),
+        zOffset: z.number(), // mm between vertical levels
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const referenceNest = await findOne(nests, eq(nests.id, input.referenceNestId));
+      if (!referenceNest?.robotArmLocationId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Reference nest must have a taught position",
+        });
+      }
+
+      const referenceLocation = await findOne(
+        robotArmLocations,
+        eq(robotArmLocations.id, referenceNest.robotArmLocationId),
+      );
+      if (!referenceLocation) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Reference location not found" });
+      }
+
+      const hotelNests = await findMany(nests, eq(nests.hotelId, input.hotelId));
+      const referenceCoords = referenceLocation.coordinates.split(" ").map(Number);
+
+      let inferredCount = 0;
+
+      for (const nest of hotelNests) {
+        if (nest.id === input.referenceNestId) continue; // Skip reference itself
+
+        // Calculate Z-offset based on row difference
+        const rowDiff = nest.row - referenceNest.row;
+        const inferredCoords = [...referenceCoords];
+        inferredCoords[2] += rowDiff * input.zOffset; // Adjust Z-axis (index 2)
+
+        const inferredCoordsStr = inferredCoords.join(" ");
+        const calculatedZOffset = rowDiff * input.zOffset;
+
+        // Create or update teachpoint
+        if (nest.robotArmLocationId) {
+          // Update existing
+          await db
+            .update(robotArmLocations)
+            .set({ coordinates: inferredCoordsStr })
+            .where(eq(robotArmLocations.id, nest.robotArmLocationId));
+
+          await db
+            .update(nests)
+            .set({
+              zOffset: calculatedZOffset,
+              referenceNestId: input.referenceNestId,
+            })
+            .where(eq(nests.id, nest.id));
+        } else {
+          // Create new (auto-enable robot accessibility per user preference)
+          const location = await db
+            .insert(robotArmLocations)
+            .values({
+              name: nest.name || `Nest_${nest.id}`,
+              locationType: "j",
+              coordinates: inferredCoordsStr,
+              orientation: referenceLocation.orientation,
+              toolId: nest.toolId,
+              sourceNestId: nest.id,
+            })
+            .returning();
+
+          await db
+            .update(nests)
+            .set({
+              robotAccessible: true, // Auto-enable per user preference
+              robotArmLocationId: location[0].id,
+              zOffset: calculatedZOffset,
+              referenceNestId: input.referenceNestId,
+            })
+            .where(eq(nests.id, nest.id));
+        }
+
+        inferredCount++;
+      }
+
+      if (referenceNest.toolId) await safeReloadWaypoints(referenceNest.toolId);
+
+      return { success: true, inferredCount };
+    }),
+
+  createTransferStation: procedure
+    .input(
+      z.object({
+        toolId: z.number(),
+        name: z.string(),
+        row: z.number().default(0),
+        column: z.number().default(0),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      // Create nest with transfer_station type
+      const nest = await db
+        .insert(nests)
+        .values({
+          name: input.name,
+          row: input.row,
+          column: input.column,
+          toolId: input.toolId,
+          nestType: "transfer_station",
+          robotAccessible: true, // Transfer stations are always accessible
+        })
+        .returning();
+
+      // Auto-create teachpoint
+      const location = await db
+        .insert(robotArmLocations)
+        .values({
+          name: input.name,
+          locationType: "j",
+          coordinates: "0 0 0 0 0 0",
+          orientation: "landscape",
+          toolId: input.toolId,
+          sourceNestId: nest[0].id,
+        })
+        .returning();
+
+      await db
+        .update(nests)
+        .set({ robotArmLocationId: location[0].id })
+        .where(eq(nests.id, nest[0].id));
+
+      await safeReloadWaypoints(input.toolId);
+
+      return { success: true, nest: nest[0], location: location[0] };
+    }),
+
+  getNestsWithTeachpoints: procedure
+    .input(
+      z.object({
+        toolId: z.number().optional(),
+        hotelId: z.number().optional(),
+      }),
+    )
+    .query(async ({ input }) => {
+      let query = db
+        .select({
+          nest: nests,
+          location: robotArmLocations,
+        })
+        .from(nests)
+        .leftJoin(robotArmLocations, eq(nests.robotArmLocationId, robotArmLocations.id));
+
+      if (input.toolId) {
+        query = query.where(eq(nests.toolId, input.toolId)) as any;
+      } else if (input.hotelId) {
+        query = query.where(eq(nests.hotelId, input.hotelId)) as any;
+      } else {
+        // When no filter specified, only return robot-accessible nests
+        query = query.where(eq(nests.robotAccessible, true)) as any;
+      }
+
+      return await query;
+    }),
 });

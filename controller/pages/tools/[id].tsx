@@ -35,7 +35,10 @@ type FormValues = Record<string, AtomicFormValues | Record<string, AtomicFormVal
 export default function Page() {
   const router = useRouter();
   const [id, setId] = useState<string | null>(null);
-  const infoQuery = trpc.tool.info.useQuery({ toolId: id || "" });
+  const infoQuery = trpc.tool.info.useQuery(
+    { toolId: id || "" },
+    { enabled: !!id }
+  );
   const config = infoQuery.data;
   const [_commandExecutionStatus, setCommandExecutionStatus] = useState<CommandStatus>({});
   const [selectedCommand, setSelectedCommand] = useState<string | undefined>();

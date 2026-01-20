@@ -43,7 +43,7 @@ import { trpc } from "@/utils/trpc";
 import { Package } from "lucide-react";
 import PlateModal from "./modals/PlateModal";
 import { Icon } from "@/components/ui/Icons";
-import { errorToast, loadingToast, warningToast, progressToast } from "@/components/ui/Toast";
+import { errorToast, loadingToast, warningToast, progressToast, successToast } from "@/components/ui/Toast";
 import { useCommonColors } from "@/components/ui/Theme";
 import { AddIcon } from "@chakra-ui/icons";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
@@ -96,11 +96,41 @@ export const InventoryManager = () => {
       enabled: !!selectedWorkcellName.data,
     },
   );
+  const utils = trpc.useContext();
+
   const createNestMutation = trpc.inventory.createNest.useMutation();
+  const updateNestMutation = trpc.inventory.updateNest.useMutation({
+    onSuccess: () => {
+      utils.inventory.getNests.invalidate();
+    },
+  });
   const deleteNestMutation = trpc.inventory.deleteNest.useMutation();
   const createReagentMutation = trpc.inventory.createReagent.useMutation();
   const createHotelMutation = trpc.inventory.createHotel.useMutation();
   const deleteHotelMutation = trpc.inventory.deleteHotel.useMutation();
+
+  // Robot integration mutations
+  const toggleRobotAccessibleMutation = trpc.inventory.toggleRobotAccessible.useMutation({
+    onSuccess: () => {
+      utils.inventory.getNests.invalidate();
+      utils.robotArm.location.getAll.invalidate();
+      utils.inventory.getNestsWithTeachpoints.invalidate();
+    },
+  });
+  const createTransferStationMutation = trpc.inventory.createTransferStation.useMutation({
+    onSuccess: () => {
+      utils.inventory.getNests.invalidate();
+      utils.robotArm.location.getAll.invalidate();
+      utils.inventory.getNestsWithTeachpoints.invalidate();
+    },
+  });
+  const inferHotelPositionsMutation = trpc.inventory.inferHotelPositions.useMutation({
+    onSuccess: () => {
+      utils.inventory.getNests.invalidate();
+      utils.robotArm.location.getAll.invalidate();
+      utils.inventory.getNestsWithTeachpoints.invalidate();
+    },
+  });
 
   const workcellTools = selectedWorkcell?.tools || [];
 
@@ -261,6 +291,98 @@ export const InventoryManager = () => {
     setSelectedReagent(reagent.id);
   };
 
+  // Robot integration handlers
+  const handleToggleRobotAccessible = async (
+    nestId: number,
+    accessible: boolean,
+    suppressToast: boolean = false,
+  ) => {
+    try {
+      const result = await toggleRobotAccessibleMutation.mutateAsync({
+        nestId,
+        accessible,
+      });
+
+      if (result.created && !suppressToast) {
+        // Show notification per user preference (unless suppressed for batch operations)
+        successToast(
+          "Teachpoint Created",
+          "Robot-accessible nest created with default coordinates. Please teach the actual position in the Teach Pendant.",
+        );
+      }
+    } catch (error) {
+      if (!suppressToast) {
+        errorToast(
+          "Error toggling robot accessibility",
+          error instanceof Error ? error.message : "Unknown error",
+        );
+      }
+      throw error; // Re-throw so batch operations can count failures
+    }
+  };
+
+  const handleCreateTransferStation = async (toolId: number, name: string) => {
+    try {
+      await createTransferStationMutation.mutateAsync({
+        toolId,
+        name,
+      });
+
+      successToast(
+        "Transfer Station Created",
+        "Please teach the position in the Teach Pendant.",
+      );
+    } catch (error) {
+      errorToast(
+        "Error creating transfer station",
+        error instanceof Error ? error.message : "Unknown error",
+      );
+    }
+  };
+
+  const handleUpdateNest = async (
+    nestId: number,
+    updates: { nestType?: string; name?: string },
+  ) => {
+    try {
+      await updateNestMutation.mutateAsync({
+        id: nestId,
+        ...updates,
+      });
+
+      successToast("Nest Updated", "Nest type has been updated successfully.");
+    } catch (error) {
+      errorToast(
+        "Error updating nest",
+        error instanceof Error ? error.message : "Unknown error",
+      );
+    }
+  };
+
+  const handleInferHotelPositions = async (
+    hotelId: number,
+    referenceNestId: number,
+    zOffset: number,
+  ) => {
+    try {
+      const result = await inferHotelPositionsMutation.mutateAsync({
+        hotelId,
+        referenceNestId,
+        zOffset,
+      });
+
+      successToast(
+        "Positions Inferred",
+        `Successfully calculated positions for ${result.inferredCount} nests.`,
+      );
+    } catch (error) {
+      errorToast(
+        "Error inferring positions",
+        error instanceof Error ? error.message : "Unknown error",
+      );
+    }
+  };
+
   return (
     <Box maxW="100%">
       <VStack spacing={4} align="stretch">
@@ -332,6 +454,9 @@ export const InventoryManager = () => {
                     toolId={tool.id}
                     nests={typedNests.filter((n: Nest) => n.toolId === tool.id)}
                     plates={typedPlates}
+                    onToggleRobotAccessible={handleToggleRobotAccessible}
+                    onCreateTransferStation={handleCreateTransferStation}
+                    onUpdateNest={handleUpdateNest}
                   />
                 </Box>
               ))}
@@ -377,6 +502,9 @@ export const InventoryManager = () => {
                         setSelectedHotelId(hotel.id);
                         setShowDeleteHotelModal(true);
                       }}
+                      onToggleRobotAccessible={handleToggleRobotAccessible}
+                      onInferPositions={handleInferHotelPositions}
+                      onUpdateNest={handleUpdateNest}
                     />
                   </Box>
                 ))}

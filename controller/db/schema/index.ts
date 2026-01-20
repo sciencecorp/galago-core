@@ -55,6 +55,18 @@ export const nests = sqliteTable("nests", {
   column: integer("column").notNull(),
   toolId: integer("tool_id").references(() => tools.id, { onDelete: "cascade" }),
   hotelId: integer("hotel_id").references(() => hotels.id, { onDelete: "cascade" }),
+  // Robot integration fields
+  robotAccessible: integer("robot_accessible", { mode: "boolean" }).default(false).notNull(),
+  nestType: text("nest_type", { enum: ["storage", "transfer_station", "interface"] })
+    .default("storage")
+    .notNull(),
+  zOffset: real("z_offset"), // Z-axis offset from reference position (for inferred nests)
+  referenceNestId: integer("reference_nest_id").references((): any => nests.id, {
+    onDelete: "set null",
+  }),
+  robotArmLocationId: integer("robot_arm_location_id").references(() => robotArmLocations.id, {
+    onDelete: "set null",
+  }),
   ...timestamps,
 });
 
@@ -265,6 +277,10 @@ export const robotArmLocations = sqliteTable("robot_arm_locations", {
   coordinates: text("coordinates").notNull(),
   toolId: integer("tool_id").references(() => tools.id, { onDelete: "cascade" }),
   orientation: text("orientation").notNull(),
+  // Link to source nest (for inventory integration)
+  sourceNestId: integer("source_nest_id").references(() => nests.id, {
+    onDelete: "cascade", // If nest is deleted, delete the teachpoint
+  }),
   ...timestamps,
 });
 

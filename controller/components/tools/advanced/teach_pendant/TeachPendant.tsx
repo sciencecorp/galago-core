@@ -29,6 +29,7 @@ import { TeachPointsPanel } from "./features/teach-points/TeachPointsPanel";
 import { MotionProfilesPanel } from "./features/motion-profiles/MotionProfilesPanel";
 import { GripParametersPanel } from "./features/grip-parameters/GripParametersPanel";
 import { SequencesPanel } from "./features/sequences/SequencesPanel";
+import { SpatialView } from "./features/spatial-view/SpatialView";
 import { ControlPanel } from "./shared/ui/ControlPanel";
 import { MotionProfileModal } from "./features/motion-profiles/MotionProfileModal";
 import { GripParamsModal } from "./features/grip-parameters/GripParamsModal";
@@ -41,6 +42,7 @@ import { useTeachPendantUI } from "./hooks/useTeachPendantUI";
 import { useTeachPendantData } from "./hooks/useTeachPendantData";
 import { useCommandHandlers } from "./shared/utils/commandHandlers";
 import { useSequenceHandler } from "./hooks/useSequenceHandler";
+import { trpc } from "@/utils/trpc";
 
 interface TeachPendantProps {
   tool: Tool;
@@ -126,6 +128,12 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
   } = useSequenceHandler(tool);
 
   const commandHandlers = useCommandHandlers(tool);
+
+  // Query for nests with teachpoints (for spatial view) - fetch ALL instruments since PF400 accesses all
+  const nestsWithTeachpointsQuery = trpc.inventory.getNestsWithTeachpoints.useQuery(
+    {}, // No toolId filter - show all robot-accessible nests from all instruments
+    { enabled: !!tool.id }
+  );
 
   const handleCloneSequence = (sequence: Sequence) => {
     const clonedSequence: Sequence = {
@@ -265,6 +273,8 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
             (sequence.name.toLowerCase().includes(term) ||
               sequence.description?.toLowerCase().includes(term)),
         );
+      case 4: // Spatial View - no filtering needed here
+        return [];
       default:
         return [];
     }
@@ -623,6 +633,17 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                   borderColor={borderColor}>
                   Sequences
                 </Tab>
+                <Tab
+                  _selected={{
+                    color: useColorModeValue("blue.600", "blue.200"),
+                    bg: tabActiveBgColor,
+                    borderColor: borderColor,
+                    borderBottomColor: tabActiveBgColor,
+                  }}
+                  bg={tabBgColor}
+                  borderColor={borderColor}>
+                  Spatial View
+                </Tab>
               </TabList>
 
               <TabPanels
@@ -765,6 +786,31 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
                     bgColor={bgColor}
                     bgColorAlpha={bgColorAlpha}
                     config={tool}
+                  />
+                </TabPanel>
+                <TabPanel>
+                  <SpatialView
+                    teachPoints={teachPoints.map((tp) => ({
+                      id: tp.id || 0,
+                      name: tp.name,
+                      coordinates: tp.coordinates,
+                    }))}
+                    nestsWithTeachpoints={nestsWithTeachpointsQuery.data || []}
+                    onSelectPoint={(point) => {
+                      const selectedPoint = teachPoints.find((tp) => tp.id === point.id);
+                      if (selectedPoint) {
+                        setActiveTab(0); // Switch to teach points tab
+                      }
+                    }}
+                    selectedPoint={
+                      selectedTeachPoint
+                        ? {
+                            id: selectedTeachPoint.id || 0,
+                            name: selectedTeachPoint.name,
+                            coordinates: selectedTeachPoint.coordinates,
+                          }
+                        : null
+                    }
                   />
                 </TabPanel>
               </TabPanels>

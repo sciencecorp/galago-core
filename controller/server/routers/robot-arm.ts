@@ -9,6 +9,7 @@ import {
   robotArmGripParams,
   tools,
   logs,
+  nests,
 } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
@@ -207,7 +208,7 @@ export const robotArmRouter = router({
     }),
 
     update: procedure.input(zRobotArmLocationUpdate).mutation(async ({ input }) => {
-      const { id, ...updateData } = input;
+      const { id, coordinates, ...otherUpdates } = input;
 
       const existing = await findOne(robotArmLocations, eq(robotArmLocations.id, id));
 
@@ -220,7 +221,7 @@ export const robotArmRouter = router({
 
       try {
         const cleanUpdateData = Object.fromEntries(
-          Object.entries(updateData).filter(([_, value]) => value !== undefined),
+          Object.entries({ coordinates, ...otherUpdates }).filter(([_, value]) => value !== undefined),
         );
 
         const updated = await db
@@ -231,6 +232,27 @@ export const robotArmRouter = router({
           })
           .where(eq(robotArmLocations.id, id))
           .returning();
+
+        // If this is a reference nest and coordinates changed, propagate to inferred nests
+        if (existing.sourceNestId && coordinates) {
+          const sourceNest = await findOne(nests, eq(nests.id, existing.sourceNestId));
+
+          if (sourceNest) {
+            const inferredNests = await findMany(nests, eq(nests.referenceNestId, sourceNest.id));
+
+            for (const inferredNest of inferredNests) {
+              if (!inferredNest.robotArmLocationId || !inferredNest.zOffset) continue;
+
+              const newCoords = coordinates.split(" ").map(Number);
+              newCoords[2] += inferredNest.zOffset; // Apply stored Z-offset
+
+              await db
+                .update(robotArmLocations)
+                .set({ coordinates: newCoords.join(" ") })
+                .where(eq(robotArmLocations.id, inferredNest.robotArmLocationId));
+            }
+          }
+        }
 
         await db.insert(logs).values({
           level: "info",
