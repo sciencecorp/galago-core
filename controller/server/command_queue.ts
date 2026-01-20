@@ -691,8 +691,12 @@ export class CommandQueue {
               nextCommand.commandInfo.advancedParameters.skipExecutionVariable.variable;
             let expectedValue =
               nextCommand.commandInfo.advancedParameters.skipExecutionVariable.value;
+            // Support both {{varName}} and ${varName} syntax for variable references
             if (expectedValue.startsWith("{{") && expectedValue.endsWith("}}")) {
               const v = await this._getVariableByName(expectedValue.slice(2, -2).trim());
+              expectedValue = v?.value ?? "";
+            } else if (expectedValue.startsWith("${") && expectedValue.endsWith("}")) {
+              const v = await this._getVariableByName(expectedValue.slice(2, -1).trim());
               expectedValue = v?.value ?? "";
             }
 
@@ -763,11 +767,10 @@ export class CommandQueue {
               "Please review and click Continue to proceed.";
             const title = nextCommand.commandInfo.params?.title || "Message";
 
-            // Check if message is a variable reference
+            // Check if entire message is a variable reference (legacy {{}} syntax)
             if (message.startsWith("{{") && message.endsWith("}}")) {
               try {
                 const variableResponse = await this._getVariableByName(message.slice(2, -2).trim());
-                // Use just the value property of the variable
                 message = variableResponse?.value ?? message;
               } catch (e) {
                 logAction({
@@ -775,7 +778,37 @@ export class CommandQueue {
                   action: "Variable Reference Error",
                   details: `Failed to fetch variable for message: ${message}. Using raw message instead.`,
                 });
-                // Keep the original message if the variable fetch fails
+              }
+            } else {
+              // Handle inline variable substitution with ${varName} syntax
+              const variablePattern = /\${([^{}]+)}/g;
+              let match;
+              const replacements: { fullMatch: string; varName: string; value: string }[] = [];
+
+              // Find all variable references
+              while ((match = variablePattern.exec(message)) !== null) {
+                const fullMatch = match[0];
+                const varName = match[1].trim();
+                try {
+                  const varResponse = await this._getVariableByName(varName);
+                  replacements.push({
+                    fullMatch,
+                    varName,
+                    value: varResponse?.value ?? fullMatch,
+                  });
+                } catch (e) {
+                  logAction({
+                    level: "warning",
+                    action: "Variable Reference Error",
+                    details: `Failed to resolve variable ${varName} in message.`,
+                  });
+                  replacements.push({ fullMatch, varName, value: fullMatch });
+                }
+              }
+
+              // Apply replacements
+              for (const { fullMatch, value } of replacements) {
+                message = message.replace(fullMatch, value);
               }
             }
 
@@ -784,9 +817,101 @@ export class CommandQueue {
             continue;
           } else if (nextCommand.commandInfo.command === "timer") {
             // Handle timer command
-            const minutes = Number(nextCommand.commandInfo.params?.minutes || 0);
-            const seconds = Number(nextCommand.commandInfo.params?.seconds || 30);
-            const message = nextCommand.commandInfo.params?.message || "Timer in progress...";
+            let minutesValue = nextCommand.commandInfo.params?.minutes || 0;
+            let secondsValue = nextCommand.commandInfo.params?.seconds || 30;
+            let message = nextCommand.commandInfo.params?.message || "Timer in progress...";
+
+            // Resolve variable references for minutes (supports both {{}} and ${} syntax)
+            if (typeof minutesValue === "string") {
+              if (minutesValue.startsWith("{{") && minutesValue.endsWith("}}")) {
+                try {
+                  const varResponse = await this._getVariableByName(
+                    minutesValue.slice(2, -2).trim(),
+                  );
+                  minutesValue = varResponse?.value ?? minutesValue;
+                } catch (e) {
+                  logAction({
+                    level: "warning",
+                    action: "Variable Reference Error",
+                    details: `Failed to resolve variable for timer minutes: ${minutesValue}`,
+                  });
+                }
+              } else if (minutesValue.startsWith("${") && minutesValue.endsWith("}")) {
+                try {
+                  const varResponse = await this._getVariableByName(
+                    minutesValue.slice(2, -1).trim(),
+                  );
+                  minutesValue = varResponse?.value ?? minutesValue;
+                } catch (e) {
+                  logAction({
+                    level: "warning",
+                    action: "Variable Reference Error",
+                    details: `Failed to resolve variable for timer minutes: ${minutesValue}`,
+                  });
+                }
+              }
+            }
+
+            // Resolve variable references for seconds (supports both {{}} and ${} syntax)
+            if (typeof secondsValue === "string") {
+              if (secondsValue.startsWith("{{") && secondsValue.endsWith("}}")) {
+                try {
+                  const varResponse = await this._getVariableByName(
+                    secondsValue.slice(2, -2).trim(),
+                  );
+                  secondsValue = varResponse?.value ?? secondsValue;
+                } catch (e) {
+                  logAction({
+                    level: "warning",
+                    action: "Variable Reference Error",
+                    details: `Failed to resolve variable for timer seconds: ${secondsValue}`,
+                  });
+                }
+              } else if (secondsValue.startsWith("${") && secondsValue.endsWith("}")) {
+                try {
+                  const varResponse = await this._getVariableByName(
+                    secondsValue.slice(2, -1).trim(),
+                  );
+                  secondsValue = varResponse?.value ?? secondsValue;
+                } catch (e) {
+                  logAction({
+                    level: "warning",
+                    action: "Variable Reference Error",
+                    details: `Failed to resolve variable for timer seconds: ${secondsValue}`,
+                  });
+                }
+              }
+            }
+
+            // Resolve variable references for message (supports both {{}} and ${} syntax)
+            if (typeof message === "string") {
+              if (message.startsWith("{{") && message.endsWith("}}")) {
+                try {
+                  const varResponse = await this._getVariableByName(message.slice(2, -2).trim());
+                  message = varResponse?.value ?? message;
+                } catch (e) {
+                  logAction({
+                    level: "warning",
+                    action: "Variable Reference Error",
+                    details: `Failed to resolve variable for timer message: ${message}`,
+                  });
+                }
+              } else if (message.startsWith("${") && message.endsWith("}")) {
+                try {
+                  const varResponse = await this._getVariableByName(message.slice(2, -1).trim());
+                  message = varResponse?.value ?? message;
+                } catch (e) {
+                  logAction({
+                    level: "warning",
+                    action: "Variable Reference Error",
+                    details: `Failed to resolve variable for timer message: ${message}`,
+                  });
+                }
+              }
+            }
+
+            const minutes = Number(minutesValue);
+            const seconds = Number(secondsValue);
             await this.commands.complete(nextCommand.queueId);
             await this.startTimer(minutes, seconds, message);
             continue;
@@ -801,10 +926,12 @@ export class CommandQueue {
               details: `Queue stop requested by command: ${message}`,
             });
 
-            // Complete this command before stopping
+            // Show stop run modal and wait for user response
             await this.stopRunRequest(message);
             await this.commands.complete(nextCommand.queueId);
-            return; // Exit the loop as we've stopped the queue
+            // Continue to next command - if user clicks "Stop Run",
+            // the queue will be stopped via stopQueueMutation from the UI
+            continue;
           } else if (nextCommand.commandInfo.command === "goto") {
             const targetIndex = Number(nextCommand.commandInfo.params?.targetIndex);
             const runId = nextCommand.commandInfo.params?.runId || nextCommand.runId;

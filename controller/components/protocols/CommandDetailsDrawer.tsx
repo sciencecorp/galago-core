@@ -460,7 +460,7 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
   };
 
   return (
-    <Drawer isOpen={isOpen} onClose={onClose} placement="right" size="md">
+    <Drawer isOpen={isOpen} onClose={onClose} placement="right" size="lg">
       <DrawerOverlay />
       <DrawerContent>
         <DrawerCloseButton />
@@ -572,14 +572,15 @@ export const CommandDetailsDrawer: React.FC<CommandDetailsDrawerProps> = (props)
                 </Accordion>
 
                 {isEditing && (
-                  <Button
-                    colorScheme="teal"
-                    variant="outline"
-                    onClick={handleSaveInputs}
-                    isDisabled={!isEditing}
-                    mt={4}>
-                    Save Inputs
-                  </Button>
+                  <HStack spacing={4} mt={4} align="left">
+                    <Button
+                      colorScheme="teal"
+                      variant="outline"
+                      onClick={handleSaveInputs}
+                      isDisabled={!isEditing}>
+                      Save Inputs
+                    </Button>
+                  </HStack>
                 )}
               </VStack>
             </VStack>

@@ -3,7 +3,7 @@ import { procedure, router } from "@/server/trpc";
 import { db } from "@/db/client";
 import { findOne, findMany, getSelectedWorkcellId } from "@/db/helpers";
 import { nests, plates, wells, reagents, hotels, tools, workcells } from "@/db/schema";
-import { eq, and, inArray, isNull } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 const zNest = z.object({
@@ -186,44 +186,10 @@ export const inventoryRouter = router({
       workcellId = await getSelectedWorkcellId();
     }
 
-    const workcellTools = await db
-      .select({ id: tools.id })
-      .from(tools)
-      .where(eq(tools.workcellId, workcellId));
+    // Plates now have direct workcellId, so query is simple
+    const workcellPlates = await db.select().from(plates).where(eq(plates.workcellId, workcellId));
 
-    const toolIds = workcellTools.map((t) => t.id);
-
-    const workcellHotels = await db
-      .select({ id: hotels.id })
-      .from(hotels)
-      .where(eq(hotels.workcellId, workcellId));
-
-    const hotelIds = workcellHotels.map((h) => h.id);
-
-    const toolNestIds =
-      toolIds.length > 0
-        ? (await db.select({ id: nests.id }).from(nests).where(inArray(nests.toolId, toolIds))).map(
-            (n) => n.id,
-          )
-        : [];
-
-    const hotelNestIds =
-      hotelIds.length > 0
-        ? (
-            await db.select({ id: nests.id }).from(nests).where(inArray(nests.hotelId, hotelIds))
-          ).map((n) => n.id)
-        : [];
-
-    const nestIds = [...toolNestIds, ...hotelNestIds];
-
-    const workcellPlates =
-      nestIds.length > 0
-        ? await db.select().from(plates).where(inArray(plates.nestId, nestIds))
-        : [];
-
-    const unassignedPlates = await db.select().from(plates).where(isNull(plates.nestId));
-
-    return [...workcellPlates, ...unassignedPlates];
+    return workcellPlates;
   }),
 
   getPlate: procedure.input(z.number()).query(async ({ input: plateId }) => {
@@ -262,7 +228,9 @@ export const inventoryRouter = router({
 
   createPlate: procedure.input(zPlateCreate).mutation(async ({ input }) => {
     try {
-      // Create plate - database will enforce uniqueness
+      const workcellId = await getSelectedWorkcellId();
+
+      // Create plate - database will enforce uniqueness per workcell
       const newPlate = await db
         .insert(plates)
         .values({
@@ -270,6 +238,7 @@ export const inventoryRouter = router({
           barcode: input.barcode,
           plateType: input.plateType,
           nestId: input.nestId || null,
+          workcellId,
         })
         .returning();
 
@@ -303,7 +272,7 @@ export const inventoryRouter = router({
       ) {
         throw new TRPCError({
           code: "CONFLICT",
-          message: "A plate with this barcode or name already exists",
+          message: "A plate with this barcode or name already exists in this workcell",
         });
       }
       throw error;

@@ -255,7 +255,7 @@ export const LogView: React.FC<LogViewProps> = ({}) => {
                       fontSize="sm"
                       p={4}
                       borderRadius="md"
-                      maxHeight="1000px"
+                      height="1200px"
                       overflowY="auto">
                       {logs.length === 0 ? (
                         <Text color="gray.500">No logs found</Text>

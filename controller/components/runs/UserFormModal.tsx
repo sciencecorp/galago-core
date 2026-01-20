@@ -9,7 +9,6 @@ import {
   Button,
   Text,
   VStack,
-  HStack,
   Input,
   Textarea,
   Select,
@@ -21,7 +20,6 @@ import {
   useColorModeValue,
   Card,
   CardBody,
-  ButtonGroup,
   Alert,
   AlertIcon,
 } from "@chakra-ui/react";
@@ -246,14 +244,7 @@ const FormFieldInput: React.FC<FormFieldInputProps> = ({
   return (
     <FormControl isRequired={field.required}>
       <FormLabel color={fontColor || defaultFontColor} fontWeight="medium">
-        <HStack spacing={1} alignItems="center">
-          <Text>{field.label}</Text>
-          {field.mapped_variable && (
-            <Text as="span" fontSize="xs" color="blue.500" fontWeight="bold" ml={1}>
-              (→ {field.mapped_variable})
-            </Text>
-          )}
-        </HStack>
+        {field.label}
       </FormLabel>
       {renderField()}
     </FormControl>
@@ -387,12 +378,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
     await Promise.all(updatePromises.filter(Boolean));
   };
 
-  const handleCancel = () => {
-    setFormData({});
-    setErrors({});
-    onCancel();
-  };
-
   if (!form) {
     return (
       <Modal isOpen={isOpen} onClose={() => {}} closeOnOverlayClick={false} isCentered size="md">
@@ -473,24 +458,15 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
           </Card>
         </ModalBody>
 
-        <ModalFooter borderTop="1px" borderColor={cardBorderColor}>
-          <ButtonGroup spacing={3} width="100%" justifyContent="center">
-            <Button
-              variant="ghost"
-              minW="120px"
-              onClick={handleCancel}
-              color={form.fontColor || defaultFontColor}>
-              Cancel
-            </Button>
-            <Button
-              colorScheme="teal"
-              onClick={handleSubmit}
-              isLoading={editVariable.isLoading || createVariable.isLoading}
-              isDisabled={editVariable.isLoading || createVariable.isLoading}
-              minW="120px">
-              Submit
-            </Button>
-          </ButtonGroup>
+        <ModalFooter borderTop="1px" borderColor={cardBorderColor} justifyContent="center">
+          <Button
+            colorScheme="teal"
+            onClick={handleSubmit}
+            isLoading={editVariable.isLoading || createVariable.isLoading}
+            isDisabled={editVariable.isLoading || createVariable.isLoading}
+            minW="150px">
+            Submit
+          </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

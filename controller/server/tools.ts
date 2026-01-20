@@ -20,7 +20,8 @@ import {
   variables,
   scripts,
 } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
+import { getSelectedWorkcellId } from "@/db/helpers";
 
 type ToolDriverClient = PromisifiedGrpcClient<tool_driver.ToolDriverClient>;
 
@@ -442,8 +443,46 @@ export default class Tool {
         throw new Error("Script name is required for run_script command");
       }
 
+      // Fetch script from database if content not provided
       if (!params.script_content || !params.language) {
-        throw new Error("Script content and language must be provided");
+        const originalName = params.name.trim();
+        const nameWithoutExt = originalName
+          .replaceAll(".js", "")
+          .replaceAll(".py", "")
+          .replaceAll(".cs", "");
+        try {
+          const workcellId = await getSelectedWorkcellId();
+
+          // Try exact name first, then without extension
+          let scriptRecords = await db
+            .select()
+            .from(scripts)
+            .where(and(eq(scripts.name, originalName), eq(scripts.workcellId, workcellId)))
+            .limit(1);
+
+          if (!scriptRecords || scriptRecords.length === 0) {
+            scriptRecords = await db
+              .select()
+              .from(scripts)
+              .where(and(eq(scripts.name, nameWithoutExt), eq(scripts.workcellId, workcellId)))
+              .limit(1);
+          }
+
+          if (!scriptRecords || scriptRecords.length === 0) {
+            throw new Error(`Script "${originalName}" not found`);
+          }
+
+          const script = scriptRecords[0];
+          params.script_content = script.content;
+          params.language = script.language;
+        } catch (e) {
+          logAction({
+            level: "error",
+            action: "Script Error",
+            details: `Failed to fetch script "${params.name}": ${e}`,
+          });
+          throw new Error(`Failed to fetch script "${params.name}": ${e}`);
+        }
       }
 
       const scriptLanguage = params.language;

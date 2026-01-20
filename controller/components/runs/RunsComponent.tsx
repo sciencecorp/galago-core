@@ -104,6 +104,7 @@ export const RunsComponent: React.FC = () => {
   const stopQueueMutation = trpc.commandQueue.stop.useMutation();
   const clearAllMutation = trpc.commandQueue.clearAll.useMutation();
   const skipRunMutation = trpc.commandQueue.clearByRunId.useMutation();
+
   // Resume mutation
   const resumeMutation = trpc.commandQueue.resume.useMutation();
 
@@ -121,6 +122,7 @@ export const RunsComponent: React.FC = () => {
   // Form fetching query (only execute when we have a form name)
   const formQuery = trpc.form.get.useQuery(messageData.formName || "", {
     enabled: !!messageData.formName && messageData.type === "user_form",
+    staleTime: 0,
   });
 
   // Handle form query results

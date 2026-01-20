@@ -58,14 +58,22 @@ export const nests = sqliteTable("nests", {
   ...timestamps,
 });
 
-export const plates = sqliteTable("plates", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").unique(),
-  barcode: text("barcode").unique(),
-  plateType: text("plate_type").notNull(),
-  nestId: integer("nest_id").references(() => nests.id, { onDelete: "set null" }),
-  ...timestamps,
-});
+export const plates = sqliteTable(
+  "plates",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    name: text("name"),
+    barcode: text("barcode"),
+    plateType: text("plate_type").notNull(),
+    nestId: integer("nest_id").references(() => nests.id, { onDelete: "set null" }),
+    workcellId: integer("workcell_id").references(() => workcells.id, { onDelete: "cascade" }),
+    ...timestamps,
+  },
+  (t) => [
+    unique("unique_plate_name_per_workcell").on(t.name, t.workcellId),
+    unique("unique_plate_barcode_per_workcell").on(t.barcode, t.workcellId),
+  ],
+);
 
 export const wells = sqliteTable("wells", {
   id: integer("id").primaryKey({ autoIncrement: true }),

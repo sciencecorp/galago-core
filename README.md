@@ -58,7 +58,6 @@ docker-compose -f docker-compose.dev.yml up --build
 ```
 
 1. **Access the application**
-
    - Web Interface: `http://localhost:3010`
 
 ### Other useful development commands
