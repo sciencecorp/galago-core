@@ -20,9 +20,7 @@ interface TransferStationButtonProps {
   onCreate: (name: string) => Promise<void>;
 }
 
-export const TransferStationButton: React.FC<TransferStationButtonProps> = ({
-  onCreate,
-}) => {
+export const TransferStationButton: React.FC<TransferStationButtonProps> = ({ onCreate }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -49,8 +47,7 @@ export const TransferStationButton: React.FC<TransferStationButtonProps> = ({
         colorScheme="orange"
         variant="outline"
         size="sm"
-        onClick={() => setIsOpen(true)}
-      >
+        onClick={() => setIsOpen(true)}>
         Add Transfer Station
       </Button>
 
@@ -77,8 +74,7 @@ export const TransferStationButton: React.FC<TransferStationButtonProps> = ({
               colorScheme="orange"
               onClick={handleCreate}
               isLoading={isLoading}
-              isDisabled={!name.trim()}
-            >
+              isDisabled={!name.trim()}>
               Create
             </Button>
           </ModalFooter>

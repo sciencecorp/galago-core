@@ -43,7 +43,13 @@ import { trpc } from "@/utils/trpc";
 import { Package } from "lucide-react";
 import PlateModal from "./modals/PlateModal";
 import { Icon } from "@/components/ui/Icons";
-import { errorToast, loadingToast, warningToast, progressToast, successToast } from "@/components/ui/Toast";
+import {
+  errorToast,
+  loadingToast,
+  warningToast,
+  progressToast,
+  successToast,
+} from "@/components/ui/Toast";
 import { useCommonColors } from "@/components/ui/Theme";
 import { AddIcon } from "@chakra-ui/icons";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
@@ -328,10 +334,7 @@ export const InventoryManager = () => {
         name,
       });
 
-      successToast(
-        "Transfer Station Created",
-        "Please teach the position in the Teach Pendant.",
-      );
+      successToast("Transfer Station Created", "Please teach the position in the Teach Pendant.");
     } catch (error) {
       errorToast(
         "Error creating transfer station",
@@ -352,10 +355,7 @@ export const InventoryManager = () => {
 
       successToast("Nest Updated", "Nest type has been updated successfully.");
     } catch (error) {
-      errorToast(
-        "Error updating nest",
-        error instanceof Error ? error.message : "Unknown error",
-      );
+      errorToast("Error updating nest", error instanceof Error ? error.message : "Unknown error");
     }
   };
 

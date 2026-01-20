@@ -952,8 +952,7 @@ const NestModal: React.FC<NestModalProps> = ({
                         onUpdateNest(nest.id, { nestType: e.target.value });
                       }}
                       bg={inputBg}
-                      width="140px"
-                    >
+                      width="140px">
                       <option value="storage">Storage</option>
                       <option value="transfer_station">Transfer Station</option>
                       <option value="interface">Interface</option>
@@ -966,8 +965,7 @@ const NestModal: React.FC<NestModalProps> = ({
                           : nest.nestType === "interface"
                             ? "purple"
                             : "gray"
-                      }
-                    >
+                      }>
                       {nest.nestType === "transfer_station"
                         ? "Transfer"
                         : nest.nestType === "interface"
@@ -1146,8 +1144,7 @@ const NestModal: React.FC<NestModalProps> = ({
                       "Please mark at least one nest as robot-accessible to use as a reference.",
                     );
                   }
-                }}
-              >
+                }}>
                 Infer Positions
               </Button>
             )}

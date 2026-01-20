@@ -2,7 +2,16 @@ import { z } from "zod";
 import { procedure, router } from "@/server/trpc";
 import { db } from "@/db/client";
 import { findOne, findMany, getSelectedWorkcellId } from "@/db/helpers";
-import { nests, plates, wells, reagents, hotels, tools, workcells, robotArmLocations } from "@/db/schema";
+import {
+  nests,
+  plates,
+  wells,
+  reagents,
+  hotels,
+  tools,
+  workcells,
+  robotArmLocations,
+} from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import Tool from "../tools";

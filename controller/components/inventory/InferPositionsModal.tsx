@@ -70,8 +70,7 @@ export const InferPositionsModal: React.FC<InferPositionsModalProps> = ({
                 onChange={(_, val) => setZOffset(val)}
                 min={0}
                 max={1000}
-                step={0.5}
-              >
+                step={0.5}>
                 <NumberInputField />
                 <NumberInputStepper>
                   <NumberIncrementStepper />
@@ -81,9 +80,8 @@ export const InferPositionsModal: React.FC<InferPositionsModalProps> = ({
             </FormControl>
             <Alert status="info" fontSize="sm">
               <AlertIcon />
-              This will calculate positions for all nests in the same column
-              based on the reference position and automatically mark them as
-              robot-accessible.
+              This will calculate positions for all nests in the same column based on the reference
+              position and automatically mark them as robot-accessible.
             </Alert>
           </VStack>
         </ModalBody>
@@ -91,11 +89,7 @@ export const InferPositionsModal: React.FC<InferPositionsModalProps> = ({
           <Button variant="ghost" mr={3} onClick={onClose}>
             Cancel
           </Button>
-          <Button
-            colorScheme="blue"
-            onClick={handleSubmit}
-            isLoading={isLoading}
-          >
+          <Button colorScheme="blue" onClick={handleSubmit} isLoading={isLoading}>
             Infer Positions
           </Button>
         </ModalFooter>

@@ -221,7 +221,9 @@ export const robotArmRouter = router({
 
       try {
         const cleanUpdateData = Object.fromEntries(
-          Object.entries({ coordinates, ...otherUpdates }).filter(([_, value]) => value !== undefined),
+          Object.entries({ coordinates, ...otherUpdates }).filter(
+            ([_, value]) => value !== undefined,
+          ),
         );
 
         const updated = await db

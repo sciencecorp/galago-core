@@ -28,13 +28,7 @@ export const RobotAccessibleToggle: React.FC<RobotAccessibleToggleProps> = ({
   };
 
   return (
-    <Tooltip
-      label={
-        isAccessible
-          ? "Robot can access this nest"
-          : "Robot cannot access this nest"
-      }
-    >
+    <Tooltip label={isAccessible ? "Robot can access this nest" : "Robot cannot access this nest"}>
       <HStack spacing={2}>
         <Switch
           colorScheme="teal"

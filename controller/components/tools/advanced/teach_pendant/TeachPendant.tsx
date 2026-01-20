@@ -132,7 +132,7 @@ export const TeachPendant = ({ tool }: TeachPendantProps) => {
   // Query for nests with teachpoints (for spatial view) - fetch ALL instruments since PF400 accesses all
   const nestsWithTeachpointsQuery = trpc.inventory.getNestsWithTeachpoints.useQuery(
     {}, // No toolId filter - show all robot-accessible nests from all instruments
-    { enabled: !!tool.id }
+    { enabled: !!tool.id },
   );
 
   const handleCloneSequence = (sequence: Sequence) => {

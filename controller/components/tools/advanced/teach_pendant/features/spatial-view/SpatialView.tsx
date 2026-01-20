@@ -114,25 +114,17 @@ export const SpatialView: React.FC<SpatialViewProps> = ({
 
   // Group nests by type for legend
   const storageNests = nestsWithTeachpoints.filter(
-    (n) => n.nest.nestType === "storage" && n.nest.robotAccessible
+    (n) => n.nest.nestType === "storage" && n.nest.robotAccessible,
   );
   const transferStations = nestsWithTeachpoints.filter(
-    (n) => n.nest.nestType === "transfer_station"
+    (n) => n.nest.nestType === "transfer_station",
   );
-  const inferredNests = nestsWithTeachpoints.filter(
-    (n) => n.nest.referenceNestId !== null
-  );
+  const inferredNests = nestsWithTeachpoints.filter((n) => n.nest.referenceNestId !== null);
 
   return (
     <VStack spacing={6} align="stretch">
       {/* Legend */}
-      <Box
-        bg={cardBg}
-        borderColor={borderColor}
-        borderWidth="1px"
-        borderRadius="lg"
-        p={4}
-      >
+      <Box bg={cardBg} borderColor={borderColor} borderWidth="1px" borderRadius="lg" p={4}>
         <Heading size="sm" mb={3}>
           Legend
         </Heading>
@@ -186,30 +178,18 @@ export const SpatialView: React.FC<SpatialViewProps> = ({
         borderWidth="1px"
         borderRadius="lg"
         p={4}
-        overflowX="auto"
-      >
+        overflowX="auto">
         <Heading size="sm" mb={4}>
           Top-Down View
         </Heading>
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          minHeight="400px"
-        >
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
           <svg
             width={gridWidth}
             height={gridHeight}
-            style={{ border: `1px solid ${GRID_STROKE}`, borderRadius: "4px" }}
-          >
+            style={{ border: `1px solid ${GRID_STROKE}`, borderRadius: "4px" }}>
             {/* Grid background lines */}
             <defs>
-              <pattern
-                id="grid"
-                width={CELL_SIZE}
-                height={CELL_SIZE}
-                patternUnits="userSpaceOnUse"
-              >
+              <pattern id="grid" width={CELL_SIZE} height={CELL_SIZE} patternUnits="userSpaceOnUse">
                 <path
                   d={`M ${CELL_SIZE} 0 L 0 0 0 ${CELL_SIZE}`}
                   fill="none"
@@ -218,12 +198,7 @@ export const SpatialView: React.FC<SpatialViewProps> = ({
                 />
               </pattern>
             </defs>
-            <rect
-              width={gridWidth}
-              height={gridHeight}
-              fill="url(#grid)"
-              opacity="0.3"
-            />
+            <rect width={gridWidth} height={gridHeight} fill="url(#grid)" opacity="0.3" />
 
             {/* Render all grid positions with nests */}
             {Array.from({ length: maxRow - minRow + 1 }, (_, rowIdx) => {
@@ -238,8 +213,7 @@ export const SpatialView: React.FC<SpatialViewProps> = ({
                 const nest = nestWithTeachpoint.nest;
                 const x = GRID_PADDING + (col - minCol) * CELL_SIZE;
                 const y = GRID_PADDING + (row - minRow) * CELL_SIZE;
-                const isSelected =
-                  selectedPoint?.id === nestWithTeachpoint.location?.id;
+                const isSelected = selectedPoint?.id === nestWithTeachpoint.location?.id;
 
                 return (
                   <Tooltip
@@ -248,10 +222,10 @@ export const SpatialView: React.FC<SpatialViewProps> = ({
                     color={tooltipColor}
                     label={
                       <VStack align="start" spacing={1}>
-                        <Text fontWeight="bold">
-                          {nest.name || `Nest ${nest.id}`}
+                        <Text fontWeight="bold">{nest.name || `Nest ${nest.id}`}</Text>
+                        <Text fontSize="xs">
+                          Row: {row}, Col: {col}
                         </Text>
-                        <Text fontSize="xs">Row: {row}, Col: {col}</Text>
                         {nestWithTeachpoint.location && (
                           <Text fontSize="xs">
                             Coords: {nestWithTeachpoint.location.coordinates}
@@ -268,12 +242,10 @@ export const SpatialView: React.FC<SpatialViewProps> = ({
                           </Badge>
                         )}
                       </VStack>
-                    }
-                  >
+                    }>
                     <g
                       onClick={() => handleNestClick(nestWithTeachpoint)}
-                      style={{ cursor: "pointer" }}
-                    >
+                      style={{ cursor: "pointer" }}>
                       {/* Nest rectangle */}
                       <rect
                         x={x + 5}
@@ -327,8 +299,7 @@ export const SpatialView: React.FC<SpatialViewProps> = ({
                         textAnchor="middle"
                         fontSize="10"
                         fill={primary}
-                        fontWeight="500"
-                      >
+                        fontWeight="500">
                         {nest.name?.substring(0, 8) || `N${nest.id}`}
                       </text>
                     </g>
@@ -342,13 +313,7 @@ export const SpatialView: React.FC<SpatialViewProps> = ({
 
       {/* Selected Point Info */}
       {selectedPoint && (
-        <Box
-          bg={cardBg}
-          borderColor="blue.400"
-          borderWidth="2px"
-          borderRadius="lg"
-          p={4}
-        >
+        <Box bg={cardBg} borderColor="blue.400" borderWidth="2px" borderRadius="lg" p={4}>
           <VStack align="stretch" spacing={2}>
             <HStack>
               <Icon as={Layers} color="blue.500" />
