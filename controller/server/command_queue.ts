@@ -784,71 +784,9 @@ export class CommandQueue {
             continue;
           } else if (nextCommand.commandInfo.command === "timer") {
             // Handle timer command
-            let minutesValue = nextCommand.commandInfo.params?.minutes || 0;
-            let secondsValue = nextCommand.commandInfo.params?.seconds || 30;
-            let message = nextCommand.commandInfo.params?.message || "Timer in progress...";
-
-            // Resolve variable references for minutes
-            if (
-              typeof minutesValue === "string" &&
-              minutesValue.startsWith("{{") &&
-              minutesValue.endsWith("}}")
-            ) {
-              try {
-                const varResponse = await this._getVariableByName(
-                  minutesValue.slice(2, -2).trim(),
-                );
-                minutesValue = varResponse?.value ?? minutesValue;
-              } catch (e) {
-                logAction({
-                  level: "warning",
-                  action: "Variable Reference Error",
-                  details: `Failed to resolve variable for timer minutes: ${minutesValue}`,
-                });
-              }
-            }
-
-            // Resolve variable references for seconds
-            if (
-              typeof secondsValue === "string" &&
-              secondsValue.startsWith("{{") &&
-              secondsValue.endsWith("}}")
-            ) {
-              try {
-                const varResponse = await this._getVariableByName(
-                  secondsValue.slice(2, -2).trim(),
-                );
-                secondsValue = varResponse?.value ?? secondsValue;
-              } catch (e) {
-                logAction({
-                  level: "warning",
-                  action: "Variable Reference Error",
-                  details: `Failed to resolve variable for timer seconds: ${secondsValue}`,
-                });
-              }
-            }
-
-            // Resolve variable references for message
-            if (
-              typeof message === "string" &&
-              message.startsWith("{{") &&
-              message.endsWith("}}")
-            ) {
-              try {
-                const varResponse = await this._getVariableByName(message.slice(2, -2).trim());
-                message = varResponse?.value ?? message;
-              } catch (e) {
-                logAction({
-                  level: "warning",
-                  action: "Variable Reference Error",
-                  details: `Failed to resolve variable for timer message: ${message}`,
-                });
-              }
-            }
-
-            const minutes = Number(minutesValue);
-            const seconds = Number(secondsValue);
-
+            const minutes = Number(nextCommand.commandInfo.params?.minutes || 0);
+            const seconds = Number(nextCommand.commandInfo.params?.seconds || 30);
+            const message = nextCommand.commandInfo.params?.message || "Timer in progress...";
             await this.commands.complete(nextCommand.queueId);
             await this.startTimer(minutes, seconds, message);
             continue;
