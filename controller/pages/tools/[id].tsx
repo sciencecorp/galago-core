@@ -16,6 +16,7 @@ import {
   AlertIcon,
   AlertTitle,
   AlertDescription,
+  Checkbox,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
@@ -75,7 +76,11 @@ export default function Page() {
             const nestedFieldValues: Record<string, AtomicFormValues> = {};
             field.type.forEach((nestedField) => {
               nestedFieldValues[nestedField.name] =
-                nestedField.defaultValue !== undefined ? nestedField.defaultValue : "";
+                nestedField.defaultValue !== undefined
+                  ? nestedField.defaultValue
+                  : nestedField.type === "boolean"
+                    ? false
+                    : "";
             });
             newValues[field.name] = nestedFieldValues;
           }
@@ -83,7 +88,12 @@ export default function Page() {
             newValues[field.name] =
               field.defaultValue instanceof Array ? field.defaultValue.join(", ") : "";
           } else {
-            newValues[field.name] = field.defaultValue !== undefined ? field.defaultValue : "";
+            newValues[field.name] =
+              field.defaultValue !== undefined
+                ? field.defaultValue
+                : field.type === "boolean"
+                  ? false
+                  : "";
           }
         });
         return newValues;
@@ -216,7 +226,7 @@ export default function Page() {
               value={String(
                 (parentField
                   ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
-                    ""
+                  ""
                   : formValues[field.name]) || "",
               )}
               onChange={(e) =>
@@ -230,16 +240,14 @@ export default function Page() {
           <FormControl key={field.name} my={2}>
             <FormLabel>{field.name}</FormLabel>
             {field.type == "boolean" ? (
-              <Input
-                type="boolean"
-                value={String(
+              <Checkbox
+                isChecked={
                   (parentField
-                    ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
-                      "false"
-                    : formValues[field.name]) || "false",
-                )}
+                    ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name]
+                    : formValues[field.name]) === true
+                }
                 onChange={(e) =>
-                  handleInputChange(field.name, field.type, e.target.value, parentField)
+                  handleInputChange(field.name, field.type, e.target.checked, parentField)
                 }
               />
             ) : field.type === "text" ? (
@@ -248,7 +256,7 @@ export default function Page() {
                 value={String(
                   (parentField
                     ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
-                      ""
+                    ""
                     : formValues[field.name]) || "",
                 )}
                 onChange={(e) =>
@@ -260,7 +268,7 @@ export default function Page() {
                 value={Number(
                   (parentField
                     ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
-                      0
+                    0
                     : formValues[field.name]) || 0,
                 )}
                 onChange={(_valueString, valueNumber) =>
