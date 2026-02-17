@@ -311,4 +311,7 @@ export const commandFields: CommandFields = {
       { name: "experiment_name", type: "text" },
     ],
   },
+  lcus1_relay: {
+    switch: [{ name: "switch", type: "boolean" }],
+  },
 };
