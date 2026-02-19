@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 PROTOC_GEN_TS_PATH=".\\controller\\node_modules\\.bin\\protoc-gen-ts_proto"
-PROTO_SRC="./vendor/galago-tools/interfaces"
+PROTO_SRC=".\\vendor\\galago-tools\\interfaces"
 ENV_NAME="galago-core"
 
 # Install dependencies for tool servers, controller, and protobuf generator

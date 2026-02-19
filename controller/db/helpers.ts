@@ -99,6 +99,7 @@ export const INVENTORY_TOOL_MAP: Record<string, { rows: number; columns: number 
   vcode: { rows: 1, columns: 1 },
   vprep: { rows: 3, columns: 2 },
   xpeel: { rows: 1, columns: 1 },
+  clariostar: { rows: 1, columns: 1 },
   pf400: { rows: 1, columns: 1 },
   lcus1_relay: { rows: 1, columns: 1 },
 };

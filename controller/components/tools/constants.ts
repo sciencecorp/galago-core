@@ -314,4 +314,14 @@ export const commandFields: CommandFields = {
   lcus1_relay: {
     switch: [{ name: "on", type: "boolean" }],
   },
+  clariostar: {
+    open_carrier: [],
+    close_carrier: [],
+    start_read: [
+      { name: "protocol_name", type: "text" },
+      { name: "plate_id", type: "text" },
+      { name: "assay_id", type: "text" },
+      { name: "timepoint", type: "text" },
+    ],
+  },
 };
