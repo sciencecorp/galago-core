@@ -208,6 +208,9 @@ export const protocols = sqliteTable("protocols", {
   workcellId: integer("workcell_id").references(() => workcells.id, { onDelete: "cascade" }),
   description: text("description"),
   commands: text("commands", { mode: "json" }).notNull().$type<any[]>(),
+  parameters: text("parameters", { mode: "json" }).$type<
+    import("@/protocols/params").ProtocolParameter[]
+  >(),
   ...timestamps,
 });
 

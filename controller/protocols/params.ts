@@ -1,25 +1,23 @@
 import { z } from "zod";
 
-export type ProtocolParamType = "boolean" | "string" | "number" | "label";
+export type ProtocolParameterType = "string" | "number" | "boolean" | "select";
 
-export interface ProtocolParamInfo {
-  type: ProtocolParamType;
-  options: string[];
-  variable_id?: number;
-  placeHolder?: string;
+export interface ProtocolParameter {
+  name: string;
+  label: string;
+  type: ProtocolParameterType;
+  defaultValue?: string;
+  required?: boolean;
+  options?: string[];
+  description?: string;
 }
 
-export const index = z.number().positive().int();
-
-// Unused type and function - commented out
-// type _Param<T extends z.ZodTypeAny, B extends ProtocolParamType> = z.ZodBranded<T, B> & {
-//   _def: { _paramType: B };
-// };
-
-// function _Param<T extends z.ZodTypeAny, B extends ProtocolParamType>(name: B, type: T): _Param<T, B> {
-//   const branded = type.brand(name) as _Param<T, B>;
-//   branded._def._paramType = name;
-//   return branded;
-// }
-
-export const params = z.object;
+export const zProtocolParameter = z.object({
+  name: z.string().min(1),
+  label: z.string().min(1),
+  type: z.enum(["string", "number", "boolean", "select"]),
+  defaultValue: z.string().optional(),
+  required: z.boolean().optional(),
+  options: z.array(z.string()).optional(),
+  description: z.string().optional(),
+});

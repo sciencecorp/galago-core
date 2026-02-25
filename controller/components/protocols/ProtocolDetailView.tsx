@@ -44,6 +44,8 @@ import { SaveIcon } from "@/components/ui/Icons";
 import { CommandDetailsDrawer } from "./CommandDetailsDrawer";
 import CommandImage from "@/components/tools/CommandImage";
 import { successToast, errorToast } from "../ui/Toast";
+import ProtocolParametersEditor from "./ProtocolParametersEditor";
+import type { ProtocolParameter } from "@/protocols/params";
 
 const handleWheel = (e: WheelEvent) => {
   const container = e.currentTarget as HTMLElement;
@@ -137,6 +139,7 @@ const ProtocolSwimLaneCommandComponent: React.FC<{
 
 export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
   const [commands, setCommands] = useState<any[]>([]);
+  const [parameters, setParameters] = useState<ProtocolParameter[]>([]);
   const [isAddCommandModalOpen, setIsAddCommandModalOpen] = useState(false);
   const [isRunModalOpen, setIsRunModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -165,12 +168,6 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
       refetch();
     },
   });
-
-  const {
-    isOpen: _isParametersModalOpen,
-    onOpen: _openParametersModal,
-    onClose: _closeParametersModal,
-  } = useDisclosure();
 
   const handleAddCommandAtPosition = (position: number) => {
     setAddCommandPosition(position);
@@ -204,6 +201,10 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
 
     setCommands(newCommands);
   }, [protocol?.commands]);
+
+  useEffect(() => {
+    setParameters(protocol?.parameters ?? []);
+  }, [protocol?.parameters]);
 
   useEffect(() => {
     return () => {
@@ -336,6 +337,7 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
       name: protocol.name,
       description: protocol.description,
       commands: newCommands,
+      parameters: parameters.length > 0 ? parameters : null,
     });
   };
 
@@ -512,6 +514,14 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
         </HStack>
 
         <Text>{protocol.description}</Text>
+
+        <ProtocolParametersEditor
+          parameters={parameters}
+          onChange={setParameters}
+          isEditing={isEditing}
+          commands={commands}
+        />
+
         <Divider />
         <Box
           overflowX="auto"

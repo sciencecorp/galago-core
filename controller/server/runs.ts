@@ -4,8 +4,9 @@ import { ZodError } from "zod";
 import CommandQueue from "./command_queue";
 import Tool from "./tools";
 import { db } from "@/db/client";
-import { tools, workcells, appSettings, protocols } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { tools, workcells, appSettings, protocols, variables } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
+import type { ProtocolParameter } from "@/protocols/params";
 
 // Helper function to get tool from database
 async function getToolFromDB(toolId: string) {
@@ -83,6 +84,47 @@ function generateCommandsFromProtocol(protocol: any): ToolCommandInfo[] {
       runAsynchronously: false,
     },
   }));
+}
+
+/**
+ * Upsert variables from protocol parameter values before starting runs.
+ * Creates new variables or updates existing ones scoped to the given workcell.
+ */
+export async function upsertParameterVariables(
+  paramDefs: ProtocolParameter[],
+  paramValues: Record<string, string>,
+  workcellId: number,
+): Promise<void> {
+  for (const def of paramDefs) {
+    const value = paramValues[def.name] ?? def.defaultValue ?? "";
+
+    if (def.required && value.trim() === "") {
+      throw new Error(`Required parameter '${def.label}' is missing`);
+    }
+    if (value.trim() === "") continue;
+
+    const variableType = def.type === "select" ? "string" : def.type;
+
+    const existing = await db
+      .select()
+      .from(variables)
+      .where(and(eq(variables.name, def.name), eq(variables.workcellId, workcellId)))
+      .limit(1);
+
+    if (existing.length > 0) {
+      await db
+        .update(variables)
+        .set({ value, type: variableType, updatedAt: new Date() })
+        .where(eq(variables.id, existing[0].id));
+    } else {
+      await db.insert(variables).values({
+        name: def.name,
+        value,
+        type: variableType,
+        workcellId,
+      });
+    }
+  }
 }
 
 export default class RunStore {
