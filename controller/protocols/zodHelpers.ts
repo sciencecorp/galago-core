@@ -1,6 +1,6 @@
 import { z } from "zod";
 import * as util from "util";
-import { ProtocolParamType } from "./params";
+import { ProtocolParameterType } from "./params";
 
 export type InnerZodType<W extends z.ZodTypeAny> = W extends MaybeWrappedZodType<infer I> ? I : W;
 
@@ -31,7 +31,7 @@ export function innerZodObjectShape<T extends MaybeWrappedZodType<z.AnyZodObject
   return innerZodType(paramSchema).shape;
 }
 
-export function zodSchemaToTypeName(schema: z.ZodTypeAny): ProtocolParamType {
+export function zodSchemaToTypeName(schema: z.ZodTypeAny): ProtocolParameterType {
   const innerSchema = innerZodType(schema);
   switch (innerSchema._def.typeName) {
     case "ZodBranded":

@@ -5,16 +5,7 @@ import { findOne, getSelectedWorkcellId } from "@/db/helpers";
 import { protocols, workcells } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-
-// Unused zod schema - commented out
-// const _zProtocol = z.object({
-//   id: z.number().optional(),
-//   name: z.string(),
-//   category: z.string(),
-//   workcellId: z.number().optional(),
-//   description: z.string().optional(),
-//   commands: z.array(z.any()),
-// });
+import { zProtocolParameter } from "@/protocols/params";
 
 const zProtocolCreate = z.object({
   name: z.string(),
@@ -22,6 +13,7 @@ const zProtocolCreate = z.object({
   workcellId: z.number().optional(),
   description: z.string().optional(),
   commands: z.array(z.any()).default([]),
+  parameters: z.array(zProtocolParameter).nullable().optional(),
 });
 
 const zProtocolUpdate = z.object({
@@ -30,6 +22,7 @@ const zProtocolUpdate = z.object({
   category: z.string().optional(),
   description: z.string().nullable().optional(),
   commands: z.array(z.any()).optional(),
+  parameters: z.array(zProtocolParameter).nullable().optional(),
 });
 
 const zProtocolImport = z.object({
@@ -39,6 +32,7 @@ const zProtocolImport = z.object({
     category: z.string().optional(),
     description: z.string().optional(),
     commands: z.array(z.any()).optional(),
+    parameters: z.array(zProtocolParameter).nullable().optional(),
   }),
 });
 
@@ -118,7 +112,6 @@ export const protocolRouter = router({
         });
       }
 
-      // Create protocol
       const result = await db
         .insert(protocols)
         .values({
@@ -127,6 +120,7 @@ export const protocolRouter = router({
           workcellId: workcellId,
           description: input.description || null,
           commands: input.commands,
+          parameters: input.parameters ?? null,
         })
         .returning();
 
@@ -159,6 +153,7 @@ export const protocolRouter = router({
         ...(updateData.category !== undefined && { category: updateData.category }),
         ...(updateData.description !== undefined && { description: updateData.description }),
         ...(updateData.commands !== undefined && { commands: updateData.commands }),
+        ...(updateData.parameters !== undefined && { parameters: updateData.parameters }),
         updatedAt: new Date().toISOString(),
       })
       .where(eq(protocols.id, id))
@@ -197,6 +192,7 @@ export const protocolRouter = router({
         category: protocol.category,
         description: protocol.description,
         commands: protocol.commands,
+        parameters: protocol.parameters ?? null,
       },
       exportedAt: new Date().toISOString(),
       version: "1.0",
@@ -215,7 +211,6 @@ export const protocolRouter = router({
         });
       }
 
-      // Create protocol from import data
       const result = await db
         .insert(protocols)
         .values({
@@ -223,6 +218,7 @@ export const protocolRouter = router({
           category: input.protocol.category || "development",
           description: input.protocol.description || null,
           commands: input.protocol.commands || [],
+          parameters: input.protocol.parameters ?? null,
           workcellId: input.workcellId,
         })
         .returning();
