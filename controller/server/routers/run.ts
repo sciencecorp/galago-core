@@ -1,12 +1,16 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import RunStore from "../runs";
-import {
+import RunStore, {
   ProtocolGenerationFailedError,
   ProtocolNotFoundError,
   ProtocolParamsInvalidError,
+  upsertParameterVariables,
 } from "../runs";
 import { procedure, router } from "@/server/trpc";
+import { getSelectedWorkcellId } from "@/db/helpers";
+import { db } from "@/db/client";
+import { protocols } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export const runRouter = router({
   all: procedure
@@ -40,25 +44,41 @@ export const runRouter = router({
   create: procedure
     .input(
       z.object({
-        protocolId: z.number(), // Changed from z.string() to z.number()
+        protocolId: z.number(),
         numberOfRuns: z.number().optional(),
+        parameters: z.record(z.string(), z.string()).optional(),
       }),
     )
     .mutation(async ({ input }) => {
       const { protocolId } = input;
       try {
-        // Convert number to string for RunStore if needed
         const protocolIdString = protocolId.toString();
 
-        //Promise to create multiple runs
-        if (input.numberOfRuns) {
-          const runs = [];
-          for (let i = 0; i < input.numberOfRuns; i++) {
-            const run = await RunStore.global.createFromProtocol(protocolIdString);
-            runs.push(run);
+        if (input.parameters && Object.keys(input.parameters).length > 0) {
+          const workcellId = await getSelectedWorkcellId();
+          const protocol = await db
+            .select()
+            .from(protocols)
+            .where(eq(protocols.id, protocolId))
+            .limit(1);
+
+          if (!protocol[0]) {
+            throw new ProtocolNotFoundError(protocolIdString);
           }
-          return runs;
+
+          const paramDefs = protocol[0].parameters ?? [];
+          if (paramDefs.length > 0) {
+            await upsertParameterVariables(paramDefs, input.parameters, workcellId);
+          }
         }
+
+        const numRuns = input.numberOfRuns ?? 1;
+        const runs = [];
+        for (let i = 0; i < numRuns; i++) {
+          const run = await RunStore.global.createFromProtocol(protocolIdString);
+          runs.push(run);
+        }
+        return runs;
       } catch (e) {
         if (e instanceof ProtocolNotFoundError) {
           throw new TRPCError({
@@ -73,8 +93,6 @@ export const runRouter = router({
           });
         }
         if (e instanceof ProtocolParamsInvalidError) {
-          // Ensure the ZodError gets thrown, so that the client can see it.
-          // (We have a special formatter for ZodErrors.)
           throw e.cause;
         }
         throw e;

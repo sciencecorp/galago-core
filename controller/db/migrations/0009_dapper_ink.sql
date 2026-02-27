@@ -1,0 +1,1 @@
+ALTER TABLE `protocols` ADD `parameters` text;

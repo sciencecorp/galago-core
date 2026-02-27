@@ -50,6 +50,13 @@
       "when": 1768889833726,
       "tag": "0008_lame_black_cat",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1772050718802,
+      "tag": "0009_dapper_ink",
+      "breakpoints": true
     }
   ]
 }
