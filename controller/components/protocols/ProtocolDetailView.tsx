@@ -20,9 +20,10 @@ import {
   MenuList,
   MenuItem,
   Center,
+  Input,
 } from "@chakra-ui/react";
 import { DeleteIcon, AddIcon, EditIcon, ArrowForwardIcon, HamburgerIcon } from "@chakra-ui/icons";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   DragDropContext,
   Droppable,
@@ -37,13 +38,13 @@ import { AddToolCommandModal } from "./AddToolCommandModal";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
 import { capitalizeFirst } from "@/utils/parser";
-import { Play, Download, LogOut } from "lucide-react";
+import { Play, Download, LogOut, Upload } from "lucide-react";
 
 import { ConfirmationModal } from "../ui/ConfirmationModal";
 import { SaveIcon } from "@/components/ui/Icons";
 import { CommandDetailsDrawer } from "./CommandDetailsDrawer";
 import CommandImage from "@/components/tools/CommandImage";
-import { successToast, errorToast } from "../ui/Toast";
+import { successToast, errorToast, warningToast } from "../ui/Toast";
 import ProtocolParametersEditor from "./ProtocolParametersEditor";
 import type { ProtocolParameter } from "@/protocols/params";
 
@@ -144,6 +145,8 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
   const [isRunModalOpen, setIsRunModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const importFileInputRef = useRef<HTMLInputElement>(null);
   const [addCommandPosition, setAddCommandPosition] = useState<number | null>(null);
   const [selectedCommand, setSelectedCommand] = useState<any | null>(null);
   const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
@@ -304,6 +307,52 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
       errorToast("Export Failed", error.message || "Failed to export protocol");
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleImportClick = () => {
+    importFileInputRef.current?.click();
+  };
+
+  const handleImportFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsImporting(true);
+      const fileContent = await file.text();
+      const data = JSON.parse(fileContent);
+
+      // Validate basic structure (exported format wraps in { protocol: {...} })
+      const protocolData = data.protocol ?? data;
+      if (!protocolData.commands || !Array.isArray(protocolData.commands)) {
+        errorToast("Invalid file", "The JSON file does not contain a valid protocol.");
+        return;
+      }
+
+      // Warn if names don't match
+      if (protocol && protocolData.name && protocolData.name !== protocol.name) {
+        warningToast(
+          "Name mismatch",
+          `Imported protocol name "${protocolData.name}" differs from "${protocol.name}". Keeping existing name.`,
+        );
+      }
+
+      // Update existing protocol — keep current name, overwrite content
+      await updateProtocol.mutateAsync({
+        id,
+        category: protocolData.category ?? protocol?.category,
+        description: protocolData.description ?? protocol?.description ?? null,
+        commands: protocolData.commands ?? protocol?.commands,
+        parameters: protocolData.parameters ?? protocol?.parameters ?? null,
+      });
+    } catch (error: any) {
+      errorToast("Import failed", error.message || "Could not parse the JSON file.");
+    } finally {
+      setIsImporting(false);
+      if (importFileInputRef.current) {
+        importFileInputRef.current.value = "";
+      }
     }
   };
 
@@ -500,6 +549,14 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
                   Export
                 </Button>
                 <Button
+                  leftIcon={<Upload />}
+                  colorScheme="blue"
+                  variant="outline"
+                  onClick={handleImportClick}
+                  isLoading={isImporting}>
+                  Import
+                </Button>
+                <Button
                   leftIcon={<EditIcon />}
                   colorScheme="teal"
                   onClick={() => setIsEditing(true)}>
@@ -575,6 +632,14 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
         onClose={closeDeleteConfirm}>
         {`Are you sure you want to delete this command "${selectedCommand?.commandInfo?.command?.replaceAll("_", " ") || ""}"?`}
       </ConfirmationModal>
+
+      <Input
+        type="file"
+        ref={importFileInputRef}
+        onChange={handleImportFileChange}
+        style={{ display: "none" }}
+        accept=".json"
+      />
     </Box>
   );
 };
