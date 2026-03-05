@@ -44,12 +44,12 @@ import {
   Tooltip,
 } from "@chakra-ui/react";
 import { SearchIcon, ArrowUpDownIcon, HamburgerIcon, DeleteIcon } from "@chakra-ui/icons";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import NewProtocolRunModal from "./NewProtocolRunModal";
 import { trpc } from "@/utils/trpc";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { GitBranch, Plus, Play } from "lucide-react";
+import { GitBranch, Plus, Play, Upload } from "lucide-react";
 import { EditableText } from "../ui/Form";
 import { errorToast, successToast } from "../ui/Toast";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -87,6 +87,71 @@ export const ProtocolPageComponent: React.FC = () => {
       errorToast("Error deleting protocol", error.message);
     },
   });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const importMutation = trpc.protocol.import.useMutation({
+    onSuccess: () => {
+      successToast("Protocol imported", "Protocol has been created successfully.");
+      refetch();
+    },
+  });
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImportFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const fileContent = await file.text();
+      const data = JSON.parse(fileContent);
+
+      // Validate basic structure (exported format wraps in { protocol: {...} })
+      const protocolData = data.protocol ?? data;
+      if (!protocolData.name) {
+        errorToast("Invalid file", "The JSON file does not contain a valid protocol.");
+        return;
+      }
+
+      // Check for duplicate name in current workcell
+      const existingProtocol = protocols?.find(
+        (p) => p.name.toLowerCase() === protocolData.name.toLowerCase(),
+      );
+      if (existingProtocol) {
+        errorToast(
+          "Protocol already exists",
+          `A protocol named "${protocolData.name}" already exists. Rename it in the JSON file, or navigate to the existing protocol to update it.`,
+        );
+        return;
+      }
+
+      // Find workcellId from workcellName
+      const selectedWorkcell = workcells?.find((w) => w.name === workcellName);
+      if (!selectedWorkcell) {
+        errorToast("No workcell selected", "Please select a workcell before importing.");
+        return;
+      }
+
+      await importMutation.mutateAsync({
+        workcellId: selectedWorkcell.id,
+        protocol: {
+          name: protocolData.name,
+          category: protocolData.category,
+          description: protocolData.description,
+          commands: protocolData.commands,
+          parameters: protocolData.parameters,
+        },
+      });
+    } catch (error: any) {
+      errorToast("Import failed", error.message || "Could not parse the JSON file.");
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
 
   const updateProtocol = trpc.protocol.update.useMutation({
     onSuccess: () => {
@@ -206,6 +271,21 @@ export const ProtocolPageComponent: React.FC = () => {
               titleIcon={<Icon as={GitBranch} boxSize={8} color="teal.500" />}
               mainButton={
                 <HStack>
+                  <Tooltip
+                    label={!workcellName ? "Create or Select a Workcell to import a protocol" : ""}
+                    placement="top"
+                    hasArrow>
+                    <Button
+                      size="sm"
+                      isDisabled={!workcellName}
+                      colorScheme="blue"
+                      variant="outline"
+                      leftIcon={<Upload size={14} />}
+                      onClick={handleImportClick}
+                      isLoading={importMutation.isLoading}>
+                      Import
+                    </Button>
+                  </Tooltip>
                   <Tooltip
                     label={!workcellName ? "Create or Select a Workcell to create a protocol" : ""}
                     placement="top"
@@ -456,6 +536,14 @@ export const ProtocolPageComponent: React.FC = () => {
           </ModalBody>
         </ModalContent>
       </Modal>
+
+      <Input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleImportFileChange}
+        style={{ display: "none" }}
+        accept=".json"
+      />
     </VStack>
   );
 };
