@@ -115,13 +115,8 @@ export const RunsComponent: React.FC = () => {
   const queueSummary = trpc.commandQueue.getQueueSummary.useQuery(undefined, {
     refetchInterval: 2000,
   });
-  // Query for waiting-for-input status
-  const isWaitingForInputQuery = trpc.commandQueue.isWaitingForInput.useQuery(undefined, {
-    refetchInterval: 1000,
-  });
-
-  // Query for current message data
-  const currentMessageQuery = trpc.commandQueue.currentMessage.useQuery(undefined, {
+  // Combined modal state query — atomic to prevent race conditions
+  const modalStateQuery = trpc.commandQueue.modalState.useQuery(undefined, {
     refetchInterval: 1000,
   });
 
@@ -166,42 +161,32 @@ export const RunsComponent: React.FC = () => {
   });
 
   useEffect(() => {
-    if (isWaitingForInputQuery.data !== undefined) {
-      const shouldShowModal = isWaitingForInputQuery.data;
-      const shouldShowUserForm = shouldShowModal && messageData.type === "user_form";
+    if (!modalStateQuery.data) return;
 
-      setIsModalOpen(shouldShowModal && messageData.type !== "user_form");
-      setIsUserFormModalOpen(shouldShowUserForm);
+    const { isWaiting, message } = modalStateQuery.data;
+
+    const newMessageData = {
+      type: message.type,
+      message: message.message,
+      ...(message.title ? { title: message.title } : {}),
+      ...(message.pausedAt ? { pausedAt: message.pausedAt } : {}),
+      ...(message.timerDuration ? { timerDuration: message.timerDuration } : {}),
+      ...(message.timerEndTime ? { timerEndTime: message.timerEndTime } : {}),
+      ...(message.formName ? { formName: message.formName } : {}),
+    };
+
+    setMessageData(newMessageData);
+
+    const shouldShowUserForm = isWaiting && message.type === "user_form";
+    setIsModalOpen(isWaiting && message.type !== "user_form");
+    setIsUserFormModalOpen(shouldShowUserForm);
+
+    // Reset form state when message type changes
+    if (message.type !== "user_form") {
+      setCurrentForm(null);
+      setUserFormError(null);
     }
-
-    if (currentMessageQuery.data) {
-      const newMessageData = {
-        type: currentMessageQuery.data.type,
-        message: currentMessageQuery.data.message,
-        ...(currentMessageQuery.data.title ? { title: currentMessageQuery.data.title } : {}),
-        ...(currentMessageQuery.data.pausedAt
-          ? { pausedAt: currentMessageQuery.data.pausedAt }
-          : {}),
-        ...(currentMessageQuery.data.timerDuration
-          ? { timerDuration: currentMessageQuery.data.timerDuration }
-          : {}),
-        ...(currentMessageQuery.data.timerEndTime
-          ? { timerEndTime: currentMessageQuery.data.timerEndTime }
-          : {}),
-        ...(currentMessageQuery.data.formName
-          ? { formName: currentMessageQuery.data.formName }
-          : {}),
-      };
-
-      setMessageData(newMessageData);
-
-      // Reset form state when message type changes
-      if (newMessageData.type !== "user_form") {
-        setCurrentForm(null);
-        setUserFormError(null);
-      }
-    }
-  }, [isWaitingForInputQuery.data, currentMessageQuery.data, messageData.type]);
+  }, [modalStateQuery.data]);
 
   const handleResume = () => {
     resumeMutation.mutate();
