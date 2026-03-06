@@ -75,7 +75,7 @@ export const runRouter = router({
         const numRuns = input.numberOfRuns ?? 1;
         const runs = [];
         for (let i = 0; i < numRuns; i++) {
-          const run = await RunStore.global.createFromProtocol(protocolIdString);
+          const run = await RunStore.global.createFromProtocol(protocolIdString, input.parameters);
           runs.push(run);
         }
         return runs;
