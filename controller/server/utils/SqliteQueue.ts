@@ -428,6 +428,24 @@ export default class SqliteQueue {
     }));
   }
 
+  getQueueSummary(): { total: number; completed: number; pending: number } {
+    const total = this.db
+      .prepare(`SELECT COUNT(*) as count FROM ${this.queueName}_commands`)
+      .get() as { count: number };
+
+    const completed = this.db
+      .prepare(
+        `SELECT COUNT(*) as count FROM ${this.queueName}_commands WHERE status = 'COMPLETED'`,
+      )
+      .get() as { count: number };
+
+    return {
+      total: total.count,
+      completed: completed.count,
+      pending: total.count - completed.count,
+    };
+  }
+
   async clearAll(): Promise<void> {
     this.db.transaction(() => {
       this.db.prepare(`DELETE FROM ${this.queueName}_queue`).run();

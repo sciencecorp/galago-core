@@ -108,7 +108,13 @@ export const RunsComponent: React.FC = () => {
   // Resume mutation
   const resumeMutation = trpc.commandQueue.resume.useMutation();
 
-  const commandsAll = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 2000 });
+  const commandsPage = trpc.commandQueue.commands.useQuery(
+    { limit: 50, offset: 0 },
+    { refetchInterval: 2000 },
+  );
+  const queueSummary = trpc.commandQueue.getQueueSummary.useQuery(undefined, {
+    refetchInterval: 2000,
+  });
   // Query for waiting-for-input status
   const isWaitingForInputQuery = trpc.commandQueue.isWaitingForInput.useQuery(undefined, {
     refetchInterval: 1000,
@@ -147,8 +153,8 @@ export const RunsComponent: React.FC = () => {
   const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
 
   const groupedCommands = useMemo(
-    () => (commandsAll.data ? groupCommandsByRun(commandsAll.data) : []),
-    [commandsAll.data],
+    () => (commandsPage.data ? groupCommandsByRun(commandsPage.data) : []),
+    [commandsPage.data],
   );
 
   const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 1000 });
@@ -310,21 +316,21 @@ export const RunsComponent: React.FC = () => {
   const pendingRuns = totalRuns - completedRuns - activeRuns;
 
   useEffect(() => {
-    if (commandsAll.data && commandsAll.data.length > 0 && !selectedRunId) {
-      const firstRunId = commandsAll.data[0].runId;
+    if (commandsPage.data && commandsPage.data.length > 0 && !selectedRunId) {
+      const firstRunId = commandsPage.data[0].runId;
       if (firstRunId !== selectedRunId) {
         setSelectedRunId(firstRunId);
         setExpandedRuns(new Set([firstRunId]));
       }
     }
-  }, [commandsAll.data, selectedRunId]);
+  }, [commandsPage.data, selectedRunId]);
 
   useEffect(() => {
     const updateRunAttributes = async () => {
       const newAttributes: Record<string, any> = {};
       for (const run of groupedCommands) {
         const runInfo = runsInfo.data?.find((r) => r.id === run.Id);
-        const cmdInfo = commandsAll.data?.find((r) => r.runId === run.Id);
+        const cmdInfo = commandsPage.data?.find((r) => r.runId === run.Id);
 
         // Only update if we don't have attributes for this run or if the data has changed
         if (!runAttributesMap[run.Id] || runAttributesMap[run.Id].status !== cmdInfo?.status) {
@@ -338,7 +344,7 @@ export const RunsComponent: React.FC = () => {
     };
 
     updateRunAttributes();
-  }, [runsInfo.data, commandsAll.data]);
+  }, [runsInfo.data, commandsPage.data]);
 
   function expandButtonIcon(runId: string) {
     return expandedRuns.has(runId) ? <ChevronUpIcon /> : <PlusSquareIcon />;
@@ -582,7 +588,7 @@ export const RunsComponent: React.FC = () => {
             <VStack spacing={4} align="stretch">
               <HStack justify="space-between" width="100%">
                 <Heading size="lg">
-                  {commandsAll.data && commandsAll.data.length > 0 ? "Runs List" : ""}
+                  {commandsPage.data && commandsPage.data.length > 0 ? "Runs List" : ""}
                 </Heading>
                 <Spacer />
                 <Text color="GrayText">Show Completed:</Text>
@@ -593,7 +599,7 @@ export const RunsComponent: React.FC = () => {
                   size="md"
                 />
               </HStack>
-              {commandsAll.data && commandsAll.data.length > 0 ? (
+              {commandsPage.data && commandsPage.data.length > 0 ? (
                 renderRunsList()
               ) : (
                 <VStack spacing={3} py={4}>
