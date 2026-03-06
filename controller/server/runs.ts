@@ -7,6 +7,8 @@ import { db } from "@/db/client";
 import { tools, workcells, appSettings, protocols, variables } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import type { ProtocolParameter } from "@/protocols/params";
+import { executeProtocolScript } from "@/server/scripting/protocol-script-executor";
+import { resolveToolTypes } from "@/server/scripting/resolve-tool-types";
 
 // Helper function to get tool from database
 async function getToolFromDB(toolId: string) {
@@ -60,8 +62,32 @@ async function loadProtocolFromDatabase(protocolId: string) {
   return protocolResult[0];
 }
 
-// Helper function to generate commands from protocol data
-function generateCommandsFromProtocol(protocol: any): ToolCommandInfo[] {
+async function generateCommandsFromProtocol(
+  protocol: any,
+  paramValues?: Record<string, string>,
+): Promise<ToolCommandInfo[]> {
+  if (protocol.mode === "script") {
+    if (!protocol.scriptContent || protocol.scriptContent.trim() === "") {
+      throw new ProtocolGenerationFailedError(
+        `Script protocol ${protocol.id} has no script content`,
+      );
+    }
+
+    const result = await executeProtocolScript(
+      protocol.scriptContent,
+      paramValues || {},
+    );
+
+    if (!result.success) {
+      throw new ProtocolGenerationFailedError(
+        `Script execution failed: ${result.error}`,
+      );
+    }
+
+    const resolved = await resolveToolTypes(result.commands, protocol.workcellId);
+    return resolved;
+  }
+
   if (!protocol.commands || protocol.commands.length === 0) {
     throw new ProtocolGenerationFailedError(`Protocol ${protocol.id} has no commands`);
   }
@@ -180,13 +206,13 @@ export default class RunStore {
     await Promise.all(durationEstimates);
   }
 
-  async createFromProtocol(protocolId: string): Promise<Run> {
+  async createFromProtocol(protocolId: string, paramValues?: Record<string, string>): Promise<Run> {
     try {
       // Load protocol from database
       const protocol = await loadProtocolFromDatabase(protocolId);
 
       // Generate commands from protocol
-      const commands = generateCommandsFromProtocol(protocol);
+      const commands = await generateCommandsFromProtocol(protocol, paramValues);
 
       // Create run ID
       const runId = snowflakeIdGenerator.nextId();
