@@ -96,6 +96,42 @@ export default class SqliteQueue {
     })();
   }
 
+  async pushBatch(items: RunCommand[]): Promise<void> {
+    if (items.length === 0) return;
+
+    const db = this.db;
+
+    db.transaction(() => {
+      // Get starting position
+      const maxPos = db
+        .prepare(
+          `SELECT COALESCE(MAX(position), -1) as max_pos FROM ${this.queueName}_queue`,
+        )
+        .get() as { max_pos: number };
+
+      let nextPosition = maxPos.max_pos + 1;
+
+      const insertCommand = db.prepare(
+        `INSERT INTO ${this.queueName}_commands (run_id, command_data, status) VALUES (?, ?, ?)`,
+      );
+
+      const insertQueue = db.prepare(
+        `INSERT INTO ${this.queueName}_queue (queue_id, position) VALUES (?, ?)`,
+      );
+
+      for (const item of items) {
+        const result = insertCommand.run(
+          item.runId,
+          this._serialize(item),
+          item.status || "CREATED",
+        );
+        const queueId = result.lastInsertRowid as number;
+        insertQueue.run(queueId, nextPosition);
+        nextPosition++;
+      }
+    })();
+  }
+
   async runPush(runQueueId: string, runQueue: RunQueue): Promise<string> {
     this.db
       .prepare(
