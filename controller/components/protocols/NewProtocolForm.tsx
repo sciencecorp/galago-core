@@ -25,7 +25,9 @@ type ProtocolFormData = Omit<
   | "numberOfCommands"
   | "workcellId"
   | "parameters"
->;
+> & {
+  mode: "visual" | "script";
+};
 
 export const NewProtocolForm = () => {
   const router = useRouter();
@@ -35,6 +37,7 @@ export const NewProtocolForm = () => {
     category: "development",
     description: "",
     commands: [],
+    mode: "visual",
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof ProtocolFormData, string>>>({});
@@ -131,6 +134,14 @@ export const NewProtocolForm = () => {
             <option value="qc">QC</option>
           </Select>
           <FormErrorMessage>{errors.category}</FormErrorMessage>
+        </FormControl>
+
+        <FormControl>
+          <FormLabel>Mode</FormLabel>
+          <Select name="mode" value={formData.mode} onChange={handleChange}>
+            <option value="visual">Visual</option>
+            <option value="script">Script</option>
+          </Select>
         </FormControl>
 
         <FormControl>
