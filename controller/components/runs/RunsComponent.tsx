@@ -145,7 +145,6 @@ export const RunsComponent: React.FC = () => {
   const expandedRunBg = useColorModeValue("white", "surface.panel");
   const boxShadowValue = useColorModeValue("md", "none");
   const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
-  const CommandInfo = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 1000 });
 
   const groupedCommands = useMemo(
     () => (commandsAll.data ? groupCommandsByRun(commandsAll.data) : []),
@@ -325,7 +324,7 @@ export const RunsComponent: React.FC = () => {
       const newAttributes: Record<string, any> = {};
       for (const run of groupedCommands) {
         const runInfo = runsInfo.data?.find((r) => r.id === run.Id);
-        const cmdInfo = CommandInfo.data?.find((r) => r.runId === run.Id);
+        const cmdInfo = commandsAll.data?.find((r) => r.runId === run.Id);
 
         // Only update if we don't have attributes for this run or if the data has changed
         if (!runAttributesMap[run.Id] || runAttributesMap[run.Id].status !== cmdInfo?.status) {
@@ -339,7 +338,7 @@ export const RunsComponent: React.FC = () => {
     };
 
     updateRunAttributes();
-  }, [runsInfo.data, CommandInfo.data]);
+  }, [runsInfo.data, commandsAll.data]);
 
   function expandButtonIcon(runId: string) {
     return expandedRuns.has(runId) ? <ChevronUpIcon /> : <PlusSquareIcon />;
