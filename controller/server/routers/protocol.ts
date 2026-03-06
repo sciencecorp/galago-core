@@ -246,4 +246,49 @@ export const protocolRouter = router({
       });
     }
   }),
+
+  preview: procedure
+    .input(
+      z.object({
+        scriptContent: z.string(),
+        params: z.record(z.string(), z.string()).optional(),
+        workcellId: z.number(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { executeProtocolScript } = await import(
+        "@/server/scripting/protocol-script-executor"
+      );
+      const { resolveToolTypes } = await import("@/server/scripting/resolve-tool-types");
+
+      const result = await executeProtocolScript(input.scriptContent, input.params || {});
+
+      if (!result.success) {
+        return {
+          success: false as const,
+          error: result.error,
+          logs: result.logs,
+          commands: [],
+          commandCount: 0,
+        };
+      }
+
+      try {
+        const resolved = await resolveToolTypes(result.commands, input.workcellId);
+        return {
+          success: true as const,
+          commands: resolved,
+          commandCount: resolved.length,
+          logs: result.logs,
+        };
+      } catch (error: any) {
+        return {
+          success: false as const,
+          error: error.message,
+          logs: result.logs,
+          commands: result.commands,
+          commandCount: result.commands.length,
+        };
+      }
+    }),
 });

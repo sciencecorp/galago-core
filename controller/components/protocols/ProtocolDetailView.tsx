@@ -47,6 +47,7 @@ import CommandImage from "@/components/tools/CommandImage";
 import { successToast, errorToast, warningToast } from "../ui/Toast";
 import ProtocolParametersEditor from "./ProtocolParametersEditor";
 import type { ProtocolParameter } from "@/protocols/params";
+import Editor from "@monaco-editor/react";
 
 const handleWheel = (e: WheelEvent) => {
   const container = e.currentTarget as HTMLElement;
@@ -149,12 +150,16 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
   const importFileInputRef = useRef<HTMLInputElement>(null);
   const [addCommandPosition, setAddCommandPosition] = useState<number | null>(null);
   const [selectedCommand, setSelectedCommand] = useState<any | null>(null);
+  const [scriptContent, setScriptContent] = useState<string>("");
+  const [previewCommands, setPreviewCommands] = useState<any[] | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
   const execMutation = trpc.tool.runCommand.useMutation();
   const bgColor = useColorModeValue("white", "surface.section");
   const borderColor = useColorModeValue("gray.200", "whiteAlpha.200");
   const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
   const arrowColor = useColorModeValue("gray.500", "gray.400");
+  const monacoTheme = useColorModeValue("light", "vs-dark");
   const { data: protocol, isLoading, error, refetch } = trpc.protocol.get.useQuery(id);
   const protocolExportQuery = trpc.protocol.export.useQuery(id, { enabled: false });
 
@@ -171,6 +176,42 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
       refetch();
     },
   });
+
+  const previewMutation = trpc.protocol.preview.useMutation();
+
+  const handlePreview = async () => {
+    if (!protocol) return;
+    setIsPreviewLoading(true);
+    try {
+      const result = await previewMutation.mutateAsync({
+        scriptContent,
+        workcellId: protocol.workcellId!,
+        params: {},
+      });
+      if (result.success) {
+        setPreviewCommands(result.commands);
+        successToast("Preview generated", `${result.commandCount} commands generated`);
+      } else {
+        setPreviewCommands(null);
+        errorToast("Script error", result.error || "Unknown error");
+      }
+      if (result.logs.length > 0) {
+        console.log("Script logs:", result.logs);
+      }
+    } catch (error: any) {
+      errorToast("Preview failed", error.message);
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  };
+
+  const handleSaveScript = () => {
+    if (!protocol) return;
+    updateProtocol.mutate({
+      id: protocol.id,
+      scriptContent,
+    });
+  };
 
   const handleAddCommandAtPosition = (position: number) => {
     setAddCommandPosition(position);
@@ -208,6 +249,12 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
   useEffect(() => {
     setParameters(protocol?.parameters ?? []);
   }, [protocol?.parameters]);
+
+  useEffect(() => {
+    if (protocol?.scriptContent) {
+      setScriptContent(protocol.scriptContent);
+    }
+  }, [protocol?.scriptContent]);
 
   useEffect(() => {
     return () => {
@@ -580,29 +627,87 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
         />
 
         <Divider />
-        <Box
-          overflowX="auto"
-          py={6}
-          maxW="90vw"
-          onWheel={(e: any) => handleWheel(e)}
-          css={{
-            "&::-webkit-scrollbar": {
-              height: "8px",
-            },
-            "&::-webkit-scrollbar-track": {
-              borderRadius: "4px",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              borderRadius: "4px",
-              "&:hover": {},
-            },
-          }}>
-          <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="commands" direction="horizontal">
-              {renderDraggableCommands}
-            </Droppable>
-          </DragDropContext>
-        </Box>
+        {protocol.mode === "script" ? (
+          <VStack spacing={4} align="stretch">
+            <Box borderWidth={1} borderColor={borderColor} borderRadius="md" overflow="hidden">
+              <Editor
+                height="500px"
+                language="javascript"
+                theme={monacoTheme}
+                value={scriptContent}
+                onChange={(value) => setScriptContent(value || "")}
+                options={{
+                  minimap: { enabled: false },
+                  fontSize: 14,
+                  wordWrap: "on",
+                  scrollBeyondLastLine: false,
+                }}
+              />
+            </Box>
+            <HStack>
+              <Button
+                colorScheme="teal"
+                onClick={handleSaveScript}
+                isLoading={updateProtocol.isLoading}
+                leftIcon={<SaveIcon />}>
+                Save Script
+              </Button>
+              <Button
+                colorScheme="blue"
+                variant="outline"
+                onClick={handlePreview}
+                isLoading={isPreviewLoading}>
+                Preview {previewCommands ? `(${previewCommands.length} commands)` : ""}
+              </Button>
+            </HStack>
+            {previewCommands && (
+              <Box
+                maxH="300px"
+                overflowY="auto"
+                borderWidth={1}
+                borderColor={borderColor}
+                borderRadius="md"
+                p={3}
+                fontSize="sm">
+                <Text fontWeight="bold" mb={2}>
+                  Generated Commands ({previewCommands.length}):
+                </Text>
+                {previewCommands.map((cmd: any, i: number) => (
+                  <Text key={i} fontFamily="mono" fontSize="xs">
+                    {i + 1}. [{cmd.toolId}] {cmd.command}
+                    {Object.keys(cmd.params || {}).length > 0
+                      ? ` — ${JSON.stringify(cmd.params)}`
+                      : ""}
+                  </Text>
+                ))}
+              </Box>
+            )}
+          </VStack>
+        ) : (
+          <Box
+            overflowX="auto"
+            py={6}
+            maxW="90vw"
+            onWheel={(e: any) => handleWheel(e)}
+            css={{
+              "&::-webkit-scrollbar": {
+                height: "8px",
+              },
+              "&::-webkit-scrollbar-track": {
+                borderRadius: "4px",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                borderRadius: "4px",
+                "&:hover": {},
+              },
+            }}>
+            <DragDropContext onDragEnd={onDragEnd}>
+              <Droppable droppableId="commands" direction="horizontal">
+                {renderDraggableCommands}
+              </Droppable>
+            </DragDropContext>
+          </Box>
+        )}
       </VStack>
 
       {/* Command Details Drawer */}
