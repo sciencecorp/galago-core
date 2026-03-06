@@ -73,6 +73,12 @@ async function generateCommandsFromProtocol(
       );
     }
 
+    if (!protocol.workcellId) {
+      throw new ProtocolGenerationFailedError(
+        `Script protocol ${protocol.id} has no associated workcell`,
+      );
+    }
+
     const result = await executeProtocolScript(
       protocol.scriptContent,
       paramValues || {},

@@ -1,0 +1,86 @@
+{
+  "protocol": {
+    "name": "full limecoli 384 assay 4-plate multi-duration",
+    "category": "production",
+    "description": "4-plate limecoli 384 assay with multi-duration illumination (60s, 120s, 180s) across 4 wavelengths (630nm, 592nm, 525nm, 460nm). Plates 1-2 run at 25C, plates 3-4 at 37C.",
+    "mode": "script",
+    "scriptContent": "// Full Limecoli 384 Assay — 4-Plate Multi-Duration\n//\n// Plates are loaded from hotel slots and run through:\n//   1. Equilibration (10 min)\n//   2. OD600 baseline read\n//   3. 5 warmup reads\n//   4. 3 repetitions of the full illumination sweep:\n//      3 durations x 4 colors, each with pre-read, illuminate, post-read, 3 recovery reads\n//   5. Return plate to hotel\n//\n// Plates 1-2 at 25C, plates 3-4 at 37C\n\nvar plateNames = [params.plate_name_1, params.plate_name_2, params.plate_name_3, params.plate_name_4];\nvar assayName = params.assay_name;\nvar equilibrationSeconds = Number(params.equilibration_seconds) || 600;\nvar warmupCount = Number(params.warmup_count) || 5;\nvar recoveryCount = Number(params.recovery_count) || 3;\nvar repetitions = Number(params.repetitions) || 3;\nvar durations = [60, 120, 180];\n\nvar colors = [\n  { name: \"Red box\",    wavelength: \"630nm\", transferTo: \"transfer-clariostar-to-red-box\",    transferFrom: \"transfer-red-box-to-clariostar\" },\n  { name: \"Orange box\", wavelength: \"592nm\", transferTo: \"transfer-clariostar-to-orange-box\", transferFrom: \"transfer-orange-box-to-clariostar\" },\n  { name: \"Green box\",  wavelength: \"525nm\", transferTo: \"transfer-clariostar-to-green-box\",  transferFrom: \"transfer-green-box-to-clariostar\" },\n  { name: \"Blue box\",   wavelength: \"460nm\", transferTo: \"transfer-clariostar-to-blue-box\",   transferFrom: \"transfer-blue-box-to-clariostar\" },\n];\n\nvar plates = [\n  { plateId: plateNames[0], hotelSlot: 5, temperature: 25 },\n  { plateId: plateNames[1], hotelSlot: 4, temperature: 25 },\n  { plateId: plateNames[2], hotelSlot: 3, temperature: 37 },\n  { plateId: plateNames[3], hotelSlot: 2, temperature: 37 },\n];\n\nfunction read(protocolName, plateId, timepoint) {\n  galago.command(\"Clariostar\", \"start_read\", {\n    protocol_name: protocolName,\n    plate_id: plateId,\n    assay_id: assayName,\n    timepoint: timepoint,\n  });\n}\n\nfunction loadPlateFromHotel(hotelSlot) {\n  galago.command(\"Clariostar\", \"open_carrier\", {});\n  galago.command(\"Pf400\", \"run_sequence\", { labware: \"default\", sequence_name: \"transfer-hotel-1-slot-\" + hotelSlot + \"-to-clariostar\" });\n  galago.command(\"Clariostar\", \"close_carrier\", {});\n}\n\nfunction returnPlateToHotel(hotelSlot) {\n  galago.command(\"Clariostar\", \"open_carrier\", {});\n  galago.command(\"Pf400\", \"run_sequence\", { labware: \"default\", sequence_name: \"transfer-clariostar-to-hotel-1-slot-\" + hotelSlot });\n  galago.command(\"Clariostar\", \"close_carrier\", {});\n}\n\nfunction illuminationCycle(plateId, color, durationSeconds) {\n  var suffix = color.wavelength + \"_\" + durationSeconds + \"s\";\n\n  // Pre-illumination read\n  read(\"Lime-384-noorbital\", plateId, \"PreIllumination_\" + suffix);\n\n  // Transfer to light box and illuminate\n  galago.command(\"Clariostar\", \"open_carrier\", {});\n  galago.command(\"Pf400\", \"run_sequence\", { labware: \"default\", sequence_name: color.transferTo });\n  galago.command(color.name, \"switch\", { on: true });\n  galago.timer({ minutes: 0, seconds: durationSeconds, message: \"Timer in progress...\" });\n  galago.command(\"Pf400\", \"run_sequence\", { labware: \"default\", sequence_name: color.transferFrom });\n  galago.command(color.name, \"switch\", { on: false });\n  galago.command(\"Clariostar\", \"close_carrier\", {});\n\n  // Post-illumination read\n  read(\"Lime-384-noorbital\", plateId, \"PostIllumination_\" + suffix);\n\n  // Recovery reads\n  for (var r = 1; r <= recoveryCount; r++) {\n    read(\"Lime-384-noorbital\", plateId, \"Recovery\" + r + \"_\" + suffix);\n  }\n}\n\nfunction runPlateAssay(plate) {\n  // Equilibrate\n  galago.timer({ minutes: 0, seconds: equilibrationSeconds, message: \"Equilibrating plate for \" + (equilibrationSeconds / 60) + \" minutes...\" });\n\n  // OD600 baseline\n  read(\"OD600-384\", plate.plateId, \"PreAssayOD600\");\n\n  // Warmup reads\n  for (var w = 1; w <= warmupCount; w++) {\n    read(\"Lime-384-noorbital\", plate.plateId, \"Warmup\" + w);\n  }\n\n  // Illumination cycles: repeat the full sweep multiple times\n  for (var rep = 0; rep < repetitions; rep++) {\n    for (var d = 0; d < durations.length; d++) {\n      for (var c = 0; c < colors.length; c++) {\n        illuminationCycle(plate.plateId, colors[c], durations[d]);\n      }\n    }\n  }\n}\n\n// === Main protocol ===\n\n// Set initial temperature\ngalago.command(\"Clariostar\", \"set_temperature\", { temperature: plates[0].temperature });\n\nfor (var p = 0; p < plates.length; p++) {\n  var plate = plates[p];\n\n  // Change temperature if needed (between plate 2 and 3)\n  if (p > 0 && plates[p - 1].temperature !== plate.temperature) {\n    galago.command(\"Clariostar\", \"set_temperature\", { temperature: plate.temperature });\n  }\n\n  // Load plate from hotel\n  loadPlateFromHotel(plate.hotelSlot);\n\n  // Run the full assay\n  runPlateAssay(plate);\n\n  // Return plate to hotel\n  returnPlateToHotel(plate.hotelSlot);\n}\n\n// Done!\ngalago.command(\"Tool Box\", \"text_to_speech\", { text: \"Hey hey hey! Your 4-plate limecoli protocol is done done done!\" });\n",
+    "parameters": [
+      {
+        "name": "plate_name_1",
+        "label": "Plate 1 Name",
+        "type": "string",
+        "defaultValue": "plate-1",
+        "required": true,
+        "description": "Plate ID for plate 1 (hotel slot 5, 25C)"
+      },
+      {
+        "name": "plate_name_2",
+        "label": "Plate 2 Name",
+        "type": "string",
+        "defaultValue": "plate-2",
+        "required": true,
+        "description": "Plate ID for plate 2 (hotel slot 4, 25C)"
+      },
+      {
+        "name": "plate_name_3",
+        "label": "Plate 3 Name",
+        "type": "string",
+        "defaultValue": "plate-3",
+        "required": true,
+        "description": "Plate ID for plate 3 (hotel slot 3, 37C)"
+      },
+      {
+        "name": "plate_name_4",
+        "label": "Plate 4 Name",
+        "type": "string",
+        "defaultValue": "plate-4",
+        "required": true,
+        "description": "Plate ID for plate 4 (hotel slot 2, 37C)"
+      },
+      {
+        "name": "assay_name",
+        "label": "Assay Name",
+        "type": "string",
+        "defaultValue": "limecoli-assay",
+        "required": true,
+        "description": "Assay identifier for all reads"
+      },
+      {
+        "name": "equilibration_seconds",
+        "label": "Equilibration Time (seconds)",
+        "type": "number",
+        "defaultValue": "600",
+        "required": false,
+        "description": "Time to equilibrate each plate (default 600s / 10 min)"
+      },
+      {
+        "name": "warmup_count",
+        "label": "Warmup Reads",
+        "type": "number",
+        "defaultValue": "5",
+        "required": false,
+        "description": "Number of warmup reads before illumination cycles"
+      },
+      {
+        "name": "recovery_count",
+        "label": "Recovery Reads",
+        "type": "number",
+        "defaultValue": "3",
+        "required": false,
+        "description": "Number of recovery reads after each illumination"
+      },
+      {
+        "name": "repetitions",
+        "label": "Illumination Sweep Repetitions",
+        "type": "number",
+        "defaultValue": "3",
+        "required": false,
+        "description": "Number of times to repeat the full duration x color illumination sweep per plate"
+      }
+    ],
+    "commands": []
+  },
+  "exportedAt": "2026-03-05T00:00:00.000Z",
+  "version": "1.0"
+}

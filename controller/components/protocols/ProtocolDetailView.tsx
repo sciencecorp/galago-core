@@ -354,6 +354,55 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
     }
   };
 
+  const handleImportClick = () => {
+    importFileInputRef.current?.click();
+  };
+
+  const handleImportFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsImporting(true);
+      const fileContent = await file.text();
+      const data = JSON.parse(fileContent);
+
+      // Validate basic structure (exported format wraps in { protocol: {...} })
+      const protocolData = data.protocol ?? data;
+      if (!protocolData.commands || !Array.isArray(protocolData.commands)) {
+        errorToast("Invalid file", "The JSON file does not contain a valid protocol.");
+        return;
+      }
+
+      // Warn if names don't match
+      if (protocol && protocolData.name && protocolData.name !== protocol.name) {
+        warningToast(
+          "Name mismatch",
+          `Imported protocol name "${protocolData.name}" differs from "${protocol.name}". Keeping existing name.`,
+        );
+      }
+
+      // Update existing protocol — keep current name, overwrite content
+      await updateProtocol.mutateAsync({
+        id,
+        category: protocolData.category ?? protocol?.category,
+        description: protocolData.description ?? protocol?.description ?? null,
+        commands: protocolData.commands ?? protocol?.commands,
+        parameters: protocolData.parameters ?? protocol?.parameters ?? null,
+        mode: protocolData.mode ?? protocol?.mode,
+        scriptContent: protocolData.scriptContent ?? protocol?.scriptContent ?? null,
+      });
+    } catch (error: any) {
+      errorToast("Import failed", error.message || "Could not parse the JSON file.");
+    } finally {
+      setIsImporting(false);
+      if (importFileInputRef.current) {
+        importFileInputRef.current.value = "";
+      }
+    }
+  };
+
+
   const handleSaveChanges = () => {
     if (!protocol) return;
 
