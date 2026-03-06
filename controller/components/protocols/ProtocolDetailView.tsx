@@ -392,6 +392,8 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
         description: protocolData.description ?? protocol?.description ?? null,
         commands: protocolData.commands ?? protocol?.commands,
         parameters: protocolData.parameters ?? protocol?.parameters ?? null,
+        mode: protocolData.mode ?? protocol?.mode,
+        scriptContent: protocolData.scriptContent ?? protocol?.scriptContent ?? null,
       });
     } catch (error: any) {
       errorToast("Import failed", error.message || "Could not parse the JSON file.");

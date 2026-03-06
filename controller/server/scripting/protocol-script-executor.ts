@@ -84,14 +84,12 @@ export async function executeProtocolScript(
 
     const context = vm.createContext(sandbox);
 
-    const wrappedScript = `(async () => {\n${scriptContent}\n})()`;
-
-    const script = new vm.Script(wrappedScript, {
+    const script = new vm.Script(scriptContent, {
       filename: "protocol-script.js",
       timeout,
     });
 
-    await script.runInContext(context);
+    script.runInContext(context);
 
     if (commands.length === 0) {
       return {
