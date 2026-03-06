@@ -14,6 +14,8 @@ const zProtocolCreate = z.object({
   description: z.string().optional(),
   commands: z.array(z.any()).default([]),
   parameters: z.array(zProtocolParameter).nullable().optional(),
+  mode: z.enum(["visual", "script"]).default("visual"),
+  scriptContent: z.string().nullable().optional(),
 });
 
 const zProtocolUpdate = z.object({
@@ -23,6 +25,8 @@ const zProtocolUpdate = z.object({
   description: z.string().nullable().optional(),
   commands: z.array(z.any()).optional(),
   parameters: z.array(zProtocolParameter).nullable().optional(),
+  mode: z.enum(["visual", "script"]).optional(),
+  scriptContent: z.string().nullable().optional(),
 });
 
 const zProtocolImport = z.object({
@@ -33,6 +37,8 @@ const zProtocolImport = z.object({
     description: z.string().optional(),
     commands: z.array(z.any()).optional(),
     parameters: z.array(zProtocolParameter).nullable().optional(),
+    mode: z.enum(["visual", "script"]).optional(),
+    scriptContent: z.string().nullable().optional(),
   }),
 });
 
@@ -121,6 +127,8 @@ export const protocolRouter = router({
           description: input.description || null,
           commands: input.commands,
           parameters: input.parameters ?? null,
+          mode: input.mode || "visual",
+          scriptContent: input.scriptContent ?? null,
         })
         .returning();
 
@@ -154,6 +162,8 @@ export const protocolRouter = router({
         ...(updateData.description !== undefined && { description: updateData.description }),
         ...(updateData.commands !== undefined && { commands: updateData.commands }),
         ...(updateData.parameters !== undefined && { parameters: updateData.parameters }),
+        ...(updateData.mode !== undefined && { mode: updateData.mode }),
+        ...(updateData.scriptContent !== undefined && { scriptContent: updateData.scriptContent }),
         updatedAt: new Date().toISOString(),
       })
       .where(eq(protocols.id, id))
@@ -193,6 +203,8 @@ export const protocolRouter = router({
         description: protocol.description,
         commands: protocol.commands,
         parameters: protocol.parameters ?? null,
+        mode: protocol.mode || "visual",
+        scriptContent: protocol.scriptContent ?? null,
       },
       exportedAt: new Date().toISOString(),
       version: "1.0",
@@ -219,6 +231,8 @@ export const protocolRouter = router({
           description: input.protocol.description || null,
           commands: input.protocol.commands || [],
           parameters: input.protocol.parameters ?? null,
+          mode: input.protocol.mode || "visual",
+          scriptContent: input.protocol.scriptContent ?? null,
           workcellId: input.workcellId,
         })
         .returning();
