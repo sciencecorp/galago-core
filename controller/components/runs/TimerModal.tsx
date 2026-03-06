@@ -84,44 +84,22 @@ export const TimerModal: React.FC<TimerModalProps> = ({ isOpen, messageData, onS
     }
 
     // Calculate initial state
-    const now = Date.now();
     const endTime = messageData.timerEndTime;
     const duration = messageData.timerDuration || 0;
 
-    // Handle case where timer might already be expired
-    if (now >= endTime) {
-      setRemainingSeconds(0);
-      setProgress(0);
-      setTotalSeconds(Math.ceil(duration / 1000));
-
-      // Call skip after a short delay to avoid render issues
-      setTimeout(() => {
-        if (isActiveRef.current && !hasSkippedRef.current) {
-          handleSkip();
-        }
-      }, 50);
-
-      return;
-    }
-
-    // Set up the update function
+    // Set up the update function — display only, no auto-skip
     const updateTimer = () => {
-      if (!isActiveRef.current || hasSkippedRef.current) return;
+      if (!isActiveRef.current) return;
 
       const currentTime = Date.now();
       const timeLeft = Math.max(0, endTime - currentTime);
       const secondsLeft = Math.ceil(timeLeft / 1000);
       const totalDuration = Math.ceil(duration / 1000);
-      const progressPercent = Math.max(0, Math.min(100, (timeLeft / duration) * 100));
+      const progressPercent = duration > 0 ? Math.max(0, Math.min(100, (timeLeft / duration) * 100)) : 0;
 
       setRemainingSeconds(secondsLeft);
       setTotalSeconds(totalDuration);
       setProgress(progressPercent);
-
-      // Auto-complete when timer ends
-      if (secondsLeft <= 0 && isActiveRef.current && !hasSkippedRef.current) {
-        setTimeout(handleSkip, 50);
-      }
     };
 
     // Initial update
@@ -138,7 +116,7 @@ export const TimerModal: React.FC<TimerModalProps> = ({ isOpen, messageData, onS
         timerRef.current = null;
       }
     };
-  }, [isOpen, messageData.timerEndTime, messageData.timerDuration, onSkip]);
+  }, [isOpen, messageData.timerEndTime, messageData.timerDuration]);
 
   // Don't render if not open
   if (!isOpen) return null;
