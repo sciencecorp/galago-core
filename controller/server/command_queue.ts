@@ -1071,9 +1071,7 @@ export class CommandQueue {
       console.warn("Error to push run" + e);
     }
     //Queue all commands in the run.
-    for (const c of run.commands) {
-      await this.commands.push(c);
-    }
+    await this.commands.pushBatch(run.commands);
     if (this.state === ToolStatus.READY) {
       this._start();
     }
