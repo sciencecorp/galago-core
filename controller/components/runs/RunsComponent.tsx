@@ -112,7 +112,7 @@ export const RunsComponent: React.FC = () => {
     { limit: 50, offset: 0 },
     { refetchInterval: 2000 },
   );
-  const queueSummary = trpc.commandQueue.getQueueSummary.useQuery(undefined, {
+  trpc.commandQueue.getQueueSummary.useQuery(undefined, {
     refetchInterval: 2000,
   });
   // Query for waiting-for-input status
