@@ -313,6 +313,7 @@ export const commandFields: CommandFields = {
   },
   lcus1_relay: {
     switch: [{ name: "on", type: "boolean" }],
+    timed_switch: [{ name: "duration_seconds", type: "number" }]
   },
   clariostar: {
     open_carrier: [],
