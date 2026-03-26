@@ -86,10 +86,9 @@ export async function executeProtocolScript(
 
     const script = new vm.Script(scriptContent, {
       filename: "protocol-script.js",
-      timeout,
     });
 
-    script.runInContext(context);
+    script.runInContext(context, { timeout });
 
     if (commands.length === 0) {
       return {

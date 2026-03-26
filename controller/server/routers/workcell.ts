@@ -21,6 +21,7 @@ import {
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { logAuditEvent } from "@/server/utils/auditLog";
+import { zProtocolParameter } from "@/protocols/params";
 
 export const zWorkcell = z.object({
   id: z.number().optional(),

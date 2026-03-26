@@ -38,6 +38,7 @@ export const NewProtocolForm = () => {
     description: "",
     commands: [],
     mode: "visual",
+    scriptContent: null,
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof ProtocolFormData, string>>>({});
