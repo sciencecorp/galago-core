@@ -104,9 +104,7 @@ export default class SqliteQueue {
     db.transaction(() => {
       // Get starting position
       const maxPos = db
-        .prepare(
-          `SELECT COALESCE(MAX(position), -1) as max_pos FROM ${this.queueName}_queue`,
-        )
+        .prepare(`SELECT COALESCE(MAX(position), -1) as max_pos FROM ${this.queueName}_queue`)
         .get() as { max_pos: number };
 
       let nextPosition = maxPos.max_pos + 1;
