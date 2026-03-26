@@ -256,9 +256,7 @@ export const protocolRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
-      const { executeProtocolScript } = await import(
-        "@/server/scripting/protocol-script-executor"
-      );
+      const { executeProtocolScript } = await import("@/server/scripting/protocol-script-executor");
       const { resolveToolTypes } = await import("@/server/scripting/resolve-tool-types");
 
       const result = await executeProtocolScript(input.scriptContent, input.params || {});

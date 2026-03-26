@@ -402,7 +402,6 @@ export const ProtocolDetailView: React.FC<{ id: number }> = ({ id }) => {
     }
   };
 
-
   const handleSaveChanges = () => {
     if (!protocol) return;
 

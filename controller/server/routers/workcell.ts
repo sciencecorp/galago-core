@@ -384,15 +384,17 @@ export const workcellRouter = router({
         type,
         value: "", // Empty value on export for security
       })),
-      protocols: workcellProtocols.map(({ name, category, description, commands, parameters, mode, scriptContent }) => ({
-        name,
-        category,
-        description,
-        commands,
-        parameters: parameters ?? null,
-        mode: mode || "visual",
-        scriptContent: scriptContent ?? null,
-      })),
+      protocols: workcellProtocols.map(
+        ({ name, category, description, commands, parameters, mode, scriptContent }) => ({
+          name,
+          category,
+          description,
+          commands,
+          parameters: parameters ?? null,
+          mode: mode || "visual",
+          scriptContent: scriptContent ?? null,
+        }),
+      ),
       scriptFolders: workcellScriptFolders.map((folder) => ({
         name: folder.name,
         parentFolderName: folder.parentId ? folderIdToName.get(folder.parentId) || null : null,

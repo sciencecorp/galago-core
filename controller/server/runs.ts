@@ -79,15 +79,10 @@ async function generateCommandsFromProtocol(
       );
     }
 
-    const result = await executeProtocolScript(
-      protocol.scriptContent,
-      paramValues || {},
-    );
+    const result = await executeProtocolScript(protocol.scriptContent, paramValues || {});
 
     if (!result.success) {
-      throw new ProtocolGenerationFailedError(
-        `Script execution failed: ${result.error}`,
-      );
+      throw new ProtocolGenerationFailedError(`Script execution failed: ${result.error}`);
     }
 
     const resolved = await resolveToolTypes(result.commands, protocol.workcellId);
