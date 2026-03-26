@@ -226,7 +226,7 @@ export default function Page() {
               value={String(
                 (parentField
                   ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
-                  ""
+                    ""
                   : formValues[field.name]) || "",
               )}
               onChange={(e) =>
@@ -256,7 +256,7 @@ export default function Page() {
                 value={String(
                   (parentField
                     ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
-                    ""
+                      ""
                     : formValues[field.name]) || "",
                 )}
                 onChange={(e) =>
@@ -268,7 +268,7 @@ export default function Page() {
                 value={Number(
                   (parentField
                     ? (formValues[parentField] as Record<string, AtomicFormValues>)?.[field.name] ||
-                    0
+                      0
                     : formValues[field.name]) || 0,
                 )}
                 onChange={(_valueString, valueNumber) =>

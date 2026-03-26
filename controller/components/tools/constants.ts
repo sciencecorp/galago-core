@@ -320,9 +320,7 @@ export const commandFields: CommandFields = {
       { name: "assay_id", type: "text" },
       { name: "timepoint", type: "text" },
     ],
-    set_temperature: [
-      { name: "temperature", type: "number" }
-    ]
+    set_temperature: [{ name: "temperature", type: "number" }],
   },
   lcus1_relay: {
     switch: [{ name: "on", type: "boolean" }],
