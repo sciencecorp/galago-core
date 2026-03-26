@@ -573,6 +573,10 @@ export class CommandQueue {
   async getPaginated(offset: number = 0, limit: number = 20): Promise<StoredRunCommand[]> {
     return this.commands.getPaginated(offset, limit);
   }
+
+  getQueueSummary() {
+    return this.commands.getQueueSummary();
+  }
   async getAllRuns(): Promise<RunQueue[]> {
     return this.commands.getAllRuns();
   }
@@ -672,8 +676,8 @@ export class CommandQueue {
     this._setState(ToolStatus.BUSY);
 
     while (this.state === ToolStatus.BUSY) {
-      // Small delay between processing commands to avoid race conditions
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Small delay between commands for UI polling to reflect progress
+      await new Promise((resolve) => setTimeout(resolve, 250));
       const nextCommand = await this.commands.startNext();
       if (!nextCommand) {
         this.stop(); // stop the queue when there are no more commands available!!
@@ -1071,9 +1075,7 @@ export class CommandQueue {
       console.warn("Error to push run" + e);
     }
     //Queue all commands in the run.
-    for (const c of run.commands) {
-      await this.commands.push(c);
-    }
+    await this.commands.pushBatch(run.commands);
     if (this.state === ToolStatus.READY) {
       this._start();
     }

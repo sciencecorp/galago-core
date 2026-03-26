@@ -79,6 +79,9 @@ export const commandQueueRouter = router({
   getAll: procedure.query(async ({}) => {
     return await CommandQueue.global.allCommands();
   }),
+  getQueueSummary: procedure.query(async () => {
+    return CommandQueue.global.getQueueSummary();
+  }),
 
   commands: procedure
     .input(
