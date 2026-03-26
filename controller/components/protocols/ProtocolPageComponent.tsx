@@ -142,8 +142,6 @@ export const ProtocolPageComponent: React.FC = () => {
           description: protocolData.description,
           commands: protocolData.commands,
           parameters: protocolData.parameters,
-          mode: protocolData.mode,
-          scriptContent: protocolData.scriptContent,
         },
       });
     } catch (error: any) {
