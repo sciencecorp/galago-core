@@ -587,6 +587,9 @@ export default class Tool {
         reply.response,
       );
     }
+
+    // Always return the reply so callers can access meta_data
+    return reply;
   }
 
   async estimateDuration(command: ToolCommandInfo) {

@@ -19,6 +19,7 @@ import { auditRouter } from "./audit";
 import { backupRouter } from "./backup";
 import { hubLibraryRouter } from "./hubLibrary";
 import { appSettingsRouter } from "./appSettings";
+import { webhooksRouter } from "./webhooks";
 
 export const appRouter = router({
   inventory: inventoryRouter,
@@ -41,6 +42,7 @@ export const appRouter = router({
   form: formRouter,
   hubLibrary: hubLibraryRouter,
   appSettings: appSettingsRouter,
+  webhooks: webhooksRouter,
 });
 
 export type AppRouter = typeof appRouter;
