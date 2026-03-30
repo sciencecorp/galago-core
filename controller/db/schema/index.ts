@@ -314,6 +314,17 @@ export const logs = sqliteTable("logs", {
   ...timestamps,
 });
 
+export const webhooks = sqliteTable("webhooks", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  url: text("url").notNull(),
+  toolTypes: text("tool_types", { mode: "json" }).$type<string[] | null>(),
+  commands: text("commands", { mode: "json" }).$type<string[] | null>(),
+  includeData: integer("include_data", { mode: "boolean" }).notNull().default(true),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  ...timestamps,
+});
+
 // TypeScript Types
 export type Workcell = typeof workcells.$inferSelect;
 export type NewWorkcell = typeof workcells.$inferInsert;
@@ -359,6 +370,8 @@ export type RobotArmGripParams = typeof robotArmGripParams.$inferSelect;
 export type NewRobotArmGripParams = typeof robotArmGripParams.$inferInsert;
 export type Log = typeof logs.$inferSelect;
 export type NewLog = typeof logs.$inferInsert;
+export type Webhook = typeof webhooks.$inferSelect;
+export type NewWebhook = typeof webhooks.$inferInsert;
 
 export const schema = {
   workcells,
@@ -383,4 +396,5 @@ export const schema = {
   robotArmMotionProfiles,
   robotArmGripParams,
   logs,
+  webhooks,
 };

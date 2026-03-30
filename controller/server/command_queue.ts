@@ -12,6 +12,7 @@ import { db } from "@/db/client";
 import { appSettings, variables, workcells } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { sendEmailMessage, sendSlackMessage } from "@/server/utils/integrationsLocal";
+import { dispatchWebhooks } from "@/server/utils/webhookDispatch";
 
 export type CommandQueueState = ToolStatus;
 
@@ -384,8 +385,9 @@ export class CommandQueue {
   }
 
   async executeCommand(command: StoredRunCommand) {
-    await Tool.executeCommand(command.commandInfo);
+    const reply = await Tool.executeCommand(command.commandInfo);
     await this.commands.complete(command.queueId);
+    return reply;
   }
 
   async skipCommand(commandId: number) {
@@ -1011,7 +1013,7 @@ export class CommandQueue {
         }
 
         // Regular command, send to Tool
-        await this.executeCommand(nextCommand);
+        const reply = await this.executeCommand(nextCommand);
 
         logAction({
           level: "info",
@@ -1019,6 +1021,19 @@ export class CommandQueue {
           details: "Command executed successfully.",
         });
         logger.info("Command executed successfully");
+
+        // Fire webhooks (async, non-blocking)
+        dispatchWebhooks({
+          event: "command.completed",
+          timestamp: new Date().toISOString(),
+          runId: nextCommand.runId,
+          toolType: nextCommand.commandInfo?.toolType ?? "",
+          toolId: nextCommand.commandInfo?.toolId ?? "",
+          command: nextCommand.commandInfo?.command ?? "",
+          status: "SUCCESS",
+          params: nextCommand.commandInfo?.params ?? {},
+          data: reply?.meta_data?.data ?? null,
+        }).catch(() => {});
       } catch (e) {
         logger.error("Failed to execute command", e);
 
@@ -1046,6 +1061,19 @@ export class CommandQueue {
           command: nextCommand.commandInfo?.command,
           label: nextCommand.commandInfo?.label,
         });
+
+        // Fire webhooks for failure (async, non-blocking)
+        dispatchWebhooks({
+          event: "command.failed",
+          timestamp: new Date().toISOString(),
+          runId: nextCommand.runId,
+          toolType: nextCommand.commandInfo?.toolType ?? "",
+          toolId: nextCommand.commandInfo?.toolId ?? "",
+          command: nextCommand.commandInfo?.command ?? "",
+          status: "FAILED",
+          params: nextCommand.commandInfo?.params ?? {},
+          errorMessage: this.error?.message,
+        }).catch(() => {});
 
         // Exit the busy loop but keep the error state
         break;
