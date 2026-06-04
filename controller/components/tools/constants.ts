@@ -315,6 +315,10 @@ export const commandFields: CommandFields = {
     switch: [{ name: "on", type: "boolean" }],
     timed_switch: [{ name: "duration_seconds", type: "number" }]
   },
+  phidget_ssr: {
+    set_duty_cycle: [{ name: "duty_cycle", type: "number" }, {name: "channel", type: "number"}],
+    timed_duty_cycle: [{ name: "duty_cycle", type: "number" }, {name: "duration_seconds", type: "number"}, {name: "channel", type: "number"}],
+  },
   clariostar: {
     open_carrier: [],
     close_carrier: [],
