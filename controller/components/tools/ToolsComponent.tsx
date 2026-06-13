@@ -74,13 +74,20 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (_props)
           }
 
           try {
+            // The stored config is shaped { [tool.type]: { ...settings... } }.
+            // tool.configure expects the INNER tool-specific config nested directly
+            // under the tool-type key -- the same payload the per-tool "Connect"
+            // button sends from ToolConfigEditor. Passing the whole tool.config here
+            // double-nests it as { [tool.type]: { [tool.type]: {...} } }, so the real
+            // settings are dropped and the tool connects with empty defaults.
+            const toolConfig = tool.config as Record<string, any>;
             // Use mutateAsync to properly catch errors for this specific tool
             await configureMutation.mutateAsync({
               toolId: tool.name,
               config: {
                 toolId: tool.name,
-                simulated: tool.config.simulated,
-                [tool.type]: tool.config,
+                simulated: false,
+                [tool.type]: toolConfig[tool.type] ?? {},
               },
             });
 
