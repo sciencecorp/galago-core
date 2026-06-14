@@ -56,6 +56,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/controller/node_modules ./node_mo
 COPY --from=builder --chown=nextjs:nodejs /app/controller/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/controller/.next/static ./.next/static
 
+# Pre-create the data dir owned by the app user. A mounted empty named volume
+# inherits the image directory's ownership; without this it mounts as root and
+# the non-root app cannot open/create the SQLite database (app.db, queue.db).
+RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
+
 # Switch to non-root user
 USER nextjs
 
