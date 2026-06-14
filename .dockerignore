@@ -1,0 +1,22 @@
+# The production build context is the repo root (docker-compose.yml: context: .)
+# but controller/Dockerfile only needs controller/ source. Exclude the large /
+# unnecessary stuff so the context isn't gigabytes (was ~1.1 GB).
+
+# Dependencies & build outputs (reinstalled/regenerated inside the image)
+**/node_modules
+controller/.next
+
+# Local data / SQLite DBs — must never be baked into the image
+data
+controller/data
+
+# Not referenced by controller/Dockerfile
+vendor
+deploy
+
+# VCS, logs, env, misc
+.git
+.gitignore
+**/*.log
+**/.env
+asdf.txt
