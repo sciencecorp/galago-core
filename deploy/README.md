@@ -62,11 +62,19 @@ up. (Known risk: `import win32api` shows a DLL error when the env is launched
 outside your git-bash; the Manager itself doesn't need it at startup, but verify
 the specific tools you use — CLARIOstar etc. — actually connect.)
 
-> **Order matters.** The Manager calls galago-core's REST API to learn which tools
-> to launch. So galago-core must be up on **port 3011** *and* have the workcell
-> config imported first, otherwise the log shows `No instrument tools will be
-> launched`. The launcher passes `--api-url http://localhost:3011/api` so the
-> Manager targets prod (not the dev stack on 3010).
+> **Order matters — handled automatically.** The Manager calls galago-core's REST
+> API to learn which tools to launch, and at logon Docker takes ~30-60s to bring
+> the container up. If the Manager starts first it finds the API down, logs
+> `No instrument tools will be launched`, and then *runs forever with zero tools*
+> (it does not crash, so the supervisor never restarts it). To prevent this the
+> supervisor polls `http://localhost:3011/api/health` and waits — indefinitely —
+> until galago-core answers before launching the Manager. The launcher passes
+> `--api-url http://localhost:3011/api` so the Manager targets prod (not the dev
+> stack on 3010).
+>
+> One thing the health gate can't fix: galago-core can be healthy but its DB empty.
+> The workcell config must be imported into the **prod** volume (`galago_prod_data`)
+> or you'll still get `No instrument tools will be launched`.
 
 ### 3. Auto-start on logon
 
@@ -112,7 +120,9 @@ Stop-ScheduledTask  -TaskName 'Galago Tools'
 
 - **Windows Firewall** may prompt the first time the container connects to a tool
   port; allow `python.exe` (Private networks) so `host.docker.internal` reaches it.
-- The *Galago Tools* task opens a console window in the session — closing it kills
-  the supervisor. Minimize, don't close.
+- The *Galago Tools* task runs **hidden** (via `wscript.exe` + `start-galago-tools-hidden.vbs`),
+  so there's no console window for a lab user to accidentally close. Output still
+  goes to `%USERPROFILE%\galago-tools.log`. To debug interactively, run
+  `start-galago-tools.cmd` directly — it opens a normal visible window.
 - If `docker compose up` runs before the engine is ready, `start-galago-web.ps1`
   already waits up to ~5 min for `docker info` to succeed.

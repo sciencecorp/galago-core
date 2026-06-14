@@ -15,7 +15,7 @@
 $ErrorActionPreference = 'Stop'
 
 $deployDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$toolsCmd  = Join-Path $deployDir 'start-galago-tools.cmd'
+$toolsVbs  = Join-Path $deployDir 'start-galago-tools-hidden.vbs'
 $webPs1    = Join-Path $deployDir 'start-galago-web.ps1'
 $user      = "$env:USERDOMAIN\$env:USERNAME"
 
@@ -30,7 +30,9 @@ $principal = New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive -Ru
 $trigger   = New-ScheduledTaskTrigger -AtLogOn -User $user
 
 # --- Galago Tools (native 32-bit Python) ---
-$toolsAction = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument "/c `"$toolsCmd`""
+# Launched via wscript + a hidden-window VBScript shim so the supervisor runs
+# with no visible, closeable console window (see start-galago-tools-hidden.vbs).
+$toolsAction = New-ScheduledTaskAction -Execute 'wscript.exe' -Argument "`"$toolsVbs`""
 Register-ScheduledTask -TaskName 'Galago Tools' -Action $toolsAction -Trigger $trigger `
     -Principal $principal -Settings $commonSettings -Force | Out-Null
 Write-Host "Registered scheduled task: Galago Tools"
