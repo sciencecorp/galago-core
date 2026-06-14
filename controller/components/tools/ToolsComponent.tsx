@@ -74,19 +74,24 @@ export const ToolStatusCardsComponent: React.FC<ToolStatusCardsProps> = (_props)
           }
 
           try {
-            // The stored config is shaped { [tool.type]: { ...settings... } }.
-            // tool.configure expects the INNER tool-specific config nested directly
-            // under the tool-type key -- the same payload the per-tool "Connect"
-            // button sends from ToolConfigEditor. Passing the whole tool.config here
-            // double-nests it as { [tool.type]: { [tool.type]: {...} } }, so the real
-            // settings are dropped and the tool connects with empty defaults.
+            // The stored config is shaped { simulated?, [tool.type]: { ...settings... } }.
+            // The gRPC Config expects the tool-specific settings directly under the
+            // tool-type key (a `oneof`) plus a top-level `simulated` flag:
+            //   { toolId, simulated, [tool.type]: { ...settings... } }
+            // Passing the whole tool.config under [tool.type] double-nested it as
+            // { [tool.type]: { [tool.type]: {...} } }, so the real settings were dropped
+            // and tools connected with empty defaults.
+            //
+            // Preserve the tool's stored `simulated` flag: a simulated tool connects
+            // without touching real hardware, so we must not force a real connection
+            // here (doing so makes simulated tools fail to connect).
             const toolConfig = tool.config as Record<string, any>;
             // Use mutateAsync to properly catch errors for this specific tool
             await configureMutation.mutateAsync({
               toolId: tool.name,
               config: {
                 toolId: tool.name,
-                simulated: false,
+                simulated: toolConfig.simulated ?? false,
                 [tool.type]: toolConfig[tool.type] ?? {},
               },
             });
