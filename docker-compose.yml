@@ -1,23 +1,51 @@
 #Production docker-compose file
+#
+# Default: runs the published image with `docker compose up -d`.
+#
+# To run a LOCAL checkout / feature branch instead
+# uncomment the `build:` block below and start with:
+#     docker compose up -d --build
+# Rebuild that image whenever you pull new code; plain `up -d` reuses it.
+#
+# A distinct project name keeps prod's containers/networks/volumes fully separate
+# from the dev stack (docker-compose.dev.yml), so the two can coexist.
+name: galago-prod
 services:
   galago-web:
-    image: ghcr.io/sciencecorp/galago-web:latest
-    # build:
-    #   context: .
-    #   dockerfile: controller/Dockerfile
+    # image: ghcr.io/sciencecorp/galago-web:latest
+    build:
+      context: .
+      dockerfile: controller/Dockerfile
     container_name: galago-web
     ports:
-      - "3010:3010"
+      # Host 3011 -> container 3010, so prod (http://localhost:3011) does not
+      # clash with the dev stack on 3010.
+      - "3011:3010"
     restart: always
     environment:
       - NODE_ENV=production
       - PORT=3010
-      - GRPC_SERVER_IP=localhost
+      # The Python tool gRPC servers run natively on the Windows host (not in this
+      # container). host.docker.internal lets the container reach them. The
+      # controller reads GRPC_HOST (see controller/server/tools.ts).
+      - GRPC_HOST=host.docker.internal
+      # Optional: enables encrypted Secrets (Slack/SMTP). 64 hex chars; put it in
+      # a .env file next to this compose file as GALAGO_SECRETS_KEY=...
+      - GALAGO_SECRETS_KEY=${GALAGO_SECRETS_KEY:-}
+    extra_hosts:
+      # Ensures host.docker.internal resolves (automatic on Docker Desktop; this
+      # is a harmless safeguard).
+      - "host.docker.internal:host-gateway"
+    volumes:
+      # Persist the SQLite databases (app.db + queue.db) in a dedicated named
+      # volume, kept entirely separate from dev data. To move config between
+      # environments, export/import the workcell JSON from the UI.
+      - galago_prod_data:/app/data
     networks:
       - app-network
 
 volumes:
-  sqlite_data:
+  galago_prod_data:
 
 networks:
   app-network:
