@@ -329,6 +329,7 @@ export class CommandQueue {
 
       // Reset the state
       this._isWaitingForInput = false;
+      this._currentMessage = { type: "pause", message: "" };
 
       // Add a small delay to ensure all state updates have propagated
       await new Promise((resolve) => setTimeout(resolve, 1000));
