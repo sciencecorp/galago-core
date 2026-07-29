@@ -311,4 +311,19 @@ export const commandFields: CommandFields = {
       { name: "experiment_name", type: "text" },
     ],
   },
+  clariostar: {
+    open_carrier: [],
+    close_carrier: [],
+    start_read: [
+      { name: "protocol_name", type: "text" },
+      { name: "plate_id", type: "text" },
+      { name: "assay_id", type: "text" },
+      { name: "timepoint", type: "text" },
+    ],
+    set_temperature: [{ name: "temperature", type: "number" }],
+  },
+  lcus1_relay: {
+    switch: [{ name: "on", type: "boolean" }],
+    timed_switch: [{ name: "duration_seconds", type: "number" }],
+  },
 };
