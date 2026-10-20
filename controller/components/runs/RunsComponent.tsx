@@ -108,20 +108,9 @@ export const RunsComponent: React.FC = () => {
   // Resume mutation
   const resumeMutation = trpc.commandQueue.resume.useMutation();
 
-  const commandsPage = trpc.commandQueue.commands.useQuery(
-    { limit: 50, offset: 0 },
-    { refetchInterval: 2000 },
-  );
-  trpc.commandQueue.getQueueSummary.useQuery(undefined, {
-    refetchInterval: 2000,
-  });
-  // Query for waiting-for-input status
-  const isWaitingForInputQuery = trpc.commandQueue.isWaitingForInput.useQuery(undefined, {
-    refetchInterval: 1000,
-  });
-
-  // Query for current message data
-  const currentMessageQuery = trpc.commandQueue.currentMessage.useQuery(undefined, {
+  const commandsAll = trpc.commandQueue.getAll.useQuery(undefined, { refetchInterval: 2000 });
+  // Combined modal state query — atomic to prevent race conditions
+  const modalStateQuery = trpc.commandQueue.modalState.useQuery(undefined, {
     refetchInterval: 1000,
   });
 
@@ -153,8 +142,8 @@ export const RunsComponent: React.FC = () => {
   const runsInfo = trpc.commandQueue.getAllRuns.useQuery(undefined, { refetchInterval: 1000 });
 
   const groupedCommands = useMemo(
-    () => (commandsPage.data ? groupCommandsByRun(commandsPage.data) : []),
-    [commandsPage.data],
+    () => (commandsAll.data ? groupCommandsByRun(commandsAll.data) : []),
+    [commandsAll.data],
   );
 
   const stateQuery = trpc.commandQueue.state.useQuery(undefined, { refetchInterval: 1000 });
@@ -166,42 +155,32 @@ export const RunsComponent: React.FC = () => {
   });
 
   useEffect(() => {
-    if (isWaitingForInputQuery.data !== undefined) {
-      const shouldShowModal = isWaitingForInputQuery.data;
-      const shouldShowUserForm = shouldShowModal && messageData.type === "user_form";
+    if (!modalStateQuery.data) return;
 
-      setIsModalOpen(shouldShowModal && messageData.type !== "user_form");
-      setIsUserFormModalOpen(shouldShowUserForm);
+    const { isWaiting, message } = modalStateQuery.data;
+
+    const newMessageData = {
+      type: message.type,
+      message: message.message,
+      ...(message.title ? { title: message.title } : {}),
+      ...(message.pausedAt ? { pausedAt: message.pausedAt } : {}),
+      ...(message.timerDuration ? { timerDuration: message.timerDuration } : {}),
+      ...(message.timerEndTime ? { timerEndTime: message.timerEndTime } : {}),
+      ...(message.formName ? { formName: message.formName } : {}),
+    };
+
+    setMessageData(newMessageData);
+
+    const shouldShowUserForm = isWaiting && message.type === "user_form";
+    setIsModalOpen(isWaiting && message.type !== "user_form");
+    setIsUserFormModalOpen(shouldShowUserForm);
+
+    // Reset form state when message type changes
+    if (message.type !== "user_form") {
+      setCurrentForm(null);
+      setUserFormError(null);
     }
-
-    if (currentMessageQuery.data) {
-      const newMessageData = {
-        type: currentMessageQuery.data.type,
-        message: currentMessageQuery.data.message,
-        ...(currentMessageQuery.data.title ? { title: currentMessageQuery.data.title } : {}),
-        ...(currentMessageQuery.data.pausedAt
-          ? { pausedAt: currentMessageQuery.data.pausedAt }
-          : {}),
-        ...(currentMessageQuery.data.timerDuration
-          ? { timerDuration: currentMessageQuery.data.timerDuration }
-          : {}),
-        ...(currentMessageQuery.data.timerEndTime
-          ? { timerEndTime: currentMessageQuery.data.timerEndTime }
-          : {}),
-        ...(currentMessageQuery.data.formName
-          ? { formName: currentMessageQuery.data.formName }
-          : {}),
-      };
-
-      setMessageData(newMessageData);
-
-      // Reset form state when message type changes
-      if (newMessageData.type !== "user_form") {
-        setCurrentForm(null);
-        setUserFormError(null);
-      }
-    }
-  }, [isWaitingForInputQuery.data, currentMessageQuery.data, messageData.type]);
+  }, [modalStateQuery.data]);
 
   const handleResume = () => {
     resumeMutation.mutate();
@@ -316,21 +295,21 @@ export const RunsComponent: React.FC = () => {
   const pendingRuns = totalRuns - completedRuns - activeRuns;
 
   useEffect(() => {
-    if (commandsPage.data && commandsPage.data.length > 0 && !selectedRunId) {
-      const firstRunId = commandsPage.data[0].runId;
+    if (commandsAll.data && commandsAll.data.length > 0 && !selectedRunId) {
+      const firstRunId = commandsAll.data[0].runId;
       if (firstRunId !== selectedRunId) {
         setSelectedRunId(firstRunId);
         setExpandedRuns(new Set([firstRunId]));
       }
     }
-  }, [commandsPage.data, selectedRunId]);
+  }, [commandsAll.data, selectedRunId]);
 
   useEffect(() => {
     const updateRunAttributes = async () => {
       const newAttributes: Record<string, any> = {};
       for (const run of groupedCommands) {
         const runInfo = runsInfo.data?.find((r) => r.id === run.Id);
-        const cmdInfo = commandsPage.data?.find((r) => r.runId === run.Id);
+        const cmdInfo = commandsAll.data?.find((r) => r.runId === run.Id);
 
         // Only update if we don't have attributes for this run or if the data has changed
         if (!runAttributesMap[run.Id] || runAttributesMap[run.Id].status !== cmdInfo?.status) {
@@ -344,7 +323,7 @@ export const RunsComponent: React.FC = () => {
     };
 
     updateRunAttributes();
-  }, [runsInfo.data, commandsPage.data]);
+  }, [runsInfo.data, commandsAll.data]);
 
   function expandButtonIcon(runId: string) {
     return expandedRuns.has(runId) ? <ChevronUpIcon /> : <PlusSquareIcon />;
@@ -588,7 +567,7 @@ export const RunsComponent: React.FC = () => {
             <VStack spacing={4} align="stretch">
               <HStack justify="space-between" width="100%">
                 <Heading size="lg">
-                  {commandsPage.data && commandsPage.data.length > 0 ? "Runs List" : ""}
+                  {commandsAll.data && commandsAll.data.length > 0 ? "Runs List" : ""}
                 </Heading>
                 <Spacer />
                 <Text color="GrayText">Show Completed:</Text>
@@ -599,7 +578,7 @@ export const RunsComponent: React.FC = () => {
                   size="md"
                 />
               </HStack>
-              {commandsPage.data && commandsPage.data.length > 0 ? (
+              {commandsAll.data && commandsAll.data.length > 0 ? (
                 renderRunsList()
               ) : (
                 <VStack spacing={3} py={4}>

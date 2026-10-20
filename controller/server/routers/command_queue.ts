@@ -129,4 +129,15 @@ export const commandQueueRouter = router({
       ...(message.formName ? { formName: message.formName } : {}),
     };
   }),
+
+  modalState: procedure.query(async () => {
+    const message = CommandQueue.global.currentMessage;
+    return {
+      isWaiting: CommandQueue.global.isWaitingForInput,
+      message: {
+        ...message,
+        ...(message.formName ? { formName: message.formName } : {}),
+      },
+    };
+  }),
 });

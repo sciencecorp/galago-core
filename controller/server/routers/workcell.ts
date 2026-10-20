@@ -21,6 +21,7 @@ import {
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { logAuditEvent } from "@/server/utils/auditLog";
+import { zProtocolParameter } from "@/protocols/params";
 
 export const zWorkcell = z.object({
   id: z.number().optional(),
@@ -384,12 +385,17 @@ export const workcellRouter = router({
         type,
         value: "", // Empty value on export for security
       })),
-      protocols: workcellProtocols.map(({ name, category, description, commands }) => ({
-        name,
-        category,
-        description,
-        commands,
-      })),
+      protocols: workcellProtocols.map(
+        ({ name, category, description, commands, parameters, mode, scriptContent }) => ({
+          name,
+          category,
+          description,
+          commands,
+          parameters: parameters ?? null,
+          mode: mode || "visual",
+          scriptContent: scriptContent ?? null,
+        }),
+      ),
       scriptFolders: workcellScriptFolders.map((folder) => ({
         name: folder.name,
         parentFolderName: folder.parentId ? folderIdToName.get(folder.parentId) || null : null,
@@ -544,6 +550,9 @@ export const workcellRouter = router({
               category: z.string().nullable().optional(),
               description: z.string().nullable().optional(),
               commands: z.any().optional(),
+              parameters: z.array(zProtocolParameter).nullable().optional(),
+              mode: z.enum(["visual", "script"]).optional(),
+              scriptContent: z.string().nullable().optional(),
             }),
           )
           .optional(),
@@ -766,6 +775,9 @@ export const workcellRouter = router({
             category: p.category ?? "",
             description: p.description ?? null,
             commands: p.commands ?? [],
+            parameters: p.parameters ?? null,
+            mode: p.mode || "visual",
+            scriptContent: p.scriptContent ?? null,
             workcellId: newWorkcell.id,
           })),
         );
