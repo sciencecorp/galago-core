@@ -2,7 +2,33 @@
 # Stage 1: .NET SDK for C# compilation only
 FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/sdk:7.0-alpine AS dotnet-compiler
 
-# Stage 2: Node.js build environment
+# Stage 2: Generate TypeScript gRPC interfaces from the galago-tools protos
+# (requires the vendor/galago-tools submodule). The output is plain TypeScript,
+# so this stage runs on the build host's platform.
+FROM --platform=$BUILDPLATFORM node:22.11-bookworm-slim AS proto-gen
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3 python3-venv \
+    && rm -rf /var/lib/apt/lists/* \
+    && python3 -m venv /opt/protoc \
+    && /opt/protoc/bin/pip install --no-cache-dir grpcio-tools
+WORKDIR /proto
+
+# Keep in sync with the ts-proto version installed by `bin/make deps`
+RUN npm install --no-save --no-package-lock ts-proto@1.151.1
+
+# Same options as proto_ts in bin/make
+COPY vendor/galago-tools/interfaces ./interfaces
+RUN mkdir gen-interfaces && /opt/protoc/bin/python -m grpc_tools.protoc \
+    -I=interfaces \
+    --plugin=protoc-gen-ts_proto=node_modules/.bin/protoc-gen-ts_proto \
+    --ts_proto_out=gen-interfaces \
+    --ts_proto_opt=stringEnums=true \
+    --ts_proto_opt=esModuleInterop=true \
+    --ts_proto_opt=snakeToCamel=false \
+    --ts_proto_opt=outputServices=grpc-js \
+    interfaces/*.proto interfaces/tools/grpc_interfaces/*.proto
+
+# Stage 3: Node.js build environment
 FROM --platform=$TARGETPLATFORM node:22.11-alpine3.19 AS builder
 WORKDIR /app
 
@@ -11,13 +37,14 @@ COPY controller/package*.json ./controller/
 WORKDIR /app/controller
 RUN npm ci
 
-# Copy the rest of the controller source code
+# Copy the rest of the controller source code and the generated interfaces
 COPY controller/ ./
+COPY --from=proto-gen /proto/gen-interfaces ./gen-interfaces
 
 # Build the Next.js application
 RUN npm run build
 
-# Stage 3: Production runtime with minimal .NET dependencies
+# Stage 4: Production runtime with minimal .NET dependencies
 FROM --platform=$TARGETPLATFORM node:22.11-alpine3.19 AS runner
 WORKDIR /app
 

@@ -128,8 +128,8 @@ sqlite3 data/app.db ".schema"
 #Interactive mode.
 sqlite3 data/app.db
 
-  #Query a table
-  SELECT * FROM logs LIMIT 5;
+#Query a table
+SELECT * FROM logs LIMIT 5;
 ```
 
 ## Drizzle

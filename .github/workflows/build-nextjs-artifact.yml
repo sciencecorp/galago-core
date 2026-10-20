@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "controller/**"
+      - "vendor/galago-tools"
       - ".github/workflows/build-nextjs-artifact.yml"
   workflow_dispatch:
     inputs:
@@ -26,6 +27,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.branch || github.ref }}
+          submodules: recursive
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,9 +36,23 @@ jobs:
           cache: "npm"
           cache-dependency-path: controller/package-lock.json
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
       - name: Install dependencies
         working-directory: controller
         run: npm ci
+        shell: bash
+
+      - name: Generate gRPC interfaces
+        run: |
+          python -m pip install grpcio-tools
+          # Same ts-proto version as `bin/make deps`; the controller lockfile's newer one emits code that fails tsc
+          npm install --prefix "$RUNNER_TEMP/ts-proto" ts-proto@1.151.1
+          PROTOC_GEN_TS_PATH="$RUNNER_TEMP\\ts-proto\\node_modules\\.bin\\protoc-gen-ts_proto" \
+            ./bin/make clean_proto proto_ts_v2
         shell: bash
 
       - name: Build Next.js app
