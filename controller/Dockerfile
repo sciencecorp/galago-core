@@ -13,8 +13,10 @@ RUN apt-get update \
     && /opt/protoc/bin/pip install --no-cache-dir grpcio-tools
 WORKDIR /proto
 
-# Keep in sync with the ts-proto version installed by `bin/make deps`
-RUN npm install --no-save --no-package-lock ts-proto@1.151.1
+# ts-proto comes from the controller lockfile, same as local dev and CI.
+# Install scripts only build native modules this stage doesn't use.
+COPY controller/package.json controller/package-lock.json ./
+RUN npm ci --ignore-scripts --no-audit --no-fund
 
 # Same options as proto_ts in bin/make
 COPY vendor/galago-tools/interfaces ./interfaces

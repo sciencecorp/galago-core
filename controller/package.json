@@ -57,7 +57,7 @@
     "react-router-dom": "^6.27.0",
     "snowflake-uuid": "^1.0.0",
     "superjson": "^1.12.2",
-    "ts-proto": "^1.138.0",
+    "ts-proto": "1.151.1",
     "winston": "^3.11.0",
     "zod": "^3.20.2"
   },
