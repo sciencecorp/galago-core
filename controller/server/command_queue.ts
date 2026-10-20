@@ -574,10 +574,6 @@ export class CommandQueue {
   async getPaginated(offset: number = 0, limit: number = 20): Promise<StoredRunCommand[]> {
     return this.commands.getPaginated(offset, limit);
   }
-
-  getQueueSummary() {
-    return this.commands.getQueueSummary();
-  }
   async getAllRuns(): Promise<RunQueue[]> {
     return this.commands.getAllRuns();
   }
