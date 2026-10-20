@@ -211,6 +211,8 @@ export const protocols = sqliteTable("protocols", {
   parameters: text("parameters", { mode: "json" }).$type<
     import("@/protocols/params").ProtocolParameter[]
   >(),
+  mode: text("mode").notNull().default("visual"),
+  scriptContent: text("script_content"),
   ...timestamps,
 });
 
