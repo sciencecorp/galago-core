@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-PROTOC_GEN_TS_PATH="${PROTOC_GEN_TS_PATH:-.\\controller\\node_modules\\.bin\\protoc-gen-ts_proto}"
+# ts-proto plugin from controller/node_modules, so codegen uses the version pinned in controller/package.json.
+# proto_ts_v2 (Windows) needs the backslash path to npm's .cmd shim.
+PROTOC_GEN_TS="./controller/node_modules/.bin/protoc-gen-ts_proto"
+PROTOC_GEN_TS_PATH=".\\controller\\node_modules\\.bin\\protoc-gen-ts_proto"
 PROTO_SRC="./vendor/galago-tools/interfaces"
 ENV_NAME="galago-core"
 
@@ -8,7 +11,7 @@ ENV_NAME="galago-core"
 deps() {
   python_deps
   npm_deps
-  npm install -g grpc-tools@1.12.4 ts-proto@1.151.1
+  npm install -g grpc-tools@1.12.4
 }
 
 build_env() {
@@ -59,13 +62,13 @@ proto_ts() {
   mkdir -p ./controller/gen-interfaces
   python -m grpc_tools.protoc \
     -I=${PROTO_SRC}/ \
+    --plugin=protoc-gen-ts_proto="${PROTOC_GEN_TS}" \
     --ts_proto_out=./controller/gen-interfaces/ \
     --ts_proto_opt=stringEnums=true \
     --ts_proto_opt=esModuleInterop=true \
     --ts_proto_opt=snakeToCamel=false \
     --ts_proto_opt=outputServices=grpc-js \
     ${PROTO_SRC}/*.proto ${PROTO_SRC}/tools/grpc_interfaces/*.proto
-        # --plugin=protoc-gen-ts_proto="${PROTOC_GEN_TS_PATH}.cmd" \
 }
 
 #Some Windows environments require this command.

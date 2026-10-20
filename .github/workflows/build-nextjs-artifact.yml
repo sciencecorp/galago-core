@@ -49,10 +49,7 @@ jobs:
       - name: Generate gRPC interfaces
         run: |
           python -m pip install grpcio-tools
-          # Same ts-proto version as `bin/make deps`; the controller lockfile's newer one emits code that fails tsc
-          npm install --prefix "$RUNNER_TEMP/ts-proto" ts-proto@1.151.1
-          PROTOC_GEN_TS_PATH="$RUNNER_TEMP\\ts-proto\\node_modules\\.bin\\protoc-gen-ts_proto" \
-            ./bin/make clean_proto proto_ts_v2
+          ./bin/make clean_proto proto_ts_v2
         shell: bash
 
       - name: Build Next.js app
